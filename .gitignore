@@ -481,19 +481,4 @@ pyrightconfig.json
 .history
 .ionide
 
-### Web ###
-*.asp
-*.cer
-*.csr
-*.css
-*.htm
-*.html
-*.js
-*.jsp
-*.php
-*.rss
-*.wasm
-*.wat
-*.xhtml
-
 # End of https://www.toptal.com/developers/gitignore/api/python,django,eclipse,intellij+iml,web,visualstudiocode,pythonvanilla,jupyternotebooks

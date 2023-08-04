@@ -1,0 +1,104 @@
+{% extends '../base/masterpage.html' %}
+{% load i18n %}
+{% block body %}
+
+    <h1>{{ assembly.name }}</h1>
+
+    <p class="fs-5 col-md-8">
+        {{ assembly.description }}
+    </p>
+
+    <div class="input-group">
+        <form action="{% url 'sndgwebapp:download' %}" method="get">
+            <select name="format" class="form-select" id="inputFormatSelect"
+                    aria-label="Select download format">
+                <option value="genome">{% trans 'Fasta genoma' %}</option>
+                <option value="genes">{% trans 'Fasta proteinas nt' %}</option>
+                <option value="proteins">{% trans 'Fasta proteinas aa' %}</option>
+                <option value="gff">{% trans 'GFF genoma' %}</option>
+                <option value="gbk">{% trans 'GBK genoma' %}</option>
+            </select>
+            <input type="hidden" name="accession" value="{{ assembly.name }}"/>
+            <input type="hidden" id="download_format" name="format" value="genome"/>
+            <button class="btn btn-primary"  type="submit"
+                    onclick="$('#download_format').val($('#inputFormatSelect').val())"
+                    >{% trans 'Descargar' %}</button>
+
+        </form>
+    </div>
+
+    <br/>
+
+    <div class="input-group input-group-lg">
+        <span class="input-group-text" id="inputGroup-sizing-lg">{% trans 'Navegar: ' %}</span>
+        <button type="button" class="btn btn-danger form-control">{% trans 'Proteínas' %}</button>
+        <button type="button" class="btn btn-warning form-control">{% trans 'Genes' %}</button>
+    </div>
+
+
+    <hr class="col-3 col-md-2 mb-5"/>
+
+    <div class="row g-5">
+        <div class="col-md-6">
+            <h2>{% trans 'Propiedades' %}</h2>
+            <table class="table table-striped">
+
+                <tbody>
+                {% for k,v in assembly.props.items %}
+                    <tr>
+                        <th>{{ k }}</th>
+                        <td>{{ v }}</td>
+                    </tr>
+                {% endfor %}
+
+                </tbody>
+            </table>
+        </div>
+
+
+    </div>
+
+
+
+
+    <div style="width: 100%; margin: 0 auto;">
+        <iframe
+                src="{{ jbrowse_url }}"
+                style="border: 1px solid black"
+                width="100%"
+                height="500px"
+        >
+        </iframe>
+    </div>
+
+    {% if assembly.links %}
+
+        <div class="row g-5">
+            <div class="col-md-6">
+                <h2>{% trans 'Relaciones' %}</h2>
+                <p>{% trans 'Datos relacionados con este recurso' %}</p>
+                <ul class="icon-list">
+                    <li>{% trans 'Tax' %}: {{ assembly.tax_id }}</li>
+                    <li>{% trans 'bioproyecto' %}: {{ bioproject.id }}</li>
+                </ul>
+            </div>
+
+
+        </div>
+    {% else %}
+        <h3>{% trans 'Este dato no esta relacionado con ningún otro' %}</h3>
+    {% endif %}
+
+    </div>
+
+{% endblock %}
+
+{% block jsloaded %}
+    <script>
+        function jsloaded() {
+        }
+    </script>
+{% endblock %}
+
+{% block footer %}
+{% endblock %}
