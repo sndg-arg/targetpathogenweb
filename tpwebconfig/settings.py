@@ -56,6 +56,8 @@ if not WORKERPROC:
         'allauth.socialaccount.providers.orcid',
         'allauth.socialaccount.providers.google',
         'tellme',
+        'ckeditor',
+        'ckeditor_uploader',
     ]
 
 LOCAL_APPS = [
@@ -179,12 +181,14 @@ MEDIA_URL = env("DJANGO_MEDIA_URL", default='media/')
 # https://docs.djangoproject.com/en/dev/ref/settings/#static-url
 STATIC_URL = env("DJANGO_STATIC_URL", default="/static/")
 # https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#std:setting-STATICFILES_DIRS
-STATICFILES_DIRS = env.list("DJANGO_STATIC_DIRS", default=["static/"])
+
+STATICFILES_DIRS = env.list("DJANGO_STATIC_DIRS", default=[])
 # https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#staticfiles-finders
 STATICFILES_FINDERS = [
     "django.contrib.staticfiles.finders.FileSystemFinder",
     "django.contrib.staticfiles.finders.AppDirectoriesFinder",
 ]
+CKEDITOR_UPLOAD_PATH="uploads/"
 
 # Celery
 # ------------------------------------------------------------------------------
@@ -256,7 +260,6 @@ if DEBUG:
     SEQS_DATA_DIR = env("SEQS_DATA_DIR", default="./data/")
     SECRET_KEY = "123"
 
-
     INSTALLED_APPS.append("debug_toolbar")
     INSTALLED_APPS.append('django_extensions')
     MIDDLEWARE.append("debug_toolbar.middleware.DebugToolbarMiddleware")
@@ -282,9 +285,12 @@ if DEBUG:
         CELERY_RESULT_BACKEND=redis://127.0.0.1:6379/6
         CELERY_BROKER_URL=amqp://user:password@localhost:5672/project1-celery
     """
+    STATICFILES_DIRS.append(env("DJANGO_ROOT",default="static/"))
+    STATICFILES_DIRS.append(MEDIA_ROOT)
+    print(STATICFILES_DIRS)
 
 else:
-
+    STATIC_ROOT = env("DJANGO_ROOT")
     JBROWSE_BASE_URL = env("JBROWSE_BASE_URL")
     SEQS_DATA_DIR = env("SEQS_DATA_DIR")
 

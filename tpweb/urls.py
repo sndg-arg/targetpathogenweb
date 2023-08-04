@@ -9,6 +9,10 @@ from .views.ProteinListView import ProteinListView
 from .views.ProteinView import ProteinView
 from .views.TestCelery import test_celery
 
+from django.conf.urls.static import static
+
+from django.conf import settings
+
 from tpweb.views.UserViews import (
     user_detail_view,
     user_redirect_view,
@@ -30,4 +34,4 @@ urlpatterns = [
     path("protein",view=ProteinListView.as_view(),name="protein_list"),
     path("download",view=DownloadView.as_view(),name="download"),
 
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

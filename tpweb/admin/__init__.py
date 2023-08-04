@@ -1,0 +1,1 @@
+from tpweb.admin.TPPostAdmin import PostAdmin

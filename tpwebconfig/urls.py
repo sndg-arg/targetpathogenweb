@@ -19,6 +19,8 @@ from django.urls import include, path
 
 from tpweb.views.UserViews import user_redirect_view
 
+import tpweb.admin
+str(tpweb.admin) # Do not remove, it loads the admin models
 
 urlpatterns = [
     path(settings.ADMIN_URL, admin.site.urls),
@@ -26,6 +28,7 @@ urlpatterns = [
     path("", include("tpweb.urls")),
     path("accounts/", include("allauth.urls")),
     path('tellme/', include("tellme.urls")),
+    path('ckeditor/', include('ckeditor_uploader.urls')),
 ] if not settings.WORKERPROC else []
 
 
