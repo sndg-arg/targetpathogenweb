@@ -1,6 +1,6 @@
 # targetpathogenweb
 Target Pathogen Webapp Project
-mkdir dbs/db
+mkdir -p dbs/db
 docker run -u $(id -u ${USER}):$(id -g ${USER}) -p 5432:5432 --rm --name sndgr -v $PWD/dbs/db:/var/lib/postgresql/data \
 -e POSTGRES_PASSWORD=123 -e POSTGRES_DB=tp  -v /etc/passwd:/etc/passwd:ro --shm-size 512m postgres:14
 
@@ -9,6 +9,8 @@ docker run --rm -v $PWD/dbs/dbc:/data -u $(id -u ${USER}):$(id -g ${USER}) --shm
 
 docker build ./ -t sndgwebapp -f image/Dockerfile
 
+pip install -r requirements/base.txt
+pip install -r requirements/dev.txt
 
 ./manage.py shell_plus --ipython --print-sql
 

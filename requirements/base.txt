@@ -9,5 +9,6 @@ tqdm==4.65.0
 django-mathfilters==1.0.0
 django-cors-headers==4.2.0
 django-polymorphic==3.1.0
-django-tellme @ git+https://github.com/ludrao/django-tellme/
+django-ckeditor
+django-tellme @ git+https://github.com/ezequieljsosa/django-tellme/
 
