@@ -2,10 +2,13 @@ import 'bootstrap/dist/css/bootstrap.css';
 import "msa/css/msa.css";
 
 
+
 //import Phylocanvas from 'phylocanvas';
 import $ from 'jquery';
 import Fasta from 'biojs-io-fasta';
 
+import 'datatables.net';
+import 'datatables.net-dt/css/jquery.dataTables.css';
 
 import msa from "msa";
 //import phylocanvas from "@phylocanvas/phylocanvas.gl"

@@ -287,7 +287,7 @@ if DEBUG:
     """
     STATICFILES_DIRS.append(env("DJANGO_ROOT",default="static/"))
     STATICFILES_DIRS.append(MEDIA_ROOT)
-    print(STATICFILES_DIRS)
+
 
 else:
     STATIC_ROOT = env("DJANGO_ROOT")

@@ -9,7 +9,7 @@
     </p>
 
     <div class="input-group">
-        <form action="{% url 'sndgwebapp:download' %}" method="get">
+        <form action="{% url 'tpwebapp:download' %}" method="get">
             <select name="format" class="form-select" id="inputFormatSelect"
                     aria-label="Select download format">
                 <option value="genome">{% trans 'Fasta genoma' %}</option>
@@ -29,11 +29,13 @@
 
     <br/>
 
-    <div class="input-group input-group-lg">
-        <span class="input-group-text" id="inputGroup-sizing-lg">{% trans 'Navegar: ' %}</span>
-        <button type="button" class="btn btn-danger form-control">{% trans 'Proteínas' %}</button>
-        <button type="button" class="btn btn-warning form-control">{% trans 'Genes' %}</button>
-    </div>
+
+        <a type="button" class="btn btn-danger form-control"
+            href="{% url 'tpwebapp:protein_list' assembly.name %}">
+            {% trans 'Prioritize Targets' %}
+        </a>
+
+
 
 
     <hr class="col-3 col-md-2 mb-5"/>

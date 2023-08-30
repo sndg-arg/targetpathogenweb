@@ -1,0 +1,45 @@
+{% extends '../base/masterpage.html' %}
+{% load i18n %}
+{% load custom_tags %}
+
+{% block body %}
+
+
+<h1>{% trans "Proteins" %}</h1>
+
+<table  class="table">
+    <thead>
+    <tr>
+        <td>{% trans "Name" %}</td>
+        <td>{% trans "Description" %}</td>
+        <td>{% trans "Genes" %}</td>
+        {% for col in tcolumns %}
+            <td>{{col}}</td>
+        {% endfor %}
+    </tr>
+    </thead>
+    {% for protein in proteins %}
+<tr>
+
+    <td><a href="{% url 'tpwebapp:protein' protein.id %}">
+        {{protein.accession}}</a></td>
+    <td>{{protein.description}}</td>
+    <td>{{protein.genes|join:' '}}</td>
+    {% for col in tcolumns %}
+        <td>{{tdata|dictkey:protein.id|dictkey:col|default:""}}</td>
+    {% endfor %}
+
+</tr>
+    {% endfor %}
+</table>
+
+
+
+
+
+
+{% endblock %}
+
+
+{% block footer %}
+{% endblock %}

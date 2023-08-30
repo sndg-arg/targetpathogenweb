@@ -28,7 +28,10 @@
     "feature-viewer": "^1.2.1",
     "ngl":"^2.0.2",
     "protvista-track": "^3.8.8",
-    "@rdkit/rdkit": "^2023.3.2-1.0.0"
+    "@rdkit/rdkit": "^2023.3.2-1.0.0",
+
+    "datatables.net": "^1.13.6",
+    "datatables.net-dt": "^1.13.6"
 
   },
   "devDependencies": {

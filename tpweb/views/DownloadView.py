@@ -1,4 +1,4 @@
--import os.path
+import os.path
 
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseNotFound
 from django.utils.encoding import smart_str

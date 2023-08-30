@@ -1,0 +1,42 @@
+{% extends '../base/masterpage.html' %}
+{% load i18n %}
+{% load custom_tags %}
+
+{% block body %}
+
+
+<h1>{% trans "Genomes" %}</h1>
+
+<table  class="table">
+    <thead>
+    <tr>
+        <td>{% trans "Name" %}</td>
+        <td>{% trans "Description" %}</td>
+        {% for col in tcolumns %}
+            <td>{{col}}</td>
+        {% endfor %}
+    </tr>
+    </thead>
+    {% for genome in genomes %}
+<tr>
+
+    <td><a href="{% url 'tpwebapp:assembly' genome.name %}">
+        {{genome.name}}</a></td>
+    <td>{{genome.description}}</td>
+    {% for col in tcolumns %}
+      <td>{{genome|dictkey:col|default_if_none:"-"}}</td>
+    {% endfor %}
+</tr>
+    {% endfor %}
+</table>
+
+
+
+
+
+
+{% endblock %}
+
+
+{% block footer %}
+{% endblock %}
