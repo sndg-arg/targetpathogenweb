@@ -56,7 +56,7 @@ if not WORKERPROC:
         'tellme',
         'ckeditor',
         'ckeditor_uploader',
-        'crispy_forms',
+        #'crispy_forms',
     ]
 
     ALLAUTHAPPS = [ 'allauth',
