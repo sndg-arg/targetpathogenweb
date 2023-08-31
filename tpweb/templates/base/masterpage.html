@@ -33,12 +33,26 @@
                     <a class="nav-link" aria-current="page"
                        href="{% url 'tpwebapp:genomes_list' %}">{% trans "Genomes" %}</a>
                 </li>
+                {% comment "This is an optional note for comments" %}
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'tpwebapp:index' %}">{% trans "Stats" %}</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'tpwebapp:index' %}">{% trans "About TP" %}</a>
                 </li>
+                {% endcomment %}
+                {% if user.is_authenticated %}
+                <li class="nav-item">
+                    <form method="post" action="{% url 'account_logout' %}">
+                        {% csrf_token %}
+                        {% if redirect_field_value %}
+                            <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}"/>
+                        {% endif %}
+                        <button class="btn btn-danger" type="submit">Logout</button>
+                    </form>
+                </li>
+                {% endif %}
+
             </ul>
             <ul class="navbar-nav">
                 <form class="d-flex">

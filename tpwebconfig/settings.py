@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/4.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.1/ref/settings/
 """
+
 import sys
 
 from pathlib import Path
@@ -46,19 +47,23 @@ DJANGO_APPS = [
 ]
 
 THIRD_PARTY_APPS = []
+ALLAUTHAPPS = []
 
 if not WORKERPROC:
     THIRD_PARTY_APPS = THIRD_PARTY_APPS + [
         "corsheaders",
-        'allauth',
-        'allauth.account',
-        'allauth.socialaccount',
-        'allauth.socialaccount.providers.orcid',
-        'allauth.socialaccount.providers.google',
+
         'tellme',
         'ckeditor',
         'ckeditor_uploader',
+        'crispy_forms',
     ]
+
+    ALLAUTHAPPS = [ 'allauth',
+                    'allauth.account',
+                    'allauth.socialaccount',
+                    'allauth.socialaccount.providers.orcid',
+                    'allauth.socialaccount.providers.google',]
 
 LOCAL_APPS = [
     "sndgjobs",
@@ -66,7 +71,7 @@ LOCAL_APPS = [
     "tpweb.apps.TPappConfig",
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
-INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
+INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS + ALLAUTHAPPS
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -245,11 +250,11 @@ ACCOUNT_EMAIL_REQUIRED = True
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
-ACCOUNT_ADAPTER = "tpwebapp.adapters.AccountAdapters.AccountAdapter"
+ACCOUNT_ADAPTER = "tpweb.adapters.AccountAdapters.AccountAdapter"
 # https://django-allauth.readthedocs.io/en/latest/forms.html
 ACCOUNT_FORMS = {"signup": "tpweb.forms.UserSignupForm"}
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
-SOCIALACCOUNT_ADAPTER = "tpwebapp.adapters.AccountAdapters.SocialAccountAdapter"
+SOCIALACCOUNT_ADAPTER = "tpweb.adapters.AccountAdapters.SocialAccountAdapter"
 # https://django-allauth.readthedocs.io/en/latest/forms.html
 # SOCIALACCOUNT_FORMS = {"signup": "sndg.users.forms.UserSocialSignupForm"}
 

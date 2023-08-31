@@ -12,15 +12,15 @@
     <tr>
         <td>{% trans "Name" %}</td>
         <td>{% trans "Description" %}</td>
-        {% for col in tcolumns %}
-            <td>{{col}}</td>
+        {% for col,name in tcolumns.items %}
+            <td>{{name}}</td>
         {% endfor %}
     </tr>
     </thead>
     {% for genome in genomes %}
 <tr>
 
-    <td><a href="{% url 'tpwebapp:assembly' genome.name %}">
+    <td><a href="{% url 'tpwebapp:protein_list' genome.name %}">
         {{genome.name}}</a></td>
     <td>{{genome.description}}</td>
     {% for col in tcolumns %}

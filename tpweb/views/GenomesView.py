@@ -6,7 +6,9 @@ from bioseq.models.Biodatabase import Biodatabase
 
 class GenomesView(View):
     template_name = 'search/genomes.html'
-    tcolumns = ["EntryLength", "GC", "COUNT_gene", "COUNT_pathways", "COUNT_structures"]
+    tcolumns = {"EntryLength":"Length [bp]",
+                "COUNT_CDS":"# Proteins",
+                "COUNT_STRUCTS": "# Structures"} #["EntryLength", "GC", "COUNT_gene", "COUNT_pathways", "COUNT_structures"]
 
     def get(self, request, *args, **kwargs):
 
