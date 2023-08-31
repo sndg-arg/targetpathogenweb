@@ -34,7 +34,7 @@ WORKERPROC = sys.argv[0].endswith("celery")
 ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=["localhost", "0.0.0.0", "127.0.0.1"])
 CSRF_TRUSTED_ORIGINS = env.list("DJANGO_CSRF_TRUSTED_ORIGINS", default=["https://" + x for x in ALLOWED_HOSTS])
 # Application definition
-
+print(CSRF_TRUSTED_ORIGINS)
 DJANGO_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
