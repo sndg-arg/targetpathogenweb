@@ -32,7 +32,7 @@
 
         <tr>
             <td>{% trans 'Assembly' %}</td>
-            <td><a href="{% url 'tpwebapp:assembly' protein.assembly_id %}">{{ protein.assembly_name }}</a></td>
+            <td><a href="{% url 'tpwebapp:protein_list' protein.assembly_name %}">{{ protein.assembly_description }}</a></td>
         </tr>
         </tbody>
     </table>
@@ -153,17 +153,21 @@
 
         {% if structure.residuesets %}
             <h4>Features</h4>
-            <table class="table">
-
+            <table id="residuesetsTable" class="table">
+                <thead><tr><td>Type</td><td>Name</td><td>View</td><td>Positions</td><td>Positions</td></tr></thead>
+                <tbody>
             {% for rs in structure.residuesets %}
                 <tr>
-                    <td>{{rs.name}}</td>
+                    <td>{{ rs.rs_name }}</td>
+                    <td> <a title="{{ rs.description }}">{{rs.description}}</a> </td>
                     <td><input type="checkbox"  onchange="toogle_view('{{rs.name}}')"></td>
+                    <td><input type="button" onclick="ngl_zoom_to('{{rs.name}}')" value="Zoom" /></td>
                     <td> <input type="button" class="button" value="positions"
                                 onclick="alert('{{ rs.residues | join:" " }}')"
                     />  </td>
                 </tr>
             {% endfor %}
+                </tbody>
             </table>
 
         {% endif  %}
@@ -338,6 +342,11 @@
 
                     {% if pockets|length > 5 %}
                         $('#pocketsTable').DataTable({"searching": false,pageLength:5, paging: true,"lengthChange": false,
+                            "order": [[ 3, "desc" ]] });
+                    {% endif %}
+
+                    {% if  structure.residuesets|length > 5 %}
+                        $('#residuesetsTable').DataTable({"searching": true,pageLength:10, paging: true,"lengthChange": false,
                             "order": [[ 3, "desc" ]] });
                     {% endif %}
 

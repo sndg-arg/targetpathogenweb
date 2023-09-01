@@ -17,10 +17,10 @@ pip install -r requirements/dev.txt
 docker run -u $(id -u ${USER}):$(id -g ${USER}) -p 5432:5432 --rm --name sndgr -v $PWD/dbs/db:/var/lib/postgresql/data \
 -e POSTGRES_PASSWORD=123 -e POSTGRES_DB=tp  -v /etc/passwd:/etc/passwd:ro --shm-size 512m postgres:14
 
-export DJANGO_DEBUG=True;
-export DJANGO_SETTINGS_MODULE=tpwebconfig.settings;
-export DJANGO_DATABASE_URL=psql://postgres:123@127.0.0.1:5432/tp;
-export CELERY_BROKER_URL=redis://localhost:6379/0;
+export DJANGO_DEBUG=True
+export DJANGO_SETTINGS_MODULE=tpwebconfig.settings
+export DJANGO_DATABASE_URL=psql://postgres:123@127.0.0.1:5432/tp
+export CELERY_BROKER_URL=redis://localhost:6379/0
 
 # Add sndg-jobs / sndg-biodb / targetpathogen to pythonpath
 export PYTHONPATH=$PYTHONPATH:../sndg/sndg-jobs:../sndg/sndg-biodb:../targetpathogen
@@ -28,6 +28,10 @@ export PYTHONPATH=$PYTHONPATH:../sndg/sndg-jobs:../sndg/sndg-biodb:../targetpath
 # test 
 ./manage.py shell_plus --ipython --print-sql
 
+./manage.py load_fpocket JFMELOJP_01523
+
+./manage.py  load_residueset JFMELOJP_01515 data/ELO/JFMELOJP/JFMELOJP_01515_res_ann.tbl
+ ./manage.py load_score_values JFMELOJP ab_props.txt 
 
 ```
 # Docker image

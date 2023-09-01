@@ -126,7 +126,7 @@ class ResidueSet(models.Model):
         unique_together = (("name"),)
 
     def __repr__(self):
-        return f'ResidueSet({name})'
+        return f'ResidueSet({self.name})'
 
     def __str__(self):
         return self.__repr__()
@@ -138,6 +138,7 @@ class PDBResidueSet(models.Model):
     residue_set = models.ForeignKey(ResidueSet, related_name='residuesets',
                                     db_column="residueset_id", on_delete=models.CASCADE)
     name = models.CharField(max_length=100, default="")
+    description = models.TextField(blank=True, default="")
 
     class Meta:
         unique_together = (('pdb', "residue_set", "name"),)

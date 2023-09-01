@@ -27,7 +27,7 @@ urlpatterns = [
     path("~redirect/", view=user_redirect_view, name="redirect"),
     path("", include("tpweb.urls")),
     path("accounts/", include("allauth.urls")),
-    path('tellme/', include("tellme.urls")),
+
     path('ckeditor/', include('ckeditor_uploader.urls')),
 ] if not settings.WORKERPROC else []
 

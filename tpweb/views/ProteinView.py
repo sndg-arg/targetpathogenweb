@@ -4,6 +4,7 @@ from django.db.models import Q
 
 import itertools
 
+from bioseq.models.Biodatabase import Biodatabase
 from bioseq.models.Bioentry import Bioentry
 from bioseq.models.Ontology import Ontology
 from tpweb.models.BioentryStructure import BioentryStructure
@@ -11,12 +12,14 @@ from tpweb.models.pdb import PDB, Residue, Property, ResidueSet, PDBResidueSet
 
 
 def serialize_prot(protein: Bioentry):
+    bdb = Biodatabase.objects.filter(name=protein.biodatabase.name.split(Biodatabase.PROT_POSTFIX)[0]).get()
     protein2 = {"accession": protein.name,
                 "description": protein.description,
                 "gene": " ".join(protein.genes()),
                 "size": protein.seq.length,
-                "assembly_id": protein.biodatabase.biodatabase_id,
-                "assembly_name": protein.biodatabase.name,
+                "assembly_id": bdb.biodatabase_id,
+                "assembly_name":   bdb.name,
+                "assembly_description": bdb.description if bdb.description else  bdb.name,
                 "status": "annotated",
                 "seq": protein.seq.seq
                 }
@@ -135,8 +138,6 @@ def pdb_structure(pdbobj,graphic_features):
         p.residues = []
         data = []
 
-
-
         for rsr in p.residue_set_residue.all():
             data.append({"x": rsr.residue.resid,
                          "y": rsr.residue.resid,
@@ -154,10 +155,6 @@ def pdb_structure(pdbobj,graphic_features):
         }
         graphic_features.append(gf)
 
-
-
-
-
     rss = PDBResidueSet.objects.prefetch_related(
         "properties__property",
         "residue_set_residue__residue").filter(
@@ -165,7 +162,9 @@ def pdb_structure(pdbobj,graphic_features):
         (~Q(residue_set__name="FPocketPocket")))
     context["residuesets"] = []
     for rs in rss:
-        context["residuesets"].append({"name": rs.name,
+        context["residuesets"].append({ "rs_name": rs.residue_set.name,
+                                        "name": rs.name,
+                                        "description": rs.description,
                                        "residues": [x.residue.resid
                                                     for x in rs.residue_set_residue.all()]})
         gf = {
@@ -179,8 +178,7 @@ def pdb_structure(pdbobj,graphic_features):
         }
         graphic_features.append(gf)
     context["pdbid"] = pdbobj.code.lower()
-
-
+    context["residuesets"] = sorted(context["residuesets"],key=lambda x:x["rs_name"])
 
     return {**context}
 

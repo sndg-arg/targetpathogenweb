@@ -34,7 +34,7 @@ WORKERPROC = sys.argv[0].endswith("celery")
 ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=["localhost", "0.0.0.0", "127.0.0.1"])
 CSRF_TRUSTED_ORIGINS = env.list("DJANGO_CSRF_TRUSTED_ORIGINS", default=["https://" + x for x in ALLOWED_HOSTS])
 # Application definition
-print(CSRF_TRUSTED_ORIGINS)
+
 DJANGO_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -53,7 +53,7 @@ if not WORKERPROC:
     THIRD_PARTY_APPS = THIRD_PARTY_APPS + [
         "corsheaders",
 
-        'tellme',
+
         'ckeditor',
         'ckeditor_uploader',
         #'crispy_forms',
@@ -264,14 +264,17 @@ if DEBUG:
     JBROWSE_BASE_URL = env("JBROWSE_BASE_URL", default="http://localhost:3000/")
     SEQS_DATA_DIR = env("SEQS_DATA_DIR", default="./data/")
     SECRET_KEY = "123"
-
-    INSTALLED_APPS.append("debug_toolbar")
     INSTALLED_APPS.append('django_extensions')
+    """
+    INSTALLED_APPS.append("debug_toolbar")
+    
     MIDDLEWARE.append("debug_toolbar.middleware.DebugToolbarMiddleware")
+    
     DEBUG_TOOLBAR_CONFIG = {
         "DISABLE_PANELS": ["debug_toolbar.panels.redirects.RedirectsPanel"],
         "SHOW_TEMPLATE_CONTEXT": True,
     }
+    """
     # https://docs.djangoproject.com/en/dev/ref/settings/#caches
     CACHES = {
         "default": {

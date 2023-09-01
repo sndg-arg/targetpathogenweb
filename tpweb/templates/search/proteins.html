@@ -4,17 +4,39 @@
 
 {% block body %}
 
+    <style>
+        .max-width-column {
+            max-width: 100px; /* Ajusta este valor según tus necesidades */
+            overflow: hidden;
+            text-overflow: ellipsis; /* Opcional: Agrega puntos suspensivos al final del contenido desbordado */
+            white-space: nowrap;
+        }
+    </style>
 
-<h1>{% trans "Proteins" %}</h1>
 
-<table  class="table">
+<h1>{% trans "Proteins" %} ({{ biodb__name }})</h1>
+
+
+{% if formula  %}
+
+    {{ formula.name }} = {% for t in formula.terms %}
+    <span title="{{ t.desc }}"> {{ t.coefficient }} * {{ t.param }}</span>
+    {%   if not forloop.last %} + {% endif %}
+{% endfor %}
+
+{% endif %}
+
+
+<table id="proteins_table"  class="table table-striped table-sm">
     <thead>
     <tr>
-        <td>{% trans "Name" %}</td>
-        <td>{% trans "Description" %}</td>
-        <td>{% trans "Genes" %}</td>
+        <th>{% trans "Name" %}</th>
+        <th>{% trans "Description" %}</th>
+        <th>{% trans "Gene" %}</th>
+
+
         {% for col in tcolumns %}
-            <td>{{col}}</td>
+            <th>{{col|replace_char:"_, " }} </th>
         {% endfor %}
     </tr>
     </thead>
@@ -24,9 +46,12 @@
     <td><a href="{% url 'tpwebapp:protein' protein.id %}">
         {{protein.accession}}</a></td>
     <td>{{protein.description}}</td>
-    <td>{{protein.genes|join:' '}}</td>
+    <td class="max-width-column ">{{protein.genes|join:'<br />'}}</td>
     {% for col in tcolumns %}
-        <td>{{tdata|dictkey:protein.id|dictkey:col|default:""}}</td>
+        <td>{{tdata|dictkey:protein.id|dictkey:col|default:""}}<br />{%  if col != "Score" %}
+        ({{ weights|dictkey:protein.id|dictkey:col }})
+        {% endif %}
+        </td>
     {% endfor %}
 
 </tr>
@@ -34,10 +59,21 @@
 </table>
 
 
+<style>
+    #proteins_table td:nth-child(4) {
+        font-weight: bold;
+    }
+
+</style>
 
 
 
+{% endblock %}
 
+{% block jsloaded %}
+    <script>
+
+    </script>
 {% endblock %}
 
 
