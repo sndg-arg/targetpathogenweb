@@ -36,7 +36,7 @@
 
 
         {% for col in tcolumns %}
-            <th>{{col|replace_char:"_, " }} </th>
+            <th title="{{ col_descriptions|dictkey:col }}">{{col|replace_char:"_, " }} </th>
         {% endfor %}
     </tr>
     </thead>

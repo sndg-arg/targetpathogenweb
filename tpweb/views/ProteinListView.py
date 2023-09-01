@@ -19,7 +19,15 @@ class ProteinListView(View):
         bdb = Biodatabase.objects.filter(name=assembly_name).get()
         # ScoreParam.initialize()
         formula = ScoreFormula.objects.filter(name="GARDP").get()
-        formuladto = self.create_formuladto(formula)
+
+        col_descriptions = {t.score_param.name: t.score_param.description + "Possible values: " +
+                                                "-".join(
+                                                    [x.name for x in t.score_param.choices.all()]) + ". " + ". ".join(
+            [x.name + ": " + x.description for x in t.score_param.choices.all() if x.description])
+
+                            for t in formula.terms.all()}
+
+        formuladto = self.create_formuladto(formula, col_descriptions)
         weights = {}  # x.score_param.name:x.coefficient for x in  formula.terms.all()
 
         score_params = list(ScoreParam.objects.all())
@@ -82,6 +90,7 @@ class ProteinListView(View):
             weights[protein.bioentry_id] = weight
 
             proteins_dto.append(protein_dto)
+
         proteins_dto = sorted(proteins_dto, key=lambda x: x["score"], reverse=True)
 
         return render(request, self.template_name, {
@@ -92,17 +101,16 @@ class ProteinListView(View):
             "tcolumns": tcolumns,
             "weights": weights,
             "tdata": tdatas,
-            "formula": formuladto
+            "formula": formuladto,
+            "col_descriptions":col_descriptions
         })  # , {'form': form})
 
-    def create_formuladto(self, formula: ScoreFormula):
+    def create_formuladto(self, formula: ScoreFormula, desc_dict):
         formuladto = {
             "name": formula.name,
             "terms": [{"coefficient": t.coefficient,
                        "param": t.score_param.name,
-                       "desc": t.score_param.description + "Possible values: " +
-                               "-".join([x.name for x in t.score_param.choices.all()]) + ". " +  ". ".join(
-                           [x.name + ": " + x.description for x in t.score_param.choices.all() if x.description])
+                       "desc": desc_dict[t.score_param.name]
                        }
                       for t in formula.terms.all()]
         }

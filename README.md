@@ -40,6 +40,8 @@ docker build ./ -t sndgwebapp -f image/Dockerfile
 echo 123 > dbs/db/.pgpass
 docker exec sndgr bash -c 'PGPASSFILE=/var/lib/postgresql/data/.pgpass;pg_dump -U postgres -w -F p -d tp | gzip > /var/lib/postgresql/data/db.sql.gz'
 
+#Recover
+zcat db.sql.gz | psql -U postgres tp
 
 
 
