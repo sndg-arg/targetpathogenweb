@@ -17,11 +17,11 @@ import msa from "msa";
 
 //Phylocanvas.plugin(metadata);
 
-import blasterjs from 'biojs-vis-blasterjs';
+//import blasterjs from 'biojs-vis-blasterjs';
 
 window.$ = $;
 window.msa = msa;
-window.blasterjs = blasterjs;
+//window.blasterjs = blasterjs;
 //window.Phylocanvas = Phylocanvas;
 //window.PhylocanvasGL = PhylocanvasGL;
 //window.TreeTypes = TreeTypes;
