@@ -57,9 +57,13 @@ class ScoreParam(models.Model):
         ScoreParamOptions.objects.get_or_create(score_param=sp,name="Y")
         """
         from tpweb.models.ScoreFormula import ScoreFormula, ScoreFormulaParam
+
         ScoreFormula.objects.filter(name="GARDP").delete()
-        sf = ScoreFormula(name="GARDP")
-        sf.save()
+
+        sf_to = ScoreFormula(name="GARDP_Target_Overall")
+        sf_vs = ScoreFormula(name="GARDP_Virtual_Screening")
+        sf_to.save()
+        sf_vs.save()
 
 
         sp = ScoreParam.objects.get_or_create(
@@ -69,7 +73,8 @@ class ScoreParam(models.Model):
         ScoreParamOptions.objects.get_or_create(score_param=sp, name="Y")
         ScoreParamOptions.objects.get_or_create(score_param=sp, name="N")
 
-        ScoreFormulaParam(formula=sf,operation="=",coefficient=2,value="Y",score_param=sp).save()
+        ScoreFormulaParam(formula=sf_to,operation="=",coefficient=2,value="Y",score_param=sp).save()
+        ScoreFormulaParam(formula=sf_vs,operation="=",coefficient=2,value="Y",score_param=sp).save()
 
         sp = ScoreParam.objects.get_or_create(
             category="Pocket", name="human_offtarget", type="CATEGORICAL",
@@ -85,8 +90,12 @@ class ScoreParam(models.Model):
                                                 )
         ScoreParamOptions.objects.get_or_create(score_param=sp, name="None",
                                                 description="protein has no significant hits (evalue < 1e-5) against a human protein")
-        ScoreFormulaParam(formula=sf,operation="=",coefficient=1,value="None",score_param=sp).save()
-        ScoreFormulaParam(formula=sf,operation="=",coefficient=-0.5,value="Partial",score_param=sp).save()
+
+        ScoreFormulaParam(formula=sf_to,operation="=",coefficient=1,value="None",score_param=sp).save()
+        ScoreFormulaParam(formula=sf_to,operation="=",coefficient=-0.5,value="Partial",score_param=sp).save()
+
+        ScoreFormulaParam(formula=sf_vs,operation="=",coefficient=1,value="None",score_param=sp).save()
+        ScoreFormulaParam(formula=sf_vs,operation="=",coefficient=-0.5,value="Partial",score_param=sp).save()
 
         sp = ScoreParam.objects.get_or_create(
             category="Protein", name="resist_mutation", type="CATEGORICAL",
@@ -95,7 +104,8 @@ class ScoreParam(models.Model):
         ScoreParamOptions.objects.get_or_create(score_param=sp, name="Y")
         ScoreParamOptions.objects.get_or_create(score_param=sp, name="N")
 
-        ScoreFormulaParam(formula=sf,operation="=",coefficient=1,value="N",score_param=sp).save()
+        ScoreFormulaParam(formula=sf_to,operation="=",coefficient=1,value="N",score_param=sp).save()
+        ScoreFormulaParam(formula=sf_vs,operation="=",coefficient=1,value="N",score_param=sp).save()
 
         sp = ScoreParam.objects.get_or_create(
             category="Ligand", name="ligands_literature", type="CATEGORICAL",
@@ -104,7 +114,10 @@ class ScoreParam(models.Model):
         ScoreParamOptions.objects.get_or_create(score_param=sp, name="Y")
         ScoreParamOptions.objects.get_or_create(score_param=sp, name="N")
 
-        ScoreFormulaParam(formula=sf,operation="=",coefficient=1,value="Y",score_param=sp).save()
+        ScoreFormulaParam(formula=sf_to,operation="=",coefficient=-0.5,value="Y",score_param=sp).save()
+        ScoreFormulaParam(formula=sf_to,operation="=",coefficient=1,value="N",score_param=sp).save()
+        ScoreFormulaParam(formula=sf_vs,operation="=",coefficient=-0.5,value="Y",score_param=sp).save()
+        ScoreFormulaParam(formula=sf_vs,operation="=",coefficient=1,value="N",score_param=sp).save()
 
         sp = ScoreParam.objects.get_or_create(
             category="Pocket", name="pocket_with_csa", type="CATEGORICAL",
@@ -113,7 +126,8 @@ class ScoreParam(models.Model):
         ScoreParamOptions.objects.get_or_create(score_param=sp, name="Y")
         ScoreParamOptions.objects.get_or_create(score_param=sp, name="N")
 
-        ScoreFormulaParam(formula=sf,operation="=",coefficient=1,value="Y",score_param=sp).save()
+        ScoreFormulaParam(formula=sf_to,operation="=",coefficient=1,value="Y",score_param=sp).save()
+        ScoreFormulaParam(formula=sf_vs,operation="=",coefficient=2,value="Y",score_param=sp).save()
 
         sp = ScoreParam.objects.get_or_create(
             category="Pocket", name="pocket_with_ppi", type="CATEGORICAL",
@@ -122,7 +136,8 @@ class ScoreParam(models.Model):
         ScoreParamOptions.objects.get_or_create(score_param=sp, name="Y")
         ScoreParamOptions.objects.get_or_create(score_param=sp, name="N")
 
-        ScoreFormulaParam(formula=sf,operation="=",coefficient=1,value="Y",score_param=sp).save()
+        ScoreFormulaParam(formula=sf_to,operation="=",coefficient=1,value="Y",score_param=sp).save()
+        ScoreFormulaParam(formula=sf_vs,operation="=",coefficient=1,value="Y",score_param=sp).save()
 
         sp = ScoreParam.objects.get_or_create(
             category="Protein", name="vs_hts_in_literature", type="CATEGORICAL",
@@ -132,7 +147,8 @@ class ScoreParam(models.Model):
         ScoreParamOptions.objects.get_or_create(score_param=sp, name="Y")
         ScoreParamOptions.objects.get_or_create(score_param=sp, name="N")
 
-        ScoreFormulaParam(formula=sf,operation="=",coefficient=1,value="Y",score_param=sp).save()
+        ScoreFormulaParam(formula=sf_to,operation="=",coefficient=1,value="Y",score_param=sp).save()
+        ScoreFormulaParam(formula=sf_vs,operation="=",coefficient=1,value="Y",score_param=sp).save()
 
         sp = ScoreParam.objects.get_or_create(
             category="Protein", name="insilico_simulation_complexity", type="CATEGORICAL",
@@ -147,18 +163,67 @@ class ScoreParam(models.Model):
         ScoreParamOptions.objects.get_or_create(score_param=sp, name="Low",
                                                 description="no membrane domains")
 
-        ScoreFormulaParam(formula=sf,operation="=",coefficient=1,value="Low",score_param=sp).save()
-        ScoreFormulaParam(formula=sf,operation="=",coefficient=-0.5,value="Medium",score_param=sp).save()
+        ScoreFormulaParam(formula=sf_vs,operation="=",coefficient=-1,value="High",score_param=sp).save()
+        ScoreFormulaParam(formula=sf_vs,operation="=",coefficient=-0.5,value="Medium",score_param=sp).save()
+        ScoreFormulaParam(formula=sf_vs,operation="=",coefficient=1,value="Low",score_param=sp).save()
+
 
         sp = ScoreParam.objects.get_or_create(
             category="Pocket", name="pocket_interspecies_overlap", type="CATEGORICAL",
             description="Some pockets between orthologs overlaps. "
-                        "Correspondence between positions is performed by structrual alignment using TM-align",
+                        "Correspondence between positions is performed by structural alignment using TM-align",
             default_operation="=", default_value="N")[0]
         ScoreParamOptions.objects.get_or_create(score_param=sp, name="Y",
-                                                description="at leart 60% of the residues for each pocket must overlap")
+                                                description="at least 60% of the residues for each pocket must overlap")
         ScoreParamOptions.objects.get_or_create(score_param=sp, name="N")
-        ScoreFormulaParam(formula=sf,operation="=",coefficient=1,value="Y",score_param=sp).save()
+        ScoreFormulaParam(formula=sf_to,operation="=",coefficient=1,value="Y",score_param=sp).save()
+        ScoreFormulaParam(formula=sf_vs,operation="=",coefficient=1,value="Y",score_param=sp).save()
+
+
+        sp = ScoreParam.objects.get_or_create(
+            category="Pocket", name="ligand_target_crystal_precedence", type="CATEGORICAL",
+            description="Some pockets between orthologs overlaps. "
+                        "Correspondence between positions is performed by structural alignment using TM-align",
+            default_operation="=", default_value="N")[0]
+        ScoreParamOptions.objects.get_or_create(score_param=sp, name="Y",
+                                                description="at least 60% of the residues for each pocket must overlap")
+        ScoreParamOptions.objects.get_or_create(score_param=sp, name="N")
+
+
+        ScoreFormulaParam(formula=sf_to,operation="=",coefficient=2,value="Y",score_param=sp).save()
+        ScoreFormulaParam(formula=sf_vs,operation="=",coefficient=2,value="Y",score_param=sp).save()
+
+        sp = ScoreParam.objects.get_or_create(
+            category="Pocket", name="subcellular_location", type="CATEGORICAL",
+            description="As deduced based on where pocket residues are located according to protein domains and "
+                        "topology predicted with ProSite and/or TMHMM (hidden Markov model).",
+            default_operation="=", default_value="N")[0]
+        ScoreParamOptions.objects.get_or_create(score_param=sp, name="extracellular_space")
+        ScoreParamOptions.objects.get_or_create(score_param=sp, name="periplasm")
+        ScoreParamOptions.objects.get_or_create(score_param=sp, name="cytoplasm")
+        ScoreParamOptions.objects.get_or_create(score_param=sp, name="inner_membrane")
+        ScoreParamOptions.objects.get_or_create(score_param=sp, name="outer_membrane")
+
+        ScoreFormulaParam(formula=sf_to,operation="=",coefficient=2,value="extracellular_space",score_param=sp).save()
+        ScoreFormulaParam(formula=sf_to,operation="=",coefficient=1,value="periplasm",score_param=sp).save()
+
+        ScoreFormulaParam(formula=sf_vs,operation="=",coefficient=1,value="extracellular_space",score_param=sp).save()
+        ScoreFormulaParam(formula=sf_vs,operation="=",coefficient=1,value="cytoplasm",score_param=sp).save()
+        ScoreFormulaParam(formula=sf_vs,operation="=",coefficient=1,value="periplasm",score_param=sp).save()
+
+        sp = ScoreParam.objects.get_or_create(
+            category="Pocket", name="druggable_pocket_count", type="CATEGORICAL",
+            description="The protein has more than one druggable pocket",
+            default_operation="=", default_value="N")[0]
+        ScoreParamOptions.objects.get_or_create(score_param=sp, name="Y",
+                                                description="the protein has two or more pockets druggable pockets")
+        ScoreParamOptions.objects.get_or_create(score_param=sp, name="1",
+                                                description="the protein has only one druggable pocket")
+        ScoreParamOptions.objects.get_or_create(score_param=sp, name="0",
+                                                description="target has no druggable pockets")
+
+
+
 
 
 class ScoreParamOptions(models.Model):
