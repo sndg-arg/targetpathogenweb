@@ -49,7 +49,9 @@
     <td class="max-width-column ">{{protein.genes|join:'<br />'}}</td>
     {% for col in tcolumns %}
         <td>{{tdata|dictkey:protein.id|dictkey:col|default:""}}<br />{%  if col != "Score" %}
-        ({{ weights|dictkey:protein.id|dictkey:col }})
+
+        ({{ weights|dictkey:protein.id|dictkey:col|default:"0" }})
+
         {% endif %}
         </td>
     {% endfor %}

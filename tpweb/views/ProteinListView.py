@@ -18,19 +18,23 @@ class ProteinListView(View):
 
         bdb = Biodatabase.objects.filter(name=assembly_name).get()
         # ScoreParam.initialize()
-        formula = ScoreFormula.objects.filter(name="GARDP").get()
+        formula = ScoreFormula.objects.filter(name="GARDP_Target_Overall").get()
+        formula2 = ScoreFormula.objects.filter(name="GARDP_Virtual_Screening").get()
 
-        col_descriptions = {t.score_param.name: t.score_param.description + "Possible values: " +
+
+
+        col_descriptions = {t.score_param.name: t.score_param.description + ". Possible values: " +
                                                 "-".join(
                                                     [x.name for x in t.score_param.choices.all()]) + ". " + ". ".join(
             [x.name + ": " + x.description for x in t.score_param.choices.all() if x.description])
 
                             for t in formula.terms.all()}
 
+
         formuladto = self.create_formuladto(formula, col_descriptions)
         weights = {}  # x.score_param.name:x.coefficient for x in  formula.terms.all()
 
-        score_params = list(ScoreParam.objects.all())
+        score_params = set(x.score_param for x in formula.terms.all())
         tcolumns = ["Score"]
         score_dict = {}
         for sp in score_params:
@@ -71,7 +75,8 @@ class ProteinListView(View):
                     genome_dto[qname] = qvs[qname]
             
             """
-            tdata = {spv.score_param.name: spv.value for spv in protein.score_params.all()}
+            tdata = {spv.score_param.name: spv.value for spv in protein.score_params.all()
+                     if spv.score_param.name in col_descriptions}
             weight = {}
 
             for term in formula.terms.all():
@@ -95,7 +100,6 @@ class ProteinListView(View):
 
         return render(request, self.template_name, {
             "biodb__name": bdb.description if bdb.description else bdb.name,
-            "formula": formula,
             "proteins": proteins_dto,
             "score_dict": score_dict,
             "tcolumns": tcolumns,
@@ -106,12 +110,35 @@ class ProteinListView(View):
         })  # , {'form': form})
 
     def create_formuladto(self, formula: ScoreFormula, desc_dict):
+
+
+        terms = {}
+
+        for t in formula.terms.all():
+            if t.score_param.name in terms:
+                terms[t.score_param.name].append(t)
+            else:
+                terms[t.score_param.name] = [t]
+
+
+        terms2 = []
+        for param_name,ts in terms.items():
+            if len(ts) == 1:
+                t = ts[0]
+                terms2.append({"coefficient": t.coefficient,
+                               "param": t.score_param.name,
+                               "desc": desc_dict[t.score_param.name]
+                               })
+            else:
+                desc = " ".join( [ f'{t.coefficient} if {t.value} ' for t in ts  ])
+                terms2.append({"coefficient": 1,
+                               "param": t.score_param.name,
+                               "desc": desc
+                               })
+
         formuladto = {
             "name": formula.name,
-            "terms": [{"coefficient": t.coefficient,
-                       "param": t.score_param.name,
-                       "desc": desc_dict[t.score_param.name]
-                       }
-                      for t in formula.terms.all()]
+            "terms": terms2
         }
+
         return formuladto

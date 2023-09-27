@@ -58,7 +58,8 @@ class ScoreParam(models.Model):
         """
         from tpweb.models.ScoreFormula import ScoreFormula, ScoreFormulaParam
 
-        ScoreFormula.objects.filter(name="GARDP").delete()
+        ScoreFormula.objects.filter(name__startswith="GARDP").delete()
+        #ScoreParam.objects.all().delete()
 
         sf_to = ScoreFormula(name="GARDP_Target_Overall")
         sf_vs = ScoreFormula(name="GARDP_Virtual_Screening")
@@ -68,13 +69,17 @@ class ScoreParam(models.Model):
 
         sp = ScoreParam.objects.get_or_create(
             category="Pocket", name="druggable_pocket", type="CATEGORICAL",
-            description="Protein has at least one druggable pocket",
-            default_operation="=", default_value="Y")[0]
-        ScoreParamOptions.objects.get_or_create(score_param=sp, name="Y")
-        ScoreParamOptions.objects.get_or_create(score_param=sp, name="N")
+            description="Protein druggable pockets count",
+            default_operation="=", default_value="M")[0]
 
-        ScoreFormulaParam(formula=sf_to,operation="=",coefficient=2,value="Y",score_param=sp).save()
-        ScoreFormulaParam(formula=sf_vs,operation="=",coefficient=2,value="Y",score_param=sp).save()
+        ScoreParamOptions.objects.get_or_create(score_param=sp, name="M",description="more than one druggable pockets")
+        ScoreParamOptions.objects.get_or_create(score_param=sp, name="1",description="only one druggable pocket")
+        ScoreParamOptions.objects.get_or_create(score_param=sp, name="0",description="no druggable pockets")
+
+        ScoreFormulaParam(formula=sf_to,operation="=",coefficient=2.5,value="M",score_param=sp).save()
+        ScoreFormulaParam(formula=sf_to,operation="=",coefficient=2,value="1",score_param=sp).save()
+        ScoreFormulaParam(formula=sf_vs,operation="=",coefficient=1,value="M",score_param=sp).save()
+        ScoreFormulaParam(formula=sf_vs,operation="=",coefficient=2,value="1",score_param=sp).save()
 
         sp = ScoreParam.objects.get_or_create(
             category="Pocket", name="human_offtarget", type="CATEGORICAL",
@@ -114,10 +119,9 @@ class ScoreParam(models.Model):
         ScoreParamOptions.objects.get_or_create(score_param=sp, name="Y")
         ScoreParamOptions.objects.get_or_create(score_param=sp, name="N")
 
-        ScoreFormulaParam(formula=sf_to,operation="=",coefficient=-0.5,value="Y",score_param=sp).save()
-        ScoreFormulaParam(formula=sf_to,operation="=",coefficient=1,value="N",score_param=sp).save()
-        ScoreFormulaParam(formula=sf_vs,operation="=",coefficient=-0.5,value="Y",score_param=sp).save()
-        ScoreFormulaParam(formula=sf_vs,operation="=",coefficient=1,value="N",score_param=sp).save()
+        ScoreFormulaParam(formula=sf_to,operation="=",coefficient=1,value="Y",score_param=sp).save()
+        ScoreFormulaParam(formula=sf_vs,operation="=",coefficient=1,value="Y",score_param=sp).save()
+
 
         sp = ScoreParam.objects.get_or_create(
             category="Pocket", name="pocket_with_csa", type="CATEGORICAL",
@@ -136,8 +140,8 @@ class ScoreParam(models.Model):
         ScoreParamOptions.objects.get_or_create(score_param=sp, name="Y")
         ScoreParamOptions.objects.get_or_create(score_param=sp, name="N")
 
-        ScoreFormulaParam(formula=sf_to,operation="=",coefficient=1,value="Y",score_param=sp).save()
-        ScoreFormulaParam(formula=sf_vs,operation="=",coefficient=1,value="Y",score_param=sp).save()
+        ScoreFormulaParam(formula=sf_to,operation="=",coefficient=0.5,value="Y",score_param=sp).save()
+        ScoreFormulaParam(formula=sf_vs,operation="=",coefficient=0.5,value="Y",score_param=sp).save()
 
         sp = ScoreParam.objects.get_or_create(
             category="Protein", name="vs_hts_in_literature", type="CATEGORICAL",
@@ -211,16 +215,7 @@ class ScoreParam(models.Model):
         ScoreFormulaParam(formula=sf_vs,operation="=",coefficient=1,value="cytoplasm",score_param=sp).save()
         ScoreFormulaParam(formula=sf_vs,operation="=",coefficient=1,value="periplasm",score_param=sp).save()
 
-        sp = ScoreParam.objects.get_or_create(
-            category="Pocket", name="druggable_pocket_count", type="CATEGORICAL",
-            description="The protein has more than one druggable pocket",
-            default_operation="=", default_value="N")[0]
-        ScoreParamOptions.objects.get_or_create(score_param=sp, name="Y",
-                                                description="the protein has two or more pockets druggable pockets")
-        ScoreParamOptions.objects.get_or_create(score_param=sp, name="1",
-                                                description="the protein has only one druggable pocket")
-        ScoreParamOptions.objects.get_or_create(score_param=sp, name="0",
-                                                description="target has no druggable pockets")
+
 
 
 
