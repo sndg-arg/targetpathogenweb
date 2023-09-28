@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 import os, argparse, sys
 import subprocess as sb
+import django
+from django.core import management
 def main():
     genomes = list()
     parser = argparse.ArgumentParser()
@@ -11,21 +13,17 @@ def main():
     args = parser.parse_args()
     for l in args.genomes:
         genomes.append(l.strip().upper())
-    shell_script_text = "#!/bin/bash\n"
     for genome in genomes:
         folder_name = genome.split('_')[1][:3]
         path = os.path.join(os.getcwd(),f"data/{folder_name}/{genome}.tar.gz")
-        shell_script_text += (f"./manage.py download_gbk {genome} | gzip\n")
-        shell_script_text += (f"./manage.py load_gbk {path} --overwrite\n")
-        shell_script_text += (f"./manage.py index_genome_db {genome}\n")
-        shell_script_text += (f"./manage.py index_genome_seq {genome}\n")
-    print(shell_script_text)
-    with open("script.sh", 'w+') as script:
-        script.write(shell_script_text)
-    os.chmod("script.sh", 775)
-    p = sb.Popen("./script.sh")
-    p.wait()
+        management.call_command("download_gbk", f"{genome} | gzip", verbosity=1, interactive=False)
+        management.call_command("load_gbk", f"{path} --overwrite", verbosity=1, interactive=False)
+        management.call_command("index_genome_db", f"{genome}", verbosity=1, interactive=False)
+        management.call_command("index_genome_seq", f"{genome}", verbosity=1, interactive=False)
+
+
 
 
 if __name__ == "__main__":
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'tpwebconfig.settings')
     main()
