@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 import os, argparse, sys
-import subprocess as sb
 import django
-from django.core import management
+import subprocess as sb
 def main():
     genomes = list()
     parser = argparse.ArgumentParser()
@@ -16,14 +15,15 @@ def main():
     for genome in genomes:
         folder_name = genome.split('_')[1][:3]
         path = os.path.join(os.getcwd(),f"data/{folder_name}/{genome}.tar.gz")
-        management.call_command("download_gbk", f"{genome} | gzip", verbosity=1, interactive=False)
-        management.call_command("load_gbk", f"{path} --overwrite", verbosity=1, interactive=False)
-        management.call_command("index_genome_db", f"{genome}", verbosity=1, interactive=False)
-        management.call_command("index_genome_seq", f"{genome}", verbosity=1, interactive=False)
+        o = sb.check_output(["python", "manage.py", "download_gbk", f"{genome} | gzip"])
+        print(o)
+        sb.check_output(["python", "manage.py", "load_gbk", f"{path} --overwrite"])
+        sb.check_output(["python", "manage.py", "index_genome_db", f"{genome}"])
+        sb.check_output(["python", "manage.py", "index_genome_seq", f"{genome}"])
+
 
 
 
 
 if __name__ == "__main__":
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'tpwebconfig.settings')
     main()
