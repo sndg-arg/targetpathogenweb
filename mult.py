@@ -4,7 +4,7 @@ import argparse
 import sys
 import django
 import subprocess as sb
-
+import gzip
 
 def main():
     my_env = os.environ.copy()
@@ -46,9 +46,24 @@ def main():
                 "-T", "10", "-nc", "-np"], env=my_env, check=True, input="SM_RS15270.pdb_out", text=True)
 
         protein_name = "Q92LQ0"
-        sb.run(["python", "manage.py", "load_af_model", "SM_RS15270", f"{os.path.join(folder_path, protein_name + '/' + protein_name + '_AF.pdb')}",
+        sb.run(["python", "manage.py", "load_af_mode\l", "SM_RS15270", f"{os.path.join(folder_path, protein_name + '/' + protein_name + '_AF.pdb')}",
                     "SM_RS15270", "--overwrite"], env=my_env, check=True)
-        
+        json_output = sb.run(["python", "-m", "SNDG.Structure.FPocket", "2json", f"{folder_path}/SM_RS15270/SM_RS15270.pdb_out/SM_RS15270/SM_RS15270.pdb_out.pdb"],
+               env=my_env, check=True, stdout=sb.PIPE)
+        zipped_content = gzip.compress(bytes(json_output.stdout.read(), 'utf-8'))
+        with open(f"{folder_name}/SM_RS15270/fpocket.json.gz", 'wb') as f:
+            f.write(zipped_content)
+        #echo -e "\n" | gzip >> data/003/NC_003047/SM_RS15270/SM_RS15270.pdb.gz
+        # we should filter only pockets with druggability > 0.2
+        filtered = list()
+        with open(f"{folder_name}/SM_RS15270/SM_RS15270.pdb_out/SM_RS15270.pdb_out.pdb", 'r') as f:
+            for line in f.readlines():
+                if line[:6] == "HETATM" and "POL" in line and "STP" in line:
+                    filtered.append(line)
+                    filtered_str = ('\n').join(filtered)
+        zipped_content = gzip.compress(bytes(filtered_str, 'utf-8'))
+        with open(f"{folder_name}/SM_RS15270/SM_RS15270.pdb.gz", 'wb') as f2:
+            f2.write(zipped_content)
 
 if __name__ == "__main__":
     main()
