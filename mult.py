@@ -5,9 +5,14 @@ import sys
 import django
 import subprocess as sb
 import gzip
+import paramiko
 
 def main():
     my_env = os.environ.copy()
+    ssh_username = os.getenv('SSH_USERNAME')
+    ssh_password = os.getenv('SSH_PASSWORD') # to do: talk about a way to decrypt an encrypted message
+    ssh_rootfolder = ""
+    ssh_host = ""
     genomes = list()
     parser = argparse.ArgumentParser()
     parser.add_argument('genomes', help="List of Genbank accession numbers for genomes, separated with new lines",
@@ -29,10 +34,26 @@ def main():
                    genome], env=my_env, check=True)
         sb.run(["python", "manage.py", "index_genome_seq",
                    genome], env=my_env, check=True)
-        # zcat data/003/NC_003047.faa.gz | interproscan.sh --pathways --goterms --cpu 10 -iprlookup --formats tsv -i - --output-dir ./ -o data/003/NC_003047.faa.tsv
-        # gzip data/003/NC_003047.faa.tsv
-        #sb.run(["python", "manage.py", "load_interpro", genome, os.path.join(
-        #    folder_path, genome + '.faa.tsv.gz')], env=my_env, check=True)
+        #-----------------------------------------------------
+        #   need testing
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh.connect(ssh_host, username=ssh_username, password=ssh_password)
+        scp = ssh.open_sftp()
+        scp.put(os.path.join(folder_path, genome + '.faa.tsv.gz'), ssh_rootfolder)
+        stdin, stdout, stderr = ssh.exec_command(
+            f"zcat NC_003047.faa.gz | interproscan.sh --pathways \
+            --goterms --cpu 10 -iprlookup --formats tsv -i - --output-dir {ssh_rootfolder} -o {ssh_rootfolder}/NC_003047.faa.tsv"
+        )
+        stdout.channel.set_combine_stderr(True)
+        output = stdout.readlines() #reading to stdout to force the wait on the command
+        scp.get(f"{ssh_rootfolder}/NC_003047.faa.tsv", os.path.join(folder_path, genome))
+        scp.close()
+        ssh.close()
+        
+        sb.run(["python", "manage.py", "load_interpro", genome, os.path.join(
+            folder_path, genome + '.faa.tsv.gz')], env=my_env, check=True)
+        #-----------------------------------------------------------
         with open(os.path.join(folder_path, genome + '_unips.lst'), 'w+') as unip_lst:
             sb.run(["python", "manage.py", "gbk2uniprot_map", genome, "--mapping_tmp",
                         f"{os.path.join(folder_path, genome + '_unips_mapping.csv')}",
