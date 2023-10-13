@@ -24,12 +24,13 @@ def main():
         genomes.append(l.strip().upper())
     for genome in genomes:
         folder_name = genome.split('_')[1][:3]
-        folder_path = os.path.join(os.getcwd(), f"data/{folder_name}/{genome}")
+        folder_path = f"./data/{folder_name}/{genome}"
         gb_path = os.path.join(folder_path, f"{genome}.gbk.gz")
+        """
         sb.run(["python", "manage.py", "download_gbk", genome],
                    env=my_env, check=True)
         sb.run(["python", "manage.py", "load_gbk",
-                   f"{gb_path}",  "--overwrite"], env=my_env, check=True)
+                   f"{gb_path}",  "--overwrite", "--accession", genome], env=my_env, check=True)
         sb.run(["python", "manage.py", "index_genome_db",
                    genome], env=my_env, check=True)
         sb.run(["python", "manage.py", "index_genome_seq",
@@ -50,8 +51,8 @@ def main():
         scp.get(f"{ssh_rootfolder}/NC_003047.faa.tsv", os.path.join(folder_path, genome))
         scp.close()
         ssh.close()
-        
-        sb.run(["python", "manage.py", "load_interpro", genome, os.path.join(
+        sb.run(["python", "manage.py", "load_interpro", genome,
+                "--interpro_tsv", os.path.join(
             folder_path, genome + '.faa.tsv.gz')], env=my_env, check=True)
         #-----------------------------------------------------------
         with open(os.path.join(folder_path, genome + '_unips.lst'), 'w+') as unip_lst:
@@ -59,6 +60,7 @@ def main():
                         f"{os.path.join(folder_path, genome + '_unips_mapping.csv')}",
                         "--not_mapped",
                         f"{os.path.join(folder_path, genome + '_unips_not_mapped.lst')}"], env=my_env, check=True, stdout=unip_lst)
+        """
         with open(os.path.join(folder_path, genome + '_unips.lst'), 'r') as unip_lst:
             sb.run(["python", "-m", "TP.alphafold", "-pr",
                     "/opt/p2rank_2.4/prank", "-o", os.path.join(folder_path, "alphafold"), "-T", "10", "-nc"], env=my_env, check=True, input=unip_lst.read(), text=True)
