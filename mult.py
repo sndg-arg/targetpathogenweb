@@ -8,21 +8,12 @@ import gzip
 import paramiko
 import shutil
 import json
-def main():
+def main(genomes):
     my_env = os.environ.copy()
     ssh_username = os.getenv('SSH_USERNAME')
     ssh_password = os.getenv('SSH_PASSWORD') # to do: talk about a way to decrypt an encrypted message
     ssh_rootfolder = ""
     ssh_host = ""
-    genomes = list()
-    parser = argparse.ArgumentParser()
-    parser.add_argument('genomes', help="List of Genbank accession numbers for genomes, separated with new lines",
-                        type=str,
-                        nargs='*',
-                        default=sys.stdin)
-    args = parser.parse_args()
-    for l in args.genomes:
-        genomes.append(l.strip().upper())
     for genome in genomes:
         folder_name = genome.split('_')[1][:3]
         folder_path = f"./data/{folder_name}/{genome}"
@@ -94,7 +85,25 @@ def main():
         zipped_content = gzip.compress(bytes(filtered_str, 'utf-8'))
         with open(os.path.join(other_protein_fold, other_protein + ".pdb.gz"), 'ab') as f2:
             f2.write(zipped_content)
-        sb.run(["python", "-m", "TP.pathoLogic", 'teste', "TAX-2", "266834", "./dbs/patho/", os.path.abspath(folder_path),
+        sb.run(["python", "-m", "TP.pathoLogic", 'teste', "TAX-2", "266834", "./dbs/pathwaytools/", os.path.abspath(folder_path),
                 os.path.join(folder_path, "pathwaytools")], env=my_env, check=True)
 if __name__ == "__main__":
+    genomes = list()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('genomes', help="List of Genbank accession numbers for genomes, separated with new lines",
+                        type=str,
+                        nargs='*',
+                        default=sys.stdin)
+    args = parser.parse_args()
+    for l in args.genomes:
+        genomes.append(l.strip().upper())
     main()
+"""
+argumentos necesarios para correr todo el script:
+ - genome AC number
+ - struct name
+ - pdb file from protein
+ - orgdb name
+ - domain
+ - taxid
+"""
