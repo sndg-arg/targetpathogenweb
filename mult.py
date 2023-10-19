@@ -7,6 +7,7 @@ import subprocess as sb
 import gzip
 import paramiko
 import shutil
+import json
 def main():
     my_env = os.environ.copy()
     ssh_username = os.getenv('SSH_USERNAME')
@@ -51,11 +52,11 @@ def main():
         scp.get(f"{ssh_rootfolder}/NC_003047.faa.tsv", os.path.join(folder_path, genome))
         scp.close()
         ssh.close()
-        """
         sb.run(["python", "manage.py", "load_interpro", genome,
                 "--interpro_tsv", os.path.join(
             folder_path, genome + '.faa.tsv.gz')], env=my_env, check=True)
         #-----------------------------------------------------------
+        """
         with open(os.path.join(folder_path, genome + '_unips.lst'), 'w+') as unip_lst:
             sb.run(["python", "manage.py", "gbk2uniprot_map", genome, "--mapping_tmp",
                         f"{os.path.join(folder_path, genome + '_unips_mapping.csv')}",
@@ -64,37 +65,36 @@ def main():
         with open(os.path.join(folder_path, genome + '_unips.lst'), 'r') as unip_lst:
             sb.run(["python", "-m", "TP.alphafold", "-pr",
                     "/opt/p2rank_2.4/prank", "-o", os.path.join(folder_path, "alphafold"), "-T", "10", "-nc"], env=my_env, check=True, input=unip_lst.read(), text=True)
-
         protein_name = "Q92LQ0"
         other_protein = "SM_RS15270"
         other_protein_fold = os.path.join(folder_path, other_protein)
         sb.run(["python", "manage.py", "load_af_model", other_protein, f"{os.path.join(folder_path, 'alphafold/' + protein_name + '/' + protein_name + '_AF.pdb')}",
                     other_protein, "--overwrite"], env=my_env, check=True)
-
         with gzip.open(os.path.join(other_protein_fold, other_protein + ".pdb.gz"), 'rb') as f_in:
             with open(os.path.join(other_protein_fold, other_protein + "_AF.pdb"), 'wb') as f_out:
                 shutil.copyfileobj(f_in, f_out)
 
         sb.run(["python", "-m", "TP.alphafold", "-o", folder_path,
                 "-T", "10", "-nc", "-np", "-na"], env=my_env, check=True, input=f"{other_protein}", text=True)
-        
         json_output = sb.run(["python", "-m", "SNDG.Structure.FPocket", "2json", os.path.join(other_protein_fold, f"{other_protein}_AF_out")],
                env=my_env, check=True, stdout=sb.PIPE)
-        zipped_content = gzip.compress(bytes(str(json_output.stdout), 'utf-8'))
+        a = json.loads(json_output.stdout)
+        zipped_content = gzip.compress(bytes(json.dumps(a), 'utf-8'))
         with open(os.path.join(other_protein_fold, "fpocket.json.gz"), 'wb') as f:
             f.write(zipped_content)
+        with open(os.path.join(other_protein_fold, other_protein + ".pdb.gz"), 'wb') as f2:
+            f2.write(zipped_content)
         #echo -e "\n" | gzip >> data/003/NC_003047/SM_RS15270/SM_RS15270.pdb.gz
-        # we should filter only pockets with druggability > 0.2
         filtered = list()
-        with open(f"{other_protein_fold}/{other_protein}_AF.pdb", 'r') as f:
+        with open(f"{other_protein_fold}/{other_protein}_AF_out/{other_protein}_AF_out.pdb", 'r') as f:
             for line in f.readlines():
                 if line[:6] == "HETATM" and "POL" in line and "STP" in line:
                     filtered.append(line)
-        filtered_str = ('\n').join(filtered)
-        print(filtered_str)
+        filtered_str = ('').join(filtered)
         zipped_content = gzip.compress(bytes(filtered_str, 'utf-8'))
-        with open(os.path.join(other_protein_fold, other_protein + ".pdb.gz"), 'wb') as f2:
+        with open(os.path.join(other_protein_fold, other_protein + ".pdb.gz"), 'ab') as f2:
             f2.write(zipped_content)
-
+        sb.run(["python", "-m", "TP.pathoLogic", 'teste', "TAX-2", "266834", "./dbs/patho/", os.path.abspath(folder_path),
+                os.path.join(folder_path, "pathwaytools")], env=my_env, check=True)
 if __name__ == "__main__":
     main()
