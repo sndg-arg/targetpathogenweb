@@ -10,6 +10,11 @@ import shutil
 import json
 
 def manage_genome(genome):
+    """Loads and indexes the genome
+
+    Args:
+        genome (str): Genome Accession number
+    """
     my_env = os.environ.copy()
     folder_name = genome.split('_')[1][:3]
     folder_path = f"./data/{folder_name}/{genome}"
@@ -27,6 +32,12 @@ def manage_genome(genome):
                 genome], env=my_env, check=True)
     
 def manage_proteins(genome):
+    """Connects to a vpn to remotely execute the interproscan to get the protein families
+    and downloads its results in the correct folder. Also load the results in the database
+
+    Args:
+        genome (str): Genome Accession number
+    """
     my_env = os.environ.copy()
     folder_name = genome.split('_')[1][:3]
     folder_path = f"./data/{folder_name}/{genome}"
@@ -54,6 +65,11 @@ def manage_proteins(genome):
         folder_path, genome + '.faa.tsv.gz')], env=my_env, check=True)
 
 def get_alphafolds(genome):
+    """Checks the mapped proteins and runs alphafold on each one of them.
+
+    Args:
+        genome (str): Genome Accession number
+    """
     my_env = os.environ.copy()
     folder_name = genome.split('_')[1][:3]
     folder_path = f"./data/{folder_name}/{genome}"
@@ -67,6 +83,13 @@ def get_alphafolds(genome):
                 "/opt/p2rank_2.4/prank", "-o", os.path.join(folder_path, "alphafold"), "-T", "10", "-nc"], env=my_env, check=True, input=unip_lst.read(), text=True)
 
 def load_alphafold_structure(genome, protein_name, other_protein):
+    """Loads the structure of a desired protein
+
+    Args:
+        genome (str): Genome Accession number
+        protein_name (str): Protein PDB code
+        other_protein (str): Strucure PDB code
+    """
     my_env = os.environ.copy()
     folder_name = genome.split('_')[1][:3]
     folder_path = f"./data/{folder_name}/{genome}"
@@ -99,6 +122,14 @@ def load_alphafold_structure(genome, protein_name, other_protein):
         f2.write(zipped_content)
 
 def run_pathwaytools(genome, orgdbname, domain, taxid):
+    """Run pathwaytools in a genome
+
+    Args:
+        genome (str): Genome Accession number
+        orgdbname (str): name of the organism in the database
+        domain (str): domain of the genome
+        taxid (str): taxonomic id of the genome
+    """
     my_env = os.environ.copy()
     folder_name = genome.split('_')[1][:3]
     folder_path = f"./data/{folder_name}/{genome}"
@@ -114,7 +145,7 @@ def run_pathwaytools(genome, orgdbname, domain, taxid):
 def main(genomes):    
     for genome in genomes:
         manage_genome(genome)
-        manage_proteins(genome)
+        #manage_proteins(genome)
         load_alphafold_structure(genome, "Q92LQ0", "SM_RS15270")
         run_pathwaytools(genome, "teste", "TAX-2", "266834")
 
