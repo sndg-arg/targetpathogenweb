@@ -59,7 +59,7 @@ class ScoreParam(models.Model):
         from tpweb.models.ScoreFormula import ScoreFormula, ScoreFormulaParam
 
         ScoreFormula.objects.filter(name__startswith="GARDP").delete()
-        #ScoreParam.objects.all().delete()
+        ScoreParam.objects.all().delete()
 
         sf_to = ScoreFormula(name="GARDP_Target_Overall")
         sf_vs = ScoreFormula(name="GARDP_Virtual_Screening")
@@ -68,7 +68,7 @@ class ScoreParam(models.Model):
 
 
         sp = ScoreParam.objects.get_or_create(
-            category="Pocket", name="druggable_pocket", type="CATEGORICAL",
+            category="Pocket", name="druggable_fpocket", type="CATEGORICAL",
             description="Protein druggable pockets count",
             default_operation="=", default_value="M")[0]
 
@@ -83,7 +83,7 @@ class ScoreParam(models.Model):
 
         sp = ScoreParam.objects.get_or_create(
             category="Pocket", name="human_offtarget", type="CATEGORICAL",
-            description="Protein has at least one druggable pocket",
+            description="Sequence overlaps with human protein?",
             default_operation="=", default_value="L")[0]
         ScoreParamOptions.objects.get_or_create(score_param=sp, name="High",
                                                 description="protein has a significant hit (evalue < 1e-5) against a human protein,"
@@ -98,10 +98,13 @@ class ScoreParam(models.Model):
 
         ScoreFormulaParam(formula=sf_to,operation="=",coefficient=1,value="None",score_param=sp).save()
         ScoreFormulaParam(formula=sf_to,operation="=",coefficient=-0.5,value="Partial",score_param=sp).save()
+        ScoreFormulaParam(formula=sf_to,operation="=",coefficient=-1,value="High",score_param=sp).save()
 
         ScoreFormulaParam(formula=sf_vs,operation="=",coefficient=1,value="None",score_param=sp).save()
         ScoreFormulaParam(formula=sf_vs,operation="=",coefficient=-0.5,value="Partial",score_param=sp).save()
+        ScoreFormulaParam(formula=sf_vs,operation="=",coefficient=-1,value="High",score_param=sp).save()
 
+        """
         sp = ScoreParam.objects.get_or_create(
             category="Protein", name="resist_mutation", type="CATEGORICAL",
             description="Protein has reported resistance mutation in literature",
@@ -111,21 +114,22 @@ class ScoreParam(models.Model):
 
         ScoreFormulaParam(formula=sf_to,operation="=",coefficient=1,value="N",score_param=sp).save()
         ScoreFormulaParam(formula=sf_vs,operation="=",coefficient=1,value="N",score_param=sp).save()
+        """
 
         sp = ScoreParam.objects.get_or_create(
-            category="Ligand", name="ligands_literature", type="CATEGORICAL",
-            description="Presence of ligands in the literature",
+            category="Ligand", name="ligand_binding_in_literature", type="CATEGORICAL",
+            description="Experimental evidence that ligand(s) can bind the target protein exists in the literature?",
             default_operation="=", default_value="Y")[0]
         ScoreParamOptions.objects.get_or_create(score_param=sp, name="Y")
         ScoreParamOptions.objects.get_or_create(score_param=sp, name="N")
 
-        ScoreFormulaParam(formula=sf_to,operation="=",coefficient=1,value="Y",score_param=sp).save()
-        ScoreFormulaParam(formula=sf_vs,operation="=",coefficient=1,value="Y",score_param=sp).save()
+        ScoreFormulaParam(formula=sf_to,operation="=",coefficient=2,value="Y",score_param=sp).save()
+        ScoreFormulaParam(formula=sf_vs,operation="=",coefficient=2,value="Y",score_param=sp).save()
 
 
         sp = ScoreParam.objects.get_or_create(
-            category="Pocket", name="pocket_with_csa", type="CATEGORICAL",
-            description="Pocket intersects with a CSA site",
+            category="Pocket", name="catalytic_residue_in_pocket", type="CATEGORICAL",
+            description="Pocket(s) intersect(s) with a catalytic site?",
             default_operation="=", default_value="N")[0]
         ScoreParamOptions.objects.get_or_create(score_param=sp, name="Y")
         ScoreParamOptions.objects.get_or_create(score_param=sp, name="N")
@@ -134,8 +138,8 @@ class ScoreParam(models.Model):
         ScoreFormulaParam(formula=sf_vs,operation="=",coefficient=2,value="Y",score_param=sp).save()
 
         sp = ScoreParam.objects.get_or_create(
-            category="Pocket", name="pocket_with_ppi", type="CATEGORICAL",
-            description="Pocket intersects with a PPI site (protein to protein interaction)",
+            category="Pocket", name="ppi_residue_in_pocket", type="CATEGORICAL",
+            description="Pocket(s) overlaps(s) with a protein-protein interaction (PPI) site?",
             default_operation="=", default_value="N")[0]
         ScoreParamOptions.objects.get_or_create(score_param=sp, name="Y")
         ScoreParamOptions.objects.get_or_create(score_param=sp, name="N")
@@ -144,9 +148,8 @@ class ScoreParam(models.Model):
         ScoreFormulaParam(formula=sf_vs,operation="=",coefficient=0.5,value="Y",score_param=sp).save()
 
         sp = ScoreParam.objects.get_or_create(
-            category="Protein", name="vs_hts_in_literature", type="CATEGORICAL",
-            description="Protein has a VS (virtual screening) or  "
-                        "HTS (High-throughput screening) performed in literature",
+            category="Protein", name="virtual_screening_precedence", type="CATEGORICAL",
+            description="Pocket was used in previous virtual screen(s) reported in the literature",
             default_operation="=", default_value="N")[0]
         ScoreParamOptions.objects.get_or_create(score_param=sp, name="Y")
         ScoreParamOptions.objects.get_or_create(score_param=sp, name="N")
@@ -173,9 +176,8 @@ class ScoreParam(models.Model):
 
 
         sp = ScoreParam.objects.get_or_create(
-            category="Pocket", name="pocket_interspecies_overlap", type="CATEGORICAL",
-            description="Some pockets between orthologs overlaps. "
-                        "Correspondence between positions is performed by structural alignment using TM-align",
+            category="Pocket", name="pocket_KpAb_overlap", type="CATEGORICAL",
+            description="Pocket(s) conserved between the Kp and Ab orthologues?",
             default_operation="=", default_value="N")[0]
         ScoreParamOptions.objects.get_or_create(score_param=sp, name="Y",
                                                 description="at least 60% of the residues for each pocket must overlap")
@@ -186,8 +188,7 @@ class ScoreParam(models.Model):
 
         sp = ScoreParam.objects.get_or_create(
             category="Pocket", name="ligand_target_crystal_precedence", type="CATEGORICAL",
-            description="Some pockets between orthologs overlaps. "
-                        "Correspondence between positions is performed by structural alignment using TM-align",
+            description="Pocket(s) overlap(s) with a crystallized binding site containing a drug-like compound ?",
             default_operation="=", default_value="N")[0]
         ScoreParamOptions.objects.get_or_create(score_param=sp, name="Y",
                                                 description="at least 60% of the residues for each pocket must overlap")
@@ -198,9 +199,8 @@ class ScoreParam(models.Model):
         ScoreFormulaParam(formula=sf_vs,operation="=",coefficient=2,value="Y",score_param=sp).save()
 
         sp = ScoreParam.objects.get_or_create(
-            category="Pocket", name="subcellular_location", type="CATEGORICAL",
-            description="As deduced based on where pocket residues are located according to protein domains and "
-                        "topology predicted with ProSite and/or TMHMM (hidden Markov model).",
+            category="Pocket", name="pocket_cellular_environment", type="CATEGORICAL",
+            description="Pocket(s) accessible from?",
             default_operation="=", default_value="N")[0]
         ScoreParamOptions.objects.get_or_create(score_param=sp, name="extracellular_space")
         ScoreParamOptions.objects.get_or_create(score_param=sp, name="periplasm")
@@ -217,7 +217,7 @@ class ScoreParam(models.Model):
 
 
 
-
+        print("birrdddman!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 
 
 

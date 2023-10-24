@@ -17,7 +17,7 @@ class ProteinListView(View):
     def get(self, request, assembly_name, *args, **kwargs):
 
         bdb = Biodatabase.objects.filter(name=assembly_name).get()
-        # ScoreParam.initialize()
+        ScoreParam.initialize()
         formula = ScoreFormula.objects.filter(name="GARDP_Target_Overall").get()
         formula2 = ScoreFormula.objects.filter(name="GARDP_Virtual_Screening").get()
 
