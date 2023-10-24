@@ -85,6 +85,11 @@ def main(genomes):
         zipped_content = gzip.compress(bytes(filtered_str, 'utf-8'))
         with open(os.path.join(other_protein_fold, other_protein + ".pdb.gz"), 'ab') as f2:
             f2.write(zipped_content)
+        if not os.path.exists(os.path.join(folder_path, genome + ".gbk")): # the genbank file doesn't exist
+            # extract the genbank file
+            with gzip.open(os.path.join(folder_path, genome + ".gbk.gz"), 'rb') as f_in:
+                with open(os.path.join(folder_path, genome + ".gbk", 'wb')) as f_out:
+                    shutil.copyfileobj(f_in, f_out)
         sb.run(["python", "-m", "TP.pathoLogic", 'teste', "TAX-2", "266834", "./dbs/pathwaytools/", os.path.abspath(folder_path),
                 os.path.join(folder_path, "pathwaytools")], env=my_env, check=True)
 if __name__ == "__main__":
