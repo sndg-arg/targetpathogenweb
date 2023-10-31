@@ -40,6 +40,7 @@ def manage_proteins(genome, folder_name, folder_path):
         genome (str): Genome Accession number
     """
     my_env = os.environ.copy()
+    """
     ssh_username = os.getenv('SSH_USERNAME')
     ssh_password = os.getenv('SSH_PASSWORD') # to do: talk about a way to decrypt an encrypted message
     ssh_rootfolder = ""
@@ -59,6 +60,7 @@ def manage_proteins(genome, folder_name, folder_path):
     scp.get(f"{ssh_rootfolder}/NC_003047.faa.tsv", os.path.join(folder_path, genome))
     scp.close()
     ssh.close()
+    """
     sb.run(["python", "manage.py", "load_interpro", genome,
             "--interpro_tsv", os.path.join(
         folder_path, genome + '.faa.tsv.gz')], env=my_env, check=True)
@@ -143,11 +145,12 @@ def main(genomes):
         acclen = len(genome)
         folder_name = genome[math.floor(acclen / 2 - 1):math.floor(acclen / 2 + 2)]
         folder_path = f"./data/{folder_name}/{genome}"
-        #manage_genome(genome, folder_name, folder_path)
-        #manage_proteins(genome, folder_name, folder_path)
+        manage_genome(genome, folder_name, folder_path)
+        manage_proteins(genome, folder_name, folder_path)
         get_alphafolds(genome, folder_name, folder_path)
         protein_ids = pd.read_csv(os.path.join(folder_path, f'{genome}_unips_mapping.csv'),
                                   sep = ',')
+        #----------------------------------------------------
         mapped_proteins = list()
         with open(os.path.join(folder_path, f"{genome}_unips.lst"), 'r') as f:
             mapped_proteins = [x.strip() for x in f.readlines()]
@@ -160,8 +163,10 @@ def main(genomes):
                     for e in entries:
                         if e in mapped_proteins:
                             load_alphafold_structure(genome, folder_name, folder_path, e, locus_tag)
-        #run_pathwaytools(genome, folder_name, folder_path, "teste", "TAX-2", "266834")
-
+        run_pathwaytools(genome, folder_name, folder_path, "teste", "TAX-2", "266834")
+        """
+        load_alphafold_structure(genome, folder_name, folder_path, "Q92MY5", "SM_RS12605")
+        """
 
 
 
