@@ -35,6 +35,13 @@ module.exports = {
                     // 'eslint-loader',
                 ],
             },
+            /*{
+                test: /node_modules\/bootstrap\/js\/src\/util\/index\.js/,
+                use: [
+                    'babel-loader',
+                    // 'eslint-loader',
+                ],
+            },*/
             {
                 test: /\.css$/i,
                 use: ['style-loader', 'css-loader'],
@@ -46,6 +53,7 @@ module.exports = {
                     limit: 8192,
                 },
             },
+
         ],
     },
 

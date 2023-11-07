@@ -57,7 +57,7 @@ class Command(BaseCommand):
 
         assert "gene" in df.columns, "'gene' is not in the column list"
 
-        ScoreParam.initialize()
+        #ScoreParam.initialize()
 
 
         columns = set(df.columns) - set(["gene"])

@@ -20,7 +20,9 @@
 </head>
 <body>
 
-<nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+
+
+<nav  class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="{% url 'tpwebapp:index' %}">{% trans "Target Pathogen" %}</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse"
@@ -42,41 +44,47 @@
                 </li>
                 {% endcomment %}
                 {% if user.is_authenticated %}
-                <li class="nav-item">
-                    <form method="post" action="{% url 'account_logout' %}">
-                        {% csrf_token %}
-                        {% if redirect_field_value %}
-                            <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}"/>
-                        {% endif %}
-                        <button class="btn btn-danger" type="submit">Logout</button>
-                    </form>
-                </li>
+                    <li id="user_dropdown" class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-expanded="false">
+                            {{  user.get_username }}
+                        </a>
+                        <div id="user_dropdown_menu" class="dropdown-menu">
+                            {% comment "This is an optional note for comments" %}
+                            <a class="dropdown-item" href="#">Action</a>
+                            <a class="dropdown-item" href="#">Another action</a>
+                            {% endcomment %}
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="#">
+                                <form method="post" action="{% url 'account_logout' %}">
+                                    {% csrf_token %}
+                                    {% if redirect_field_value %}
+                                        <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}"/>
+                                    {% endif %}
+                                    <button class="btn btn-danger" type="submit">Logout</button>
+                                </form>
+                            </a>
+                        </div>
+                    </li>
+
+
+
+                {% elif not disablelogin %}
+                    Login
                 {% endif %}
 
+
+
             </ul>
-            <ul class="navbar-nav">
-                <form class="d-flex">
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="dropdown03" data-bs-toggle="dropdown"
-                           aria-expanded="false"><span class="navbar-toggler-icon"></span>
-                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>
-                        <ul class="dropdown-menu" aria-labelledby="dropdown03">
-                            <li><a class="dropdown-item" href="{% url 'tpwebapp:index' %}">{% trans "Ingresar" %}</a>
-                            </li>
-                            <li><a class="dropdown-item" href="{% url 'tpwebapp:index' %}">{% trans "Mis Datos" %}</a>
-                            </li>
-                            <li><a class="dropdown-item" href="{% url 'tpwebapp:index' %}">{% trans "Desloguearse"
-                                %}</a></li>
-                        </ul>
-                    </li>
-                </form>
-            </ul>
+
+
 
         </div>
     </div>
 
 
 </nav>
+
+
 
 
     <div class="p-5 mb-4 bg-light rounded-3">
@@ -96,7 +104,7 @@
 
     {% block footer %}
     <div class="container">
-        <span class="text-muted">Place sticky footer content here.</span>
+        <span class="text-muted">Footer</span>
     </div>
     {% endblock %}
 </footer>
@@ -157,7 +165,17 @@
 
 
 <script>
+    $('#user_dropdown').click(function(){
+        $('#user_dropdown_menu').toggleClass('show');
+    });
+
     function jsloaded() {
+
+
+
+
+
+
     }
 
 </script>

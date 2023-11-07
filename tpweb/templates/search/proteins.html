@@ -16,6 +16,20 @@
 
 <h1>{% trans "Proteins" %} ({{ biodb__name }})</h1>
 
+    {% if formulas %}
+        <select id="score_formula_select">
+        {% for f in formulas %}
+            <option value="{{ f.name }}"
+            {% if f.name == formula.name %}
+                selected="selected"
+                    {% endif %}
+            > {{ f.name }} </option>
+        {% endfor %}
+        </select>
+        <button onclick="window.location='?scoreformula=' + $('#score_formula_select').val()">{% trans 'Change SF' %}</button>
+        <br />
+    {% endif %}
+
 
 {% if formula  %}
 
@@ -30,8 +44,11 @@
 <table id="proteins_table"  class="table table-striped table-sm">
     <thead>
     <tr>
-        <th>{% trans "Name" %}</th>
+
+  <th>{% trans "Name" %}</th>
         <th>{% trans "Description" %}</th>
+
+
         <th>{% trans "Gene" %}</th>
 
 
@@ -46,6 +63,7 @@
     <td><a href="{% url 'tpwebapp:protein' protein.id %}">
         {{protein.accession}}</a></td>
     <td>{{protein.description}}</td>
+
     <td class="max-width-column ">{{protein.genes|join:'<br />'}}</td>
     {% for col in tcolumns %}
         <td>{{tdata|dictkey:protein.id|dictkey:col|default:""}}<br />{%  if col != "Score" %}

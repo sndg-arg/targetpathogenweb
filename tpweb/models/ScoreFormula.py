@@ -14,6 +14,9 @@ class ScoreFormula(models.Model):
     name = CharField(max_length=255, blank=False)
     user = models.ForeignKey(User, related_name='formulas',
                              on_delete=models.CASCADE, null=True)
+    default = models.BooleanField(default=False)
+    public = models.BooleanField(default=False)
+
 
     class Meta:
         unique_together = ('name', 'user',)
@@ -30,10 +33,13 @@ class ScoreFormula(models.Model):
                     if term.score_param.name in param_values])
 
 
+
+
+
 class ScoreFormulaParam(models.Model):
     formula = models.ForeignKey(ScoreFormula, related_name='terms',
-                                          on_delete=models.CASCADE)
-    score_param = models.ForeignKey(ScoreParam,    on_delete=models.PROTECT)
+                                on_delete=models.CASCADE)
+    score_param = models.ForeignKey(ScoreParam, on_delete=models.PROTECT)
 
     value = CharField(blank=True, default="")
 
@@ -41,7 +47,7 @@ class ScoreFormulaParam(models.Model):
     coefficient = FloatField(null=False, blank=False)
 
     class Meta:
-        unique_together = ('formula', 'score_param',"value")
+        unique_together = ('formula', 'score_param', "value")
 
     def __repr__(self):
         return f'ScoreFormulaParam({self.score_param.name} - {self.coefficient}) = {self.value}'

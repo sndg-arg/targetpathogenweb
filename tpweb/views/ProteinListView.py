@@ -16,10 +16,20 @@ class ProteinListView(View):
 
     def get(self, request, assembly_name, *args, **kwargs):
 
+        formula = None
+        formulas = list(request.user.formulas.all())
+
+        sf = request.GET.get('scoreformula','')
+        if sf and [x for x in formulas if x.name==sf]:
+            formula = [x for x in formulas if x.name==sf][0]
+        if not formula:
+            formula = [x for x in formulas if x.default][0]
+
+
         bdb = Biodatabase.objects.filter(name=assembly_name).get()
-        ScoreParam.initialize()
-        formula = ScoreFormula.objects.filter(name="GARDP_Target_Overall").get()
-        formula2 = ScoreFormula.objects.filter(name="GARDP_Virtual_Screening").get()
+        #ScoreParam.initialize()
+        #formula = ScoreFormula.objects.filter(name="GARDP_Target_Overall").get()
+        #formula = ScoreFormula.objects.filter(name="GARDP_Virtual_Screening").get()
 
 
 
@@ -64,7 +74,7 @@ class ProteinListView(View):
             protein_dto = {
                 "id": protein.bioentry_id,
                 "accession": protein.accession,
-                "genes": protein.genes(),
+                "genes": [x for x in protein.genes() if len(x) <=6 ] ,
                 "name": protein.name,
                 "description": protein.description
             }
@@ -106,7 +116,9 @@ class ProteinListView(View):
             "weights": weights,
             "tdata": tdatas,
             "formula": formuladto,
-            "col_descriptions":col_descriptions
+            "col_descriptions":col_descriptions,
+            "formulas":formulas
+
         })  # , {'form': form})
 
     def create_formuladto(self, formula: ScoreFormula, desc_dict):
@@ -138,7 +150,8 @@ class ProteinListView(View):
 
         formuladto = {
             "name": formula.name,
-            "terms": terms2
+            "terms": terms2,
+
         }
 
         return formuladto

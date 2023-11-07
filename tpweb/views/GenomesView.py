@@ -4,6 +4,7 @@ from django.db.models import Q
 from bioseq.models.Biodatabase import Biodatabase
 
 
+
 class GenomesView(View):
     template_name = 'search/genomes.html'
     tcolumns = {"EntryLength":"Length [bp]",
@@ -11,6 +12,8 @@ class GenomesView(View):
                 "COUNT_STRUCTS": "# Structures"} #["EntryLength", "GC", "COUNT_gene", "COUNT_pathways", "COUNT_structures"]
 
     def get(self, request, *args, **kwargs):
+
+
 
         genomes = Biodatabase.objects.exclude(Q(name__endswith='_rnas') | Q(name__endswith='_prots')
                                               ).prefetch_related("qualifiers__term")
