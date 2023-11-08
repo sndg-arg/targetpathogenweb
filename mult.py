@@ -11,6 +11,7 @@ import shutil
 import json
 import pandas as pd
 from Bio import SeqIO
+from scp import SCPClient
 
 def manage_genome(genome, folder_name, folder_path):
     """Loads and indexes the genome
@@ -40,27 +41,38 @@ def manage_proteins(genome, folder_name, folder_path):
         genome (str): Genome Accession number
     """
     my_env = os.environ.copy()
-    """
     ssh_username = os.getenv('SSH_USERNAME')
     ssh_password = os.getenv('SSH_PASSWORD') # to do: talk about a way to decrypt an encrypted message
-    ssh_rootfolder = ""
-    ssh_host = ""
+    ssh_rootfolder = "/home/rterra"
+    ssh_host = "cluster.qb.fcen.uba.ar"
     #   need testing
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     ssh.connect(ssh_host, username=ssh_username, password=ssh_password)
-    scp = ssh.open_sftp()
-    scp.put(os.path.join(folder_path, genome + '.faa.tsv.gz'), ssh_rootfolder)
-    stdin, stdout, stderr = ssh.exec_command(
-        f"zcat NC_003047.faa.gz | interproscan.sh --pathways \
-        --goterms --cpu 10 -iprlookup --formats tsv -i - --output-dir {ssh_rootfolder} -o {ssh_rootfolder}/NC_003047.faa.tsv"
-    )
+    scp = SCPClient(ssh.get_transport())
+    scp.put(os.path.join(folder_path, genome + '.faa.gz'), ssh_rootfolder)
+    text = ""
+    text += f'export LD_LIBRARY_PATH=\\\"/home/shared/miniconda3.8/envs/interproscan/lib/:$LD_LIBRARY_PATH\\\"\n'
+    text += f'eval \\\"\$(/home/rterra/miniconda3/bin/conda shell.bash hook)\\\"\n'
+    text += f'conda activate interproscan_custom\n'
+    text += f'zcat {genome}.faa.gz | /grupos/public/iprscan/current/interproscan.sh --pathways \
+        --goterms --cpu 10 -iprlookup --formats tsv -i - -o {ssh_rootfolder}/{genome}.faa.tsv\n'
+    
+    stdin, stdout, stderr = ssh.exec_command(f'touch script.sh && printf \"{text}\" > script.sh')
+    exit_status = stdout.channel.recv_exit_status()         
+     # Blocking call
+    stdin, stdout, stderr = ssh.exec_command(f"srun --nodes=1 --ntasks-per-node=1 --cpus-per-task=10 --time=05:00:00 bash ./script.sh", get_pty=True)
+    exit_status = stdout.channel.recv_exit_status()          # Blocking call
     stdout.channel.set_combine_stderr(True)
     output = stdout.readlines() #reading to stdout to force the wait on the command
     scp.get(f"{ssh_rootfolder}/NC_003047.faa.tsv", os.path.join(folder_path, genome))
     scp.close()
     ssh.close()
-    """
+    with open(os.path.join(os.path.join(folder_path, genome), genome + ".faa.tsv"), 'r') as f:
+        zipped_content = gzip.compress(bytes(f.read(), 'utf-8'))
+        with open(os.path.join(os.path.join(folder_path, genome), genome + ".faa.tsv.gz"), 'wb') as f2:
+            f2.write(zipped_content)
+     
     sb.run(["python", "manage.py", "load_interpro", genome,
             "--interpro_tsv", os.path.join(
         folder_path, genome + '.faa.tsv.gz')], env=my_env, check=True)
@@ -145,7 +157,7 @@ def main(genomes):
         acclen = len(genome)
         folder_name = genome[math.floor(acclen / 2 - 1):math.floor(acclen / 2 + 2)]
         folder_path = f"./data/{folder_name}/{genome}"
-        manage_genome(genome, folder_name, folder_path)
+        #manage_genome(genome, folder_name, folder_path)
         manage_proteins(genome, folder_name, folder_path)
         get_alphafolds(genome, folder_name, folder_path)
         protein_ids = pd.read_csv(os.path.join(folder_path, f'{genome}_unips_mapping.csv'),
