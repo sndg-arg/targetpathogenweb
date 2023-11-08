@@ -34,8 +34,9 @@ def manage_genome(genome, folder_name, folder_path):
                 genome], env=my_env, check=True)
     
 def manage_proteins(genome, folder_name, folder_path):
-    """Connects to a vpn to remotely execute the interproscan to get the protein families
-    and downloads its results in the correct folder. Also load the results in the database
+    """Connects to a vpn using paramiko to remotely execute the interproscan to get the protein families
+    and downloads its results in the correct folder. Also load the results in the database.
+    The username and password are get by the environment variables SSH_USERNAME and SSH_PASSWORD.
 
     Args:
         genome (str): Genome Accession number
@@ -64,7 +65,8 @@ def manage_proteins(genome, folder_name, folder_path):
     stdin, stdout, stderr = ssh.exec_command(f"srun --nodes=1 --ntasks-per-node=1 --cpus-per-task=10 --time=05:00:00 bash ./script.sh", get_pty=True)
     exit_status = stdout.channel.recv_exit_status()          # Blocking call
     stdout.channel.set_combine_stderr(True)
-    output = stdout.readlines() #reading to stdout to force the wait on the command
+    output = stdout.read() #reading to stdout to force the wait on the command
+    sys.stderr.write(output)
     scp.get(f"{ssh_rootfolder}/NC_003047.faa.tsv", os.path.join(folder_path, genome))
     scp.close()
     ssh.close()
@@ -157,12 +159,11 @@ def main(genomes):
         acclen = len(genome)
         folder_name = genome[math.floor(acclen / 2 - 1):math.floor(acclen / 2 + 2)]
         folder_path = f"./data/{folder_name}/{genome}"
-        #manage_genome(genome, folder_name, folder_path)
+        manage_genome(genome, folder_name, folder_path)
         manage_proteins(genome, folder_name, folder_path)
         get_alphafolds(genome, folder_name, folder_path)
         protein_ids = pd.read_csv(os.path.join(folder_path, f'{genome}_unips_mapping.csv'),
                                   sep = ',')
-        #----------------------------------------------------
         mapped_proteins = list()
         with open(os.path.join(folder_path, f"{genome}_unips.lst"), 'r') as f:
             mapped_proteins = [x.strip() for x in f.readlines()]
