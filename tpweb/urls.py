@@ -27,6 +27,9 @@ from tpweb.views.UserViews import (
 from .admin import *
 
 app_name = "tpwebapp"
+from django.shortcuts import render
+def untestview(request):
+    return render(request, 'test.html')
 
 urlpatterns = [
     #path("~redirect/", view=user_redirect_view, name="redirect"),
@@ -42,5 +45,6 @@ urlpatterns = [
     path("download",view=DownloadView.as_view(),name="download"),
     path("genomes",view=login_required(GenomesView.as_view()),name="genomes_list"),
     path("structure_raw/<int:struct_id>",view=StructureRawView.as_view(),name="structure_raw"),
+    path("test",view=untestview,name="untestview"),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

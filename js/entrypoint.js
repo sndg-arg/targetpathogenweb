@@ -1,10 +1,15 @@
+import $ from 'jquery';
+window.$ = $;
+import Popper from "popper.js";
+window.Popper = Popper;
+
 import 'bootstrap/dist/css/bootstrap.css';
 import "msa/css/msa.css";
 
 
 
 //import Phylocanvas from 'phylocanvas';
-import $ from 'jquery';
+
 import Fasta from 'biojs-io-fasta';
 
 import 'datatables.net';
@@ -19,7 +24,7 @@ import msa from "msa";
 
 //import blasterjs from 'biojs-vis-blasterjs';
 
-window.$ = $;
+
 window.msa = msa;
 //window.blasterjs = blasterjs;
 //window.Phylocanvas = Phylocanvas;

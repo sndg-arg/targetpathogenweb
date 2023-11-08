@@ -2,6 +2,7 @@ from ckeditor_uploader.fields import RichTextUploadingField
 from django.db import models
 from django.db.models import SmallIntegerField, CharField, TextField
 
+from tpweb.models import TPUser
 
 
 
@@ -24,47 +25,18 @@ class ScoreParam(models.Model):
 
     @staticmethod
     def initialize():
-        """
-        sp = ScoreParam.objects.get_or_create(
-            category="Structure", name="druggability", type="NUMERIC",
-            default_operation=">",default_value="Y")[0]
 
-
-        sp = ScoreParam.objects.get_or_create(
-            category="Structure", name="catalitic_site", type="CATEGORICAL",
-            default_operation="=",default_value="Y")[0]
-        ScoreParamOptions.objects.get_or_create(score_param=sp,name="Y")
-        ScoreParamOptions.objects.get_or_create(score_param=sp,name="N")
-
-        sp = ScoreParam.objects.get_or_create(
-            category="Structure", name="ligand_aln", type="CATEGORICAL",
-            default_operation="=",default_value="Y")[0]
-        ScoreParamOptions.objects.get_or_create(score_param=sp,name="Y")
-        ScoreParamOptions.objects.get_or_create(score_param=sp,name="N")
-
-        sp = ScoreParam.objects.get_or_create(
-            category="Pocket", name="pocket_conserv", type="CATEGORICAL",
-            description="Pocket with sites of low conservation within the species",
-            default_operation="=",default_value="N")[0]
-        ScoreParamOptions.objects.get_or_create(score_param=sp,name="Y")
-        ScoreParamOptions.objects.get_or_create(score_param=sp,name="Y")
-
-        sp = ScoreParam.objects.get_or_create(
-            category="Pocket", name="pocket_conserv_coli", type="CATEGORICAL",
-            description="Pocket with sites of low conservation against Ecoli.",
-            default_operation="=",default_value="N")[0]
-        ScoreParamOptions.objects.get_or_create(score_param=sp,name="Y")
-        ScoreParamOptions.objects.get_or_create(score_param=sp,name="Y")
-        """
         from tpweb.models.ScoreFormula import ScoreFormula, ScoreFormulaParam
 
         ScoreFormula.objects.filter(name__startswith="GARDP").delete()
         ScoreParam.objects.all().delete()
 
-        sf_to = ScoreFormula(name="GARDP_Target_Overall")
-        sf_vs = ScoreFormula(name="GARDP_Virtual_Screening")
+        user = TPUser.objects.filter(username="gardpuser").get()
+        sf_to = ScoreFormula(name="GARDP_Target_Overall",user=user,default=True)
+        sf_vs = ScoreFormula(name="GARDP_Virtual_Screening",user=user)
         sf_to.save()
         sf_vs.save()
+
 
 
         sp = ScoreParam.objects.get_or_create(
@@ -78,7 +50,7 @@ class ScoreParam(models.Model):
 
         ScoreFormulaParam(formula=sf_to,operation="=",coefficient=2.5,value="M",score_param=sp).save()
         ScoreFormulaParam(formula=sf_to,operation="=",coefficient=2,value="1",score_param=sp).save()
-        ScoreFormulaParam(formula=sf_vs,operation="=",coefficient=1,value="M",score_param=sp).save()
+        ScoreFormulaParam(formula=sf_vs,operation="=",coefficient=2.5,value="M",score_param=sp).save()
         ScoreFormulaParam(formula=sf_vs,operation="=",coefficient=2,value="1",score_param=sp).save()
 
         sp = ScoreParam.objects.get_or_create(
@@ -103,29 +75,6 @@ class ScoreParam(models.Model):
         ScoreFormulaParam(formula=sf_vs,operation="=",coefficient=1,value="None",score_param=sp).save()
         ScoreFormulaParam(formula=sf_vs,operation="=",coefficient=-0.5,value="Partial",score_param=sp).save()
         ScoreFormulaParam(formula=sf_vs,operation="=",coefficient=-1,value="High",score_param=sp).save()
-
-        """
-        sp = ScoreParam.objects.get_or_create(
-            category="Protein", name="resist_mutation", type="CATEGORICAL",
-            description="Protein has reported resistance mutation in literature",
-            default_operation="=", default_value="N")[0]
-        ScoreParamOptions.objects.get_or_create(score_param=sp, name="Y")
-        ScoreParamOptions.objects.get_or_create(score_param=sp, name="N")
-
-        ScoreFormulaParam(formula=sf_to,operation="=",coefficient=1,value="N",score_param=sp).save()
-        ScoreFormulaParam(formula=sf_vs,operation="=",coefficient=1,value="N",score_param=sp).save()
-        """
-
-        sp = ScoreParam.objects.get_or_create(
-            category="Ligand", name="ligand_binding_in_literature", type="CATEGORICAL",
-            description="Experimental evidence that ligand(s) can bind the target protein exists in the literature?",
-            default_operation="=", default_value="Y")[0]
-        ScoreParamOptions.objects.get_or_create(score_param=sp, name="Y")
-        ScoreParamOptions.objects.get_or_create(score_param=sp, name="N")
-
-        ScoreFormulaParam(formula=sf_to,operation="=",coefficient=2,value="Y",score_param=sp).save()
-        ScoreFormulaParam(formula=sf_vs,operation="=",coefficient=2,value="Y",score_param=sp).save()
-
 
         sp = ScoreParam.objects.get_or_create(
             category="Pocket", name="catalytic_residue_in_pocket", type="CATEGORICAL",
@@ -154,7 +103,7 @@ class ScoreParam(models.Model):
         ScoreParamOptions.objects.get_or_create(score_param=sp, name="Y")
         ScoreParamOptions.objects.get_or_create(score_param=sp, name="N")
 
-        ScoreFormulaParam(formula=sf_to,operation="=",coefficient=1,value="Y",score_param=sp).save()
+        #ScoreFormulaParam(formula=sf_to,operation="=",coefficient=1,value="Y",score_param=sp).save()
         ScoreFormulaParam(formula=sf_vs,operation="=",coefficient=1,value="Y",score_param=sp).save()
 
         sp = ScoreParam.objects.get_or_create(
@@ -170,9 +119,9 @@ class ScoreParam(models.Model):
         ScoreParamOptions.objects.get_or_create(score_param=sp, name="Low",
                                                 description="no membrane domains")
 
-        ScoreFormulaParam(formula=sf_vs,operation="=",coefficient=-1,value="High",score_param=sp).save()
-        ScoreFormulaParam(formula=sf_vs,operation="=",coefficient=-0.5,value="Medium",score_param=sp).save()
-        ScoreFormulaParam(formula=sf_vs,operation="=",coefficient=1,value="Low",score_param=sp).save()
+        ScoreFormulaParam(formula=sf_vs,operation="=",coefficient=-2,value="High",score_param=sp).save()
+        ScoreFormulaParam(formula=sf_vs,operation="=",coefficient=-1,value="Medium",score_param=sp).save()
+        ScoreFormulaParam(formula=sf_vs,operation="=",coefficient=2,value="Low",score_param=sp).save()
 
 
         sp = ScoreParam.objects.get_or_create(
@@ -199,7 +148,7 @@ class ScoreParam(models.Model):
         ScoreFormulaParam(formula=sf_vs,operation="=",coefficient=2,value="Y",score_param=sp).save()
 
         sp = ScoreParam.objects.get_or_create(
-            category="Pocket", name="pocket_cellular_environment", type="CATEGORICAL",
+            category="Pocket", name="pocket_accessibility", type="CATEGORICAL",
             description="Pocket(s) accessible from?",
             default_operation="=", default_value="N")[0]
         ScoreParamOptions.objects.get_or_create(score_param=sp, name="extracellular_space")
@@ -210,14 +159,10 @@ class ScoreParam(models.Model):
 
         ScoreFormulaParam(formula=sf_to,operation="=",coefficient=2,value="extracellular_space",score_param=sp).save()
         ScoreFormulaParam(formula=sf_to,operation="=",coefficient=1,value="periplasm",score_param=sp).save()
-
-        ScoreFormulaParam(formula=sf_vs,operation="=",coefficient=1,value="extracellular_space",score_param=sp).save()
-        ScoreFormulaParam(formula=sf_vs,operation="=",coefficient=1,value="cytoplasm",score_param=sp).save()
-        ScoreFormulaParam(formula=sf_vs,operation="=",coefficient=1,value="periplasm",score_param=sp).save()
+        ScoreFormulaParam(formula=sf_to,operation="=",coefficient=2,value="outer_membrane",score_param=sp).save()
 
 
 
-        print("birrdddman!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 
 
 
