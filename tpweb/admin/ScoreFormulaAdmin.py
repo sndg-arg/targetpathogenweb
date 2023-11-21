@@ -7,13 +7,13 @@ from django.contrib import admin
 
 
 class ScoreFormulaAdmin(admin.ModelAdmin):
-    list_display = ["name", "user", "params_str"]
+    list_display = ["name", "user", "terms_str"]
     search_fields = ["name", "user"]
 
-    @admin.display(description="params")
+    @admin.display(description="terms")
     def params_str(self, obj):
         return " + ".join([str(x.coefficient) + " " + x.score_param.name
-                           for x in obj.params.all()])
+                           for x in obj.terms.all()])
 
 
 admin.site.register(ScoreFormula, ScoreFormulaAdmin)
