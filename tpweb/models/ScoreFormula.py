@@ -37,7 +37,7 @@ class ScoreFormula(models.Model):
 
 
 class ScoreFormulaParam(models.Model):
-    formula = models.ForeignKey(ScoreFormula, related_name='terms',
+    formula = models.ForeignKey(ScoreFormula, related_name='params',
                                 on_delete=models.CASCADE)
     score_param = models.ForeignKey(ScoreParam, on_delete=models.PROTECT)
 
