@@ -11,6 +11,7 @@ import gzip
 import zipfile
 from tpweb.views.StructureView import pdb_structure
 import io
+from django.utils.encoding import smart_str
 
 class StructureExportView(View):
 
@@ -33,9 +34,15 @@ class StructureExportView(View):
 
             data = gzip.open(ss.structure(biodb, be.accession, pdb.code), "rt").read()
             # open(ss.structure(biodb, be.accession, pdb.code),"rb")
-            response = HttpResponse(stream,
-                                    content_type="application/zip")
+            #response = HttpResponse(stream,
+            #                        content_type="application/zip")
             # response['Content-Encoding'] = 'gzip'
+
+
+            response = HttpResponse(stream, content_type='application/force-download')
+            response['Content-Disposition'] = 'attachment; filename=%s' % smart_str(be.accession + ".zip")
+            #response['X-Sendfile'] = smart_str(path_to_file)
+
             return response
         else:
             return HttpResponseNotFound()
