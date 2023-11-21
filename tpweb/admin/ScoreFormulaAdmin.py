@@ -11,7 +11,7 @@ class ScoreFormulaAdmin(admin.ModelAdmin):
     search_fields = ["name", "user"]
 
     @admin.display(description="terms")
-    def params_str(self, obj):
+    def terms_str(self, obj):
         return " + ".join([str(x.coefficient) + " " + x.score_param.name
                            for x in obj.terms.all()])
 
