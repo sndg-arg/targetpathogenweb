@@ -8,9 +8,9 @@ from bioseq.io.SeqStore import SeqStore
 from tpweb.models.pdb import PDB
 
 import gzip
-
+import zipfile
 from tpweb.views.StructureView import pdb_structure
-
+import io
 
 class StructureExportView(View):
 
@@ -22,13 +22,19 @@ class StructureExportView(View):
             be = pdb.sequences.all()[0].bioentry
             biodb = be.biodatabase.name.replace(BioIO.GENOME_PROT_POSTFIX, "")
             ss = SeqStore(settings.SEQS_DATA_DIR)
+            data = gzip.open(ss.structure(biodb, be.accession, pdb.code),"rt").read()
             pdb_dto = pdb_structure(pdb, [])
             vmd_txt = vmd_style(pdb_dto["pockets"])
+            stream = io.BytesIO()
+            with zipfile.ZipFile(stream, mode='w') as zip_file:
+                zip_file.writestr(f'{pdb.code}.tcl', vmd_txt)
+                zip_file.writestr(f'{pdb.code}.pdb', data)
+            stream.seek(0)
 
             data = gzip.open(ss.structure(biodb, be.accession, pdb.code), "rt").read()
             # open(ss.structure(biodb, be.accession, pdb.code),"rb")
-            response = HttpResponse(vmd_txt,
-                                    content_type="text/plain; charset=utf-8")
+            response = HttpResponse(stream,
+                                    content_type="application/zip")
             # response['Content-Encoding'] = 'gzip'
             return response
         else:
@@ -41,25 +47,24 @@ def vmd_style(pockets):
                                          // x.split("_")[2] + ")" for x in variant_list if x])"""
 
     tcl = """set id [[atomselect 0 "protein"] molid]
-            mol delrep 0 $id    
-            mol representation "NewRibbons"
-            mol material "Opaque"
-            mol color Chain
-            mol selection "protein"
-            mol addrep $id
+mol delrep 0 $id    
+mol representation "NewRibbons"
+mol material "Opaque"
+mol color Chain
+mol selection "protein"
+mol addrep $id
                      
-            mol representation "VDW"
-            mol color Element
-                     
-            mol selection "not protein and not resname HOH and not resname STP"
-            mol addrep $id
-            """
+mol representation "VDW"
+mol color Element                     
+mol selection "not protein and not resname HOH and not resname STP"
+mol addrep $id
+"""
 
     for p in list(pockets):
         rep = f"""mol representation "VDW"
-        mol color Element
-        mol selection "resname  STP and resid  {p.name}"
-        mol addrep $id
+mol color Element
+mol selection "resname  STP and resid  {p.name}"
+mol addrep $id
         
         """
         """mol representation "Bonds"

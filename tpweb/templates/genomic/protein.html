@@ -176,8 +176,10 @@
 
     {% if structure %}
     <input type="button" onclick="ngl_reset_zoom()" value="Reset zoom" />
+        <a href="{% url 'tpwebapp:structure' structure.id %}" class="btn btn-secondary" >{% trans 'Full Screen' %}</a>
+        <a href="{% url "tpwebapp:structure_export" structure.id %}" type="button" class="btn btn-secondary" > {% trans "Download TCL VMD" %} </a>
     <div id="viewport" style="height: 500px;background-color: white"></div>
-        <a href="{% url 'tpwebapp:structure' structure.id %}">{% trans 'Full Screen' %}</a>
+
     {% endif %}
 
     <div id="msaDiv"></div>
@@ -411,17 +413,6 @@
 
 
     </script>
-
-
-
-
-
-
-
-
-
-
-
 
 
 {% endblock %}
