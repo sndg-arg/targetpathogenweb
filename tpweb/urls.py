@@ -8,7 +8,9 @@ from .views.GenomesView import GenomesView
 from .views.IndexView import IndexView
 from .views.ProteinListView import ProteinListView
 from .views.ProteinView import ProteinView
+from .views.StructureExportView import StructureExportView
 from .views.StructureRawView import StructureRawView
+from .views.StructureView import StructureView
 
 
 from .views.TestCelery import test_celery
@@ -45,6 +47,9 @@ urlpatterns = [
     path("download",view=DownloadView.as_view(),name="download"),
     path("genomes",view=login_required(GenomesView.as_view()),name="genomes_list"),
     path("structure_raw/<int:struct_id>",view=StructureRawView.as_view(),name="structure_raw"),
+    path("structure_export/<int:struct_id>",view=StructureExportView.as_view(),name="structure_export"),
+
+    path("structure/<int:struct_id>",view=StructureView.as_view(),name="structure"),
     path("test",view=untestview,name="untestview"),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
