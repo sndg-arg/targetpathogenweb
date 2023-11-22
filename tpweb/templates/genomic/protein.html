@@ -176,7 +176,10 @@
 
     {% if structure %}
     <input type="button" onclick="ngl_reset_zoom()" value="Reset zoom" />
+        <a href="{% url 'tpwebapp:structure' structure.id %}" class="btn btn-secondary" >{% trans 'Full Screen' %}</a>
+        <a href="{% url "tpwebapp:structure_export" structure.id %}" type="button" class="btn btn-secondary" > {% trans "Download TCL VMD" %} </a>
     <div id="viewport" style="height: 500px;background-color: white"></div>
+
     {% endif %}
 
     <div id="msaDiv"></div>
@@ -282,7 +285,7 @@
 
                     };
                     ngl_zoom_to = (repr) => {
-                        component.autoView(representations[repr].parameters.sele);
+                        component.autoView(representations[repr].sele);
 
                     };
 
@@ -291,20 +294,24 @@
                     scale: 1.5,
                     sele: "backbone and :A" //,color:"blue"
                 } );
+                    let sele = null;
                     {% for p in structure.pockets %}
+                        sele ="STP AND .APOL AND {{p.name}}";
                         representations["{{p.name}}_apol"] =  component.addRepresentation( "surface", {
-                            sele: "STP AND .APOL AND {{p.name}}",
+                            sele: sele,
                             multipleBond: false,
                             color:"white"
 
                         } );
-
+                        representations["{{p.name}}_apol"].sele = sele;
+                        sele ="STP AND .POL AND {{p.name}}";
                         representations["{{p.name}}_pol"] = component.addRepresentation( "surface", {
-                            sele: "STP AND .POL AND {{p.name}}",
+                            sele: sele,
                             multipleBond: false,
                             color:"black"
 
                         } );
+                        representations["{{p.name}}_pol"].sele = sele;
 
                         visible["{{p.name}}_pol"] = false;
                         visible["{{p.name}}_apol"] = false;
@@ -329,13 +336,15 @@
                     {% endfor %}
 
                     {% for rs in structure.residuesets %}
+                        sele = ':A AND ({{rs.residues|join:" OR "}})';
                         representations["{{rs.name}}"] =  component.addRepresentation( "ball+stick", {
-                            sele: ':A AND ({{rs.residues|join:" OR "}})'
+                            sele: sele
 
 
                         } );
                         visible["{{rs.name}}"] = false;
                         representations["{{rs.name}}"].setVisibility(false);
+                        representations["{{rs.name}}"].sele = sele;
                     {% endfor %}
 
 
@@ -404,17 +413,6 @@
 
 
     </script>
-
-
-
-
-
-
-
-
-
-
-
 
 
 {% endblock %}

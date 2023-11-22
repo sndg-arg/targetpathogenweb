@@ -40,8 +40,8 @@ class ScoreParam(models.Model):
 
 
         sp = ScoreParam.objects.get_or_create(
-            category="Pocket", name="druggable_fpocket", type="CATEGORICAL",
-            description="Protein druggable pockets count",
+            category="Pocket", name="druggable_pocket", type="CATEGORICAL",
+            description="Protein druggable FPocket's count",
             default_operation="=", default_value="M")[0]
 
         ScoreParamOptions.objects.get_or_create(score_param=sp, name="M",description="more than one druggable pockets")
@@ -77,7 +77,7 @@ class ScoreParam(models.Model):
         ScoreFormulaParam(formula=sf_vs,operation="=",coefficient=-1,value="High",score_param=sp).save()
 
         sp = ScoreParam.objects.get_or_create(
-            category="Pocket", name="catalytic_residue_in_pocket", type="CATEGORICAL",
+            category="Pocket", name="Catalytic_residue_in_pocket", type="CATEGORICAL",
             description="Pocket(s) intersect(s) with a catalytic site?",
             default_operation="=", default_value="N")[0]
         ScoreParamOptions.objects.get_or_create(score_param=sp, name="Y")
@@ -87,7 +87,7 @@ class ScoreParam(models.Model):
         ScoreFormulaParam(formula=sf_vs,operation="=",coefficient=2,value="Y",score_param=sp).save()
 
         sp = ScoreParam.objects.get_or_create(
-            category="Pocket", name="ppi_residue_in_pocket", type="CATEGORICAL",
+            category="Pocket", name="PPI_residue_in_pocket", type="CATEGORICAL",
             description="Pocket(s) overlaps(s) with a protein-protein interaction (PPI) site?",
             default_operation="=", default_value="N")[0]
         ScoreParamOptions.objects.get_or_create(score_param=sp, name="Y")
@@ -97,7 +97,7 @@ class ScoreParam(models.Model):
         ScoreFormulaParam(formula=sf_vs,operation="=",coefficient=0.5,value="Y",score_param=sp).save()
 
         sp = ScoreParam.objects.get_or_create(
-            category="Protein", name="virtual_screening_precedence", type="CATEGORICAL",
+            category="Protein", name="Virtual_Screening_precedence", type="CATEGORICAL",
             description="Pocket was used in previous virtual screen(s) reported in the literature",
             default_operation="=", default_value="N")[0]
         ScoreParamOptions.objects.get_or_create(score_param=sp, name="Y")
@@ -125,7 +125,7 @@ class ScoreParam(models.Model):
 
 
         sp = ScoreParam.objects.get_or_create(
-            category="Pocket", name="pocket_KpAb_overlap", type="CATEGORICAL",
+            category="Pocket", name="Pocket_KpAb_overlap", type="CATEGORICAL",
             description="Pocket(s) conserved between the Kp and Ab orthologues?",
             default_operation="=", default_value="N")[0]
         ScoreParamOptions.objects.get_or_create(score_param=sp, name="Y",
@@ -136,7 +136,7 @@ class ScoreParam(models.Model):
 
 
         sp = ScoreParam.objects.get_or_create(
-            category="Pocket", name="ligand_target_crystal_precedence", type="CATEGORICAL",
+            category="Pocket", name="Ligand-target_crystal_precedence", type="CATEGORICAL",
             description="Pocket(s) overlap(s) with a crystallized binding site containing a drug-like compound ?",
             default_operation="=", default_value="N")[0]
         ScoreParamOptions.objects.get_or_create(score_param=sp, name="Y",
@@ -144,8 +144,8 @@ class ScoreParam(models.Model):
         ScoreParamOptions.objects.get_or_create(score_param=sp, name="N")
 
 
-        ScoreFormulaParam(formula=sf_to,operation="=",coefficient=2,value="Y",score_param=sp).save()
-        ScoreFormulaParam(formula=sf_vs,operation="=",coefficient=2,value="Y",score_param=sp).save()
+        ScoreFormulaParam(formula=sf_to,operation="=",coefficient=1,value="Y",score_param=sp).save()
+        ScoreFormulaParam(formula=sf_vs,operation="=",coefficient=1,value="Y",score_param=sp).save()
 
         sp = ScoreParam.objects.get_or_create(
             category="Pocket", name="pocket_accessibility", type="CATEGORICAL",

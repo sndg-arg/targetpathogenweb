@@ -28,3 +28,5 @@ class StructureRawView(View):
             return response
         else:
             return HttpResponseNotFound()
+
+
