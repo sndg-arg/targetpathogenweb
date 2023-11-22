@@ -31,12 +31,33 @@ def index_genome_db(genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.A
 def index_genome_seq(genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
     return f"python manage.py index_genome_seq {genome}"
 
+# @bash_app(executors=["slurm_executor"])
+# def interproscan(genome, inputs = [], stderr = parsl.AUTO_LOGNAME, stdout = parsl.AUTO_LOGNAME):
+#     zcat = f'zcat /home/rterra/{genome}'
+#     app_dir = "/grupos/public/iprscan/current/interproscan.sh"
+#     parameters = f"--pathways --goterms --cpu 8 -iprlookup --formats tsv -i - -o {genome.split('.')[0]}.faa.tsv"
+#     return f"cd /home/rterra/;{zcat} | {app_dir} {parameters}"
+
+# need testing
 @bash_app(executors=["slurm_executor"])
-def interproscan(genome, inputs = [], stderr = parsl.AUTO_LOGNAME, stdout = parsl.AUTO_LOGNAME):
-    zcat = f'zcat /home/rterra/{genome}'
-    app_dir = "/grupos/public/iprscan/current/interproscan.sh"
-    parameters = f"--pathways --goterms --cpu 8 -iprlookup --formats tsv -i - -o {genome.split('.')[0]}.faa.tsv"
-    return f"cd /home/rterra/;{zcat} | {app_dir} {parameters}"
+def interproscan(folder_path, genome, inputs = [], stderr = parsl.AUTO_LOGNAME, stdout = parsl.AUTO_LOGNAME):
+    ssh_rootfolder = HighThroughputExecutor.run_dir
+    with open(os.path.join(folder_path, "script.sh"), 'w') as sc:
+        text = ""
+        text += f'export LD_LIBRARY_PATH=\\\"/home/shared/miniconda3.8/envs/interproscan/lib/:$LD_LIBRARY_PATH\\\"\n'
+        text += f'eval \\\"\$(/home/rterra/miniconda3/bin/conda shell.bash hook)\\\"\n'
+        text += f'conda activate interproscan_custom\n'
+        text += f'zcat {genome}.faa.gz | /grupos/public/iprscan/current/interproscan.sh --pathways \
+            --goterms --cpu 10 -iprlookup --formats tsv -i - -o {ssh_rootfolder}/{genome.split(".")[0]}.faa.tsv\n'
+    SSHChannel.push_file(os.path.join(folder_path, "script.sh"), ssh_rootfolder)
+    
+    return f"srun --nodes=1 --ntasks-per-node=1 --cpus-per-task=10 --time=05:00:00 bash ./script.sh"
+
+@python_app(executors=["slurm_executor"])
+def get_interpro_result(folder_path, genome, inputs = [], stderr = parsl.AUTO_LOGNAME, stdout = parsl.AUTO_LOGNAME):
+    ssh_rootfolder = HighThroughputExecutor.run_dir
+    SSHChannel.pull_file(os.path.join(ssh_rootfolder, genome + ".faa.tsv"), folder_path)
+    return
 
 @bash_app(executors=["local_executor"])
 def load_interpro(genome, folder_path, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME, **kwargs):
@@ -110,7 +131,7 @@ def run_fpocket(locus_tag, folder_path, inputs=[], stderr=parsl.AUTO_LOGNAME, st
 def fpocket2json(locus_tag_fold, locus_tag, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
     import os
     locustag_af = os.path.join(locus_tag_fold, f"{locus_tag}_AF_out")
-    return f"python -m SNDG.Structure.FPocket 2json locustag_af > fpocket.json"
+    return f"python -m SNDG.Structure.FPocket 2json {locustag_af} > fpocket.json"
 
 
 @python_app(executors=["local_executor"])
@@ -179,7 +200,7 @@ ht_executor = HighThroughputExecutor(
                            max_blocks=1,
                            parallelism=0,
                            nodes_per_block=1,
-                           worker_init="export JANGO_DEBUG=True;export DJANGO_SETTINGS_MODULE=tpwebconfig.settings;\
+                           worker_init="export DJANGO_DEBUG=True;export DJANGO_SETTINGS_MODULE=tpwebconfig.settings;\
                 export DJANGO_DATABASE_URL=psql://postgres:123@127.0.0.1:5432/tp;\
                 export CELERY_BROKER_URL=redis://localhost:6379/0;\
                 export PYTHONPATH=$PYTHONPATH:../sndgjobs:../sndgbiodb:../targetpathogen:../sndg-bio;\
@@ -192,22 +213,13 @@ slurm_executor = HighThroughputExecutor(
     label="slurm_executor",
     working_dir = "/home/rterra/",
     worker_logdir_root="/home/rterra",
-    provider = SlurmProvider(channel=SSHChannel(
+    provider = LocalProvider(channel=SSHChannel(
         username=os.getenv('SSH_USERNAME'),
         password=os.getenv('SSH_PASSWORD'),
         hostname='cluster.qb.fcen.uba.ar',
         script_dir='/home/rterra/slurm_target_tests'
-    ),
-    partition = 'cpu',
-    account='rterra',
-    nodes_per_block = 1,
-    cores_per_node = 8,
-    min_blocks = 0,
-    walltime="08:00:00",
-    max_blocks = 1,
-    worker_init = "export LD_LIBRARY_PATH=\"/home/shared/miniconda3.8/envs/interproscan/lib/:$LD_LIBRARY_PATH\"\neval \"$(/home/rterra/miniconda3/bin/conda shell.bash hook)\"\nconda activate interproscan_custom"
-        ,
-    launcher=SrunLauncher())
+    )
+)
 )
 cfg = Config(monitoring=MonitoringHub(
     hub_address=address_by_hostname(),
@@ -225,11 +237,13 @@ parsl.load(cfg)
 
 @join_app
 def run(genome):
+    genome = genome.split('.')[0]
     import math
     acclen = len(genome)
     folder_name = genome[math.floor(acclen / 2 - 1):math.floor(acclen / 2 + 2)]
     folder_path = f"./data/{folder_name}/{genome}"
     r_interpro = interproscan(genome, inputs=[])
+    r_interpror = get_interpro_result(folder_path=folder_path, genome = genome, inputs=[r_interpro])
     """
     r_down = download_gbk(genome=genome)
     r_load = load_gbk(gbk_path = os.path.join(folder_path, f"{genome}.gbk.gz"),genome=genome, inputs=[r_down])
@@ -248,7 +262,7 @@ def run(genome):
     r_stru = strucutures_af(folder_path, genome, inputs=r_alphafolds)
 
     """
-    for r in [r_interpro]:
+    for r in [r_interpror]:
         r.result()
 
 
