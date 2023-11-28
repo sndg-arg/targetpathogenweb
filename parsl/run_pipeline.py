@@ -3,7 +3,6 @@ from parsl import join_app
 from config import *
 from apps import *
 
-
 @join_app
 def run(genome):
     genome = genome.split('.')[0]
@@ -36,6 +35,7 @@ def run(genome):
 
 
 if __name__ == "__main__":
-    parsl.load(cfg)
+    cfg = TargetConfig("settings.ini")
+    parsl.load(cfg.get_parsl_cfg())
     parsl.set_stream_logger()
     run(genome="NC_003047")
