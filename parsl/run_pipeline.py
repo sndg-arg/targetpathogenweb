@@ -7,14 +7,13 @@ from apps import *
 def run(genome):
     import math, os
 
-    cfg = TargetConfig(None)
+    cfg = TargetConfig()
     cfg_dict = cfg.get_config_dict()
     genome = genome.split('.')[0]
     acclen = len(genome)
     folder_name = genome[math.floor(acclen / 2 - 1):math.floor(acclen / 2 + 2)]
     folder_path = os.path.join(cfg_dict.get("GENERAL", "WorkingDir"),f"data/{folder_name}/{genome}")
-    r_interpro = interproscan(folder_path, genome, inputs=[] )
-    r_interpror = get_interpro_result(folder_path=folder_path, genome = genome, inputs=[r_interpro])
+    r_interpro = interproscan(os.path.join("/home/rafael/Documentos/GitHub/targetpathogenweb/parsl", "settings.ini"), folder_path, genome, inputs=[] )
     """
     r_down = download_gbk(genome=genome)
     r_load = load_gbk(gbk_path = os.path.join(folder_path, f"{genome}.gbk.gz"),genome=genome, inputs=[r_down])
@@ -33,7 +32,7 @@ def run(genome):
     r_stru = strucutures_af(folder_path, genome, inputs=r_alphafolds)
 
     """
-    for r in [r_interpror]:
+    for r in [r_interpro]:
         r.result()
 
 

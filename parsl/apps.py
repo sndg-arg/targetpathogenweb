@@ -25,11 +25,11 @@ def index_genome_seq(genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.
 
 
 @python_app(executors=['local_executor'])
-def interproscan(folder_path, genome, inputs = [], stderr = parsl.AUTO_LOGNAME, stdout = parsl.AUTO_LOGNAME):
+def interproscan(settings_file, folder_path, genome, inputs = [], stderr = parsl.AUTO_LOGNAME, stdout = parsl.AUTO_LOGNAME):
     import paramiko, os, gzip
     from scp import SCPClient
     from config import TargetConfig
-    cfg = TargetConfig(None)
+    cfg = TargetConfig(settings_file)
     cfg_dict = cfg.get_config_dict()
     ssh = paramiko.SSHClient()
     ssh_rootfolder = cfg_dict.get("SSH",  "WorkingDir")
@@ -61,16 +61,6 @@ def interproscan(folder_path, genome, inputs = [], stderr = parsl.AUTO_LOGNAME, 
         with open(os.path.join(os.path.join(folder_path, genome), genome + ".faa.tsv.gz"), 'wb') as f2:
             f2.write(zipped_content)
     return exit_status
-
-
-@python_app(executors=["slurm_executor"])
-def get_interpro_result(folder_path, genome, inputs = [], stderr = parsl.AUTO_LOGNAME, stdout = parsl.AUTO_LOGNAME):
-    import os
-    from parsl.executors import HighThroughputExecutor
-    from parsl.channels import LocalChannel, SSHChannel
-    ssh_rootfolder = HighThroughputExecutor.run_dir
-    SSHChannel.pull_file(os.path.join(ssh_rootfolder, genome + ".faa.tsv"), folder_path)
-    return
 
 @bash_app(executors=["local_executor"])
 def load_interpro(genome, folder_path, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME, **kwargs):
