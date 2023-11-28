@@ -21,6 +21,47 @@ def index_genome_db(genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.A
 def index_genome_seq(genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
     return f"python manage.py index_genome_seq {genome}"
 
+
+
+
+@python_app(executors=['local_executor'])
+def interproscan(folder_path, genome, inputs = [], stderr = parsl.AUTO_LOGNAME, stdout = parsl.AUTO_LOGNAME):
+    import paramiko, os, gzip
+    from scp import SCPClient
+    from config import TargetConfig
+    cfg = TargetConfig(None)
+    cfg_dict = cfg.get_config_dict()
+    ssh = paramiko.SSHClient()
+    ssh_rootfolder = cfg_dict.get("SSH",  "WorkingDir")
+    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    ssh.connect(cfg_dict.get("SSH", "HostName"),
+                 username=cfg_dict.get("SSH", "Username", fallback = os.getenv("SSH_USERNAME")),
+                 password=cfg_dict.get("SSH", "Password", fallback = os.getenv("SSH_PASSWORD")))
+    scp = SCPClient(ssh.get_transport())
+    scp.put(os.path.join(folder_path, genome + '.faa.gz'), ssh_rootfolder)
+    text = ""
+    text += f'export LD_LIBRARY_PATH=\\\"/home/shared/miniconda3.8/envs/interproscan/lib/:$LD_LIBRARY_PATH\\\"\n'
+    text += f'eval \\\"\$(/home/rterra/miniconda3/bin/conda shell.bash hook)\\\"\n'
+    text += f'conda activate interproscan_custom\n'
+    text += f'zcat {genome}.faa.gz | /grupos/public/iprscan/current/interproscan.sh --pathways \
+        --goterms --cpu {cfg_dict.get("SSH", "CoresPerWorker")} -iprlookup --formats tsv -i - -o {ssh_rootfolder}/{genome}.faa.tsv\n'
+    
+    stdin, stdout, stderr = ssh.exec_command(f'touch script.sh && printf \"{text}\" > script.sh')
+    exit_status = stdout.channel.recv_exit_status()         
+     # Blocking call
+    stdin, stdout, stderr = ssh.exec_command(f"srun --nodes=1 --ntasks-per-node=1 --cpus-per-task=10 --time=05:00:00 bash ./script.sh", get_pty=True)
+    exit_status = stdout.channel.recv_exit_status()          # Blocking call
+    stdout.channel.set_combine_stderr(True)
+    output = stdout.read() #reading to stdout to force the wait on the command
+    scp.get(f"{ssh_rootfolder}/NC_003047.faa.tsv", os.path.join(folder_path, genome))
+    scp.close()
+    ssh.close()
+    with open(os.path.join(os.path.join(folder_path, genome), genome + ".faa.tsv"), 'r') as f:
+        zipped_content = gzip.compress(bytes(f.read(), 'utf-8'))
+        with open(os.path.join(os.path.join(folder_path, genome), genome + ".faa.tsv.gz"), 'wb') as f2:
+            f2.write(zipped_content)
+    return exit_status
+
 # @bash_app(executors=["slurm_executor"])
 # def interproscan(genome, inputs = [], stderr = parsl.AUTO_LOGNAME, stdout = parsl.AUTO_LOGNAME):
 #     zcat = f'zcat /home/rterra/{genome}'
@@ -29,22 +70,26 @@ def index_genome_seq(genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.
 #     return f"cd /home/rterra/;{zcat} | {app_dir} {parameters}"
 
 # need testing
-@bash_app(executors=["slurm_executor"])
-def interproscan(folder_path, genome, inputs = [], stderr = parsl.AUTO_LOGNAME, stdout = parsl.AUTO_LOGNAME):
-    import os
-    from parsl.executors import HighThroughputExecutor
-    from parsl.channels import LocalChannel, SSHChannel
-    ssh_rootfolder = HighThroughputExecutor.run_dir
-    with open(os.path.join(folder_path, "script.sh"), 'w') as sc:
-        text = ""
-        text += f'export LD_LIBRARY_PATH=\\\"/home/shared/miniconda3.8/envs/interproscan/lib/:$LD_LIBRARY_PATH\\\"\n'
-        text += f'eval \\\"\$(/home/rterra/miniconda3/bin/conda shell.bash hook)\\\"\n'
-        text += f'conda activate interproscan_custom\n'
-        text += f'zcat {genome}.faa.gz | /grupos/public/iprscan/current/interproscan.sh --pathways \
-            --goterms --cpu 10 -iprlookup --formats tsv -i - -o {ssh_rootfolder}/{genome.split(".")[0]}.faa.tsv\n'
-    SSHChannel.push_file(os.path.join(folder_path, "script.sh"), ssh_rootfolder)
+# @bash_app(executors=["local"])
+# def interproscan(folder_path, genome, inputs = [], stderr = parsl.AUTO_LOGNAME, stdout = parsl.AUTO_LOGNAME):
+#     import os
+#     from config import TargetConfig
     
-    return f"srun --nodes=1 --ntasks-per-node=1 --cpus-per-task=10 --time=05:00:00 bash ./script.sh"
+#     cfg = TargetConfig(None)
+#     cfg_dict = cfg.get_config_dict()
+
+#     with open(os.path.join(folder_path, "script.sh"), 'w') as sc:
+#         text = ""
+#         text += f'export LD_LIBRARY_PATH=\\\"/home/shared/miniconda3.8/envs/interproscan/lib/:$LD_LIBRARY_PATH\\\"\n'
+#         text += f'eval \\\"\$(/home/rterra/miniconda3/bin/conda shell.bash hook)\\\"\n'
+#         text += f'conda activate interproscan_custom\n'
+#         text += f'zcat {genome}.faa.gz | /grupos/public/iprscan/current/interproscan.sh --pathways \
+#             --goterms --cpu 10 -iprlookup --formats tsv -i - -o {ssh_rootfolder}/{genome.split(".")[0]}.faa.tsv\n'
+#         sc.write(text)
+#     ssh_rootfolder = cfg_dict.get("SSH", "WorkingDir")
+#     cfg.ssh_channel.push_file(os.path.join(folder_path, "script.sh"), ssh_rootfolder)
+    
+#     return f"srun --nodes=1 --ntasks-per-node=1 --cpus-per-task=10 --time=05:00:00 bash ./script.sh"
 
 @python_app(executors=["slurm_executor"])
 def get_interpro_result(folder_path, genome, inputs = [], stderr = parsl.AUTO_LOGNAME, stdout = parsl.AUTO_LOGNAME):

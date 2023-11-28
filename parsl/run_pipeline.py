@@ -5,12 +5,15 @@ from apps import *
 
 @join_app
 def run(genome):
-    genome = genome.split('.')[0]
     import math, os
+
+    cfg = TargetConfig(None)
+    cfg_dict = cfg.get_config_dict()
+    genome = genome.split('.')[0]
     acclen = len(genome)
     folder_name = genome[math.floor(acclen / 2 - 1):math.floor(acclen / 2 + 2)]
-    folder_path = f"./data/{folder_name}/{genome}"
-    r_interpro = interproscan(genome, inputs=[] )
+    folder_path = os.path.join(cfg_dict.get("GENERAL", "WorkingDir"),f"data/{folder_name}/{genome}")
+    r_interpro = interproscan(folder_path, genome, inputs=[] )
     r_interpror = get_interpro_result(folder_path=folder_path, genome = genome, inputs=[r_interpro])
     """
     r_down = download_gbk(genome=genome)
@@ -37,5 +40,5 @@ def run(genome):
 if __name__ == "__main__":
     cfg = TargetConfig("settings.ini")
     parsl.load(cfg.get_parsl_cfg())
-    parsl.set_stream_logger()
+    #parsl.set_stream_logger()
     run(genome="NC_003047")

@@ -1,6 +1,6 @@
 from parsl.config import Config
 from parsl.executors import HighThroughputExecutor
-from parsl.providers import LocalProvider, SlurmProvider
+from parsl.providers import LocalProvider, SlurmProvider, AdHocProvider
 from parsl.channels import LocalChannel, SSHChannel
 from parsl.launchers import SrunLauncher, SimpleLauncher
 from parsl.addresses import address_by_hostname, address_by_query
@@ -40,7 +40,7 @@ class TargetConfig():
             with open(self.config.get("SSH", "EnvironmentFile"), 'r') as f:
                 ssh_env = f.read()
 
-        ht_executor = HighThroughputExecutor(
+        self.ht_executor = HighThroughputExecutor(
             working_dir=self.config.get(
                 "GENERAL", "WorkingDir", fallback=os.getcwd()),
             label="local_executor",
@@ -53,29 +53,35 @@ class TargetConfig():
                                    nodes_per_block=1,
                                    worker_init=env),
         )
-
-        slurm_executor = HighThroughputExecutor(
-            label="slurm_executor",
-            max_workers=int(self.config.get("SSH", "MaxWorkers", fallback=1)),
-            cores_per_worker=int(self.config.get(
-                "SSH", "CoresPerWorker", fallback=1)),
-            working_dir=self.config.get("SSH", "WorkingDir"),
-            worker_logdir_root=self.config.get("SSH", "WorkingDir"),
-            provider=LocalProvider(
-                worker_init=ssh_env,
-                channel=SSHChannel(
+        """
+        self.ssh_channel = SSHChannel(
                     username=self.config.get(
                         "SSH", "Username", fallback=os.getenv('SSH_USERNAME')),
                     password=self.config.get(
                         "SSH", "Password", fallback=os.getenv('SSH_PASSWORD')),
                     hostname=self.config.get(
                         "SSH", "HostName", fallback='cluster.qb.fcen.uba.ar'),
-                    script_dir=self.config.get("SSH", "WorkingDir")
-                ),
-                launcher=SimpleLauncher(),
+                    script_dir=self.config.get("SSH", "ScriptDir")
+                )
+        self.slurm_executor = HighThroughputExecutor(
+            label="slurm_executor",
+            max_workers=int(self.config.get("SSH", "MaxWorkers", fallback=1)),
+            cores_per_worker=int(self.config.get(
+                "SSH", "CoresPerWorker", fallback=1)),
+            working_dir=self.config.get("SSH", "WorkingDir"),
+            worker_logdir_root=self.config.get("SSH", "WorkingDir"),
+            provider=SlurmProvider(
+                account=self.config.get(
+                        "SSH", "Username", fallback=os.getenv('SSH_USERNAME')),
+                partition = "cpu",
+                walltime="10:00:00",
+                worker_init=ssh_env,
+                channel= self.ssh_channel,
+                launcher=SrunLauncher(),
 
             )
         )
+        """
         if self.config.getboolean("GENERAL", "Monitoring", fallback=False):
             monitoring = MonitoringHub(
                 hub_address=address_by_hostname(),
@@ -86,6 +92,6 @@ class TargetConfig():
             monitoring = None
 
         cfg = Config(monitoring=monitoring,
-                     executors=[ht_executor, slurm_executor]
+                     executors=[self.ht_executor]
                      )
         return cfg
