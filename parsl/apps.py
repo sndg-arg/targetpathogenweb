@@ -1,42 +1,44 @@
 import parsl
 from parsl import python_app, bash_app, join_app
 
+
 @bash_app(executors=["local_executor"])
-def download_gbk(genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
+def download_gbk(working_dir, genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
     import os
-    return f"python manage.py download_gbk {genome}"
+    return f"python {working_dir}/manage.py download_gbk {genome} --datadir {working_dir}/data"
 
 
 @bash_app(executors=["local_executor"])
-def load_gbk(gbk_path, genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
-    return f"python manage.py load_gbk {gbk_path} --overwrite --accession {genome}"
+def load_gbk(working_dir, folder_path, genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
+    import os
+    gbk_path = os.path.join(folder_path, f"{genome}.gbk.gz")
+    return f"python {working_dir}/manage.py load_gbk {gbk_path} --overwrite --accession {genome}"
 
 
 @bash_app(executors=["local_executor"])
-def index_genome_db(genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
-    return f"python manage.py index_genome_db {genome}"
+def index_genome_db(working_dir, genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
+    return f"python {working_dir}/manage.py index_genome_db {genome} --datadir {working_dir}/data"
 
 
 @bash_app(executors=["local_executor"])
-def index_genome_seq(genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
-    return f"python manage.py index_genome_seq {genome}"
-
-
+def index_genome_seq(working_dir, genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
+    return f"python {working_dir}/manage.py index_genome_seq {genome} --datadir {working_dir}/data"
 
 
 @python_app(executors=['local_executor'])
-def interproscan(settings_file, folder_path, genome, inputs = [], stderr = parsl.AUTO_LOGNAME, stdout = parsl.AUTO_LOGNAME):
-    import paramiko, os, gzip
+def interproscan(cfg_dict, folder_path, genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
+    import paramiko
+    import os
+    import gzip
     from scp import SCPClient
     from config import TargetConfig
-    cfg = TargetConfig(settings_file)
-    cfg_dict = cfg.get_config_dict()
     ssh = paramiko.SSHClient()
     ssh_rootfolder = cfg_dict.get("SSH",  "WorkingDir")
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     ssh.connect(cfg_dict.get("SSH", "HostName"),
-                 username=cfg_dict.get("SSH", "Username", fallback = os.getenv("SSH_USERNAME")),
-                 password=cfg_dict.get("SSH", "Password", fallback = os.getenv("SSH_PASSWORD")))
+                username=cfg_dict.get(
+                    "SSH", "Username", fallback=os.getenv("SSH_USERNAME")),
+                password=cfg_dict.get("SSH", "Password", fallback=os.getenv("SSH_PASSWORD")))
     scp = SCPClient(ssh.get_transport())
     scp.put(os.path.join(folder_path, genome + '.faa.gz'), ssh_rootfolder)
     text = ""
@@ -45,15 +47,18 @@ def interproscan(settings_file, folder_path, genome, inputs = [], stderr = parsl
     text += f'conda activate interproscan_custom\n'
     text += f'zcat {genome}.faa.gz | /grupos/public/iprscan/current/interproscan.sh --pathways \
         --goterms --cpu {cfg_dict.get("SSH", "CoresPerWorker")} -iprlookup --formats tsv -i - -o {ssh_rootfolder}/{genome}.faa.tsv\n'
-    
-    stdin, stdout, stderr = ssh.exec_command(f'touch script.sh && printf \"{text}\" > script.sh')
-    exit_status = stdout.channel.recv_exit_status()         
-     # Blocking call
-    stdin, stdout, stderr = ssh.exec_command(f"srun --nodes=1 --ntasks-per-node=1 --cpus-per-task=10 --time=05:00:00 bash ./script.sh", get_pty=True)
+
+    stdin, stdout, stderr = ssh.exec_command(
+        f'touch script.sh && printf \"{text}\" > script.sh')
+    exit_status = stdout.channel.recv_exit_status()
+    # Blocking call
+    stdin, stdout, stderr = ssh.exec_command(
+        f"srun --nodes=1 --ntasks-per-node=1 --cpus-per-task={cfg_dict.get('SSH', 'CoresPerWorker')} --time=05:00:00 bash ./script.sh", get_pty=True)
     exit_status = stdout.channel.recv_exit_status()          # Blocking call
     stdout.channel.set_combine_stderr(True)
-    output = stdout.read() #reading to stdout to force the wait on the command
-    scp.get(f"{ssh_rootfolder}/NC_003047.faa.tsv", os.path.join(folder_path, genome))
+    output = stdout.read()  # reading to stdout to force the wait on the command
+    scp.get(f"{ssh_rootfolder}/NC_003047.faa.tsv",
+            os.path.join(folder_path, genome))
     scp.close()
     ssh.close()
     with open(os.path.join(os.path.join(folder_path, genome), genome + ".faa.tsv"), 'r') as f:
@@ -62,21 +67,22 @@ def interproscan(settings_file, folder_path, genome, inputs = [], stderr = parsl
             f2.write(zipped_content)
     return exit_status
 
+
 @bash_app(executors=["local_executor"])
-def load_interpro(genome, folder_path, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME, **kwargs):
+def load_interpro(working_dir, genome, folder_path, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME, **kwargs):
     import os
     protein_file = os.path.join(folder_path, genome + '.faa.tsv')
-    return f"python manage.py load_interpro {genome} --interpro_tsv {protein_file}"
+    return f"python {working_dir}/manage.py load_interpro {genome} --interpro_tsv {protein_file}"
 
 
 @bash_app(executors=["local_executor"])
-def gbk2uniprot_map(genome, folder_path, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
+def gbk2uniprot_map(working_dir, genome, folder_path, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
     import os
     unips_lst = os.path.join(folder_path, genome + '_unips.lst')
     unips_not_mapped = os.path.join(
         folder_path, genome + '_unips_not_mapped.lst')
     unips_mapping = os.path.join(folder_path, genome + '_unips_mapping.csv')
-    return f"python manage.py gbk2uniprot_map {genome} --mapping_tmp \
+    return f"python {working_dir}/manage.py gbk2uniprot_map {genome} --mapping_tmp \
         {unips_mapping} --not_mapped {unips_not_mapped} \
         > {unips_lst}"
 
@@ -97,12 +103,12 @@ def alphafold_unips(protein_list, folder_path, genome, inputs=[], stderr=parsl.A
 
 
 @bash_app(executors=["local_executor"])
-def load_af_model(folder_path, locus_tag, protein_name, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME, **kwargs):
+def load_af_model(working_dir, folder_path, locus_tag, protein_name, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME, **kwargs):
     import os
     locus_tag_fold = os.path.join(folder_path, locus_tag)
     protein_pdb = os.path.join(
         folder_path, 'alphafold/' + protein_name + '/' + protein_name + '_AF.pdb')
-    return f"python manage.py load_af_model {locus_tag} {protein_pdb} \
+    return f"python {working_dir}/manage.py load_af_model {locus_tag} {protein_pdb} \
         {locus_tag} --overwrite"
 
 
@@ -153,7 +159,7 @@ def filter_pdb(locus_tag_fold, locus_tag, inputs=[], stderr=parsl.AUTO_LOGNAME, 
 
 
 @join_app
-def strucutures_af(folder_path, genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
+def strucutures_af(working_dir, folder_path, genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
     from Bio import SeqIO
     import pandas as pd
     import os
@@ -173,8 +179,8 @@ def strucutures_af(folder_path, genome, inputs=[], stderr=parsl.AUTO_LOGNAME, st
                     protein_ids["From"] == protein_id)]["Entry"].unique()
                 for e in entries:
                     if e in mapped_proteins:
-                        r_load = load_af_model(
-                            folder_path, locus_tag, e, inputs=inputs)
+                        r_load = load_af_model(working_dir,
+                                               folder_path, locus_tag, e, inputs=inputs)
                         input_file = os.path.join(
                             locus_tag_fold, locus_tag + ".pdb.gz")
                         output_file = s.path.join(
