@@ -57,13 +57,12 @@ def interproscan(cfg_dict, folder_path, genome, inputs=[], stderr=parsl.AUTO_LOG
     exit_status = stdout.channel.recv_exit_status()          # Blocking call
     stdout.channel.set_combine_stderr(True)
     output = stdout.read()  # reading to stdout to force the wait on the command
-    scp.get(f"{ssh_rootfolder}/NC_003047.faa.tsv",
-            os.path.join(folder_path, genome))
+    scp.get(f"{ssh_rootfolder}/{genome}.faa.tsv",folder_path)
     scp.close()
     ssh.close()
-    with open(os.path.join(os.path.join(folder_path, genome), genome + ".faa.tsv"), 'r') as f:
+    with open(os.path.join(folder_path, genome + ".faa.tsv"), 'r') as f:
         zipped_content = gzip.compress(bytes(f.read(), 'utf-8'))
-        with open(os.path.join(os.path.join(folder_path, genome), genome + ".faa.tsv.gz"), 'wb') as f2:
+        with open(os.path.join(folder_path, genome + ".faa.tsv.gz"), 'wb') as f2:
             f2.write(zipped_content)
     return exit_status
 
@@ -91,7 +90,7 @@ def gbk2uniprot_map(working_dir, genome, folder_path, inputs=[], stderr=parsl.AU
 def get_unipslst(folder_path, genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
     import os
     with open(os.path.join(folder_path, genome + '_unips.lst'), 'r') as unip_lst:
-        return unip_lst.readlines()
+        return unip_lst.read()
 
 
 @bash_app(executors=["local_executor"])

@@ -21,7 +21,6 @@ def run(genome):
     # starts the pipeline
 
     # requires working dir to save data
-    """
     r_down = download_gbk(working_dir=working_dir, genome=genome)
     r_load = load_gbk(working_dir=working_dir,
                       folder_path=folder_path, genome=genome, inputs=[r_down])
@@ -29,8 +28,7 @@ def run(genome):
                                  r_load], genome=genome)
     r_index_seq = index_genome_seq(working_dir=working_dir, inputs=[
                                    r_index_db], genome=genome)
-    """
-    r_interpro = interproscan(cfg_dict=cfg_dict, folder_path=folder_path, genome=genome, inputs=[])
+    r_interpro = interproscan(cfg_dict=cfg_dict, folder_path=folder_path, genome=genome, inputs=[r_index_seq])
     r_load_interpro = load_interpro(
         working_dir=working_dir, genome=genome, folder_path=folder_path, inputs=[r_interpro])
     r_gbk2uniprot = gbk2uniprot_map(
@@ -39,9 +37,10 @@ def run(genome):
         folder_path=folder_path, genome=genome, inputs=[r_gbk2uniprot])
     r_alphafolds = list()
     for proteins in (protein_list.result()).split('\n'):
-        r = alphafold_unips(protein_list=proteins, folder_path=folder_path,
+        if len(proteins) > 0:
+            r = alphafold_unips(protein_list=proteins, folder_path=folder_path,
                             genome=genome, inputs=[protein_list])
-        r_alphafolds.append(r)
+            r_alphafolds.append(r)
     # -----------------------------------
     r_stru = strucutures_af(
         working_dir=working_dir, folder_path=folder_path, genome=genome, inputs=r_alphafolds)
@@ -53,4 +52,4 @@ if __name__ == "__main__":
     cfg = TargetConfig("settings.ini")
     parsl.load(cfg.get_parsl_cfg())
     parsl.set_stream_logger()
-    run(genome="NC_003047")
+    run(genome="AE005174")
