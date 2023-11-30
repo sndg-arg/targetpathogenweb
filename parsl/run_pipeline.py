@@ -2,7 +2,8 @@ import parsl
 from parsl import join_app
 from config import *
 from apps import *
-
+import argparse
+import sys
 
 @join_app
 def run(genome):
@@ -44,12 +45,25 @@ def run(genome):
     # -----------------------------------
     r_stru = strucutures_af(
         working_dir=working_dir, folder_path=folder_path, genome=genome, inputs=r_alphafolds)
-    for r in [r_stru]:
-        r.result()
+    return r_stru
 
 
 if __name__ == "__main__":
+    genomes = list()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('genomes', help="List of NCBI genomes accession numbers separated with new lines",
+                        type=str,
+                        nargs='*',
+                        default=sys.stdin)
+    args = parser.parse_args()
+    for l in args.genomes:
+        genomes.append(l.strip().upper())
     cfg = TargetConfig("settings.ini")
     parsl.load(cfg.get_parsl_cfg())
     parsl.set_stream_logger()
-    run(genome="AE005174")
+    results = list()
+    for genome in genomes:
+        r = run(genome=genome)
+        results.append(r)
+    for r in results:
+        r.result()

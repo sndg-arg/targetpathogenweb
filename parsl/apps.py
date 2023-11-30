@@ -46,7 +46,7 @@ def interproscan(cfg_dict, folder_path, genome, inputs=[], stderr=parsl.AUTO_LOG
     text += f'eval \\\"\$(/home/rterra/miniconda3/bin/conda shell.bash hook)\\\"\n'
     text += f'conda activate interproscan_custom\n'
     text += f'zcat {genome}.faa.gz | /grupos/public/iprscan/current/interproscan.sh --pathways \
-        --goterms --cpu {cfg_dict.get("SSH", "CoresPerWorker")} -iprlookup --formats tsv -i - -o {ssh_rootfolder}/{genome}.faa.tsv\n'
+        --goterms --cpu {cfg_dict.get("SSH", "Cores")} -iprlookup --formats tsv -i - -o {ssh_rootfolder}/{genome}.faa.tsv\n'
 
     stdin, stdout, stderr = ssh.exec_command(
         f'touch script.sh && printf \"{text}\" > script.sh')
