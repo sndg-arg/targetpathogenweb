@@ -53,7 +53,7 @@ def interproscan(cfg_dict, folder_path, genome, inputs=[], stderr=parsl.AUTO_LOG
     exit_status = stdout.channel.recv_exit_status()
     # Blocking call
     stdin, stdout, stderr = ssh.exec_command(
-        f"srun --nodes=1 --ntasks-per-node=1 --cpus-per-task={cfg_dict.get('SSH', 'CoresPerWorker')} --time=05:00:00 bash ./script.sh", get_pty=True)
+        f"srun --nodes=1 --ntasks-per-node=1 --cpus-per-task={cfg_dict.get('SSH', 'Cores')} --time=05:00:00 bash ./script.sh", get_pty=True)
     exit_status = stdout.channel.recv_exit_status()          # Blocking call
     stdout.channel.set_combine_stderr(True)
     output = stdout.read()  # reading to stdout to force the wait on the command
