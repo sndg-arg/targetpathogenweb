@@ -12,7 +12,7 @@ def download_gbk(working_dir, genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdo
 def load_gbk(working_dir, folder_path, genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
     import os
     gbk_path = os.path.join(folder_path, f"{genome}.gbk.gz")
-    return f"python {working_dir}/manage.py load_gbk {gbk_path} --overwrite --accession {genome} --datadir {folder_path}"
+    return f"python {working_dir}/manage.py load_gbk {gbk_path} --overwrite --accession {genome} --datadir {working_dir}/data"
 
 
 @bash_app(executors=["local_executor"])
