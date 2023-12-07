@@ -486,3 +486,6 @@ pyrightconfig.json
 
 .idea/
 data/
+
+# Parsl
+parsl/runinfo

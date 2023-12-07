@@ -1,58 +1,87 @@
 import parsl
 from parsl import python_app, bash_app, join_app
-import math
-import os
-from parsl.config import Config
-from parsl.executors import HighThroughputExecutor
-from parsl.providers import LocalProvider, SlurmProvider
-from parsl.channels import LocalChannel, SSHChannel
-from parsl.launchers import SrunLauncher
-from parsl.addresses import address_by_hostname, address_by_query
-from parsl.monitoring.monitoring import MonitoringHub
 
 
 @bash_app(executors=["local_executor"])
-def download_gbk(genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
+def download_gbk(working_dir, genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
     import os
-    return f"python manage.py download_gbk {genome}"
+    return f"python {working_dir}/manage.py download_gbk {genome} --datadir {working_dir}/data"
 
 
 @bash_app(executors=["local_executor"])
-def load_gbk(gbk_path, genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
-    return f"python manage.py load_gbk {gbk_path} --overwrite --accession {genome}"
+def load_gbk(working_dir, folder_path, genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
+    import os
+    gbk_path = os.path.join(folder_path, f"{genome}.gbk.gz")
+    return f"python {working_dir}/manage.py load_gbk {gbk_path} --overwrite --accession {genome}"
 
 
 @bash_app(executors=["local_executor"])
-def index_genome_db(genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
-    return f"python manage.py index_genome_db {genome}"
+def index_genome_db(working_dir, genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
+    return f"python {working_dir}/manage.py index_genome_db {genome} --datadir {working_dir}/data"
 
 
 @bash_app(executors=["local_executor"])
-def index_genome_seq(genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
-    return f"python manage.py index_genome_seq {genome}"
+def index_genome_seq(working_dir, genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
+    return f"python {working_dir}/manage.py index_genome_seq {genome} --datadir {working_dir}/data"
 
-@bash_app(executors=["slurm_executor"])
-def interproscan(genome, inputs = [], stderr = parsl.AUTO_LOGNAME, stdout = parsl.AUTO_LOGNAME):
-    zcat = f'zcat /home/rterra/{genome}'
-    app_dir = "/grupos/public/iprscan/current/interproscan.sh"
-    parameters = f"--pathways --goterms --cpu 8 -iprlookup --formats tsv -i - -o {genome.split('.')[0]}.faa.tsv"
-    return f"cd /home/rterra/;{zcat} | {app_dir} {parameters}"
+
+@python_app(executors=['local_executor'])
+def interproscan(cfg_dict, folder_path, genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
+    import paramiko
+    import os
+    import gzip
+    from scp import SCPClient
+    from config import TargetConfig
+    ssh = paramiko.SSHClient()
+    ssh_rootfolder = cfg_dict.get("SSH",  "WorkingDir")
+    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    ssh.connect(cfg_dict.get("SSH", "HostName"),
+                username=cfg_dict.get(
+                    "SSH", "Username", fallback=os.getenv("SSH_USERNAME")),
+                password=cfg_dict.get("SSH", "Password", fallback=os.getenv("SSH_PASSWORD")))
+    scp = SCPClient(ssh.get_transport())
+    scp.put(os.path.join(folder_path, genome + '.faa.gz'), ssh_rootfolder)
+    text = ""
+    text += f'export LD_LIBRARY_PATH=\\\"/home/shared/miniconda3.8/envs/interproscan/lib/:$LD_LIBRARY_PATH\\\"\n'
+    text += f'eval \\\"\$(/home/rterra/miniconda3/bin/conda shell.bash hook)\\\"\n'
+    text += f'conda activate interproscan_custom\n'
+    text += f'zcat {genome}.faa.gz | /grupos/public/iprscan/current/interproscan.sh --pathways \
+        --goterms --cpu {cfg_dict.get("SSH", "Cores")} -iprlookup --formats tsv -i - -o {ssh_rootfolder}/{genome}.faa.tsv\n'
+
+    stdin, stdout, stderr = ssh.exec_command(
+        f'touch script.sh && printf \"{text}\" > script.sh')
+    exit_status = stdout.channel.recv_exit_status()
+    # Blocking call
+    stdin, stdout, stderr = ssh.exec_command(
+        f"srun --nodes=1 --ntasks-per-node=1 --cpus-per-task={cfg_dict.get('SSH', 'Cores')} --time=05:00:00 bash ./script.sh", get_pty=True)
+    exit_status = stdout.channel.recv_exit_status()          # Blocking call
+    stdout.channel.set_combine_stderr(True)
+    output = stdout.read()  # reading to stdout to force the wait on the command
+    scp.get(f"{ssh_rootfolder}/{genome}.faa.tsv",folder_path)
+    scp.close()
+    ssh.close()
+    with open(os.path.join(folder_path, genome + ".faa.tsv"), 'r') as f:
+        zipped_content = gzip.compress(bytes(f.read(), 'utf-8'))
+        with open(os.path.join(folder_path, genome + ".faa.tsv.gz"), 'wb') as f2:
+            f2.write(zipped_content)
+    return exit_status
+
 
 @bash_app(executors=["local_executor"])
-def load_interpro(genome, folder_path, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME, **kwargs):
+def load_interpro(working_dir, genome, folder_path, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME, **kwargs):
     import os
     protein_file = os.path.join(folder_path, genome + '.faa.tsv')
-    return f"python manage.py load_interpro {genome} --interpro_tsv {protein_file}"
+    return f"python {working_dir}/manage.py load_interpro {genome} --interpro_tsv {protein_file}"
 
 
 @bash_app(executors=["local_executor"])
-def gbk2uniprot_map(genome, folder_path, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
+def gbk2uniprot_map(working_dir, genome, folder_path, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
     import os
     unips_lst = os.path.join(folder_path, genome + '_unips.lst')
     unips_not_mapped = os.path.join(
         folder_path, genome + '_unips_not_mapped.lst')
     unips_mapping = os.path.join(folder_path, genome + '_unips_mapping.csv')
-    return f"python manage.py gbk2uniprot_map {genome} --mapping_tmp \
+    return f"python {working_dir}/manage.py gbk2uniprot_map {genome} --mapping_tmp \
         {unips_mapping} --not_mapped {unips_not_mapped} \
         > {unips_lst}"
 
@@ -61,7 +90,7 @@ def gbk2uniprot_map(genome, folder_path, inputs=[], stderr=parsl.AUTO_LOGNAME, s
 def get_unipslst(folder_path, genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
     import os
     with open(os.path.join(folder_path, genome + '_unips.lst'), 'r') as unip_lst:
-        return unip_lst.readlines()
+        return unip_lst.read()
 
 
 @bash_app(executors=["local_executor"])
@@ -73,12 +102,12 @@ def alphafold_unips(protein_list, folder_path, genome, inputs=[], stderr=parsl.A
 
 
 @bash_app(executors=["local_executor"])
-def load_af_model(folder_path, locus_tag, protein_name, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME, **kwargs):
+def load_af_model(working_dir, folder_path, locus_tag, protein_name, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME, **kwargs):
     import os
     locus_tag_fold = os.path.join(folder_path, locus_tag)
     protein_pdb = os.path.join(
         folder_path, 'alphafold/' + protein_name + '/' + protein_name + '_AF.pdb')
-    return f"python manage.py load_af_model {locus_tag} {protein_pdb} \
+    return f"python {working_dir}/manage.py load_af_model {locus_tag} {protein_pdb} \
         {locus_tag} --overwrite"
 
 
@@ -110,7 +139,7 @@ def run_fpocket(locus_tag, folder_path, inputs=[], stderr=parsl.AUTO_LOGNAME, st
 def fpocket2json(locus_tag_fold, locus_tag, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
     import os
     locustag_af = os.path.join(locus_tag_fold, f"{locus_tag}_AF_out")
-    return f"python -m SNDG.Structure.FPocket 2json locustag_af > fpocket.json"
+    return f"python -m SNDG.Structure.FPocket 2json {locustag_af} > fpocket.json"
 
 
 @python_app(executors=["local_executor"])
@@ -129,7 +158,7 @@ def filter_pdb(locus_tag_fold, locus_tag, inputs=[], stderr=parsl.AUTO_LOGNAME, 
 
 
 @join_app
-def strucutures_af(folder_path, genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
+def strucutures_af(working_dir, folder_path, genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
     from Bio import SeqIO
     import pandas as pd
     import os
@@ -149,8 +178,8 @@ def strucutures_af(folder_path, genome, inputs=[], stderr=parsl.AUTO_LOGNAME, st
                     protein_ids["From"] == protein_id)]["Entry"].unique()
                 for e in entries:
                     if e in mapped_proteins:
-                        r_load = load_af_model(
-                            folder_path, locus_tag, e, inputs=inputs)
+                        r_load = load_af_model(working_dir,
+                                               folder_path, locus_tag, e, inputs=inputs)
                         input_file = os.path.join(
                             locus_tag_fold, locus_tag + ".pdb.gz")
                         output_file = s.path.join(
@@ -168,90 +197,3 @@ def strucutures_af(folder_path, genome, inputs=[], stderr=parsl.AUTO_LOGNAME, st
                         rets.append(filter_pdb(locus_tag_fold,
                                     locus_tag, inputs=[r_comp2]))
     return rets
-
-
-# ---------------------------
-ht_executor = HighThroughputExecutor(
-    working_dir=os.getcwd(),
-    label="local_executor",
-    provider=LocalProvider(channel=LocalChannel(),
-                           min_blocks=1,
-                           max_blocks=1,
-                           parallelism=0,
-                           nodes_per_block=1,
-                           worker_init="export JANGO_DEBUG=True;export DJANGO_SETTINGS_MODULE=tpwebconfig.settings;\
-                export DJANGO_DATABASE_URL=psql://postgres:123@127.0.0.1:5432/tp;\
-                export CELERY_BROKER_URL=redis://localhost:6379/0;\
-                export PYTHONPATH=$PYTHONPATH:../sndgjobs:../sndgbiodb:../targetpathogen:../sndg-bio;\
-                conda activate tpv2"),
-    max_workers=4,
-
-)
-
-slurm_executor = HighThroughputExecutor(
-    label="slurm_executor",
-    working_dir = "/home/rterra/",
-    worker_logdir_root="/home/rterra",
-    provider = SlurmProvider(channel=SSHChannel(
-        username=os.getenv('SSH_USERNAME'),
-        password=os.getenv('SSH_PASSWORD'),
-        hostname='cluster.qb.fcen.uba.ar',
-        script_dir='/home/rterra/slurm_target_tests'
-    ),
-    partition = 'cpu',
-    account='rterra',
-    nodes_per_block = 1,
-    cores_per_node = 8,
-    min_blocks = 0,
-    walltime="08:00:00",
-    max_blocks = 1,
-    worker_init = "export LD_LIBRARY_PATH=\"/home/shared/miniconda3.8/envs/interproscan/lib/:$LD_LIBRARY_PATH\"\neval \"$(/home/rterra/miniconda3/bin/conda shell.bash hook)\"\nconda activate interproscan_custom"
-        ,
-    launcher=SrunLauncher())
-)
-cfg = Config(monitoring=MonitoringHub(
-    hub_address=address_by_hostname(),
-    monitoring_debug=False,
-    resource_monitoring_interval=10,
-    ),
-    executors=[ht_executor, slurm_executor]
-)
-
-
-
-parsl.load(cfg)
-# ----------------------------------------
-
-
-@join_app
-def run(genome):
-    import math
-    acclen = len(genome)
-    folder_name = genome[math.floor(acclen / 2 - 1):math.floor(acclen / 2 + 2)]
-    folder_path = f"./data/{folder_name}/{genome}"
-    r_interpro = interproscan(genome, inputs=[])
-    """
-    r_down = download_gbk(genome=genome)
-    r_load = load_gbk(gbk_path = os.path.join(folder_path, f"{genome}.gbk.gz"),genome=genome, inputs=[r_down])
-    r_index_db = index_genome_db(inputs=[r_load], genome=genome)
-    r_index_seq = index_genome_seq(inputs=[r_index_db], genome=genome)
-    r_interpro = interproscan(genome, inputs=[r_index_seq])
-    r_load_interpro = load_interpro(genome, folder_path, inputs=[r_interpro])
-    r_gbk2uniprot = gbk2uniprot_map(genome, folder_path, inputs = [r_load_interpro])
-    protein_list = get_unipslst(folder_path, genome, inputs=[r_gbk2uniprot])
-    r_alphafolds = list()
-    for proteins in (protein_list.result()).split('\n'):
-        r = alphafold_unips(proteins, folder_path,
-                            genome, inputs=[protein_list])
-        r_alphafolds.append(r)
-    # -----------------------------------
-    r_stru = strucutures_af(folder_path, genome, inputs=r_alphafolds)
-
-    """
-    for r in [r_interpro]:
-        r.result()
-
-
-if __name__ == "__main__":
-    parsl.set_stream_logger()
-    run(genome="NC_003047")
