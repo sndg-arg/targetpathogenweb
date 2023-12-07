@@ -40,12 +40,12 @@ urlpatterns = [
     #path("test_celery/", view=test_celery, name="test_celery"),
 
     #path("",view=login_required(IndexView.as_view()),name="index"),
-    path("",view=login_required(GenomesView.as_view()),name="index"),
-    path("assembly/<str:assembly_id>",view=login_required(AssemblyView.as_view()),name="assembly"),
-    path("protein/<int:protein_id>",view=login_required(ProteinView.as_view()),name="protein"),
-    path("assembly/<str:assembly_name>/protein",view=login_required(ProteinListView.as_view()),name="protein_list"),
+    path("",view=IndexView.as_view(),name="index"),
+    path("assembly/<str:assembly_id>",view=AssemblyView.as_view(),name="assembly"),
+    path("protein/<int:protein_id>",view=ProteinView.as_view(),name="protein"),
+    path("assembly/<str:assembly_name>/protein",view=ProteinListView.as_view(),name="protein_list"),
     path("download",view=DownloadView.as_view(),name="download"),
-    path("genomes",view=login_required(GenomesView.as_view()),name="genomes_list"),
+    path("genomes",view=GenomesView.as_view(),name="genomes_list"),
     path("structure_raw/<int:struct_id>",view=StructureRawView.as_view(),name="structure_raw"),
     path("structure_export/<int:struct_id>",view=StructureExportView.as_view(),name="structure_export"),
 

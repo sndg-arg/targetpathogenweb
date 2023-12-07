@@ -22,3 +22,7 @@ str(ScoreParamAdmin)
 import tpweb.admin.ScoreFormulaAdmin
 
 str(ScoreFormulaAdmin)
+
+import tpweb.admin.TPPostAdmin
+
+str(TPPostAdmin)
