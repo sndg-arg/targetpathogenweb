@@ -32,16 +32,9 @@ class StructureExportView(View):
                 zip_file.writestr(f'{pdb.code}.pdb', data)
             stream.seek(0)
 
-            data = gzip.open(ss.structure(biodb, be.accession, pdb.code), "rt").read()
-            # open(ss.structure(biodb, be.accession, pdb.code),"rb")
-            #response = HttpResponse(stream,
-            #                        content_type="application/zip")
-            # response['Content-Encoding'] = 'gzip'
-
 
             response = HttpResponse(stream, content_type='application/force-download')
             response['Content-Disposition'] = 'attachment; filename=%s' % smart_str(be.accession + ".zip")
-            #response['X-Sendfile'] = smart_str(path_to_file)
 
             return response
         else:
