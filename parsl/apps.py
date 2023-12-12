@@ -112,7 +112,7 @@ def load_af_model(working_dir, folder_path, locus_tag, protein_name, inputs=[], 
 
 
 @python_app(executors=["local_executor"])
-def descompress_file(input_file, output_file, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
+def decompress_file(input_file, output_file, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
     import gzip
     import shutil
     with gzip.open(input_file, 'rb') as f_in:
@@ -168,6 +168,8 @@ def strucutures_af(working_dir, folder_path, genome, inputs=[], stderr=parsl.AUT
     rets = list()
     with open(os.path.join(folder_path, f"{genome}_unips.lst"), 'r') as f:
         mapped_proteins = [x.strip() for x in f.readlines()]
+    r = decompress_file(os.path.join(folder_path, f"{genome}.gbk.gz"), os.path.join(folder_path, f"{genome}.gbk"))
+    r.result()
     for record in SeqIO.parse(os.path.join(folder_path, f"{genome}.gbk"), "genbank"):
         for feature in record.features:
             if feature.type == "CDS":
@@ -184,7 +186,7 @@ def strucutures_af(working_dir, folder_path, genome, inputs=[], stderr=parsl.AUT
                             locus_tag_fold, locus_tag + ".pdb.gz")
                         output_file = s.path.join(
                             locus_tag_fold, locus_tag + "_AF.pdb")
-                        r_descomp = descompress_file(
+                        r_descomp = decompress_file(
                             input_file, output_file, inputs=[r_load])
                         r_fpocker = run_fpocket(
                             locus_tag, folder_path, inputs=[r_descomp])
