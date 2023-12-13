@@ -1,6 +1,13 @@
 import parsl
 from parsl import python_app, bash_app, join_app
 
+@python_app(executors=['local_executor'])
+def clear_folder(folder_path, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
+    import os, shutil
+    if os.path.exists(folder_path):
+        shutil.rmtree(folder_path)
+    return
+
 
 @bash_app(executors=["local_executor"])
 def download_gbk(working_dir, genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
@@ -106,9 +113,9 @@ def load_af_model(working_dir, folder_path, locus_tag, protein_name, inputs=[], 
     import os
     locus_tag_fold = os.path.join(folder_path, locus_tag)
     protein_pdb = os.path.join(
-        folder_path, 'alphafold/' + protein_name + '/' + protein_name + '_AF.pdb')
+        folder_path, 'alphafold/' + protein_name + '/' + protein_name + '_af.pdb')
     return f"python {working_dir}/manage.py load_af_model {locus_tag} {protein_pdb} \
-        {locus_tag} --overwrite"
+        {locus_tag} --overwrite --datadir {working_dir}/data"
 
 
 @python_app(executors=["local_executor"])
@@ -131,15 +138,15 @@ def compress_file(input_file, output_file, inputs=[], stderr=parsl.AUTO_LOGNAME,
 
 
 @bash_app(executors=["local_executor"])
-def run_fpocket(locus_tag, folder_path, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME, **kwargs):
-    return f"python -m TP.alphafold {locus_tag} -o {folder_path} -T 10 -nc -np -na"
+def run_fpocket(locus_tag, working_dir, folder_path, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME, **kwargs):
+    return f"python -m TP.alphafold {locus_tag} -o {folder_path} -w {working_dir} -T 10 -nc -np -na"
 
 
 @bash_app(executors=["local_executor"])
 def fpocket2json(locus_tag_fold, locus_tag, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
     import os
-    locustag_af = os.path.join(locus_tag_fold, f"{locus_tag}_AF_out")
-    return f"python -m SNDG.Structure.FPocket 2json {locustag_af} > fpocket.json"
+    locustag_af = os.path.join(locus_tag_fold, f"{locus_tag}_af_out")
+    return f"python -m SNDG.Structure.FPocket 2json {locustag_af} > {locus_tag_fold}/fpocket.json"
 
 
 @python_app(executors=["local_executor"])
@@ -147,7 +154,7 @@ def filter_pdb(locus_tag_fold, locus_tag, inputs=[], stderr=parsl.AUTO_LOGNAME, 
     import os
     import gzip
     filtered = list()
-    with open(f"{locus_tag_fold}/{locus_tag}_AF_out/{locus_tag}_AF_out.pdb", 'r') as f:
+    with open(f"{locus_tag_fold}/{locus_tag}_af_out/{locus_tag}_af_out.pdb", 'r') as f:
         for line in f.readlines():
             if line[:6] == "HETATM" and "POL" in line and "STP" in line:
                 filtered.append(line)
@@ -168,8 +175,12 @@ def strucutures_af(working_dir, folder_path, genome, inputs=[], stderr=parsl.AUT
     rets = list()
     with open(os.path.join(folder_path, f"{genome}_unips.lst"), 'r') as f:
         mapped_proteins = [x.strip() for x in f.readlines()]
-    r = decompress_file(os.path.join(folder_path, f"{genome}.gbk.gz"), os.path.join(folder_path, f"{genome}.gbk"))
-    r.result()
+    input_file = os.path.join(
+                        folder_path, genome + ".gbk.gz")
+    output_file = os.path.join(
+                        folder_path, genome + ".gbk")
+    r_descomp0 = decompress_file(input_file, output_file, inputs = inputs)
+    r_descomp0.result()
     for record in SeqIO.parse(os.path.join(folder_path, f"{genome}.gbk"), "genbank"):
         for feature in record.features:
             if feature.type == "CDS":
@@ -181,15 +192,15 @@ def strucutures_af(working_dir, folder_path, genome, inputs=[], stderr=parsl.AUT
                 for e in entries:
                     if e in mapped_proteins:
                         r_load = load_af_model(working_dir,
-                                               folder_path, locus_tag, e, inputs=inputs)
+                                               folder_path, locus_tag, e, inputs=[r_descomp0])
                         input_file = os.path.join(
                             locus_tag_fold, locus_tag + ".pdb.gz")
                         output_file = os.path.join(
-                            locus_tag_fold, locus_tag + "_AF.pdb")
+                            locus_tag_fold, locus_tag + "_af.pdb")
                         r_descomp = decompress_file(
                             input_file, output_file, inputs=[r_load])
                         r_fpocker = run_fpocket(
-                            locus_tag, folder_path, inputs=[r_descomp])
+                            locus_tag, working_dir, folder_path, inputs=[r_descomp])
                         r_json = fpocket2json(
                             locus_tag_fold, locus_tag, inputs=[r_fpocker])
                         r_comp = compress_file(os.path.join(locus_tag_fold, "fpocket.json"), os.path.join(locus_tag_fold, "fpocket.json.gz"),
