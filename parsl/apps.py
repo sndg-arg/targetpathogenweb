@@ -184,7 +184,7 @@ def strucutures_af(working_dir, folder_path, genome, inputs=[], stderr=parsl.AUT
                                                folder_path, locus_tag, e, inputs=inputs)
                         input_file = os.path.join(
                             locus_tag_fold, locus_tag + ".pdb.gz")
-                        output_file = s.path.join(
+                        output_file = os.path.join(
                             locus_tag_fold, locus_tag + "_AF.pdb")
                         r_descomp = decompress_file(
                             input_file, output_file, inputs=[r_load])
