@@ -57,7 +57,7 @@ class ProteinListView(View):
 
         proteins = Bioentry.objects.filter(
             biodatabase__name=assembly_name + Biodatabase.PROT_POSTFIX,
-            structures__isnull=False
+            #structures__isnull=False
         ).prefetch_related("qualifiers__term", "dbxrefs__dbxref", "score_params__score_param")
 
         paginator = Paginator(proteins, pageSize)
