@@ -71,7 +71,7 @@ class Command(BaseCommand):
             except Exception as ex:
                 traceback.print_exc()
                 raise CommandError(ex)
-
+            print(seqstore.structure_dir(genome, be.name))
             if not os.path.exists(seqstore.structure_dir(genome, be.name)):
                 os.makedirs(seqstore.structure_dir(genome, be.accession))
 
