@@ -35,6 +35,10 @@
                     <a class="nav-link" aria-current="page"
                        href="{% url 'tpwebapp:genomes_list' %}">{% trans "Genomes" %}</a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" aria-current="page"
+                       href="{% url 'tpwebapp:form' %}">{% trans "bLAST" %}</a>
+                </li>
                 {% comment "This is an optional note for comments" %}
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'tpwebapp:index' %}">{% trans "Stats" %}</a>
