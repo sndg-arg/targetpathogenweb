@@ -7,16 +7,16 @@
 
 <h1>{% trans "Blastinson" %}</h1>
 <body>
-    <h1>Select an item and enter some text:</h1>
+    <h3>Select an genome and enter some query:</h3>
     <form method="POST">
-        {% csrf_token %}  <label for="dropdown">Dropdown:</label>
+        {% csrf_token %}  <label for="dropdown">Genome:</label>
         <select name="dropdown" id="dropdown">
-            <option value="1">1</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
+            {% for option in options %}
+                <option value="{{ option.value }}">{{ option.label }}</option>
+            {% endfor %}
         </select>
         <br>
-        <label for="text_input">Text Input:</label>
+        <label for="text_input">Query sequence:</label>
         <input type="text" name="text_input" id="text_input">
         <br>
         <button type="submit">Submit</button>
