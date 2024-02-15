@@ -23,6 +23,7 @@
     </form>
     {% if message %}
         <p>{{ message }}</p>
+        <a href="{% url 'tpwebapp:blast_res' result_id %}">result</a>
     {% endif %}
 </body>
 
