@@ -24,6 +24,15 @@ class FormView(View):
             selected_item = request.POST.get('dropdown')
             text_input = request.POST.get('text_input')
 
+            # Check if text_input is empty
+            if not text_input:
+                biodatabases = Biodatabase.objects.all()
+                options = [{'value': bd.biodatabase_id, 'label': bd.name} for bd in biodatabases]
+                return render(request, self.template_name, {
+                    'error_message': 'Please provide a valid query. The query is empty!',
+                    'options': options,
+                })
+
             # Write the content of text_input to a file named sequence.faa
             with open('sequence.fna', 'w') as file:
                 file.write(text_input)
