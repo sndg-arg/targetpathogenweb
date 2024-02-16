@@ -5,13 +5,13 @@
 {% block body %}
 
 
-<h1>{% trans "Blastinson" %}</h1>
+<h1>{% trans "Blast" %}</h1>
 <body>
-    <h3>Select an genome and enter some query:</h3>
+    <h3>Select a genome and enter some query:</h3>
     <form method="POST">
         {% csrf_token %}  <label for="dropdown">Genome:</label>
         <select name="dropdown" id="dropdown">
-            {% for option in options %}
+            {% for option in db_options %}
                 <option value="{{ option.value }}">{{ option.label }}</option>
             {% endfor %}
         </select>
@@ -21,6 +21,9 @@
         <br>
         <button type="submit">Submit</button>
     </form>
+    {% if error_message %}
+        <p style="color: red;">{{ error_message }}</p>
+    {% endif %}
     {% if message %}
         <p>{{ message }}</p>
         <a href="{% url 'tpwebapp:blast_res' result_id %}">result</a>
