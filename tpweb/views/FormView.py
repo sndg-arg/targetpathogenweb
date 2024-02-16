@@ -12,7 +12,7 @@ class FormView(View):
 
     def get(self, request, *args, **kwargs):
         biodatabases = Biodatabase.objects.all()
-        options = [{'value': bd.biodatabase_id, 'label': bd.name} for bd in biodatabases]
+        options = [{'value': bd.biodatabase_id, 'label': bd.name} for bd in biodatabases if not bd.name.endswith(('_prots', '_rnas'))]
 
         # Render the form with context
         return render(request, self.template_name, {
