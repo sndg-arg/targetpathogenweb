@@ -8,15 +8,16 @@ import os
 from bioseq.io.SeqStore import SeqStore
 
 class FormView(View):
-    template_name = 'blast/form.html'
+    
+    def __init__(self):
+        self.template_name = 'blast/form.html'  
+        biodatabases = Biodatabase.objects.all()
+        self.db_options = [{'value': bd.biodatabase_id, 'label': bd.name} for bd in biodatabases if not bd.name.endswith(('_prots', '_rnas'))]
 
     def get(self, request, *args, **kwargs):
-        biodatabases = Biodatabase.objects.all()
-        options = [{'value': bd.biodatabase_id, 'label': bd.name} for bd in biodatabases if not bd.name.endswith(('_prots', '_rnas'))]
-
         # Render the form with context
         return render(request, self.template_name, {
-            'options': options,
+            'db_options': self.db_options,
         })
     
     def post(self, request, *args, **kwargs):
@@ -26,11 +27,9 @@ class FormView(View):
 
             # Check if text_input is empty
             if not text_input:
-                biodatabases = Biodatabase.objects.all()
-                options = [{'value': bd.biodatabase_id, 'label': bd.name} for bd in biodatabases]
                 return render(request, self.template_name, {
                     'error_message': 'Please provide a valid query. The query is empty!',
-                    'options': options,
+                    'db_options': self.db_options,
                 })
 
             # Write the content of text_input to a file named sequence.faa
@@ -54,6 +53,7 @@ class FormView(View):
             return render(request, self.template_name, {
                 'message': f"You selected item {selected_biodatabase.name} {selected_biodatabase.description} and entered text: '{text_input}'. y el UUID es '{uuid_1}'",
                 'result_id': uuid_1,
+                'db_options': self.db_options,
             })
 
 
