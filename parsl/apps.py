@@ -1,5 +1,6 @@
 import parsl
 from parsl import python_app, bash_app, join_app
+import time
 
 @python_app(executors=['local_executor'])
 def clear_folder(folder_path, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
@@ -50,21 +51,26 @@ def interproscan(cfg_dict, folder_path, genome, inputs=[], stderr=parsl.AUTO_LOG
     scp.put(os.path.join(folder_path, genome + '.faa.gz'), ssh_rootfolder)
     text = ""
     text += f'export LD_LIBRARY_PATH=\\\"/home/shared/miniconda3.8/envs/interproscan/lib/:$LD_LIBRARY_PATH\\\"\n'
-    text += f'eval \\\"\$(/home/rterra/miniconda3/bin/conda shell.bash hook)\\\"\n'
-    text += f'conda activate interproscan_custom\n'
+    text += f'eval \\\"\$(/home/shared/miniconda3.8/bin/conda shell.bash hook)\\\"\n'
+    text += f'conda activate interproscan\n'
     text += f'zcat {genome}.faa.gz | /grupos/public/iprscan/current/interproscan.sh --pathways \
         --goterms --cpu {cfg_dict.get("SSH", "Cores")} -iprlookup --formats tsv -i - -o {ssh_rootfolder}/{genome}.faa.tsv\n'
 
     stdin, stdout, stderr = ssh.exec_command(
         f'touch script.sh && printf \"{text}\" > script.sh')
     exit_status = stdout.channel.recv_exit_status()
-    # Blocking call
+
     stdin, stdout, stderr = ssh.exec_command(
         f"srun --nodes=1 --ntasks-per-node=1 --cpus-per-task={cfg_dict.get('SSH', 'Cores')} --time=05:00:00 bash ./script.sh", get_pty=True)
-    exit_status = stdout.channel.recv_exit_status()          # Blocking call
-    stdout.channel.set_combine_stderr(True)
-    output = stdout.read()  # reading to stdout to force the wait on the command
-    scp.get(f"{ssh_rootfolder}/{genome}.faa.tsv",folder_path)
+    finished = False
+    while not finished:
+        try:
+            scp.get(f"{ssh_rootfolder}/{genome}.faa.tsv", folder_path)
+            finished = True
+        except:
+            print(f"File '{genome}.faa.tsv' not found. Retrying in 1 minute...")
+            time.sleep(60)  # Wait for 1 minute before retrying
+    
     scp.close()
     ssh.close()
     with open(os.path.join(folder_path, genome + ".faa.tsv"), 'r') as f:
@@ -90,7 +96,7 @@ def gbk2uniprot_map(working_dir, genome, folder_path, inputs=[], stderr=parsl.AU
     unips_mapping = os.path.join(folder_path, genome + '_unips_mapping.csv')
     return f"python {working_dir}/manage.py gbk2uniprot_map {genome} --mapping_tmp \
         {unips_mapping} --not_mapped {unips_not_mapped} \
-        > {unips_lst}"
+        > {unips_lst}" #Entiendo que queria guardar el stdout
 
 
 @python_app(executors=["local_executor"])

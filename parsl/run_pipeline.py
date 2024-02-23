@@ -10,7 +10,8 @@ def run(genome):
     import math
     import os
 
-    genome = genome.split('.')[0]
+    #genome = genome.split('.')[0]
+    
     cfg = TargetConfig()
     cfg_dict = cfg.get_config_dict()
     # store the necessary paths
