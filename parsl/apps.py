@@ -110,8 +110,8 @@ def get_unipslst(folder_path, genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdo
 def alphafold_unips(protein_list, folder_path, genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
     import os
     alphafold_folder = os.path.join(folder_path, "alphafold")
-    return f"echo \"{protein_list}\" | python -m TP.alphafold -pr /opt/p2rank_2.4/prank -o \
-        {alphafold_folder} -T 1 -nc"
+    return f"echo \"{protein_list}\" | python -m TP.alphafold -pr opt/p2rank/distro/prank -o \
+        {alphafold_folder} -T 10 -nc" #Hay que agregar el locustag en el echo.
 
 
 @bash_app(executors=["local_executor"])
@@ -189,12 +189,11 @@ def strucutures_af(working_dir, folder_path, genome, inputs=[], stderr=parsl.AUT
     r_descomp0.result()
     for record in SeqIO.parse(os.path.join(folder_path, f"{genome}.gbk"), "genbank"):
         for feature in record.features:
-            if feature.type == "CDS":
+            if feature.type == "CDS" and "protein_id" in feature.qualifiers and feature.qualifiers["protein_id"]:
                 locus_tag = feature.qualifiers["locus_tag"][0]
                 locus_tag_fold = os.path.join(folder_path, locus_tag)
-                protein_id = feature.qualifiers["protein_id"][0]
-                entries = protein_ids.loc[(
-                    protein_ids["From"] == protein_id)]["Entry"].unique()
+                protein_id = feature.qualifiers["protein_id"][0] #Asume incorrectamente que todo CDS en el genebank posee un protein_ID
+                entries = protein_ids.loc[(protein_ids["From"] == protein_id)]["Entry"].unique()
                 for e in entries:
                     if e in mapped_proteins:
                         r_load = load_af_model(working_dir,
