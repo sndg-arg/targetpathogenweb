@@ -48,34 +48,22 @@
                 </li>
                 {% endcomment %}
                 {% if user.is_authenticated %}
-                    <li id="user_dropdown" class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-expanded="false">
-                            {{  user.get_username }}
-                        </a>
-                        <div id="user_dropdown_menu" class="dropdown-menu">
-                            {% comment "This is an optional note for comments" %}
-                            <a class="dropdown-item" href="#">Action</a>
-                            <a class="dropdown-item" href="#">Another action</a>
-                            {% endcomment %}
-                            <div class="dropdown-divider"></div>
-                            <a class="dropdown-item" href="#">
-                                <form method="post" action="{% url 'account_logout' %}">
-                                    {% csrf_token %}
-                                    {% if redirect_field_value %}
-                                        <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}"/>
-                                    {% endif %}
-                                    <button class="btn btn-danger" type="submit">Logout</button>
-                                </form>
-                            </a>
-                        </div>
-                    </li>
-
-
-
-                {% elif not disablelogin %}
-                    Login
-                {% endif %}
-
+                <li id="user_dropdown" class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-expanded="false">
+                        {{  user.get_username }}
+                    </a>
+                    <div id="user_dropdown_menu" class="dropdown-menu">
+                        <form method="post" action="{% url 'account_logout' %}">
+                            {% csrf_token %}
+                            <button class="dropdown-item" type="submit">Logout</button>
+                        </form>
+                    </div>
+                </li>
+            {% else %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'admin:login' %}">{% trans "Login" %}</a>
+                </li>
+            {% endif %}
 
 
             </ul>
