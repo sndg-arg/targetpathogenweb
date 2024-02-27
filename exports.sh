@@ -3,4 +3,6 @@ export DJANGO_DEBUG=True;export DJANGO_SETTINGS_MODULE=tpwebconfig.settings;expo
 
 export PYTHONPATH=$PYTHONPATH:../sndgjobs:../sndgbiodb:../targetpathogen:../sndg-bio
 
+export JBROWSE_DATA_DIR=$(pwd)/data
+
 #Falta Biopython
