@@ -63,13 +63,15 @@ def interproscan(cfg_dict, folder_path, genome, inputs=[], stderr=parsl.AUTO_LOG
     stdin, stdout, stderr = ssh.exec_command(
         f"srun --nodes=1 --ntasks-per-node=1 --cpus-per-task={cfg_dict.get('SSH', 'Cores')} --time=05:00:00 bash ./script.sh", get_pty=True)
     finished = False
-    while not finished:
+    time_passed = 0
+    while not finished and time_passed < 200: #poner un tope de 3 hs
         try:
             scp.get(f"{ssh_rootfolder}/{genome}.faa.tsv", folder_path)
             finished = True
         except:
             print(f"File '{genome}.faa.tsv' not found. Retrying in 1 minute...")
             time.sleep(60)  # Wait for 1 minute before retrying
+            time += 1
     
     scp.close()
     ssh.close()
@@ -110,8 +112,9 @@ def get_unipslst(folder_path, genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdo
 def alphafold_unips(protein_list, folder_path, genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
     import os
     alphafold_folder = os.path.join(folder_path, "alphafold")
-    return f"echo \"{protein_list}\" | python -m TP.alphafold -pr opt/p2rank/distro/prank -o \
-        {alphafold_folder} -T 10 -nc" #Hay que agregar el locustag en el echo.
+    accesion, locustag = protein_list.split(' ')[0], protein_list.split(' ')[1]
+    return f"python -m TP.alphafold -pr ../opt/p2rank/distro/prank -o \
+        {alphafold_folder} -T 10 -nc {accesion} -ltag {locustag}" #Hay que agregar el locustag en el echo.
 
 
 @bash_app(executors=["local_executor"])
