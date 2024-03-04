@@ -12,5 +12,6 @@ django-polymorphic==3.1.0
 django-ckeditor==6.7.0
 pandas==2.0.3
 goatools==1.3.11
-
-
+biopython==1.75
+bgzip==0.4.0 
+bcbio-gff==0.7.1 
