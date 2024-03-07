@@ -107,6 +107,15 @@ class ProteinListView(View):
             proteins_dto.append(protein_dto)
 
         proteins_dto = sorted(proteins_dto, key=lambda x: x["score"], reverse=True)
+        
+        #Pagination info
+        pagination_info = {
+            'proteins': proteins,
+            'has_previous': proteins.has_previous(),
+            'has_next': proteins.has_next(),
+            'previous_page_number': proteins.previous_page_number() if proteins.has_previous() else None,
+            'next_page_number': proteins.next_page_number() if proteins.has_next() else None
+        }
 
         return render(request, self.template_name, {
             "biodb__name": bdb.description if bdb.description else bdb.name,
@@ -117,7 +126,8 @@ class ProteinListView(View):
             "tdata": tdatas,
             "formula": formuladto,
             "col_descriptions":col_descriptions,
-            "formulas":formulas
+            "formulas":formulas,
+            "pagination":pagination_info
 
         })  # , {'form': form})
 
