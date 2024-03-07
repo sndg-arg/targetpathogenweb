@@ -2,6 +2,8 @@
 
 import os
 import subprocess
+from tqdm import tqdm
+
 
 # Directorio base donde se encuentran los datos de los genomas
 data_dir = os.getenv('JBROWSE_DATA_DIR')
@@ -12,9 +14,9 @@ def docker_path(host_path):
 
 # Iterar sobre cada subdirectorio de genoma, considerando la nueva estructura
 for root, dirs, files in os.walk(data_dir):
-    for dir_name in dirs:
+    for dir_name in tqdm(dirs, desc="Procesando directorios de genoma"):
         sub_path = os.path.join(root, dir_name)
-        for sub_dir_name in os.listdir(sub_path):
+        for sub_dir_name in tqdm(os.listdir(sub_path), desc=f"Procesando subdirectorios en {dir_name}"):
             genome_path = os.path.join(sub_path, sub_dir_name)
             if os.path.isdir(genome_path):  # Asegurarse de que es un directorio
                 config_path = os.path.join(genome_path, 'config.json')

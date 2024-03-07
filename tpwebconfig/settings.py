@@ -31,6 +31,8 @@ DEBUG = env.bool("DJANGO_DEBUG", True)
 DBTASK = any([x in sys.argv[1:] for x in ["makemigrations", "migrate", "createsuperuser", "shell_plus"]])
 WORKERPROC = sys.argv[0].endswith("celery")
 
+JBROWSE_DATA_DIR = env("JBROWSE_DATA_DIR")
+
 ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=["localhost", "0.0.0.0", "127.0.0.1"])
 CSRF_TRUSTED_ORIGINS = env.list("DJANGO_CSRF_TRUSTED_ORIGINS", default=["https://" + x for x in ALLOWED_HOSTS])
 # Application definition
