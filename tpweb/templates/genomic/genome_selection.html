@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Seleccionar Genoma</title>
+</head>
+<body>
+    <form id="genomeForm">
+        <select name="genome" id="genomeSelect">
+            {% for biodb in biodatabases %}
+            <option value="{{ biodb.name }}">{{ biodb.description }}</option>
+            {% endfor %}
+        </select>
+        <button type="button" onclick="goToGenome()">Ver Genoma</button>
+    </form>
+
+    <script>
+        function goToGenome() {
+            var selectedGenome = document.getElementById("genomeSelect").value;
+            window.location.href = '/assembly/' + encodeURIComponent(selectedGenome);
+        }
+    </script>
+</body>
+</html>

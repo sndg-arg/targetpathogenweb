@@ -5,6 +5,7 @@ from django.urls import path
 from .views.AssemblyView import AssemblyView
 from .views.DownloadView import DownloadView
 from .views.GenomesView import GenomesView
+from .views.AssemblyView import genome_selection_view
 from .views.IndexView import IndexView
 from .views.ProteinListView import ProteinListView
 from .views.ProteinView import ProteinView
@@ -41,6 +42,7 @@ urlpatterns = [
 
     #path("",view=login_required(IndexView.as_view()),name="index"),
     path("",view=IndexView.as_view(),name="index"),
+    path('assembly/', genome_selection_view, name='genome-selection'),
     path("assembly/<str:assembly_id>",view=AssemblyView.as_view(),name="assembly"),
     path("protein/<int:protein_id>",view=ProteinView.as_view(),name="protein"),
     path("assembly/<str:assembly_name>/protein",view=ProteinListView.as_view(),name="protein_list"),

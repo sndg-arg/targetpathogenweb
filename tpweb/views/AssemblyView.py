@@ -9,6 +9,13 @@ from bioseq.models.BiodatabaseQualifierValue import BiodatabaseQualifierValue
 from bioseq.models.Bioentry import Bioentry
 from bioseq.io.SeqStore import SeqStore
 from django.conf import settings
+from django.shortcuts import render
+
+
+def genome_selection_view(request):
+    biodatabases = Biodatabase.objects.all()  # Asume que queres listar todas las biodatabases disponibles
+    return render(request, 'genomic/genome_selection.html', {'biodatabases': biodatabases})
+
 
 
 class AssemblyView(View):
