@@ -391,3 +391,5 @@ else:
         environment=env("SENTRY_ENVIRONMENT", default="production"),
         traces_sample_rate=env.float("SENTRY_TRACES_SAMPLE_RATE", default=0.0),
     )
+# BLAST
+BLASTN_PATH = env('BLASTN_PATH', default = 'blastn')

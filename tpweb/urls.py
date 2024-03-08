@@ -12,7 +12,8 @@ from .views.ProteinView import ProteinView
 from .views.StructureExportView import StructureExportView
 from .views.StructureRawView import StructureRawView
 from .views.StructureView import StructureView
-
+from .views.FormView import FormView
+from .views.NewView import NewView
 
 from .views.TestCelery import test_celery
 
@@ -53,5 +54,7 @@ urlpatterns = [
 
     path("structure/<int:struct_id>",view=StructureView.as_view(),name="structure"),
     path("test",view=untestview,name="untestview"),
+    path("form", view= FormView.as_view(), name="form"),
+    path("result/<str:result_id>",view=NewView.as_view(),name="blast_res"),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
