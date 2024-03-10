@@ -71,7 +71,7 @@ def interproscan(cfg_dict, folder_path, genome, inputs=[], stderr=parsl.AUTO_LOG
         except:
             print(f"File '{genome}.faa.tsv' not found. Retrying in 1 minute...")
             time.sleep(60)  # Wait for 1 minute before retrying
-            time += 1
+            time_passed += 1
     
     scp.close()
     ssh.close()
