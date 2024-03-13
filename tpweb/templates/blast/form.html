@@ -1,37 +1,83 @@
 {% extends '../base/masterpage.html' %}
 {% load i18n %}
+{% load static %}
 {% load custom_tags %}
 
+{% block head %}
+<!-- Add any extra head content here if needed -->
+{% endblock %}
+
 {% block body %}
-
-
-<h1>{% trans "Blast" %}</h1>
-<body>
-    <h3>Select a genome and enter some query:</h3>
-    <form method="POST">
-        {% csrf_token %}  <label for="dropdown">Genome:</label>
-        <select name="dropdown" id="dropdown">
-            {% for option in db_options %}
-                <option value="{{ option.value }}">{{ option.label }}</option>
-            {% endfor %}
-        </select>
-        <br>
-        <label for="text_input">Query sequence:</label>
-        <input type="text" name="text_input" id="text_input">
-        <br>
-        <button type="submit">Submit</button>
-    </form>
+<div class="container mt-4">
+    <h1 class="display-4">{% trans "BLAST Search" %}</h1>
+    <section id="blast-form">
+        <form method="POST" class="needs-validation" novalidate target="{{ target }}">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="dropdown">{% trans "Genome:" %}</label>
+                <select class="form-control" name="dropdown" id="dropdown" required>
+                    {% for option in db_options %}
+                        <option value="{{ option.value }}">{{ option.label }} - {{ option.description }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="text_input">{% trans "Query sequence:" %}</label>
+                <textarea class="form-control" name="text_input" id="text_input" placeholder="Enter sequence" rows="4" required></textarea>
+                <div class="invalid-feedback">
+                    {% trans "Please provide a valid query sequence." %}
+                </div>
+            </div>
+            <div class="form-check mb-3">
+                <input class="form-check-input" type="checkbox" value="" id="newTabCheck">
+                <label class="form-check-label" for="newTabCheck">
+                    {% trans "Open result in a new tab" %}
+                </label>
+            </div>
+            <button type="submit" class="btn btn-primary">{% trans "Submit" %}</button>
+            <button type="button" class="btn btn-secondary" onclick="clearSequence();">{% trans "Clear" %}</button>
+            <div id="progress" class="mt-3" style="display:none;">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="sr-only">{% trans "Loading..." %}</span>
+                </div>
+            </div>
+        </form>
+    </section>
     {% if error_message %}
-        <p style="color: red;">{{ error_message }}</p>
+        <div class="alert alert-danger mt-3" role="alert">
+            {{ error_message }}
+        </div>
     {% endif %}
     {% if message %}
-        <p>{{ message }}</p>
-        <a href="{% url 'tpwebapp:blast_res' result_id %}">result</a>
+        <div class="alert alert-success mt-3" role="alert">
+            {{ message }}
+            <a href="{% url 'tpwebapp:blast_res' result_id %}" class="alert-link" id="viewResultLink">{% trans "View Result" %}</a>
+        </div>
     {% endif %}
-</body>
+</div>
 
+<script type="text/javascript">
+    function clearSequence() {
+        document.getElementById('text_input').value = '';
+    }
+
+    // Check the checkbox state and set the form's target accordingly
+    document.getElementById('newTabCheck').addEventListener('change', function() {
+        var viewResultLink = document.getElementById('viewResultLink');
+        viewResultLink.target = this.checked ? '_blank' : '_self';
+    });
+
+    // Add an event listener for the form submit to show the progress bar/spinner
+    document.querySelector('form').addEventListener('submit', function() {
+        document.getElementById('progress').style.display = 'block';
+    });
+</script>
 {% endblock %}
-
 
 {% block footer %}
+<!-- Add any extra footer content here if needed -->
 {% endblock %}
+
+
+
+
