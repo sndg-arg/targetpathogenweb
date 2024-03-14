@@ -44,10 +44,16 @@ def run(genome):
             r = alphafold_unips(protein_list=proteins, folder_path=folder_path,
                             genome=genome, inputs=[protein_list])
             r_alphafolds.append(r)
+
+
+
     # -----------------------------------
+    
+    
     r_stru = strucutures_af(
         working_dir=working_dir, folder_path=folder_path, genome=genome, inputs=r_alphafolds)
     return r_stru
+
 
 
 if __name__ == "__main__":
@@ -68,4 +74,5 @@ if __name__ == "__main__":
         r = run(genome=genome)
         results.append(r)
     for r in results:
+        
         r.result()

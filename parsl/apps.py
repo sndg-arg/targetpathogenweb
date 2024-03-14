@@ -118,13 +118,10 @@ def alphafold_unips(protein_list, folder_path, genome, inputs=[], stderr=parsl.A
 
 
 @bash_app(executors=["local_executor"])
-def load_af_model(working_dir, folder_path, locus_tag, protein_name, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME, **kwargs):
+def load_af_model(locus_tag, working_dir, folder_path, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME, **kwargs):
     import os
-    locus_tag_fold = os.path.join(folder_path, locus_tag)
-    protein_pdb = os.path.join(
-        folder_path, 'alphafold/' + protein_name + '/' + protein_name + '_af.pdb')
-    return f"python {working_dir}/manage.py load_af_model {locus_tag} {protein_pdb} \
-        {locus_tag} --overwrite --datadir {working_dir}/data"
+    protein_pdb = os.path.join(folder_path, 'alphafold', locus_tag, f"{locus_tag}_af.pdb")
+    return f"python {working_dir}/manage.py load_af_model {locus_tag} {protein_pdb} {locus_tag} --overwrite"
 
 
 @python_app(executors=["local_executor"])
@@ -183,7 +180,7 @@ def strucutures_af(working_dir, folder_path, genome, inputs=[], stderr=parsl.AUT
     mapped_proteins = list()
     rets = list()
     with open(os.path.join(folder_path, f"{genome}_unips.lst"), 'r') as f:
-        mapped_proteins = [x.strip() for x in f.readlines()]
+        mapped_proteins = [x.strip().split()[1] for x in f.readlines()]
     input_file = os.path.join(
                         folder_path, genome + ".gbk.gz")
     output_file = os.path.join(
@@ -192,15 +189,16 @@ def strucutures_af(working_dir, folder_path, genome, inputs=[], stderr=parsl.AUT
     r_descomp0.result()
     for record in SeqIO.parse(os.path.join(folder_path, f"{genome}.gbk"), "genbank"):
         for feature in record.features:
-            if feature.type == "CDS" and "protein_id" in feature.qualifiers and feature.qualifiers["protein_id"]:
+            if feature.type == "CDS" and "protein_id" in feature.qualifiers:
                 locus_tag = feature.qualifiers["locus_tag"][0]
                 locus_tag_fold = os.path.join(folder_path, locus_tag)
                 protein_id = feature.qualifiers["protein_id"][0] #Asume incorrectamente que todo CDS en el genebank posee un protein_ID
-                entries = protein_ids.loc[(protein_ids["From"] == protein_id)]["Entry"].unique()
+                entries = protein_ids.loc[(protein_ids["From"] == protein_id)]["LocusTag"].unique()
                 for e in entries:
+                    print(e)
                     if e in mapped_proteins:
-                        r_load = load_af_model(working_dir,
-                                               folder_path, locus_tag, e, inputs=[r_descomp0])
+                        r_load = load_af_model(e, working_dir,
+                                               folder_path, inputs=[r_descomp0])
                         input_file = os.path.join(
                             locus_tag_fold, locus_tag + ".pdb.gz")
                         output_file = os.path.join(

@@ -42,7 +42,7 @@ class Command(BaseCommand):
         be = Bioentry.objects.filter(accession=options["seq_name"])
 
         assert os.path.exists(options["pdb_file"]), f'"{options["pdb_file"]}" does not exists!'
-
+        self.stderr.write(f"Holi")
         if not be.exists():
             self.stderr.write(f"bioentry {code} does not exists")
             sys.exit(1)
