@@ -19,7 +19,6 @@ def run(genome):
     acclen = len(genome)
     folder_name = genome[math.floor(acclen / 2 - 1):math.floor(acclen / 2 + 2)]
     folder_path = os.path.join(working_dir, f"data/{folder_name}/{genome}")
-
     # starts the pipeline
 
     # requires working dir to save data
@@ -48,7 +47,6 @@ def run(genome):
 
 
     # -----------------------------------
-    
     
     r_stru = strucutures_af(
         working_dir=working_dir, folder_path=folder_path, genome=genome, inputs=r_alphafolds)
