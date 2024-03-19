@@ -152,7 +152,7 @@ def run_fpocket(locus_tag, working_dir, folder_path, inputs=[], stderr=parsl.AUT
 def fpocket2json(folder_path, locus_tag, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
     import os
     locustag_af = os.path.join(folder_path, "alphafold", locus_tag, f"{locus_tag}_af_out")
-    return f"python -m SNDG.Structure.FPocket 2json {locustag_af} > {locustag_af}/fpocket.json"
+    return f"python -m SNDG.Structure.FPocket 2json {locustag_af} | gzip > {locustag_af}/fpocket.json.gz"
 
 
 @python_app(executors=["local_executor"])
