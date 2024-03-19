@@ -114,7 +114,7 @@ def alphafold_unips(protein_list, folder_path, genome, inputs=[], stderr=parsl.A
     alphafold_folder = os.path.join(folder_path, "alphafold")
     accesion, locustag = protein_list.split(' ')[0], protein_list.split(' ')[1]
     return f"python -m TP.alphafold -pr ../opt/p2rank/distro/prank -o \
-        {alphafold_folder} -T 10 -nc -parsl {accesion} -ltag {locustag}" #Hay que agregar el locustag en el echo.
+        {alphafold_folder} -T 10 -nc -np -parsl {accesion} -ltag {locustag}" #Hay que agregar el locustag en el echo.
 
 
 @bash_app(executors=["local_executor"])
