@@ -154,6 +154,12 @@ def fpocket2json(folder_path, locus_tag, inputs=[], stderr=parsl.AUTO_LOGNAME, s
     locustag_af = os.path.join(folder_path, "alphafold", locus_tag, f"{locus_tag}_af_out")
     return f"python -m SNDG.Structure.FPocket 2json {locustag_af} | gzip > {locustag_af}/fpocket.json.gz"
 
+@bash_app(executors=["local_executor"])
+def load_pocket(folder_path, locus_tag, working_dir, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
+    import os
+    locustag_af = os.path.join(folder_path, "alphafold", locus_tag, f"{locus_tag}_af_out", "fpocket.json.gz")
+    return f"python {working_dir}/manage.py load_fpocket --pocket_json {locustag_af} {locus_tag} --datadir '../data'"
+
 
 @python_app(executors=["local_executor"])
 def filter_pdb(locus_tag_fold, locus_tag, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
@@ -231,9 +237,10 @@ def strucutures_af(working_dir, folder_path, genome, inputs=[], stderr=parsl.AUT
     for protein in mapped_proteins:
         r_load = load_af_model(protein, working_dir,
                                 folder_path,inputs=[mapped_proteins])
-
         r_json = fpocket2json(
             folder_path, protein)
+        p_load = load_pocket(
+            folder_path, protein, working_dir, inputs=[r_json])
         
         #input_file = os.path.join(
         #    locus_tag_fold, locus_tag + ".pdb.gz")
