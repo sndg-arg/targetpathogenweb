@@ -238,9 +238,10 @@ def strucutures_af(working_dir, folder_path, genome, inputs=[], stderr=parsl.AUT
         r_load = load_af_model(protein, working_dir,
                                 folder_path,inputs=[mapped_proteins])
         r_json = fpocket2json(
-            folder_path, protein)
+            folder_path, protein, inputs=[r_load])
         p_load = load_pocket(
             folder_path, protein, working_dir, inputs=[r_json])
+        p_load.result()
         
         #input_file = os.path.join(
         #    locus_tag_fold, locus_tag + ".pdb.gz")
