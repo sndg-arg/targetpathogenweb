@@ -177,7 +177,7 @@ def filter_pdb(locus_tag_fold, locus_tag, inputs=[], stderr=parsl.AUTO_LOGNAME, 
 
 
 @join_app
-def strucutures_af_proxy(working_dir, folder_path, genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
+def strucutures_af_deprecated(working_dir, folder_path, genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
     from Bio import SeqIO
     import pandas as pd
     import os
@@ -233,30 +233,14 @@ def strucutures_af(working_dir, folder_path, genome, inputs=[], stderr=parsl.AUT
     mapped_proteins = list()
     with open(os.path.join(folder_path, f"{genome}_unips.lst"), 'r') as f:
         mapped_proteins = [x.strip().split()[1] for x in f.readlines()]
-
-    for protein in mapped_proteins:
-        r_load = load_af_model(protein, working_dir,
-                                folder_path,inputs=[mapped_proteins])
-        r_json = fpocket2json(
-            folder_path, protein, inputs=[r_load])
-        p_load = load_pocket(
-            folder_path, protein, working_dir, inputs=[r_json])
-        p_load.result()
-        
-        #input_file = os.path.join(
-        #    locus_tag_fold, locus_tag + ".pdb.gz")
-        #output_file = os.path.join(
-        #    locus_tag_fold, locus_tag + "_af.pdb")
-        #r_descomp = decompress_file(
-        #    input_file, output_file, inputs=[r_load])
-        #r_fpocker = run_fpocket(
-        #    locus_tag, working_dir, folder_path, inputs=[r_descomp])
-        #r_json = fpocket2json(
-        #    locus_tag_fold, locus_tag, inputs=[r_fpocker])
-        #r_comp = compress_file(os.path.join(locus_tag_fold, "fpocket.json"), os.path.join(locus_tag_fold, "fpocket.json.gz"),
-        #                        inputs=[r_json])
-        #r_comp2 = compress_file(os.path.join(locus_tag_fold, "fpocket.json"), os.path.join(
-        #    locus_tag_fold, locus_tag + ".pdb.gz"), inputs=[r_comp])
-        #rets.append(filter_pdb(locus_tag_fold,
-        #            locus_tag, inputs=[r_comp2]))
+    for protein in mapped_proteins:    
+        protein_pdb = os.path.join(folder_path, 'alphafold', f'{protein}', f'{protein}_af.pdb')
+        if os.path.exists(protein_pdb):
+            r_load = load_af_model(protein, working_dir,
+                                    folder_path,inputs=[mapped_proteins])
+            r_json = fpocket2json(
+                folder_path, protein, inputs=[r_load])
+            p_load = load_pocket(
+                folder_path, protein, working_dir, inputs=[r_json])
+            p_load.result()
     return r_load
