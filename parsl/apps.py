@@ -175,54 +175,6 @@ def filter_pdb(locus_tag_fold, locus_tag, inputs=[], stderr=parsl.AUTO_LOGNAME, 
     with open(os.path.join(locus_tag_fold, locus_tag + ".pdb.gz"), 'ab') as f2:
         f2.write(zipped_content)
 
-
-@join_app
-def strucutures_af_deprecated(working_dir, folder_path, genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
-    from Bio import SeqIO
-    import pandas as pd
-    import os
-    protein_ids = pd.read_csv(os.path.join(folder_path, f'{genome}_unips_mapping.csv'),
-                              sep=',')
-    mapped_proteins = list()
-    rets = list()
-    with open(os.path.join(folder_path, f"{genome}_unips.lst"), 'r') as f:
-        mapped_proteins = [x.strip().split()[1] for x in f.readlines()]
-    input_file = os.path.join(
-                        folder_path, genome + ".gbk.gz")
-    output_file = os.path.join(
-                        folder_path, genome + ".gbk")
-    r_descomp0 = decompress_file(input_file, output_file, inputs = inputs)
-    r_descomp0.result()
-    for record in SeqIO.parse(os.path.join(folder_path, f"{genome}.gbk"), "genbank"):
-        for feature in record.features:
-            if feature.type == "CDS" and "protein_id" in feature.qualifiers:
-                locus_tag = feature.qualifiers["locus_tag"][0]
-                locus_tag_fold = os.path.join(folder_path, locus_tag)
-                protein_id = feature.qualifiers["protein_id"][0] #Asume incorrectamente que todo CDS en el genebank posee un protein_ID
-                entries = protein_ids.loc[(protein_ids["From"] == protein_id)]["LocusTag"].unique()
-                for e in entries:
-                    print(e)
-                    if e in mapped_proteins:
-                        r_load = load_af_model(e, working_dir,
-                                               folder_path, inputs=[r_descomp0])
-                        input_file = os.path.join(
-                            locus_tag_fold, locus_tag + ".pdb.gz")
-                        output_file = os.path.join(
-                            locus_tag_fold, locus_tag + "_af.pdb")
-                        r_descomp = decompress_file(
-                            input_file, output_file, inputs=[r_load])
-                        r_fpocker = run_fpocket(
-                            locus_tag, working_dir, folder_path, inputs=[r_descomp])
-                        r_json = fpocket2json(
-                            locus_tag_fold, locus_tag, inputs=[r_fpocker])
-                        r_comp = compress_file(os.path.join(locus_tag_fold, "fpocket.json"), os.path.join(locus_tag_fold, "fpocket.json.gz"),
-                                               inputs=[r_json])
-                        r_comp2 = compress_file(os.path.join(locus_tag_fold, "fpocket.json"), os.path.join(
-                            locus_tag_fold, locus_tag + ".pdb.gz"), inputs=[r_comp])
-                        rets.append(filter_pdb(locus_tag_fold,
-                                    locus_tag, inputs=[r_comp2]))
-    return rets
-
 @join_app
 def strucutures_af(working_dir, folder_path, genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
     from Bio import SeqIO

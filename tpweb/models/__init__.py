@@ -3,6 +3,7 @@ from django.db.models import CharField
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from .Ligand import Ligand
+from .Ligand import AccessionLigand
 
 class TPUser(AbstractUser):
     """
