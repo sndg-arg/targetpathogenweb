@@ -31,6 +31,7 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument('accession')
+        parser.add_argument('ligq_folder')
         parser.add_argument('--tmp', default="/tmp/load_pdb")
         parser.add_argument('--overwrite', action="store_true")
         parser.add_argument('--datadir', default="./data")
@@ -38,7 +39,8 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         seqstore = SeqStore(options['datadir'])
         accession = options['accession']
-        ligqplus = seqstore.ligand(accession)
+        ligq = options['ligq_folder']
+        ligqplus = seqstore.ligand(accession, ligq)
         df = pd.read_csv(ligqplus)
 
         for index, row in tqdm(df.iterrows(), total=len(df)):

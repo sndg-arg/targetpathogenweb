@@ -6,6 +6,9 @@ from tpweb.models.Ligand import AccessionLigand
 import pandas as pd
 from django.db import IntegrityError
 from django.core.exceptions import ObjectDoesNotExist
+import requests
+from json import JSONDecodeError
+
 
 
 
@@ -41,6 +44,51 @@ def time_decorator(func):
         return result
     return wrapper
 
+def get_ligand_activities(ligand_id):
+    tuber='Mycobacterium tuberculosis'
+    refs = []
+    comp_url = f"https://www.ebi.ac.uk/chembl/api/data/activity?molecule_chembl_id={ligand_id}&target_organism={tuber}&format=json"
+    
+    try:
+        response = requests.get(comp_url)
+        response.raise_for_status() # Raises an HTTPError if the response was unsuccessful
+        data = response.json()
+        for element in data['activities']:
+            if element['document_chembl_id'] not in refs:
+                refs.append(element['document_chembl_id'])
+    except requests.HTTPError as http_err:
+        print(f"HTTP error occurred: {http_err}")
+    except JSONDecodeError as json_err:
+        print(f"JSON decoding error occurred: {json_err}")
+        print(f"Raw response: {response.text}")
+    except Exception as err:
+        print(f"An error occurred: {err}")
+        print(f"Raw response: {response.text}")
+    return refs
+
+
+def get_ligand_mechanism(ligand_id):
+    tuber='Mycobacterium tuberculosis'
+    mec_url = f"https://www.ebi.ac.uk/chembl/api/data/mechanism?molecule_chembl_id={ligand_id}&format=json"
+    
+    try:
+        response = requests.get(mec_url)
+        response.raise_for_status() # Raises an HTTPError if the response was unsuccessful
+        data = response.json()
+        for mecha in data['mechanisms']:
+            for refe in mecha['mechanism_refs']:
+                print(refe['ref_url'])
+
+    except requests.HTTPError as http_err:
+        print(f"HTTP error occurred: {http_err}")
+    except JSONDecodeError as json_err:
+        print(f"JSON decoding error occurred: {json_err}")
+        print(f"Raw response: {response.text}")
+    except Exception as err:
+        print(f"An error occurred: {err}")
+        print(f"Raw response: {response.text}")
+
+
 class Command(BaseCommand):
     help = 'Loads SMILES data into the database'
 
@@ -51,6 +99,7 @@ class Command(BaseCommand):
         parser.add_argument('--assay', action='store_true', help='Skip parsing assay files')
         parser.add_argument('--mec', action='store_true', help='Skip parsing mec files')
         parser.add_argument('--pdb', action='store_true', help='Skip parsing pdb files')
+        parser.add_argument('--dn', action='store_true', help='Skip parsing dn files')
         parser.add_argument('--tmp', default="/tmp/load_pdb")
         parser.add_argument('--overwrite', action="store_true")
         parser.add_argument('--datadir', default="./data")
@@ -58,6 +107,7 @@ class Command(BaseCommand):
     @time_decorator
     @transaction.atomic
     def handle(self, *args, **options):
+
 
         # Assignation of parameter and directory pointers.
         seqstore = SeqStore(options['datadir'])
@@ -80,6 +130,8 @@ class Command(BaseCommand):
         missing_objects_mec = []
         read_files_pdb = []
         missing_objects_pdb = []
+        read_files_dn = []
+        missing_objects_dn = []
         bioentry_cache = {}
         ligand_cache = {}
 
@@ -100,11 +152,13 @@ class Command(BaseCommand):
                                         bioentry_cache[row['LocusTag']] = Bioentry.objects.get(accession=row['LocusTag'])
                                     if columns[1] not in ligand_cache:
                                         ligand_cache[columns[1]] = Ligand.objects.get(ligand_from_key=columns[1])
+                                    refe = get_ligand_activities(columns[1])
+
                                     AccessionLigand.objects.get_or_create(
                                         locus_tag=bioentry_cache[row['LocusTag']], 
                                         reference_type='Chembl_comp', 
                                         ligand= ligand_cache[columns[1]],
-                                        reference='Fafa'
+                                        reference=refe
                                     )
                                 except Exception as e:
                                     missing_objects_comp.append(columns[1])
@@ -140,13 +194,15 @@ class Command(BaseCommand):
                     if mec_lines:
                         for mec_line in tqdm(mec_lines, total=len(mec_lines)):
                             try:
-                                read_files_mec.append(row['UniprotID'])
-                                bioentry_instance = Bioentry.objects.get(accession=row['LocusTag'])
-                                ligand_instance = Ligand.objects.get(ligand_from_key=mec_line)
+                                if row['LocusTag'] not in bioentry_cache:
+                                    bioentry_cache[row['LocusTag']] = Bioentry.objects.get(accession=row['LocusTag'])
+                                if mec_line not in ligand_cache:
+                                    ligand_cache[mec_line] = Ligand.objects.get(ligand_from_key=mec_line)
+
                                 AccessionLigand.objects.get_or_create(
-                                        locus_tag=bioentry_instance, 
+                                        locus_tag=bioentry_cache[row['LocusTag']], 
                                         reference_type='Chembl_mec', 
-                                        ligand=ligand_instance,
+                                        ligand=ligand_cache[assay_line],
                                         reference='fifa'
                                 )
 
@@ -177,9 +233,32 @@ class Command(BaseCommand):
                            
                            except Exception as e:
                                missing_objects_pdb.append(pdb_ligand)
+            
 
+            # Imports data from the dn_ligands_valid.lst
+            if not options['dn']:
+                dn = os.path.join(ligq_protein_folder, 'dn_ligands_valid.lst')
+                with open(dn, 'r') as dn:
+                    dn_lines = dn.readlines()
+                    if dn_lines:
+                        for dn_line in dn_lines:
+                            elements = dn_line.split()
+                            if len(elements) == 2:
+                                try:
+                                    if row['LocusTag'] not in bioentry_cache:
+                                        bioentry_cache[row['LocusTag']] = Bioentry.objects.get(accession=row['LocusTag'])
+                                    if elements[0] not in ligand_cache:
+                                        ligand_cache[elements[0]] = Ligand.objects.get(ligand_from_key=elements[0])
 
+                                    AccessionLigand.objects.get_or_create(
+                                            locus_tag=bioentry_cache[row['LocusTag']], 
+                                            reference_type='pdb_dn', 
+                                            ligand=elements[0],
+                                            reference=elements[1]
+                                    )
 
+                                except Exception as e:
+                                        missing_objects_dn.append(elements[0])
 
         #self.stdout.write(self.style.SUCCESS(f"Readed Chembl comp files: {read_files_comp}"))
         #if missing_objects_comp:

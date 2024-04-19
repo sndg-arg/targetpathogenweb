@@ -74,8 +74,8 @@ class Command(BaseCommand):
                 traceback.print_exc()
                 raise CommandError(ex)
 
-            if not os.path.exists(seqstore.structure_dir(genome, be.accession)):
-                os.makedirs(seqstore.structure_dir(genome, be.accession))
+            #if not os.path.exists(seqstore.structure_dir(genome, be.accession)):
+            #    os.makedirs(seqstore.structure_dir(genome, be.accession))
 
             if not options["pdb_file"].endswith(".gz"):
                 th = tempfile.NamedTemporaryFile(dir='/tmp', delete=False)
