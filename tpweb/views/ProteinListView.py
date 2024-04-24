@@ -4,6 +4,7 @@ from django.shortcuts import render
 from bioseq.models.Biodatabase import Biodatabase
 from bioseq.models.Bioentry import Bioentry
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.db.models import Q
 
 from tpweb.models.ScoreFormula import ScoreFormula
 from tpweb.models.ScoreParam import ScoreParam
@@ -55,10 +56,19 @@ class ProteinListView(View):
         page = request.GET.get('page', 1)
         pageSize = request.GET.get('pageSize', 10)
 
+        search_query = request.GET.get('search', '').strip()
         proteins = Bioentry.objects.filter(
             biodatabase__name=assembly_name + Biodatabase.PROT_POSTFIX,
             #structures__isnull=False
         ).prefetch_related("qualifiers__term", "dbxrefs__dbxref", "score_params__score_param")
+
+        if search_query:
+            # Assuming you want to search by protein name or description
+            proteins = proteins.filter(
+                Q(name__icontains=search_query) | 
+                Q(description__icontains=search_query) |
+                Q(name__iexact=search_query)
+            )
 
         paginator = Paginator(proteins, pageSize)
 

@@ -13,11 +13,25 @@ class GenomesView(View):
 
     def get(self, request, *args, **kwargs):
 
+        search_query = request.GET.get('search', '').strip()
+        genomes = Biodatabase.objects.exclude(Q(name__endswith='_rnas') | Q(name__endswith='_prots'))
+
+
+
+                
+                
 
 
         genomes = Biodatabase.objects.exclude(Q(name__endswith='_rnas') | Q(name__endswith='_prots')
                                               ).prefetch_related("qualifiers__term")
-
+        if search_query:
+            # Filter genomes where either the name or the description contains the search query (case-insensitive)
+            genomes = genomes.filter(
+                Q(name__icontains=search_query) | 
+                Q(description__icontains=search_query) |
+                Q(name__iexact=search_query)   
+            )
+            
         genomes_dto = []
         for genome in genomes:
             genome_dto = {
