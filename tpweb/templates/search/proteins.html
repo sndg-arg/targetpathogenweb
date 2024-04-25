@@ -16,6 +16,16 @@
 
 <h1>{% trans "Proteins" %} ({{ biodb__name }})</h1>
 
+    <form method="get" action="">
+        <select name="term">
+            <option value="">Select a term</option>
+            {% for protein in proteins_dd %}
+                <option value="{{ protein }}" {% if request.GET.term == protein %}selected{% endif %}>{{ protein }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Filter</button>
+    </form>
+
     <form method="GET" action="">
         <input type="text" name="search" placeholder="Search proteins..." value="{{ request.GET.search }}">
         <input type="submit" value="Search">

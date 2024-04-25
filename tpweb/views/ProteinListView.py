@@ -5,6 +5,9 @@ from bioseq.models.Biodatabase import Biodatabase
 from bioseq.models.Bioentry import Bioentry
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Q
+from bioseq.models.Seqfeature import Seqfeature
+from bioseq.models.SeqfeatureQualifierValue import SeqfeatureQualifierValue
+from bioseq.models.Term import Term
 
 from tpweb.models.ScoreFormula import ScoreFormula
 from tpweb.models.ScoreParam import ScoreParam
@@ -69,6 +72,11 @@ class ProteinListView(View):
                 Q(description__icontains=search_query) |
                 Q(name__iexact=search_query)
             )
+    
+        #dropdpown if
+        selected_protein_id = request.GET.get('term', None)
+        if selected_protein_id:
+            proteins = proteins.filter(accession=selected_protein_id)
 
         paginator = Paginator(proteins, pageSize)
 
@@ -118,6 +126,12 @@ class ProteinListView(View):
 
         proteins_dto = sorted(proteins_dto, key=lambda x: x["score"], reverse=True)
         
+        #dropdown dto
+        proteins_dd = Bioentry.objects.filter(biodatabase__name=assembly_name + Biodatabase.PROT_POSTFIX).only('bioentry_id', 'name')
+        bioentry_ids = proteins_dd.values_list('bioentry_id', flat=True)
+        seqfeature_obj = Seqfeature.objects.filter(bioentry_id__in=bioentry_ids).values_list('bioentry_id', flat=True)
+        seqfeature_ids = seqfeature_obj.values_list('seqfeature_id', flat=True)
+
         #Pagination info
         pagination_info = {
             'proteins': proteins,
@@ -137,6 +151,7 @@ class ProteinListView(View):
             "formula": formuladto,
             "col_descriptions":col_descriptions,
             "formulas":formulas,
+            "proteins_dd":seqfeature_ids,
             "pagination":pagination_info
 
         })  # , {'form': form})
