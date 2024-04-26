@@ -17,3 +17,8 @@ class AccessionLigand(models.Model):
     reference_type = models.CharField(max_length=255)
     class Meta:
         unique_together = ('locus_tag', 'ligand', 'reference_type')
+
+class DrugIndex(models.Model):
+    locus_tag = models.ForeignKey(Bioentry, on_delete=models.CASCADE, to_field='accession')
+    d_num = models.DecimalField(max_digits=5, decimal_places=3)
+    d_char = models.CharField(max_length=255)
