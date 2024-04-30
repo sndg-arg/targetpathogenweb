@@ -20,6 +20,12 @@
         <input type="text" name="search" placeholder="Search proteins..." value="{{ request.GET.search }}">
         <input type="submit" value="Search">
     </form>
+    <form method="get" action="">
+        <input type="checkbox" id="high_value" name="high_value" value="H" {% if request.GET.high_value == 'H' %}checked{% endif %}>
+        <label for="high_value">Show only proteins with High value (H)</label>
+        <input type="hidden" name="assembly_name" value="{{ assembly_name }}">
+        <input type="submit" value="Filter">
+    </form>
 
     {% if formulas %}
         <select id="score_formula_select">
@@ -90,8 +96,13 @@
     }
 
 </style>
-<a href="?page={{ pagination.previous_page_number }}">Previous</a>
-<a href="?page={{ pagination.next_page_number }}">Next</a>
+{% if pagination.has_previous %}
+    <a href="?page={{ pagination.previous_page_number }}{% if request.GET.high_value %}&high_value={{ request.GET.high_value }}{% endif %}">Previous</a>
+{% endif %}
+
+{% if pagination.has_next %}
+    <a href="?page={{ pagination.next_page_number }}{% if request.GET.high_value %}&high_value={{ request.GET.high_value }}{% endif %}">Next</a>
+{% endif %}
 
 {% endblock %}
 

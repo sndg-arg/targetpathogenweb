@@ -69,7 +69,10 @@ class ProteinListView(View):
                 Q(description__icontains=search_query) |
                 Q(name__iexact=search_query)
             )
-
+        high_value = request.GET.get('high_value', None)
+        if high_value == 'H':
+            # Filter proteins to only include those with a 'H' value in the scoreparamvalue table
+            proteins = proteins.filter(score_params__value='H')
         paginator = Paginator(proteins, pageSize)
 
         try:
@@ -137,6 +140,7 @@ class ProteinListView(View):
             "formula": formuladto,
             "col_descriptions":col_descriptions,
             "formulas":formulas,
+            "assembly_name":assembly_name,
             "pagination":pagination_info
 
         })  # , {'form': form})
