@@ -22,7 +22,7 @@
     </form>
     <form method="get" action="">
         <input type="checkbox" id="high_value" name="high_value" value="H" {% if request.GET.high_value == 'H' %}checked{% endif %}>
-        <label for="high_value">Show only proteins with High value (H)</label>
+        <label for="high_value">Show only proteins with High Druggability</label>
         <input type="hidden" name="assembly_name" value="{{ assembly_name }}">
         <input type="submit" value="Filter">
     </form>
@@ -94,8 +94,31 @@
     #proteins_table td:nth-child(4) {
         font-weight: bold;
     }
-
+    .pagination li {
+        margin-right: 5px; /* Adjust the spacing as needed */
+    }
+    .pagination li:last-child {
+        margin-right: 0; /* Remove extra spacing from the last item */
+    }
 </style>
+
+
+<span class="current-page">
+    Page {{ pagination.number }} of {{ pagination.num_pages }}.
+</span>
+
+<ul class="pagination">
+    {% for num in pagination.page_range %}
+        {% if num == pagination.number %}
+            <li class="active"><a href="?page={{ num }}{% if request.GET.high_value %}&high_value={{ request.GET.high_value }}{% endif %}">{{ num }}</a></li>
+        {% else %}
+            <li><a href="?page={{ num }}{% if request.GET.high_value %}&high_value={{ request.GET.high_value }}{% endif %}">{{ num }}</a></li>
+        {% endif %}
+         
+        
+
+    {% endfor %}
+</ul>
 {% if pagination.has_previous %}
     <a href="?page={{ pagination.previous_page_number }}{% if request.GET.high_value %}&high_value={{ request.GET.high_value }}{% endif %}">Previous</a>
 {% endif %}

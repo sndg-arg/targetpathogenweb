@@ -43,7 +43,7 @@ class Command(BaseCommand):
         rsp = ResidueSetProperty.objects.filter(pdbresidue_set_id__in=rs_ids, property_id=21)
         rsp_ids = rsp.values_list('value', flat=True)
         
-        df = pd.DataFrame(columns=['bioentry_id', 'rsp_value', 'd_chari'])
+        df = pd.DataFrame(columns=['bioentry_id', 'rsp_value', 'd_char'])
 
 
         index = 0
@@ -55,33 +55,33 @@ class Command(BaseCommand):
             try:
                 pdb_id = BioentryStructure.objects.get(bioentry_id=bioentry_id).pdb_id
             except:
-                pass
+                continue
             rs = PDBResidueSet.objects.filter(pdb_id=pdb_id)
             if rs.exists():
                 highest_rsp_value = None
                 highest_bioentry_id = None
-                highest_d_chari = None
+                highest_d_char = None
                 for resset in rs:
                     
                     rsp = ResidueSetProperty.objects.get(pdbresidue_set_id=resset.id, property_id=21)
                     if rsp.value < 0.5:
-                        d_chari = 'L'
+                        d_char = 'L'
                     elif rsp.value > 0.5 and rsp.value < 0.7:
-                        d_chari = 'M'
+                        d_char = 'M'
                     else:
-                        d_chari = 'H'
+                        d_char = 'H'
                     if highest_rsp_value is None or rsp.value > highest_rsp_value:
                         highest_rsp_value = rsp.value
                         highest_bioentry_id = bioentry_id
-                        highest_d_chari = d_chari
-            df.loc[index] = [highest_bioentry_id, highest_rsp_value, highest_d_chari]
+                        highest_d_char = d_char
+            df.loc[index] = [highest_bioentry_id, highest_rsp_value, highest_d_char]
             index += 1
-            df.drop_duplicates()
+        df.drop_duplicates()
         ScoreParam.Initialize2()
         score_param_instance = ScoreParam.objects.get(name='druggability')
 
         for index, row in df.iterrows():
             bioentry_id = Bioentry.objects.get(bioentry_id= row['bioentry_id'])
-            ScoreParamValue.objects.get_or_create(bioentry=bioentry_id, value=row['d_chari'], score_param=score_param_instance)
+            ScoreParamValue.objects.get_or_create(bioentry=bioentry_id, value=row['d_char'], score_param=score_param_instance)
 
 

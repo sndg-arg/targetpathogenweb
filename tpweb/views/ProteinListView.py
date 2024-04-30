@@ -65,9 +65,9 @@ class ProteinListView(View):
         if search_query:
             # Assuming you want to search by protein name or description
             proteins = proteins.filter(
-                Q(name__icontains=search_query) | 
+                Q(accession__icontains=search_query) | 
                 Q(description__icontains=search_query) |
-                Q(name__iexact=search_query)
+                Q(accession__iexact=search_query)
             )
         high_value = request.GET.get('high_value', None)
         if high_value == 'H':
@@ -127,7 +127,10 @@ class ProteinListView(View):
             'has_previous': proteins.has_previous(),
             'has_next': proteins.has_next(),
             'previous_page_number': proteins.previous_page_number() if proteins.has_previous() else None,
-            'next_page_number': proteins.next_page_number() if proteins.has_next() else None
+            'next_page_number': proteins.next_page_number() if proteins.has_next() else None,
+            'number': proteins.number,
+            'num_pages': proteins.paginator.num_pages,
+            'page_range': proteins.paginator.page_range
         }
 
         return render(request, self.template_name, {
