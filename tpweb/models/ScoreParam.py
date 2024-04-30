@@ -2,6 +2,7 @@ from ckeditor_uploader.fields import RichTextUploadingField
 from django.db import models
 from django.db.models import SmallIntegerField, CharField, TextField
 
+
 from tpweb.models import TPUser
 
 
@@ -160,7 +161,23 @@ class ScoreParam(models.Model):
         ScoreFormulaParam(formula=sf_to,operation="=",coefficient=2,value="extracellular_space",score_param=sp).save()
         ScoreFormulaParam(formula=sf_to,operation="=",coefficient=1,value="periplasm",score_param=sp).save()
         ScoreFormulaParam(formula=sf_to,operation="=",coefficient=2,value="outer_membrane",score_param=sp).save()
-
+    @staticmethod
+    def Initialize2():
+        from tpweb.models.ScoreFormula import ScoreFormula, ScoreFormulaParam
+        users = TPUser.objects.all()
+        for user in users:
+            drug_formula = ScoreFormula.objects.get_or_create(name="Druggability_Formula",user=user,default=True)
+            
+        sp = ScoreParam.objects.get_or_create(
+            category="Pocket", name="druggability", type="CATEGORICAL",
+            description="Categorical representation of the druggability",
+            default_operation="=", default_value="-")
+        sp = ScoreParam.objects.get(name='druggability')
+        formulas = ScoreFormula.objects.filter(name='Druggability_Formula')
+        for formula in formulas:
+            low = ScoreFormulaParam.objects.get_or_create(formula=formula,operation="=",coefficient=1,value="L",score_param=sp)
+            med = ScoreFormulaParam.objects.get_or_create(formula=formula,operation="=",coefficient=2,value="M",score_param=sp)
+            hig = ScoreFormulaParam.objects.get_or_create(formula=formula,operation="=",coefficient=3,value="H",score_param=sp)
 
 
 

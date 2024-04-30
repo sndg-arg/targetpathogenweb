@@ -12,6 +12,8 @@ from bioseq.models.BiodatabaseQualifierValue import BiodatabaseQualifierValue
 from bioseq.models.BioentryQualifierValue import BioentryQualifierValue
 from tpweb.models.pdb import ResidueSetProperty, PDB, PDBResidueSet
 from tpweb.models.BioentryStructure import BioentryStructure
+from tpweb.models.ScoreParamValue import ScoreParamValue
+from tpweb.models.ScoreParam import ScoreParam
 import pandas as pd
 
 warnings.simplefilter('ignore', RuntimeWarning)
@@ -74,5 +76,12 @@ class Command(BaseCommand):
                         highest_d_chari = d_chari
             df.loc[index] = [highest_bioentry_id, highest_rsp_value, highest_d_chari]
             index += 1
-        print(df.drop_duplicates())
+            df.drop_duplicates()
+        ScoreParam.Initialize2()
+        score_param_instance = ScoreParam.objects.get(name='druggability')
+
+        for index, row in df.iterrows():
+            bioentry_id = Bioentry.objects.get(bioentry_id= row['bioentry_id'])
+            ScoreParamValue.objects.get_or_create(bioentry=bioentry_id, value=row['d_chari'], score_param=score_param_instance)
+
 

@@ -1,7 +1,7 @@
 from ckeditor_uploader.fields import RichTextUploadingField
 from django.contrib.auth import get_user_model
 from django.db import models
-from django.db.models import SmallIntegerField, CharField, FloatField
+from django.db.models import CharField, FloatField
 
 from bioseq.models.Bioentry import Bioentry
 from tpweb.models.ScoreParam import ScoreParam
@@ -37,6 +37,7 @@ class ScoreFormula(models.Model):
 
 
 class ScoreFormulaParam(models.Model):
+    id = models.AutoField(primary_key=True)
     formula = models.ForeignKey(ScoreFormula, related_name='terms',
                                 on_delete=models.CASCADE)
     score_param = models.ForeignKey(ScoreParam, on_delete=models.PROTECT)
