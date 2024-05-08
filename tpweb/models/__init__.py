@@ -4,6 +4,7 @@ from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from .Ligand import Ligand
 from .Ligand import AccessionLigand, DrugIndex
+from .Pathways import Pathway
 
 class TPUser(AbstractUser):
     """
