@@ -48,7 +48,8 @@ class Command(BaseCommand):
 
         index = 0
         # Iterate over each protein
-        for protein in proteins:
+
+        for protein in tqdm(proteins, total=len(proteins)):
             
             # Get the bioentry_id for the current protein
             bioentry_id = protein.bioentry_id
