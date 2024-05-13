@@ -15,6 +15,7 @@ from tpweb.models.BioentryStructure import BioentryStructure
 from tpweb.models.ScoreParamValue import ScoreParamValue
 from tpweb.models.ScoreParam import ScoreParam
 import pandas as pd
+from django.db import IntegrityError
 
 warnings.simplefilter('ignore', RuntimeWarning)
 warnings.simplefilter('ignore', BiopythonWarning)
@@ -63,7 +64,6 @@ class Command(BaseCommand):
                 highest_bioentry_id = None
                 highest_d_char = None
                 for resset in rs:
-                    
                     rsp = ResidueSetProperty.objects.get(pdbresidue_set_id=resset.id, property_id=21)
                     if rsp.value < 0.5:
                         d_char = 'L'
@@ -75,14 +75,26 @@ class Command(BaseCommand):
                         highest_rsp_value = rsp.value
                         highest_bioentry_id = bioentry_id
                         highest_d_char = d_char
-            df.loc[index] = [highest_bioentry_id, highest_rsp_value, highest_d_char]
+                df.loc[index] = [highest_bioentry_id, highest_rsp_value, highest_d_char]
             index += 1
         df.drop_duplicates()
         ScoreParam.Initialize2()
         score_param_instance = ScoreParam.objects.get(name='druggability')
 
+        # Inside your handle method, before the loop that iterates over df rows
+        error_rows = []
+
         for index, row in df.iterrows():
-            bioentry_id = Bioentry.objects.get(bioentry_id= row['bioentry_id'])
-            ScoreParamValue.objects.get_or_create(bioentry=bioentry_id, value=row['d_char'], score_param=score_param_instance)
+            bioentry_id = Bioentry.objects.get(bioentry_id=row['bioentry_id'])
+            try:
+                ScoreParamValue.objects.get_or_create(bioentry=bioentry_id, value=row['d_char'], numeric_value=row['rsp_value'], score_param=score_param_instance)
+            except IntegrityError as e:
+                # Log the error or handle it as needed
+                print(f"Error creating ScoreParamValue for row {index}: {e}")
+                error_rows.append(index)
+
+        # After the loop, print the list of error-related rows if there are any
+        if error_rows:
+            print(f"Encountered errors in the following rows: {error_rows}")
 
 
