@@ -180,6 +180,25 @@ class ScoreParam(models.Model):
             hig = ScoreFormulaParam.objects.get_or_create(formula=formula,operation="=",coefficient=3,value="H",score_param=sp)
 
 
+    @staticmethod
+    def Initialize_celular_localization():
+        from tpweb.models.ScoreFormula import ScoreFormula, ScoreFormulaParam
+        users = TPUser.objects.all()
+        for user in users:
+            drug_formula = ScoreFormula.objects.get_or_create(name="Celular_Localization",user=user,default=True)
+            
+        sp = ScoreParam.objects.get_or_create(
+            category="Localization", name="Celular_localization", type="CATEGORICAL",
+            description="Celular localization of the protein",
+            default_operation="=", default_value="Unknown")[0]
+        
+        ScoreParamOptions.objects.get_or_create(score_param=sp, name="Cellwall",description="Protein located in the cellwall")
+        ScoreParamOptions.objects.get_or_create(score_param=sp, name="Cytoplasmic",description="Protein located in the citoplasm")
+        ScoreParamOptions.objects.get_or_create(score_param=sp, name="CytoplasmicMembrane",description="Protein located in the citoplasmatic membrane")
+        ScoreParamOptions.objects.get_or_create(score_param=sp, name="Extracellular",description="Protein located in the extracelular matrix")
+        ScoreParamOptions.objects.get_or_create(score_param=sp, name="OuterMembrane",description="Protein located in the outer membrane")
+        ScoreParamOptions.objects.get_or_create(score_param=sp, name="Periplasmic",description="Protein located in periplasmatic space")
+        ScoreParamOptions.objects.get_or_create(score_param=sp, name="Unknown",description="Protein location not known")
 
 
 
