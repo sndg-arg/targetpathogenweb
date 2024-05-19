@@ -19,11 +19,16 @@ def run(genome):
     acclen = len(genome)
     folder_name = genome[math.floor(acclen / 2 - 1):math.floor(acclen / 2 + 2)]
     folder_path = os.path.join(working_dir, f"data/{folder_name}/{genome}")
+
     # starts the pipeline
 
     # requires working dir to save data
     r_clear = clear_folder(folder_path=folder_path, inputs = [])
-    r_down = download_gbk(working_dir=working_dir, genome=genome, inputs=[r_clear])
+    
+    if args.test:
+        r_down = test_gbk(working_dir=working_dir, genome=genome, inputs=[r_clear])
+    else:
+        r_down = download_gbk(working_dir=working_dir, genome=genome, inputs=[r_clear])
     r_load = load_gbk(working_dir=working_dir,
                       folder_path=folder_path, genome=genome, inputs=[r_down])
     r_index_db = index_genome_db(working_dir=working_dir, inputs=[
@@ -61,9 +66,16 @@ if __name__ == "__main__":
                         type=str,
                         nargs='*',
                         default=sys.stdin)
+    parser.add_argument('--test', '-t', action='store_true', help="Run in test mode")
+
+
+    
     args = parser.parse_args()
-    for l in args.genomes:
-        genomes.append(l.strip().upper())
+    if args.test:
+        genomes=['NZ_AP023069.1']
+    else:
+        for l in args.genomes:
+            genomes.append(l.strip().upper())
     cfg = TargetConfig("settings.ini")
     parsl.load(cfg.get_parsl_cfg())
     parsl.set_stream_logger()

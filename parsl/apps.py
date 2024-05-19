@@ -15,6 +15,11 @@ def download_gbk(working_dir, genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdo
     import os
     return f"python {working_dir}/manage.py download_gbk {genome} --datadir {working_dir}/data"
 
+@bash_app(executors=["local_executor"])
+def test_gbk(working_dir, genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
+    import os
+    return f"python {working_dir}/manage.py test --datadir ../data"
+
 
 @bash_app(executors=["local_executor"])
 def load_gbk(working_dir, folder_path, genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
