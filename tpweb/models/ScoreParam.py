@@ -162,7 +162,7 @@ class ScoreParam(models.Model):
         ScoreFormulaParam(formula=sf_to,operation="=",coefficient=1,value="periplasm",score_param=sp).save()
         ScoreFormulaParam(formula=sf_to,operation="=",coefficient=2,value="outer_membrane",score_param=sp).save()
     @staticmethod
-    def Initialize2():
+    def Initialize_druggability():
         from tpweb.models.ScoreFormula import ScoreFormula, ScoreFormulaParam
         users = TPUser.objects.all()
         for user in users:
@@ -171,7 +171,12 @@ class ScoreParam(models.Model):
         sp = ScoreParam.objects.get_or_create(
             category="Pocket", name="druggability", type="CATEGORICAL",
             description="Categorical representation of the druggability",
-            default_operation="=", default_value="-")
+            default_operation="=", default_value="-")[0]
+        
+        ScoreParamOptions.objects.get_or_create(score_param=sp, name="H",description="Protein with high druggability")
+        ScoreParamOptions.objects.get_or_create(score_param=sp, name="M",description="Protein with medium druggability")
+        ScoreParamOptions.objects.get_or_create(score_param=sp, name="L",description="Protein with low druggability")
+   
         sp = ScoreParam.objects.get(name='druggability')
         formulas = ScoreFormula.objects.filter(name='Druggability_Formula')
         for formula in formulas:

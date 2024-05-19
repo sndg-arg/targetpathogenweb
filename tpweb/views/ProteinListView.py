@@ -69,10 +69,20 @@ class ProteinListView(View):
                 Q(description__icontains=search_query) |
                 Q(accession__iexact=search_query)
             )
+        med_value = request.GET.get('med_value', None)
         high_value = request.GET.get('high_value', None)
+        low_value = request.GET.get('low_value', None)
+
+        drug_list = []
         if high_value == 'H':
-            # Filter proteins to only include those with a 'H' value in the scoreparamvalue table
-            proteins = proteins.filter(score_params__value='H')
+            drug_list.append('H')
+        if med_value == 'M':
+            drug_list.append('M')
+        if low_value == 'L':
+            drug_list.append('L')
+        if drug_list: 
+            proteins = proteins.filter(score_params__value__in=drug_list)
+        
         paginator = Paginator(proteins, pageSize)
 
         try:

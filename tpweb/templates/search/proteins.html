@@ -19,22 +19,58 @@
         .formula-block {
         display: block; /* Ensures the div acts as a block */
         margin-top: 20px; /* Adds some space above the block */
-    }
-    </style>
+        }
+        .filter-form.search-and-filters {
+        display: flex;
+        align-items: center;
+        gap: 10px; /* Adjust the gap between the search bar and checkboxes as needed */
+        }
+
+        .filter-form.checkbox-group {
+        display: flex;
+        gap: 10px; /* Adjust the gap between checkboxes as needed */
+        }
+
+/* Optional: Style individual checkboxes for better alignment */
+        .filter-form.checkbox-group div {
+            display: flex;
+            align-items: center;
+            gap: 5px; /* Adjust the gap between the checkbox and label as needed */
+        }
+            </style>
 
 
 <h1>{% trans "Proteins" %} ({{ biodb__name }})</h1>
+
 <div class="search-controls-container">
-    <form method="GET" action="">
-        <input type="text" name="search" placeholder="Search proteins..." value="{{ request.GET.search }}">
-        <input type="submit" value="Search">
-    </form>
-    <form method="get" action="">
-        <input type="checkbox" id="high_value" name="high_value" value="H" {% if request.GET.high_value == 'H' %}checked{% endif %}>
-        <label for="high_value">Show only proteins with High Druggability</label>
+    <form method="GET" action="" class="formula-block">
+
+
+            <input type="text" name="search" placeholder="Search proteins..." value="{{ request.GET.search }}">
+
+
+
+            <div>
+                <input type="checkbox" id="high_value" name="high_value" value="H" {% if request.GET.high_value == 'H' %}checked{% endif %}>
+                <label for="high_value">High Druggability</label>
+            </div>
+
+            <div>   
+                <input type="checkbox" id="med_value" name="med_value" value="M" {% if request.GET.med_value == 'M' %}checked{% endif %}>
+                <label for="med_value">Medium Druggability</label>
+            </div>
+
+            <div>
+                <input type="checkbox" id="low_value" name="low_value" value="L" {% if request.GET.low_value == 'L' %}checked{% endif %}>
+                <label for="low_value">Low Druggability</label>
+            </div>
+
+        
         <input type="hidden" name="assembly_name" value="{{ assembly_name }}">
         <input type="submit" value="Filter">
+        
     </form>
+
 <div class="formula-block">
     {% if formulas %}
         <select id="score_formula_select">
@@ -116,31 +152,29 @@
     Page {{ pagination.number }} of {{ pagination.num_pages }}.
 </span>
 
+{% with base_url=request.build_absolute_uri|slice:"?" %}
 <ul class="pagination">
     {% for num in pagination.page_range %}
         {% if num == 1 %}
-            <li><a href="?page={{ num }}{% if request.GET.high_value %}&high_value={{ request.GET.high_value }}{% endif %}">{{ num }}</a></li>
+            <li><a href="{{ base_url }}&page={{ num }}">{{ num }}</a></li>
             <li>...</li>
-        {% endif %}
-        {% if num <= pagination.number|add:10 and num >= pagination.number|add:-10 and num != 1 and num != pagination.num_pages%}
-            <li><a href="?page={{ num }}{% if request.GET.high_value %}&high_value={{ request.GET.high_value }}{% endif %}">{{ num }}</a></li>
-        {% endif %}
-        {% if num == pagination.num_pages %}
+        {% elif num <= pagination.number|add:10 and num >= pagination.number|add:-10 %}
+            <li><a href="{{ base_url }}&page={{ num }}">{{ num }}</a></li>
+        {% elif num == pagination.num_pages %}
             <li>...</li>
-            <li><a href="?page={{ num }}{% if request.GET.high_value %}&high_value={{ request.GET.high_value }}{% endif %}">{{ num }}</a></li>
+            <li><a href="{{ base_url }}&page={{ num }}">{{ num }}</a></li>
         {% endif %}
-         
-        
-
     {% endfor %}
 </ul>
+
 {% if pagination.has_previous %}
-    <a href="?page={{ pagination.previous_page_number }}{% if request.GET.high_value %}&high_value={{ request.GET.high_value }}{% endif %}">Previous</a>
+    <a href="{{ base_url }}&page={{ pagination.previous_page_number }}">Previous</a>
 {% endif %}
 
 {% if pagination.has_next %}
-    <a href="?page={{ pagination.next_page_number }}{% if request.GET.high_value %}&high_value={{ request.GET.high_value }}{% endif %}">Next</a>
+    <a href="{{ base_url }}&page={{ pagination.next_page_number }}">Next</a>
 {% endif %}
+{% endwith %}
 
 {% endblock %}
 

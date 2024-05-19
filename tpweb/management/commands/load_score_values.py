@@ -57,10 +57,12 @@ class Command(BaseCommand):
 
         assert "gene" in df.columns, "'gene' is not in the column list"
 
-        #ScoreParam.initialize()
+        ScoreParam.Initialize_druggability()
+        ScoreParam.Initialize_celular_localization()
 
 
         columns = set(df.columns) - set(["gene"])
+
 
         score_params = {}
         for c in columns:
@@ -92,7 +94,9 @@ class Command(BaseCommand):
             with transaction.atomic():
                 for c, sp in score_params.items():
                     be = Bioentry.objects.filter(accession=r.gene, biodatabase=genome)
+
                     if be.exists():
+
                         ScoreParamValue(score_param=sp, bioentry=be.get(), value=r[c]).save()
                     else:
                         sys.stderr.write(f"'{r.gene}' was not found\n")
