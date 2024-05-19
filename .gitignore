@@ -488,4 +488,8 @@ pyrightconfig.json
 data/
 
 # Parsl
-parsl/runinfo
+ligq/
+opt/
+parsl/runinfo/
+psort/
+runinfo/
