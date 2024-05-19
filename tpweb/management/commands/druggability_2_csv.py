@@ -10,7 +10,7 @@ from bioseq.models.Biodatabase import Biodatabase
 from bioseq.models.Bioentry import Bioentry
 from bioseq.models.BiodatabaseQualifierValue import BiodatabaseQualifierValue
 from bioseq.models.BioentryQualifierValue import BioentryQualifierValue
-from tpweb.models.pdb import ResidueSetProperty, PDB, PDBResidueSet
+from tpweb.models.pdb import ResidueSetProperty, PDB, PDBResidueSet, Property
 from tpweb.models.BioentryStructure import BioentryStructure
 from tpweb.models.ScoreParamValue import ScoreParamValue
 from tpweb.models.ScoreParam import ScoreParam
@@ -41,7 +41,11 @@ class Command(BaseCommand):
         pdb_ids = pdb.values_list('pdb_id', flat=True)
         rs = PDBResidueSet.objects.filter(pdb_id__in=pdb_ids)
         rs_ids = rs.values_list('id', flat=True)
-        rsp = ResidueSetProperty.objects.filter(pdbresidue_set_id__in=rs_ids, property_id=21)
+        property_id = Property.objects.get(name='druggability_score')
+
+
+
+        rsp = ResidueSetProperty.objects.filter(pdbresidue_set_id__in=rs_ids, property_id=property_id.id)
         rsp_ids = rsp.values_list('value', flat=True)
         
         df = pd.DataFrame(columns=['gene', 'rsp_value', 'd_char'])
@@ -65,7 +69,7 @@ class Command(BaseCommand):
                 highest_bioentry_id = None
                 highest_d_char = None
                 for resset in rs:
-                    rsp = ResidueSetProperty.objects.get(pdbresidue_set_id=resset.id, property_id=21)
+                    rsp = ResidueSetProperty.objects.get(pdbresidue_set_id=resset.id, property_id=property_id.id)
                     if rsp.value < 0.5:
                         d_char = 'L'
                     elif rsp.value > 0.5 and rsp.value < 0.7:
