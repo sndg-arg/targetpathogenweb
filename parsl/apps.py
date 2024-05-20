@@ -152,7 +152,6 @@ def compress_file(input_file, output_file, inputs=[], stderr=parsl.AUTO_LOGNAME,
 def run_fpocket(locus_tag, working_dir, folder_path, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME, **kwargs):
     return f"python -m TP.alphafold {locus_tag} -o {folder_path} -w {working_dir} -T 10 -nc -np -na"
 
-
 @bash_app(executors=["local_executor"])
 def fpocket2json(folder_path, locus_tag, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
     import os
@@ -201,3 +200,16 @@ def strucutures_af(working_dir, folder_path, genome, inputs=[], stderr=parsl.AUT
                 folder_path, protein, working_dir, inputs=[r_json])
             p_load.result()
     return r_load
+
+
+@bash_app(executors=["local_executor"])
+def druggability_2_csv(genome, working_dir, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME, **kwargs):
+    return f"python {working_dir}/manage.py druggability_2_csv {genome} --datadir ../data"
+
+@bash_app(executors=["local_executor"])
+def load_score(genome, working_dir,inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME, **kwargs):
+    from bioseq.io.SeqStore import SeqStore
+    ss = SeqStore('../data')
+    tsv_file = ss.druggability_tsv(genome)
+    return f"python {working_dir}/manage.py load_score_values {genome}  {tsv_file} --datadir ../data"
+

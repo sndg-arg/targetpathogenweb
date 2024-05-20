@@ -48,16 +48,16 @@ def run(genome):
             r = alphafold_unips(protein_list=proteins, folder_path=folder_path,
                             genome=genome, inputs=[protein_list])
             r_alphafolds.append(r)
-
-
-
-    # -----------------------------------
     
     r_stru = strucutures_af(
         working_dir=working_dir, folder_path=folder_path, genome=genome, inputs=r_alphafolds)
-    return r_stru
+
+    d_2_csv = druggability_2_csv(working_dir=working_dir, genome=genome, inputs =[r_stru])
+
+    load_d = load_score(working_dir=working_dir, genome=genome, inputs=[d_2_csv])
 
 
+    return load_d
 
 if __name__ == "__main__":
     genomes = list()
