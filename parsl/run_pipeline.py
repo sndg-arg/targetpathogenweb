@@ -6,7 +6,7 @@ import argparse
 import sys
 
 @join_app
-def run(genome):
+def run(genome, gram):
     import math
     import os
 
@@ -56,6 +56,7 @@ def run(genome):
 
     load_d = load_score(working_dir=working_dir, genome=genome, inputs=[d_2_csv])
 
+    p_run = psort(genome= genome, gram= gram, inputs=[load_d])
 
     return load_d
 
@@ -66,22 +67,29 @@ if __name__ == "__main__":
                         type=str,
                         nargs='*',
                         default=sys.stdin)
+    
     parser.add_argument('--test', '-t', action='store_true', help="Run in test mode")
+    parser.add_argument('--gram', choices=['p', 'n'], default=None, help="Specify 'p' for Gram-positive or 'n' for Gram-negative bacteria, optional")
 
 
     
     args = parser.parse_args()
+    gram = args.gram
     if args.test:
         genomes=['NZ_AP023069.1']
+        gram = 'n'
     else:
         for l in args.genomes:
             genomes.append(l.strip().upper())
     cfg = TargetConfig("settings.ini")
     parsl.load(cfg.get_parsl_cfg())
     parsl.set_stream_logger()
+    
     results = list()
+    print(gram)
+
     for genome in genomes:
-        r = run(genome=genome)
+        r = run(genome=genome, gram=gram)
         results.append(r)
     for r in results:
         
