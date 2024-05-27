@@ -29,6 +29,7 @@ def run(genome, gram):
         r_down = test_gbk(working_dir=working_dir, genome=genome, inputs=[r_clear])
     else:
         r_down = download_gbk(working_dir=working_dir, genome=genome, inputs=[r_clear])
+    
     r_load = load_gbk(working_dir=working_dir,
                       folder_path=folder_path, genome=genome, inputs=[r_down])
     r_index_db = index_genome_db(working_dir=working_dir, inputs=[
@@ -58,7 +59,7 @@ def run(genome, gram):
 
     p_run = psort(genome= genome, gram= gram, inputs=[load_d])
 
-    return load_d
+    return p_run
 
 if __name__ == "__main__":
     genomes = list()
