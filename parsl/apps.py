@@ -1,7 +1,7 @@
 import parsl
 from parsl import python_app, bash_app, join_app
 import time
-
+from parsl.data_provider.files import File
 @python_app(executors=['local_executor'])
 def clear_folder(folder_path, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
     import os, shutil
@@ -210,13 +210,21 @@ def psort(genome, gram, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_
 def druggability_2_csv(genome, working_dir, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME, **kwargs):
     return f"python {working_dir}/manage.py druggability_2_csv {genome} --datadir ../data"
 
+@bash_app(executors=["local_executor"])
+def psort_2_csv(genome, working_dir, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME, **kwargs):
+    return f"python {working_dir}/manage.py psort_2_csv {genome} --datadir ../data"
 
 @bash_app(executors=["local_executor"])
-def load_score(genome, working_dir,inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME, **kwargs):
+def load_score(genome, working_dir, param, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME, **kwargs):
     from bioseq.io.SeqStore import SeqStore
     ss = SeqStore('../data')
-    tsv_file = ss.druggability_tsv(genome)
+    print(param)
+    if param == 'druggability':
+        tsv_file = ss.druggability_tsv(genome)
+    if param == 'psort':
+        tsv_file = ss.psort_tsv(genome)
     return f"python {working_dir}/manage.py load_score_values {genome}  {tsv_file} --datadir ../data"
+
 
 
 

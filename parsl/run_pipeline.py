@@ -52,14 +52,16 @@ def run(genome, gram):
     
     r_stru = strucutures_af(
         working_dir=working_dir, folder_path=folder_path, genome=genome, inputs=r_alphafolds)
-
+    
     d_2_csv = druggability_2_csv(working_dir=working_dir, genome=genome, inputs =[r_stru])
 
-    load_d = load_score(working_dir=working_dir, genome=genome, inputs=[d_2_csv])
+    load_d = load_score(working_dir=working_dir, genome=genome, inputs=[d_2_csv], param = 'druggability')
+    
+    p_run = psort(genome= genome, gram= gram, inputs=[r_stru])
 
-    p_run = psort(genome= genome, gram= gram, inputs=[load_d])
+    load_d = load_score(working_dir=working_dir, genome=genome, inputs=[p_run], param = 'psort')
 
-    return p_run
+    return load_d
 
 if __name__ == "__main__":
     genomes = list()

@@ -2,7 +2,7 @@ import warnings
 from Bio import BiopythonWarning, BiopythonParserWarning, BiopythonDeprecationWarning, BiopythonExperimentalWarning
 from django.core.management.base import BaseCommand
 from tqdm import tqdm
-
+import time
 from bioseq.io.BioIO import BioIO
 from bioseq.io.IndexerIO import IndexerIO
 from bioseq.io.SeqStore import SeqStore
@@ -20,12 +20,11 @@ from django.db import IntegrityError
 warnings.simplefilter('ignore', RuntimeWarning)
 warnings.simplefilter('ignore', BiopythonWarning)
 warnings.simplefilter('ignore', BiopythonParserWarning)
-warnings.simplefilter('ignore', BiopythonDeprecationWarning)
 warnings.simplefilter('ignore', BiopythonExperimentalWarning)
 
 import os
 
-
+print('ARRANCO %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
 class Command(BaseCommand):
     help = 'Index genome'
 
@@ -34,11 +33,25 @@ class Command(BaseCommand):
         parser.add_argument('--datadir', default=os.environ.get("BIOSEQDATADIR", "./data"))
 
     def handle(self, *args, **options):
+        num_retries = 20
+        delay_between_retries = 60 
+        retry_count = 0
+        print('ARRANCO %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
         accession = options['accession']
         proteins = Bioentry.objects.filter(biodatabase__name=accession + Biodatabase.PROT_POSTFIX)
         protein_ids = proteins.values_list('bioentry_id', flat=True)
         seqstore = SeqStore(options['datadir'])
         psort = seqstore.psort(accession)
+        while retry_count < num_retries:
+            if os.path.exists(psort):
+                break
+            else:
+                print(f"The psort file does not exist yet. Waiting for {delay_between_retries} seconds before trying again...")
+                time.sleep(delay_between_retries)
+                retry_count += 1
+        # Check if the file was found after retries
+        if retry_count == num_retries:
+            raise FileNotFoundError(f"The psort file at {psort} still does not exist after {num_retries} attempts.")
         df = pd.read_csv(psort, sep='\t')
         # Modify the SeqID column to only store the first word
         df['SeqID'] = df['SeqID'].apply(lambda x: x.split()[0])
