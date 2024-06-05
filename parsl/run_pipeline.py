@@ -4,7 +4,6 @@ from config import *
 from apps import *
 import argparse
 import sys
-
 @join_app
 def run(genome, gram):
     import math
@@ -59,9 +58,9 @@ def run(genome, gram):
     
     p_run = psort(genome= genome, gram= gram, inputs=[r_stru])
 
-    load_d = load_score(working_dir=working_dir, genome=genome, inputs=[p_run], param = 'psort')
+    load_p = load_score(working_dir=working_dir, genome=genome, inputs=[p_run], param = 'psort')
 
-    return load_d
+    return load_p
 
 if __name__ == "__main__":
     genomes = list()
