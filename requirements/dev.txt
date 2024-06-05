@@ -1,2 +1,10 @@
 ipython
 django-debug-toolbar
+parsl
+parsl[monitoring]
+scp
+scpClient
+scpClient
+configparse
+pythoncyc
+networkx
