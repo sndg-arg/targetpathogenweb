@@ -35,6 +35,7 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument('struct_name')
+        parser.add_argument('--P2rank_pocket', action="store_true")
         parser.add_argument('--pocket_json')
         parser.add_argument('--tmp', default="/tmp/load_pdb")
         parser.add_argument('--overwrite', action="store_true")
@@ -59,12 +60,23 @@ class Command(BaseCommand):
 
         assert os.path.exists(pocket_json), f'"{pocket_json}" does not exists!'
 
-        fp2sql = FPocket2SQL()
-        fp2sql.create_or_get_pocket_properties()
-        fp2sql.load_pdb(code)
-        with gzip.open(pocket_json) as h:
-            fp2sql.res_pockets = json.load(h)
+        if options["P2rank_pocket"]:  
+            fp2sql = FPocket2SQL()
+            fp2sql.create_or_get_pocket_properties(p2rank=True) 
+            fp2sql.load_pdb(code, p2rank=True)
+            with gzip.open(pocket_json) as h:
+                fp2sql.res_pockets = json.load(h)
 
-        fp2sql.load_pockets()
+            fp2sql.load_pockets(p2rank=True)
 
-        self.stderr.write(f"done loading pockets for: {code} ")
+            self.stderr.write(f"done loading pockets for: {code} ")
+        else:
+            fp2sql = FPocket2SQL()
+            fp2sql.create_or_get_pocket_properties()
+            fp2sql.load_pdb(code)
+            with gzip.open(pocket_json) as h:
+                fp2sql.res_pockets = json.load(h)
+
+            fp2sql.load_pockets()
+
+            self.stderr.write(f"done loading pockets for: {code} ")

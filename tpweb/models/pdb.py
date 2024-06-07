@@ -55,7 +55,7 @@ class Residue(models.Model):
         return self.pdb.code + "_" + self.chain + ":" + str(self.resid) + "-" + self.resname
 
     class Meta:
-        unique_together = (('pdb', "chain", "resid", "icode", "type"),)
+        unique_together = (('pdb', "chain", "resid", "icode", "type", "resname"),)
 
 
 class Atom(models.Model):

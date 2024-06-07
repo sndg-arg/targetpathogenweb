@@ -50,28 +50,41 @@ class FPocket2SQL:
         self.res_pockets = None
         self.pdb = None
 
-    def create_or_get_pocket_properties(self):
+
+    def create_or_get_pocket_properties(self, p2rank=False):
+        # Create or get pocket properties as before
         self.pocket_props = {name: Property.objects.get_or_create(name=name, description=desc)[0]
                              for name, desc in fpocket_properties_map.items()}
 
-        self.rsfpocker = ResidueSet.objects.get_or_create(name="FPocketPocket", description="")[0]
+        # Check if p2rank flag is True, otherwise use the default name
+        rs_name = "FPocketPocket" if not p2rank else "P2RankPocket"
 
-    def load_pdb(self, code):
+        # Create or get the residue set with the determined name
+        self.rsfpocker = ResidueSet.objects.get_or_create(name=rs_name, description="")[0]
+
+    def load_pdb(self, code, p2rank=False):
         self.pdb = PDB.objects.prefetch_related("residues__atoms").get(code=code)
-        Residue.objects.filter(pdb=self.pdb, resname="STP").delete()
-        PDBResidueSet.objects.filter(pdb=self.pdb, residue_set__name="FPocketPocket").delete()
-
-    def _process_pocket_alphas(self, pocket, nro_atm):
+        rs_name = "FPocketPocket" if not p2rank else "P2RankPocket"
+        res_name = "STP" if not p2rank else "STP2"
+        PDBResidueSet.objects.filter(pdb=self.pdb, residue_set__name=rs_name).delete()
+        Residue.objects.filter(pdb=self.pdb, resname=res_name).delete()
+    def _process_pocket_alphas(self, pocket, nro_atm, p2 = False):
         res_alpha = {}
         for stp_line in pocket.as_lines:
+            print(stp_line)
             nro_atm += 1
             resid = int(stp_line[22:26])
             if resid in res_alpha:
                 r = res_alpha[resid]
             else:
-                r = Residue(pdb=self.pdb, chain=stp_line[22:23], resid=resid,
-                            type="",
-                            resname="STP", disordered=1)
+                if p2 == False:
+                    r = Residue(pdb=self.pdb, chain=stp_line[22:23], resid=resid,
+                                type="",
+                                resname="STP", disordered=1)
+                else:
+                     r = Residue(pdb=self.pdb, chain=stp_line[22:23], resid=resid,
+                                type="",
+                                resname="STP2", disordered=1)                   
                 r.save()
                 res_alpha[resid] = r
             Atom(residue=r, serial=nro_atm, name=stp_line[12:16],
@@ -81,7 +94,7 @@ class FPocket2SQL:
                  element="").save()
         return nro_atm
 
-    def load_pockets(self):
+    def load_pockets(self, p2rank = False):
         rss = []
         nro_atm = Atom.objects.filter(residue__pdb=self.pdb).aggregate(Max("serial"))["serial__max"]
         with transaction.atomic():
@@ -90,7 +103,7 @@ class FPocket2SQL:
                 rs = PDBResidueSet(name="%i" % pocket.number, pdb=self.pdb, residue_set=self.rsfpocker)
                 rss.append(rs)
                 rs.save()
-                nro_atm = self._process_pocket_alphas(pocket, nro_atm)
+                nro_atm = self._process_pocket_alphas(pocket, nro_atm, p2 = p2rank)
 
                 atoms = Atom.objects.select_related("residue").filter(residue__pdb=self.pdb,
                                                                       serial__in=[int(x) for x in pocket.atoms])
