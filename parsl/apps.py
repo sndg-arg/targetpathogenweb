@@ -159,11 +159,22 @@ def fpocket2json(folder_path, locus_tag, inputs=[], stderr=parsl.AUTO_LOGNAME, s
     return f"python -m SNDG.Structure.FPocket 2json {locustag_af} | gzip > {locustag_af}/fpocket.json.gz"
 
 @bash_app(executors=["local_executor"])
+def p2rank2json(genome, locus_tag, working_dir, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
+    return f"python {working_dir}/manage.py p2rank_2_json {genome} {locus_tag} --datadir '../data'"
+
+@bash_app(executors=["local_executor"])
 def load_pocket(folder_path, locus_tag, working_dir, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
     import os
     locustag_af = os.path.join(folder_path, "alphafold", locus_tag, f"{locus_tag}_af_out", "fpocket.json.gz")
     return f"python {working_dir}/manage.py load_fpocket --pocket_json {locustag_af} {locus_tag} --datadir '../data'"
 
+@bash_app(executors=["local_executor"])
+def load_p2pocket(genome, locus_tag, working_dir, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
+    import os
+    from bioseq.io.SeqStore import SeqStore
+    ss = SeqStore('../data')
+    p2pocket_json = ss.p2rank_json(genome, locus_tag)
+    return f"python {working_dir}/manage.py load_fpocket --pocket_json {p2pocket_json} {locus_tag} --datadir '../data' --P2rank_pocket"
 
 @python_app(executors=["local_executor"])
 def filter_pdb(locus_tag_fold, locus_tag, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
@@ -198,6 +209,8 @@ def strucutures_af(working_dir, folder_path, genome, inputs=[], stderr=parsl.AUT
                 folder_path, protein, inputs=[r_load])
             p_load = load_pocket(
                 folder_path, protein, working_dir, inputs=[r_json])
+            r2_json = p2rank2json(genome, protein, working_dir, inputs=[r_load])
+            r2_load = load_p2pocket(genome, protein, working_dir, inputs=[r2_json])
             p_load.result()
     return r_load
 

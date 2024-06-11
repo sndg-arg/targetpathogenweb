@@ -8,9 +8,10 @@ from SNDG import mkdir
 import json
 from django.core.management.base import BaseCommand, CommandError
 from bioseq.io.SeqStore import SeqStore
+from glob import glob
 
 class Command(BaseCommand):
-    help = 'Imports a PDB'
+    help = 'Takes the genome and locus_tag as arguments and retrives the fpocket version of p2rank pockets'
 
     def add_arguments(self, parser):
         parser.add_argument('genome')
@@ -19,19 +20,22 @@ class Command(BaseCommand):
         parser.add_argument('--datadir', default="./data")
     
     def handle(self, *args, **options):
+        def replace_first_line(src_filename, target_filename, replacement_line):
+            with open(src_filename, 'r') as f:
+                first_line, remainder = f.readline(), f.read()
+            with open(target_filename, "w") as t:
+                t.write(replacement_line + "\n")
+                t.write(remainder)
+
         genome = options["genome"]
         locus_tag = options["locus_tag"]
         seqstore = SeqStore(options["datadir"])
         fpocket_template = "docker run --user $UID:$GID --rm -i -v {workdir}:{workdir} ezequieljsosa/fpocket fpocket -f {pdbinput} -m 2 -D 6"
         p2rank_output = seqstore.p2rank_pdb_predictions(genome,locus_tag)
         pdb = seqstore.structure_af_pdb(genome,locus_tag)
-        pocket_tmp = seqstore.p2rank_fpocket_folder(genome,locus_tag)
-        print(p2rank_output)
-        print(pdb)
-        print(pocket_tmp)
-        output_path = "/home/eze/workspace/pockets/p2rank_2.4/8IWM/pockets.json"
-        if not os.path.exists(pocket_tmp):
-            os.makedirs(pocket_tmp)
+        fpocket_folder = seqstore.p2rank_fpocket_folder(genome,locus_tag)
+        if not os.path.exists(fpocket_folder):
+            os.makedirs(fpocket_folder)
 
         df = pd.read_csv(p2rank_output)
         df.columns = [x.strip() for x in df.columns]
@@ -43,7 +47,7 @@ class Command(BaseCommand):
             residues = [x.strip() for x in record.residue_ids.split()]
             atoms = [x.strip() for x in record.surf_atom_ids.split()]
             pocket_name = record["name"].strip()
-            pdb_pocket_file = pocket_tmp + "/" + pocket_name + ".pdb"
+            pdb_pocket_file = fpocket_folder + "/" + pocket_name + ".pdb"
             with open(pdb_pocket_file, "w") as h:
                 for x in pdb_lines:
                     if x.startswith("ATOM"):
@@ -53,27 +57,38 @@ class Command(BaseCommand):
                     else:
                         h.write(x)
 
-            fpo = FpocketOutput(directory=pocket_tmp + pocket_name + "_out")
-            print(fpo._info_file_path())
+            fpo = FpocketOutput(directory=fpocket_folder + pocket_name + "_out")
             absolute_pocket_path = os.path.abspath(seqstore.p2rank_folder(genome, locus_tag))
             absolute_pdb_input = os.path.abspath(pdb_pocket_file)
-            print(absolute_pocket_path) 
             if not os.path.exists(fpo._info_file_path()):
                 cmd = fpocket_template.format(pdbinput=absolute_pdb_input, workdir=absolute_pocket_path)
                 sp.call(cmd, shell=True)
-            #sp.call(f"sudo chown -R gabi:gabi {absolute_pocket_path}")
 
-  #          if os.path.exists(fpo._info_file_path()):
-  #              fpo.parse()
-  #              if fpo.pockets:
-  #                  pprops = fpo.pockets[0].properties
-  #                  pprops["name"] = pocket_name
-  #                  pprops["residues"] = residues
-  #                  pprops["atoms"] = atoms
-  #                  pprops["score"] = record["score"]
-  #                  pprops["probability"] = record["probability"]
-  #                  pprops["sas_points"] = record["sas_points"]
-  #                  pprops["alpha_spheres"] = fpo.pockets[0].alpha_spheres
-  #                  outpockets.append(pprops)
-  #      with open(output_path,"w") as h:
-  #          json.dump(outpockets,h)
+            # Find all _out folders within the main folder
+            _out_folders = sorted(glob(os.path.join(fpocket_folder, 'pocket*_out')))
+            print(_out_folders)
+            for i, folder in enumerate(_out_folders, start=1):
+                # Construct the source and target filenames
+                src_filename = os.path.join(folder, f'pocket{i}_info.txt')
+                target_filename = os.path.join(fpocket_folder, f'pocket{i}_info_fixed.txt')
+                
+                # Modify the first line of the source file
+                replacement_line = f"Pocket {i} :"
+                replace_first_line(src_filename, target_filename, replacement_line)
+            # Now, you can proceed with concatenating the fixed files if needed
+            # Example: Concatenate all fixed pocketX_info.txt files into a single file
+            fixed_files = [os.path.join(fpocket_folder, f'pocket{i}_info_fixed.txt') for i in range(1, len(_out_folders)+1)]
+            concatenated_content = ''
+            for file in fixed_files:
+                with open(file, 'r') as f:
+                    content = f.read()
+                    concatenated_content += content
+
+            # Define the path for the output file in the main folder
+            output_file_path = os.path.join(fpocket_folder, 'all_pockets_info_fixed.txt')
+
+            # Write the concatenated content to the output file
+            with open(output_file_path, 'w') as outfile:
+                outfile.write(concatenated_content)
+
+            print(f"Concatenation completed. Output saved to {output_file_path}")

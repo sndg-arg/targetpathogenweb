@@ -39,7 +39,7 @@ class Command(BaseCommand):
         protein_ids = proteins.values_list('bioentry_id', flat=True)
         pdb = BioentryStructure.objects.filter(bioentry_id__in=protein_ids)
         pdb_ids = pdb.values_list('pdb_id', flat=True)
-        rs = PDBResidueSet.objects.filter(pdb_id__in=pdb_ids)
+        rs = PDBResidueSet.objects.filter(pdb_id__in=pdb_ids, residue_set_id=1)
         rs_ids = rs.values_list('id', flat=True)
         property_id = Property.objects.get(name='druggability_score')
 
@@ -63,7 +63,7 @@ class Command(BaseCommand):
                 pdb_id = BioentryStructure.objects.get(bioentry_id=bioentry_id).pdb_id
             except:
                 continue
-            rs = PDBResidueSet.objects.filter(pdb_id=pdb_id)
+            rs = PDBResidueSet.objects.filter(pdb_id=pdb_id, residue_set_id=1)
             if rs.exists():
                 highest_rsp_value = None
                 highest_bioentry_id = None

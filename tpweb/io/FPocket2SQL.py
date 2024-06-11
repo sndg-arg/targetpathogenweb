@@ -103,7 +103,8 @@ class FPocket2SQL:
                 rs = PDBResidueSet(name="%i" % pocket.number, pdb=self.pdb, residue_set=self.rsfpocker)
                 rss.append(rs)
                 rs.save()
-                nro_atm = self._process_pocket_alphas(pocket, nro_atm, p2 = p2rank)
+                if not p2rank:
+                    nro_atm = self._process_pocket_alphas(pocket, nro_atm, p2 = p2rank)
 
                 atoms = Atom.objects.select_related("residue").filter(residue__pdb=self.pdb,
                                                                       serial__in=[int(x) for x in pocket.atoms])
@@ -116,8 +117,8 @@ class FPocket2SQL:
 
                 for atom in atoms:
                     AtomResidueSet(atom=atom, pdb_set=rs_dict[atom.residue.id]).save()
-
-                for k, v in pocket.properties.items():
-                    prop = pocket_prop_map[k]
-                    prop_model = self.pocket_props[prop]
-                    ResidueSetProperty(pdbresidue_set=rs, property=prop_model, value=v).save()
+                if not p2rank:
+                    for k, v in pocket.properties.items():
+                        prop = pocket_prop_map[k]
+                        prop_model = self.pocket_props[prop]
+                        ResidueSetProperty(pdbresidue_set=rs, property=prop_model, value=v).save()
