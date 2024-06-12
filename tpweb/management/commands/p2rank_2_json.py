@@ -34,11 +34,18 @@ class Command(BaseCommand):
             name = int(record["name"][6:].replace(" ", ""))
             residues = record["residue_ids"].replace("_", "").split()
             atoms = record["surf_atom_ids"].split()
+            score = record["score"]
+            probability = record["probability"]
+            properties = {
+                "P2Rank score": score,
+                "P2Rrank probability": probability
+            }
             data_dict = {
                 "number": name,
                 "residues": residues,
-                "atoms": atoms
-                        }
+                "atoms": atoms,
+                "properties": properties
+            }
             data_list.append(data_dict)
         json_filename = f"p2pocket.json"  # Dynamic filename based on genome and locus_tag
         json_path = os.path.join(seqstore.p2rank_folder(genome, locus_tag) ,json_filename)  # Full path to the JSON file

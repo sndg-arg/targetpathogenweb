@@ -66,7 +66,7 @@ class Command(BaseCommand):
             fp2sql.load_pdb(code, p2rank=True)
             with gzip.open(pocket_json) as h:
                 fp2sql.res_pockets = json.load(h)
-
+                print(fp2sql.res_pockets)
             fp2sql.load_pockets(p2rank=True)
 
             self.stderr.write(f"done loading pockets for: {code} ")
@@ -76,7 +76,7 @@ class Command(BaseCommand):
             fp2sql.load_pdb(code)
             with gzip.open(pocket_json) as h:
                 fp2sql.res_pockets = json.load(h)
-
+                print(fp2sql.res_pockets)
             fp2sql.load_pockets()
 
             self.stderr.write(f"done loading pockets for: {code} ")

@@ -33,9 +33,9 @@ fpocket_properties_map = {'polar_sasa': 'Polar SASA', 'number_of_alpha_spheres':
                           'mean_alp_sph_solvent_access': 'Mean alp sph solvent access',
                           'druggability_score': 'Druggability Score',
                           'mean_alpha_sphere_radius': 'Mean alpha sphere radius'}
-
+p2rank_properties_map = {'p2score': 'P2Rank score', 'probability': 'P2Rrank probability'}
 pocket_prop_map = {v: k for k, v in fpocket_properties_map.items()}
-
+p2pocket_prop_map = {v: k for k, v in p2rank_properties_map.items()}
 
 class Struct:
     def __init__(self, **entries):
@@ -53,13 +53,14 @@ class FPocket2SQL:
 
     def create_or_get_pocket_properties(self, p2rank=False):
         # Create or get pocket properties as before
-        self.pocket_props = {name: Property.objects.get_or_create(name=name, description=desc)[0]
-                             for name, desc in fpocket_properties_map.items()}
 
         # Check if p2rank flag is True, otherwise use the default name
         rs_name = "FPocketPocket" if not p2rank else "P2RankPocket"
-
+        property_map = fpocket_properties_map if not p2rank else p2rank_properties_map
         # Create or get the residue set with the determined name
+
+        self.pocket_props = {name: Property.objects.get_or_create(name=name, description=desc)[0]
+                             for name, desc in property_map.items()}
         self.rsfpocker = ResidueSet.objects.get_or_create(name=rs_name, description="")[0]
 
     def load_pdb(self, code, p2rank=False):
@@ -117,8 +118,11 @@ class FPocket2SQL:
 
                 for atom in atoms:
                     AtomResidueSet(atom=atom, pdb_set=rs_dict[atom.residue.id]).save()
-                if not p2rank:
-                    for k, v in pocket.properties.items():
-                        prop = pocket_prop_map[k]
-                        prop_model = self.pocket_props[prop]
-                        ResidueSetProperty(pdbresidue_set=rs, property=prop_model, value=v).save()
+                for k, v in pocket.properties.items():
+                    print(pocket.properties.items())
+                    print(k)
+                    prop_map = pocket_prop_map if not p2rank else p2pocket_prop_map
+                    print(prop_map)
+                    prop = prop_map[k]
+                    prop_model = self.pocket_props[prop]
+                    ResidueSetProperty(pdbresidue_set=rs, property=prop_model, value=v).save()
