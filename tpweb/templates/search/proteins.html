@@ -153,16 +153,17 @@
 </span>
 
 {% with base_url=request.build_absolute_uri|slice:"?" %}
+<h3>{{ base_url }}</h3>
 <ul class="pagination">
     {% for num in pagination.page_range %}
         {% if num == 1 %}
-            <li><a href="?page={{ num }}">{{ num }}</a></li>
+            <li><a href="{{ base_url }}?&page={{ num }}">{{ num }}</a></li>
             <li>...</li>
         {% elif num <= pagination.number|add:10 and num >= pagination.number|add:-10 %}
-            <li><a href="?page={{ num }}">{{ num }}</a></li>
+            <li><a href="{{ base_url }}?&page={{ num }}">{{ num }}</a></li>
         {% elif num == pagination.num_pages %}
             <li>...</li>
-            <li><a href="?page={{ num }}">{{ num }}</a></li>
+            <li><a href="{{ base_url }}?&page={{ num }}">{{ num }}</a></li>
         {% endif %}
     {% endfor %}
 </ul>
