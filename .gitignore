@@ -493,3 +493,4 @@ opt/
 parsl/runinfo/
 psort/
 runinfo/
+parsl/settings.ini
