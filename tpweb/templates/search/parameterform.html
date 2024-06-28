@@ -1,0 +1,23 @@
+{% extends '../base/masterpage.html' %}
+{% load i18n %}
+{% block body %}
+<script src="https://unpkg.com/htmx.org@1.9.2"></script>
+        <form method="POST">
+            {% csrf_token %}
+            {{ form.as_p}}
+            <button>Filter</button>
+        </form>
+
+<div>
+    <!-- Aquí mostramos el contenido HTML del modelo -->
+    {% autoescape off %}
+    {{ post.content|safe }}
+    {% endautoescape %}
+</div>
+
+
+{% endblock %}
+
+
+{% block footer %}
+{% endblock %}
