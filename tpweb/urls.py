@@ -49,7 +49,7 @@ urlpatterns = [
     path("genomes",view=GenomesView.as_view(),name="genomes_list"),
     path("structure_raw/<int:struct_id>",view=StructureRawView.as_view(),name="structure_raw"),
     path("structure_export/<int:struct_id>",view=StructureExportView.as_view(),name="structure_export"),
-    path("parameterformview", view= ParameterFormView, name="parameterformview"),
+    path("parameterformview/<str:assembly_name>", view= ParameterFormView, name="parameterformview"),
     path("load_options/", load_options, name="load_options"),
     path("structure/<int:struct_id>",view=StructureView.as_view(),name="structure"),
     path("test",view=untestview,name="untestview"),
