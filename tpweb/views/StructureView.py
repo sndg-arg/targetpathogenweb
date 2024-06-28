@@ -46,13 +46,17 @@ def pdb_structure(pdbobj, graphic_features):
 
     ds = Property.objects.get(name="druggability_score")
     rs = ResidueSet.objects.get(name="FPocketPocket")
-
+    p2_rs = ResidueSet.objects.get(name="P2RankPocket")
     # sq = ResidueSetProperty.objects.select_related(pdbresidue_set)\
     #     .filter(property=ds,value__gte=0.2,pdbresidue_set=OuterRef("id"))
 
     context["pockets"] = PDBResidueSet.objects.prefetch_related("properties__property",
                                                                 "residue_set_residue__residue__atoms").filter(
         Q(pdb=pdbobj), Q(residue_set=rs), Q(properties__property=ds) & Q(properties__value__gte=0.2)).all()
+
+    context["p2_pockets"] = PDBResidueSet.objects.prefetch_related("properties__property",
+                                                                "residue_set_residue__residue__atoms").filter(
+        Q(pdb=pdbobj), Q(residue_set=p2_rs)).all()
     for p in context["pockets"]:
         p.druggability = [x.value for x in p.properties.all() if x.property == ds][0]
         p.atoms = []
@@ -91,7 +95,7 @@ def pdb_structure(pdbobj, graphic_features):
         gf = {
             "data": [{"x": x.residue.resid, "y": x.residue.resid}
                      for x in rs.residue_set_residue.all()],
-            "name": rs.name,
+            "name": "P2Rank",
             "className": "test3",
             "color": generar_color_aleatorio(),
             "type": "rect",
