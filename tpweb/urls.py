@@ -13,7 +13,7 @@ from .views.StructureRawView import StructureRawView
 from .views.StructureView import StructureView
 from .views.FormView import FormView
 from .views.NewView import NewView
-
+from .views.ParameterFormView import ParameterFormView, load_options
 from .views.TestCelery import test_celery
 
 from django.conf.urls.static import static
@@ -49,7 +49,8 @@ urlpatterns = [
     path("genomes",view=GenomesView.as_view(),name="genomes_list"),
     path("structure_raw/<int:struct_id>",view=StructureRawView.as_view(),name="structure_raw"),
     path("structure_export/<int:struct_id>",view=StructureExportView.as_view(),name="structure_export"),
-
+    path("parameterformview", view= ParameterFormView, name="parameterformview"),
+    path("load_options/", load_options, name="load_options"),
     path("structure/<int:struct_id>",view=StructureView.as_view(),name="structure"),
     path("test",view=untestview,name="untestview"),
     path("form", view= FormView.as_view(), name="form"),

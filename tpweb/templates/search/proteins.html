@@ -2,6 +2,7 @@
 {% load i18n %}
 {% load custom_tags %}
 
+<script src="https://unpkg.com/htmx.org@1.9.2"></script>
 {% block body %}
 
     <style>
@@ -65,7 +66,8 @@
                 <label for="low_value">Low Druggability</label>
             </div>
 
-        
+            <a href="{% url 'tpwebapp:parameterformview' %}">Open Form</a>
+
         <input type="hidden" name="assembly_name" value="{{ assembly_name }}">
         <input type="submit" value="Filter">
         
