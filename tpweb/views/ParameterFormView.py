@@ -1,14 +1,15 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from tpweb.views.ParameterForm import ParameterForm
 from django.views import View
 from tpweb.models.ScoreParam import ScoreParamOptions
 
-def ParameterFormView(request):
+def ParameterFormView(request, assembly_name):
+
     if request.method == "POST":
         parameterform = ParameterForm(request.POST)
         if parameterform .is_valid():
-            print(parameterform.cleaned_data["param"])
-            print(parameterform.cleaned_data["options"])
+            request.session['selected_parameters'] = parameterform.cleaned_data["options"].to_dict()
+            return redirect(f'../../assembly/{assembly_name}/protein') 
         else:
             print(parameterform.errors)
     else:

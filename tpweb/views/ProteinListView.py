@@ -16,10 +16,10 @@ class ProteinListView(View):
     # score_dict = ["Length", "PW", "Druggability"]
 
     def get(self, request, assembly_name, *args, **kwargs):
-
         formula = None
         formulas = list(request.user.formulas.all())
-
+        selected_parameters = request.session.get('selected_parameters', {})
+        print(selected_parameters)
         sf = request.GET.get('scoreformula','')
         if sf and [x for x in formulas if x.name==sf]:
             formula = [x for x in formulas if x.name==sf][0]
