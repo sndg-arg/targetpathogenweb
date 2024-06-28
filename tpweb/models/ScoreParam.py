@@ -24,6 +24,17 @@ class ScoreParam(models.Model):
     def __str__(self):
         return self.__repr__()
 
+    def to_dict(self):
+        return {
+            'id': self.pk,  # Primary Key
+            'category': self.category,
+            'name': self.name,
+            'type': self.type,
+            'default_operation': self.default_operation,
+            'default_value': self.default_value,
+            'description': self.description,
+        }
+
     @staticmethod
     def initialize():
 
@@ -221,3 +232,12 @@ class ScoreParamOptions(models.Model):
 
     def __str__(self):
         return self.__repr__()
+
+    def to_dict(self):
+        return {
+            'id': self.pk,  # Primary Key
+            'score_param_id': self.score_param_id,  # Foreign key ID
+            'score_param_name': self.score_param.name,  # Related ScoreParam's name
+            'name': self.name,
+            'description': self.description,
+        }
