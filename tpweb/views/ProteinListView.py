@@ -18,8 +18,6 @@ class ProteinListView(View):
     def get(self, request, assembly_name, *args, **kwargs):
         formula = None
         formulas = list(request.user.formulas.all())
-        selected_parameters = request.session.get('selected_parameters', {})
-        print(selected_parameters)
         sf = request.GET.get('scoreformula','')
         if sf and [x for x in formulas if x.name==sf]:
             formula = [x for x in formulas if x.name==sf][0]
@@ -62,27 +60,29 @@ class ProteinListView(View):
             #structures__isnull=False
         ).prefetch_related("qualifiers__term", "dbxrefs__dbxref", "score_params__score_param")
 
+        selected_parameters = request.session.get('selected_parameters', {})
+        print(selected_parameters)
+        if selected_parameters:
+            parameter_dict = {}
+            for parameter in selected_parameters:
+                score_param = parameter.get('score_param_id')
+                score_name = parameter.get('name')
+                if score_param not in parameter_dict.keys():
+                    parameter_dict[score_param] = [score_name]
+                else:
+                    parameter_dict[score_param].append(score_name)
+            for p in parameter_dict:
+                proteins = proteins.filter(
+                        Q(score_params__id=p) |
+                        Q(score_params__value__in=parameter_dict[p])
+                        )
+            print(parameter_dict)
         if search_query:
-            # Assuming you want to search by protein name or description
             proteins = proteins.filter(
-                Q(accession__icontains=search_query) | 
+                Q(accession__icontains=search_query) |
                 Q(description__icontains=search_query) |
                 Q(accession__iexact=search_query)
-            )
-        med_value = request.GET.get('med_value', None)
-        high_value = request.GET.get('high_value', None)
-        low_value = request.GET.get('low_value', None)
-
-        drug_list = []
-        if high_value == 'H':
-            drug_list.append('H')
-        if med_value == 'M':
-            drug_list.append('M')
-        if low_value == 'L':
-            drug_list.append('L')
-        if drug_list: 
-            proteins = proteins.filter(score_params__value__in=drug_list)
-        
+                )
         paginator = Paginator(proteins, pageSize)
 
         try:
