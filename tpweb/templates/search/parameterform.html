@@ -2,22 +2,26 @@
 {% load i18n %}
 {% block body %}
 <script src="https://unpkg.com/htmx.org@1.9.2"></script>
-        <form method="POST">
-            {% csrf_token %}
-            {{ form.as_p}}
-            <button>Filter</button>
-        </form>
+<form id="add-parameter-form" method="POST">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Add Parameters</button>
+</form>
+
+<form id="finish-process-form" method="POST">
+    {% csrf_token %}
+    <input type="hidden" name="finish_process" value="true">
+    <button type="submit">Finish</button>
+</form>
 
 <div>
-    <!-- Aquí mostramos el contenido HTML del modelo -->
+    <!-- Displaying content here -->
     {% autoescape off %}
     {{ post.content|safe }}
     {% endautoescape %}
 </div>
 
-
 {% endblock %}
-
 
 {% block footer %}
 {% endblock %}

@@ -43,36 +43,15 @@
 
 <h1>{% trans "Proteins" %} ({{ biodb__name }})</h1>
 
-<div class="search-controls-container">
-    <form method="GET" action="" class="formula-block">
+<div class="formula-block">
 
-
-            <input type="text" name="search" placeholder="Search proteins..." value="{{ request.GET.search }}">
-
-
-
-            <div>
-                <input type="checkbox" id="high_value" name="high_value" value="H" {% if request.GET.high_value == 'H' %}checked{% endif %}>
-                <label for="high_value">High Druggability</label>
-            </div>
-
-            <div>   
-                <input type="checkbox" id="med_value" name="med_value" value="M" {% if request.GET.med_value == 'M' %}checked{% endif %}>
-                <label for="med_value">Medium Druggability</label>
-            </div>
-
-            <div>
-                <input type="checkbox" id="low_value" name="low_value" value="L" {% if request.GET.low_value == 'L' %}checked{% endif %}>
-                <label for="low_value">Low Druggability</label>
-            </div>
-
-            <a href="{% url 'tpwebapp:parameterformview' assembly_name=assembly_name %}">Open Form</a>
-
-        <input type="hidden" name="assembly_name" value="{{ assembly_name }}">
-        <input type="submit" value="Filter">
-        
+<div class="btn-group" role="group">
+    <a href="{% url 'tpwebapp:parameterformview' assembly_name=assembly_name %}" class="btn btn-primary mr-2">Filter</a>
+    <form method="POST" action="{% url 'tpwebapp:reset_filters' assembly_name %}">
+        {% csrf_token %}
+        <input type="submit" class="btn btn-primary" value="Reset Filters">
     </form>
-
+</div>
 <div class="formula-block">
     {% if formulas %}
         <select id="score_formula_select">
@@ -155,7 +134,6 @@
 </span>
 
 {% with base_url=request.build_absolute_uri|slice:"?" %}
-<h3>{{ base_url }}</h3>
 <ul class="pagination">
     {% for num in pagination.page_range %}
         {% if num == 1 %}

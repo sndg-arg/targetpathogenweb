@@ -13,7 +13,7 @@ from .views.StructureRawView import StructureRawView
 from .views.StructureView import StructureView
 from .views.FormView import FormView
 from .views.NewView import NewView
-from .views.ParameterFormView import ParameterFormView, load_options
+from .views.ParameterFormView import ParameterFormView, load_options, reset_filters
 from .views.TestCelery import test_celery
 
 from django.conf.urls.static import static
@@ -55,5 +55,6 @@ urlpatterns = [
     path("test",view=untestview,name="untestview"),
     path("form", view= FormView.as_view(), name="form"),
     path("result/<str:result_id>",view=NewView.as_view(),name="blast_res"),
+    path('reset_filters/<str:assembly_name>', reset_filters, name='reset_filters'),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
