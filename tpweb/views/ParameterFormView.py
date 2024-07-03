@@ -17,7 +17,7 @@ def ParameterFormView(request, assembly_name):
         else:
             # Add new parameters
             parameterform = ParameterForm(request.POST)
-            if parameterform.is_valid():
+            if parameterform.is_valid() and parameterform.cleaned_data["options"].to_dict() not in selected_parameters:
                 selected_parameters.append(parameterform.cleaned_data["options"].to_dict())
                 request.session['selected_parameters'] = selected_parameters
             else:
@@ -25,7 +25,8 @@ def ParameterFormView(request, assembly_name):
     else:
         parameterform = ParameterForm()
 
-    return render(request, 'search/parameterform.html', {"form": parameterform})
+    return render(request, 'search/parameterform.html', {"form": parameterform,
+                                                         "parameters": selected_parameters})
 
 def load_options(request):
     param_id = request.GET.get("param")

@@ -14,15 +14,29 @@
            {{ form.options|as_crispy_field }}
         </div>
         
-    <button type="submit" class="btn btn-primary">Add Parameters</button>
+    <button type="submit" class="btn btn-primary mr-2 ml-3" style="height: 50px;">Add Parameters</button>
 </form>
 
 <form id="finish-process-form" method="POST">
     {% csrf_token %}
     <input type="hidden" name="finish_process" value="true">
-    <button type="submit" class="btn btn-success">Finish</button>
-</form>
+    <button type="submit" class="btn btn-success" style="height: 50px;">Finish</button>
 
+</form>
+<div class="container mt-5">
+    <h2>Current filters</h2>
+    <ul class="list-group">
+        {% for arg in parameters %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                Parameter Name: {{ arg.score_param_name }}<br>
+                Option: {{ arg.name }}<br>
+                Description: {{ arg.description }}
+            </li>
+        {% empty %}
+            <li class="list-group-item">No selected filter.</li>
+        {% endfor %}
+    </ul>
+</div>
 <div>
     <!-- Displaying content here -->
     {% autoescape off %}
