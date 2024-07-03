@@ -1,17 +1,26 @@
 {% extends '../base/masterpage.html' %}
 {% load i18n %}
+{% load crispy_forms_tags %}
 {% block body %}
 <script src="https://unpkg.com/htmx.org@1.9.2"></script>
+
 <form id="add-parameter-form" method="POST">
     {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Add Parameters</button>
+    <div class="row">
+        <div class="col-6">
+           {{ form.param|as_crispy_field }}
+        </div>
+        <div class="col-6">
+           {{ form.options|as_crispy_field }}
+        </div>
+        
+    <button type="submit" class="btn btn-primary">Add Parameters</button>
 </form>
 
 <form id="finish-process-form" method="POST">
     {% csrf_token %}
     <input type="hidden" name="finish_process" value="true">
-    <button type="submit">Finish</button>
+    <button type="submit" class="btn btn-success">Finish</button>
 </form>
 
 <div>
