@@ -22,7 +22,7 @@ class ScoreParam(models.Model):
         return f'ScoreParam({self.name} - {self.category})'
 
     def __str__(self):
-        return self.__repr__()
+        return self.name
 
     def to_dict(self):
         return {
@@ -231,7 +231,7 @@ class ScoreParamOptions(models.Model):
         return f'ScoreParamOptions({self.name} - {self.score_param.name})'
 
     def __str__(self):
-        return self.__repr__()
+        return self.name
 
     def to_dict(self):
         return {
