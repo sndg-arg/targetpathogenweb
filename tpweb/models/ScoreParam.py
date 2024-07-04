@@ -216,6 +216,18 @@ class ScoreParam(models.Model):
         ScoreParamOptions.objects.get_or_create(score_param=sp, name="Periplasmic",description="Protein located in periplasmatic space")
         ScoreParamOptions.objects.get_or_create(score_param=sp, name="Unknown",description="Protein location not known")
 
+        sp = ScoreParam.objects.get(name='Celular_localization')
+        formulas = ScoreFormula.objects.filter(name='Celular_Localization')
+        print(sp, formulas)
+        for formula in formulas:
+            print(formula)
+            cellwall = ScoreFormulaParam.objects.get_or_create(formula=formula,operation="=",coefficient=1,value="Cellwall",score_param=sp)
+            cytoplams = ScoreFormulaParam.objects.get_or_create(formula=formula,operation="=",coefficient=-1,value="Cytoplasmic",score_param=sp)
+            cytomembrane = ScoreFormulaParam.objects.get_or_create(formula=formula,operation="=",coefficient=1,value="CytoplasmicMembrane",score_param=sp)
+            extracell = ScoreFormulaParam.objects.get_or_create(formula=formula,operation="=",coefficient=2,value="Extracellular",score_param=sp)
+            outermembrane = ScoreFormulaParam.objects.get_or_create(formula=formula,operation="=",coefficient=2,value="OuterMembrane",score_param=sp)
+            periplasmic = ScoreFormulaParam.objects.get_or_create(formula=formula,operation="=",coefficient=1,value="Periplasmic",score_param=sp)
+            unknown = ScoreFormulaParam.objects.get_or_create(formula=formula,operation="=",coefficient=0,value="Unknown",score_param=sp)
 
 
 class ScoreParamOptions(models.Model):
