@@ -130,7 +130,8 @@ class ProteinListView(View):
             proteins_dto.append(protein_dto)
 
         proteins_dto = sorted(proteins_dto, key=lambda x: x["score"], reverse=True)
-        
+        filter_applied = '?' in request.build_absolute_uri()
+        print(filter_applied)
         #Pagination info
         pagination_info = {
             'proteins': proteins,
@@ -153,6 +154,8 @@ class ProteinListView(View):
             "formula": formuladto,
             "col_descriptions":col_descriptions,
             "formulas":formulas,
+            'base_url': request.build_absolute_uri(),
+            'filter_applied': filter_applied,
             "assembly_name":assembly_name,
             "pagination":pagination_info
 
