@@ -43,6 +43,7 @@
 
 <h1>{% trans "Proteins" %} ({{ biodb__name }})</h1>
 
+<h1>{{ base_url }}</h1>
 <div class="formula-block">
 
 <div class="btn-group" role="group">
@@ -128,34 +129,30 @@
     }
 </style>
 
-
 <span class="current-page">
     Page {{ pagination.number }} of {{ pagination.num_pages }}.
 </span>
-
-{% with base_url=request.build_absolute_uri|slice:"?" %}
 <ul class="pagination">
     {% for num in pagination.page_range %}
         {% if num == 1 %}
-            <li><a href="{{ base_url }}?&page={{ num }}">{{ num }}</a></li>
+            <li><a href="?page={{ num }}">{{ num }}</a></li>
             <li>...</li>
         {% elif num <= pagination.number|add:10 and num >= pagination.number|add:-10 %}
-            <li><a href="{{ base_url }}?&page={{ num }}">{{ num }}</a></li>
+            <li><a href="?page={{ num }}">{{ num }}</a></li>
         {% elif num == pagination.num_pages %}
             <li>...</li>
-            <li><a href="{{ base_url }}?&page={{ num }}">{{ num }}</a></li>
+            <li><a href="?page={{ num }}">{{ num }}</a></li>
         {% endif %}
     {% endfor %}
 </ul>
 
 {% if pagination.has_previous %}
-    <a href="{{ base_url }}&page={{ pagination.previous_page_number }}">Previous</a>
+    <a href="?page={{ pagination.previous_page_number }}">Previous</a>
 {% endif %}
 
 {% if pagination.has_next %}
-    <a href="{{ base_url }}&page={{ pagination.next_page_number }}">Next</a>
+    <a href="?page={{ pagination.next_page_number }}">Next</a>
 {% endif %}
-{% endwith %}
 
 {% endblock %}
 
