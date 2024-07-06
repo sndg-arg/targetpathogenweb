@@ -10,11 +10,36 @@ from tpweb.models.ScoreFormula import ScoreFormula
 from tpweb.models.ScoreParam import ScoreParam
 
 
+# score_dict = ["Length", "PW", "Druggability"]
+
+def group_by_score_param(data):
+    # Initialize an empty dictionary
+    grouped_data = {}
+    
+    # Iterate through the input list of dictionaries
+    for item in data:
+        # Extract the score_param_name and name
+        score_param_name = item['score_param_name']
+        name = item['name']
+        
+        # Check if the score_param_name exists in the dictionary
+        if score_param_name in grouped_data:
+            # Append the name to the existing list
+            grouped_data[score_param_name].append(name)
+        else:
+            # Create a new entry in the dictionary
+            grouped_data[score_param_name] = [name]
+    
+    # After populating the dictionary, join the list values into strings
+    for key, value_list in grouped_data.items():
+        grouped_data[key] = ', '.join(value_list)
+    
+    # Return the modified dictionary
+    return grouped_data
+
+
 class ProteinListView(View):
     template_name = 'search/proteins.html'
-
-    # score_dict = ["Length", "PW", "Druggability"]
-
     def get(self, request, assembly_name, *args, **kwargs):
         formula = None
         formulas = list(request.user.formulas.all())
@@ -61,7 +86,8 @@ class ProteinListView(View):
         ).prefetch_related("qualifiers__term", "dbxrefs__dbxref", "score_params__score_param")
 
         selected_parameters = request.session.get('selected_parameters', {})
-        print(selected_parameters)
+        grouped_parameters = group_by_score_param(selected_parameters)
+        print(grouped_parameters)
         if selected_parameters:
             parameter_dict = {}
             for parameter in selected_parameters:
@@ -76,7 +102,7 @@ class ProteinListView(View):
                         Q(score_params__id=p) |
                         Q(score_params__value__in=parameter_dict[p])
                         )
-            print(parameter_dict)
+
         if search_query:
             proteins = proteins.filter(
                 Q(accession__icontains=search_query) |
@@ -160,6 +186,7 @@ class ProteinListView(View):
             'not_default_formula': not_default_formula,
             "assembly_name":assembly_name,
             "parameters":selected_parameters,
+            "grouped_parameters":grouped_parameters,
             "pagination":pagination_info
 
         })  # , {'form': form})

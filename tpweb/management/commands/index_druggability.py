@@ -66,11 +66,11 @@ class Command(BaseCommand):
                 for resset in rs:
                     rsp = ResidueSetProperty.objects.get(pdbresidue_set_id=resset.id, property_id=21)
                     if rsp.value < 0.5:
-                        d_char = 'L'
+                        d_char = 'Low'
                     elif rsp.value > 0.5 and rsp.value < 0.7:
-                        d_char = 'M'
+                        d_char = 'Medium'
                     else:
-                        d_char = 'H'
+                        d_char = 'High'
                     if highest_rsp_value is None or rsp.value > highest_rsp_value:
                         highest_rsp_value = rsp.value
                         highest_bioentry_id = bioentry_id
@@ -79,7 +79,7 @@ class Command(BaseCommand):
             index += 1
         df.drop_duplicates()
         ScoreParam.Initialize2()
-        score_param_instance = ScoreParam.objects.get(name='druggability')
+        score_param_instance = ScoreParam.objects.get(name='Druggability')
 
         # Inside your handle method, before the loop that iterates over df rows
         error_rows = []

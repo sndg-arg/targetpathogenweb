@@ -177,23 +177,23 @@ class ScoreParam(models.Model):
         from tpweb.models.ScoreFormula import ScoreFormula, ScoreFormulaParam
         users = TPUser.objects.all()
         for user in users:
-            drug_formula = ScoreFormula.objects.get_or_create(name="Druggability_Formula",user=user,default=True)
+            drug_formula = ScoreFormula.objects.get_or_create(name="Druggability",user=user,default=True)
             
         sp = ScoreParam.objects.get_or_create(
-            category="Pocket", name="druggability", type="CATEGORICAL",
+            category="Pocket", name="Druggability", type="CATEGORICAL",
             description="Categorical representation of the druggability",
             default_operation="=", default_value="-")[0]
         
-        ScoreParamOptions.objects.get_or_create(score_param=sp, name="H",description="Protein with high druggability")
-        ScoreParamOptions.objects.get_or_create(score_param=sp, name="M",description="Protein with medium druggability")
-        ScoreParamOptions.objects.get_or_create(score_param=sp, name="L",description="Protein with low druggability")
+        ScoreParamOptions.objects.get_or_create(score_param=sp, name="High",description="Protein with high druggability")
+        ScoreParamOptions.objects.get_or_create(score_param=sp, name="Medium",description="Protein with medium druggability")
+        ScoreParamOptions.objects.get_or_create(score_param=sp, name="Low",description="Protein with low druggability")
    
-        sp = ScoreParam.objects.get(name='druggability')
-        formulas = ScoreFormula.objects.filter(name='Druggability_Formula')
+        sp = ScoreParam.objects.get(name='Druggability')
+        formulas = ScoreFormula.objects.filter(name='Druggability')
         for formula in formulas:
-            low = ScoreFormulaParam.objects.get_or_create(formula=formula,operation="=",coefficient=1,value="L",score_param=sp)
-            med = ScoreFormulaParam.objects.get_or_create(formula=formula,operation="=",coefficient=2,value="M",score_param=sp)
-            hig = ScoreFormulaParam.objects.get_or_create(formula=formula,operation="=",coefficient=3,value="H",score_param=sp)
+            low = ScoreFormulaParam.objects.get_or_create(formula=formula,operation="=",coefficient=1,value="Low",score_param=sp)
+            med = ScoreFormulaParam.objects.get_or_create(formula=formula,operation="=",coefficient=2,value="Medium",score_param=sp)
+            hig = ScoreFormulaParam.objects.get_or_create(formula=formula,operation="=",coefficient=3,value="High",score_param=sp)
 
 
     @staticmethod
@@ -201,10 +201,10 @@ class ScoreParam(models.Model):
         from tpweb.models.ScoreFormula import ScoreFormula, ScoreFormulaParam
         users = TPUser.objects.all()
         for user in users:
-            drug_formula = ScoreFormula.objects.get_or_create(name="Celular_Localization",user=user,default=True)
+            drug_formula = ScoreFormula.objects.get_or_create(name="Localization",user=user,default=True)
             
         sp = ScoreParam.objects.get_or_create(
-            category="Localization", name="Celular_localization", type="CATEGORICAL",
+            category="Localization", name="Localization", type="CATEGORICAL",
             description="Celular localization of the protein",
             default_operation="=", default_value="Unknown")[0]
         
@@ -216,8 +216,8 @@ class ScoreParam(models.Model):
         ScoreParamOptions.objects.get_or_create(score_param=sp, name="Periplasmic",description="Protein located in periplasmatic space")
         ScoreParamOptions.objects.get_or_create(score_param=sp, name="Unknown",description="Protein location not known")
 
-        sp = ScoreParam.objects.get(name='Celular_localization')
-        formulas = ScoreFormula.objects.filter(name='Celular_Localization')
+        sp = ScoreParam.objects.get(name='Localization')
+        formulas = ScoreFormula.objects.filter(name='Localization')
         print(sp, formulas)
         for formula in formulas:
             print(formula)

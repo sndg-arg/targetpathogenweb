@@ -98,10 +98,10 @@
         </tr>
         </thead>
         <tbody>
-            {% for parameter in parameters %}
+            {% for parameter in grouped_parameters.items %}
                 <tr>
-                    <th scope="row">{{ parameter.score_param_name }}</th>
-                    <td>{{ parameter.name }}</td>
+                    <th scope="row">{{ parameter.0 }}</th>
+                    <td>{{ parameter.1 }}</td>
                 </tr>
             {% endfor %}
         </tbody>
