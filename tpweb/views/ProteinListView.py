@@ -159,6 +159,7 @@ class ProteinListView(View):
             'base_url': base_url,
             'not_default_formula': not_default_formula,
             "assembly_name":assembly_name,
+            "parameters":selected_parameters,
             "pagination":pagination_info
 
         })  # , {'form': form})
