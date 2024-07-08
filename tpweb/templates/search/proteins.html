@@ -17,6 +17,13 @@
         justify-content: space-between;
         align-items: center;
         }
+        .parameter-table {
+        width: 15%;
+        margin-right: 10px;
+        }
+        .protein-table {
+        flex-grow: 1;
+        }
         .formula-block {
         display: block; /* Ensures the div acts as a block */
         margin-top: 20px; /* Adds some space above the block */
@@ -26,7 +33,10 @@
         align-items: center;
         gap: 10px; /* Adjust the gap between the search bar and checkboxes as needed */
         }
-
+        .tables-container {
+            display: flex;
+            justify-content: space-between;
+        }
         .filter-form.checkbox-group {
         display: flex;
         gap: 10px; /* Adjust the gap between checkboxes as needed */
@@ -43,10 +53,10 @@
 
 <h1>{% trans "Proteins" %} ({{ biodb__name }})</h1>
 
-<div class="formula-block">
+<div class="search-controls-container">
 
 <div class="btn-group" role="group">
-    <a href="{% url 'tpwebapp:parameterformview' assembly_name=assembly_name %}" class="btn btn-primary mr-2">Filter</a>
+    <a href="{% url 'tpwebapp:parameterformview' assembly_name=assembly_name %}" class="btn btn-primary mr-2 ml-5">Filter</a>
     <form method="POST" action="{% url 'tpwebapp:reset_filters' assembly_name %}">
         {% csrf_token %}
         <input type="submit" class="btn btn-primary" value="Reset Filters">
@@ -67,7 +77,6 @@
         <br />
     {% endif %}
 
-
 {% if formula  %}
 
     {{ formula.name }} = {% for t in formula.terms %}
@@ -78,47 +87,71 @@
 {% endif %}
 </div>
 </div>
-<table id="proteins_table"  class="table table-striped table-sm">
-    <thead>
-    <tr>
+<div class="tables-container">
+    {% if parameters %}
+    <div class="parameter-table">
+    <table id="proteins_table"  class="table table-striped table-sm">
+        <thead>
+        <tr>
+          <th scope="col">Parameter</th>
+          <th scope="col">Value</th>
+        </tr>
+        </thead>
+        <tbody>
+            {% for parameter in grouped_parameters.items %}
+                <tr>
+                    <th scope="row">{{ parameter.0 }}</th>
+                    <td>{{ parameter.1 }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    </div>
+    {% endif %}
+    <div class="protein-table">
+    <table id="proteins_table"  class="table table-striped table-sm">
+        <thead>
+        <tr>
 
-  <th>{% trans "Name" %}</th>
-        <th>{% trans "Description" %}</th>
+      <th>{% trans "Name" %}</th>
+            <th>{% trans "Description" %}</th>
 
 
-        <th>{% trans "Gene" %}</th>
+            <th>{% trans "Gene" %}</th>
 
 
+            {% for col in tcolumns %}
+                <th title="{{ col_descriptions|dictkey:col }}">{{col|replace_char:"_, " }} </th>
+            {% endfor %}
+        </tr>
+        </thead>
+        {% for protein in proteins %}
+      <tr>
+
+        <td><a href="{% url 'tpwebapp:protein' protein.id %}">
+            {{protein.accession}}</a></td>
+        <td>{{protein.description}}</td>
+
+        <td class="max-width-column ">{{protein.genes|join:'<br />'}}</td>
         {% for col in tcolumns %}
-            <th title="{{ col_descriptions|dictkey:col }}">{{col|replace_char:"_, " }} </th>
+            <td>{{tdata|dictkey:protein.id|dictkey:col|default:""}}<br />{%  if col != "Score" %}
+
+            ({{ weights|dictkey:protein.id|dictkey:col|default:"0" }})
+
+            {% endif %}
+            </td>
         {% endfor %}
+
     </tr>
-    </thead>
-    {% for protein in proteins %}
-<tr>
-
-    <td><a href="{% url 'tpwebapp:protein' protein.id %}">
-        {{protein.accession}}</a></td>
-    <td>{{protein.description}}</td>
-
-    <td class="max-width-column ">{{protein.genes|join:'<br />'}}</td>
-    {% for col in tcolumns %}
-        <td>{{tdata|dictkey:protein.id|dictkey:col|default:""}}<br />{%  if col != "Score" %}
-
-        ({{ weights|dictkey:protein.id|dictkey:col|default:"0" }})
-
-        {% endif %}
-        </td>
-    {% endfor %}
-
-</tr>
-    {% endfor %}
-</table>
-
+        {% endfor %}
+    </table>
+    </div>
+    </div>
 
 <style>
     #proteins_table td:nth-child(4) {
         font-weight: bold;
+        flex-grow: 1;
     }
     .pagination li {
         margin-right: 5px; /* Adjust the spacing as needed */
@@ -128,35 +161,54 @@
     }
 </style>
 
-
-<span class="current-page">
+<div class="text-center pb-3">
+<span class="badge badge-primary justify-content-center">
     Page {{ pagination.number }} of {{ pagination.num_pages }}.
 </span>
+</div>
+{% if not not_default_formula %}
+    <ul class="pagination justify-content-center">
+    {% if pagination.has_previous %}
+        <li class="page-item"><a class="page-link"  href="{{ base_url }}?page={{ pagination.previous_page_number }}">Previous</a>
+    {% endif %}
 
-{% with base_url=request.build_absolute_uri|slice:"?" %}
-<ul class="pagination">
-    {% for num in pagination.page_range %}
-        {% if num == 1 %}
-            <li><a href="{{ base_url }}?&page={{ num }}">{{ num }}</a></li>
-            <li>...</li>
-        {% elif num <= pagination.number|add:10 and num >= pagination.number|add:-10 %}
-            <li><a href="{{ base_url }}?&page={{ num }}">{{ num }}</a></li>
-        {% elif num == pagination.num_pages %}
-            <li>...</li>
-            <li><a href="{{ base_url }}?&page={{ num }}">{{ num }}</a></li>
-        {% endif %}
-    {% endfor %}
-</ul>
+       {% for num in pagination.page_range %}
+            {% if num == 1 %}
+                <li class="page-item"><a class="page-link" href="{{ base_url }}?page={{ num }}">{{ num }}</a></li>
+            {% elif num <= pagination.number|add:10 and num >= pagination.number|add:-10 %}
+                <li class="page-item"><a class="page-link" href="{{ base_url }}?page={{ num }}">{{ num }}</a></li>
+            {% elif num == pagination.num_pages %}
+                <li class="page-item"><a class="page-link" href="{{ base_url }}?page={{ num }}">{{ num }}</a></li>
+            {% endif %}
+        {% endfor %}
 
-{% if pagination.has_previous %}
-    <a href="{{ base_url }}&page={{ pagination.previous_page_number }}">Previous</a>
+    {% if pagination.has_next %}
+        <li class="page-item"><a class="page-link" href="{{ base_url }}?page={{ pagination.next_page_number }}">Next</a>
+    {% endif %}
+
+    </ul>
+{% else %}
+    <ul class="pagination justify-content-center">
+    {% if pagination.has_previous %}
+        <li class="page-item"><a class="page-link"  href="{{ base_url }}&page={{ pagination.previous_page_number }}">Previous</a>
+    {% endif %}
+
+       {% for num in pagination.page_range %}
+            {% if num == 1 %}
+                <li class="page-item"><a class="page-link" href="{{ base_url }}&page={{ num }}">{{ num }}</a></li>
+            {% elif num <= pagination.number|add:10 and num >= pagination.number|add:-10 %}
+                <li class="page-item"><a class="page-link" href="{{ base_url }}&page={{ num }}">{{ num }}</a></li>
+            {% elif num == pagination.num_pages %}
+                <li class="page-item"><a class="page-link" href="{{ base_url }}&page={{ num }}">{{ num }}</a></li>
+            {% endif %}
+        {% endfor %}
+
+    {% if pagination.has_next %}
+        <li class="page-item"><a class="page-link" href="{{ base_url }}&page={{ pagination.next_page_number }}">Next</a>
+    {% endif %}
+
+    </ul>
 {% endif %}
-
-{% if pagination.has_next %}
-    <a href="{{ base_url }}&page={{ pagination.next_page_number }}">Next</a>
-{% endif %}
-{% endwith %}
-
 {% endblock %}
 
 {% block jsloaded %}

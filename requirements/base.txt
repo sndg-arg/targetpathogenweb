@@ -17,3 +17,7 @@ bgzip==0.4.0
 bcbio-gff==0.7.1 
 parsl==2024.2.26
 scp==0.14.5 
+asgiref==3.6.0
+sqlparse==0.4.4
+django-crispy-forms
+crispy-bootstrap4

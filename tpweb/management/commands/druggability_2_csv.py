@@ -71,11 +71,11 @@ class Command(BaseCommand):
                 for resset in rs:
                     rsp = ResidueSetProperty.objects.get(pdbresidue_set_id=resset.id, property_id=property_id.id)
                     if rsp.value < 0.5:
-                        d_char = 'L'
+                        d_char = 'Low'
                     elif rsp.value > 0.5 and rsp.value < 0.7:
-                        d_char = 'M'
+                        d_char = 'Medium'
                     else:
-                        d_char = 'H'
+                        d_char = 'High'
                     if highest_rsp_value is None or rsp.value > highest_rsp_value:
                         highest_rsp_value = rsp.value
                         highest_bioentry_id = bioentry_name
@@ -88,7 +88,7 @@ class Command(BaseCommand):
         df.drop(columns=['rsp_value'], inplace=True)
 
         # Rename the 'd_char' column to 'druggability'
-        df.rename(columns={'d_char': 'druggability'}, inplace=True)
+        df.rename(columns={'d_char': 'Druggability'}, inplace=True)
         # After creating and manipulating the DataFrame df
 
         seqstore = SeqStore(options['datadir'])

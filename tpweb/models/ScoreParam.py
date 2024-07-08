@@ -22,7 +22,18 @@ class ScoreParam(models.Model):
         return f'ScoreParam({self.name} - {self.category})'
 
     def __str__(self):
-        return self.__repr__()
+        return self.name
+
+    def to_dict(self):
+        return {
+            'id': self.pk,  # Primary Key
+            'category': self.category,
+            'name': self.name,
+            'type': self.type,
+            'default_operation': self.default_operation,
+            'default_value': self.default_value,
+            'description': self.description,
+        }
 
     def to_dict(self):
         return {
@@ -177,23 +188,23 @@ class ScoreParam(models.Model):
         from tpweb.models.ScoreFormula import ScoreFormula, ScoreFormulaParam
         users = TPUser.objects.all()
         for user in users:
-            drug_formula = ScoreFormula.objects.get_or_create(name="Druggability_Formula",user=user,default=True)
+            drug_formula = ScoreFormula.objects.get_or_create(name="Druggability",user=user,default=True)
             
         sp = ScoreParam.objects.get_or_create(
-            category="Pocket", name="druggability", type="CATEGORICAL",
+            category="Pocket", name="Druggability", type="CATEGORICAL",
             description="Categorical representation of the druggability",
             default_operation="=", default_value="-")[0]
         
-        ScoreParamOptions.objects.get_or_create(score_param=sp, name="H",description="Protein with high druggability")
-        ScoreParamOptions.objects.get_or_create(score_param=sp, name="M",description="Protein with medium druggability")
-        ScoreParamOptions.objects.get_or_create(score_param=sp, name="L",description="Protein with low druggability")
+        ScoreParamOptions.objects.get_or_create(score_param=sp, name="High",description="Protein with high druggability")
+        ScoreParamOptions.objects.get_or_create(score_param=sp, name="Medium",description="Protein with medium druggability")
+        ScoreParamOptions.objects.get_or_create(score_param=sp, name="Low",description="Protein with low druggability")
    
-        sp = ScoreParam.objects.get(name='druggability')
-        formulas = ScoreFormula.objects.filter(name='Druggability_Formula')
+        sp = ScoreParam.objects.get(name='Druggability')
+        formulas = ScoreFormula.objects.filter(name='Druggability')
         for formula in formulas:
-            low = ScoreFormulaParam.objects.get_or_create(formula=formula,operation="=",coefficient=1,value="L",score_param=sp)
-            med = ScoreFormulaParam.objects.get_or_create(formula=formula,operation="=",coefficient=2,value="M",score_param=sp)
-            hig = ScoreFormulaParam.objects.get_or_create(formula=formula,operation="=",coefficient=3,value="H",score_param=sp)
+            low = ScoreFormulaParam.objects.get_or_create(formula=formula,operation="=",coefficient=1,value="Low",score_param=sp)
+            med = ScoreFormulaParam.objects.get_or_create(formula=formula,operation="=",coefficient=2,value="Medium",score_param=sp)
+            hig = ScoreFormulaParam.objects.get_or_create(formula=formula,operation="=",coefficient=3,value="High",score_param=sp)
 
 
     @staticmethod
@@ -201,10 +212,10 @@ class ScoreParam(models.Model):
         from tpweb.models.ScoreFormula import ScoreFormula, ScoreFormulaParam
         users = TPUser.objects.all()
         for user in users:
-            drug_formula = ScoreFormula.objects.get_or_create(name="Celular_Localization",user=user,default=True)
+            drug_formula = ScoreFormula.objects.get_or_create(name="Localization",user=user,default=True)
             
         sp = ScoreParam.objects.get_or_create(
-            category="Localization", name="Celular_localization", type="CATEGORICAL",
+            category="Localization", name="Localization", type="CATEGORICAL",
             description="Celular localization of the protein",
             default_operation="=", default_value="Unknown")[0]
         
@@ -216,6 +227,18 @@ class ScoreParam(models.Model):
         ScoreParamOptions.objects.get_or_create(score_param=sp, name="Periplasmic",description="Protein located in periplasmatic space")
         ScoreParamOptions.objects.get_or_create(score_param=sp, name="Unknown",description="Protein location not known")
 
+        sp = ScoreParam.objects.get(name='Localization')
+        formulas = ScoreFormula.objects.filter(name='Localization')
+        print(sp, formulas)
+        for formula in formulas:
+            print(formula)
+            cellwall = ScoreFormulaParam.objects.get_or_create(formula=formula,operation="=",coefficient=1,value="Cellwall",score_param=sp)
+            cytoplams = ScoreFormulaParam.objects.get_or_create(formula=formula,operation="=",coefficient=-1,value="Cytoplasmic",score_param=sp)
+            cytomembrane = ScoreFormulaParam.objects.get_or_create(formula=formula,operation="=",coefficient=1,value="CytoplasmicMembrane",score_param=sp)
+            extracell = ScoreFormulaParam.objects.get_or_create(formula=formula,operation="=",coefficient=2,value="Extracellular",score_param=sp)
+            outermembrane = ScoreFormulaParam.objects.get_or_create(formula=formula,operation="=",coefficient=2,value="OuterMembrane",score_param=sp)
+            periplasmic = ScoreFormulaParam.objects.get_or_create(formula=formula,operation="=",coefficient=1,value="Periplasmic",score_param=sp)
+            unknown = ScoreFormulaParam.objects.get_or_create(formula=formula,operation="=",coefficient=0,value="Unknown",score_param=sp)
 
 
 class ScoreParamOptions(models.Model):
@@ -231,7 +254,7 @@ class ScoreParamOptions(models.Model):
         return f'ScoreParamOptions({self.name} - {self.score_param.name})'
 
     def __str__(self):
-        return self.__repr__()
+        return self.name
 
     def to_dict(self):
         return {

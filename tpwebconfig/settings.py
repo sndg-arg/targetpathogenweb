@@ -42,6 +42,8 @@ DJANGO_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'crispy_forms',
+    'crispy_bootstrap4',
     'django.contrib.sites',
 
 ]
@@ -391,3 +393,5 @@ else:
     )
 # BLAST
 BLASTN_PATH = env('BLASTN_PATH', default = 'blastn')
+# CRISPY
+CRISPY_TEMPLATE_PACK = 'bootstrap4'
