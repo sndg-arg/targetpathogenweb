@@ -178,6 +178,7 @@ class ProteinListView(View):
             "formula": formuladto,
             "col_descriptions":col_descriptions,
             "formulas":formulas,
+            "current_formula":current_formula,
             'base_url': base_url,
             'not_default_formula': not_default_formula,
             "assembly_name":assembly_name,

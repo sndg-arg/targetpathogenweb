@@ -5,6 +5,7 @@ from django.views import View
 from tpweb.models.ScoreParam import ScoreParamOptions, ScoreParam
 from tpweb.models.ScoreFormula import ScoreFormula, ScoreFormulaParam
 from django.urls import reverse
+
 def FormulaFormView(request, assembly_name):
 
     def current_formula_string(formula, formulaname):

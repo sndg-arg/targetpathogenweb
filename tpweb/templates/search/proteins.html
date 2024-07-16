@@ -20,9 +20,11 @@
         .parameter-table {
         width: 15%;
         margin-right: 10px;
+        margin-top: 25px;
         }
         .protein-table {
         flex-grow: 1;
+        margin-top: 25px;
         }
         .formula-block {
         display: block; /* Ensures the div acts as a block */
@@ -37,9 +39,29 @@
             display: flex;
             justify-content: space-between;
         }
+        .styled-select {
+            width: 120px; /* Adjust based on your needs */
+            height: 40px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            font-size: 14px;
+            text-align: center;
+            text-align-last: center;
+            -moz-text-align-last: center;
+        }
         .filter-form.checkbox-group {
         display: flex;
         gap: 10px; /* Adjust the gap between checkboxes as needed */
+        }
+        .centered-text {
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            width: 1000px; /* Adjusts the width to fit the content */
+            word-wrap: break-word; /* Ensures words break and wrap */
+            text-align: center; /* Centers the text */
+
         }
 
 /* Optional: Style individual checkboxes for better alignment */
@@ -59,14 +81,17 @@
     <a href="{% url 'tpwebapp:parameterformview' assembly_name=assembly_name %}" class="btn btn-primary mr-2 ml-5">Filter</a>
     <form method="POST" action="{% url 'tpwebapp:reset_filters' assembly_name %}">
         {% csrf_token %}
-        <input type="submit" class="btn btn-primary" value="Reset Filters">
+        <input type="submit" class="btn btn-danger" value="Reset Filters">
     </form>
-    <a href="{% url 'tpwebapp:formula_form' assembly_name=assembly_name %}" class="btn btn-primary mr-2 ml-2">Formula</a>
 </div>
 
-<div class="formula-block">
+<div>
+    <span class="centered-text" style="font-weight: bold;">{{ current_formula }}</span>
+</div>
+
+<div class="btn-group", role="group">
     {% if formulas %}
-        <select id="score_formula_select">
+        <select id="score_formula_select" class="styled-select">
         {% for f in formulas %}
             <option value="{{ f.name }}"
             {% if f.name == formula.name %}
@@ -75,18 +100,11 @@
             > {{ f.name }} </option>
         {% endfor %}
         </select>
-        <button onclick="window.location='?scoreformula=' + $('#score_formula_select').val()">{% trans 'Change SF' %}</button>
+        <button class="btn-primary ml-3" onclick="window.location='?scoreformula=' + $('#score_formula_select').val()">{% trans 'Change' %}</button>
         <br />
     {% endif %}
 
-{% if formula  %}
-
-    {{ formula.name }} = {% for t in formula.terms %}
-    <span title="{{ t.desc }}"> {{ t.coefficient }} * {{ t.param }}</span>
-    {%   if not forloop.last %} + {% endif %}
-{% endfor %}
-
-{% endif %}
+    <a href="{% url 'tpwebapp:formula_form' assembly_name=assembly_name %}" class="btn btn-primary mr-2 ml-2">Add</a>
 </div>
 </div>
 <div class="tables-container">
