@@ -61,7 +61,9 @@
         {% csrf_token %}
         <input type="submit" class="btn btn-primary" value="Reset Filters">
     </form>
+    <a href="{% url 'tpwebapp:formula_form' assembly_name=assembly_name %}" class="btn btn-primary mr-2 ml-2">Formula</a>
 </div>
+
 <div class="formula-block">
     {% if formulas %}
         <select id="score_formula_select">

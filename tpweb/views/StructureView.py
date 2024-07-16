@@ -43,8 +43,10 @@ def pdb_structure(pdbobj, graphic_features):
             context["layers"].append("dna")
             context["dna"] += [x for x in context["chains"] if x["name"] == chain]
             context["chains"] = [x for x in context["chains"] if x["name"] != chain]
-
+    
     ds = Property.objects.get(name="druggability_score")
+    p2s = Property.objects.get(name="p2score")
+    p2p = Property.objects.get(name="probability")
     rs = ResidueSet.objects.get(name="FPocketPocket")
     p2_rs = ResidueSet.objects.get(name="P2RankPocket")
     # sq = ResidueSetProperty.objects.select_related(pdbresidue_set)\
@@ -80,6 +82,30 @@ def pdb_structure(pdbobj, graphic_features):
         }
         graphic_features.append(gf)
 
+    for p in context["p2_pockets"]:
+        p.p2score = [x.value for x in p.properties.all() if x.property == p2s][0]
+        p.atoms = []
+        p.residues = []
+        data = []
+
+        for rsr in p.residue_set_residue.all():
+            data.append({"x": rsr.residue.resid,
+                         "y": rsr.residue.resid,
+                         "description": p.name, "id": p.name})
+            p.residues.append(rsr.residue.resid)
+            for a in rsr.residue.atoms.all():
+                p.atoms.append(a.serial)
+        gf_p2 = {
+            "data": data,
+            "name": "P2Pocket",
+            "className": "test2",
+            "color": generar_color_aleatorio(),
+            "type": "rect",
+            "filter": "type2"
+        }
+        graphic_features.append(gf_p2)
+
+    ## Non pocket res
     rss = PDBResidueSet.objects.prefetch_related(
         "properties__property",
         "residue_set_residue__residue").filter(

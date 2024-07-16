@@ -32,7 +32,33 @@ class ScoreFormula(models.Model):
         return sum([term.score(param_values[term.score_param.name]) for term in self.terms.all()
                     if term.score_param.name in param_values])
 
-
+    def get_current_formula(self):
+        terms = {}
+        for t in self.terms.all():
+            if t.score_param.name in terms:
+                terms[t.score_param.name].append(t)
+            else:
+                terms[t.score_param.name] = [t]
+        terms2 = {}
+        for param_name, ts in terms.items():
+            for t in ts:
+                terms2[t.value] = t.coefficient
+        result = ""
+        for i, (key, value) in enumerate(terms2.items()):
+            if int(value) < 0:
+                result += f"({value}) x {key}"
+            else:
+                result += f"{value} x {key}"
+            if i < len(terms2) - 1:
+                result += " + "
+        formuladto = f"{self.name} = {result}"
+        return formuladto
+    def get_current_coefficients(self):
+        terms = []
+        for t in self.terms.all():
+            t = {"param" : t.score_param.name, "option" : t.value, "coefficient" : t.coefficient}
+            terms.append(t)
+        return terms
 
 
 
