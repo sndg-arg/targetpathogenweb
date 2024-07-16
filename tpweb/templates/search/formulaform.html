@@ -1,0 +1,89 @@
+{% extends '../base/masterpage.html' %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+{% block body %}
+<script src="https://unpkg.com/htmx.org@1.9.2"></script>
+
+{% if request.GET.error_message %}
+    <div class="alert alert-danger">
+        {{ request.GET.error_message }}
+    </div>
+{% endif %}
+<div class="container">
+    <form id="add-parameter-form" method="POST">
+        {% csrf_token %}
+        <div class="col-12">
+            {{ form.new_formula_name|as_crispy_field }}
+        </div>
+        <div class="row">
+            <div class="col-4">
+               {{ form.param|as_crispy_field }}
+            </div>
+            <div class="col-4">
+               {{ form.options|as_crispy_field }}
+            </div>
+            <div class="col-4">
+               {{ form.coefficient|as_crispy_field }}
+            </div>
+        </div>
+        <div class="conteiner">
+            <div>
+                <button type="submit" class="btn btn-primary mr-1 " style="height: 50px;">Add Parameters</button>
+            </div>
+        </div>
+    </form>
+    <form id="finish-process-form" method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="finish_process" value="true">
+        <button type="submit" class="btn btn-success" style="height: 50px;">Finish</button>
+    </form>
+    <form id="reset-process-form" method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="reset_process" value="true">
+        <button type="submit" class="btn btn-danger" style="height: 50px;">Reset</button>
+    </form>
+
+</div>
+
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        line-height: 1.6;
+    }
+    .container {
+        max-width: 800px;
+        margin: auto;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        background-color: #f9f9f9;
+    }
+    h2 {
+        color: #333;
+        font-size: 24px;
+        margin-bottom: 10px;
+    }
+    h3 {
+        color: #666;
+        font-size: 18px;
+        margin-top: 0;
+        text-align: center;
+    }
+</style>
+<div class="container mt-5">
+    <h2>Formula Preview</h2>
+    <h3> {{ name }} </h3>
+    <h3> {{ parameters }} </h3>
+</div>
+<div>
+    <!-- Displaying content here -->
+    {% autoescape off %}
+    {{ post.content|safe }}
+    {% endautoescape %}
+</div>
+
+{% endblock %}
+
+{% block footer %}
+{% endblock %}

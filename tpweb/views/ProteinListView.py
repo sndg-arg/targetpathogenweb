@@ -15,13 +15,11 @@ from tpweb.models.ScoreParam import ScoreParam
 def group_by_score_param(data):
     # Initialize an empty dictionary
     grouped_data = {}
-    
     # Iterate through the input list of dictionaries
     for item in data:
         # Extract the score_param_name and name
         score_param_name = item['score_param_name']
         name = item['name']
-        
         # Check if the score_param_name exists in the dictionary
         if score_param_name in grouped_data:
             # Append the name to the existing list
@@ -29,11 +27,9 @@ def group_by_score_param(data):
         else:
             # Create a new entry in the dictionary
             grouped_data[score_param_name] = [name]
-    
     # After populating the dictionary, join the list values into strings
     for key, value_list in grouped_data.items():
         grouped_data[key] = ', '.join(value_list)
-    
     # Return the modified dictionary
     return grouped_data
 
@@ -43,12 +39,11 @@ class ProteinListView(View):
     def get(self, request, assembly_name, *args, **kwargs):
         formula = None
         formulas = list(request.user.formulas.all())
-        sf = request.GET.get('scoreformula','')
+        sf = request.GET.get('scoreformula',' ')
         if sf and [x for x in formulas if x.name==sf]:
             formula = [x for x in formulas if x.name==sf][0]
         if not formula:
             formula = [x for x in formulas if x.default][0]
-
 
         bdb = Biodatabase.objects.filter(name=assembly_name).get()
         #ScoreParam.initialize()
@@ -69,6 +64,8 @@ class ProteinListView(View):
         weights = {}  # x.score_param.name:x.coefficient for x in  formula.terms.all()
 
         score_params = set(x.score_param for x in formula.terms.all())
+        current_formula = formula.get_current_formula()
+        current_coefficients = formula.get_current_coefficients()
         tcolumns = ["Score"]
         score_dict = {}
         for sp in score_params:
@@ -87,7 +84,6 @@ class ProteinListView(View):
 
         selected_parameters = request.session.get('selected_parameters', {})
         grouped_parameters = group_by_score_param(selected_parameters)
-        print(grouped_parameters)
         if selected_parameters:
             parameter_dict = {}
             for parameter in selected_parameters:
@@ -160,7 +156,7 @@ class ProteinListView(View):
         base_url = request.build_absolute_uri()
         if "page" in base_url:
             base_url = base_url.split("?page")[0]
-        #Pagination info
+        # Pagination info
         pagination_info = {
             'proteins': proteins,
             'has_previous': proteins.has_previous(),
@@ -225,3 +221,4 @@ class ProteinListView(View):
         }
 
         return formuladto
+
