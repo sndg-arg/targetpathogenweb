@@ -26,23 +26,27 @@
                {{ form.coefficient|as_crispy_field }}
             </div>
         </div>
-        <div class="conteiner">
-            <div>
+        <div class="row">
+        <form>
+            <div class="col">
                 <button type="submit" class="btn btn-primary mr-1 " style="height: 50px;">Add Parameters</button>
             </div>
+        </form>
+        <form id="finish-process-form" method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="finish_process" value="true">
+            <div class="col-4">
+                <button type="submit" class="btn btn-success" style="height: 50px;">Finish</button>
+            </div>
+        </form>
+        <form id="reset-process-form" method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="reset_process" value="true">
+            <div class="col">
+                <button type="submit" class="btn btn-danger" style="height: 50px;">Reset</button>
+            </div>
+        </form>
         </div>
-    </form>
-    <form id="finish-process-form" method="POST">
-        {% csrf_token %}
-        <input type="hidden" name="finish_process" value="true">
-        <button type="submit" class="btn btn-success" style="height: 50px;">Finish</button>
-    </form>
-    <form id="reset-process-form" method="POST">
-        {% csrf_token %}
-        <input type="hidden" name="reset_process" value="true">
-        <button type="submit" class="btn btn-danger" style="height: 50px;">Reset</button>
-    </form>
-
 </div>
 
 
@@ -73,7 +77,6 @@
 </style>
 <div class="container mt-5">
     <h2>Formula Preview</h2>
-    <h3> {{ name }} </h3>
     <h3> {{ parameters }} </h3>
 </div>
 <div>

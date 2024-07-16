@@ -6,27 +6,23 @@ from tpweb.models.ScoreParam import ScoreParamOptions, ScoreParam
 from tpweb.models.ScoreFormula import ScoreFormula, ScoreFormulaParam
 from django.urls import reverse
 def FormulaFormView(request, assembly_name):
-    def current_formula_string(self):
-        terms = {}
-        for t in self.terms.all():
-            if t.score_param.name in terms:
-                terms[t.score_param.name].append(t)
+
+    def current_formula_string(formula, formulaname):
+        result = f"{formulaname} = "
+        i = 0
+        if not formula:
+            return "Start assigning coefficients to make the new formula"
+        for term in formula:
+            option = ScoreParamOptions.objects.get(id=term['option'])
+            coefficient = term['coefficient']
+            if int(coefficient) < 0:
+                result += f"({coefficient}) x {option}"
             else:
-                terms[t.score_param.name] = [t]
-        terms2 = {}
-        for param_name, ts in terms.items():
-            for t in ts:
-                terms2[t.value] = t.coefficient
-        result = ""
-        for i, (key, value) in enumerate(terms2.items()):
-            if int(value) < 0:
-                result += f"({value}) x {key}"
-            else:
-                result += f"{value} x {key}"
-            if i < len(terms2) - 1:
+                result += f"{coefficient} x {option}"
+            if i < len(formula) - 1:
                 result += " + "
-        formuladto = f"{self.name} = {result}"
-        return formuladto
+            i += 1
+        return result
 
     def add_new_formula(formulaname, formulacoefficient):
         user = TPUser.objects.get(id=request.user.id)
@@ -66,14 +62,11 @@ def FormulaFormView(request, assembly_name):
             current_formula.append(term_dict)
             request.session['current_formula'] = current_formula
             request.session['formulaname'] = formulaname
-            print(request.session['current_formula'])
         else:
-            #print(formulaform.errors)
-            pass
+            print(formulaform.errors)
     else:
         formulaform = FormulaForm()
         formulaname = ""
     return render(request, 'search/formulaform.html', { "form": formulaform,
-                                                        "parameters": current_formula,
-                                                        "name": formulaname})
+                                                        "parameters": current_formula_string(current_formula, formulaname)})
 
