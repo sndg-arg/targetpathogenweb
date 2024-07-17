@@ -1,0 +1,21 @@
+{% extends '../base/masterpage.html' %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+{% block head %}
+{% endblock %}
+
+{% block body %}
+
+<div class="conteiner">
+    <h1 class="font-medium leading-tight text-4xl mt-0 mb-4 text-blue-600">Load custom Parameter</h1>
+    <form id="add-custom-param-form" method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="row">
+            <div class="col-6">
+               {{ form.tsv|as_crispy_field }}
+            </div>
+        </div>
+    <button type="submit" class="btn btn-primary mr-2 ml-3" style="height: 50px;">Add TSV file</button>
+
+</div>
+{% endblock %}

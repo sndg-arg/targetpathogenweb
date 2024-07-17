@@ -17,6 +17,7 @@ from .views.ParameterFormView import ParameterFormView, load_options, reset_filt
 from .views.FormulaFormView import FormulaFormView
 from .views.TestCelery import test_celery
 
+from .views.CustomParamView import upload_form
 from django.conf.urls.static import static
 
 from django.conf import settings
@@ -59,4 +60,5 @@ urlpatterns = [
     path('reset_filters/<str:assembly_name>', reset_filters, name='reset_filters'),
     path('formula_form/<str:assembly_name>', view= FormulaFormView, name='formula_form'),
 
+    path("customparam/<str:assembly_name>", view= upload_form , name="customparam"),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

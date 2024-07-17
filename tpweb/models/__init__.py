@@ -5,6 +5,7 @@ from django.utils.translation import gettext_lazy as _
 from .Ligand import Ligand
 from .Ligand import AccessionLigand, DrugIndex
 from .CelularLocalization import CelularLocalization
+from .CustomParamFile import CustomParam
 
 class TPUser(AbstractUser):
     """
