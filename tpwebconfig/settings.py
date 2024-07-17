@@ -178,9 +178,9 @@ ADMIN_URL = env("DJANGO_ADMIN_URL", default='admin/')
 # MEDIA
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#media-root
-MEDIA_ROOT = env("DJANGO_MEDIA_ROOT", default='media/')
+MEDIA_ROOT = env("DJANGO_MEDIA_ROOT", default='data/')
 # https://docs.djangoproject.com/en/dev/ref/settings/#media-url
-MEDIA_URL = env("DJANGO_MEDIA_URL", default='media/')
+MEDIA_URL = env("DJANGO_MEDIA_URL", default='data/')
 
 # STATIC
 # ------------------------------------------------------------------------------
