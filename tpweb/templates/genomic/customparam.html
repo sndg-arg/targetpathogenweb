@@ -5,17 +5,34 @@
 {% endblock %}
 
 {% block body %}
-
-<div class="conteiner">
+<div class="container">
     <h1 class="font-medium leading-tight text-4xl mt-0 mb-4 text-blue-600">Load custom Parameter</h1>
     <form id="add-custom-param-form" method="POST" enctype="multipart/form-data">
         {% csrf_token %}
-        <div class="row">
-            <div class="col-6">
-               {{ form.tsv|as_crispy_field }}
-            </div>
-        </div>
-    <button type="submit" class="btn btn-primary mr-2 ml-3" style="height: 50px;">Add TSV file</button>
+        {{ form.tsv|as_crispy_field }}
+        <input type="hidden" name="overwrite" value="false">
+        {% if file_exists %}
 
+            <input type="hidden" name="overwriting" value="true">
+            <div class="alert alert-warning" role="alert">
+                A file with the name "{{ form.tsv.value }}" already exists. Do you want to overwrite it?
+            </div>
+
+            <button type="button" class="btn btn-danger mr-2 ml-3" style="height: 50px;" onclick="confirmOverwrite(this)">Overwrite</button>
+        {% else %}
+            <button type="submit" class="btn btn-primary mr-2 ml-3" style="height: 50px;">Add TSV file</button>
+        {% endif %}
+        <button type="reset" class="btn btn-secondary mr-2 ml-3" style="height: 50px;" onclick="window.location.href='../../assembly/{{ assembly_name }}/protein';">Cancel</button>
+    </form>
+    <script>
+    function confirmOverwrite(button) {
+        var form = document.getElementById('add-custom-param-form');
+        form.overwrite.value = 'true';
+        // Prevent default form submission
+        event.preventDefault();
+        // Submit the form programmatically
+        form.submit();
+    }
+    </script>
 </div>
 {% endblock %}

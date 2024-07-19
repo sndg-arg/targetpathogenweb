@@ -59,6 +59,5 @@ urlpatterns = [
     path("result/<str:result_id>",view=NewView.as_view(),name="blast_res"),
     path('reset_filters/<str:assembly_name>', reset_filters, name='reset_filters'),
     path('formula_form/<str:assembly_name>', view= FormulaFormView, name='formula_form'),
-
     path("customparam/<str:assembly_name>", view= upload_form , name="customparam"),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

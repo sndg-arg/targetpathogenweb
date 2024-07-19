@@ -1,7 +1,6 @@
 from django.db import models
 from bioseq.io.SeqStore import SeqStore
-
-
+from tpweb.storage.storage import OverwriteStorage
 
 def save_location(instance, filename):
     # Assuming SeqStore().db_dir() returns a directory path based on the accession
@@ -11,4 +10,4 @@ def save_location(instance, filename):
 
 class CustomParam(models.Model):
     accession = models.CharField(max_length=64)
-    tsv = models.FileField(upload_to=save_location)
+    tsv = models.FileField(upload_to=save_location, storage=OverwriteStorage())
