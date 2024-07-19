@@ -67,26 +67,27 @@ class Command(BaseCommand):
         score_params = {}
         for c in columns:
             sp = ScoreParam.objects.filter(name=c)
-            if sp.exists():
-                sp = sp.get()
-                valid_values = set([x.name for x in sp.choices.all()])
-                invalid_values = set(df[c]) - valid_values
-                if invalid_values:
-                    sys.stderr.write(f'Column "{c}" has some invalid values: {",".join(invalid_values)} '
-                                     f'valid values are {",".join(valid_values)}\n')
-                else:
-                    spv_qs = ScoreParamValue.objects.filter(bioentry__biodatabase=genome, score_param=sp)
-                    if spv_qs.exists():
-                        if options["overwrite"]:
-                            spv_qs.delete()
-                            score_params[c] = sp
-                        else:
-                            sys.stderr.write(
-                                f"'{c}' has loaded values for {genome_name}, use --overwrite to replace them \n")
-                    else:
-                        score_params[c] = sp
+            if not sp.exists():
+                ScoreParam.initialize_custom_param(df)
+            sp = sp.get()
+            valid_values = set([x.name for x in sp.choices.all()])
+            print(valid_values)
+            invalid_values = set(df[c]) - valid_values
+            print(invalid_values)
+            if invalid_values:
+                sys.stderr.write(f'Column "{c}" has some invalid values: {",".join(invalid_values)} '
+                                 f'valid values are {",".join(valid_values)}\n')
             else:
-                sys.stderr.write(f"'{c}' is not a valid score parameter\n")
+                spv_qs = ScoreParamValue.objects.filter(bioentry__biodatabase=genome, score_param=sp)
+                if spv_qs.exists():
+                    if options["overwrite"]:
+                        spv_qs.delete()
+                        score_params[c] = sp
+                    else:
+                        sys.stderr.write(
+                            f"'{c}' has loaded values for {genome_name}, use --overwrite to replace them \n")
+                else:
+                    score_params[c] = sp
 
         assert score_params, f"no valid score parameters were found in the file"
 
