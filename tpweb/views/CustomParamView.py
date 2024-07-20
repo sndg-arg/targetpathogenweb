@@ -38,7 +38,9 @@ def upload_form(request, assembly_name):
                 return redirect(f'../../assembly/{assembly_name}/protein')
             else:
                 # File exists but overwrite is not confirmed, do not save
-                return render(request, 'genomic/customparam.html', {'form': form, 'file_exists': True})
+                return render(request, 'genomic/customparam.html', {'form': form,
+                                                                    'file_exists': True,
+                                                                    'assembly_name': assembly_name})
         else:
             context = {'form': form}
             return render(request, 'genomic/customparam.html', context)
@@ -46,5 +48,6 @@ def upload_form(request, assembly_name):
         
         print(f"get: {request.POST}")
         form = CustomParamForm()
-        context = {'form': form}
+        context = {'form': form,
+                   'assembly_name': assembly_name}
         return render(request, 'genomic/customparam.html', context)
