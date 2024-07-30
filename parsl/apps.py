@@ -69,7 +69,7 @@ def interproscan(cfg_dict, folder_path, genome, inputs=[], stderr=parsl.AUTO_LOG
         f"srun --nodes=1 --ntasks-per-node=1 --cpus-per-task={cfg_dict.get('SSH', 'Cores')} --time=05:00:00 bash ./script.sh", get_pty=True)
     finished = False
     time_passed = 0
-    while not finished and time_passed < 200: #poner un tope de 3 hs
+    while not finished and time_passed < 9000:
         try:
             scp.get(f"{ssh_rootfolder}/{genome}.faa.tsv", folder_path)
             finished = True

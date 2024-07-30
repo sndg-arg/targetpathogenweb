@@ -1,6 +1,7 @@
 from django.views import View
 from django.shortcuts import render
-
+from django.db.models import Case, When, IntegerField
+from django.db.models.functions import Length
 from bioseq.models.Biodatabase import Biodatabase
 from bioseq.models.Bioentry import Bioentry
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -33,6 +34,10 @@ def group_by_score_param(data):
     # Return the modified dictionary
     return grouped_data
 
+def filter_dicts_by_id(dict_list, id_list):
+    id_set = set(id_list)
+    filtered_dicts = [dict_item for dict_item in dict_list if 'id' in dict_item and dict_item['id'] in id_set]
+    return filtered_dicts
 
 class ProteinListView(View):
     template_name = 'search/proteins.html'
@@ -105,14 +110,6 @@ class ProteinListView(View):
                 Q(description__icontains=search_query) |
                 Q(accession__iexact=search_query)
                 )
-        paginator = Paginator(proteins, pageSize)
-
-        try:
-            proteins = paginator.page(page)
-        except PageNotAnInteger:
-            proteins = paginator.page(1)
-        except EmptyPage:
-            proteins = paginator.page(paginator.num_pages)
 
         proteins_dto = []
         for protein in proteins:
@@ -150,8 +147,23 @@ class ProteinListView(View):
             weights[protein.bioentry_id] = weight
 
             proteins_dto.append(protein_dto)
-
         proteins_dto = sorted(proteins_dto, key=lambda x: x["score"], reverse=True)
+
+        ids_list_ordered = [d.get('id') for d in proteins_dto]
+        ordering = Case(*[When(bioentry_id=id_, then=pos) for pos, id_ in enumerate(ids_list_ordered )], output_field=IntegerField())
+        proteins = Bioentry.objects.filter(bioentry_id__in=ids_list_ordered ).order_by(ordering)
+        paginator = Paginator(proteins, pageSize)
+        try:
+            proteins = paginator.page(page)
+        except PageNotAnInteger:
+            proteins = paginator.page(1)
+        except EmptyPage:
+            proteins = paginator.page(paginator.num_pages)
+        
+        proteins_ids_paginated=[]
+        for protein in proteins:
+            proteins_ids_paginated.append(protein.bioentry_id)
+        proteins_dto = filter_dicts_by_id(proteins_dto,proteins_ids_paginated)
         not_default_formula = 'scoreformula' in request.build_absolute_uri()
         base_url = request.build_absolute_uri()
         if "page" in base_url:
