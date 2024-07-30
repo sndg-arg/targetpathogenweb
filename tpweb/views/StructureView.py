@@ -82,19 +82,20 @@ def pdb_structure(pdbobj, graphic_features):
         }
         graphic_features.append(gf)
 
-    for p in context["p2_pockets"]:
-        p.p2score = [x.value for x in p.properties.all() if x.property == p2s][0]
-        p.atoms = []
-        p.residues = []
+    for p2 in context["p2_pockets"]:
+        p2.p2score = [x.value for x in p2.properties.all() if x.property == p2s][0]
+        p2.probability = [x.value for x in p2.properties.all() if x.property == p2p][0]
+        p2.atoms = []
+        p2.residues = []
         data = []
 
-        for rsr in p.residue_set_residue.all():
+        for rsr in p2.residue_set_residue.all():
             data.append({"x": rsr.residue.resid,
                          "y": rsr.residue.resid,
-                         "description": p.name, "id": p.name})
-            p.residues.append(rsr.residue.resid)
+                         "description": p2.name, "id": p2.name})
+            p2.residues.append(rsr.residue.resid)
             for a in rsr.residue.atoms.all():
-                p.atoms.append(a.serial)
+                p2.atoms.append(a.serial)
         gf_p2 = {
             "data": data,
             "name": "P2Pocket",
@@ -110,7 +111,8 @@ def pdb_structure(pdbobj, graphic_features):
         "properties__property",
         "residue_set_residue__residue").filter(
         Q(pdb=pdbobj) &
-        (~Q(residue_set__name="FPocketPocket")))
+        (~Q(residue_set__name="FPocketPocket")) &
+        (~Q(residue_set__name="P2RankPocket")))
     context["residuesets"] = []
     for rs in rss:
         context["residuesets"].append({"rs_name": rs.residue_set.name,

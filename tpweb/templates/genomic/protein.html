@@ -84,7 +84,7 @@
 
     <h2>{% trans 'Sequence Features' %}</h2>
 
-    {% if features %}
+    {% if features or structure%}
 
         <div id="div2"></div>
 
@@ -129,25 +129,40 @@
         {% if structure.pockets %}
             <h4>Pockets</h4>
             <table id="pocketsTable" class="table">
-                <thead><tr><td>Nro</td><td>Atoms</td><td>Spheres</td><td>Druggability</td><td>Labels</td></tr></thead>
+                <thead><tr><td>FPOCKET</td><td>Atoms</td><td>Spheres</td><td>Druggability</td><td>Labels</td></tr></thead>
                 <tbody>
-
                 {% for p in structure.pockets %}
-
                     <tr>
-                        <td>{{p.name}}</td>
+                        <td>{{ p.name }}</td>
                         <td><input type="checkbox" onchange="toogle_view('{{p.name}}_atm')" /></td>
                         <td><input type="checkbox"  onchange="toogle_view('{{p.name}}_pol');toogle_view('{{p.name}}_apol')"/></td>
                         <td>{{p.druggability}}</td>
                         <td><input type="checkbox" onchange="toogle_view('{{p.name}}_lbl')" /></td>
-                        <td><input type="button" onclick="ngl_zoom_to('{{p.name}}_lbl')" value="Zoom" /></td>
-
+                        <td><input type="button" onclick="ngl_zoom_to('{{p.name}}')" value="Zoom" /></td>
                         <td> <input type="button" class="button" value="positions"
                                     onclick="alert('{{ p.residues | join:" " }}')"
                         />  </td>
                     </tr>
                 {% endfor %}
                 </tbody>
+
+                <thead><tr><td>P2RANK</td><td>Atoms</td><td>Score</td><td>Probability</td><td>Labels</td></tr></thead>
+                <tbody>
+                {% for p2 in structure.p2_pockets %}
+                    <tr>
+                        <td>{{ p2.name }}</td>
+                        <td><input type="checkbox" onchange="toogle_view('{{p2.name}}_atm2')" /></td>
+                        <td>{{p2.p2score}}</td>
+                        <td>{{p2.probability}}</td>
+                        <td><input type="checkbox" onchange="toogle_view('{{p2.name}}_lbl2')" /></td>
+                        <td><input type="button" onclick="ngl_zoom_to('{{p2.name}}')" value="Zoom" /></td>
+                        <td> <input type="button" class="button" value="positions"
+                                    onclick="alert('{{ p2.residues | join:" " }}')"
+                        />  </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+
             </table>
         {% endif %}
 
@@ -332,6 +347,46 @@
                         } );
                         visible["{{p.name}}_lbl"] = false;
                         representations["{{p.name}}_lbl"].setVisibility(false);
+
+                    {% endfor %}
+
+                    {% for p2 in structure.p2_pockets %}
+                        sele ="STP AND .APOL AND {{p2.name}}";
+                        representations["{{p2.name}}_apol"] =  component.addRepresentation( "surface", {
+                            sele: sele,
+                            multipleBond: false,
+                            color:"white"
+
+                        } );
+                        representations["{{p2.name}}_apol"].sele = sele;
+                        sele ="STP AND .POL AND {{p2.name}}";
+                        representations["{{p2.name}}_pol"] = component.addRepresentation( "surface", {
+                            sele: sele,
+                            multipleBond: false,
+                            color:"black"
+
+                        } );
+                        representations["{{p2.name}}_pol"].sele = sele;
+
+                        visible["{{p2.name}}_pol"] = false;
+                        visible["{{p2.name}}_apol"] = false;
+                        representations["{{p2.name}}_pol"].setVisibility(false);
+                        representations["{{p2.name}}_apol"].setVisibility(false);
+
+                        representations["{{p2.name}}_atm2"] =  component.addRepresentation( "ball+stick", {
+                            sele: 'NOT STP AND NOT water AND @{{p2.atoms|join:","}}',
+                            color:"pink"
+                        } );
+                        visible["{{p2.name}}_atm2"] = false;
+                        representations["{{p2.name}}_atm2"].setVisibility(false);
+
+
+                        representations["{{p2.name}}_lbl2"] = component.addRepresentation( "label", {
+                            labelType: "atom",
+                            sele: 'NOT STP AND @{{p2.atoms|join:","}}',
+                        } );
+                        visible["{{p2.name}}_lbl2"] = false;
+                        representations["{{p2.name}}_lbl2"].setVisibility(false);
 
                     {% endfor %}
 

@@ -82,6 +82,7 @@ class ProteinView(View):
         proteinDTO, features, annotations, graphic_features = serialize_prot(protein)
         structures = protein.structures.prefetch_related("pdb__residues").all()
 
+        print(features)
         dto = {"protein": proteinDTO,
                "features": features,
                "annotations": annotations,
