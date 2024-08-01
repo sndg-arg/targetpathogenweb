@@ -21,3 +21,5 @@ asgiref==3.6.0
 sqlparse==0.4.4
 django-crispy-forms
 crispy-bootstrap4
+matplotlib
+lxml

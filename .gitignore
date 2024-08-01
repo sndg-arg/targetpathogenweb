@@ -494,3 +494,4 @@ parsl/runinfo/
 psort/
 runinfo/
 parsl/settings.ini
+pwtools/pgdbs/user
