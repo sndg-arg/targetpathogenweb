@@ -14,25 +14,13 @@ from tpweb.models.ScoreParam import ScoreParam
 # score_dict = ["Length", "PW", "Druggability"]
 
 def group_by_score_param(data):
-    # Initialize an empty dictionary
     grouped_data = {}
-    # Iterate through the input list of dictionaries
     for item in data:
-        # Extract the score_param_name and name
         score_param_name = item['score_param_name']
         name = item['name']
-        # Check if the score_param_name exists in the dictionary
-        if score_param_name in grouped_data:
-            # Append the name to the existing list
-            grouped_data[score_param_name].append(name)
-        else:
-            # Create a new entry in the dictionary
-            grouped_data[score_param_name] = [name]
-    # After populating the dictionary, join the list values into strings
-    for key, value_list in grouped_data.items():
-        grouped_data[key] = ', '.join(value_list)
-    # Return the modified dictionary
-    return grouped_data
+        # Directly append to the list; creates a new list if the key doesn't exist
+        grouped_data.setdefault(score_param_name, []).append(name)
+    return {k: ', '.join(v) for k, v in grouped_data.items()}
 
 def filter_dicts_by_id(dict_list, id_list):
     id_set = set(id_list)
@@ -57,12 +45,9 @@ class ProteinListView(View):
 
 
 
-        col_descriptions = {t.score_param.name: t.score_param.description + ". Possible values: " +
-                                                "-".join(
-                                                    [x.name for x in t.score_param.choices.all()]) + ". " + ". ".join(
-            [x.name + ": " + x.description for x in t.score_param.choices.all() if x.description])
-
-                            for t in formula.terms.all()}
+        formula_term_list = formula.terms.all()
+        col_descriptions = {t.score_param.name: t.score_param.description + ". Possible values: " + "-".join([x.name for x in t.score_param.choices.all()]) + ". " + ". ".join(
+            [x.name + ": " + x.description for x in t.score_param.choices.all() if x.description]) for t in formula_term_list} 
 
 
         formuladto = self.create_formuladto(formula, col_descriptions)
@@ -89,6 +74,7 @@ class ProteinListView(View):
 
         selected_parameters = request.session.get('selected_parameters', {})
         grouped_parameters = group_by_score_param(selected_parameters)
+
         if selected_parameters:
             parameter_dict = {}
             for parameter in selected_parameters:
@@ -127,19 +113,25 @@ class ProteinListView(View):
                     genome_dto[qname] = qvs[qname]
             
             """
-            tdata = {spv.score_param.name: spv.value for spv in protein.score_params.all()
+            tdata = {spv.score_param.name: spv.value for spv in protein.score_params.all() #Take this out
                      if spv.score_param.name in col_descriptions}
             weight = {}
 
-            for term in formula.terms.all():
+            for term in formula_term_list:
                 if term.score_param.name in tdata:
+                    param_values = {spv.score_param.name: spv.value for spv in protein.score_params.all()}
+                    val = sum([term.score(param_values[term.score_param.name]) for term in formula_term_list
+                                if term.score_param.name in param_values])
+
                     val = round(term.score(tdata[term.score_param.name]), 2)
                     if term.score_param.name in weight:
                         weight[term.score_param.name] += val
                     else:
                         weight[term.score_param.name] = val
+            param_values = {spv.score_param.name: spv.value for spv in protein.score_params.all()}
+            tdata["Score"] = sum([term.score(param_values[term.score_param.name]) for term in formula_term_list
+                        if term.score_param.name in param_values])
 
-            tdata["Score"] = formula.score(protein)
             protein_dto["score"] = tdata["Score"]
             # "Length":protein.seq.length,
 
@@ -188,7 +180,7 @@ class ProteinListView(View):
             "weights": weights,
             "tdata": tdatas,
             "formula": formuladto,
-            "col_descriptions":col_descriptions,
+            "col_descriptions": col_descriptions,
             "formulas":formulas,
             "current_formula":current_formula,
             'base_url': base_url,
@@ -234,4 +226,3 @@ class ProteinListView(View):
         }
 
         return formuladto
-
