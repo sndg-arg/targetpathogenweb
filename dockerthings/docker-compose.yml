@@ -1,0 +1,36 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:14
+    environment:
+      POSTGRES_PASSWORD: 123
+      POSTGRES_DB: tp
+      POSTGRES_USER: postgres
+
+    volumes:
+      - /app/targetpathogenweb/dbs/db:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    shm_size: 512m
+
+  web:
+    image: target:latest  # Use the pre-built Docker image
+    command: python manage.py runserver 0.0.0.0:8000
+    working_dir: /app/targetpathogenweb  # Set the working directory
+    ports:
+      - "8000:8000"
+    environment:
+      - DJANGO_DATABASE_NAME=tp
+      - DJANGO_DATABASE_USER=postgres
+      - DJANGO_DATABASE_PASSWORD=123
+      - DJANGO_DATABASE_HOST=db
+      - DJANGO_DATABASE_PORT=5432
+      - POSTGRES_NAME=tp
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=123
+      - DJANGO_DATABASE_URL=postgres://postgres:123@db:5432/tp?sslmode=disable
+      - PYTHONPATH="${PYTHONPATH}:../sndgjobs:../sndgbiodb:../targetpathogen:../sndg-bio"
+      - DJANGO_DEBUG=True
+      - DJANGO_SETTINGS_MODULE=tpwebconfig.settings
+    depends_on:
+      - db

@@ -1,0 +1,60 @@
+# Use the official Python 3.10 image as the base
+FROM python:3.10
+
+
+# Set working directory
+WORKDIR /app
+
+# Update package lists and install dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    curl \
+    git \
+    wget \
+    libbz2-dev \
+    libpq-dev \
+    libcurl4-openssl-dev \
+    libgsl0-dev \
+    liblzma-dev \
+    libncurses5-dev \
+    libperl-dev \
+    libssl-dev \
+    zlib1g-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Clone the necessary repositories
+RUN git clone https://github.com/ezequieljsosa/sndg-bio.git \
+    && git clone https://github.com/sndg-arg/targetpathogen.git \
+    && git clone https://github.com/sndg-arg/sndgjobs.git \
+    && git clone https://github.com/sndg-arg/sndgbiodb.git \
+    && git clone https://github.com/sndg-arg/targetpathogenweb.git
+
+RUN mkdir /app/targetpathogenweb/dbs && mkdir /app/targetpathogenweb/dbs/db
+
+# Copy the requirements file into the container
+COPY requirements.txt .
+
+# Install dependencies defined in requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Define the version of htslib, samtools, and bcftools you want to install
+ARG htsversion=1.9
+
+# Download and compile htslib
+RUN curl -L https://github.com/samtools/htslib/releases/download/${htsversion}/htslib-${htsversion}.tar.bz2 | tar xj && \
+    (cd htslib-${htsversion} && ./configure --enable-plugins --with-plugin-path='$(libexecdir)/htslib:/usr/libexec/htslib' && make install) && \
+    ldconfig
+
+# Download and compile samtools
+RUN curl -L https://github.com/samtools/samtools/releases/download/${htsversion}/samtools-${htsversion}.tar.bz2 | tar xj && \
+    (cd samtools-${htsversion} && ./configure --with-htslib=system && make install)
+
+# Download and compile bcftools
+RUN curl -L https://github.com/samtools/bcftools/releases/download/${htsversion}/bcftools-${htsversion}.tar.bz2 | tar xj && \
+    (cd bcftools-${htsversion} && ./configure --enable-libgsl --enable-perl-filters --with-htslib=system && make install)
+
+# Install Bedtools
+RUN apt-get update && apt-get install -y bedtools && rm -rf /var/lib/apt/lists/*
+
+# Switch back to non-root user
+USER 1000
