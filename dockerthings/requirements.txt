@@ -33,3 +33,5 @@ scpClient
 configparse
 pythoncyc
 networkx
+crispy-bootstrap4
+django-crispy-forms
