@@ -43,6 +43,7 @@ services:
   docker-in-docker:
     image: docker:dind
     privileged: true
+    command: dockerd -H tcp://0.0.0.0:2376 -H unix:///var/run/docker.sock
     ports:
       - "2376:2376"
     expose:
