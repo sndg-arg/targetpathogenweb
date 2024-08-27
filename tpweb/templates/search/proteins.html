@@ -76,7 +76,10 @@
 <h1>{% trans "Proteins" %} ({{ biodb__name }})</h1>
 
 <div class="search-controls-container">
-
+<form method="GET" action="">
+    <input type="text" name="search" placeholder="Search proteins..." value="{{ request.GET.search }}">
+    <button type="submit">Search</button>
+</form>
 <div class="btn-group" role="group">
     <a href="{% url 'tpwebapp:parameterformview' assembly_name=assembly_name %}" class="btn btn-primary mr-2 ml-5">Filter</a>
     <form method="POST" action="{% url 'tpwebapp:reset_filters' assembly_name %}">
