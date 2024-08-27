@@ -1,4 +1,3 @@
-version: '3.8'
 services:
   db:
     image: postgres:14
@@ -6,17 +5,21 @@ services:
       POSTGRES_PASSWORD: 123
       POSTGRES_DB: tp
       POSTGRES_USER: postgres
-
     volumes:
-      - /app/targetpathogenweb/dbs/db:/var/lib/postgresql/data
+      - ./dbs/db:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     shm_size: 512m
 
   web:
-    image: target:latest  # Use the pre-built Docker image
-    command: python manage.py runserver 0.0.0.0:8000
-    working_dir: /app/targetpathogenweb  # Set the working directory
+    image: target:conded
+    command: /bin/sh -c "chmod +x start.sh && ./start.sh"
+    working_dir: /app/targetpathogenweb
+    links:
+      - docker-in-docker
+    volumes:
+      - ./:/app/targetpathogenweb
+      - ${SSH_AUTH_SOCK}:/ssh-agent
     ports:
       - "8000:8000"
     environment:
@@ -29,8 +32,19 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=123
       - DJANGO_DATABASE_URL=postgres://postgres:123@db:5432/tp?sslmode=disable
-      - PYTHONPATH="${PYTHONPATH}:../sndgjobs:../sndgbiodb:../targetpathogen:../sndg-bio"
+      - PYTHONPATH="$${PYTHONPATH}:../sndgjobs:../sndgbiodb:../targetpathogen:../sndg-bio:../targetpathogenweb/"
       - DJANGO_DEBUG=True
       - DJANGO_SETTINGS_MODULE=tpwebconfig.settings
+      - SSH_AUTH_SOCK=/ssh-agent
+      - DOCKER_HOST=tcp://docker-in-docker:2376
     depends_on:
       - db
+
+  docker-in-docker:
+    image: docker:dind
+    privileged: true
+    ports:
+      - "2376:2376"
+    expose:
+      - 2376
+

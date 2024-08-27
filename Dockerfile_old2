@@ -20,7 +20,13 @@ RUN apt-get update && apt-get install -y \
     libperl-dev \
     libssl-dev \
     zlib1g-dev \
+    postgresql-client \
     && rm -rf /var/lib/apt/lists/*
+
+# Install Docker CLI
+ENV docker_url=https://download.docker.com/linux/static/stable/x86_64
+ENV docker_version=19.03.12
+RUN curl -fsSL $docker_url/docker-$docker_version.tgz | tar zxvf - --strip 1 -C /usr/bin docker/docker
 
 # Clone the necessary repositories
 RUN git clone https://github.com/ezequieljsosa/sndg-bio.git \
@@ -33,6 +39,10 @@ RUN mkdir /app/targetpathogenweb/dbs && mkdir /app/targetpathogenweb/dbs/db
 
 # Copy the requirements file into the container
 COPY requirements.txt .
+
+# Copy the entrypoint file into the container and make it executable
+COPY entrypoint.sh .
+RUN chmod +x entrypoint.sh
 
 # Install dependencies defined in requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
