@@ -31,7 +31,8 @@ RUN git clone https://github.com/ezequieljsosa/sndg-bio.git \
     && git clone https://github.com/sndg-arg/targetpathogen.git \
     && git clone https://github.com/sndg-arg/sndgjobs.git \
     && git clone https://github.com/sndg-arg/sndgbiodb.git \
-    && git clone https://github.com/sndg-arg/targetpathogenweb.git
+    && git clone https://github.com/sndg-arg/targetpathogenweb.git \
+    && cd targetpathogenweb && git checkout docker && cd ..
 
 # Install Docker CLI
 ENV docker_url=https://download.docker.com/linux/static/stable/x86_64

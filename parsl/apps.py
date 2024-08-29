@@ -156,7 +156,12 @@ def run_fpocket(locus_tag, working_dir, folder_path, inputs=[], stderr=parsl.AUT
 def fpocket2json(folder_path, locus_tag, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
     import os
     locustag_af = os.path.join(folder_path, "alphafold", locus_tag, f"{locus_tag}_af_out")
-    return f"python -m SNDG.Structure.FPocket 2json {locustag_af} | gzip > {locustag_af}/fpocket.json.gz"
+
+    if os.path.exists(protein_pdb):
+    if os.path.exists(locustag_af):
+        return f"python -m SNDG.Structure.FPocket 2json {locustag_af} | gzip > {locustag_af}/fpocket.json.gz"
+    else:
+        pass
 
 @bash_app(executors=["local_executor"])
 def p2rank2json(genome, locus_tag, working_dir, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
