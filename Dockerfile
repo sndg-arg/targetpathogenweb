@@ -21,6 +21,11 @@ RUN apt-get update && apt-get install -y \
     postgresql-client \
     && rm -rf /var/lib/apt/lists/*
 
+# Download and install JDK 17
+RUN curl -sL https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.12%2B7/OpenJDK17U-jdk_x64_linux_hotspot_17.0.12_7.tar.gz | tar -xz -C /opt
+ENV JAVA_HOME /opt/jdk-17.0.12+7
+ENV PATH $JAVA_HOME/bin:$PATH
+
 # Clone the necessary repositories
 RUN git clone https://github.com/ezequieljsosa/sndg-bio.git \
     && git clone https://github.com/sndg-arg/targetpathogen.git \

@@ -195,13 +195,13 @@ def strucutures_af(working_dir, folder_path, genome, inputs=[], stderr=parsl.AUT
     from Bio import SeqIO
     import pandas as pd
     import os
-    protein_ids = pd.read_csv(os.path.join(folder_path, f'{genome}_unips_mapping.csv'),
-                              sep=',')
+    protein_ids = pd.read_csv(os.path.join(folder_path, f'{genome}_unips_mapping.csv'), sep=',')
     mapped_proteins = list()
     with open(os.path.join(folder_path, f"{genome}_unips.lst"), 'r') as f:
         mapped_proteins = [x.strip().split()[1] for x in f.readlines()]
     for protein in mapped_proteins:    
         protein_pdb = os.path.join(folder_path, 'alphafold', f'{protein}', f'{protein}_af.pdb')
+        print(protein_pdb)
         if os.path.exists(protein_pdb):
             r_load = load_af_model(protein, working_dir,
                                     folder_path,inputs=[mapped_proteins])
