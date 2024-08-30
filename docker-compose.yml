@@ -15,10 +15,9 @@ services:
     image: target:conded
     command: /bin/sh -c "chmod +x start.sh && ./start.sh"
     working_dir: /app/targetpathogenweb
-    links:
-      - docker-in-docker
     volumes:
       - ./:/app/targetpathogenweb
+      - /var/run/docker.sock:/var/run/docker.sock
       - ${SSH_AUTH_SOCK}:/ssh-agent
     ports:
       - "8000:8000"
@@ -36,16 +35,7 @@ services:
       - DJANGO_DEBUG=True
       - DJANGO_SETTINGS_MODULE=tpwebconfig.settings
       - SSH_AUTH_SOCK=/ssh-agent
-      - DOCKER_HOST=tcp://docker-in-docker:2376
+      - CWD=${PWD}
     depends_on:
       - db
-
-  docker-in-docker:
-    image: docker:dind
-    privileged: true
-    command: dockerd -H tcp://0.0.0.0:2376 -H unix:///var/run/docker.sock
-    ports:
-      - "2376:2376"
-    expose:
-      - 2376
 
