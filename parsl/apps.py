@@ -220,7 +220,7 @@ def strucutures_af(working_dir, folder_path, genome, inputs=[], stderr=parsl.AUT
 
 @bash_app(executors=["local_executor"])
 def psort(genome, gram, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
-    return f"python -m TP.psort {genome} -{gram} --tpwebdir ../"
+    return f"python -m TP.psort {genome} -{gram} --tpwebdir /app/targetpathogenweb"
 
 @bash_app(executors=["local_executor"])
 def druggability_2_csv(genome, working_dir, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME, **kwargs):

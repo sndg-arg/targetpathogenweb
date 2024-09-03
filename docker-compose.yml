@@ -19,6 +19,7 @@ services:
       - ./:/app/targetpathogenweb
       - /var/run/docker.sock:/var/run/docker.sock
       - ${SSH_AUTH_SOCK}:/ssh-agent
+      - /tmp:/tmp
     ports:
       - "8000:8000"
     environment:
