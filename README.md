@@ -66,9 +66,6 @@ To add a new genome, first enter the web container. We recommend using [lazydock
    python run_pipeline.py --gram n NC_002516.2
    ```
 
-### **Important Warning:**
-Before running the `run_pipeline` step, please shut down any processes that may be running, such as Firefox or Chrome, to avoid potential issues.
-
 ## License
 
 
