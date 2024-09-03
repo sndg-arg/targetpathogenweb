@@ -71,12 +71,11 @@ Before running the `run_pipeline` step, please shut down any processes that may 
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
 
 ## Contact
 
-For any inquiries, please reach out to us at [contact@yourdomain.com](mailto:contact@yourdomain.com).
 
 ---
 
-Feel free to adjust any section according to your project's specifics!
+
