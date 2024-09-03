@@ -1,56 +1,82 @@
-# targetpathogenweb
-Target Pathogen Webapp Project
 
+---
 
-# Dev install
-```console
-mkdir -p dbs/db
-conda create -n tpv2 -c conda-forge -c bioconda python=3.10 samtools blast bedtools bcftools
-conda activate tpv2
+# TargetPathogenWeb
 
-pip install -r requirements/base.txt
-pip install -r requirements/dev.txt
-```
-## Dev run
+**TargetPathogenWeb** is a bioinformatic web server designed to identify molecular targets for novel drugs, facilitating the discovery and testing of new pharmaceutical compounds.
 
-```console
-docker run -u $(id -u ${USER}):$(id -g ${USER}) -p 5432:5432 --rm --name sndgr -v $PWD/dbs/db:/var/lib/postgresql/data \
--e POSTGRES_PASSWORD=123 -e POSTGRES_DB=tp  -v /etc/passwd:/etc/passwd:ro --shm-size 512m postgres:14
+## Features
+- **Target Identification:** Analyze molecular targets suitable for drug development.
+- **User-Friendly Interface:** Web-based platform accessible from any browser.
+- **Scalability:** Capable of handling large datasets efficiently.
 
-export DJANGO_DEBUG=True
-export DJANGO_SETTINGS_MODULE=tpwebconfig.settings
-export DJANGO_DATABASE_URL=psql://postgres:123@127.0.0.1:5432/tp
-export CELERY_BROKER_URL=redis://localhost:6379/0
+## Requirements
 
-# Add sndg-jobs / sndg-biodb / targetpathogen to pythonpath
-export PYTHONPATH=$PYTHONPATH:../sndg/sndg-jobs:../sndg/sndg-biodb:../targetpathogen
+To run TargetPathogenWeb, you need the following:
 
-# test 
-./manage.py shell_plus --ipython --print-sql
+- **Operating System:** Linux
+- **Docker:** [Install Docker](https://docs.docker.com/get-docker/)
+- **Docker Compose:** [Install Docker Compose](https://docs.docker.com/compose/install/)
+- **SSH Key:** Ensure that your SSH key is loaded in your agent to access the Cluster of the Calculus Institute at the University of Buenos Aires.
 
-./manage.py load_fpocket JFMELOJP_01523
+## Installation
 
-./manage.py  load_residueset JFMELOJP_01515 data/ELO/JFMELOJP/JFMELOJP_01515_res_ann.tbl
- ./manage.py load_score_values JFMELOJP ab_props.txt 
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/sndg-arg/targetpathogenweb.git
+   cd targetpathogenweb
+   ```
 
-```
-# Docker image
-docker build ./ -t sndgwebapp -f image/Dockerfile
+2. **Run Docker Compose:**
+   ```bash
+   docker build --no-cache -t target:conded . && docker compose up
+   ```
 
-echo 123 > dbs/db/.pgpass
-docker exec sndgr bash -c 'PGPASSFILE=/var/lib/postgresql/data/.pgpass;pg_dump -U postgres -w -F p -d tp | gzip > /var/lib/postgresql/data/db.sql.gz'
+3. **Access the web server:**      
+   Open your browser and navigate to `http://localhost:8000`.
 
-#Recover
-zcat db.sql.gz | psql -U postgres tp
+## Usage
 
+### **Important Warning:**
+Before running the `run_pipeline` step, please shut down any processes that may be running, such as Firefox or Chrome, to avoid potential issues. The process can take up to some days depending on the size of the genome.
 
+To add a new genome, first enter the web container. We recommend using [lazydocker](https://github.com/jesseduffield/lazydocker). Once inside the container, run the following commands:
 
-Test celery task
-from sndgjobs.tasks.submit_job_task import submit_job_task
+1. **Activate the environment:**
+   ```bash
+   conda activate tpv2
+   ```
 
+2. **Move to the parsl folder and source the exports:**
+   ```bash
+   cd parsl
+   source export.sh
+   ```
 
-TODO
-- allauth
-- celery
-- throttle
-- API Key
+3. **(Needed the first time) Run the test command:**      
+   ```bash
+   python run_pipeline.py --test
+   ```
+
+4. **Load the new genome using the NCBI accession:**
+
+   You should pass the NCBI accession at the end and declare if the organism is Gram-positive (`--gram p`) or Gram-negative (`--gram n`).   
+   For example, to run the Gram-negative organism *Pseudomonas aeruginosa* PAO1, you should run:
+   ```bash
+   python run_pipeline.py --gram n NC_002516.2
+   ```
+
+### **Important Warning:**
+Before running the `run_pipeline` step, please shut down any processes that may be running, such as Firefox or Chrome, to avoid potential issues.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Contact
+
+For any inquiries, please reach out to us at [contact@yourdomain.com](mailto:contact@yourdomain.com).
+
+---
+
+Feel free to adjust any section according to your project's specifics!
