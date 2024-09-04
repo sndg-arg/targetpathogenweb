@@ -63,6 +63,15 @@
             text-align: center; /* Centers the text */
 
         }
+        .search-form {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
 
 /* Optional: Style individual checkboxes for better alignment */
         .filter-form.checkbox-group div {
@@ -76,7 +85,7 @@
 <h1>{% trans "Proteins" %} ({{ biodb__name }})</h1>
 
 <div class="search-controls-container">
-<form method="GET" action="">
+<form method="GET" action="" class="search-form">
     <input type="text" name="search" placeholder="Search proteins..." value="{{ request.GET.search }}">
     <button type="submit">Search</button>
 </form>
@@ -86,7 +95,7 @@
         {% csrf_token %}
         <input type="submit" class="btn btn-danger" value="Reset Filters">
     </form>
-    <a href="{% url 'tpwebapp:customparam' assembly_name=assembly_name %}" class="btn btn-success mr-2 ml-2">Add Custom Parameter</a>
+    <a href="{% url 'tpwebapp:customparam' assembly_name=assembly_name %}" class="btn btn-success mr-2 ml-2">Add</a>
 </div>
 
 <div>

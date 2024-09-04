@@ -14,6 +14,10 @@ def ParameterFormView(request, assembly_name):
             # User wants to finish the process
             request.session['selected_parameters'] = selected_parameters
             return redirect(f'../../assembly/{assembly_name}/protein')
+        elif 'reset_process' in request.POST:
+            parameterform = ParameterForm(request.POST)
+            request.session.pop('selected_parameters', None)
+            return render(request, 'search/parameterform.html', {"form": parameterform})
         else:
             # Add new parameters
             parameterform = ParameterForm(request.POST)

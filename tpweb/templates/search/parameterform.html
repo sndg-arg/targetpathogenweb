@@ -45,9 +45,15 @@
 <form id="finish-process-form" method="POST">
     {% csrf_token %}
     <input type="hidden" name="finish_process" value="true">
-    <button type="submit" class="btn btn-success" style="height: 50px;">Finish</button>
-
+    <button type="submit" class="btn btn-success mr-2" style="height: 50px;">Finish</button>
 </form>
+
+<form id="finish-process-form" method="POST">
+    {% csrf_token %}
+    <input type="hidden" name="reset_process" value="true">
+    <button type="submit" class="btn btn-danger " style="height: 50px;">Reset</button>
+</form>
+
 </div>
 <div class="container mt-5">
     <h2>Current filters</h2>
