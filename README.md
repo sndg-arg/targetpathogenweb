@@ -66,6 +66,12 @@ To add a new genome, first enter the web container. We recommend using [lazydock
    python run_pipeline.py --gram n NC_002516.2
    ```
 
+5. **Load the new genome using a custom .gbk.gz file:**
+   If instead of the official NCBI's genome you want to use a custom file corresponding to novel strains or with hand-made curations use the --custom to pass the custom gbk.gz file.
+   ```bash
+   python run_pipeline.py --gram n --custom NC_002516.2.gbk.gz
+   ```
+
 ## License
 
 
