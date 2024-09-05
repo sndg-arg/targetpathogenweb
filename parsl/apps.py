@@ -9,7 +9,6 @@ def clear_folder(folder_path, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl
         shutil.rmtree(folder_path)
     return
 
-
 @bash_app(executors=["local_executor"])
 def download_gbk(working_dir, genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
     import os
@@ -20,6 +19,10 @@ def test_gbk(working_dir, genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=p
     import os
     return f"python {working_dir}/manage.py test --datadir ../data"
 
+@bash_app(executors=["local_executor"])
+def custom_gbk(working_dir, genome, custom,inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
+    import os
+    return f"python {working_dir}/manage.py custom_gbk {genome} --datadir ../data --custom {custom}"
 
 @bash_app(executors=["local_executor"])
 def load_gbk(working_dir, folder_path, genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):

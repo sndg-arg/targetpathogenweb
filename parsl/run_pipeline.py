@@ -4,8 +4,9 @@ from config import *
 from apps import *
 import argparse
 import sys
+
 @join_app
-def run(genome, gram):
+def run(genome, gram, custom):
     import math
     import os
 
@@ -26,9 +27,10 @@ def run(genome, gram):
     
     if args.test:
         r_down = test_gbk(working_dir=working_dir, genome=genome, inputs=[r_clear])
+    elif args.custom:
+        r_down = custom_gbk(working_dir=working_dir, genome=genome, inputs=[r_clear], custom=custom)
     else:
         r_down = download_gbk(working_dir=working_dir, genome=genome, inputs=[r_clear])
-    
     r_load = load_gbk(working_dir=working_dir,
                       folder_path=folder_path, genome=genome, inputs=[r_down])
     r_index_db = index_genome_db(working_dir=working_dir, inputs=[
@@ -69,30 +71,30 @@ if __name__ == "__main__":
                         type=str,
                         nargs='*',
                         default=sys.stdin)
-    
     parser.add_argument('--test', '-t', action='store_true', help="Run in test mode")
     parser.add_argument('--gram', choices=['p', 'n'], default=None, help="Specify 'p' for Gram-positive or 'n' for Gram-negative bacteria, optional")
+    parser.add_argument('--custom','-c', default=None, help="Specify the path to the custom GBK file")
 
-
-    
     args = parser.parse_args()
     gram = args.gram
+    custom = args.custom
     if args.test:
         genomes=['NZ_AP023069.1']
         gram = 'n'
+    elif args.custom:
+        path, file = os.path.split(custom)
+        ncbi_code = file.split(".g")[0]
+        genomes=[ncbi_code]
     else:
         for l in args.genomes:
             genomes.append(l.strip().upper())
     cfg = TargetConfig("settings.ini")
     parsl.load(cfg.get_parsl_cfg())
     parsl.set_stream_logger()
-    
     results = list()
-    print(gram)
 
     for genome in genomes:
-        r = run(genome=genome, gram=gram)
+        r = run(genome=genome, gram=gram, custom=custom)
         results.append(r)
     for r in results:
-        
         r.result()

@@ -113,11 +113,11 @@
             > {{ f.name }} </option>
         {% endfor %}
         </select>
-        <button class="btn-primary ml-3" onclick="window.location='?scoreformula=' + $('#score_formula_select').val()">{% trans 'Change' %}</button>
+        <button class="btn-success ml-3" onclick="window.location='?scoreformula=' + $('#score_formula_select').val()">{% trans 'Change' %}</button>
         <br />
     {% endif %}
 
-    <a href="{% url 'tpwebapp:formula_form' assembly_name=assembly_name %}" class="btn btn-primary mr-2 ml-2">Add</a>
+    <a href="{% url 'tpwebapp:formula_form' assembly_name=assembly_name %}" class="btn btn-primary mr-2 ml-2">+Add</a>
 </div>
 </div>
 <div class="tables-container">
