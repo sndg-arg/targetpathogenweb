@@ -6,7 +6,7 @@ from bioseq.models.Biodatabase import Biodatabase
 from bioseq.models.Bioentry import Bioentry
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Q
-
+from tqdm import tqdm
 from tpweb.models.ScoreFormula import ScoreFormula
 from tpweb.models.ScoreParam import ScoreParam
 
@@ -70,7 +70,7 @@ class ProteinListView(View):
         proteins = Bioentry.objects.filter(
             biodatabase__name=assembly_name + Biodatabase.PROT_POSTFIX,
             #structures__isnull=False
-        ).prefetch_related("qualifiers__term", "dbxrefs__dbxref", "score_params__score_param")
+        ).prefetch_related("qualifiers__term", "dbxrefs__dbxref", "score_params__score_param") #sacar qualkifiers
 
         selected_parameters = request.session.get('selected_parameters', {})
         grouped_parameters = group_by_score_param(selected_parameters)
@@ -98,7 +98,7 @@ class ProteinListView(View):
                 )
 
         proteins_dto = []
-        for protein in proteins:
+        for protein in tqdm(proteins): #Worning
             protein_dto = {
                 "id": protein.bioentry_id,
                 "accession": protein.accession,
@@ -119,9 +119,9 @@ class ProteinListView(View):
 
             for term in formula_term_list:
                 if term.score_param.name in tdata:
-                    param_values = {spv.score_param.name: spv.value for spv in protein.score_params.all()}
-                    val = sum([term.score(param_values[term.score_param.name]) for term in formula_term_list
-                                if term.score_param.name in param_values])
+                    #param_values = {spv.score_param.name: spv.value for spv in protein.score_params.all()}
+                    #val = sum([term.score(param_values[term.score_param.name]) for term in formula_term_list
+                    #            if term.score_param.name in param_values])
 
                     val = round(term.score(tdata[term.score_param.name]), 2)
                     if term.score_param.name in weight:
