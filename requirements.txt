@@ -36,3 +36,4 @@ networkx
 crispy-bootstrap4
 django-crispy-forms
 numpy==1.24.4
+rdkit
