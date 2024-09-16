@@ -17,6 +17,7 @@ services:
     working_dir: /app/targetpathogenweb
     volumes:
       - ./:/app/targetpathogenweb
+      - ../targetpathogen:/app/targetpathogen
       - /var/run/docker.sock:/var/run/docker.sock
       - ${SSH_AUTH_SOCK}:/ssh-agent
       - /tmp:/tmp
