@@ -237,13 +237,21 @@ def psort_2_csv(genome, working_dir, inputs=[], stderr=parsl.AUTO_LOGNAME, stdou
 def load_score(genome, working_dir, param, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME, **kwargs):
     from bioseq.io.SeqStore import SeqStore
     ss = SeqStore('../data')
-    print(param)
     if param == 'druggability':
         tsv_file = ss.druggability_tsv(genome)
     if param == 'psort':
         tsv_file = ss.psort_tsv(genome)
+    if param == 'human_offtarget':
+        tsv_file = ss.human_offtarget(genome)
+    if param == 'micro_offtarget':
+        tsv_file = ss.micro_offtarget(genome)
+    if param == 'essenciality':
+        tsv_file = ss.essenciality(genome)
     return f"python {working_dir}/manage.py load_score_values {genome}  {tsv_file} --datadir ../data"
 
+@bash_app(executors=["local_executor"])
+def fasttarget(genome, working_dir, folder_path, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME, **kwargs):
+    return f"python {working_dir}/manage.py fast_command {genome} {folder_path} --datadir ../data"
 
 
 

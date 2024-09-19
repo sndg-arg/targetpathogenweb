@@ -33,8 +33,12 @@ def run(genome, gram, custom):
         r_down = download_gbk(working_dir=working_dir, genome=genome, inputs=[r_clear])
     r_load = load_gbk(working_dir=working_dir,
                       folder_path=folder_path, genome=genome, inputs=[r_down])
+    r_fasttarget = fasttarget(working_dir=working_dir, folder_path=folder_path, genome=genome, inputs=[r_load])
+    load_human_offt = load_score(working_dir=working_dir, genome=genome, inputs=[r_fasttarget], param = 'human_offtarget')
+    load_micro_offt = load_score(working_dir=working_dir, genome=genome, inputs=[load_human_offt], param = 'micro_offtarget')
+    load_essen = load_score(working_dir=working_dir, genome=genome, inputs=[load_micro_offt], param = 'essenciality')
     r_index_db = index_genome_db(working_dir=working_dir, inputs=[
-                                 r_load], genome=genome)
+                                 load_essen], genome=genome)
     r_index_seq = index_genome_seq(working_dir=working_dir, inputs=[
                                    r_index_db], genome=genome)
     r_interpro = interproscan(cfg_dict=cfg_dict, folder_path=folder_path, genome=genome, inputs=[r_index_seq])

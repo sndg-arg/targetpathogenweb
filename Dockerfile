@@ -32,6 +32,7 @@ RUN git clone https://github.com/ezequieljsosa/sndg-bio.git \
     && git clone https://github.com/sndg-arg/sndgjobs.git \
     && git clone https://github.com/sndg-arg/sndgbiodb.git \
     && git clone https://github.com/sndg-arg/targetpathogenweb.git \
+    && git clone https://github.com/L-G-g/fasttarget.git \
     && cd targetpathogenweb && git checkout docker && cd ..
 
 # Install Docker CLI
@@ -40,7 +41,7 @@ ENV docker_version=19.03.12
 RUN curl -fsSL $docker_url/docker-$docker_version.tgz | tar zxvf - --strip 1 -C /usr/bin docker/docker
 
 
-RUN conda create -n tpv2 -c conda-forge -c bioconda python=3.10 samtools blast bedtools bcftools
+RUN conda create -n tpv2 -c conda-forge -c bioconda python=3.10 samtools blast bedtools bcftools setuptools requests urllib3 xmltodict python-libsbml ncbi-datasets-cli pyyaml
 
 COPY requirements.txt .
 COPY start.sh .
