@@ -17,6 +17,8 @@ services:
     working_dir: /app/targetpathogenweb
     volumes:
       - ./:/app/targetpathogenweb
+      - /home/gabi/tp_test/targetpathogen:/app/targetpathogen
+      - /home/gabi/fasttarget/:/app/fasttarget
       - /var/run/docker.sock:/var/run/docker.sock
       - ${SSH_AUTH_SOCK}:/ssh-agent
       - /tmp:/tmp
