@@ -39,3 +39,4 @@ numpy==1.24.4
 pathlib
 docker
 sndg-bio
+pdbecif
