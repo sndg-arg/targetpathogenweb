@@ -19,6 +19,7 @@ services:
       - ./:/app/targetpathogenweb
       - /home/gabi/tp_test/targetpathogen:/app/targetpathogen
       - /home/gabi/fasttarget/:/app/fasttarget
+      - ../targetpathogen:/app/targetpathogen
       - /var/run/docker.sock:/var/run/docker.sock
       - ${SSH_AUTH_SOCK}:/ssh-agent
       - /tmp:/tmp

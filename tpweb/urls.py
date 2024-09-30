@@ -1,7 +1,5 @@
 from django.urls import path
-
 #from .views.TestCelery import test_celery
-
 from .views.AssemblyView import AssemblyView
 from .views.DownloadView import DownloadView
 from .views.GenomesView import GenomesView
@@ -13,13 +11,13 @@ from .views.StructureRawView import StructureRawView
 from .views.StructureView import StructureView
 from .views.FormView import FormView
 from .views.NewView import NewView
+from .views.MoleculeView import MoleculeView
 from .views.ParameterFormView import ParameterFormView, load_options, reset_filters
 from .views.FormulaFormView import FormulaFormView
 from .views.TestCelery import test_celery
 #from debug_toolbar.toolbar import debug_toolbar_urls
 from .views.CustomParamView import upload_form
 from django.conf.urls.static import static
-
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 
@@ -49,6 +47,7 @@ urlpatterns = [
     path("assembly/<str:assembly_name>/protein",view=ProteinListView.as_view(),name="protein_list"),
     path("download",view=DownloadView.as_view(),name="download"),
     path("genomes",view=GenomesView.as_view(),name="genomes_list"),
+    path("molecule",view=MoleculeView.as_view(),name="molecules"),
     path("structure_raw/<int:struct_id>",view=StructureRawView.as_view(),name="structure_raw"),
     path("structure_export/<int:struct_id>",view=StructureExportView.as_view(),name="structure_export"),
     path("parameterformview/<str:assembly_name>", view= ParameterFormView, name="parameterformview"),
