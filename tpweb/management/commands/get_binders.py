@@ -9,13 +9,13 @@ from bioseq.models.Bioentry import Bioentry
 import gzip
 from Bio.PDB.MMCIF2Dict import MMCIF2Dict
 from pdbecif.mmcif_io import CifFileReader
-
+import time
 
 class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument('genome')
-        parser.add_argument('tpwebdir')
+        parser.add_argument('--tpwebdir', default="./")
 
     def handle(self, *args, **options):
         def create_biolip_dataframe(tpwebdir):
@@ -74,6 +74,11 @@ class Command(BaseCommand):
                     data = [line.strip().split(' ') for line in locus_tag]
                 custom_headers = ['Uniprot', 'Locustag']
                 df = pd.DataFrame(data, columns=custom_headers)
+                df = df.merge(biolip, how='left', on='Uniprot')
+                df = df.dropna(subset=['Ligand ID'])
+                df = df.drop_duplicates(subset=['Ligand ID'])
+                df = delete_ubiquious(df)
+                df = df[['Uniprot', 'Locustag', 'PDB ID', 'Ligand ID']]
                 return df
 
             except FileNotFoundError:
@@ -84,24 +89,44 @@ class Command(BaseCommand):
                 return None
 
         def delete_ubiquious(df):
-            ubiquious = ['ZN', 'ATP', 'LEU']
+            ubiquious = ['ZN', 'ATP', 'LEU', 'CA', 'PO4', 'MN', 'peptide', 'dna', 'MG', 'FE', 'FE2','HG']
             for compound in ubiquious:
                 df = df[df['Ligand ID'] != compound]
             return df
+
+        def get_binders(df):
+            data = CifFileReader().read(ccd_cif)
+            cif_data = list(data.values())
+            smiles_df = pd.DataFrame(columns=['Ligand ID', 'Name', 'Smiles'])
+            ligands = set(df['Ligand ID'].tolist())
+            for ligand in ligands:
+                for comp in cif_data:
+                    general_info = comp['_chem_comp']
+                    if ligand == general_info['id']:
+                        smiles = comp['_pdbx_chem_comp_descriptor']
+                        canonical_smiles_index = smiles['program'].index('OpenEye OEToolkits')
+                        smiles_df.loc[len(smiles_df)] = [general_info['id'], general_info['name'], smiles['descriptor'][canonical_smiles_index]]
+            df = df.merge(smiles_df, how='left', on='Ligand ID')
+            return df
+
 
         tpwebdir = options['tpwebdir']
         genome = options['genome']
         ss = SeqStore('./data')
         folder_path = ss.db_dir(genome)
+        start_time = time.time()
+        ccd_cif = os.path.abspath(f"{tpwebdir}/biolip/components.cif")
 
         download_databases(tpwebdir)
         biolip = create_biolip_dataframe(tpwebdir)
         locustag = create_locustag_dataframe(tpwebdir, folder_path)
-        locustag = locustag.merge(biolip, how='left', on='Uniprot')
-        locustag = locustag.dropna(subset=['Ligand ID'])
-        locustag = delete_ubiquious(locustag)
-        locustag.to_csv('binders.csv', index=False)
+        binders = get_binders(locustag)   
+        binders.to_csv(f'{folder_path}/binders.csv', index=False)
+        end_time = time.time()
+        execution_time = end_time - start_time
+        print(f"Execution time: {execution_time:.2f} seconds")
 
-        #ccd_cif = os.path.abspath(f"{tpwebdir}/biolip/components.cif")
-        #data = CifFileReader().read(ccd_cif)
-        #print(len(data))
+
+
+
+    

@@ -2,10 +2,9 @@ from django.contrib.auth.models import AbstractUser
 from django.db.models import CharField
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
-from .Ligand import Ligand
-from .Ligand import AccessionLigand, DrugIndex
 from .CelularLocalization import CelularLocalization
 from .CustomParamFile import CustomParam
+from .Binders import Binders
 
 class TPUser(AbstractUser):
     """
