@@ -62,11 +62,15 @@ def run(genome, gram, custom):
 
     load_d = load_score(working_dir=working_dir, genome=genome, inputs=[d_2_csv], param = 'druggability')
     
-    p_run = psort(genome= genome, gram= gram, inputs=[r_stru])
+    p_run = psort(genome= genome, gram= gram, inputs=[load_d])
 
     load_p = load_score(working_dir=working_dir, genome=genome, inputs=[p_run], param = 'psort')
+    
+    get_b = get_binders(working_dir=working_dir, genome=genome, inputs=[load_p])
 
-    return load_p
+    load_b = load_binders(working_dir=working_dir, genome=genome, inputs=[get_b])
+
+    return load_b
 
 if __name__ == "__main__":
     genomes = list()

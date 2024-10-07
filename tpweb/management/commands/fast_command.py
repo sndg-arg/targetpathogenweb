@@ -5,6 +5,7 @@ from django.core.management.base import BaseCommand, CommandError
 from bioseq.io.SeqStore import SeqStore
 from bioseq.models.Bioentry import Bioentry
 from bioseq.models.Taxon import Taxon
+import pandas as pd
 
 class Command(BaseCommand):
     help = '''Takes genome genkbak indentifier, modify the config.py
@@ -44,12 +45,15 @@ class Command(BaseCommand):
         results = sp.run(command, shell=True, capture_output=True, text=True)
         print(results.stdout, results.stderr)
 
-        command = f"cp /app/fasttarget/organism/{name}/tables_for_TP/human_offtarget.tsv {ss.human_offtarget(genome)}"
-        results = sp.run(command, shell=True, capture_output=True, text=True)
+        human = pd.read_csv(f'/app/fasttarget/organism/{name}/tables_for_TP/human_offtarget.tsv', sep='\t')
+        human['human_offtarget'] = human['human_offtarget'].apply(lambda x: 'hit' if x != 'no_hit' else x)
+        human.to_csv(ss.human_offtarget(genome), index=False, sep='\t')
         print(results.stdout, results.stderr)
 
-        command = f"cp /app/fasttarget/organism/{name}/tables_for_TP/gut_microbiome_offtarget.tsv {ss.micro_offtarget(genome)}"
-        results = sp.run(command, shell=True, capture_output=True, text=True)
+
+        micro = pd.read_csv(f'/app/fasttarget/organism/{name}/tables_for_TP/gut_microbiome_offtarget.tsv', sep='\t')
+        micro['gut_microbiome_offtarget'] = micro['gut_microbiome_offtarget'].apply(lambda x: 'hit' if x != 'no_hit' else x)
+        micro.to_csv(ss.micro_offtarget(genome), index=False, sep='\t')
         print(results.stdout, results.stderr)
 
         command = f"cp /app/fasttarget/organism/{name}/tables_for_TP/hit_in_deg.tsv {ss.essenciality(genome)}"

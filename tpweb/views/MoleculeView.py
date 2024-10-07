@@ -5,7 +5,7 @@ from rdkit.Chem.Draw import rdMolDraw2D
 
 class MoleculeView(View):
     def get(self, request):
-        smiles = 'Cc1ccccc1'
+        smiles = 'CC(C)C[C@@H](CO)N'
         try:
             mol = Chem.MolFromSmiles(smiles)
             canvas_width_pixels = 300

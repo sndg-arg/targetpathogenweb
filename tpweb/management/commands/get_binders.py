@@ -15,12 +15,12 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument('genome')
-        parser.add_argument('--tpwebdir', default="./")
+        parser.add_argument('--datadir', default="./")
 
     def handle(self, *args, **options):
-        def create_biolip_dataframe(tpwebdir):
+        def create_biolip_dataframe(datadir):
             try:
-                with gzip.open(os.path.join(tpwebdir, 'biolip', 'BioLiP.txt.gz'), 'rt') as biolip_file:
+                with gzip.open(os.path.join(datadir, 'biolip', 'BioLiP.txt.gz'), 'rt') as biolip_file:
                     data = [line.strip().split('\t') for line in biolip_file]
 
                 custom_headers = ['PDB ID', 'Receptor chain', 'Resolution', 'Binding site number code', 'Ligand ID', 'Ligand chain', 'Ligand serial numbera', 'Binding site residues (with PDB residue numbering)', 'Binding site residues (with residue re-numbered starting from 1)', 'Catalytic site residues (with PDB residue numbering)', 'Catalytic site residues (with residue re-numbered starting from 1)', 'EC number', 'GO terms', 'Binding affinity by manual survey of the original literature', 'Binding affinity provided by the Binding MOAD database', 'Binding affinity provided by the PDBbind-CN database.', 'Binding affinity provided by the BindingDB database', 'Uniprot', 'PubMed ID', 'Residue sequence number of the ligand', 'Receptor sequence']
@@ -28,18 +28,18 @@ class Command(BaseCommand):
                 return df
 
             except FileNotFoundError:
-                print(f"The file {os.path.join(tpwebdir, 'biolip', 'BioLiP.txt.gz')} was not found.")
+                print(f"The file {os.path.join(datadir, 'biolip', 'BioLiP.txt.gz')} was not found.")
                 return None
             except Exception as e:
                 print(f"An error occurred: {str(e)}")
                 return None
 
-        def download_databases(tpwebdir):
-            if not os.path.exists(f'{tpwebdir}/biolip'):
+        def download_databases(datadir):
+            if not os.path.exists(f'{datadir}/biolip'):
                 print('Biolip folder does not exist, creating one...')
-                os.makedirs(f'{tpwebdir}/biolip')
+                os.makedirs(f'{datadir}/biolip')
                 url = "https://zhanggroup.org/BioLiP/download/BioLiP.txt.gz"
-                output_filename = f"{tpwebdir}/biolip/BioLiP.txt.gz"
+                output_filename = f"{datadir}/biolip/BioLiP.txt.gz"
                 curl_command = ["curl", "-L", "-o", output_filename, url]
 
                 try:
@@ -54,7 +54,7 @@ class Command(BaseCommand):
                     print(f"An error occurred while trying to download the file: {str(e)}")
 
                 url = "https://files.wwpdb.org/pub/pdb/data/monomers/components.cif"
-                output_filename = f"{tpwebdir}/biolip/components.cif"
+                output_filename = f"{datadir}/biolip/components.cif"
                 curl_command = ["curl", "-L", "-o", output_filename, url]
 
                 try:
@@ -68,7 +68,7 @@ class Command(BaseCommand):
                 except Exception as e:
                     print(f"An error occurred while trying to download the file: {str(e)}")
 
-        def create_locustag_dataframe(tpwebdir, folder_path):
+        def create_locustag_dataframe(datadir, folder_path):
             try:
                 with open(os.path.join(folder_path, genome + '_unips.lst'), 'r') as locus_tag:
                     data = [line.strip().split(' ') for line in locus_tag]
@@ -110,16 +110,16 @@ class Command(BaseCommand):
             return df
 
 
-        tpwebdir = options['tpwebdir']
+        datadir = options['datadir']
         genome = options['genome']
-        ss = SeqStore('./data')
+        ss = SeqStore(datadir)
         folder_path = ss.db_dir(genome)
         start_time = time.time()
-        ccd_cif = os.path.abspath(f"{tpwebdir}/biolip/components.cif")
+        ccd_cif = os.path.abspath(f"{datadir}/biolip/components.cif")
 
-        download_databases(tpwebdir)
-        biolip = create_biolip_dataframe(tpwebdir)
-        locustag = create_locustag_dataframe(tpwebdir, folder_path)
+        download_databases(datadir)
+        biolip = create_biolip_dataframe(datadir)
+        locustag = create_locustag_dataframe(datadir, folder_path)
         binders = get_binders(locustag)   
         binders.to_csv(f'{folder_path}/binders.csv', index=False)
         end_time = time.time()

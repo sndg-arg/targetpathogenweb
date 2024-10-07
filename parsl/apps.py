@@ -253,5 +253,16 @@ def load_score(genome, working_dir, param, inputs=[], stderr=parsl.AUTO_LOGNAME,
 def fasttarget(genome, working_dir, folder_path, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME, **kwargs):
     return f"python {working_dir}/manage.py fast_command {genome} {folder_path} --datadir ../data"
 
+@bash_app(executors=["local_executor"])
+def get_binders(working_dir, genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
+    import os
+    return f"python {working_dir}/manage.py get_binders {genome} --datadir ../data"
+
+@bash_app(executors=["local_executor"])
+def load_binders(working_dir, genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
+    import os
+    return f"python {working_dir}/manage.py load_binders {genome} --datadir ../data"
+
+
 
 

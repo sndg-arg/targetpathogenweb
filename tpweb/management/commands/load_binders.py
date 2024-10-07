@@ -21,6 +21,10 @@ class Command(BaseCommand):
         genome_folder = ss.db_dir(options['accession'])
         binders_path = os.path.abspath(f'{genome_folder}/binders.csv')
         df = pd.read_csv(binders_path)
-        print(df)
+        locustags = df['Locustag'].unique()
+        bioentrys = Bioentry.objects.filter(accession__in=locustags)
+
         for index, row in tqdm(df.iterrows(), total=len(df)):
-            Binders.objects.create(ccd_id=row['Ligand ID'], pdb_id=row['PDB ID'], uniprot=row['Uniprot'], locustag=row['Locustag'], smiles=row['Smiles'])
+            for bioentry in bioentrys:
+                if bioentry.accession == row['Locustag']:
+                    Binders.objects.get_or_create(ccd_id=row['Ligand ID'], pdb_id=row['PDB ID'], uniprot=row['Uniprot'], locustag=bioentry, smiles=row['Smiles'])
