@@ -10,6 +10,12 @@
 
 
     <h1>{{ protein.accession }}</h1>
+        {% for svg in svgs %}
+        <svg xmlns="http://www.w3.org/2000/svg" width="300" height="300">
+            {{ svg|safe }}
+        </svg>
+        {% endfor %}
+
     <table class="table table-striped">
 
         <tbody>
