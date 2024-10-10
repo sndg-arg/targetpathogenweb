@@ -4,6 +4,7 @@ from config import *
 from apps import *
 import argparse
 import sys
+import time
 
 @join_app
 def run(genome, gram, custom):
@@ -73,6 +74,7 @@ def run(genome, gram, custom):
     return load_b
 
 if __name__ == "__main__":
+    start = time.time()
     genomes = list()
     parser = argparse.ArgumentParser()
     parser.add_argument('genomes', help="List of NCBI genomes accession numbers separated with new lines",
@@ -106,3 +108,6 @@ if __name__ == "__main__":
         results.append(r)
     for r in results:
         r.result()
+    end = time.time()
+    runtime = end - start
+    print(runtime)

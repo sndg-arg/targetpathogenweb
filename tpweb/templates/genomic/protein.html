@@ -8,14 +8,31 @@
 
 {% block body %}
 
+    <style>
+      .card-container {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 20px;
+        padding: 20px;
+      }
+
+      .card {
+        width: 300px; /* Adjust as needed */
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      svg {
+        width: 100%;
+        height: 250px;
+      }
+
+      .card-body {
+        padding: 15px;
+      }
+    </style>
 
     <h1>{{ protein.accession }}</h1>
-        {% for svg in svgs %}
-        <svg xmlns="http://www.w3.org/2000/svg" width="300" height="300">
-            {{ svg|safe }}
-        </svg>
-        {% endfor %}
-
     <table class="table table-striped">
 
         <tbody>
@@ -204,6 +221,22 @@
     {% endif %}
 
     <div id="msaDiv"></div>
+
+    
+    <h2>{% trans 'Binders' %}</h2>
+
+    <div class="card-container">
+      {% for binder in binders.values %}
+        <div class="card text-center">
+          <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+            {{ binder.svg|safe }}
+          </svg>
+          <div class="card-body">
+            <h5 class="card-title"> {{ binder.name }} </h5>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
 
 {% endblock %}
 

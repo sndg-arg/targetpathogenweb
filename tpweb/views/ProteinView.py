@@ -69,23 +69,29 @@ def serialize_prot(protein: Bioentry):
     ]
     return protein2, features, annotations, graphic_features
 
-def make_svg(smiles_list):
-    svg = []
-    for smile in smiles_list:
+def create_binders_dict(protein):
+
+    def make_svg(smile):
         mol = Chem.MolFromSmiles(smile)
         canvas_width_pixels = 300
         canvas_height_pixels = 300
-        
         drawer = rdMolDraw2D.MolDraw2DSVG(canvas_width_pixels, canvas_height_pixels)
         drawer.DrawMolecule(mol)
         drawer.FinishDrawing()
-        
         svg_data = drawer.GetDrawingText()
-        svg.append(svg_data)
-    return svg
+        return svg_data
 
-        
 
+    binders = Binders.objects.filter(locustag=protein)
+    smiles_dict = {}
+    for binder in binders:
+        id = binder.id
+        name = binder.ccd_id
+        pdb = binder.pdb_id
+        smiles = binder.smiles
+        svg = make_svg(smiles)
+        smiles_dict[id] = {'name': name, 'pdb': pdb, 'smiles': smiles, 'svg': svg}
+    return smiles_dict
 
 class ProteinView(View):
     template_name = 'genomic/protein.html'
@@ -101,15 +107,14 @@ class ProteinView(View):
                            "structures__pdb__residue_sets__properties__property").get()
         proteinDTO, features, annotations, graphic_features = serialize_prot(protein)
         structures = protein.structures.prefetch_related("pdb__residues").all()
-        binders = Binders.objects.filter(locustag=protein)
-        smiles = [binder.smiles for binder in binders]
-        svgs = make_svg(smiles)
+        binders = create_binders_dict(protein)
+        sys.stderr.write(str(binders))
 
         dto = {"protein": proteinDTO,
                "features": features,
                "annotations": annotations,
                "graphic_features": graphic_features,
-               "svgs": svgs}
+               "binders": binders}
         if structures:
             structure = structures[0].pdb
             dto["structure"] = pdb_structure(structure,graphic_features)
