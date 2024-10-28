@@ -1,11 +1,13 @@
 import os
 import yaml
 import subprocess as sp
+import gzip
 from django.core.management.base import BaseCommand, CommandError
 from bioseq.io.SeqStore import SeqStore
 from bioseq.models.Bioentry import Bioentry
 from bioseq.models.Taxon import Taxon
 import pandas as pd
+import shutil
 
 class Command(BaseCommand):
     help = '''Takes genome genkbak indentifier, modify the config.py
@@ -22,12 +24,17 @@ class Command(BaseCommand):
         folder_path = options['folder_path']
         datadir = options['datadir']
         gbk_path = os.path.join(folder_path, f"{genome}.gbk")
+        gbk_path_gz = os.path.join(folder_path, f"{genome}.gbk.gz")
         taxon = Taxon.objects.filter(bioentry__identifier=genome)[0]
         name = taxon.scientificName.split()[0]
         taxon_id = taxon.ncbi_taxon_id
         input_filename = "/app/fasttarget/config.yml"
         ss = SeqStore(datadir)
-        
+
+        if not os.path.exists(gbk_path):
+            with gzip.open(gbk_path_gz, 'rb') as f_in:
+                with open(gbk_path, 'wb') as f_out:
+                    shutil.copyfileobj(f_in, f_out)
 
         with open(input_filename, 'r') as file:
             config = yaml.safe_load(file)

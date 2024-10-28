@@ -233,6 +233,8 @@
           </svg>
           <div class="card-body">
             <h5 class="card-title"> {{ binder.name }} </h5>
+            <a href="https://www.rcsb.org/ligand/{{binder.name}}" class="card-link">PDB Ligand</a>
+            <a href="https://www.rcsb.org/structure/{{binder.pdb}}" class="card-link">PDB Cristal</a>
           </div>
         </div>
       {% endfor %}
