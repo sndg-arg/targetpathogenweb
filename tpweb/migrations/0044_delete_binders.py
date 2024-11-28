@@ -8,17 +8,3 @@ class Migration(migrations.Migration):
     dependencies = [
         ('tpweb', '0043_binders_remove_drugindex_locus_tag_and_more'),
     ]
-
-    operations = [
-        migrations.CreateModel(
-            name='Binders',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('ccd_id', models.CharField(max_length=255)),
-                ('pdb_id', models.CharField(max_length=255)),
-                ('uniprot', models.CharField(max_length=255)),
-                ('locustag', models.CharField(max_length=255)),
-                ('smiles', models.CharField(max_length=255)),
-            ],
-        ),
-    ]
