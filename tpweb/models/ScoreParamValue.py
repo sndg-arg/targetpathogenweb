@@ -12,7 +12,7 @@ class ScoreParamValue(models.Model):
     bioentry = models.ForeignKey(Bioentry, related_name='score_params',
                                  on_delete=models.CASCADE)
 
-    value = CharField(blank=True, default="")
+    value = CharField(max_length=255, blank=True, default="")
     numeric_value = FloatField(null=True, blank=True)
 
     class Meta:

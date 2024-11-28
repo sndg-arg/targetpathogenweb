@@ -68,7 +68,7 @@ class ScoreFormulaParam(models.Model):
                                 on_delete=models.CASCADE)
     score_param = models.ForeignKey(ScoreParam, on_delete=models.PROTECT)
 
-    value = CharField(blank=True, default="")
+    value = CharField(max_length=255, blank=True, default="")
 
     operation = CharField(max_length=50, blank=False)
     coefficient = FloatField(null=False, blank=False)
