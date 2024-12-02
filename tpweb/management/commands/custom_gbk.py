@@ -50,5 +50,7 @@ class Command(BaseCommand):
         gbio = GenebankIO(tmp_file)
         gbio.init()
         ss.create_idx_dir(gbio.accession)
+        print(tmp_file)
+        print(ss.gbk(gbio.accession))
         shutil.copy(tmp_file, ss.gbk(gbio.accession))
         self.stderr.write("genome imported!")
