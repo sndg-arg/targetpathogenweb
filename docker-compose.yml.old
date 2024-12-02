@@ -1,5 +1,4 @@
-version: "3.8"
-
+version: '3.8'
 networks:
   web:
     external: true
@@ -25,7 +24,7 @@ services:
       - 'traefik.enable=true'
       - 'traefik.docker.network=web'
       - 'traefik.http.routers.db_target2_nodo0.entrypoints=websecure'
-      - "traefik.http.routers.db_target2_nodo0.rule=Host(`db_target2_nodo0.cluster.qb.fcen.uba.ar`)"
+      - "traefik.http.routers.db_target2_nodo0.rule=Host(db_target2_nodo0.cluster.qb.fcen.uba.ar)"
       - "traefik.http.routers.db_target2_nodo0.tls=true"
       - "traefik.http.routers.db_target2_nodo0.tls.certresolver=leresolver"
       - "traefik.http.middlewares.https_redirect.redirectscheme.scheme=https"
@@ -35,34 +34,36 @@ services:
     container_name: target2_nodo0
     image: target:conded
     deploy:
-      resources:
-        limits:
-          cpus: '0.5'
-          memory: 512M
+       resources:
+          limits:
+             cpus: '0.5'
+             memory: 512M
     networks:
       - web
+    expose: [8080]
     command: /bin/sh -c "chmod +x start.sh && ./start.sh"
     working_dir: /app/targetpathogenweb
     volumes:
-      - /home/dockeradmin/targetpathogenweb:/app/targetpathogenweb
+      - /home/dockeradmin/targetpathogenweb:/app/targetpathogenweb 
       - /var/run/docker.sock:/var/run/docker.sock
+        #      - ${SSH_AUTH_SOCK}:/ssh-agent
       - /tmp:/tmp
     ports:
-      - "8085:8000"
+      - "8000:8000"
     environment:
       - DJANGO_DATABASE_NAME=tp
       - DJANGO_DATABASE_USER=postgres
-      - DJANGO_DATABASE_URL=postgres://postgres:123@db:5432/tp
+      - DJANGO_DATABASE_URL=DJANGO_DATABASE_URL=postgres://postgres:123@db:5432/tp
       - DJANGO_DATABASE_PASSWORD=123
-      - DJANGO_ALLOWED_HOSTS=localhost,0.0.0.0,127.0.0.1,targettestv2_test.cluster.qb.fcen.uba.ar
       - PYTHONPATH=$PYTHONPATH:../sndgjobs:../sndgbiodb:../targetpathogen:../sndg-bio:../target
     restart: always
     labels:
       - 'traefik.enable=true'
-      - 'traefik.docker.network=web'
+      - 'traefik.docker.network=target2_nodo0'
       - 'traefik.http.routers.target2_nodo0.entrypoints=websecure'
-      - "traefik.http.routers.target2_nodo0.rule=Host(`target2.sbg.qb.fcen.uba.ar`)"
+      - "traefik.http.routers.target2_nodo0.rule=Host(target2.sbg.qb.fcen.uba.ar)"
       - "traefik.http.routers.target2_nodo0.tls=true"
       - "traefik.http.routers.target2_nodo0.tls.certresolver=leresolver"
       - "traefik.http.middlewares.https_redirect.redirectscheme.scheme=https"
       - "traefik.http.middlewares.https_redirect.redirectscheme.permanent=true"
+

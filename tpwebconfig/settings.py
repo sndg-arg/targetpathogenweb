@@ -31,7 +31,7 @@ DEBUG = env.bool("DJANGO_DEBUG", True)
 DBTASK = any([x in sys.argv[1:] for x in ["makemigrations", "migrate", "createsuperuser", "shell_plus"]])
 WORKERPROC = sys.argv[0].endswith("celery")
 
-ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=["localhost", "0.0.0.0", "127.0.0.1"])
+ALLOWED_HOSTS = ["localhost", "0.0.0.0", "127.0.0.1","nodo0","targettestv2.cluster.qb.fcen.uba.ar"]
 CSRF_TRUSTED_ORIGINS = env.list("DJANGO_CSRF_TRUSTED_ORIGINS", default=["https://" + x for x in ALLOWED_HOSTS])
 # Application definition
 
@@ -113,7 +113,14 @@ SITE_ID = 1
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
 DATABASES = {
-    'default': env.db("DJANGO_DATABASE_URL")
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'tp',
+        'USER': 'postgres',
+        'PASSWORD': '123',
+        'HOST': 'db',
+        'PORT': '5432',
+    }
 }
 
 # Password validation
