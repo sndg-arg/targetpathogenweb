@@ -26,7 +26,7 @@ class Command(BaseCommand):
         gbk_path = os.path.join(folder_path, f"{genome}.gbk")
         gbk_path_gz = os.path.join(folder_path, f"{genome}.gbk.gz")
         taxon = Taxon.objects.filter(bioentry__identifier=genome)[0]
-        name = taxon.scientificName.split()[0]
+        name = options['genome']
         taxon_id = taxon.ncbi_taxon_id
         input_filename = "/app/fasttarget/config.yml"
         ss = SeqStore(datadir)

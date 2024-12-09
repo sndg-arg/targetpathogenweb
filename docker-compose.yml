@@ -45,6 +45,8 @@ services:
     working_dir: /app/targetpathogenweb
     volumes:
       - /home/dockeradmin/targetpathogenweb:/app/targetpathogenweb
+      - /home/dockeradmin/fasttarget:/app/fasttarget
+      - ${SSH_AUTH_SOCK}:/ssh-agent
       - /var/run/docker.sock:/var/run/docker.sock
       - /tmp:/tmp
     ports:
@@ -56,6 +58,8 @@ services:
       - DJANGO_DATABASE_PASSWORD=123
       - DJANGO_ALLOWED_HOSTS=localhost,0.0.0.0,127.0.0.1,targettestv2_test.cluster.qb.fcen.uba.ar
       - PYTHONPATH=$PYTHONPATH:../sndgjobs:../sndgbiodb:../targetpathogen:../sndg-bio:../target
+      - SSH_AUTH_SOCK=/ssh-agent
+      - CWD=${PWD}
     restart: always
     labels:
       - 'traefik.enable=true'
