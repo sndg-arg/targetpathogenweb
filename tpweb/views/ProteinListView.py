@@ -76,6 +76,7 @@ class ProteinListView(View):
         grouped_parameters = group_by_score_param(selected_parameters)
 
         if selected_parameters:
+
             parameter_dict = {}
             for parameter in selected_parameters:
                 score_param = parameter.get('score_param_id')
@@ -85,11 +86,11 @@ class ProteinListView(View):
                 else:
                     parameter_dict[score_param].append(score_name)
             for p in parameter_dict:
-                proteins = proteins.filter(
-                        Q(score_params__id=p) |
-                        Q(score_params__value__in=parameter_dict[p])
-                        )
 
+                print(p, flush=True)
+                for p in parameter_dict:
+                    proteins = proteins.filter(
+                        Q(score_params__score_param_id=p) & Q(score_params__value__in=parameter_dict[p]))
         if search_query:
             proteins = proteins.filter(
                 Q(accession__icontains=search_query) |
