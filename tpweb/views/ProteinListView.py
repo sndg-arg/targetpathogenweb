@@ -84,11 +84,9 @@ class ProteinListView(View):
                     parameter_dict[score_param] = [score_name]
                 else:
                     parameter_dict[score_param].append(score_name)
-            for p in parameter_dict:
-                proteins = proteins.filter(
-                        Q(score_params__id=p) |
-                        Q(score_params__value__in=parameter_dict[p])
-                        )
+                for p in parameter_dict:
+                    proteins = proteins.filter(
+                    Q(score_params__score_param_id=p) & Q(score_params__value__in=parameter_dict[p]))
 
         if search_query:
             proteins = proteins.filter(
