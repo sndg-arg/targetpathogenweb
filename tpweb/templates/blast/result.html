@@ -3,16 +3,71 @@
 {% load custom_tags %}
 
 {% block body %}
+    <style>
+        .blast-result-wrap {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            gap: 12px;
+        }
 
+        .blast-result-hero {
+            border: 1px solid #d7e6ed;
+            border-radius: 18px;
+            background:
+                radial-gradient(760px 220px at 0% 0%, #dff4f4 0%, transparent 56%),
+                radial-gradient(740px 220px at 100% 0%, #eaf6e4 0%, transparent 55%),
+                #f9fcfe;
+            padding: 18px;
+        }
 
-<h1>{% trans "Blastinson" %}</h1>
-<body>
-    <h3>Resultado del Blastinsong</h3>
-    <p>{{ result }}</p>
-</body>
+        .blast-result-hero p {
+            margin: 8px 0 0;
+            color: var(--tp-muted);
+        }
 
+        .blast-result-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .blast-result-head h1 {
+            margin: 0;
+            font-size: clamp(1.8rem, 2.6vw, 2.4rem);
+        }
+
+        .blast-pre {
+            margin: 0;
+            max-height: 70vh;
+            overflow: auto;
+            border: 1px solid #d6e3ec;
+            border-radius: 12px;
+            background: #f9fcff;
+            padding: 14px;
+            white-space: pre;
+            font-size: 0.86rem;
+            line-height: 1.45;
+            font-family: "JetBrains Mono", "Fira Code", monospace;
+        }
+    </style>
+
+    <div class="blast-result-wrap">
+        <section class="blast-result-hero">
+            <h1 class="mb-1">{% trans "BLAST Results" %}</h1>
+            <p>{% trans "Raw alignment report for the submitted query." %}</p>
+        </section>
+        <section class="tp-card">
+            <div class="blast-result-head">
+                <h2 class="mb-0">{% trans "Alignment output" %}</h2>
+                <a class="btn btn-outline-secondary" href="{% url 'tpwebapp:form' %}">{% trans "Run another search" %}</a>
+            </div>
+            <pre class="blast-pre">{{ result }}</pre>
+        </section>
+    </div>
 {% endblock %}
-
 
 {% block footer %}
 {% endblock %}

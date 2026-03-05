@@ -1,11 +1,19 @@
 # Created by https://www.toptal.com/developers/gitignore/api/python,django,eclipse,intellij+iml,web,visualstudiocode,pythonvanilla,jupyternotebooks
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,django,eclipse,intellij+iml,web,visualstudiocode,pythonvanilla,jupyternotebooks
 
+.DS_Store
+fasttarget_mac/
 .npm
 js/bundle.js
 js/node_modules/
 js/package-lock.json
 static
+!static/
+static/*
+!static/css/
+static/css/*
+!static/css/pages/
+!static/css/pages/*.css
 dbs
 
 

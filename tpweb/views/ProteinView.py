@@ -1,5 +1,4 @@
 from django.shortcuts import render
-import sys
 from django.views import View
 from rdkit import Chem
 from rdkit.Chem.Draw import rdMolDraw2D
@@ -11,6 +10,10 @@ from bioseq.models.Bioentry import Bioentry
 from tpweb.models.Binders import Binders
 from bioseq.models.Ontology import Ontology
 from .StructureView import pdb_structure
+from tpweb.services.pipeline_status import (
+    annotate_pipeline_status_for_genome,
+    get_pipeline_status,
+)
 
 
 
@@ -108,13 +111,15 @@ class ProteinView(View):
         proteinDTO, features, annotations, graphic_features = serialize_prot(protein)
         structures = protein.structures.prefetch_related("pdb__residues").all()
         binders = create_binders_dict(protein)
-        sys.stderr.write(str(binders))
 
         dto = {"protein": proteinDTO,
                "features": features,
                "annotations": annotations,
                "graphic_features": graphic_features,
-               "binders": binders}
+               "binders": binders,
+               "pipeline_status": annotate_pipeline_status_for_genome(
+                   get_pipeline_status(), proteinDTO["assembly_name"]
+               )}
         if structures:
             structure = structures[0].pdb
             dto["structure"] = pdb_structure(structure,graphic_features)
@@ -126,5 +131,3 @@ class ProteinView(View):
 
 
         return render(request, self.template_name, dto)
-
-

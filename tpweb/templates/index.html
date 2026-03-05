@@ -1,44 +1,89 @@
 {% extends './base/masterpage.html' %}
 {% load i18n %}
-{% block body %}
+{% load static %}
 
-
-
-        <form action="{% url 'tpwebapp:index' %}" method="post">
-
-            <div class="input-group mb-3">
-                <input type="search" class="form-control" id="searchTxt"
-                       placeholder="{% trans 'genoma, proteina, proyecto, accession ...' %}"
-                       aria-label="{% trans 'buscador' %}" aria-describedby="button-addon2">
-                <select class="form-select btn-outline-secondary" id="searchDB"
-                        aria-label="searchDB field">
-                    <option selected>{% trans "Elegir: "%} </option>
-                    <option value="1">One</option>
-                    <option value="2">Two</option>
-                    <option value="3">Three</option>
-                </select>
-                <button class="btn btn-outline-secondary" type="button" id="button-addon2">{% trans "Buscar" %}</button>
-
-            </div>
-            <div id="searchHelp" class="form-text">{% trans "Ejemplo: "%}
-                <a href="#" onclick="$('#searchTxt').val(' tuberculosis')"> tuberculosis</a>
-                <a href="#" onclick="$('#searchTxt').val(' ino1')"> ino1</a>
-                <a href="#" onclick="$('#searchTxt').val(' cancer')"> cancer</a>
-
-            </div>
-        </form>
-
-
-<div>
-    <!-- Aquí mostramos el contenido HTML del modelo -->
-    {% autoescape off %}
-    {{ post.content|safe }}
-    {% endautoescape %}
-</div>
-
-
+{% block head %}
+    <link rel="stylesheet" href="{% static 'css/pages/home.css' %}">
 {% endblock %}
 
+{% block body %}
+
+    <div class="home-page">
+        <section class="home-hero">
+            <div>
+                <h1>{% trans "Target Pathogen" %}</h1>
+                <p>{% trans "Bioinformatics workspace for pathogen genomics and proteomics: prioritize targets, inspect annotations and structures, and support drug-discovery analysis." %}</p>
+                <div class="home-hero-actions">
+                    <a class="btn btn-primary" href="{% url 'tpwebapp:genomes_list' %}">{% trans "Open Genomes" %}</a>
+                    <a class="btn btn-outline-info" href="{% url 'tpwebapp:form' %}">{% trans "Run BLAST" %}</a>
+                </div>
+            </div>
+            <div class="home-stats">
+                <article class="home-stat">
+                    <p class="home-stat-label">{% trans "Genomes" %}</p>
+                    <p class="home-stat-value">{{ total_genomes }}</p>
+                </article>
+                <article class="home-stat">
+                    <p class="home-stat-label">{% trans "Proteins" %}</p>
+                    <p class="home-stat-value">{{ total_proteins }}</p>
+                </article>
+                <article class="home-stat">
+                    <p class="home-stat-label">{% trans "With Structures" %}</p>
+                    <p class="home-stat-value">{{ genomes_with_structures }}</p>
+                </article>
+            </div>
+        </section>
+
+        <section class="home-grid">
+            <section class="home-status {% if pipeline_status.available and not pipeline_status.running and pipeline_status.stage_current and pipeline_status.stage_current == pipeline_status.stage_total and pipeline_status.state_class == 'finished' %}pipeline-finished{% endif %}">
+                <div class="home-status-head">
+                    <h2>{% trans "Bioinformatics Pipeline Status" %}</h2>
+                    <span class="pipeline-state tp-state-chip {{ pipeline_status.state_class }}">{{ pipeline_status.state_label }}</span>
+                </div>
+                {% if pipeline_status.available %}
+                    {% if pipeline_status.stage_current %}
+                        {% if not pipeline_status.running and pipeline_status.stage_current == pipeline_status.stage_total and pipeline_status.state_class == "finished" %}
+                            <p class="pipeline-stage pipeline-stage-complete">
+                                {% trans "Pipeline completed successfully" %} · {% trans "Bioinformatics stage" %} <strong>{{ pipeline_status.stage_current }} / {{ pipeline_status.stage_total }}</strong>
+                            </p>
+                        {% else %}
+                            <p class="pipeline-stage">
+                                {% trans "Bioinformatics stage" %} <strong>{{ pipeline_status.stage_current }} / {{ pipeline_status.stage_total }}</strong>
+                                {% if pipeline_status.stage_label %}· {{ pipeline_status.stage_label }}{% endif %}
+                                {% if pipeline_status.activity_label and pipeline_status.running %}· {{ pipeline_status.activity_label }}{% endif %}
+                            </p>
+                        {% endif %}
+                        <div class="pipeline-track {% if not pipeline_status.running and pipeline_status.stage_current == pipeline_status.stage_total and pipeline_status.state_class == 'finished' %}is-complete{% endif %}" aria-hidden="true">
+                            <div class="pipeline-fill {% if not pipeline_status.running and pipeline_status.stage_current == pipeline_status.stage_total and pipeline_status.state_class == 'finished' %}is-complete{% endif %}" style="width: {% if not pipeline_status.running and pipeline_status.stage_current == pipeline_status.stage_total and pipeline_status.state_class == 'finished' %}100{% else %}{{ pipeline_status.progress_percent }}{% endif %}%;"></div>
+                        </div>
+                    {% else %}
+                        <p class="pipeline-stage">{% trans "Pipeline information is available, but stage details are not yet detected." %}</p>
+                    {% endif %}
+                    <p class="pipeline-meta">
+                        {% if pipeline_status.genome_accession %}
+                            {% trans "Genome" %} <code>{{ pipeline_status.genome_accession }}</code> ·
+                        {% endif %}
+                        {% trans "Run" %} <code>{{ pipeline_status.run_id|default:"-" }}</code>
+                        {% if pipeline_status.last_updated %}· {% trans "Updated" %} {{ pipeline_status.last_updated }}{% endif %}
+                    </p>
+                {% else %}
+                    <p class="pipeline-stage">{% trans "No runs were detected yet. Launch a pipeline to see live progress here." %}</p>
+                {% endif %}
+            </section>
+        </section>
+
+        <section class="home-post">
+            {% if has_project_notes %}
+                <h2>{% trans "Project Notes" %}</h2>
+                {% autoescape off %}
+                    {{ post.content|safe }}
+                {% endautoescape %}
+            {% else %}
+                <p class="home-empty-note">{% trans "No project notes were configured yet. You can add curated content from the admin panel." %}</p>
+            {% endif %}
+        </section>
+    </div>
+{% endblock %}
 
 {% block footer %}
 {% endblock %}

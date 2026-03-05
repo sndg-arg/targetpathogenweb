@@ -1,255 +1,594 @@
 {% extends '../base/masterpage.html' %}
 {% load i18n %}
 {% load custom_tags %}
+{% load static %}
 
-<script src="https://unpkg.com/htmx.org@1.9.2"></script>
+{% block head %}
+    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}">
+{% endblock %}
+
 {% block body %}
 
-    <style>
-        .max-width-column {
-            max-width: 100px; /* Ajusta este valor según tus necesidades */
-            overflow: hidden;
-            text-overflow: ellipsis; /* Opcional: Agrega puntos suspensivos al final del contenido desbordado */
-            white-space: nowrap;
-        }
-        .search-controls-container {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        }
-        .parameter-table {
-        width: 15%;
-        margin-right: 10px;
-        margin-top: 25px;
-        }
-        .protein-table {
-        flex-grow: 1;
-        margin-top: 25px;
-        }
-        .formula-block {
-        display: block; /* Ensures the div acts as a block */
-        margin-top: 20px; /* Adds some space above the block */
-        }
-        .filter-form.search-and-filters {
-        display: flex;
-        align-items: center;
-        gap: 10px; /* Adjust the gap between the search bar and checkboxes as needed */
-        }
-        .tables-container {
-            display: flex;
-            justify-content: space-between;
-        }
-        .styled-select {
-            width: 120px; /* Adjust based on your needs */
-            height: 40px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-            padding: 10px;
-            font-size: 14px;
-            text-align: center;
-            text-align-last: center;
-            -moz-text-align-last: center;
-        }
-        .filter-form.checkbox-group {
-        display: flex;
-        gap: 10px; /* Adjust the gap between checkboxes as needed */
-        }
-        .centered-text {
-            display: block;
-            margin-left: auto;
-            margin-right: auto;
-            width: 1000px; /* Adjusts the width to fit the content */
-            word-wrap: break-word; /* Ensures words break and wrap */
-            text-align: center; /* Centers the text */
-
-        }
-        .search-form {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
-            max-width: 500px;
-            margin: 0 auto;
-        }
-
-
-/* Optional: Style individual checkboxes for better alignment */
-        .filter-form.checkbox-group div {
-            display: flex;
-            align-items: center;
-            gap: 5px; /* Adjust the gap between the checkbox and label as needed */
-        }
-            </style>
-
-
-<h1>{% trans "Proteins" %} ({{ biodb__name }})</h1>
-
-<div class="search-controls-container">
-<form method="GET" action="" class="search-form">
-    <input type="text" name="search" placeholder="Search proteins..." value="{{ request.GET.search }}">
-    <button type="submit">Search</button>
-</form>
-<div class="btn-group" role="group">
-    <a href="{% url 'tpwebapp:parameterformview' assembly_name=assembly_name %}" class="btn btn-primary mr-2 ml-5">Filter</a>
-    <form method="POST" action="{% url 'tpwebapp:reset_filters' assembly_name %}">
-        {% csrf_token %}
-        <input type="submit" class="btn btn-danger" value="Reset Filters">
-    </form>
-    <a href="{% url 'tpwebapp:customparam' assembly_name=assembly_name %}" class="btn btn-success mr-2 ml-2">Add</a>
-</div>
-
-<div>
-    <span class="centered-text" style="font-weight: bold;">{{ current_formula }}</span>
-</div>
-
-<div class="btn-group", role="group">
-    {% if formulas %}
-        <select id="score_formula_select" class="styled-select">
-        {% for f in formulas %}
-            <option value="{{ f.name }}"
-            {% if f.name == formula.name %}
-                selected="selected"
+    <div class="proteins-page">
+        <section class="proteins-hero">
+            <div class="hero-top">
+                <div>
+                    <h1>{% trans "Proteins" %}</h1>
+                    <p class="hero-context"><strong>{% trans "Genome" %}:</strong> <span class="hero-context-id">{{ biodb_accession }}</span></p>
+                    {% if biodb_description and biodb_description != biodb_accession %}
+                        <p class="hero-context-note"><strong>{% trans "Description" %}:</strong> {{ biodb_description }}</p>
                     {% endif %}
-            > {{ f.name }} </option>
-        {% endfor %}
-        </select>
-        <button class="btn-success ml-3" onclick="window.location='?scoreformula=' + $('#score_formula_select').val()">{% trans 'Change' %}</button>
-        <br />
-    {% endif %}
+                    <p class="hero-subtitle">{% trans "Search, filter, and prioritize proteins." %}</p>
+                </div>
+            </div>
+            <div class="hero-chips">
+                <span class="hero-chip">{{ pagination.proteins.paginator.count }} {% trans "proteins" %}</span>
+                <span class="hero-chip">{% trans "Active filters" %}: {{ parameters|length }}</span>
+                <span class="hero-chip">{% trans "Rows per page" %}: {{ page_size }}</span>
+                {% include "components/pipeline/chip.html" with pipeline_status=pipeline_status mode="genome" chip_class="hero-chip pipeline-chip" %}
+            </div>
+            {% include "components/pipeline/note.html" with pipeline_status=pipeline_status mode="genome" note_class="hero-pipeline-note" %}
+        </section>
 
-    <a href="{% url 'tpwebapp:formula_form' assembly_name=assembly_name %}" class="btn btn-primary mr-2 ml-2">+Add</a>
-</div>
-</div>
-<div class="tables-container">
-    {% if parameters %}
-    <div class="parameter-table">
-    <table id="proteins_table"  class="table table-striped table-sm">
-        <thead>
-        <tr>
-          <th scope="col">Parameter</th>
-          <th scope="col">Value</th>
-        </tr>
-        </thead>
-        <tbody>
-            {% for parameter in grouped_parameters.items %}
-                <tr>
-                    <th scope="row">{{ parameter.0 }}</th>
-                    <td>{{ parameter.1 }}</td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+        <section class="toolbar-card">
+            <div class="toolbar-row">
+                <form method="GET" action="{{ request.path }}" class="search-form" id="protein-search-form">
+                    {% if request.GET.scoreformula %}
+                        <input type="hidden" name="scoreformula" value="{{ request.GET.scoreformula }}">
+                    {% endif %}
+                    <div id="protein-search-autocomplete" class="search-autocomplete" data-suggest-url="{% url 'tpwebapp:protein_search_suggestions' assembly_name=assembly_name %}">
+                        <input id="protein-search-input" type="text" class="form-control search-input" name="search" placeholder="{% trans "Search by accession or description..." %}" value="{{ search_query }}" autocomplete="off">
+                        <div id="protein-search-suggestions" class="search-suggestions" role="listbox" hidden></div>
+                    </div>
+                    <div class="per-page-control" title="{% trans "Proteins per page" %}">
+                        <span class="per-page-label">{% trans "Rows" %}</span>
+                        <select id="pageSizeSelect" name="pageSize" class="per-page-select">
+                            <option value="10" {% if page_size == 10 %}selected{% endif %}>10</option>
+                            <option value="25" {% if page_size == 25 %}selected{% endif %}>25</option>
+                            <option value="50" {% if page_size == 50 %}selected{% endif %}>50</option>
+                            <option value="100" {% if page_size == 100 %}selected{% endif %}>100</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">{% trans "Search" %}</button>
+                    {% trans "Clear search" as clear_search_label %}
+                    {% if search_query %}
+                        {% include "components/buttons/clear_action.html" with label=clear_search_label href=clear_search_url %}
+                    {% else %}
+                        {% include "components/buttons/clear_action.html" with label=clear_search_label disabled="1" %}
+                    {% endif %}
+                </form>
+            </div>
+            <div class="toolbar-row actions-row">
+                <div class="toolbar-actions">
+                    <button type="button" class="btn btn-outline-info" id="open-filters-btn">
+                        {% trans "Filters" %} ({{ parameters|length }})
+                    </button>
+                    {% if formulas %}
+                        <button type="button" class="btn btn-outline-dark" id="open-formula-btn">
+                            {% trans "Scoring formula" %}
+                        </button>
+                    {% endif %}
+                    <button type="button"
+                            class="btn btn-outline-secondary"
+                            id="toggle-detail-panel-btn"
+                            data-hide-label="{% trans "Hide details" %}"
+                            data-show-label="{% trans "Show details" %}">
+                        {% trans "Hide details" %}
+                    </button>
+                </div>
+                <div class="toolbar-actions">
+                    <details class="toolbar-tools-menu" id="toolbar-tools-menu">
+                        <summary>{% trans "More tools" %}</summary>
+                        <div class="toolbar-tools-list">
+                            <a href="{% url 'tpwebapp:customparam' assembly_name=assembly_name %}">{% trans "Upload custom scores" %}</a>
+                            <a href="{% url 'tpwebapp:formula_form' assembly_name=assembly_name %}">{% trans "Formula Builder" %}</a>
+                        </div>
+                    </details>
+                </div>
+            </div>
+        </section>
+
+        <section class="protein-workspace" id="protein-workspace">
+            <div class="protein-table-panel">
+                <section class="table-wrap">
+                    <table id="proteins_table" class="table table-striped table-hover table-sm protein-table">
+                        <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>{% trans "Protein" %}</th>
+                            <th>{% trans "Description" %}</th>
+                            <th>{% trans "Gene" %}</th>
+                            {% for col in tcolumns %}
+                                <th title="{{ col_descriptions|dictkey:col }}">{{ col|replace_char:"_, " }}</th>
+                            {% endfor %}
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for protein in proteins %}
+                            <tr class="protein-row {% if forloop.first %}is-selected{% endif %}"
+                                tabindex="0"
+                                data-accession="{{ protein.accession|default_if_none:'-'|escape }}"
+                                data-top-factors="{{ protein.top_factors_text|default_if_none:'-'|escape }}"
+                                data-detail-url="{% url 'tpwebapp:protein' protein.id %}">
+                                <td class="rank-col">{{ pagination.proteins.start_index|add:forloop.counter0 }}</td>
+                                <td class="acc-col"><a href="{% url 'tpwebapp:protein' protein.id %}">{{ protein.accession }}</a></td>
+                                <td class="desc-col">{{ protein.description }}</td>
+                                <td class="gene-col">{{ protein.genes|join:', ' }}</td>
+                                {% for col in tcolumns %}
+                                    <td>
+                                        {% if col == "Score" %}
+                                            <span class="score-badge">{{ tdata|dictkey:protein.id|dictkey:col|default:"" }}</span>
+                                        {% else %}
+                                            {{ tdata|dictkey:protein.id|dictkey:col|default:"-" }}
+                                            <div class="weight-note">{% trans "Weight" %}: {{ weights|dictkey:protein.id|dictkey:col|default:"0" }}</div>
+                                        {% endif %}
+                                    </td>
+                                {% endfor %}
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="99">{% trans "No proteins match the current search and filters." %}</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </section>
+
+                <div class="pagination-row">
+                    <span class="pagination-label">
+                        {% trans "Page" %} {{ pagination.number }} {% trans "of" %} {{ pagination.num_pages }} · {{ pagination.proteins.paginator.count }} {% trans "total proteins" %}
+                    </span>
+                    <ul class="pagination">
+                        <li class="page-item {% if not pagination.has_previous %}disabled{% endif %}">
+                            {% if pagination.has_previous %}
+                                <a class="page-link" href="?{% if query_string %}{{ query_string }}&{% endif %}page=1">«</a>
+                            {% else %}
+                                <span class="page-link">«</span>
+                            {% endif %}
+                        </li>
+                        <li class="page-item {% if not pagination.has_previous %}disabled{% endif %}">
+                            {% if pagination.has_previous %}
+                                <a class="page-link" href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ pagination.previous_page_number }}">‹</a>
+                            {% else %}
+                                <span class="page-link">‹</span>
+                            {% endif %}
+                        </li>
+
+                        {% for p in page_numbers %}
+                            {% if p %}
+                                <li class="page-item {% if p == pagination.number %}active{% endif %}">
+                                    <a class="page-link" href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ p }}">{{ p }}</a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled"><span class="page-link">…</span></li>
+                            {% endif %}
+                        {% endfor %}
+
+                        <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+                            {% if pagination.has_next %}
+                                <a class="page-link" href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ pagination.next_page_number }}">›</a>
+                            {% else %}
+                                <span class="page-link">›</span>
+                            {% endif %}
+                        </li>
+                        <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+                            {% if pagination.has_next %}
+                                <a class="page-link" href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ pagination.num_pages }}">»</a>
+                            {% else %}
+                                <span class="page-link">»</span>
+                            {% endif %}
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <aside class="protein-detail-panel" id="protein-detail-panel">
+                {% if selected_protein %}
+                    <h2 id="protein-detail-accession">{{ selected_protein.accession }}</h2>
+                    <p class="protein-detail-kicker">{% trans "Selection summary" %}</p>
+                    <div class="protein-detail-block">
+                        <h3>{% trans "Why this target is ranked here" %}</h3>
+                        <p id="protein-detail-factors">{{ selected_protein.top_factors_text|default:"No weighted terms" }}</p>
+                    </div>
+                    <div class="protein-detail-block">
+                        <h3>{% trans "Prioritization setup" %}</h3>
+                        <p><strong>{% trans "Formula" %}:</strong> {{ formula.name|default:"-" }}</p>
+                        <p><strong>{% trans "Active filters" %}:</strong> {{ parameters|length }}</p>
+                        {% if grouped_parameters %}
+                            <ul class="protein-detail-filter-list">
+                                {% for score_param, values in grouped_parameters.items %}
+                                    <li><strong>{{ score_param }}:</strong> {{ values }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p class="text-muted">{% trans "No active filters in this view." %}</p>
+                        {% endif %}
+                    </div>
+                    <div class="protein-detail-actions">
+                        <a id="protein-detail-open-link" class="btn btn-primary" href="{% url 'tpwebapp:protein' selected_protein.id %}">
+                            {% trans "Open full protein page" %}
+                        </a>
+                        <button id="protein-detail-copy-btn" type="button" class="btn btn-outline-secondary" data-copied-message="{% trans "Accession copied" %}">
+                            {% trans "Copy accession" %}
+                        </button>
+                    </div>
+                    <p id="protein-copy-feedback" class="protein-copy-feedback" aria-live="polite"></p>
+                {% else %}
+                    <h2>{% trans "Protein preview" %}</h2>
+                    <p class="protein-detail-description">{% trans "Select a protein row to preview its details." %}</p>
+                {% endif %}
+            </aside>
+        </section>
     </div>
+
+    <div class="tp-overlay" id="filters-overlay"></div>
+    <aside class="filters-drawer" id="filters-drawer" aria-hidden="true">
+        <div class="drawer-head">
+            <h2>{% trans "Filters" %}</h2>
+            <button class="btn btn-outline-secondary btn-sm" type="button" id="close-filters-btn">x</button>
+        </div>
+        <div class="drawer-body">
+            <div class="drawer-block">
+                <h3>{% trans "Add filter" %}</h3>
+                <form method="POST" action="" class="filter-add-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="add_filter">
+                    <input type="hidden" name="return_query" value="{{ query_string }}">
+                    <select name="filter_option_id" class="form-control">
+                        <option value="">{% trans "Select parameter/value..." %}</option>
+                        {% regroup filter_options by score_param.name as filter_groups %}
+                        {% for group in filter_groups %}
+                            <optgroup label="{{ group.grouper }}">
+                                {% for option in group.list %}
+                                    <option value="{{ option.id }}">{{ option.name }}</option>
+                                {% endfor %}
+                            </optgroup>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="btn btn-outline-info">{% trans "Add filter" %}</button>
+                </form>
+            </div>
+
+            <div class="drawer-block">
+                <h3>{% trans "Active filters" %}</h3>
+                <div class="active-filters">
+                    {% for parameter in parameters %}
+                        <form method="POST" action="" class="filter-pill">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="remove_filter">
+                            <input type="hidden" name="filter_option_id" value="{{ parameter.id }}">
+                            <input type="hidden" name="return_query" value="{{ query_string }}">
+                            <span>{{ parameter.score_param_name }}: {{ parameter.name }}</span>
+                            <button type="submit" title="{% trans "Remove filter" %}">x</button>
+                        </form>
+                    {% empty %}
+                        <span class="text-muted">{% trans "No active filters." %}</span>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        <div class="drawer-foot">
+            <div class="drawer-foot-left">
+                <a href="{% url 'tpwebapp:parameterformview' assembly_name=assembly_name %}" class="btn btn-outline-secondary btn-sm">
+                    {% trans "Advanced filter form" %}
+                </a>
+            </div>
+            <div class="toolbar-actions">
+                <form method="POST" action="">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="reset_filters">
+                    <input type="hidden" name="return_query" value="{{ query_string }}">
+                    {% trans "Clear filters" as clear_filters_label %}
+                    {% if parameters %}
+                        {% include "components/buttons/clear_action.html" with label=clear_filters_label button_type="submit" classes="btn btn-outline-danger tp-btn-with-icon" %}
+                    {% else %}
+                        {% include "components/buttons/clear_action.html" with label=clear_filters_label button_type="submit" classes="btn btn-outline-danger tp-btn-with-icon" disabled="1" %}
+                    {% endif %}
+                </form>
+                <button class="btn btn-secondary" type="button" id="close-filters-btn-bottom">{% trans "Close" %}</button>
+            </div>
+        </div>
+    </aside>
+
+    {% if formulas %}
+        <div class="tp-overlay" id="formula-overlay"></div>
+        <div class="formula-modal" id="formula-modal" aria-hidden="true">
+            <div class="formula-head">
+                <h2>{% trans "Scoring formula" %}</h2>
+                <button class="btn btn-outline-secondary btn-sm" type="button" id="close-formula-btn">x</button>
+            </div>
+            <div class="formula-body">
+                <div class="formula-text">{{ current_formula }}</div>
+                <form method="GET" action="" class="toolbar-row">
+                    {% if search_query %}
+                        <input type="hidden" name="search" value="{{ search_query }}">
+                    {% endif %}
+                    <input type="hidden" name="pageSize" value="{{ page_size }}">
+                    <select id="score_formula_select" name="scoreformula" class="form-control">
+                        {% for f in formulas %}
+                            <option value="{{ f.name }}" {% if f.name == formula.name %}selected{% endif %}>{{ f.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <button class="btn btn-primary" type="submit">{% trans "Apply formula" %}</button>
+                </form>
+            </div>
+        </div>
     {% endif %}
-    <div class="protein-table">
-    <table id="proteins_table"  class="table table-striped table-sm">
-        <thead>
-        <tr>
-
-      <th>{% trans "Name" %}</th>
-            <th>{% trans "Description" %}</th>
-
-
-            <th>{% trans "Gene" %}</th>
-
-
-            {% for col in tcolumns %}
-                <th title="{{ col_descriptions|dictkey:col }}">{{col|replace_char:"_, " }} </th>
-            {% endfor %}
-        </tr>
-        </thead>
-        {% for protein in proteins %}
-      <tr>
-
-        <td><a href="{% url 'tpwebapp:protein' protein.id %}">
-            {{protein.accession}}</a></td>
-        <td>{{protein.description}}</td>
-
-        <td class="max-width-column ">{{protein.genes|join:'<br />'}}</td>
-        {% for col in tcolumns %}
-            <td>{{tdata|dictkey:protein.id|dictkey:col|default:""}}<br />{%  if col != "Score" %}
-
-            ({{ weights|dictkey:protein.id|dictkey:col|default:"0" }})
-
-            {% endif %}
-            </td>
-        {% endfor %}
-
-    </tr>
-        {% endfor %}
-    </table>
-    </div>
-    </div>
-
-<style>
-    #proteins_table td:nth-child(4) {
-        font-weight: bold;
-        flex-grow: 1;
-    }
-    .pagination li {
-        margin-right: 5px; /* Adjust the spacing as needed */
-    }
-    .pagination li:last-child {
-        margin-right: 0; /* Remove extra spacing from the last item */
-    }
-</style>
-
-<div class="text-center pb-3">
-<span class="badge badge-primary justify-content-center">
-    Page {{ pagination.number }} of {{ pagination.num_pages }}.
-</span>
-</div>
-{% if not not_default_formula %}
-    <ul class="pagination justify-content-center">
-    {% if pagination.has_previous %}
-        <li class="page-item"><a class="page-link"  href="{{ base_url }}?page={{ pagination.previous_page_number }}">Previous</a>
-    {% endif %}
-
-       {% for num in pagination.page_range %}
-            {% if num == 1 %}
-                <li class="page-item"><a class="page-link" href="{{ base_url }}?page={{ num }}">{{ num }}</a></li>
-            {% elif num <= pagination.number|add:10 and num >= pagination.number|add:-10 %}
-                <li class="page-item"><a class="page-link" href="{{ base_url }}?page={{ num }}">{{ num }}</a></li>
-            {% elif num == pagination.num_pages %}
-                <li class="page-item"><a class="page-link" href="{{ base_url }}?page={{ num }}">{{ num }}</a></li>
-            {% endif %}
-        {% endfor %}
-
-    {% if pagination.has_next %}
-        <li class="page-item"><a class="page-link" href="{{ base_url }}?page={{ pagination.next_page_number }}">Next</a>
-    {% endif %}
-
-    </ul>
-{% else %}
-    <ul class="pagination justify-content-center">
-    {% if pagination.has_previous %}
-        <li class="page-item"><a class="page-link"  href="{{ base_url }}&page={{ pagination.previous_page_number }}">Previous</a>
-    {% endif %}
-
-       {% for num in pagination.page_range %}
-            {% if num == 1 %}
-                <li class="page-item"><a class="page-link" href="{{ base_url }}&page={{ num }}">{{ num }}</a></li>
-            {% elif num <= pagination.number|add:10 and num >= pagination.number|add:-10 %}
-                <li class="page-item"><a class="page-link" href="{{ base_url }}&page={{ num }}">{{ num }}</a></li>
-            {% elif num == pagination.num_pages %}
-                <li class="page-item"><a class="page-link" href="{{ base_url }}&page={{ num }}">{{ num }}</a></li>
-            {% endif %}
-        {% endfor %}
-
-    {% if pagination.has_next %}
-        <li class="page-item"><a class="page-link" href="{{ base_url }}&page={{ pagination.next_page_number }}">Next</a>
-    {% endif %}
-
-    </ul>
-{% endif %}
 {% endblock %}
 
 {% block jsloaded %}
     <script>
+        function setDrawerState(isOpen) {
+            const overlay = document.getElementById("filters-overlay");
+            const drawer = document.getElementById("filters-drawer");
+            if (!overlay || !drawer) return;
+            overlay.classList.toggle("open", isOpen);
+            drawer.classList.toggle("open", isOpen);
+            drawer.setAttribute("aria-hidden", isOpen ? "false" : "true");
+        }
 
+        function setFormulaState(isOpen) {
+            const overlay = document.getElementById("formula-overlay");
+            const modal = document.getElementById("formula-modal");
+            if (!overlay || !modal) return;
+            overlay.classList.toggle("open", isOpen);
+            modal.classList.toggle("open", isOpen);
+            modal.setAttribute("aria-hidden", isOpen ? "false" : "true");
+        }
+
+        function jsloaded() {
+            const searchForm = document.getElementById("protein-search-form");
+            const pageSizeSelect = document.getElementById("pageSizeSelect");
+            const searchInput = document.getElementById("protein-search-input");
+            const autocompleteRoot = document.getElementById("protein-search-autocomplete");
+            const suggestionsBox = document.getElementById("protein-search-suggestions");
+            const suggestUrl = autocompleteRoot ? autocompleteRoot.getAttribute("data-suggest-url") : "";
+            const proteinRows = Array.from(document.querySelectorAll(".protein-row"));
+            const proteinWorkspace = document.getElementById("protein-workspace");
+            const proteinDetailPanel = document.getElementById("protein-detail-panel");
+            const toggleDetailPanelBtn = document.getElementById("toggle-detail-panel-btn");
+            const proteinDetailAccession = document.getElementById("protein-detail-accession");
+            const proteinDetailFactors = document.getElementById("protein-detail-factors");
+            const proteinDetailOpenLink = document.getElementById("protein-detail-open-link");
+            const proteinDetailCopyBtn = document.getElementById("protein-detail-copy-btn");
+            const proteinCopyFeedback = document.getElementById("protein-copy-feedback");
+            const toolbarToolsMenu = document.getElementById("toolbar-tools-menu");
+            let suggestionsTimer = null;
+            let suggestionRequestId = 0;
+
+            function submitSearchForm() {
+                if (!searchForm) return;
+                if (typeof searchForm.requestSubmit === "function") {
+                    searchForm.requestSubmit();
+                } else {
+                    searchForm.submit();
+                }
+            }
+
+            if (pageSizeSelect) {
+                pageSizeSelect.addEventListener("change", submitSearchForm);
+            }
+
+            function applyDetailPanelState(hidden) {
+                if (!proteinWorkspace || !toggleDetailPanelBtn) return;
+                proteinWorkspace.classList.toggle("no-detail", hidden);
+                toggleDetailPanelBtn.textContent = hidden
+                    ? (toggleDetailPanelBtn.getAttribute("data-show-label") || "Show details")
+                    : (toggleDetailPanelBtn.getAttribute("data-hide-label") || "Hide details");
+                toggleDetailPanelBtn.setAttribute("aria-pressed", hidden ? "true" : "false");
+            }
+
+            if (!proteinDetailPanel && toggleDetailPanelBtn) {
+                toggleDetailPanelBtn.hidden = true;
+            } else if (toggleDetailPanelBtn) {
+                const detailStorageKey = "tp.proteins.detail.hidden";
+                const storedDetailState = localStorage.getItem(detailStorageKey);
+                applyDetailPanelState(storedDetailState === "1");
+                toggleDetailPanelBtn.addEventListener("click", function () {
+                    const hidden = !proteinWorkspace.classList.contains("no-detail");
+                    applyDetailPanelState(hidden);
+                    localStorage.setItem(detailStorageKey, hidden ? "1" : "0");
+                });
+            }
+
+            function hideSuggestions() {
+                if (!suggestionsBox) return;
+                suggestionsBox.innerHTML = "";
+                suggestionsBox.hidden = true;
+            }
+
+            function renderSuggestions(items) {
+                if (!suggestionsBox) return;
+                suggestionsBox.innerHTML = "";
+                if (!items || !items.length) {
+                    suggestionsBox.hidden = true;
+                    return;
+                }
+
+                items.forEach(function (item) {
+                    const button = document.createElement("button");
+                    button.type = "button";
+                    button.className = "search-suggestion-item";
+                    button.setAttribute("role", "option");
+
+                    const accession = document.createElement("span");
+                    accession.className = "search-suggestion-accession";
+                    accession.textContent = item.accession || "";
+                    button.appendChild(accession);
+
+                    if (item.description) {
+                        const description = document.createElement("span");
+                        description.className = "search-suggestion-description";
+                        description.textContent = item.description;
+                        button.appendChild(description);
+                    }
+
+                    button.addEventListener("click", function () {
+                        if (searchInput) {
+                            searchInput.value = item.accession || "";
+                            searchInput.focus();
+                        }
+                        hideSuggestions();
+                        submitSearchForm();
+                    });
+
+                    suggestionsBox.appendChild(button);
+                });
+
+                suggestionsBox.hidden = false;
+            }
+
+            function fetchSuggestions(query) {
+                if (!suggestUrl || !query || query.length < 2) {
+                    hideSuggestions();
+                    return;
+                }
+                suggestionRequestId += 1;
+                const currentRequestId = suggestionRequestId;
+                const url = suggestUrl + "?q=" + encodeURIComponent(query) + "&limit=8";
+                fetch(url, {
+                    headers: {
+                        "X-Requested-With": "XMLHttpRequest"
+                    }
+                })
+                    .then(function (response) {
+                        if (!response.ok) {
+                            throw new Error("Failed suggestions request");
+                        }
+                        return response.json();
+                    })
+                    .then(function (payload) {
+                        if (currentRequestId !== suggestionRequestId) return;
+                        renderSuggestions(payload && payload.results ? payload.results : []);
+                    })
+                    .catch(function () {
+                        if (currentRequestId !== suggestionRequestId) return;
+                        hideSuggestions();
+                    });
+            }
+
+            if (searchInput) {
+                searchInput.addEventListener("input", function () {
+                    const query = (searchInput.value || "").trim();
+                    window.clearTimeout(suggestionsTimer);
+                    suggestionsTimer = window.setTimeout(function () {
+                        fetchSuggestions(query);
+                    }, 180);
+                });
+                searchInput.addEventListener("keydown", function (event) {
+                    if (event.key === "Escape") {
+                        hideSuggestions();
+                    }
+                });
+                searchInput.addEventListener("blur", function () {
+                    window.setTimeout(hideSuggestions, 120);
+                });
+                searchInput.addEventListener("focus", function () {
+                    const query = (searchInput.value || "").trim();
+                    if (query.length >= 2) {
+                        fetchSuggestions(query);
+                    }
+                });
+            }
+
+            document.addEventListener("click", function (event) {
+                if (!autocompleteRoot || !autocompleteRoot.contains(event.target)) {
+                    hideSuggestions();
+                }
+                if (toolbarToolsMenu && !toolbarToolsMenu.contains(event.target)) {
+                    toolbarToolsMenu.removeAttribute("open");
+                }
+            });
+
+            function setSelectedProteinRow(row) {
+                proteinRows.forEach(function (item) {
+                    item.classList.remove("is-selected");
+                });
+                row.classList.add("is-selected");
+            }
+
+            function updateProteinDetailFromRow(row) {
+                if (!row) return;
+                if (proteinDetailAccession) proteinDetailAccession.textContent = row.dataset.accession || "-";
+                if (proteinDetailFactors) proteinDetailFactors.textContent = row.dataset.topFactors || "-";
+                if (proteinDetailOpenLink) proteinDetailOpenLink.href = row.dataset.detailUrl || "#";
+                if (proteinCopyFeedback) proteinCopyFeedback.textContent = "";
+            }
+
+            proteinRows.forEach(function (row) {
+                row.addEventListener("click", function (event) {
+                    if (event.target.closest("a")) return;
+                    setSelectedProteinRow(row);
+                    updateProteinDetailFromRow(row);
+                });
+                row.addEventListener("keydown", function (event) {
+                    if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        setSelectedProteinRow(row);
+                        updateProteinDetailFromRow(row);
+                    }
+                });
+            });
+
+            function copyAccessionToClipboard() {
+                if (!proteinDetailAccession) return;
+                const accession = (proteinDetailAccession.textContent || "").trim();
+                if (!accession || accession === "-") return;
+                const onSuccess = function () {
+                    if (proteinCopyFeedback) {
+                        const baseMessage = proteinDetailCopyBtn ? (proteinDetailCopyBtn.getAttribute("data-copied-message") || "Accession copied") : "Accession copied";
+                        proteinCopyFeedback.textContent = baseMessage + ": " + accession;
+                    }
+                };
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(accession).then(onSuccess).catch(function () {});
+                    return;
+                }
+                const helper = document.createElement("textarea");
+                helper.value = accession;
+                helper.setAttribute("readonly", "readonly");
+                helper.style.position = "absolute";
+                helper.style.left = "-9999px";
+                document.body.appendChild(helper);
+                helper.select();
+                document.execCommand("copy");
+                document.body.removeChild(helper);
+                onSuccess();
+            }
+
+            if (proteinDetailCopyBtn) {
+                proteinDetailCopyBtn.addEventListener("click", copyAccessionToClipboard);
+            }
+
+            const openFiltersBtn = document.getElementById("open-filters-btn");
+            const closeFiltersBtn = document.getElementById("close-filters-btn");
+            const closeFiltersBottomBtn = document.getElementById("close-filters-btn-bottom");
+            const filtersOverlay = document.getElementById("filters-overlay");
+
+            if (openFiltersBtn) openFiltersBtn.addEventListener("click", function () { setDrawerState(true); });
+            if (closeFiltersBtn) closeFiltersBtn.addEventListener("click", function () { setDrawerState(false); });
+            if (closeFiltersBottomBtn) closeFiltersBottomBtn.addEventListener("click", function () { setDrawerState(false); });
+            if (filtersOverlay) filtersOverlay.addEventListener("click", function () { setDrawerState(false); });
+
+            const openFormulaBtn = document.getElementById("open-formula-btn");
+            const closeFormulaBtn = document.getElementById("close-formula-btn");
+            const formulaOverlay = document.getElementById("formula-overlay");
+
+            if (openFormulaBtn) openFormulaBtn.addEventListener("click", function () { setFormulaState(true); });
+            if (closeFormulaBtn) closeFormulaBtn.addEventListener("click", function () { setFormulaState(false); });
+            if (formulaOverlay) formulaOverlay.addEventListener("click", function () { setFormulaState(false); });
+
+            document.addEventListener("keydown", function (event) {
+                if (event.key === "Escape") {
+                    setDrawerState(false);
+                    setFormulaState(false);
+                }
+            });
+        }
+
+        $(document).ready(jsloaded);
     </script>
 {% endblock %}
-
 
 {% block footer %}
 {% endblock %}

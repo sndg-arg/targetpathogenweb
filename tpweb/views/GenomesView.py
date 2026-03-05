@@ -1,49 +1,41 @@
 from django.shortcuts import render
 from django.views import View
-from django.db.models import Q
-from bioseq.models.Biodatabase import Biodatabase
+from tpweb.services.genomes import (
+    GENOME_TABLE_COLUMNS,
+    build_genomes_dto,
+    build_genomes_queryset,
+    summarize_genomes,
+)
+from tpweb.services.pipeline_status import get_pipeline_status
 
 
 
 class GenomesView(View):
     template_name = 'search/genomes.html'
-    tcolumns = {"EntryLength":"Length [bp]",
-                "COUNT_CDS":"# Proteins",
-                "COUNT_STRUCTS": "# Structures"} #["EntryLength", "GC", "COUNT_gene", "COUNT_pathways", "COUNT_structures"]
+    tcolumns = GENOME_TABLE_COLUMNS
 
     def get(self, request, *args, **kwargs):
 
         search_query = request.GET.get('search', '').strip()
-        genomes = Biodatabase.objects.exclude(Q(name__endswith='_rnas') | Q(name__endswith='_prots'))
+        genomes = build_genomes_queryset(search_query=search_query)
+        genomes_dto = build_genomes_dto(genomes, columns=GenomesView.tcolumns)
+        genome_metrics = summarize_genomes(genomes_dto)
+        selected_genome = genomes_dto[0] if genomes_dto else None
+        show_detail_panel = genome_metrics["total_genomes"] > 1
 
-
-
-                
-                
-
-
-        genomes = Biodatabase.objects.exclude(Q(name__endswith='_rnas') | Q(name__endswith='_prots')
-                                              ).prefetch_related("qualifiers__term")
-        if search_query:
-            # Filter genomes where either the name or the description contains the search query (case-insensitive)
-            genomes = genomes.filter(
-                Q(name__icontains=search_query) | 
-                Q(description__icontains=search_query) |
-                Q(name__iexact=search_query)   
-            )
-            
-        genomes_dto = []
-        for genome in genomes:
-            genome_dto = {
-
-                "name": genome.name,
-                "description": genome.description
-            }
-            qvs = genome.qualifiers_dict()
-            for qname in GenomesView.tcolumns:
-                if qname in qvs:
-                    genome_dto[qname] = qvs[qname]
-            genomes_dto.append(genome_dto)
-
-        return render(request, self.template_name, {"genomes": genomes_dto,
-                                                    "tcolumns": GenomesView.tcolumns})  # , {'form': form})
+        return render(
+            request,
+            self.template_name,
+            {
+                "genomes": genomes_dto,
+                "tcolumns": GenomesView.tcolumns,
+                "search_query": search_query,
+                "total_genomes": genome_metrics["total_genomes"],
+                "total_proteins": genome_metrics["total_proteins"],
+                "total_structures": genome_metrics["total_structures"],
+                "genomes_with_structures": genome_metrics["genomes_with_structures"],
+                "selected_genome": selected_genome,
+                "show_detail_panel": show_detail_panel,
+                "pipeline_status": get_pipeline_status(),
+            },
+        )  # , {'form': form})

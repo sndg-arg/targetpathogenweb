@@ -4,117 +4,819 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
     <meta name="description" content="">
-
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
-    <title> {% trans "Target Pathogen" %} </title>
+    <title>{% trans "Target Pathogen" %}</title>
     <link rel="icon" href="favicon.ico" type="image/x-icon"/>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
+    <style>
+        :root {
+            --tp-color-text-primary: #1f2f3a;
+            --tp-color-text-secondary: #355668;
+            --tp-color-text-muted: #5b7281;
+            --tp-color-text-soft: #8ea4b2;
+            --tp-color-link: #0f6870;
+            --tp-color-link-hover: #0b5057;
+            --tp-color-brand-900: #0a3f4f;
+            --tp-color-brand-800: #0e5266;
+            --tp-color-brand-700: #1b6780;
+            --tp-color-brand-600: #1e728b;
+            --tp-color-brand-300: #9dc4d1;
+            --tp-color-brand-200: #c1d7e0;
+            --tp-color-brand-100: #ddeef4;
+            --tp-color-brand-050: #edf6f9;
+            --tp-color-nav-900: #0e2330;
+            --tp-color-nav-800: #173645;
+            --tp-color-nav-700: #102735;
+            --tp-color-page-start: #f4f8fb;
+            --tp-color-page-end: #eef4f8;
+            --tp-color-surface: #ffffff;
+            --tp-color-surface-soft: #f9fcff;
+            --tp-color-surface-muted: #f5fafd;
+            --tp-color-surface-panel: #f8fbfd;
+            --tp-color-surface-alt: #f1f7fb;
+            --tp-color-border: #d5e2ea;
+            --tp-color-border-soft: #dbe7ee;
+            --tp-color-border-strong: #cfdfe8;
+            --tp-color-border-accent: #9dc4d1;
+            --tp-color-highlight: #a8d9db;
+            --tp-color-selection: #edf4f9;
+            --tp-color-success-ink: #116742;
+            --tp-color-success-bg: #e8f8ef;
+            --tp-color-success-border: #c4e8d2;
+            --tp-color-info-ink: #16516b;
+            --tp-color-info-bg: #eaf5fb;
+            --tp-color-info-border: #c9dfed;
+            --tp-color-idle-ink: #5b7281;
+            --tp-color-idle-bg: #f1f6f9;
+            --tp-color-idle-border: #d7e2e9;
+            --tp-color-warning-ink: #8a5c16;
+            --tp-color-warning-bg: #fff4df;
+            --tp-color-warning-border: #f4dfb6;
+            --tp-color-danger-ink: #8d2f36;
+            --tp-color-danger-bg: #fdeced;
+            --tp-color-danger-border: #f1c7cb;
+            --tp-color-structure-density: #d8e1e9;
+            --tp-color-structure-pocket-apolar: #20c3d6;
+            --tp-color-structure-pocket-polar: #0b4f6c;
+            --tp-color-structure-p2-apolar: #f59e0b;
+            --tp-color-structure-p2-polar: #8b5cf6;
+            --tp-ink: var(--tp-color-text-primary);
+            --tp-muted: var(--tp-color-text-muted);
+            --tp-accent: var(--tp-color-brand-800);
+            --tp-accent-deep: var(--tp-color-brand-900);
+            --tp-accent-soft-2: var(--tp-color-brand-050);
+            --tp-accent-soft: var(--tp-color-brand-100);
+            --tp-accent-mist: var(--tp-color-surface-muted);
+            --tp-moss: var(--tp-color-text-soft);
+            --tp-moss-deep: var(--tp-color-text-muted);
+            --tp-border: var(--tp-color-border);
+            --tp-surface: var(--tp-color-surface);
+            --tp-navbar: var(--tp-color-nav-900);
+            --tp-state-running-ink: var(--tp-color-success-ink);
+            --tp-state-running-bg: var(--tp-color-success-bg);
+            --tp-state-running-border: var(--tp-color-success-border);
+            --tp-state-finished-ink: var(--tp-color-info-ink);
+            --tp-state-finished-bg: var(--tp-color-info-bg);
+            --tp-state-finished-border: var(--tp-color-info-border);
+            --tp-state-idle-ink: var(--tp-color-idle-ink);
+            --tp-state-idle-bg: var(--tp-color-idle-bg);
+            --tp-state-idle-border: var(--tp-color-idle-border);
+            --tp-focus-ring: rgba(14, 82, 102, 0.16);
+            --tp-shadow: 0 14px 32px rgba(19, 39, 55, 0.1);
+            --tp-sidebar-w: 260px;
+            --tp-sidebar-w-collapsed: 84px;
+            --tp-radius-lg: 22px;
+            --tp-radius-md: 14px;
+            --tp-space-1: 4px;
+            --tp-space-2: 8px;
+            --tp-space-3: 12px;
+            --tp-space-4: 16px;
+            --tp-space-5: 20px;
+            --tp-space-6: 24px;
+            --tp-space-7: 32px;
+            --tp-space-8: 40px;
+            --tp-font-size-xs: 0.78rem;
+            --tp-font-size-sm: 0.88rem;
+            --tp-font-size-md: 0.98rem;
+            --tp-font-size-lg: 1.12rem;
+            --tp-font-size-xl: 1.28rem;
+            --tp-font-size-2xl: clamp(1.55rem, 2.2vw, 2.05rem);
+        }
 
-    {% block head %}
+        html, body {
+            min-height: 100%;
+        }
 
-    {% endblock %}
+        body {
+            font-family: "Source Sans 3", "Segoe UI", sans-serif;
+            color: var(--tp-ink);
+            background:
+                linear-gradient(180deg, var(--tp-color-page-start) 0%, var(--tp-color-page-end) 100%);
+            background-attachment: fixed;
+            margin: 0;
+            padding-top: 64px;
+            transition: padding-left 0.22s ease;
+            line-height: 1.45;
+        }
+
+        h1, h2, h3, h4, h5 {
+            font-family: "Space Grotesk", "Segoe UI", sans-serif;
+        }
+
+        a {
+            color: var(--tp-color-link);
+            transition: color 0.18s ease;
+        }
+
+        a:hover {
+            color: var(--tp-color-link-hover);
+        }
+
+        .btn {
+            border-radius: 11px;
+            font-weight: 600;
+            transition: transform 0.16s ease, box-shadow 0.16s ease, background-color 0.16s ease, border-color 0.16s ease, color 0.16s ease;
+        }
+
+        .btn-primary,
+        .btn-success,
+        .btn-info {
+            background: linear-gradient(180deg, var(--tp-color-brand-700) 0%, var(--tp-accent) 100%);
+            border-color: var(--tp-accent);
+            color: var(--tp-color-surface);
+            box-shadow: 0 6px 14px rgba(14, 82, 102, 0.24);
+        }
+
+        .btn-primary:hover,
+        .btn-primary:focus,
+        .btn-primary:active,
+        .btn-success:hover,
+        .btn-success:focus,
+        .btn-success:active,
+        .btn-info:hover,
+        .btn-info:focus,
+        .btn-info:active {
+            background: var(--tp-accent-deep) !important;
+            border-color: var(--tp-accent-deep) !important;
+            color: var(--tp-color-surface) !important;
+        }
+
+        .btn-outline-info,
+        .btn-outline-primary {
+            color: var(--tp-color-info-ink);
+            border-color: var(--tp-color-brand-300);
+            background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+        }
+
+        .btn-outline-info:hover,
+        .btn-outline-info:focus,
+        .btn-outline-info:active,
+        .btn-outline-primary:hover,
+        .btn-outline-primary:focus,
+        .btn-outline-primary:active {
+            color: var(--tp-color-brand-900) !important;
+            border-color: var(--tp-accent) !important;
+            background: var(--tp-accent-soft) !important;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(180deg, var(--tp-color-text-soft) 0%, var(--tp-moss) 100%);
+            border-color: var(--tp-moss);
+            color: var(--tp-color-surface);
+            box-shadow: 0 5px 12px rgba(67, 91, 108, 0.2);
+        }
+
+        .btn-secondary:hover,
+        .btn-secondary:focus,
+        .btn-secondary:active {
+            background: var(--tp-moss-deep) !important;
+            border-color: var(--tp-moss-deep) !important;
+            color: var(--tp-color-surface) !important;
+        }
+
+        .btn-outline-secondary {
+            color: var(--tp-color-text-secondary);
+            border-color: var(--tp-color-brand-200);
+            background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-accent-mist) 100%);
+        }
+
+        .btn-outline-secondary:hover,
+        .btn-outline-secondary:focus,
+        .btn-outline-secondary:active {
+            color: var(--tp-color-nav-800) !important;
+            border-color: var(--tp-color-brand-300) !important;
+            background: var(--tp-color-selection) !important;
+        }
+
+        .btn:disabled,
+        .btn.disabled {
+            opacity: 0.65;
+            box-shadow: none;
+            transform: none;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .btn:focus,
+        .btn.focus {
+            outline: 0;
+            box-shadow: 0 0 0 0.2rem var(--tp-focus-ring) !important;
+        }
+
+        .btn.tp-btn-with-icon {
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 0.4rem;
+            justify-content: center;
+            line-height: 1.2;
+        }
+
+        .tp-btn-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex: 0 0 1em;
+            width: 1em;
+            height: 1em;
+            line-height: 0;
+            margin-top: 0;
+        }
+
+        .tp-btn-icon svg {
+            display: block;
+            width: 100%;
+            height: 100%;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 1.9;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            opacity: 0.9;
+        }
+
+        .form-control,
+        .custom-select {
+            border-color: var(--tp-color-border-strong);
+            border-radius: 9px;
+            background: var(--tp-color-surface);
+        }
+
+        .form-control:focus,
+        .custom-select:focus {
+            border-color: rgba(14, 82, 102, 0.42);
+            box-shadow: 0 0 0 0.2rem var(--tp-focus-ring);
+        }
+
+        .tp-state-chip {
+            display: inline-flex;
+            align-items: center;
+            border-radius: 999px;
+            padding: 4px 10px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            border: 1px solid transparent;
+            background: var(--tp-color-page-start);
+            color: var(--tp-color-text-secondary);
+        }
+
+        .tp-state-chip.running {
+            color: var(--tp-state-running-ink);
+            background: var(--tp-state-running-bg);
+            border-color: var(--tp-state-running-border);
+        }
+
+        .tp-state-chip.finished {
+            color: var(--tp-state-finished-ink);
+            background: var(--tp-state-finished-bg);
+            border-color: var(--tp-state-finished-border);
+        }
+
+        .tp-state-chip.idle {
+            color: var(--tp-state-idle-ink);
+            background: var(--tp-state-idle-bg);
+            border-color: var(--tp-state-idle-border);
+        }
+
+        .tp-card {
+            border: 1px solid var(--tp-color-border-soft);
+            border-radius: var(--tp-radius-md);
+            background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+            box-shadow: 0 8px 20px rgba(20, 41, 56, 0.06);
+        }
+
+        .tp-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: var(--tp-space-2);
+            padding: var(--tp-space-3);
+        }
+
+        .tp-chip {
+            display: inline-flex;
+            align-items: center;
+            border: 1px solid var(--tp-color-border);
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.88);
+            color: var(--tp-color-text-secondary);
+            font-size: var(--tp-font-size-sm);
+            font-weight: 600;
+            line-height: 1.35;
+            padding: 4px 10px;
+        }
+
+        .page-link {
+            color: var(--tp-color-text-secondary);
+            border-color: var(--tp-color-border);
+            border-radius: 8px;
+        }
+
+        .page-item.active .page-link {
+            background: var(--tp-accent);
+            border-color: var(--tp-accent);
+            color: var(--tp-color-surface);
+        }
+
+        .tp-sidebar {
+            display: none;
+        }
+
+        .tp-topbar-mobile {
+            background: linear-gradient(90deg, var(--tp-color-nav-900) 0%, var(--tp-color-nav-800) 100%) !important;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 26px rgba(10, 24, 33, 0.35);
+        }
+
+        .tp-topbar-mobile .navbar-brand {
+            font-weight: 700;
+            letter-spacing: 0.3px;
+        }
+
+        .tp-topbar-mobile .nav-link {
+            color: rgba(235, 246, 251, 0.9) !important;
+            font-weight: 600;
+            border-radius: 8px;
+            padding: 6px 10px;
+        }
+
+        #main_header {
+            background: linear-gradient(90deg, var(--tp-color-nav-900) 0%, var(--tp-color-nav-800) 100%) !important;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 26px rgba(10, 24, 33, 0.35);
+        }
+
+        #main_header .navbar-brand {
+            font-weight: 700;
+            letter-spacing: 0.3px;
+        }
+
+        #main_header .nav-link {
+            color: rgba(235, 246, 251, 0.9) !important;
+            font-weight: 600;
+            border-radius: 8px;
+            padding: 6px 10px;
+            transition: background 0.2s ease, color 0.2s ease;
+        }
+
+        #main_header .nav-link:hover {
+            background: rgba(255, 255, 255, 0.12);
+            color: var(--tp-color-surface) !important;
+        }
+
+        .tp-main {
+            max-width: 1360px;
+            margin: 0 auto;
+            padding: 18px 18px 36px;
+        }
+
+        .tp-shell {
+            position: relative;
+            border: 1px solid var(--tp-border);
+            border-radius: var(--tp-radius-lg);
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(255, 255, 255, 0.95));
+            box-shadow: var(--tp-shadow);
+            padding: 22px;
+            overflow: hidden;
+            animation: tp-shell-enter 0.42s ease;
+        }
+
+        .tp-shell::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(15, 127, 138, 0.035) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(15, 127, 138, 0.035) 1px, transparent 1px);
+            background-size: 26px 26px;
+            pointer-events: none;
+        }
+
+        .tp-shell::after {
+            content: none;
+        }
+
+        .tp-shell > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .tp-card {
+            border: 1px solid var(--tp-color-border-soft);
+            border-radius: 14px;
+            background: var(--tp-color-surface);
+            box-shadow: 0 10px 24px rgba(19, 43, 62, 0.08);
+            padding: 16px;
+        }
+
+        .tp-card + .tp-card {
+            margin-top: 14px;
+        }
+
+        .tp-table-shell {
+            border: 1px solid var(--tp-color-border-soft);
+            border-radius: 12px;
+            overflow: auto;
+            background: var(--tp-color-surface);
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.4);
+        }
+
+        .tp-table-shell .table {
+            margin-bottom: 0;
+        }
+
+        .tp-table-shell thead th,
+        .tp-table-shell thead td {
+            background: linear-gradient(180deg, var(--tp-color-surface-panel) 0%, var(--tp-color-surface-alt) 100%);
+            font-size: 0.87rem;
+            font-weight: 700;
+            color: var(--tp-color-text-secondary);
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            white-space: nowrap;
+        }
+
+        .tp-footer {
+            border-top: 1px solid var(--tp-color-idle-border);
+            background: rgba(255, 255, 255, 0.82);
+            backdrop-filter: blur(6px);
+        }
+
+        @media (max-width: 991px) {
+            body {
+                padding-top: 64px;
+            }
+
+            .tp-main {
+                padding: 10px 10px 24px;
+            }
+
+            .tp-shell {
+                border-radius: 14px;
+                padding: 14px;
+            }
+        }
+
+        @media (min-width: 992px) {
+            body {
+                padding-top: 0;
+                padding-left: var(--tp-sidebar-w);
+            }
+
+            .tp-topbar-mobile {
+                display: none !important;
+            }
+
+            .tp-sidebar {
+                position: fixed;
+                inset: 0 auto 0 0;
+                width: var(--tp-sidebar-w);
+                display: flex;
+                flex-direction: column;
+                background: linear-gradient(180deg, var(--tp-color-nav-700) 0%, var(--tp-color-nav-800) 100%);
+                border-right: 1px solid rgba(255, 255, 255, 0.09);
+                box-shadow: 8px 0 28px rgba(9, 23, 33, 0.33);
+                color: var(--tp-color-selection);
+                z-index: 1030;
+                transition: width 0.22s ease;
+            }
+
+            .tp-sidebar-brand {
+                padding: 18px 16px 12px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            }
+
+            .tp-sidebar-brand-row {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 8px;
+            }
+
+            .tp-sidebar-brand a {
+                color: var(--tp-color-surface);
+                text-decoration: none;
+                font-family: "Space Grotesk", "Segoe UI", sans-serif;
+                font-size: 1.2rem;
+                font-weight: 700;
+                letter-spacing: 0.2px;
+                display: block;
+            }
+
+            .tp-sidebar-brand a:hover,
+            .tp-sidebar-brand a:focus,
+            .tp-sidebar-brand a:active {
+                color: var(--tp-color-surface);
+                text-decoration: none;
+            }
+
+            .tp-brand-short {
+                display: none;
+            }
+
+            .tp-sidebar-toggle {
+                border: 1px solid rgba(255, 255, 255, 0.26);
+                background: rgba(255, 255, 255, 0.08);
+                color: var(--tp-color-surface);
+                border-radius: 8px;
+                width: 28px;
+                height: 28px;
+                line-height: 24px;
+                padding: 0;
+                text-align: center;
+                cursor: pointer;
+                font-weight: 700;
+            }
+
+            .tp-sidebar-toggle:hover {
+                background: rgba(255, 255, 255, 0.15);
+            }
+
+            .tp-side-nav {
+                display: grid;
+                gap: 6px;
+                padding: 12px;
+            }
+
+            .tp-side-link {
+                display: block;
+                border-radius: 10px;
+                color: rgba(232, 245, 250, 0.94);
+                text-decoration: none;
+                font-weight: 600;
+                padding: 9px 10px;
+                transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+                position: relative;
+                border: 1px solid transparent;
+            }
+
+            .tp-side-link::before {
+                content: attr(data-short);
+                display: none;
+                width: 24px;
+                height: 24px;
+                line-height: 24px;
+                border-radius: 8px;
+                text-align: center;
+                font-size: 0.73rem;
+                font-weight: 700;
+                background: rgba(255, 255, 255, 0.16);
+                color: var(--tp-color-surface);
+            }
+
+            .tp-side-link:hover {
+                background: rgba(255, 255, 255, 0.14);
+                color: var(--tp-color-surface);
+                text-decoration: none;
+                transform: translateX(1px);
+                border-color: rgba(255, 255, 255, 0.12);
+            }
+
+            .tp-side-link.active {
+                background: linear-gradient(90deg, rgba(14, 82, 102, 0.28) 0%, rgba(255, 255, 255, 0.2) 100%);
+                color: var(--tp-color-surface);
+                border: 1px solid rgba(255, 255, 255, 0.18);
+                box-shadow: inset 3px 0 0 rgba(157, 196, 209, 0.92);
+            }
+
+            .tp-side-footer {
+                margin-top: auto;
+                padding: 12px;
+                border-top: 1px solid rgba(255, 255, 255, 0.08);
+                display: grid;
+                gap: 8px;
+            }
+
+            .tp-user-chip {
+                background: rgba(255, 255, 255, 0.12);
+                border: 1px solid rgba(255, 255, 255, 0.14);
+                border-radius: 10px;
+                padding: 8px 10px;
+                font-weight: 600;
+                color: var(--tp-color-surface-alt);
+                font-size: 0.93rem;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            .tp-main {
+                max-width: none;
+                margin: 0;
+                padding: 16px 16px 34px;
+            }
+
+            body.tp-sidebar-collapsed {
+                padding-left: var(--tp-sidebar-w-collapsed);
+            }
+
+            body.tp-sidebar-collapsed .tp-sidebar {
+                width: var(--tp-sidebar-w-collapsed);
+            }
+
+            body.tp-sidebar-collapsed .tp-brand-full,
+            body.tp-sidebar-collapsed .tp-side-text,
+            body.tp-sidebar-collapsed .tp-user-chip,
+            body.tp-sidebar-collapsed .tp-side-footer form,
+            body.tp-sidebar-collapsed .tp-side-footer > a {
+                display: none;
+            }
+
+            body.tp-sidebar-collapsed .tp-brand-short {
+                display: inline;
+            }
+
+            body.tp-sidebar-collapsed .tp-sidebar-brand {
+                padding: 14px 10px 10px;
+            }
+
+            body.tp-sidebar-collapsed .tp-sidebar-brand-row {
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+            }
+
+            body.tp-sidebar-collapsed .tp-side-nav {
+                padding: 10px 8px;
+                gap: 8px;
+            }
+
+            body.tp-sidebar-collapsed .tp-side-link {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 9px 6px;
+            }
+
+            body.tp-sidebar-collapsed .tp-side-link::before {
+                display: block;
+            }
+
+            body.tp-sidebar-collapsed .tp-side-link:hover::after {
+                content: attr(data-label);
+                position: absolute;
+                left: calc(100% + 10px);
+                top: 50%;
+                transform: translateY(-50%);
+                background: var(--tp-color-nav-900);
+                color: var(--tp-color-brand-050);
+                border: 1px solid rgba(255, 255, 255, 0.12);
+                border-radius: 7px;
+                font-size: 0.79rem;
+                font-weight: 700;
+                padding: 4px 8px;
+                white-space: nowrap;
+                box-shadow: 0 8px 22px rgba(9, 22, 33, 0.33);
+            }
+
+            body.tp-sidebar-collapsed .tp-side-footer {
+                padding: 8px;
+            }
+        }
+
+        @keyframes tp-shell-enter {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .tp-shell {
+                animation: none;
+            }
+            .btn,
+            a,
+            .tp-side-link {
+                transition: none;
+            }
+        }
+    </style>
+
+    {% block head %}{% endblock %}
 </head>
-
 <body>
-<nav id="main_header" class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+<aside class="tp-sidebar" aria-label="{% trans "Primary navigation" %}">
+    <div class="tp-sidebar-brand">
+        <div class="tp-sidebar-brand-row">
+            <a href="{% url 'tpwebapp:index' %}">
+                <span class="tp-brand-full">{% trans "Target Pathogen" %}</span>
+                <span class="tp-brand-short">TP</span>
+            </a>
+            <button id="tp-sidebar-toggle" class="tp-sidebar-toggle" type="button" aria-label="{% trans "Collapse navigation" %}" title="{% trans "Collapse navigation" %}" aria-expanded="true">‹</button>
+        </div>
+    </div>
+    <nav class="tp-side-nav">
+        <a class="tp-side-link {% if 'genomes' in request.path %}active{% endif %}" data-short="GE" data-label="{% trans 'Genomes' %}" title="{% trans 'Genomes' %}" href="{% url 'tpwebapp:genomes_list' %}">
+            <span class="tp-side-text">{% trans "Genomes" %}</span>
+        </a>
+        <a class="tp-side-link {% if '/form' in request.path or '/result/' in request.path %}active{% endif %}" data-short="BL" data-label="{% trans 'BLAST' %}" title="{% trans 'BLAST' %}" href="{% url 'tpwebapp:form' %}">
+            <span class="tp-side-text">{% trans "BLAST" %}</span>
+        </a>
+        <a class="tp-side-link {% if '/admin' in request.path %}active{% endif %}" data-short="AD" data-label="{% trans 'Admin' %}" title="{% trans 'Admin' %}" href="{% url 'admin:index' %}">
+            <span class="tp-side-text">{% trans "Admin" %}</span>
+        </a>
+    </nav>
+    <div class="tp-side-footer">
+        {% if user.is_authenticated %}
+            <div class="tp-user-chip">{{ user.get_username }}</div>
+            <form method="post" action="{% url 'account_logout' %}">
+                {% csrf_token %}
+                <button class="btn btn-sm btn-outline-light btn-block" type="submit">{% trans "Logout" %}</button>
+            </form>
+        {% else %}
+            <a class="btn btn-sm btn-outline-light btn-block" href="{% url 'admin:login' %}">{% trans "Login" %}</a>
+        {% endif %}
+    </div>
+</aside>
+
+<nav id="main_header" class="navbar navbar-expand-md navbar-dark fixed-top tp-topbar-mobile">
     <div class="container-fluid">
         <a class="navbar-brand" href="{% url 'tpwebapp:index' %}">{% trans "Target Pathogen" %}</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse"
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse"
                 aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarCollapse">
-            <ul class="navbar-nav me-auto mb-2 mb-md-0">
+            <ul class="navbar-nav mr-auto mb-2 mb-md-0">
                 <li class="nav-item">
-                    <a class="nav-link" aria-current="page"
-                       href="{% url 'tpwebapp:genomes_list' %}">{% trans "Genomes" %}</a>
+                    <a class="nav-link" aria-current="page" href="{% url 'tpwebapp:genomes_list' %}">{% trans "Genomes" %}</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" aria-current="page"
-                       href="{% url 'tpwebapp:form' %}">{% trans "BLAST" %}</a>
-                </li>
-                {% comment "This is an optional note for comments" %}
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'tpwebapp:index' %}">{% trans "Stats" %}</a>
+                    <a class="nav-link" aria-current="page" href="{% url 'tpwebapp:form' %}">{% trans "BLAST" %}</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{% url 'tpwebapp:index' %}">{% trans "About TP" %}</a>
+                    <a class="nav-link" aria-current="page" href="{% url 'admin:index' %}">{% trans "Admin" %}</a>
                 </li>
-                {% endcomment %}
                 {% if user.is_authenticated %}
-                <li id="user_dropdown" class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-expanded="false">
-                        {{  user.get_username }}
-                    </a>
-                    <div id="user_dropdown_menu" class="dropdown-menu">
-                        <form method="post" action="{% url 'account_logout' %}">
-                            {% csrf_token %}
-                            <button class="dropdown-item" type="submit">Logout</button>
-                        </form>
-                    </div>
-                </li>
-            {% else %}
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'admin:login' %}">{% trans "Login" %}</a>
-                </li>
-            {% endif %}
-
-
+                    <li id="user_dropdown" class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-expanded="false">
+                            {{ user.get_username }}
+                        </a>
+                        <div id="user_dropdown_menu" class="dropdown-menu">
+                            <form method="post" action="{% url 'account_logout' %}">
+                                {% csrf_token %}
+                                <button class="dropdown-item" type="submit">Logout</button>
+                            </form>
+                        </div>
+                    </li>
+                {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'admin:login' %}">{% trans "Login" %}</a>
+                    </li>
+                {% endif %}
             </ul>
-
-
-
         </div>
     </div>
-
-
 </nav>
 
-
-
-
-    <div class="p-5 mb-4 bg-light rounded-3">
-        <div class="container-fluid py-5">
-            {% block body %}
-
-            {% endblock %}
-        </div>
+<main class="tp-main">
+    <div class="tp-shell">
+        {% block body %}{% endblock %}
     </div>
-    <button type="button" id="feedback-btn" class="btn btn-info vertical-right-aligned">
-        Feedback <span class="glyphicon glyphicon-bullhorn" aria-hidden="true"></span>
-    </button>
+</main>
 
-
-<footer class="footer mt-auto py-3 bg-light">
-
-
+<footer class="footer mt-auto py-3 tp-footer">
     {% block footer %}
-    <div class="container">
-        <span class="text-muted">Footer</span>
-    </div>
+        <div class="container">
+            <span class="text-muted">Target Pathogen</span>
+        </div>
     {% endblock %}
 </footer>
 
-<script>
-
-
-</script>
-
 <script src="{% static 'bundle.js' %}"></script>
-
-<style>
-    .vertical-right-aligned {
-        transform: rotate(-90deg);
-        transform-origin: 100% 100%;
-        position: fixed;
-        right: 0;
-        top: 50%;
-        z-index: 100;
-    }
-</style>
 
 <script>
     function getCookie(name) {
@@ -123,7 +825,6 @@
             const cookies = document.cookie.split(';');
             for (let i = 0; i < cookies.length; i++) {
                 const cookie = cookies[i].trim();
-                // Does this cookie string begin with the name we want?
                 if (cookie.substring(0, name.length + 1) === (name + '=')) {
                     cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
                     break;
@@ -132,12 +833,13 @@
         }
         return cookieValue;
     }
+
     const csrftoken = getCookie('csrftoken');
 
     function csrfSafeMethod(method) {
-        // these HTTP methods do not require CSRF protection
         return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
     }
+
     $.ajaxSetup({
         beforeSend: function(xhr, settings) {
             if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
@@ -146,34 +848,102 @@
         }
     });
 
-</script>
-
-
-
-{% block jsloaded %}
-
-
-<script>
-    $('#user_dropdown').click(function(){
-        $('#user_dropdown_menu').toggleClass('show');
-    });
-
-    function jsloaded() {
-
-
-
-
-
-
+    if ($.fn && $.fn.dataTable) {
+        $.extend(true, $.fn.dataTable.defaults, {
+            language: {
+                emptyTable: "{% trans 'No records available.' %}",
+                info: "{% trans 'Page' %} _PAGE_ {% trans 'of' %} _PAGES_",
+                infoEmpty: "{% trans 'No records available.' %}",
+                infoFiltered: "({% trans 'filtered from' %} _MAX_)",
+                lengthMenu: "{% trans 'Rows per page' %}: _MENU_",
+                loadingRecords: "{% trans 'Loading...' %}",
+                processing: "{% trans 'Processing...' %}",
+                search: "{% trans 'Search' %}:",
+                zeroRecords: "{% trans 'No matching records found.' %}",
+                paginate: {
+                    first: "{% trans 'First' %}",
+                    last: "{% trans 'Last' %}",
+                    next: "{% trans 'Next' %}",
+                    previous: "{% trans 'Previous' %}"
+                }
+            }
+        });
     }
 
+    (function () {
+        const STORAGE_KEY = "tp.sidebar.collapsed";
+
+        function isDesktop() {
+            return window.matchMedia("(min-width: 992px)").matches;
+        }
+
+        function defaultCollapsedForViewport() {
+            return window.matchMedia("(max-width: 1440px)").matches;
+        }
+
+        function applySidebarState(collapsed) {
+            if (!isDesktop()) {
+                document.body.classList.remove("tp-sidebar-collapsed");
+                return;
+            }
+            document.body.classList.toggle("tp-sidebar-collapsed", collapsed);
+            const button = document.getElementById("tp-sidebar-toggle");
+            if (button) {
+                button.setAttribute("aria-expanded", collapsed ? "false" : "true");
+                button.textContent = collapsed ? "›" : "‹";
+                button.title = collapsed ? "Expand navigation" : "Collapse navigation";
+                button.setAttribute("aria-label", collapsed ? "Expand navigation" : "Collapse navigation");
+            }
+        }
+
+        function initSidebarToggle() {
+            const button = document.getElementById("tp-sidebar-toggle");
+            if (!button) return;
+
+            const stored = localStorage.getItem(STORAGE_KEY);
+            if (stored === null) {
+                applySidebarState(defaultCollapsedForViewport());
+            } else {
+                applySidebarState(stored === "1");
+            }
+
+            button.addEventListener("click", function () {
+                const collapsed = !document.body.classList.contains("tp-sidebar-collapsed");
+                applySidebarState(collapsed);
+                localStorage.setItem(STORAGE_KEY, collapsed ? "1" : "0");
+            });
+
+            window.addEventListener("resize", function () {
+                if (!isDesktop()) {
+                    document.body.classList.remove("tp-sidebar-collapsed");
+                } else {
+                    const current = localStorage.getItem(STORAGE_KEY);
+                    if (current === null) {
+                        applySidebarState(defaultCollapsedForViewport());
+                    } else {
+                        applySidebarState(current === "1");
+                    }
+                }
+            });
+        }
+
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", initSidebarToggle);
+        } else {
+            initSidebarToggle();
+        }
+    })();
 </script>
 
+{% block jsloaded %}
+    <script>
+        $('#user_dropdown').click(function() {
+            $('#user_dropdown_menu').toggleClass('show');
+        });
 
+        function jsloaded() {
+        }
+    </script>
 {% endblock %}
-
-
-
-
 </body>
 </html>

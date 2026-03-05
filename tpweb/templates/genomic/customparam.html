@@ -1,38 +1,127 @@
 {% extends '../base/masterpage.html' %}
 {% load i18n %}
 {% load crispy_forms_tags %}
+
 {% block head %}
 {% endblock %}
 
 {% block body %}
-<div class="container">
-    <h1 class="font-medium leading-tight text-4xl mt-0 mb-4 text-blue-600">Load custom Parameter</h1>
-    <form id="add-custom-param-form" method="POST" enctype="multipart/form-data">
-        {% csrf_token %}
-        {{ form.tsv|as_crispy_field }}
-        <input type="hidden" name="overwrite" value="false">
-        {% if file_exists %}
+    <style>
+        .customparam-wrap {
+            max-width: 980px;
+            margin: 0 auto;
+            display: grid;
+            gap: 12px;
+        }
 
-            <input type="hidden" name="overwriting" value="true">
-            <div class="alert alert-warning" role="alert">
-                A file with the name "{{ form.tsv.value }}" already exists. Do you want to overwrite it?
+        .customparam-hero {
+            border: 1px solid #d7e6ed;
+            border-radius: 18px;
+            background:
+                radial-gradient(760px 220px at 0% 0%, #dff4f4 0%, transparent 56%),
+                radial-gradient(740px 220px at 100% 0%, #eaf6e4 0%, transparent 55%),
+                #f9fcfe;
+            padding: 18px;
+        }
+
+        .customparam-hero h1 {
+            margin: 0;
+            font-size: clamp(1.8rem, 2.4vw, 2.3rem);
+        }
+
+        .customparam-hero p {
+            margin: 8px 0 0;
+            color: var(--tp-muted);
+        }
+
+        .customparam-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1.2fr) minmax(240px, 0.8fr);
+            gap: 12px;
+        }
+
+        .customparam-card {
+            border: 1px solid #dbe7ee;
+            border-radius: 14px;
+            background: #ffffff;
+            box-shadow: 0 8px 20px rgba(19, 43, 62, 0.07);
+            padding: 16px;
+        }
+
+        .customparam-card h2 {
+            margin: 0 0 8px;
+            font-size: 1.2rem;
+        }
+
+        .customparam-tip-list {
+            margin: 0;
+            padding-left: 18px;
+            color: #4e6979;
+            display: grid;
+            gap: 6px;
+            font-size: 0.9rem;
+        }
+
+        .customparam-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        @media (max-width: 900px) {
+            .customparam-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+
+    <div class="customparam-wrap">
+        <section class="customparam-hero">
+            <h1>{% trans "Upload Custom Scores" %}</h1>
+            <p>{% trans "Add a TSV dataset to enrich protein prioritization with project-specific metrics." %}</p>
+        </section>
+
+        <section class="customparam-grid">
+            <div class="customparam-card">
+                <h2>{% trans "Upload file" %}</h2>
+                <form id="add-custom-param-form" method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {{ form.tsv|as_crispy_field }}
+                    <input type="hidden" name="overwrite" value="false">
+
+                    {% if file_exists %}
+                        <div class="alert alert-warning">
+                            {% blocktrans %}A file with this name already exists. Do you want to replace it?{% endblocktrans %}
+                        </div>
+                        <div class="customparam-actions">
+                            <button type="button" class="btn btn-danger" onclick="confirmOverwrite()">{% trans "Replace file" %}</button>
+                            <button type="button" class="btn btn-outline-secondary" onclick="window.location.href='../../assembly/{{ assembly_name }}/protein';">{% trans "Cancel" %}</button>
+                        </div>
+                    {% else %}
+                        <div class="customparam-actions">
+                            <button type="submit" class="btn btn-primary">{% trans "Upload TSV" %}</button>
+                            <button type="button" class="btn btn-outline-secondary" onclick="window.location.href='../../assembly/{{ assembly_name }}/protein';">{% trans "Cancel" %}</button>
+                        </div>
+                    {% endif %}
+                </form>
             </div>
 
-            <button type="button" class="btn btn-danger mr-2 ml-3" style="height: 50px;" onclick="confirmOverwrite(this)">Overwrite</button>
-        {% else %}
-            <button type="submit" class="btn btn-primary mr-2 ml-3" style="height: 50px;">Add TSV file</button>
-        {% endif %}
-        <button type="reset" class="btn btn-secondary mr-2 ml-3" style="height: 50px;" onclick="window.location.href='../../assembly/{{ assembly_name }}/protein';">Cancel</button>
-    </form>
+            <aside class="customparam-card">
+                <h2>{% trans "TSV guide" %}</h2>
+                <ul class="customparam-tip-list">
+                    <li>{% trans "Use tab-separated values (TSV)." %}</li>
+                    <li>{% trans "Include a protein identifier column that matches existing accessions." %}</li>
+                    <li>{% trans "One row per protein score value." %}</li>
+                </ul>
+            </aside>
+        </section>
+    </div>
+
     <script>
-    function confirmOverwrite(button) {
-        var form = document.getElementById('add-custom-param-form');
-        form.overwrite.value = 'true';
-        // Prevent default form submission
-        event.preventDefault();
-        // Submit the form programmatically
-        form.submit();
-    }
+        function confirmOverwrite() {
+            var form = document.getElementById('add-custom-param-form');
+            form.overwrite.value = 'true';
+            form.submit();
+        }
     </script>
-</div>
 {% endblock %}

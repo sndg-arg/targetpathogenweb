@@ -3,35 +3,177 @@
 {% load custom_tags %}
 
 {% block body %}
+    <style>
+        .blast-wrap {
+            max-width: 1080px;
+            margin: 0 auto;
+            display: grid;
+            gap: 12px;
+        }
 
+        .blast-hero {
+            border: 1px solid #d7e6ed;
+            border-radius: 18px;
+            background:
+                radial-gradient(760px 230px at 0% 0%, #dff4f4 0%, transparent 56%),
+                radial-gradient(760px 220px at 100% 0%, #eaf6e4 0%, transparent 55%),
+                #f9fcfe;
+            padding: 18px;
+        }
 
-<h1>{% trans "Blast" %}</h1>
-<body>
-    <h3>Select a genome and enter some query:</h3>
-    <form method="POST">
-        {% csrf_token %}  <label for="dropdown">Genome:</label>
-        <select name="dropdown" id="dropdown">
-            {% for option in db_options %}
-                <option value="{{ option.value }}">{{ option.label }}</option>
-            {% endfor %}
-        </select>
-        <br>
-        <label for="text_input">Query sequence:</label>
-        <input type="text" name="text_input" id="text_input">
-        <br>
-        <button type="submit">Submit</button>
-    </form>
-    {% if error_message %}
-        <p style="color: red;">{{ error_message }}</p>
-    {% endif %}
-    {% if message %}
-        <p>{{ message }}</p>
-        <a href="{% url 'tpwebapp:blast_res' result_id %}">result</a>
-    {% endif %}
-</body>
+        .blast-head h1 {
+            margin: 0;
+            font-size: clamp(1.8rem, 2.5vw, 2.35rem);
+        }
 
+        .blast-head p {
+            margin: 8px 0 0;
+            color: var(--tp-muted);
+        }
+
+        .blast-hero-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .blast-hero-chip {
+            border-radius: 999px;
+            border: 1px solid #d5e4ec;
+            background: #f8fbfd;
+            color: #395969;
+            font-size: 0.84rem;
+            font-weight: 700;
+            padding: 5px 10px;
+        }
+
+        .blast-form-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.85fr);
+            gap: 12px;
+        }
+
+        .blast-panel {
+            border: 1px solid #dbe7ee;
+            border-radius: 14px;
+            background: #ffffff;
+            box-shadow: 0 8px 20px rgba(19, 43, 62, 0.07);
+            padding: 16px;
+            display: grid;
+            gap: 10px;
+            align-content: start;
+        }
+
+        .blast-panel h2 {
+            margin: 0;
+            font-size: 1.2rem;
+        }
+
+        #text_input {
+            min-height: 170px;
+            font-family: "JetBrains Mono", "Fira Code", monospace;
+            font-size: 0.9rem;
+        }
+
+        .blast-tip-list {
+            margin: 0;
+            padding-left: 18px;
+            color: #4e6979;
+            display: grid;
+            gap: 6px;
+            font-size: 0.9rem;
+        }
+
+        .blast-format {
+            border: 1px solid #dce8ef;
+            border-radius: 10px;
+            background: #f7fbfd;
+            padding: 10px;
+            font-family: "JetBrains Mono", "Fira Code", monospace;
+            font-size: 0.82rem;
+            color: #355668;
+            white-space: pre-wrap;
+            margin: 0;
+        }
+
+        .blast-form-inner {
+            display: grid;
+            gap: 10px;
+        }
+
+        @media (max-width: 960px) {
+            .blast-form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+
+    <div class="blast-wrap">
+        <section class="blast-hero blast-head">
+            <h1>{% trans "BLAST" %}</h1>
+            <p>{% trans "Run nucleotide BLAST against a selected genome dataset." %}</p>
+            <div class="blast-hero-chips">
+                <span class="blast-hero-chip">{% trans "Input" %}: FASTA / raw sequence</span>
+                <span class="blast-hero-chip">{% trans "Mode" %}: blastn</span>
+                <span class="blast-hero-chip">{% trans "Output" %}: standard BLAST report</span>
+            </div>
+        </section>
+
+        <section class="blast-form-grid">
+            <div class="blast-panel">
+                <h2>{% trans "Run search" %}</h2>
+                <form method="POST" class="blast-form-inner">
+                    {% csrf_token %}
+                    <div>
+                        <label for="dropdown"><strong>{% trans "Genome" %}</strong></label>
+                        <select name="dropdown" id="dropdown" class="form-control">
+                            {% for option in db_options %}
+                                <option value="{{ option.value }}">{{ option.label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="text_input"><strong>{% trans "Query sequence" %}</strong></label>
+                        <textarea name="text_input" id="text_input" class="form-control" placeholder="{% trans "Paste FASTA or raw nucleotide sequence here..." %}"></textarea>
+                    </div>
+
+                    <div class="d-flex flex-wrap gap-2">
+                        <button type="submit" class="btn btn-primary">{% trans "Run BLAST" %}</button>
+                    </div>
+                </form>
+            </div>
+
+            <aside class="blast-panel">
+                <h2>{% trans "Input guide" %}</h2>
+                <ul class="blast-tip-list">
+                    <li>{% trans "Use nucleotide sequences only (A/C/G/T/N)." %}</li>
+                    <li>{% trans "You can paste one FASTA entry or a plain sequence." %}</li>
+                    <li>{% trans "Longer queries can take more time depending on the selected genome." %}</li>
+                </ul>
+                <p class="mb-1"><strong>{% trans "Example FASTA" %}</strong></p>
+                <p class="blast-format">>query_1
+ATGACCACTGATCGTTGGTAACTTGACGCTAA</p>
+            </aside>
+        </section>
+
+        {% if error_message %}
+            <section class="tp-card">
+                <div class="alert alert-danger mb-0">{{ error_message }}</div>
+            </section>
+        {% endif %}
+
+        {% if message %}
+            <section class="tp-card">
+                <div class="alert alert-success mb-2">
+                    {% trans "BLAST completed successfully. Open the result file:" %}
+                </div>
+                <a href="{% url 'tpwebapp:blast_res' result_id %}" class="btn btn-outline-success">{% trans "Open results" %}</a>
+            </section>
+        {% endif %}
+    </div>
 {% endblock %}
-
 
 {% block footer %}
 {% endblock %}
