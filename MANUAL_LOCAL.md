@@ -1,29 +1,156 @@
 # Manual Local y Criterio Cluster
 
-Actualizado: 2026-03-04 (run local validado end-to-end).
+Actualizado: 2026-03-06 (operativa local diaria + monitoreo).
 
 Objetivo: correr en Mac sin alejarse de `prod`, y evitar cambios locales que degraden resultados en cluster.
 
-## Estado funcional observado
-- Run `036` generó 44 archivos `*_af.pdb` (animación 3D recuperada).
-- El cuello real era `get_binders` (`exit -9`, OOM local) al cargar BioLiP + `components.cif` completos en RAM.
-- Se aplicó fix en `tpweb/management/commands/get_binders.py`:
-  - lectura streaming de BioLiP (filtro temprano por UniProt/Ligand),
-  - parseo selectivo de `components.cif` solo para ligandos necesarios,
-  - sin cargar datasets completos en memoria.
-- Se aplicó fix en `tpweb/management/commands/fast_command.py`:
-  - timeout de FastTarget con cierre de process-group completo (`SIGTERM`/`SIGKILL`),
-  - evita procesos huérfanos `fasttarget.py` tras timeout local.
-- Validación post-fix (2026-03-04):
-  - `python manage.py get_binders NZ_AP023069.1 --datadir ../data` terminó OK en ~8.3s,
-  - `python manage.py load_binders NZ_AP023069.1 --datadir ../data` terminó OK.
-  - `python run_pipeline.py --test` (runinfo `003`) completó OK; `Task 63/64` finalizaron sin `exit -9`; 44 `*_af.pdb` generados.
+## Operativa rápida (día a día)
 
-### Verificación adicional (2026-03-04, run 037)
-- Se levantaron contenedores y se validó `python manage.py check` OK tras instalar `setuptools==68.2.2` en `tpv2`.
-- El pipeline `python run_pipeline.py --test` inició correctamente pero quedó ejecutando `Task 4 (fasttarget)` por varios minutos sin completar durante la ventana de prueba.
-- Se interrumpió manualmente para no bloquear la sesión; no llegó a etapas posteriores en este intento.
-- Conclusión: el flujo arranca, pero la etapa `fasttarget` en modo estricto puede ser muy lenta o quedar pendiente de recursos externos.
+### 1) Levantar la app local (sin pipeline)
+```bash
+cd /Users/ani/Desktop/Exactas/targetpathogenweb
+DOCKER_DEFAULT_PLATFORM=linux/amd64 docker compose up -d --pull never
+docker compose ps
+open http://localhost:8085
+```
+Que hace:
+- `cd ...`: te posiciona en el repo.
+- `DOCKER_DEFAULT_PLATFORM=linux/amd64 ... up -d`: levanta servicios en background usando arquitectura amd64 (util en Mac).
+- `docker compose ps`: confirma que `db` y `web` quedaron en `Up`.
+- `open ...`: abre la app en el navegador.
+
+### 2) Ver salud general
+```bash
+curl -s http://localhost:8085/health/live
+curl -s http://localhost:8085/health/ready
+curl -s http://localhost:8085/health/pipeline
+```
+Que hace:
+- `/health/live`: dice si el proceso web esta vivo.
+- `/health/ready`: valida si la app esta lista para atender requests (incluye dependencias como DB).
+- `/health/pipeline`: muestra estado del ultimo pipeline (running/stage/run_id).
+
+### 3) Borrar corridas viejas (runinfo + logs) sin borrar datos biológicos
+Esto limpia el estado de pipeline mostrado en UI, pero no borra genomas/proteínas cargados en DB.
+```bash
+docker exec target2_nodo0 bash -lc '
+  rm -rf /app/targetpathogenweb/parsl/runinfo/* \
+         /app/targetpathogenweb/runinfo/* \
+         /tmp/tpw_pipeline_test.log \
+         /tmp/tpw_pipeline_test.pid
+  mkdir -p /app/targetpathogenweb/parsl/runinfo /app/targetpathogenweb/runinfo
+'
+```
+Que hace:
+- borra metadatos de ejecucion anteriores (`runinfo`) y logs temporales.
+- recrea carpetas vacias para que el siguiente run empiece limpio.
+
+### 4) Correr pipeline de test desde cero (en background)
+```bash
+docker exec target2_nodo0 bash -lc '
+  cd /app/targetpathogenweb/parsl
+  source /opt/conda/etc/profile.d/conda.sh
+  conda activate tpv2
+  source exports.sh
+  export PYTHONPATH=/app/targetpathogenweb/parsl:/app/targetpathogenweb:$PYTHONPATH
+  nohup python run_pipeline.py --test > /tmp/tpw_pipeline_test.log 2>&1 &
+  echo $! > /tmp/tpw_pipeline_test.pid
+  echo "started pid $(cat /tmp/tpw_pipeline_test.pid)"
+'
+```
+Que hace:
+- entra al contenedor `web`.
+- activa conda env `tpv2`.
+- carga `exports.sh` y `PYTHONPATH` del proyecto/parsl.
+- ejecuta `run_pipeline.py --test` en background y guarda:
+  - log en `/tmp/tpw_pipeline_test.log`
+  - pid en `/tmp/tpw_pipeline_test.pid`
+
+### 5) Ver si está corriendo y por qué etapa va
+```bash
+curl -s http://localhost:8085/health/pipeline
+docker exec target2_nodo0 bash -lc 'tail -f /tmp/tpw_pipeline_test.log'
+docker exec target2_nodo0 bash -lc 'ps -eo pid,args | grep -E "run_pipeline.py|process_worker_pool.py|fasttarget.py" | grep -v grep'
+```
+Que hace:
+- `health/pipeline`: etapa actual (ej: `stage_current 4/21`) y estado.
+- `tail -f`: seguimiento en vivo del log.
+- `ps ...`: verifica procesos reales del pipeline.
+
+Tip: para monitoreo rápido en terminal:
+```bash
+watch -n 5 'curl -s http://localhost:8085/health/pipeline'
+```
+Que hace:
+- refresca cada 5 segundos el estado del pipeline en la terminal.
+
+### 6) Frenar pipeline en curso (si se clavó)
+```bash
+docker exec target2_nodo0 bash -lc '
+  pids=$(ps -eo pid,args | grep -E "python .*run_pipeline.py|process_worker_pool.py|fasttarget.py" | grep -v grep | awk "{print \$1}" || true)
+  [ -n "$pids" ] && echo "$pids" | xargs -r kill -TERM
+  sleep 2
+  pids=$(ps -eo pid,args | grep -E "python .*run_pipeline.py|process_worker_pool.py|fasttarget.py" | grep -v grep | awk "{print \$1}" || true)
+  [ -n "$pids" ] && echo "$pids" | xargs -r kill -KILL
+'
+```
+Que hace:
+- intenta cierre ordenado con `SIGTERM`.
+- espera 2 segundos.
+- si sigue vivo, fuerza cierre con `SIGKILL`.
+
+### 7) Limpieza total del genoma de test (opcional, destructiva)
+Útil si querés “arrancar de cero” también en archivos de salida.
+```bash
+docker exec target2_nodo0 bash -lc '
+  rm -rf /app/targetpathogenweb/data/023/NZ_AP023069.1
+  rm -rf /app/fasttarget/organism/NZ_AP023069.1
+'
+```
+Que hace:
+- elimina resultados del genoma de test en `data/` y `fasttarget/organism/`.
+- no usar si queres conservar artefactos de una corrida.
+
+### 8) Entrar al contenedor y ejecutar manualmente
+```bash
+docker exec -it target2_nodo0 bash
+source /opt/conda/etc/profile.d/conda.sh
+conda activate tpv2
+cd /app/targetpathogenweb/parsl
+source exports.sh
+export TPW_PROFILE=local
+python run_pipeline.py --test
+```
+Que hace:
+- modo interactivo para debug paso a paso dentro del contenedor.
+- `TPW_PROFILE=local` aplica defaults mas amigables para entorno local.
+
+### 9) Apagar contenedores
+Apagado normal (recomendado para cortar y seguir luego):
+```bash
+cd /Users/ani/Desktop/Exactas/targetpathogenweb
+docker compose stop
+```
+Que hace:
+- detiene `web` y `db` sin borrar nada (ni red, ni volúmenes, ni contenedores).
+
+Apagado con limpieza de contenedores/red del compose:
+```bash
+cd /Users/ani/Desktop/Exactas/targetpathogenweb
+docker compose down
+```
+Que hace:
+- detiene y elimina contenedores y red del proyecto.
+- los datos persisten si estan en volúmenes/bind mounts.
+
+Apagado total (destructivo para volumenes de compose):
+```bash
+cd /Users/ani/Desktop/Exactas/targetpathogenweb
+docker compose down -v
+```
+Que hace:
+- igual que `down`, pero tambien elimina volúmenes de compose.
+- usar solo si realmente queres limpiar estado persistente.
 
 ## Inventario de cambios y decisión
 | Archivo | Uso real | ¿Necesario local? | ¿Riesgo cluster? | Decisión recomendada |

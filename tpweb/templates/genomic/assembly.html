@@ -143,11 +143,11 @@
                 </select>
                 <input type="hidden" name="accession" value="{{ assembly.name }}"/>
                 <input type="hidden" id="download_format" name="format" value="genome"/>
-                <button class="btn btn-outline-info" type="submit" onclick="$('#download_format').val($('#inputFormatSelect').val())">
+                <button class="btn tp-btn tp-btn--outline" type="submit" onclick="$('#download_format').val($('#inputFormatSelect').val())">
                     {% trans 'Download' %}
                 </button>
             </form>
-            <a class="btn btn-danger" href="{% url 'tpwebapp:protein_list' assembly.name %}">
+            <a class="btn tp-btn tp-btn--danger" href="{% url 'tpwebapp:protein_list' assembly.name %}">
                 {% trans 'Prioritize Targets' %}
             </a>
         </div>
@@ -185,7 +185,7 @@
             <h2 class="mb-3">{% trans 'Genome Browser' %}</h2>
             <div class="browser-toolbar">
                 <small class="text-muted">{% trans "Interactive genomic tracks (JBrowse)." %}</small>
-                <a href="{{ jbrowse_url }}" target="_blank" rel="noopener" class="btn btn-outline-secondary btn-sm">{% trans "Open in new tab" %}</a>
+                <a href="{{ jbrowse_url }}" target="_blank" rel="noopener" class="btn tp-btn tp-btn--neutral btn-sm">{% trans "Open in new tab" %}</a>
             </div>
             <div class="viewer-shell">
                 <iframe src="{{ jbrowse_url }}" loading="lazy"></iframe>
@@ -213,7 +213,4 @@
         function jsloaded() {
         }
     </script>
-{% endblock %}
-
-{% block footer %}
 {% endblock %}

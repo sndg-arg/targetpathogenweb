@@ -1,126 +1,89 @@
 {% extends '../base/masterpage.html' %}
 {% load i18n %}
-{% load crispy_forms_tags %}
+{% load static %}
 
 {% block head %}
+    <link rel="stylesheet" href="{% static 'css/pages/customparam.css' %}?v=20260309-3">
 {% endblock %}
 
 {% block body %}
-    <style>
-        .customparam-wrap {
-            max-width: 980px;
-            margin: 0 auto;
-            display: grid;
-            gap: 12px;
-        }
-
-        .customparam-hero {
-            border: 1px solid #d7e6ed;
-            border-radius: 18px;
-            background:
-                radial-gradient(760px 220px at 0% 0%, #dff4f4 0%, transparent 56%),
-                radial-gradient(740px 220px at 100% 0%, #eaf6e4 0%, transparent 55%),
-                #f9fcfe;
-            padding: 18px;
-        }
-
-        .customparam-hero h1 {
-            margin: 0;
-            font-size: clamp(1.8rem, 2.4vw, 2.3rem);
-        }
-
-        .customparam-hero p {
-            margin: 8px 0 0;
-            color: var(--tp-muted);
-        }
-
-        .customparam-grid {
-            display: grid;
-            grid-template-columns: minmax(0, 1.2fr) minmax(240px, 0.8fr);
-            gap: 12px;
-        }
-
-        .customparam-card {
-            border: 1px solid #dbe7ee;
-            border-radius: 14px;
-            background: #ffffff;
-            box-shadow: 0 8px 20px rgba(19, 43, 62, 0.07);
-            padding: 16px;
-        }
-
-        .customparam-card h2 {
-            margin: 0 0 8px;
-            font-size: 1.2rem;
-        }
-
-        .customparam-tip-list {
-            margin: 0;
-            padding-left: 18px;
-            color: #4e6979;
-            display: grid;
-            gap: 6px;
-            font-size: 0.9rem;
-        }
-
-        .customparam-actions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-
-        @media (max-width: 900px) {
-            .customparam-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
-
-    <div class="customparam-wrap">
+    <div class="customparam-page">
         <section class="customparam-hero">
+            {% trans "Home" as crumb_home %}
+            {% trans "Genomes" as crumb_genomes %}
+            {% trans "Proteins" as crumb_proteins %}
+            {% trans "Upload custom scores" as crumb_upload_custom_scores %}
+            {% url 'tpwebapp:index' as index_url %}
+            {% url 'tpwebapp:genomes_list' as genomes_url %}
+            {% url 'tpwebapp:protein_list' assembly_name as proteins_url %}
+            {% include "components/navigation/breadcrumbs.html" with crumb_1_label=crumb_home crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_proteins crumb_3_url=proteins_url crumb_4_label=crumb_upload_custom_scores %}
             <h1>{% trans "Upload Custom Scores" %}</h1>
-            <p>{% trans "Add a TSV dataset to enrich protein prioritization with project-specific metrics." %}</p>
+            <p class="customparam-subtitle">{% trans "Add a TSV dataset to enrich protein prioritization with project-specific metrics." %}</p>
+            <p class="customparam-context"><strong>{% trans "Genome" %}:</strong> <span class="customparam-context-id">{{ assembly_name }}</span></p>
+            <div class="customparam-chip-group tp-chip-group">
+                <span class="tp-chip tp-chip--meta tp-chip--sm">{% trans "Format" %}: TSV</span>
+                <span class="tp-chip tp-chip--meta tp-chip--sm">{% trans "Expected columns" %}: 2</span>
+            </div>
         </section>
 
-        <section class="customparam-grid">
-            <div class="customparam-card">
-                <h2>{% trans "Upload file" %}</h2>
-                <form id="add-custom-param-form" method="POST" enctype="multipart/form-data">
+        <section class="customparam-main">
+            <article class="customparam-card tp-ui-panel">
+                <div class="customparam-card-head">
+                    <h2>{% trans "Upload file" %}</h2>
+                    <span class="tp-chip tp-chip--count tp-chip--sm">{% trans "TSV" %}</span>
+                </div>
+                <form id="add-custom-param-form" class="customparam-form" method="POST" enctype="multipart/form-data" novalidate>
                     {% csrf_token %}
-                    {{ form.tsv|as_crispy_field }}
+                    <div class="tp-ui-field customparam-field">
+                        <label class="tp-ui-field-label" for="{{ form.tsv.id_for_label }}">{% trans "TSV file" %}</label>
+                        {{ form.tsv }}
+                        <p class="customparam-help">{% trans "Required. Use one row per protein with a matching accession in the first column." %}</p>
+                        {% if form.tsv.errors %}
+                            <p class="customparam-error">{{ form.tsv.errors|striptags }}</p>
+                        {% endif %}
+                    </div>
                     <input type="hidden" name="overwrite" value="false">
 
                     {% if file_exists %}
-                        <div class="alert alert-warning">
+                        <p class="customparam-warning tp-state-note tp-state-note--error">
                             {% blocktrans %}A file with this name already exists. Do you want to replace it?{% endblocktrans %}
-                        </div>
+                        </p>
                         <div class="customparam-actions">
-                            <button type="button" class="btn btn-danger" onclick="confirmOverwrite()">{% trans "Replace file" %}</button>
-                            <button type="button" class="btn btn-outline-secondary" onclick="window.location.href='../../assembly/{{ assembly_name }}/protein';">{% trans "Cancel" %}</button>
+                            <button type="button" class="btn tp-btn tp-btn--danger" onclick="confirmOverwrite()">{% trans "Replace file" %}</button>
+                            <a class="btn tp-btn tp-btn--neutral"
+                               href="{% url 'tpwebapp:protein_list' assembly_name %}">{% trans "Cancel" %}</a>
                         </div>
                     {% else %}
                         <div class="customparam-actions">
-                            <button type="submit" class="btn btn-primary">{% trans "Upload TSV" %}</button>
-                            <button type="button" class="btn btn-outline-secondary" onclick="window.location.href='../../assembly/{{ assembly_name }}/protein';">{% trans "Cancel" %}</button>
+                            <button type="submit" class="btn tp-btn tp-btn--primary">{% trans "Upload TSV" %}</button>
+                            <a class="btn tp-btn tp-btn--neutral"
+                               href="{% url 'tpwebapp:protein_list' assembly_name %}">{% trans "Cancel" %}</a>
                         </div>
                     {% endif %}
                 </form>
-            </div>
+            </article>
 
-            <aside class="customparam-card">
+            <aside class="customparam-card tp-ui-panel">
                 <h2>{% trans "TSV guide" %}</h2>
-                <ul class="customparam-tip-list">
+                <ul class="customparam-guide-list">
                     <li>{% trans "Use tab-separated values (TSV)." %}</li>
                     <li>{% trans "Include a protein identifier column that matches existing accessions." %}</li>
                     <li>{% trans "One row per protein score value." %}</li>
                 </ul>
+                <div class="customparam-guide-sample">
+                    <p>{% trans "Example" %}</p>
+                    <code>protein_accession&#9;custom_score
+A0A0000001&#9;0.83
+A0A0000002&#9;0.41</code>
+                </div>
             </aside>
         </section>
     </div>
 
     <script>
         function confirmOverwrite() {
-            var form = document.getElementById('add-custom-param-form');
-            form.overwrite.value = 'true';
+            var form = document.getElementById("add-custom-param-form");
+            form.overwrite.value = "true";
             form.submit();
         }
     </script>

@@ -17,14 +17,14 @@
     {% else %}
         {% if pipeline_status.running_for_current_genome %}
             <span class="{{ chip_class }} running">
-                {% trans "This genome is in process" %}
+                {% trans "This genome is in progress" %}
                 {% if pipeline_status.stage_current %}
                     · {% trans "Stage" %} {{ pipeline_status.stage_current }}/{{ pipeline_status.stage_total }}
                 {% endif %}
             </span>
         {% elif pipeline_status.running_for_other_genome %}
             <span class="{{ chip_class }} running-other">
-                {% trans "Other genome in process" %}: {{ pipeline_status.other_genome_accession }}
+                {% trans "Other genome in progress" %}: {{ pipeline_status.other_genome_accession }}
             </span>
         {% elif not pipeline_status.running %}
             <span class="{{ chip_class }} {{ pipeline_status.state_class }}">

@@ -19,7 +19,8 @@ from tpweb.services.pipeline_status import (
 
 def serialize_prot(protein: Bioentry):
     bdb = Biodatabase.objects.filter(name=protein.biodatabase.name.split(Biodatabase.PROT_POSTFIX)[0]).get()
-    protein2 = {"accession": protein.name,
+    protein2 = {"id": protein.bioentry_id,
+                "accession": protein.name,
                 "description": protein.description,
                 "gene": " ".join(protein.genes()),
                 "size": protein.seq.length,

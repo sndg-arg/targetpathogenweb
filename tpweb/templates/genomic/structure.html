@@ -1,225 +1,491 @@
 {% extends '../base/masterpage.html' %}
 {% load i18n %}
+{% load static %}
+
+{% block head %}
+    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20260309-4">
+{% endblock %}
 
 {% block body %}
-    <style>
-        .structure-shell {
-            position: relative;
-        }
+    <section class="structure-fs tp-ui-panel" id="structure-fs-root">
+        <header class="structure-fs-head tp-ui-panel-head">
+            <div>
+                {% trans "Home" as crumb_home %}
+                {% trans "Genomes" as crumb_genomes %}
+                {% trans "Proteins" as crumb_proteins %}
+                {% trans "Protein Detail" as crumb_protein_detail %}
+                {% trans "3D Structure" as crumb_structure %}
+                {% url 'tpwebapp:index' as index_url %}
+                {% url 'tpwebapp:genomes_list' as genomes_url %}
+                {% if source_protein_id %}
+                    {% url 'tpwebapp:protein' source_protein_id as protein_detail_url %}
+                    {% if source_assembly_name %}
+                        {% url 'tpwebapp:protein_list' source_assembly_name as proteins_url %}
+                        {% include "components/navigation/breadcrumbs.html" with crumb_1_label=crumb_home crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_proteins crumb_3_url=proteins_url crumb_4_label=crumb_protein_detail crumb_4_url=protein_detail_url crumb_5_label=crumb_structure %}
+                    {% else %}
+                        {% include "components/navigation/breadcrumbs.html" with crumb_1_label=crumb_home crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_protein_detail crumb_3_url=protein_detail_url crumb_4_label=crumb_structure %}
+                    {% endif %}
+                {% else %}
+                    {% include "components/navigation/breadcrumbs.html" with crumb_1_label=crumb_home crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_structure %}
+                {% endif %}
+                <p class="structure-fs-eyebrow">{% trans "Interactive model" %}</p>
+                <h1>{% trans "3D Structure" %}</h1>
+                <p class="structure-fs-subtitle">
+                    {% trans "PDB code" %}: <strong>{{ structure.code|upper }}</strong>
+                </p>
+            </div>
+            <div class="structure-fs-head-tools">
+                {% if structure.pockets %}
+                    <span class="tp-chip tp-chip--count tp-chip--sm">{{ structure.pockets|length }} FPocket</span>
+                {% endif %}
+                {% if structure.p2_pockets %}
+                    <span class="tp-chip tp-chip--count tp-chip--sm">{{ structure.p2_pockets|length }} P2Rank</span>
+                {% endif %}
+            </div>
+        </header>
 
-        .structure-actions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-bottom: 10px;
-        }
-
-        .structure-mode-switch {
-            display: inline-flex;
-            gap: 6px;
-            padding: 2px;
-            border: 1px solid #d4e2eb;
-            border-radius: 11px;
-            background: #f6fbfd;
-        }
-
-        .structure-mode-switch .btn.is-active {
-            background: #0f8b8d;
-            border-color: #0f8b8d;
-            color: #ffffff;
-        }
-
-        .tp-score-tag {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 64px;
-            border-radius: 999px;
-            border: 1px solid transparent;
-            padding: 2px 10px;
-            font-weight: 700;
-            font-size: 0.85rem;
-        }
-
-        .tp-score-tag.high {
-            color: #18643c;
-            background: #e9f8ef;
-            border-color: #c8ebd6;
-        }
-
-        .tp-score-tag.medium {
-            color: #8a5c16;
-            background: #fff4df;
-            border-color: #f4dfb6;
-        }
-
-        .tp-score-tag.low {
-            color: #8d2f36;
-            background: #fdeced;
-            border-color: #f1c7cb;
-        }
-
-        .layers-panel {
-            position: absolute;
-            left: 14px;
-            top: 58px;
-            width: min(520px, calc(100% - 28px));
-            z-index: 15;
-            border: 1px solid #d5e2ea;
-            border-radius: 12px;
-            box-shadow: 0 14px 34px rgba(25, 44, 62, 0.2);
-            background: #ffffff;
-            padding: 12px;
-            display: none;
-            max-height: 70vh;
-            overflow: auto;
-        }
-
-        #viewport {
-            height: 68vh;
-            min-height: 500px;
-            background: #f8fbff;
-            border: 1px solid #d6e3ec;
-            border-radius: 14px;
-        }
-
-        .layers-close {
-            display: inline-block;
-            margin-top: 8px;
-            font-weight: 700;
-        }
-    </style>
-
-    <section class="tp-card structure-shell">
-        <div class="structure-actions">
-            <button type="button" class="btn btn-primary" onclick="abrirVentanaEmergente()">{% trans "Layers" %}</button>
-            <button type="button" class="btn btn-outline-secondary" onclick="ngl_reset_zoom()">{% trans "Reset zoom" %}</button>
+        <div class="structure-fs-actions">
             <div class="structure-mode-switch" role="group" aria-label="{% trans "3D view mode" %}">
                 <button type="button"
-                        class="btn btn-outline-secondary btn-sm js-structure-mode is-active"
+                        class="btn tp-btn tp-btn--primary tp-btn--md js-structure-mode is-active"
                         data-mode="cartoon">{% trans "Cartoon" %}</button>
                 <button type="button"
-                        class="btn btn-outline-secondary btn-sm js-structure-mode"
-                        data-mode="density">{% trans "Pocket density" %}</button>
+                        class="btn tp-btn tp-btn--neutral tp-btn--md js-structure-mode"
+                        data-mode="density">{% trans "Density" %}</button>
             </div>
-            <a href="{% url "tpwebapp:structure_export" structure.id %}" class="btn btn-outline-dark">{% trans "Download" %}</a>
+            <div class="structure-zoom-controls" role="group" aria-label="{% trans "3D zoom controls" %}">
+                <button type="button"
+                        onclick="ngl_zoom_step(1)"
+                        class="btn tp-btn tp-btn--outline tp-btn--md structure-icon-btn"
+                        aria-label="{% trans "Zoom in" %}"
+                        title="{% trans "Zoom in" %}">
+                    <svg class="structure-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                        <circle cx="10.5" cy="10.5" r="5.75"></circle>
+                        <path d="M14.8 14.8L20 20"></path>
+                        <path d="M10.5 8.1V12.9"></path>
+                        <path d="M8.1 10.5H12.9"></path>
+                    </svg>
+                </button>
+                <button type="button"
+                        onclick="ngl_zoom_step(-1)"
+                        class="btn tp-btn tp-btn--outline tp-btn--md structure-icon-btn"
+                        aria-label="{% trans "Zoom out" %}"
+                        title="{% trans "Zoom out" %}">
+                    <svg class="structure-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                        <circle cx="10.5" cy="10.5" r="5.75"></circle>
+                        <path d="M14.8 14.8L20 20"></path>
+                        <path d="M8.2 10.5H12.8"></path>
+                    </svg>
+                </button>
+            </div>
+            <button type="button"
+                    id="structure-reset-zoom-btn"
+                    onclick="ngl_reset_zoom()"
+                    class="btn tp-btn tp-btn--outline tp-btn--md structure-action-btn"
+                    disabled>{% trans "Reset Zoom" %}</button>
+            <button type="button"
+                    id="structure-layers-toggle-btn"
+                    class="btn tp-btn tp-btn--outline tp-btn--md structure-action-btn"
+                    aria-controls="structure-layers-panel"
+                    aria-expanded="false">{% trans "Layers" %}</button>
+            <a href="{% url "tpwebapp:structure_export" structure.id %}" class="btn tp-btn tp-btn--outline tp-btn--md structure-action-btn">{% trans "Download TCL VMD" %}</a>
         </div>
 
-        <div class="layers-panel" id="miVentanaEmergente">
-            {% if structure.pockets %}
-                <h4>{% trans "Pockets" %}</h4>
-                <div class="tp-table-shell">
-                    <table id="pocketsTable" class="table table-sm table-striped mb-0">
-                        <thead>
-                        <tr><td>Nro</td><td>Sticks</td><td>Spheres</td><td>Surfaces</td><td>Druggability</td><td>Labels</td><td>Zoom</td><td>Positions</td></tr>
-                        </thead>
-                        <tbody>
-                        {% for p in structure.pockets %}
-                            <tr>
-                                <td>{{p.name}}</td>
-                                <td><input type="checkbox" onchange="toogle_view('{{p.name}}_atm')" /></td>
-                                <td><input type="checkbox" onchange="toogle_view('{{p.name}}_sph')" /></td>
-                                <td><input type="checkbox" onchange="toogle_view('{{p.name}}_pol');toogle_view('{{p.name}}_apol')" /></td>
-                                <td><span class="tp-score-tag js-score-tag" data-score="{{ p.druggability }}">{{ p.druggability }}</span></td>
-                                <td><input type="checkbox" onchange="toogle_view('{{p.name}}_lbl')" /></td>
-                                <td><button type="button" class="btn btn-outline-secondary btn-sm" onclick="ngl_zoom_to('{{p.name}}_apol')">Zoom</button></td>
-                                <td><button type="button" class="btn btn-outline-secondary btn-sm" onclick="alert('{{ p.residues | join:" " }}')">Show</button></td>
-                            </tr>
-                        {% endfor %}
-                        </tbody>
-                    </table>
+        <div class="structure-fs-canvas-shell" id="structure-fs-canvas-shell">
+            <aside class="structure-fs-layers-panel" id="structure-layers-panel" aria-hidden="true">
+                <div class="layers-panel-head">
+                    <h2>{% trans "Layers" %}</h2>
+                    <button type="button"
+                            id="structure-layers-close-btn"
+                            class="btn tp-btn tp-btn--neutral tp-btn--sm layers-close-btn"
+                            aria-label="{% trans "Close layers panel" %}">&times;</button>
                 </div>
-            {% endif %}
 
-            {% if structure.residuesets %}
-                <h4 class="mt-3">{% trans "Features" %}</h4>
-                <div class="tp-table-shell">
-                    <table id="residuesetsTable" class="table table-sm table-striped mb-0">
-                        <thead><tr><td>Type</td><td>Name</td><td>View</td><td>Zoom</td><td>Positions</td></tr></thead>
-                        <tbody>
-                        {% for rs in structure.residuesets %}
-                            <tr>
-                                <td>{{ rs.rs_name }}</td>
-                                <td><a title="{{ rs.description }}">{{ rs.description }}</a></td>
-                                <td><input type="checkbox" onchange="toogle_view('{{rs.name}}')"></td>
-                                <td><button type="button" class="btn btn-outline-secondary btn-sm" onclick="ngl_zoom_to('{{rs.name}}')">Zoom</button></td>
-                                <td><button type="button" class="btn btn-outline-secondary btn-sm" onclick="alert('{{ rs.residues | join:" " }}')">Show</button></td>
-                            </tr>
-                        {% endfor %}
-                        </tbody>
-                    </table>
+                {% if structure.pockets %}
+                    <div class="mini-section">
+                        <h3>{% trans "Pockets" %} (FPOCKET)</h3>
+                        <p class="table-hint">{% trans "Druggability is color-coded: high (0.7 or higher), medium (0.4 to 0.69), low (below 0.4)." %}</p>
+                        <div class="table-shell">
+                            <table id="pocketsTable" class="table table-striped table-hover table-sm tp-table tp-table--plain">
+                                <thead>
+                                <tr>
+                                    <th>FPOCKET</th>
+                                    <th>{% trans "Sticks" %}</th>
+                                    <th>{% trans "Spheres" %}</th>
+                                    <th>{% trans "Surfaces" %}</th>
+                                    <th>{% trans "Druggability" %}</th>
+                                    <th>{% trans "Labels" %}</th>
+                                    <th>{% trans "Zoom" %}</th>
+                                    <th>{% trans "Positions" %}</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for p in structure.pockets %}
+                                    <tr>
+                                        <td>{{ p.name }}</td>
+                                        <td><input type="checkbox" class="structure-toggle" aria-label="Toggle sticks {{ p.name }}" onchange="toogle_view('{{p.name}}_atm')" /></td>
+                                        <td><input type="checkbox" class="structure-toggle" aria-label="Toggle spheres {{ p.name }}" onchange="toogle_view('{{p.name}}_sph')" /></td>
+                                        <td><input type="checkbox" class="structure-toggle" aria-label="Toggle surfaces {{ p.name }}" onchange="toogle_view('{{p.name}}_pol');toogle_view('{{p.name}}_apol')" /></td>
+                                        <td><span class="tp-score-tag js-score-tag" data-score="{{ p.druggability }}">{{ p.druggability }}</span></td>
+                                        <td><input type="checkbox" class="structure-toggle" aria-label="Toggle labels {{ p.name }}" onchange="toogle_view('{{p.name}}_lbl')" /></td>
+                                        <td><button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm structure-table-btn" onclick="ngl_zoom_to('{{p.name}}_zoom')">{% trans "Zoom" %}</button></td>
+                                        <td><button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm structure-table-btn js-show-residues" data-residues="{{ p.residues | join:' ' }}">{% trans "Show" %}</button></td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                {% endif %}
+
+                {% if structure.p2_pockets %}
+                    <div class="mini-section">
+                        <details class="data-details">
+                            <summary>{% trans "Show P2RANK pockets" %}</summary>
+                            <p class="table-hint px-3 pt-2">{% trans "Probability is color-coded: high (0.7 or higher), medium (0.4 to 0.69), low (below 0.4)." %}</p>
+                            <div class="table-shell">
+                                <table id="p2pocketsTable" class="table table-striped table-hover table-sm tp-table tp-table--plain">
+                                    <thead>
+                                    <tr>
+                                        <th>P2RANK</th>
+                                        <th>{% trans "Sticks" %}</th>
+                                        <th>{% trans "Spheres" %}</th>
+                                        <th>{% trans "Surfaces" %}</th>
+                                        <th>{% trans "Score" %}</th>
+                                        <th>{% trans "Probability" %}</th>
+                                        <th>{% trans "Labels" %}</th>
+                                        <th>{% trans "Zoom" %}</th>
+                                        <th>{% trans "Positions" %}</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {% for p2 in structure.p2_pockets %}
+                                        <tr>
+                                            <td>{{ p2.name }}</td>
+                                            <td><input type="checkbox" class="structure-toggle" aria-label="Toggle sticks {{ p2.name }}" onchange="toogle_view('p2_{{p2.name}}_atm')" /></td>
+                                            <td><input type="checkbox" class="structure-toggle" aria-label="Toggle spheres {{ p2.name }}" onchange="toogle_view('p2_{{p2.name}}_sph')" /></td>
+                                            <td><input type="checkbox" class="structure-toggle" aria-label="Toggle surfaces {{ p2.name }}" onchange="toogle_view('p2_{{p2.name}}_pol');toogle_view('p2_{{p2.name}}_apol')" /></td>
+                                            <td><span class="tp-score-tag js-score-tag" data-score="{{ p2.p2score }}">{{ p2.p2score }}</span></td>
+                                            <td><span class="tp-score-tag js-score-tag" data-score="{{ p2.probability }}">{{ p2.probability }}</span></td>
+                                            <td><input type="checkbox" class="structure-toggle" aria-label="Toggle labels {{ p2.name }}" onchange="toogle_view('p2_{{p2.name}}_lbl')" /></td>
+                                            <td><button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm structure-table-btn" onclick="ngl_zoom_to('p2_{{p2.name}}_zoom')">{% trans "Zoom" %}</button></td>
+                                            <td><button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm structure-table-btn js-show-residues" data-residues="{{ p2.residues | join:' ' }}">{% trans "Show" %}</button></td>
+                                        </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </details>
+                    </div>
+                {% endif %}
+
+                {% if structure.residuesets %}
+                    <div class="mini-section">
+                        <details class="data-details">
+                            <summary>{% trans "Show residue sets" %}</summary>
+                            <div class="table-shell">
+                                <table id="residuesetsTable" class="table table-striped table-hover table-sm tp-table tp-table--plain">
+                                    <thead>
+                                    <tr>
+                                        <th>{% trans "Type" %}</th>
+                                        <th>{% trans "Name" %}</th>
+                                        <th>{% trans "View" %}</th>
+                                        <th>{% trans "Zoom" %}</th>
+                                        <th>{% trans "Positions" %}</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {% for rs in structure.residuesets %}
+                                        <tr>
+                                            <td>{{ rs.rs_name }}</td>
+                                            <td><a title="{{ rs.description }}">{{ rs.description }}</a></td>
+                                            <td><input type="checkbox" class="structure-toggle" aria-label="Toggle residue set {{ rs.name }}" onchange="toogle_view('{{rs.name}}')" /></td>
+                                            <td><button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm structure-table-btn" onclick="ngl_zoom_to('{{rs.name}}_zoom')">{% trans "Zoom" %}</button></td>
+                                            <td><button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm structure-table-btn js-show-residues" data-residues="{{ rs.residues | join:' ' }}">{% trans "Show" %}</button></td>
+                                        </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </details>
+                    </div>
+                {% endif %}
+            </aside>
+
+            <div class="structure-fs-viewport-wrap">
+                <div id="viewport"></div>
+                <p class="table-hint structure-loading-note" id="structure-loading-note">{% trans "Loading 3D structure..." %}</p>
+                <div class="structure-score-legend" aria-label="{% trans "Pocket score legend" %}">
+                    <span class="legend-label">{% trans "Legend" %}</span>
+                    <span class="tp-score-tag high">{% trans "High" %}</span>
+                    <span class="tp-score-tag medium">{% trans "Medium" %}</span>
+                    <span class="tp-score-tag low">{% trans "Low" %}</span>
                 </div>
-            {% endif %}
-
-            <a href="#" class="layers-close" onclick="cerrarVentanaEmergente()">{% trans "Close" %}</a>
+            </div>
         </div>
-
-        <div id="viewport"></div>
     </section>
+
+    <div class="residue-modal-backdrop" id="residue-modal" aria-hidden="true">
+        <div class="residue-modal-panel" role="dialog" aria-modal="true" aria-labelledby="residue-modal-title">
+            <div class="residue-modal-head">
+                <h3 id="residue-modal-title">{% trans "Residue positions" %}</h3>
+                <button type="button"
+                        class="btn tp-btn tp-btn--neutral tp-btn--sm residue-modal-close"
+                        id="close-residue-modal"
+                        aria-label="{% trans "Close" %}">&times;</button>
+            </div>
+            <pre class="residue-modal-body" id="residue-modal-content"></pre>
+            <div class="residue-modal-actions">
+                <button type="button"
+                        id="copy-residue-list"
+                        class="btn tp-btn tp-btn--neutral tp-btn--sm"
+                        data-default-label="{% trans "Copy positions" %}"
+                        data-copied-label="{% trans "Copied" %}">{% trans "Copy positions" %}</button>
+            </div>
+        </div>
+    </div>
 {% endblock %}
 
 {% block jsloaded %}
-<script>
-    function obtenerAlturaPantalla() {
-        if (window.innerHeight) {
-            return window.innerHeight;
-        }
-        if (document.documentElement && document.documentElement.clientHeight) {
-            return document.documentElement.clientHeight;
-        }
-        if (document.body) {
-            return document.body.clientHeight;
-        }
-        return 900;
-    }
+    <script>
+        function jsloaded() {
+            const rootStyle = getComputedStyle(document.documentElement);
+            const representations = {};
+            const visible = {};
+            const structureModeButtons = Array.from(document.querySelectorAll(".js-structure-mode"));
+            const resetZoomBtn = document.getElementById("structure-reset-zoom-btn");
+            const layersPanel = document.getElementById("structure-layers-panel");
+            const layersToggleBtn = document.getElementById("structure-layers-toggle-btn");
+            const layersCloseBtn = document.getElementById("structure-layers-close-btn");
+            const loadingNote = document.getElementById("structure-loading-note");
+            const structureRoot = document.getElementById("structure-fs-root");
 
-    function abrirVentanaEmergente() {
-        document.getElementById('miVentanaEmergente').style.display = 'block';
-    }
+            window.toogle_view = function () {};
+            window.ngl_zoom_to = function () {};
+            window.ngl_zoom_step = function () {};
+            window.ngl_reset_zoom = function () {};
+            window.ngl_set_mode = function () {};
+            window.representations = representations;
 
-    function cerrarVentanaEmergente() {
-        document.getElementById('miVentanaEmergente').style.display = 'none';
-    }
+            function tpColor(tokenName, fallback) {
+                const value = (rootStyle.getPropertyValue(tokenName) || "").trim();
+                return value || fallback || "";
+            }
 
-    function jsloaded() {
-        $("#viewport").height(obtenerAlturaPantalla() - $("#main_header").height() - 120);
-        const representations = {};
-        const visible = {};
-        window.toogle_view = null;
-        window.ngl_zoom_to = null;
-        window.ngl_reset_zoom = null;
-        window.ngl_set_mode = null;
-        const structureModeButtons = Array.from(document.querySelectorAll(".js-structure-mode"));
+            function setResetZoomEnabled(isEnabled) {
+                if (!resetZoomBtn) return;
+                resetZoomBtn.disabled = !isEnabled;
+            }
 
-        var stage = new NGL("viewport", {backgroundColor: "grey"});
-        window.representations = representations;
+            function setModeButtonState(mode) {
+                structureModeButtons.forEach(function (button) {
+                    const isActive = button.getAttribute("data-mode") === mode;
+                    button.classList.toggle("is-active", isActive);
+                    button.classList.toggle("tp-btn--primary", isActive);
+                    button.classList.toggle("tp-btn--neutral", !isActive);
+                });
+            }
 
-        stage.loadFile("{% url "tpwebapp:structure_raw" structure.id %}",
-            {ext: "pdb", defaultRepresentation: false}).then(function(component) {
-                function setModeButtonState(mode) {
-                    structureModeButtons.forEach(function (button) {
-                        const isActive = button.getAttribute("data-mode") === mode;
-                        button.classList.toggle("is-active", isActive);
+            function setLayersPanelState(isOpen) {
+                if (!layersPanel || !layersToggleBtn || !structureRoot) return;
+                structureRoot.classList.toggle("is-layers-open", isOpen);
+                layersToggleBtn.setAttribute("aria-expanded", isOpen ? "true" : "false");
+                layersPanel.setAttribute("aria-hidden", isOpen ? "false" : "true");
+            }
+
+            function setResidueModal() {
+                const modal = document.getElementById("residue-modal");
+                if (!modal) return;
+
+                const panel = modal.querySelector(".residue-modal-panel");
+                const content = document.getElementById("residue-modal-content");
+                const closeBtn = document.getElementById("close-residue-modal");
+                const copyBtn = document.getElementById("copy-residue-list");
+                let lastTrigger = null;
+
+                function closeModal() {
+                    modal.classList.remove("is-open");
+                    modal.setAttribute("aria-hidden", "true");
+                    document.body.classList.remove("residue-modal-open");
+                    if (lastTrigger && typeof lastTrigger.blur === "function") {
+                        lastTrigger.blur();
+                    }
+                    lastTrigger = null;
+                }
+
+                function openModal(trigger) {
+                    const residuesText = (trigger.getAttribute("data-residues") || "").trim();
+                    content.textContent = residuesText || "-";
+                    modal.classList.add("is-open");
+                    modal.setAttribute("aria-hidden", "false");
+                    document.body.classList.add("residue-modal-open");
+                    lastTrigger = trigger;
+                    if (copyBtn && typeof copyBtn.focus === "function") {
+                        copyBtn.focus();
+                    }
+                }
+
+                function setTemporaryLabel(button, label, durationMs) {
+                    if (!button) return;
+                    const defaultLabel = button.dataset.defaultLabel || button.textContent || "";
+                    button.textContent = label;
+                    window.setTimeout(function () {
+                        button.textContent = defaultLabel;
+                    }, durationMs || 1500);
+                }
+
+                function copyText(text) {
+                    if (!text) return Promise.resolve(false);
+                    if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+                        return navigator.clipboard.writeText(text).then(function () { return true; });
+                    }
+                    return new Promise(function (resolve, reject) {
+                        const fallback = document.createElement("textarea");
+                        fallback.value = text;
+                        fallback.setAttribute("readonly", "readonly");
+                        fallback.style.position = "fixed";
+                        fallback.style.left = "-10000px";
+                        document.body.appendChild(fallback);
+                        fallback.select();
+                        try {
+                            const ok = document.execCommand("copy");
+                            document.body.removeChild(fallback);
+                            if (ok) {
+                                resolve(true);
+                            } else {
+                                reject(new Error("copy failed"));
+                            }
+                        } catch (err) {
+                            document.body.removeChild(fallback);
+                            reject(err);
+                        }
                     });
                 }
-                const pocketSurfaceKeys = [];
-                const priorityPocketSurfaceKeys = [];
 
-                window.ngl_reset_zoom = () => {
-                    component.autoView()
+                document.addEventListener("click", function (event) {
+                    const trigger = event.target.closest(".js-show-residues");
+                    if (trigger) {
+                        openModal(trigger);
+                    }
+                });
+
+                if (copyBtn) {
+                    copyBtn.addEventListener("click", function () {
+                        copyText(content ? content.textContent : "").then(function () {
+                            setTemporaryLabel(copyBtn, copyBtn.dataset.copiedLabel || "Copied", 1500);
+                        });
+                    });
                 }
-                toogle_view = (repr) => {
-                    if (!(repr in representations)) {
+
+                if (closeBtn) {
+                    closeBtn.addEventListener("click", closeModal);
+                }
+
+                modal.addEventListener("click", function (event) {
+                    if (!panel) return;
+                    if (!panel.contains(event.target)) {
+                        closeModal();
+                    }
+                });
+
+                document.addEventListener("keydown", function (event) {
+                    if (event.key === "Escape" && modal.classList.contains("is-open")) {
+                        closeModal();
+                    }
+                });
+            }
+
+            function decorateScoreTags() {
+                document.querySelectorAll(".js-score-tag").forEach(function (tag) {
+                    const score = Number.parseFloat(tag.dataset.score || "");
+                    tag.classList.remove("high", "medium", "low");
+                    if (Number.isNaN(score)) {
+                        tag.classList.add("medium");
                         return;
                     }
+                    if (score >= 0.7) {
+                        tag.classList.add("high");
+                    } else if (score >= 0.4) {
+                        tag.classList.add("medium");
+                    } else {
+                        tag.classList.add("low");
+                    }
+                });
+            }
+
+            function initDataTableVariant(selector, options) {
+                if (!$.fn.dataTable || !$(selector).length) return;
+                $(selector).DataTable(options);
+            }
+
+            decorateScoreTags();
+            setResidueModal();
+            setResetZoomEnabled(false);
+            setLayersPanelState(false);
+
+            if (layersToggleBtn) {
+                layersToggleBtn.addEventListener("click", function () {
+                    const willOpen = !structureRoot.classList.contains("is-layers-open");
+                    setLayersPanelState(willOpen);
+                });
+            }
+            if (layersCloseBtn) {
+                layersCloseBtn.addEventListener("click", function () {
+                    setLayersPanelState(false);
+                });
+            }
+            document.addEventListener("keydown", function (event) {
+                if (event.key === "Escape" && structureRoot.classList.contains("is-layers-open")) {
+                    setLayersPanelState(false);
+                }
+            });
+
+            if (typeof NGL === "undefined") {
+                if (loadingNote) {
+                    loadingNote.style.display = "block";
+                    loadingNote.textContent = '{% trans "Unable to load 3D structure." %}';
+                }
+                return;
+            }
+
+            const stage = new NGL("viewport", {
+                backgroundColor: tpColor("--tp-color-surface-panel", "#f6fbf9")
+            });
+
+            stage.loadFile("{% url "tpwebapp:structure_raw" structure.id %}", {
+                ext: "pdb",
+                defaultRepresentation: false
+            }).then(function (component) {
+                const pocketSurfaceKeys = [];
+
+                window.ngl_reset_zoom = function () {
+                    component.autoView();
+                    setResetZoomEnabled(false);
+                };
+
+                window.toogle_view = function (repr) {
+                    if (!(repr in representations)) return;
                     visible[repr] = !visible[repr];
                     representations[repr].setVisibility(visible[repr]);
                 };
-                ngl_zoom_to = (repr) => {
-                    if (!(repr in representations) || !representations[repr].sele) {
+
+                window.ngl_zoom_to = function (repr) {
+                    if (!(repr in representations) || !representations[repr].sele) return;
+                    component.autoView(representations[repr].sele);
+                    setResetZoomEnabled(true);
+                };
+
+                window.ngl_zoom_step = function (direction) {
+                    const step = direction > 0 ? 0.2 : -0.2;
+                    if (stage.viewerControls && typeof stage.viewerControls.zoom === "function") {
+                        stage.viewerControls.zoom(step);
+                        setResetZoomEnabled(true);
                         return;
                     }
-                    component.autoView(representations[repr].sele);
+                    if (stage.animationControls && typeof stage.animationControls.zoomMove === "function") {
+                        stage.animationControls.zoomMove(step, 0);
+                        setResetZoomEnabled(true);
+                    }
                 };
 
                 representations.__main_cartoon = component.addRepresentation("cartoon", {
@@ -232,8 +498,11 @@
 
                 representations.__main_density = component.addRepresentation("surface", {
                     sele: "polymer and :A",
-                    color: "#d8e1e9",
-                    opacity: 0.14
+                    color: tpColor("--tp-color-structure-density"),
+                    opacity: 0.78,
+                    side: "double",
+                    opaqueBack: true,
+                    surfaceType: "ms"
                 });
                 visible.__main_density = false;
                 representations.__main_density.setVisibility(false);
@@ -243,47 +512,51 @@
                     const normalized = mode === "density" ? "density" : "cartoon";
                     const isDensity = normalized === "density";
                     const showCartoon = !isDensity;
+                    const showDensityShell = isDensity;
                     visible.__main_cartoon = showCartoon;
-                    visible.__main_density = isDensity;
+                    visible.__main_density = showDensityShell;
                     representations.__main_cartoon.setVisibility(showCartoon);
-                    representations.__main_density.setVisibility(isDensity);
+                    if (typeof representations.__main_cartoon.setParameters === "function") {
+                        representations.__main_cartoon.setParameters({
+                            opacity: 1
+                        });
+                    }
+                    representations.__main_density.setVisibility(showDensityShell);
+
                     pocketSurfaceKeys.forEach(function (key) {
                         if (!(key in representations)) return;
-                        const isPriority = priorityPocketSurfaceKeys.indexOf(key) !== -1;
-                        const shouldShow = isDensity && isPriority;
-                        visible[key] = shouldShow;
+                        const shouldShow = !!visible[key];
                         representations[key].setVisibility(shouldShow);
                     });
                     setModeButtonState(normalized);
                 };
 
                 let sele = null;
+
                 {% for p in structure.pockets %}
-                    sele = "STP AND .APOL AND {{p.name}}";
+                    sele = "(STP AND .APOL AND {{p.name}}) OR (NOT water AND @{{p.atoms|join:","}})";
                     representations["{{p.name}}_apol"] = component.addRepresentation("surface", {
                         sele: sele,
                         multipleBond: false,
-                        color: "#20c3d6",
-                        opacity: 0.92
+                        color: tpColor("--tp-color-structure-pocket-apolar", "#20c3d6"),
+                        opacity: 0.96,
+                        side: "front",
+                        opaqueBack: false
                     });
                     representations["{{p.name}}_apol"].sele = sele;
                     pocketSurfaceKeys.push("{{p.name}}_apol");
-                    {% if forloop.counter <= 4 %}
-                        priorityPocketSurfaceKeys.push("{{p.name}}_apol");
-                    {% endif %}
 
-                    sele = "STP AND .POL AND {{p.name}}";
+                    sele = "(STP AND .POL AND {{p.name}}) OR (NOT water AND @{{p.atoms|join:","}})";
                     representations["{{p.name}}_pol"] = component.addRepresentation("surface", {
                         sele: sele,
                         multipleBond: false,
-                        color: "#0b4f6c",
-                        opacity: 0.92
+                        color: tpColor("--tp-color-structure-pocket-polar", "#0b4f6c"),
+                        opacity: 0.96,
+                        side: "front",
+                        opaqueBack: false
                     });
                     representations["{{p.name}}_pol"].sele = sele;
                     pocketSurfaceKeys.push("{{p.name}}_pol");
-                    {% if forloop.counter <= 4 %}
-                        priorityPocketSurfaceKeys.push("{{p.name}}_pol");
-                    {% endif %}
 
                     visible["{{p.name}}_pol"] = false;
                     visible["{{p.name}}_apol"] = false;
@@ -292,7 +565,7 @@
 
                     representations["{{p.name}}_atm"] = component.addRepresentation("ball+stick", {
                         sele: "NOT STP AND NOT water AND @{{p.atoms|join:","}}",
-                        color: "purple"
+                        color: tpColor("--tp-color-structure-pocket-polar", "#0b4f6c")
                     });
                     visible["{{p.name}}_atm"] = false;
                     representations["{{p.name}}_atm"].setVisibility(false);
@@ -300,7 +573,7 @@
 
                     representations["{{p.name}}_sph"] = component.addRepresentation("spacefill", {
                         sele: "NOT STP AND NOT water AND @{{p.atoms|join:","}}",
-                        color: "purple",
+                        color: tpColor("--tp-color-structure-pocket-apolar", "#20c3d6"),
                         radiusScale: 0.7
                     });
                     visible["{{p.name}}_sph"] = false;
@@ -309,11 +582,73 @@
 
                     representations["{{p.name}}_lbl"] = component.addRepresentation("label", {
                         labelType: "res",
-                        sele: ":A AND .CA AND ({{p.residues|join:" OR "}})",
+                        sele: ":A AND .CA AND ({{p.residues|join:" OR "}})"
                     });
                     visible["{{p.name}}_lbl"] = false;
                     representations["{{p.name}}_lbl"].setVisibility(false);
                     representations["{{p.name}}_lbl"].sele = ":A AND .CA AND ({{p.residues|join:" OR "}})";
+                    representations["{{p.name}}_zoom"] = {
+                        sele: "NOT STP AND NOT water AND @{{p.atoms|join:","}}"
+                    };
+                {% endfor %}
+
+                {% for p2 in structure.p2_pockets %}
+                    sele = "(STP AND .APOL AND {{p2.name}}) OR (NOT water AND @{{p2.atoms|join:","}})";
+                    representations["p2_{{p2.name}}_apol"] = component.addRepresentation("surface", {
+                        sele: sele,
+                        multipleBond: false,
+                        color: tpColor("--tp-color-structure-p2-apolar", "#f59e0b"),
+                        opacity: 0.96,
+                        side: "front",
+                        opaqueBack: false
+                    });
+                    representations["p2_{{p2.name}}_apol"].sele = sele;
+                    pocketSurfaceKeys.push("p2_{{p2.name}}_apol");
+
+                    sele = "(STP AND .POL AND {{p2.name}}) OR (NOT water AND @{{p2.atoms|join:","}})";
+                    representations["p2_{{p2.name}}_pol"] = component.addRepresentation("surface", {
+                        sele: sele,
+                        multipleBond: false,
+                        color: tpColor("--tp-color-structure-p2-polar", "#8b5cf6"),
+                        opacity: 0.96,
+                        side: "front",
+                        opaqueBack: false
+                    });
+                    representations["p2_{{p2.name}}_pol"].sele = sele;
+                    pocketSurfaceKeys.push("p2_{{p2.name}}_pol");
+
+                    visible["p2_{{p2.name}}_pol"] = false;
+                    visible["p2_{{p2.name}}_apol"] = false;
+                    representations["p2_{{p2.name}}_pol"].setVisibility(false);
+                    representations["p2_{{p2.name}}_apol"].setVisibility(false);
+
+                    representations["p2_{{p2.name}}_atm"] = component.addRepresentation("ball+stick", {
+                        sele: "NOT STP AND NOT water AND @{{p2.atoms|join:","}}",
+                        color: tpColor("--tp-color-structure-p2-polar", "#8b5cf6")
+                    });
+                    visible["p2_{{p2.name}}_atm"] = false;
+                    representations["p2_{{p2.name}}_atm"].setVisibility(false);
+                    representations["p2_{{p2.name}}_atm"].sele = "NOT STP AND NOT water AND @{{p2.atoms|join:","}}";
+
+                    representations["p2_{{p2.name}}_sph"] = component.addRepresentation("spacefill", {
+                        sele: "NOT STP AND NOT water AND @{{p2.atoms|join:","}}",
+                        color: tpColor("--tp-color-structure-p2-apolar", "#f59e0b"),
+                        radiusScale: 0.7
+                    });
+                    visible["p2_{{p2.name}}_sph"] = false;
+                    representations["p2_{{p2.name}}_sph"].setVisibility(false);
+                    representations["p2_{{p2.name}}_sph"].sele = "NOT STP AND NOT water AND @{{p2.atoms|join:","}}";
+
+                    representations["p2_{{p2.name}}_lbl"] = component.addRepresentation("label", {
+                        labelType: "res",
+                        sele: ":A AND .CA AND ({{p2.residues|join:" OR "}})"
+                    });
+                    visible["p2_{{p2.name}}_lbl"] = false;
+                    representations["p2_{{p2.name}}_lbl"].setVisibility(false);
+                    representations["p2_{{p2.name}}_lbl"].sele = ":A AND .CA AND ({{p2.residues|join:" OR "}})";
+                    representations["p2_{{p2.name}}_zoom"] = {
+                        sele: "NOT STP AND NOT water AND @{{p2.atoms|join:","}}"
+                    };
                 {% endfor %}
 
                 {% for rs in structure.residuesets %}
@@ -324,27 +659,10 @@
                     visible["{{rs.name}}"] = false;
                     representations["{{rs.name}}"].setVisibility(false);
                     representations["{{rs.name}}"].sele = sele;
+                    representations["{{rs.name}}_zoom"] = {
+                        sele: sele
+                    };
                 {% endfor %}
-
-                {% if pockets|length > 5 %}
-                    $('#pocketsTable').DataTable({
-                        searching: false,
-                        pageLength: 5,
-                        paging: true,
-                        lengthChange: false,
-                        order: [[4, "desc"]]
-                    });
-                {% endif %}
-
-                {% if structure.residuesets|length > 5 %}
-                    $('#residuesetsTable').DataTable({
-                        searching: true,
-                        pageLength: 5,
-                        paging: true,
-                        lengthChange: false,
-                        order: [[3, "desc"]]
-                    });
-                {% endif %}
 
                 structureModeButtons.forEach(function (button) {
                     button.addEventListener("click", function () {
@@ -353,32 +671,68 @@
                     });
                 });
 
-                document.querySelectorAll("#miVentanaEmergente input[type='checkbox']").forEach(function (checkbox) {
+                document.querySelectorAll("#structure-layers-panel input[type='checkbox']").forEach(function (checkbox) {
                     checkbox.checked = false;
                 });
+
                 window.ngl_set_mode("cartoon");
                 component.autoView();
-            }
-        );
+                setResetZoomEnabled(false);
+                if (loadingNote) {
+                    loadingNote.style.display = "none";
+                }
+            }).catch(function () {
+                if (loadingNote) {
+                    loadingNote.textContent = '{% trans "Unable to load 3D structure." %}';
+                    loadingNote.style.display = "block";
+                }
+            });
 
-        document.querySelectorAll(".js-score-tag").forEach(function (tag) {
-            const score = Number.parseFloat(tag.dataset.score || "");
-            if (Number.isNaN(score)) {
-                tag.classList.add("medium");
-                return;
+            if ($.fn.dataTable && $("#pocketsTable").length && $("#pocketsTable tbody tr").length > 5) {
+                initDataTableVariant("#pocketsTable", {
+                    searching: false,
+                    pageLength: 5,
+                    paging: true,
+                    lengthChange: false,
+                    ordering: false,
+                    autoWidth: false
+                });
             }
-            if (score >= 0.7) {
-                tag.classList.add("high");
-            } else if (score >= 0.4) {
-                tag.classList.add("medium");
-            } else {
-                tag.classList.add("low");
-            }
-        });
-    }
-    $(document).ready(jsloaded)
-</script>
-{% endblock %}
 
-{% block footer %}
+            if ($.fn.dataTable && $("#p2pocketsTable").length && $("#p2pocketsTable tbody tr").length > 5) {
+                initDataTableVariant("#p2pocketsTable", {
+                    searching: false,
+                    pageLength: 5,
+                    paging: true,
+                    lengthChange: false,
+                    ordering: false,
+                    autoWidth: false
+                });
+            }
+
+            if ($.fn.dataTable && $("#residuesetsTable").length && $("#residuesetsTable tbody tr").length > 5) {
+                initDataTableVariant("#residuesetsTable", {
+                    searching: true,
+                    pageLength: 10,
+                    paging: true,
+                    lengthChange: false,
+                    ordering: false,
+                    autoWidth: false
+                });
+            }
+
+            document.querySelectorAll(".data-details").forEach(function (details) {
+                details.addEventListener("toggle", function () {
+                    if (!details.open || !$.fn.dataTable) return;
+                    details.querySelectorAll("table").forEach(function (table) {
+                        if ($.fn.dataTable.isDataTable(table)) {
+                            $(table).DataTable().columns.adjust();
+                        }
+                    });
+                });
+            });
+        }
+
+        $(document).ready(jsloaded);
+    </script>
 {% endblock %}

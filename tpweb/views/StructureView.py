@@ -1,6 +1,7 @@
 
 from django.shortcuts import render
 from django.views import View
+from bioseq.models.Biodatabase import Biodatabase
 from tpweb.models.BioentryStructure import BioentryStructure
 from tpweb.models.pdb import PDB, Residue, Property, ResidueSet, PDBResidueSet
 from django.db.models import Q
@@ -15,9 +16,40 @@ class StructureView(View):
         structure = PDB.objects.filter(id=struct_id).get()
 
         dto = {"structure": pdb_structure(structure, [])}
+        source_bioentry = self._resolve_source_bioentry(request, structure)
+        if source_bioentry is not None:
+            dto["source_protein_id"] = source_bioentry.bioentry_id
+            dto["source_protein_label"] = source_bioentry.name or "Protein detail"
+            dto["source_assembly_name"] = self._resolve_source_assembly_name(source_bioentry)
 
 
         return render(request, self.template_name, dto)
+
+    @staticmethod
+    def _resolve_source_bioentry(request, structure):
+        requested_protein_id = str(request.GET.get("protein_id") or "").strip()
+        if requested_protein_id.isdigit():
+            link = BioentryStructure.objects.select_related("bioentry__biodatabase").filter(
+                pdb=structure,
+                bioentry_id=int(requested_protein_id)
+            ).first()
+            if link and link.bioentry:
+                return link.bioentry
+
+        first_link = BioentryStructure.objects.select_related("bioentry__biodatabase").filter(pdb=structure).first()
+        if first_link and first_link.bioentry:
+            return first_link.bioentry
+        return None
+
+    @staticmethod
+    def _resolve_source_assembly_name(source_bioentry):
+        biodb_name = getattr(getattr(source_bioentry, "biodatabase", None), "name", "") or ""
+        prot_postfix = getattr(Biodatabase, "PROT_POSTFIX", "")
+        if prot_postfix and biodb_name.endswith(prot_postfix):
+            return biodb_name[:-len(prot_postfix)]
+        if prot_postfix:
+            return biodb_name.replace(prot_postfix, "")
+        return biodb_name
 
 
 def pdb_structure(pdbobj, graphic_features):

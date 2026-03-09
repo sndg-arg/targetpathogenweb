@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/home.css' %}">
+    <link rel="stylesheet" href="{% static 'css/pages/home.css' %}?v=20260309-4">
 {% endblock %}
 
 {% block body %}
@@ -14,8 +14,12 @@
                 <h1>{% trans "Target Pathogen" %}</h1>
                 <p>{% trans "Bioinformatics workspace for pathogen genomics and proteomics: prioritize targets, inspect annotations and structures, and support drug-discovery analysis." %}</p>
                 <div class="home-hero-actions">
-                    <a class="btn btn-primary" href="{% url 'tpwebapp:genomes_list' %}">{% trans "Open Genomes" %}</a>
-                    <a class="btn btn-outline-info" href="{% url 'tpwebapp:form' %}">{% trans "Run BLAST" %}</a>
+                    {% url 'tpwebapp:genomes_list' as open_genomes_href %}
+                    {% trans "Open Genomes" as open_genomes_label %}
+                    {% include "components/buttons/action.html" with variant="primary" href=open_genomes_href label=open_genomes_label %}
+                    {% url 'tpwebapp:form' as run_blast_href %}
+                    {% trans "Run BLAST" as run_blast_label %}
+                    {% include "components/buttons/action.html" with variant="outline" href=run_blast_href label=run_blast_label %}
                 </div>
             </div>
             <div class="home-stats">
@@ -38,7 +42,7 @@
             <section class="home-status {% if pipeline_status.available and not pipeline_status.running and pipeline_status.stage_current and pipeline_status.stage_current == pipeline_status.stage_total and pipeline_status.state_class == 'finished' %}pipeline-finished{% endif %}">
                 <div class="home-status-head">
                     <h2>{% trans "Bioinformatics Pipeline Status" %}</h2>
-                    <span class="pipeline-state tp-state-chip {{ pipeline_status.state_class }}">{{ pipeline_status.state_label }}</span>
+                    <span class="tp-chip tp-chip--state tp-chip--sm {{ pipeline_status.state_class }}">{{ pipeline_status.state_label }}</span>
                 </div>
                 {% if pipeline_status.available %}
                     {% if pipeline_status.stage_current %}
@@ -79,11 +83,8 @@
                     {{ post.content|safe }}
                 {% endautoescape %}
             {% else %}
-                <p class="home-empty-note">{% trans "No project notes were configured yet. You can add curated content from the admin panel." %}</p>
+                <p class="home-empty-note tp-state-note tp-state-note--empty">{% trans "No project notes were configured yet. You can add curated content from the admin panel." %}</p>
             {% endif %}
         </section>
     </div>
-{% endblock %}
-
-{% block footer %}
 {% endblock %}

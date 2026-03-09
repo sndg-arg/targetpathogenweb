@@ -18,6 +18,7 @@ from tpweb.services.protein_list import (
     apply_selected_parameter_filters,
     empty_pagination_payload,
     grouped_selected_parameters,
+    humanize_identifier,
     normalize_selected_parameters,
     parse_page_size,
     remove_selected_parameter,
@@ -149,51 +150,26 @@ class ProteinListView(View):
         clear_search_url = self._build_clear_search_url(request, page_size)
         formulas = resolve_formulas_for_user(request.user)
         formula = choose_formula(formulas, request.GET.get("scoreformula"))
-        if formula is None:
-            pipeline_status = annotate_pipeline_status_for_genome(
-                get_pipeline_status(), assembly_name
-            )
-            return render(request, self.template_name, {
-                "biodb__name": assembly_name,
-                "biodb_accession": assembly_name,
-                "biodb_description": "",
-                "proteins": [],
-                "score_dict": {},
-                "tcolumns": [],
-                "weights": {},
-                "tdata": {},
-                "formula": None,
-                "col_descriptions": {},
-                "formulas": [],
-                "current_formula": "No formula available",
-                "query_string": "",
-                "assembly_name": assembly_name,
-                "parameters": [],
-                "grouped_parameters": {},
-                "pagination": empty_pagination_payload(),
-                "page_size": page_size,
-                "search_query": "",
-                "page_numbers": [1],
-                "filter_options": [],
-                "selected_protein": None,
-                "pipeline_status": pipeline_status,
-                "clear_search_url": clear_search_url,
-            })
 
         bdb = Biodatabase.objects.get(name=assembly_name)
         #ScoreParam.initialize()
         #formula = ScoreFormula.objects.filter(name="GARDP_Target_Overall").get()
         #formula = ScoreFormula.objects.filter(name="GARDP_Virtual_Screening").get()
 
-        formula_term_list = list(
-            formula.terms.select_related("score_param").prefetch_related("score_param__choices")
-        )
-        col_descriptions = build_col_descriptions(formula_term_list)
-        formuladto = formula_to_dto(formula, col_descriptions)
-        weights = {}
-        ordered_params = ordered_score_params(formula_term_list)
+        if formula is None:
+            formula_term_list = []
+            col_descriptions = {}
+            formuladto = None
+            current_formula = ""
+        else:
+            formula_term_list = list(
+                formula.terms.select_related("score_param").prefetch_related("score_param__choices")
+            )
+            col_descriptions = build_col_descriptions(formula_term_list)
+            formuladto = formula_to_dto(formula, col_descriptions)
+            current_formula = formula.get_current_formula()
 
-        current_formula = formula.get_current_formula()
+        ordered_params = ordered_score_params(formula_term_list)
         score_dict, tcolumns = build_score_dict_and_columns(ordered_params)
 
         tdatas = {}
@@ -207,7 +183,19 @@ class ProteinListView(View):
         selected_parameters = normalize_selected_parameters(
             request.session.get("selected_parameters", [])
         )
-        grouped_parameters = grouped_selected_parameters(selected_parameters)
+        grouped_parameters = grouped_selected_parameters(selected_parameters, humanize=True)
+        display_parameters = [
+            {
+                **parameter,
+                "display_score_param_name": (
+                    humanize_identifier(parameter.get("score_param_name")) or parameter.get("score_param_name")
+                ),
+                "display_name": (
+                    humanize_identifier(parameter.get("name")) or parameter.get("name")
+                ),
+            }
+            for parameter in selected_parameters
+        ]
 
         if selected_parameters:
             proteins = apply_selected_parameter_filters(proteins, selected_parameters)
@@ -229,13 +217,12 @@ class ProteinListView(View):
 
         proteins_dto = []
         for protein in proteins:
-            protein_dto, tdata, weight = build_protein_table_row(
+            protein_dto, tdata, _ = build_protein_table_row(
                 protein,
                 visible_columns=col_descriptions,
                 coefficient_by_param=coefficient_by_param,
             )
             tdatas[protein.bioentry_id] = tdata
-            weights[protein.bioentry_id] = weight
 
             proteins_dto.append(protein_dto)
         proteins_dto = sorted(proteins_dto, key=lambda x: (-x["score"], x["accession"]))
@@ -250,17 +237,18 @@ class ProteinListView(View):
 
         proteins_ids_paginated = [protein["id"] for protein in proteins_page.object_list]
         page_tdatas = {pid: tdatas.get(pid, {}) for pid in proteins_ids_paginated}
-        page_weights = {pid: weights.get(pid, {}) for pid in proteins_ids_paginated}
-        selected_protein = proteins_page.object_list[0] if proteins_page.object_list else None
 
         query_params = request.GET.copy()
         if "page" in query_params:
             query_params.pop("page")
         query_string = query_params.urlencode()
 
-        filter_options = ScoreParamOptions.objects.filter(
-            score_param_id__in=[term.score_param_id for term in formula_term_list]
-        ).select_related("score_param").order_by("score_param__name", "name")
+        if formula_term_list:
+            filter_options = ScoreParamOptions.objects.filter(
+                score_param_id__in=[term.score_param_id for term in formula_term_list]
+            ).select_related("score_param").order_by("score_param__name", "name")
+        else:
+            filter_options = ScoreParamOptions.objects.none()
 
         # Pagination info
         pagination_info = {
@@ -285,22 +273,22 @@ class ProteinListView(View):
             "proteins": proteins_page.object_list,
             "score_dict": score_dict,
             "tcolumns": tcolumns,
-            "weights": page_weights,
             "tdata": page_tdatas,
             "formula": formuladto,
             "col_descriptions": col_descriptions,
             "formulas":formulas,
             "current_formula":current_formula,
+            "formula_term_count": len(formula_term_list),
             "query_string": query_string,
             "assembly_name":assembly_name,
             "parameters":selected_parameters,
+            "display_parameters":display_parameters,
             "grouped_parameters":grouped_parameters,
             "pagination":pagination_info,
             "page_size": page_size,
             "search_query": search_query,
             "page_numbers": page_numbers,
             "filter_options": filter_options,
-            "selected_protein": selected_protein,
             "pipeline_status": pipeline_status,
             "clear_search_url": clear_search_url,
 

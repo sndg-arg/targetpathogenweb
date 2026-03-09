@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}">
+    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20260309-5">
 {% endblock %}
 
 {% block body %}
@@ -13,6 +13,12 @@
         <section class="proteins-hero">
             <div class="hero-top">
                 <div>
+                    {% trans "Home" as crumb_home %}
+                    {% trans "Genomes" as crumb_genomes %}
+                    {% trans "Proteins" as crumb_proteins %}
+                    {% url 'tpwebapp:index' as index_url %}
+                    {% url 'tpwebapp:genomes_list' as genomes_url %}
+                    {% include "components/navigation/breadcrumbs.html" with crumb_1_label=crumb_home crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_proteins %}
                     <h1>{% trans "Proteins" %}</h1>
                     <p class="hero-context"><strong>{% trans "Genome" %}:</strong> <span class="hero-context-id">{{ biodb_accession }}</span></p>
                     {% if biodb_description and biodb_description != biodb_accession %}
@@ -21,71 +27,126 @@
                     <p class="hero-subtitle">{% trans "Search, filter, and prioritize proteins." %}</p>
                 </div>
             </div>
-            <div class="hero-chips">
-                <span class="hero-chip">{{ pagination.proteins.paginator.count }} {% trans "proteins" %}</span>
-                <span class="hero-chip">{% trans "Active filters" %}: {{ parameters|length }}</span>
-                <span class="hero-chip">{% trans "Rows per page" %}: {{ page_size }}</span>
-                {% include "components/pipeline/chip.html" with pipeline_status=pipeline_status mode="genome" chip_class="hero-chip pipeline-chip" %}
+            <div class="hero-chips tp-chip-group">
+                <span class="tp-chip tp-chip--meta">{{ pagination.proteins.paginator.count }} {% trans "proteins" %}</span>
+                <span class="tp-chip tp-chip--meta">{% trans "Rows per page" %}: {{ page_size }}</span>
+                {% include "components/pipeline/chip.html" with pipeline_status=pipeline_status mode="genome" chip_class="tp-chip tp-chip--state tp-chip--sm" %}
+            </div>
+            <div class="hero-summary">
+                <p class="hero-summary-line">
+                    <span class="hero-summary-label">{% trans "Scoring" %}:</span>
+                    <span><strong>{% if formula %}{{ formula.name }}{% else %}{% trans "None" %}{% endif %}</strong></span>
+                </p>
+                <p class="hero-summary-line">
+                    <span class="hero-summary-label">{% trans "Filters" %}:</span>
+                    {% if grouped_parameters %}
+                        {% if grouped_parameters|length == 1 %}
+                            {% for score_param, values in grouped_parameters.items %}
+                                {% if formula and score_param == formula.name %}
+                                    <span><strong>{{ values|humanize_identifier }}</strong></span>
+                                {% else %}
+                                    <span><strong>{{ score_param|humanize_identifier }}:</strong> {{ values|humanize_identifier }}</span>
+                                {% endif %}
+                            {% endfor %}
+                        {% else %}
+                            {% for score_param, values in grouped_parameters.items %}
+                                <span><strong>{{ score_param|humanize_identifier }}:</strong> {{ values|humanize_identifier }}</span>
+                                {% if not forloop.last %}<span class="hero-summary-sep">·</span>{% endif %}
+                            {% endfor %}
+                        {% endif %}
+                    {% else %}
+                        <span>{% trans "No active filters" %}</span>
+                    {% endif %}
+                </p>
+                <p class="hero-summary-line">
+                    <span class="hero-summary-label">{% trans "Search" %}:</span>
+                    {% if search_query %}
+                        <span class="hero-summary-query" title="{{ search_query }}"><strong>{{ search_query }}</strong></span>
+                    {% else %}
+                        <span>{% trans "No active search" %}</span>
+                    {% endif %}
+                </p>
             </div>
             {% include "components/pipeline/note.html" with pipeline_status=pipeline_status mode="genome" note_class="hero-pipeline-note" %}
         </section>
 
-        <section class="toolbar-card">
-            <div class="toolbar-row">
-                <form method="GET" action="{{ request.path }}" class="search-form" id="protein-search-form">
-                    {% if request.GET.scoreformula %}
-                        <input type="hidden" name="scoreformula" value="{{ request.GET.scoreformula }}">
-                    {% endif %}
-                    <div id="protein-search-autocomplete" class="search-autocomplete" data-suggest-url="{% url 'tpwebapp:protein_search_suggestions' assembly_name=assembly_name %}">
-                        <input id="protein-search-input" type="text" class="form-control search-input" name="search" placeholder="{% trans "Search by accession or description..." %}" value="{{ search_query }}" autocomplete="off">
-                        <div id="protein-search-suggestions" class="search-suggestions" role="listbox" hidden></div>
+        <section class="toolbar-card tp-ui-toolbar">
+            <form method="GET" action="{{ request.path }}" class="search-form tp-ui-toolbar-form" id="protein-search-form">
+                {% if request.GET.scoreformula %}
+                    <input type="hidden" name="scoreformula" value="{{ request.GET.scoreformula }}">
+                {% endif %}
+
+                <div class="toolbar-search-row tp-ui-search-row tp-ui-toolbar-row tp-ui-toolbar-row--stack-sm">
+                    <div id="protein-search-autocomplete"
+                         class="search-autocomplete tp-ui-search"
+                         data-suggest-url="{% url 'tpwebapp:protein_search_suggestions' assembly_name=assembly_name %}"
+                         data-suggest-error="{% trans 'Failed suggestions request' %}">
+                        <input id="protein-search-input"
+                               type="text"
+                               class="form-control search-input tp-ui-search-input"
+                               name="search"
+                               placeholder="{% trans "Search by accession or description..." %}"
+                               value="{{ search_query }}"
+                               autocomplete="off"
+                               role="combobox"
+                               aria-autocomplete="list"
+                               aria-haspopup="listbox"
+                               aria-expanded="false"
+                               aria-controls="protein-search-suggestions"
+                               aria-activedescendant="">
+                        <div id="protein-search-suggestions"
+                             class="search-suggestions"
+                             role="listbox"
+                             aria-label="{% trans 'Search suggestions' %}"
+                             hidden></div>
                     </div>
-                    <div class="per-page-control" title="{% trans "Proteins per page" %}">
-                        <span class="per-page-label">{% trans "Rows" %}</span>
-                        <select id="pageSizeSelect" name="pageSize" class="per-page-select">
-                            <option value="10" {% if page_size == 10 %}selected{% endif %}>10</option>
-                            <option value="25" {% if page_size == 25 %}selected{% endif %}>25</option>
-                            <option value="50" {% if page_size == 50 %}selected{% endif %}>50</option>
-                            <option value="100" {% if page_size == 100 %}selected{% endif %}>100</option>
-                        </select>
+                    <div class="toolbar-search-actions tp-ui-search-actions tp-ui-group">
+                        <button type="submit" class="btn tp-btn tp-btn--primary" id="protein-search-submit">{% trans "Search" %}</button>
+                        {% trans "Clear search" as clear_search_label %}
+                        {% if search_query %}
+                            {% include "components/buttons/clear_action.html" with label=clear_search_label href=clear_search_url %}
+                        {% else %}
+                            {% include "components/buttons/clear_action.html" with label=clear_search_label disabled="1" %}
+                        {% endif %}
                     </div>
-                    <button type="submit" class="btn btn-primary">{% trans "Search" %}</button>
-                    {% trans "Clear search" as clear_search_label %}
-                    {% if search_query %}
-                        {% include "components/buttons/clear_action.html" with label=clear_search_label href=clear_search_url %}
-                    {% else %}
-                        {% include "components/buttons/clear_action.html" with label=clear_search_label disabled="1" %}
-                    {% endif %}
-                </form>
-            </div>
-            <div class="toolbar-row actions-row">
-                <div class="toolbar-actions">
-                    <button type="button" class="btn btn-outline-info" id="open-filters-btn">
-                        {% trans "Filters" %} ({{ parameters|length }})
-                    </button>
-                    {% if formulas %}
-                        <button type="button" class="btn btn-outline-dark" id="open-formula-btn">
-                            {% trans "Scoring formula" %}
-                        </button>
-                    {% endif %}
-                    <button type="button"
-                            class="btn btn-outline-secondary"
-                            id="toggle-detail-panel-btn"
-                            data-hide-label="{% trans "Hide details" %}"
-                            data-show-label="{% trans "Show details" %}">
-                        {% trans "Hide details" %}
-                    </button>
                 </div>
-                <div class="toolbar-actions">
-                    <details class="toolbar-tools-menu" id="toolbar-tools-menu">
-                        <summary>{% trans "More tools" %}</summary>
-                        <div class="toolbar-tools-list">
-                            <a href="{% url 'tpwebapp:customparam' assembly_name=assembly_name %}">{% trans "Upload custom scores" %}</a>
-                            <a href="{% url 'tpwebapp:formula_form' assembly_name=assembly_name %}">{% trans "Formula Builder" %}</a>
+
+                <div class="toolbar-controls-row tp-ui-toolbar-row tp-ui-toolbar-row--between">
+                    <div class="toolbar-controls-left tp-ui-group">
+                        <div class="per-page-control tp-ui-control" title="{% trans "Proteins per page" %}">
+                            <span class="per-page-label">{% trans "Rows" %}</span>
+                            <select id="pageSizeSelect" name="pageSize" class="per-page-select form-control tp-select--sm">
+                                <option value="10" {% if page_size == 10 %}selected{% endif %}>10</option>
+                                <option value="25" {% if page_size == 25 %}selected{% endif %}>25</option>
+                                <option value="50" {% if page_size == 50 %}selected{% endif %}>50</option>
+                                <option value="100" {% if page_size == 100 %}selected{% endif %}>100</option>
+                            </select>
                         </div>
-                    </details>
+
+                        <button type="button" class="btn tp-btn tp-btn--neutral toolbar-action-btn" id="open-filters-btn">
+                            {% trans "Filters" %} ({{ parameters|length }})
+                        </button>
+                        {% if formulas %}
+                            <button type="button" class="btn tp-btn tp-btn--neutral toolbar-action-btn" id="open-formula-btn">
+                                {% trans "Scoring formula" %}
+                            </button>
+                        {% endif %}
+                    </div>
+
+                    <div class="toolbar-controls-right tp-ui-group">
+                        <details class="toolbar-tools-menu" id="toolbar-tools-menu">
+                            <summary class="toolbar-tools-trigger tp-focusable">
+                                <span class="toolbar-tools-label">{% trans "More tools" %}</span>
+                                <span class="tp-chevron tp-chevron--down toolbar-tools-chevron" aria-hidden="true"></span>
+                            </summary>
+                            <div class="toolbar-tools-list">
+                                <a href="{% url 'tpwebapp:customparam' assembly_name=assembly_name %}">{% trans "Upload custom scores" %}</a>
+                                <a href="{% url 'tpwebapp:formula_form' assembly_name=assembly_name %}">{% trans "Formula Builder" %}</a>
+                            </div>
+                        </details>
+                    </div>
                 </div>
-            </div>
+            </form>
         </section>
 
         <section class="protein-workspace" id="protein-workspace">
@@ -105,11 +166,7 @@
                         </thead>
                         <tbody>
                         {% for protein in proteins %}
-                            <tr class="protein-row {% if forloop.first %}is-selected{% endif %}"
-                                tabindex="0"
-                                data-accession="{{ protein.accession|default_if_none:'-'|escape }}"
-                                data-top-factors="{{ protein.top_factors_text|default_if_none:'-'|escape }}"
-                                data-detail-url="{% url 'tpwebapp:protein' protein.id %}">
+                            <tr class="protein-row">
                                 <td class="rank-col">{{ pagination.proteins.start_index|add:forloop.counter0 }}</td>
                                 <td class="acc-col"><a href="{% url 'tpwebapp:protein' protein.id %}">{{ protein.accession }}</a></td>
                                 <td class="desc-col">{{ protein.description }}</td>
@@ -117,17 +174,18 @@
                                 {% for col in tcolumns %}
                                     <td>
                                         {% if col == "Score" %}
-                                            <span class="score-badge">{{ tdata|dictkey:protein.id|dictkey:col|default:"" }}</span>
+                                            <span class="tp-chip tp-chip--score">{{ tdata|dictkey:protein.id|dictkey:col|default:"" }}</span>
                                         {% else %}
                                             {{ tdata|dictkey:protein.id|dictkey:col|default:"-" }}
-                                            <div class="weight-note">{% trans "Weight" %}: {{ weights|dictkey:protein.id|dictkey:col|default:"0" }}</div>
                                         {% endif %}
                                     </td>
                                 {% endfor %}
                             </tr>
                         {% empty %}
                             <tr>
-                                <td colspan="99">{% trans "No proteins match the current search and filters." %}</td>
+                                <td colspan="99">
+                                    <p class="tp-state-note tp-state-note--empty protein-table-empty-note">{% trans "No proteins match the current search and filters." %}</p>
+                                </td>
                             </tr>
                         {% endfor %}
                         </tbody>
@@ -141,16 +199,30 @@
                     <ul class="pagination">
                         <li class="page-item {% if not pagination.has_previous %}disabled{% endif %}">
                             {% if pagination.has_previous %}
-                                <a class="page-link" href="?{% if query_string %}{{ query_string }}&{% endif %}page=1">«</a>
+                                <a class="page-link" href="?{% if query_string %}{{ query_string }}&{% endif %}page=1">
+                                    <span class="sr-only">{% trans "First page" %}</span>
+                                    <span class="tp-chevron-group" aria-hidden="true">
+                                        <span class="tp-chevron tp-chevron--left"></span>
+                                        <span class="tp-chevron tp-chevron--left"></span>
+                                    </span>
+                                </a>
                             {% else %}
-                                <span class="page-link">«</span>
+                                <span class="page-link" aria-hidden="true">
+                                    <span class="tp-chevron-group">
+                                        <span class="tp-chevron tp-chevron--left"></span>
+                                        <span class="tp-chevron tp-chevron--left"></span>
+                                    </span>
+                                </span>
                             {% endif %}
                         </li>
                         <li class="page-item {% if not pagination.has_previous %}disabled{% endif %}">
                             {% if pagination.has_previous %}
-                                <a class="page-link" href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ pagination.previous_page_number }}">‹</a>
+                                <a class="page-link" href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ pagination.previous_page_number }}">
+                                    <span class="sr-only">{% trans "Previous page" %}</span>
+                                    <span class="tp-chevron tp-chevron--left" aria-hidden="true"></span>
+                                </a>
                             {% else %}
-                                <span class="page-link">‹</span>
+                                <span class="page-link" aria-hidden="true"><span class="tp-chevron tp-chevron--left"></span></span>
                             {% endif %}
                         </li>
 
@@ -166,58 +238,35 @@
 
                         <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
                             {% if pagination.has_next %}
-                                <a class="page-link" href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ pagination.next_page_number }}">›</a>
+                                <a class="page-link" href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ pagination.next_page_number }}">
+                                    <span class="sr-only">{% trans "Next page" %}</span>
+                                    <span class="tp-chevron tp-chevron--right" aria-hidden="true"></span>
+                                </a>
                             {% else %}
-                                <span class="page-link">›</span>
+                                <span class="page-link" aria-hidden="true"><span class="tp-chevron tp-chevron--right"></span></span>
                             {% endif %}
                         </li>
                         <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
                             {% if pagination.has_next %}
-                                <a class="page-link" href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ pagination.num_pages }}">»</a>
+                                <a class="page-link" href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ pagination.num_pages }}">
+                                    <span class="sr-only">{% trans "Last page" %}</span>
+                                    <span class="tp-chevron-group" aria-hidden="true">
+                                        <span class="tp-chevron tp-chevron--right"></span>
+                                        <span class="tp-chevron tp-chevron--right"></span>
+                                    </span>
+                                </a>
                             {% else %}
-                                <span class="page-link">»</span>
+                                <span class="page-link" aria-hidden="true">
+                                    <span class="tp-chevron-group">
+                                        <span class="tp-chevron tp-chevron--right"></span>
+                                        <span class="tp-chevron tp-chevron--right"></span>
+                                    </span>
+                                </span>
                             {% endif %}
                         </li>
                     </ul>
                 </div>
             </div>
-
-            <aside class="protein-detail-panel" id="protein-detail-panel">
-                {% if selected_protein %}
-                    <h2 id="protein-detail-accession">{{ selected_protein.accession }}</h2>
-                    <p class="protein-detail-kicker">{% trans "Selection summary" %}</p>
-                    <div class="protein-detail-block">
-                        <h3>{% trans "Why this target is ranked here" %}</h3>
-                        <p id="protein-detail-factors">{{ selected_protein.top_factors_text|default:"No weighted terms" }}</p>
-                    </div>
-                    <div class="protein-detail-block">
-                        <h3>{% trans "Prioritization setup" %}</h3>
-                        <p><strong>{% trans "Formula" %}:</strong> {{ formula.name|default:"-" }}</p>
-                        <p><strong>{% trans "Active filters" %}:</strong> {{ parameters|length }}</p>
-                        {% if grouped_parameters %}
-                            <ul class="protein-detail-filter-list">
-                                {% for score_param, values in grouped_parameters.items %}
-                                    <li><strong>{{ score_param }}:</strong> {{ values }}</li>
-                                {% endfor %}
-                            </ul>
-                        {% else %}
-                            <p class="text-muted">{% trans "No active filters in this view." %}</p>
-                        {% endif %}
-                    </div>
-                    <div class="protein-detail-actions">
-                        <a id="protein-detail-open-link" class="btn btn-primary" href="{% url 'tpwebapp:protein' selected_protein.id %}">
-                            {% trans "Open full protein page" %}
-                        </a>
-                        <button id="protein-detail-copy-btn" type="button" class="btn btn-outline-secondary" data-copied-message="{% trans "Accession copied" %}">
-                            {% trans "Copy accession" %}
-                        </button>
-                    </div>
-                    <p id="protein-copy-feedback" class="protein-copy-feedback" aria-live="polite"></p>
-                {% else %}
-                    <h2>{% trans "Protein preview" %}</h2>
-                    <p class="protein-detail-description">{% trans "Select a protein row to preview its details." %}</p>
-                {% endif %}
-            </aside>
         </section>
     </div>
 
@@ -225,68 +274,84 @@
     <aside class="filters-drawer" id="filters-drawer" aria-hidden="true">
         <div class="drawer-head">
             <h2>{% trans "Filters" %}</h2>
-            <button class="btn btn-outline-secondary btn-sm" type="button" id="close-filters-btn">x</button>
+            <button class="btn tp-btn tp-btn--neutral drawer-close-btn" type="button" id="close-filters-btn" aria-label="{% trans 'Close' %}">
+                <span class="drawer-close-glyph" aria-hidden="true">&times;</span>
+            </button>
         </div>
         <div class="drawer-body">
-            <div class="drawer-block">
-                <h3>{% trans "Add filter" %}</h3>
-                <form method="POST" action="" class="filter-add-form">
+            <div class="drawer-block drawer-block--add-filter">
+                <div class="drawer-block-head">
+                    <h3>{% trans "Add filter" %}</h3>
+                    <span class="drawer-meta tp-chip tp-chip--count tp-chip--sm">
+                        {% blocktrans count total=filter_options|length %}{{ total }} option{% plural %}{{ total }} options{% endblocktrans %}
+                    </span>
+                </div>
+                <form method="POST" action="" class="filter-add-form" id="filter-add-form" novalidate>
                     {% csrf_token %}
                     <input type="hidden" name="action" value="add_filter">
                     <input type="hidden" name="return_query" value="{{ query_string }}">
-                    <select name="filter_option_id" class="form-control">
+                    {% regroup filter_options by score_param.name as filter_groups %}
+                    <select id="filter-option-select"
+                            name="filter_option_id"
+                            class="form-control filter-option-select"
+                            required
+                            aria-describedby="filter-add-feedback">
                         <option value="">{% trans "Select parameter/value..." %}</option>
-                        {% regroup filter_options by score_param.name as filter_groups %}
                         {% for group in filter_groups %}
-                            <optgroup label="{{ group.grouper }}">
+                            <optgroup label="{{ group.grouper|humanize_identifier }}">
                                 {% for option in group.list %}
-                                    <option value="{{ option.id }}">{{ option.name }}</option>
+                                    <option value="{{ option.id }}">{{ option.name|humanize_identifier }}</option>
                                 {% endfor %}
                             </optgroup>
                         {% endfor %}
                     </select>
-                    <button type="submit" class="btn btn-outline-info">{% trans "Add filter" %}</button>
+                    <p class="filter-add-feedback tp-ui-feedback"
+                       id="filter-add-feedback"
+                       role="status"
+                       aria-live="polite"
+                       data-empty-message="{% trans "Select a parameter/value to enable Add filter." %}"
+                       data-duplicate-message="{% trans "This filter is already active." %}"
+                       data-ready-message="{% trans "Ready to add this filter." %}">{% trans "Select a parameter/value to enable Add filter." %}</p>
+                    <button type="submit" class="btn tp-btn tp-btn--primary filter-add-btn" id="add-filter-btn" disabled>{% trans "Add filter" %}</button>
                 </form>
             </div>
 
-            <div class="drawer-block">
-                <h3>{% trans "Active filters" %}</h3>
-                <div class="active-filters">
-                    {% for parameter in parameters %}
-                        <form method="POST" action="" class="filter-pill">
+            <div class="drawer-block drawer-block--active-filters">
+                <div class="drawer-block-head">
+                    <h3>{% trans "Active filters" %}</h3>
+                    <span class="drawer-meta tp-chip tp-chip--count tp-chip--sm">{{ display_parameters|length }}</span>
+                </div>
+                <div class="active-filters {% if not display_parameters %}is-empty{% endif %}">
+                    {% for parameter in display_parameters %}
+                        <form method="POST" action="" class="filter-pill tp-chip tp-chip--filter">
                             {% csrf_token %}
                             <input type="hidden" name="action" value="remove_filter">
                             <input type="hidden" name="filter_option_id" value="{{ parameter.id }}">
                             <input type="hidden" name="return_query" value="{{ query_string }}">
-                            <span>{{ parameter.score_param_name }}: {{ parameter.name }}</span>
-                            <button type="submit" title="{% trans "Remove filter" %}">x</button>
+                            <span>{{ parameter.display_score_param_name|default:parameter.score_param_name|humanize_identifier }}: {{ parameter.display_name|default:parameter.name|humanize_identifier }}</span>
+                            <button type="submit" class="filter-pill-remove tp-focusable" title="{% trans "Remove filter" %}" aria-label="{% trans "Remove filter" %}">&times;</button>
                         </form>
                     {% empty %}
-                        <span class="text-muted">{% trans "No active filters." %}</span>
+                        <p class="active-filters-empty tp-state-note tp-state-note--empty">{% trans "No active filters yet. Add one above to narrow results." %}</p>
                     {% endfor %}
                 </div>
             </div>
         </div>
         <div class="drawer-foot">
-            <div class="drawer-foot-left">
-                <a href="{% url 'tpwebapp:parameterformview' assembly_name=assembly_name %}" class="btn btn-outline-secondary btn-sm">
-                    {% trans "Advanced filter form" %}
-                </a>
-            </div>
-            <div class="toolbar-actions">
-                <form method="POST" action="">
-                    {% csrf_token %}
-                    <input type="hidden" name="action" value="reset_filters">
-                    <input type="hidden" name="return_query" value="{{ query_string }}">
-                    {% trans "Clear filters" as clear_filters_label %}
-                    {% if parameters %}
-                        {% include "components/buttons/clear_action.html" with label=clear_filters_label button_type="submit" classes="btn btn-outline-danger tp-btn-with-icon" %}
-                    {% else %}
-                        {% include "components/buttons/clear_action.html" with label=clear_filters_label button_type="submit" classes="btn btn-outline-danger tp-btn-with-icon" disabled="1" %}
-                    {% endif %}
-                </form>
-                <button class="btn btn-secondary" type="button" id="close-filters-btn-bottom">{% trans "Close" %}</button>
-            </div>
+            <a href="{% url 'tpwebapp:parameterformview' assembly_name=assembly_name %}" class="btn tp-btn tp-btn--clear drawer-advanced-btn">
+                {% trans "Advanced filter form" %}
+            </a>
+            <form method="POST" action="" class="drawer-reset-form">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="reset_filters">
+                <input type="hidden" name="return_query" value="{{ query_string }}">
+                {% trans "Clear filters" as clear_filters_label %}
+                {% if parameters %}
+                    {% include "components/buttons/clear_action.html" with label=clear_filters_label button_type="submit" classes="btn tp-btn tp-btn--clear tp-btn--clear-caution tp-btn-with-icon drawer-clear-btn" %}
+                {% else %}
+                    {% include "components/buttons/clear_action.html" with label=clear_filters_label button_type="submit" disabled="1" classes="btn tp-btn tp-btn--clear tp-btn--clear-caution tp-btn-with-icon drawer-clear-btn" %}
+                {% endif %}
+            </form>
         </div>
     </aside>
 
@@ -295,21 +360,51 @@
         <div class="formula-modal" id="formula-modal" aria-hidden="true">
             <div class="formula-head">
                 <h2>{% trans "Scoring formula" %}</h2>
-                <button class="btn btn-outline-secondary btn-sm" type="button" id="close-formula-btn">x</button>
+                <button class="btn tp-btn tp-btn--neutral drawer-close-btn" type="button" id="close-formula-btn" aria-label="{% trans 'Close' %}">
+                    <span class="drawer-close-glyph" aria-hidden="true">&times;</span>
+                </button>
             </div>
             <div class="formula-body">
-                <div class="formula-text">{{ current_formula }}</div>
-                <form method="GET" action="" class="toolbar-row">
+                <section class="formula-current">
+                    <div class="formula-current-head">
+                        <h3>{% trans "Current formula" %}</h3>
+                        {% if formula %}
+                            <span class="formula-count-chip tp-chip tp-chip--count tp-chip--sm">
+                                {% blocktrans count total=formula_term_count %}{{ total }} term{% plural %}{{ total }} terms{% endblocktrans %}
+                            </span>
+                        {% endif %}
+                    </div>
+                    {% if formula %}
+                        <p class="formula-current-name">{{ formula.name }}</p>
+                        {% if current_formula %}
+                            <details class="formula-expression">
+                                <summary>{% trans "Show expression" %}</summary>
+                                <code>{{ current_formula }}</code>
+                            </details>
+                        {% endif %}
+                    {% else %}
+                        <p class="formula-current-empty tp-state-note tp-state-note--empty">{% trans "No formula selected." %}</p>
+                    {% endif %}
+                </section>
+                <form method="GET" action="" class="toolbar-row formula-apply-row">
                     {% if search_query %}
                         <input type="hidden" name="search" value="{{ search_query }}">
                     {% endif %}
                     <input type="hidden" name="pageSize" value="{{ page_size }}">
-                    <select id="score_formula_select" name="scoreformula" class="form-control">
+                    <label for="score_formula_select" class="formula-select-label">{% trans "Choose formula" %}</label>
+                    <select id="score_formula_select"
+                            name="scoreformula"
+                            class="form-control"
+                            data-current-value="{{ formula.name|default:'' }}">
                         {% for f in formulas %}
-                            <option value="{{ f.name }}" {% if f.name == formula.name %}selected{% endif %}>{{ f.name }}</option>
+                            {% ifchanged f.name %}
+                                <option value="{{ f.name }}" {% if f.name == formula.name %}selected{% endif %}>
+                                    {{ f.name }}{% if f.default %} · {% trans "Default" %}{% endif %}
+                                </option>
+                            {% endifchanged %}
                         {% endfor %}
                     </select>
-                    <button class="btn btn-primary" type="submit">{% trans "Apply formula" %}</button>
+                    <button class="btn tp-btn tp-btn--primary" type="submit" id="apply-formula-btn">{% trans "Apply formula" %}</button>
                 </form>
             </div>
         </div>
@@ -339,77 +434,146 @@
         function jsloaded() {
             const searchForm = document.getElementById("protein-search-form");
             const pageSizeSelect = document.getElementById("pageSizeSelect");
+            const pageSizeControl = document.querySelector(".per-page-control");
             const searchInput = document.getElementById("protein-search-input");
+            const searchSubmitBtn = document.getElementById("protein-search-submit");
             const autocompleteRoot = document.getElementById("protein-search-autocomplete");
             const suggestionsBox = document.getElementById("protein-search-suggestions");
             const suggestUrl = autocompleteRoot ? autocompleteRoot.getAttribute("data-suggest-url") : "";
-            const proteinRows = Array.from(document.querySelectorAll(".protein-row"));
-            const proteinWorkspace = document.getElementById("protein-workspace");
-            const proteinDetailPanel = document.getElementById("protein-detail-panel");
-            const toggleDetailPanelBtn = document.getElementById("toggle-detail-panel-btn");
-            const proteinDetailAccession = document.getElementById("protein-detail-accession");
-            const proteinDetailFactors = document.getElementById("protein-detail-factors");
-            const proteinDetailOpenLink = document.getElementById("protein-detail-open-link");
-            const proteinDetailCopyBtn = document.getElementById("protein-detail-copy-btn");
-            const proteinCopyFeedback = document.getElementById("protein-copy-feedback");
             const toolbarToolsMenu = document.getElementById("toolbar-tools-menu");
+            const filterAddForm = document.getElementById("filter-add-form");
+            const filterOptionSelect = document.getElementById("filter-option-select");
+            const addFilterBtn = document.getElementById("add-filter-btn");
+            const filterAddFeedback = document.getElementById("filter-add-feedback");
+            const scoreFormulaSelect = document.getElementById("score_formula_select");
+            const applyFormulaBtn = document.getElementById("apply-formula-btn");
             let suggestionsTimer = null;
             let suggestionRequestId = 0;
+            let activeSuggestionIndex = -1;
+            const AUTOCOMPLETE_CONFIG = Object.freeze({
+                minChars: 2,
+                debounceMs: 180,
+                limit: 8,
+                blurDelayMs: 120
+            });
+            const UI_TEXT = Object.freeze({
+                suggestionRequestFailed: autocompleteRoot ? (autocompleteRoot.getAttribute("data-suggest-error") || "") : "",
+                addFilterEmpty: filterAddFeedback ? (filterAddFeedback.getAttribute("data-empty-message") || "") : "",
+                addFilterDuplicate: filterAddFeedback ? (filterAddFeedback.getAttribute("data-duplicate-message") || "") : "",
+                addFilterReady: filterAddFeedback ? (filterAddFeedback.getAttribute("data-ready-message") || "") : ""
+            });
 
             function submitSearchForm() {
                 if (!searchForm) return;
-                if (typeof searchForm.requestSubmit === "function") {
-                    searchForm.requestSubmit();
-                } else {
-                    searchForm.submit();
-                }
+                searchForm.submit();
+            }
+
+            function hasSearchText() {
+                return Boolean(searchInput && (searchInput.value || "").trim().length > 0);
+            }
+
+            function syncSearchSubmitState() {
+                if (!searchSubmitBtn) return;
+                searchSubmitBtn.disabled = !hasSearchText();
             }
 
             if (pageSizeSelect) {
                 pageSizeSelect.addEventListener("change", submitSearchForm);
             }
 
-            function applyDetailPanelState(hidden) {
-                if (!proteinWorkspace || !toggleDetailPanelBtn) return;
-                proteinWorkspace.classList.toggle("no-detail", hidden);
-                toggleDetailPanelBtn.textContent = hidden
-                    ? (toggleDetailPanelBtn.getAttribute("data-show-label") || "Show details")
-                    : (toggleDetailPanelBtn.getAttribute("data-hide-label") || "Hide details");
-                toggleDetailPanelBtn.setAttribute("aria-pressed", hidden ? "true" : "false");
+            if (searchForm) {
+                searchForm.addEventListener("submit", function (event) {
+                    if (hasSearchText()) return;
+                    event.preventDefault();
+                    syncSearchSubmitState();
+                    if (searchInput) searchInput.focus();
+                });
             }
 
-            if (!proteinDetailPanel && toggleDetailPanelBtn) {
-                toggleDetailPanelBtn.hidden = true;
-            } else if (toggleDetailPanelBtn) {
-                const detailStorageKey = "tp.proteins.detail.hidden";
-                const storedDetailState = localStorage.getItem(detailStorageKey);
-                applyDetailPanelState(storedDetailState === "1");
-                toggleDetailPanelBtn.addEventListener("click", function () {
-                    const hidden = !proteinWorkspace.classList.contains("no-detail");
-                    applyDetailPanelState(hidden);
-                    localStorage.setItem(detailStorageKey, hidden ? "1" : "0");
+            if (pageSizeControl && pageSizeSelect) {
+                pageSizeControl.addEventListener("click", function (event) {
+                    if (event.target.closest(".tp-select-trigger") || event.target.closest(".tp-select-menu")) return;
+                    const enhancedWrapper = pageSizeSelect.closest(".tp-select");
+                    const enhancedTrigger = enhancedWrapper ? enhancedWrapper.querySelector(".tp-select-trigger") : null;
+                    if (enhancedTrigger) {
+                        enhancedTrigger.click();
+                        return;
+                    }
+                    if (event.target === pageSizeSelect) return;
+                    if (typeof pageSizeSelect.showPicker === "function") {
+                        pageSizeSelect.showPicker();
+                    } else {
+                        pageSizeSelect.focus();
+                        pageSizeSelect.click();
+                    }
                 });
+            }
+
+            function getSuggestionButtons() {
+                if (!suggestionsBox) return [];
+                return Array.from(suggestionsBox.querySelectorAll(".search-suggestion-item"));
+            }
+
+            function setSuggestionsExpanded(isExpanded) {
+                if (!searchInput) return;
+                searchInput.setAttribute("aria-expanded", isExpanded ? "true" : "false");
+            }
+
+            function setActiveSuggestion(index) {
+                const suggestionButtons = getSuggestionButtons();
+                activeSuggestionIndex = -1;
+                suggestionButtons.forEach(function (button) {
+                    button.classList.remove("is-active");
+                    button.setAttribute("aria-selected", "false");
+                });
+                if (!searchInput) return;
+                searchInput.setAttribute("aria-activedescendant", "");
+                if (index < 0 || index >= suggestionButtons.length) return;
+                activeSuggestionIndex = index;
+                const activeButton = suggestionButtons[index];
+                activeButton.classList.add("is-active");
+                activeButton.setAttribute("aria-selected", "true");
+                searchInput.setAttribute("aria-activedescendant", activeButton.id || "");
+            }
+
+            function applySuggestion(button) {
+                if (!button || !searchInput) return;
+                const selectedValue = button.getAttribute("data-accession") || "";
+                searchInput.value = selectedValue;
+                searchInput.focus();
+                hideSuggestions();
+                submitSearchForm();
             }
 
             function hideSuggestions() {
                 if (!suggestionsBox) return;
                 suggestionsBox.innerHTML = "";
                 suggestionsBox.hidden = true;
+                activeSuggestionIndex = -1;
+                setSuggestionsExpanded(false);
+                if (searchInput) {
+                    searchInput.setAttribute("aria-activedescendant", "");
+                }
             }
 
             function renderSuggestions(items) {
                 if (!suggestionsBox) return;
                 suggestionsBox.innerHTML = "";
+                activeSuggestionIndex = -1;
                 if (!items || !items.length) {
                     suggestionsBox.hidden = true;
+                    setSuggestionsExpanded(false);
                     return;
                 }
 
-                items.forEach(function (item) {
+                items.forEach(function (item, index) {
                     const button = document.createElement("button");
                     button.type = "button";
                     button.className = "search-suggestion-item";
+                    button.id = "protein-search-suggestion-" + index;
                     button.setAttribute("role", "option");
+                    button.setAttribute("aria-selected", "false");
+                    button.setAttribute("data-accession", item.accession || "");
 
                     const accession = document.createElement("span");
                     accession.className = "search-suggestion-accession";
@@ -423,29 +587,29 @@
                         button.appendChild(description);
                     }
 
+                    button.addEventListener("mousedown", function (event) {
+                        event.preventDefault();
+                    });
+
                     button.addEventListener("click", function () {
-                        if (searchInput) {
-                            searchInput.value = item.accession || "";
-                            searchInput.focus();
-                        }
-                        hideSuggestions();
-                        submitSearchForm();
+                        applySuggestion(button);
                     });
 
                     suggestionsBox.appendChild(button);
                 });
 
                 suggestionsBox.hidden = false;
+                setSuggestionsExpanded(true);
             }
 
             function fetchSuggestions(query) {
-                if (!suggestUrl || !query || query.length < 2) {
+                if (!suggestUrl || !query || query.length < AUTOCOMPLETE_CONFIG.minChars) {
                     hideSuggestions();
                     return;
                 }
                 suggestionRequestId += 1;
                 const currentRequestId = suggestionRequestId;
-                const url = suggestUrl + "?q=" + encodeURIComponent(query) + "&limit=8";
+                const url = suggestUrl + "?q=" + encodeURIComponent(query) + "&limit=" + AUTOCOMPLETE_CONFIG.limit;
                 fetch(url, {
                     headers: {
                         "X-Requested-With": "XMLHttpRequest"
@@ -453,7 +617,7 @@
                 })
                     .then(function (response) {
                         if (!response.ok) {
-                            throw new Error("Failed suggestions request");
+                            throw new Error(UI_TEXT.suggestionRequestFailed);
                         }
                         return response.json();
                     })
@@ -470,26 +634,50 @@
             if (searchInput) {
                 searchInput.addEventListener("input", function () {
                     const query = (searchInput.value || "").trim();
+                    syncSearchSubmitState();
                     window.clearTimeout(suggestionsTimer);
                     suggestionsTimer = window.setTimeout(function () {
                         fetchSuggestions(query);
-                    }, 180);
+                    }, AUTOCOMPLETE_CONFIG.debounceMs);
                 });
                 searchInput.addEventListener("keydown", function (event) {
+                    const suggestionButtons = getSuggestionButtons();
+                    const hasSuggestions = suggestionsBox && !suggestionsBox.hidden && suggestionButtons.length > 0;
                     if (event.key === "Escape") {
                         hideSuggestions();
+                        return;
+                    }
+                    if (!hasSuggestions) return;
+                    if (event.key === "ArrowDown") {
+                        event.preventDefault();
+                        const nextIndex = activeSuggestionIndex >= suggestionButtons.length - 1 ? 0 : activeSuggestionIndex + 1;
+                        setActiveSuggestion(nextIndex);
+                        return;
+                    }
+                    if (event.key === "ArrowUp") {
+                        event.preventDefault();
+                        const prevIndex = activeSuggestionIndex <= 0 ? suggestionButtons.length - 1 : activeSuggestionIndex - 1;
+                        setActiveSuggestion(prevIndex);
+                        return;
+                    }
+                    if (event.key === "Enter" && activeSuggestionIndex >= 0) {
+                        event.preventDefault();
+                        applySuggestion(suggestionButtons[activeSuggestionIndex]);
                     }
                 });
                 searchInput.addEventListener("blur", function () {
-                    window.setTimeout(hideSuggestions, 120);
+                    window.setTimeout(hideSuggestions, AUTOCOMPLETE_CONFIG.blurDelayMs);
                 });
                 searchInput.addEventListener("focus", function () {
                     const query = (searchInput.value || "").trim();
-                    if (query.length >= 2) {
+                    if (query.length >= AUTOCOMPLETE_CONFIG.minChars) {
                         fetchSuggestions(query);
                     }
                 });
+                searchInput.addEventListener("change", syncSearchSubmitState);
             }
+
+            syncSearchSubmitState();
 
             document.addEventListener("click", function (event) {
                 if (!autocompleteRoot || !autocompleteRoot.contains(event.target)) {
@@ -500,74 +688,71 @@
                 }
             });
 
-            function setSelectedProteinRow(row) {
-                proteinRows.forEach(function (item) {
-                    item.classList.remove("is-selected");
-                });
-                row.classList.add("is-selected");
-            }
+            function syncAddFilterState() {
+                if (!filterOptionSelect || !addFilterBtn) return;
+                const selectedValue = (filterOptionSelect.value || "").trim();
+                const activeFilterOptionIds = new Set(
+                    Array.from(document.querySelectorAll(".filter-pill input[name='filter_option_id']"))
+                        .map(function (input) {
+                            return (input.value || "").trim();
+                        })
+                        .filter(Boolean)
+                );
+                const hasSelection = selectedValue.length > 0;
+                const duplicateSelection = hasSelection && activeFilterOptionIds.has(selectedValue);
+                addFilterBtn.disabled = !hasSelection || duplicateSelection;
 
-            function updateProteinDetailFromRow(row) {
-                if (!row) return;
-                if (proteinDetailAccession) proteinDetailAccession.textContent = row.dataset.accession || "-";
-                if (proteinDetailFactors) proteinDetailFactors.textContent = row.dataset.topFactors || "-";
-                if (proteinDetailOpenLink) proteinDetailOpenLink.href = row.dataset.detailUrl || "#";
-                if (proteinCopyFeedback) proteinCopyFeedback.textContent = "";
-            }
-
-            proteinRows.forEach(function (row) {
-                row.addEventListener("click", function (event) {
-                    if (event.target.closest("a")) return;
-                    setSelectedProteinRow(row);
-                    updateProteinDetailFromRow(row);
-                });
-                row.addEventListener("keydown", function (event) {
-                    if (event.key === "Enter" || event.key === " ") {
-                        event.preventDefault();
-                        setSelectedProteinRow(row);
-                        updateProteinDetailFromRow(row);
+                if (filterAddFeedback) {
+                    filterAddFeedback.classList.remove("is-error", "is-ok");
+                    if (!hasSelection) {
+                        filterAddFeedback.textContent = UI_TEXT.addFilterEmpty;
+                    } else if (duplicateSelection) {
+                        filterAddFeedback.textContent = UI_TEXT.addFilterDuplicate;
+                        filterAddFeedback.classList.add("is-error");
+                    } else {
+                        filterAddFeedback.textContent = UI_TEXT.addFilterReady;
+                        filterAddFeedback.classList.add("is-ok");
                     }
-                });
-            });
-
-            function copyAccessionToClipboard() {
-                if (!proteinDetailAccession) return;
-                const accession = (proteinDetailAccession.textContent || "").trim();
-                if (!accession || accession === "-") return;
-                const onSuccess = function () {
-                    if (proteinCopyFeedback) {
-                        const baseMessage = proteinDetailCopyBtn ? (proteinDetailCopyBtn.getAttribute("data-copied-message") || "Accession copied") : "Accession copied";
-                        proteinCopyFeedback.textContent = baseMessage + ": " + accession;
-                    }
-                };
-                if (navigator.clipboard && navigator.clipboard.writeText) {
-                    navigator.clipboard.writeText(accession).then(onSuccess).catch(function () {});
-                    return;
                 }
-                const helper = document.createElement("textarea");
-                helper.value = accession;
-                helper.setAttribute("readonly", "readonly");
-                helper.style.position = "absolute";
-                helper.style.left = "-9999px";
-                document.body.appendChild(helper);
-                helper.select();
-                document.execCommand("copy");
-                document.body.removeChild(helper);
-                onSuccess();
             }
 
-            if (proteinDetailCopyBtn) {
-                proteinDetailCopyBtn.addEventListener("click", copyAccessionToClipboard);
+            if (filterOptionSelect) {
+                filterOptionSelect.addEventListener("change", syncAddFilterState);
+                filterOptionSelect.addEventListener("input", syncAddFilterState);
             }
+
+            if (filterAddForm) {
+                filterAddForm.addEventListener("submit", function (event) {
+                    syncAddFilterState();
+                    if (addFilterBtn && addFilterBtn.disabled) {
+                        event.preventDefault();
+                        if (filterOptionSelect) filterOptionSelect.focus();
+                    }
+                });
+            }
+
+            syncAddFilterState();
+
+            function syncApplyFormulaState() {
+                if (!scoreFormulaSelect || !applyFormulaBtn) return;
+                const selectedFormula = (scoreFormulaSelect.value || "").trim();
+                const currentFormula = (scoreFormulaSelect.getAttribute("data-current-value") || "").trim();
+                applyFormulaBtn.disabled = selectedFormula === currentFormula;
+            }
+
+            if (scoreFormulaSelect) {
+                scoreFormulaSelect.addEventListener("change", syncApplyFormulaState);
+                scoreFormulaSelect.addEventListener("input", syncApplyFormulaState);
+            }
+
+            syncApplyFormulaState();
 
             const openFiltersBtn = document.getElementById("open-filters-btn");
             const closeFiltersBtn = document.getElementById("close-filters-btn");
-            const closeFiltersBottomBtn = document.getElementById("close-filters-btn-bottom");
             const filtersOverlay = document.getElementById("filters-overlay");
 
             if (openFiltersBtn) openFiltersBtn.addEventListener("click", function () { setDrawerState(true); });
             if (closeFiltersBtn) closeFiltersBtn.addEventListener("click", function () { setDrawerState(false); });
-            if (closeFiltersBottomBtn) closeFiltersBottomBtn.addEventListener("click", function () { setDrawerState(false); });
             if (filtersOverlay) filtersOverlay.addEventListener("click", function () { setDrawerState(false); });
 
             const openFormulaBtn = document.getElementById("open-formula-btn");
@@ -588,7 +773,4 @@
 
         $(document).ready(jsloaded);
     </script>
-{% endblock %}
-
-{% block footer %}
 {% endblock %}

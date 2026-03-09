@@ -3,12 +3,29 @@ from django.db.models import Q
 from tpweb.models.ScoreFormula import ScoreFormula
 
 
+def _dedupe_formulas_by_name(formulas):
+    unique = []
+    seen_names = set()
+    for formula in formulas:
+        name_key = (formula.name or "").strip().casefold()
+        if not name_key or name_key in seen_names:
+            continue
+        seen_names.add(name_key)
+        unique.append(formula)
+    return unique
+
+
 def resolve_formulas_for_user(user):
+    formulas = []
     if user.is_authenticated and hasattr(user, "formulas"):
-        return list(user.formulas.all())
-    return list(
-        ScoreFormula.objects.filter(Q(default=True) | Q(public=True)).distinct()
-    )
+        formulas = list(user.formulas.all().order_by("-default", "name", "id"))
+    else:
+        formulas = list(
+            ScoreFormula.objects.filter(Q(default=True) | Q(public=True))
+            .distinct()
+            .order_by("-default", "name", "id")
+        )
+    return _dedupe_formulas_by_name(formulas)
 
 
 def choose_formula(formulas, requested_formula_name):
@@ -97,4 +114,3 @@ def formula_to_dto(formula, description_by_param):
         )
 
     return {"name": formula.name, "terms": dto_terms}
-

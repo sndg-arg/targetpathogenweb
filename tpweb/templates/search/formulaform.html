@@ -1,163 +1,48 @@
 {% extends '../base/masterpage.html' %}
 {% load i18n %}
+{% load static %}
 {% load crispy_forms_tags %}
+
+{% block head %}
+    <link rel="stylesheet" href="{% static 'css/pages/formula-form.css' %}?v=20260309-3">
+{% endblock %}
 
 {% block body %}
     <script src="https://unpkg.com/htmx.org@1.9.2"></script>
-    <style>
-        .formula-page {
-            display: grid;
-            gap: 14px;
-        }
-
-        .formula-hero {
-            border: 1px solid var(--tp-border);
-            border-radius: 18px;
-            background:
-                radial-gradient(780px 230px at 0% 0%, #dff4f4 0%, transparent 56%),
-                radial-gradient(760px 220px at 100% 0%, #eaf6e4 0%, transparent 55%),
-                #f9fcfe;
-            padding: 18px;
-        }
-
-        .formula-hero h1 {
-            margin: 0;
-            font-size: clamp(1.9rem, 2.7vw, 2.5rem);
-        }
-
-        .formula-subtitle {
-            margin: 8px 0 0;
-            color: var(--tp-muted);
-            font-size: 1rem;
-        }
-
-        .formula-chips {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 10px;
-        }
-
-        .formula-chip {
-            border-radius: 999px;
-            border: 1px solid #d5e4ec;
-            background: #f8fbfd;
-            color: #395969;
-            font-size: 0.88rem;
-            font-weight: 700;
-            padding: 5px 10px;
-        }
-
-        .formula-grid {
-            display: grid;
-            grid-template-columns: 1.2fr 1fr;
-            gap: 14px;
-        }
-
-        .formula-card {
-            border: 1px solid #dbe7ee;
-            border-radius: 14px;
-            background: #ffffff;
-            box-shadow: 0 8px 20px rgba(19, 43, 62, 0.07);
-            padding: 16px;
-            display: grid;
-            gap: 12px;
-            align-content: start;
-        }
-
-        .formula-card h2 {
-            margin: 0;
-            font-size: 1.2rem;
-        }
-
-        .formula-muted {
-            margin: 0;
-            color: var(--tp-muted);
-        }
-
-        .formula-actions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            align-items: center;
-        }
-
-        .term-table {
-            border: 1px solid #dce8ef;
-            border-radius: 12px;
-            overflow: auto;
-        }
-
-        .term-table table {
-            margin: 0;
-        }
-
-        .term-table thead th {
-            background: #f5f9fc;
-            color: #395a6d;
-            font-size: 0.85rem;
-            font-weight: 700;
-            white-space: nowrap;
-        }
-
-        .term-empty {
-            border: 1px dashed #cfdee7;
-            border-radius: 12px;
-            padding: 14px;
-            background: #f8fcfe;
-            color: #5b6f7b;
-            text-align: center;
-        }
-
-        .expression-block {
-            border: 1px solid #dce8ef;
-            border-radius: 12px;
-            background: #f7fbfd;
-            padding: 12px;
-            color: #2e4b5d;
-            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-            font-size: 0.9rem;
-            line-height: 1.45;
-            overflow-wrap: anywhere;
-        }
-
-        .actions-card {
-            border: 1px solid #dbe7ee;
-            border-radius: 14px;
-            background: #ffffff;
-            box-shadow: 0 8px 20px rgba(19, 43, 62, 0.07);
-            padding: 14px 16px;
-        }
-
-        @media (max-width: 992px) {
-            .formula-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
 
     <div class="formula-page">
         <section class="formula-hero">
+            {% trans "Home" as crumb_home %}
+            {% trans "Genomes" as crumb_genomes %}
+            {% trans "Proteins" as crumb_proteins %}
+            {% trans "Formula Builder" as crumb_formula_builder %}
+            {% url 'tpwebapp:index' as index_url %}
+            {% url 'tpwebapp:genomes_list' as genomes_url %}
+            {% url 'tpwebapp:protein_list' assembly_name=assembly_name as proteins_url %}
+            {% include "components/navigation/breadcrumbs.html" with crumb_1_label=crumb_home crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_proteins crumb_3_url=proteins_url crumb_4_label=crumb_formula_builder %}
             <h1>{% trans "Formula Builder" %}</h1>
             <p class="formula-subtitle">{% trans "Build a scoring formula by selecting a parameter option and assigning its coefficient." %}</p>
-            <div class="formula-chips">
-                <span class="formula-chip">{% trans "Draft" %}: {{ formula_name|default:"Untitled formula" }}</span>
-                <span class="formula-chip">{% trans "Terms" %}: {{ term_count }}</span>
+            <p class="formula-context"><strong>{% trans "Genome" %}:</strong> <span class="formula-context-id">{{ assembly_name }}</span></p>
+            <div class="formula-chip-group tp-chip-group">
+                <span class="tp-chip tp-chip--meta tp-chip--sm">{% trans "Draft" %}: {{ formula_name|default:"Untitled formula" }}</span>
+                <span class="tp-chip tp-chip--count tp-chip--sm">{% trans "Terms" %}: {{ term_count }}</span>
             </div>
         </section>
 
         {% if request.GET.error_message %}
-            <section class="formula-card">
-                <div class="alert alert-danger mb-0">{{ request.GET.error_message }}</div>
+            <section class="formula-card tp-ui-panel">
+                <p class="tp-state-note tp-state-note--error mb-0">{{ request.GET.error_message }}</p>
             </section>
         {% endif %}
 
-        <div class="formula-grid">
-            <section class="formula-card">
-                <h2>{% trans "Add term" %}</h2>
+        <section class="formula-main">
+            <article class="formula-card tp-ui-panel">
+                <div class="formula-card-head tp-ui-panel-head">
+                    <h2>{% trans "Add term" %}</h2>
+                </div>
                 <p class="formula-muted">{% trans "Each term adds weight to one option of one parameter." %}</p>
 
-                <form id="add-parameter-form" method="POST">
+                <form id="add-parameter-form" class="formula-add-form" method="POST" novalidate>
                     {% csrf_token %}
                     <div class="row">
                         <div class="col-12">{{ form.new_formula_name|as_crispy_field }}</div>
@@ -168,7 +53,7 @@
                         <div class="col-md-4">{{ form.coefficient|as_crispy_field }}</div>
                     </div>
                     <div class="formula-actions">
-                        <button type="submit" class="btn btn-primary">{% trans "Add term" %}</button>
+                        <button type="submit" class="btn tp-btn tp-btn--primary">{% trans "Add term" %}</button>
                     </div>
                 </form>
 
@@ -177,17 +62,20 @@
                         <form method="POST">
                             {% csrf_token %}
                             <input type="hidden" name="remove_last_term" value="true">
-                            <button type="submit" class="btn btn-outline-secondary btn-sm">{% trans "Undo last term" %}</button>
+                            <button type="submit" class="btn tp-btn tp-btn--neutral">{% trans "Undo last term" %}</button>
                         </form>
                     </div>
                 {% endif %}
-            </section>
+            </article>
 
-            <section class="formula-card">
-                <h2>{% trans "Current formula" %}</h2>
+            <article class="formula-card tp-ui-panel">
+                <div class="formula-card-head tp-ui-panel-head">
+                    <h2>{% trans "Current formula" %}</h2>
+                    <span class="tp-chip tp-chip--count tp-chip--sm">{{ term_count }}</span>
+                </div>
                 {% if preview_terms %}
-                    <div class="term-table">
-                        <table class="table table-sm table-striped mb-0">
+                    <div class="formula-term-table">
+                        <table class="table table-sm table-striped table-hover mb-0">
                             <thead>
                             <tr>
                                 <th>#</th>
@@ -209,34 +97,32 @@
                         </table>
                     </div>
                 {% else %}
-                    <div class="term-empty">{% trans "No terms added yet." %}</div>
+                    <p class="tp-state-note tp-state-note--empty">{% trans "No terms added yet." %}</p>
                 {% endif %}
 
                 <p class="formula-muted mb-0">{% trans "Expression preview" %}</p>
-                <div class="expression-block">{{ parameters }}</div>
-            </section>
-        </div>
+                <div class="formula-expression-block">{{ parameters }}</div>
+            </article>
+        </section>
 
-        <section class="actions-card">
+        <section class="formula-footer-card tp-ui-panel">
             <div class="formula-actions">
                 <form id="finish-process-form" method="POST">
                     {% csrf_token %}
                     <input type="hidden" name="finish_process" value="true">
-                    <button type="submit" class="btn btn-success" {% if term_count == 0 or not formula_name %}disabled{% endif %}>{% trans "Save formula" %}</button>
+                    <button type="submit" class="btn tp-btn tp-btn--success" {% if term_count == 0 or not formula_name %}disabled{% endif %}>{% trans "Save formula" %}</button>
                 </form>
                 <form id="reset-process-form" method="POST">
                     {% csrf_token %}
                     <input type="hidden" name="reset_process" value="true">
                     {% trans "Reset draft" as reset_draft_label %}
-                    {% include "components/buttons/clear_action.html" with label=reset_draft_label button_type="submit" classes="btn btn-outline-danger tp-btn-with-icon" %}
+                    {% if term_count > 0 or formula_name %}
+                        {% include "components/buttons/clear_action.html" with label=reset_draft_label button_type="submit" classes="btn tp-btn tp-btn--clear tp-btn--clear-caution tp-btn-with-icon" %}
+                    {% else %}
+                        {% include "components/buttons/clear_action.html" with label=reset_draft_label button_type="submit" disabled="1" classes="btn tp-btn tp-btn--clear tp-btn--clear-caution tp-btn-with-icon" %}
+                    {% endif %}
                 </form>
-                <a href="{% url 'tpwebapp:protein_list' assembly_name=assembly_name %}" class="btn btn-outline-secondary">
-                    {% trans "Back to proteins" %}
-                </a>
             </div>
         </section>
     </div>
-{% endblock %}
-
-{% block footer %}
 {% endblock %}

@@ -62,12 +62,9 @@
         <section class="tp-card">
             <div class="blast-result-head">
                 <h2 class="mb-0">{% trans "Alignment output" %}</h2>
-                <a class="btn btn-outline-secondary" href="{% url 'tpwebapp:form' %}">{% trans "Run another search" %}</a>
+                <a class="btn tp-btn tp-btn--neutral" href="{% url 'tpwebapp:form' %}">{% trans "Run another search" %}</a>
             </div>
             <pre class="blast-pre">{{ result }}</pre>
         </section>
     </div>
-{% endblock %}
-
-{% block footer %}
 {% endblock %}

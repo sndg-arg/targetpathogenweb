@@ -42,7 +42,8 @@ def upload_form(request, assembly_name):
                                                                     'file_exists': True,
                                                                     'assembly_name': assembly_name})
         else:
-            context = {'form': form}
+            context = {'form': form,
+                       'assembly_name': assembly_name}
             return render(request, 'genomic/customparam.html', context)
     else:
         

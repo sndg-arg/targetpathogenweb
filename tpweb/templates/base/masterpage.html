@@ -12,53 +12,73 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
+    <link rel="stylesheet" href="{% static 'css/components/ui-system.css' %}?v=20260309-11">
     <style>
         :root {
-            --tp-color-text-primary: #1f2f3a;
-            --tp-color-text-secondary: #355668;
-            --tp-color-text-muted: #5b7281;
-            --tp-color-text-soft: #8ea4b2;
-            --tp-color-link: #0f6870;
-            --tp-color-link-hover: #0b5057;
-            --tp-color-brand-900: #0a3f4f;
-            --tp-color-brand-800: #0e5266;
-            --tp-color-brand-700: #1b6780;
-            --tp-color-brand-600: #1e728b;
-            --tp-color-brand-300: #9dc4d1;
-            --tp-color-brand-200: #c1d7e0;
-            --tp-color-brand-100: #ddeef4;
-            --tp-color-brand-050: #edf6f9;
-            --tp-color-nav-900: #0e2330;
-            --tp-color-nav-800: #173645;
-            --tp-color-nav-700: #102735;
-            --tp-color-page-start: #f4f8fb;
-            --tp-color-page-end: #eef4f8;
+            --tp-color-text-primary: #132f3d;
+            --tp-color-text-secondary: #2b4f60;
+            --tp-color-text-muted: #4f6d7a;
+            --tp-color-text-soft: #7f97a5;
+            --tp-color-link: #0f6484;
+            --tp-color-link-hover: #0a4d67;
+            --tp-color-brand-900: #0b4a61;
+            --tp-color-brand-800: #146984;
+            --tp-color-brand-700: #2288a3;
+            --tp-color-brand-600: #39a6be;
+            --tp-color-brand-300: #82c5d5;
+            --tp-color-brand-200: #afdbe4;
+            --tp-color-brand-100: #d4edf2;
+            --tp-color-brand-050: #eaf7fb;
+            --tp-color-rose-900: #742849;
+            --tp-color-rose-700: #ab3f68;
+            --tp-color-rose-500: #cf628c;
+            --tp-color-rose-300: #e7b7ca;
+            --tp-color-rose-100: #f9e7ef;
+            --tp-color-rose-050: #fdf2f7;
+            --tp-color-sage-900: #1d5b4f;
+            --tp-color-sage-700: #2f7d67;
+            --tp-color-sage-500: #45a088;
+            --tp-color-sage-200: #b8e0d1;
+            --tp-color-sage-100: #d6eee5;
+            --tp-color-sage-050: #eaf7f1;
+            --tp-color-amber-900: #6f4712;
+            --tp-color-amber-700: #8f611d;
+            --tp-color-amber-500: #b8842e;
+            --tp-color-amber-200: #e8d09d;
+            --tp-color-amber-100: #f5e6c8;
+            --tp-color-amber-050: #fbf3e4;
+            --tp-color-nav-900: #0c2836;
+            --tp-color-nav-800: #123947;
+            --tp-color-nav-700: #185266;
+            --tp-color-nav-600: #267188;
+            --tp-color-page-start: #d8ebe3;
+            --tp-color-page-end: #bcd2c8;
             --tp-color-surface: #ffffff;
-            --tp-color-surface-soft: #f9fcff;
-            --tp-color-surface-muted: #f5fafd;
-            --tp-color-surface-panel: #f8fbfd;
-            --tp-color-surface-alt: #f1f7fb;
-            --tp-color-border: #d5e2ea;
-            --tp-color-border-soft: #dbe7ee;
-            --tp-color-border-strong: #cfdfe8;
-            --tp-color-border-accent: #9dc4d1;
-            --tp-color-highlight: #a8d9db;
-            --tp-color-selection: #edf4f9;
-            --tp-color-success-ink: #116742;
-            --tp-color-success-bg: #e8f8ef;
-            --tp-color-success-border: #c4e8d2;
-            --tp-color-info-ink: #16516b;
-            --tp-color-info-bg: #eaf5fb;
-            --tp-color-info-border: #c9dfed;
-            --tp-color-idle-ink: #5b7281;
-            --tp-color-idle-bg: #f1f6f9;
-            --tp-color-idle-border: #d7e2e9;
-            --tp-color-warning-ink: #8a5c16;
-            --tp-color-warning-bg: #fff4df;
-            --tp-color-warning-border: #f4dfb6;
-            --tp-color-danger-ink: #8d2f36;
-            --tp-color-danger-bg: #fdeced;
-            --tp-color-danger-border: #f1c7cb;
+            --tp-color-surface-soft: #f7fcf9;
+            --tp-color-surface-muted: #edf6f2;
+            --tp-color-surface-panel: #e9f4ef;
+            --tp-color-surface-alt: #dfebe5;
+            --tp-color-border: #b8cdd3;
+            --tp-color-border-soft: #c9dbe0;
+            --tp-color-border-strong: #a5bec6;
+            --tp-color-border-accent: #74b3c4;
+            --tp-color-highlight: #74b3c4;
+            --tp-color-selection: #e5f3ee;
+            --tp-color-success-ink: #145843;
+            --tp-color-success-bg: #e3f3ea;
+            --tp-color-success-border: #b5d8c7;
+            --tp-color-info-ink: #16536b;
+            --tp-color-info-bg: #e6f2f9;
+            --tp-color-info-border: #bdd9e8;
+            --tp-color-idle-ink: #56707d;
+            --tp-color-idle-bg: #edf4f6;
+            --tp-color-idle-border: #d0dee4;
+            --tp-color-warning-ink: #7a5416;
+            --tp-color-warning-bg: #f9efdc;
+            --tp-color-warning-border: #e9d6ae;
+            --tp-color-danger-ink: #8a2c33;
+            --tp-color-danger-bg: #fbe9eb;
+            --tp-color-danger-border: #efc1c6;
             --tp-color-structure-density: #d8e1e9;
             --tp-color-structure-pocket-apolar: #20c3d6;
             --tp-color-structure-pocket-polar: #0b4f6c;
@@ -68,9 +88,17 @@
             --tp-muted: var(--tp-color-text-muted);
             --tp-accent: var(--tp-color-brand-800);
             --tp-accent-deep: var(--tp-color-brand-900);
-            --tp-accent-soft-2: var(--tp-color-brand-050);
+            --tp-accent-soft-2: var(--tp-color-sage-050);
             --tp-accent-soft: var(--tp-color-brand-100);
             --tp-accent-mist: var(--tp-color-surface-muted);
+            --tp-accent-2: var(--tp-color-sage-700);
+            --tp-accent-2-soft: var(--tp-color-sage-100);
+            --tp-accent-warm: var(--tp-color-amber-700);
+            --tp-accent-warm-soft: var(--tp-color-amber-100);
+            --tp-accent-rose: var(--tp-color-rose-700);
+            --tp-accent-rose-soft: var(--tp-color-rose-100);
+            --tp-accent-contrast: var(--tp-color-rose-700);
+            --tp-accent-contrast-soft: var(--tp-color-rose-050);
             --tp-moss: var(--tp-color-text-soft);
             --tp-moss-deep: var(--tp-color-text-muted);
             --tp-border: var(--tp-color-border);
@@ -85,8 +113,9 @@
             --tp-state-idle-ink: var(--tp-color-idle-ink);
             --tp-state-idle-bg: var(--tp-color-idle-bg);
             --tp-state-idle-border: var(--tp-color-idle-border);
-            --tp-focus-ring: rgba(14, 82, 102, 0.16);
-            --tp-shadow: 0 14px 32px rgba(19, 39, 55, 0.1);
+            --tp-focus-ring: rgba(26, 111, 142, 0.27);
+            --tp-grid-line: rgba(31, 127, 112, 0.06);
+            --tp-shadow: 0 15px 34px rgba(19, 39, 55, 0.11);
             --tp-sidebar-w: 260px;
             --tp-sidebar-w-collapsed: 84px;
             --tp-radius-lg: 22px;
@@ -105,22 +134,39 @@
             --tp-font-size-lg: 1.12rem;
             --tp-font-size-xl: 1.28rem;
             --tp-font-size-2xl: clamp(1.55rem, 2.2vw, 2.05rem);
+            --tp-chevron-size: 0.44rem;
+            --tp-chevron-stroke: 2px;
+            --tp-chevron-opacity: 0.82;
         }
 
-        html, body {
-            min-height: 100%;
+        html {
+            height: 100%;
+        }
+
+        body {
+            min-height: 100vh;
+        }
+
+        @supports (min-height: 100dvh) {
+            body {
+                min-height: 100dvh;
+            }
         }
 
         body {
             font-family: "Source Sans 3", "Segoe UI", sans-serif;
             color: var(--tp-ink);
             background:
+                radial-gradient(880px 360px at 4% -6%, rgba(34, 136, 163, 0.16) 0%, transparent 60%),
+                radial-gradient(760px 340px at 98% 104%, rgba(171, 63, 104, 0.09) 0%, transparent 66%),
                 linear-gradient(180deg, var(--tp-color-page-start) 0%, var(--tp-color-page-end) 100%);
             background-attachment: fixed;
             margin: 0;
             padding-top: 64px;
             transition: padding-left 0.22s ease;
             line-height: 1.45;
+            display: flex;
+            flex-direction: column;
         }
 
         h1, h2, h3, h4, h5 {
@@ -136,40 +182,206 @@
             color: var(--tp-color-link-hover);
         }
 
-        .btn {
+        .tp-chevron {
+            display: inline-block;
+            width: var(--tp-chevron-size);
+            height: var(--tp-chevron-size);
+            border-right: var(--tp-chevron-stroke) solid currentColor;
+            border-bottom: var(--tp-chevron-stroke) solid currentColor;
+            transform: rotate(45deg);
+            transform-origin: center;
+            opacity: var(--tp-chevron-opacity);
+            flex: 0 0 auto;
+        }
+
+        .tp-chevron--up {
+            transform: rotate(-135deg);
+        }
+
+        .tp-chevron--right {
+            transform: rotate(-45deg);
+        }
+
+        .tp-chevron--down {
+            transform: rotate(45deg);
+        }
+
+        .tp-chevron--left {
+            transform: rotate(135deg);
+        }
+
+        .tp-chevron-group {
+            display: inline-flex;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .tp-chevron-group .tp-chevron {
+            width: calc(var(--tp-chevron-size) - 0.04rem);
+            height: calc(var(--tp-chevron-size) - 0.04rem);
+        }
+
+        select.form-control:not([multiple]):not([size]):not(.tp-select-native) {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            color-scheme: light;
+            color: var(--tp-color-text-secondary);
+            font-weight: 600;
+            border: 1px solid var(--tp-color-border-strong);
+            border-radius: 10px;
+            background-image:
+                linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%),
+                linear-gradient(45deg, transparent 50%, currentColor 50%),
+                linear-gradient(135deg, currentColor 50%, transparent 50%);
+            background-position:
+                left top,
+                calc(100% - 16px) calc(50% - 1px),
+                calc(100% - 10px) calc(50% - 1px);
+            background-size: auto, 6px 6px, 6px 6px;
+            background-repeat: no-repeat;
+            padding-right: 2.2rem;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.74), 0 1px 2px rgba(20, 41, 56, 0.05);
+            transition: border-color 0.16s ease, box-shadow 0.16s ease, background-image 0.16s ease, color 0.16s ease;
+        }
+
+        select.form-control:not([multiple]):not([size]):not(.tp-select-native):hover {
+            border-color: var(--tp-color-brand-300);
+            background-image:
+                linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-brand-050) 100%),
+                linear-gradient(45deg, transparent 50%, currentColor 50%),
+                linear-gradient(135deg, currentColor 50%, transparent 50%);
+        }
+
+        select.form-control:not([multiple]):not([size]):not(.tp-select-native):focus,
+        select.form-control:not([multiple]):not([size]):not(.tp-select-native):focus-visible {
+            border-color: rgba(23, 96, 119, 0.42);
+            box-shadow: 0 0 0 0.2rem var(--tp-focus-ring), inset 0 1px 0 rgba(255, 255, 255, 0.85);
+        }
+
+        select.form-control:not([multiple]):not([size]):not(.tp-select-native):disabled {
+            color: var(--tp-color-text-soft);
+            border-color: var(--tp-color-border-soft);
+            background-image:
+                linear-gradient(180deg, var(--tp-color-surface-soft) 0%, var(--tp-color-surface-muted) 100%),
+                linear-gradient(45deg, transparent 50%, currentColor 50%),
+                linear-gradient(135deg, currentColor 50%, transparent 50%);
+            box-shadow: none;
+            opacity: 1;
+        }
+
+        select.form-control:not([multiple]):not([size]):not(.tp-select-native)::-ms-expand {
+            display: none;
+        }
+
+        select.form-control option {
+            color: var(--tp-color-text-secondary);
+            background: var(--tp-color-surface);
+        }
+
+        select.form-control option:checked,
+        select.form-control option:focus {
+            color: var(--tp-color-nav-800);
+            background: var(--tp-color-sage-100);
+        }
+
+        .btn,
+        .tp-btn {
             border-radius: 11px;
             font-weight: 600;
+            line-height: 1.2;
             transition: transform 0.16s ease, box-shadow 0.16s ease, background-color 0.16s ease, border-color 0.16s ease, color 0.16s ease;
         }
 
+        .btn:not(.btn-sm):not(.btn-lg),
+        .tp-btn:not(.btn-sm):not(.btn-lg) {
+            min-height: 44px;
+            padding: 0.48rem 0.95rem;
+        }
+
+        .btn.tp-btn--sm,
+        .tp-btn.tp-btn--sm {
+            min-height: 40px;
+            padding: 0.4rem 0.78rem;
+            font-size: var(--tp-font-size-sm);
+        }
+
+        .btn.tp-btn--md,
+        .tp-btn.tp-btn--md {
+            min-height: 44px;
+            padding: 0.48rem 0.95rem;
+            font-size: var(--tp-font-size-md);
+        }
+
         .btn-primary,
-        .btn-success,
-        .btn-info {
+        .tp-btn--primary {
             background: linear-gradient(180deg, var(--tp-color-brand-700) 0%, var(--tp-accent) 100%);
-            border-color: var(--tp-accent);
-            color: var(--tp-color-surface);
-            box-shadow: 0 6px 14px rgba(14, 82, 102, 0.24);
+            background-color: var(--tp-color-brand-700) !important;
+            border-color: transparent !important;
+            color: var(--tp-color-surface) !important;
+            box-shadow: 0 6px 14px rgba(23, 96, 119, 0.24);
         }
 
         .btn-primary:hover,
         .btn-primary:focus,
         .btn-primary:active,
+        .tp-btn--primary:hover,
+        .tp-btn--primary:focus,
+        .tp-btn--primary:active {
+            background: var(--tp-accent-deep) !important;
+            background-color: var(--tp-accent-deep) !important;
+            border-color: transparent !important;
+            color: var(--tp-color-surface) !important;
+        }
+
+        .btn-success,
+        .tp-btn--success {
+            background: linear-gradient(180deg, var(--tp-color-sage-700) 0%, var(--tp-color-sage-500) 100%);
+            background-color: var(--tp-color-sage-700) !important;
+            border-color: transparent !important;
+            color: var(--tp-color-surface) !important;
+            box-shadow: 0 6px 14px rgba(47, 127, 112, 0.25);
+        }
+
         .btn-success:hover,
         .btn-success:focus,
         .btn-success:active,
+        .tp-btn--success:hover,
+        .tp-btn--success:focus,
+        .tp-btn--success:active {
+            background: var(--tp-color-sage-900) !important;
+            background-color: var(--tp-color-sage-900) !important;
+            border-color: transparent !important;
+            color: var(--tp-color-surface) !important;
+        }
+
+        .btn-info,
+        .tp-btn--info {
+            background: linear-gradient(180deg, var(--tp-color-brand-600) 0%, var(--tp-color-brand-700) 100%);
+            background-color: var(--tp-color-brand-600) !important;
+            border-color: transparent !important;
+            color: var(--tp-color-surface) !important;
+            box-shadow: 0 6px 14px rgba(45, 136, 168, 0.24);
+        }
+
         .btn-info:hover,
         .btn-info:focus,
-        .btn-info:active {
-            background: var(--tp-accent-deep) !important;
-            border-color: var(--tp-accent-deep) !important;
+        .btn-info:active,
+        .tp-btn--info:hover,
+        .tp-btn--info:focus,
+        .tp-btn--info:active {
+            background: var(--tp-color-brand-900) !important;
+            background-color: var(--tp-color-brand-900) !important;
+            border-color: transparent !important;
             color: var(--tp-color-surface) !important;
         }
 
         .btn-outline-info,
-        .btn-outline-primary {
-            color: var(--tp-color-info-ink);
-            border-color: var(--tp-color-brand-300);
-            background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+        .btn-outline-primary,
+        .tp-btn--outline {
+            color: var(--tp-accent) !important;
+            border-color: var(--tp-accent) !important;
+            background: var(--tp-color-surface) !important;
         }
 
         .btn-outline-info:hover,
@@ -177,28 +389,36 @@
         .btn-outline-info:active,
         .btn-outline-primary:hover,
         .btn-outline-primary:focus,
-        .btn-outline-primary:active {
+        .btn-outline-primary:active,
+        .tp-btn--outline:hover,
+        .tp-btn--outline:focus,
+        .tp-btn--outline:active {
             color: var(--tp-color-brand-900) !important;
-            border-color: var(--tp-accent) !important;
-            background: var(--tp-accent-soft) !important;
+            border-color: var(--tp-color-brand-800) !important;
+            background: var(--tp-color-brand-100) !important;
         }
 
-        .btn-secondary {
-            background: linear-gradient(180deg, var(--tp-color-text-soft) 0%, var(--tp-moss) 100%);
-            border-color: var(--tp-moss);
-            color: var(--tp-color-surface);
-            box-shadow: 0 5px 12px rgba(67, 91, 108, 0.2);
+        .btn-secondary,
+        .tp-btn--secondary {
+            background: linear-gradient(180deg, var(--tp-color-brand-700) 0%, var(--tp-color-brand-600) 100%);
+            border-color: var(--tp-color-brand-700) !important;
+            color: var(--tp-color-surface) !important;
+            box-shadow: 0 5px 12px rgba(23, 96, 119, 0.24);
         }
 
         .btn-secondary:hover,
         .btn-secondary:focus,
-        .btn-secondary:active {
-            background: var(--tp-moss-deep) !important;
-            border-color: var(--tp-moss-deep) !important;
+        .btn-secondary:active,
+        .tp-btn--secondary:hover,
+        .tp-btn--secondary:focus,
+        .tp-btn--secondary:active {
+            background: var(--tp-color-brand-900) !important;
+            border-color: var(--tp-color-brand-900) !important;
             color: var(--tp-color-surface) !important;
         }
 
-        .btn-outline-secondary {
+        .btn-outline-secondary,
+        .tp-btn--neutral {
             color: var(--tp-color-text-secondary);
             border-color: var(--tp-color-brand-200);
             background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-accent-mist) 100%);
@@ -206,10 +426,68 @@
 
         .btn-outline-secondary:hover,
         .btn-outline-secondary:focus,
-        .btn-outline-secondary:active {
+        .btn-outline-secondary:active,
+        .tp-btn--neutral:hover,
+        .tp-btn--neutral:focus,
+        .tp-btn--neutral:active {
             color: var(--tp-color-nav-800) !important;
             border-color: var(--tp-color-brand-300) !important;
-            background: var(--tp-color-selection) !important;
+            background: var(--tp-accent-2-soft) !important;
+        }
+
+        .btn-outline-dark,
+        .tp-btn--dark {
+            color: var(--tp-color-nav-800);
+            border-color: var(--tp-color-border-strong);
+            background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+        }
+
+        .btn-outline-dark:hover,
+        .btn-outline-dark:focus,
+        .btn-outline-dark:active,
+        .tp-btn--dark:hover,
+        .tp-btn--dark:focus,
+        .tp-btn--dark:active {
+            color: var(--tp-color-nav-900) !important;
+            border-color: var(--tp-color-brand-300) !important;
+            background: var(--tp-color-brand-050) !important;
+        }
+
+        .btn-danger,
+        .tp-btn--danger {
+            background: linear-gradient(180deg, var(--tp-color-rose-700) 0%, var(--tp-color-danger-ink) 100%);
+            border-color: var(--tp-color-danger-ink);
+            color: var(--tp-color-surface);
+            box-shadow: 0 5px 12px rgba(141, 47, 54, 0.25);
+        }
+
+        .btn-danger:hover,
+        .btn-danger:focus,
+        .btn-danger:active,
+        .tp-btn--danger:hover,
+        .tp-btn--danger:focus,
+        .tp-btn--danger:active {
+            background: var(--tp-color-rose-900) !important;
+            border-color: var(--tp-color-rose-900) !important;
+            color: var(--tp-color-surface) !important;
+        }
+
+        .btn-outline-light,
+        .tp-btn--light {
+            color: var(--tp-color-surface);
+            border-color: rgba(255, 255, 255, 0.55);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .btn-outline-light:hover,
+        .btn-outline-light:focus,
+        .btn-outline-light:active,
+        .tp-btn--light:hover,
+        .tp-btn--light:focus,
+        .tp-btn--light:active {
+            color: var(--tp-color-surface) !important;
+            border-color: rgba(255, 255, 255, 0.76) !important;
+            background: rgba(255, 255, 255, 0.16) !important;
         }
 
         .btn:disabled,
@@ -225,10 +503,15 @@
             transform: translateY(-1px);
         }
 
-        .btn:focus,
-        .btn.focus {
+        .btn:focus-visible,
+        .btn.focus:focus-visible {
             outline: 0;
             box-shadow: 0 0 0 0.2rem var(--tp-focus-ring) !important;
+        }
+
+        .btn:focus:not(:focus-visible),
+        .btn.focus:focus:not(:focus-visible) {
+            box-shadow: none !important;
         }
 
         .btn.tp-btn-with-icon {
@@ -237,6 +520,117 @@
             gap: 0.4rem;
             justify-content: center;
             line-height: 1.2;
+        }
+
+        .btn.tp-btn--clear,
+        .tp-btn--clear {
+            color: var(--tp-color-text-muted) !important;
+            border-color: var(--tp-color-border-strong) !important;
+            background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%) !important;
+            box-shadow: none !important;
+        }
+
+        .btn.tp-btn--clear:hover,
+        .btn.tp-btn--clear:focus,
+        .btn.tp-btn--clear:active,
+        .tp-btn--clear:hover,
+        .tp-btn--clear:focus,
+        .tp-btn--clear:active {
+            color: var(--tp-color-text-secondary) !important;
+            border-color: var(--tp-color-brand-300) !important;
+            background: var(--tp-color-brand-050) !important;
+            box-shadow: none !important;
+        }
+
+        .btn.tp-btn--clear:disabled,
+        .btn.tp-btn--clear.disabled,
+        .tp-btn--clear:disabled,
+        .tp-btn--clear.disabled {
+            color: var(--tp-color-text-soft) !important;
+            border-color: var(--tp-color-border-soft) !important;
+            background: var(--tp-color-surface-soft) !important;
+            opacity: 1;
+        }
+
+        .btn.tp-btn--clear.tp-btn--clear-caution,
+        .tp-btn--clear.tp-btn--clear-caution {
+            color: var(--tp-color-text-muted) !important;
+            border-color: var(--tp-color-border-strong) !important;
+            background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%) !important;
+            box-shadow: none !important;
+        }
+
+        .btn.tp-btn--clear.tp-btn--clear-caution .tp-btn-icon,
+        .tp-btn--clear.tp-btn--clear-caution .tp-btn-icon {
+            color: rgba(141, 47, 54, 0.84);
+        }
+
+        .btn.tp-btn--clear.tp-btn--clear-caution:hover,
+        .btn.tp-btn--clear.tp-btn--clear-caution:focus,
+        .btn.tp-btn--clear.tp-btn--clear-caution:active,
+        .tp-btn--clear.tp-btn--clear-caution:hover,
+        .tp-btn--clear.tp-btn--clear-caution:focus,
+        .tp-btn--clear.tp-btn--clear-caution:active {
+            color: var(--tp-color-danger-ink) !important;
+            border-color: var(--tp-color-danger-border) !important;
+            background: var(--tp-color-danger-bg) !important;
+            box-shadow: none !important;
+        }
+
+        .btn.tp-btn--clear.tp-btn--clear-caution:hover .tp-btn-icon,
+        .btn.tp-btn--clear.tp-btn--clear-caution:focus .tp-btn-icon,
+        .btn.tp-btn--clear.tp-btn--clear-caution:active .tp-btn-icon,
+        .tp-btn--clear.tp-btn--clear-caution:hover .tp-btn-icon,
+        .tp-btn--clear.tp-btn--clear-caution:focus .tp-btn-icon,
+        .tp-btn--clear.tp-btn--clear-caution:active .tp-btn-icon {
+            color: var(--tp-color-danger-ink);
+        }
+
+        .btn.tp-btn--clear.tp-btn--clear-caution:disabled,
+        .btn.tp-btn--clear.tp-btn--clear-caution.disabled,
+        .tp-btn--clear.tp-btn--clear-caution:disabled,
+        .tp-btn--clear.tp-btn--clear-caution.disabled {
+            color: var(--tp-color-text-soft) !important;
+            border-color: var(--tp-color-border-soft) !important;
+            background: var(--tp-color-surface-soft) !important;
+            opacity: 1;
+        }
+
+        .btn.tp-btn--clear.tp-btn--clear-caution:disabled .tp-btn-icon,
+        .btn.tp-btn--clear.tp-btn--clear-caution.disabled .tp-btn-icon,
+        .tp-btn--clear.tp-btn--clear-caution:disabled .tp-btn-icon,
+        .tp-btn--clear.tp-btn--clear-caution.disabled .tp-btn-icon {
+            color: rgba(141, 47, 54, 0.38);
+        }
+
+        .btn.tp-btn--clear-warn,
+        .tp-btn--clear-warn {
+            color: var(--tp-color-amber-900) !important;
+            border-color: var(--tp-color-amber-200) !important;
+            background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-amber-050) 100%) !important;
+            box-shadow: none !important;
+        }
+
+        .btn.tp-btn--clear-warn:hover,
+        .btn.tp-btn--clear-warn:focus,
+        .btn.tp-btn--clear-warn:active,
+        .tp-btn--clear-warn:hover,
+        .tp-btn--clear-warn:focus,
+        .tp-btn--clear-warn:active {
+            color: var(--tp-color-amber-900) !important;
+            border-color: var(--tp-color-amber-500) !important;
+            background: var(--tp-color-amber-100) !important;
+            box-shadow: none !important;
+        }
+
+        .btn.tp-btn--clear-warn:disabled,
+        .btn.tp-btn--clear-warn.disabled,
+        .tp-btn--clear-warn:disabled,
+        .tp-btn--clear-warn.disabled {
+            color: rgba(111, 74, 20, 0.62) !important;
+            border-color: rgba(236, 213, 167, 0.82) !important;
+            background: var(--tp-color-amber-050) !important;
+            opacity: 1;
         }
 
         .tp-btn-icon {
@@ -269,9 +663,14 @@
             background: var(--tp-color-surface);
         }
 
+        .form-control::placeholder {
+            color: var(--tp-color-text-muted);
+            opacity: 1;
+        }
+
         .form-control:focus,
         .custom-select:focus {
-            border-color: rgba(14, 82, 102, 0.42);
+            border-color: rgba(23, 96, 119, 0.42);
             box-shadow: 0 0 0 0.2rem var(--tp-focus-ring);
         }
 
@@ -323,9 +722,9 @@
         .tp-chip {
             display: inline-flex;
             align-items: center;
-            border: 1px solid var(--tp-color-border);
+            border: 1px solid var(--tp-color-brand-200);
             border-radius: 999px;
-            background: rgba(255, 255, 255, 0.88);
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, var(--tp-color-brand-050) 100%);
             color: var(--tp-color-text-secondary);
             font-size: var(--tp-font-size-sm);
             font-weight: 600;
@@ -350,7 +749,7 @@
         }
 
         .tp-topbar-mobile {
-            background: linear-gradient(90deg, var(--tp-color-nav-900) 0%, var(--tp-color-nav-800) 100%) !important;
+            background: linear-gradient(96deg, var(--tp-color-nav-900) 0%, var(--tp-color-nav-800) 64%, var(--tp-color-nav-600) 100%) !important;
             border-bottom: 1px solid rgba(255, 255, 255, 0.08);
             box-shadow: 0 8px 26px rgba(10, 24, 33, 0.35);
         }
@@ -368,7 +767,7 @@
         }
 
         #main_header {
-            background: linear-gradient(90deg, var(--tp-color-nav-900) 0%, var(--tp-color-nav-800) 100%) !important;
+            background: linear-gradient(96deg, var(--tp-color-nav-900) 0%, var(--tp-color-nav-800) 64%, var(--tp-color-nav-600) 100%) !important;
             border-bottom: 1px solid rgba(255, 255, 255, 0.08);
             box-shadow: 0 8px 26px rgba(10, 24, 33, 0.35);
         }
@@ -392,6 +791,8 @@
         }
 
         .tp-main {
+            flex: 1 0 auto;
+            width: 100%;
             max-width: 1360px;
             margin: 0 auto;
             padding: 18px 18px 36px;
@@ -399,33 +800,13 @@
 
         .tp-shell {
             position: relative;
-            border: 1px solid var(--tp-border);
-            border-radius: var(--tp-radius-lg);
-            background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(255, 255, 255, 0.95));
-            box-shadow: var(--tp-shadow);
-            padding: 22px;
-            overflow: hidden;
-            animation: tp-shell-enter 0.42s ease;
-        }
-
-        .tp-shell::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background-image:
-                linear-gradient(rgba(15, 127, 138, 0.035) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(15, 127, 138, 0.035) 1px, transparent 1px);
-            background-size: 26px 26px;
-            pointer-events: none;
-        }
-
-        .tp-shell::after {
-            content: none;
-        }
-
-        .tp-shell > * {
-            position: relative;
-            z-index: 1;
+            border: 0;
+            border-radius: 0;
+            background: transparent;
+            box-shadow: none;
+            padding: 0;
+            overflow: visible;
+            animation: none;
         }
 
         .tp-card {
@@ -441,11 +822,11 @@
         }
 
         .tp-table-shell {
-            border: 1px solid var(--tp-color-border-soft);
+            border: 1px solid var(--tp-color-border);
             border-radius: 12px;
             overflow: auto;
             background: var(--tp-color-surface);
-            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.4);
+            box-shadow: 0 16px 30px rgba(16, 35, 46, 0.11);
         }
 
         .tp-table-shell .table {
@@ -465,9 +846,7 @@
         }
 
         .tp-footer {
-            border-top: 1px solid var(--tp-color-idle-border);
-            background: rgba(255, 255, 255, 0.82);
-            backdrop-filter: blur(6px);
+            display: none !important;
         }
 
         @media (max-width: 991px) {
@@ -480,8 +859,8 @@
             }
 
             .tp-shell {
-                border-radius: 14px;
-                padding: 14px;
+                border-radius: 0;
+                padding: 0;
             }
         }
 
@@ -501,7 +880,10 @@
                 width: var(--tp-sidebar-w);
                 display: flex;
                 flex-direction: column;
-                background: linear-gradient(180deg, var(--tp-color-nav-700) 0%, var(--tp-color-nav-800) 100%);
+                background:
+                    radial-gradient(560px 220px at -18% -12%, rgba(45, 136, 168, 0.28) 0%, transparent 60%),
+                    radial-gradient(380px 180px at 118% 102%, rgba(47, 127, 112, 0.24) 0%, transparent 68%),
+                    linear-gradient(180deg, var(--tp-color-nav-700) 0%, var(--tp-color-nav-800) 55%, var(--tp-color-nav-900) 100%);
                 border-right: 1px solid rgba(255, 255, 255, 0.09);
                 box-shadow: 8px 0 28px rgba(9, 23, 33, 0.33);
                 color: var(--tp-color-selection);
@@ -549,9 +931,10 @@
                 border-radius: 8px;
                 width: 28px;
                 height: 28px;
-                line-height: 24px;
                 padding: 0;
-                text-align: center;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
                 cursor: pointer;
                 font-weight: 700;
             }
@@ -601,10 +984,16 @@
             }
 
             .tp-side-link.active {
-                background: linear-gradient(90deg, rgba(14, 82, 102, 0.28) 0%, rgba(255, 255, 255, 0.2) 100%);
+                background: linear-gradient(90deg, rgba(245, 196, 112, 0.3) 0%, rgba(255, 255, 255, 0.12) 70%, rgba(255, 255, 255, 0.08) 100%);
                 color: var(--tp-color-surface);
-                border: 1px solid rgba(255, 255, 255, 0.18);
-                box-shadow: inset 3px 0 0 rgba(157, 196, 209, 0.92);
+                border: 1px solid rgba(245, 216, 164, 0.66);
+                box-shadow: inset 2px 0 0 rgba(245, 196, 112, 0.95), 0 6px 14px rgba(10, 24, 33, 0.26);
+            }
+
+            .tp-side-link.active::before {
+                background: rgba(245, 196, 112, 0.34);
+                color: var(--tp-color-surface);
+                box-shadow: inset 0 0 0 1px rgba(245, 216, 164, 0.68);
             }
 
             .tp-side-footer {
@@ -735,7 +1124,9 @@
                 <span class="tp-brand-full">{% trans "Target Pathogen" %}</span>
                 <span class="tp-brand-short">TP</span>
             </a>
-            <button id="tp-sidebar-toggle" class="tp-sidebar-toggle" type="button" aria-label="{% trans "Collapse navigation" %}" title="{% trans "Collapse navigation" %}" aria-expanded="true">‹</button>
+            <button id="tp-sidebar-toggle" class="tp-sidebar-toggle" type="button" aria-label="{% trans "Collapse navigation" %}" title="{% trans "Collapse navigation" %}" aria-expanded="true">
+                <span class="tp-chevron tp-chevron--left tp-sidebar-toggle-icon" aria-hidden="true"></span>
+            </button>
         </div>
     </div>
     <nav class="tp-side-nav">
@@ -809,11 +1200,7 @@
 </main>
 
 <footer class="footer mt-auto py-3 tp-footer">
-    {% block footer %}
-        <div class="container">
-            <span class="text-muted">Target Pathogen</span>
-        </div>
-    {% endblock %}
+    {% block footer %}{% endblock %}
 </footer>
 
 <script src="{% static 'bundle.js' %}"></script>
@@ -890,7 +1277,11 @@
             const button = document.getElementById("tp-sidebar-toggle");
             if (button) {
                 button.setAttribute("aria-expanded", collapsed ? "false" : "true");
-                button.textContent = collapsed ? "›" : "‹";
+                const icon = button.querySelector(".tp-sidebar-toggle-icon");
+                if (icon) {
+                    icon.classList.toggle("tp-chevron--right", collapsed);
+                    icon.classList.toggle("tp-chevron--left", !collapsed);
+                }
                 button.title = collapsed ? "Expand navigation" : "Collapse navigation";
                 button.setAttribute("aria-label", collapsed ? "Expand navigation" : "Collapse navigation");
             }
@@ -932,6 +1323,356 @@
         } else {
             initSidebarToggle();
         }
+    })();
+
+    (function () {
+        const SELECTOR = "select:not([multiple]):not([size]):not([data-tp-select-native]):not([data-tp-select-enhanced]):not([data-tp-select-raw])";
+
+        function getEnhancedWrappers() {
+            return Array.from(document.querySelectorAll(".tp-select[data-tp-select-enhanced='1']"));
+        }
+
+        function getEnabledOptionButtons(wrapper) {
+            return Array.from(wrapper.querySelectorAll(".tp-select-option")).filter(function (button) {
+                return button.getAttribute("aria-disabled") !== "true";
+            });
+        }
+
+        function closeSelect(wrapper) {
+            if (!wrapper || !wrapper.classList.contains("is-open")) return;
+            const trigger = wrapper.querySelector(".tp-select-trigger");
+            const menu = wrapper.querySelector(".tp-select-menu");
+            wrapper.classList.remove("is-open");
+            if (trigger) trigger.setAttribute("aria-expanded", "false");
+            if (menu) menu.hidden = true;
+        }
+
+        function closeAllSelects(exceptWrapper) {
+            getEnhancedWrappers().forEach(function (wrapper) {
+                if (wrapper === exceptWrapper) return;
+                closeSelect(wrapper);
+            });
+        }
+
+        function focusOptionWithOffset(wrapper, offset) {
+            const enabledButtons = getEnabledOptionButtons(wrapper);
+            if (!enabledButtons.length) return;
+            let activeIndex = enabledButtons.findIndex(function (button) {
+                return button === document.activeElement;
+            });
+            if (activeIndex === -1) {
+                activeIndex = enabledButtons.findIndex(function (button) {
+                    return button.classList.contains("is-selected");
+                });
+            }
+            if (activeIndex === -1) {
+                activeIndex = offset > 0 ? -1 : 0;
+            }
+            const nextIndex = (activeIndex + offset + enabledButtons.length) % enabledButtons.length;
+            enabledButtons[nextIndex].focus();
+        }
+
+        function focusBoundaryOption(wrapper, isLast) {
+            const enabledButtons = getEnabledOptionButtons(wrapper);
+            if (!enabledButtons.length) return;
+            const target = isLast ? enabledButtons[enabledButtons.length - 1] : enabledButtons[0];
+            target.focus();
+        }
+
+        function openSelect(wrapper) {
+            if (!wrapper || wrapper.classList.contains("is-disabled")) return;
+            const trigger = wrapper.querySelector(".tp-select-trigger");
+            const menu = wrapper.querySelector(".tp-select-menu");
+            if (!trigger || !menu) return;
+            closeAllSelects(wrapper);
+            wrapper.classList.add("is-open");
+            trigger.setAttribute("aria-expanded", "true");
+            menu.hidden = false;
+            window.requestAnimationFrame(function () {
+                const selected = menu.querySelector(".tp-select-option.is-selected[aria-disabled='false']");
+                if (selected) {
+                    selected.focus();
+                    return;
+                }
+                const firstEnabled = menu.querySelector(".tp-select-option[aria-disabled='false']");
+                if (firstEnabled) firstEnabled.focus();
+            });
+        }
+
+        function getOptionEntries(select) {
+            const entries = [];
+            Array.from(select.children).forEach(function (child) {
+                if (child.tagName === "OPTGROUP") {
+                    entries.push({
+                        type: "group",
+                        label: child.label || ""
+                    });
+                    Array.from(child.children).forEach(function (option) {
+                        const inheritedDisabled = option.parentElement && option.parentElement.tagName === "OPTGROUP" && option.parentElement.disabled;
+                        entries.push({
+                            type: "option",
+                            value: option.value,
+                            label: (option.textContent || "").trim(),
+                            disabled: option.disabled || inheritedDisabled,
+                            selected: option.selected
+                        });
+                    });
+                    return;
+                }
+                if (child.tagName === "OPTION") {
+                    const inheritedDisabled = child.parentElement && child.parentElement.tagName === "OPTGROUP" && child.parentElement.disabled;
+                    entries.push({
+                        type: "option",
+                        value: child.value,
+                        label: (child.textContent || "").trim(),
+                        disabled: child.disabled || inheritedDisabled,
+                        selected: child.selected
+                    });
+                }
+            });
+            return entries;
+        }
+
+        function renderSelect(wrapper) {
+            const select = wrapper.querySelector("select[data-tp-select-enhanced='1']");
+            const trigger = wrapper.querySelector(".tp-select-trigger");
+            const menu = wrapper.querySelector(".tp-select-menu");
+            const label = trigger ? trigger.querySelector(".tp-select-label") : null;
+            if (!select || !trigger || !menu || !label) return;
+
+            const entries = getOptionEntries(select);
+            const selectedOption = select.options && select.selectedIndex >= 0 ? select.options[select.selectedIndex] : null;
+            const selectedLabel = selectedOption ? (selectedOption.textContent || "").trim() : "";
+            label.textContent = selectedLabel || (entries.find(function (entry) {
+                return entry.type === "option";
+            }) || {}).label || "";
+
+            wrapper.classList.toggle("is-disabled", Boolean(select.disabled));
+            trigger.disabled = Boolean(select.disabled);
+
+            menu.innerHTML = "";
+            let optionIndex = 0;
+            entries.forEach(function (entry) {
+                if (entry.type === "group") {
+                    const groupLabel = document.createElement("p");
+                    groupLabel.className = "tp-select-group-label";
+                    groupLabel.textContent = entry.label;
+                    menu.appendChild(groupLabel);
+                    return;
+                }
+                const optionButton = document.createElement("button");
+                optionButton.type = "button";
+                optionButton.className = "tp-select-option";
+                optionButton.textContent = entry.label;
+                optionButton.setAttribute("role", "option");
+                optionButton.setAttribute("aria-selected", entry.selected ? "true" : "false");
+                optionButton.setAttribute("aria-disabled", entry.disabled ? "true" : "false");
+                optionButton.setAttribute("data-value", entry.value);
+                optionButton.setAttribute("data-option-index", String(optionIndex));
+                if (entry.selected) optionButton.classList.add("is-selected");
+                if (entry.disabled) optionButton.tabIndex = -1;
+                menu.appendChild(optionButton);
+                optionIndex += 1;
+            });
+        }
+
+        function chooseOption(wrapper, value) {
+            const select = wrapper.querySelector("select[data-tp-select-enhanced='1']");
+            const trigger = wrapper.querySelector(".tp-select-trigger");
+            if (!select) return;
+            const currentValue = select.value;
+            select.value = value;
+            renderSelect(wrapper);
+            closeSelect(wrapper);
+            if (trigger) trigger.focus();
+            if (currentValue !== value) {
+                select.dispatchEvent(new Event("input", { bubbles: true }));
+                select.dispatchEvent(new Event("change", { bubbles: true }));
+            }
+        }
+
+        function enhanceSelect(select) {
+            if (!select || select.dataset.tpSelectEnhanced === "1") return;
+            select.dataset.tpSelectEnhanced = "1";
+            const wrapper = document.createElement("div");
+            wrapper.className = "tp-select";
+            wrapper.setAttribute("data-tp-select-enhanced", "1");
+            Array.from(select.classList).forEach(function (className) {
+                if (className === "form-control" || className === "form-select" || className === "tp-select-native") return;
+                wrapper.classList.add(className);
+            });
+
+            const trigger = document.createElement("button");
+            trigger.type = "button";
+            trigger.className = "tp-select-trigger";
+            trigger.setAttribute("aria-haspopup", "listbox");
+            trigger.setAttribute("aria-expanded", "false");
+
+            const label = document.createElement("span");
+            label.className = "tp-select-label";
+            trigger.appendChild(label);
+
+            const chevron = document.createElement("span");
+            chevron.className = "tp-chevron tp-chevron--down tp-select-chevron";
+            chevron.setAttribute("aria-hidden", "true");
+            trigger.appendChild(chevron);
+
+            const menu = document.createElement("div");
+            menu.className = "tp-select-menu";
+            menu.setAttribute("role", "listbox");
+            menu.hidden = true;
+
+            const parent = select.parentNode;
+            if (!parent) return;
+            parent.insertBefore(wrapper, select);
+            wrapper.appendChild(select);
+            wrapper.appendChild(trigger);
+            wrapper.appendChild(menu);
+            select.classList.add("tp-select-native");
+
+            select.addEventListener("focus", function () {
+                trigger.focus();
+            });
+            select.addEventListener("change", function () {
+                renderSelect(wrapper);
+            });
+            select.addEventListener("input", function () {
+                renderSelect(wrapper);
+            });
+
+            trigger.addEventListener("click", function () {
+                if (wrapper.classList.contains("is-open")) {
+                    closeSelect(wrapper);
+                    return;
+                }
+                openSelect(wrapper);
+            });
+
+            trigger.addEventListener("keydown", function (event) {
+                if (event.key === "ArrowDown") {
+                    event.preventDefault();
+                    openSelect(wrapper);
+                    focusBoundaryOption(wrapper, false);
+                    return;
+                }
+                if (event.key === "ArrowUp") {
+                    event.preventDefault();
+                    openSelect(wrapper);
+                    focusBoundaryOption(wrapper, true);
+                    return;
+                }
+                if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    if (wrapper.classList.contains("is-open")) {
+                        closeSelect(wrapper);
+                    } else {
+                        openSelect(wrapper);
+                    }
+                }
+            });
+
+            menu.addEventListener("click", function (event) {
+                const optionButton = event.target.closest(".tp-select-option");
+                if (!optionButton) return;
+                if (optionButton.getAttribute("aria-disabled") === "true") return;
+                chooseOption(wrapper, optionButton.getAttribute("data-value") || "");
+            });
+
+            menu.addEventListener("keydown", function (event) {
+                if (event.key === "Escape") {
+                    event.preventDefault();
+                    closeSelect(wrapper);
+                    trigger.focus();
+                    return;
+                }
+                if (event.key === "ArrowDown") {
+                    event.preventDefault();
+                    focusOptionWithOffset(wrapper, 1);
+                    return;
+                }
+                if (event.key === "ArrowUp") {
+                    event.preventDefault();
+                    focusOptionWithOffset(wrapper, -1);
+                    return;
+                }
+                if (event.key === "Home") {
+                    event.preventDefault();
+                    focusBoundaryOption(wrapper, false);
+                    return;
+                }
+                if (event.key === "End") {
+                    event.preventDefault();
+                    focusBoundaryOption(wrapper, true);
+                    return;
+                }
+                if (event.key === "Enter" || event.key === " ") {
+                    const optionButton = event.target.closest(".tp-select-option");
+                    if (!optionButton || optionButton.getAttribute("aria-disabled") === "true") return;
+                    event.preventDefault();
+                    chooseOption(wrapper, optionButton.getAttribute("data-value") || "");
+                    return;
+                }
+                if (event.key === "Tab") {
+                    closeSelect(wrapper);
+                }
+            });
+
+            renderSelect(wrapper);
+
+            const observer = new MutationObserver(function () {
+                renderSelect(wrapper);
+            });
+            observer.observe(select, {
+                childList: true,
+                subtree: true,
+                attributes: true,
+                attributeFilter: ["disabled", "label", "selected", "value"]
+            });
+        }
+
+        function initEnhancedSelects(root) {
+            const scope = root && root.nodeType === 1 ? root : document;
+            if (scope.matches && scope.matches(SELECTOR)) {
+                enhanceSelect(scope);
+            }
+            scope.querySelectorAll(SELECTOR).forEach(function (select) {
+                enhanceSelect(select);
+            });
+        }
+
+        document.addEventListener("click", function (event) {
+            if (event.target.closest(".tp-select")) return;
+            closeAllSelects();
+        });
+
+        document.addEventListener("keydown", function (event) {
+            if (event.key !== "Escape") return;
+            closeAllSelects();
+        });
+
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", function () {
+                initEnhancedSelects(document);
+            });
+        } else {
+            initEnhancedSelects(document);
+        }
+
+        const rootObserver = new MutationObserver(function (mutations) {
+            mutations.forEach(function (mutation) {
+                mutation.addedNodes.forEach(function (node) {
+                    if (node.nodeType !== 1) return;
+                    initEnhancedSelects(node);
+                });
+            });
+        });
+
+        rootObserver.observe(document.documentElement, {
+            childList: true,
+            subtree: true
+        });
+
+        window.tpEnhanceSelects = initEnhancedSelects;
     })();
 </script>
 

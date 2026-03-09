@@ -1,9 +1,26 @@
 from django.db.models import Q
+import re
 
 
 MIN_PAGE_SIZE = 10
 MAX_PAGE_SIZE = 100
 DEFAULT_PAGE_SIZE = 25
+
+ACRONYM_TOKENS = {
+    "deg": "DEG",
+    "ppi": "PPI",
+    "dna": "DNA",
+    "rna": "RNA",
+    "p2rank": "P2RANK",
+    "fpocket": "FPocket",
+    "id": "ID",
+}
+
+TOKEN_REPLACEMENTS = {
+    "offtarget": "Off-target",
+}
+
+LOWER_CONNECTORS = {"and", "or", "of", "in", "on", "to", "for", "with", "without", "by"}
 
 
 def normalize_selected_parameters(raw_selected_parameters):
@@ -12,11 +29,38 @@ def normalize_selected_parameters(raw_selected_parameters):
     return raw_selected_parameters
 
 
-def grouped_selected_parameters(selected_parameters):
+def humanize_identifier(value):
+    text = str(value or "").strip()
+    if not text:
+        return ""
+    text = re.sub(r"[_-]+", " ", text)
+    text = re.sub(r"(?<=[a-z0-9])(?=[A-Z])", " ", text)
+    text = re.sub(r"\s+", " ", text).strip()
+    tokens = text.split(" ")
+    human_tokens = []
+    for idx, token in enumerate(tokens):
+        token_l = token.lower()
+        if token_l in ACRONYM_TOKENS:
+            human_tokens.append(ACRONYM_TOKENS[token_l])
+            continue
+        if token_l in TOKEN_REPLACEMENTS:
+            human_tokens.append(TOKEN_REPLACEMENTS[token_l])
+            continue
+        if idx > 0 and token_l in LOWER_CONNECTORS:
+            human_tokens.append(token_l)
+            continue
+        human_tokens.append(token.capitalize())
+    return " ".join(human_tokens)
+
+
+def grouped_selected_parameters(selected_parameters, humanize=False):
     grouped_data = {}
     for item in selected_parameters:
         score_param_name = item["score_param_name"]
         option_name = item["name"]
+        if humanize:
+            score_param_name = humanize_identifier(score_param_name) or score_param_name
+            option_name = humanize_identifier(option_name) or option_name
         grouped_data.setdefault(score_param_name, []).append(option_name)
     return {k: ", ".join(v) for k, v in grouped_data.items()}
 
@@ -94,4 +138,3 @@ def empty_pagination_payload():
         "has_next": False,
         "proteins": _EmptyProteinPage(),
     }
-

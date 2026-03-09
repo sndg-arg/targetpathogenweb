@@ -1,159 +1,176 @@
 {% extends '../base/masterpage.html' %}
 {% load i18n %}
-{% load crispy_forms_tags %}
+{% load static %}
+
+{% block head %}
+    <link rel="stylesheet" href="{% static 'css/pages/parameter-form.css' %}?v=20260309-3">
+{% endblock %}
 
 {% block body %}
     <script src="https://unpkg.com/htmx.org@1.9.2"></script>
-    <style>
-        .param-wrap {
-            max-width: 1020px;
-            margin: 0 auto;
-            display: grid;
-            gap: 14px;
-        }
 
-        .param-hero {
-            border: 1px solid #d7e6ed;
-            border-radius: 18px;
-            background:
-                radial-gradient(760px 220px at 0% 0%, #dff4f4 0%, transparent 56%),
-                radial-gradient(740px 220px at 100% 0%, #eaf6e4 0%, transparent 55%),
-                #f9fcfe;
-            padding: 18px;
-        }
-
-        .param-hero h1 {
-            margin: 0;
-            font-size: clamp(1.75rem, 2.3vw, 2.2rem);
-        }
-
-        .param-hero p {
-            margin: 8px 0 0;
-            color: var(--tp-muted);
-        }
-
-        .param-grid {
-            display: grid;
-            grid-template-columns: minmax(0, 1.15fr) minmax(240px, 0.85fr);
-            gap: 12px;
-        }
-
-        .param-card {
-            border: 1px solid #dbe7ee;
-            border-radius: 14px;
-            background: #ffffff;
-            box-shadow: 0 8px 20px rgba(19, 43, 62, 0.07);
-            padding: 16px;
-        }
-
-        .param-card h2 {
-            margin: 0 0 8px;
-            font-size: 1.2rem;
-        }
-
-        .param-help-list {
-            margin: 0;
-            padding-left: 18px;
-            color: #4e6979;
-            display: grid;
-            gap: 6px;
-            font-size: 0.9rem;
-        }
-
-        .param-actions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            align-items: center;
-        }
-
-        .param-filter-list {
-            border: 1px solid #dce8ef;
-            border-radius: 12px;
-            overflow: hidden;
-        }
-
-        .param-filter-list .list-group-item {
-            border-left: 0;
-            border-right: 0;
-        }
-
-        .param-filter-list .list-group-item:first-child {
-            border-top: 0;
-        }
-
-        .param-filter-list .list-group-item:last-child {
-            border-bottom: 0;
-        }
-
-        @media (max-width: 900px) {
-            .param-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
-
-    <div class="param-wrap">
-        <section class="param-hero">
-            <h1>{% trans "Protein Filters" %}</h1>
-            <p>{% trans "Select scoring options to focus the ranking on proteins that meet your criteria." %}</p>
+    <div class="parameter-page">
+        <section class="parameter-hero">
+            <div class="parameter-hero-head">
+                <div>
+                    {% trans "Home" as crumb_home %}
+                    {% trans "Genomes" as crumb_genomes %}
+                    {% trans "Proteins" as crumb_proteins %}
+                    {% trans "Advanced Filter Form" as crumb_advanced_filters %}
+                    {% url 'tpwebapp:index' as index_url %}
+                    {% url 'tpwebapp:genomes_list' as genomes_url %}
+                    {% url 'tpwebapp:protein_list' assembly_name=assembly_name as proteins_url %}
+                    {% include "components/navigation/breadcrumbs.html" with crumb_1_label=crumb_home crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_proteins crumb_3_url=proteins_url crumb_4_label=crumb_advanced_filters %}
+                    <h1>{% trans "Advanced Filter Form" %}</h1>
+                    <p class="parameter-hero-subtitle">{% trans "Build your filter set and apply it to the protein ranking." %}</p>
+                </div>
+            </div>
         </section>
 
-        <div class="param-grid">
-            <section class="param-card">
-                <h2>{% trans "Add filter" %}</h2>
-                <form id="add-parameter-form" method="POST">
-                    {% csrf_token %}
-                    <div class="row">
-                        <div class="col-md-6">{{ form.param|as_crispy_field }}</div>
-                        <div class="col-md-6">{{ form.options|as_crispy_field }}</div>
-                    </div>
-                    <div class="param-actions">
-                        <button type="submit" class="btn btn-primary">{% trans "Add filter" %}</button>
-                    </div>
-                </form>
-
-                <div class="param-actions mt-2">
-                    <form id="finish-process-form" method="POST">
-                        {% csrf_token %}
-                        <input type="hidden" name="finish_process" value="true">
-                        <button type="submit" class="btn btn-success">{% trans "Apply filters" %}</button>
-                    </form>
-                    <form id="reset-process-form" method="POST">
-                        {% csrf_token %}
-                        <input type="hidden" name="reset_process" value="true">
-                        {% trans "Clear filters" as clear_filters_label %}
-                        {% include "components/buttons/clear_action.html" with label=clear_filters_label button_type="submit" classes="btn btn-outline-danger tp-btn-with-icon" %}
-                    </form>
+        <section class="parameter-main">
+            <article class="parameter-card parameter-card--composer tp-ui-panel">
+                <div class="parameter-card-head tp-ui-panel-head">
+                    <h2>{% trans "Add filter" %}</h2>
                 </div>
-            </section>
+                <form id="add-parameter-form" method="POST" novalidate data-active-option-ids="{{ active_option_ids }}">
+                    {% csrf_token %}
+                    <div class="parameter-field tp-ui-field">
+                        <label class="tp-ui-field-label" for="{{ form.param.id_for_label }}">{% trans "Step 1 - Parameter" %}</label>
+                        {{ form.param }}
+                        {% if form.param.errors %}
+                            <p class="parameter-field-error">{{ form.param.errors|striptags }}</p>
+                        {% endif %}
+                    </div>
+                    <div class="parameter-field tp-ui-field">
+                        <label class="tp-ui-field-label" for="{{ form.options.id_for_label }}">{% trans "Step 2 - Value" %}</label>
+                        {{ form.options }}
+                        {% if form.options.errors %}
+                            <p class="parameter-field-error">{{ form.options.errors|striptags }}</p>
+                        {% endif %}
+                    </div>
+                    <p class="parameter-feedback tp-ui-feedback {% if duplicate_filter %}is-error{% endif %}"
+                       id="param-add-feedback"
+                       role="status"
+                       aria-live="polite"
+                       data-empty-message="{% trans "Select a parameter and a value to enable Add filter." %}"
+                       data-duplicate-message="{% trans "This filter is already active." %}"
+                       data-ready-message="{% trans "Ready to add this filter." %}">{% if duplicate_filter %}{% trans "This filter is already active." %}{% else %}{% trans "Select a parameter and a value to enable Add filter." %}{% endif %}</p>
+                    <button type="submit" class="btn tp-btn tp-btn--primary parameter-add-btn" id="add-parameter-btn" disabled>{% trans "Add filter to active set" %}</button>
+                </form>
+            </article>
 
-            <aside class="param-card">
-                <h2>{% trans "How filtering works" %}</h2>
-                <ul class="param-help-list">
-                    <li>{% trans "Each filter narrows the ranked protein list." %}</li>
-                    <li>{% trans "Multiple filters are combined to keep only matching proteins." %}</li>
-                    <li>{% trans "Use clear filters to restore the full ranking." %}</li>
-                </ul>
-            </aside>
-        </div>
-
-        <section class="param-card">
-            <h2>{% trans "Current filters" %}</h2>
-            <ul class="list-group param-filter-list">
-                {% for arg in parameters %}
-                    <li class="list-group-item">
-                        <strong>{% trans "Parameter" %}:</strong> {{ arg.score_param_name }}<br>
-                        <strong>{% trans "Option" %}:</strong> {{ arg.name }}<br>
-                        <strong>{% trans "Description" %}:</strong> {{ arg.description }}
-                    </li>
-                {% empty %}
-                    <li class="list-group-item">{% trans "No filters selected." %}</li>
-                {% endfor %}
-            </ul>
+            <article class="parameter-card parameter-card--active tp-ui-panel">
+                <div class="parameter-card-head tp-ui-panel-head">
+                    <h2>{% trans "Active filters" %}</h2>
+                    <span class="parameter-count tp-chip tp-chip--count tp-chip--sm">{{ active_filter_count }}</span>
+                </div>
+                {% if parameters %}
+                    <ul class="parameter-active-list">
+                        {% for arg in parameters %}
+                            <li class="parameter-active-item">
+                                <div class="parameter-active-text">
+                                    <p class="parameter-active-title"><strong>{{ arg.display_score_param_name }}</strong>: {{ arg.display_name }}</p>
+                                </div>
+                                <form method="POST" class="parameter-remove-form">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="remove_filter" value="{{ arg.id }}">
+                                    <button type="submit" class="parameter-remove-btn tp-focusable" title="{% trans "Remove filter" %}" aria-label="{% trans "Remove filter" %}">&times;</button>
+                                </form>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="parameter-empty tp-state-note tp-state-note--empty">{% trans "No active filters yet. Add one above to narrow the ranking." %}</p>
+                {% endif %}
+                <div class="parameter-actions tp-ui-actions">
+                <form id="reset-process-form" method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="reset_process" value="true">
+                    {% trans "Clear filters" as clear_filters_label %}
+                    {% if parameters %}
+                        {% include "components/buttons/clear_action.html" with label=clear_filters_label button_type="submit" classes="btn tp-btn tp-btn--clear tp-btn--clear-caution tp-btn-with-icon" %}
+                    {% else %}
+                        {% include "components/buttons/clear_action.html" with label=clear_filters_label button_type="submit" disabled="1" classes="btn tp-btn tp-btn--clear tp-btn--clear-caution tp-btn-with-icon" %}
+                    {% endif %}
+                </form>
+                <form id="finish-process-form" method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="finish_process" value="true">
+                    <button type="submit" class="btn tp-btn tp-btn--success" {% if not parameters %}disabled{% endif %}>{% trans "Apply filters" %}</button>
+                </form>
+                </div>
+            </article>
         </section>
     </div>
-{% endblock %}
 
-{% block footer %}
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const addForm = document.getElementById("add-parameter-form");
+            const addButton = document.getElementById("add-parameter-btn");
+            const feedback = document.getElementById("param-add-feedback");
+            if (!addForm || !addButton || !feedback) return;
+
+            const parameterInput = addForm.querySelector("[name='param']");
+            const optionInput = addForm.querySelector("[name='options']");
+            const activeOptionIdsRaw = addForm.getAttribute("data-active-option-ids") || "";
+            const activeOptionIds = new Set(activeOptionIdsRaw.split(",").map(function (item) {
+                return item.trim();
+            }).filter(Boolean));
+            const UI_TEXT = Object.freeze({
+                addFilterEmpty: feedback.getAttribute("data-empty-message") || "",
+                addFilterDuplicate: feedback.getAttribute("data-duplicate-message") || "",
+                addFilterReady: feedback.getAttribute("data-ready-message") || ""
+            });
+
+            function syncAddButtonState() {
+                const parameterValue = parameterInput ? (parameterInput.value || "").trim() : "";
+                const optionValue = optionInput ? (optionInput.value || "").trim() : "";
+                const isReady = parameterValue.length > 0 && optionValue.length > 0;
+                const isDuplicate = optionValue.length > 0 && activeOptionIds.has(optionValue);
+
+                addButton.disabled = !isReady || isDuplicate;
+                feedback.classList.toggle("is-ok", isReady && !isDuplicate);
+                feedback.classList.toggle("is-error", isDuplicate);
+
+                if (!isReady) {
+                    feedback.textContent = UI_TEXT.addFilterEmpty;
+                    return;
+                }
+                if (isDuplicate) {
+                    feedback.textContent = UI_TEXT.addFilterDuplicate;
+                    return;
+                }
+                feedback.textContent = UI_TEXT.addFilterReady;
+            }
+
+            if (parameterInput) {
+                parameterInput.addEventListener("change", syncAddButtonState);
+                parameterInput.addEventListener("input", syncAddButtonState);
+            }
+            if (optionInput) {
+                optionInput.addEventListener("change", syncAddButtonState);
+                optionInput.addEventListener("input", syncAddButtonState);
+            }
+
+            document.body.addEventListener("htmx:afterSwap", function (event) {
+                if (event.target && event.target.id === "id_options") {
+                    syncAddButtonState();
+                }
+            });
+
+            addForm.addEventListener("submit", function (event) {
+                syncAddButtonState();
+                if (addButton.disabled) {
+                    event.preventDefault();
+                    if (parameterInput && !parameterInput.value) {
+                        parameterInput.focus();
+                    } else if (optionInput) {
+                        optionInput.focus();
+                    }
+                }
+            });
+
+            syncAddButtonState();
+        });
+    </script>
 {% endblock %}

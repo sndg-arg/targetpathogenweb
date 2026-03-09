@@ -14,6 +14,8 @@ static/*
 static/css/*
 !static/css/pages/
 !static/css/pages/*.css
+!static/css/components/
+!static/css/components/*.css
 dbs
 
 
