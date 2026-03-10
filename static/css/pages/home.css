@@ -1,6 +1,6 @@
 .home-page {
     display: grid;
-    gap: var(--tp-ui-gap-md);
+    gap: var(--tp-space-4);
     --home-accent: var(--tp-color-brand-800);
     --home-accent-deep: var(--tp-color-brand-900);
     --home-accent-soft: var(--tp-color-brand-100);
@@ -9,7 +9,7 @@
 .home-hero {
     border: 1px solid var(--tp-color-border-strong);
     border-radius: var(--tp-ui-radius-hero);
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+    background: var(--tp-color-surface);
     padding: 18px;
     display: grid;
     gap: var(--tp-ui-gap-md);
@@ -35,6 +35,8 @@
     margin: 0;
     font-size: clamp(1.9rem, 2.8vw, 2.65rem);
     color: var(--tp-color-nav-800);
+    line-height: 1.08;
+    letter-spacing: 0.12px;
 }
 
 .home-hero p {
@@ -42,6 +44,7 @@
     color: var(--tp-muted);
     max-width: 860px;
     font-size: 0.98rem;
+    line-height: 1.42;
 }
 
 .home-hero-actions {
@@ -62,7 +65,7 @@
     overflow: hidden;
     border: 1px solid var(--tp-color-border);
     border-radius: 12px;
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, rgba(236, 248, 243, 0.72) 100%);
+    background: var(--tp-color-surface);
     padding: 11px 12px;
     box-shadow: 0 10px 22px rgba(24, 50, 69, 0.09);
 }
@@ -99,7 +102,7 @@
 .home-status {
     border: 1px solid var(--tp-color-border);
     border-radius: var(--tp-ui-radius-panel);
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+    background: var(--tp-color-surface);
     padding: var(--tp-ui-panel-padding);
     box-shadow: 0 10px 22px rgba(20, 40, 55, 0.06);
     display: grid;
@@ -108,7 +111,7 @@
 
 .home-status.pipeline-finished {
     border-color: var(--tp-state-finished-border);
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-state-finished-bg) 100%);
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, rgba(230, 242, 249, 0.72) 100%);
 }
 
 .home-status-head {
@@ -187,7 +190,7 @@
 .home-post {
     border: 1px solid var(--tp-color-border);
     border-radius: var(--tp-ui-radius-panel);
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+    background: var(--tp-color-surface);
     padding: var(--tp-ui-panel-padding);
     box-shadow: 0 10px 22px rgba(20, 40, 55, 0.06);
 }

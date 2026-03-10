@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20260309-4">
+    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20260309-9">
 {% endblock %}
 
 {% block body %}
@@ -44,10 +44,10 @@
             </div>
         </header>
 
-        <div class="structure-fs-actions">
+        <div class="structure-fs-actions tp-ui-toolbar structure-toolbar">
             <div class="structure-mode-switch" role="group" aria-label="{% trans "3D view mode" %}">
                 <button type="button"
-                        class="btn tp-btn tp-btn--primary tp-btn--md js-structure-mode is-active"
+                        class="btn tp-btn tp-btn--neutral tp-btn--md js-structure-mode is-active"
                         data-mode="cartoon">{% trans "Cartoon" %}</button>
                 <button type="button"
                         class="btn tp-btn tp-btn--neutral tp-btn--md js-structure-mode"
@@ -106,7 +106,7 @@
                         <h3>{% trans "Pockets" %} (FPOCKET)</h3>
                         <p class="table-hint">{% trans "Druggability is color-coded: high (0.7 or higher), medium (0.4 to 0.69), low (below 0.4)." %}</p>
                         <div class="table-shell">
-                            <table id="pocketsTable" class="table table-striped table-hover table-sm tp-table tp-table--plain">
+                            <table id="pocketsTable" class="table table-striped table-hover table-sm tp-table tp-table--plain tp-table--premium">
                                 <thead>
                                 <tr>
                                     <th>FPOCKET</th>
@@ -144,7 +144,7 @@
                             <summary>{% trans "Show P2RANK pockets" %}</summary>
                             <p class="table-hint px-3 pt-2">{% trans "Probability is color-coded: high (0.7 or higher), medium (0.4 to 0.69), low (below 0.4)." %}</p>
                             <div class="table-shell">
-                                <table id="p2pocketsTable" class="table table-striped table-hover table-sm tp-table tp-table--plain">
+                                <table id="p2pocketsTable" class="table table-striped table-hover table-sm tp-table tp-table--plain tp-table--premium">
                                     <thead>
                                     <tr>
                                         <th>P2RANK</th>
@@ -184,7 +184,7 @@
                         <details class="data-details">
                             <summary>{% trans "Show residue sets" %}</summary>
                             <div class="table-shell">
-                                <table id="residuesetsTable" class="table table-striped table-hover table-sm tp-table tp-table--plain">
+                                <table id="residuesetsTable" class="table table-striped table-hover table-sm tp-table tp-table--plain tp-table--premium">
                                     <thead>
                                     <tr>
                                         <th>{% trans "Type" %}</th>
@@ -259,6 +259,23 @@
             const layersCloseBtn = document.getElementById("structure-layers-close-btn");
             const loadingNote = document.getElementById("structure-loading-note");
             const structureRoot = document.getElementById("structure-fs-root");
+            const UI_TEXT = Object.freeze({
+                emptyListValue: "-",
+                copiedLabel: '{% trans "Copied" %}',
+                loadError: '{% trans "Unable to load 3D structure." %}'
+            });
+            const UI_TIMING = Object.freeze({
+                copiedFeedbackMs: 1500
+            });
+            const STRUCTURE_VIEWER_CONFIG = Object.freeze({
+                scrollZoomActions: ["scroll", "scroll-ctrl", "scroll-shift", "scroll-alt", "scroll-meta"],
+                nglZoomStepIn: 0.2,
+                nglZoomStepOut: -0.2,
+                mainCartoonAspectRatio: 3.0,
+                mainCartoonScale: 1.5,
+                densityShellOpacity: 0.78,
+                surfaceOpacity: 0.96
+            });
 
             window.toogle_view = function () {};
             window.ngl_zoom_to = function () {};
@@ -281,8 +298,19 @@
                 structureModeButtons.forEach(function (button) {
                     const isActive = button.getAttribute("data-mode") === mode;
                     button.classList.toggle("is-active", isActive);
-                    button.classList.toggle("tp-btn--primary", isActive);
-                    button.classList.toggle("tp-btn--neutral", !isActive);
+                });
+            }
+
+            function disableStructureScrollZoom(stageInstance) {
+                if (!stageInstance || !stageInstance.mouseControls || typeof stageInstance.mouseControls.remove !== "function") {
+                    return;
+                }
+                STRUCTURE_VIEWER_CONFIG.scrollZoomActions.forEach(function (actionName) {
+                    try {
+                        stageInstance.mouseControls.remove(actionName);
+                    } catch (error) {
+                        // Ignore unsupported bindings across NGL versions.
+                    }
                 });
             }
 
@@ -315,7 +343,7 @@
 
                 function openModal(trigger) {
                     const residuesText = (trigger.getAttribute("data-residues") || "").trim();
-                    content.textContent = residuesText || "-";
+                    content.textContent = residuesText || UI_TEXT.emptyListValue;
                     modal.classList.add("is-open");
                     modal.setAttribute("aria-hidden", "false");
                     document.body.classList.add("residue-modal-open");
@@ -331,7 +359,7 @@
                     button.textContent = label;
                     window.setTimeout(function () {
                         button.textContent = defaultLabel;
-                    }, durationMs || 1500);
+                    }, durationMs || UI_TIMING.copiedFeedbackMs);
                 }
 
                 function copyText(text) {
@@ -372,7 +400,7 @@
                 if (copyBtn) {
                     copyBtn.addEventListener("click", function () {
                         copyText(content ? content.textContent : "").then(function () {
-                            setTemporaryLabel(copyBtn, copyBtn.dataset.copiedLabel || "Copied", 1500);
+                            setTemporaryLabel(copyBtn, copyBtn.dataset.copiedLabel || UI_TEXT.copiedLabel, UI_TIMING.copiedFeedbackMs);
                         });
                     });
                 }
@@ -443,7 +471,7 @@
             if (typeof NGL === "undefined") {
                 if (loadingNote) {
                     loadingNote.style.display = "block";
-                    loadingNote.textContent = '{% trans "Unable to load 3D structure." %}';
+                    loadingNote.textContent = UI_TEXT.loadError;
                 }
                 return;
             }
@@ -451,6 +479,7 @@
             const stage = new NGL("viewport", {
                 backgroundColor: tpColor("--tp-color-surface-panel", "#f6fbf9")
             });
+            disableStructureScrollZoom(stage);
 
             stage.loadFile("{% url "tpwebapp:structure_raw" structure.id %}", {
                 ext: "pdb",
@@ -476,7 +505,9 @@
                 };
 
                 window.ngl_zoom_step = function (direction) {
-                    const step = direction > 0 ? 0.2 : -0.2;
+                    const step = direction > 0
+                        ? STRUCTURE_VIEWER_CONFIG.nglZoomStepIn
+                        : STRUCTURE_VIEWER_CONFIG.nglZoomStepOut;
                     if (stage.viewerControls && typeof stage.viewerControls.zoom === "function") {
                         stage.viewerControls.zoom(step);
                         setResetZoomEnabled(true);
@@ -489,8 +520,8 @@
                 };
 
                 representations.__main_cartoon = component.addRepresentation("cartoon", {
-                    aspectRatio: 3.0,
-                    scale: 1.5,
+                    aspectRatio: STRUCTURE_VIEWER_CONFIG.mainCartoonAspectRatio,
+                    scale: STRUCTURE_VIEWER_CONFIG.mainCartoonScale,
                     sele: "backbone and :A"
                 });
                 visible.__main_cartoon = true;
@@ -499,7 +530,7 @@
                 representations.__main_density = component.addRepresentation("surface", {
                     sele: "polymer and :A",
                     color: tpColor("--tp-color-structure-density"),
-                    opacity: 0.78,
+                    opacity: STRUCTURE_VIEWER_CONFIG.densityShellOpacity,
                     side: "double",
                     opaqueBack: true,
                     surfaceType: "ms"
@@ -539,7 +570,7 @@
                         sele: sele,
                         multipleBond: false,
                         color: tpColor("--tp-color-structure-pocket-apolar", "#20c3d6"),
-                        opacity: 0.96,
+                        opacity: STRUCTURE_VIEWER_CONFIG.surfaceOpacity,
                         side: "front",
                         opaqueBack: false
                     });
@@ -551,7 +582,7 @@
                         sele: sele,
                         multipleBond: false,
                         color: tpColor("--tp-color-structure-pocket-polar", "#0b4f6c"),
-                        opacity: 0.96,
+                        opacity: STRUCTURE_VIEWER_CONFIG.surfaceOpacity,
                         side: "front",
                         opaqueBack: false
                     });
@@ -598,7 +629,7 @@
                         sele: sele,
                         multipleBond: false,
                         color: tpColor("--tp-color-structure-p2-apolar", "#f59e0b"),
-                        opacity: 0.96,
+                        opacity: STRUCTURE_VIEWER_CONFIG.surfaceOpacity,
                         side: "front",
                         opaqueBack: false
                     });
@@ -610,7 +641,7 @@
                         sele: sele,
                         multipleBond: false,
                         color: tpColor("--tp-color-structure-p2-polar", "#8b5cf6"),
-                        opacity: 0.96,
+                        opacity: STRUCTURE_VIEWER_CONFIG.surfaceOpacity,
                         side: "front",
                         opaqueBack: false
                     });
@@ -683,7 +714,7 @@
                 }
             }).catch(function () {
                 if (loadingNote) {
-                    loadingNote.textContent = '{% trans "Unable to load 3D structure." %}';
+                    loadingNote.textContent = UI_TEXT.loadError;
                     loadingNote.style.display = "block";
                 }
             });

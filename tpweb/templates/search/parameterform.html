@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/parameter-form.css' %}?v=20260309-3">
+    <link rel="stylesheet" href="{% static 'css/pages/parameter-form.css' %}?v=20260309-5">
 {% endblock %}
 
 {% block body %}
@@ -96,7 +96,7 @@
                 <form id="finish-process-form" method="POST">
                     {% csrf_token %}
                     <input type="hidden" name="finish_process" value="true">
-                    <button type="submit" class="btn tp-btn tp-btn--success" {% if not parameters %}disabled{% endif %}>{% trans "Apply filters" %}</button>
+                    <button type="submit" class="btn tp-btn tp-btn--primary" {% if not parameters %}disabled{% endif %}>{% trans "Apply filters" %}</button>
                 </form>
                 </div>
             </article>

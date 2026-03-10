@@ -1,6 +1,6 @@
 .formula-page {
     display: grid;
-    gap: var(--tp-ui-gap-md);
+    gap: var(--tp-space-4);
     --view-accent: var(--tp-accent);
     --view-accent-ink: var(--tp-color-brand-900);
     --view-accent-soft: var(--tp-color-info-bg);
@@ -11,7 +11,7 @@
 .formula-hero {
     border: 1px solid var(--tp-color-border-strong);
     border-radius: var(--tp-ui-radius-hero);
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+    background: var(--tp-color-surface);
     padding: 18px;
     box-shadow: var(--tp-ui-shadow-panel);
     position: relative;
@@ -36,6 +36,7 @@
     font-size: clamp(1.62rem, 2.15vw, 2.05rem);
     letter-spacing: 0.2px;
     color: var(--view-accent-ink);
+    line-height: 1.08;
 }
 
 .formula-subtitle {
@@ -72,7 +73,7 @@
 .formula-card {
     border: 1px solid var(--tp-color-border-strong);
     border-radius: var(--tp-ui-radius-panel);
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+    background: var(--tp-color-surface);
     box-shadow: var(--tp-ui-shadow-panel);
     padding: 14px;
     display: grid;
@@ -159,7 +160,7 @@
 }
 
 .formula-term-table thead th {
-    background: linear-gradient(180deg, var(--tp-color-surface-soft) 0%, var(--view-accent-soft-2) 100%);
+    background: linear-gradient(180deg, var(--tp-color-surface-soft) 0%, var(--tp-color-surface-panel) 100%);
     color: var(--tp-color-text-secondary);
     font-size: 0.84rem;
     font-weight: 700;
@@ -169,7 +170,7 @@
 .formula-expression-block {
     border: 1px solid var(--tp-color-border-soft);
     border-radius: 12px;
-    background: linear-gradient(180deg, var(--tp-color-surface-soft) 0%, var(--tp-color-surface-muted) 100%);
+    background: var(--tp-color-surface-soft);
     padding: 10px;
     color: var(--tp-color-text-secondary);
     font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
@@ -181,7 +182,7 @@
 .formula-footer-card {
     border: 1px solid var(--tp-color-border-strong);
     border-radius: var(--tp-ui-radius-panel);
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+    background: var(--tp-color-surface);
     box-shadow: var(--tp-ui-shadow-panel);
     padding: 14px;
 }

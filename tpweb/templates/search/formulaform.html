@@ -4,7 +4,7 @@
 {% load crispy_forms_tags %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/formula-form.css' %}?v=20260309-3">
+    <link rel="stylesheet" href="{% static 'css/pages/formula-form.css' %}?v=20260309-5">
 {% endblock %}
 
 {% block body %}
@@ -75,7 +75,7 @@
                 </div>
                 {% if preview_terms %}
                     <div class="formula-term-table">
-                        <table class="table table-sm table-striped table-hover mb-0">
+                        <table class="table table-sm table-striped table-hover mb-0 tp-table tp-table--plain tp-table--premium">
                             <thead>
                             <tr>
                                 <th>#</th>
@@ -110,7 +110,7 @@
                 <form id="finish-process-form" method="POST">
                     {% csrf_token %}
                     <input type="hidden" name="finish_process" value="true">
-                    <button type="submit" class="btn tp-btn tp-btn--success" {% if term_count == 0 or not formula_name %}disabled{% endif %}>{% trans "Save formula" %}</button>
+                    <button type="submit" class="btn tp-btn tp-btn--primary" {% if term_count == 0 or not formula_name %}disabled{% endif %}>{% trans "Save formula" %}</button>
                 </form>
                 <form id="reset-process-form" method="POST">
                     {% csrf_token %}

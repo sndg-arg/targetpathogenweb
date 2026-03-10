@@ -1,6 +1,6 @@
 .parameter-page {
     display: grid;
-    gap: var(--tp-ui-gap-md);
+    gap: var(--tp-space-4);
     --view-accent-ink: var(--tp-color-brand-900);
     --view-accent-border: var(--tp-color-brand-300);
     --pf-size-hero: clamp(1.7rem, 2.1vw, 2rem);
@@ -45,7 +45,7 @@
 .parameter-hero h1 {
     margin: 0;
     font-size: var(--pf-size-hero);
-    letter-spacing: 0.2px;
+    letter-spacing: 0.12px;
     color: var(--view-accent-ink);
     line-height: 1.1;
 }
@@ -191,7 +191,7 @@
 }
 
 .parameter-remove-btn:hover,
-.parameter-remove-btn:focus {
+.parameter-remove-btn:focus-visible {
     border-color: var(--tp-color-brand-800);
     background: var(--tp-color-brand-200);
 }

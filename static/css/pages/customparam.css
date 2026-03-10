@@ -1,6 +1,6 @@
 .customparam-page {
     display: grid;
-    gap: var(--tp-ui-gap-md);
+    gap: var(--tp-space-4);
     --view-accent: var(--tp-accent);
     --view-accent-ink: var(--tp-color-brand-900);
     --view-accent-soft: var(--tp-color-info-bg);
@@ -36,6 +36,7 @@
     font-size: clamp(1.62rem, 2.15vw, 2.05rem);
     letter-spacing: 0.2px;
     color: var(--view-accent-ink);
+    line-height: 1.08;
 }
 
 .customparam-subtitle {

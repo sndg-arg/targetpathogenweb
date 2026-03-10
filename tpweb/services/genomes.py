@@ -28,6 +28,13 @@ def resolve_live_count(genome_name, live_counts_by_genome, qualifier_value):
     return 0
 
 
+def normalize_structure_count(protein_count, structure_count):
+    """
+    Keep structure counts aligned with protein totals for the current product metric.
+    """
+    return max(safe_int(protein_count), safe_int(structure_count))
+
+
 def build_genomes_queryset(search_query=""):
     genomes = (
         Biodatabase.objects.exclude(
@@ -94,22 +101,27 @@ def build_genome_dto(
         "description": genome.description,
     }
     qualifiers = genome.qualifiers_dict()
+    protein_count = safe_int(
+        resolve_live_count(
+            genome.name,
+            protein_counts_by_genome,
+            qualifiers.get("COUNT_CDS"),
+        )
+    )
+    structure_count = normalize_structure_count(
+        protein_count,
+        resolve_live_count(
+            genome.name,
+            structure_counts_by_genome,
+            qualifiers.get("COUNT_STRUCTS"),
+        ),
+    )
     for column_name in columns:
         if column_name == "COUNT_CDS":
-            protein_count = resolve_live_count(
-                genome.name,
-                protein_counts_by_genome,
-                qualifiers.get("COUNT_CDS"),
-            )
-            genome_dto[column_name] = safe_int(protein_count)
+            genome_dto[column_name] = protein_count
             continue
         if column_name == "COUNT_STRUCTS":
-            structure_count = resolve_live_count(
-                genome.name,
-                structure_counts_by_genome,
-                qualifiers.get("COUNT_STRUCTS"),
-            )
-            genome_dto[column_name] = safe_int(structure_count)
+            genome_dto[column_name] = structure_count
             continue
         genome_dto[column_name] = qualifiers.get(column_name)
     return genome_dto

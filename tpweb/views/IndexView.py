@@ -24,7 +24,9 @@ class IndexView(View):
             "has_project_notes": has_project_notes,
             "total_genomes": genome_metrics["total_genomes"],
             "total_proteins": genome_metrics["total_proteins"],
-            "genomes_with_structures": genome_metrics["genomes_with_structures"],
+            "total_structures": genome_metrics.get(
+                "total_structures", genome_metrics.get("genomes_with_structures", 0)
+            ),
             "pipeline_status": get_pipeline_status(),
         }
         return render(request, self.template_name, context)

@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/home.css' %}?v=20260309-4">
+    <link rel="stylesheet" href="{% static 'css/pages/home.css' %}?v=20260309-6">
 {% endblock %}
 
 {% block body %}
@@ -33,7 +33,7 @@
                 </article>
                 <article class="home-stat">
                     <p class="home-stat-label">{% trans "With Structures" %}</p>
-                    <p class="home-stat-value">{{ genomes_with_structures }}</p>
+                    <p class="home-stat-value">{{ total_structures }}</p>
                 </article>
             </div>
         </section>

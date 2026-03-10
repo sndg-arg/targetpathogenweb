@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/customparam.css' %}?v=20260309-3">
+    <link rel="stylesheet" href="{% static 'css/pages/customparam.css' %}?v=20260309-4">
 {% endblock %}
 
 {% block body %}
@@ -50,14 +50,10 @@
                         </p>
                         <div class="customparam-actions">
                             <button type="button" class="btn tp-btn tp-btn--danger" onclick="confirmOverwrite()">{% trans "Replace file" %}</button>
-                            <a class="btn tp-btn tp-btn--neutral"
-                               href="{% url 'tpwebapp:protein_list' assembly_name %}">{% trans "Cancel" %}</a>
                         </div>
                     {% else %}
                         <div class="customparam-actions">
                             <button type="submit" class="btn tp-btn tp-btn--primary">{% trans "Upload TSV" %}</button>
-                            <a class="btn tp-btn tp-btn--neutral"
-                               href="{% url 'tpwebapp:protein_list' assembly_name %}">{% trans "Cancel" %}</a>
                         </div>
                     {% endif %}
                 </form>

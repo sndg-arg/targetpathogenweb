@@ -1,6 +1,6 @@
 .proteins-page {
     display: grid;
-    gap: var(--tp-ui-gap-md);
+    gap: var(--tp-space-4);
     --view-accent: var(--tp-accent);
     --view-accent-deep: var(--tp-accent-deep);
     --view-accent-ink: var(--tp-color-brand-900);
@@ -45,20 +45,21 @@
     font-size: clamp(1.55rem, 2.2vw, 2.05rem);
     letter-spacing: 0.2px;
     color: var(--view-accent-ink);
+    line-height: 1.08;
 }
 
 .hero-subtitle {
     margin: 6px 0 0;
     color: var(--tp-muted);
     font-size: 1rem;
-    line-height: 1.35;
+    line-height: 1.4;
 }
 
 .hero-context {
     margin: 8px 0 0;
     color: var(--tp-color-text-muted);
     font-size: 1rem;
-    line-height: 1.35;
+    line-height: 1.4;
     overflow-wrap: anywhere;
 }
 
@@ -84,7 +85,7 @@
 }
 
 .hero-chips .tp-chip {
-    border-color: var(--view-accent-border);
+    color: var(--tp-color-text-secondary);
 }
 
 .hero-pipeline-note {
@@ -171,6 +172,9 @@
 .toolbar-card .btn,
 .toolbar-tools-menu summary {
     padding: 0.48rem 0.92rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .search-input {
@@ -212,14 +216,10 @@
 }
 
 .toolbar-controls-left .toolbar-action-btn:hover,
-.toolbar-controls-left .toolbar-action-btn:focus {
+.toolbar-controls-left .toolbar-action-btn:focus-visible {
     color: var(--tp-color-link-hover) !important;
     border-color: var(--view-accent) !important;
     background: var(--view-accent-soft) !important;
-}
-
-.toolbar-controls-left .toolbar-action-btn:focus-visible {
-    box-shadow: 0 0 0 0.2rem var(--tp-focus-ring) !important;
 }
 
 .toolbar-tools-menu {
@@ -474,30 +474,22 @@
     table-layout: fixed;
 }
 
-.protein-table.table-striped tbody tr:nth-of-type(odd) {
-    background: var(--tp-color-surface-panel);
-}
-
-.protein-table.table-striped tbody tr:nth-of-type(even) {
-    background: var(--tp-color-surface);
-}
-
 .protein-table thead th {
     position: sticky;
     top: 0;
     z-index: 1;
-    background: linear-gradient(180deg, var(--tp-color-surface-soft) 0%, var(--view-accent-soft-2) 100%);
-    color: var(--tp-color-text-secondary);
-    font-size: 0.86rem;
-    font-weight: 700;
     white-space: nowrap;
-    letter-spacing: 0.15px;
 }
 
 .protein-table thead th,
 .protein-table tbody td {
     padding: 0.72rem 0.64rem;
     vertical-align: middle;
+}
+
+.protein-table thead th:first-child,
+.protein-table tbody td:first-child {
+    padding-left: 0.88rem;
 }
 
 .protein-table thead th:nth-child(1),
@@ -562,6 +554,7 @@
 }
 
 .protein-row:hover {
+    background: var(--tp-color-brand-050);
     box-shadow: inset 2px 0 0 var(--view-accent-border);
 }
 
@@ -589,66 +582,6 @@
 .pagination-label {
     color: var(--tp-muted);
     font-size: 0.9rem;
-}
-
-.pagination {
-    margin: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-}
-
-.pagination .page-item {
-    display: flex;
-    align-items: center;
-}
-
-.pagination .page-link {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 8px;
-    margin: 0;
-    border-color: var(--tp-color-border);
-    color: var(--tp-color-text-secondary);
-    min-width: 36px;
-    min-height: 40px;
-    height: 40px;
-    padding: 0 0.72rem;
-    line-height: 1;
-    text-align: center;
-    transition: all 0.16s ease;
-}
-
-.pagination .page-link:hover {
-    background: var(--view-accent-soft-2);
-    border-color: var(--view-accent-border);
-}
-
-.pagination .page-link:focus-visible {
-    outline: none;
-    border-color: rgba(23, 96, 119, 0.42);
-    box-shadow: 0 0 0 0.2rem var(--tp-focus-ring);
-}
-
-.pagination .page-item.active .page-link {
-    background: var(--view-accent);
-    border-color: var(--view-accent);
-    color: var(--tp-color-surface);
-}
-
-.pagination .page-item.disabled .page-link {
-    color: var(--tp-color-text-soft);
-    background: var(--tp-color-idle-bg);
-}
-
-.pagination .page-link .tp-chevron,
-.pagination .page-link .tp-chevron-group {
-    color: currentColor;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
 }
 
 .tp-overlay {
@@ -718,7 +651,7 @@
 }
 
 .drawer-close-btn:hover,
-.drawer-close-btn:focus {
+.drawer-close-btn:focus-visible {
     border-color: var(--tp-color-brand-300) !important;
     background: var(--tp-color-brand-100) !important;
     color: var(--tp-color-link-hover) !important;
@@ -895,7 +828,7 @@
 }
 
 .filter-pill-remove:hover,
-.filter-pill-remove:focus {
+.filter-pill-remove:focus-visible {
     color: var(--tp-color-brand-900);
     border-color: var(--view-accent-deep);
     background: var(--tp-color-brand-200);
@@ -929,6 +862,7 @@
     border: 1px solid var(--tp-color-border-soft);
     border-radius: 14px;
     box-shadow: 0 20px 40px rgba(17, 36, 48, 0.28);
+    max-height: min(92dvh, 780px);
     z-index: 1060;
     opacity: 0;
     pointer-events: none;
@@ -959,6 +893,8 @@
     padding: 14px;
     display: grid;
     gap: 10px;
+    max-height: calc(min(92dvh, 780px) - 110px);
+    overflow: auto;
 }
 
 .formula-current {
@@ -966,6 +902,9 @@
     border-radius: 10px;
     background: linear-gradient(180deg, var(--tp-color-surface-soft) 0%, var(--tp-color-surface-muted) 100%);
     padding: 10px;
+    display: grid;
+    gap: 6px;
+    align-content: start;
 }
 
 .formula-current-head {
@@ -982,10 +921,11 @@
 }
 
 .formula-current-name {
-    margin: 6px 0 0;
+    margin: 2px 0 0;
     font-size: 1.05rem;
     font-weight: 700;
     color: var(--tp-color-text-secondary);
+    line-height: 1.2;
 }
 
 .formula-current-empty {
@@ -997,7 +937,7 @@
 }
 
 .formula-expression {
-    margin-top: 8px;
+    margin-top: 0;
 }
 
 .formula-expression summary {
@@ -1008,11 +948,24 @@
     color: var(--tp-color-link);
     font-size: 0.84rem;
     font-weight: 600;
+    min-height: 30px;
+    padding: 1px 0;
     outline: none;
+    border-radius: 8px;
+}
+
+.formula-expression summary:focus,
+.formula-expression summary:focus-visible {
+    outline: none;
+    box-shadow: none;
 }
 
 .formula-expression summary::-webkit-details-marker {
     display: none;
+}
+
+.formula-expression summary::marker {
+    content: "";
 }
 
 .formula-expression summary::before {
@@ -1033,7 +986,7 @@
 
 .formula-expression code {
     display: block;
-    margin-top: 6px;
+    margin-top: 0;
     padding: 8px;
     border-radius: 8px;
     border: 1px solid var(--tp-color-border-soft);
@@ -1042,6 +995,10 @@
     font-size: 0.82rem;
     white-space: pre-wrap;
     overflow-wrap: anywhere;
+}
+
+.formula-expression[open] code {
+    margin-top: 6px;
 }
 
 .formula-apply-row {
@@ -1124,9 +1081,17 @@
     .pagination {
         width: 100%;
     }
+
+    .formula-modal {
+        width: min(640px, calc(100vw - 20px));
+    }
 }
 
 @media (max-width: 560px) {
+    .filters-drawer {
+        width: 100vw;
+    }
+
     .drawer-foot {
         padding: 10px 12px;
         gap: 6px;
@@ -1144,6 +1109,15 @@
         min-width: clamp(116px, 30vw, 138px);
         font-size: 0.95rem;
         padding: 0.42rem 0.62rem;
+    }
+
+    .formula-modal {
+        width: calc(100vw - 12px);
+        max-height: calc(100dvh - 12px);
+    }
+
+    .formula-body {
+        max-height: calc(100dvh - 128px);
     }
 }
 

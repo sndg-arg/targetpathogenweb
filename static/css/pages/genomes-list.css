@@ -1,6 +1,6 @@
 .genomes-page {
     display: grid;
-    gap: var(--tp-ui-gap-md);
+    gap: var(--tp-space-4);
     --view-accent: var(--tp-accent);
     --view-accent-ink: var(--tp-color-brand-900);
     --view-accent-soft: var(--tp-color-info-bg);
@@ -37,12 +37,14 @@
     font-size: clamp(1.55rem, 2.2vw, 2.05rem);
     letter-spacing: 0.2px;
     color: var(--view-accent-ink);
+    line-height: 1.08;
 }
 
 .genomes-subtitle {
     margin: 5px 0 0;
     color: var(--tp-color-text-secondary);
     font-size: 0.98rem;
+    line-height: 1.4;
 }
 
 .genomes-pipeline {
@@ -69,9 +71,7 @@
 }
 
 .genomes-meta-chip {
-    border-color: var(--tp-color-brand-300);
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-brand-050) 100%);
-    color: var(--tp-color-brand-900);
+    color: var(--tp-color-text-secondary);
 }
 
 .genomes-toolbar {
@@ -134,27 +134,18 @@
     position: sticky;
     top: 0;
     z-index: 1;
-    background: linear-gradient(180deg, var(--tp-color-surface-soft) 0%, var(--view-accent-soft-2) 100%);
-    color: var(--tp-color-text-secondary);
-    border-bottom: 1px solid var(--tp-color-border-soft);
-    font-size: 0.86rem;
-    font-weight: 700;
     white-space: nowrap;
-    letter-spacing: 0.15px;
-}
-
-.genome-list-card .table-striped tbody tr:nth-of-type(odd) {
-    background: var(--tp-color-surface-panel);
-}
-
-.genome-list-card .table-striped tbody tr:nth-of-type(even) {
-    background: var(--tp-color-surface);
 }
 
 .genome-list-card .table thead th,
 .genome-list-card .table tbody td {
     padding: 0.72rem 0.64rem;
     vertical-align: middle;
+}
+
+.genome-list-card .table thead th:first-child,
+.genome-list-card .table tbody td:first-child {
+    padding-left: 0.88rem;
 }
 
 .genome-list-card .table td {

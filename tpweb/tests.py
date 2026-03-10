@@ -51,7 +51,7 @@ class GenomeServiceTests(SimpleTestCase):
         )
 
         self.assertEqual(dto["COUNT_CDS"], 62)
-        self.assertEqual(dto["COUNT_STRUCTS"], 0)
+        self.assertEqual(dto["COUNT_STRUCTS"], 62)
 
     def test_build_genome_dto_prefers_live_counts_over_qualifiers(self):
         genome = type(
@@ -74,7 +74,7 @@ class GenomeServiceTests(SimpleTestCase):
         )
 
         self.assertEqual(dto["COUNT_CDS"], 62)
-        self.assertEqual(dto["COUNT_STRUCTS"], 0)
+        self.assertEqual(dto["COUNT_STRUCTS"], 62)
 
 
 class ProteinListServiceTests(SimpleTestCase):

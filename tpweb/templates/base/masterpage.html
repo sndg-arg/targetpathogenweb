@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
-    <link rel="stylesheet" href="{% static 'css/components/ui-system.css' %}?v=20260309-11">
+    <link rel="stylesheet" href="{% static 'css/components/ui-system.css' %}?v=20260309-16">
     <style>
         :root {
             --tp-color-text-primary: #132f3d;
@@ -51,12 +51,12 @@
             --tp-color-nav-800: #123947;
             --tp-color-nav-700: #185266;
             --tp-color-nav-600: #267188;
-            --tp-color-page-start: #d8ebe3;
-            --tp-color-page-end: #bcd2c8;
+            --tp-color-page-start: #cfe3da;
+            --tp-color-page-end: #b2cbbf;
             --tp-color-surface: #ffffff;
-            --tp-color-surface-soft: #f7fcf9;
-            --tp-color-surface-muted: #edf6f2;
-            --tp-color-surface-panel: #e9f4ef;
+            --tp-color-surface-soft: #f4faf7;
+            --tp-color-surface-muted: #ecf5f1;
+            --tp-color-surface-panel: #e5f0eb;
             --tp-color-surface-alt: #dfebe5;
             --tp-color-border: #b8cdd3;
             --tp-color-border-soft: #c9dbe0;
@@ -113,7 +113,7 @@
             --tp-state-idle-ink: var(--tp-color-idle-ink);
             --tp-state-idle-bg: var(--tp-color-idle-bg);
             --tp-state-idle-border: var(--tp-color-idle-border);
-            --tp-focus-ring: rgba(26, 111, 142, 0.27);
+            --tp-focus-ring: rgba(26, 111, 142, 0.36);
             --tp-grid-line: rgba(31, 127, 112, 0.06);
             --tp-shadow: 0 15px 34px rgba(19, 39, 55, 0.11);
             --tp-sidebar-w: 260px;
@@ -157,8 +157,8 @@
             font-family: "Source Sans 3", "Segoe UI", sans-serif;
             color: var(--tp-ink);
             background:
-                radial-gradient(880px 360px at 4% -6%, rgba(34, 136, 163, 0.16) 0%, transparent 60%),
-                radial-gradient(760px 340px at 98% 104%, rgba(171, 63, 104, 0.09) 0%, transparent 66%),
+                radial-gradient(920px 380px at 4% -8%, rgba(33, 122, 145, 0.19) 0%, transparent 62%),
+                radial-gradient(720px 320px at 98% 104%, rgba(146, 77, 118, 0.11) 0%, transparent 68%),
                 linear-gradient(180deg, var(--tp-color-page-start) 0%, var(--tp-color-page-end) 100%);
             background-attachment: fixed;
             margin: 0;
@@ -282,7 +282,7 @@
         select.form-control option:checked,
         select.form-control option:focus {
             color: var(--tp-color-nav-800);
-            background: var(--tp-color-sage-100);
+            background: var(--tp-color-surface-panel);
         }
 
         .btn,
@@ -503,6 +503,15 @@
             transform: translateY(-1px);
         }
 
+        .btn:active {
+            transform: translateY(0) scale(0.99);
+        }
+
+        .btn:disabled:active,
+        .btn.disabled:active {
+            transform: none;
+        }
+
         .btn:focus-visible,
         .btn.focus:focus-visible {
             outline: 0;
@@ -681,9 +690,10 @@
             padding: 4px 10px;
             font-size: 0.82rem;
             font-weight: 700;
-            border: 1px solid transparent;
-            background: var(--tp-color-page-start);
+            border: 1px solid var(--tp-color-border-strong);
+            background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
             color: var(--tp-color-text-secondary);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.84);
         }
 
         .tp-state-chip.running {
@@ -722,25 +732,27 @@
         .tp-chip {
             display: inline-flex;
             align-items: center;
-            border: 1px solid var(--tp-color-brand-200);
+            border: 1px solid var(--tp-color-border-strong);
             border-radius: 999px;
-            background: linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, var(--tp-color-brand-050) 100%);
+            background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
             color: var(--tp-color-text-secondary);
             font-size: var(--tp-font-size-sm);
             font-weight: 600;
             line-height: 1.35;
             padding: 4px 10px;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
         }
 
         .page-link {
             color: var(--tp-color-text-secondary);
             border-color: var(--tp-color-border);
             border-radius: 8px;
+            background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
         }
 
         .page-item.active .page-link {
-            background: var(--tp-accent);
-            border-color: var(--tp-accent);
+            background: linear-gradient(180deg, var(--tp-color-brand-700) 0%, var(--tp-color-brand-800) 100%);
+            border-color: var(--tp-color-brand-800);
             color: var(--tp-color-surface);
         }
 
@@ -826,7 +838,7 @@
             border-radius: 12px;
             overflow: auto;
             background: var(--tp-color-surface);
-            box-shadow: 0 16px 30px rgba(16, 35, 46, 0.11);
+            box-shadow: 0 16px 30px rgba(16, 35, 46, 0.1);
         }
 
         .tp-table-shell .table {
@@ -835,7 +847,7 @@
 
         .tp-table-shell thead th,
         .tp-table-shell thead td {
-            background: linear-gradient(180deg, var(--tp-color-surface-panel) 0%, var(--tp-color-surface-alt) 100%);
+            background: linear-gradient(180deg, var(--tp-color-surface-soft) 0%, var(--tp-color-surface-panel) 100%);
             font-size: 0.87rem;
             font-weight: 700;
             color: var(--tp-color-text-secondary);
@@ -843,6 +855,38 @@
             top: 0;
             z-index: 1;
             white-space: nowrap;
+            border-bottom: 1px solid var(--tp-color-border-soft);
+        }
+
+        .dataTables_wrapper .dataTables_paginate .paginate_button {
+            border: 1px solid var(--tp-color-border-soft) !important;
+            border-radius: 8px;
+            background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%) !important;
+            color: var(--tp-color-text-secondary) !important;
+            padding: 0.25rem 0.55rem;
+            transition: border-color 0.16s ease, background 0.16s ease, color 0.16s ease, box-shadow 0.16s ease;
+        }
+
+        .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+            border-color: var(--tp-color-brand-300) !important;
+            background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-brand-050) 100%) !important;
+            color: var(--tp-color-link-hover) !important;
+        }
+
+        .dataTables_wrapper .dataTables_paginate .paginate_button.current,
+        .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+            border: 1px solid var(--tp-color-brand-800) !important;
+            background: linear-gradient(180deg, var(--tp-color-brand-700) 0%, var(--tp-color-brand-800) 100%) !important;
+            color: var(--tp-color-surface) !important;
+            box-shadow: none !important;
+        }
+
+        .dataTables_wrapper .dataTables_paginate .paginate_button.disabled,
+        .dataTables_wrapper .dataTables_paginate .paginate_button.disabled:hover {
+            border-color: var(--tp-color-border-soft) !important;
+            background: var(--tp-color-idle-bg) !important;
+            color: var(--tp-color-text-soft) !important;
+            opacity: 0.9;
         }
 
         .tp-footer {
@@ -984,10 +1028,10 @@
             }
 
             .tp-side-link.active {
-                background: linear-gradient(90deg, rgba(245, 196, 112, 0.3) 0%, rgba(255, 255, 255, 0.12) 70%, rgba(255, 255, 255, 0.08) 100%);
+                background: linear-gradient(96deg, rgba(250, 224, 170, 0.31) 0%, rgba(244, 198, 107, 0.26) 48%, rgba(255, 255, 255, 0.14) 100%);
                 color: var(--tp-color-surface);
-                border: 1px solid rgba(245, 216, 164, 0.66);
-                box-shadow: inset 2px 0 0 rgba(245, 196, 112, 0.95), 0 6px 14px rgba(10, 24, 33, 0.26);
+                border: 1px solid rgba(245, 216, 164, 0.76);
+                box-shadow: inset 2px 0 0 rgba(245, 196, 112, 1), 0 8px 16px rgba(10, 24, 33, 0.28);
             }
 
             .tp-side-link.active::before {
@@ -1442,12 +1486,15 @@
 
             const entries = getOptionEntries(select);
             const selectedOption = select.options && select.selectedIndex >= 0 ? select.options[select.selectedIndex] : null;
+            const selectedValue = selectedOption ? String(selectedOption.value || "") : "";
+            const hasRealSelection = selectedValue.trim().length > 0;
             const selectedLabel = selectedOption ? (selectedOption.textContent || "").trim() : "";
             label.textContent = selectedLabel || (entries.find(function (entry) {
                 return entry.type === "option";
             }) || {}).label || "";
 
             wrapper.classList.toggle("is-disabled", Boolean(select.disabled));
+            wrapper.classList.toggle("is-placeholder-value", !hasRealSelection);
             trigger.disabled = Boolean(select.disabled);
 
             menu.innerHTML = "";
@@ -1469,7 +1516,12 @@
                 optionButton.setAttribute("aria-disabled", entry.disabled ? "true" : "false");
                 optionButton.setAttribute("data-value", entry.value);
                 optionButton.setAttribute("data-option-index", String(optionIndex));
-                if (entry.selected) optionButton.classList.add("is-selected");
+                if (entry.selected) {
+                    optionButton.classList.add("is-selected");
+                    if (String(entry.value || "").trim() === "") {
+                        optionButton.classList.add("is-placeholder-selected");
+                    }
+                }
                 if (entry.disabled) optionButton.tabIndex = -1;
                 menu.appendChild(optionButton);
                 optionIndex += 1;
