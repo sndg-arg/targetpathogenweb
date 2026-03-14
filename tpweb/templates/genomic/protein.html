@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260309-16">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260314-1">
 {% endblock %}
 
 {% block body %}
@@ -23,13 +23,12 @@
                     <p class="protein-hero-eyebrow">{% trans "Protein Profile" %}</p>
                     <h1>{{ protein.accession }}</h1>
                     <p class="protein-description">{{ protein.description|default:"-" }}</p>
-                    <p class="protein-context"><strong>{% trans "Genome" %}:</strong> <span class="protein-context-id">{{ protein.assembly_name }}</span></p>
+                    <p class="protein-context"><strong>{% trans "Genome" %}:</strong> <span class="protein-context-id">{{ protein.assembly_label|default:protein.assembly_name }}</span></p>
                     <div class="hero-chip-list tp-chip-group">
                         <span class="hero-chip tp-chip tp-chip--meta tp-chip--sm hero-chip-gene" title="{{ protein.gene|default_if_none:'-' }}">
                             <strong>{% trans "Gene" %}:</strong>
                             <span class="gene-value">{{ protein.gene|default:"-" }}</span>
                         </span>
-                        {% include "components/pipeline/chip.html" with pipeline_status=pipeline_status mode="genome" chip_class="tp-chip tp-chip--state tp-chip--sm" %}
                     </div>
                     {% include "components/pipeline/note.html" with pipeline_status=pipeline_status mode="genome" note_class="hero-pipeline-note" %}
                 </div>
@@ -111,7 +110,7 @@
                     </div>
                     <button
                         id="copy-sequence-btn"
-                        class="btn tp-btn tp-btn--neutral tp-btn--sm btn-copy-seq"
+                        class="btn tp-btn tp-btn--outline tp-btn--sm btn-copy-seq"
                         type="button"
                         data-default-label="{% trans "Copy Sequence" %}"
                         data-copied-label="{% trans "Copied" %}">
@@ -176,7 +175,7 @@
                                 <button
                                     id="reset-feature-zoom-btn"
                                     type="button"
-                                    class="btn tp-btn tp-btn--neutral tp-btn--sm features-reset-btn">
+                                    class="btn tp-btn tp-btn--outline tp-btn--sm features-reset-btn">
                                     {% trans "Reset zoom" %}
                                 </button>
                             </div>
@@ -431,7 +430,7 @@
                 <div class="residue-modal-actions">
                     <button type="button"
                             id="copy-residue-list"
-                            class="btn tp-btn tp-btn--neutral tp-btn--sm"
+                            class="btn tp-btn tp-btn--outline tp-btn--sm"
                             data-default-label="{% trans "Copy positions" %}"
                             data-copied-label="{% trans "Copied" %}">{% trans "Copy positions" %}</button>
                 </div>
@@ -444,7 +443,7 @@
     {{ graphic_features|json_script:"seqfeatures" }}
 
     <script src="https://3dmol.org/build/3Dmol-min.js"></script>
-    <script src="{% static 'js/pages/protein-detail.js' %}?v=20260309-10"></script>
+    <script src="{% static 'js/pages/protein-detail.js' %}?v=20260310-2"></script>
     <script>
         function jsloaded() {
             const proteinSequence = "{{ protein.seq }}";
@@ -559,7 +558,12 @@
                     syncFeatureResetZoomState();
                 }
 
-                $(".add-variant-btn").parent().remove();
+                document.querySelectorAll(".add-variant-btn").forEach(function (button) {
+                    const wrapper = button.parentElement;
+                    if (wrapper && wrapper.parentElement) {
+                        wrapper.parentElement.removeChild(wrapper);
+                    }
+                });
                 function hideFeatureHelpControls() {
                     Array.from(featureContainer.querySelectorAll("button, a")).forEach(function (el) {
                         if (/help/i.test((el.textContent || "").trim())) {
@@ -589,6 +593,7 @@
             }
 
             initDataTableVariant("#features_table", {
+                tpVariant: "full",
                 pageLength: 10,
                 lengthChange: false,
                 ordering: true,
@@ -597,6 +602,7 @@
                 order: [[0, "asc"]]
             });
             initDataTableVariant("#annotations_table", {
+                tpVariant: "full",
                 pageLength: 10,
                 lengthChange: false,
                 ordering: true,
@@ -621,8 +627,12 @@
             }
 
             function initDataTableVariant(selector, options) {
-                if (!$.fn.dataTable || !$(selector).length) return;
-                $(selector).DataTable(options);
+                if (!document.querySelector(selector)) return null;
+                if (typeof window.tpInitDataTable === "function") {
+                    return window.tpInitDataTable(selector, options || {});
+                }
+                if (!window.jQuery || !$.fn.dataTable) return null;
+                return $(selector).DataTable(options || {});
             }
 
             {% if structure %}
@@ -1201,8 +1211,9 @@
             }
             {% endif %}
 
-            if ($.fn.dataTable && $('#pocketsTable').length && $('#pocketsTable tbody tr').length > 5) {
+            if (window.jQuery && $.fn.dataTable && $('#pocketsTable').length && $('#pocketsTable tbody tr').length > 5) {
                 initDataTableVariant("#pocketsTable", {
+                    tpVariant: "compact",
                     searching: false,
                     pageLength: 5,
                     paging: true,
@@ -1212,8 +1223,9 @@
                 });
             }
 
-            if ($.fn.dataTable && $('#p2pocketsTable').length && $('#p2pocketsTable tbody tr').length > 5) {
+            if (window.jQuery && $.fn.dataTable && $('#p2pocketsTable').length && $('#p2pocketsTable tbody tr').length > 5) {
                 initDataTableVariant("#p2pocketsTable", {
+                    tpVariant: "compact",
                     searching: false,
                     pageLength: 5,
                     paging: true,
@@ -1223,8 +1235,9 @@
                 });
             }
 
-            if ($.fn.dataTable && $('#residuesetsTable').length && $('#residuesetsTable tbody tr').length > 5) {
+            if (window.jQuery && $.fn.dataTable && $('#residuesetsTable').length && $('#residuesetsTable tbody tr').length > 5) {
                 initDataTableVariant("#residuesetsTable", {
+                    tpVariant: "compact",
                     searching: true,
                     pageLength: 10,
                     paging: true,
@@ -1239,6 +1252,12 @@
             }
         }
 
-        $(document).ready(jsloaded);
+        if (window.jQuery) {
+            $(document).ready(jsloaded);
+        } else if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", jsloaded);
+        } else {
+            jsloaded();
+        }
     </script>
 {% endblock %}

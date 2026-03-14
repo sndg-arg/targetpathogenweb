@@ -1,5 +1,6 @@
 from django.views import View
 from django.conf import settings
+from django.http import Http404
 
 from django.http import HttpResponse, HttpResponseNotFound
 
@@ -12,6 +13,7 @@ import zipfile
 from tpweb.views.StructureView import pdb_structure
 import io
 from django.utils.encoding import smart_str
+from tpweb.services.genome_workspace import user_can_access_genome_name
 
 class StructureExportView(View):
 
@@ -25,6 +27,8 @@ class StructureExportView(View):
                 return HttpResponseNotFound("No linked protein found for this structure.")
             be = sequence_links[0].bioentry
             biodb = be.biodatabase.name.replace(BioIO.GENOME_PROT_POSTFIX, "")
+            if not user_can_access_genome_name(request.user, biodb):
+                raise Http404("Structure not found")
             ss = SeqStore(settings.SEQS_DATA_DIR)
             try:
                 data = gzip.open(ss.structure(biodb, be.accession, pdb.code), "rt").read()

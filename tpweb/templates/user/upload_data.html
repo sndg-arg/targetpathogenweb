@@ -1,10 +1,163 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends '../base/masterpage.html' %}
+{% load i18n %}
+{% load static %}
 
-</body>
-</html>
+{% block head %}
+    <link rel="stylesheet" href="{% static 'css/pages/genome-upload.css' %}?v=20260313-6">
+{% endblock %}
+
+{% block body %}
+    <div class="genome-upload-page">
+        <section class="genome-upload-hero">
+            {% trans "Home" as crumb_home %}
+            {% trans "Genomes" as crumb_genomes %}
+            {% trans "Upload Genome" as crumb_upload %}
+            {% url 'tpwebapp:index' as index_url %}
+            {% url 'tpwebapp:genomes_list' as genomes_url %}
+            {% include "components/navigation/breadcrumbs.html" with crumb_1_label=crumb_home crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_upload %}
+            <h1>{% trans "Upload Genome" %}</h1>
+            <p class="genome-upload-subtitle">{% trans "Upload a compressed GenBank file to queue a new genome analysis run." %}</p>
+            <div class="genome-upload-chip-group tp-chip-group">
+                <span class="tp-chip tp-chip--meta tp-chip--sm">{% trans "Input" %}: <code>.gbk.gz</code></span>
+                {% if pipeline_status.running %}
+                    {% include "components/pipeline/chip.html" with pipeline_status=pipeline_status mode="global" chip_class="tp-chip tp-chip--state tp-chip--sm" %}
+                {% endif %}
+            </div>
+            {% if pipeline_status.running %}
+                {% include "components/pipeline/note.html" with pipeline_status=pipeline_status mode="global" note_class="genome-upload-pipeline-note" %}
+            {% endif %}
+        </section>
+
+        {% if success_message %}
+            <section class="genome-upload-message tp-state-note genome-upload-message--success">
+                {{ success_message }}
+            </section>
+        {% endif %}
+
+        {% if error_message %}
+            <section class="genome-upload-message tp-state-note tp-state-note--error">
+                {{ error_message }}
+            </section>
+        {% endif %}
+
+        <article class="genome-upload-card genome-upload-card--form tp-ui-panel">
+            <div class="genome-upload-card-head tp-ui-panel-head">
+                <div>
+                    <h2>{% trans "New genome run" %}</h2>
+                    <p class="genome-upload-card-note">{% trans "Each submission is stored in this workspace and processed automatically." %}</p>
+                </div>
+                <form method="post" class="genome-upload-test-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="use_test_genome">
+                    <button type="submit" class="btn tp-btn tp-btn--clear tp-btn-with-icon genome-upload-test-btn">
+                        <span class="tp-btn-icon" aria-hidden="true">
+                            {% include "components/icons/plus.html" %}
+                        </span>
+                        {% blocktrans with accession=test_genome_accession %}Use test genome {{ accession }}{% endblocktrans %}
+                    </button>
+                </form>
+            </div>
+            {% if pipeline_status.running %}
+                <p class="tp-state-note tp-state-note--loading genome-upload-form-state">
+                    {% if pipeline_status.running_for_other_workspace %}
+                        {% trans "Another workspace is currently using the pipeline. New submissions will be added to the queue." %}
+                    {% else %}
+                        {% blocktrans with genome=running_genome_label %}A pipeline run is already in progress for {{ genome }}. New submissions will be added to the queue.{% endblocktrans %}
+                    {% endif %}
+                </p>
+            {% endif %}
+            <form method="post" enctype="multipart/form-data" class="genome-upload-form" novalidate>
+                {% csrf_token %}
+                <fieldset class="genome-upload-fieldset">
+                    <div class="genome-upload-field tp-ui-field">
+                        <label class="tp-ui-field-label" for="{{ form.accession.id_for_label }}">{{ form.accession.label }}</label>
+                        {{ form.accession }}
+                        {% if form.accession.errors %}<p class="genome-upload-field-error">{{ form.accession.errors|striptags }}</p>{% endif %}
+                    </div>
+
+                    <div class="genome-upload-field tp-ui-field">
+                        <label class="tp-ui-field-label" for="{{ form.gbk_file.id_for_label }}">{{ form.gbk_file.label }}</label>
+                        {{ form.gbk_file }}
+                        {% if form.gbk_file.help_text %}<p class="genome-upload-field-help">{{ form.gbk_file.help_text }}</p>{% endif %}
+                        {% if form.gbk_file.errors %}<p class="genome-upload-field-error">{{ form.gbk_file.errors|striptags }}</p>{% endif %}
+                    </div>
+
+                    <div class="genome-upload-field tp-ui-field">
+                        <label class="tp-ui-field-label" for="{{ form.gram.id_for_label }}">{{ form.gram.label }}</label>
+                        {{ form.gram }}
+                        {% if form.gram.errors %}<p class="genome-upload-field-error">{{ form.gram.errors|striptags }}</p>{% endif %}
+                    </div>
+
+                    <div class="tp-ui-actions genome-upload-actions">
+                        <button type="submit" class="btn tp-btn tp-btn--primary tp-btn-with-icon">
+                            <span class="tp-btn-icon" aria-hidden="true">
+                                {% include "components/icons/upload.html" %}
+                            </span>
+                            {% trans "Add to queue" %}
+                        </button>
+                    </div>
+                </fieldset>
+            </form>
+        </article>
+
+        <section class="genome-upload-history tp-ui-panel">
+            <div class="genome-upload-card-head tp-ui-panel-head">
+                <div>
+                    <h2>{% trans "Recent submissions" %}</h2>
+                    <p class="genome-upload-card-note">{% trans "Finished runs link directly to the resulting protein workspace." %}</p>
+                </div>
+                <div class="genome-upload-history-tools">
+                    <span class="tp-chip tp-chip--count tp-chip--sm">{{ jobs|length }}</span>
+                    {% if jobs %}
+                        <form method="post" class="genome-upload-history-clear-form" onsubmit="return window.confirm('{% trans "Clear all upload history for this workspace?" %}');">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="clear_history">
+                            {% trans "Clear history" as clear_history_label %}
+                            {% include "components/buttons/clear_action.html" with label=clear_history_label button_type="submit" disabled=has_active_jobs classes="btn tp-btn tp-btn--clear tp-btn--clear-caution tp-btn-with-icon genome-upload-history-clear-btn" %}
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+            {% if jobs %}
+                <div class="tp-table-shell">
+                    <table class="table table-striped table-hover mb-0 tp-table tp-table--plain tp-table--premium">
+                        <thead>
+                        <tr>
+                            <th>{% trans "Genome" %}</th>
+                            <th>{% trans "Profile" %}</th>
+                            <th>{% trans "Submitted" %}</th>
+                            <th>{% trans "Status" %}</th>
+                            <th>{% trans "Result" %}</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for job in jobs %}
+                            <tr class="genome-upload-history-row {% if job.state_class == 'running' %}is-running{% endif %}">
+                                <td class="genome-upload-history-name">{{ job.display_accession }}</td>
+                                <td>{{ job.gram }}</td>
+                                <td>{{ job.created_at_label }}</td>
+                                <td><span class="genome-upload-status tp-chip tp-chip--sm genome-upload-status--{{ job.state_class }}">{{ job.state_label }}</span></td>
+                                <td>
+                                    {% if job.state_class == "finished" %}
+                                        <a href="{% url 'tpwebapp:protein_list' job.protein_workspace_url %}">{% trans "Open workspace" %}</a>
+                                    {% elif job.state_class == "queued" %}
+                                        <span class="text-muted">{% trans "Waiting in queue" %}</span>
+                                    {% elif job.state_class == "running" %}
+                                        <span class="text-muted">{% trans "Processing" %}</span>
+                                    {% elif job.state_class == "failed" %}
+                                        <span class="text-muted">{% trans "Run failed" %}</span>
+                                    {% else %}
+                                        <span class="text-muted">{% trans "Pending" %}</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="tp-state-note tp-state-note--empty genome-upload-empty-note mb-0">{% trans "Queued, running, and finished genome submissions will appear here." %}</p>
+            {% endif %}
+        </section>
+    </div>
+{% endblock %}

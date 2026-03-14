@@ -5,6 +5,7 @@ from django.utils.translation import gettext_lazy as _
 from .CelularLocalization import CelularLocalization
 from .CustomParamFile import CustomParam
 from .Binders import Binders
+from .GenomeUpload import GenomeUpload
 
 class TPUser(AbstractUser):
     """

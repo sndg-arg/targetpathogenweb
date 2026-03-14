@@ -37,7 +37,7 @@ class Command(BaseCommand):
         seqstore = SeqStore(options['datadir'])
         accession = options['accession']
         psort = seqstore.psort(accession)
-        score_param_instance = ScoreParam.objects.get(name='Celular_localization')
+        score_param_instance = ScoreParam.objects.get(name='Celular_localization', user__isnull=True)
         command = f'grep "Fatal error" {psort}'
         # Execute the command and capture its output
         process = sp.Popen(command, stdout=sp.PIPE, shell=True, text=True)
@@ -62,4 +62,3 @@ class Command(BaseCommand):
         else:
             self.stdout.write(self.style.ERROR(f"Fatal error detected, localization data import aborted"))
             self.stdout.write(self.style.ERROR(output))
-

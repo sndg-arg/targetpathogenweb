@@ -6,9 +6,10 @@ import signal
 from django.core.management.base import BaseCommand, CommandError
 from bioseq.io.SeqStore import SeqStore
 from bioseq.models.Bioentry import Bioentry
-from bioseq.models.Taxon import Taxon
 import pandas as pd
 import shutil
+
+from tpweb.services.genome_workspace import display_genome_name
 
 class Command(BaseCommand):
     help = '''Takes genome genkbak indentifier, modify the config.py
@@ -32,7 +33,19 @@ class Command(BaseCommand):
         datadir = options['datadir']
         gbk_path = os.path.join(folder_path, f"{genome}.gbk")
         gbk_path_gz = os.path.join(folder_path, f"{genome}.gbk.gz")
-        taxon = Taxon.objects.filter(bioentry__identifier=genome)[0]
+        bioentry = (
+            Bioentry.objects.filter(biodatabase__name=genome).first()
+            or Bioentry.objects.filter(identifier=genome).first()
+            or Bioentry.objects.filter(identifier=display_genome_name(genome)).first()
+            or Bioentry.objects.filter(accession=genome).first()
+            or Bioentry.objects.filter(accession=display_genome_name(genome)).first()
+        )
+        if bioentry is None or bioentry.taxon is None:
+            raise CommandError(
+                f"Unable to resolve taxonomy for genome '{genome}'. "
+                "Expected a Bioentry in the imported biodatabase before running FastTarget."
+            )
+        taxon = bioentry.taxon
         name = options['genome']
         taxon_id = taxon.ncbi_taxon_id
         input_filename = "/app/fasttarget/config.yml"

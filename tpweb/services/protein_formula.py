@@ -1,6 +1,7 @@
 from django.db.models import Q
 
 from tpweb.models.ScoreFormula import ScoreFormula
+from tpweb.services.workspace import resolve_workspace_user
 
 
 def _dedupe_formulas_by_name(formulas):
@@ -16,12 +17,13 @@ def _dedupe_formulas_by_name(formulas):
 
 
 def resolve_formulas_for_user(user):
-    formulas = []
-    if user.is_authenticated and hasattr(user, "formulas"):
-        formulas = list(user.formulas.all().order_by("-default", "name", "id"))
-    else:
+    workspace_user = resolve_workspace_user(user)
+    formulas = list(
+        ScoreFormula.objects.filter(user=workspace_user).order_by("-default", "name", "id")
+    )
+    if not formulas:
         formulas = list(
-            ScoreFormula.objects.filter(Q(default=True) | Q(public=True))
+            ScoreFormula.objects.filter((Q(default=True) | Q(public=True)) & Q(user__isnull=True))
             .distinct()
             .order_by("-default", "name", "id")
         )

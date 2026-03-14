@@ -19,7 +19,7 @@
             {% include "components/navigation/breadcrumbs.html" with crumb_1_label=crumb_home crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_proteins crumb_3_url=proteins_url crumb_4_label=crumb_upload_custom_scores %}
             <h1>{% trans "Upload Custom Scores" %}</h1>
             <p class="customparam-subtitle">{% trans "Add a TSV dataset to enrich protein prioritization with project-specific metrics." %}</p>
-            <p class="customparam-context"><strong>{% trans "Genome" %}:</strong> <span class="customparam-context-id">{{ assembly_name }}</span></p>
+            <p class="customparam-context"><strong>{% trans "Genome" %}:</strong> <span class="customparam-context-id">{{ assembly_label|default:assembly_name }}</span></p>
             <div class="customparam-chip-group tp-chip-group">
                 <span class="tp-chip tp-chip--meta tp-chip--sm">{% trans "Format" %}: TSV</span>
                 <span class="tp-chip tp-chip--meta tp-chip--sm">{% trans "Expected columns" %}: 2</span>

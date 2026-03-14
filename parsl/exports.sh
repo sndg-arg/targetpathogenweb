@@ -12,12 +12,10 @@ export PYTHONPATH=/app/targetpathogenweb:${PYTHONPATH}:../../sndgjobs:../../sndg
 export TPW_PROFILE=${TPW_PROFILE:-cluster}
 
 # Strict defaults for every profile unless explicitly overridden.
-export TPW_USE_INDEX_GENOME_SEQ_CLEAN=${TPW_USE_INDEX_GENOME_SEQ_CLEAN:-0}
 export TPW_REUSE_UNIPROT_MAP=${TPW_REUSE_UNIPROT_MAP:-0}
 export TPW_FASTTARGET_ALLOW_FALLBACK=${TPW_FASTTARGET_ALLOW_FALLBACK:-0}
 export FASTTARGET_TIMEOUT_SEC=${FASTTARGET_TIMEOUT_SEC:-0}
 
-if [ "$TPW_PROFILE" = "local" ]; then
-  # Needed locally for known tabix failures with fuzzy GFF bounds (<,>).
-  export TPW_USE_INDEX_GENOME_SEQ_CLEAN=${TPW_USE_INDEX_GENOME_SEQ_CLEAN:-1}
-fi
+# Always use the cleaned genome indexing command. The original command is not
+# robust against fuzzy GFF bounds (<,>) and breaks valid user uploads.
+export TPW_USE_INDEX_GENOME_SEQ_CLEAN=1

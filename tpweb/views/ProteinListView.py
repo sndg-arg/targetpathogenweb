@@ -2,6 +2,7 @@ from django.views import View
 from django.shortcuts import render
 from django.db.models import Prefetch
 from django.http import JsonResponse
+from django.http import Http404
 from urllib.parse import urlencode
 from bioseq.models.Biodatabase import Biodatabase
 from bioseq.models.Bioentry import Bioentry
@@ -31,6 +32,14 @@ from tpweb.services.protein_formula import (
     formula_to_dto,
     ordered_score_params,
     resolve_formulas_for_user,
+)
+from tpweb.services.workspace import (
+    get_workspace_session_value,
+    set_workspace_session_value,
+)
+from tpweb.services.genome_workspace import (
+    display_genome_name,
+    user_can_access_genome_name,
 )
 from tpweb.services.protein_serializer import build_protein_table_row
 from tpweb.services.pipeline_status import (
@@ -111,7 +120,7 @@ class ProteinListView(View):
 
     def post(self, request, assembly_name, *args, **kwargs):
         selected_parameters = normalize_selected_parameters(
-            request.session.get("selected_parameters", [])
+            get_workspace_session_value(request.session, request.user, "selected_parameters", [])
         )
 
         action = request.POST.get("action")
@@ -137,7 +146,9 @@ class ProteinListView(View):
         elif action == "reset_filters":
             selected_parameters = []
 
-        request.session['selected_parameters'] = selected_parameters
+        set_workspace_session_value(
+            request.session, request.user, "selected_parameters", selected_parameters
+        )
 
         return_query = request.POST.get("return_query", "").strip()
         redirect_url = request.path
@@ -146,6 +157,9 @@ class ProteinListView(View):
         return redirect(redirect_url)
 
     def get(self, request, assembly_name, *args, **kwargs):
+        if not user_can_access_genome_name(request.user, assembly_name):
+            raise Http404("Genome not found")
+
         page_size = parse_page_size(request.GET.get("pageSize", DEFAULT_PAGE_SIZE))
         clear_search_url = self._build_clear_search_url(request, page_size)
         formulas = resolve_formulas_for_user(request.user)
@@ -181,7 +195,7 @@ class ProteinListView(View):
         )
 
         selected_parameters = normalize_selected_parameters(
-            request.session.get("selected_parameters", [])
+            get_workspace_session_value(request.session, request.user, "selected_parameters", [])
         )
         grouped_parameters = grouped_selected_parameters(selected_parameters, humanize=True)
         display_parameters = [
@@ -268,7 +282,7 @@ class ProteinListView(View):
 
         return render(request, self.template_name, {
             "biodb__name": bdb.description if bdb.description else bdb.name,
-            "biodb_accession": bdb.name,
+            "biodb_accession": display_genome_name(bdb.name),
             "biodb_description": bdb.description if bdb.description else "",
             "proteins": proteins_page.object_list,
             "score_dict": score_dict,
@@ -281,6 +295,7 @@ class ProteinListView(View):
             "formula_term_count": len(formula_term_list),
             "query_string": query_string,
             "assembly_name":assembly_name,
+            "assembly_label": display_genome_name(assembly_name),
             "parameters":selected_parameters,
             "display_parameters":display_parameters,
             "grouped_parameters":grouped_parameters,

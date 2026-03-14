@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/parameter-form.css' %}?v=20260309-5">
+    <link rel="stylesheet" href="{% static 'css/pages/parameter-form.css' %}?v=20260314-2">
 {% endblock %}
 
 {% block body %}
@@ -22,7 +22,8 @@
                     {% url 'tpwebapp:protein_list' assembly_name=assembly_name as proteins_url %}
                     {% include "components/navigation/breadcrumbs.html" with crumb_1_label=crumb_home crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_proteins crumb_3_url=proteins_url crumb_4_label=crumb_advanced_filters %}
                     <h1>{% trans "Advanced Filter Form" %}</h1>
-                    <p class="parameter-hero-subtitle">{% trans "Build your filter set and apply it to the protein ranking." %}</p>
+                    <p class="parameter-hero-subtitle">{% trans "Add or remove filters for the current protein ranking." %}</p>
+                    <p class="parameter-hero-subtitle"><strong>{% trans "Genome" %}:</strong> {{ assembly_label|default:assembly_name }}</p>
                 </div>
             </div>
         </section>
@@ -55,13 +56,16 @@
                        data-empty-message="{% trans "Select a parameter and a value to enable Add filter." %}"
                        data-duplicate-message="{% trans "This filter is already active." %}"
                        data-ready-message="{% trans "Ready to add this filter." %}">{% if duplicate_filter %}{% trans "This filter is already active." %}{% else %}{% trans "Select a parameter and a value to enable Add filter." %}{% endif %}</p>
-                    <button type="submit" class="btn tp-btn tp-btn--primary parameter-add-btn" id="add-parameter-btn" disabled>{% trans "Add filter to active set" %}</button>
+                    <button type="submit" class="btn tp-btn tp-btn--primary parameter-add-btn" id="add-parameter-btn" disabled>{% trans "Add filter" %}</button>
                 </form>
             </article>
 
             <article class="parameter-card parameter-card--active tp-ui-panel">
                 <div class="parameter-card-head tp-ui-panel-head">
-                    <h2>{% trans "Active filters" %}</h2>
+                    <div class="parameter-card-head-copy">
+                        <h2>{% trans "Active filters" %}</h2>
+                        <p class="parameter-card-head-note">{% trans "Changes update the ranking immediately." %}</p>
+                    </div>
                     <span class="parameter-count tp-chip tp-chip--count tp-chip--sm">{{ active_filter_count }}</span>
                 </div>
                 {% if parameters %}
@@ -79,26 +83,20 @@
                             </li>
                         {% endfor %}
                     </ul>
+                    <div class="parameter-actions tp-ui-actions">
+                        <form id="reset-process-form" method="POST">
+                            {% csrf_token %}
+                            <input type="hidden" name="reset_process" value="true">
+                            {% trans "Clear filters" as clear_filters_label %}
+                            {% include "components/buttons/clear_action.html" with label=clear_filters_label button_type="submit" classes="btn tp-btn tp-btn--clear tp-btn--clear-caution tp-btn-with-icon" %}
+                        </form>
+                    </div>
                 {% else %}
-                    <p class="parameter-empty tp-state-note tp-state-note--empty">{% trans "No active filters yet. Add one above to narrow the ranking." %}</p>
+                    <div class="parameter-empty-state">
+                        <p class="parameter-empty tp-state-note tp-state-note--empty">{% trans "No active filters yet." %}</p>
+                        <p class="parameter-empty-caption">{% trans "Choose a parameter and value on the left to start narrowing the ranking." %}</p>
+                    </div>
                 {% endif %}
-                <div class="parameter-actions tp-ui-actions">
-                <form id="reset-process-form" method="POST">
-                    {% csrf_token %}
-                    <input type="hidden" name="reset_process" value="true">
-                    {% trans "Clear filters" as clear_filters_label %}
-                    {% if parameters %}
-                        {% include "components/buttons/clear_action.html" with label=clear_filters_label button_type="submit" classes="btn tp-btn tp-btn--clear tp-btn--clear-caution tp-btn-with-icon" %}
-                    {% else %}
-                        {% include "components/buttons/clear_action.html" with label=clear_filters_label button_type="submit" disabled="1" classes="btn tp-btn tp-btn--clear tp-btn--clear-caution tp-btn-with-icon" %}
-                    {% endif %}
-                </form>
-                <form id="finish-process-form" method="POST">
-                    {% csrf_token %}
-                    <input type="hidden" name="finish_process" value="true">
-                    <button type="submit" class="btn tp-btn tp-btn--primary" {% if not parameters %}disabled{% endif %}>{% trans "Apply filters" %}</button>
-                </form>
-                </div>
             </article>
         </section>
     </div>

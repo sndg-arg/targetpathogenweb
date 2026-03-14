@@ -17,15 +17,38 @@ Prerequisites:
 - Docker + Docker Compose plugin
 - `make` (optional but recommended)
 
-From repository root:
+### Local workstation
+
+Recommended setup for a laptop or desktop:
 
 ```bash
+cp .env.local.example .env
 docker network create web 2>/dev/null || true
-DOCKER_DEFAULT_PLATFORM=linux/amd64 docker compose up -d --pull never
-docker compose ps
+DOCKER_DEFAULT_PLATFORM=linux/amd64 docker compose -f docker-compose.yml -f docker-compose.local.yml up -d --pull never
+docker compose -f docker-compose.yml -f docker-compose.local.yml ps
 ```
 
 Open: `http://localhost:8085`
+
+### Cluster deployment
+
+Prepare the environment file on the cluster host:
+
+```bash
+cp .env.cluster.example .env
+```
+
+Then adjust paths and SSH settings in `.env`, and start:
+
+```bash
+docker network create web 2>/dev/null || true
+DOCKER_DEFAULT_PLATFORM=linux/amd64 docker compose -f docker-compose.yml -f docker-compose.cluster.yml up -d --pull never
+docker compose -f docker-compose.yml -f docker-compose.cluster.yml ps
+```
+
+### Backward-compatible local shortcut
+
+`docker-compose.override.yml` still mirrors the local profile, so plain `docker compose up -d` continues to work for local development. For reproducible setup, prefer the explicit `-f docker-compose.yml -f docker-compose.local.yml` form above.
 
 ## 3. Health Checks
 
@@ -56,10 +79,20 @@ Meaning:
 
 Because project settings use DB host `db`, tests are most stable inside the container:
 
+Local:
+
 ```bash
-docker compose up -d db web
-docker compose exec web make test
-docker compose exec web make qa
+docker compose -f docker-compose.yml -f docker-compose.local.yml up -d db web
+docker compose -f docker-compose.yml -f docker-compose.local.yml exec web make test
+docker compose -f docker-compose.yml -f docker-compose.local.yml exec web make qa
+```
+
+Cluster:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.cluster.yml up -d db web
+docker compose -f docker-compose.yml -f docker-compose.cluster.yml exec web make test
+docker compose -f docker-compose.yml -f docker-compose.cluster.yml exec web make qa
 ```
 
 ## 6. Pipeline Quick Run
@@ -96,6 +129,10 @@ Start here: [docs/README.md](./docs/README.md)
 
 - Compose fails due to missing `web` network:
   - run `docker network create web`
+- Local SSH-dependent pipeline stages fail:
+  - check `ssh-add -L` on the host; the local profile expects a usable SSH agent or readable keys in `~/.ssh`
+- Cluster startup uses wrong paths:
+  - verify `.env` was created from `.env.cluster.example`
 - CSS/JS changes not visible:
   - hard refresh browser (`Cmd+Shift+R`)
 - Host test run fails due to DB host mismatch:

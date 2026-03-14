@@ -21,6 +21,12 @@ TOKEN_REPLACEMENTS = {
 }
 
 LOWER_CONNECTORS = {"and", "or", "of", "in", "on", "to", "for", "with", "without", "by"}
+EXACT_REPLACEMENTS = {
+    "human_offtarget": "Human off-target",
+    "gut_microbiome_offtarget": "Gut microbiome off-target",
+    "hit_in_deg": "Hit in DEG",
+    "no_hit": "No hit",
+}
 
 
 def normalize_selected_parameters(raw_selected_parameters):
@@ -33,6 +39,9 @@ def humanize_identifier(value):
     text = str(value or "").strip()
     if not text:
         return ""
+    exact_replacement = EXACT_REPLACEMENTS.get(text.lower())
+    if exact_replacement:
+        return exact_replacement
     text = re.sub(r"[_-]+", " ", text)
     text = re.sub(r"(?<=[a-z0-9])(?=[A-Z])", " ", text)
     text = re.sub(r"\s+", " ", text).strip()

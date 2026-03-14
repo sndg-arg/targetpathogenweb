@@ -22,7 +22,7 @@
             {% include "components/navigation/breadcrumbs.html" with crumb_1_label=crumb_home crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_proteins crumb_3_url=proteins_url crumb_4_label=crumb_formula_builder %}
             <h1>{% trans "Formula Builder" %}</h1>
             <p class="formula-subtitle">{% trans "Build a scoring formula by selecting a parameter option and assigning its coefficient." %}</p>
-            <p class="formula-context"><strong>{% trans "Genome" %}:</strong> <span class="formula-context-id">{{ assembly_name }}</span></p>
+            <p class="formula-context"><strong>{% trans "Genome" %}:</strong> <span class="formula-context-id">{{ assembly_label|default:assembly_name }}</span></p>
             <div class="formula-chip-group tp-chip-group">
                 <span class="tp-chip tp-chip--meta tp-chip--sm">{% trans "Draft" %}: {{ formula_name|default:"Untitled formula" }}</span>
                 <span class="tp-chip tp-chip--count tp-chip--sm">{% trans "Terms" %}: {{ term_count }}</span>

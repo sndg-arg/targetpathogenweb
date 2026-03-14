@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.http import Http404
 from django.views import View
 from rdkit import Chem
 from rdkit.Chem.Draw import rdMolDraw2D
@@ -14,6 +15,10 @@ from tpweb.services.pipeline_status import (
     annotate_pipeline_status_for_genome,
     get_pipeline_status,
 )
+from tpweb.services.genome_workspace import (
+    display_genome_name,
+    user_can_access_genome_name,
+)
 
 
 
@@ -26,7 +31,8 @@ def serialize_prot(protein: Bioentry):
                 "size": protein.seq.length,
                 "assembly_id": bdb.biodatabase_id,
                 "assembly_name":   bdb.name,
-                "assembly_description": bdb.description if bdb.description else  bdb.name,
+                "assembly_label": display_genome_name(bdb.name),
+                "assembly_description": bdb.description if bdb.description else  display_genome_name(bdb.name),
                 "status": "annotated",
                 "seq": protein.seq.seq
                 }
@@ -109,6 +115,9 @@ class ProteinView(View):
                            "qualifiers__term", "dbxrefs__dbxref__terms",
                            "features__type_term__ontology", "features__locations",
                            "structures__pdb__residue_sets__properties__property").get()
+        assembly_name = protein.biodatabase.name.split(Biodatabase.PROT_POSTFIX)[0]
+        if not user_can_access_genome_name(request.user, assembly_name):
+            raise Http404("Protein not found")
         proteinDTO, features, annotations, graphic_features = serialize_prot(protein)
         structures = protein.structures.prefetch_related("pdb__residues").all()
         binders = create_binders_dict(protein)

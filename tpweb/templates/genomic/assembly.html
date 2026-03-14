@@ -141,13 +141,13 @@
                     <option value="gff">{% trans 'Genome GFF' %}</option>
                     <option value="gbk">{% trans 'Genome GBK' %}</option>
                 </select>
-                <input type="hidden" name="accession" value="{{ assembly.name }}"/>
+                <input type="hidden" name="accession" value="{{ assembly.internal_name }}"/>
                 <input type="hidden" id="download_format" name="format" value="genome"/>
                 <button class="btn tp-btn tp-btn--outline" type="submit" onclick="$('#download_format').val($('#inputFormatSelect').val())">
                     {% trans 'Download' %}
                 </button>
             </form>
-            <a class="btn tp-btn tp-btn--danger" href="{% url 'tpwebapp:protein_list' assembly.name %}">
+            <a class="btn tp-btn tp-btn--danger" href="{% url 'tpwebapp:protein_list' assembly.internal_name %}">
                 {% trans 'Prioritize Targets' %}
             </a>
         </div>

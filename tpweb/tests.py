@@ -1,7 +1,13 @@
 from unittest.mock import patch
 
-from django.test import SimpleTestCase
+from django.contrib.auth import get_user_model
+from django.contrib.auth.models import AnonymousUser
+from django.test import SimpleTestCase, TestCase
 
+from tpweb.models.GenomeUpload import GenomeUpload
+from tpweb.models.ScoreFormula import ScoreFormula
+from tpweb.models.ScoreParam import ScoreParam
+from tpweb.services.genome_uploads import build_queue_position_map, owner_has_active_uploads
 from tpweb.services.genomes import build_genome_dto, safe_int, summarize_genomes
 from tpweb.services.protein_list import (
     add_selected_parameter,
@@ -12,9 +18,22 @@ from tpweb.services.protein_list import (
     parse_page_size,
     remove_selected_parameter,
 )
-from tpweb.services.protein_formula import choose_formula
+from tpweb.services.protein_formula import choose_formula, resolve_formulas_for_user
 from tpweb.services.protein_serializer import build_protein_table_row
 from tpweb.services.pipeline_status import annotate_pipeline_status_for_genome
+from tpweb.services.genome_workspace import (
+    build_workspace_genome_name,
+    display_genome_name,
+    user_can_access_genome_name,
+)
+from tpweb.services.score_params import visible_score_params_queryset
+from tpweb.services.workspace import (
+    get_public_workspace_user,
+    get_workspace_session_value,
+    set_workspace_session_value,
+)
+from tpweb.views.FormulaForm import FormulaForm
+from tpweb.views.ParameterForm import ParameterForm
 
 
 class GenomeServiceTests(SimpleTestCase):
@@ -139,6 +158,148 @@ class ProteinFormulaServiceTests(SimpleTestCase):
         formula_b = type("Formula", (), {"name": "B", "default": True})()
         selected = choose_formula([formula_a, formula_b], "")
         self.assertIs(selected, formula_b)
+
+
+class WorkspaceIsolationTests(TestCase):
+    def setUp(self):
+        self.user_model = get_user_model()
+        self.alice = self.user_model.objects.create_user(
+            username="alice",
+            password="test-pass",
+        )
+        self.bob = self.user_model.objects.create_user(
+            username="bob",
+            password="test-pass",
+        )
+        self.public_user = get_public_workspace_user()
+
+    def create_score_param(self, name, category, user=None):
+        return ScoreParam.objects.create(
+            category=category,
+            name=name,
+            type="C",
+            default_operation="=",
+            default_value="",
+            description="",
+            user=user,
+        )
+
+    def test_workspace_session_values_are_namespaced(self):
+        session = {}
+
+        set_workspace_session_value(session, AnonymousUser(), "selected_parameters", ["public"])
+        set_workspace_session_value(session, self.alice, "selected_parameters", ["alice"])
+
+        self.assertEqual(
+            get_workspace_session_value(session, AnonymousUser(), "selected_parameters", []),
+            ["public"],
+        )
+        self.assertEqual(
+            get_workspace_session_value(session, self.alice, "selected_parameters", []),
+            ["alice"],
+        )
+
+    def test_visible_score_params_queryset_isolated_by_workspace(self):
+        self.create_score_param(name="GlobalBuiltin", category="Protein", user=None)
+        self.create_score_param(name="PublicCustom", category="Custom", user=self.public_user)
+        self.create_score_param(name="AliceCustom", category="Custom", user=self.alice)
+        self.create_score_param(name="BobCustom", category="Custom", user=self.bob)
+
+        anonymous_names = list(
+            visible_score_params_queryset(AnonymousUser()).values_list("name", flat=True)
+        )
+        alice_names = list(
+            visible_score_params_queryset(self.alice).values_list("name", flat=True)
+        )
+
+        self.assertIn("GlobalBuiltin", anonymous_names)
+        self.assertIn("PublicCustom", anonymous_names)
+        self.assertNotIn("AliceCustom", anonymous_names)
+        self.assertNotIn("BobCustom", anonymous_names)
+
+        self.assertIn("GlobalBuiltin", alice_names)
+        self.assertIn("AliceCustom", alice_names)
+        self.assertNotIn("PublicCustom", alice_names)
+        self.assertNotIn("BobCustom", alice_names)
+
+    def test_resolve_formulas_for_user_uses_current_workspace(self):
+        ScoreFormula.objects.create(name="PublicFormula", user=self.public_user, default=True)
+        ScoreFormula.objects.create(name="AliceFormula", user=self.alice, default=True)
+        ScoreFormula.objects.create(name="BobFormula", user=self.bob, default=True)
+
+        anonymous_formulas = [formula.name for formula in resolve_formulas_for_user(AnonymousUser())]
+        alice_formulas = [formula.name for formula in resolve_formulas_for_user(self.alice)]
+
+        self.assertEqual(anonymous_formulas, ["PublicFormula"])
+        self.assertEqual(alice_formulas, ["AliceFormula"])
+
+    def test_parameter_and_formula_forms_only_show_visible_params(self):
+        self.create_score_param(name="GlobalBuiltin", category="Protein", user=None)
+        self.create_score_param(name="AliceCustom", category="Custom", user=self.alice)
+        self.create_score_param(name="BobCustom", category="Custom", user=self.bob)
+
+        parameter_form = ParameterForm(user=self.alice)
+        formula_form = FormulaForm(user=self.alice)
+
+        visible_names = list(parameter_form.fields["param"].queryset.values_list("name", flat=True))
+        formula_names = list(formula_form.fields["param"].queryset.values_list("name", flat=True))
+
+        self.assertEqual(visible_names, formula_names)
+        self.assertIn("GlobalBuiltin", visible_names)
+        self.assertIn("AliceCustom", visible_names)
+        self.assertNotIn("BobCustom", visible_names)
+
+    def test_workspace_genome_names_are_hidden_from_other_users(self):
+        alice_internal = build_workspace_genome_name("NZ_AP023069.1", self.alice)
+        bob_internal = build_workspace_genome_name("NZ_AP023069.1", self.bob)
+
+        self.assertEqual(display_genome_name(alice_internal), "NZ_AP023069.1")
+        self.assertTrue(user_can_access_genome_name(self.alice, alice_internal))
+        self.assertFalse(user_can_access_genome_name(self.alice, bob_internal))
+        self.assertFalse(user_can_access_genome_name(AnonymousUser(), alice_internal))
+
+
+class GenomeUploadQueueTests(TestCase):
+    def setUp(self):
+        self.user_model = get_user_model()
+        self.alice = self.user_model.objects.create_user(
+            username="alice_queue",
+            password="test-pass",
+        )
+        self.bob = self.user_model.objects.create_user(
+            username="bob_queue",
+            password="test-pass",
+        )
+
+    def create_upload(self, owner, accession, status):
+        return GenomeUpload.objects.create(
+            owner=owner,
+            display_accession=accession,
+            internal_accession=build_workspace_genome_name(accession, owner),
+            gram="n",
+            gbk_file="",
+            status=status,
+        )
+
+    def test_build_queue_position_map_is_global_and_ordered(self):
+        first = self.create_upload(self.alice, "NZ_AP023069.1", GenomeUpload.STATUS_SUBMITTED)
+        second = self.create_upload(self.bob, "NC_002516.2", GenomeUpload.STATUS_SUBMITTED)
+        self.create_upload(self.alice, "GCF_000001", GenomeUpload.STATUS_FAILED)
+
+        positions = build_queue_position_map()
+
+        self.assertEqual(positions[first.id], 1)
+        self.assertEqual(positions[second.id], 2)
+        self.assertEqual(len(positions), 2)
+
+    def test_owner_has_active_uploads_only_for_queued_or_running(self):
+        self.assertFalse(owner_has_active_uploads(self.alice))
+
+        self.create_upload(self.alice, "NZ_AP023069.1", GenomeUpload.STATUS_SUBMITTED)
+        self.assertTrue(owner_has_active_uploads(self.alice))
+
+        GenomeUpload.objects.filter(owner=self.alice).update(status=GenomeUpload.STATUS_FAILED)
+        self.assertFalse(owner_has_active_uploads(self.alice))
 
 
 class ProteinSerializerServiceTests(SimpleTestCase):

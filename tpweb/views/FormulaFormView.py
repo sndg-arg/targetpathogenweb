@@ -1,12 +1,21 @@
 from django.shortcuts import render, redirect
+from django.http import Http404
 from django.urls import reverse
 
-from tpweb.models import TPUser
 from tpweb.models.ScoreFormula import ScoreFormula, ScoreFormulaParam
 from tpweb.models.ScoreParam import ScoreParamOptions, ScoreParam
+from tpweb.services.genome_workspace import display_genome_name, user_can_access_genome_name
+from tpweb.services.workspace import (
+    get_workspace_session_value,
+    pop_workspace_session_value,
+    resolve_workspace_user,
+    set_workspace_session_value,
+)
 from tpweb.views.FormulaForm import FormulaForm
 
 def FormulaFormView(request, assembly_name):
+    if not user_can_access_genome_name(request.user, assembly_name):
+        raise Http404("Genome not found")
 
     def current_formula_string(formula, formulaname):
         if not formula:
@@ -76,7 +85,7 @@ def FormulaFormView(request, assembly_name):
         if not formulaname:
             return
 
-        user = TPUser.objects.get(id=request.user.id)
+        user = resolve_workspace_user(request.user)
         formula_obj, _ = ScoreFormula.objects.get_or_create(name=formulaname, user=user)
         ScoreFormulaParam.objects.filter(formula=formula_obj).delete()
 
@@ -99,38 +108,49 @@ def FormulaFormView(request, assembly_name):
                 score_param=param,
             )
 
-    current_formula = request.session.get("current_formula", [])
+    current_formula = get_workspace_session_value(
+        request.session, request.user, "current_formula", []
+    )
     if not isinstance(current_formula, list):
         current_formula = []
-    formulaname = request.session.get("formulaname", "")
-    formulaform = FormulaForm(initial={"new_formula_name": formulaname})
+    formulaname = get_workspace_session_value(
+        request.session, request.user, "formulaname", ""
+    )
+    formulaform = FormulaForm(
+        initial={"new_formula_name": formulaname},
+        user=request.user,
+    )
 
     if request.method == "POST":
         if "reset_process" in request.POST:
-            request.session.pop("current_formula", None)
-            request.session.pop("formulaname", None)
+            pop_workspace_session_value(request.session, request.user, "current_formula", None)
+            pop_workspace_session_value(request.session, request.user, "formulaname", None)
             return redirect(reverse("tpwebapp:formula_form", kwargs={"assembly_name": assembly_name}))
 
         if "remove_last_term" in request.POST:
             if current_formula:
                 current_formula.pop()
-                request.session["current_formula"] = current_formula
+                set_workspace_session_value(
+                    request.session, request.user, "current_formula", current_formula
+                )
             return redirect(reverse("tpwebapp:formula_form", kwargs={"assembly_name": assembly_name}))
 
         if "finish_process" in request.POST:
             if current_formula and formulaname:
                 add_new_formula(formulaname, current_formula)
-            request.session.pop("current_formula", None)
-            request.session.pop("formulaname", None)
+            pop_workspace_session_value(request.session, request.user, "current_formula", None)
+            pop_workspace_session_value(request.session, request.user, "formulaname", None)
             return redirect(reverse("tpwebapp:protein_list", kwargs={"assembly_name": assembly_name}))
 
-        formulaform = FormulaForm(request.POST)
+        formulaform = FormulaForm(request.POST, user=request.user)
         formulaname = formulaform.data.get("new_formula_name", "").strip()
         formulaparam = formulaform.data.get("param")
         formulaoption = formulaform.data.get("options")
         formulacoefficient = formulaform.data.get("coefficient")
         if formulaform.is_valid():
-            request.session["formulaname"] = formulaname
+            set_workspace_session_value(
+                request.session, request.user, "formulaname", formulaname
+            )
             if any(d["param"] == formulaparam and d["option"] == formulaoption for d in current_formula):
                 return redirect(
                     reverse("tpwebapp:formula_form", kwargs={"assembly_name": assembly_name})
@@ -138,12 +158,18 @@ def FormulaFormView(request, assembly_name):
                 )
             term_dict = {"param": formulaparam, "option": formulaoption, "coefficient": formulacoefficient}
             current_formula.append(term_dict)
-            request.session["current_formula"] = current_formula
+            set_workspace_session_value(
+                request.session, request.user, "current_formula", current_formula
+            )
         else:
             print(formulaform.errors)
 
-    current_formula = request.session.get("current_formula", current_formula)
-    formulaname = request.session.get("formulaname", formulaname)
+    current_formula = get_workspace_session_value(
+        request.session, request.user, "current_formula", current_formula
+    )
+    formulaname = get_workspace_session_value(
+        request.session, request.user, "formulaname", formulaname
+    )
     preview_terms = build_preview_terms(current_formula)
 
     return render(
@@ -156,5 +182,6 @@ def FormulaFormView(request, assembly_name):
             "preview_terms": preview_terms,
             "term_count": len(preview_terms),
             "assembly_name": assembly_name,
+            "assembly_label": display_genome_name(assembly_name),
         },
     )

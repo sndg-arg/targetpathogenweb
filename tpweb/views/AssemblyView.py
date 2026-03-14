@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.http import Http404
 from django.views import View
 
 from bioseq.models.Biodatabase import Biodatabase
@@ -10,6 +11,10 @@ from tpweb.services.pipeline_status import (
     annotate_pipeline_status_for_genome,
     get_pipeline_status,
 )
+from tpweb.services.genome_workspace import (
+    display_genome_name,
+    user_can_access_genome_name,
+)
 
 
 class AssemblyView(View):
@@ -18,6 +23,9 @@ class AssemblyView(View):
     def get(self, request, *args, **kwargs):
         # form = self.form_class(initial=self.initial)
 
+        if not user_can_access_genome_name(request.user, kwargs["assembly_id"]):
+            raise Http404("Genome not found")
+
         biodb = Biodatabase.objects.get(name=kwargs["assembly_id"])
 
         props = {bqv.term.identifier: bqv.value
@@ -25,7 +33,8 @@ class AssemblyView(View):
         config_lt = Bioentry.objects.filter(biodatabase=biodb).first().accession
         assembly = {
             "id": biodb.biodatabase_id,
-            "name": biodb.name,
+            "name": display_genome_name(biodb.name),
+            "internal_name": biodb.name,
             "description": biodb.description,
             "props": props
         }

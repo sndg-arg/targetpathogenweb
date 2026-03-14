@@ -16,7 +16,7 @@ services:
       POSTGRES_DB: tp
       POSTGRES_USER: postgres
     volumes:
-      - /home/dockeradmin/targetpathogenweb/dbs/db:/var/lib/postgresql/data
+      - ${TPW_DB_DIR:-./dbs/db}:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     shm_size: 512m
@@ -44,9 +44,8 @@ services:
     command: /bin/sh -c "chmod +x start.sh && ./start.sh"
     working_dir: /app/targetpathogenweb
     volumes:
-      - /home/dockeradmin/targetpathogenweb:/app/targetpathogenweb
-      - /home/dockeradmin/fasttarget:/app/fasttarget
-      - ${SSH_AUTH_SOCK}:/ssh-agent
+      - ${TPW_PROJECT_DIR:-.}:/app/targetpathogenweb
+      - ${FASTTARGET_HOST_DIR:-./fasttarget_mac}:/app/fasttarget
       - /var/run/docker.sock:/var/run/docker.sock
       - /tmp:/tmp
     ports:
@@ -58,7 +57,6 @@ services:
       - DJANGO_DATABASE_PASSWORD=123
       - DJANGO_ALLOWED_HOSTS=localhost,0.0.0.0,127.0.0.1,targettestv2_test.cluster.qb.fcen.uba.ar
       - PYTHONPATH=$PYTHONPATH:../sndgjobs:../sndgbiodb:../targetpathogen:../sndg-bio:../target
-      - SSH_AUTH_SOCK=/ssh-agent
       - CWD=${PWD}
     restart: always
     labels:
@@ -70,3 +68,26 @@ services:
       - "traefik.http.routers.target2_nodo0.tls.certresolver=leresolver"
       - "traefik.http.middlewares.https_redirect.redirectscheme.scheme=https"
       - "traefik.http.middlewares.https_redirect.redirectscheme.permanent=true"
+
+  queue:
+    container_name: target2_queue_nodo0
+    image: target:conded
+    networks:
+      - web
+    command: /bin/sh -c "chmod +x start_queue.sh && ./start_queue.sh"
+    working_dir: /app/targetpathogenweb
+    volumes:
+      - ${TPW_PROJECT_DIR:-.}:/app/targetpathogenweb
+      - ${FASTTARGET_HOST_DIR:-./fasttarget_mac}:/app/fasttarget
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /tmp:/tmp
+    environment:
+      - DJANGO_DATABASE_NAME=tp
+      - DJANGO_DATABASE_USER=postgres
+      - DJANGO_DATABASE_URL=postgres://postgres:123@db:5432/tp
+      - DJANGO_DATABASE_PASSWORD=123
+      - DJANGO_ALLOWED_HOSTS=localhost,0.0.0.0,127.0.0.1,targettestv2_test.cluster.qb.fcen.uba.ar
+      - PYTHONPATH=$PYTHONPATH:../sndgjobs:../sndgbiodb:../targetpathogen:../sndg-bio:../target
+      - QUEUE_POLL_INTERVAL=${QUEUE_POLL_INTERVAL:-5}
+      - CWD=${PWD}
+    restart: always

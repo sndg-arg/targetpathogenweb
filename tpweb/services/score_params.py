@@ -1,0 +1,140 @@
+from django.db.models import Q
+
+from tpweb.models.ScoreParam import ScoreParam, ScoreParamOptions
+from tpweb.services.workspace import PUBLIC_WORKSPACE_USERNAME, resolve_workspace_user
+
+SYSTEM_SCORE_PARAM_DEFINITIONS = {
+    "human_offtarget": {
+        "category": "Off-target",
+        "description": "Sequence overlaps with a human protein.",
+        "default_value": "no_hit",
+        "options": ("hit", "no_hit"),
+    },
+    "gut_microbiome_offtarget": {
+        "category": "Off-target",
+        "description": "Sequence overlaps with a gut microbiome protein.",
+        "default_value": "no_hit",
+        "options": ("hit", "no_hit"),
+    },
+    "hit_in_deg": {
+        "category": "Essentiality",
+        "description": "Protein has a hit in the DEG database.",
+        "default_value": "N",
+        "options": ("Y", "N"),
+    },
+}
+
+
+def ensure_system_score_param(name, source_df=None):
+    definition = SYSTEM_SCORE_PARAM_DEFINITIONS.get(str(name or "").strip())
+    if definition is None:
+        return None
+
+    score_param = (
+        ScoreParam.objects.filter(name=name, user__isnull=True).order_by("id").first()
+    )
+    if score_param is None:
+        score_param = ScoreParam.objects.create(
+            category=definition["category"],
+            name=name,
+            user=None,
+            type="CATEGORICAL",
+            description=definition["description"],
+            default_operation="=",
+            default_value=definition["default_value"],
+        )
+    else:
+        updated_fields = []
+        if score_param.category != definition["category"]:
+            score_param.category = definition["category"]
+            updated_fields.append("category")
+        if score_param.type != "CATEGORICAL":
+            score_param.type = "CATEGORICAL"
+            updated_fields.append("type")
+        if score_param.default_operation != "=":
+            score_param.default_operation = "="
+            updated_fields.append("default_operation")
+        if score_param.default_value != definition["default_value"]:
+            score_param.default_value = definition["default_value"]
+            updated_fields.append("default_value")
+        if score_param.description != definition["description"]:
+            score_param.description = definition["description"]
+            updated_fields.append("description")
+        if updated_fields:
+            score_param.save(update_fields=updated_fields)
+
+    option_names = list(definition["options"])
+    if source_df is not None and len(source_df.columns) >= 2:
+        imported_values = []
+        for raw_value in source_df.iloc[:, 1].dropna().tolist():
+            value = str(raw_value).strip()
+            if value and value not in imported_values:
+                imported_values.append(value)
+        if imported_values:
+            option_names = imported_values
+
+    for option_name in option_names:
+        ScoreParamOptions.objects.get_or_create(
+            score_param=score_param,
+            name=option_name,
+            defaults={"description": ""},
+        )
+
+    return score_param
+
+
+def ensure_system_score_params_exist():
+    for score_param_name in SYSTEM_SCORE_PARAM_DEFINITIONS:
+        ensure_system_score_param(score_param_name)
+
+
+def visible_score_params_queryset(user):
+    ensure_system_score_params_exist()
+    workspace_user = resolve_workspace_user(user)
+    visibility_filter = Q(user__isnull=True) & ~Q(category="Custom")
+    visibility_filter |= Q(user=workspace_user)
+
+    if workspace_user.username == PUBLIC_WORKSPACE_USERNAME:
+        visibility_filter |= Q(user__isnull=True, category="Custom")
+
+    return ScoreParam.objects.filter(visibility_filter).order_by("category", "name", "id")
+
+
+def visible_score_param_options_queryset(user, param_id):
+    visible_param_ids = visible_score_params_queryset(user).values_list("id", flat=True)
+    return ScoreParamOptions.objects.filter(
+        score_param_id=param_id,
+        score_param_id__in=visible_param_ids,
+    ).order_by("name", "id")
+
+
+def resolve_score_param_for_import(column_name, owner=None, source_df=None):
+    if owner is None:
+        system_param = ensure_system_score_param(column_name, source_df=source_df)
+        if system_param is not None:
+            return system_param
+
+    global_param = (
+        ScoreParam.objects.filter(name=column_name, user__isnull=True)
+        .exclude(category="Custom")
+        .order_by("id")
+        .first()
+    )
+    if global_param is not None:
+        return global_param
+
+    scoped_filters = {
+        "category": "Custom",
+        "name": column_name,
+    }
+    if owner is None:
+        scoped_filters["user__isnull"] = True
+    else:
+        scoped_filters["user"] = owner
+
+    score_param = ScoreParam.objects.filter(**scoped_filters).order_by("id").first()
+    if score_param is not None or source_df is None:
+        return score_param
+
+    ScoreParam.initialize_custom_param(source_df, user=owner)
+    return ScoreParam.objects.filter(**scoped_filters).order_by("id").first()

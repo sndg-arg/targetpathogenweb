@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/home.css' %}?v=20260309-6">
+    <link rel="stylesheet" href="{% static 'css/pages/home.css' %}?v=20260314-1">
 {% endblock %}
 
 {% block body %}
@@ -60,18 +60,24 @@
                         <div class="pipeline-track {% if not pipeline_status.running and pipeline_status.stage_current == pipeline_status.stage_total and pipeline_status.state_class == 'finished' %}is-complete{% endif %}" aria-hidden="true">
                             <div class="pipeline-fill {% if not pipeline_status.running and pipeline_status.stage_current == pipeline_status.stage_total and pipeline_status.state_class == 'finished' %}is-complete{% endif %}" style="width: {% if not pipeline_status.running and pipeline_status.stage_current == pipeline_status.stage_total and pipeline_status.state_class == 'finished' %}100{% else %}{{ pipeline_status.progress_percent }}{% endif %}%;"></div>
                         </div>
+                    {% elif pipeline_status.running_for_other_workspace %}
+                        <p class="pipeline-stage">{% trans "Another workspace is currently using the pipeline. Queued runs will start automatically." %}</p>
                     {% else %}
-                        <p class="pipeline-stage">{% trans "Pipeline information is available, but stage details are not yet detected." %}</p>
+                        <p class="pipeline-stage">{% trans "Pipeline activity is available, but detailed stage metadata is not visible yet." %}</p>
                     {% endif %}
                     <p class="pipeline-meta">
                         {% if pipeline_status.genome_accession %}
-                            {% trans "Genome" %} <code>{{ pipeline_status.genome_accession }}</code> ·
+                            {% trans "Genome" %} <code>{{ pipeline_status.genome_display_accession|default:pipeline_status.genome_accession }}</code> ·
                         {% endif %}
-                        {% trans "Run" %} <code>{{ pipeline_status.run_id|default:"-" }}</code>
-                        {% if pipeline_status.last_updated %}· {% trans "Updated" %} {{ pipeline_status.last_updated }}{% endif %}
+                        {% if not pipeline_status.running_for_other_workspace and pipeline_status.run_id %}
+                            {% trans "Run" %} <code>{{ pipeline_status.run_id }}</code>
+                        {% endif %}
+                        {% if pipeline_status.last_updated %}
+                            {% if pipeline_status.genome_accession or not pipeline_status.running_for_other_workspace and pipeline_status.run_id %}· {% endif %}{% trans "Updated" %} {{ pipeline_status.last_updated }}
+                        {% endif %}
                     </p>
                 {% else %}
-                    <p class="pipeline-stage">{% trans "No runs were detected yet. Launch a pipeline to see live progress here." %}</p>
+                    <p class="pipeline-stage">{% trans "No pipeline activity is visible in this workspace yet." %}</p>
                 {% endif %}
             </section>
         </section>
@@ -83,7 +89,7 @@
                     {{ post.content|safe }}
                 {% endautoescape %}
             {% else %}
-                <p class="home-empty-note tp-state-note tp-state-note--empty">{% trans "No project notes were configured yet. You can add curated content from the admin panel." %}</p>
+                <p class="home-empty-note tp-state-note tp-state-note--empty">{% trans "Curated project notes will appear here once they are published." %}</p>
             {% endif %}
         </section>
     </div>

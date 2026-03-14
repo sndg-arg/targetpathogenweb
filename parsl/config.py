@@ -1,4 +1,5 @@
 import os
+import sys
 import configparser
 from parsl.config import Config
 from parsl.executors import HighThroughputExecutor
@@ -33,6 +34,17 @@ class TargetConfig():
         if self.config.get("GENERAL", "EnvironmentFile", fallback=None):
             with open(self.config.get("GENERAL", "EnvironmentFile"), 'r') as f:
                 env = f.read()
+        python_bin_dir = os.path.dirname(sys.executable)
+        runtime_path = os.environ.get("PATH", "").strip()
+        if python_bin_dir:
+            runtime_path = (
+                f"{python_bin_dir}:{runtime_path}" if runtime_path else python_bin_dir
+            )
+        runtime_pythonpath = os.environ.get("PYTHONPATH", "").strip()
+        if runtime_path:
+            env += f"export PATH={runtime_path}:$PATH\n"
+        if runtime_pythonpath:
+            env += f"export PYTHONPATH={runtime_pythonpath}:$PYTHONPATH\n"
         monitoring_flag = self.config.getboolean("GENERAL", "Monitoring", fallback=False)
         self.ht_executor = HighThroughputExecutor(
             working_dir=self.config.get("GENERAL", "WorkingDir", fallback=os.getcwd()),

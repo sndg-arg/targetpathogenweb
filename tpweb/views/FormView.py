@@ -35,23 +35,39 @@ class FormView(View):
                     'db_options': self.db_options,
                 })
 
-            # Write the content of text_input to a file named sequence.fna
-            with open('sequence.fna', 'w') as file:
-                file.write(text_input)
-        
             # Based on selected_item, you can access the corresponding Biodatabase object
             selected_biodatabase = Biodatabase.objects.get(pk=selected_item)
 
-            # Define the db location and the uuid name to store the res.
+            # Define the db location and the uuid name to store the results.
             uuid_1 = uuid.uuid1()
             db_location = SeqStore('./data').genes_fna(selected_biodatabase.name)
+            query_path = f"{uuid_1}.fna"
+            output_path = f"{uuid_1}.csv"
+            blast_bin = "./opt/ncbi-blast-2.15.0+-x64-linux/ncbi-blast-2.15.0+/bin/blastn"
 
-            # Run the Blast
-            cmd = f'./opt/ncbi-blast-2.15.0+-x64-linux/ncbi-blast-2.15.0+/bin/blastn -query ./sequence.fna -db {db_location} -evalue 1e-6 -num_threads 4 -out {uuid_1}.csv -outfmt 6'
-            sp.check_output(cmd , shell = True)
-            
-            # Remove the query file
-            os.remove('sequence.fna')
+            try:
+                with open(query_path, "w", encoding="utf-8") as file:
+                    file.write(text_input)
+
+                cmd = [
+                    blast_bin,
+                    "-query", query_path,
+                    "-db", db_location,
+                    "-evalue", "1e-6",
+                    "-num_threads", "4",
+                    "-out", output_path,
+                    "-outfmt", "6",
+                ]
+                sp.check_output(cmd, stderr=sp.STDOUT)
+            except sp.CalledProcessError as exc:
+                details = exc.output.decode("utf-8", errors="replace") if exc.output else str(exc)
+                return render(request, self.template_name, {
+                    'error_message': f'BLAST query failed. {details}',
+                    'db_options': self.db_options,
+                })
+            finally:
+                if os.path.exists(query_path):
+                    os.remove(query_path)
 
             # Render the page with the messages and passing the uuid as result_id
             return render(request, self.template_name, {

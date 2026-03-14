@@ -442,8 +442,12 @@
             }
 
             function initDataTableVariant(selector, options) {
-                if (!$.fn.dataTable || !$(selector).length) return;
-                $(selector).DataTable(options);
+                if (!document.querySelector(selector)) return null;
+                if (typeof window.tpInitDataTable === "function") {
+                    return window.tpInitDataTable(selector, options || {});
+                }
+                if (!window.jQuery || !$.fn.dataTable) return null;
+                return $(selector).DataTable(options || {});
             }
 
             decorateScoreTags();
@@ -721,6 +725,7 @@
 
             if ($.fn.dataTable && $("#pocketsTable").length && $("#pocketsTable tbody tr").length > 5) {
                 initDataTableVariant("#pocketsTable", {
+                    tpVariant: "compact",
                     searching: false,
                     pageLength: 5,
                     paging: true,
@@ -732,6 +737,7 @@
 
             if ($.fn.dataTable && $("#p2pocketsTable").length && $("#p2pocketsTable tbody tr").length > 5) {
                 initDataTableVariant("#p2pocketsTable", {
+                    tpVariant: "compact",
                     searching: false,
                     pageLength: 5,
                     paging: true,
@@ -743,6 +749,7 @@
 
             if ($.fn.dataTable && $("#residuesetsTable").length && $("#residuesetsTable tbody tr").length > 5) {
                 initDataTableVariant("#residuesetsTable", {
+                    tpVariant: "compact",
                     searching: true,
                     pageLength: 10,
                     paging: true,

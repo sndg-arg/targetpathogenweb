@@ -47,8 +47,12 @@ class Command(BaseCommand):
 
         ss = SeqStore(options["datadir"])
         tmp_file = options["custom"]
+        target_accession = str(options["accession"] or "").strip()
+        if not target_accession:
+            raise ValidationError("An accession is required for custom uploads.")
+
         gbio = GenebankIO(tmp_file)
         gbio.init()
-        ss.create_idx_dir(gbio.accession)
-        shutil.copy(tmp_file, ss.gbk(gbio.accession))
+        ss.create_idx_dir(target_accession)
+        shutil.copy(tmp_file, ss.gbk(target_accession))
         self.stderr.write("genome imported!")

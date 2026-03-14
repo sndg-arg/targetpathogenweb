@@ -14,19 +14,39 @@ This document centralizes runtime and operational procedures for TPWeb:
 
 ## 2. Start Services
 
+### Local profile
+
 ```bash
+cp .env.local.example .env
 docker network create web 2>/dev/null || true
-DOCKER_DEFAULT_PLATFORM=linux/amd64 docker compose up -d --pull never
-docker compose ps
+DOCKER_DEFAULT_PLATFORM=linux/amd64 docker compose -f docker-compose.yml -f docker-compose.local.yml up -d --pull never
+docker compose -f docker-compose.yml -f docker-compose.local.yml ps
+```
+
+### Cluster profile
+
+```bash
+cp .env.cluster.example .env
+# Edit .env to match cluster paths, SSH host, and resource limits if needed.
+docker network create web 2>/dev/null || true
+DOCKER_DEFAULT_PLATFORM=linux/amd64 docker compose -f docker-compose.yml -f docker-compose.cluster.yml up -d --pull never
+docker compose -f docker-compose.yml -f docker-compose.cluster.yml ps
 ```
 
 What each command does:
 
 - `docker network create web ...`: ensures external Docker network exists
-- `docker compose up ...`: starts `db`, `web`, and related services in background
-- `docker compose ps`: verifies service status
+- `docker compose ... up ...`: starts `db`, `web`, and `queue` in background
+- `docker compose ... ps`: verifies service status
 
 App URL: `http://localhost:8085`
+
+### Compose file roles
+
+- [docker-compose.yml](../docker-compose.yml): shared base configuration
+- [docker-compose.local.yml](../docker-compose.local.yml): local workstation overrides
+- [docker-compose.cluster.yml](../docker-compose.cluster.yml): cluster host overrides
+- [docker-compose.override.yml](../docker-compose.override.yml): backward-compatible local shortcut for plain `docker compose up`
 
 ## 3. Health and Observability
 
@@ -73,6 +93,11 @@ Why this context:
 
 - cluster-safe (default)
 - local profile (`export TPW_PROFILE=local`)
+
+The selected profile comes from Compose:
+
+- local: `docker-compose.local.yml` sets `TPW_PROFILE=local`
+- cluster: `docker-compose.cluster.yml` sets `TPW_PROFILE=cluster`
 
 ### Common runs
 
@@ -218,7 +243,8 @@ docker compose down -v
 ## 8. Safety Rules
 
 - Keep credentials and personal paths out of version control (`parsl/settings.ini`)
-- Use `docker-compose.override.yml` only for local machine specifics
+- Use `.env.local.example` / `.env.cluster.example` as the source for machine-specific `.env`
+- Keep `docker-compose.yml` environment-neutral; put machine-specific mounts in `docker-compose.local.yml` or `docker-compose.cluster.yml`
 - Prefer tests/QA inside `web` container for environment consistency
 - Keep docs, UI, and pipeline logic changes in separate commits when possible
 

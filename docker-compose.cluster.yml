@@ -1,0 +1,19 @@
+services:
+  web:
+    deploy:
+      resources:
+        limits:
+          memory: 4g
+          cpus: '2.0'
+    volumes:
+      - ${HOME}/.ssh:/root/.ssh:ro
+    environment:
+      - TPW_PROFILE=cluster
+      - PYTHONPATH=/app/sndgjobs:/app/sndgbiodb:/app/targetpathogen:/app/sndg-bio:/app/target
+
+  queue:
+    volumes:
+      - ${HOME}/.ssh:/root/.ssh:ro
+    environment:
+      - TPW_PROFILE=cluster
+      - PYTHONPATH=/app/sndgjobs:/app/sndgbiodb:/app/targetpathogen:/app/sndg-bio:/app/target

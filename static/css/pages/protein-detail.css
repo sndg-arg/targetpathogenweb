@@ -297,11 +297,24 @@
 
 .features-reset-btn {
     white-space: nowrap;
+    font-weight: 700;
 }
 
 .features-reset-btn.is-inline {
     margin-left: 10px;
     vertical-align: middle;
+}
+
+.features-zoom-reset-slot {
+    display: inline-flex;
+    align-items: center;
+    margin-left: 12px;
+    vertical-align: middle;
+}
+
+.features-zoom-reset-slot .features-reset-btn {
+    min-height: 34px !important;
+    padding: 0.32rem 0.72rem !important;
 }
 
 .section-subtitle {
@@ -390,6 +403,49 @@
 
 .btn-copy-seq {
     white-space: nowrap;
+    min-width: 154px;
+    justify-content: center;
+}
+
+.protein-page .btn-copy-seq.tp-btn--outline,
+.protein-page .features-reset-btn.tp-btn--outline,
+.protein-page #copy-residue-list.tp-btn--outline {
+    color: var(--tp-color-brand-900) !important;
+    border-color: var(--tp-color-brand-300) !important;
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-brand-050) 100%) !important;
+    box-shadow: 0 2px 6px rgba(18, 64, 80, 0.08);
+}
+
+.protein-page .btn-copy-seq.tp-btn--outline:hover,
+.protein-page .btn-copy-seq.tp-btn--outline:focus-visible,
+.protein-page .features-reset-btn.tp-btn--outline:hover,
+.protein-page .features-reset-btn.tp-btn--outline:focus-visible,
+.protein-page #copy-residue-list.tp-btn--outline:hover,
+.protein-page #copy-residue-list.tp-btn--outline:focus-visible {
+    color: var(--tp-color-link-hover) !important;
+    border-color: var(--tp-color-brand-800) !important;
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-brand-100) 100%) !important;
+}
+
+.protein-page .features-reset-btn.tp-btn--outline:disabled,
+.protein-page .features-reset-btn.tp-btn--outline.disabled {
+    color: var(--tp-color-text-soft) !important;
+    border-color: var(--tp-color-border-soft) !important;
+    background: linear-gradient(180deg, var(--tp-color-surface-soft) 0%, var(--tp-color-surface-muted) 100%) !important;
+    box-shadow: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    cursor: not-allowed !important;
+}
+
+.protein-page .features-reset-btn.tp-btn--outline:disabled:hover,
+.protein-page .features-reset-btn.tp-btn--outline:disabled:focus-visible,
+.protein-page .features-reset-btn.tp-btn--outline.disabled:hover,
+.protein-page .features-reset-btn.tp-btn--outline.disabled:focus-visible {
+    color: var(--tp-color-text-soft) !important;
+    border-color: var(--tp-color-border-soft) !important;
+    background: linear-gradient(180deg, var(--tp-color-surface-soft) 0%, var(--tp-color-surface-muted) 100%) !important;
+    box-shadow: none !important;
 }
 
 #pocketsTable.table-hover tbody tr:hover,
@@ -872,9 +928,17 @@
 }
 
 .residue-modal-actions {
-    margin-top: 8px;
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px solid var(--tp-color-border-soft);
     display: flex;
     justify-content: flex-end;
+    align-items: center;
+}
+
+#copy-residue-list {
+    min-width: 170px;
+    justify-content: center;
 }
 
 body.residue-modal-open {

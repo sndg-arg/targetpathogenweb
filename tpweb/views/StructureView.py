@@ -1,10 +1,12 @@
 
 from django.shortcuts import render
+from django.http import Http404
 from django.views import View
 from bioseq.models.Biodatabase import Biodatabase
 from tpweb.models.BioentryStructure import BioentryStructure
 from tpweb.models.pdb import PDB, Residue, Property, ResidueSet, PDBResidueSet
 from django.db.models import Q
+from tpweb.services.genome_workspace import user_can_access_genome_name
 
 
 class StructureView(View):
@@ -21,6 +23,8 @@ class StructureView(View):
             dto["source_protein_id"] = source_bioentry.bioentry_id
             dto["source_protein_label"] = source_bioentry.name or "Protein detail"
             dto["source_assembly_name"] = self._resolve_source_assembly_name(source_bioentry)
+            if not user_can_access_genome_name(request.user, dto["source_assembly_name"]):
+                raise Http404("Structure not found")
 
 
         return render(request, self.template_name, dto)

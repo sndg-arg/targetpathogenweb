@@ -19,6 +19,16 @@ def humanize_identifier(value):
     if not text:
         return ""
 
+    exact_replacements = {
+        "human_offtarget": "Human off-target",
+        "gut_microbiome_offtarget": "Gut microbiome off-target",
+        "hit_in_deg": "Hit in DEG",
+        "no_hit": "No hit",
+    }
+    exact_replacement = exact_replacements.get(text.lower())
+    if exact_replacement:
+        return exact_replacement
+
     acronym_tokens = {
         "deg": "DEG",
         "ppi": "PPI",

@@ -20,14 +20,15 @@ def clear_folder(folder_path, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl
     return
 
 @bash_app(executors=["local_executor"])
-def download_gbk(working_dir, genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
-    import os
-    return f"python {working_dir}/manage.py download_gbk {genome} --datadir {working_dir}/data"
+def download_gbk(working_dir, genome, target_accession=None, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
+    command = f"python {working_dir}/manage.py tpweb_download_gbk {genome} --datadir {working_dir}/data"
+    if target_accession:
+        command += f" --target-accession {target_accession}"
+    return command
 
 @bash_app(executors=["local_executor"])
 def test_gbk(working_dir, genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
-    import os
-    return f"python {working_dir}/manage.py test --datadir ../data"
+    return f"python {working_dir}/manage.py tpweb_test_gbk --datadir ../data --target-accession {genome}"
 
 @bash_app(executors=["local_executor"])
 def custom_gbk(working_dir, genome, custom,inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
@@ -48,70 +49,99 @@ def index_genome_db(working_dir, genome, inputs=[], stderr=parsl.AUTO_LOGNAME, s
 
 @bash_app(executors=["local_executor"])
 def index_genome_seq(working_dir, genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
-    # Use cleaned command by default to avoid tabix failures on fuzzy GFF bounds (<,>).
-    # It can be disabled with TPW_USE_INDEX_GENOME_SEQ_CLEAN=0 if needed.
-    command = "index_genome_seq"
-    if _flag_enabled("TPW_USE_INDEX_GENOME_SEQ_CLEAN", default=True):
-        command = "index_genome_seq_clean"
-    return f"python {working_dir}/manage.py {command} {genome} --datadir {working_dir}/data"
+    return f"python {working_dir}/manage.py index_genome_seq_clean {genome} --datadir {working_dir}/data"
 
 
 @python_app(executors=['local_executor'])
 def interproscan(cfg_dict, folder_path, genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
     import paramiko
     import os
+    import time
     import gzip
     from scp import SCPClient
     from config import TargetConfig
-    ssh = paramiko.SSHClient()
-    ssh_rootfolder = os.getenv("SSH_WORKDIR") or cfg_dict.get("SSH", "WorkingDir")
-    ssh_host = os.getenv("SSH_HOSTNAME") or cfg_dict.get("SSH", "HostName")
-    ssh_user = os.getenv("SSH_USERNAME") or cfg_dict.get("SSH", "Username")
-    ssh_cores = os.getenv("SSH_CORES") or cfg_dict.get("SSH", "Cores")
-    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    pwd = os.getenv("SSH_PASSWORD")
-    if pwd is None:
-        pwd = cfg_dict.get("SSH", "Password", fallback=None)
-    if pwd == "":
-        pwd = None  # allow agent/key auth only
-    ssh.connect(ssh_host,
-                username=ssh_user,
-                password=pwd,
-                allow_agent=True,
-                look_for_keys=True)
-    scp = SCPClient(ssh.get_transport())
-    scp.put(os.path.join(folder_path, genome + '.faa.gz'), ssh_rootfolder)
-    text = ""
-    text += f'export LD_LIBRARY_PATH=\\\"/home/shared/miniconda3.8/envs/interproscan/lib/:$LD_LIBRARY_PATH\\\"\n'
-    text += f'eval \\\"\$(/home/shared/miniconda3.8/bin/conda shell.bash hook)\\\"\n'
-    text += f'conda activate interproscan\n'
-    text += f'zcat {genome}.faa.gz | /grupos/public/iprscan/current/interproscan.sh --pathways \
-        --goterms --cpu {ssh_cores} -iprlookup --formats tsv -i - -o {ssh_rootfolder}/{genome}.faa.tsv\n'
+    tsv_path = os.path.join(folder_path, genome + ".faa.tsv")
+    tsv_gz_path = os.path.join(folder_path, genome + ".faa.tsv.gz")
+    local_profile = os.getenv("TPW_PROFILE", "").strip().lower() == "local"
+    allow_local_fallback = local_profile and _flag_enabled("TPW_INTERPRO_LOCAL_FALLBACK", default=True)
 
-    stdin, stdout, stderr = ssh.exec_command(
-        f'touch script.sh && printf \"{text}\" > script.sh')
-    exit_status = stdout.channel.recv_exit_status()
+    ssh = None
+    scp = None
+    try:
+        ssh = paramiko.SSHClient()
+        ssh_rootfolder = os.getenv("SSH_WORKDIR") or cfg_dict.get("SSH", "WorkingDir")
+        ssh_host = os.getenv("SSH_HOSTNAME") or cfg_dict.get("SSH", "HostName")
+        ssh_user = os.getenv("SSH_USERNAME") or cfg_dict.get("SSH", "Username")
+        ssh_cores = os.getenv("SSH_CORES") or cfg_dict.get("SSH", "Cores")
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        pwd = os.getenv("SSH_PASSWORD")
+        if pwd is None:
+            pwd = cfg_dict.get("SSH", "Password", fallback=None)
+        if pwd == "":
+            pwd = None  # allow agent/key auth only
+        ssh.connect(
+            ssh_host,
+            username=ssh_user,
+            password=pwd,
+            allow_agent=True,
+            look_for_keys=True,
+        )
 
-    stdin, stdout, stderr = ssh.exec_command(
-        f"srun --nodes=1 --ntasks-per-node=1 --cpus-per-task={ssh_cores} --time=05:00:00 bash ./script.sh", get_pty=True)
-    finished = False
-    time_passed = 0
-    while not finished and time_passed < 9000:
-        try:
-            scp.get(f"{ssh_rootfolder}/{genome}.faa.tsv", folder_path)
-            finished = True
-        except:
-            print(f"File '{genome}.faa.tsv' not found. Retrying in 1 minute...")
-            time.sleep(60)  # Wait for 1 minute before retrying
-            time_passed += 1
-    
-    scp.close()
-    ssh.close()
-    with open(os.path.join(folder_path, genome + ".faa.tsv"), 'r') as f:
-        zipped_content = gzip.compress(bytes(f.read(), 'utf-8'))
-        with open(os.path.join(folder_path, genome + ".faa.tsv.gz"), 'wb') as f2:
-            f2.write(zipped_content)
-    return exit_status
+        scp = SCPClient(ssh.get_transport())
+        scp.put(os.path.join(folder_path, genome + ".faa.gz"), ssh_rootfolder)
+        text = ""
+        text += f'export LD_LIBRARY_PATH=\\\"/home/shared/miniconda3.8/envs/interproscan/lib/:$LD_LIBRARY_PATH\\\"\n'
+        text += f'eval \\\"\$(/home/shared/miniconda3.8/bin/conda shell.bash hook)\\\"\n'
+        text += f'conda activate interproscan\n'
+        text += f'zcat {genome}.faa.gz | /grupos/public/iprscan/current/interproscan.sh --pathways \
+            --goterms --cpu {ssh_cores} -iprlookup --formats tsv -i - -o {ssh_rootfolder}/{genome}.faa.tsv\n'
+
+        stdin, stdout, stderr = ssh.exec_command(f'touch script.sh && printf \"{text}\" > script.sh')
+        exit_status = stdout.channel.recv_exit_status()
+
+        stdin, stdout, stderr = ssh.exec_command(
+            f"srun --nodes=1 --ntasks-per-node=1 --cpus-per-task={ssh_cores} --time=05:00:00 bash ./script.sh",
+            get_pty=True,
+        )
+        finished = False
+        time_passed = 0
+        while not finished and time_passed < 9000:
+            try:
+                scp.get(f"{ssh_rootfolder}/{genome}.faa.tsv", folder_path)
+                finished = True
+            except Exception:
+                print(f"File '{genome}.faa.tsv' not found. Retrying in 1 minute...")
+                time.sleep(60)  # Wait for 1 minute before retrying
+                time_passed += 1
+
+        if not finished:
+            raise RuntimeError(f"InterProScan output not retrieved for {genome}")
+
+        with open(tsv_path, "r", encoding="utf-8") as f:
+            zipped_content = gzip.compress(bytes(f.read(), "utf-8"))
+            with open(tsv_gz_path, "wb") as f2:
+                f2.write(zipped_content)
+        return exit_status
+    except Exception as exc:
+        if not allow_local_fallback:
+            raise
+        print(f"InterProScan unavailable in local profile ({exc}); using empty InterPro output.")
+        with open(tsv_path, "w", encoding="utf-8"):
+            pass
+        with gzip.open(tsv_gz_path, "wt", encoding="utf-8"):
+            pass
+        return 0
+    finally:
+        if scp is not None:
+            try:
+                scp.close()
+            except Exception:
+                pass
+        if ssh is not None:
+            try:
+                ssh.close()
+            except Exception:
+                pass
 
 
 @bash_app(executors=["local_executor"])

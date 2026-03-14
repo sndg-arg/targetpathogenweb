@@ -1,0 +1,357 @@
+.genome-upload-page {
+    display: grid;
+    gap: var(--tp-space-4);
+    --view-accent: var(--tp-accent);
+    --view-accent-ink: var(--tp-color-brand-900);
+    --view-accent-soft: var(--tp-color-info-bg);
+    --view-accent-soft-2: var(--tp-color-brand-050);
+    --view-accent-border: var(--tp-color-brand-300);
+    --genome-upload-border: var(--tp-color-border-strong);
+}
+
+.genome-upload-hero {
+    border: 1px solid var(--genome-upload-border);
+    border-radius: var(--tp-ui-radius-hero);
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+    padding: 18px;
+    box-shadow: var(--tp-ui-shadow-panel);
+    position: relative;
+    overflow: hidden;
+}
+
+.genome-upload-hero::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--tp-color-brand-800) 0%, var(--tp-color-sage-700) 62%, var(--tp-color-brand-600) 100%);
+}
+
+.genome-upload-hero > * {
+    position: relative;
+    z-index: 1;
+}
+
+.genome-upload-hero h1 {
+    margin: 0;
+    font-size: clamp(1.55rem, 2.2vw, 2.05rem);
+    letter-spacing: 0.2px;
+    color: var(--view-accent-ink);
+    line-height: 1.08;
+}
+
+.genome-upload-subtitle {
+    margin: 6px 0 0;
+    color: var(--tp-color-text-secondary);
+    font-size: 1rem;
+    line-height: 1.42;
+    max-width: 860px;
+}
+
+.genome-upload-chip-group {
+    margin-top: 12px;
+}
+
+.genome-upload-pipeline-note,
+.genome-upload-card-note,
+.genome-upload-field-help {
+    color: var(--tp-color-text-muted);
+}
+
+.genome-upload-pipeline-note {
+    margin: 6px 0 0;
+    font-size: 0.84rem;
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.genome-upload-message {
+    border-style: solid;
+}
+
+.genome-upload-message--success {
+    border-color: var(--tp-color-success-border);
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-success-bg) 100%);
+    color: var(--tp-color-success-ink);
+}
+
+.genome-upload-card,
+.genome-upload-history {
+    border: 1px solid var(--genome-upload-border);
+    border-radius: var(--tp-ui-radius-panel);
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+    box-shadow: var(--tp-ui-shadow-panel);
+    padding: 14px;
+}
+
+.genome-upload-history {
+    overflow: hidden;
+}
+
+.genome-upload-history-tools,
+.genome-upload-history-clear-form,
+.genome-upload-test-form {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.genome-upload-card-head {
+    align-items: flex-start;
+    margin-bottom: 10px;
+}
+
+.genome-upload-card h2,
+.genome-upload-history h2 {
+    margin: 0;
+    font-size: 1.18rem;
+    color: var(--view-accent-ink);
+    line-height: 1.2;
+}
+
+.genome-upload-test-btn {
+    min-height: 34px;
+    padding-inline: 0.82rem;
+    white-space: nowrap;
+}
+
+.genome-upload-form {
+    display: grid;
+    gap: 12px;
+}
+
+.genome-upload-fieldset {
+    display: grid;
+    gap: 12px;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+.genome-upload-fieldset[disabled] {
+    opacity: 1;
+}
+
+.genome-upload-form-state {
+    margin-bottom: 12px;
+}
+
+.genome-upload-field {
+    gap: 6px;
+}
+
+.genome-upload-field input[type="text"],
+.genome-upload-field select {
+    min-height: var(--tp-ui-control-height);
+}
+
+.genome-upload-form-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+}
+
+.genome-upload-field input[type="file"] {
+    display: block;
+    width: 100%;
+    min-height: var(--tp-ui-control-height);
+    border: 1px solid var(--tp-color-border-strong);
+    border-radius: var(--tp-ui-radius-control);
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-size-sm);
+    font-weight: 600;
+    padding: 8px 10px;
+    transition: border-color var(--tp-ui-motion-base) var(--tp-ui-ease-standard), box-shadow var(--tp-ui-motion-base) var(--tp-ui-ease-standard), background var(--tp-ui-motion-base) var(--tp-ui-ease-standard);
+}
+
+.genome-upload-field input[type="file"]::file-selector-button {
+    border: 1px solid var(--view-accent-border);
+    border-radius: 9px;
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--view-accent-soft-2) 100%);
+    color: var(--view-accent-ink);
+    font-size: var(--tp-font-size-sm);
+    font-weight: 700;
+    line-height: 1;
+    padding: 0.45rem 0.74rem;
+    margin-right: 10px;
+    cursor: pointer;
+    transition: border-color var(--tp-ui-motion-base) var(--tp-ui-ease-standard), background var(--tp-ui-motion-base) var(--tp-ui-ease-standard), color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.genome-upload-field input[type="file"]:hover {
+    border-color: var(--view-accent-border);
+}
+
+.genome-upload-field input[type="file"]::file-selector-button:hover {
+    border-color: var(--view-accent);
+    background: var(--view-accent-soft);
+    color: var(--tp-color-link-hover);
+}
+
+.genome-upload-field input[type="file"]:focus-visible {
+    outline: none;
+    border-color: rgba(23, 96, 119, 0.42);
+    box-shadow: 0 0 0 0.2rem var(--tp-focus-ring);
+}
+
+.genome-upload-field-help,
+.genome-upload-field-error {
+    margin: 0;
+    font-size: var(--tp-font-size-sm);
+    line-height: 1.35;
+}
+
+.genome-upload-field-error {
+    color: var(--tp-color-danger-ink);
+    font-weight: 600;
+}
+
+.genome-upload-actions {
+    margin-top: 0;
+}
+
+.genome-upload-actions .tp-btn--primary {
+    min-width: 190px;
+    justify-content: center;
+}
+
+.genome-upload-actions .tp-btn--primary[disabled] {
+    min-width: 190px;
+}
+
+.genome-upload-history .tp-table-shell {
+    border-color: var(--tp-color-border);
+    background: var(--tp-color-surface);
+    box-shadow: 0 14px 28px rgba(16, 35, 46, 0.08);
+}
+
+.genome-upload-history .table {
+    margin-bottom: 0;
+    background: var(--tp-color-surface);
+}
+
+.genome-upload-history .table thead th,
+.genome-upload-history .table tbody td {
+    padding: 0.72rem 0.64rem;
+    vertical-align: middle;
+}
+
+.genome-upload-history .table thead th:first-child,
+.genome-upload-history .table tbody td:first-child {
+    padding-left: 0.88rem;
+}
+
+.genome-upload-history .table td {
+    border-top: 1px solid var(--tp-color-border-soft);
+}
+
+.genome-upload-history-clear-btn {
+    min-height: 34px;
+    padding-inline: 0.7rem;
+}
+
+.genome-upload-empty-note {
+    max-width: 720px;
+}
+
+@media (max-width: 760px) {
+    .genome-upload-card-head {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .genome-upload-test-form {
+        width: 100%;
+    }
+
+    .genome-upload-test-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+.genome-upload-history-name {
+    font-weight: 700;
+    color: var(--view-accent-ink);
+}
+
+.genome-upload-history-row.is-running {
+    background: var(--tp-color-success-bg) !important;
+    box-shadow: inset 3px 0 0 var(--tp-color-brand-600);
+}
+
+.genome-upload-status {
+    justify-content: center;
+    min-width: 88px;
+    font-weight: 700;
+}
+
+.genome-upload-status--queued,
+.genome-upload-status--submitted {
+    border-color: var(--tp-color-info-border);
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-info-bg) 100%);
+    color: var(--tp-color-info-ink);
+}
+
+.genome-upload-status--running {
+    border-color: var(--tp-color-success-border);
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-success-bg) 100%);
+    color: var(--tp-color-success-ink);
+}
+
+.genome-upload-status--finished {
+    border-color: var(--tp-color-info-border);
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-info-bg) 100%);
+    color: var(--tp-color-info-ink);
+}
+
+.genome-upload-status--failed {
+    border-color: var(--tp-color-danger-border);
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-danger-bg) 100%);
+    color: var(--tp-color-danger-ink);
+}
+
+.genome-upload-status--submitted {
+    border-color: var(--tp-color-warning-border);
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-warning-bg) 100%);
+    color: var(--tp-color-warning-ink);
+}
+
+.genome-upload-hero,
+.genome-upload-card,
+.genome-upload-history,
+.genome-upload-message {
+    animation: genome-upload-enter 0.36s ease;
+}
+
+.genome-upload-card {
+    animation-delay: 0.04s;
+}
+
+.genome-upload-history {
+    animation-delay: 0.08s;
+}
+
+@media (max-width: 767.98px) {
+    .genome-upload-actions {
+        justify-content: flex-end;
+    }
+
+    .genome-upload-actions .tp-btn--primary {
+        width: 100%;
+    }
+}
+
+@keyframes genome-upload-enter {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

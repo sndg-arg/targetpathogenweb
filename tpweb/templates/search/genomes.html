@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/genomes-list.css' %}?v=20260309-10">
+    <link rel="stylesheet" href="{% static 'css/pages/genomes-list.css' %}?v=20260314-2">
 {% endblock %}
 
 {% block body %}
@@ -15,9 +15,25 @@
             {% trans "Genomes" as crumb_genomes %}
             {% url 'tpwebapp:index' as index_url %}
             {% include "components/navigation/breadcrumbs.html" with crumb_1_label=crumb_home crumb_1_url=index_url crumb_2_label=crumb_genomes %}
-            <h1>{% trans "Genomes" %}</h1>
-            <p class="genomes-subtitle">{% trans "Open a genome to access its protein workspace." %}</p>
-            {% if pipeline_status.available %}
+            <div class="genomes-hero-head">
+                <div class="genomes-hero-copy">
+                    <h1>{% trans "Genomes" %}</h1>
+                    {% if genomes or has_search %}
+                        <p class="genomes-subtitle">{% trans "Open a genome to access its protein workspace." %}</p>
+                    {% else %}
+                        <p class="genomes-subtitle">{% trans "Create the first genome workspace to start exploring proteins and structures." %}</p>
+                    {% endif %}
+                </div>
+                {% if genomes or has_search %}
+                    <a class="btn tp-btn tp-btn--primary tp-btn-with-icon genomes-upload-btn" href="{% url 'tpwebapp:genome_upload' %}">
+                        <span class="tp-btn-icon" aria-hidden="true">
+                            {% include "components/icons/plus.html" %}
+                        </span>
+                        {% trans "Upload genome" %}
+                    </a>
+                {% endif %}
+            </div>
+            {% if pipeline_status.running and not pipeline_status.running_for_other_workspace %}
                 <div class="genomes-pipeline">
                     {% include "components/pipeline/chip.html" with pipeline_status=pipeline_status mode="global" chip_class="tp-chip tp-chip--state tp-chip--sm" %}
                     {% include "components/pipeline/note.html" with pipeline_status=pipeline_status mode="global" note_class="genomes-pipeline-note" %}
@@ -30,27 +46,35 @@
             </div>
         </section>
 
-        <section class="genomes-toolbar tp-ui-toolbar">
-            <form method="GET" action="" class="genomes-search tp-ui-toolbar-form" id="genomes-search-form">
-                <div class="tp-ui-search-row tp-ui-toolbar-row tp-ui-toolbar-row--stack-sm">
-                    <input class="form-control tp-ui-control tp-ui-search-input" type="text" id="genomes-search-input" name="search" placeholder="{% trans "Search by accession or description..." %}" value="{{ search_query }}">
-                    <div class="tp-ui-search-actions">
-                        <button class="btn tp-btn tp-btn--primary" type="submit" id="genomes-search-submit">{% trans "Search" %}</button>
-                        {% url 'tpwebapp:genomes_list' as clear_genomes_search_url %}
-                        {% trans "Clear search" as clear_search_label %}
-                        {% if search_query %}
-                            {% include "components/buttons/clear_action.html" with label=clear_search_label href=clear_genomes_search_url %}
-                        {% else %}
-                            {% include "components/buttons/clear_action.html" with label=clear_search_label disabled="1" %}
-                        {% endif %}
+        {% if genomes or has_search %}
+            <section class="genomes-toolbar tp-ui-toolbar">
+                <form method="GET" action="" class="genomes-search tp-ui-toolbar-form" id="genomes-search-form">
+                    <div class="tp-ui-search-row tp-ui-toolbar-row tp-ui-toolbar-row--stack-sm">
+                        <input class="form-control tp-ui-control tp-ui-search-input" type="text" id="genomes-search-input" name="search" placeholder="{% trans "Search by accession or description..." %}" value="{{ search_query }}">
+                        <div class="tp-ui-search-actions">
+                            <button class="btn tp-btn tp-btn--primary" type="submit" id="genomes-search-submit">{% trans "Search" %}</button>
+                            {% url 'tpwebapp:genomes_list' as clear_genomes_search_url %}
+                            {% trans "Clear search" as clear_search_label %}
+                            {% if search_query %}
+                                {% include "components/buttons/clear_action.html" with label=clear_search_label href=clear_genomes_search_url %}
+                            {% else %}
+                                {% include "components/buttons/clear_action.html" with label=clear_search_label disabled="1" %}
+                            {% endif %}
+                        </div>
                     </div>
-                </div>
-            </form>
-        </section>
+                </form>
+            </section>
+        {% endif %}
 
         {% if genomes %}
-            <section class="genomes-workspace {% if not show_detail_panel %}no-detail{% endif %}">
+            <section class="genomes-workspace">
                 <div class="genome-list-card tp-ui-panel">
+                    <div class="genome-list-head">
+                        <div class="genome-list-head-copy">
+                            <h2>{% trans "Available genomes" %}</h2>
+                            <p>{% trans "Select a genome to open its protein workspace." %}</p>
+                        </div>
+                    </div>
                     <div class="tp-table-shell">
                         <table class="table table-striped table-hover mb-0 tp-table tp-table--plain tp-table--premium">
                             <thead>
@@ -64,19 +88,16 @@
                             </thead>
                             <tbody>
                             {% for genome in genomes %}
-                                <tr class="genome-row {% if forloop.first %}is-selected{% endif %} {% if pipeline_status.running and pipeline_status.genome_accession == genome.name %}is-processing{% endif %}"
+                                <tr class="genome-row {% if pipeline_status.running and pipeline_status.genome_accession == genome.internal_name %}is-processing{% endif %}"
                                     tabindex="0"
-                                    data-name="{{ genome.name|default_if_none:''|escape }}"
-                                    data-description="{{ genome.description|default_if_none:'-'|escape }}"
-                                    data-entry-length="{{ genome.EntryLength|default_if_none:'-'|escape }}"
-                                    data-count-cds="{{ genome.COUNT_CDS|default_if_none:'-'|escape }}"
-                                    data-count-structs="{{ genome.COUNT_STRUCTS|default_if_none:'-'|escape }}"
-                                    data-protein-url="{% url 'tpwebapp:protein_list' genome.name %}">
+                                    data-protein-url="{% url 'tpwebapp:protein_list' genome.internal_name %}">
                                     <td class="genomes-name">
-                                        <a href="{% url 'tpwebapp:protein_list' genome.name %}">{{ genome.name }}</a>
-                                        {% if pipeline_status.running and pipeline_status.genome_accession == genome.name %}
-                                            <span class="genome-processing-badge">{% trans "In progress" %}</span>
-                                        {% endif %}
+                                        <div class="genomes-name-stack">
+                                            <a href="{% url 'tpwebapp:protein_list' genome.internal_name %}">{{ genome.name }}</a>
+                                            {% if pipeline_status.running and pipeline_status.genome_accession == genome.internal_name %}
+                                                <span class="genome-processing-badge">{% trans "In progress" %}</span>
+                                            {% endif %}
+                                        </div>
                                     </td>
                                     <td>{{ genome.description }}</td>
                                     {% for col in tcolumns %}
@@ -88,36 +109,26 @@
                         </table>
                     </div>
                 </div>
-
-                {% if show_detail_panel %}
-                    <aside class="genome-detail-card tp-ui-panel" id="genome-detail-card">
-                        <h2 id="genome-detail-name">{{ selected_genome.name|default:"-" }}</h2>
-                        <p class="genome-detail-description" id="genome-detail-description">{{ selected_genome.description|default:"-" }}</p>
-                        <div class="genome-metric-grid">
-                            <div class="genome-metric">
-                                <strong>{% trans "Genome length [bp]" %}</strong>
-                                <span id="genome-detail-length">{{ selected_genome.EntryLength|default:"-" }}</span>
-                            </div>
-                            <div class="genome-metric">
-                                <strong>{% trans "Proteins" %}</strong>
-                                <span id="genome-detail-proteins">{{ selected_genome.COUNT_CDS|default:"-" }}</span>
-                            </div>
-                            <div class="genome-metric">
-                                <strong>{% trans "Structures" %}</strong>
-                                <span id="genome-detail-structures">{{ selected_genome.COUNT_STRUCTS|default:"-" }}</span>
-                            </div>
-                        </div>
-                        <a id="genome-detail-open-btn"
-                           class="btn tp-btn tp-btn--primary"
-                           href="{% if selected_genome %}{% url 'tpwebapp:protein_list' selected_genome.name %}{% else %}#{% endif %}">
-                            {% trans "Open protein workspace" %}
-                        </a>
-                    </aside>
-                {% endif %}
             </section>
         {% else %}
-            <section class="genome-workspace-empty tp-state-note tp-state-note--empty">
-                {% trans "No genomes match the current search." %}
+            <section class="genome-workspace-empty tp-ui-panel">
+                {% if has_search %}
+                    <p class="tp-state-note tp-state-note--empty mb-0">{% trans "No genomes match the current search." %}</p>
+                {% else %}
+                    <div class="genome-workspace-empty-copy">
+                        <span class="genome-workspace-empty-kicker">{% trans "Workspace empty" %}</span>
+                        <h2>{% trans "No genomes yet" %}</h2>
+                        <p>{% trans "Upload a compressed GenBank file to create the first protein workspace for this account." %}</p>
+                    </div>
+                    <div class="genome-workspace-empty-actions">
+                        <a class="btn tp-btn tp-btn--primary tp-btn-with-icon" href="{% url 'tpwebapp:genome_upload' %}">
+                            <span class="tp-btn-icon" aria-hidden="true">
+                                {% include "components/icons/plus.html" %}
+                            </span>
+                            {% trans "Upload genome" %}
+                        </a>
+                    </div>
+                {% endif %}
             </section>
         {% endif %}
     </div>
@@ -130,13 +141,6 @@
             const genomesSearchForm = document.getElementById("genomes-search-form");
             const genomesSearchInput = document.getElementById("genomes-search-input");
             const genomesSearchSubmit = document.getElementById("genomes-search-submit");
-            const detailName = document.getElementById("genome-detail-name");
-            const detailDescription = document.getElementById("genome-detail-description");
-            const detailLength = document.getElementById("genome-detail-length");
-            const detailProteins = document.getElementById("genome-detail-proteins");
-            const detailStructures = document.getElementById("genome-detail-structures");
-            const detailOpenBtn = document.getElementById("genome-detail-open-btn");
-            const shouldOpenOnRowClick = !detailOpenBtn;
 
             function hasSearchText() {
                 return Boolean(genomesSearchInput && (genomesSearchInput.value || "").trim().length > 0);
@@ -163,43 +167,19 @@
 
             syncSearchSubmitState();
 
-            function setSelectedRow(row) {
-                rows.forEach(function (r) { r.classList.remove("is-selected"); });
-                row.classList.add("is-selected");
-            }
-
-            function updateDetail(row) {
-                if (!detailName && !detailDescription && !detailLength && !detailProteins && !detailStructures && !detailOpenBtn) {
-                    return;
-                }
-                if (!row) return;
-                if (detailName) detailName.textContent = row.dataset.name || "-";
-                if (detailDescription) detailDescription.textContent = row.dataset.description || "-";
-                if (detailLength) detailLength.textContent = row.dataset.entryLength || "-";
-                if (detailProteins) detailProteins.textContent = row.dataset.countCds || "-";
-                if (detailStructures) detailStructures.textContent = row.dataset.countStructs || "-";
-                if (detailOpenBtn) detailOpenBtn.href = row.dataset.proteinUrl || "#";
-            }
-
             rows.forEach(function (row) {
                 row.addEventListener("click", function (event) {
                     if (event.target.closest("a")) return;
-                    if (shouldOpenOnRowClick && row.dataset.proteinUrl) {
+                    if (row.dataset.proteinUrl) {
                         window.location.href = row.dataset.proteinUrl;
-                        return;
                     }
-                    setSelectedRow(row);
-                    updateDetail(row);
                 });
                 row.addEventListener("keydown", function (event) {
                     if (event.key === "Enter" || event.key === " ") {
                         event.preventDefault();
-                        if (shouldOpenOnRowClick && row.dataset.proteinUrl) {
+                        if (row.dataset.proteinUrl) {
                             window.location.href = row.dataset.proteinUrl;
-                            return;
                         }
-                        setSelectedRow(row);
-                        updateDetail(row);
                     }
                 });
             });

@@ -2,6 +2,10 @@ from django.db.models import Count, Q
 
 from bioseq.models.Bioentry import Bioentry
 from bioseq.models.Biodatabase import Biodatabase
+from tpweb.services.genome_workspace import (
+    display_genome_name,
+    visible_genome_name_filter,
+)
 
 
 GENOME_TABLE_COLUMNS = {
@@ -35,10 +39,12 @@ def normalize_structure_count(protein_count, structure_count):
     return max(safe_int(protein_count), safe_int(structure_count))
 
 
-def build_genomes_queryset(search_query=""):
+def build_genomes_queryset(user=None, search_query=""):
     genomes = (
         Biodatabase.objects.exclude(
             Q(name__endswith="_rnas") | Q(name__endswith="_prots")
+        ).filter(
+            visible_genome_name_filter(user)
         ).prefetch_related("qualifiers__term")
     )
     cleaned_query = (search_query or "").strip()
@@ -97,7 +103,8 @@ def build_genome_dto(
     structure_counts_by_genome = structure_counts_by_genome or {}
 
     genome_dto = {
-        "name": genome.name,
+        "name": display_genome_name(genome.name),
+        "internal_name": genome.name,
         "description": genome.description,
     }
     qualifiers = genome.qualifiers_dict()

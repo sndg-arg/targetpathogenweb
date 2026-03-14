@@ -61,6 +61,7 @@
     display: grid;
     grid-template-columns: minmax(320px, 430px) minmax(0, 1fr);
     gap: var(--tp-ui-gap-md);
+    align-items: start;
 }
 
 .parameter-card {
@@ -73,6 +74,18 @@
 
 .parameter-card-head {
     margin-bottom: 10px;
+}
+
+.parameter-card-head-copy {
+    display: grid;
+    gap: 4px;
+}
+
+.parameter-card-head-note {
+    margin: 0;
+    color: var(--tp-color-text-muted);
+    font-size: 0.88rem;
+    line-height: 1.35;
 }
 
 .parameter-card h2 {
@@ -127,6 +140,12 @@
     box-shadow: none;
     transform: none;
     cursor: not-allowed;
+}
+
+.parameter-card--active {
+    display: grid;
+    gap: 10px;
+    align-content: start;
 }
 
 .parameter-active-list {
@@ -209,11 +228,23 @@
 }
 
 .parameter-actions {
-    margin-top: var(--tp-ui-gap-md);
+    margin-top: 4px;
 }
 
 .parameter-actions form {
     margin: 0;
+}
+
+.parameter-empty-state {
+    display: grid;
+    gap: 8px;
+}
+
+.parameter-empty-caption {
+    margin: 0;
+    color: var(--tp-color-text-muted);
+    font-size: var(--pf-size-helper);
+    line-height: 1.4;
 }
 
 @media (max-width: 960px) {

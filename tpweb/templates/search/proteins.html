@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20260309-9">
+    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20260314-1">
 {% endblock %}
 
 {% block body %}
@@ -30,7 +30,6 @@
             <div class="hero-chips tp-chip-group">
                 <span class="tp-chip tp-chip--meta">{{ pagination.proteins.paginator.count }} {% trans "proteins" %}</span>
                 <span class="tp-chip tp-chip--meta">{% trans "Rows per page" %}: {{ page_size }}</span>
-                {% include "components/pipeline/chip.html" with pipeline_status=pipeline_status mode="genome" chip_class="tp-chip tp-chip--state tp-chip--sm" %}
             </div>
             <div class="hero-summary">
                 <p class="hero-summary-line">
@@ -160,7 +159,7 @@
                             <th>{% trans "Description" %}</th>
                             <th>{% trans "Gene" %}</th>
                             {% for col in tcolumns %}
-                                <th title="{{ col_descriptions|dictkey:col }}">{{ col|replace_char:"_, " }}</th>
+                                <th data-col="{{ col|slugify }}" title="{{ col_descriptions|dictkey:col }}">{{ col|replace_char:"_, " }}</th>
                             {% endfor %}
                         </tr>
                         </thead>
@@ -172,7 +171,7 @@
                                 <td class="desc-col">{{ protein.description }}</td>
                                 <td class="gene-col">{{ protein.genes|join:', ' }}</td>
                                 {% for col in tcolumns %}
-                                    <td>
+                                    <td data-col="{{ col|slugify }}">
                                         {% if col == "Score" %}
                                             <span class="tp-chip tp-chip--score">{{ tdata|dictkey:protein.id|dictkey:col|default:"" }}</span>
                                         {% else %}
@@ -771,6 +770,12 @@
             });
         }
 
-        $(document).ready(jsloaded);
+        if (window.jQuery) {
+            $(document).ready(jsloaded);
+        } else if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", jsloaded);
+        } else {
+            jsloaded();
+        }
     </script>
 {% endblock %}

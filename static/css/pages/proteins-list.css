@@ -471,7 +471,7 @@
 .protein-table {
     margin-bottom: 0;
     width: 100%;
-    table-layout: fixed;
+    table-layout: auto;
 }
 
 .protein-table thead th {
@@ -500,18 +500,33 @@
 
 .protein-table thead th:nth-child(2),
 .protein-table tbody td:nth-child(2) {
-    width: 240px;
+    min-width: 220px;
 }
 
 .protein-table thead th:nth-child(4),
 .protein-table tbody td:nth-child(4) {
-    width: 150px;
+    min-width: 150px;
 }
 
 .protein-table thead th:nth-child(n + 5),
 .protein-table tbody td:nth-child(n + 5) {
-    width: 124px;
+    min-width: 118px;
     text-align: center;
+}
+
+.protein-table thead th[data-col="localization"],
+.protein-table tbody td[data-col="localization"] {
+    min-width: 190px;
+    text-align: left;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.protein-table thead th[data-col="score"],
+.protein-table tbody td[data-col="score"] {
+    min-width: 98px;
+    text-align: center;
+    white-space: nowrap;
 }
 
 .rank-col {
@@ -857,16 +872,19 @@
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%) scale(0.96);
-    width: min(640px, 94vw);
+    width: min(760px, 96vw);
     background: var(--tp-color-surface);
     border: 1px solid var(--tp-color-border-soft);
     border-radius: 14px;
     box-shadow: 0 20px 40px rgba(17, 36, 48, 0.28);
-    max-height: min(92dvh, 780px);
+    max-height: min(96dvh, 860px);
     z-index: 1060;
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.2s ease, transform 0.2s ease;
+    display: grid;
+    grid-template-rows: auto 1fr;
+    overflow: visible;
 }
 
 .formula-modal.open {
@@ -893,8 +911,13 @@
     padding: 14px;
     display: grid;
     gap: 10px;
-    max-height: calc(min(92dvh, 780px) - 110px);
-    overflow: auto;
+    max-height: none;
+    overflow: visible;
+}
+
+.formula-modal .tp-select-menu {
+    max-height: min(46dvh, 320px);
+    z-index: 90;
 }
 
 .formula-current {
@@ -1083,7 +1106,7 @@
     }
 
     .formula-modal {
-        width: min(640px, calc(100vw - 20px));
+        width: min(720px, calc(100vw - 16px));
     }
 }
 
@@ -1114,10 +1137,12 @@
     .formula-modal {
         width: calc(100vw - 12px);
         max-height: calc(100dvh - 12px);
+        overflow: hidden;
     }
 
     .formula-body {
         max-height: calc(100dvh - 128px);
+        overflow-y: auto;
     }
 }
 

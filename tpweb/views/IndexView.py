@@ -4,7 +4,7 @@ from django.utils.html import strip_tags
 
 from tpweb.models.TPPost import TPPost
 from tpweb.services.genomes import build_genomes_dto, build_genomes_queryset, summarize_genomes
-from tpweb.services.pipeline_status import get_pipeline_status
+from tpweb.services.pipeline_status import get_pipeline_status, sanitize_pipeline_status_for_user
 
 
 class IndexView(View):
@@ -12,7 +12,7 @@ class IndexView(View):
 
     def get(self, request, *args, **kwargs):
         post = TPPost.objects.first()
-        genomes = build_genomes_queryset()
+        genomes = build_genomes_queryset(user=request.user)
         genome_metrics = summarize_genomes(build_genomes_dto(genomes))
 
         has_project_notes = False
@@ -27,6 +27,8 @@ class IndexView(View):
             "total_structures": genome_metrics.get(
                 "total_structures", genome_metrics.get("genomes_with_structures", 0)
             ),
-            "pipeline_status": get_pipeline_status(),
+            "pipeline_status": sanitize_pipeline_status_for_user(
+                get_pipeline_status(), request.user
+            ),
         }
         return render(request, self.template_name, context)
