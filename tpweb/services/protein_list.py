@@ -13,6 +13,7 @@ ACRONYM_TOKENS = {
     "rna": "RNA",
     "p2rank": "P2RANK",
     "fpocket": "FPocket",
+    "alphafold": "AlphaFold",
     "id": "ID",
 }
 
@@ -26,13 +27,36 @@ EXACT_REPLACEMENTS = {
     "gut_microbiome_offtarget": "Gut microbiome off-target",
     "hit_in_deg": "Hit in DEG",
     "no_hit": "No hit",
+    "ec_number": "EC number",
+    "go_term": "GO term",
 }
 
 
 def normalize_selected_parameters(raw_selected_parameters):
     if not isinstance(raw_selected_parameters, list):
         return []
-    return raw_selected_parameters
+    return [item for item in raw_selected_parameters if isinstance(item, dict)]
+
+
+def _selected_parameter_kind(parameter):
+    return str(parameter.get("type") or "categorical").strip().lower()
+
+
+def _selected_parameter_display_value(parameter, humanize=False):
+    kind = _selected_parameter_kind(parameter)
+    if kind == "special":
+        special_value = parameter.get("display_name") or parameter.get("name", "")
+        return humanize_identifier(special_value) if humanize else special_value
+    if kind != "numeric":
+        option_name = parameter.get("name", "")
+        return humanize_identifier(option_name) if humanize else option_name
+
+    operation = str(parameter.get("operation") or "").strip()
+    value = parameter.get("value")
+    value_max = parameter.get("value_max")
+    if operation == "between":
+        return f"{operation} {value:g} - {value_max:g}"
+    return f"{operation} {value:g}"
 
 
 def humanize_identifier(value):
@@ -66,10 +90,9 @@ def grouped_selected_parameters(selected_parameters, humanize=False):
     grouped_data = {}
     for item in selected_parameters:
         score_param_name = item["score_param_name"]
-        option_name = item["name"]
+        option_name = _selected_parameter_display_value(item, humanize=humanize)
         if humanize:
             score_param_name = humanize_identifier(score_param_name) or score_param_name
-            option_name = humanize_identifier(option_name) or option_name
         grouped_data.setdefault(score_param_name, []).append(option_name)
     return {k: ", ".join(v) for k, v in grouped_data.items()}
 
@@ -91,6 +114,8 @@ def remove_selected_parameter(selected_parameters, option_id):
 def selected_parameters_to_filter_map(selected_parameters):
     parameter_map = {}
     for parameter in selected_parameters:
+        if _selected_parameter_kind(parameter) in {"numeric", "special"}:
+            continue
         score_param = parameter.get("score_param_id")
         score_name = parameter.get("name")
         if score_param not in parameter_map:
@@ -101,12 +126,76 @@ def selected_parameters_to_filter_map(selected_parameters):
 
 
 def apply_selected_parameter_filters(queryset, selected_parameters):
-    parameter_map = selected_parameters_to_filter_map(selected_parameters)
     filtered_queryset = queryset
+    parameter_map = selected_parameters_to_filter_map(selected_parameters)
     for param_id, values in parameter_map.items():
         filtered_queryset = filtered_queryset.filter(
             Q(score_params__score_param_id=param_id) & Q(score_params__value__in=values)
         )
+    special_groups = {}
+    for parameter in selected_parameters:
+        if _selected_parameter_kind(parameter) != "special":
+            continue
+        special_key = str(parameter.get("special_key") or "").strip()
+        special_value = str(parameter.get("special_value") or "").strip()
+        if not special_key or not special_value:
+            continue
+        special_groups.setdefault(special_key, []).append(special_value)
+
+    structure_values = [value.lower() for value in special_groups.get("structure_source", [])]
+    if structure_values:
+        structure_query = Q()
+        if "none" in structure_values:
+            structure_query |= Q(structures__isnull=True)
+        if "experimental" in structure_values:
+            structure_query |= (Q(structures__isnull=False) & ~Q(structures__pdb__experiment="AF"))
+        if "alphafold" in structure_values:
+            structure_query |= Q(structures__pdb__experiment="AF")
+        filtered_queryset = filtered_queryset.filter(structure_query)
+
+    ec_values = [value for value in special_groups.get("ec_filter", []) if value]
+    if ec_values:
+        ec_query = Q()
+        for ec_value in ec_values:
+            ec_query |= Q(
+                dbxrefs__dbxref__dbname="ec",
+                dbxrefs__dbxref__accession__istartswith=ec_value,
+            )
+        filtered_queryset = filtered_queryset.filter(ec_query)
+
+    go_values = [value for value in special_groups.get("go_filter", []) if value]
+    if go_values:
+        go_query = Q()
+        for go_value in go_values:
+            go_query |= Q(
+                dbxrefs__dbxref__dbname__in=["go", "GO"],
+                dbxrefs__dbxref__accession__iexact=go_value,
+            )
+        filtered_queryset = filtered_queryset.filter(go_query)
+
+    for parameter in selected_parameters:
+        if _selected_parameter_kind(parameter) != "numeric":
+            continue
+        param_id = parameter.get("score_param_id")
+        operation = parameter.get("operation")
+        value = parameter.get("value")
+        value_max = parameter.get("value_max")
+        if operation == ">=":
+            filtered_queryset = filtered_queryset.filter(
+                score_params__score_param_id=param_id,
+                score_params__numeric_value__gte=value,
+            )
+        elif operation == "<=":
+            filtered_queryset = filtered_queryset.filter(
+                score_params__score_param_id=param_id,
+                score_params__numeric_value__lte=value,
+            )
+        elif operation == "between":
+            filtered_queryset = filtered_queryset.filter(
+                score_params__score_param_id=param_id,
+                score_params__numeric_value__gte=value,
+                score_params__numeric_value__lte=value_max,
+            )
     return filtered_queryset
 
 

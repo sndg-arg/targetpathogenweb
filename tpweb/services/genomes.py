@@ -2,7 +2,10 @@ from django.db.models import Count, Q
 
 from bioseq.models.Bioentry import Bioentry
 from bioseq.models.Biodatabase import Biodatabase
+from bioseq.models.Ontology import Ontology
+from tpweb.models.BioentryStructure import BioentryStructure
 from tpweb.services.genome_workspace import (
+    describe_genome_scope,
     display_genome_name,
     visible_genome_name_filter,
 )
@@ -11,8 +14,11 @@ from tpweb.services.genome_workspace import (
 GENOME_TABLE_COLUMNS = {
     "EntryLength": "Length [bp]",
     "COUNT_CDS": "# Proteins",
-    "COUNT_STRUCTS": "# Structures",
+    "COUNT_EXPERIMENTAL": "Experimental",
+    "COUNT_EC": "EC annotated",
 }
+
+EC_DBNAMES = {str(Ontology.EC or "").strip(), "ec", "EC"}
 
 
 def safe_int(value):
@@ -30,13 +36,6 @@ def resolve_live_count(genome_name, live_counts_by_genome, qualifier_value):
     if qualifier_value is not None:
         return qualifier_value
     return 0
-
-
-def normalize_structure_count(protein_count, structure_count):
-    """
-    Keep structure counts aligned with protein totals for the current product metric.
-    """
-    return max(safe_int(protein_count), safe_int(structure_count))
 
 
 def build_genomes_queryset(user=None, search_query=""):
@@ -65,47 +64,76 @@ def _normalize_counts_by_genome(counts_by_proteome_name):
     }
 
 
-def _protein_counts_by_genome(genome_names):
+def _proteins_by_genome_queryset(genome_names):
     if not genome_names:
-        return {}
+        return Bioentry.objects.none()
     proteome_names = [f"{name}{Biodatabase.PROT_POSTFIX}" for name in genome_names]
+    return Bioentry.objects.filter(biodatabase__name__in=proteome_names)
 
+
+def _protein_counts_by_genome(genome_names):
+    proteins = _proteins_by_genome_queryset(genome_names)
+    if not proteins.exists():
+        return {}
     protein_counts = dict(
-        Bioentry.objects.filter(biodatabase__name__in=proteome_names)
-        .values_list("biodatabase__name")
+        proteins.values("biodatabase__name")
         .annotate(total=Count("bioentry_id"))
+        .values_list("biodatabase__name", "total")
     )
     return _normalize_counts_by_genome(protein_counts)
 
 
-def _structure_counts_by_genome(genome_names):
+def _experimental_counts_by_genome(genome_names):
     if not genome_names:
         return {}
-    proteome_names = [f"{name}{Biodatabase.PROT_POSTFIX}" for name in genome_names]
 
-    structure_counts = dict(
-        Bioentry.objects.filter(
-            biodatabase__name__in=proteome_names, structures__isnull=False
+    experimental_counts = dict(
+        BioentryStructure.objects.filter(
+            bioentry__biodatabase__name__in=[
+                f"{name}{Biodatabase.PROT_POSTFIX}" for name in genome_names
+            ]
         )
-        .values_list("biodatabase__name")
+        .exclude(pdb__experiment="AF")
+        .values("bioentry__biodatabase__name")
         .annotate(total=Count("bioentry_id", distinct=True))
+        .values_list("bioentry__biodatabase__name", "total")
     )
-    return _normalize_counts_by_genome(structure_counts)
+    return _normalize_counts_by_genome(experimental_counts)
+
+
+def _ec_counts_by_genome(genome_names):
+    proteins = _proteins_by_genome_queryset(genome_names)
+    if not proteins.exists():
+        return {}
+
+    ec_counts = dict(
+        proteins.filter(dbxrefs__dbxref__dbname__in=EC_DBNAMES)
+        .values("biodatabase__name")
+        .annotate(total=Count("bioentry_id", distinct=True))
+        .values_list("biodatabase__name", "total")
+    )
+    return _normalize_counts_by_genome(ec_counts)
 
 
 def build_genome_dto(
     genome,
+    user=None,
     columns=GENOME_TABLE_COLUMNS,
     protein_counts_by_genome=None,
-    structure_counts_by_genome=None,
+    experimental_counts_by_genome=None,
+    ec_counts_by_genome=None,
 ):
     protein_counts_by_genome = protein_counts_by_genome or {}
-    structure_counts_by_genome = structure_counts_by_genome or {}
+    experimental_counts_by_genome = experimental_counts_by_genome or {}
+    ec_counts_by_genome = ec_counts_by_genome or {}
 
+    workspace_scope = describe_genome_scope(user, genome.name)
     genome_dto = {
         "name": display_genome_name(genome.name),
         "internal_name": genome.name,
         "description": genome.description,
+        "workspace_scope_key": workspace_scope["key"],
+        "workspace_scope_label": workspace_scope["label"],
     }
     qualifiers = genome.qualifiers_dict()
     protein_count = safe_int(
@@ -115,37 +143,49 @@ def build_genome_dto(
             qualifiers.get("COUNT_CDS"),
         )
     )
-    structure_count = normalize_structure_count(
-        protein_count,
+    experimental_count = safe_int(
         resolve_live_count(
             genome.name,
-            structure_counts_by_genome,
-            qualifiers.get("COUNT_STRUCTS"),
-        ),
+            experimental_counts_by_genome,
+            qualifiers.get("COUNT_EXPERIMENTAL"),
+        )
+    )
+    ec_count = safe_int(
+        resolve_live_count(
+            genome.name,
+            ec_counts_by_genome,
+            qualifiers.get("COUNT_EC"),
+        )
     )
     for column_name in columns:
         if column_name == "COUNT_CDS":
             genome_dto[column_name] = protein_count
             continue
-        if column_name == "COUNT_STRUCTS":
-            genome_dto[column_name] = structure_count
+        if column_name == "COUNT_EXPERIMENTAL":
+            genome_dto[column_name] = experimental_count
+            continue
+        if column_name == "COUNT_EC":
+            genome_dto[column_name] = ec_count
             continue
         genome_dto[column_name] = qualifiers.get(column_name)
     return genome_dto
 
 
-def build_genomes_dto(genomes, columns=GENOME_TABLE_COLUMNS):
+def build_genomes_dto(genomes, user=None, columns=GENOME_TABLE_COLUMNS):
     genomes = list(genomes)
     genome_names = [genome.name for genome in genomes]
     protein_counts_by_genome = _protein_counts_by_genome(genome_names)
-    structure_counts_by_genome = _structure_counts_by_genome(genome_names)
+    experimental_counts_by_genome = _experimental_counts_by_genome(genome_names)
+    ec_counts_by_genome = _ec_counts_by_genome(genome_names)
 
     return [
         build_genome_dto(
             genome,
+            user=user,
             columns=columns,
             protein_counts_by_genome=protein_counts_by_genome,
-            structure_counts_by_genome=structure_counts_by_genome,
+            experimental_counts_by_genome=experimental_counts_by_genome,
+            ec_counts_by_genome=ec_counts_by_genome,
         )
         for genome in genomes
     ]
@@ -154,13 +194,13 @@ def build_genomes_dto(genomes, columns=GENOME_TABLE_COLUMNS):
 def summarize_genomes(genomes_dto):
     total_genomes = len(genomes_dto)
     total_proteins = sum(safe_int(genome.get("COUNT_CDS")) for genome in genomes_dto)
-    total_structures = sum(safe_int(genome.get("COUNT_STRUCTS")) for genome in genomes_dto)
-    genomes_with_structures = sum(
-        1 for genome in genomes_dto if safe_int(genome.get("COUNT_STRUCTS")) > 0
+    total_experimental = sum(
+        safe_int(genome.get("COUNT_EXPERIMENTAL")) for genome in genomes_dto
     )
+    total_ec_annotated = sum(safe_int(genome.get("COUNT_EC")) for genome in genomes_dto)
     return {
         "total_genomes": total_genomes,
         "total_proteins": total_proteins,
-        "total_structures": total_structures,
-        "genomes_with_structures": genomes_with_structures,
+        "total_experimental": total_experimental,
+        "total_ec_annotated": total_ec_annotated,
     }

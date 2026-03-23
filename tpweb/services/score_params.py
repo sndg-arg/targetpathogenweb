@@ -1,6 +1,7 @@
 from django.db.models import Q
 
 from tpweb.models.ScoreParam import ScoreParam, ScoreParamOptions
+from tpweb.services.score_param_types import is_categorical_score_param
 from tpweb.services.workspace import PUBLIC_WORKSPACE_USERNAME, resolve_workspace_user
 
 SYSTEM_SCORE_PARAM_DEFINITIONS = {
@@ -34,22 +35,22 @@ def ensure_system_score_param(name, source_df=None):
         ScoreParam.objects.filter(name=name, user__isnull=True).order_by("id").first()
     )
     if score_param is None:
-        score_param = ScoreParam.objects.create(
-            category=definition["category"],
-            name=name,
-            user=None,
-            type="CATEGORICAL",
-            description=definition["description"],
-            default_operation="=",
-            default_value=definition["default_value"],
-        )
+            score_param = ScoreParam.objects.create(
+                category=definition["category"],
+                name=name,
+                user=None,
+                type="C",
+                description=definition["description"],
+                default_operation="=",
+                default_value=definition["default_value"],
+            )
     else:
         updated_fields = []
         if score_param.category != definition["category"]:
             score_param.category = definition["category"]
             updated_fields.append("category")
-        if score_param.type != "CATEGORICAL":
-            score_param.type = "CATEGORICAL"
+        if not is_categorical_score_param(score_param):
+            score_param.type = "C"
             updated_fields.append("type")
         if score_param.default_operation != "=":
             score_param.default_operation = "="
@@ -72,6 +73,9 @@ def ensure_system_score_param(name, source_df=None):
                 imported_values.append(value)
         if imported_values:
             option_names = imported_values
+            if score_param.default_value not in option_names:
+                score_param.default_value = option_names[0]
+                score_param.save(update_fields=["default_value"])
 
     for option_name in option_names:
         ScoreParamOptions.objects.get_or_create(
@@ -100,8 +104,12 @@ def visible_score_params_queryset(user):
     return ScoreParam.objects.filter(visibility_filter).order_by("category", "name", "id")
 
 
+def visible_categorical_score_params_queryset(user):
+    return [score_param.pk for score_param in visible_score_params_queryset(user) if is_categorical_score_param(score_param)]
+
+
 def visible_score_param_options_queryset(user, param_id):
-    visible_param_ids = visible_score_params_queryset(user).values_list("id", flat=True)
+    visible_param_ids = visible_categorical_score_params_queryset(user)
     return ScoreParamOptions.objects.filter(
         score_param_id=param_id,
         score_param_id__in=visible_param_ids,

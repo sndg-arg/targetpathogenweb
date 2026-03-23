@@ -25,7 +25,6 @@ class GenomeUploadForm(forms.Form):
         widget=forms.ClearableFileInput(
             attrs={
                 "class": "genome-upload-file-input",
-                "accept": ".gbk.gz,.gz,application/gzip",
             }
         ),
     )

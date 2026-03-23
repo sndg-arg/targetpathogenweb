@@ -262,19 +262,28 @@ class ScoreParam(models.Model):
         if len(tsv.columns) != 2:
             raise ValueError("The DataFrame should contain exactly two columns.")
         duplicates = tsv[tsv.duplicated(subset='gene', keep=False)]
-        sp_options = tsv.iloc[:, 1].unique().tolist()
         sp_name = tsv.columns[1]
+        value_series = tsv.iloc[:, 1]
+        numeric_series = None
+        try:
+            numeric_series = value_series.astype(float)
+        except (TypeError, ValueError):
+            numeric_series = None
+
+        score_param_type = "N" if numeric_series is not None else "C"
         sp = ScoreParam.objects.get_or_create(
             category="Custom",
             name=sp_name,
             user=user,
-            type="CATEGORICAL",
+            type=score_param_type,
             description="",
-            default_operation="=",
+            default_operation="between" if numeric_series is not None else "=",
             default_value="",
         )[0]
-        for option in sp_options:
-            ScoreParamOptions.objects.get_or_create(score_param=sp, name=option, description="")
+        if numeric_series is None:
+            sp_options = value_series.unique().tolist()
+            for option in sp_options:
+                ScoreParamOptions.objects.get_or_create(score_param=sp, name=option, description="")
 
 class ScoreParamOptions(models.Model):
     score_param = models.ForeignKey(ScoreParam, related_name='choices',

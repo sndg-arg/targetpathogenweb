@@ -9,8 +9,9 @@ import itertools
 from bioseq.models.Biodatabase import Biodatabase
 from bioseq.models.Bioentry import Bioentry
 from tpweb.models.Binders import Binders
-from bioseq.models.Ontology import Ontology
 from .StructureView import pdb_structure
+from tpweb.services.protein_annotations import annotation_dbnames, protein_annotation_badges
+from tpweb.services.csv_exports import xlsx_sections_response
 from tpweb.services.pipeline_status import (
     annotate_pipeline_status_for_genome,
     get_pipeline_status,
@@ -19,6 +20,31 @@ from tpweb.services.genome_workspace import (
     display_genome_name,
     user_can_access_genome_name,
 )
+from tpweb.services.structure_sources import summarize_structure_sources
+
+
+def _first_location(feature):
+    locations = getattr(feature, "locations", None)
+    if locations is None:
+        return None
+    try:
+        return locations.all()[0]
+    except Exception:
+        return None
+
+
+def _annotation_name(dbxref_relation):
+    dbxref = getattr(dbxref_relation, "dbxref", None)
+    if dbxref is None:
+        return ""
+    terms = getattr(dbxref, "terms", None)
+    if terms is None:
+        return ""
+    try:
+        first_term = terms.all()[0]
+    except Exception:
+        return ""
+    return getattr(getattr(first_term, "term", None), "definition", "") or ""
 
 
 
@@ -37,16 +63,21 @@ def serialize_prot(protein: Bioentry):
                 "seq": protein.seq.seq
                 }
 
-    features = [
-        {
-            "start": f.locations.all()[0].start_pos,
-            "end": f.locations.all()[0].end_pos,
-            "db": f.type_term.ontology.name,
-            "fam": "",
-            "term": f.type_term.identifier,
-            "name": f.type_term.name
-        } for f in protein.features.all()
-    ]
+    features = []
+    for feature in protein.features.all():
+        location = _first_location(feature)
+        if location is None:
+            continue
+        features.append(
+            {
+                "start": location.start_pos,
+                "end": location.end_pos,
+                "db": feature.type_term.ontology.name,
+                "fam": "",
+                "term": feature.type_term.identifier,
+                "name": feature.type_term.name,
+            }
+        )
 
     graphic_features = []
     for key, group in itertools.groupby(
@@ -54,9 +85,14 @@ def serialize_prot(protein: Bioentry):
             , lambda f: f.type_term.ontology.name):
         data = []
         for f in group:
-            data.append({"x": f.locations.all()[0].start_pos,
-                         "y": f.locations.all()[0].end_pos,
+            location = _first_location(f)
+            if location is None:
+                continue
+            data.append({"x": location.start_pos,
+                         "y": location.end_pos,
                          "description": f.type_term.identifier, "id": f.type_term.identifier})
+        if not data:
+            continue
         gf = {
             "data": data,
             "name": key,
@@ -67,16 +103,27 @@ def serialize_prot(protein: Bioentry):
         }
         graphic_features.append(gf)
 
-
-
-    annotations = [
-        {
-            "db": dbx.dbxref.dbname,
-            "fam": "-",
-            "term": dbx.dbxref.accession,
-            "name": dbx.dbxref.terms.all()[0].term.definition
-        } for dbx in protein.dbxrefs.all() if dbx.dbxref.dbname in [Ontology.GO, Ontology.EC]
-    ]
+    annotation_db_set = set(annotation_dbnames("go")) | set(annotation_dbnames("ec"))
+    annotations = []
+    seen_annotations = set()
+    for dbx in protein.dbxrefs.all():
+        dbxref = getattr(dbx, "dbxref", None)
+        dbname = getattr(dbxref, "dbname", None)
+        accession = str(getattr(dbxref, "accession", "") or "").strip()
+        if dbname not in annotation_db_set or not accession:
+            continue
+        key = (dbname, accession)
+        if key in seen_annotations:
+            continue
+        seen_annotations.add(key)
+        annotations.append(
+            {
+                "db": dbname,
+                "fam": "-",
+                "term": accession,
+                "name": _annotation_name(dbx),
+            }
+        )
     return protein2, features, annotations, graphic_features
 
 def create_binders_dict(protein):
@@ -106,6 +153,13 @@ def create_binders_dict(protein):
 class ProteinView(View):
     template_name = 'genomic/protein.html'
 
+    @staticmethod
+    def _build_view_export_url(request):
+        params = request.GET.copy()
+        params["export"] = "view_csv"
+        encoded = params.urlencode()
+        return f"?{encoded}" if encoded else "?export=view_csv"
+
     def get(self, request, protein_id, *args, **kwargs):
         # form = self.form_class(initial=self.initial)
 
@@ -121,15 +175,90 @@ class ProteinView(View):
         proteinDTO, features, annotations, graphic_features = serialize_prot(protein)
         structures = protein.structures.prefetch_related("pdb__residues").all()
         binders = create_binders_dict(protein)
+        structure_summary = summarize_structure_sources(structures)
+        ec_badges = protein_annotation_badges(protein, "ec", limit=6)
+        go_badges = protein_annotation_badges(protein, "go", limit=6)
+        pipeline_status = annotate_pipeline_status_for_genome(
+            get_pipeline_status(), proteinDTO["assembly_name"]
+        )
+
+        if request.GET.get("export") == "view_csv":
+            sections = [
+                {
+                    "title": "Current view",
+                    "headers": ["Field", "Value"],
+                    "rows": [
+                        ["Protein accession", proteinDTO["accession"]],
+                        ["Protein description", proteinDTO["description"] or "-"],
+                        ["Genome accession", proteinDTO["assembly_label"]],
+                        ["Genome description", proteinDTO["assembly_description"]],
+                        ["Gene", proteinDTO["gene"] or "-"],
+                        ["Status", proteinDTO["status"]],
+                        ["Amino acids", proteinDTO["size"]],
+                        ["Structure source", structure_summary.get("label", "-")],
+                        ["Functional annotations", len(annotations)],
+                        ["Sequence features", len(features)],
+                        ["Binders", len(binders)],
+                    ],
+                },
+                {
+                    "title": "Sequence",
+                    "headers": ["Accession", "Sequence"],
+                    "rows": [[proteinDTO["accession"], proteinDTO["seq"]]],
+                },
+            ]
+
+            if annotations:
+                sections.append(
+                    {
+                        "title": "Functional annotations",
+                        "headers": ["DB", "Family", "Accession", "Name"],
+                        "rows": [
+                            [annotation["db"], annotation["fam"], annotation["term"], annotation["name"]]
+                            for annotation in annotations
+                        ],
+                    }
+                )
+
+            if features:
+                sections.append(
+                    {
+                        "title": "Sequence features",
+                        "headers": ["Start", "End", "DB", "Family", "Term", "Name"],
+                        "rows": [
+                            [feature["start"], feature["end"], feature["db"], feature["fam"], feature["term"], feature["name"]]
+                            for feature in features
+                        ],
+                    }
+                )
+
+            if binders:
+                sections.append(
+                    {
+                        "title": "Binders",
+                        "headers": ["ID", "Name", "PDB", "SMILES"],
+                        "rows": [
+                            [binder_id, binder["name"], binder["pdb"], binder["smiles"]]
+                            for binder_id, binder in binders.items()
+                        ],
+                    }
+                )
+
+            return xlsx_sections_response(
+                f"{proteinDTO['accession']}-detail-view",
+                sections,
+            )
 
         dto = {"protein": proteinDTO,
                "features": features,
                "annotations": annotations,
                "graphic_features": graphic_features,
                "binders": binders,
-               "pipeline_status": annotate_pipeline_status_for_genome(
-                   get_pipeline_status(), proteinDTO["assembly_name"]
-               )}
+               "structure_summary": structure_summary,
+               "ec_badges": ec_badges,
+               "go_badges": go_badges,
+               "pipeline_status": pipeline_status,
+               "view_export_url": self._build_view_export_url(request)}
         if structures:
             structure = structures[0].pdb
             dto["structure"] = pdb_structure(structure,graphic_features)

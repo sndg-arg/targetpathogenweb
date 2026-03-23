@@ -1,0 +1,971 @@
+{% extends '../base/masterpage.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block body %}
+    <style>
+        .explorer-page {
+            display: grid;
+            gap: 12px;
+        }
+
+        .explorer-hero,
+        .explorer-card {
+            border: 1px solid var(--tp-color-border);
+            border-radius: var(--tp-ui-radius-panel);
+            background: var(--tp-color-surface);
+            box-shadow: var(--tp-ui-shadow-panel);
+            padding: 18px;
+        }
+
+        .explorer-hero {
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+        }
+
+        .explorer-hero::before {
+            content: "";
+            position: absolute;
+            inset: 0 0 auto 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--tp-color-brand-800) 0%, var(--tp-color-sage-700) 62%, var(--tp-color-brand-600) 100%);
+        }
+
+        .explorer-hero > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .explorer-hero h1 {
+            margin: 6px 0 0;
+            color: var(--tp-color-brand-900);
+            font-size: clamp(1.6rem, 2.3vw, 2.05rem);
+            line-height: 1.12;
+        }
+
+        .explorer-subtitle {
+            margin: 8px 0 0;
+            color: var(--tp-color-text-secondary);
+            max-width: 980px;
+            line-height: 1.5;
+        }
+
+        .explorer-meta {
+            margin-top: 12px;
+        }
+
+        .explorer-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .explorer-workbench {
+            display: grid;
+            grid-template-columns: minmax(0, 1.32fr) minmax(320px, 0.68fr);
+            gap: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .explorer-workbench-main,
+        .explorer-workbench-side {
+            min-width: 0;
+        }
+
+        .explorer-workbench-main {
+            padding: 18px;
+        }
+
+        .explorer-workbench-side {
+            border-left: 1px solid color-mix(in srgb, var(--tp-color-border-soft) 82%, white);
+            background: linear-gradient(180deg, color-mix(in srgb, var(--tp-color-surface) 96%, white) 0%, color-mix(in srgb, var(--tp-color-surface-soft) 92%, white) 100%);
+            padding: 18px;
+            display: grid;
+            align-content: start;
+            gap: 16px;
+        }
+
+        .explorer-empty-layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
+            gap: 14px;
+        }
+
+        .explorer-empty-card {
+            min-height: 0;
+        }
+
+        .explorer-empty-state {
+            border: 1px dashed var(--tp-color-border);
+            border-radius: 14px;
+            background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+            padding: 18px;
+            display: grid;
+            gap: 10px;
+        }
+
+        .explorer-empty-state h2 {
+            margin: 0;
+            color: var(--tp-color-brand-900);
+            font-size: 1.18rem;
+        }
+
+        .explorer-empty-state p {
+            margin: 0;
+            color: var(--tp-color-text-secondary);
+            line-height: 1.45;
+            max-width: 64ch;
+        }
+
+        .explorer-empty-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 4px;
+        }
+
+        .explorer-empty-facts {
+            display: grid;
+            gap: 10px;
+            align-content: start;
+        }
+
+        .explorer-fact-list {
+            display: grid;
+            gap: 10px;
+        }
+
+        .explorer-fact {
+            border: 1px solid var(--tp-color-border-soft);
+            border-radius: 12px;
+            background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+            padding: 14px;
+            display: grid;
+            gap: 4px;
+        }
+
+        .explorer-fact-label {
+            color: var(--tp-color-text-muted);
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .explorer-fact-value {
+            color: var(--tp-color-brand-900);
+            font-size: 1rem;
+            font-weight: 700;
+            line-height: 1.3;
+        }
+
+        .explorer-plot-shell {
+            min-height: 540px;
+        }
+
+        .explorer-plot-fallback {
+            display: grid;
+            gap: 8px;
+            align-content: center;
+            justify-items: start;
+            min-height: 220px;
+            padding: 18px;
+            border: 1px dashed var(--tp-color-border-soft);
+            border-radius: 12px;
+            background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+        }
+
+        .explorer-plot-fallback[hidden] {
+            display: none;
+        }
+
+        .explorer-plot-fallback p {
+            margin: 0;
+            color: var(--tp-color-text-secondary);
+            line-height: 1.45;
+            max-width: 56ch;
+        }
+
+        .explorer-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .explorer-head h2 {
+            margin: 0;
+            color: var(--tp-color-brand-900);
+            font-size: 1.02rem;
+            letter-spacing: 0.01em;
+        }
+
+        .explorer-head p {
+            margin: 4px 0 0;
+            color: var(--tp-color-text-muted);
+            font-size: 0.88rem;
+        }
+
+        .explorer-selection {
+            display: grid;
+            gap: 16px;
+        }
+
+        .explorer-selection-card {
+            border: 1px solid var(--tp-color-border-soft);
+            border-radius: 12px;
+            background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+            padding: 12px;
+            transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+        }
+
+        .explorer-selection-card.is-empty {
+            border-style: dashed;
+            background: linear-gradient(180deg, color-mix(in srgb, var(--tp-color-surface-soft) 94%, white) 0%, color-mix(in srgb, var(--tp-color-surface) 90%, white) 100%);
+        }
+
+        .explorer-selection-card.is-empty .explorer-action-link {
+            display: none;
+        }
+
+        .explorer-selection-card.is-active {
+            border-color: color-mix(in srgb, var(--tp-color-brand-400) 60%, var(--tp-color-border));
+            box-shadow: 0 0 0 1px color-mix(in srgb, var(--tp-color-brand-300) 34%, transparent);
+        }
+
+        .explorer-selection-card h3 {
+            margin: 0 0 4px;
+            color: var(--tp-color-brand-900);
+            font-size: 1rem;
+        }
+
+        .explorer-selection-card p {
+            margin: 0;
+            color: var(--tp-color-text-secondary);
+            line-height: 1.4;
+        }
+
+        .explorer-selection-path {
+            display: none;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid color-mix(in srgb, var(--tp-color-border-soft) 78%, white);
+        }
+
+        .explorer-selection-path.is-visible {
+            display: grid;
+            gap: 6px;
+        }
+
+        .explorer-selection-path-label {
+            color: var(--tp-color-text-muted);
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .explorer-selection-path-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .explorer-selection-path-item {
+            display: inline-flex;
+            align-items: center;
+            min-height: 26px;
+            padding: 0 10px;
+            border: 1px solid color-mix(in srgb, var(--tp-color-brand-300) 58%, var(--tp-color-border));
+            border-radius: 999px;
+            background: linear-gradient(180deg, color-mix(in srgb, var(--tp-color-surface) 90%, white) 0%, color-mix(in srgb, var(--tp-color-surface-soft) 84%, white) 100%);
+            color: var(--tp-color-brand-900);
+            font-size: 0.88rem;
+            line-height: 1.2;
+        }
+
+        .explorer-search {
+            width: 100%;
+        }
+
+        .explorer-side-panel {
+            display: grid;
+            gap: 10px;
+        }
+
+        .explorer-side-panel + .explorer-side-panel {
+            padding-top: 16px;
+            border-top: 1px solid color-mix(in srgb, var(--tp-color-border-soft) 82%, white);
+        }
+
+        .explorer-table-shell {
+            height: 340px;
+            min-height: 340px;
+            scrollbar-gutter: stable;
+            border: 1px solid var(--tp-color-border-soft);
+            border-radius: 14px;
+            background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+            overflow: hidden;
+        }
+
+        .explorer-table-shell > .tp-table-shell__scroll,
+        .explorer-table-shell.tp-table-shell--with-export > .tp-table-shell__scroll {
+            height: calc(340px - 52px);
+            max-height: calc(340px - 52px);
+            overflow-y: scroll !important;
+            overflow-x: hidden !important;
+            overscroll-behavior: contain;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-gutter: stable;
+        }
+
+        .explorer-table-shell table {
+            margin-bottom: 0;
+        }
+
+        .explorer-table-shell thead th {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            background: linear-gradient(180deg, color-mix(in srgb, var(--tp-color-surface-soft) 86%, white) 0%, color-mix(in srgb, var(--tp-color-surface-muted) 80%, white) 100%);
+        }
+
+        .explorer-table-shell > .tp-table-shell__scroll::-webkit-scrollbar,
+        .explorer-table-shell.tp-table-shell--with-export > .tp-table-shell__scroll::-webkit-scrollbar {
+            width: 13px;
+        }
+
+        .explorer-table-shell > .tp-table-shell__scroll::-webkit-scrollbar-track,
+        .explorer-table-shell.tp-table-shell--with-export > .tp-table-shell__scroll::-webkit-scrollbar-track {
+            background: color-mix(in srgb, var(--tp-color-surface-muted) 86%, white);
+            border-radius: 999px;
+        }
+
+        .explorer-table-shell > .tp-table-shell__scroll::-webkit-scrollbar-thumb,
+        .explorer-table-shell.tp-table-shell--with-export > .tp-table-shell__scroll::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, color-mix(in srgb, var(--tp-color-brand-400) 82%, white) 0%, color-mix(in srgb, var(--tp-color-brand-700) 76%, white) 100%);
+            border-radius: 999px;
+            border: 2px solid color-mix(in srgb, var(--tp-color-surface-muted) 86%, white);
+        }
+
+        .explorer-table-empty {
+            display: none;
+            margin-top: 10px;
+            color: var(--tp-color-text-muted);
+            font-size: 0.92rem;
+        }
+
+        .explorer-table-empty.is-visible {
+            display: block;
+        }
+
+        .explorer-annotation-row.is-active {
+            background: linear-gradient(180deg, color-mix(in srgb, var(--tp-color-surface-soft) 78%, white) 0%, color-mix(in srgb, var(--tp-color-surface-muted) 72%, white) 100%);
+        }
+
+        .explorer-annotation-row.is-active strong {
+            color: var(--tp-color-brand-900);
+        }
+
+        .explorer-table-shell .explorer-select-btn,
+        .explorer-table-shell .js-select-annotation {
+            appearance: none;
+            -webkit-appearance: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 92px;
+            padding: 0.52rem 0.95rem;
+            border-radius: 10px;
+            border: 1.5px solid color-mix(in srgb, var(--tp-color-brand-700) 74%, var(--tp-color-border)) !important;
+            font-weight: 700;
+            color: var(--tp-color-brand-900) !important;
+            background: linear-gradient(180deg, color-mix(in srgb, var(--tp-color-surface) 92%, white) 0%, color-mix(in srgb, var(--tp-color-surface-soft) 86%, white) 100%) !important;
+            box-shadow: 0 1px 2px color-mix(in srgb, var(--tp-color-brand-900) 8%, transparent);
+        }
+
+        .explorer-table-shell .explorer-select-btn.is-active,
+        .explorer-table-shell .js-select-annotation.is-active {
+            color: var(--tp-color-brand-900);
+            border-color: color-mix(in srgb, var(--tp-color-brand-400) 62%, var(--tp-color-border));
+            background: color-mix(in srgb, var(--tp-color-surface-soft) 74%, white);
+            box-shadow: 0 0 0 1px color-mix(in srgb, var(--tp-color-brand-300) 28%, transparent);
+        }
+
+        .explorer-table-shell .explorer-select-btn:hover,
+        .explorer-table-shell .explorer-select-btn:focus-visible,
+        .explorer-table-shell .js-select-annotation:hover,
+        .explorer-table-shell .js-select-annotation:focus-visible {
+            border-color: color-mix(in srgb, var(--tp-color-brand-600) 68%, var(--tp-color-border)) !important;
+            background: color-mix(in srgb, var(--tp-color-surface-soft) 78%, white) !important;
+            color: var(--tp-color-brand-900) !important;
+        }
+
+        .explorer-action-link {
+            margin-top: 10px;
+        }
+
+        @media (max-width: 980px) {
+            .explorer-grid,
+            .explorer-workbench,
+            .explorer-empty-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .explorer-workbench-side {
+                border-left: 0;
+                border-top: 1px solid color-mix(in srgb, var(--tp-color-border-soft) 82%, white);
+            }
+        }
+    </style>
+
+    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+    {{ explorer.chart|json_script:"annotation-chart-data" }}
+
+    <div class="explorer-page">
+        <section class="explorer-hero">
+            <div class="tp-view-head">
+                <div class="tp-view-head-copy">
+                    {% trans "Home" as crumb_home %}
+                    {% trans "Genomes" as crumb_genomes %}
+                    {% trans "Proteins" as crumb_proteins %}
+                    {% trans "Advanced Filters" as crumb_advanced_filters %}
+                    {% if explorer.kind == "ec" %}
+                        {% trans "EC hierarchy" as crumb_explorer %}
+                    {% else %}
+                        {% trans "GO terms" as crumb_explorer %}
+                    {% endif %}
+                    {% url 'tpwebapp:index' as index_url %}
+                    {% url 'tpwebapp:genomes_list' as genomes_url %}
+                    {% url 'tpwebapp:assembly' assembly_name as assembly_url %}
+                    {% url 'tpwebapp:protein_list' assembly_name=assembly_name as proteins_url %}
+                    {% url 'tpwebapp:parameterformview' assembly_name=assembly_name as advanced_filters_url %}
+                    {% with crumb_workspace="Genome: "|add:assembly_label %}
+                    {% include "components/navigation/breadcrumbs.html" with crumb_1_label=crumb_home crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_workspace crumb_3_url=assembly_url crumb_4_label=crumb_proteins crumb_4_url=proteins_url crumb_5_label=crumb_advanced_filters crumb_5_url=advanced_filters_url crumb_6_label=crumb_explorer %}
+                    {% endwith %}
+                </div>
+                <div class="tp-view-head-actions">
+                    <a href="{{ view_export_url }}" class="btn tp-btn tp-btn--neutral tp-btn-with-icon tp-view-export-link">
+                        <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/download.html" %}</span>
+                        {% trans "Export view" %}
+                    </a>
+                </div>
+            </div>
+            <h1>{% blocktrans with kind=explorer.kind_label %}Filter proteins by {{ kind }} hierarchy{% endblocktrans %}</h1>
+            <p class="explorer-subtitle">
+                {% blocktrans with assembly=assembly_label kind=explorer.kind_label %}
+                    Browse the {{ kind }} annotation hierarchy for {{ assembly }} and select a node to open the corresponding proteins in the ranking table. The interactive hierarchy is rendered with Krona.
+                {% endblocktrans %}
+            </p>
+            <div class="explorer-meta tp-chip-group">
+                <span class="tp-chip tp-chip--meta tp-chip--sm">{{ explorer.annotation_count }} {% trans "annotations" %}</span>
+                <span class="tp-chip tp-chip--meta tp-chip--sm">{{ explorer.node_count }} {% trans "nodes" %}</span>
+            </div>
+            {% include "components/pipeline/note.html" with pipeline_status=pipeline_status mode="genome" note_class="hero-pipeline-note" %}
+            {% if pipeline_status.current_genome_status_note %}
+                <p class="tp-state-note {% if pipeline_status.failed_for_current_genome %}tp-state-note--error{% else %}tp-state-note--empty{% endif %}">
+                    {{ pipeline_status.current_genome_status_note }}
+                </p>
+            {% endif %}
+        </section>
+
+        {% if explorer.annotation_count %}
+            <section class="explorer-card explorer-workbench">
+                <article class="explorer-workbench-main">
+                    <div class="explorer-head">
+                        <div>
+                            <h2>{% trans "Annotation hierarchy" %}</h2>
+                            <p>{% trans "Click any segment to inspect that branch and open the matching proteins." %}</p>
+                        </div>
+                    </div>
+                    <div id="annotation-explorer-plot" class="explorer-plot-shell"></div>
+                    <div id="annotation-explorer-fallback" class="explorer-plot-fallback" hidden>
+                        <p>{% trans "The interactive hierarchy is not available in this browser session." %}</p>
+                        <p>{% trans "Use the annotation table on the right to select a term and open the corresponding proteins." %}</p>
+                    </div>
+                </article>
+
+                <aside class="explorer-workbench-side explorer-selection">
+                    <section class="explorer-side-panel">
+                        <div class="explorer-head">
+                            <div>
+                            <h2>{% trans "Selected annotation" %}</h2>
+                            <p>{% trans "Selection syncs with clicks from the hierarchy or the table." %}</p>
+                            </div>
+                        </div>
+                        <div class="explorer-selection-card is-empty" id="selected-annotation-card">
+                            <h3 id="selected-annotation-accession">{% trans "Nothing selected" %}</h3>
+                            <p id="selected-annotation-copy">{% trans "Choose a node or annotation row to enable the filtered jump." %}</p>
+                            <div id="selected-annotation-path" class="explorer-selection-path" hidden>
+                                <span class="explorer-selection-path-label">{% trans "Hierarchy path" %}</span>
+                                <div id="selected-annotation-path-items" class="explorer-selection-path-items"></div>
+                            </div>
+                            <a id="selected-annotation-link"
+                               href="#"
+                               class="btn tp-btn tp-btn--primary explorer-action-link"
+                               aria-disabled="true">{% trans "Open filtered proteins" %}</a>
+                        </div>
+                    </section>
+
+                    <section class="explorer-side-panel">
+                        <div class="explorer-head">
+                            <div>
+                            <h2>{% trans "Search annotation terms" %}</h2>
+                            <p>{% trans "Filter the annotation table by accession or description." %}</p>
+                            </div>
+                        </div>
+                        <input id="annotation-search-input"
+                               type="text"
+                               class="form-control explorer-search"
+                               placeholder="{% trans "Search accession or description..." %}">
+                        <div class="explorer-table-shell tp-table-shell mt-3">
+                            <table class="table table-striped table-hover mb-0 tp-table tp-table--plain tp-table--premium"
+                                   data-export-url="{{ export_url }}"
+                                   data-export-title="{{ explorer.kind_label }} annotations {{ assembly_label }}">
+                                <thead>
+                                <tr>
+                                    <th>{% trans "Annotation" %}</th>
+                                    <th>{% trans "Proteins" %}</th>
+                                    <th>{% trans "Action" %}</th>
+                                </tr>
+                                </thead>
+                                <tbody id="annotation-table-body">
+                                {% for row in explorer.rows %}
+                                    <tr class="explorer-annotation-row"
+                                        data-accession="{{ row.accession|lower }}"
+                                        data-accession-raw="{{ row.accession }}"
+                                        data-name="{{ row.name|lower }}">
+                                        <td>
+                                            <strong>{{ row.accession }}</strong>
+                                            {% if row.name %}
+                                                <div class="text-muted small">{{ row.name }}</div>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ row.protein_count }}</td>
+                                        <td>
+                                            <button type="button"
+                                                    class="btn tp-btn tp-btn--neutral btn-sm explorer-select-btn js-select-annotation"
+                                                    data-accession="{{ row.accession }}"
+                                                    data-name="{{ row.name|default:'' }}">
+                                                {% trans "Select" %}
+                                            </button>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <p id="annotation-table-empty" class="explorer-table-empty">{% trans "No annotation terms match the current search." %}</p>
+                    </section>
+                </aside>
+            </section>
+        {% else %}
+            <section class="explorer-empty-layout">
+                <article class="explorer-card explorer-empty-card">
+                    <div class="explorer-empty-state">
+                        <h2>{% blocktrans with kind=explorer.kind_label %}No {{ kind }} annotations are available for this genome{% endblocktrans %}</h2>
+                        <p>
+                            {% blocktrans with assembly=assembly_label kind=explorer.kind_label %}
+                                {{ assembly }} does not currently include {{ kind }} annotations, so there is no hierarchy to explore in this view.
+                            {% endblocktrans %}
+                        </p>
+                        <p>{% trans "You can still inspect the protein ranking, review other annotation types, or continue with genome-level analysis." %}</p>
+                        <div class="explorer-empty-actions">
+                            <a href="{% url 'tpwebapp:protein_list' assembly_name=assembly_name %}" class="btn tp-btn tp-btn--primary">{% trans "Open protein analysis" %}</a>
+                            {% if explorer.kind == "ec" %}
+                                <a href="{% url 'tpwebapp:parameterformview' assembly_name=assembly_name %}" class="btn tp-btn tp-btn--neutral">{% trans "Open Advanced Filters" %}</a>
+                            {% else %}
+                                <a href="{% url 'tpwebapp:annotation_explorer' assembly_name=assembly_name annotation_kind='ec' %}" class="btn tp-btn tp-btn--neutral">{% trans "Switch to EC hierarchy" %}</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </article>
+
+                <aside class="explorer-empty-facts">
+                    <section class="explorer-card">
+                        <div class="explorer-head">
+                            <div>
+                                <h2>{% trans "Current coverage" %}</h2>
+                                <p>{% trans "What is available in this annotation layer right now." %}</p>
+                            </div>
+                        </div>
+                        <div class="explorer-fact-list">
+                            <div class="explorer-fact">
+                                <span class="explorer-fact-label">{% trans "Annotations" %}</span>
+                                <span class="explorer-fact-value">{{ explorer.annotation_count }}</span>
+                            </div>
+                            <div class="explorer-fact">
+                                <span class="explorer-fact-label">{% trans "Hierarchy nodes" %}</span>
+                                <span class="explorer-fact-value">{{ explorer.node_count }}</span>
+                            </div>
+                            <div class="explorer-fact">
+                                <span class="explorer-fact-label">{% trans "Recommended next step" %}</span>
+                                <span class="explorer-fact-value">{% trans "Inspect proteins or use the other annotation hierarchy" %}</span>
+                            </div>
+                        </div>
+                    </section>
+                </aside>
+            </section>
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block jsloaded %}
+    <script>
+        function jsloaded() {
+            {% trans "Nothing selected" as nothing_selected_label %}
+            {% trans "Choose a node or annotation row to enable the filtered jump." as empty_selection_copy %}
+            {% trans "Open the ranking with this annotation pre-filtered." as selected_link_copy %}
+            const plotTarget = document.getElementById("annotation-explorer-plot");
+            const plotFallback = document.getElementById("annotation-explorer-fallback");
+            const tableBody = document.getElementById("annotation-table-body");
+            const searchInput = document.getElementById("annotation-search-input");
+            const tableEmpty = document.getElementById("annotation-table-empty");
+            const selectedAccession = document.getElementById("selected-annotation-accession");
+            const selectedCopy = document.getElementById("selected-annotation-copy");
+            const selectedLink = document.getElementById("selected-annotation-link");
+            const selectedCard = document.getElementById("selected-annotation-card");
+            const selectedPath = document.getElementById("selected-annotation-path");
+            const selectedPathItems = document.getElementById("selected-annotation-path-items");
+            const proteinBaseUrl = "{% url 'tpwebapp:protein_list' assembly_name=assembly_name %}";
+            const annotationKind = "{{ explorer.kind }}";
+            const chartDataElement = document.getElementById("annotation-chart-data");
+            const chartData = chartDataElement ? JSON.parse(chartDataElement.textContent) : null;
+            const rowElements = Array.from(document.querySelectorAll(".explorer-annotation-row"));
+            const rowButtons = Array.from(document.querySelectorAll(".js-select-annotation"));
+            let selectedAnnotationId = "";
+            let currentEcDisplayRootId = chartData && chartData.ids ? chartData.ids[0] : "";
+
+            function clearRowSelection() {
+                rowElements.forEach(function (row) {
+                    row.classList.remove("is-active");
+                });
+                rowButtons.forEach(function (button) {
+                    button.classList.remove("is-active");
+                });
+            }
+
+            function updateRowSelection(accession) {
+                clearRowSelection();
+                if (!accession) return;
+                const row = rowElements.find(function (candidate) {
+                    return (candidate.dataset.accessionRaw || "") === accession;
+                });
+                if (!row) return;
+                row.classList.add("is-active");
+                const button = row.querySelector(".js-select-annotation");
+                if (button) {
+                    button.classList.add("is-active");
+                }
+            }
+
+            function buildParentMap() {
+                const parentMap = new Map();
+                if (!chartData) return parentMap;
+                (chartData.ids || []).forEach(function (id, index) {
+                    parentMap.set(id, (chartData.parents || [])[index] || "");
+                });
+                return parentMap;
+            }
+
+            function nodeDepth(id, parentMap) {
+                let depth = 0;
+                let cursor = id;
+                while (cursor && parentMap.get(cursor)) {
+                    depth += 1;
+                    cursor = parentMap.get(cursor);
+                }
+                return depth;
+            }
+
+            const chartParentMap = buildParentMap();
+            const chartChildrenMap = new Map();
+            if (chartData && chartData.ids) {
+                chartData.ids.forEach(function (id, index) {
+                    const parent = (chartData.parents || [])[index] || "";
+                    if (!chartChildrenMap.has(parent)) {
+                        chartChildrenMap.set(parent, []);
+                    }
+                    chartChildrenMap.get(parent).push(id);
+                });
+            }
+            const basePalette = ["#d7eef4", "#c7e5ee", "#b1d8e7", "#95cade", "#75b9d2"];
+            const activePalette = ["#a7d4e0", "#7ec1d4", "#58afc7", "#2a88a8", "#0b4a61"];
+            const mutedColor = "#e6f2f6";
+
+            function ancestorSet(targetId) {
+                const ids = new Set();
+                let cursor = targetId;
+                while (cursor) {
+                    ids.add(cursor);
+                    cursor = chartParentMap.get(cursor) || "";
+                }
+                return ids;
+            }
+
+            function colorForDepth(depth, palette) {
+                return palette[Math.min(depth, palette.length - 1)];
+            }
+
+            function buildMarkerColors(targetId) {
+                if (!chartData || !chartData.ids) return [];
+                const activeIds = targetId ? ancestorSet(targetId) : null;
+                return chartData.ids.map(function (id) {
+                    const depth = nodeDepth(id, chartParentMap);
+                    if (!activeIds) {
+                        return colorForDepth(depth, basePalette);
+                    }
+                    if (activeIds.has(id)) {
+                        return colorForDepth(depth, activePalette);
+                    }
+                    return mutedColor;
+                });
+            }
+
+            function nodeAccessionFromId(id) {
+                return String(id || "").split(":").slice(1).join(":");
+            }
+
+            function getNodeIdByAccession(accession) {
+                if (!chartData || !chartData.ids || !accession) return "";
+                return chartData.ids.find(function (id) {
+                    return nodeAccessionFromId(id) === accession;
+                }) || "";
+            }
+
+            function nodeDescriptor(id) {
+                if (!chartData || !chartData.ids) return "";
+                const index = chartData.ids.indexOf(id);
+                if (index < 0) return "";
+                const hover = (chartData.hover_labels || [])[index] || "";
+                if (hover) {
+                    return hover;
+                }
+                return (chartData.labels || [])[index] || nodeAccessionFromId(id);
+            }
+
+            function buildPathDescriptors(accession) {
+                const nodeId = getNodeIdByAccession(accession);
+                if (!nodeId) return [];
+                const descriptors = [];
+                let cursor = nodeId;
+                while (cursor && cursor !== chartData.ids[0]) {
+                    descriptors.push(nodeDescriptor(cursor));
+                    cursor = chartParentMap.get(cursor) || "";
+                }
+                return descriptors.reverse();
+            }
+
+            function renderSelectionPath(accession) {
+                if (!selectedPath || !selectedPathItems) return;
+                selectedPathItems.innerHTML = "";
+                const descriptors = buildPathDescriptors(accession);
+                if (!descriptors.length) {
+                    selectedPath.hidden = true;
+                    selectedPath.classList.remove("is-visible");
+                    return;
+                }
+                descriptors.forEach(function (descriptor) {
+                    const item = document.createElement("span");
+                    item.className = "explorer-selection-path-item";
+                    item.textContent = descriptor;
+                    selectedPathItems.appendChild(item);
+                });
+                selectedPath.hidden = false;
+                selectedPath.classList.add("is-visible");
+            }
+
+            function nodeDepthFromRoot(id, rootId) {
+                let depth = 0;
+                let cursor = id;
+                while (cursor && cursor !== rootId) {
+                    cursor = chartParentMap.get(cursor) || "";
+                    depth += 1;
+                }
+                return cursor === rootId ? depth : -1;
+            }
+
+            function isLeafNode(id) {
+                return !(chartChildrenMap.get(id) || []).length;
+            }
+
+            function compactEcLabel(id, index) {
+                const accession = nodeAccessionFromId(id);
+                if (isLeafNode(id)) {
+                    const hover = (chartData.hover_labels || [])[index] || "";
+                    if (hover.includes(" — ")) {
+                        return hover.split(" — ").slice(1).join(" — ");
+                    }
+                    return (chartData.labels || [])[index] || accession;
+                }
+                return accession;
+            }
+
+            function buildDisplayLabels(displayRootId) {
+                if (!chartData || !chartData.ids) return [];
+                const labels = chartData.labels || [];
+                return chartData.ids.map(function (id, index) {
+                    if (annotationKind !== "ec") {
+                        return labels[index];
+                    }
+                    if (id === chartData.ids[0]) {
+                        return labels[index];
+                    }
+                    const relativeDepth = nodeDepthFromRoot(id, displayRootId);
+                    if (relativeDepth === 1) {
+                        return labels[index];
+                    }
+                    return compactEcLabel(id, index);
+                });
+            }
+
+            function updatePlotLabels(displayRootId) {
+                if (!plotTarget || !window.Plotly || !chartData || !chartData.ids) return;
+                currentEcDisplayRootId = displayRootId || chartData.ids[0];
+                Plotly.restyle(plotTarget, {
+                    labels: [buildDisplayLabels(currentEcDisplayRootId)]
+                });
+            }
+
+            function updatePlotSelection(accession) {
+                if (!plotTarget || !window.Plotly || !chartData || !chartData.ids) return;
+                const targetId = accession ? chartData.ids.find(function (id) {
+                    return String(id).split(":").slice(1).join(":") === accession;
+                }) : "";
+                Plotly.restyle(plotTarget, {
+                    "marker.colors": [buildMarkerColors(targetId)]
+                });
+            }
+
+            function updateVisibleRowCount() {
+                if (!tableBody || !tableEmpty) return;
+                const visibleRows = Array.from(tableBody.querySelectorAll("tr")).filter(function (row) {
+                    return !row.hidden;
+                });
+                tableEmpty.classList.toggle("is-visible", visibleRows.length === 0);
+            }
+
+            function updateSelection(accession, name) {
+                selectedAnnotationId = accession || "";
+                if (!accession) {
+                    if (selectedCard) selectedCard.classList.add("is-empty");
+                    if (selectedCard) selectedCard.classList.remove("is-active");
+                    selectedAccession.textContent = "{{ nothing_selected_label|escapejs }}";
+                    selectedCopy.textContent = "{{ empty_selection_copy|escapejs }}";
+                    renderSelectionPath("");
+                    selectedLink.setAttribute("href", "#");
+                    selectedLink.setAttribute("aria-disabled", "true");
+                    selectedLink.classList.add("is-disabled");
+                    updateRowSelection("");
+                    updatePlotSelection("");
+                    return;
+                }
+
+                if (selectedCard) selectedCard.classList.remove("is-empty");
+                if (selectedCard) selectedCard.classList.add("is-active");
+                selectedAccession.textContent = accession;
+                selectedCopy.textContent = name || "{{ selected_link_copy|escapejs }}";
+                renderSelectionPath(accession);
+                const params = new URLSearchParams({
+                    annotation_kind: annotationKind,
+                    annotation_value: accession,
+                });
+                selectedLink.setAttribute("href", proteinBaseUrl + "?" + params.toString());
+                selectedLink.setAttribute("aria-disabled", "false");
+                selectedLink.classList.remove("is-disabled");
+                updateRowSelection(accession);
+                updatePlotSelection(accession);
+            }
+
+            function enableFallback() {
+                if (plotFallback) {
+                    plotFallback.hidden = false;
+                }
+                if (plotTarget) {
+                    plotTarget.hidden = true;
+                }
+            }
+
+            if (plotTarget && chartData && window.Plotly) {
+                try {
+                    Plotly.newPlot(
+                        plotTarget,
+                        [{
+                            type: "sunburst",
+                            ids: chartData.ids,
+                            labels: buildDisplayLabels(currentEcDisplayRootId),
+                            parents: chartData.parents,
+                            values: chartData.values,
+                            textinfo: "label",
+                            branchvalues: "remainder",
+                            insidetextorientation: "auto",
+                            hovertext: chartData.hover_labels,
+                            hovertemplate: "<b>%{hovertext}</b><br>%{value} proteins<extra></extra>",
+                            marker: {
+                                colors: buildMarkerColors("")
+                            }
+                        }],
+                        {
+                            margin: {t: 0, r: 0, b: 0, l: 0},
+                            paper_bgcolor: "rgba(0,0,0,0)",
+                            plot_bgcolor: "rgba(0,0,0,0)",
+                            height: 540
+                        },
+                        {displayModeBar: false, responsive: true}
+                    );
+
+                    plotTarget.on("plotly_click", function (event) {
+                        const point = event.points && event.points[0];
+                        if (!point || !point.id || point.id.endsWith(":root")) return;
+                        if (annotationKind === "ec") {
+                            updatePlotLabels(point.id);
+                        }
+                        const accession = String(point.id).split(":").slice(1).join(":");
+                        updateSelection(accession, point.hovertext || point.label || "");
+                    });
+                } catch (error) {
+                    enableFallback();
+                }
+            } else if (plotTarget) {
+                enableFallback();
+            }
+
+            document.querySelectorAll(".js-select-annotation").forEach(function (button) {
+                button.addEventListener("click", function () {
+                    updateSelection(button.dataset.accession || "", button.dataset.name || "");
+                });
+            });
+
+            if (searchInput && tableBody) {
+                searchInput.addEventListener("input", function () {
+                    const query = (searchInput.value || "").trim().toLowerCase();
+                    Array.from(tableBody.querySelectorAll("tr")).forEach(function (row) {
+                        const accession = row.getAttribute("data-accession") || "";
+                        const name = row.getAttribute("data-name") || "";
+                        row.hidden = Boolean(query) && !accession.includes(query) && !name.includes(query);
+                    });
+                    updateVisibleRowCount();
+                });
+            }
+
+            if (selectedLink) {
+                selectedLink.addEventListener("click", function (event) {
+                    if (selectedLink.getAttribute("aria-disabled") === "true") {
+                        event.preventDefault();
+                    }
+                });
+            }
+
+            updateSelection("", "");
+            updateVisibleRowCount();
+        }
+
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", jsloaded, { once: true });
+        } else {
+            jsloaded();
+        }
+    </script>
+{% endblock %}

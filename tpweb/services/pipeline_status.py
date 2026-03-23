@@ -10,6 +10,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Mapping
 
+from bioseq.models.Biodatabase import Biodatabase
 from django.conf import settings
 from tpweb.services.genome_workspace import display_genome_name, user_can_access_genome_name
 
@@ -49,6 +50,10 @@ _PIPELINE_STATUS_CACHE: dict = {
 }
 RUNINFO_CANDIDATE_RELATIVE_DIRS = ("parsl/runinfo", "runinfo")
 LAST_RUN_MARKER_RELATIVE_PATHS = ("parsl/last_pipeline_run.json", "last_pipeline_run.json")
+FAILED_PIPELINE_STATE_LABELS = {"Last pipeline run failed"}
+INCOMPLETE_PIPELINE_STATE_LABELS = FAILED_PIPELINE_STATE_LABELS | {
+    "Last pipeline run stopped before completion"
+}
 
 
 @dataclass(frozen=True)
@@ -196,7 +201,7 @@ def _status_from_last_run_marker(base_dir: Path):
         status_data["progress_percent"] = 100
     else:
         status_data["state_label"] = "Last pipeline run failed"
-        status_data["state_class"] = "finished"
+        status_data["state_class"] = "failed"
 
     return PipelineStatus(**status_data)
 
@@ -209,27 +214,41 @@ def _ps_args_lines():
     return ps_output.splitlines()
 
 
+def _tokenize_process_args(line):
+    text = str(line or "").strip()
+    if not text:
+        return []
+    try:
+        return shlex.split(text)
+    except Exception:
+        return text.split()
+
+
+def _process_invokes_script(tokens, script_name):
+    if not tokens:
+        return False
+    return any(Path(token).name == script_name for token in tokens)
+
+
 def _pipeline_process_running(ps_lines=None):
     ps_lines = ps_lines if ps_lines is not None else _ps_args_lines()
-    markers = ("run_pipeline.py", "fasttarget.py", "process_worker_pool.py")
-    return any(marker in line for line in ps_lines for marker in markers)
+    for line in ps_lines:
+        tokens = _tokenize_process_args(line)
+        if (
+            _process_invokes_script(tokens, "run_pipeline.py")
+            or _process_invokes_script(tokens, "fasttarget.py")
+            or _process_invokes_script(tokens, "process_worker_pool.py")
+        ):
+            return True
+    return False
 
 
 def _extract_running_genome_from_process(ps_lines=None):
     ps_lines = ps_lines if ps_lines is not None else _ps_args_lines()
     for line in ps_lines:
-        if "run_pipeline.py" not in line:
+        tokens = _tokenize_process_args(line)
+        if not _process_invokes_script(tokens, "run_pipeline.py"):
             continue
-
-        marker = "run_pipeline.py"
-        tail = line[line.find(marker) + len(marker):].strip()
-        if not tail:
-            continue
-
-        try:
-            tokens = shlex.split(tail)
-        except Exception:
-            tokens = tail.split()
 
         if "--genome-name" in tokens:
             try:
@@ -480,11 +499,14 @@ def get_pipeline_status_dto() -> PipelineStatus:
     running_by_upload = bool(running_upload_accession) and (
         not log_genome_accession or log_genome_accession == running_upload_accession
     )
-    running = bool(pending_task_ids) and not cleanup_complete and _pipeline_process_running(
-        ps_lines=ps_lines
+    process_running = _pipeline_process_running(ps_lines=ps_lines)
+    # Fallback: if the pipeline runs in a separate container (different PID namespace),
+    # ps won't see it. Use log recency as an alternative signal — if parsl.log was
+    # written within the last 30 s, something is actively running.
+    log_recently_updated = (time.time() - log_path.stat().st_mtime) < 30
+    running = bool(pending_task_ids) and not cleanup_complete and (
+        process_running or log_recently_updated
     )
-    if not running and bool(pending_task_ids) and running_by_upload:
-        running = True
     status_data["running"] = running
 
     if running:
@@ -538,7 +560,7 @@ def get_pipeline_status_dto() -> PipelineStatus:
         if marker_timestamp >= log_timestamp - 5:
             if last_run_marker.status == "failed":
                 status_data["state_label"] = "Last pipeline run failed"
-                status_data["state_class"] = "finished"
+                status_data["state_class"] = "failed"
             else:
                 status_data["state_label"] = "Last pipeline run finished"
                 status_data["state_class"] = "finished"
@@ -562,16 +584,41 @@ def get_pipeline_status() -> dict:
     return get_pipeline_status_dto().as_dict()
 
 
+def _reset_pipeline_status_to_idle(status: dict) -> dict:
+    status["genome_accession"] = None
+    status["genome_display_accession"] = None
+    status["run_id"] = None
+    status["last_updated"] = None
+    status["task_id"] = None
+    status["activity_label"] = None
+    status["stage_current"] = None
+    status["stage_label"] = None
+    status["progress_percent"] = 0
+    status["available"] = False
+    status["running"] = False
+    status["state_label"] = "No pipeline activity detected"
+    status["state_class"] = "idle"
+    return status
+
+
 def sanitize_pipeline_status_for_user(pipeline_status: Mapping | None, user) -> dict:
     status = dict(pipeline_status or {})
     genome_accession = str(status.get("genome_accession") or "").strip()
     genome_visible_to_user = not genome_accession or user_can_access_genome_name(user, genome_accession)
     genome_hidden_from_user = bool(genome_accession) and not genome_visible_to_user
+    genome_exists = True
+    if genome_accession and not status.get("running"):
+        genome_exists = Biodatabase.objects.filter(name=genome_accession).exists()
+    stale_deleted_genome = bool(genome_accession) and not status.get("running") and not genome_exists
 
     status["genome_visible_to_user"] = genome_visible_to_user
+    status["genome_exists"] = genome_exists
     status["running_for_other_workspace"] = bool(
         status.get("running") and genome_hidden_from_user
     )
+
+    if stale_deleted_genome:
+        return _reset_pipeline_status_to_idle(status)
 
     if genome_hidden_from_user:
         status["genome_accession"] = None
@@ -590,10 +637,7 @@ def sanitize_pipeline_status_for_user(pipeline_status: Mapping | None, user) -> 
             status["state_label"] = "Pipeline busy"
             status["state_class"] = "running"
         else:
-            status["available"] = False
-            status["running"] = False
-            status["state_label"] = "No pipeline activity detected"
-            status["state_class"] = "idle"
+            _reset_pipeline_status_to_idle(status)
 
     return status
 
@@ -629,9 +673,11 @@ def annotate_pipeline_status_for_genome(
     target_genome = (genome_accession or "").strip().upper()
     running_genome = (status.get("genome_accession") or "").strip().upper()
     running = bool(status.get("running"))
+    state_label = str(status.get("state_label") or "").strip()
+    matches_current_genome = bool(target_genome and running_genome == target_genome)
 
     status["running_for_current_genome"] = bool(
-        running and target_genome and running_genome == target_genome
+        running and matches_current_genome
     )
     status["running_for_other_genome"] = bool(
         running and running_genome and target_genome and running_genome != target_genome
@@ -644,4 +690,35 @@ def annotate_pipeline_status_for_genome(
         if status.get("other_genome_accession")
         else None
     )
+    status["failed_for_current_genome"] = bool(
+        not running and matches_current_genome and state_label in FAILED_PIPELINE_STATE_LABELS
+    )
+    status["incomplete_for_current_genome"] = bool(
+        not running and matches_current_genome and state_label in INCOMPLETE_PIPELINE_STATE_LABELS
+    )
+    if status["failed_for_current_genome"]:
+        status["current_genome_status_note"] = (
+            "This genome workspace is incomplete because the last pipeline run failed."
+        )
+    elif status["incomplete_for_current_genome"]:
+        status["current_genome_status_note"] = (
+            "This genome workspace is incomplete because the last pipeline run stopped before completion."
+        )
+    else:
+        status["current_genome_status_note"] = None
     return status
+
+
+def annotate_pipeline_status_for_genomes(
+    genomes: list[Mapping] | tuple[Mapping, ...], pipeline_status: Mapping | None
+) -> list[dict]:
+    annotated_genomes = []
+    for genome in genomes:
+        genome_data = dict(genome)
+        genome_data.update(
+            annotate_pipeline_status_for_genome(
+                pipeline_status, genome_data.get("internal_name")
+            )
+        )
+        annotated_genomes.append(genome_data)
+    return annotated_genomes

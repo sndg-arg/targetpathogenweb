@@ -15,10 +15,12 @@ from .views.NewView import NewView
 from .views.MoleculeView import MoleculeView
 from .views.ParameterFormView import ParameterFormView, load_options, reset_filters
 from .views.FormulaFormView import FormulaFormView
+from .views.PrioritizationSetupView import PrioritizationSetupView
 from .views.TestCelery import test_celery
 #from debug_toolbar.toolbar import debug_toolbar_urls
 from .views.CustomParamView import upload_form
 from .views.GenomeUploadView import GenomeUploadView
+from .views.AnnotationExplorerView import AnnotationExplorerView
 from django.conf.urls.static import static
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
@@ -45,6 +47,11 @@ urlpatterns = [
     #path("",view=login_required(IndexView.as_view()),name="index"),
     path("",view=IndexView.as_view(),name="index"),
     path("assembly/<str:assembly_id>",view=AssemblyView.as_view(),name="assembly"),
+    path(
+        "assembly/<str:assembly_name>/explore/<str:annotation_kind>",
+        view=AnnotationExplorerView.as_view(),
+        name="annotation_explorer",
+    ),
     path("protein/<int:protein_id>",view=ProteinView.as_view(),name="protein"),
     path("assembly/<str:assembly_name>/protein",view=ProteinListView.as_view(),name="protein_list"),
     path("assembly/<str:assembly_name>/protein/suggestions", view=ProteinSearchSuggestionsView.as_view(), name="protein_search_suggestions"),
@@ -62,6 +69,7 @@ urlpatterns = [
     path("result/<str:result_id>",view=NewView.as_view(),name="blast_res"),
     path('reset_filters/<str:assembly_name>', reset_filters, name='reset_filters'),
     path('formula_form/<str:assembly_name>', view= FormulaFormView, name='formula_form'),
+    path("prioritization/<str:assembly_name>", view=PrioritizationSetupView.as_view(), name="prioritization_setup"),
     path("customparam/<str:assembly_name>", view= upload_form , name="customparam"),
     path("health/live", view=HealthLiveView.as_view(), name="health_live"),
     path("health/ready", view=HealthReadyView.as_view(), name="health_ready"),

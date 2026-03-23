@@ -26,6 +26,7 @@ from tpweb.models.pdb import PDB, Residue, Atom, ResidueSet, ResidueSetResidue, 
     ResidueProperty, ResidueSetProperty
 import subprocess as sp
 from django.db import transaction
+from tpweb.services.score_param_types import is_numeric_score_param
 
 
 def mkdir(dirpath):
@@ -81,24 +82,42 @@ class Command(BaseCommand):
             )
             if sp is None:
                 continue
-            valid_values = set([x.name for x in sp.choices.all()])
-            print(valid_values)
-            invalid_values = set(df[c]) - valid_values
-            print(invalid_values)
-            if invalid_values:
-                sys.stderr.write(f'Column "{c}" has some invalid values: {",".join(invalid_values)} '
-                                 f'valid values are {",".join(valid_values)}\n')
+            if is_numeric_score_param(sp):
+                invalid_values = []
+                coerced_values = pd.to_numeric(df[c], errors="coerce")
+                for raw_value, numeric_value in zip(df[c], coerced_values):
+                    if pd.isna(numeric_value) and str(raw_value).strip():
+                        invalid_values.append(str(raw_value))
+                if invalid_values:
+                    sys.stderr.write(
+                        f'Column "{c}" has some invalid numeric values: {",".join(sorted(set(invalid_values)))}\n'
+                    )
+                    continue
             else:
-                spv_qs = ScoreParamValue.objects.filter(bioentry__biodatabase=genome, score_param=sp)
-                if spv_qs.exists():
-                    if options["overwrite"]:
-                        spv_qs.delete()
-                        score_params[c] = sp
-                    else:
-                        sys.stderr.write(
-                            f"'{c}' has loaded values for {genome_name}, use --overwrite to replace them \n")
-                else:
+                valid_values = {x.name for x in sp.choices.all()}
+                invalid_values = {
+                    str(raw_value)
+                    for raw_value in df[c]
+                    if str(raw_value) not in valid_values
+                }
+                if invalid_values:
+                    sys.stderr.write(
+                        f'Column "{c}" has some invalid values: {",".join(sorted(invalid_values))} '
+                        f'valid values are {",".join(sorted(valid_values))}\n'
+                    )
+                    continue
+
+            spv_qs = ScoreParamValue.objects.filter(bioentry__biodatabase=genome, score_param=sp)
+            if spv_qs.exists():
+                if options["overwrite"]:
+                    spv_qs.delete()
                     score_params[c] = sp
+                else:
+                    sys.stderr.write(
+                        f"'{c}' has loaded values for {genome_name}, use --overwrite to replace them \n"
+                    )
+            else:
+                score_params[c] = sp
 
         assert score_params, f"no valid score parameters were found in the file"
 
@@ -108,8 +127,16 @@ class Command(BaseCommand):
                     be = Bioentry.objects.filter(accession=r.gene, biodatabase=genome)
 
                     if be.exists():
-
-                        ScoreParamValue(score_param=sp, bioentry=be.get(), value=r[c]).save()
+                        raw_value = r[c]
+                        numeric_value = None
+                        if is_numeric_score_param(sp):
+                            numeric_value = float(raw_value)
+                        ScoreParamValue(
+                            score_param=sp,
+                            bioentry=be.get(),
+                            value=str(raw_value),
+                            numeric_value=numeric_value,
+                        ).save()
                     else:
                         sys.stderr.write(f"'{r.gene}' was not found\n")
 

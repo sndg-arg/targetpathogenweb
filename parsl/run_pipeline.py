@@ -119,6 +119,13 @@ def run(genome, gram, custom, source_genome=None):
 
     load_b = load_binders(working_dir=working_dir, genome=genome, inputs=[get_b])
 
+    if args.test:
+        return seed_test_demo_annotations(
+            working_dir=working_dir,
+            genome=genome,
+            inputs=[load_b],
+        )
+
     return load_b
 
 if __name__ == "__main__":

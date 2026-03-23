@@ -1,5 +1,6 @@
 from tpweb.models.ScoreParam import ScoreParam, ScoreParamOptions
 from django import forms
+from tpweb.services.score_param_types import is_categorical_score_param
 from tpweb.services.score_params import (
     visible_score_param_options_queryset,
     visible_score_params_queryset,
@@ -25,7 +26,11 @@ class FormulaForm(forms.Form):
         self.fields["options"].label = "Options"
         self.fields["coefficient"].label = "Coefficient"
         self.fields["new_formula_name"].label = "New formula name"
-        self.fields["param"].queryset = visible_score_params_queryset(user)
+        visible_params = visible_score_params_queryset(user)
+        categorical_param_ids = [
+            score_param.pk for score_param in visible_params if is_categorical_score_param(score_param)
+        ]
+        self.fields["param"].queryset = visible_params.filter(pk__in=categorical_param_ids)
         if "param" in self.data:
             try:
                 param_id = int(self.data.get("param"))

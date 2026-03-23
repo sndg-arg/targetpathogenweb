@@ -36,6 +36,7 @@ def humanize_identifier(value):
         "rna": "RNA",
         "p2rank": "P2RANK",
         "fpocket": "FPocket",
+        "alphafold": "AlphaFold",
         "id": "ID",
     }
     token_replacements = {

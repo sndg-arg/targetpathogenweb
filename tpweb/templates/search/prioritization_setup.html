@@ -1,0 +1,139 @@
+{% extends '../base/masterpage.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block head %}
+    <link rel="stylesheet" href="{% static 'css/pages/prioritization-setup.css' %}?v=20260322-6">
+{% endblock %}
+
+{% block body %}
+    <div class="setup-page">
+        <section class="setup-hero">
+            {% trans "Home" as crumb_home %}
+            {% trans "Genomes" as crumb_genomes %}
+            {% trans "Proteins" as crumb_proteins %}
+            {% trans "Prioritization setup" as crumb_setup %}
+            {% url 'tpwebapp:index' as index_url %}
+            {% url 'tpwebapp:genomes_list' as genomes_url %}
+            {% url 'tpwebapp:assembly' assembly_name as assembly_url %}
+            {% url 'tpwebapp:protein_list' assembly_name as proteins_url %}
+            {% with crumb_genome="Genome: "|add:assembly_label %}
+            {% include "components/navigation/breadcrumbs.html" with crumb_1_label=crumb_home crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_genome crumb_3_url=assembly_url crumb_4_label=crumb_proteins crumb_4_url=proteins_url crumb_5_label=crumb_setup %}
+            {% endwith %}
+            <div class="setup-hero-head">
+                <div>
+                    <h1>{% trans "Prioritization setup" %}</h1>
+                    <p class="setup-subtitle">{% trans "Maintain the scoring model and supporting evidence used to analyse proteins in this genome." %}</p>
+                </div>
+                <div class="tp-view-head-actions">
+                    <a href="{{ view_export_url }}" class="btn tp-btn tp-btn--neutral tp-btn-with-icon tp-view-export-link">
+                        <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/download.html" %}</span>
+                        {% trans "Export view" %}
+                    </a>
+                </div>
+            </div>
+            <div class="setup-chip-group tp-chip-group">
+                <span class="tp-chip tp-chip--meta tp-chip--sm">{% trans "Genome" %}: {{ assembly_label }}</span>
+                <span class="tp-chip tp-chip--meta tp-chip--sm">{% blocktrans count total=formula_count %}{{ total }} scoring model{% plural %}{{ total }} scoring models{% endblocktrans %}</span>
+                <span class="tp-chip tp-chip--meta tp-chip--sm">{% blocktrans count total=custom_evidence_rows|length %}{{ total }} evidence file{% plural %}{{ total }} evidence files{% endblocktrans %}</span>
+            </div>
+            {% if pipeline_status.available and pipeline_status.current_genome_status_note %}
+                <p class="tp-state-note {% if pipeline_status.failed_for_current_genome %}tp-state-note--error{% else %}tp-state-note--empty{% endif %}">
+                    {{ pipeline_status.current_genome_status_note }}
+                </p>
+            {% endif %}
+        </section>
+
+        <section class="setup-grid">
+            <section class="setup-card setup-card--primary">
+                <div class="setup-card-head">
+                    <div>
+                        <span class="setup-section-kicker">{% trans "Scoring model" %}</span>
+                        <h2>{% trans "Current analysis model" %}</h2>
+                        <p>{% trans "Review the active scoring formula and choose which model will be used in protein analysis." %}</p>
+                    </div>
+                </div>
+
+                <div class="setup-current-block">
+                    <div class="setup-current-headline">
+                        <span class="setup-current-label">{% trans "Active formula" %}</span>
+                        {% if selected_formula %}
+                            <div class="setup-current-title-row">
+                                <strong class="setup-current-value">{{ selected_formula.name }}</strong>
+                                <span class="setup-current-flag">{% trans "Active model" %}</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                    {% if selected_formula %}
+                        <p class="setup-expression">{{ selected_formula.get_current_formula }}</p>
+                    {% else %}
+                        <p class="tp-state-note tp-state-note--empty">{% trans "No scoring formula is currently available for this workspace." %}</p>
+                    {% endif %}
+                </div>
+
+                <div class="setup-card-actions">
+                    <a href="{{ formula_builder_url }}" class="btn tp-btn tp-btn--primary">{% trans "Open Formula Builder" %}</a>
+                </div>
+
+                <div class="setup-list-heading">
+                    <span class="setup-list-kicker">{% trans "Available models" %}</span>
+                    <p>{% trans "Saved scoring formulae that can be applied to the current protein analysis." %}</p>
+                </div>
+                <div class="setup-list setup-list--models">
+                    {% for formula in formula_rows %}
+                        <article class="setup-list-item{% if formula.is_selected %} setup-list-item--active{% endif %}">
+                            <div class="setup-list-copy">
+                                <div class="setup-list-headline">
+                                    <strong>{{ formula.name }}</strong>
+                                    <div class="setup-inline-meta">
+                                        {% if formula.is_selected %}
+                                            <span class="setup-inline-flag">{% trans "Selected" %}</span>
+                                        {% endif %}
+                                        {% if formula.is_default %}
+                                            <span class="setup-inline-flag">{% trans "Default" %}</span>
+                                        {% endif %}
+                                        <span>{{ formula.source_label }}</span>
+                                        <span>{% blocktrans count total=formula.term_count %}{{ total }} term{% plural %}{{ total }} terms{% endblocktrans %}</span>
+                                    </div>
+                                </div>
+                                <p>{{ formula.expression }}</p>
+                            </div>
+                            {% if not formula.is_selected %}
+                                <a href="{{ proteins_url }}?scoreformula={{ formula.name|urlencode }}" class="btn tp-btn tp-btn--outline btn-sm">{% trans "Use in analysis" %}</a>
+                            {% else %}
+                                <span class="setup-list-state">{% trans "Active model" %}</span>
+                            {% endif %}
+                        </article>
+                    {% empty %}
+                        <p class="tp-state-note tp-state-note--empty">{% trans "No formulas saved yet." %}</p>
+                    {% endfor %}
+                </div>
+            </section>
+
+            <aside class="setup-side">
+                <section class="setup-card setup-card--support">
+                    <div class="setup-card-head">
+                        <div>
+                            <span class="setup-section-kicker">{% trans "Supporting evidence" %}</span>
+                            <h2>{% trans "Custom evidence files" %}</h2>
+                            <p>{% trans "Project-specific TSV files become additional evidence available in protein analysis." %}</p>
+                        </div>
+                    </div>
+                    <div class="setup-card-actions">
+                        <a href="{{ custom_evidence_url }}" class="btn tp-btn tp-btn--outline">{% trans "Upload custom evidence" %}</a>
+                    </div>
+                    <div class="setup-file-list">
+                        {% for evidence in custom_evidence_rows %}
+                            <div class="setup-file-item">
+                                <strong>{{ evidence.file_name }}</strong>
+                                <span>{{ evidence.relative_path }}</span>
+                            </div>
+                        {% empty %}
+                            <p class="tp-state-note tp-state-note--empty">{% trans "No custom evidence files uploaded for this genome yet." %}</p>
+                        {% endfor %}
+                    </div>
+                </section>
+            </aside>
+        </section>
+    </div>
+{% endblock %}

@@ -214,9 +214,6 @@ class Command(BaseCommand):
         human_out = ss.human_offtarget(genome)
         if os.path.exists(human_src):
             human = pd.read_csv(human_src, sep="\t")
-            human["human_offtarget"] = human["human_offtarget"].apply(
-                lambda x: "hit" if x != "no_hit" else x
-            )
             human.to_csv(human_out, index=False, sep="\t")
         else:
             if not allow_fallback:
@@ -227,9 +224,6 @@ class Command(BaseCommand):
         micro_out = ss.micro_offtarget(genome)
         if os.path.exists(micro_src):
             micro = pd.read_csv(micro_src, sep="\t")
-            micro["gut_microbiome_offtarget"] = micro["gut_microbiome_offtarget"].apply(
-                lambda x: "hit" if x != "no_hit" else x
-            )
             micro.to_csv(micro_out, index=False, sep="\t")
         else:
             if not allow_fallback:

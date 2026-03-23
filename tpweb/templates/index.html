@@ -3,94 +3,301 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/home.css' %}?v=20260314-1">
+    <link rel="stylesheet" href="{% static 'css/pages/home.css' %}?v=20260318-1">
 {% endblock %}
 
 {% block body %}
-
     <div class="home-page">
-        <section class="home-hero">
-            <div>
-                <h1>{% trans "Target Pathogen" %}</h1>
-                <p>{% trans "Bioinformatics workspace for pathogen genomics and proteomics: prioritize targets, inspect annotations and structures, and support drug-discovery analysis." %}</p>
-                <div class="home-hero-actions">
+        <section class="home-hero tp-ui-panel">
+            <div class="home-hero-copy">
+                <p class="tp-ui-field-label">{% trans "Drug Target Discovery Platform" %}</p>
+                <h1>{% trans "A bioinformatic platform for prioritizing protein targets in pathogens." %}</h1>
+                <p class="home-lead">
+                    {% trans "Target Pathogen integrates genomic annotation, structural evidence, functional annotation, and project-specific scoring to support the identification and prioritization of candidate protein targets." %}
+                </p>
+                <div class="tp-ui-group home-hero-actions">
                     {% url 'tpwebapp:genomes_list' as open_genomes_href %}
-                    {% trans "Open Genomes" as open_genomes_label %}
+                    {% trans "Browse genomes" as open_genomes_label %}
                     {% include "components/buttons/action.html" with variant="primary" href=open_genomes_href label=open_genomes_label %}
+                    {% url 'tpwebapp:genome_upload' as upload_genome_href %}
+                    {% trans "Upload genome" as upload_genome_label %}
+                    {% include "components/buttons/action.html" with variant="neutral" href=upload_genome_href label=upload_genome_label classes="home-cta-neutral" %}
                     {% url 'tpwebapp:form' as run_blast_href %}
                     {% trans "Run BLAST" as run_blast_label %}
                     {% include "components/buttons/action.html" with variant="outline" href=run_blast_href label=run_blast_label %}
                 </div>
             </div>
-            <div class="home-stats">
-                <article class="home-stat">
-                    <p class="home-stat-label">{% trans "Genomes" %}</p>
-                    <p class="home-stat-value">{{ total_genomes }}</p>
-                </article>
-                <article class="home-stat">
-                    <p class="home-stat-label">{% trans "Proteins" %}</p>
-                    <p class="home-stat-value">{{ total_proteins }}</p>
-                </article>
-                <article class="home-stat">
-                    <p class="home-stat-label">{% trans "With Structures" %}</p>
-                    <p class="home-stat-value">{{ total_structures }}</p>
-                </article>
+
+            <aside class="home-hero-side">
+                <div class="home-hero-side-copy">
+                    <p class="tp-ui-field-label">{% trans "Platform scope" %}</p>
+                    <h2>{% trans "Integrated evidence for target assessment" %}</h2>
+                    <p>{% trans "The platform is designed to consolidate protein-level evidence relevant to target selection, including structural coverage, annotation context, and customizable prioritization criteria." %}</p>
+                </div>
+                <p class="tp-state-note tp-state-note--empty home-hero-note">
+                    {% trans "It supports comparative exploration of pathogen proteomes and provides a reproducible environment for evaluating candidate therapeutic targets." %}
+                </p>
+                <div class="tp-chip-group" aria-label="{% trans "Genome counts" %}">
+                    <span class="tp-chip tp-chip--count tp-chip--sm">{{ total_genomes }} {% trans "genomes" %}</span>
+                    <span class="tp-chip tp-chip--count tp-chip--sm">{{ total_proteins }} {% trans "proteins" %}</span>
+                </div>
+                <div class="tp-chip-group" aria-label="{% trans "Capabilities" %}">
+                    <span class="tp-chip tp-chip--meta tp-chip--sm">{% trans "Protein target prioritization" %}</span>
+                    <span class="tp-chip tp-chip--meta tp-chip--sm">{% trans "Structural and functional evidence" %}</span>
+                    <span class="tp-chip tp-chip--meta tp-chip--sm">{% trans "Custom bioinformatic scoring" %}</span>
+                </div>
+            </aside>
+        </section>
+
+        <section
+            class="home-panel home-operations tp-ui-panel{% if pipeline_status.state_class == 'failed' %} is-failed{% endif %}"
+            data-pipeline-endpoint="{% url 'tpwebapp:health_pipeline' %}"
+        >
+            <div class="tp-ui-panel-head home-operations-head">
+                <div class="home-operations-copy">
+                    <p class="tp-ui-field-label">{% trans "Operations" %}</p>
+                    <h2>{% trans "Current workflow status" %}</h2>
+                </div>
+                <div class="home-operations-statusbar">
+                    <span class="home-pipeline-chip tp-chip tp-chip--state tp-chip--sm {% if pipeline_status.available %}{{ pipeline_status.state_class }}{% endif %}" {% if not pipeline_status.available %}hidden{% endif %}>
+                        {% if pipeline_status.available %}
+                            {% if pipeline_status.running and pipeline_status.genome_accession %}
+                                {% trans "Pipeline in progress for" %} <code>{{ pipeline_status.genome_display_accession|default:pipeline_status.genome_accession }}</code>
+                                {% if pipeline_status.stage_current %}
+                                    · {% trans "Stage" %} {{ pipeline_status.stage_current }}/{{ pipeline_status.stage_total }}
+                                {% endif %}
+                            {% elif pipeline_status.running %}
+                                {% trans "Pipeline in progress" %}
+                            {% else %}
+                                {{ pipeline_status.state_label }}
+                            {% endif %}
+                        {% endif %}
+                    </span>
+                    <button
+                        type="button"
+                        class="btn tp-btn tp-btn--neutral btn-sm home-pipeline-refresh tp-focusable"
+                        aria-label="{% trans 'Refresh pipeline status' %}"
+                        title="{% trans 'Refresh pipeline status' %}"
+                    >
+                        <span class="home-pipeline-refresh-icon" aria-hidden="true">
+                            {% include "components/icons/refresh.html" %}
+                        </span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="home-pipeline-stack">
+                <div class="home-pipeline-live" data-pipeline-live>
+                    {% if pipeline_status.available %}
+                        {% if pipeline_status.stage_current %}
+                            <p class="home-pipeline-copy">
+                                {% trans "Bioinformatics stage" %} <strong>{{ pipeline_status.stage_current }} / {{ pipeline_status.stage_total }}</strong>
+                                {% if pipeline_status.stage_label %}· {{ pipeline_status.stage_label }}{% endif %}
+                            </p>
+                            {% include "components/pipeline/note.html" with pipeline_status=pipeline_status mode="global" note_class="home-pipeline-note" %}
+                            <div class="pipeline-track {% if not pipeline_status.running and pipeline_status.stage_current == pipeline_status.stage_total and pipeline_status.state_class == 'finished' %}is-complete{% endif %}{% if pipeline_status.state_class == 'failed' %} is-failed{% endif %}" aria-hidden="true">
+                                <div class="pipeline-fill {% if not pipeline_status.running and pipeline_status.stage_current == pipeline_status.stage_total and pipeline_status.state_class == 'finished' %}is-complete{% endif %}{% if pipeline_status.state_class == 'failed' %} is-failed{% endif %}" style="width: {% if not pipeline_status.running and pipeline_status.stage_current == pipeline_status.stage_total and pipeline_status.state_class == 'finished' %}100{% else %}{{ pipeline_status.progress_percent }}{% endif %}%;"></div>
+                            </div>
+                            <p class="home-pipeline-meta">
+                                {% if pipeline_status.genome_accession %}
+                                    {% trans "Genome" %} <code>{{ pipeline_status.genome_display_accession|default:pipeline_status.genome_accession }}</code>
+                                {% endif %}
+                                {% if not pipeline_status.running_for_other_workspace and pipeline_status.run_id %}
+                                    {% if pipeline_status.genome_accession %} · {% endif %}{% trans "Run" %} <code>{{ pipeline_status.run_id }}</code>
+                                {% endif %}
+                                {% if pipeline_status.last_updated %}
+                                    {% if pipeline_status.genome_accession or not pipeline_status.running_for_other_workspace and pipeline_status.run_id %} · {% endif %}{% trans "Updated" %} {{ pipeline_status.last_updated }}
+                                {% endif %}
+                            </p>
+                        {% elif pipeline_status.running_for_other_workspace %}
+                            <p class="tp-state-note tp-state-note--loading">{% trans "Another genome submission is currently using the pipeline. Queued runs will start automatically." %}</p>
+                        {% else %}
+                            <p class="tp-state-note tp-state-note--empty">{% trans "Pipeline activity is available, but detailed stage metadata is not visible yet." %}</p>
+                        {% endif %}
+                    {% else %}
+                        <p class="tp-state-note tp-state-note--empty">{% trans "No pipeline activity is visible for this account yet." %}</p>
+                    {% endif %}
+                </div>
             </div>
         </section>
 
-        <section class="home-grid">
-            <section class="home-status {% if pipeline_status.available and not pipeline_status.running and pipeline_status.stage_current and pipeline_status.stage_current == pipeline_status.stage_total and pipeline_status.state_class == 'finished' %}pipeline-finished{% endif %}">
-                <div class="home-status-head">
-                    <h2>{% trans "Bioinformatics Pipeline Status" %}</h2>
-                    <span class="tp-chip tp-chip--state tp-chip--sm {{ pipeline_status.state_class }}">{{ pipeline_status.state_label }}</span>
+        <section class="home-panel home-post tp-ui-panel">
+            <div class="tp-ui-panel-head">
+                <div>
+                    <p class="tp-ui-field-label">{% trans "Project notes" %}</p>
+                    <h2>{% trans "Curated notes for this deployment" %}</h2>
                 </div>
-                {% if pipeline_status.available %}
-                    {% if pipeline_status.stage_current %}
-                        {% if not pipeline_status.running and pipeline_status.stage_current == pipeline_status.stage_total and pipeline_status.state_class == "finished" %}
-                            <p class="pipeline-stage pipeline-stage-complete">
-                                {% trans "Pipeline completed successfully" %} · {% trans "Bioinformatics stage" %} <strong>{{ pipeline_status.stage_current }} / {{ pipeline_status.stage_total }}</strong>
-                            </p>
-                        {% else %}
-                            <p class="pipeline-stage">
-                                {% trans "Bioinformatics stage" %} <strong>{{ pipeline_status.stage_current }} / {{ pipeline_status.stage_total }}</strong>
-                                {% if pipeline_status.stage_label %}· {{ pipeline_status.stage_label }}{% endif %}
-                                {% if pipeline_status.activity_label and pipeline_status.running %}· {{ pipeline_status.activity_label }}{% endif %}
-                            </p>
-                        {% endif %}
-                        <div class="pipeline-track {% if not pipeline_status.running and pipeline_status.stage_current == pipeline_status.stage_total and pipeline_status.state_class == 'finished' %}is-complete{% endif %}" aria-hidden="true">
-                            <div class="pipeline-fill {% if not pipeline_status.running and pipeline_status.stage_current == pipeline_status.stage_total and pipeline_status.state_class == 'finished' %}is-complete{% endif %}" style="width: {% if not pipeline_status.running and pipeline_status.stage_current == pipeline_status.stage_total and pipeline_status.state_class == 'finished' %}100{% else %}{{ pipeline_status.progress_percent }}{% endif %}%;"></div>
-                        </div>
-                    {% elif pipeline_status.running_for_other_workspace %}
-                        <p class="pipeline-stage">{% trans "Another workspace is currently using the pipeline. Queued runs will start automatically." %}</p>
-                    {% else %}
-                        <p class="pipeline-stage">{% trans "Pipeline activity is available, but detailed stage metadata is not visible yet." %}</p>
-                    {% endif %}
-                    <p class="pipeline-meta">
-                        {% if pipeline_status.genome_accession %}
-                            {% trans "Genome" %} <code>{{ pipeline_status.genome_display_accession|default:pipeline_status.genome_accession }}</code> ·
-                        {% endif %}
-                        {% if not pipeline_status.running_for_other_workspace and pipeline_status.run_id %}
-                            {% trans "Run" %} <code>{{ pipeline_status.run_id }}</code>
-                        {% endif %}
-                        {% if pipeline_status.last_updated %}
-                            {% if pipeline_status.genome_accession or not pipeline_status.running_for_other_workspace and pipeline_status.run_id %}· {% endif %}{% trans "Updated" %} {{ pipeline_status.last_updated }}
-                        {% endif %}
-                    </p>
-                {% else %}
-                    <p class="pipeline-stage">{% trans "No pipeline activity is visible in this workspace yet." %}</p>
-                {% endif %}
-            </section>
-        </section>
-
-        <section class="home-post">
+            </div>
             {% if has_project_notes %}
-                <h2>{% trans "Project Notes" %}</h2>
                 {% autoescape off %}
                     {{ post.content|safe }}
                 {% endautoescape %}
             {% else %}
-                <p class="home-empty-note tp-state-note tp-state-note--empty">{% trans "Curated project notes will appear here once they are published." %}</p>
+                <p class="tp-state-note tp-state-note--empty">{% trans "Curated project notes will appear here once they are published." %}</p>
             {% endif %}
         </section>
     </div>
+{% endblock %}
+
+{% block jsloaded %}
+    <script>
+        function jsloaded() {
+            const operationsPanel = document.querySelector(".home-operations");
+            if (!operationsPanel) return;
+
+            const refreshButton = operationsPanel.querySelector(".home-pipeline-refresh");
+            const refreshIcon = operationsPanel.querySelector(".home-pipeline-refresh-icon");
+            const chip = operationsPanel.querySelector(".home-pipeline-chip");
+            const liveRegion = operationsPanel.querySelector("[data-pipeline-live]");
+            const endpoint = operationsPanel.getAttribute("data-pipeline-endpoint");
+            if (!refreshButton || !refreshIcon || !chip || !liveRegion || !endpoint) return;
+
+            const labels = {
+                pipelineInProgressFor: "Pipeline in progress for",
+                pipelineInProgress: "Pipeline in progress",
+                stage: "Stage",
+                bioinformaticsStage: "Bioinformatics stage",
+                genome: "Genome",
+                run: "Run",
+                updated: "Updated",
+                otherWorkspace: "Another genome submission is currently using the pipeline. Queued runs will start automatically.",
+                metadataUnavailable: "Pipeline activity is available, but detailed stage metadata is not visible yet.",
+                noActivity: "No pipeline activity is visible for this account yet.",
+                refreshTitle: "Refresh pipeline status",
+            };
+
+            function escapeHtml(value) {
+                return String(value || "")
+                    .replaceAll("&", "&amp;")
+                    .replaceAll("<", "&lt;")
+                    .replaceAll(">", "&gt;")
+                    .replaceAll('"', "&quot;")
+                    .replaceAll("'", "&#39;");
+            }
+
+            function chipMarkup(status) {
+                if (!status.available) return "";
+                const stateClass = escapeHtml(status.state_class || "");
+                if (status.running && status.genome_accession) {
+                    const genomeLabel = escapeHtml(status.genome_display_accession || status.genome_accession);
+                    const stageSuffix = status.stage_current
+                        ? ` · ${labels.stage} ${escapeHtml(status.stage_current)}/${escapeHtml(status.stage_total)}`
+                        : "";
+                    return `${labels.pipelineInProgressFor} <code>${genomeLabel}</code>${stageSuffix}`;
+                }
+                if (status.running) return labels.pipelineInProgress;
+                return escapeHtml(status.state_label || "");
+            }
+
+            function noteMarkup(status) {
+                if (status.running && (status.activity_label || status.stage_label)) {
+                    return `<p class="home-pipeline-note">${escapeHtml(status.activity_label || status.stage_label)}</p>`;
+                }
+                return "";
+            }
+
+            function buildMetaParts(status) {
+                const parts = [];
+                if (status.genome_accession) {
+                    parts.push(`${labels.genome} <code>${escapeHtml(status.genome_display_accession || status.genome_accession)}</code>`);
+                }
+                if (!status.running_for_other_workspace && status.run_id) {
+                    parts.push(`${labels.run} <code>${escapeHtml(status.run_id)}</code>`);
+                }
+                if (status.last_updated) {
+                    parts.push(`${labels.updated} ${escapeHtml(status.last_updated)}`);
+                }
+                return parts.join(" · ");
+            }
+
+            function liveMarkup(status) {
+                if (status.available) {
+                    if (status.stage_current) {
+                        const isComplete = !status.running
+                            && Number(status.stage_current) === Number(status.stage_total)
+                            && status.state_class === "finished";
+                        const fillWidth = isComplete ? 100 : Number(status.progress_percent || 0);
+                        const trackClasses = ["pipeline-track"];
+                        const fillClasses = ["pipeline-fill"];
+                        if (isComplete) {
+                            trackClasses.push("is-complete");
+                            fillClasses.push("is-complete");
+                        }
+                        if (status.state_class === "failed") {
+                            trackClasses.push("is-failed");
+                            fillClasses.push("is-failed");
+                        }
+
+                        const stageLabel = status.stage_label
+                            ? `· ${escapeHtml(status.stage_label)}`
+                            : "";
+
+                        const metaMarkup = buildMetaParts(status);
+                        return `
+                            <p class="home-pipeline-copy">
+                                ${labels.bioinformaticsStage} <strong>${escapeHtml(status.stage_current)} / ${escapeHtml(status.stage_total)}</strong>
+                                ${stageLabel}
+                            </p>
+                            ${noteMarkup(status)}
+                            <div class="${trackClasses.join(" ")}" aria-hidden="true">
+                                <div class="${fillClasses.join(" ")}" style="width: ${fillWidth}%;"></div>
+                            </div>
+                            ${metaMarkup ? `<p class="home-pipeline-meta">${metaMarkup}</p>` : ""}
+                        `;
+                    }
+                    if (status.running_for_other_workspace) {
+                        return `<p class="tp-state-note tp-state-note--loading">${labels.otherWorkspace}</p>`;
+                    }
+                    return `<p class="tp-state-note tp-state-note--empty">${labels.metadataUnavailable}</p>`;
+                }
+                return `<p class="tp-state-note tp-state-note--empty">${labels.noActivity}</p>`;
+            }
+
+            function renderStatus(status) {
+                const stateClass = String(status.state_class || "").trim();
+                chip.className = `home-pipeline-chip tp-chip tp-chip--state tp-chip--sm${status.available && stateClass ? ` ${stateClass}` : ""}`;
+                chip.hidden = !status.available;
+                chip.innerHTML = chipMarkup(status);
+                liveRegion.innerHTML = liveMarkup(status);
+                operationsPanel.classList.toggle("is-failed", stateClass === "failed");
+            }
+
+            async function refreshStatus() {
+                if (refreshButton.disabled) return;
+                refreshButton.disabled = true;
+                refreshButton.setAttribute("aria-busy", "true");
+                refreshIcon.classList.add("is-spinning");
+                try {
+                    const response = await fetch(endpoint, {
+                        headers: { "X-Requested-With": "XMLHttpRequest" },
+                        credentials: "same-origin",
+                    });
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    const payload = await response.json();
+                    renderStatus(payload.pipeline || {});
+                } catch (error) {
+                    console.error("Pipeline status refresh failed", error);
+                } finally {
+                    refreshButton.disabled = false;
+                    refreshButton.removeAttribute("aria-busy");
+                    refreshIcon.classList.remove("is-spinning");
+                }
+            }
+
+            refreshButton.addEventListener("click", refreshStatus);
+
+            // Genome list refresh: reload the page to pick up newly processed genomes.
+            const genomesRefreshButton = document.querySelector(".home-updated-genomes-refresh");
+            if (genomesRefreshButton) {
+                genomesRefreshButton.addEventListener("click", () => {
+                    const icon = genomesRefreshButton.querySelector(".home-pipeline-refresh-icon");
+                    if (icon) icon.classList.add("is-spinning");
+                    genomesRefreshButton.disabled = true;
+                    window.location.reload();
+                });
+            }
+        }
+
+        $(document).ready(jsloaded);
+    </script>
 {% endblock %}

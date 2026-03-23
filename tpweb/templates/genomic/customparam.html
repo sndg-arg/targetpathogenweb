@@ -11,25 +11,31 @@
         <section class="customparam-hero">
             {% trans "Home" as crumb_home %}
             {% trans "Genomes" as crumb_genomes %}
-            {% trans "Proteins" as crumb_proteins %}
+            {% trans "Prioritization setup" as crumb_setup %}
             {% trans "Upload custom scores" as crumb_upload_custom_scores %}
             {% url 'tpwebapp:index' as index_url %}
             {% url 'tpwebapp:genomes_list' as genomes_url %}
-            {% url 'tpwebapp:protein_list' assembly_name as proteins_url %}
-            {% include "components/navigation/breadcrumbs.html" with crumb_1_label=crumb_home crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_proteins crumb_3_url=proteins_url crumb_4_label=crumb_upload_custom_scores %}
-            <h1>{% trans "Upload Custom Scores" %}</h1>
-            <p class="customparam-subtitle">{% trans "Add a TSV dataset to enrich protein prioritization with project-specific metrics." %}</p>
+            {% url 'tpwebapp:assembly' assembly_name as assembly_url %}
+            {% url 'tpwebapp:prioritization_setup' assembly_name=assembly_name as setup_url %}
+            {% with genome_label=assembly_label|default:assembly_name %}
+            {% with crumb_genome="Genome: "|add:genome_label %}
+            {% include "components/navigation/breadcrumbs.html" with crumb_1_label=crumb_home crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_genome crumb_3_url=assembly_url crumb_4_label=crumb_setup crumb_4_url=setup_url crumb_5_label=crumb_upload_custom_scores %}
+            {% endwith %}
+            {% endwith %}
+            <h1>{% trans "Upload custom evidence" %}</h1>
+            <p class="customparam-subtitle">{% trans "Import a TSV file to add project-specific quantitative or categorical evidence to protein ranking." %}</p>
             <p class="customparam-context"><strong>{% trans "Genome" %}:</strong> <span class="customparam-context-id">{{ assembly_label|default:assembly_name }}</span></p>
             <div class="customparam-chip-group tp-chip-group">
                 <span class="tp-chip tp-chip--meta tp-chip--sm">{% trans "Format" %}: TSV</span>
                 <span class="tp-chip tp-chip--meta tp-chip--sm">{% trans "Expected columns" %}: 2</span>
+                <span class="tp-chip tp-chip--meta tp-chip--sm">{% trans "Value type" %}: {% trans "categorical or numeric" %}</span>
             </div>
         </section>
 
         <section class="customparam-main">
             <article class="customparam-card tp-ui-panel">
                 <div class="customparam-card-head">
-                    <h2>{% trans "Upload file" %}</h2>
+                    <h2>{% trans "Upload evidence file" %}</h2>
                     <span class="tp-chip tp-chip--count tp-chip--sm">{% trans "TSV" %}</span>
                 </div>
                 <form id="add-custom-param-form" class="customparam-form" method="POST" enctype="multipart/form-data" novalidate>
@@ -53,18 +59,19 @@
                         </div>
                     {% else %}
                         <div class="customparam-actions">
-                            <button type="submit" class="btn tp-btn tp-btn--primary">{% trans "Upload TSV" %}</button>
+                            <button type="submit" class="btn tp-btn tp-btn--primary">{% trans "Upload file" %}</button>
                         </div>
                     {% endif %}
                 </form>
             </article>
 
             <aside class="customparam-card tp-ui-panel">
-                <h2>{% trans "TSV guide" %}</h2>
+                <h2>{% trans "Input guide" %}</h2>
                 <ul class="customparam-guide-list">
                     <li>{% trans "Use tab-separated values (TSV)." %}</li>
                     <li>{% trans "Include a protein identifier column that matches existing accessions." %}</li>
                     <li>{% trans "One row per protein score value." %}</li>
+                    <li>{% trans "The second column can be numeric or categorical." %}</li>
                 </ul>
                 <div class="customparam-guide-sample">
                     <p>{% trans "Example" %}</p>

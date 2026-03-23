@@ -1,8 +1,8 @@
 .protein-page {
     font-family: "Source Sans 3", "Segoe UI", sans-serif;
     color: var(--tp-ink);
-    max-width: 1280px;
-    margin: 0 auto;
+    max-width: none;
+    margin: 0;
     display: grid;
     gap: var(--tp-space-4);
     --protein-accent: var(--tp-color-brand-800);
@@ -23,7 +23,7 @@
     border: 1px solid var(--tp-color-border-strong);
     border-radius: var(--tp-ui-radius-hero);
     background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
-    padding: 18px;
+    padding: 20px 20px 18px;
     box-shadow: var(--tp-ui-shadow-panel);
     position: relative;
     overflow: hidden;
@@ -45,16 +45,22 @@
 .protein-hero-top {
     display: flex;
     justify-content: space-between;
-    gap: 16px;
+    gap: 18px;
     align-items: flex-start;
+    margin-top: 8px;
+}
+
+.protein-hero .tp-view-head-actions {
+    padding-top: 6px;
 }
 
 .protein-hero-content {
-    max-width: 980px;
+    max-width: none;
+    width: 100%;
 }
 
 .protein-hero-eyebrow {
-    margin: 0 0 8px;
+    margin: 0 0 10px;
     color: var(--tp-color-text-muted);
     font-size: 0.75rem;
     font-weight: 700;
@@ -64,21 +70,21 @@
 
 .protein-hero h1 {
     margin: 0;
-    font-size: clamp(1.85rem, 2.5vw, 2.4rem);
+    font-size: clamp(1.92rem, 2.5vw, 2.48rem);
     line-height: 1.1;
     color: var(--protein-accent-ink);
 }
 
 .protein-description {
-    margin: 8px 0 0;
+    margin: 10px 0 0;
     color: var(--tp-color-text-secondary);
-    font-size: 1.02rem;
-    line-height: 1.4;
-    max-width: 960px;
+    font-size: 1rem;
+    line-height: 1.42;
+    max-width: 920px;
 }
 
 .protein-context {
-    margin: 8px 0 0;
+    margin: 10px 0 0;
     color: var(--tp-color-text-secondary);
     font-size: 0.95rem;
 }
@@ -90,7 +96,7 @@
 }
 
 .hero-chip-list {
-    margin-top: 10px;
+    margin-top: 12px;
 }
 
 .hero-chip-list .hero-chip {
@@ -107,7 +113,7 @@
 
 .hero-chip-gene .gene-value {
     display: inline-block;
-    max-width: min(68vw, 700px);
+    max-width: min(74vw, 980px);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -139,21 +145,21 @@
 
 .protein-metrics {
     display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 8px;
-    margin-top: 12px;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px;
+    margin-top: 14px;
 }
 
 .metric-pill {
     border: 1px solid var(--protein-accent-border);
     border-radius: 12px;
     background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-panel) 100%);
-    padding: 9px 10px;
-    min-height: 66px;
+    padding: 10px 12px;
+    min-height: 68px;
     display: grid;
     align-content: center;
     gap: 2px;
-    box-shadow: 0 6px 14px rgba(24, 50, 69, 0.06);
+    box-shadow: 0 8px 16px rgba(24, 50, 69, 0.055);
 }
 
 .metric-label {
@@ -165,10 +171,10 @@
 }
 
 .metric-value {
+    color: var(--protein-accent-ink);
     font-size: 1.08rem;
     line-height: 1.2;
     font-weight: 700;
-    color: var(--protein-accent-ink);
 }
 
 .quick-nav {
@@ -183,11 +189,11 @@
     gap: 8px;
     justify-content: flex-start;
     overflow-x: auto;
-    padding: 8px;
-    border: 1px solid var(--tp-color-border-strong);
+    padding: 8px 10px;
+    border: 1px solid var(--tp-color-border-soft);
     border-radius: 12px;
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
-    box-shadow: 0 8px 18px rgba(19, 43, 62, 0.08);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, rgba(248, 251, 251, 0.94) 100%);
+    box-shadow: 0 8px 18px rgba(19, 43, 62, 0.045);
     backdrop-filter: blur(3px);
 }
 
@@ -206,15 +212,15 @@
     align-items: center;
     justify-content: center;
     text-align: center;
-    min-height: 42px;
-    padding: 0.46rem 1.08rem;
+    min-height: 40px;
+    padding: 0.42rem 0.98rem;
     line-height: 1.1;
     font-weight: 600;
     border-radius: 999px;
-    border: 1px solid var(--tp-color-brand-300) !important;
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%) !important;
+    border: 1px solid var(--tp-color-border-strong) !important;
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, rgba(248, 251, 251, 0.98) 100%) !important;
     color: var(--tp-color-text-secondary) !important;
-    box-shadow: 0 1px 2px rgba(20, 41, 56, 0.05);
+    box-shadow: none;
     white-space: nowrap;
     text-decoration: none !important;
 }
@@ -251,7 +257,7 @@
 .protein-grid {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
-    gap: 12px;
+    gap: 14px;
 }
 
 .protein-card {
@@ -259,7 +265,7 @@
     border-radius: var(--tp-ui-radius-panel);
     background: var(--tp-color-surface);
     box-shadow: var(--tp-ui-shadow-panel);
-    padding: 14px;
+    padding: 16px;
     overflow: hidden;
 }
 
@@ -279,7 +285,7 @@
     justify-content: space-between;
     align-items: flex-start;
     gap: 10px;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
 }
 
 .section-tools {
@@ -327,14 +333,15 @@
 .overview-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(210px, 1fr));
-    gap: 8px;
+    gap: 10px;
 }
 
 .overview-item {
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: 11px;
-    background: var(--tp-color-surface);
-    padding: 10px 12px;
+    border-radius: 12px;
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+    padding: 11px 13px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
 }
 
 .overview-item--status {
@@ -357,7 +364,7 @@
 }
 
 .overview-item dd {
-    margin: 2px 0 0;
+    margin: 4px 0 0;
     color: var(--tp-color-text-secondary);
     font-size: 0.98rem;
     line-height: 1.4;

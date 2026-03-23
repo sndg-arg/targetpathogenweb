@@ -68,6 +68,9 @@
     display: grid;
     grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
     gap: 12px;
+    align-items: start;
+    position: relative;
+    z-index: 1;
 }
 
 .formula-card {
@@ -79,6 +82,13 @@
     display: grid;
     gap: 10px;
     align-content: start;
+    position: relative;
+    z-index: 1;
+    overflow: visible;
+}
+
+.formula-main > :first-child {
+    z-index: 3;
 }
 
 .formula-card-head {
@@ -137,6 +147,15 @@
     min-height: var(--tp-ui-control-height);
 }
 
+.formula-add-form .tp-select {
+    position: relative;
+    z-index: 5;
+}
+
+.formula-add-form .tp-select-menu {
+    z-index: 30;
+}
+
 .formula-actions {
     display: flex;
     flex-wrap: wrap;
@@ -185,6 +204,8 @@
     background: var(--tp-color-surface);
     box-shadow: var(--tp-ui-shadow-panel);
     padding: 14px;
+    position: relative;
+    z-index: 1;
 }
 
 .formula-hero,

@@ -112,7 +112,15 @@
     <div class="blast-wrap">
         <section class="blast-hero blast-head">
             <h1>{% trans "BLAST" %}</h1>
-            <p>{% trans "Run nucleotide BLAST against a selected genome dataset." %}</p>
+            {% if blast_locked_to_genome %}
+                <p>{% trans "Run nucleotide BLAST against the currently selected genome." %}</p>
+                <p><strong>{% trans "Genome" %}:</strong> {{ selected_genome_label }}</p>
+                {% if selected_genome_description and selected_genome_description != selected_genome_label %}
+                    <p><strong>{% trans "Description" %}:</strong> {{ selected_genome_description }}</p>
+                {% endif %}
+            {% else %}
+                <p>{% trans "Run nucleotide BLAST against a selected genome dataset." %}</p>
+            {% endif %}
             <div class="blast-hero-chips">
                 <span class="blast-hero-chip">{% trans "Input" %}: FASTA / raw sequence</span>
                 <span class="blast-hero-chip">{% trans "Mode" %}: blastn</span>
@@ -122,25 +130,38 @@
 
         <section class="blast-form-grid">
             <div class="blast-panel">
-                <h2>{% trans "Run search" %}</h2>
+                <h2>{% if blast_locked_to_genome %}{% trans "Run search against this genome" %}{% else %}{% trans "Run search" %}{% endif %}</h2>
                 <form method="POST" class="blast-form-inner">
                     {% csrf_token %}
-                    <div>
-                        <label for="dropdown"><strong>{% trans "Genome" %}</strong></label>
-                        <select name="dropdown" id="dropdown" class="form-control">
-                            {% for option in db_options %}
-                                <option value="{{ option.value }}">{{ option.label }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
+                    {% if blast_locked_to_genome %}
+                        <input type="hidden" name="genome_name" value="{{ selected_genome_name }}">
+                        <p class="tp-state-note tp-state-note--empty mb-0">
+                            {% trans "This search is bound to the current genome. To search another genome, open BLAST from that genome overview or use the global BLAST entry." %}
+                        </p>
+                    {% else %}
+                        <div>
+                            <label for="dropdown"><strong>{% trans "Genome" %}</strong></label>
+                            <select name="dropdown" id="dropdown" class="form-control">
+                                {% for option in db_options %}
+                                    <option value="{{ option.value }}" {% if option.value|stringformat:"s" == selected_db_value|stringformat:"s" %}selected{% endif %}>{{ option.label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    {% endif %}
 
                     <div>
                         <label for="text_input"><strong>{% trans "Query sequence" %}</strong></label>
-                        <textarea name="text_input" id="text_input" class="form-control" placeholder="{% trans "Paste FASTA or raw nucleotide sequence here..." %}"></textarea>
+                        <textarea name="text_input" id="text_input" class="form-control" placeholder="{% trans "Paste FASTA or raw nucleotide sequence here..." %}">{{ text_input_value|default:"" }}</textarea>
                     </div>
 
                     <div class="d-flex flex-wrap gap-2">
-                        <button type="submit" class="btn tp-btn tp-btn--primary">{% trans "Run BLAST" %}</button>
+                        <button type="submit" class="btn tp-btn tp-btn--primary">
+                            {% if blast_locked_to_genome %}
+                                {% trans "Run BLAST against this genome" %}
+                            {% else %}
+                                {% trans "Run BLAST" %}
+                            {% endif %}
+                        </button>
                     </div>
                 </form>
             </div>

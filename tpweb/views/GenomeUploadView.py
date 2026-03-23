@@ -1,6 +1,8 @@
 from django.shortcuts import render
+from django.urls import reverse
 from django.views import View
 
+from bioseq.models.Biodatabase import Biodatabase
 from tpweb.forms.GenomeUploadForm import GenomeUploadForm
 from tpweb.models import GenomeUpload
 from tpweb.services.genome_uploads import (
@@ -28,9 +30,11 @@ class GenomeUploadView(View):
     ACTION_USE_TEST_GENOME = "use_test_genome"
 
     @staticmethod
-    def _job_state(job, pipeline_status, queue_positions):
-        if pipeline_status.get("running") and (
-            str(pipeline_status.get("genome_accession") or "").strip() == job.internal_accession
+    def _job_state(job, pipeline_status, queue_positions, running_job_id=None):
+        if (
+            pipeline_status.get("running")
+            and str(pipeline_status.get("genome_accession") or "").strip() == job.internal_accession
+            and (running_job_id is None or job.id == running_job_id)
         ):
             return {"label": "Running", "class": "running"}
         if job.status == GenomeUpload.STATUS_SUBMITTED:
@@ -50,14 +54,35 @@ class GenomeUploadView(View):
             GenomeUpload.objects.filter(owner=workspace_user).order_by("-created_at", "-id")[:8]
         )
 
+        # When the pipeline is active, only the most recently submitted job for
+        # that accession is the real running one. Older jobs with the same
+        # internal_accession must not be shown as running.
+        running_job_id = None
+        running_internal = str(pipeline_status.get("genome_accession") or "").strip()
+        if pipeline_status.get("running") and running_internal:
+            candidate = (
+                GenomeUpload.objects.filter(internal_accession=running_internal)
+                .order_by("-id")
+                .values_list("id", flat=True)
+                .first()
+            )
+            running_job_id = candidate
+
         jobs_dto = []
         for job in jobs:
-            state = self._job_state(job, pipeline_status, queue_positions)
+            state = self._job_state(job, pipeline_status, queue_positions, running_job_id=running_job_id)
+            assembly_url = ""
+            if Biodatabase.objects.filter(name=job.internal_accession).exists():
+                assembly_url = reverse(
+                    "tpwebapp:assembly",
+                    kwargs={"assembly_id": job.internal_accession},
+                )
             jobs_dto.append(
                 {
                     "id": job.id,
                     "display_accession": job.display_accession,
                     "internal_accession": job.internal_accession,
+                    "assembly_url": assembly_url,
                     "gram": "Gram-negative" if job.gram == "n" else "Gram-positive",
                     "created_at": job.created_at,
                     "created_at_label": format_upload_timestamp(job.created_at),
@@ -132,7 +157,7 @@ class GenomeUploadView(View):
                         request,
                         form=GenomeUploadForm(),
                         error_message=(
-                            f"Genome {TEST_GENOME_ACCESSION} is already queued or running for this workspace."
+                            f"Genome {TEST_GENOME_ACCESSION} is already queued or running for this account."
                         ),
                     ),
                 )
@@ -174,7 +199,7 @@ class GenomeUploadView(View):
                     request,
                     form=form,
                     error_message=(
-                        f"Genome {display_accession} is already queued or running for this workspace."
+                        f"Genome {display_accession} is already queued or running for this account."
                     ),
                 ),
             )

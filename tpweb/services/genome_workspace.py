@@ -32,6 +32,22 @@ def display_genome_name(genome_name):
     return split_workspace_genome_name(genome_name)[1]
 
 
+def describe_genome_scope(user, genome_name):
+    workspace_slug, _ = split_workspace_genome_name(genome_name)
+    current_workspace_slug = workspace_slug_for_user(user)
+
+    if workspace_slug == current_workspace_slug and workspace_slug != PUBLIC_WORKSPACE_USERNAME:
+        return {
+            "key": "personal",
+            "label": "Private",
+        }
+
+    return {
+        "key": "public",
+        "label": "Public",
+    }
+
+
 def build_workspace_genome_name(accession, user):
     cleaned_accession = str(accession or "").strip()
     return f"{workspace_slug_for_user(user)}{WORKSPACE_GENOME_DELIMITER}{cleaned_accession}"
@@ -55,3 +71,11 @@ def user_can_access_genome_name(user, genome_name):
         PUBLIC_WORKSPACE_USERNAME,
         workspace_slug_for_user(user),
     }
+
+
+def user_can_delete_genome_name(user, genome_name):
+    if not is_workspace_genome_name(genome_name):
+        return False
+    workspace_slug, _ = split_workspace_genome_name(genome_name)
+    workspace_slug = str(workspace_slug or "").strip().lower()
+    return workspace_slug not in {"", PUBLIC_WORKSPACE_USERNAME} and workspace_slug == workspace_slug_for_user(user)

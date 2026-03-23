@@ -91,3 +91,16 @@ services:
       - QUEUE_POLL_INTERVAL=${QUEUE_POLL_INTERVAL:-5}
       - CWD=${PWD}
     restart: always
+
+  jbrowse:
+    container_name: target2_jbrowse_nodo0
+    image: jbrowse:latest
+    networks:
+      - web
+    command: npx serve .
+    working_dir: /jbrowse2
+    volumes:
+      - ${TPW_PROJECT_DIR:-.}/data:/jbrowse2/data
+    ports:
+      - "3000:3000"
+    restart: always

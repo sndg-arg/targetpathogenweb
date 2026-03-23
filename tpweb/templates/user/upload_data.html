@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/genome-upload.css' %}?v=20260313-6">
+    <link rel="stylesheet" href="{% static 'css/pages/genome-upload.css' %}?v=20260318-1">
 {% endblock %}
 
 {% block body %}
@@ -44,7 +44,7 @@
             <div class="genome-upload-card-head tp-ui-panel-head">
                 <div>
                     <h2>{% trans "New genome run" %}</h2>
-                    <p class="genome-upload-card-note">{% trans "Each submission is stored in this workspace and processed automatically." %}</p>
+                    <p class="genome-upload-card-note">{% trans "Each submission is stored for this account and processed automatically." %}</p>
                 </div>
                 <form method="post" class="genome-upload-test-form">
                     {% csrf_token %}
@@ -60,7 +60,7 @@
             {% if pipeline_status.running %}
                 <p class="tp-state-note tp-state-note--loading genome-upload-form-state">
                     {% if pipeline_status.running_for_other_workspace %}
-                        {% trans "Another workspace is currently using the pipeline. New submissions will be added to the queue." %}
+                        {% trans "Another genome submission is currently using the pipeline. New submissions will be added to the queue." %}
                     {% else %}
                         {% blocktrans with genome=running_genome_label %}A pipeline run is already in progress for {{ genome }}. New submissions will be added to the queue.{% endblocktrans %}
                     {% endif %}
@@ -104,12 +104,22 @@
             <div class="genome-upload-card-head tp-ui-panel-head">
                 <div>
                     <h2>{% trans "Recent submissions" %}</h2>
-                    <p class="genome-upload-card-note">{% trans "Finished runs link directly to the resulting protein workspace." %}</p>
+                    <p class="genome-upload-card-note">{% trans "Finished runs link directly to the resulting protein ranking." %}</p>
                 </div>
                 <div class="genome-upload-history-tools">
                     <span class="tp-chip tp-chip--count tp-chip--sm">{{ jobs|length }}</span>
+                    <button
+                        type="button"
+                        class="btn tp-btn tp-btn--neutral btn-sm genome-upload-refresh-btn tp-focusable"
+                        aria-label="{% trans 'Refresh submission list' %}"
+                        title="{% trans 'Refresh submission list' %}"
+                    >
+                        <span class="genome-upload-refresh-icon" aria-hidden="true">
+                            {% include "components/icons/refresh.html" %}
+                        </span>
+                    </button>
                     {% if jobs %}
-                        <form method="post" class="genome-upload-history-clear-form" onsubmit="return window.confirm('{% trans "Clear all upload history for this workspace?" %}');">
+                        <form method="post" class="genome-upload-history-clear-form" onsubmit="return window.confirm('{% trans "Clear all upload history for this account?" %}');">
                             {% csrf_token %}
                             <input type="hidden" name="action" value="clear_history">
                             {% trans "Clear history" as clear_history_label %}
@@ -133,13 +143,19 @@
                         <tbody>
                         {% for job in jobs %}
                             <tr class="genome-upload-history-row {% if job.state_class == 'running' %}is-running{% endif %}">
-                                <td class="genome-upload-history-name">{{ job.display_accession }}</td>
+                                <td class="genome-upload-history-name">
+                                    {% if job.assembly_url %}
+                                        <a href="{{ job.assembly_url }}">{{ job.display_accession }}</a>
+                                    {% else %}
+                                        {{ job.display_accession }}
+                                    {% endif %}
+                                </td>
                                 <td>{{ job.gram }}</td>
                                 <td>{{ job.created_at_label }}</td>
                                 <td><span class="genome-upload-status tp-chip tp-chip--sm genome-upload-status--{{ job.state_class }}">{{ job.state_label }}</span></td>
                                 <td>
                                     {% if job.state_class == "finished" %}
-                                        <a href="{% url 'tpwebapp:protein_list' job.protein_workspace_url %}">{% trans "Open workspace" %}</a>
+                                        <a href="{% url 'tpwebapp:protein_list' job.protein_workspace_url %}">{% trans "Open ranking" %}</a>
                                     {% elif job.state_class == "queued" %}
                                         <span class="text-muted">{% trans "Waiting in queue" %}</span>
                                     {% elif job.state_class == "running" %}
@@ -160,4 +176,20 @@
             {% endif %}
         </section>
     </div>
+{% endblock %}
+
+{% block jsloaded %}
+<script>
+    function jsloaded() {
+        const btn = document.querySelector(".genome-upload-refresh-btn");
+        if (!btn) return;
+        btn.addEventListener("click", () => {
+            const icon = btn.querySelector(".genome-upload-refresh-icon");
+            if (icon) icon.classList.add("is-spinning");
+            btn.disabled = true;
+            window.location.reload();
+        });
+    }
+    $(document).ready(jsloaded);
+</script>
 {% endblock %}

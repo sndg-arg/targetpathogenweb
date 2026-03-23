@@ -4,21 +4,23 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20260314-1">
+    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20260322-14">
 {% endblock %}
 
 {% block body %}
 
     <div class="proteins-page">
         <section class="proteins-hero">
-            <div class="hero-top">
-                <div>
+            <div class="hero-top tp-view-head">
+                <div class="tp-view-head-copy">
                     {% trans "Home" as crumb_home %}
                     {% trans "Genomes" as crumb_genomes %}
                     {% trans "Proteins" as crumb_proteins %}
                     {% url 'tpwebapp:index' as index_url %}
                     {% url 'tpwebapp:genomes_list' as genomes_url %}
-                    {% include "components/navigation/breadcrumbs.html" with crumb_1_label=crumb_home crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_proteins %}
+                    {% with crumb_workspace="Genome: "|add:biodb_accession %}
+                    {% include "components/navigation/breadcrumbs.html" with crumb_1_label=crumb_home crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_workspace crumb_3_url=assembly_url crumb_4_label=crumb_proteins %}
+                    {% endwith %}
                     <h1>{% trans "Proteins" %}</h1>
                     <p class="hero-context"><strong>{% trans "Genome" %}:</strong> <span class="hero-context-id">{{ biodb_accession }}</span></p>
                     {% if biodb_description and biodb_description != biodb_accession %}
@@ -26,53 +28,137 @@
                     {% endif %}
                     <p class="hero-subtitle">{% trans "Search, filter, and prioritize proteins." %}</p>
                 </div>
+                <div class="tp-view-head-actions">
+                    <a href="{{ view_export_url }}" class="btn tp-btn tp-btn--neutral tp-btn-with-icon tp-view-export-link">
+                        <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/download.html" %}</span>
+                        {% trans "Export view" %}
+                    </a>
+                </div>
             </div>
             <div class="hero-chips tp-chip-group">
                 <span class="tp-chip tp-chip--meta">{{ pagination.proteins.paginator.count }} {% trans "proteins" %}</span>
-                <span class="tp-chip tp-chip--meta">{% trans "Rows per page" %}: {{ page_size }}</span>
+                {% if formula %}
+                    <span class="tp-chip tp-chip--meta">{% trans "Scoring" %}: {{ formula.name }}</span>
+                {% endif %}
+                {% if structure_source %}
+                    <span class="tp-chip tp-chip--meta">{% trans "Structure" %}: {{ structure_source|humanize_identifier }}</span>
+                {% endif %}
+                {% if annotation_filter and annotation_filter.kind == 'ec' %}
+                    <span class="tp-chip tp-chip--meta">{% trans "EC" %}: {{ annotation_filter.value }}{% if annotation_filter.name %} · {{ annotation_filter.name }}{% endif %}</span>
+                {% endif %}
+                {% if annotation_filter and annotation_filter.kind == 'go' %}
+                    <span class="tp-chip tp-chip--meta">{% trans "GO" %}: {{ annotation_filter.value }}{% if annotation_filter.name %} · {{ annotation_filter.name }}{% endif %}</span>
+                {% endif %}
             </div>
-            <div class="hero-summary">
-                <p class="hero-summary-line">
-                    <span class="hero-summary-label">{% trans "Scoring" %}:</span>
-                    <span><strong>{% if formula %}{{ formula.name }}{% else %}{% trans "None" %}{% endif %}</strong></span>
+            {% if pipeline_status.available and pipeline_status.running_for_current_genome %}
+                <div class="hero-pipeline-group">
+                    {% include "components/pipeline/chip.html" with pipeline_status=pipeline_status mode="genome" chip_class="tp-chip tp-chip--state tp-chip--sm" %}
+                    {% include "components/pipeline/note.html" with pipeline_status=pipeline_status mode="genome" note_class="hero-pipeline-note" %}
+                </div>
+            {% endif %}
+            <div class="hero-analysis-context">
+                <p class="hero-analysis-line">
+                    <span class="hero-analysis-label">{% trans "Scoring formula" %}</span>
+                    <span class="hero-analysis-value">{% if formula %}{{ formula.name }}{% else %}{% trans "None" %}{% endif %}</span>
                 </p>
-                <p class="hero-summary-line">
-                    <span class="hero-summary-label">{% trans "Filters" %}:</span>
-                    {% if grouped_parameters %}
-                        {% if grouped_parameters|length == 1 %}
-                            {% for score_param, values in grouped_parameters.items %}
-                                {% if formula and score_param == formula.name %}
-                                    <span><strong>{{ values|humanize_identifier }}</strong></span>
-                                {% else %}
-                                    <span><strong>{{ score_param|humanize_identifier }}:</strong> {{ values|humanize_identifier }}</span>
-                                {% endif %}
-                            {% endfor %}
+                <p class="hero-analysis-line">
+                    <span class="hero-analysis-label">{% trans "Applied filters" %}</span>
+                    <span class="hero-analysis-value">
+                        {% if grouped_parameters or structure_source or annotation_filter %}
+                            {% if grouped_parameters|length == 1 %}
+                                {% for score_param, values in grouped_parameters.items %}
+                                    {% if formula and score_param == formula.name %}
+                                        {{ values|humanize_identifier }}
+                                    {% else %}
+                                        <strong>{{ score_param|humanize_identifier }}:</strong> {{ values|humanize_identifier }}
+                                    {% endif %}
+                                {% endfor %}
+                                {% if structure_source or annotation_filter %}<span class="hero-analysis-sep"> · </span>{% endif %}
+                            {% elif grouped_parameters %}
+                                {% for score_param, values in grouped_parameters.items %}
+                                    <span><strong>{{ score_param|humanize_identifier }}:</strong> {{ values|humanize_identifier }}</span>{% if not forloop.last %}<span class="hero-analysis-sep"> · </span>{% endif %}
+                                {% endfor %}
+                                {% if structure_source or annotation_filter %}<span class="hero-analysis-sep"> · </span>{% endif %}
+                            {% endif %}
+                            {% if structure_source %}
+                                <span><strong>{% trans "Structure" %}:</strong> {{ structure_source|humanize_identifier }}</span>{% if annotation_filter %}<span class="hero-analysis-sep"> · </span>{% endif %}
+                            {% endif %}
+                            {% if annotation_filter %}
+                                <span><strong>{{ annotation_filter.kind_label }}:</strong> {{ annotation_filter.value }}{% if annotation_filter.name %} · {{ annotation_filter.name }}{% endif %}</span>
+                            {% endif %}
                         {% else %}
-                            {% for score_param, values in grouped_parameters.items %}
-                                <span><strong>{{ score_param|humanize_identifier }}:</strong> {{ values|humanize_identifier }}</span>
-                                {% if not forloop.last %}<span class="hero-summary-sep">·</span>{% endif %}
-                            {% endfor %}
+                            {% trans "No active filters" %}
                         {% endif %}
-                    {% else %}
-                        <span>{% trans "No active filters" %}</span>
-                    {% endif %}
+                    </span>
                 </p>
-                <p class="hero-summary-line">
-                    <span class="hero-summary-label">{% trans "Search" %}:</span>
-                    {% if search_query %}
-                        <span class="hero-summary-query" title="{{ search_query }}"><strong>{{ search_query }}</strong></span>
-                    {% else %}
-                        <span>{% trans "No active search" %}</span>
-                    {% endif %}
+                <p class="hero-analysis-line">
+                    <span class="hero-analysis-label">{% trans "Search query" %}</span>
+                    <span class="hero-analysis-value">
+                        {% if search_query %}
+                            <span title="{{ search_query }}">{{ search_query }}</span>
+                        {% else %}
+                            {% trans "No active search" %}
+                        {% endif %}
+                    </span>
+                </p>
+                <p class="hero-analysis-line">
+                    <span class="hero-analysis-label">{% trans "Rows per page" %}</span>
+                    <span class="hero-analysis-value">{{ page_size }}</span>
+                </p>
+                {% if structure_source %}
+                    <p class="hero-analysis-line">
+                        <span class="hero-analysis-label">{% trans "Structure filter" %}</span>
+                        <span class="hero-analysis-value">{{ structure_source|humanize_identifier }}</span>
+                    </p>
+                {% endif %}
+            </div>
+            {% if pipeline_status.available and pipeline_status.current_genome_status_note %}
+                <p class="tp-state-note {% if pipeline_status.failed_for_current_genome %}tp-state-note--error{% else %}tp-state-note--empty{% endif %}">
+                    {{ pipeline_status.current_genome_status_note }}
+                </p>
+            {% endif %}
+        </section>
+
+        {% if annotation_filter %}
+        <section class="functional-filter-card tp-ui-panel">
+            <div class="functional-filter-head">
+                <div>
+                    <h2>{% trans "Functional filter" %}</h2>
+                    <p>{% trans "This protein set is currently constrained by a functional annotation term." %}</p>
+                </div>
+                <a href="{{ clear_annotation_url }}" class="btn tp-btn tp-btn--clear">{% trans "Clear" %}</a>
+            </div>
+            <div class="functional-filter-facts">
+                <p class="functional-filter-line">
+                    <span class="functional-filter-label">{% trans "Type" %}</span>
+                    <span class="functional-filter-value">{{ annotation_filter.kind_label }}</span>
+                </p>
+                <p class="functional-filter-line">
+                    <span class="functional-filter-label">{% trans "Accession" %}</span>
+                    <span class="functional-filter-value">{{ annotation_filter.value }}</span>
+                </p>
+                {% if annotation_filter.name %}
+                <p class="functional-filter-line">
+                    <span class="functional-filter-label">{% trans "Label" %}</span>
+                    <span class="functional-filter-value">{{ annotation_filter.name }}</span>
+                </p>
+                {% endif %}
+                <p class="functional-filter-line">
+                    <span class="functional-filter-label">{% trans "Manual control" %}</span>
+                    <span class="functional-filter-value">{% trans "Managed from Advanced criteria" %}</span>
                 </p>
             </div>
-            {% include "components/pipeline/note.html" with pipeline_status=pipeline_status mode="genome" note_class="hero-pipeline-note" %}
         </section>
+        {% endif %}
 
         <section class="toolbar-card tp-ui-toolbar">
             <form method="GET" action="{{ request.path }}" class="search-form tp-ui-toolbar-form" id="protein-search-form">
                 {% if request.GET.scoreformula %}
                     <input type="hidden" name="scoreformula" value="{{ request.GET.scoreformula }}">
+                {% endif %}
+                {% if annotation_filter %}
+                    <input type="hidden" name="annotation_kind" value="{{ annotation_filter.kind }}">
+                    <input type="hidden" name="annotation_value" value="{{ annotation_filter.value }}">
                 {% endif %}
 
                 <div class="toolbar-search-row tp-ui-search-row tp-ui-toolbar-row tp-ui-toolbar-row--stack-sm">
@@ -121,46 +207,49 @@
                                 <option value="100" {% if page_size == 100 %}selected{% endif %}>100</option>
                             </select>
                         </div>
-
                         <button type="button" class="btn tp-btn tp-btn--neutral toolbar-action-btn" id="open-filters-btn">
-                            {% trans "Filters" %} ({{ parameters|length }})
+                            {% trans "Selection criteria" %} ({{ selection_criteria_count }})
+                        </button>
+                        <button type="button" class="btn tp-btn tp-btn--neutral toolbar-action-btn" id="open-columns-btn">
+                            {% trans "Visible metrics" %}
                         </button>
                         {% if formulas %}
                             <button type="button" class="btn tp-btn tp-btn--neutral toolbar-action-btn" id="open-formula-btn">
-                                {% trans "Scoring formula" %}
+                                {% trans "Scoring setup" %}
                             </button>
                         {% endif %}
                     </div>
 
-                    <div class="toolbar-controls-right tp-ui-group">
-                        <details class="toolbar-tools-menu" id="toolbar-tools-menu">
-                            <summary class="toolbar-tools-trigger tp-focusable">
-                                <span class="toolbar-tools-label">{% trans "More tools" %}</span>
-                                <span class="tp-chevron tp-chevron--down toolbar-tools-chevron" aria-hidden="true"></span>
-                            </summary>
-                            <div class="toolbar-tools-list">
-                                <a href="{% url 'tpwebapp:customparam' assembly_name=assembly_name %}">{% trans "Upload custom scores" %}</a>
-                                <a href="{% url 'tpwebapp:formula_form' assembly_name=assembly_name %}">{% trans "Formula Builder" %}</a>
-                            </div>
-                        </details>
-                    </div>
                 </div>
             </form>
         </section>
 
         <section class="protein-workspace" id="protein-workspace">
             <div class="protein-table-panel">
+                <div class="protein-table-scroll-note" id="protein-table-scroll-note" hidden>
+                    <span class="protein-table-scroll-note__label">{% trans "More columns available" %}</span>
+                    <span class="protein-table-scroll-note__hint">{% trans "Scroll right to inspect all evidence" %}</span>
+                </div>
+                <div class="protein-table-top-scroll" id="protein-table-top-scroll" hidden aria-hidden="true">
+                    <div class="protein-table-top-scroll__inner" id="protein-table-top-scroll-inner"></div>
+                </div>
                 <section class="table-wrap tp-table-shell">
-                    <table id="proteins_table" class="table table-striped table-hover table-sm tp-table tp-table--plain tp-table--premium protein-table">
+                    <table id="proteins_table"
+                           class="table table-striped table-hover table-sm tp-table tp-table--plain tp-table--premium protein-table"
+                           data-export-url="{{ export_url }}"
+                           data-export-title="{{ assembly_label }} proteins">
                         <thead>
                         <tr>
                             <th>#</th>
                             <th>{% trans "Protein" %}</th>
                             <th>{% trans "Description" %}</th>
                             <th>{% trans "Gene" %}</th>
-                            {% for col in tcolumns %}
-                                <th data-col="{{ col|slugify }}" title="{{ col_descriptions|dictkey:col }}">{{ col|replace_char:"_, " }}</th>
-                            {% endfor %}
+                        <th>{% trans "Structure" %}</th>
+                        <th>{% trans "EC" %}</th>
+                        <th>{% trans "GO" %}</th>
+                        {% for col in tcolumns %}
+                            <th data-col="{{ col|slugify }}" title="{{ col_descriptions|dictkey:col }}">{{ col|humanize_identifier }}</th>
+                        {% endfor %}
                         </tr>
                         </thead>
                         <tbody>
@@ -168,14 +257,40 @@
                             <tr class="protein-row">
                                 <td class="rank-col">{{ pagination.proteins.start_index|add:forloop.counter0 }}</td>
                                 <td class="acc-col"><a href="{% url 'tpwebapp:protein' protein.id %}">{{ protein.accession }}</a></td>
-                                <td class="desc-col">{{ protein.description }}</td>
-                                <td class="gene-col">{{ protein.genes|join:', ' }}</td>
+                                <td class="desc-col" title="{{ protein.description }}">{{ protein.description }}</td>
+                                <td class="gene-col" title="{{ protein.genes|join:', ' }}">{{ protein.genes|join:', ' }}</td>
+                                <td data-col="structure-source">
+                                    <span class="tp-chip tp-chip--meta tp-chip--sm">{{ protein.structure_source_label }}</span>
+                                </td>
+                                <td data-col="ec">
+                                    {% if protein.ec_badges %}
+                                        {% for ec in protein.ec_badges %}
+                                            <a href="{% url 'tpwebapp:protein_list' assembly_name=assembly_name %}?annotation_kind=ec&annotation_value={{ ec.accession }}" class="tp-chip tp-chip--meta tp-chip--sm">{{ ec.accession }}</a>
+                                        {% endfor %}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td data-col="go">
+                                    {% if protein.go_badges %}
+                                        {% for go in protein.go_badges %}
+                                            <div class="annotation-badge-stack">
+                                                <a href="{% url 'tpwebapp:protein_list' assembly_name=assembly_name %}?annotation_kind=go&annotation_value={{ go.accession }}" class="tp-chip tp-chip--meta tp-chip--sm" title="{{ go.name|default:go.accession }}">{{ go.accession }}</a>
+                                                {% if go.name %}
+                                                    <div class="annotation-badge-caption">{{ go.name }}</div>
+                                                {% endif %}
+                                            </div>
+                                        {% endfor %}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
                                 {% for col in tcolumns %}
                                     <td data-col="{{ col|slugify }}">
                                         {% if col == "Score" %}
                                             <span class="tp-chip tp-chip--score">{{ tdata|dictkey:protein.id|dictkey:col|default:"" }}</span>
                                         {% else %}
-                                            {{ tdata|dictkey:protein.id|dictkey:col|default:"-" }}
+                                            <span class="protein-metric-value" title="{{ tdata|dictkey:protein.id|dictkey:col|default:'-' }}">{{ tdata|dictkey:protein.id|dictkey:col|default:"-" }}</span>
                                         {% endif %}
                                     </td>
                                 {% endfor %}
@@ -272,7 +387,7 @@
     <div class="tp-overlay" id="filters-overlay"></div>
     <aside class="filters-drawer" id="filters-drawer" aria-hidden="true">
         <div class="drawer-head">
-            <h2>{% trans "Filters" %}</h2>
+            <h2>{% trans "Selection criteria" %}</h2>
             <button class="btn tp-btn tp-btn--neutral drawer-close-btn" type="button" id="close-filters-btn" aria-label="{% trans 'Close' %}">
                 <span class="drawer-close-glyph" aria-hidden="true">&times;</span>
             </button>
@@ -280,7 +395,7 @@
         <div class="drawer-body">
             <div class="drawer-block drawer-block--add-filter">
                 <div class="drawer-block-head">
-                    <h3>{% trans "Add filter" %}</h3>
+                    <h3>{% trans "Add criterion" %}</h3>
                     <span class="drawer-meta tp-chip tp-chip--count tp-chip--sm">
                         {% blocktrans count total=filter_options|length %}{{ total }} option{% plural %}{{ total }} options{% endblocktrans %}
                     </span>
@@ -295,7 +410,7 @@
                             class="form-control filter-option-select"
                             required
                             aria-describedby="filter-add-feedback">
-                        <option value="">{% trans "Select parameter/value..." %}</option>
+                        <option value="">{% trans "Select evidence/value..." %}</option>
                         {% for group in filter_groups %}
                             <optgroup label="{{ group.grouper|humanize_identifier }}">
                                 {% for option in group.list %}
@@ -308,16 +423,16 @@
                        id="filter-add-feedback"
                        role="status"
                        aria-live="polite"
-                       data-empty-message="{% trans "Select a parameter/value to enable Add filter." %}"
-                       data-duplicate-message="{% trans "This filter is already active." %}"
-                       data-ready-message="{% trans "Ready to add this filter." %}">{% trans "Select a parameter/value to enable Add filter." %}</p>
-                    <button type="submit" class="btn tp-btn tp-btn--primary filter-add-btn" id="add-filter-btn" disabled>{% trans "Add filter" %}</button>
+                       data-empty-message="{% trans "Select an evidence/value pair to enable Add criterion." %}"
+                       data-duplicate-message="{% trans "This criterion is already active." %}"
+                       data-ready-message="{% trans "Ready to add this criterion." %}">{% trans "Select an evidence/value pair to enable Add criterion." %}</p>
+                    <button type="submit" class="btn tp-btn tp-btn--primary filter-add-btn" id="add-filter-btn" disabled>{% trans "Add criterion" %}</button>
                 </form>
             </div>
 
             <div class="drawer-block drawer-block--active-filters">
                 <div class="drawer-block-head">
-                    <h3>{% trans "Active filters" %}</h3>
+                    <h3>{% trans "Active criteria" %}</h3>
                     <span class="drawer-meta tp-chip tp-chip--count tp-chip--sm">{{ display_parameters|length }}</span>
                 </div>
                 <div class="active-filters {% if not display_parameters %}is-empty{% endif %}">
@@ -331,20 +446,20 @@
                             <button type="submit" class="filter-pill-remove tp-focusable" title="{% trans "Remove filter" %}" aria-label="{% trans "Remove filter" %}">&times;</button>
                         </form>
                     {% empty %}
-                        <p class="active-filters-empty tp-state-note tp-state-note--empty">{% trans "No active filters yet. Add one above to narrow results." %}</p>
+                        <p class="active-filters-empty tp-state-note tp-state-note--empty">{% trans "No active criteria yet. Add one above to narrow the protein set." %}</p>
                     {% endfor %}
                 </div>
             </div>
         </div>
         <div class="drawer-foot">
-            <a href="{% url 'tpwebapp:parameterformview' assembly_name=assembly_name %}" class="btn tp-btn tp-btn--clear drawer-advanced-btn">
-                {% trans "Advanced filter form" %}
+            <a href="{% url 'tpwebapp:parameterformview' assembly_name=assembly_name %}{% if query_string %}?{{ query_string }}{% endif %}" class="btn tp-btn tp-btn--clear drawer-advanced-btn">
+                {% trans "Advanced criteria" %}
             </a>
             <form method="POST" action="" class="drawer-reset-form">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="reset_filters">
                 <input type="hidden" name="return_query" value="{{ query_string }}">
-                {% trans "Clear filters" as clear_filters_label %}
+                {% trans "Clear criteria" as clear_filters_label %}
                 {% if parameters %}
                     {% include "components/buttons/clear_action.html" with label=clear_filters_label button_type="submit" classes="btn tp-btn tp-btn--clear tp-btn--clear-caution tp-btn-with-icon drawer-clear-btn" %}
                 {% else %}
@@ -354,11 +469,179 @@
         </div>
     </aside>
 
+    <div class="tp-overlay" id="columns-overlay"></div>
+    <div class="formula-modal columns-modal" id="columns-modal" aria-hidden="true">
+        <div class="formula-head">
+            <div class="columns-modal-headline">
+                <h2>{% trans "Table columns" %}</h2>
+                <p>{% trans "Choose which optional evidence columns appear in the protein table." %}</p>
+            </div>
+            <button class="btn tp-btn tp-btn--neutral drawer-close-btn" type="button" id="close-columns-btn" aria-label="{% trans 'Close' %}">
+                <span class="drawer-close-glyph" aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="formula-body columns-body">
+            <section class="columns-summary">
+                <div class="columns-summary-head">
+                    <div>
+                        <h3>{% trans "Table structure" %}</h3>
+                        <p>{% trans "Core identifiers remain visible in every table configuration. Optional evidence columns can be added, removed, or reordered below." %}</p>
+                    </div>
+                    <span class="columns-summary-count" id="columns-selected-count">{{ selected_column_names|length }}</span>
+                </div>
+                <div class="columns-summary-grid">
+                    <div class="columns-summary-block">
+                        <span class="columns-summary-label">{% trans "Core identifiers" %}</span>
+                        <div class="columns-fixed-list">
+                            {% for label in fixed_column_labels %}
+                                <span class="tp-chip tp-chip--meta tp-chip--sm columns-fixed-chip">{{ label }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="columns-summary-block">
+                        <span class="columns-summary-label">{% trans "Selected optional metrics" %}</span>
+                        <div class="columns-selected-list columns-selected-list--chips" id="columns-selected-list">
+                            {% for row in column_rows %}
+                                {% if row.selected %}
+                                    <span class="tp-chip tp-chip--meta tp-chip--sm columns-selected-chip" data-columns-selected-chip="{{ row.name }}">{{ row.label }}</span>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <form method="POST" action="" class="columns-form" id="columns-form">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="update_columns">
+                <input type="hidden" name="return_query" value="{{ query_string }}">
+                <div class="columns-layout">
+                    <section class="columns-customize">
+                        <div class="columns-section-head">
+                            <div>
+                                <h3>{% trans "Visible optional metrics" %}</h3>
+                                <p>{% trans "These evidence columns are currently shown in the table. Drag to reorder them." %}</p>
+                            </div>
+                            <span class="columns-summary-count columns-panel-count" id="columns-visible-panel-count">{{ selected_column_names|length }}</span>
+                        </div>
+                        <div class="columns-order-list" id="columns-visible-list">
+                            {% for row in column_rows %}
+                                {% if row.selected %}
+                                <div class="columns-row columns-row--selected"
+                                     data-column-row
+                                     data-column-name="{{ row.name }}"
+                                     data-column-label="{{ row.label }}"
+                                     data-selected="true"
+                                     draggable="true"
+                                     {% if row.description %}title="{{ row.description }}"{% endif %}>
+                                    <input type="checkbox"
+                                           class="columns-option-input"
+                                           name="visible_columns"
+                                           value="{{ row.name }}"
+                                           checked>
+                                    <div class="columns-row-main">
+                                        <div class="columns-row-topline">
+                                            <button type="button"
+                                                    class="columns-drag-handle"
+                                                    data-columns-drag-handle
+                                                    aria-label="{% trans 'Reorder column' %}"
+                                                    title="{% trans 'Drag to reorder' %}">
+                                                <span class="columns-drag-glyph" aria-hidden="true"></span>
+                                            </button>
+                                            <div class="columns-row-copy">
+                                                <span class="columns-row-label">{{ row.label }}</span>
+                                                <span class="columns-row-category">{{ row.category }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="columns-row-actions">
+                                        <span class="columns-order-index" aria-hidden="true"></span>
+                                        <button type="button"
+                                                class="columns-icon-btn columns-visibility-btn"
+                                                data-columns-toggle
+                                                aria-label="{% trans 'Hide column' %}"
+                                                title="{% trans 'Hide column' %}">
+                                            <span class="columns-icon columns-icon--visible">{% include "components/icons/eye.html" %}</span>
+                                            <span class="columns-icon columns-icon--hidden">{% include "components/icons/eye_off.html" %}</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        <div class="columns-empty-state tp-state-note tp-state-note--empty" id="columns-visible-empty" {% if selected_column_names %}hidden{% endif %}>
+                            {% trans "No optional metrics selected yet." %}
+                        </div>
+                    </section>
+                    <section class="columns-library">
+                        <div class="columns-section-head">
+                            <div>
+                                <h3>{% trans "Available evidence metrics" %}</h3>
+                                <p>{% trans "Add evidence columns when needed for inspection, filtering, or comparison." %}</p>
+                            </div>
+                        </div>
+                        <div class="columns-library-list" id="columns-library-list">
+                            {% for row in column_rows %}
+                                {% if not row.selected %}
+                                <div class="columns-row columns-row--available is-hidden"
+                                     data-column-row
+                                     data-column-name="{{ row.name }}"
+                                     data-column-label="{{ row.label }}"
+                                     data-selected="false"
+                                     {% if row.description %}title="{{ row.description }}"{% endif %}>
+                                    <input type="checkbox"
+                                           class="columns-option-input"
+                                           name="visible_columns"
+                                           value="{{ row.name }}">
+                                <div class="columns-row-main">
+                                    <div class="columns-row-topline">
+                                        <button type="button"
+                                                class="columns-drag-handle"
+                                                data-columns-drag-handle
+                                                aria-label="{% trans 'Reorder column' %}"
+                                                title="{% trans 'Drag to reorder' %}">
+                                            <span class="columns-drag-glyph" aria-hidden="true"></span>
+                                        </button>
+                                        <div class="columns-row-copy">
+                                            <span class="columns-row-label">{{ row.label }}</span>
+                                            <span class="columns-row-category">{{ row.category }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="columns-row-actions">
+                                    <span class="columns-order-index" aria-hidden="true"></span>
+                                    <button type="button"
+                                            class="columns-icon-btn columns-visibility-btn"
+                                            data-columns-toggle
+                                            aria-label="{% trans 'Show column' %}"
+                                                title="{% trans 'Show column' %}">
+                                            <span class="columns-icon columns-icon--visible">{% include "components/icons/eye.html" %}</span>
+                                            <span class="columns-icon columns-icon--hidden">{% include "components/icons/eye_off.html" %}</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </section>
+                </div>
+            </form>
+        </div>
+        <div class="drawer-foot columns-foot">
+            <button class="btn tp-btn tp-btn--primary" type="submit" form="columns-form">{% trans "Apply column selection" %}</button>
+            <form method="POST" action="" class="drawer-reset-form">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="reset_columns">
+                <input type="hidden" name="return_query" value="{{ query_string }}">
+                <button type="submit" class="btn tp-btn tp-btn--clear">{% trans "Restore default columns" %}</button>
+            </form>
+        </div>
+    </div>
+
     {% if formulas %}
         <div class="tp-overlay" id="formula-overlay"></div>
         <div class="formula-modal" id="formula-modal" aria-hidden="true">
             <div class="formula-head">
-                <h2>{% trans "Scoring formula" %}</h2>
+                <h2>{% trans "Scoring setup" %}</h2>
                 <button class="btn tp-btn tp-btn--neutral drawer-close-btn" type="button" id="close-formula-btn" aria-label="{% trans 'Close' %}">
                     <span class="drawer-close-glyph" aria-hidden="true">&times;</span>
                 </button>
@@ -366,7 +649,7 @@
             <div class="formula-body">
                 <section class="formula-current">
                     <div class="formula-current-head">
-                        <h3>{% trans "Current formula" %}</h3>
+                        <h3>{% trans "Current scoring model" %}</h3>
                         {% if formula %}
                             <span class="formula-count-chip tp-chip tp-chip--count tp-chip--sm">
                                 {% blocktrans count total=formula_term_count %}{{ total }} term{% plural %}{{ total }} terms{% endblocktrans %}
@@ -389,22 +672,45 @@
                     {% if search_query %}
                         <input type="hidden" name="search" value="{{ search_query }}">
                     {% endif %}
+                    {% if structure_source %}
+                        <input type="hidden" name="structure_source" value="{{ structure_source }}">
+                    {% endif %}
+                    {% if annotation_filter %}
+                        <input type="hidden" name="annotation_kind" value="{{ annotation_filter.kind }}">
+                        <input type="hidden" name="annotation_value" value="{{ annotation_filter.value }}">
+                    {% endif %}
                     <input type="hidden" name="pageSize" value="{{ page_size }}">
-                    <label for="score_formula_select" class="formula-select-label">{% trans "Choose formula" %}</label>
-                    <select id="score_formula_select"
-                            name="scoreformula"
-                            class="form-control"
-                            data-current-value="{{ formula.name|default:'' }}">
-                        {% for f in formulas %}
-                            {% ifchanged f.name %}
-                                <option value="{{ f.name }}" {% if f.name == formula.name %}selected{% endif %}>
-                                    {{ f.name }}{% if f.default %} · {% trans "Default" %}{% endif %}
-                                </option>
-                            {% endifchanged %}
-                        {% endfor %}
-                    </select>
-                    <button class="btn tp-btn tp-btn--primary" type="submit" id="apply-formula-btn">{% trans "Apply formula" %}</button>
+                    <label for="score_formula_select" class="formula-select-label">{% trans "Select scoring formula" %}</label>
+                    {% if formulas|length > 1 %}
+                        <select id="score_formula_select"
+                                name="scoreformula"
+                                class="form-control"
+                                data-current-value="{{ formula.name|default:'' }}">
+                            {% for f in formulas %}
+                                {% ifchanged f.name %}
+                                    <option value="{{ f.name }}" {% if f.name == formula.name %}selected{% endif %}>
+                                        {{ f.name }}{% if f.default %} · {% trans "Default" %}{% endif %}
+                                    </option>
+                                {% endifchanged %}
+                            {% endfor %}
+                        </select>
+                        <button class="btn tp-btn tp-btn--primary" type="submit" id="apply-formula-btn">{% trans "Apply formula" %}</button>
+                    {% else %}
+                        <div class="formula-static-value tp-state-note tp-state-note--empty">
+                            {{ formula.name|default:_("No formula available") }}
+                        </div>
+                    {% endif %}
                 </form>
+                <section class="formula-resources">
+                    <div class="formula-resources-head">
+                        <h3>{% trans "Scoring resources" %}</h3>
+                        <p>{% trans "Maintain the scoring model and custom evidence that define this analysis context." %}</p>
+                    </div>
+                    {% url 'tpwebapp:prioritization_setup' assembly_name=assembly_name as prioritization_setup_base_url %}
+                    <div class="formula-resources-actions">
+                        <a href="{{ prioritization_setup_base_url }}{% if formula %}?scoreformula={{ formula.name|urlencode }}{% endif %}" class="btn tp-btn tp-btn--primary">{% trans "Open prioritization setup" %}</a>
+                    </div>
+                </section>
             </div>
         </div>
     {% endif %}
@@ -430,16 +736,25 @@
             modal.setAttribute("aria-hidden", isOpen ? "false" : "true");
         }
 
+        function setColumnsState(isOpen) {
+            const overlay = document.getElementById("columns-overlay");
+            const modal = document.getElementById("columns-modal");
+            if (!overlay || !modal) return;
+            overlay.classList.toggle("open", isOpen);
+            modal.classList.toggle("open", isOpen);
+            modal.setAttribute("aria-hidden", isOpen ? "false" : "true");
+        }
+
         function jsloaded() {
             const searchForm = document.getElementById("protein-search-form");
             const pageSizeSelect = document.getElementById("pageSizeSelect");
+            const structureSourceSelect = document.getElementById("structureSourceSelect");
             const pageSizeControl = document.querySelector(".per-page-control");
             const searchInput = document.getElementById("protein-search-input");
             const searchSubmitBtn = document.getElementById("protein-search-submit");
             const autocompleteRoot = document.getElementById("protein-search-autocomplete");
             const suggestionsBox = document.getElementById("protein-search-suggestions");
             const suggestUrl = autocompleteRoot ? autocompleteRoot.getAttribute("data-suggest-url") : "";
-            const toolbarToolsMenu = document.getElementById("toolbar-tools-menu");
             const filterAddForm = document.getElementById("filter-add-form");
             const filterOptionSelect = document.getElementById("filter-option-select");
             const addFilterBtn = document.getElementById("add-filter-btn");
@@ -482,6 +797,7 @@
 
             if (searchForm) {
                 searchForm.addEventListener("submit", function (event) {
+                    if (event.submitter !== searchSubmitBtn) return;
                     if (hasSearchText()) return;
                     event.preventDefault();
                     syncSearchSubmitState();
@@ -682,9 +998,6 @@
                 if (!autocompleteRoot || !autocompleteRoot.contains(event.target)) {
                     hideSuggestions();
                 }
-                if (toolbarToolsMenu && !toolbarToolsMenu.contains(event.target)) {
-                    toolbarToolsMenu.removeAttribute("open");
-                }
             });
 
             function syncAddFilterState() {
@@ -757,15 +1070,275 @@
             const openFormulaBtn = document.getElementById("open-formula-btn");
             const closeFormulaBtn = document.getElementById("close-formula-btn");
             const formulaOverlay = document.getElementById("formula-overlay");
+            const openColumnsBtn = document.getElementById("open-columns-btn");
+            const closeColumnsBtn = document.getElementById("close-columns-btn");
+            const columnsOverlay = document.getElementById("columns-overlay");
+            const columnsVisibleList = document.getElementById("columns-visible-list");
+            const columnsLibraryList = document.getElementById("columns-library-list");
+            const columnsSelectedCount = document.getElementById("columns-selected-count");
+            const columnsSelectedList = document.getElementById("columns-selected-list");
+            const columnsVisibleEmpty = document.getElementById("columns-visible-empty");
+            const columnsVisiblePanelCount = document.getElementById("columns-visible-panel-count");
+            let draggedColumnRow = null;
 
             if (openFormulaBtn) openFormulaBtn.addEventListener("click", function () { setFormulaState(true); });
             if (closeFormulaBtn) closeFormulaBtn.addEventListener("click", function () { setFormulaState(false); });
             if (formulaOverlay) formulaOverlay.addEventListener("click", function () { setFormulaState(false); });
+            if (openColumnsBtn) openColumnsBtn.addEventListener("click", function () { setColumnsState(true); });
+            if (closeColumnsBtn) closeColumnsBtn.addEventListener("click", function () { setColumnsState(false); });
+            if (columnsOverlay) columnsOverlay.addEventListener("click", function () { setColumnsState(false); });
+
+            function getColumnRows() {
+                return Array.from(document.querySelectorAll("[data-column-row]"));
+            }
+
+            function getVisibleColumnRows() {
+                if (!columnsVisibleList) return [];
+                return Array.from(columnsVisibleList.querySelectorAll("[data-column-row]"));
+            }
+
+            function getLibraryRows() {
+                if (!columnsLibraryList) return [];
+                return Array.from(columnsLibraryList.querySelectorAll("[data-column-row]"));
+            }
+
+            function moveRowToVisibleList(row) {
+                if (!columnsVisibleList || !row) return;
+                columnsVisibleList.appendChild(row);
+            }
+
+            function moveRowToLibrary(row) {
+                if (!columnsLibraryList || !row) return;
+                const label = (row.getAttribute("data-column-label") || "").toLowerCase();
+                const rows = getLibraryRows().filter(function (candidate) { return candidate !== row; });
+                const nextRow = rows.find(function (candidate) {
+                    const candidateLabel = (candidate.getAttribute("data-column-label") || "").toLowerCase();
+                    return candidateLabel.localeCompare(label) > 0;
+                });
+                if (nextRow) {
+                    columnsLibraryList.insertBefore(row, nextRow);
+                    return;
+                }
+                columnsLibraryList.appendChild(row);
+            }
+
+            function syncColumnsSummary() {
+                if (!columnsSelectedCount || !columnsSelectedList) return;
+                const visibleRows = getVisibleColumnRows();
+                columnsSelectedCount.textContent = String(visibleRows.length);
+                if (columnsVisiblePanelCount) {
+                    columnsVisiblePanelCount.textContent = String(visibleRows.length);
+                }
+                if (columnsVisibleEmpty) {
+                    columnsVisibleEmpty.hidden = visibleRows.length > 0;
+                }
+                columnsSelectedList.innerHTML = "";
+                if (!visibleRows.length) {
+                    const chip = document.createElement("span");
+                    chip.className = "tp-chip tp-chip--meta tp-chip--sm columns-selected-chip columns-selected-chip--empty";
+                    chip.textContent = "No optional metrics selected";
+                    columnsSelectedList.appendChild(chip);
+                    return;
+                }
+                visibleRows.forEach(function (row) {
+                    const chip = document.createElement("span");
+                    chip.className = "tp-chip tp-chip--meta tp-chip--sm columns-selected-chip";
+                    chip.textContent = row.getAttribute("data-column-label") || "";
+                    columnsSelectedList.appendChild(chip);
+                });
+            }
+
+            function syncColumnRow(row, visibleRows, rowIndex) {
+                if (!row) return;
+                const checkbox = row.querySelector(".columns-option-input");
+                const toggleBtn = row.querySelector("[data-columns-toggle]");
+                const orderIndex = row.querySelector(".columns-order-index");
+                const dragHandle = row.querySelector("[data-columns-drag-handle]");
+                const isSelected = Boolean(checkbox && checkbox.checked);
+                row.setAttribute("data-selected", isSelected ? "true" : "false");
+                row.classList.toggle("is-hidden", !isSelected);
+                row.classList.toggle("columns-row--selected", isSelected);
+                row.classList.toggle("columns-row--available", !isSelected);
+                row.draggable = isSelected;
+                if (toggleBtn) {
+                    const label = isSelected ? "Hide column" : "Show column";
+                    toggleBtn.setAttribute("aria-label", label);
+                    toggleBtn.setAttribute("title", label);
+                }
+                if (orderIndex) {
+                    orderIndex.textContent = isSelected && typeof rowIndex === "number" ? String(rowIndex + 1) : "—";
+                }
+                if (dragHandle) {
+                    dragHandle.disabled = !isSelected;
+                }
+            }
+
+            function syncAllColumnRows() {
+                const visibleRows = getVisibleColumnRows();
+                getColumnRows().forEach(function (row) {
+                    const rowIndex = visibleRows.indexOf(row);
+                    syncColumnRow(row, visibleRows, rowIndex >= 0 ? rowIndex : null);
+                });
+                syncColumnsSummary();
+            }
+
+            function getDragAfterElement(container, y) {
+                const draggableElements = Array.from(container.querySelectorAll("[data-column-row][data-selected='true']:not(.is-dragging)"));
+                let closest = { offset: Number.NEGATIVE_INFINITY, element: null };
+                draggableElements.forEach(function (element) {
+                    const box = element.getBoundingClientRect();
+                    const offset = y - box.top - box.height / 2;
+                    if (offset < 0 && offset > closest.offset) {
+                        closest = { offset: offset, element: element };
+                    }
+                });
+                return closest.element;
+            }
+
+            if (columnsVisibleList && columnsLibraryList) {
+                document.addEventListener("click", function (event) {
+                    const toggleButton = event.target.closest("[data-columns-toggle]");
+                    if (toggleButton) {
+                        const row = toggleButton.closest("[data-column-row]");
+                        const checkbox = row ? row.querySelector(".columns-option-input") : null;
+                        if (!row || !checkbox) return;
+                        checkbox.checked = !checkbox.checked;
+                        if (checkbox.checked) {
+                            moveRowToVisibleList(row);
+                        } else {
+                            moveRowToLibrary(row);
+                        }
+                        syncAllColumnRows();
+                    }
+                });
+
+                columnsVisibleList.addEventListener("dragstart", function (event) {
+                    const row = event.target.closest("[data-column-row]");
+                    if (!row || row.getAttribute("data-selected") !== "true") return;
+                    draggedColumnRow = row;
+                    row.classList.add("is-dragging");
+                    if (event.dataTransfer) {
+                        event.dataTransfer.effectAllowed = "move";
+                    }
+                });
+
+                columnsVisibleList.addEventListener("dragend", function () {
+                    if (draggedColumnRow) {
+                        draggedColumnRow.classList.remove("is-dragging");
+                    }
+                    draggedColumnRow = null;
+                    syncAllColumnRows();
+                });
+
+                columnsVisibleList.addEventListener("dragover", function (event) {
+                    if (!draggedColumnRow) return;
+                    event.preventDefault();
+                    const afterElement = getDragAfterElement(columnsVisibleList, event.clientY);
+                    if (!afterElement) {
+                        columnsVisibleList.appendChild(draggedColumnRow);
+                        return;
+                    }
+                    if (afterElement !== draggedColumnRow) {
+                        columnsVisibleList.insertBefore(draggedColumnRow, afterElement);
+                    }
+                });
+
+                syncAllColumnRows();
+            }
+
+            const proteinTableShell = document.querySelector(".protein-table-panel .tp-table-shell");
+            const proteinTableScrollNote = document.getElementById("protein-table-scroll-note");
+            const proteinTableTopScroll = document.getElementById("protein-table-top-scroll");
+            const proteinTableTopScrollInner = document.getElementById("protein-table-top-scroll-inner");
+
+            function syncProteinTableScrollNote() {
+                if (!proteinTableShell || !proteinTableScrollNote) return;
+                const scrollHost = proteinTableShell.querySelector(":scope > .tp-table-shell__scroll") || proteinTableShell;
+                if (!scrollHost) return;
+                const hasOverflow = (scrollHost.scrollWidth - scrollHost.clientWidth) > 16;
+                proteinTableScrollNote.hidden = !hasOverflow;
+                if (proteinTableTopScroll && proteinTableTopScrollInner) {
+                    proteinTableTopScroll.hidden = !hasOverflow;
+                    const trackInset = 6;
+                    const trackWidth = Math.max(1, (proteinTableTopScroll.clientWidth || scrollHost.clientWidth || 1) - trackInset);
+                    const proportionalThumb = Math.round((scrollHost.clientWidth / scrollHost.scrollWidth) * trackWidth);
+                    const thumbWidth = hasOverflow
+                        ? Math.min(
+                            Math.round(trackWidth * 0.72),
+                            Math.max(88, proportionalThumb)
+                        )
+                        : trackWidth;
+                    const maxThumbOffset = Math.max(0, trackWidth - thumbWidth);
+                    const maxScrollLeft = Math.max(1, scrollHost.scrollWidth - scrollHost.clientWidth);
+                    const thumbOffset = hasOverflow
+                        ? Math.round((scrollHost.scrollLeft / maxScrollLeft) * maxThumbOffset)
+                        : 0;
+
+                    proteinTableTopScroll.classList.toggle("is-disabled", !hasOverflow);
+                    proteinTableTopScroll.style.setProperty("--protein-scroll-thumb-size", `${thumbWidth}px`);
+                    proteinTableTopScroll.style.setProperty("--protein-scroll-thumb-offset", `${thumbOffset}px`);
+                    proteinTableTopScrollInner.style.width = scrollHost.scrollWidth + "px";
+                }
+            }
+
+            if (proteinTableShell && proteinTableScrollNote) {
+                const scrollHost = proteinTableShell.querySelector(":scope > .tp-table-shell__scroll") || proteinTableShell;
+                if (scrollHost) {
+                    scrollHost.addEventListener("scroll", syncProteinTableScrollNote, { passive: true });
+                    if (proteinTableTopScroll) {
+                        let isDraggingTopScroll = false;
+
+                        const moveTableScrollFromTrack = function (clientX) {
+                            const trackRect = proteinTableTopScroll.getBoundingClientRect();
+                            const trackInset = 6;
+                            const trackWidth = Math.max(1, trackRect.width - trackInset);
+                            const trackLeft = trackRect.left + (trackInset / 2);
+                            const maxScrollLeft = Math.max(0, scrollHost.scrollWidth - scrollHost.clientWidth);
+                            if (maxScrollLeft <= 0) return;
+                            const proportionalThumb = Math.round((scrollHost.clientWidth / scrollHost.scrollWidth) * trackWidth);
+                            const thumbWidth = Math.min(
+                                Math.round(trackWidth * 0.72),
+                                Math.max(88, proportionalThumb)
+                            );
+                            const maxThumbOffset = Math.max(0, trackWidth - thumbWidth);
+                            const centeredOffset = Math.min(
+                                Math.max(0, clientX - trackLeft - (thumbWidth / 2)),
+                                maxThumbOffset
+                            );
+                            const centeredRatio = maxThumbOffset > 0 ? (centeredOffset / maxThumbOffset) : 0;
+                            scrollHost.scrollLeft = centeredRatio * maxScrollLeft;
+                        };
+
+                        proteinTableTopScroll.addEventListener("mousedown", function (event) {
+                            if (proteinTableTopScroll.classList.contains("is-disabled")) return;
+                            isDraggingTopScroll = true;
+                            proteinTableTopScroll.classList.add("is-dragging");
+                            moveTableScrollFromTrack(event.clientX);
+                            event.preventDefault();
+                        });
+
+                        window.addEventListener("mousemove", function (event) {
+                            if (!isDraggingTopScroll) return;
+                            moveTableScrollFromTrack(event.clientX);
+                        });
+
+                        window.addEventListener("mouseup", function () {
+                            if (!isDraggingTopScroll) return;
+                            isDraggingTopScroll = false;
+                            proteinTableTopScroll.classList.remove("is-dragging");
+                        });
+                    }
+                }
+                window.addEventListener("resize", syncProteinTableScrollNote);
+                setTimeout(syncProteinTableScrollNote, 0);
+                setTimeout(syncProteinTableScrollNote, 180);
+            }
 
             document.addEventListener("keydown", function (event) {
                 if (event.key === "Escape") {
                     setDrawerState(false);
                     setFormulaState(false);
+                    setColumnsState(false);
                 }
             });
         }

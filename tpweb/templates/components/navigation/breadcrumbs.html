@@ -52,5 +52,15 @@
                 {% endif %}
             </li>
         {% endif %}
+
+        {% if crumb_6_label %}
+            <li class="tp-breadcrumb-item">
+                {% if crumb_6_url %}
+                    <a class="tp-breadcrumb-link" href="{{ crumb_6_url }}">{{ crumb_6_label }}</a>
+                {% else %}
+                    <span class="tp-breadcrumb-current">{{ crumb_6_label }}</span>
+                {% endif %}
+            </li>
+        {% endif %}
     </ol>
 </nav>

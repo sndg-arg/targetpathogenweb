@@ -3,7 +3,7 @@ from django.http import JsonResponse
 from django.utils import timezone
 from django.views import View
 
-from tpweb.services.pipeline_status import get_pipeline_status
+from tpweb.services.pipeline_status import get_pipeline_status, sanitize_pipeline_status_for_user
 
 
 def _database_ready():
@@ -49,7 +49,7 @@ class HealthReadyView(View):
 
 class HealthPipelineView(View):
     def get(self, request, *args, **kwargs):
-        pipeline_status = get_pipeline_status()
+        pipeline_status = sanitize_pipeline_status_for_user(get_pipeline_status(), request.user)
         return JsonResponse(
             {
                 "status": "ok",

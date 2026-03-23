@@ -1,210 +1,542 @@
 {% extends '../base/masterpage.html' %}
 {% load i18n %}
+{% load static %}
 
 {% block body %}
     <style>
+        .assembly-page {
+            display: grid;
+            gap: var(--tp-space-4);
+            --view-accent-ink: var(--tp-color-brand-900);
+            --view-accent-soft: var(--tp-color-info-bg);
+            --view-accent-soft-2: var(--tp-color-brand-050);
+            --view-accent-border: var(--tp-color-brand-300);
+        }
+
         .assembly-hero {
-            border: 1px solid var(--tp-border);
-            border-radius: 16px;
-            background: linear-gradient(140deg, var(--tp-color-brand-050) 0%, var(--tp-color-success-bg) 100%);
+            border: 1px solid var(--tp-color-border-strong);
+            border-radius: var(--tp-ui-radius-hero);
+            background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
             padding: 18px;
-            margin-bottom: 14px;
+            box-shadow: 0 16px 32px rgba(16, 35, 46, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .assembly-hero::before {
+            content: "";
+            position: absolute;
+            inset: 0 0 auto 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--tp-color-brand-800) 0%, var(--tp-color-sage-700) 62%, var(--tp-color-brand-600) 100%);
+        }
+
+        .assembly-hero > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .assembly-hero-grid {
+            display: grid;
+            gap: 12px;
+            align-items: start;
+        }
+
+        .assembly-hero-main {
+            display: grid;
+            gap: 0;
+            min-width: 0;
+        }
+
+        .assembly-hero-head {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 16px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+
+        .assembly-hero-copy {
+            min-width: 0;
         }
 
         .assembly-hero h1 {
             margin: 0;
-            font-size: clamp(1.8rem, 2.7vw, 2.5rem);
+            font-size: clamp(1.55rem, 2.2vw, 2.05rem);
+            letter-spacing: 0.2px;
+            color: var(--view-accent-ink);
+            line-height: 1.08;
         }
 
         .assembly-description {
-            color: var(--tp-muted);
-            margin: 6px 0 14px;
-            max-width: 980px;
-            font-size: 1.06rem;
-        }
-
-        .assembly-actions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            align-items: center;
-        }
-
-        .assembly-actions form {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin: 0;
-        }
-
-        .assembly-metrics {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 10px;
-        }
-
-        .assembly-metrics .metric-chip {
-            border-radius: 999px;
-            border: 1px solid var(--tp-color-border);
-            background: rgba(255, 255, 255, 0.86);
-            padding: 6px 11px;
-            font-size: 0.88rem;
-            font-weight: 700;
+            margin: 5px 0 0;
             color: var(--tp-color-text-secondary);
+            max-width: 780px;
+            font-size: 0.98rem;
+            line-height: 1.4;
         }
 
-        .assembly-pipeline {
-            margin-top: 10px;
+        .assembly-keyfacts {
             display: flex;
             flex-wrap: wrap;
-            gap: 8px;
+            gap: 6px;
+            margin-top: 12px;
         }
 
-        .assembly-pipeline-note {
-            width: 100%;
+        .assembly-keyfacts strong {
+            color: var(--view-accent-ink);
+            font-weight: 700;
+        }
+
+        .assembly-keyfact-value {
+            margin-left: 4px;
+        }
+
+        .assembly-pipeline-group {
+            margin-top: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            align-items: flex-start;
+            max-width: min(100%, 720px);
+        }
+
+        .hero-pipeline-note {
             margin: 0;
             color: var(--tp-color-text-muted);
             font-size: 0.84rem;
             font-weight: 600;
-            line-height: 1.3;
+            line-height: 1.35;
         }
 
-        .assembly-pipeline-chip {
-            display: inline-flex;
+        .assembly-status-strip {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
             align-items: center;
-            border-radius: 999px;
-            border: 1px solid var(--tp-color-border);
-            background: var(--tp-color-surface-muted);
+            margin-top: 4px;
+        }
+
+        .assembly-hero-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 14px;
+        }
+
+        .assembly-hero-actions .tp-btn--primary {
+            min-width: 196px;
+            justify-content: center;
+        }
+
+        .assembly-record-summary {
+            margin: 14px 0 0;
+            max-width: min(100%, 880px);
             color: var(--tp-color-text-secondary);
-            padding: 4px 10px;
-            font-size: 0.84rem;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .assembly-record-summary strong {
+            color: var(--view-accent-ink);
             font-weight: 700;
         }
 
-        .assembly-pipeline-chip.running {
-            color: var(--tp-state-running-ink);
-            background: var(--tp-state-running-bg);
-            border-color: var(--tp-state-running-border);
-        }
-
-        .assembly-pipeline-chip.finished {
-            color: var(--tp-state-finished-ink);
-            background: var(--tp-state-finished-bg);
-            border-color: var(--tp-state-finished-border);
-        }
-
-        .assembly-pipeline-chip.idle {
-            color: var(--tp-state-idle-ink);
-            background: var(--tp-state-idle-bg);
-            border-color: var(--tp-state-idle-border);
-        }
-
-        .assembly-sections {
+        .assembly-main {
             display: grid;
-            grid-template-columns: minmax(280px, 1fr);
-            gap: 14px;
+            gap: 18px;
         }
 
-        .viewer-shell {
+        .assembly-support-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 18px;
+        }
+
+        .assembly-card {
             border: 1px solid var(--tp-color-border);
-            border-radius: 14px;
-            overflow: hidden;
-            background: var(--tp-color-surface);
+            border-radius: var(--tp-ui-radius-panel);
+            background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+            box-shadow: var(--tp-ui-shadow-panel);
+            padding: 16px;
         }
 
-        .viewer-shell iframe {
-            border: 0;
-            width: 100%;
-            min-height: 560px;
-        }
-
-        .browser-toolbar {
+        .assembly-card-head {
             display: flex;
             justify-content: space-between;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .assembly-card-head h2 {
+            margin: 0;
+            color: var(--view-accent-ink);
+            font-size: 1rem;
+            line-height: 1.2;
+        }
+
+        .assembly-card-head p {
+            margin: 3px 0 0;
+            color: var(--tp-color-text-muted);
+            font-size: 0.9rem;
+            line-height: 1.35;
+        }
+
+        .assembly-record-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .assembly-record-item {
+            display: grid;
+            gap: 5px;
+            padding: 2px 0 12px;
+            border-bottom: 1px solid var(--tp-color-border-soft);
+        }
+
+        .assembly-record-item:last-child {
+            padding-bottom: 0;
+            border-bottom: 0;
+        }
+
+        .assembly-record-label {
+            color: var(--tp-color-text-muted);
+            font-size: 0.73rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .assembly-record-value {
+            color: var(--view-accent-ink);
+            font-size: 0.98rem;
+            font-weight: 700;
+            line-height: 1.35;
+        }
+
+        .assembly-raw-details {
+            margin: 0;
+        }
+
+        .assembly-raw-details summary {
+            cursor: pointer;
+            color: var(--view-accent-ink);
+            font-weight: 700;
+            list-style: none;
+            display: inline-flex;
             align-items: center;
             gap: 8px;
-            margin-bottom: 8px;
+            min-height: 34px;
+            padding: 0 14px;
+            border: 1px solid var(--tp-color-border-strong);
+            border-radius: 999px;
+            background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+            transition:
+                border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+                background var(--tp-ui-motion-base) var(--tp-ui-ease-standard),
+                color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+                box-shadow var(--tp-ui-motion-base) var(--tp-ui-ease-standard);
+        }
+
+        .assembly-raw-details summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .assembly-raw-details summary:hover,
+        .assembly-raw-details summary:focus-visible {
+            outline: none;
+            border-color: var(--view-accent-border);
+            background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--view-accent-soft-2) 100%);
+            box-shadow: 0 2px 10px color-mix(in srgb, var(--tp-color-brand-800) 8%, transparent);
+        }
+
+        .assembly-raw-details[open] summary {
+            border-color: var(--view-accent-border);
+            background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--view-accent-soft-2) 100%);
+        }
+
+        .assembly-raw-table {
+            margin-top: 10px;
+        }
+
+        .assembly-delete-card {
+            border-color: var(--tp-color-danger-border);
+            background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-danger-bg) 100%);
+        }
+
+        .assembly-delete-card .assembly-card-head h2 {
+            color: var(--tp-color-danger-ink);
+        }
+
+        .assembly-delete-form {
+            display: grid;
+            gap: 10px;
+        }
+
+        .assembly-delete-summary {
+            margin: 0;
+        }
+
+        .assembly-delete-summary summary {
+            cursor: pointer;
+            list-style: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            min-height: 34px;
+            padding: 0 14px;
+            border: 1px solid var(--tp-color-danger-border);
+            border-radius: 999px;
+            background: linear-gradient(180deg, var(--tp-color-surface) 0%, color-mix(in srgb, var(--tp-color-danger-bg) 70%, var(--tp-color-surface)) 100%);
+            color: var(--tp-color-danger-ink);
+            font-size: 0.9rem;
+            font-weight: 700;
+            transition:
+                border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+                background var(--tp-ui-motion-base) var(--tp-ui-ease-standard),
+                box-shadow var(--tp-ui-motion-base) var(--tp-ui-ease-standard);
+        }
+
+        .assembly-delete-summary summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .assembly-delete-summary summary:hover,
+        .assembly-delete-summary summary:focus-visible {
+            outline: none;
+            box-shadow: 0 2px 10px color-mix(in srgb, var(--tp-color-danger-ink) 10%, transparent);
+        }
+
+        .assembly-delete-summary[open] summary {
+            margin-bottom: 12px;
+        }
+
+        .assembly-delete-copy {
+            margin: 0;
+            color: var(--tp-color-text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .assembly-delete-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
             flex-wrap: wrap;
+        }
+
+        @media (max-width: 640px) {
+            .assembly-hero {
+                padding: 20px;
+            }
+
+            .assembly-hero-actions .btn,
+            .assembly-delete-actions .btn {
+                width: 100%;
+            }
         }
     </style>
 
-    <section class="assembly-hero">
-        <h1>{{ assembly.name }}</h1>
-        <p class="assembly-description">{{ assembly.description }}</p>
-        <div class="assembly-actions">
-            <form action="{% url 'tpwebapp:download' %}" method="get">
-                <select name="format" class="form-control" id="inputFormatSelect" aria-label="Select download format">
-                    <option value="genome">{% trans 'Genome FASTA (fna)' %}</option>
-                    <option value="genes">{% trans 'Genes FASTA (fna)' %}</option>
-                    <option value="proteins">{% trans 'Proteins FASTA (faa)' %}</option>
-                    <option value="gff">{% trans 'Genome GFF' %}</option>
-                    <option value="gbk">{% trans 'Genome GBK' %}</option>
-                </select>
-                <input type="hidden" name="accession" value="{{ assembly.internal_name }}"/>
-                <input type="hidden" id="download_format" name="format" value="genome"/>
-                <button class="btn tp-btn tp-btn--outline" type="submit" onclick="$('#download_format').val($('#inputFormatSelect').val())">
-                    {% trans 'Download' %}
-                </button>
-            </form>
-            <a class="btn tp-btn tp-btn--danger" href="{% url 'tpwebapp:protein_list' assembly.internal_name %}">
-                {% trans 'Prioritize Targets' %}
-            </a>
-        </div>
-        <div class="assembly-metrics">
-            <span class="metric-chip">{% trans "Assembly" %}: {{ assembly.name }}</span>
-            <span class="metric-chip">{% trans "Properties" %}: {{ assembly.props|length }}</span>
-            <span class="metric-chip">{% trans "Links" %}: {% if assembly.links %}{% trans "Available" %}{% else %}{% trans "None" %}{% endif %}</span>
-        </div>
-        {% if pipeline_status.available %}
-            <div class="assembly-pipeline">
-                {% include "components/pipeline/chip.html" with pipeline_status=pipeline_status mode="genome" chip_class="assembly-pipeline-chip" %}
-                {% include "components/pipeline/note.html" with pipeline_status=pipeline_status mode="genome" note_class="assembly-pipeline-note" %}
-            </div>
-        {% endif %}
-    </section>
-
-    <div class="assembly-sections">
-        <section class="tp-card">
-            <h2 class="mb-3">{% trans 'Properties' %}</h2>
-            <div class="tp-table-shell">
-                <table class="table table-striped table-hover mb-0">
-                    <tbody>
-                    {% for k,v in assembly.props.items %}
-                        <tr>
-                            <th>{{ k }}</th>
-                            <td>{{ v }}</td>
-                        </tr>
-                    {% endfor %}
-                    </tbody>
-                </table>
+    <div class="assembly-page">
+        <section class="assembly-hero{% if pipeline_status.available %}{% if pipeline_status.running_for_current_genome or pipeline_status.current_genome_status_note %} assembly-hero--with-status{% endif %}{% endif %}">
+            <div class="assembly-hero-grid">
+                <div class="assembly-hero-main">
+                    {% trans "Home" as crumb_home %}
+                    {% trans "Genomes" as crumb_genomes %}
+                    {% url 'tpwebapp:index' as index_url %}
+                    {% url 'tpwebapp:genomes_list' as genomes_url %}
+                    {% with crumb_workspace_label="Genome: "|add:assembly.name %}
+                    {% include "components/navigation/breadcrumbs.html" with crumb_1_label=crumb_home crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_workspace_label %}
+                    {% endwith %}
+                    <div class="assembly-hero-head">
+                        <div class="assembly-hero-copy">
+                            <h1>{{ assembly.name }}</h1>
+                            <p class="assembly-description">{{ assembly.description|default:"No description available." }}</p>
+                        </div>
+                        <div class="tp-view-head-actions">
+                            <a href="{{ view_export_url }}" class="btn tp-btn tp-btn--neutral tp-btn-with-icon tp-view-export-link">
+                                <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/download.html" %}</span>
+                                {% trans "Export view" %}
+                            </a>
+                        </div>
+                    </div>
+                    <div class="assembly-keyfacts tp-chip-group">
+                        {% for fact in overview.primary_hero_facts %}
+                            {% if fact.label != "Annotated features" %}
+                                <span class="tp-chip tp-chip--meta tp-chip--sm"><strong>{{ fact.label }}:</strong><span class="assembly-keyfact-value">{{ fact.value }}</span></span>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    {% if pipeline_status.available %}
+                        {% if pipeline_status.running_for_current_genome or pipeline_status.current_genome_status_note %}
+                            <div class="assembly-pipeline-group">
+                                <div>
+                                    {% include "components/pipeline/chip.html" with pipeline_status=pipeline_status mode="genome" chip_class="tp-chip tp-chip--state tp-chip--sm" %}
+                                </div>
+                                {% include "components/pipeline/note.html" with pipeline_status=pipeline_status mode="genome" note_class="hero-pipeline-note" %}
+                            </div>
+                            {% if pipeline_status.current_genome_status_note %}
+                                <p class="tp-state-note {% if pipeline_status.failed_for_current_genome %}tp-state-note--error{% else %}tp-state-note--empty{% endif %}">
+                                    {{ pipeline_status.current_genome_status_note }}
+                                </p>
+                            {% endif %}
+                        {% endif %}
+                    {% endif %}
+                    {% if delete_error_message %}
+                        <p class="tp-state-note tp-state-note--error">{{ delete_error_message }}</p>
+                    {% endif %}
+                    {% if pipeline_status.available and pipeline_status.running_for_current_genome %}
+                        <div class="assembly-status-strip">
+                            <span class="tp-chip tp-chip--meta tp-chip--sm">
+                                {% blocktrans with proteins=workspace_metrics.total_proteins %}{{ proteins }} proteins available for analysis{% endblocktrans %}
+                            </span>
+                            {% if overview.source_cds_display and overview.untranslated_cds_display %}
+                                <span class="tp-chip tp-chip--meta tp-chip--sm">
+                                    {% blocktrans with untranslated=overview.untranslated_cds_display %}{{ untranslated }} coding sequences without translated protein{% endblocktrans %}
+                                </span>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                    <div class="assembly-hero-actions">
+                        <a href="{{ workspace_links.proteins_url }}" class="btn tp-btn tp-btn--primary">{% trans "Open protein analysis" %}</a>
+                        <a href="{{ workspace_links.blast_url }}" class="btn tp-btn tp-btn--outline">{% trans "BLAST" %}</a>
+                    </div>
+                    <p class="assembly-record-summary">
+                        {% if overview.strain_display %}<strong>{% trans "Strain" %}:</strong> {{ overview.strain_display }}{% endif %}
+                        {% if overview.record_display %} · <strong>{% trans "Record" %}:</strong> {{ overview.record_display }}{% endif %}
+                        {% if overview.completion_display %} · <strong>{% trans "Completion" %}:</strong> {{ overview.completion_display }}{% endif %}
+                        {% if overview.feature_count_display %} · <strong>{% trans "Annotated features" %}:</strong> {{ overview.feature_count_display }}{% endif %}
+                    </p>
+                </div>
             </div>
         </section>
 
-        <section class="tp-card">
-            <h2 class="mb-3">{% trans 'Genome Browser' %}</h2>
-            <div class="browser-toolbar">
-                <small class="text-muted">{% trans "Interactive genomic tracks (JBrowse)." %}</small>
-                <a href="{{ jbrowse_url }}" target="_blank" rel="noopener" class="btn tp-btn tp-btn--neutral btn-sm">{% trans "Open in new tab" %}</a>
-            </div>
-            <div class="viewer-shell">
-                <iframe src="{{ jbrowse_url }}" loading="lazy"></iframe>
-            </div>
-        </section>
+        <div class="assembly-main">
+            <section class="assembly-card">
+                <div class="assembly-card-head">
+                    <div>
+                        <h2>{% trans 'Genome composition' %}</h2>
+                        <p>{% trans "Summary of the annotated record and the subset currently available for protein analysis." %}</p>
+                    </div>
+                </div>
+                <div class="assembly-record-list">
+                    <div class="assembly-record-item">
+                        <span class="assembly-record-label">{% trans "Proteins available for analysis" %}</span>
+                        <span class="assembly-record-value">{{ workspace_metrics.total_proteins }}</span>
+                    </div>
+                    <div class="assembly-record-item">
+                        <span class="assembly-record-label">{% trans "Structures loaded" %}</span>
+                        <span class="assembly-record-value">{% blocktrans with total=workspace_metrics.proteins_with_structure experimental=workspace_metrics.experimental_structures alphafold=workspace_metrics.alphafold_structures %}{{ total }} total (Experimental {{ experimental }}, AlphaFold {{ alphafold }}){% endblocktrans %}</span>
+                    </div>
+                    <div class="assembly-record-item">
+                        <span class="assembly-record-label">{% trans "Functional annotation available" %}</span>
+                        <span class="assembly-record-value">{% blocktrans with functional=workspace_metrics.functional_annotated ec=workspace_metrics.ec_annotated go=workspace_metrics.go_annotated %}{{ functional }} annotated proteins (EC {{ ec }}, GO {{ go }}){% endblocktrans %}</span>
+                    </div>
+                    <div class="assembly-record-item">
+                        <span class="assembly-record-label">{% trans "Annotated coding sequences" %}</span>
+                        <span class="assembly-record-value">{{ overview.source_cds_display|default:"-" }}</span>
+                    </div>
+                    <div class="assembly-record-item">
+                        <span class="assembly-record-label">{% trans "Coding sequences without translated protein" %}</span>
+                        <span class="assembly-record-value">{{ overview.untranslated_cds_display|default:"-" }}</span>
+                    </div>
+                    <div class="assembly-record-item">
+                        <span class="assembly-record-label">{% trans "RNA features" %}</span>
+                        <span class="assembly-record-value">{{ overview.rna_total_display|default:"-" }}</span>
+                    </div>
+                </div>
+            </section>
 
-        {% if assembly.links %}
-            <section class="tp-card">
-                <h2 class="mb-2">{% trans 'Related Data' %}</h2>
-                <ul class="mb-0">
-                    <li>{% trans 'Taxonomy' %}: {{ assembly.tax_id }}</li>
-                    <li>{% trans 'Bioproject' %}: {{ bioproject.id }}</li>
-                </ul>
-            </section>
-        {% else %}
-            <section class="tp-card">
-                <h2 class="mb-0">{% trans 'No related resources found for this assembly.' %}</h2>
-            </section>
-        {% endif %}
+            <div class="assembly-support-grid">
+                <section class="assembly-card">
+                    <div class="assembly-card-head">
+                        <div>
+                            <h2>{% trans 'Downloads' %}</h2>
+                            <p>{% trans "Download source genome and annotation files associated with this record." %}</p>
+                        </div>
+                    </div>
+                    <form action="{% url 'tpwebapp:download' %}" method="get" class="tp-ui-toolbar-form">
+                        <div class="tp-ui-field">
+                            <label class="tp-ui-field-label" for="inputFormatSelect">{% trans "File type" %}</label>
+                            <select name="format" class="form-control" id="inputFormatSelect" aria-label="Select download format">
+                                <option value="genome">{% trans 'Genome FASTA (fna)' %}</option>
+                                <option value="genes">{% trans 'Genes FASTA (fna)' %}</option>
+                                <option value="proteins">{% trans 'Proteins FASTA (faa)' %}</option>
+                                <option value="gff">{% trans 'Genome GFF' %}</option>
+                                <option value="gbk">{% trans 'Genome GBK' %}</option>
+                            </select>
+                        </div>
+                        <input type="hidden" name="accession" value="{{ assembly.internal_name }}"/>
+                        <button class="btn tp-btn tp-btn--outline" type="submit">{% trans 'Download' %}</button>
+                    </form>
+                </section>
+
+                <section class="assembly-card">
+                    <div class="assembly-card-head">
+                        <div>
+                            <h2>{% trans 'Technical metadata' %}</h2>
+                            <p>{% trans "Imported source-record properties for technical review and traceability." %}</p>
+                        </div>
+                    </div>
+                    <details class="assembly-raw-details">
+                        <summary>{% trans "Show imported record properties" %}</summary>
+                        <div class="tp-table-shell assembly-raw-table">
+                            <table class="table table-striped table-hover mb-0 tp-table tp-table--plain">
+                                <tbody>
+                                {% for k,v in assembly.props.items %}
+                                    <tr>
+                                        <th>{{ k }}</th>
+                                        <td>{{ v }}</td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="2">{% trans "No assembly properties available." %}</td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </details>
+                </section>
+            </div>
+
+            {% if can_delete_workspace %}
+                <section class="assembly-card assembly-delete-card">
+                    <div class="assembly-card-head">
+                        <div>
+                            <h2>{% trans 'Dataset removal' %}</h2>
+                            <p>{% trans "Delete this uploaded genome dataset and all derived records." %}</p>
+                        </div>
+                    </div>
+                    <details class="assembly-delete-summary">
+                        <summary>{% trans "Show deletion controls" %}</summary>
+                        <form method="post" class="assembly-delete-form">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="delete_workspace">
+                            <p class="assembly-delete-copy">
+                                {% trans "This removes the uploaded genome dataset, protein records, upload history, and generated analysis artifacts for this genome." %}
+                            </p>
+                            <div class="tp-ui-field">
+                                <label class="tp-ui-field-label" for="delete-workspace-confirm">{% trans "Type the accession to confirm" %}</label>
+                                <input
+                                    id="delete-workspace-confirm"
+                                    name="confirm_accession"
+                                    type="text"
+                                    class="form-control tp-ui-control"
+                                    placeholder="{{ assembly.name }}"
+                                    autocomplete="off"
+                                >
+                            </div>
+                            <div class="assembly-delete-actions">
+                                <button type="submit" class="btn tp-btn tp-btn--clear tp-btn--clear-caution">{% trans "Delete dataset" %}</button>
+                            </div>
+                        </form>
+                    </details>
+                </section>
+            {% endif %}
+        </div>
     </div>
 {% endblock %}
 

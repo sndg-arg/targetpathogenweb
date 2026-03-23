@@ -13,7 +13,15 @@ class IndexView(View):
     def get(self, request, *args, **kwargs):
         post = TPPost.objects.first()
         genomes = build_genomes_queryset(user=request.user)
-        genome_metrics = summarize_genomes(build_genomes_dto(genomes))
+        genomes_dto = build_genomes_dto(genomes, user=request.user)
+        genome_metrics = summarize_genomes(genomes_dto)
+        featured_genomes = sorted(
+            genomes_dto,
+            key=lambda genome: (
+                -int(genome.get("COUNT_CDS") or 0),
+                str(genome.get("name") or ""),
+            ),
+        )[:4]
 
         has_project_notes = False
         if post and post.content:
@@ -24,9 +32,7 @@ class IndexView(View):
             "has_project_notes": has_project_notes,
             "total_genomes": genome_metrics["total_genomes"],
             "total_proteins": genome_metrics["total_proteins"],
-            "total_structures": genome_metrics.get(
-                "total_structures", genome_metrics.get("genomes_with_structures", 0)
-            ),
+            "featured_genomes": featured_genomes,
             "pipeline_status": sanitize_pipeline_status_for_user(
                 get_pipeline_status(), request.user
             ),

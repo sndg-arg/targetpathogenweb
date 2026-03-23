@@ -66,6 +66,43 @@ def _dataset_ready(internal_accession):
     return Biodatabase.objects.filter(name=internal_accession).exists()
 
 
+def _workspace_biodatabase_names(internal_accession):
+    accession = str(internal_accession or "").strip()
+    if not accession:
+        return []
+
+    suffixes = (
+        "",
+        getattr(Biodatabase, "PROT_POSTFIX", "_prots"),
+        getattr(Biodatabase, "RNA_POSTFIX", "_rnas"),
+    )
+    names = []
+    for suffix in suffixes:
+        candidate = f"{accession}{suffix}" if suffix else accession
+        if candidate not in names:
+            names.append(candidate)
+    return names
+
+
+def _delete_workspace_biodatabases(internal_accession):
+    biodatabase_names = _workspace_biodatabase_names(internal_accession)
+    if not biodatabase_names:
+        return
+    Biodatabase.objects.filter(name__in=biodatabase_names).delete()
+
+
+def _delete_upload_artifacts(upload):
+    if upload.gbk_file:
+        upload.gbk_file.delete(save=False)
+
+    run_log_path = str(upload.run_log_path or "").strip()
+    if run_log_path:
+        try:
+            Path(run_log_path).unlink(missing_ok=True)
+        except Exception:
+            pass
+
+
 def _read_log_tail(log_path, max_lines=80):
     path = Path(str(log_path or "").strip())
     if not path.exists() or not path.is_file():
@@ -176,21 +213,43 @@ def owner_has_active_uploads(owner):
     ).exists()
 
 
+def workspace_has_active_upload(internal_accession, owner=None):
+    uploads = GenomeUpload.objects.filter(internal_accession=internal_accession)
+    if owner is not None:
+        uploads = uploads.filter(owner=owner)
+    return uploads.filter(
+        status__in=[GenomeUpload.STATUS_SUBMITTED, GenomeUpload.STATUS_RUNNING]
+    ).exists()
+
+
+def delete_genome_workspace(internal_accession, owner=None):
+    uploads = GenomeUpload.objects.filter(internal_accession=internal_accession)
+    if owner is not None:
+        uploads = uploads.filter(owner=owner)
+
+    deleted_uploads = 0
+    for upload in list(uploads):
+        _delete_upload_artifacts(upload)
+        upload.delete()
+        deleted_uploads += 1
+
+    _delete_workspace_biodatabases(internal_accession)
+
+    if not GenomeUpload.objects.exists():
+        clear_pipeline_activity_state()
+
+    return deleted_uploads
+
+
 def clear_genome_upload_history(owner):
     uploads = list(owner.genome_uploads.all())
     deleted_count = 0
 
     for upload in uploads:
-        if upload.gbk_file:
-            upload.gbk_file.delete(save=False)
+        if upload.status != GenomeUpload.STATUS_FINISHED:
+            _delete_workspace_biodatabases(upload.internal_accession)
 
-        run_log_path = str(upload.run_log_path or "").strip()
-        if run_log_path:
-            try:
-                Path(run_log_path).unlink(missing_ok=True)
-            except Exception:
-                pass
-
+        _delete_upload_artifacts(upload)
         upload.delete()
         deleted_count += 1
 

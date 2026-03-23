@@ -41,3 +41,4 @@ pathlib
 docker
 sndg-bio
 pdbecif
+openpyxl
