@@ -5,7 +5,7 @@
     --structure-accent-border: var(--tp-color-brand-300);
     padding: 14px;
     border-radius: var(--tp-ui-radius-panel);
-    border: 1px solid var(--tp-color-border-strong);
+    border: 1px solid var(--tp-color-border);
     background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
     box-shadow: var(--tp-ui-shadow-panel);
     position: relative;
@@ -51,7 +51,7 @@
 
 .structure-fs h1 {
     margin: 2px 0 0;
-    font-size: clamp(1.58rem, 2.2vw, 2rem);
+    font-size: var(--tp-heading-lg);
     color: var(--structure-accent-ink);
 }
 
@@ -77,10 +77,10 @@
 }
 
 .structure-toolbar {
-    border-color: var(--tp-color-border-strong);
+    border-color: var(--tp-color-border);
     border-radius: 14px;
     background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
-    box-shadow: 0 12px 24px rgba(21, 47, 63, 0.09);
+    box-shadow: var(--tp-shadow-sm);
 }
 
 .structure-fs-actions .btn,
@@ -101,7 +101,7 @@
     border: 1px solid var(--tp-color-border-strong);
     border-radius: 12px;
     background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-muted) 100%);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+    box-shadow: var(--tp-shadow-xs);
 }
 
 .structure-mode-switch .btn {
@@ -133,7 +133,7 @@
     stroke-width: 2.2;
     stroke-linecap: round;
     stroke-linejoin: round;
-    transition: transform 0.14s ease;
+    transition: transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
 }
 
 .structure-icon-btn:hover .structure-icon,
@@ -144,8 +144,8 @@
 .structure-mode-switch .btn.is-active {
     background: var(--structure-accent);
     border-color: var(--structure-accent);
-    color: var(--tp-color-surface);
-    box-shadow: 0 8px 16px rgba(16, 90, 117, 0.22);
+    color: var(--tp-color-on-accent);
+    box-shadow: var(--tp-shadow-md);
 }
 
 .structure-action-btn {
@@ -160,7 +160,7 @@
     color: var(--tp-color-brand-900) !important;
     border-color: var(--tp-color-brand-300) !important;
     background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-brand-050) 100%) !important;
-    box-shadow: 0 2px 6px rgba(18, 64, 80, 0.08);
+    box-shadow: var(--tp-shadow-xs);
 }
 
 .structure-fs .structure-icon-btn.tp-btn--outline:hover,
@@ -179,7 +179,7 @@
 }
 
 .structure-fs-viewport-wrap {
-    border: 1px solid var(--tp-color-border-strong);
+    border: 1px solid var(--tp-color-border);
     border-radius: 14px;
     background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
     padding: 8px;
@@ -224,15 +224,15 @@
     max-height: calc(100% - 20px);
     overflow: auto;
     z-index: 20;
-    border: 1px solid var(--tp-color-border-strong);
+    border: 1px solid var(--tp-color-border);
     border-radius: 14px;
     background: var(--tp-color-surface);
-    box-shadow: 0 20px 38px rgba(17, 39, 56, 0.24);
+    box-shadow: var(--tp-shadow-lg);
     backdrop-filter: blur(6px);
     opacity: 0;
     transform: translateY(-6px) scale(0.99);
     pointer-events: none;
-    transition: opacity 0.16s ease, transform 0.16s ease;
+    transition: opacity var(--tp-ui-motion-fast) var(--tp-ui-ease-standard), transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
     padding: 12px;
 }
 
@@ -284,7 +284,7 @@
     border: 1px solid var(--tp-color-border);
     border-radius: 12px;
     overflow: auto;
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+    box-shadow: var(--tp-shadow-xs);
     margin-top: 6px;
 }
 
@@ -292,8 +292,8 @@
 #p2pocketsTable th:first-child,
 #pocketsTable td:first-child,
 #p2pocketsTable td:first-child {
-    padding-left: 1rem;
-    padding-right: 0.65rem;
+    padding-left: var(--tp-table-cell-first-pl);
+    padding-right: var(--tp-table-cell-px);
     min-width: 74px;
 }
 
@@ -302,12 +302,7 @@
 #p2pocketsTable th,
 #p2pocketsTable td {
     vertical-align: middle !important;
-}
-
-#pocketsTable tbody td,
-#p2pocketsTable tbody td {
-    padding-top: 0.66rem;
-    padding-bottom: 0.66rem;
+    padding: var(--tp-table-cell-py) var(--tp-table-cell-px);
 }
 
 #pocketsTable th:not(:first-child),
@@ -351,7 +346,7 @@
     font-weight: 700;
     font-size: 0.9rem;
     border-bottom: 1px solid transparent;
-    transition: background 0.16s ease, border-color 0.16s ease;
+    transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard), border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
 }
 
 .data-details > summary:focus,
@@ -414,7 +409,7 @@
     position: relative;
     cursor: pointer;
     vertical-align: middle;
-    transition: background 0.16s ease, border-color 0.16s ease;
+    transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard), border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
 }
 
 .structure-toggle::after {
@@ -426,8 +421,8 @@
     height: 0.94rem;
     border-radius: 50%;
     background: var(--tp-color-surface);
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-    transition: transform 0.16s ease;
+    box-shadow: var(--tp-shadow-xs);
+    transition: transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
 }
 
 .structure-toggle:checked {
@@ -441,7 +436,7 @@
 
 .structure-toggle:focus-visible {
     outline: none;
-    box-shadow: 0 0 0 0.18rem var(--tp-focus-ring);
+    box-shadow: 0 0 0 0.2rem var(--tp-focus-ring);
 }
 
 .tp-score-tag {
@@ -494,7 +489,7 @@
     border-radius: 14px;
     border: 1px solid var(--tp-color-border);
     background: var(--tp-color-surface);
-    box-shadow: 0 18px 36px rgba(11, 32, 46, 0.24);
+    box-shadow: var(--tp-shadow-lg);
     padding: 12px;
 }
 

@@ -6,15 +6,15 @@
     --view-accent-soft: var(--tp-color-info-bg);
     --view-accent-soft-2: var(--tp-color-brand-050);
     --view-accent-border: var(--tp-color-brand-300);
-    --genomes-border: var(--tp-color-border-strong);
+    --genomes-border: var(--tp-color-border);
 }
 
 .genomes-hero {
-    border: 1px solid var(--tp-color-border-strong);
+    border: 1px solid var(--tp-color-border-soft);
     border-radius: var(--tp-ui-radius-hero);
     background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
     padding: 18px;
-    box-shadow: 0 16px 32px rgba(16, 35, 46, 0.1);
+    box-shadow: var(--tp-shadow-sm);
     position: relative;
     overflow: hidden;
 }
@@ -46,7 +46,7 @@
 
 .genomes-hero h1 {
     margin: 0;
-    font-size: clamp(1.55rem, 2.2vw, 2.05rem);
+    font-size: var(--tp-heading-lg);
     letter-spacing: 0.2px;
     color: var(--view-accent-ink);
     line-height: 1.08;
@@ -141,7 +141,7 @@
 .genome-list-card {
     overflow: hidden;
     border-color: var(--tp-color-border);
-    box-shadow: 0 14px 28px rgba(16, 35, 46, 0.1);
+    box-shadow: var(--tp-shadow-sm);
 }
 
 .genome-list-head {
@@ -151,7 +151,7 @@
     gap: 12px;
     padding: 16px 18px 12px;
     border-bottom: 1px solid var(--tp-color-border-soft);
-    background: linear-gradient(180deg, rgba(247, 251, 252, 0.92) 0%, rgba(255, 255, 255, 0.98) 100%);
+    background: linear-gradient(180deg, var(--tp-color-surface-soft) 0%, var(--tp-color-surface) 100%);
 }
 
 .genome-list-head-copy {
@@ -176,7 +176,7 @@
 .genome-list-card .tp-table-shell {
     border-color: var(--tp-color-border);
     background: var(--tp-color-surface);
-    box-shadow: 0 14px 28px rgba(16, 35, 46, 0.1);
+    box-shadow: var(--tp-shadow-sm);
 }
 
 .genome-list-card .table {
@@ -184,35 +184,35 @@
     margin-bottom: 0;
 }
 
-.genome-list-card .table thead {
-    background: linear-gradient(180deg, rgba(243, 248, 249, 0.96) 0%, rgba(237, 245, 247, 0.96) 100%);
-}
-
 .genome-list-card .table thead th {
+    background: var(--tp-table-thead-bg);
     position: sticky;
     top: 0;
-    z-index: 1;
+    z-index: var(--tp-table-sticky-z);
     white-space: nowrap;
+    font-size: var(--tp-table-thead-font);
+    font-weight: var(--tp-table-thead-weight);
+    color: var(--tp-table-thead-color);
 }
 
 .genome-list-card .table thead th,
 .genome-list-card .table tbody td {
-    padding: 0.72rem 0.64rem;
+    padding: var(--tp-table-cell-py) var(--tp-table-cell-px);
     vertical-align: middle;
 }
 
 .genome-list-card .table thead th:first-child,
 .genome-list-card .table tbody td:first-child {
-    padding-left: 0.88rem;
+    padding-left: var(--tp-table-cell-first-pl);
 }
 
 .genome-list-card .table td {
-    border-top: 1px solid var(--tp-color-border-soft);
+    border-top: var(--tp-table-row-border);
 }
 
 .genome-row {
     cursor: pointer;
-    transition: background 0.18s ease, box-shadow 0.18s ease;
+    transition: background var(--tp-ui-motion-base) var(--tp-ui-ease-standard), box-shadow var(--tp-ui-motion-base) var(--tp-ui-ease-standard);
 }
 
 .genome-row:hover {
@@ -344,7 +344,6 @@
     border: 1px solid var(--genomes-border);
     border-radius: var(--tp-ui-radius-panel);
     background:
-        radial-gradient(circle at top right, rgba(80, 140, 160, 0.09) 0, rgba(80, 140, 160, 0) 28%),
         linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
     box-shadow: var(--tp-ui-shadow-panel);
     display: grid;
@@ -376,7 +375,7 @@
 .genome-workspace-empty-copy h2 {
     margin: 0;
     color: var(--view-accent-ink);
-    font-size: clamp(1.2rem, 1.8vw, 1.45rem);
+    font-size: var(--tp-heading-md);
     line-height: 1.15;
 }
 
@@ -424,9 +423,29 @@
     }
 }
 
-@media (max-width: 575.98px) {
+@media (max-width: 700px) {
+    .genomes-hero {
+        padding: 14px;
+    }
+
+    .genomes-hero h1 {
+        font-size: clamp(1.3rem, 5vw, 1.55rem);
+    }
+
     .genomes-upload-btn {
         width: 100%;
+        justify-content: center;
+    }
+
+    .genome-list-head {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+    }
+
+    .genome-list-head .btn {
+        width: 100%;
+        justify-content: center;
     }
 }
 

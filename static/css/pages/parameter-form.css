@@ -13,7 +13,7 @@
 }
 
 .parameter-hero {
-    border: 1px solid var(--tp-color-border-strong);
+    border: 1px solid var(--tp-color-border-soft);
     border-radius: var(--tp-ui-radius-hero);
     background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
     padding: 18px;
@@ -64,7 +64,7 @@
 }
 
 .parameter-workspace {
-    border: 1px solid var(--tp-color-border-strong);
+    border: 1px solid var(--tp-color-border);
     border-radius: var(--tp-ui-radius-panel);
     background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
     box-shadow: var(--tp-ui-shadow-panel);
@@ -140,7 +140,6 @@
 }
 
 .parameter-field .form-control {
-    min-height: var(--tp-ui-control-height);
     font-size: var(--pf-size-body);
     line-height: 1.35;
 }
@@ -183,7 +182,7 @@
 .parameter-active-item {
     border: 1px solid var(--tp-color-border-strong);
     border-radius: 12px;
-    background: rgba(255, 255, 255, 0.94);
+    background: var(--tp-color-surface);
     padding: 8px 10px;
     display: flex;
     align-items: center;

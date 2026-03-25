@@ -20,7 +20,7 @@
 }
 
 .protein-hero {
-    border: 1px solid var(--tp-color-border-strong);
+    border: 1px solid var(--tp-color-border-soft);
     border-radius: var(--tp-ui-radius-hero);
     background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
     padding: 20px 20px 18px;
@@ -70,7 +70,7 @@
 
 .protein-hero h1 {
     margin: 0;
-    font-size: clamp(1.92rem, 2.5vw, 2.48rem);
+    font-size: var(--tp-heading-xl);
     line-height: 1.1;
     color: var(--protein-accent-ink);
 }
@@ -125,15 +125,15 @@
     align-items: center;
     justify-content: center;
     border-radius: 999px;
-    border: 1px solid #9fcfb9;
-    background: linear-gradient(180deg, #ffffff 0%, #f2fbf6 100%);
-    color: #0f5b45;
+    border: 1px solid var(--tp-color-success-border);
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-success-bg) 100%);
+    color: var(--tp-color-success-ink);
     font-size: 0.78rem;
     font-weight: 700;
     min-height: 32px;
     padding: 0 14px;
     line-height: 1;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 1px 2px rgba(18, 65, 52, 0.12);
+    box-shadow: var(--tp-shadow-xs);
 }
 
 .hero-pipeline-note {
@@ -159,7 +159,7 @@
     display: grid;
     align-content: center;
     gap: 2px;
-    box-shadow: 0 8px 16px rgba(24, 50, 69, 0.055);
+    box-shadow: var(--tp-shadow-xs);
 }
 
 .metric-label {
@@ -192,8 +192,8 @@
     padding: 8px 10px;
     border: 1px solid var(--tp-color-border-soft);
     border-radius: 12px;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, rgba(248, 251, 251, 0.94) 100%);
-    box-shadow: 0 8px 18px rgba(19, 43, 62, 0.045);
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+    box-shadow: var(--tp-shadow-xs);
     backdrop-filter: blur(3px);
 }
 
@@ -218,7 +218,7 @@
     font-weight: 600;
     border-radius: 999px;
     border: 1px solid var(--tp-color-border-strong) !important;
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, rgba(248, 251, 251, 0.98) 100%) !important;
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%) !important;
     color: var(--tp-color-text-secondary) !important;
     box-shadow: none;
     white-space: nowrap;
@@ -261,7 +261,7 @@
 }
 
 .protein-card {
-    border: 1px solid var(--tp-color-border-strong);
+    border: 1px solid var(--tp-color-border);
     border-radius: var(--tp-ui-radius-panel);
     background: var(--tp-color-surface);
     box-shadow: var(--tp-ui-shadow-panel);
@@ -341,7 +341,7 @@
     border-radius: 12px;
     background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
     padding: 11px 13px;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    box-shadow: var(--tp-shadow-xs);
 }
 
 .overview-item--status {
@@ -376,7 +376,7 @@
     border: 1px solid var(--tp-color-border-soft);
     border-radius: 12px;
     overflow: auto;
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+    box-shadow: var(--tp-shadow-xs);
 }
 
 .sequence-shell {
@@ -420,7 +420,7 @@
     color: var(--tp-color-brand-900) !important;
     border-color: var(--tp-color-brand-300) !important;
     background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-brand-050) 100%) !important;
-    box-shadow: 0 2px 6px rgba(18, 64, 80, 0.08);
+    box-shadow: var(--tp-shadow-xs);
 }
 
 .protein-page .btn-copy-seq.tp-btn--outline:hover,
@@ -455,10 +455,16 @@
     box-shadow: none !important;
 }
 
+#pocketsTable.table-hover tbody tr,
+#p2pocketsTable.table-hover tbody tr,
+#residuesetsTable.table-hover tbody tr {
+    transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
 #pocketsTable.table-hover tbody tr:hover,
 #p2pocketsTable.table-hover tbody tr:hover,
 #residuesetsTable.table-hover tbody tr:hover {
-    background: var(--protein-accent-soft);
+    background: var(--tp-color-brand-050);
 }
 
 .table-shell td {
@@ -469,8 +475,8 @@
 #p2pocketsTable th:first-child,
 #pocketsTable td:first-child,
 #p2pocketsTable td:first-child {
-    padding-left: 1rem;
-    padding-right: 0.65rem;
+    padding-left: var(--tp-table-cell-first-pl);
+    padding-right: var(--tp-table-cell-px);
     min-width: 74px;
 }
 
@@ -479,12 +485,7 @@
 #p2pocketsTable th,
 #p2pocketsTable td {
     vertical-align: middle !important;
-}
-
-#pocketsTable tbody td,
-#p2pocketsTable tbody td {
-    padding-top: 0.66rem;
-    padding-bottom: 0.66rem;
+    padding: var(--tp-table-cell-py) var(--tp-table-cell-px);
 }
 
 #pocketsTable th:not(:first-child),
@@ -531,7 +532,7 @@
     font-weight: 700;
     font-size: 0.9rem;
     border-bottom: 1px solid transparent;
-    transition: background 0.16s ease, border-color 0.16s ease;
+    transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard), border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
 }
 
 .data-details > summary:focus,
@@ -625,7 +626,7 @@
 }
 
 .structure-viewport-wrap {
-    border: 1px solid var(--tp-color-border-strong);
+    border: 1px solid var(--tp-color-border);
     border-radius: 14px;
     background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
     padding: 8px;
@@ -640,10 +641,10 @@
 }
 
 .structure-toolbar {
-    border-color: var(--tp-color-border-strong);
+    border-color: var(--tp-color-border);
     border-radius: 14px;
     background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
-    box-shadow: 0 12px 24px rgba(21, 47, 63, 0.09);
+    box-shadow: var(--tp-shadow-sm);
 }
 
 .structure-actions .btn {
@@ -676,7 +677,7 @@
     color: var(--tp-color-brand-900) !important;
     border-color: var(--tp-color-brand-300) !important;
     background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-brand-050) 100%) !important;
-    box-shadow: 0 2px 6px rgba(18, 64, 80, 0.08);
+    box-shadow: var(--tp-shadow-xs);
 }
 
 .protein-page .structure-icon-btn.tp-btn--outline:hover,
@@ -697,7 +698,7 @@
     border: 1px solid var(--tp-color-border-strong);
     border-radius: 12px;
     background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-muted) 100%);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+    box-shadow: var(--tp-shadow-xs);
 }
 
 .structure-mode-switch .btn {
@@ -729,7 +730,7 @@
     stroke-linecap: round;
     stroke-linejoin: round;
     margin: 0 auto;
-    transition: transform 0.14s ease;
+    transition: transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
 }
 
 .structure-icon-btn:hover .structure-icon,
@@ -740,8 +741,8 @@
 .structure-mode-switch .btn.is-active {
     background: var(--protein-accent);
     border-color: var(--protein-accent);
-    color: var(--tp-color-surface);
-    box-shadow: 0 8px 16px rgba(16, 90, 117, 0.22);
+    color: var(--tp-color-on-accent);
+    box-shadow: var(--tp-shadow-md);
 }
 
 .structure-loading-note {
@@ -789,7 +790,7 @@
     position: relative;
     cursor: pointer;
     vertical-align: middle;
-    transition: background 0.16s ease, border-color 0.16s ease;
+    transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard), border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
 }
 
 .structure-toggle::after {
@@ -801,8 +802,8 @@
     height: 0.94rem;
     border-radius: 50%;
     background: var(--tp-color-surface);
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-    transition: transform 0.16s ease;
+    box-shadow: var(--tp-shadow-xs);
+    transition: transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
 }
 
 .structure-toggle:checked {
@@ -816,7 +817,7 @@
 
 .structure-toggle:focus-visible {
     outline: none;
-    box-shadow: 0 0 0 0.18rem var(--tp-focus-ring);
+    box-shadow: 0 0 0 0.2rem var(--tp-focus-ring);
 }
 
 .binder-grid {
@@ -830,13 +831,12 @@
     border-radius: 14px;
     background: var(--tp-color-surface);
     padding: 12px;
-    box-shadow: 0 8px 20px rgba(32, 57, 79, 0.06);
-    transition: transform 0.16s ease, box-shadow 0.16s ease;
+    box-shadow: var(--tp-shadow-sm);
+    transition: box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
 }
 
 .binder-card:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 11px 22px rgba(32, 57, 79, 0.09);
+    box-shadow: var(--tp-shadow-md);
 }
 
 .binder-preview {
@@ -894,7 +894,7 @@
     border-radius: 14px;
     border: 1px solid var(--tp-color-border-soft);
     background: var(--tp-color-surface);
-    box-shadow: 0 18px 36px rgba(11, 32, 46, 0.24);
+    box-shadow: var(--tp-shadow-lg);
     padding: 12px;
 }
 

@@ -9,7 +9,7 @@
 }
 
 .customparam-hero {
-    border: 1px solid var(--tp-color-border-strong);
+    border: 1px solid var(--tp-color-border-soft);
     border-radius: var(--tp-ui-radius-hero);
     background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
     padding: 18px;
@@ -33,7 +33,7 @@
 
 .customparam-hero h1 {
     margin: 0;
-    font-size: clamp(1.62rem, 2.15vw, 2.05rem);
+    font-size: var(--tp-heading-lg);
     letter-spacing: 0.2px;
     color: var(--view-accent-ink);
     line-height: 1.08;
@@ -71,7 +71,7 @@
 }
 
 .customparam-card {
-    border: 1px solid var(--tp-color-border-strong);
+    border: 1px solid var(--tp-color-border);
     border-radius: var(--tp-ui-radius-panel);
     background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
     box-shadow: var(--tp-ui-shadow-panel);
@@ -102,49 +102,7 @@
     gap: 6px;
 }
 
-.customparam-field input[type="file"] {
-    display: block;
-    width: 100%;
-    min-height: var(--tp-ui-control-height);
-    border: 1px solid var(--tp-color-border-strong);
-    border-radius: var(--tp-ui-radius-control);
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
-    color: var(--tp-color-text-secondary);
-    font-size: var(--tp-font-size-sm);
-    font-weight: 600;
-    padding: 8px 10px;
-    transition: border-color 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
-}
-
-.customparam-field input[type="file"]::file-selector-button {
-    border: 1px solid var(--view-accent-border);
-    border-radius: 9px;
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--view-accent-soft-2) 100%);
-    color: var(--view-accent-ink);
-    font-size: var(--tp-font-size-sm);
-    font-weight: 700;
-    line-height: 1;
-    padding: 0.45rem 0.74rem;
-    margin-right: 10px;
-    cursor: pointer;
-    transition: border-color 0.16s ease, background 0.16s ease, color 0.16s ease;
-}
-
-.customparam-field input[type="file"]:hover {
-    border-color: var(--view-accent-border);
-}
-
-.customparam-field input[type="file"]::file-selector-button:hover {
-    border-color: var(--view-accent);
-    background: var(--view-accent-soft);
-    color: var(--tp-color-link-hover);
-}
-
-.customparam-field input[type="file"]:focus-visible {
-    outline: none;
-    border-color: rgba(23, 96, 119, 0.42);
-    box-shadow: 0 0 0 0.2rem var(--tp-focus-ring);
-}
+/* file input inherits from .tp-file-input in ui-system.css */
 
 .customparam-help {
     margin: 0;
@@ -218,6 +176,25 @@
 @media (max-width: 960px) {
     .customparam-main {
         grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 700px) {
+    .customparam-hero {
+        padding: 14px;
+    }
+
+    .customparam-hero h1 {
+        font-size: clamp(1.3rem, 5vw, 1.55rem);
+    }
+
+    .customparam-card {
+        padding: 14px;
+    }
+
+    .customparam-form .btn {
+        width: 100%;
+        justify-content: center;
     }
 }
 

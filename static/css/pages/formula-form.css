@@ -9,9 +9,9 @@
 }
 
 .formula-hero {
-    border: 1px solid var(--tp-color-border-strong);
+    border: 1px solid var(--tp-color-border-soft);
     border-radius: var(--tp-ui-radius-hero);
-    background: var(--tp-color-surface);
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
     padding: 18px;
     box-shadow: var(--tp-ui-shadow-panel);
     position: relative;
@@ -33,7 +33,7 @@
 
 .formula-hero h1 {
     margin: 0;
-    font-size: clamp(1.62rem, 2.15vw, 2.05rem);
+    font-size: var(--tp-heading-lg);
     letter-spacing: 0.2px;
     color: var(--view-accent-ink);
     line-height: 1.08;
@@ -74,7 +74,7 @@
 }
 
 .formula-card {
-    border: 1px solid var(--tp-color-border-strong);
+    border: 1px solid var(--tp-color-border);
     border-radius: var(--tp-ui-radius-panel);
     background: var(--tp-color-surface);
     box-shadow: var(--tp-ui-shadow-panel);
@@ -143,9 +143,7 @@
     line-height: 1.25;
 }
 
-.formula-add-form .form-control {
-    min-height: var(--tp-ui-control-height);
-}
+/* .form-control min-height inherited from base */
 
 .formula-add-form .tp-select {
     position: relative;
@@ -179,7 +177,7 @@
 }
 
 .formula-term-table thead th {
-    background: linear-gradient(180deg, var(--tp-color-surface-soft) 0%, var(--tp-color-surface-panel) 100%);
+    background: linear-gradient(180deg, var(--tp-color-surface-soft) 0%, var(--tp-color-surface-muted) 100%);
     color: var(--tp-color-text-secondary);
     font-size: 0.84rem;
     font-weight: 700;
@@ -199,7 +197,7 @@
 }
 
 .formula-footer-card {
-    border: 1px solid var(--tp-color-border-strong);
+    border: 1px solid var(--tp-color-border);
     border-radius: var(--tp-ui-radius-panel);
     background: var(--tp-color-surface);
     box-shadow: var(--tp-ui-shadow-panel);

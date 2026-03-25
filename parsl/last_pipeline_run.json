@@ -1,11 +1,11 @@
 {
   "status": "finished",
   "genomes": [
-    "user-2__NC_000117.1"
+    "user-2__NZ_AP023069.1"
   ],
   "gram": "n",
-  "custom": "/app/targetpathogenweb/data/genome_uploads/localuser/user-2__nc_0001171/NC_000117.1.demo.gbk.gz",
-  "started_at_utc": "2026-03-21T17:54:12.955899+00:00",
-  "finished_at_utc": "2026-03-21T18:38:17.180151+00:00",
-  "runtime_seconds": 2644.224
+  "custom": null,
+  "started_at_utc": "2026-03-24T22:31:26.898294+00:00",
+  "finished_at_utc": "2026-03-24T22:52:17.636322+00:00",
+  "runtime_seconds": 1250.738
 }

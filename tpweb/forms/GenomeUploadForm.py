@@ -24,7 +24,7 @@ class GenomeUploadForm(forms.Form):
         help_text=_("Upload a `.gbk.gz` file to run the genome pipeline."),
         widget=forms.ClearableFileInput(
             attrs={
-                "class": "genome-upload-file-input",
+                "class": "tp-file-input",
             }
         ),
     )
