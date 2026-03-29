@@ -1,29 +1,203 @@
-
-{% load static %}
+{% extends '../base/masterpage.html' %}
 {% load i18n %}
-{% load account socialaccount %}
+{% load static %}
+{% load account %}
 
+{% block head %}
+    <style>
+        .auth-page {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 48px 16px;
+            min-height: 60vh;
+        }
 
+        .auth-card {
+            width: 100%;
+            max-width: 420px;
+            border: 1px solid var(--tp-color-border-soft);
+            border-radius: 16px;
+            background: var(--tp-color-surface);
+            box-shadow: var(--tp-shadow-md);
+            padding: 36px 32px 32px;
+            display: grid;
+            gap: 24px;
+        }
 
+        .auth-header {
+            text-align: center;
+        }
 
-{% block inner %}
+        .auth-header h1 {
+            margin: 0;
+            font-family: "Space Grotesk", "Segoe UI", sans-serif;
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--tp-color-text-primary);
+        }
 
-<h1>TP Login Page</h1>
+        .auth-header p {
+            margin: 8px 0 0;
+            color: var(--tp-color-text-muted);
+            font-size: 0.92rem;
+        }
 
+        .auth-form {
+            display: grid;
+            gap: 16px;
+        }
 
+        .auth-field {
+            display: grid;
+            gap: 6px;
+        }
 
-<form class="login" method="POST" action="{% url 'account_login' %}">
-  {% csrf_token %}
-  {{ form }}
-  {% if redirect_field_value %}
-  <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
-  {% endif %}
+        .auth-field label {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--tp-color-text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
 
-  <button class="primaryAction btn tp-btn tp-btn--primary" type="submit">Sign In </button>
-</form>
+        .auth-field input {
+            width: 100%;
+            height: 44px;
+            padding: 0 14px;
+            border: 1px solid var(--tp-color-border);
+            border-radius: 10px;
+            background: var(--tp-color-surface-soft);
+            color: var(--tp-color-text-primary);
+            font-size: 0.95rem;
+            transition: border-color 150ms ease, box-shadow 150ms ease;
+        }
 
+        .auth-field input:focus {
+            outline: none;
+            border-color: var(--tp-color-brand-600);
+            box-shadow: 0 0 0 3px var(--tp-focus-ring);
+        }
 
-    <script src="{% static 'bundle.js' %}"> </script>
+        .auth-field input::placeholder {
+            color: var(--tp-color-text-soft);
+        }
+
+        .auth-field .helptext,
+        .auth-field .errorlist {
+            font-size: 0.8rem;
+            margin: 2px 0 0;
+        }
+
+        .auth-field .errorlist {
+            color: var(--tp-color-danger-ink);
+            list-style: none;
+            padding: 0;
+        }
+
+        .auth-submit {
+            margin-top: 4px;
+        }
+
+        .auth-submit button {
+            width: 100%;
+            height: 46px;
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        .auth-footer {
+            text-align: center;
+            color: var(--tp-color-text-muted);
+            font-size: 0.84rem;
+        }
+
+        .auth-footer a {
+            color: var(--tp-color-link);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .auth-footer a:hover {
+            color: var(--tp-color-link-hover);
+            text-decoration: underline;
+        }
+
+        .auth-errors {
+            padding: 10px 14px;
+            border-radius: 10px;
+            background: var(--tp-color-danger-bg);
+            border: 1px solid var(--tp-color-danger-border);
+            color: var(--tp-color-danger-ink);
+            font-size: 0.88rem;
+        }
+
+        .auth-errors ul {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+    </style>
 {% endblock %}
 
+{% block body %}
+    <div class="auth-page">
+        <div class="auth-card">
+            <div class="auth-header">
+                <h1>{% trans "Sign in" %}</h1>
+                <p>{% trans "Enter your credentials to access the platform." %}</p>
+            </div>
 
+            {% if form.non_field_errors %}
+                <div class="auth-errors">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+
+            <form class="auth-form" method="POST" action="{% url 'account_login' %}">
+                {% csrf_token %}
+
+                <div class="auth-field">
+                    <label for="id_login">{% trans "Username or email" %}</label>
+                    <input type="text"
+                           name="login"
+                           id="id_login"
+                           placeholder="{% trans 'Username or email' %}"
+                           value="{{ form.login.value|default:'' }}"
+                           autocomplete="username"
+                           autofocus
+                           required>
+                    {% if form.login.errors %}
+                        <ul class="errorlist">
+                            {% for error in form.login.errors %}<li>{{ error }}</li>{% endfor %}
+                        </ul>
+                    {% endif %}
+                </div>
+
+                <div class="auth-field">
+                    <label for="id_password">{% trans "Password" %}</label>
+                    <input type="password"
+                           name="password"
+                           id="id_password"
+                           placeholder="{% trans 'Password' %}"
+                           autocomplete="current-password"
+                           required>
+                    {% if form.password.errors %}
+                        <ul class="errorlist">
+                            {% for error in form.password.errors %}<li>{{ error }}</li>{% endfor %}
+                        </ul>
+                    {% endif %}
+                </div>
+
+                {% if redirect_field_value %}
+                    <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}">
+                {% endif %}
+
+                <div class="auth-submit">
+                    <button class="btn tp-btn tp-btn--primary" type="submit">{% trans "Sign in" %}</button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+{% endblock %}

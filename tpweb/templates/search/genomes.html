@@ -111,10 +111,10 @@
                             {% for genome in genomes %}
                                 <tr class="genome-row {% if pipeline_status.running and pipeline_status.genome_accession == genome.internal_name %}is-processing{% endif %}{% if genome.incomplete_for_current_genome %} is-incomplete{% endif %}"
                                     tabindex="0"
-                                    data-assembly-url="{% url 'tpwebapp:assembly' genome.internal_name %}">
+                                    data-assembly-url="{% url 'tpwebapp:assembly' genome.slug %}">
                                     <td class="genomes-name">
                                         <div class="genomes-name-stack">
-                                            <a href="{% url 'tpwebapp:assembly' genome.internal_name %}">{{ genome.name }}</a>
+                                            <a href="{% url 'tpwebapp:assembly' genome.slug %}">{{ genome.name }}</a>
                                             {% if pipeline_status.running and pipeline_status.genome_accession == genome.internal_name %}
                                                 <span class="genome-processing-badge">{% trans "In progress" %}</span>
                                             {% elif genome.failed_for_current_genome %}
@@ -138,7 +138,7 @@
                                     {% endfor %}
                                     <td class="genome-actions-cell">
                                         <div class="genome-actions-inline">
-                                            <a href="{% url 'tpwebapp:protein_list' genome.internal_name %}" class="btn tp-btn tp-btn--outline btn-sm">{% trans "Proteins" %}</a>
+                                            <a href="{% url 'tpwebapp:protein_list' genome.slug %}" class="btn tp-btn tp-btn--outline btn-sm">{% trans "Proteins" %}</a>
                                         </div>
                                     </td>
                                 </tr>

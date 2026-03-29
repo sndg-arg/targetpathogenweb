@@ -9,7 +9,7 @@ from tpweb.views.ParameterForm import (
     humanize_identifier,
 )
 from tpweb.services.score_param_types import score_param_kind
-from tpweb.services.genome_workspace import display_genome_name, user_can_access_genome_name
+from tpweb.services.genome_workspace import display_genome_name, genome_url_slug, resolve_genome_from_slug
 from tpweb.services.score_params import visible_score_param_options_queryset, visible_score_params_queryset
 from tpweb.services.protein_annotations import normalize_annotation_kind
 from tpweb.services.workspace import (
@@ -20,8 +20,9 @@ from tpweb.services.workspace import (
 from tpweb.services.csv_exports import xlsx_sections_response
 
 
-def ParameterFormView(request, assembly_name):
-    if not user_can_access_genome_name(request.user, assembly_name):
+def ParameterFormView(request, genome):
+    assembly_name = resolve_genome_from_slug(request.user, genome)
+    if not assembly_name:
         raise Http404("Genome not found")
     selected_parameters = get_workspace_session_value(
         request.session, request.user, "selected_parameters", []
@@ -42,7 +43,7 @@ def ParameterFormView(request, assembly_name):
     ]
 
     def redirect_with_query(route_name):
-        url = redirect(route_name, assembly_name=assembly_name)
+        url = redirect(route_name, genome=genome_url_slug(assembly_name))
         params = request.GET.copy()
         query = params.urlencode()
         if query:
@@ -208,6 +209,7 @@ def ParameterFormView(request, assembly_name):
             "parameters": display_parameters,
             "assembly_name": assembly_name,
             "assembly_label": display_genome_name(assembly_name),
+            "genome": genome_url_slug(assembly_name),
             "active_filter_count": len(selected_parameters),
             "duplicate_filter": duplicate_filter,
             "active_option_ids": ",".join(active_option_ids),
@@ -223,7 +225,7 @@ def ParameterFormView(request, assembly_name):
             "view_export_url": "?export=view_csv",
             "ec_explorer_url": reverse(
                 "tpwebapp:annotation_explorer",
-                kwargs={"assembly_name": assembly_name, "annotation_kind": "ec"},
+                kwargs={"genome": genome_url_slug(assembly_name), "annotation_kind": "ec"},
             ),
         },
     )
@@ -247,8 +249,11 @@ def load_options(request):
     return render(request, "search/parameter_options.html", {"options": options})
 
 
-def reset_filters(request, assembly_name=None):
+def reset_filters(request, genome=None):
     pop_workspace_session_value(request.session, request.user, "selected_parameters", None)
-    if assembly_name:
-        return redirect("tpwebapp:protein_list", assembly_name=assembly_name)
+    if genome:
+        assembly_name = resolve_genome_from_slug(request.user, genome)
+        if not assembly_name:
+            raise Http404("Genome not found")
+        return redirect("tpwebapp:protein_list", genome=genome_url_slug(assembly_name))
     return redirect("tpwebapp:index")

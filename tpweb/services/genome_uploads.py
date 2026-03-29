@@ -127,7 +127,21 @@ def _extract_error_message(log_path):
     return "Pipeline stopped before completion."
 
 
+def _upload_was_deleted(upload):
+    upload_id = getattr(upload, "pk", None)
+    if not upload_id:
+        return True
+    return not GenomeUpload.objects.filter(pk=upload_id).exists()
+
+
 def _finalize_upload(upload, returncode):
+    if _upload_was_deleted(upload):
+        _delete_upload_artifacts(upload)
+        _delete_workspace_biodatabases(upload.internal_accession)
+        if not GenomeUpload.objects.exists():
+            clear_pipeline_activity_state()
+        return upload.STATUS_FAILED
+
     if returncode == 0 and _dataset_ready(upload.internal_accession):
         upload.status = upload.STATUS_FINISHED
         upload.error_message = ""

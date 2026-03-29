@@ -15,8 +15,8 @@
             {% trans "Prioritization setup" as crumb_setup %}
             {% url 'tpwebapp:index' as index_url %}
             {% url 'tpwebapp:genomes_list' as genomes_url %}
-            {% url 'tpwebapp:assembly' assembly_name as assembly_url %}
-            {% url 'tpwebapp:protein_list' assembly_name as proteins_url %}
+            {% url 'tpwebapp:assembly' genome as assembly_url %}
+            {% url 'tpwebapp:protein_list' genome as proteins_url %}
             {% with crumb_genome="Genome: "|add:assembly_label %}
             {% include "components/navigation/breadcrumbs.html" with crumb_1_label=crumb_home crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_genome crumb_3_url=assembly_url crumb_4_label=crumb_proteins crumb_4_url=proteins_url crumb_5_label=crumb_setup %}
             {% endwith %}

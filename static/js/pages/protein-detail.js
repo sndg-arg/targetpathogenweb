@@ -11,8 +11,13 @@
         return Number.isFinite(parsed) ? parsed : Number.NaN;
     }
 
-    function classifyScore(score) {
+    function classifyScore(score, scoreType) {
         if (Number.isNaN(score)) return "medium";
+        if (scoreType === "p2rank-prob") {
+            if (score >= 0.5) return "high";
+            if (score >= 0.2) return "medium";
+            return "low";
+        }
         if (score >= 0.7) return "high";
         if (score >= 0.4) return "medium";
         return "low";
@@ -169,7 +174,8 @@
         var targetSelector = selector || ".js-score-tag";
         document.querySelectorAll(targetSelector).forEach(function (tag) {
             var score = parseScore(tag.getAttribute("data-score") || tag.textContent);
-            var statusClass = classifyScore(score);
+            var scoreType = tag.getAttribute("data-score-type") || "";
+            var statusClass = classifyScore(score, scoreType);
             tag.classList.remove("high", "medium", "low");
             tag.classList.add(statusClass);
         });

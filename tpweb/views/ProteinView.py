@@ -10,7 +10,7 @@ from bioseq.models.Biodatabase import Biodatabase
 from bioseq.models.Bioentry import Bioentry
 from tpweb.models.Binders import Binders
 from .StructureView import pdb_structure
-from tpweb.services.protein_annotations import annotation_dbnames, protein_annotation_badges
+from tpweb.services.protein_annotations import annotation_dbnames, protein_annotation_badges, iter_protein_annotations
 from tpweb.services.csv_exports import xlsx_sections_response
 from tpweb.services.pipeline_status import (
     annotate_pipeline_status_for_genome,
@@ -18,6 +18,7 @@ from tpweb.services.pipeline_status import (
 )
 from tpweb.services.genome_workspace import (
     display_genome_name,
+    genome_url_slug,
     user_can_access_genome_name,
 )
 from tpweb.services.structure_sources import summarize_structure_sources
@@ -57,6 +58,7 @@ def serialize_prot(protein: Bioentry):
                 "size": protein.seq.length,
                 "assembly_id": bdb.biodatabase_id,
                 "assembly_name":   bdb.name,
+                "genome": genome_url_slug(bdb.name),
                 "assembly_label": display_genome_name(bdb.name),
                 "assembly_description": bdb.description if bdb.description else  display_genome_name(bdb.name),
                 "status": "annotated",
@@ -166,7 +168,7 @@ class ProteinView(View):
         protein = Bioentry.objects.filter(
             bioentry_id=protein_id
         ).prefetch_related("seq", "biodatabase",
-                           "qualifiers__term", "dbxrefs__dbxref__terms",
+                           "qualifiers__term", "dbxrefs__dbxref__terms__term",
                            "features__type_term__ontology", "features__locations",
                            "structures__pdb__residue_sets__properties__property").get()
         assembly_name = protein.biodatabase.name.split(Biodatabase.PROT_POSTFIX)[0]
@@ -176,8 +178,10 @@ class ProteinView(View):
         structures = protein.structures.prefetch_related("pdb__residues").all()
         binders = create_binders_dict(protein)
         structure_summary = summarize_structure_sources(structures)
-        ec_badges = protein_annotation_badges(protein, "ec", limit=6)
-        go_badges = protein_annotation_badges(protein, "go", limit=6)
+        ec_all = list(iter_protein_annotations(protein, "ec"))
+        go_all = list(iter_protein_annotations(protein, "go"))
+        ec_badges = ec_all[:6]
+        go_badges = go_all[:6]
         pipeline_status = annotate_pipeline_status_for_genome(
             get_pipeline_status(), proteinDTO["assembly_name"]
         )
@@ -252,6 +256,8 @@ class ProteinView(View):
         dto = {"protein": proteinDTO,
                "features": features,
                "annotations": annotations,
+               "ec_annotations": ec_all,
+               "go_annotations": go_all,
                "graphic_features": graphic_features,
                "binders": binders,
                "structure_summary": structure_summary,

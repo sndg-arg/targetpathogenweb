@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260323-4">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260326-1">
 {% endblock %}
 
 {% block body %}
@@ -18,8 +18,8 @@
                     {% trans "Protein Detail" as crumb_protein_detail %}
                     {% url 'tpwebapp:index' as index_url %}
                     {% url 'tpwebapp:genomes_list' as genomes_url %}
-                    {% url 'tpwebapp:assembly' protein.assembly_name as assembly_url %}
-                    {% url 'tpwebapp:protein_list' protein.assembly_name as proteins_url %}
+                    {% url 'tpwebapp:assembly' protein.genome as assembly_url %}
+                    {% url 'tpwebapp:protein_list' protein.genome as proteins_url %}
                     {% with crumb_genome_overview="Genome: "|add:protein.assembly_label %}
                     {% include "components/navigation/breadcrumbs.html" with crumb_1_label=crumb_home crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_genome_overview crumb_3_url=assembly_url crumb_4_label=crumb_proteins crumb_4_url=proteins_url crumb_5_label=crumb_protein_detail %}
                     {% endwith %}
@@ -76,9 +76,7 @@
             <a href="#section-sequence" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Sequence" %}</a>
             <a href="#section-annotations" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "GO/EC" %}</a>
             <a href="#section-features" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Features" %}</a>
-            {% if structure %}
-                <a href="#section-structure" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "3D Structure" %}</a>
-            {% endif %}
+            <a href="#section-structure" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "3D Structure" %}</a>
             {% if binders %}
                 <a href="#section-binders" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Binders" %}</a>
             {% endif %}
@@ -99,7 +97,7 @@
                     </div>
                     <div class="overview-item">
                         <dt>{% trans "Assembly" %}</dt>
-                        <dd><a href="{% url 'tpwebapp:protein_list' protein.assembly_name %}">{{ protein.assembly_description }}</a></dd>
+                        <dd><a href="{% url 'tpwebapp:protein_list' protein.genome %}">{{ protein.assembly_description }}</a></dd>
                     </div>
                     <div class="overview-item">
                         <dt>{% trans "Gene" %}</dt>
@@ -113,23 +111,33 @@
                         <dt>{% trans "Amino acids" %}</dt>
                         <dd>{{ protein.size }}</dd>
                     </div>
-                    <div class="overview-item">
+                    <div class="overview-item{% if not structure_summary.has_structure %} overview-item--warning{% endif %}">
                         <dt>{% trans "Structure source" %}</dt>
-                        <dd>{{ structure_summary.label }}</dd>
+                        <dd>{% if structure_summary.has_structure %}{{ structure_summary.label }}{% else %}{% trans "Unavailable" %}{% endif %}</dd>
                     </div>
                 </dl>
-                {% if ec_badges %}
-                    <div class="hero-chip-list tp-chip-group">
-                        {% for ec in ec_badges %}
-                            <a href="{% url 'tpwebapp:protein_list' assembly_name=protein.assembly_name %}?annotation_kind=ec&annotation_value={{ ec.accession }}" class="tp-chip tp-chip--meta tp-chip--sm">{{ ec.accession }}</a>
-                        {% endfor %}
-                    </div>
-                {% endif %}
-                {% if go_badges %}
-                    <div class="hero-chip-list tp-chip-group">
-                        {% for go in go_badges %}
-                            <a href="{% url 'tpwebapp:protein_list' assembly_name=protein.assembly_name %}?annotation_kind=go&annotation_value={{ go.accession }}" class="tp-chip tp-chip--meta tp-chip--sm">{{ go.accession }}</a>
-                        {% endfor %}
+                {% if ec_badges or go_badges %}
+                    <div class="hero-annotations">
+                        {% if ec_badges %}
+                            <div class="hero-annotation-group">
+                                <span class="hero-annotation-label">EC</span>
+                                <div class="tp-chip-group">
+                                    {% for ec in ec_badges %}
+                                        <a href="{% url 'tpwebapp:protein_list' genome=protein.genome %}?annotation_kind=ec&annotation_value={{ ec.accession }}" class="tp-chip tp-chip--ec tp-chip--sm" title="{{ ec.name|default:ec.accession }}">{{ ec.accession }}</a>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endif %}
+                        {% if go_badges %}
+                            <div class="hero-annotation-group">
+                                <span class="hero-annotation-label">GO</span>
+                                <div class="tp-chip-group">
+                                    {% for go in go_badges %}
+                                        <a href="{% url 'tpwebapp:protein_list' genome=protein.genome %}?annotation_kind=go&annotation_value={{ go.accession }}" class="tp-chip tp-chip--go tp-chip--sm" title="{{ go.name|default:go.accession }}">{{ go.accession }}{% if go.name %} <span class="tp-chip-name">{{ go.name }}</span>{% endif %}</a>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endif %}
                     </div>
                 {% endif %}
             </section>
@@ -158,39 +166,49 @@
             <section class="protein-card tp-ui-panel" id="section-annotations">
                 <div class="section-head tp-ui-panel-head">
                     <div>
-                        <h2>{% trans "Functional Annotations (GO/EC)" %}</h2>
-                        <p class="section-subtitle">{% trans "Ontology and enzyme annotations linked to this protein." %}</p>
+                        <h2>{% trans "Functional Annotations" %}</h2>
+                        <p class="section-subtitle">{% trans "Enzyme classification and Gene Ontology terms linked to this protein." %}</p>
                     </div>
                     <div class="section-tools">
-                        <span class="tp-chip tp-chip--count tp-chip--sm">{{ annotations|length }} {% trans "records" %}</span>
+                        {% if ec_annotations %}<span class="tp-chip tp-chip--count tp-chip--sm">{{ ec_annotations|length }} EC</span>{% endif %}
+                        {% if go_annotations %}<span class="tp-chip tp-chip--count tp-chip--sm">{{ go_annotations|length }} GO</span>{% endif %}
                     </div>
                 </div>
-                {% if annotations %}
-                    <details class="data-details">
-                        <summary>{% trans "Show annotation table" %}</summary>
-                        <div class="table-shell tp-table-shell">
-                            <table id="annotations_table" class="table table-striped table-hover tp-table tp-table--sortable tp-table--premium">
-                                <thead>
-                                <tr>
-                                    <th scope="col">{% trans "DB" %}</th>
-                                    <th scope="col">{% trans "Family" %}</th>
-                                    <th scope="col">{% trans "Accession" %}</th>
-                                    <th scope="col">{% trans "Name" %}</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                {% for annotation in annotations %}
-                                    <tr>
-                                        <td>{{ annotation.db }}</td>
-                                        <td>{{ annotation.fam }}</td>
-                                        <td>{{ annotation.term }}</td>
-                                        <td>{{ annotation.name }}</td>
-                                    </tr>
-                                {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    </details>
+                {% if ec_annotations or go_annotations %}
+                    <div class="annotation-panels">
+                        {% if ec_annotations %}
+                            <div class="annotation-panel annotation-panel--ec">
+                                <div class="annotation-panel-head">
+                                    <h3>{% trans "Enzyme Commission (EC)" %}</h3>
+                                    <span class="annotation-panel-count">{{ ec_annotations|length }}</span>
+                                </div>
+                                <ul class="annotation-entries">
+                                    {% for ec in ec_annotations %}
+                                        <li class="annotation-entry">
+                                            <a href="{% url 'tpwebapp:protein_list' genome=protein.genome %}?annotation_kind=ec&annotation_value={{ ec.accession }}" class="annotation-entry-id">{{ ec.accession }}</a>
+                                            {% if ec.name %}<span class="annotation-entry-name">{{ ec.name }}</span>{% endif %}
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% endif %}
+                        {% if go_annotations %}
+                            <div class="annotation-panel annotation-panel--go">
+                                <div class="annotation-panel-head">
+                                    <h3>{% trans "Gene Ontology (GO)" %}</h3>
+                                    <span class="annotation-panel-count">{{ go_annotations|length }}</span>
+                                </div>
+                                <ul class="annotation-entries">
+                                    {% for go in go_annotations %}
+                                        <li class="annotation-entry">
+                                            <a href="{% url 'tpwebapp:protein_list' genome=protein.genome %}?annotation_kind=go&annotation_value={{ go.accession }}" class="annotation-entry-id">{{ go.accession }}</a>
+                                            {% if go.name %}<span class="annotation-entry-name">{{ go.name }}</span>{% endif %}
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% endif %}
+                    </div>
                 {% else %}
                     <p class="tp-state-note tp-state-note--empty">{% trans "No GO or EC annotations are currently loaded for this protein." %}</p>
                 {% endif %}
@@ -358,7 +376,7 @@
                         <div class="mini-section">
                             <details class="data-details">
                                 <summary>{% trans "Show P2RANK pockets" %}</summary>
-                                <p class="table-hint px-3 pt-2">{% trans "Probability is color-coded: high (0.7 or higher), medium (0.4 to 0.69), low (below 0.4)." %}</p>
+                                <p class="table-hint px-3 pt-2">{% trans "Probability is color-coded per P2Rank calibration: high (&ge; 0.5), medium (0.2 &ndash; 0.49), low (&lt; 0.2)." %}</p>
                                 <div class="table-shell tp-table-shell">
                                     <table id="p2pocketsTable" class="table table-striped table-hover table-sm tp-table tp-table--plain tp-table--premium">
                                         <thead>
@@ -382,7 +400,7 @@
                                                 <td><input type="checkbox" class="structure-toggle" aria-label="Toggle spheres {{ p2.name }}" onchange="toogle_view('p2_{{p2.name}}_sph')" /></td>
                                                 <td><input type="checkbox" class="structure-toggle" aria-label="Toggle surfaces {{ p2.name }}" onchange="toogle_view('p2_{{p2.name}}_pol');toogle_view('p2_{{p2.name}}_apol')" /></td>
                                                 <td><span class="tp-score-tag js-score-tag" data-score="{{ p2.p2score }}">{{ p2.p2score }}</span></td>
-                                                <td><span class="tp-score-tag js-score-tag" data-score="{{ p2.probability }}">{{ p2.probability }}</span></td>
+                                                <td><span class="tp-score-tag js-score-tag" data-score="{{ p2.probability }}" data-score-type="p2rank-prob">{{ p2.probability }}</span></td>
                                                 <td><input type="checkbox" class="structure-toggle" aria-label="Toggle labels {{ p2.name }}" onchange="toogle_view('p2_{{p2.name}}_lbl')" /></td>
                                                 <td><button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm structure-table-btn" onclick="ngl_zoom_to('p2_{{p2.name}}_zoom')">{% trans "Zoom" %}</button></td>
                                                 <td><button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm structure-table-btn js-show-residues" data-residues="{{ p2.residues | join:' ' }}">{% trans "Show" %}</button></td>
@@ -453,6 +471,25 @@
                                 </div>
                             </article>
                         {% endfor %}
+                    </div>
+                </section>
+            {% else %}
+                <section class="protein-card tp-ui-panel" id="section-structure">
+                    <div class="section-head tp-ui-panel-head">
+                        <div>
+                            <h2>{% trans "3D Structure" %}</h2>
+                            <p class="section-subtitle">{% trans "No structural model is available for this protein." %}</p>
+                        </div>
+                    </div>
+                    <div class="no-structure-note">
+                        <div class="no-structure-icon" aria-hidden="true">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><circle cx="12" cy="17" r="0.5" fill="currentColor" stroke="none"/><path d="M10.363 3.818l-7.455 12.727A1.91 1.91 0 0 0 4.545 19h14.91a1.91 1.91 0 0 0 1.637-2.455L13.637 3.818a1.91 1.91 0 0 0-3.274 0z"/></svg>
+                        </div>
+                        <div class="no-structure-body">
+                            <p class="no-structure-title">{% trans "Structure unavailable" %}</p>
+                            <p class="no-structure-reason">{% trans "This protein's sequence exceeds the length threshold for automated structure prediction. No pre-computed model was found in the AlphaFold database, and ESMFold predictions are limited to sequences under 400 residues." %}</p>
+                            <p class="no-structure-meta">{% trans "Sequence length" %}: <strong>{{ protein.size }} aa</strong></p>
+                        </div>
                     </div>
                 </section>
             {% endif %}

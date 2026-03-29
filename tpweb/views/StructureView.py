@@ -6,7 +6,7 @@ from bioseq.models.Biodatabase import Biodatabase
 from tpweb.models.BioentryStructure import BioentryStructure
 from tpweb.models.pdb import PDB, Residue, Property, ResidueSet, PDBResidueSet
 from django.db.models import Q
-from tpweb.services.genome_workspace import user_can_access_genome_name
+from tpweb.services.genome_workspace import user_can_access_genome_name, genome_url_slug
 
 
 class StructureView(View):
@@ -22,8 +22,10 @@ class StructureView(View):
         if source_bioentry is not None:
             dto["source_protein_id"] = source_bioentry.bioentry_id
             dto["source_protein_label"] = source_bioentry.name or "Protein detail"
-            dto["source_assembly_name"] = self._resolve_source_assembly_name(source_bioentry)
-            if not user_can_access_genome_name(request.user, dto["source_assembly_name"]):
+            source_assembly_name = self._resolve_source_assembly_name(source_bioentry)
+            dto["source_assembly_name"] = source_assembly_name
+            dto["source_genome"] = genome_url_slug(source_assembly_name)
+            if not user_can_access_genome_name(request.user, source_assembly_name):
                 raise Http404("Structure not found")
 
 
@@ -136,7 +138,7 @@ def pdb_structure(pdbobj, graphic_features):
             "data": data,
             "name": "P2Pocket",
             "className": "test2",
-            "color": generar_color_aleatorio(),
+            "color": p2rank_probability_color(p2.probability),
             "type": "rect",
             "filter": "type2"
         }
@@ -173,6 +175,24 @@ def pdb_structure(pdbobj, graphic_features):
 
 
 import random
+
+
+def p2rank_probability_color(probability):
+    """Return a hex color based on P2Rank calibrated probability thresholds.
+
+    High (>= 0.5): green — strong binding-site prediction.
+    Medium (>= 0.2): amber — moderate prediction.
+    Low (< 0.2): red — weak prediction.
+    """
+    try:
+        prob = float(probability)
+    except (TypeError, ValueError):
+        return "#F59E0B"  # amber fallback
+    if prob >= 0.5:
+        return "#10B981"  # green
+    if prob >= 0.2:
+        return "#F59E0B"  # amber
+    return "#EF4444"      # red
 
 
 def generar_color_aleatorio():

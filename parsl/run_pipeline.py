@@ -10,9 +10,22 @@ import time
 from datetime import datetime, timezone
 
 
-def _marker_path():
-    import os
-    return os.path.join(os.path.dirname(__file__), "last_pipeline_run.json")
+def _pipeline_shared_dir():
+    default_dir = os.path.normpath(
+        os.path.join(os.path.dirname(__file__), "..", "data", "parsl")
+    )
+    return os.environ.get("TPW_PIPELINE_SHARED_DIR", default_dir)
+
+
+def _marker_paths():
+    shared_marker_path = os.path.join(_pipeline_shared_dir(), "last_pipeline_run.json")
+    legacy_marker_path = os.path.join(os.path.dirname(__file__), "last_pipeline_run.json")
+    marker_paths = []
+    for candidate in (shared_marker_path, legacy_marker_path):
+        normalized = os.path.normpath(candidate)
+        if normalized not in marker_paths:
+            marker_paths.append(normalized)
+    return marker_paths
 
 
 def _write_last_run_marker(
@@ -36,12 +49,14 @@ def _write_last_run_marker(
     if error:
         payload["error"] = _safe_error_text(error)
 
-    try:
-        with open(_marker_path(), "w", encoding="utf-8") as handle:
-            json.dump(payload, handle, ensure_ascii=True, indent=2)
-    except Exception:
-        # Marker is best-effort metadata; do not fail the run because of write issues.
-        pass
+    for marker_path in _marker_paths():
+        try:
+            os.makedirs(os.path.dirname(marker_path), exist_ok=True)
+            with open(marker_path, "w", encoding="utf-8") as handle:
+                json.dump(payload, handle, ensure_ascii=True, indent=2)
+        except Exception:
+            # Marker is best-effort metadata; do not fail the run because of write issues.
+            pass
 
 
 def _safe_error_text(error):
@@ -95,17 +110,23 @@ def run(genome, gram, custom, source_genome=None):
         working_dir=working_dir, genome=genome, folder_path=folder_path, inputs=[r_interpro])
     r_gbk2uniprot = gbk2uniprot_map(
         working_dir=working_dir, genome=genome, folder_path=folder_path, inputs=[r_load_interpro])
+    r_uniprot_annotations = fetch_uniprot_annotations(
+        working_dir=working_dir, genome=genome, folder_path=folder_path, inputs=[r_gbk2uniprot])
     protein_list = get_unipslst(
-        folder_path=folder_path, genome=genome, inputs=[r_gbk2uniprot])
+        folder_path=folder_path, genome=genome, inputs=[r_uniprot_annotations])
     r_alphafolds = list()
     for proteins in (protein_list.result()).split('\n'):
         if len(proteins) > 0:
             r = alphafold_unips(protein_list=proteins, folder_path=folder_path,
                             genome=genome, inputs=[protein_list])
             r_alphafolds.append(r)
-    
+
+    r_esmfold = esmfold_predict(
+        working_dir=working_dir, genome=genome, folder_path=folder_path,
+        inputs=r_alphafolds)
+
     r_stru = strucutures_af(
-        working_dir=working_dir, folder_path=folder_path, genome=genome, inputs=r_alphafolds)
+        working_dir=working_dir, folder_path=folder_path, genome=genome, inputs=[r_esmfold])
     
     d_2_csv = druggability_2_csv(working_dir=working_dir, genome=genome, inputs =[r_stru])
 
@@ -118,13 +139,6 @@ def run(genome, gram, custom, source_genome=None):
     get_b = get_binders(working_dir=working_dir, genome=genome, inputs=[load_p])
 
     load_b = load_binders(working_dir=working_dir, genome=genome, inputs=[get_b])
-
-    if args.test:
-        return seed_test_demo_annotations(
-            working_dir=working_dir,
-            genome=genome,
-            inputs=[load_b],
-        )
 
     return load_b
 

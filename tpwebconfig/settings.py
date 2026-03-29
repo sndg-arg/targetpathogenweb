@@ -31,7 +31,7 @@ DEBUG = env.bool("DJANGO_DEBUG", True)
 DBTASK = any([x in sys.argv[1:] for x in ["makemigrations", "migrate", "createsuperuser", "shell_plus"]])
 WORKERPROC = sys.argv[0].endswith("celery")
 
-ALLOWED_HOSTS = ["localhost", "0.0.0.0", "127.0.0.1","nodo0","targettestv2.cluster.qb.fcen.uba.ar"]
+ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=["localhost", "0.0.0.0", "127.0.0.1"])
 CSRF_TRUSTED_ORIGINS = env.list("DJANGO_CSRF_TRUSTED_ORIGINS", default=["https://" + x for x in ALLOWED_HOSTS])
 # Application definition
 
@@ -116,9 +116,9 @@ SITE_ID = 1
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'tp',
-        'USER': 'postgres',
-        'PASSWORD': '123',
+        'NAME': env("DJANGO_DATABASE_NAME", default="tp"),
+        'USER': env("DJANGO_DATABASE_USER", default="postgres"),
+        'PASSWORD': env("DJANGO_DATABASE_PASSWORD", default="123"),
         'HOST': 'db',
         'PORT': '5432',
     }
@@ -176,7 +176,7 @@ AUTHENTICATION_BACKENDS = [
 # https://docs.djangoproject.com/en/dev/ref/settings/#auth-user-model
 AUTH_USER_MODEL = "tpweb.TPUser"
 # https://docs.djangoproject.com/en/dev/ref/settings/#login-redirect-url
-LOGIN_REDIRECT_URL = "users:redirect"
+LOGIN_REDIRECT_URL = "tpwebapp:index"
 # https://docs.djangoproject.com/en/dev/ref/settings/#login-url
 LOGIN_URL = "account_login"
 
@@ -252,13 +252,13 @@ SERVER_EMAIL=webmaster@example.com
 
 # django-allauth
 # ------------------------------------------------------------------------------
-ACCOUNT_ALLOW_REGISTRATION = env.bool("DJANGO_ACCOUNT_ALLOW_REGISTRATION", True)
+ACCOUNT_ALLOW_REGISTRATION = env.bool("DJANGO_ACCOUNT_ALLOW_REGISTRATION", False)
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
 ACCOUNT_AUTHENTICATION_METHOD = "username_email"
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
 ACCOUNT_EMAIL_REQUIRED = True
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
-ACCOUNT_EMAIL_VERIFICATION = "mandatory"
+ACCOUNT_EMAIL_VERIFICATION = "none"
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
 ACCOUNT_ADAPTER = "tpweb.adapters.AccountAdapters.AccountAdapter"
 # https://django-allauth.readthedocs.io/en/latest/forms.html
@@ -308,9 +308,9 @@ if DEBUG:
 
 
 else:
-    STATIC_ROOT = env("DJANGO_ROOT")
-    JBROWSE_BASE_URL = env("JBROWSE_BASE_URL")
-    SEQS_DATA_DIR = env("SEQS_DATA_DIR")
+    STATIC_ROOT = env("DJANGO_ROOT", default=str(BASE_DIR / "staticfiles"))
+    JBROWSE_BASE_URL = env("JBROWSE_BASE_URL", default="http://localhost:3000/")
+    SEQS_DATA_DIR = env("SEQS_DATA_DIR", default=str(BASE_DIR / "data/seqs"))
 
     # CACHE_URL=memcache://127.0.0.1:11211,127.0.0.1:11212,127.0.0.1:11213
     # REDIS_URL=rediscache://127.0.0.1:6379/1?client_class=django_redis.client.DefaultClient&password=ungithubbed-secret
@@ -327,18 +327,27 @@ else:
     DATABASES["default"]["ATOMIC_REQUESTS"] = True  # noqa F405
     DATABASES["default"]["CONN_MAX_AGE"] = env.int("CONN_MAX_AGE", default=60)  # noqa F405
 
-    CACHES = {
-        "default": {
-            "BACKEND": "django_redis.cache.RedisCache",
-            "LOCATION": env("REDIS_URL"),
-            "OPTIONS": {
-                "CLIENT_CLASS": "django_redis.client.DefaultClient",
-                # Mimicing memcache behavior.
-                # https://github.com/jazzband/django-redis#memcached-exceptions-behavior
-                "IGNORE_EXCEPTIONS": True,
-            },
+    redis_url = env("REDIS_URL", default="")
+    if redis_url:
+        CACHES = {
+            "default": {
+                "BACKEND": "django_redis.cache.RedisCache",
+                "LOCATION": redis_url,
+                "OPTIONS": {
+                    "CLIENT_CLASS": "django_redis.client.DefaultClient",
+                    # Mimic memcache behavior when Redis is briefly unavailable.
+                    # https://github.com/jazzband/django-redis#memcached-exceptions-behavior
+                    "IGNORE_EXCEPTIONS": True,
+                },
+            }
         }
-    }
+    else:
+        CACHES = {
+            "default": {
+                "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+                "LOCATION": "tpw-production-fallback",
+            }
+        }
 
     # LOGGING
     # ------------------------------------------------------------------------------
@@ -381,24 +390,25 @@ else:
 
     # Sentry
     # ------------------------------------------------------------------------------
-    SENTRY_DSN = env("SENTRY_DSN")
-    SENTRY_LOG_LEVEL = env.int("DJANGO_SENTRY_LOG_LEVEL", logging.INFO)
-    sentry_logging = LoggingIntegration(
-        level=SENTRY_LOG_LEVEL,  # Capture info and above as breadcrumbs
-        event_level=logging.ERROR,  # Send errors as events
-    )
-    integrations = [
-        sentry_logging,
-        DjangoIntegration(),
-        CeleryIntegration(),
-        RedisIntegration(),
-    ]
-    sentry_sdk.init(
-        dsn=SENTRY_DSN,
-        integrations=integrations,
-        environment=env("SENTRY_ENVIRONMENT", default="production"),
-        traces_sample_rate=env.float("SENTRY_TRACES_SAMPLE_RATE", default=0.0),
-    )
+    SENTRY_DSN = env("SENTRY_DSN", default="")
+    if SENTRY_DSN:
+        SENTRY_LOG_LEVEL = env.int("DJANGO_SENTRY_LOG_LEVEL", logging.INFO)
+        sentry_logging = LoggingIntegration(
+            level=SENTRY_LOG_LEVEL,  # Capture info and above as breadcrumbs
+            event_level=logging.ERROR,  # Send errors as events
+        )
+        integrations = [
+            sentry_logging,
+            DjangoIntegration(),
+            CeleryIntegration(),
+            RedisIntegration(),
+        ]
+        sentry_sdk.init(
+            dsn=SENTRY_DSN,
+            integrations=integrations,
+            environment=env("SENTRY_ENVIRONMENT", default="production"),
+            traces_sample_rate=env.float("SENTRY_TRACES_SAMPLE_RATE", default=0.0),
+        )
 
 JBROWSE_EMBED_ENABLED = env.bool("JBROWSE_EMBED_ENABLED", default=True)
 # BLAST

@@ -8,6 +8,20 @@ from parsl.channels import LocalChannel
 from parsl.monitoring.monitoring import MonitoringHub
 from parsl.addresses import address_by_hostname
 
+
+def _pipeline_shared_dir():
+    default_dir = os.path.normpath(
+        os.path.join(os.path.dirname(__file__), "..", "data", "parsl")
+    )
+    return os.environ.get("TPW_PIPELINE_SHARED_DIR", default_dir)
+
+
+def _pipeline_run_dir():
+    shared_run_dir = os.environ.get("TPW_PIPELINE_RUN_DIR")
+    if shared_run_dir:
+        return shared_run_dir
+    return os.path.join(_pipeline_shared_dir(), "runinfo")
+
 class borg(object):
     def __init__(self, my_class):
         self.my_class = my_class
@@ -67,7 +81,11 @@ class TargetConfig():
         else:
             monitoring = None
 
+        run_dir = _pipeline_run_dir()
+        os.makedirs(run_dir, exist_ok=True)
+
         cfg = Config(monitoring=monitoring,
-                     executors=[self.ht_executor]
+                     executors=[self.ht_executor],
+                     run_dir=run_dir,
                      )
         return cfg

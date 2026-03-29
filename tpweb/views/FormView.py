@@ -5,7 +5,7 @@ import uuid
 import subprocess as sp
 import os
 from bioseq.io.SeqStore import SeqStore
-from tpweb.services.genome_workspace import display_genome_name
+from tpweb.services.genome_workspace import display_genome_name, genome_url_slug
 from django.urls import reverse
 
 class FormView(View):
@@ -35,7 +35,7 @@ class FormView(View):
             'selected_genome_description': selected_biodatabase.description if selected_biodatabase else "",
             'blast_locked_to_genome': bool(selected_biodatabase),
             'selected_genome_workspace_url': (
-                reverse("tpwebapp:assembly", kwargs={"assembly_id": selected_biodatabase.name})
+                reverse("tpwebapp:assembly", kwargs={"genome": genome_url_slug(selected_biodatabase.name)})
                 if selected_biodatabase
                 else ""
             ),

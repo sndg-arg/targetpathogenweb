@@ -1,4 +1,5 @@
-from django.shortcuts import render
+from django.contrib import messages
+from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views import View
 
@@ -18,6 +19,7 @@ from tpweb.services.genome_upload_status import (
 from tpweb.services.genome_workspace import (
     build_workspace_genome_name,
     display_genome_name,
+    genome_url_slug,
 )
 from tpweb.services.pipeline_status import get_pipeline_status
 from tpweb.services.pipeline_status import sanitize_pipeline_status_for_user
@@ -45,7 +47,7 @@ class GenomeUploadView(View):
             }
         return {"label": job.get_status_display(), "class": job.status}
 
-    def _build_context(self, request, form=None, success_message="", error_message=""):
+    def _build_context(self, request, form=None):
         workspace_user = resolve_workspace_user(request.user)
         pipeline_status = sanitize_pipeline_status_for_user(get_pipeline_status(), request.user)
         reconcile_genome_uploads(pipeline_status, owner=workspace_user)
@@ -75,7 +77,7 @@ class GenomeUploadView(View):
             if Biodatabase.objects.filter(name=job.internal_accession).exists():
                 assembly_url = reverse(
                     "tpwebapp:assembly",
-                    kwargs={"assembly_id": job.internal_accession},
+                    kwargs={"genome": genome_url_slug(job.internal_accession)},
                 )
             jobs_dto.append(
                 {
@@ -89,7 +91,7 @@ class GenomeUploadView(View):
                     "state_label": state["label"],
                     "state_class": state["class"],
                     "queue_position": queue_positions.get(job.id),
-                    "protein_workspace_url": job.internal_accession,
+                    "protein_workspace_url": genome_url_slug(job.internal_accession),
                 }
             )
 
@@ -105,8 +107,6 @@ class GenomeUploadView(View):
             ),
             "pipeline_status": pipeline_status,
             "has_active_jobs": owner_has_active_uploads(workspace_user),
-            "success_message": success_message,
-            "error_message": error_message,
             "running_genome_label": display_genome_name(running_genome),
         }
 
@@ -116,32 +116,22 @@ class GenomeUploadView(View):
     def post(self, request, *args, **kwargs):
         workspace_user = resolve_workspace_user(request.user)
 
+        upload_url = reverse("tpwebapp:genome_upload")
+
         if request.POST.get("action") == self.ACTION_CLEAR_HISTORY:
             if owner_has_active_uploads(workspace_user):
-                return render(
+                messages.error(
                     request,
-                    self.template_name,
-                    self._build_context(
-                        request,
-                        error_message=(
-                            "Remove or finish queued/running uploads before clearing this history."
-                        ),
-                    ),
+                    "Remove or finish queued/running uploads before clearing this history.",
                 )
+                return redirect(upload_url)
 
             deleted_count = clear_genome_upload_history(workspace_user)
-            return render(
-                request,
-                self.template_name,
-                self._build_context(
-                    request,
-                    success_message=(
-                        "Genome upload history was cleared."
-                        if deleted_count
-                        else "There was no genome upload history to clear."
-                    ),
-                ),
-            )
+            if deleted_count:
+                messages.success(request, "Genome upload history was cleared.")
+            else:
+                messages.info(request, "There was no genome upload history to clear.")
+            return redirect(upload_url)
 
         if request.POST.get("action") == self.ACTION_USE_TEST_GENOME:
             internal_accession = build_workspace_genome_name(TEST_GENOME_ACCESSION, request.user)
@@ -150,17 +140,18 @@ class GenomeUploadView(View):
                 internal_accession=internal_accession,
                 status__in=[GenomeUpload.STATUS_SUBMITTED, GenomeUpload.STATUS_RUNNING],
             ).exists():
-                return render(
+                messages.error(
                     request,
-                    self.template_name,
-                    self._build_context(
-                        request,
-                        form=GenomeUploadForm(),
-                        error_message=(
-                            f"Genome {TEST_GENOME_ACCESSION} is already queued or running for this account."
-                        ),
-                    ),
+                    f"Genome {TEST_GENOME_ACCESSION} is already queued or running for this account.",
                 )
+                return redirect(upload_url)
+
+            if Biodatabase.objects.filter(name=internal_accession).exists():
+                messages.info(
+                    request,
+                    f"Genome {TEST_GENOME_ACCESSION} has already been processed.",
+                )
+                return redirect(upload_url)
 
             GenomeUpload.objects.create(
                 owner=workspace_user,
@@ -170,16 +161,8 @@ class GenomeUploadView(View):
                 gbk_file="",
                 status=GenomeUpload.STATUS_SUBMITTED,
             )
-
-            return render(
-                request,
-                self.template_name,
-                self._build_context(
-                    request,
-                    form=GenomeUploadForm(),
-                    success_message=f"Test genome {TEST_GENOME_ACCESSION} was added to the queue.",
-                ),
-            )
+            messages.success(request, f"Test genome {TEST_GENOME_ACCESSION} was added to the queue.")
+            return redirect(upload_url)
 
         form = GenomeUploadForm(request.POST, request.FILES)
         if not form.is_valid():
@@ -192,17 +175,18 @@ class GenomeUploadView(View):
             internal_accession=internal_accession,
             status__in=[GenomeUpload.STATUS_SUBMITTED, GenomeUpload.STATUS_RUNNING],
         ).exists():
-            return render(
+            messages.error(
                 request,
-                self.template_name,
-                self._build_context(
-                    request,
-                    form=form,
-                    error_message=(
-                        f"Genome {display_accession} is already queued or running for this account."
-                    ),
-                ),
+                f"Genome {display_accession} is already queued or running for this account.",
             )
+            return redirect(upload_url)
+
+        if Biodatabase.objects.filter(name=internal_accession).exists():
+            messages.info(
+                request,
+                f"Genome {display_accession} has already been processed.",
+            )
+            return redirect(upload_url)
 
         GenomeUpload.objects.create(
             owner=workspace_user,
@@ -212,13 +196,5 @@ class GenomeUploadView(View):
             gbk_file=form.cleaned_data["gbk_file"],
             status=GenomeUpload.STATUS_SUBMITTED,
         )
-
-        return render(
-            request,
-            self.template_name,
-            self._build_context(
-                request,
-                form=GenomeUploadForm(),
-                success_message=f"Genome {display_accession} was added to the queue.",
-            ),
-        )
+        messages.success(request, f"Genome {display_accession} was added to the queue.")
+        return redirect(upload_url)

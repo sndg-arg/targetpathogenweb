@@ -7,6 +7,7 @@ from tpweb.models.BioentryStructure import BioentryStructure
 from tpweb.services.genome_workspace import (
     describe_genome_scope,
     display_genome_name,
+    genome_url_slug,
     visible_genome_name_filter,
 )
 
@@ -131,6 +132,7 @@ def build_genome_dto(
     genome_dto = {
         "name": display_genome_name(genome.name),
         "internal_name": genome.name,
+        "slug": genome_url_slug(genome.name),
         "description": genome.description,
         "workspace_scope_key": workspace_scope["key"],
         "workspace_scope_label": workspace_scope["label"],

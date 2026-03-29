@@ -6,7 +6,7 @@ from django.urls import reverse
 from django.views import View
 
 from tpweb.models.CustomParamFile import CustomParam
-from tpweb.services.genome_workspace import display_genome_name, user_can_access_genome_name
+from tpweb.services.genome_workspace import display_genome_name, genome_url_slug, resolve_genome_from_slug
 from tpweb.services.pipeline_status import annotate_pipeline_status_for_genome, get_pipeline_status
 from tpweb.services.protein_formula import choose_formula, resolve_formulas_for_user
 from tpweb.services.workspace import resolve_workspace_user
@@ -52,8 +52,9 @@ class PrioritizationSetupView(View):
             )
         return rows
 
-    def get(self, request, assembly_name, *args, **kwargs):
-        if not user_can_access_genome_name(request.user, assembly_name):
+    def get(self, request, genome, *args, **kwargs):
+        assembly_name = resolve_genome_from_slug(request.user, genome)
+        if not assembly_name:
             raise Http404("Genome not found")
 
         workspace_user = resolve_workspace_user(request.user)
@@ -117,6 +118,7 @@ class PrioritizationSetupView(View):
             {
                 "assembly_name": assembly_name,
                 "assembly_label": display_genome_name(assembly_name),
+                "genome": genome_url_slug(assembly_name),
                 "selected_formula": selected_formula,
                 "formula_rows": formula_rows,
                 "formula_count": len(formula_rows),
@@ -124,12 +126,12 @@ class PrioritizationSetupView(View):
                 "custom_evidence_count": len(custom_evidence_rows),
                 "pipeline_status": pipeline_status,
                 "view_export_url": self._build_view_export_url(request),
-                "proteins_url": reverse("tpwebapp:protein_list", kwargs={"assembly_name": assembly_name}),
-                "formula_builder_url": reverse("tpwebapp:formula_form", kwargs={"assembly_name": assembly_name}),
-                "custom_evidence_url": reverse("tpwebapp:customparam", kwargs={"assembly_name": assembly_name}),
+                "proteins_url": reverse("tpwebapp:protein_list", kwargs={"genome": genome_url_slug(assembly_name)}),
+                "formula_builder_url": reverse("tpwebapp:formula_form", kwargs={"genome": genome_url_slug(assembly_name)}),
+                "custom_evidence_url": reverse("tpwebapp:customparam", kwargs={"genome": genome_url_slug(assembly_name)}),
                 "ec_explorer_url": reverse(
                     "tpwebapp:annotation_explorer",
-                    kwargs={"assembly_name": assembly_name, "annotation_kind": "ec"},
+                    kwargs={"genome": genome_url_slug(assembly_name), "annotation_kind": "ec"},
                 ),
             },
         )

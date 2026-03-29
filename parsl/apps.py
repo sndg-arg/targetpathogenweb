@@ -32,6 +32,43 @@ def _assert_ssh_reachable(host, port, timeout_seconds):
         probe.close()
 
 
+def _resolve_ssh_options(paramiko_module, host, user=None, port=22):
+    resolved = {
+        "host": host,
+        "user": user,
+        "port": port,
+        "key_filename": None,
+    }
+    config_path = os.path.expanduser("~/.ssh/config")
+    if not os.path.exists(config_path):
+        return resolved
+
+    try:
+        ssh_config = paramiko_module.SSHConfig()
+        with open(config_path, "r", encoding="utf-8") as handle:
+            ssh_config.parse(handle)
+        entry = ssh_config.lookup(host)
+    except Exception:
+        return resolved
+
+    resolved["host"] = entry.get("hostname") or resolved["host"]
+    resolved["user"] = user or entry.get("user") or resolved["user"]
+
+    entry_port = entry.get("port")
+    if entry_port:
+        try:
+            resolved["port"] = int(entry_port)
+        except (TypeError, ValueError):
+            pass
+
+    identity_files = entry.get("identityfile") or []
+    if identity_files:
+        expanded = [os.path.expanduser(path) for path in identity_files]
+        resolved["key_filename"] = expanded if len(expanded) > 1 else expanded[0]
+
+    return resolved
+
+
 @python_app(executors=['local_executor'])
 def clear_folder(folder_path, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
     import os, shutil
@@ -72,11 +109,6 @@ def index_genome_seq(working_dir, genome, inputs=[], stderr=parsl.AUTO_LOGNAME, 
     return f"python {working_dir}/manage.py index_genome_seq_clean {genome} --datadir {working_dir}/data"
 
 
-@bash_app(executors=["local_executor"])
-def seed_test_demo_annotations(working_dir, genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
-    return f"python {working_dir}/manage.py seed_test_demo_annotations {genome}"
-
-
 @python_app(executors=['local_executor'])
 def interproscan(cfg_dict, folder_path, genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
     import paramiko
@@ -98,6 +130,10 @@ def interproscan(cfg_dict, folder_path, genome, inputs=[], stderr=parsl.AUTO_LOG
         "TPW_INTERPRO_REMOTE_WAIT_SEC",
         default=1800 if allow_local_fallback else 21600,
     )
+    remote_completion_grace_seconds = _env_int(
+        "TPW_INTERPRO_REMOTE_COMPLETION_GRACE_SEC",
+        default=max(remote_poll_seconds * 2, 60),
+    )
     slurm_partition = os.getenv("TPW_INTERPRO_PARTITION", "cpu")
     slurm_time = os.getenv("TPW_INTERPRO_TIME", "05:00:00")
     slurm_mem = os.getenv("TPW_INTERPRO_MEM", "32gb")
@@ -118,6 +154,11 @@ def interproscan(cfg_dict, folder_path, genome, inputs=[], stderr=parsl.AUTO_LOG
         ssh_host = os.getenv("SSH_HOSTNAME") or cfg_dict.get("SSH", "HostName")
         ssh_user = os.getenv("SSH_USERNAME") or cfg_dict.get("SSH", "Username")
         ssh_cores = os.getenv("SSH_CORES") or cfg_dict.get("SSH", "Cores")
+        ssh_options = _resolve_ssh_options(paramiko, ssh_host, user=ssh_user, port=ssh_port)
+        ssh_host = ssh_options["host"]
+        ssh_user = ssh_options["user"]
+        ssh_port = ssh_options["port"]
+        ssh_key_filename = ssh_options["key_filename"]
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         pwd = os.getenv("SSH_PASSWORD")
         if pwd is None:
@@ -138,6 +179,7 @@ def interproscan(cfg_dict, folder_path, genome, inputs=[], stderr=parsl.AUTO_LOG
             auth_timeout=ssh_connect_timeout,
             allow_agent=True,
             look_for_keys=True,
+            key_filename=ssh_key_filename,
         )
 
         scp = SCPClient(ssh.get_transport())
@@ -149,8 +191,8 @@ def interproscan(cfg_dict, folder_path, genome, inputs=[], stderr=parsl.AUTO_LOG
         remote_output = f"{remote_job_dir}/{genome}.faa.tsv"
         remote_script = f"{remote_job_dir}/run_interproscan.sh"
         remote_slurm = f"{remote_job_dir}/interproscan.slurm"
-        remote_stdout = f"{remote_job_dir}/slurm-%j.out"
-        remote_stderr = f"{remote_job_dir}/slurm-%j.err"
+        remote_stdout_pattern = f"{remote_job_dir}/slurm-%j.out"
+        remote_stderr_pattern = f"{remote_job_dir}/slurm-%j.err"
 
         mkdir_exit, _, mkdir_err = _run_remote(f"mkdir -p {shlex.quote(remote_job_dir)}")
         if mkdir_exit != 0:
@@ -163,16 +205,14 @@ def interproscan(cfg_dict, folder_path, genome, inputs=[], stderr=parsl.AUTO_LOG
         runner_text = "\n".join([
             "#!/bin/bash",
             "set -euo pipefail",
-            'export LD_LIBRARY_PATH="/home/shared/miniconda3.8/envs/interproscan/lib/:$LD_LIBRARY_PATH"',
-            'eval "$(/home/shared/miniconda3.8/bin/conda shell.bash hook)"',
-            "conda activate interproscan",
             f'JOB_BASE="${{SLURM_TMPDIR:-{remote_job_dir}/slurm_tmp}}"',
             'mkdir -p "$JOB_BASE"',
             f'TMP_ROOT="$(mktemp -d "$JOB_BASE/{safe_genome}_${{SLURM_JOB_ID:-manual}}_XXXXXX")"',
             'trap \'rm -rf "$TMP_ROOT"\' EXIT',
             'mkdir -p "$TMP_ROOT/work" "$TMP_ROOT/out" "$TMP_ROOT/tmp"',
             f'cp {shlex.quote(remote_input)} "$TMP_ROOT/work/{genome}.faa.gz"',
-            f'zcat "$TMP_ROOT/work/{genome}.faa.gz" | /grupos/public/iprscan/current/interproscan.sh --pathways --goterms --cpu {ssh_cores} -iprlookup --formats tsv -T "$TMP_ROOT/tmp" -d "$TMP_ROOT/out" -i - -o "$TMP_ROOT/out/{genome}.faa.tsv"',
+            f'gzip -dc "$TMP_ROOT/work/{genome}.faa.gz" > "$TMP_ROOT/work/{genome}.faa"',
+            f'/home/shared/miniconda3.8/bin/conda run -n interproscan /grupos/public/iprscan/current/interproscan.sh --pathways --goterms --cpu {ssh_cores} -iprlookup --formats tsv -T "$TMP_ROOT/tmp" -i "$TMP_ROOT/work/{genome}.faa" -o "$TMP_ROOT/out/{genome}.faa.tsv"',
             f'cp "$TMP_ROOT/out/{genome}.faa.tsv" {shlex.quote(remote_output)}',
             "",
         ])
@@ -183,8 +223,8 @@ def interproscan(cfg_dict, folder_path, genome, inputs=[], stderr=parsl.AUTO_LOG
             f"#SBATCH --cpus-per-task={ssh_cores}",
             f"#SBATCH --time={slurm_time}",
             f"#SBATCH --mem={slurm_mem}",
-            f"#SBATCH -o {remote_stdout}",
-            f"#SBATCH -e {remote_stderr}",
+            f"#SBATCH -o {remote_stdout_pattern}",
+            f"#SBATCH -e {remote_stderr_pattern}",
             f"#SBATCH --chdir={remote_job_dir}",
             f"bash {remote_script}",
             "",
@@ -207,10 +247,13 @@ def interproscan(cfg_dict, folder_path, genome, inputs=[], stderr=parsl.AUTO_LOG
         job_id = submit_out.split(";")[0].strip()
         if not job_id:
             raise RuntimeError(f"Unable to parse Slurm job id for remote InterProScan on {genome}")
+        remote_stdout = f"{remote_job_dir}/slurm-{job_id}.out"
+        remote_stderr = f"{remote_job_dir}/slurm-{job_id}.err"
 
         finished = False
         waited_seconds = 0
         last_state = "PENDING"
+        completion_seen_at = None
         while not finished and waited_seconds <= remote_wait_seconds:
             try:
                 scp.get(remote_output, folder_path)
@@ -234,13 +277,17 @@ def interproscan(cfg_dict, folder_path, genome, inputs=[], stderr=parsl.AUTO_LOG
                             f"({remote_state} / {remote_exit_code}): {details}"
                         )
                     if normalized.startswith("COMPLETED"):
-                        _, slurm_out_text, _ = _run_remote(f"tail -n 120 {shlex.quote(remote_stdout)} 2>/dev/null || true")
-                        _, slurm_err_text, _ = _run_remote(f"tail -n 120 {shlex.quote(remote_stderr)} 2>/dev/null || true")
-                        details = slurm_err_text or slurm_out_text or "no remote output captured"
-                        raise RuntimeError(
-                            f"Remote InterProScan finished for {genome} but did not produce "
-                            f"{genome}.faa.tsv. Details: {details}"
-                        )
+                        if completion_seen_at is None:
+                            completion_seen_at = waited_seconds
+                        elif (waited_seconds - completion_seen_at) >= remote_completion_grace_seconds:
+                            _, slurm_out_text, _ = _run_remote(f"tail -n 120 {shlex.quote(remote_stdout)} 2>/dev/null || true")
+                            _, slurm_err_text, _ = _run_remote(f"tail -n 120 {shlex.quote(remote_stderr)} 2>/dev/null || true")
+                            details = slurm_err_text or slurm_out_text or "no remote output captured"
+                            raise RuntimeError(
+                                f"Remote InterProScan finished for {genome} but did not produce "
+                                f"{genome}.faa.tsv after {remote_completion_grace_seconds}s grace period. "
+                                f"Details: {details}"
+                            )
 
                 print(
                     f"InterProScan output for {genome} not available yet. "
@@ -309,6 +356,13 @@ def gbk2uniprot_map(working_dir, genome, folder_path, inputs=[], stderr=parsl.AU
         > {unips_lst}" #Entiendo que queria guardar el stdout
 
 
+@bash_app(executors=["local_executor"])
+def fetch_uniprot_annotations(working_dir, genome, folder_path, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
+    import os
+    lst_path = os.path.join(folder_path, genome + '_unips.lst')
+    return f"python {working_dir}/manage.py fetch_uniprot_annotations {genome} --datadir {working_dir}/data --lst {lst_path}"
+
+
 @python_app(executors=["local_executor"])
 def get_unipslst(folder_path, genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
     import os
@@ -326,34 +380,16 @@ def alphafold_unips(protein_list, folder_path, genome, inputs=[], stderr=parsl.A
 
 
 @bash_app(executors=["local_executor"])
+def esmfold_predict(working_dir, genome, folder_path, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
+    return f"python {working_dir}/manage.py esmfold_predict {genome} --datadir {working_dir}/data"
+
+
+@bash_app(executors=["local_executor"])
 def load_af_model(locus_tag, working_dir, folder_path, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME, **kwargs):
     import os
     protein_pdb = os.path.join(folder_path, 'alphafold', locus_tag, f"{locus_tag}_af.pdb")
     return f"python {working_dir}/manage.py load_af_model {locus_tag} {protein_pdb} {locus_tag} --overwrite --datadir '../data'"
 
-
-@python_app(executors=["local_executor"])
-def decompress_file(input_file, output_file, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
-    import gzip
-    import shutil
-    with gzip.open(input_file, 'rb') as f_in:
-        with open(output_file, 'wb') as f_out:
-            shutil.copyfileobj(f_in, f_out)
-
-
-@python_app(executors=["local_executor"])
-def compress_file(input_file, output_file, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
-    import gzip
-    import shutil
-    with open(input_file, 'r') as f:
-        zipped_content = gzip.compress(bytes(f.read(), 'utf-8'))
-        with open(output_file, 'wb') as f2:
-            f2.write(zipped_content)
-
-
-@bash_app(executors=["local_executor"])
-def run_fpocket(locus_tag, working_dir, folder_path, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME, **kwargs):
-    return f"python -m TP.alphafold {locus_tag} -o {folder_path} -w {working_dir} -T 10 -nc -np -na"
 
 @bash_app(executors=["local_executor"])
 def fpocket2json(folder_path, locus_tag, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
@@ -361,8 +397,7 @@ def fpocket2json(folder_path, locus_tag, inputs=[], stderr=parsl.AUTO_LOGNAME, s
     locustag_af = os.path.join(folder_path, "alphafold", locus_tag, f"{locus_tag}_af_out")
     if os.path.exists(locustag_af):
         return f"python -m SNDG.Structure.FPocket 2json {locustag_af} | gzip > {locustag_af}/fpocket.json.gz"
-    else:
-        pass
+    return f"echo 'No fpocket output for {locus_tag}, skipping'"
 
 @bash_app(executors=["local_executor"])
 def p2rank2json(genome, locus_tag, working_dir, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
@@ -372,7 +407,9 @@ def p2rank2json(genome, locus_tag, working_dir, inputs=[], stderr=parsl.AUTO_LOG
 def load_pocket(folder_path, locus_tag, working_dir, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
     import os
     locustag_af = os.path.join(folder_path, "alphafold", locus_tag, f"{locus_tag}_af_out", "fpocket.json.gz")
-    return f"python {working_dir}/manage.py load_fpocket --pocket_json {locustag_af} {locus_tag} --datadir '../data'"
+    if os.path.exists(locustag_af):
+        return f"python {working_dir}/manage.py load_fpocket --pocket_json {locustag_af} {locus_tag} --datadir '../data'"
+    return f"echo 'No fpocket data for {locus_tag}, skipping'"
 
 @bash_app(executors=["local_executor"])
 def load_p2pocket(genome, locus_tag, working_dir, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
@@ -382,56 +419,54 @@ def load_p2pocket(genome, locus_tag, working_dir, inputs=[], stderr=parsl.AUTO_L
     p2pocket_json = ss.p2rank_json(genome, locus_tag)
     return f"python {working_dir}/manage.py load_fpocket --pocket_json {p2pocket_json} {locus_tag} --datadir '../data' --P2rank_pocket"
 
-@python_app(executors=["local_executor"])
-def filter_pdb(locus_tag_fold, locus_tag, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
-    import os
-    import gzip
-    filtered = list()
-    with open(f"{locus_tag_fold}/{locus_tag}_af_out/{locus_tag}_af_out.pdb", 'r') as f:
-        for line in f.readlines():
-            if line[:6] == "HETATM" and "POL" in line and "STP" in line:
-                filtered.append(line)
-    filtered_str = ('').join(filtered)
-    zipped_content = gzip.compress(bytes(filtered_str, 'utf-8'))
-    with open(os.path.join(locus_tag_fold, locus_tag + ".pdb.gz"), 'ab') as f2:
-        f2.write(zipped_content)
-
 @join_app
 def strucutures_af(working_dir, folder_path, genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
-    from Bio import SeqIO
-    import pandas as pd
     import os
-    protein_ids = pd.read_csv(os.path.join(folder_path, f'{genome}_unips_mapping.csv'), sep=',')
-    mapped_proteins = list()
-    with open(os.path.join(folder_path, f"{genome}_unips.lst"), 'r') as f:
-        mapped_proteins = [x.strip().split()[1] for x in f.readlines()]
-    for protein in mapped_proteins:    
-        protein_pdb = os.path.join(folder_path, 'alphafold', f'{protein}', f'{protein}_af.pdb')
-        print(protein_pdb)
-        if os.path.exists(protein_pdb):
-            r_load = load_af_model(protein, working_dir,
-                                    folder_path,inputs=[mapped_proteins])
-            r_json = fpocket2json(
-                folder_path, protein, inputs=[r_load])
-            p_load = load_pocket(
-                folder_path, protein, working_dir, inputs=[r_json])
-            r2_json = p2rank2json(genome, protein, working_dir, inputs=[r_load])
-            r2_load = load_p2pocket(genome, protein, working_dir, inputs=[r2_json])
-            p_load.result()
+
+    alphafold_dir = os.path.join(folder_path, 'alphafold')
+
+    # Scan all locus tags that have a PDB file (from AlphaFold DB or ESMFold)
+    proteins_with_pdb = []
+    if os.path.isdir(alphafold_dir):
+        for locus_tag in sorted(os.listdir(alphafold_dir)):
+            pdb_path = os.path.join(alphafold_dir, locus_tag, f'{locus_tag}_af.pdb')
+            if os.path.exists(pdb_path) and os.path.getsize(pdb_path) > 0:
+                proteins_with_pdb.append(locus_tag)
+
+    if not proteins_with_pdb:
+        print("No protein structures found to load.")
+        return None
+
+    print(f"Loading {len(proteins_with_pdb)} structures...")
+    r_load = None
+    for protein in proteins_with_pdb:
+        print(os.path.join(alphafold_dir, protein, f'{protein}_af.pdb'))
+        r_load = load_af_model(protein, working_dir,
+                                folder_path, inputs=[proteins_with_pdb])
+        r_json = fpocket2json(
+            folder_path, protein, inputs=[r_load])
+        p_load = load_pocket(
+            folder_path, protein, working_dir, inputs=[r_json])
+        r2_json = p2rank2json(genome, protein, working_dir, inputs=[r_load])
+        r2_load = load_p2pocket(genome, protein, working_dir, inputs=[r2_json])
+        p_load.result()
     return r_load
 
 
 @bash_app(executors=["local_executor"])
 def psort(genome, gram, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
-    return f"python -m TP.psort {genome} -{gram} --tpwebdir /app/targetpathogenweb"
+    return (
+        "if command -v docker >/dev/null 2>&1; then "
+        f"python -m TP.psort {genome} -{gram} --tpwebdir /app/targetpathogenweb "
+        f"|| python /app/targetpathogenweb/manage.py tpweb_psort_fallback {genome} --datadir ../data; "
+        "else "
+        f"python /app/targetpathogenweb/manage.py tpweb_psort_fallback {genome} --datadir ../data; "
+        "fi"
+    )
 
 @bash_app(executors=["local_executor"])
 def druggability_2_csv(genome, working_dir, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME, **kwargs):
     return f"python {working_dir}/manage.py druggability_2_csv {genome} --datadir ../data"
-
-@bash_app(executors=["local_executor"])
-def psort_2_csv(genome, working_dir, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME, **kwargs):
-    return f"python {working_dir}/manage.py psort_2_csv {genome} --datadir ../data"
 
 @bash_app(executors=["local_executor"])
 def load_score(genome, working_dir, param, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME, **kwargs):

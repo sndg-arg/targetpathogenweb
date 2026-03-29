@@ -439,9 +439,9 @@
                     {% endif %}
                     {% url 'tpwebapp:index' as index_url %}
                     {% url 'tpwebapp:genomes_list' as genomes_url %}
-                    {% url 'tpwebapp:assembly' assembly_name as assembly_url %}
-                    {% url 'tpwebapp:protein_list' assembly_name=assembly_name as proteins_url %}
-                    {% url 'tpwebapp:parameterformview' assembly_name=assembly_name as advanced_filters_url %}
+                    {% url 'tpwebapp:assembly' genome as assembly_url %}
+                    {% url 'tpwebapp:protein_list' genome=genome as proteins_url %}
+                    {% url 'tpwebapp:parameterformview' genome=genome as advanced_filters_url %}
                     {% with crumb_workspace="Genome: "|add:assembly_label %}
                     {% include "components/navigation/breadcrumbs.html" with crumb_1_label=crumb_home crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_workspace crumb_3_url=assembly_url crumb_4_label=crumb_proteins crumb_4_url=proteins_url crumb_5_label=crumb_advanced_filters crumb_5_url=advanced_filters_url crumb_6_label=crumb_explorer %}
                     {% endwith %}
@@ -573,11 +573,11 @@
                         </p>
                         <p>{% trans "You can still inspect the protein ranking, review other annotation types, or continue with genome-level analysis." %}</p>
                         <div class="explorer-empty-actions">
-                            <a href="{% url 'tpwebapp:protein_list' assembly_name=assembly_name %}" class="btn tp-btn tp-btn--primary">{% trans "Open protein analysis" %}</a>
+                            <a href="{% url 'tpwebapp:protein_list' genome=genome %}" class="btn tp-btn tp-btn--primary">{% trans "Open protein analysis" %}</a>
                             {% if explorer.kind == "ec" %}
-                                <a href="{% url 'tpwebapp:parameterformview' assembly_name=assembly_name %}" class="btn tp-btn tp-btn--neutral">{% trans "Open Advanced Filters" %}</a>
+                                <a href="{% url 'tpwebapp:parameterformview' genome=genome %}" class="btn tp-btn tp-btn--neutral">{% trans "Open Advanced Filters" %}</a>
                             {% else %}
-                                <a href="{% url 'tpwebapp:annotation_explorer' assembly_name=assembly_name annotation_kind='ec' %}" class="btn tp-btn tp-btn--neutral">{% trans "Switch to EC hierarchy" %}</a>
+                                <a href="{% url 'tpwebapp:annotation_explorer' genome=genome annotation_kind='ec' %}" class="btn tp-btn tp-btn--neutral">{% trans "Switch to EC hierarchy" %}</a>
                             {% endif %}
                         </div>
                     </div>
@@ -629,7 +629,7 @@
             const selectedCard = document.getElementById("selected-annotation-card");
             const selectedPath = document.getElementById("selected-annotation-path");
             const selectedPathItems = document.getElementById("selected-annotation-path-items");
-            const proteinBaseUrl = "{% url 'tpwebapp:protein_list' assembly_name=assembly_name %}";
+            const proteinBaseUrl = "{% url 'tpwebapp:protein_list' genome=genome %}";
             const annotationKind = "{{ explorer.kind }}";
             const chartDataElement = document.getElementById("annotation-chart-data");
             const chartData = chartDataElement ? JSON.parse(chartDataElement.textContent) : null;
@@ -681,16 +681,6 @@
             }
 
             const chartParentMap = buildParentMap();
-            const chartChildrenMap = new Map();
-            if (chartData && chartData.ids) {
-                chartData.ids.forEach(function (id, index) {
-                    const parent = (chartData.parents || [])[index] || "";
-                    if (!chartChildrenMap.has(parent)) {
-                        chartChildrenMap.set(parent, []);
-                    }
-                    chartChildrenMap.get(parent).push(id);
-                });
-            }
             const basePalette = ["#d7eef4", "#c7e5ee", "#b1d8e7", "#95cade", "#75b9d2"];
             const activePalette = ["#a7d4e0", "#7ec1d4", "#58afc7", "#2a88a8", "#0b4a61"];
             const mutedColor = "#e6f2f6";
@@ -787,22 +777,6 @@
                 return cursor === rootId ? depth : -1;
             }
 
-            function isLeafNode(id) {
-                return !(chartChildrenMap.get(id) || []).length;
-            }
-
-            function compactEcLabel(id, index) {
-                const accession = nodeAccessionFromId(id);
-                if (isLeafNode(id)) {
-                    const hover = (chartData.hover_labels || [])[index] || "";
-                    if (hover.includes(" — ")) {
-                        return hover.split(" — ").slice(1).join(" — ");
-                    }
-                    return (chartData.labels || [])[index] || accession;
-                }
-                return accession;
-            }
-
             function buildDisplayLabels(displayRootId) {
                 if (!chartData || !chartData.ids) return [];
                 const labels = chartData.labels || [];
@@ -811,13 +785,14 @@
                         return labels[index];
                     }
                     if (id === chartData.ids[0]) {
-                        return labels[index];
+                        return labels[index] || nodeAccessionFromId(id);
                     }
+                    const accession = nodeAccessionFromId(id);
                     const relativeDepth = nodeDepthFromRoot(id, displayRootId);
                     if (relativeDepth === 1) {
-                        return labels[index];
+                        return labels[index] || accession;
                     }
-                    return compactEcLabel(id, index);
+                    return accession;
                 });
             }
 
@@ -916,13 +891,25 @@
                         {displayModeBar: false, responsive: true}
                     );
 
-                    plotTarget.on("plotly_click", function (event) {
-                        const point = event.points && event.points[0];
-                        if (!point || !point.id || point.id.endsWith(":root")) return;
+                    plotTarget.on("plotly_sunburstclick", function (event) {
+                        var point = event.points && event.points[0];
+                        if (!point) return;
+                        var clickedId = point.id || "";
+
+                        /* event.nextLevel tells us the new visible root after
+                           this click.  When drilling in it equals the clicked
+                           node; when zooming out (clicking the center) it is
+                           undefined/empty — meaning we return to the tree root. */
+                        var nextLevel = event.nextLevel || "";
                         if (annotationKind === "ec") {
-                            updatePlotLabels(point.id);
+                            if (!nextLevel || String(nextLevel).endsWith(":root")) {
+                                updatePlotLabels(chartData.ids[0]);
+                            } else {
+                                updatePlotLabels(nextLevel);
+                            }
                         }
-                        const accession = String(point.id).split(":").slice(1).join(":");
+                        if (clickedId.endsWith(":root") || !clickedId) return;
+                        var accession = String(clickedId).split(":").slice(1).join(":");
                         updateSelection(accession, point.hovertext || point.label || "");
                     });
                 } catch (error) {

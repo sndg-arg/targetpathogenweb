@@ -1,5 +1,7 @@
 from django.db.models import Q
 
+from bioseq.models.Biodatabase import Biodatabase
+
 from tpweb.services.workspace import (
     PUBLIC_WORKSPACE_USERNAME,
     workspace_slug_for_user,
@@ -71,6 +73,36 @@ def user_can_access_genome_name(user, genome_name):
         PUBLIC_WORKSPACE_USERNAME,
         workspace_slug_for_user(user),
     }
+
+
+def genome_url_slug(internal_name):
+    """Return the clean accession for use in URLs."""
+    return display_genome_name(internal_name)
+
+
+def resolve_genome_from_slug(user, slug):
+    """Resolve a URL slug (accession) to the full internal genome name.
+
+    Checks the user's own workspace first, then public, then bare names.
+    Returns None if no accessible genome is found.
+    """
+    cleaned = str(slug or "").strip()
+    if not cleaned:
+        return None
+    if is_workspace_genome_name(cleaned):
+        if user_can_access_genome_name(user, cleaned):
+            return cleaned
+        return None
+    user_workspace = workspace_slug_for_user(user)
+    candidates = [
+        f"{user_workspace}{WORKSPACE_GENOME_DELIMITER}{cleaned}",
+        f"{PUBLIC_WORKSPACE_USERNAME}{WORKSPACE_GENOME_DELIMITER}{cleaned}",
+        cleaned,
+    ]
+    for name in candidates:
+        if Biodatabase.objects.filter(name=name).exists() and user_can_access_genome_name(user, name):
+            return name
+    return None
 
 
 def user_can_delete_genome_name(user, genome_name):

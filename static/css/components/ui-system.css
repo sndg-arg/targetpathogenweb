@@ -567,6 +567,49 @@
     color: var(--tp-color-text-secondary);
 }
 
+.tp-chip--warning {
+    border-color: var(--tp-color-amber-200, #f0dca0);
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-amber-50, #fdf8ec) 100%);
+    color: var(--tp-color-amber-800, #8a6914);
+    cursor: help;
+}
+
+.tp-chip--ec {
+    border-color: var(--tp-color-brand-300, #a3c4aa);
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-brand-50, #f0f6f1) 100%);
+    color: var(--tp-color-brand-800, #2d5a3a);
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-weight: 700;
+    font-size: 0.74rem;
+    text-decoration: none;
+}
+
+.tp-chip--go {
+    border-color: var(--tp-color-sage-300, #b3c5bf);
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-sage-50, #f2f5f4) 100%);
+    color: var(--tp-color-sage-800, #3a5249);
+    font-size: 0.74rem;
+    text-decoration: none;
+    gap: 4px;
+}
+
+.tp-chip--go .tp-chip-name,
+.tp-chip--ec .tp-chip-name {
+    font-family: "Source Sans 3", "Segoe UI", sans-serif;
+    font-weight: 500;
+    color: var(--tp-color-text-muted);
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+a.tp-chip--ec:hover,
+a.tp-chip--go:hover {
+    text-decoration: none;
+    filter: brightness(0.97);
+}
+
 .tp-chip--count {
     border-color: var(--tp-color-border-strong);
     background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);

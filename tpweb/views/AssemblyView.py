@@ -21,8 +21,9 @@ from tpweb.services.assembly_workspace import build_assembly_workspace_metrics
 from tpweb.services.assembly_overview import build_assembly_overview
 from tpweb.services.genome_workspace import (
     display_genome_name,
+    genome_url_slug,
+    resolve_genome_from_slug,
     user_can_delete_genome_name,
-    user_can_access_genome_name,
 )
 from tpweb.services.genome_uploads import delete_genome_workspace, workspace_has_active_upload
 from tpweb.services.csv_exports import xlsx_sections_response
@@ -43,6 +44,7 @@ class AssemblyView(View):
         configured = str(settings.JBROWSE_BASE_URL or "").strip()
         parsed = urlparse(configured)
         host = parsed.hostname or ""
+        port = parsed.port or 3000
         if host not in {"localhost", "127.0.0.1", "0.0.0.0"}:
             return configured
 
@@ -51,13 +53,14 @@ class AssemblyView(View):
             return configured
 
         scheme = "https" if request.is_secure() else "http"
-        return f"{scheme}://{request_host}:3000/"
+        return f"{scheme}://{request_host}:{port}/"
 
-    def _get_biodatabase(self, request, assembly_id):
-        if not user_can_access_genome_name(request.user, assembly_id):
+    def _get_biodatabase(self, request, genome_slug):
+        internal_name = resolve_genome_from_slug(request.user, genome_slug)
+        if not internal_name:
             raise Http404("Genome not found")
         try:
-            return Biodatabase.objects.get(name=assembly_id)
+            return Biodatabase.objects.get(name=internal_name)
         except Biodatabase.DoesNotExist as exc:
             raise Http404("Genome not found") from exc
 
@@ -80,13 +83,14 @@ class AssemblyView(View):
             props,
             workspace_metrics=workspace_metrics,
         )
+        slug = genome_url_slug(biodb.name)
         workspace_links = {
-            "proteins_url": reverse("tpwebapp:protein_list", kwargs={"assembly_name": biodb.name}),
-            "prioritization_setup_url": reverse("tpwebapp:prioritization_setup", kwargs={"assembly_name": biodb.name}),
-            "custom_scores_url": reverse("tpwebapp:customparam", kwargs={"assembly_name": biodb.name}),
+            "proteins_url": reverse("tpwebapp:protein_list", kwargs={"genome": slug}),
+            "prioritization_setup_url": reverse("tpwebapp:prioritization_setup", kwargs={"genome": slug}),
+            "custom_scores_url": reverse("tpwebapp:customparam", kwargs={"genome": slug}),
             "ec_explorer_url": reverse(
                 "tpwebapp:annotation_explorer",
-                kwargs={"assembly_name": biodb.name, "annotation_kind": "ec"},
+                kwargs={"genome": slug, "annotation_kind": "ec"},
             ),
             "blast_url": f"{reverse('tpwebapp:form')}?genome={biodb.name}",
         }
@@ -131,7 +135,7 @@ class AssemblyView(View):
         }
 
     def get(self, request, *args, **kwargs):
-        biodb = self._get_biodatabase(request, kwargs["assembly_id"])
+        biodb = self._get_biodatabase(request, kwargs["genome"])
         if request.GET.get("export") == "view_csv":
             context = self._build_context(request, biodb)
             assembly = context["assembly"]
@@ -181,7 +185,7 @@ class AssemblyView(View):
         return render(request, self.template_name, self._build_context(request, biodb))
 
     def post(self, request, *args, **kwargs):
-        biodb = self._get_biodatabase(request, kwargs["assembly_id"])
+        biodb = self._get_biodatabase(request, kwargs["genome"])
         if request.POST.get("action") != self.ACTION_DELETE_WORKSPACE:
             raise Http404("Action not found")
 

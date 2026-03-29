@@ -4,7 +4,7 @@ from django.urls import reverse
 
 from tpweb.models.ScoreFormula import ScoreFormula, ScoreFormulaParam
 from tpweb.models.ScoreParam import ScoreParamOptions, ScoreParam
-from tpweb.services.genome_workspace import display_genome_name, user_can_access_genome_name
+from tpweb.services.genome_workspace import display_genome_name, genome_url_slug, resolve_genome_from_slug
 from tpweb.services.workspace import (
     get_workspace_session_value,
     pop_workspace_session_value,
@@ -13,8 +13,9 @@ from tpweb.services.workspace import (
 )
 from tpweb.views.FormulaForm import FormulaForm
 
-def FormulaFormView(request, assembly_name):
-    if not user_can_access_genome_name(request.user, assembly_name):
+def FormulaFormView(request, genome):
+    assembly_name = resolve_genome_from_slug(request.user, genome)
+    if not assembly_name:
         raise Http404("Genome not found")
 
     def current_formula_string(formula, formulaname):
@@ -125,7 +126,7 @@ def FormulaFormView(request, assembly_name):
         if "reset_process" in request.POST:
             pop_workspace_session_value(request.session, request.user, "current_formula", None)
             pop_workspace_session_value(request.session, request.user, "formulaname", None)
-            return redirect(reverse("tpwebapp:formula_form", kwargs={"assembly_name": assembly_name}))
+            return redirect(reverse("tpwebapp:formula_form", kwargs={"genome": genome_url_slug(assembly_name)}))
 
         if "remove_last_term" in request.POST:
             if current_formula:
@@ -133,14 +134,14 @@ def FormulaFormView(request, assembly_name):
                 set_workspace_session_value(
                     request.session, request.user, "current_formula", current_formula
                 )
-            return redirect(reverse("tpwebapp:formula_form", kwargs={"assembly_name": assembly_name}))
+            return redirect(reverse("tpwebapp:formula_form", kwargs={"genome": genome_url_slug(assembly_name)}))
 
         if "finish_process" in request.POST:
             if current_formula and formulaname:
                 add_new_formula(formulaname, current_formula)
             pop_workspace_session_value(request.session, request.user, "current_formula", None)
             pop_workspace_session_value(request.session, request.user, "formulaname", None)
-            return redirect(reverse("tpwebapp:protein_list", kwargs={"assembly_name": assembly_name}))
+            return redirect(reverse("tpwebapp:protein_list", kwargs={"genome": genome_url_slug(assembly_name)}))
 
         formulaform = FormulaForm(request.POST, user=request.user)
         formulaname = formulaform.data.get("new_formula_name", "").strip()
@@ -153,7 +154,7 @@ def FormulaFormView(request, assembly_name):
             )
             if any(d["param"] == formulaparam and d["option"] == formulaoption for d in current_formula):
                 return redirect(
-                    reverse("tpwebapp:formula_form", kwargs={"assembly_name": assembly_name})
+                    reverse("tpwebapp:formula_form", kwargs={"genome": genome_url_slug(assembly_name)})
                     + "?error_message=Select+only+ONE+coefficient+per+parameter+option!.+Try+Again!"
                 )
             term_dict = {"param": formulaparam, "option": formulaoption, "coefficient": formulacoefficient}
@@ -183,5 +184,6 @@ def FormulaFormView(request, assembly_name):
             "term_count": len(preview_terms),
             "assembly_name": assembly_name,
             "assembly_label": display_genome_name(assembly_name),
+            "genome": genome_url_slug(assembly_name),
         },
     )

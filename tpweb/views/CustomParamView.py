@@ -1,10 +1,11 @@
 from django.shortcuts import render, redirect
 from django.http import Http404
+from django.urls import reverse
 import sys
 from tpweb.forms.CustomParamForm import CustomParamForm
 from tpweb.models import CustomParam
 from tpweb.services.workspace import resolve_workspace_user
-from tpweb.services.genome_workspace import display_genome_name, user_can_access_genome_name
+from tpweb.services.genome_workspace import display_genome_name, genome_url_slug, resolve_genome_from_slug
 import subprocess
 
 def index_new_param(custom_param):
@@ -26,8 +27,9 @@ def index_new_param(custom_param):
         print(f"Failed to execute script: {e}")
 
 
-def upload_form(request, assembly_name):
-    if not user_can_access_genome_name(request.user, assembly_name):
+def upload_form(request, genome):
+    assembly_name = resolve_genome_from_slug(request.user, genome)
+    if not assembly_name:
         raise Http404("Genome not found")
     workspace_user = resolve_workspace_user(request.user)
     if request.method == 'POST':
@@ -51,18 +53,19 @@ def upload_form(request, assembly_name):
                 existing_params.delete()
                 custom_param.save()  # Save the model instance
                 index_new_param(custom_param)
-                return redirect(f'../../assembly/{assembly_name}/protein')
+                return redirect(reverse("tpwebapp:protein_list", kwargs={"genome": genome_url_slug(assembly_name)}))
             elif not existing_file:
                 # No existing file, proceed with saving
                 custom_param.save()  # Save the model instance
                 index_new_param(custom_param)
-                return redirect(f'../../assembly/{assembly_name}/protein')
+                return redirect(reverse("tpwebapp:protein_list", kwargs={"genome": genome_url_slug(assembly_name)}))
             else:
                 # File exists but overwrite is not confirmed, do not save
                 return render(request, 'genomic/customparam.html', {'form': form,
                                                                     'file_exists': True,
                                                                     'assembly_name': assembly_name,
-                                                                    'assembly_label': display_genome_name(assembly_name)})
+                                                                    'assembly_label': display_genome_name(assembly_name),
+                                                                    'genome': genome_url_slug(assembly_name)})
         else:
             context = {'form': form,
                        'assembly_name': assembly_name,
@@ -74,5 +77,6 @@ def upload_form(request, assembly_name):
         form = CustomParamForm()
         context = {'form': form,
                    'assembly_name': assembly_name,
-                   'assembly_label': display_genome_name(assembly_name)}
+                   'assembly_label': display_genome_name(assembly_name),
+                   'genome': genome_url_slug(assembly_name)}
         return render(request, 'genomic/customparam.html', context)

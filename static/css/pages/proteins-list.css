@@ -147,62 +147,17 @@
     color: var(--tp-color-text-soft);
 }
 
-.functional-filter-card {
-    margin-top: 14px;
-    padding: 14px 16px;
-    display: grid;
-    gap: 12px;
+/* Annotation filter chip uses the same .filter-pill styles as parameter criteria */
+a.filter-pill,
+a.filter-pill:hover,
+a.filter-pill:focus,
+a.filter-pill:visited {
+    text-decoration: none;
+    color: inherit;
 }
 
-.functional-filter-head {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 12px;
-}
-
-.functional-filter-head h2 {
-    margin: 0;
-    color: var(--tp-color-brand-900);
-    font-size: 1.02rem;
-}
-
-.functional-filter-head p {
-    margin: 4px 0 0;
-    color: var(--tp-color-text-secondary);
-}
-
-.functional-filter-facts {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 10px 16px;
-}
-
-.functional-filter-line {
-    display: grid;
-    gap: 4px;
-    margin: 0;
-}
-
-.functional-filter-label {
-    color: var(--tp-color-text-muted);
-    font-size: 0.75rem;
-    font-weight: 700;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-}
-
-.functional-filter-value {
-    color: var(--tp-color-brand-900);
-    font-weight: 700;
-    line-height: 1.35;
-}
-
-.annotation-filter-help {
-    margin: -2px 0 0;
-    color: var(--tp-color-text-muted);
-    font-size: 0.83rem;
-    line-height: 1.4;
+a.filter-pill .filter-pill-remove {
+    cursor: pointer;
 }
 
 .protein-table td[data-col="ec"] {
@@ -650,6 +605,219 @@
     white-space: nowrap;
 }
 
+/* Score = 0: muted display instead of vibrant chip */
+.metric-zero {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    cursor: default;
+}
+
+.metric-zero-value {
+    display: inline-block;
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--tp-color-text-muted);
+    padding: 3px 12px;
+    border-radius: 999px;
+    background: var(--tp-color-surface-soft);
+    border: 1px solid var(--tp-color-border-soft);
+}
+
+.metric-zero .metric-tooltip {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 8px 12px;
+    border-radius: 8px;
+    background: #1a2e38;
+    color: #e2e8f0;
+    font-size: 0.76rem;
+    font-weight: 500;
+    line-height: 1.4;
+    white-space: normal;
+    width: max-content;
+    max-width: 220px;
+    text-align: center;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 120ms ease;
+    z-index: 50;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.28);
+}
+
+.metric-zero .metric-tooltip::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: #1a2e38;
+}
+
+.metric-zero:hover .metric-tooltip {
+    opacity: 1;
+}
+
+/* N/A state for missing metric values */
+.metric-na {
+    position: relative;
+    display: inline-block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--tp-color-text-muted);
+    letter-spacing: 0.03em;
+    cursor: default;
+    border-bottom: 1px dotted var(--tp-color-border-strong);
+}
+
+/* Annotation empty state */
+.annotation-empty {
+    position: relative;
+    display: inline-block;
+    color: var(--tp-color-text-muted);
+    font-size: 0.9rem;
+    cursor: default;
+    border-bottom: 1px dotted var(--tp-color-border-soft);
+}
+
+/* Shared CSS tooltip */
+.cell-tooltip {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: #1a2e38;
+    color: #e2e8f0;
+    font-size: 0.74rem;
+    font-weight: 500;
+    line-height: 1.4;
+    white-space: normal;
+    width: max-content;
+    max-width: 260px;
+    text-align: center;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 120ms ease;
+    z-index: 50;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.28);
+}
+
+.cell-tooltip::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: #1a2e38;
+}
+
+.structure-unavailable {
+    position: relative;
+    cursor: default;
+}
+
+.annotation-chip-tip {
+    position: relative;
+}
+
+.metric-na:hover .cell-tooltip,
+.annotation-empty:hover .cell-tooltip,
+.structure-unavailable:hover .cell-tooltip,
+.annotation-chip-tip:hover .cell-tooltip {
+    opacity: 1;
+}
+
+.metric-no-structure {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    position: relative;
+    color: var(--tp-color-amber-700, #9a7316);
+    font-size: 0.76rem;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: default;
+}
+
+.metric-no-structure-icon {
+    display: inline-flex;
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+}
+
+.metric-no-structure-icon svg {
+    width: 100%;
+    height: 100%;
+}
+
+.metric-no-structure .metric-tooltip {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 8px 12px;
+    border-radius: 8px;
+    background: #1a2e38;
+    color: #e2e8f0;
+    font-size: 0.76rem;
+    font-weight: 500;
+    line-height: 1.4;
+    white-space: normal;
+    width: max-content;
+    max-width: 240px;
+    text-align: center;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 120ms ease;
+    z-index: 50;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.28);
+}
+
+.metric-no-structure .metric-tooltip::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: #1a2e38;
+}
+
+.metric-no-structure:hover .metric-tooltip {
+    opacity: 1;
+}
+
+.annotation-cell {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    max-width: 220px;
+}
+
+.annotation-more {
+    display: inline-flex;
+    align-items: center;
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--tp-color-text-muted);
+    padding: 2px 5px;
+    border-radius: 999px;
+    background: var(--tp-color-surface-soft);
+    border: 1px solid var(--tp-color-border-soft);
+    cursor: default;
+}
+
+/* Legacy (kept for backward compat) */
 .annotation-badge-stack {
     display: grid;
     gap: 4px;
@@ -696,6 +864,41 @@
 .pagination-label {
     color: var(--tp-muted);
     font-size: 0.9rem;
+}
+
+.page-jump-input {
+    width: 3.2em;
+    padding: 2px 4px;
+    margin: 0 2px;
+    border: 1px solid var(--tp-color-border-strong);
+    border-radius: 6px;
+    background: var(--tp-color-surface);
+    color: var(--tp-color-text-primary);
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: inherit;
+    font-weight: 700;
+    text-align: center;
+    line-height: 1.4;
+    -moz-appearance: textfield;
+    transition: border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+                box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.page-jump-input::-webkit-inner-spin-button,
+.page-jump-input::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.page-jump-input:hover {
+    border-color: var(--tp-color-brand-300);
+}
+
+.page-jump-input:focus,
+.page-jump-input:focus-visible {
+    outline: none;
+    border-color: var(--tp-color-brand-600);
+    box-shadow: 0 0 0 0.2rem var(--tp-focus-ring);
 }
 
 .tp-overlay {

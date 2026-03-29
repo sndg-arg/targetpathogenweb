@@ -1,4 +1,7 @@
+import json
 from collections import defaultdict
+from functools import lru_cache
+from pathlib import Path
 
 from bioseq.models.Dbxref import Dbxref
 from bioseq.models.Ontology import Ontology
@@ -19,103 +22,41 @@ ANNOTATION_KIND_CONFIG = {
     },
 }
 
-EC_CLASS_LABELS = {
-    "1": "Oxidoreductases",
-    "2": "Transferases",
-    "3": "Hydrolases",
-    "4": "Lyases",
-    "5": "Isomerases",
-    "6": "Ligases",
-    "7": "Translocases",
-}
+EC_HIERARCHY_LABELS_PATH = Path(__file__).resolve().parents[1] / "data" / "ec_hierarchy_labels.json"
 
-EC_PREFIX_LABELS = {
-    "1.1": "Acting on the CH-OH group of donors",
-    "1.2": "Acting on the aldehyde or oxo group of donors",
-    "1.3": "Acting on the CH-CH group of donors",
-    "1.4": "Acting on the CH-NH2 group of donors",
-    "1.5": "Acting on the CH-NH group of donors",
-    "1.6": "Acting on NADH or NADPH",
-    "1.7": "Acting on nitrogenous compounds as donors",
-    "1.8": "Acting on sulfur groups of donors",
-    "1.9": "Acting on a heme group of donors",
-    "1.10": "Acting on diphenols and related substances",
-    "1.11": "Acting on peroxides as acceptor",
-    "1.12": "Acting on hydrogen as donor",
-    "1.13": "Incorporating one atom of oxygen",
-    "1.14": "Incorporation of molecular oxygen",
-    "1.15": "Acting on superoxide radicals",
-    "1.16": "Oxidizing metal ions",
-    "1.17": "Acting on CH or CH2 groups",
-    "1.18": "Acting on iron-sulfur proteins as donors",
-    "1.19": "Acting on reduced flavodoxin as donor",
-    "1.20": "Acting on phosphorus or arsenic in donors",
-    "1.21": "Acting on X-H and Y-H to form X-Y",
-    "1.22": "Acting on halogen in donors",
-    "1.23": "Reducing C-O-C group in donors",
-    "1.1.1": "With NAD+ or NADP+ as acceptor",
-    "1.1.2": "With cytochrome as acceptor",
-    "1.1.3": "With oxygen as acceptor",
-    "1.1.5": "With a quinone or related compound as acceptor",
-    "2.1": "Transferring one-carbon groups",
-    "2.2": "Transferring aldehyde or ketonic groups",
-    "2.3": "Acyltransferases",
-    "2.4": "Glycosyltransferases",
-    "2.5": "Transferring alkyl or aryl groups",
-    "2.6": "Transferring nitrogenous groups",
-    "2.7": "Transferring phosphorus-containing groups",
-    "2.7.1": "Phosphotransferases with alcohol group as acceptor",
-    "2.7.2": "With a carboxyl group as acceptor",
-    "2.7.3": "With a nitrogenous group as acceptor",
-    "2.7.4": "With a phosphate group as acceptor",
-    "2.7.7": "Nucleotidyltransferases",
-    "2.7.11": "Protein-serine/threonine kinases",
-    "2.8": "Transferring sulfur-containing groups",
-    "2.9": "Transferring selenium-containing groups",
-    "2.10": "Transferring molybdenum or tungsten-containing groups",
-    "3.1": "Acting on ester bonds",
-    "3.2": "Acting on glycosyl compounds",
-    "3.3": "Acting on ether bonds",
-    "3.4": "Acting on peptide bonds",
-    "3.1.3": "Phosphoric monoester hydrolases",
-    "3.5": "Acting on carbon-nitrogen bonds",
-    "3.5.4": "Acting on cyclic amidines",
-    "3.6": "Acting on acid anhydrides",
-    "3.7": "Acting on carbon-carbon bonds",
-    "3.8": "Acting on halide bonds",
-    "3.9": "Acting on phosphorus-nitrogen bonds",
-    "3.10": "Acting on sulfur-nitrogen bonds",
-    "3.11": "Acting on carbon-phosphorus bonds",
-    "3.12": "Acting on sulfur-sulfur bonds",
-    "3.13": "Acting on carbon-sulfur bonds",
-    "3.6.1": "Phosphorus-containing anhydrides",
-    "3.6.3": "Transmembrane movement of substances",
-    "4.1": "Carbon-carbon lyases",
-    "4.2": "Carbon-oxygen lyases",
-    "4.3": "Carbon-nitrogen lyases",
-    "4.4": "Carbon-sulfur lyases",
-    "4.5": "Carbon-halide lyases",
-    "4.6": "Phosphorus-oxygen lyases",
-    "4.2.1": "Hydro-lyases",
-    "5.1": "Racemases and epimerases",
-    "5.2": "Cis-trans isomerases",
-    "5.3": "Intramolecular oxidoreductases",
-    "5.4": "Intramolecular transferases",
-    "5.5": "Intramolecular lyases",
-    "5.6": "Macromolecular conformational isomerases",
-    "5.4.2": "Phosphotransferases",
-    "6.1": "Forming carbon-oxygen bonds",
-    "6.2": "Forming carbon-sulfur bonds",
-    "6.3": "Forming carbon-nitrogen bonds",
-    "6.4": "Forming carbon-carbon bonds",
-    "6.5": "Forming phosphoric ester bonds",
-    "6.6": "Forming nitrogen-metal bonds",
-    "6.3.5": "Using glutamine as amido-N donor",
-    "7.1": "Catalyzing transmembrane movement of hydrons",
-    "7.2": "Catalyzing transmembrane movement of inorganic cations",
-    "7.3": "Catalyzing transmembrane movement of organic or inorganic anions",
-    "7.4": "Catalyzing transmembrane movement of amino acids and peptides",
-}
+
+@lru_cache(maxsize=1)
+def _load_ec_hierarchy_labels():
+    with EC_HIERARCHY_LABELS_PATH.open(encoding="utf-8") as handle:
+        payload = json.load(handle)
+
+    def _clean_dict(section_name):
+        return {
+            str(key).strip(): str(value).strip()
+            for key, value in dict(payload.get(section_name) or {}).items()
+            if str(key).strip() and str(value).strip()
+        }
+
+    class_labels = _clean_dict("class_labels")
+    prefix_labels = {}
+    for section in ("subclass_labels", "subsubclass_labels"):
+        prefix_labels.update(_clean_dict(section))
+    enzyme_names = _clean_dict("enzyme_names")
+
+    return {
+        "class_labels": class_labels,
+        "prefix_labels": prefix_labels,
+        "enzyme_names": enzyme_names,
+    }
+
+
+def ec_enzyme_name(accession):
+    """Look up an EC enzyme name from the curated nomenclature JSON."""
+    accession = str(accession or "").strip()
+    if not accession:
+        return ""
+    ec_labels = _load_ec_hierarchy_labels()
+    return ec_labels["enzyme_names"].get(accession, "")
 
 
 def normalize_annotation_kind(kind):
@@ -190,6 +131,16 @@ def protein_annotation_badges(protein, kind, limit=3):
     return badges[:limit]
 
 
+def protein_annotation_summary(protein, kind, limit=3):
+    """Return badges plus total count for '+N more' display."""
+    all_annotations = list(iter_protein_annotations(protein, kind))
+    return {
+        "badges": all_annotations[:limit],
+        "total": len(all_annotations),
+        "remaining": max(0, len(all_annotations) - limit),
+    }
+
+
 def protein_annotation_text(protein, kind, limit=3):
     accessions = protein_annotation_accessions(protein, kind)
     if not accessions:
@@ -223,45 +174,38 @@ def annotation_term_name(kind, accession):
     return getattr(getattr(first_term, "term", None), "definition", "") or ""
 
 
+def _ec_resolve_name(accession, exact_names):
+    """Resolve an EC name: JSON nomenclature first, DB fallback second."""
+    ec_labels = _load_ec_hierarchy_labels()
+    parts = accession.split(".")
+
+    if len(parts) == 1:
+        return ec_labels["class_labels"].get(accession, "")
+    if len(parts) <= 3:
+        return ec_labels["prefix_labels"].get(accession, "")
+
+    # Level 4: curated JSON first, then DB-derived name as fallback
+    return (
+        ec_labels["enzyme_names"].get(accession)
+        or exact_names.get(accession)
+        or ""
+    )
+
+
 def _ec_display_label(prefix, exact_names):
     prefix = str(prefix or "").strip()
     if not prefix:
         return ""
-
-    parts = prefix.split(".")
-    if len(parts) == 1:
-        class_label = EC_CLASS_LABELS.get(prefix)
-        if class_label:
-            return f"{prefix} {class_label}"
-        return prefix
-
-    prefix_label = EC_PREFIX_LABELS.get(prefix)
-    if prefix_label:
-        return f"{prefix} {prefix_label}"
-
-    if prefix in exact_names and len(parts) >= 4:
-        return exact_names[prefix]
-
-    return prefix
+    name = _ec_resolve_name(prefix, exact_names)
+    return f"{prefix} {name}" if name else prefix
 
 
 def _ec_hover_label(prefix, exact_names):
     prefix = str(prefix or "").strip()
     if not prefix:
         return ""
-
-    if prefix in exact_names:
-        return f"{prefix} — {exact_names[prefix]}"
-
-    class_label = EC_CLASS_LABELS.get(prefix)
-    if class_label:
-        return f"{prefix} — {class_label}"
-
-    prefix_label = EC_PREFIX_LABELS.get(prefix)
-    if prefix_label:
-        return f"{prefix} — {prefix_label}"
-
-    return prefix
+    name = _ec_resolve_name(prefix, exact_names)
+    return f"{prefix} — {name}" if name else prefix
 
 
 def build_annotation_explorer(proteins, kind):

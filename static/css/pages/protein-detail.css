@@ -99,6 +99,140 @@
     margin-top: 12px;
 }
 
+/* ── Hero annotation groups ── */
+
+.hero-annotations {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--tp-color-border-soft);
+}
+
+.hero-annotation-group {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.hero-annotation-label {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 28px;
+    height: 24px;
+    padding: 0 6px;
+    border-radius: 6px;
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--tp-color-text-muted);
+    background: var(--tp-color-surface-alt, var(--tp-color-surface-soft));
+    border: 1px solid var(--tp-color-border-soft);
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+.hero-annotation-group .tp-chip-group {
+    gap: 5px;
+}
+
+/* ── Annotation panels (detail section) ── */
+
+.annotation-panels {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.annotation-panel {
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 12px;
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+    overflow: hidden;
+}
+
+.annotation-panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--tp-color-border-soft);
+    background: var(--tp-color-surface-soft);
+}
+
+.annotation-panel-head h3 {
+    margin: 0;
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: var(--protein-accent-ink);
+    letter-spacing: 0.01em;
+}
+
+.annotation-panel-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+    border-radius: 999px;
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--tp-color-text-muted);
+    background: var(--tp-color-surface);
+    border: 1px solid var(--tp-color-border-soft);
+}
+
+.annotation-entries {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.annotation-entry {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 10px;
+    align-items: baseline;
+    padding: 8px 14px;
+    border-bottom: 1px solid var(--tp-color-border-soft);
+    font-size: 0.9rem;
+    line-height: 1.45;
+}
+
+.annotation-entry:last-child {
+    border-bottom: 0;
+}
+
+.annotation-entry:hover {
+    background: var(--tp-color-surface-alt, rgba(0, 0, 0, 0.015));
+}
+
+.annotation-entry-id {
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--protein-accent);
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.annotation-entry-id:hover {
+    text-decoration: underline;
+}
+
+.annotation-entry-name {
+    color: var(--tp-color-text-secondary);
+    font-size: 0.88rem;
+}
+
 .hero-chip-list .hero-chip {
     display: inline-flex;
     align-items: center;
@@ -368,6 +502,75 @@
     color: var(--tp-color-text-secondary);
     font-size: 0.98rem;
     line-height: 1.4;
+}
+
+.overview-item--warning {
+    border-color: var(--tp-color-warning-border, #f0dca0);
+    background: var(--tp-color-surface);
+}
+
+.overview-item--warning dd {
+    color: var(--tp-color-warning-ink, #8a6914);
+    font-weight: 600;
+}
+
+/* ── No-structure note ── */
+
+.no-structure-note {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    padding: 16px;
+    margin-top: 10px;
+    border: 1px solid var(--tp-color-warning-border, #f0dca0);
+    border-radius: 12px;
+    background: var(--tp-color-surface);
+}
+
+.no-structure-icon {
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    color: var(--tp-color-warning-ink, #b8860b);
+    margin-top: 1px;
+}
+
+.no-structure-icon svg {
+    width: 100%;
+    height: 100%;
+}
+
+.no-structure-body {
+    display: grid;
+    gap: 4px;
+    min-width: 0;
+}
+
+.no-structure-title {
+    margin: 0;
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-size: 0.94rem;
+    font-weight: 700;
+    color: var(--tp-color-warning-ink, #8a6914);
+}
+
+.no-structure-reason {
+    margin: 0;
+    color: var(--tp-color-text-secondary);
+    font-size: 0.88rem;
+    line-height: 1.55;
+}
+
+.no-structure-meta {
+    margin: 4px 0 0;
+    font-size: 0.84rem;
+    color: var(--tp-color-text-muted);
+}
+
+.no-structure-meta strong {
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 0.82rem;
+    color: var(--tp-color-text-secondary);
 }
 
 .sequence-shell,

@@ -1,19 +1,77 @@
-
-
+{% extends '../base/masterpage.html' %}
 {% load i18n %}
 
-{% block head_title %}{% translate "Sign Out" %}{% endblock %}
+{% block head %}
+    <style>
+        .auth-page {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 48px 16px;
+            min-height: 60vh;
+        }
 
-{% block inner %}
-<h1>{% translate "Sign Out" %}</h1>
+        .auth-card {
+            width: 100%;
+            max-width: 420px;
+            border: 1px solid var(--tp-color-border-soft);
+            border-radius: 16px;
+            background: var(--tp-color-surface);
+            box-shadow: var(--tp-shadow-md);
+            padding: 36px 32px 32px;
+            display: grid;
+            gap: 24px;
+            text-align: center;
+        }
 
-<p>{% translate 'Are you sure you want to sign out?' %}</p>
+        .auth-card h1 {
+            margin: 0;
+            font-family: "Space Grotesk", "Segoe UI", sans-serif;
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--tp-color-text-primary);
+        }
 
-<form method="post" action="{% url 'account_logout' %}">
-  {% csrf_token %}
-  {% if redirect_field_value %}
-  <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}"/>
-  {% endif %}
-  <button class="btn tp-btn tp-btn--danger" type="submit">{% translate 'Sign Out' %}</button>
-</form>
+        .auth-card p {
+            margin: 0;
+            color: var(--tp-color-text-muted);
+            font-size: 0.95rem;
+        }
+
+        .auth-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .auth-actions button,
+        .auth-actions a {
+            min-width: 120px;
+            height: 44px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="auth-page">
+        <div class="auth-card">
+            <h1>{% trans "Sign out" %}</h1>
+            <p>{% trans "Are you sure you want to sign out?" %}</p>
+
+            <form method="post" action="{% url 'account_logout' %}">
+                {% csrf_token %}
+                {% if redirect_field_value %}
+                    <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}">
+                {% endif %}
+                <div class="auth-actions">
+                    <a href="{% url 'tpwebapp:index' %}" class="btn tp-btn tp-btn--neutral">{% trans "Cancel" %}</a>
+                    <button class="btn tp-btn tp-btn--primary" type="submit">{% trans "Sign out" %}</button>
+                </div>
+            </form>
+        </div>
+    </div>
 {% endblock %}

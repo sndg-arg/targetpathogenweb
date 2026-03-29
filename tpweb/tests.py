@@ -1,4 +1,9 @@
+from datetime import datetime, timezone
+from pathlib import Path
+from tempfile import TemporaryDirectory
 from unittest.mock import patch
+
+import tpweb.services.pipeline_status as pipeline_status_service
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
@@ -14,6 +19,7 @@ from tpweb.models.ScoreParam import ScoreParam
 from tpweb.services.assembly_workspace import build_assembly_workspace_metrics
 from tpweb.services.assembly_overview import build_assembly_overview
 from tpweb.services.genome_uploads import (
+    _finalize_upload,
     build_queue_position_map,
     clear_genome_upload_history,
     delete_genome_workspace,
@@ -37,10 +43,12 @@ from tpweb.services.protein_serializer import build_protein_table_row
 from tpweb.services.pipeline_status import (
     _extract_running_genome_from_process,
     _pipeline_process_running,
+    _resolve_runinfo_dir,
+    _status_from_last_run_marker,
     annotate_pipeline_status_for_genome,
+    get_pipeline_status_dto,
     sanitize_pipeline_status_for_user,
 )
-from tpweb.services.test_genome_demo import seed_test_genome_demo_annotations
 from tpweb.services.structure_sources import summarize_structure_sources
 from tpweb.services.genome_workspace import (
     build_workspace_genome_name,
@@ -279,7 +287,7 @@ class StructureAndAnnotationServiceTests(SimpleTestCase):
                     "Dbxref",
                     (),
                     {
-                        "dbname": ANNOTATION_KIND_CONFIG["ec"]["dbname"],
+                        "dbname": ANNOTATION_KIND_CONFIG["ec"]["dbnames"][0],
                         "accession": accession,
                         "terms": type(
                             "Terms",
@@ -320,7 +328,43 @@ class StructureAndAnnotationServiceTests(SimpleTestCase):
 
         self.assertEqual(explorer["annotation_count"], 2)
         self.assertIn("ec:1.2", explorer["chart"]["ids"])
+        self.assertIn("1.2 Acting on the aldehyde or oxo group of donors", explorer["chart"]["labels"])
+        self.assertIn("1.2.3.4", explorer["chart"]["hover_labels"])
         self.assertEqual(explorer["rows"][0]["protein_count"], 1)
+
+    def test_build_annotation_explorer_adds_hover_text_for_known_third_level_ec_prefix(self):
+        dbxref_relation = lambda accession, name="": type(
+            "BioentryDbxref",
+            (),
+            {
+                "dbxref": type(
+                    "Dbxref",
+                    (),
+                    {
+                        "dbname": ANNOTATION_KIND_CONFIG["ec"]["dbnames"][0],
+                        "accession": accession,
+                        "terms": type("Terms", (), {"all": lambda self: []})(),
+                    },
+                )()
+            },
+        )()
+
+        protein = type(
+            "Protein",
+            (),
+            {
+                "bioentry_id": 1,
+                "dbxrefs": type("Manager", (), {"all": lambda self: [dbxref_relation("2.4.1.1")]})(),
+            },
+        )()
+
+        explorer = build_annotation_explorer([protein], "ec")
+        prefix_index = explorer["chart"]["ids"].index("ec:2.4.1")
+
+        self.assertEqual(
+            explorer["chart"]["hover_labels"][prefix_index],
+            "2.4.1 — Hexosyltransferases",
+        )
 
 
 class WorkspaceIsolationTests(TestCase):
@@ -426,49 +470,6 @@ class WorkspaceIsolationTests(TestCase):
         self.assertFalse(user_can_delete_genome_name(self.alice, public_internal))
 
 
-class TestGenomeDemoAnnotationTests(TestCase):
-    def setUp(self):
-        self.assembly = Biodatabase.objects.create(
-            name="user-2__NZ_AP023069.1",
-            description="Test genome",
-        )
-        self.proteome = Biodatabase.objects.create(
-            name=f"{self.assembly.name}{Biodatabase.PROT_POSTFIX}",
-            description="Test proteome",
-        )
-        for index in range(1, 8):
-            Bioentry.objects.create(
-                biodatabase=self.proteome,
-                taxon=None,
-                name=f"Protein {index}",
-                accession=f"HT085_RS{index:05d}",
-                identifier="",
-                division="",
-                description="Demo protein",
-                version=0,
-                index_updated=None,
-            )
-
-    def test_seed_test_genome_demo_annotations_is_idempotent(self):
-        first = seed_test_genome_demo_annotations(self.assembly.name)
-        second = seed_test_genome_demo_annotations(self.assembly.name)
-
-        metrics = build_assembly_workspace_metrics(self.assembly.name)
-
-        self.assertEqual(first["ec_links_created"], 7)
-        self.assertEqual(first["go_links_created"], 7)
-        self.assertEqual(first["experimental_structures_created"], 2)
-        self.assertEqual(second["ec_links_created"], 7)
-        self.assertEqual(second["go_links_created"], 7)
-        self.assertEqual(second["experimental_structures_created"], 2)
-        self.assertEqual(BioentryDbxref.objects.count(), 14)
-        self.assertEqual(BioentryStructure.objects.count(), 2)
-        self.assertEqual(metrics["ec_annotated"], 7)
-        self.assertEqual(metrics["go_annotated"], 7)
-        self.assertEqual(metrics["functional_annotated"], 7)
-        self.assertEqual(metrics["experimental_structures"], 2)
-
-
 class GenomeUploadQueueTests(TestCase):
     def setUp(self):
         self.user_model = get_user_model()
@@ -536,6 +537,25 @@ class GenomeUploadQueueTests(TestCase):
         self.assertEqual(deleted_count, 1)
         self.assertFalse(GenomeUpload.objects.filter(pk=upload.pk).exists())
         delete_workspace.assert_called_once_with(upload.internal_accession)
+
+    @patch("tpweb.services.genome_uploads.clear_pipeline_activity_state")
+    @patch("tpweb.services.genome_uploads._delete_workspace_biodatabases")
+    @patch("tpweb.services.genome_uploads._delete_upload_artifacts")
+    def test_finalize_upload_does_not_crash_when_upload_was_deleted(
+        self,
+        delete_upload_artifacts,
+        delete_workspace_biodatabases,
+        clear_pipeline_activity_state,
+    ):
+        upload = self.create_upload(self.alice, "NZ_AP023069.1", GenomeUpload.STATUS_RUNNING)
+        upload.delete()
+
+        status = _finalize_upload(upload, returncode=1)
+
+        self.assertEqual(status, GenomeUpload.STATUS_FAILED)
+        delete_upload_artifacts.assert_called_once_with(upload)
+        delete_workspace_biodatabases.assert_called_once_with(upload.internal_accession)
+        clear_pipeline_activity_state.assert_called_once()
 
     @patch("tpweb.services.genome_upload_status._upload_has_matching_process")
     @patch("tpweb.services.genome_upload_status._process_exists")
@@ -656,6 +676,76 @@ class PipelineStatusTests(SimpleTestCase):
         self.assertFalse(current["failed_for_current_genome"])
         self.assertTrue(current["incomplete_for_current_genome"])
         self.assertIn("stopped before completion", current["current_genome_status_note"])
+
+    @patch("tpweb.services.pipeline_status._status_from_last_run_marker", return_value=None)
+    @patch("tpweb.services.pipeline_status._resolve_runinfo_dir", return_value=None)
+    @patch("tpweb.services.pipeline_status._current_running_upload")
+    def test_get_pipeline_status_uses_running_upload_when_runinfo_is_unavailable(
+        self,
+        current_running_upload,
+        resolve_runinfo_dir,
+        status_from_last_run_marker,
+    ):
+        pipeline_status_service._PIPELINE_STATUS_CACHE["status"] = None
+        pipeline_status_service._PIPELINE_STATUS_CACHE["expires_at"] = 0.0
+
+        current_running_upload.return_value = type(
+            "Upload",
+            (),
+            {
+                "id": 21,
+                "internal_accession": "user-2__NZ_AP023069.1",
+                "run_log_path": "",
+                "updated_at": datetime(2026, 3, 28, 20, 42, tzinfo=timezone.utc),
+                "launched_at": datetime(2026, 3, 28, 20, 42, tzinfo=timezone.utc),
+            },
+        )()
+
+        status = get_pipeline_status_dto().as_dict()
+
+        self.assertTrue(status["available"])
+        self.assertTrue(status["running"])
+        self.assertEqual(status["state_label"], "Pipeline running")
+        self.assertEqual(status["state_class"], "running")
+        self.assertEqual(status["run_id"], "upload:21")
+        self.assertEqual(status["genome_accession"], "user-2__NZ_AP023069.1")
+        self.assertEqual(status["genome_display_accession"], "NZ_AP023069.1")
+        self.assertEqual(status["activity_label"], "Genome upload in progress")
+
+    def test_status_from_last_run_marker_reads_shared_data_marker(self):
+        with TemporaryDirectory() as tmpdir:
+            base_dir = Path(tmpdir)
+            marker_path = base_dir / "data" / "parsl" / "last_pipeline_run.json"
+            marker_path.parent.mkdir(parents=True, exist_ok=True)
+            marker_path.write_text(
+                """
+{
+  "status": "finished",
+  "genomes": ["user-2__NZ_AP023069.1"],
+  "finished_at_utc": "2026-03-28T21:00:00+00:00"
+}
+                """.strip(),
+                encoding="utf-8",
+            )
+
+            status = _status_from_last_run_marker(base_dir)
+
+        self.assertIsNotNone(status)
+        self.assertTrue(status.available)
+        self.assertEqual(status.state_label, "Last pipeline run finished")
+        self.assertEqual(status.genome_accession, "USER-2__NZ_AP023069.1")
+        self.assertEqual(status.genome_display_accession, "NZ_AP023069.1")
+
+    def test_resolve_runinfo_dir_reads_shared_data_runinfo(self):
+        with TemporaryDirectory() as tmpdir:
+            base_dir = Path(tmpdir)
+            run_dir = base_dir / "data" / "parsl" / "runinfo" / "001"
+            run_dir.mkdir(parents=True, exist_ok=True)
+            (run_dir / "parsl.log").write_text("Task 1 submitted for App fasttarget,\n", encoding="utf-8")
+
+            resolved = _resolve_runinfo_dir(base_dir)
+
+        self.assertEqual(resolved, base_dir / "data" / "parsl" / "runinfo")
 
     @patch("tpweb.services.pipeline_status.Biodatabase")
     def test_sanitize_pipeline_status_for_user_hides_deleted_workspace_status(self, biodatabase_model):

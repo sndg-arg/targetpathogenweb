@@ -21,7 +21,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
-    <link rel="stylesheet" href="{% static 'css/components/ui-system.css' %}?v=20260318-1">
+    <link rel="stylesheet" href="{% static 'css/components/ui-system.css' %}?v=20260325-1">
     <style>
         :root {
             --tp-color-text-primary: #132f3d;
@@ -1044,6 +1044,73 @@
             border-bottom: 1px solid var(--tp-color-border-soft);
         }
 
+        /* ── Global messages ── */
+        .tp-messages {
+            display: grid;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .tp-message {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 10px 16px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            line-height: 1.4;
+            animation: tp-msg-in 200ms ease;
+            transition: opacity 300ms ease, transform 300ms ease;
+        }
+
+        .tp-message--success {
+            background: var(--tp-color-success-bg);
+            border: 1px solid var(--tp-color-success-border);
+            color: var(--tp-color-success-ink);
+        }
+
+        .tp-message--error {
+            background: var(--tp-color-danger-bg);
+            border: 1px solid var(--tp-color-danger-border);
+            color: var(--tp-color-danger-ink);
+        }
+
+        .tp-message--info,
+        .tp-message--warning {
+            background: var(--tp-color-info-bg);
+            border: 1px solid var(--tp-color-info-border);
+            color: var(--tp-color-info-ink);
+        }
+
+        .tp-message-close {
+            -webkit-appearance: none;
+            appearance: none;
+            border: none;
+            background: none;
+            color: inherit;
+            font-size: 1.2rem;
+            cursor: pointer;
+            opacity: 0.6;
+            padding: 0 2px;
+            line-height: 1;
+        }
+
+        .tp-message-close:hover {
+            opacity: 1;
+        }
+
+        .tp-message.is-hiding {
+            opacity: 0;
+            transform: translateY(-6px);
+        }
+
+        @keyframes tp-msg-in {
+            from { opacity: 0; transform: translateY(-8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         .tp-footer {
             display: none !important;
         }
@@ -1650,12 +1717,14 @@
                 <span class="tp-side-text">{% trans "BLAST" %}</span>
             </a>
         </div>
+        {% if user.is_staff %}
         <div class="tp-side-section">
             <p class="tp-side-section-label">{% trans "Support" %}</p>
             <a class="tp-side-link {% if '/admin' in request.path %}active{% endif %}" data-short="AD" data-label="{% trans 'Admin' %}" title="{% trans 'Admin' %}" href="{% url 'admin:index' %}">
                 <span class="tp-side-text">{% trans "Admin" %}</span>
             </a>
         </div>
+        {% endif %}
     </nav>
     <div class="tp-side-footer">
         {% if user.is_authenticated %}
@@ -1665,7 +1734,7 @@
                 <button class="btn btn-sm btn-outline-light btn-block" type="submit">{% trans "Logout" %}</button>
             </form>
         {% else %}
-            <a class="btn btn-sm btn-outline-light btn-block" href="{% url 'admin:login' %}">{% trans "Login" %}</a>
+            <a class="btn btn-sm btn-outline-light btn-block" href="{% url 'account_login' %}">{% trans "Login" %}</a>
         {% endif %}
         <button id="tp-theme-toggle" class="tp-theme-toggle" type="button" aria-label="{% trans 'Toggle theme' %}" title="{% trans 'Toggle theme' %}">
             <span class="tp-theme-toggle-icon" aria-hidden="true"></span>
@@ -1695,9 +1764,11 @@
                 <li class="nav-item">
                     <a class="nav-link" aria-current="page" href="{% url 'tpwebapp:form' %}">{% trans "BLAST" %}</a>
                 </li>
+                {% if user.is_staff %}
                 <li class="nav-item">
                     <a class="nav-link" aria-current="page" href="{% url 'admin:index' %}">{% trans "Admin" %}</a>
                 </li>
+                {% endif %}
                 {% if user.is_authenticated %}
                     <li id="user_dropdown" class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-expanded="false">
@@ -1706,13 +1777,13 @@
                         <div id="user_dropdown_menu" class="dropdown-menu">
                             <form method="post" action="{% url 'account_logout' %}">
                                 {% csrf_token %}
-                                <button class="dropdown-item" type="submit">Logout</button>
+                                <button class="dropdown-item" type="submit">{% trans "Logout" %}</button>
                             </form>
                         </div>
                     </li>
                 {% else %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'admin:login' %}">{% trans "Login" %}</a>
+                        <a class="nav-link" href="{% url 'account_login' %}">{% trans "Login" %}</a>
                     </li>
                 {% endif %}
             </ul>
@@ -1722,6 +1793,16 @@
 
 <main class="tp-main">
     <div class="tp-shell">
+        {% if messages %}
+        <div class="tp-messages" id="tp-messages">
+            {% for message in messages %}
+                <div class="tp-message tp-message--{{ message.tags|default:'info' }}">
+                    <span>{{ message }}</span>
+                    <button type="button" class="tp-message-close" aria-label="Close">&times;</button>
+                </div>
+            {% endfor %}
+        </div>
+        {% endif %}
         {% block body %}{% endblock %}
     </div>
 </main>
@@ -2558,6 +2639,20 @@
             if (window.tpRefreshTableScrollHints) {
                 window.tpRefreshTableScrollHints(document);
             }
+        });
+    })();
+
+    /* ── Auto-dismiss messages ── */
+    (function () {
+        function dismissMsg(el) {
+            el.classList.add("is-hiding");
+            setTimeout(function () { el.remove(); }, 300);
+        }
+        document.querySelectorAll(".tp-message-close").forEach(function (btn) {
+            btn.addEventListener("click", function () { dismissMsg(btn.closest(".tp-message")); });
+        });
+        document.querySelectorAll(".tp-message").forEach(function (msg) {
+            setTimeout(function () { dismissMsg(msg); }, 5000);
         });
     })();
 </script>

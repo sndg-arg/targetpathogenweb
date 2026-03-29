@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/home.css' %}?v=20260318-1">
+    <link rel="stylesheet" href="{% static 'css/pages/home.css' %}?v=20260325-1">
 {% endblock %}
 
 {% block body %}
@@ -75,11 +75,22 @@
                     </span>
                     <button
                         type="button"
+                        class="btn tp-btn tp-btn--neutral btn-sm home-pipeline-info-btn tp-focusable"
+                        aria-label="{% trans 'Pipeline steps info' %}"
+                        title="{% trans 'Pipeline steps info' %}"
+                        id="pipeline-info-open"
+                    >
+                        <span class="home-pipeline-btn-icon" aria-hidden="true">
+                            {% include "components/icons/info.html" %}
+                        </span>
+                    </button>
+                    <button
+                        type="button"
                         class="btn tp-btn tp-btn--neutral btn-sm home-pipeline-refresh tp-focusable"
                         aria-label="{% trans 'Refresh pipeline status' %}"
                         title="{% trans 'Refresh pipeline status' %}"
                     >
-                        <span class="home-pipeline-refresh-icon" aria-hidden="true">
+                        <span class="home-pipeline-refresh-icon home-pipeline-btn-icon" aria-hidden="true">
                             {% include "components/icons/refresh.html" %}
                         </span>
                     </button>
@@ -120,6 +131,23 @@
                 </div>
             </div>
         </section>
+
+        <div class="pipeline-info-backdrop" id="pipeline-info-modal" aria-hidden="true">
+            <div class="pipeline-info-panel" role="dialog" aria-modal="true" aria-labelledby="pipeline-info-title">
+                <div class="pipeline-info-head">
+                    <div>
+                        <p class="tp-ui-field-label">{% trans "Bioinformatics workflow" %}</p>
+                        <h3 id="pipeline-info-title">{% trans "Pipeline steps" %} <span class="pipeline-info-count">{{ pipeline_status.stage_total }} {% trans "stages" %}</span></h3>
+                    </div>
+                    <button type="button" class="btn tp-btn tp-btn--neutral tp-btn--sm pipeline-info-close" id="pipeline-info-close" aria-label="{% trans 'Close' %}">&times;</button>
+                </div>
+                <ol class="pipeline-info-steps" id="pipeline-info-steps">
+                </ol>
+                <div class="pipeline-info-foot">
+                    <p class="pipeline-info-note">{% trans "Each genome submission runs through these stages sequentially. Duration depends on proteome size and external service availability." %}</p>
+                </div>
+            </div>
+        </div>
 
         <section class="home-panel home-post tp-ui-panel">
             <div class="tp-ui-panel-head">
@@ -285,6 +313,95 @@
             }
 
             refreshButton.addEventListener("click", refreshStatus);
+
+            // ── Pipeline info modal ──
+            const infoModal = document.getElementById("pipeline-info-modal");
+            const infoOpen = document.getElementById("pipeline-info-open");
+            const infoClose = document.getElementById("pipeline-info-close");
+
+            if (infoModal && infoOpen) {
+                const PIPELINE_STEPS = [
+                    [1, "Cleaning previous output"],
+                    [2, "Loading genome input"],
+                    [3, "Importing genome records"],
+                    [4, "Running FastTarget scoring"],
+                    [5, "Loading human offtarget score"],
+                    [6, "Loading microbiome offtarget score"],
+                    [7, "Loading essentiality score"],
+                    [8, "Building DB indexes"],
+                    [9, "Indexing sequence files"],
+                    [10, "Running InterProScan"],
+                    [11, "Loading InterPro annotations"],
+                    [12, "Mapping to UniProt"],
+                    [13, "Fetching UniProt annotations"],
+                    [14, "Collecting UniProt list"],
+                    [15, "Generating AlphaFold models"],
+                    [16, "Predicting missing structures (ESMFold)"],
+                    [17, "Loading structures and pockets"],
+                    [18, "Computing druggability table"],
+                    [19, "Loading druggability score"],
+                    [20, "Predicting subcellular localization"],
+                    [21, "Loading PSORT score"],
+                    [22, "Collecting binder candidates"],
+                    [23, "Loading binders"],
+                ];
+
+                const stepsList = document.getElementById("pipeline-info-steps");
+                if (stepsList) {
+                    stepsList.innerHTML = PIPELINE_STEPS.map(function (s) {
+                        return '<li class="pipeline-info-step" data-stage="' + s[0] + '">'
+                            + '<span class="pipeline-info-step-num">' + s[0] + '</span>'
+                            + '<span class="pipeline-info-step-label">' + escapeHtml(s[1]) + '</span>'
+                            + '</li>';
+                    }).join("");
+                }
+
+                let lastInfoTrigger = null;
+
+                function updateStepHighlights(status) {
+                    const steps = infoModal.querySelectorAll(".pipeline-info-step");
+                    steps.forEach(function (step) {
+                        const num = parseInt(step.getAttribute("data-stage"), 10);
+                        step.classList.toggle("is-done", !!(status.stage_current && num <= Number(status.stage_current)));
+                        step.classList.toggle("is-active", !!(status.running && Number(status.stage_current) === num));
+                    });
+                }
+
+                function openInfoModal() {
+                    lastInfoTrigger = document.activeElement;
+                    infoModal.classList.add("is-open");
+                    infoModal.setAttribute("aria-hidden", "false");
+                    document.body.classList.add("pipeline-info-open");
+                    if (infoClose) infoClose.focus();
+                }
+
+                function closeInfoModal() {
+                    infoModal.classList.remove("is-open");
+                    infoModal.setAttribute("aria-hidden", "true");
+                    document.body.classList.remove("pipeline-info-open");
+                    if (lastInfoTrigger) lastInfoTrigger.focus();
+                }
+
+                infoOpen.addEventListener("click", openInfoModal);
+                if (infoClose) infoClose.addEventListener("click", closeInfoModal);
+
+                infoModal.addEventListener("click", function (e) {
+                    if (e.target === infoModal) closeInfoModal();
+                });
+
+                document.addEventListener("keydown", function (e) {
+                    if (e.key === "Escape" && infoModal.classList.contains("is-open")) {
+                        closeInfoModal();
+                    }
+                });
+
+                // Update step highlights when pipeline status is refreshed
+                const originalRenderStatus = renderStatus;
+                renderStatus = function (status) {
+                    originalRenderStatus(status);
+                    updateStepHighlights(status);
+                };
+            }
 
             // Genome list refresh: reload the page to pick up newly processed genomes.
             const genomesRefreshButton = document.querySelector(".home-updated-genomes-refresh");

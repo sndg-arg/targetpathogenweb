@@ -19,8 +19,8 @@
                 {% url 'tpwebapp:genomes_list' as genomes_url %}
                 {% if source_protein_id %}
                     {% url 'tpwebapp:protein' source_protein_id as protein_detail_url %}
-                    {% if source_assembly_name %}
-                        {% url 'tpwebapp:protein_list' source_assembly_name as proteins_url %}
+                    {% if source_genome %}
+                        {% url 'tpwebapp:protein_list' source_genome as proteins_url %}
                         {% include "components/navigation/breadcrumbs.html" with crumb_1_label=crumb_home crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_proteins crumb_3_url=proteins_url crumb_4_label=crumb_protein_detail crumb_4_url=protein_detail_url crumb_5_label=crumb_structure %}
                     {% else %}
                         {% include "components/navigation/breadcrumbs.html" with crumb_1_label=crumb_home crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_protein_detail crumb_3_url=protein_detail_url crumb_4_label=crumb_structure %}
@@ -142,7 +142,7 @@
                     <div class="mini-section">
                         <details class="data-details">
                             <summary>{% trans "Show P2RANK pockets" %}</summary>
-                            <p class="table-hint px-3 pt-2">{% trans "Probability is color-coded: high (0.7 or higher), medium (0.4 to 0.69), low (below 0.4)." %}</p>
+                            <p class="table-hint px-3 pt-2">{% trans "Probability is color-coded per P2Rank calibration: high (&ge; 0.5), medium (0.2 &ndash; 0.49), low (&lt; 0.2)." %}</p>
                             <div class="table-shell">
                                 <table id="p2pocketsTable" class="table table-striped table-hover table-sm tp-table tp-table--plain tp-table--premium">
                                     <thead>
@@ -166,7 +166,7 @@
                                             <td><input type="checkbox" class="structure-toggle" aria-label="Toggle spheres {{ p2.name }}" onchange="toogle_view('p2_{{p2.name}}_sph')" /></td>
                                             <td><input type="checkbox" class="structure-toggle" aria-label="Toggle surfaces {{ p2.name }}" onchange="toogle_view('p2_{{p2.name}}_pol');toogle_view('p2_{{p2.name}}_apol')" /></td>
                                             <td><span class="tp-score-tag js-score-tag" data-score="{{ p2.p2score }}">{{ p2.p2score }}</span></td>
-                                            <td><span class="tp-score-tag js-score-tag" data-score="{{ p2.probability }}">{{ p2.probability }}</span></td>
+                                            <td><span class="tp-score-tag js-score-tag" data-score="{{ p2.probability }}" data-score-type="p2rank-prob">{{ p2.probability }}</span></td>
                                             <td><input type="checkbox" class="structure-toggle" aria-label="Toggle labels {{ p2.name }}" onchange="toogle_view('p2_{{p2.name}}_lbl')" /></td>
                                             <td><button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm structure-table-btn" onclick="ngl_zoom_to('p2_{{p2.name}}_zoom')">{% trans "Zoom" %}</button></td>
                                             <td><button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm structure-table-btn js-show-residues" data-residues="{{ p2.residues | join:' ' }}">{% trans "Show" %}</button></td>

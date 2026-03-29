@@ -1,143 +1,243 @@
-# TargetPathogenWeb
+# Target Pathogen Web
 
-Web application for genome/protein exploration and bioinformatics target prioritization.
+Web platform for genome-level protein exploration, structural evidence analysis, and bioinformatics target prioritization.
 
-## 1. Project Stack
+## Stack
 
-- Backend: Django
-- Database: PostgreSQL
-- Pipeline: Parsl + bioinformatics tools
-- Frontend: Django templates + modular CSS + JS bundle
-- Runtime: Docker Compose (recommended)
+| Layer | Technology |
+|-------|-----------|
+| Backend | Django 4, Python 3.10 |
+| Database | PostgreSQL 14 |
+| Pipeline | Parsl + bioinformatics tools (InterProScan, AlphaFold, FPocket, P2Rank, PSORTb) |
+| Frontend | Django templates, modular CSS (design tokens), vanilla JS |
+| Auth | django-allauth (username/email login, admin-only registration) |
+| Runtime | Docker Compose (4 services: web, db, queue, jbrowse) |
 
-## 2. Quick Start (Docker)
+## Architecture
 
-Prerequisites:
+```
+tpweb/
+├── views/           # Request handling — thin, delegates to services
+├── services/        # Business logic — reusable, testable
+├── models/          # Django ORM models (TPUser, GenomeUpload, PDB, Binders, etc.)
+├── templates/       # Django templates (extends base/masterpage.html)
+├── management/      # Custom manage.py commands (pipeline, data imports)
+├── forms/           # Django forms (upload, user)
+├── adapters/        # django-allauth adapters
+├── middleware/       # Request timing observability
+└── io/              # File parsers (FPocket, PDB)
 
-- Docker + Docker Compose plugin
-- `make` (optional but recommended)
+static/
+├── css/components/  # Shared UI system (ui-system.css)
+├── css/pages/       # Page-specific styles (one file per page)
+├── js/pages/        # Page-specific JS (protein-detail.js, etc.)
+└── bundle.js        # Webpack bundle (feature-viewer, MSA, 3D libs)
 
-### Local workstation
+parsl/               # Pipeline definition and execution
+tpwebconfig/         # Django project settings, urls, wsgi
+```
 
-Recommended setup for a laptop or desktop:
+### Key conventions
+
+- **Views** parse inputs and return responses. No business logic.
+- **Services** hold domain logic. Views call services.
+- **CSS** uses semantic design tokens (`--tp-color-*`). No hardcoded hex outside `masterpage.html`.
+- **Templates** extend `base/masterpage.html`. Page styles load via `{% block head %}`.
+- **Dark mode** is fully supported via `.tp-dark` class and token overrides.
+
+## Quick Start
 
 ```bash
+# 1. Local env
 cp .env.local.example .env
 docker network create web 2>/dev/null || true
-DOCKER_DEFAULT_PLATFORM=linux/amd64 docker compose -f docker-compose.yml -f docker-compose.local.yml up -d --pull never
-docker compose -f docker-compose.yml -f docker-compose.local.yml ps
-```
 
-Open: `http://localhost:8085`
+# 2. Build + start
+DOCKER_DEFAULT_PLATFORM=linux/amd64 docker compose up --build -d
 
-### Cluster deployment
-
-Prepare the environment file on the cluster host:
-
-```bash
-cp .env.cluster.example .env
-```
-
-Then adjust paths and SSH settings in `.env`, and start:
-
-```bash
-docker network create web 2>/dev/null || true
-DOCKER_DEFAULT_PLATFORM=linux/amd64 docker compose -f docker-compose.yml -f docker-compose.cluster.yml up -d --pull never
-docker compose -f docker-compose.yml -f docker-compose.cluster.yml ps
-```
-
-### Backward-compatible local shortcut
-
-`docker-compose.override.yml` still mirrors the local profile, so plain `docker compose up -d` continues to work for local development. For reproducible setup, prefer the explicit `-f docker-compose.yml -f docker-compose.local.yml` form above.
-
-## 3. Health Checks
-
-```bash
+# 3. Verify
+docker compose ps
 curl -s http://localhost:8085/health/live
-curl -s http://localhost:8085/health/ready
-curl -s http://localhost:8085/health/pipeline
 ```
 
-Meaning:
+Open: http://localhost:8085
 
-- `/health/live`: app process is alive
-- `/health/ready`: app dependencies (including DB) are ready
-- `/health/pipeline`: current pipeline status details
+Minimal deploy files:
 
-## 4. Development Commands
+- `docker-compose.yml` for the base stack
+- `docker-compose.cluster.yml` only for cluster overrides
+- `.env.local.example` for local
+- `.env.cluster.example` for cluster
 
-| Command | What it does | When to use |
-| --- | --- | --- |
-| `make format` | Runs `ruff format` | Before committing Python changes |
-| `make lint` | Runs `ruff check` | Fast static checks during development |
-| `make test` | Runs `scripts/run_tests.py` (`tpweb.tests`) | Validate behavior changes |
-| `make qa` | Runs lint + tests | Final local verification |
-| `make precommit-install` | Installs git hooks | Once per machine |
-| `make precommit-run` | Runs all configured hooks | Before opening a PR |
+FastTarget databases are mounted from the host via `TPW_FASTTARGET_DB_DIR` instead of being baked into the app image. Runtime outputs stay in `TPW_FASTTARGET_RUNTIME_DIR` and `TPW_FASTTARGET_LOG_DIR`.
 
-## 5. Recommended Test Execution
+Local runs also mount `${HOME}/.ssh` into `web` and `queue`, because remote pipeline stages submit work to the QB cluster over SSH.
 
-Because project settings use DB host `db`, tests are most stable inside the container:
-
-Local:
+### First admin user
 
 ```bash
-docker compose -f docker-compose.yml -f docker-compose.local.yml up -d db web
-docker compose -f docker-compose.yml -f docker-compose.local.yml exec web make test
-docker compose -f docker-compose.yml -f docker-compose.local.yml exec web make qa
+docker compose exec web python manage.py createsuperuser
 ```
 
-Cluster:
+Regular users are created from Django admin (`/admin/` → Users → Add user). Public registration is disabled.
 
-```bash
-docker compose -f docker-compose.yml -f docker-compose.cluster.yml up -d db web
-docker compose -f docker-compose.yml -f docker-compose.cluster.yml exec web make test
-docker compose -f docker-compose.yml -f docker-compose.cluster.yml exec web make qa
-```
+## Services
 
-## 6. Pipeline Quick Run
+| Service | Container | Port | Purpose |
+|---------|-----------|------|---------|
+| web | `target2_nodo0` | 8085→8000 | Django app |
+| db | `db_target2_nodo0` | 5432 | PostgreSQL |
+| queue | `target2_queue_nodo0` | — | Genome pipeline worker |
+| jbrowse | `target2_jbrowse_nodo0` | 3000 | Genome browser |
+
+## URL Map
+
+| URL | View | Description |
+|-----|------|-------------|
+| `/` | Home | Landing page |
+| `/genomes/` | GenomesList | All accessible genomes |
+| `/genome/<accession>/` | Assembly | Genome overview |
+| `/genome/<accession>/proteins` | ProteinList | Filterable protein table |
+| `/genome/<accession>/explore/<ec\|go>` | AnnotationExplorer | Sunburst (Krona-style) annotation chart |
+| `/genome/<accession>/parameters` | ParameterForm | Scoring criteria editor |
+| `/genome/<accession>/formula` | FormulaForm | Scoring formula builder |
+| `/protein/<id>` | ProteinView | Protein detail (structure, annotations, binders) |
+| `/structure/<id>` | StructureView | Full-screen 3D structure + pockets |
+| `/upload/` | GenomeUpload | Upload genome, trigger pipeline |
+| `/form/` | BLAST | Sequence search |
+| `/accounts/login/` | allauth | Login |
+| `/admin/` | Django admin | User management, data admin |
+
+### URL design
+
+URLs use clean accessions (e.g. `/genome/NZ_AP023069.1/proteins`), not internal workspace names. The resolver (`genome_workspace.resolve_genome_from_slug`) maps accessions back to internal names transparently.
+
+## Pipeline
+
+The genome processing pipeline runs 21 stages via Parsl:
+
+1. **Genome acquisition** — download from NCBI, use test genome, or upload `.gbk.gz`
+2. **Import** — load GenBank into database
+3. **FastTarget scoring** — human off-target, microbiome off-target, essentiality
+4. **Indexing** — DB and sequence indexes
+5. **Functional annotation** — InterProScan → load annotations
+6. **UniProt mapping** — protein-to-UniProt ID mapping
+7. **Structure prediction** — AlphaFold models + FPocket/P2Rank pocket analysis
+8. **Druggability & localization** — druggability score, PSORTb
+9. **Binders** — extract and load binder candidates
+
+### Run pipeline manually
 
 ```bash
 docker compose exec -it web bash
-source /opt/conda/etc/profile.d/conda.sh
-conda activate tpv2
-cd /app/targetpathogenweb/parsl
-source exports.sh
-python run_pipeline.py --test
+source /opt/conda/etc/profile.d/conda.sh && conda activate tpv2
+cd /app/targetpathogenweb/parsl && source exports.sh
+python run_pipeline.py --test                    # test genome
+python run_pipeline.py --gram n NC_002516.2      # NCBI accession
+python run_pipeline.py --gram n --custom file.gbk.gz  # custom file
 ```
 
-## 7. Documentation Map
+### Monitor
 
-Start here: [docs/README.md](./docs/README.md)
+```bash
+curl -s http://localhost:8085/health/pipeline
+docker compose exec web tail -f /tmp/tpw_pipeline_test.log
+```
 
-- [docs/OPERATIONS.md](./docs/OPERATIONS.md)
-- [docs/ENGINEERING.md](./docs/ENGINEERING.md)
-- [docs/FRONTEND_UI.md](./docs/FRONTEND_UI.md)
+### Recover stuck pipeline
 
-## 8. Main Structure
+```bash
+docker compose exec web bash -lc '
+  pids=$(ps -eo pid,args | grep -E "run_pipeline|process_worker_pool|fasttarget" | grep -v grep | awk "{print \$1}")
+  [ -n "$pids" ] && echo "$pids" | xargs kill -TERM
+'
+```
 
-- `tpweb/views/*`: request handling and response composition
-- `tpweb/services/*`: reusable business logic
-- `tpweb/templates/*`: Django templates
-- `static/css/components/*`: shared UI styles
-- `static/css/pages/*`: page-specific styles
-- `parsl/*`: pipeline implementation
-- `scripts/run_tests.py`: test runner
-- `Makefile`: local command shortcuts
+## Scoring System
 
-## 9. Quick Troubleshooting
+Proteins are scored via configurable formulas. Each formula combines weighted evidence parameters:
 
-- Compose fails due to missing `web` network:
-  - run `docker network create web`
-- Local SSH-dependent pipeline stages fail:
-  - check `ssh-add -L` on the host; the local profile expects a usable SSH agent or readable keys in `~/.ssh`
-- Cluster startup uses wrong paths:
-  - verify `.env` was created from `.env.cluster.example`
-- CSS/JS changes not visible:
-  - hard refresh browser (`Cmd+Shift+R`)
-- Host test run fails due to DB host mismatch:
-  - run tests inside `web` container
+- **Score parameters**: druggability, essentiality, human off-target, microbiome off-target, PSORTb localization
+- **Formulas**: user-defined weighted combinations of parameters
+- **Filters**: narrow protein list by parameter values, structure source, EC/GO annotations
 
-## 10. License
+The protein list supports search, pagination, column selection, CSV/XLSX export, and the criteria drawer for interactive filtering.
+
+## Annotation Explorer
+
+The EC/GO annotation explorer renders a Plotly sunburst chart. For EC numbers:
+
+- Hierarchy: class → subclass → sub-subclass → enzyme (4 levels)
+- Labels come from `tpweb/data/ec_hierarchy_labels.json` (authoritative source: ExPASy)
+- Rebuild labels: `python manage.py fetch_ec_nomenclature`
+
+## Frontend Build (bundle.js)
+
+Only needed when changing JS dependencies (feature-viewer, MSA viewer, etc.):
+
+```bash
+cd js
+docker build -t tpweb-webpack .
+docker run --rm -w "$PWD" -v "$PWD:$PWD" tpweb-webpack bash -lc 'npm install && npm run build'
+cp bundle.js ../static/bundle.js
+```
+
+## Design System
+
+All colors use CSS custom properties defined in `masterpage.html`:
+
+| Token family | Usage |
+|-------------|-------|
+| `--tp-color-text-*` | Text hierarchy (primary, secondary, muted, soft) |
+| `--tp-color-brand-*` | Brand accent (050–900) |
+| `--tp-color-surface*` | Backgrounds (surface, soft, muted, panel) |
+| `--tp-color-border*` | Borders (soft, default, strong) |
+| `--tp-color-success-*` | Positive states (green) |
+| `--tp-color-warning-*` | Caution states (amber) |
+| `--tp-color-danger-*` | Error states (red) |
+| `--tp-color-info-*` | Informational states (blue) |
+
+Dark mode overrides all tokens via `:root.tp-dark`. Theme toggle is in the sidebar footer.
+
+### CSS file convention
+
+- `static/css/components/ui-system.css` — shared tokens, table system, panels
+- `static/css/pages/<page>.css` — one file per page, loaded in `{% block head %}`
+- Cache busting: `?v=YYYYMMDD-N` suffix on CSS links in templates
+
+## Health Endpoints
+
+| Endpoint | Purpose |
+|----------|---------|
+| `GET /health/live` | Process alive |
+| `GET /health/ready` | DB + dependencies ready (200/503) |
+| `GET /health/pipeline` | Pipeline status JSON |
+
+## Development
+
+```bash
+make lint      # ruff check
+make format    # ruff format
+make test      # run tests (inside container recommended)
+make qa        # lint + tests
+```
+
+Tests run best inside the container (DB host is `db`):
+
+```bash
+docker compose exec web make qa
+```
+
+## Cluster Deployment
+
+See [docs/CLUSTER_DEPLOY.md](docs/CLUSTER_DEPLOY.md). Minimal flow:
+
+```bash
+cp .env.cluster.example .env
+docker compose -f docker-compose.yml -f docker-compose.cluster.yml up --build -d
+docker compose exec web python manage.py createsuperuser
+```
+
+## License
 
 See [LICENSE](./LICENSE).

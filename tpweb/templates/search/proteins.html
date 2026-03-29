@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20260322-14">
+    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20260326-1">
 {% endblock %}
 
 {% block body %}
@@ -40,14 +40,14 @@
                 {% if formula %}
                     <span class="tp-chip tp-chip--meta">{% trans "Scoring" %}: {{ formula.name }}</span>
                 {% endif %}
+                {% for score_param, values in grouped_parameters.items %}
+                    <span class="tp-chip tp-chip--meta">{{ score_param|humanize_identifier }}: {{ values|humanize_identifier }}</span>
+                {% endfor %}
                 {% if structure_source %}
                     <span class="tp-chip tp-chip--meta">{% trans "Structure" %}: {{ structure_source|humanize_identifier }}</span>
                 {% endif %}
-                {% if annotation_filter and annotation_filter.kind == 'ec' %}
-                    <span class="tp-chip tp-chip--meta">{% trans "EC" %}: {{ annotation_filter.value }}{% if annotation_filter.name %} · {{ annotation_filter.name }}{% endif %}</span>
-                {% endif %}
-                {% if annotation_filter and annotation_filter.kind == 'go' %}
-                    <span class="tp-chip tp-chip--meta">{% trans "GO" %}: {{ annotation_filter.value }}{% if annotation_filter.name %} · {{ annotation_filter.name }}{% endif %}</span>
+                {% if annotation_filter %}
+                    <span class="tp-chip tp-chip--meta">{{ annotation_filter.kind_label }}: {{ annotation_filter.value }}</span>
                 {% endif %}
             </div>
             {% if pipeline_status.available and pipeline_status.running_for_current_genome %}
@@ -65,26 +65,14 @@
                     <span class="hero-analysis-label">{% trans "Applied filters" %}</span>
                     <span class="hero-analysis-value">
                         {% if grouped_parameters or structure_source or annotation_filter %}
-                            {% if grouped_parameters|length == 1 %}
-                                {% for score_param, values in grouped_parameters.items %}
-                                    {% if formula and score_param == formula.name %}
-                                        {{ values|humanize_identifier }}
-                                    {% else %}
-                                        <strong>{{ score_param|humanize_identifier }}:</strong> {{ values|humanize_identifier }}
-                                    {% endif %}
-                                {% endfor %}
-                                {% if structure_source or annotation_filter %}<span class="hero-analysis-sep"> · </span>{% endif %}
-                            {% elif grouped_parameters %}
-                                {% for score_param, values in grouped_parameters.items %}
-                                    <span><strong>{{ score_param|humanize_identifier }}:</strong> {{ values|humanize_identifier }}</span>{% if not forloop.last %}<span class="hero-analysis-sep"> · </span>{% endif %}
-                                {% endfor %}
-                                {% if structure_source or annotation_filter %}<span class="hero-analysis-sep"> · </span>{% endif %}
-                            {% endif %}
+                            {% for score_param, values in grouped_parameters.items %}
+                                <span><strong>{{ score_param|humanize_identifier }}:</strong> {{ values|humanize_identifier }}</span>{% if not forloop.last or structure_source or annotation_filter %}<span class="hero-analysis-sep"> · </span>{% endif %}
+                            {% endfor %}
                             {% if structure_source %}
                                 <span><strong>{% trans "Structure" %}:</strong> {{ structure_source|humanize_identifier }}</span>{% if annotation_filter %}<span class="hero-analysis-sep"> · </span>{% endif %}
                             {% endif %}
                             {% if annotation_filter %}
-                                <span><strong>{{ annotation_filter.kind_label }}:</strong> {{ annotation_filter.value }}{% if annotation_filter.name %} · {{ annotation_filter.name }}{% endif %}</span>
+                                <span><strong>{{ annotation_filter.kind_label }}:</strong> {{ annotation_filter.value }}</span>
                             {% endif %}
                         {% else %}
                             {% trans "No active filters" %}
@@ -105,12 +93,6 @@
                     <span class="hero-analysis-label">{% trans "Rows per page" %}</span>
                     <span class="hero-analysis-value">{{ page_size }}</span>
                 </p>
-                {% if structure_source %}
-                    <p class="hero-analysis-line">
-                        <span class="hero-analysis-label">{% trans "Structure filter" %}</span>
-                        <span class="hero-analysis-value">{{ structure_source|humanize_identifier }}</span>
-                    </p>
-                {% endif %}
             </div>
             {% if pipeline_status.available and pipeline_status.current_genome_status_note %}
                 <p class="tp-state-note {% if pipeline_status.failed_for_current_genome %}tp-state-note--error{% else %}tp-state-note--empty{% endif %}">
@@ -118,38 +100,6 @@
                 </p>
             {% endif %}
         </section>
-
-        {% if annotation_filter %}
-        <section class="functional-filter-card tp-ui-panel">
-            <div class="functional-filter-head">
-                <div>
-                    <h2>{% trans "Functional filter" %}</h2>
-                    <p>{% trans "This protein set is currently constrained by a functional annotation term." %}</p>
-                </div>
-                <a href="{{ clear_annotation_url }}" class="btn tp-btn tp-btn--clear">{% trans "Clear" %}</a>
-            </div>
-            <div class="functional-filter-facts">
-                <p class="functional-filter-line">
-                    <span class="functional-filter-label">{% trans "Type" %}</span>
-                    <span class="functional-filter-value">{{ annotation_filter.kind_label }}</span>
-                </p>
-                <p class="functional-filter-line">
-                    <span class="functional-filter-label">{% trans "Accession" %}</span>
-                    <span class="functional-filter-value">{{ annotation_filter.value }}</span>
-                </p>
-                {% if annotation_filter.name %}
-                <p class="functional-filter-line">
-                    <span class="functional-filter-label">{% trans "Label" %}</span>
-                    <span class="functional-filter-value">{{ annotation_filter.name }}</span>
-                </p>
-                {% endif %}
-                <p class="functional-filter-line">
-                    <span class="functional-filter-label">{% trans "Manual control" %}</span>
-                    <span class="functional-filter-value">{% trans "Managed from Advanced criteria" %}</span>
-                </p>
-            </div>
-        </section>
-        {% endif %}
 
         <section class="toolbar-card tp-ui-toolbar">
             <form method="GET" action="{{ request.path }}" class="search-form tp-ui-toolbar-form" id="protein-search-form">
@@ -164,7 +114,7 @@
                 <div class="toolbar-search-row tp-ui-search-row tp-ui-toolbar-row tp-ui-toolbar-row--stack-sm">
                     <div id="protein-search-autocomplete"
                          class="search-autocomplete tp-ui-search"
-                         data-suggest-url="{% url 'tpwebapp:protein_search_suggestions' assembly_name=assembly_name %}"
+                         data-suggest-url="{% url 'tpwebapp:protein_search_suggestions' genome=genome %}"
                          data-suggest-error="{% trans 'Failed suggestions request' %}">
                         <input id="protein-search-input"
                                type="text"
@@ -257,40 +207,72 @@
                             <tr class="protein-row">
                                 <td class="rank-col">{{ pagination.proteins.start_index|add:forloop.counter0 }}</td>
                                 <td class="acc-col"><a href="{% url 'tpwebapp:protein' protein.id %}">{{ protein.accession }}</a></td>
-                                <td class="desc-col" title="{{ protein.description }}">{{ protein.description }}</td>
-                                <td class="gene-col" title="{{ protein.genes|join:', ' }}">{{ protein.genes|join:', ' }}</td>
+                                <td class="desc-col">{{ protein.description }}</td>
+                                <td class="gene-col">{{ protein.genes|join:', ' }}</td>
                                 <td data-col="structure-source">
-                                    <span class="tp-chip tp-chip--meta tp-chip--sm">{{ protein.structure_source_label }}</span>
+                                    {% if protein.has_structure %}
+                                        <span class="tp-chip tp-chip--meta tp-chip--sm">{{ protein.structure_source_label }}</span>
+                                    {% else %}
+                                        <span class="tp-chip tp-chip--warning tp-chip--sm structure-unavailable">{{ protein.structure_source_label }}<span class="cell-tooltip" role="tooltip">{% trans "No structure available — sequence may exceed the prediction length limit" %}</span></span>
+                                    {% endif %}
                                 </td>
                                 <td data-col="ec">
                                     {% if protein.ec_badges %}
-                                        {% for ec in protein.ec_badges %}
-                                            <a href="{% url 'tpwebapp:protein_list' assembly_name=assembly_name %}?annotation_kind=ec&annotation_value={{ ec.accession }}" class="tp-chip tp-chip--meta tp-chip--sm">{{ ec.accession }}</a>
-                                        {% endfor %}
+                                        <div class="annotation-cell">
+                                            {% for ec in protein.ec_badges %}
+                                                <a href="{% url 'tpwebapp:protein_list' genome=genome %}?annotation_kind=ec&annotation_value={{ ec.accession }}" class="tp-chip tp-chip--ec tp-chip--sm annotation-chip-tip">{{ ec.accession }}{% if ec.name %}<span class="cell-tooltip" role="tooltip">{{ ec.name }}</span>{% endif %}</a>
+                                            {% endfor %}
+                                            {% if protein.ec_remaining %}
+                                                <span class="annotation-more annotation-chip-tip">+{{ protein.ec_remaining }}<span class="cell-tooltip" role="tooltip">{{ protein.ec_total }} {% trans "total" %}</span></span>
+                                            {% endif %}
+                                        </div>
                                     {% else %}
-                                        -
+                                        <span class="annotation-empty">–<span class="cell-tooltip" role="tooltip">{% trans "No EC annotations" %}</span></span>
                                     {% endif %}
                                 </td>
                                 <td data-col="go">
                                     {% if protein.go_badges %}
-                                        {% for go in protein.go_badges %}
-                                            <div class="annotation-badge-stack">
-                                                <a href="{% url 'tpwebapp:protein_list' assembly_name=assembly_name %}?annotation_kind=go&annotation_value={{ go.accession }}" class="tp-chip tp-chip--meta tp-chip--sm" title="{{ go.name|default:go.accession }}">{{ go.accession }}</a>
-                                                {% if go.name %}
-                                                    <div class="annotation-badge-caption">{{ go.name }}</div>
-                                                {% endif %}
-                                            </div>
-                                        {% endfor %}
+                                        <div class="annotation-cell">
+                                            {% for go in protein.go_badges %}
+                                                <a href="{% url 'tpwebapp:protein_list' genome=genome %}?annotation_kind=go&annotation_value={{ go.accession }}" class="tp-chip tp-chip--go tp-chip--sm annotation-chip-tip">{{ go.accession }}{% if go.name %}<span class="cell-tooltip" role="tooltip">{{ go.name }}</span>{% endif %}</a>
+                                            {% endfor %}
+                                            {% if protein.go_remaining %}
+                                                <span class="annotation-more annotation-chip-tip">+{{ protein.go_remaining }}<span class="cell-tooltip" role="tooltip">{{ protein.go_total }} {% trans "total" %}</span></span>
+                                            {% endif %}
+                                        </div>
                                     {% else %}
-                                        -
+                                        <span class="annotation-empty">–<span class="cell-tooltip" role="tooltip">{% trans "No GO annotations" %}</span></span>
                                     {% endif %}
                                 </td>
                                 {% for col in tcolumns %}
                                     <td data-col="{{ col|slugify }}">
-                                        {% if col == "Score" %}
-                                            <span class="tp-chip tp-chip--score">{{ tdata|dictkey:protein.id|dictkey:col|default:"" }}</span>
+                                        {% if not protein.has_structure %}
+                                            <span class="metric-no-structure">
+                                                <span class="metric-no-structure-icon" aria-hidden="true">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6v3"/><circle cx="8" cy="11.5" r="0.01" stroke-width="2"/><path d="M6.9 2.5l-5 8.5A1.3 1.3 0 0 0 3 13h10a1.3 1.3 0 0 0 1.1-2l-5-8.5a1.3 1.3 0 0 0-2.2 0z"/></svg>
+                                                </span>
+                                                {% trans "No structure" %}
+                                                <span class="metric-tooltip" role="tooltip">{% trans "No 3D structure available — this value cannot be computed without a structural model" %}</span>
+                                            </span>
+                                        {% elif col == "Score" %}
+                                            {% with score_val=tdata|dictkey:protein.id|dictkey:col %}
+                                                {% if score_val %}
+                                                    <span class="tp-chip tp-chip--score">{{ score_val|floatformat:2 }}</span>
+                                                {% else %}
+                                                    <span class="metric-zero">
+                                                        <span class="metric-zero-value">0.00</span>
+                                                        <span class="metric-tooltip" role="tooltip">{% trans "No weighted parameters contributed to the score" %}</span>
+                                                    </span>
+                                                {% endif %}
+                                            {% endwith %}
                                         {% else %}
-                                            <span class="protein-metric-value" title="{{ tdata|dictkey:protein.id|dictkey:col|default:'-' }}">{{ tdata|dictkey:protein.id|dictkey:col|default:"-" }}</span>
+                                            {% with val=tdata|dictkey:protein.id|dictkey:col %}
+                                                {% if val != "-" and val != "" %}
+                                                    <span class="protein-metric-value">{{ val }}</span>
+                                                {% else %}
+                                                    <span class="metric-na">N/A<span class="cell-tooltip" role="tooltip">{% trans "Not available for this protein" %}</span></span>
+                                                {% endif %}
+                                            {% endwith %}
                                         {% endif %}
                                     </td>
                                 {% endfor %}
@@ -308,7 +290,14 @@
 
                 <div class="pagination-row">
                     <span class="pagination-label">
-                        {% trans "Page" %} {{ pagination.number }} {% trans "of" %} {{ pagination.num_pages }} · {{ pagination.proteins.paginator.count }} {% trans "total proteins" %}
+                        {% if pagination.num_pages > 1 %}
+                            {% trans "Page" %}
+                            <input type="number" id="pageJumpInput" class="page-jump-input" value="{{ pagination.number }}" min="1" max="{{ pagination.num_pages }}" aria-label="{% trans 'Go to page' %}">
+                            {% trans "of" %} {{ pagination.num_pages }}
+                        {% else %}
+                            {% trans "Page" %} 1 {% trans "of" %} 1
+                        {% endif %}
+                         · {{ pagination.proteins.paginator.count }} {% trans "total proteins" %}
                     </span>
                     <ul class="pagination tp-pagination">
                         <li class="page-item {% if not pagination.has_previous %}disabled{% endif %}">
@@ -433,9 +422,15 @@
             <div class="drawer-block drawer-block--active-filters">
                 <div class="drawer-block-head">
                     <h3>{% trans "Active criteria" %}</h3>
-                    <span class="drawer-meta tp-chip tp-chip--count tp-chip--sm">{{ display_parameters|length }}</span>
+                    <span class="drawer-meta tp-chip tp-chip--count tp-chip--sm">{% if annotation_filter %}{{ display_parameters|length|add:1 }}{% else %}{{ display_parameters|length }}{% endif %}</span>
                 </div>
-                <div class="active-filters {% if not display_parameters %}is-empty{% endif %}">
+                <div class="active-filters {% if not display_parameters and not annotation_filter %}is-empty{% endif %}">
+                    {% if annotation_filter %}
+                        <a href="{{ clear_annotation_url }}" class="filter-pill tp-chip tp-chip--filter">
+                            <span>{{ annotation_filter.kind_label }}: {{ annotation_filter.value }}{% if annotation_filter.name %} · {{ annotation_filter.name }}{% endif %}</span>
+                            <span class="filter-pill-remove" title="{% trans 'Remove filter' %}" aria-label="{% trans 'Remove filter' %}">&times;</span>
+                        </a>
+                    {% endif %}
                     {% for parameter in display_parameters %}
                         <form method="POST" action="" class="filter-pill tp-chip tp-chip--filter">
                             {% csrf_token %}
@@ -446,13 +441,15 @@
                             <button type="submit" class="filter-pill-remove tp-focusable" title="{% trans "Remove filter" %}" aria-label="{% trans "Remove filter" %}">&times;</button>
                         </form>
                     {% empty %}
+                        {% if not annotation_filter %}
                         <p class="active-filters-empty tp-state-note tp-state-note--empty">{% trans "No active criteria yet. Add one above to narrow the protein set." %}</p>
+                        {% endif %}
                     {% endfor %}
                 </div>
             </div>
         </div>
         <div class="drawer-foot">
-            <a href="{% url 'tpwebapp:parameterformview' assembly_name=assembly_name %}{% if query_string %}?{{ query_string }}{% endif %}" class="btn tp-btn tp-btn--clear drawer-advanced-btn">
+            <a href="{% url 'tpwebapp:parameterformview' genome=genome %}{% if query_string %}?{{ query_string }}{% endif %}" class="btn tp-btn tp-btn--clear drawer-advanced-btn">
                 {% trans "Advanced criteria" %}
             </a>
             <form method="POST" action="" class="drawer-reset-form">
@@ -460,7 +457,7 @@
                 <input type="hidden" name="action" value="reset_filters">
                 <input type="hidden" name="return_query" value="{{ query_string }}">
                 {% trans "Clear criteria" as clear_filters_label %}
-                {% if parameters %}
+                {% if parameters or annotation_filter %}
                     {% include "components/buttons/clear_action.html" with label=clear_filters_label button_type="submit" classes="btn tp-btn tp-btn--clear tp-btn--clear-caution tp-btn-with-icon drawer-clear-btn" %}
                 {% else %}
                     {% include "components/buttons/clear_action.html" with label=clear_filters_label button_type="submit" disabled="1" classes="btn tp-btn tp-btn--clear tp-btn--clear-caution tp-btn-with-icon drawer-clear-btn" %}
@@ -706,7 +703,7 @@
                         <h3>{% trans "Scoring resources" %}</h3>
                         <p>{% trans "Maintain the scoring model and custom evidence that define this analysis context." %}</p>
                     </div>
-                    {% url 'tpwebapp:prioritization_setup' assembly_name=assembly_name as prioritization_setup_base_url %}
+                    {% url 'tpwebapp:prioritization_setup' genome=genome as prioritization_setup_base_url %}
                     <div class="formula-resources-actions">
                         <a href="{{ prioritization_setup_base_url }}{% if formula %}?scoreformula={{ formula.name|urlencode }}{% endif %}" class="btn tp-btn tp-btn--primary">{% trans "Open prioritization setup" %}</a>
                     </div>
@@ -793,6 +790,24 @@
 
             if (pageSizeSelect) {
                 pageSizeSelect.addEventListener("change", submitSearchForm);
+            }
+
+            var pageJumpInput = document.getElementById("pageJumpInput");
+            if (pageJumpInput) {
+                function navigateToPage() {
+                    var page = parseInt(pageJumpInput.value, 10);
+                    var max = parseInt(pageJumpInput.max, 10);
+                    if (!page || page < 1) page = 1;
+                    if (page > max) page = max;
+                    if (page === {{ pagination.number }}) return;
+                    var params = new URLSearchParams(window.location.search);
+                    params.set("page", page);
+                    window.location.search = params.toString();
+                }
+                pageJumpInput.addEventListener("keydown", function (e) {
+                    if (e.key === "Enter") { e.preventDefault(); navigateToPage(); }
+                });
+                pageJumpInput.addEventListener("blur", navigateToPage);
             }
 
             if (searchForm) {

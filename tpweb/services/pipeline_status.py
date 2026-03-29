@@ -15,7 +15,7 @@ from django.conf import settings
 from tpweb.services.genome_workspace import display_genome_name, user_can_access_genome_name
 
 # Main pipeline stages from parsl/run_pipeline.py.
-PIPELINE_STAGE_TOTAL = 21
+PIPELINE_STAGE_TOTAL = 23
 INPUT_APPS = {"test_gbk", "download_gbk", "custom_gbk"}
 STAGE_LABELS = {
     1: "Cleaning previous output",
@@ -30,15 +30,17 @@ STAGE_LABELS = {
     10: "Running InterProScan",
     11: "Loading InterPro annotations",
     12: "Mapping to UniProt",
-    13: "Collecting UniProt list",
-    14: "Generating AlphaFold models",
-    15: "Loading structures and pockets",
-    16: "Computing druggability table",
-    17: "Loading druggability score",
-    18: "Predicting subcellular localization",
-    19: "Loading PSORT score",
-    20: "Collecting binder candidates",
-    21: "Loading binders",
+    13: "Fetching UniProt annotations",
+    14: "Collecting UniProt list",
+    15: "Generating AlphaFold models",
+    16: "Predicting missing structures (ESMFold)",
+    17: "Loading structures and pockets",
+    18: "Computing druggability table",
+    19: "Loading druggability score",
+    20: "Predicting subcellular localization",
+    21: "Loading PSORT score",
+    22: "Collecting binder candidates",
+    23: "Loading binders",
 }
 ARGENTINA_TZ = timezone(timedelta(hours=-3))
 PIPELINE_STATUS_CACHE_TTL_SECONDS = float(
@@ -48,8 +50,12 @@ _PIPELINE_STATUS_CACHE: dict = {
     "expires_at": 0.0,
     "status": None,
 }
-RUNINFO_CANDIDATE_RELATIVE_DIRS = ("parsl/runinfo", "runinfo")
-LAST_RUN_MARKER_RELATIVE_PATHS = ("parsl/last_pipeline_run.json", "last_pipeline_run.json")
+RUNINFO_CANDIDATE_RELATIVE_DIRS = ("data/parsl/runinfo", "parsl/runinfo", "runinfo")
+LAST_RUN_MARKER_RELATIVE_PATHS = (
+    "data/parsl/last_pipeline_run.json",
+    "parsl/last_pipeline_run.json",
+    "last_pipeline_run.json",
+)
 FAILED_PIPELINE_STATE_LABELS = {"Last pipeline run failed"}
 INCOMPLETE_PIPELINE_STATE_LABELS = FAILED_PIPELINE_STATE_LABELS | {
     "Last pipeline run stopped before completion"
@@ -367,8 +373,8 @@ def _stage_from_app(app_name, load_score_seen):
     if app_name == "fasttarget":
         return 4
     if app_name == "load_score":
-        mapping = {1: 5, 2: 6, 3: 7, 4: 17, 5: 19}
-        return mapping.get(load_score_seen, 19)
+        mapping = {1: 5, 2: 6, 3: 7, 4: 19, 5: 21}
+        return mapping.get(load_score_seen, 21)
     if app_name == "index_genome_db":
         return 8
     if app_name == "index_genome_seq":
@@ -379,22 +385,26 @@ def _stage_from_app(app_name, load_score_seen):
         return 11
     if app_name == "gbk2uniprot_map":
         return 12
-    if app_name == "get_unipslst":
+    if app_name == "fetch_uniprot_annotations":
         return 13
-    if app_name == "alphafold_unips":
+    if app_name == "get_unipslst":
         return 14
-    if app_name == "strucutures_af":
+    if app_name == "alphafold_unips":
         return 15
-    if app_name in {"fpocket2json", "load_pocket", "p2rank2json", "load_p2pocket"}:
-        return 15
-    if app_name == "druggability_2_csv":
+    if app_name == "esmfold_predict":
         return 16
-    if app_name == "psort":
+    if app_name == "strucutures_af":
+        return 17
+    if app_name in {"fpocket2json", "load_pocket", "p2rank2json", "load_p2pocket", "load_af_model"}:
+        return 17
+    if app_name == "druggability_2_csv":
         return 18
-    if app_name == "get_binders":
+    if app_name == "psort":
         return 20
+    if app_name == "get_binders":
+        return 22
     if app_name == "load_binders":
-        return 21
+        return 23
     return None
 
 
@@ -415,14 +425,86 @@ def _current_running_upload():
     )
 
 
+def _status_from_running_upload(upload):
+    if upload is None:
+        return None
+
+    status_data = _default_pipeline_status().as_dict()
+    status_data["available"] = True
+    status_data["running"] = True
+    status_data["state_label"] = "Pipeline running"
+    status_data["state_class"] = "running"
+    status_data["run_id"] = f"upload:{upload.id}"
+    status_data["genome_accession"] = str(upload.internal_accession or "").strip() or None
+    status_data["genome_display_accession"] = display_genome_name(
+        status_data["genome_accession"]
+    )
+    status_data["activity_label"] = "Genome upload in progress"
+
+    timestamp = None
+    run_log_path = Path(str(getattr(upload, "run_log_path", "") or "").strip())
+    if run_log_path.exists() and run_log_path.is_file():
+        try:
+            timestamp = datetime.fromtimestamp(run_log_path.stat().st_mtime, tz=timezone.utc)
+        except Exception:
+            timestamp = None
+
+    if timestamp is None:
+        timestamp = getattr(upload, "updated_at", None) or getattr(upload, "launched_at", None)
+        if timestamp is not None and timestamp.tzinfo is None:
+            timestamp = timestamp.replace(tzinfo=timezone.utc)
+
+    if timestamp is not None:
+        status_data["last_updated"] = timestamp.astimezone(ARGENTINA_TZ).strftime(
+            "%Y-%m-%d %H:%M (UTC-3)"
+        )
+
+    return PipelineStatus(**status_data)
+
+
 def _stage_by_task_id(tracked_tasks: Mapping[int, str]) -> dict[int, int | None]:
-    load_score_seen = 0
+    # The pipeline has multiple load_score calls at different stages.
+    # Sub-tasks spawned by join_apps (strucutures_af) can have higher task IDs
+    # than later main-pipeline tasks, so we must track load_score order only
+    # for the *first* occurrence of each load_score task_id in submission order.
+    #
+    # Pipeline order of load_score: human_offtarget(5), micro_offtarget(6),
+    # essentiality(7), druggability(19), psort(21).
+    #
+    # Strategy: find the first task_id for each non-repeatable app to anchor
+    # the main pipeline spine, then assign load_score ordinals only to task_ids
+    # that appear in this spine.
+    sorted_ids = sorted(tracked_tasks.keys())
+
+    # Build the "main spine": for apps that appear exactly once in the pipeline
+    # (everything except alphafold_unips, load_af_model, fpocket2json, etc.),
+    # take the first task_id.  For load_score, keep all task_ids that appear
+    # *before* any sub-task app (load_af_model, fpocket2json, load_pocket,
+    # p2rank2json, load_p2pocket) OR *after* strucutures_af completes.
+    SUB_TASK_APPS = {"load_af_model", "fpocket2json", "load_pocket", "p2rank2json", "load_p2pocket"}
+
+    # Identify which load_score tasks belong to the main pipeline.
+    # They are the ones whose task_id is NOT between the first sub-task and
+    # the last sub-task.
+    sub_task_ids = [tid for tid in sorted_ids if tracked_tasks[tid] in SUB_TASK_APPS]
+    sub_range = (min(sub_task_ids), max(sub_task_ids)) if sub_task_ids else (None, None)
+
+    load_score_order = {}
+    load_score_count = 0
+    for task_id in sorted_ids:
+        if tracked_tasks[task_id] != "load_score":
+            continue
+        # Skip load_score tasks that fall within the sub-task range
+        if sub_range[0] is not None and sub_range[0] <= task_id <= sub_range[1]:
+            continue
+        load_score_count += 1
+        load_score_order[task_id] = load_score_count
+
     stage_by_task = {}
-    for task_id in sorted(tracked_tasks.keys()):
+    for task_id in sorted_ids:
         app_name = tracked_tasks[task_id]
-        if app_name == "load_score":
-            load_score_seen += 1
-        stage_by_task[task_id] = _stage_from_app(app_name, load_score_seen)
+        ls_seen = load_score_order.get(task_id, load_score_count)
+        stage_by_task[task_id] = _stage_from_app(app_name, ls_seen)
     return stage_by_task
 
 
@@ -434,23 +516,25 @@ def get_pipeline_status_dto() -> PipelineStatus:
         return cached_status
 
     status = _default_pipeline_status()
+    running_upload = _current_running_upload()
+    running_upload_status = _status_from_running_upload(running_upload)
 
     base_dir = Path(settings.BASE_DIR)
     last_run_marker = _load_last_run_marker(base_dir)
     runinfo_dir = _resolve_runinfo_dir(base_dir)
     if runinfo_dir is None:
         marker_status = _status_from_last_run_marker(base_dir)
-        return marker_status or status
+        return running_upload_status or marker_status or status
 
     latest_run = _latest_run_dir(runinfo_dir)
     if latest_run is None:
         marker_status = _status_from_last_run_marker(base_dir)
-        return marker_status or status
+        return running_upload_status or marker_status or status
 
     log_path = latest_run / "parsl.log"
     if not log_path.exists():
         marker_status = _status_from_last_run_marker(base_dir)
-        return marker_status or status
+        return running_upload_status or marker_status or status
 
     updated_at_ar = datetime.fromtimestamp(log_path.stat().st_mtime, tz=timezone.utc).astimezone(
         ARGENTINA_TZ
@@ -486,12 +570,11 @@ def get_pipeline_status_dto() -> PipelineStatus:
 
     tracked = {task_id: app for task_id, app in submitted.items() if app != "run"}
     if not tracked:
-        return PipelineStatus(**status_data)
+        return running_upload_status or PipelineStatus(**status_data)
 
     stage_by_task = _stage_by_task_id(tracked)
     pending_task_ids = sorted([task_id for task_id in tracked if task_id not in completed])
     ps_lines = _ps_args_lines()
-    running_upload = _current_running_upload()
     running_upload_accession = None
     if running_upload is not None:
         running_upload_accession = str(running_upload.internal_accession or "").strip() or None
@@ -504,6 +587,11 @@ def get_pipeline_status_dto() -> PipelineStatus:
     # ps won't see it. Use log recency as an alternative signal — if parsl.log was
     # written within the last 30 s, something is actively running.
     log_recently_updated = (time.time() - log_path.stat().st_mtime) < 30
+    if running_upload_status is not None and not process_running and not log_recently_updated:
+        final_status = running_upload_status
+        _PIPELINE_STATUS_CACHE["status"] = final_status
+        _PIPELINE_STATUS_CACHE["expires_at"] = now + PIPELINE_STATUS_CACHE_TTL_SECONDS
+        return final_status
     running = bool(pending_task_ids) and not cleanup_complete and (
         process_running or log_recently_updated
     )
@@ -564,10 +652,9 @@ def get_pipeline_status_dto() -> PipelineStatus:
             else:
                 status_data["state_label"] = "Last pipeline run finished"
                 status_data["state_class"] = "finished"
-                if status_data.get("stage_current") is None:
-                    status_data["stage_current"] = PIPELINE_STAGE_TOTAL
-                    status_data["stage_label"] = STAGE_LABELS.get(PIPELINE_STAGE_TOTAL)
-                    status_data["progress_percent"] = 100
+                status_data["stage_current"] = PIPELINE_STAGE_TOTAL
+                status_data["stage_label"] = STAGE_LABELS.get(PIPELINE_STAGE_TOTAL)
+                status_data["progress_percent"] = 100
             if not status_data.get("genome_accession"):
                 status_data["genome_accession"] = last_run_marker.genome_accession
                 status_data["genome_display_accession"] = display_genome_name(

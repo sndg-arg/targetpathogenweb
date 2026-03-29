@@ -12,6 +12,7 @@ from django.db.models import Q
 from tpweb.models.ScoreParamValue import ScoreParamValue
 from tpweb.models.ScoreParam import ScoreParamOptions
 from django.shortcuts import redirect
+from urllib.parse import urlencode, parse_qs
 from tpweb.services.protein_list import (
     DEFAULT_PAGE_SIZE,
     add_selected_parameter,
@@ -47,7 +48,8 @@ from tpweb.services.workspace import (
 )
 from tpweb.services.genome_workspace import (
     display_genome_name,
-    user_can_access_genome_name,
+    genome_url_slug,
+    resolve_genome_from_slug,
 )
 from tpweb.services.protein_serializer import (
     build_protein_table_row,
@@ -63,7 +65,11 @@ from tpweb.services.score_params import visible_score_params_queryset
 
 
 class ProteinSearchSuggestionsView(View):
-    def get(self, request, assembly_name, *args, **kwargs):
+    def get(self, request, genome, *args, **kwargs):
+        assembly_name = resolve_genome_from_slug(request.user, genome)
+        if not assembly_name:
+            return JsonResponse({"results": []})
+
         query = request.GET.get("q", "").strip()
         if len(query) < 2:
             return JsonResponse({"results": []})
@@ -223,7 +229,7 @@ class ProteinListView(View):
         ).prefetch_related(
             "qualifiers__term",
             "structures__pdb",
-            "dbxrefs__dbxref__terms",
+            "dbxrefs__dbxref__terms__term",
             Prefetch(
                 "score_params",
                 queryset=ScoreParamValue.objects.filter(
@@ -304,7 +310,7 @@ class ProteinListView(View):
             },
         ]
 
-    def post(self, request, assembly_name, *args, **kwargs):
+    def post(self, request, genome, *args, **kwargs):
         selected_parameters = normalize_selected_parameters(
             get_workspace_session_value(request.session, request.user, "selected_parameters", [])
         )
@@ -357,11 +363,21 @@ class ProteinListView(View):
         return_query = request.POST.get("return_query", "").strip()
         redirect_url = request.path
         if return_query:
-            redirect_url = f"{redirect_url}?{return_query}"
+            params = parse_qs(return_query, keep_blank_values=False)
+            if action == "reset_filters":
+                for key in ("annotation_kind", "annotation_value", "ec_filter"):
+                    params.pop(key, None)
+            cleaned = urlencode(
+                {k: v[0] if len(v) == 1 else v for k, v in params.items()},
+                doseq=True,
+            )
+            if cleaned:
+                redirect_url = f"{redirect_url}?{cleaned}"
         return redirect(redirect_url)
 
-    def get(self, request, assembly_name, *args, **kwargs):
-        if not user_can_access_genome_name(request.user, assembly_name):
+    def get(self, request, genome, *args, **kwargs):
+        assembly_name = resolve_genome_from_slug(request.user, genome)
+        if not assembly_name:
             raise Http404("Genome not found")
 
         page_size = parse_page_size(request.GET.get("pageSize", DEFAULT_PAGE_SIZE))
@@ -624,7 +640,7 @@ class ProteinListView(View):
             "biodb__name": bdb.description if bdb.description else bdb.name,
             "biodb_accession": display_genome_name(bdb.name),
             "biodb_description": bdb.description if bdb.description else "",
-            "assembly_url": reverse("tpwebapp:assembly", kwargs={"assembly_id": assembly_name}),
+            "assembly_url": reverse("tpwebapp:assembly", kwargs={"genome": genome_url_slug(assembly_name)}),
             "proteins": proteins_dto,
             "score_dict": score_dict,
             "tcolumns": tcolumns,
@@ -635,10 +651,11 @@ class ProteinListView(View):
             "current_formula":current_formula,
             "formula_term_count": len(formula_term_list),
             "query_string": query_string,
+            "genome": genome_url_slug(assembly_name),
             "assembly_name":assembly_name,
             "assembly_label": display_genome_name(assembly_name),
             "parameters":selected_parameters,
-            "selection_criteria_count": len(selected_parameters),
+            "selection_criteria_count": len(selected_parameters) + (1 if annotation_value else 0),
             "display_parameters":display_parameters,
             "grouped_parameters":grouped_parameters,
             "pagination":pagination_info,
