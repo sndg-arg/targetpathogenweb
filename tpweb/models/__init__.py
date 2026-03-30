@@ -6,6 +6,7 @@ from .CelularLocalization import CelularLocalization
 from .CustomParamFile import CustomParam
 from .Binders import Binders
 from .GenomeUpload import GenomeUpload
+from .PipelineRun import PipelineRun, PipelineStageEvent
 
 class TPUser(AbstractUser):
     """

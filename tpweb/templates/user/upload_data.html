@@ -170,13 +170,22 @@
 {% block jsloaded %}
 <script>
     function jsloaded() {
-        const btn = document.querySelector(".genome-upload-refresh-btn");
-        if (!btn) return;
-        btn.addEventListener("click", () => {
-            const icon = btn.querySelector(".genome-upload-refresh-icon");
-            if (icon) icon.classList.add("is-spinning");
-            btn.disabled = true;
-            window.location.reload();
+        var btn = document.querySelector(".genome-upload-refresh-btn");
+        if (btn) {
+            btn.addEventListener("click", function () {
+                var icon = btn.querySelector(".genome-upload-refresh-icon");
+                if (icon) icon.classList.add("is-spinning");
+                btn.disabled = true;
+                window.location.assign(window.location.pathname);
+            });
+        }
+
+        // Prevent double-submit on all POST forms in this page.
+        document.querySelectorAll(".genome-upload-card form[method=post], .genome-upload-test-form").forEach(function (form) {
+            form.addEventListener("submit", function () {
+                var submits = form.querySelectorAll("button[type=submit], input[type=submit]");
+                submits.forEach(function (b) { b.disabled = true; });
+            });
         });
     }
     $(document).ready(jsloaded);

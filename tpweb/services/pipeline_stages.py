@@ -1,0 +1,27 @@
+PIPELINE_STAGE_TOTAL = 23
+
+STAGE_LABELS = {
+    1: "Cleaning previous output",
+    2: "Loading genome input",
+    3: "Importing genome records",
+    4: "Running FastTarget scoring",
+    5: "Loading human offtarget score",
+    6: "Loading microbiome offtarget score",
+    7: "Loading essentiality score",
+    8: "Building DB indexes",
+    9: "Indexing sequence files",
+    10: "Running InterProScan",
+    11: "Loading InterPro annotations",
+    12: "Mapping to UniProt",
+    13: "Fetching UniProt annotations",
+    14: "Collecting UniProt list",
+    15: "Generating AlphaFold models",
+    16: "Predicting missing structures (ESMFold)",
+    17: "Loading structures and pockets",
+    18: "Computing druggability table",
+    19: "Loading druggability score",
+    20: "Predicting subcellular localization",
+    21: "Loading PSORT score",
+    22: "Collecting binder candidates",
+    23: "Loading binders",
+}

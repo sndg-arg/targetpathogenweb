@@ -11,6 +11,7 @@ from django.utils import timezone
 from bioseq.models.Biodatabase import Biodatabase
 from tpweb.models import GenomeUpload
 from tpweb.services.pipeline_status import clear_pipeline_activity_state
+from tpweb.services.pipeline_runs import cancel_pipeline_run, latest_pipeline_run_for_accession, latest_pipeline_run_for_upload
 
 
 TEST_GENOME_ACCESSION = "NZ_AP023069.1"
@@ -33,6 +34,8 @@ def _build_pipeline_runtime(upload, command_suffix):
     env["PYTHONPATH"] = ":".join(pythonpath_parts)
     env["PATH"] = f"{python_bin_dir}:{existing_path}" if existing_path else python_bin_dir
     env.setdefault("DJANGO_SETTINGS_MODULE", "tpwebconfig.settings")
+    env["TPW_GENOME_UPLOAD_ID"] = str(upload.id)
+    env["TPW_PIPELINE_LOG_PATH"] = str(log_path)
 
     command = [
         "bash",
@@ -243,6 +246,14 @@ def delete_genome_workspace(internal_accession, owner=None):
 
     deleted_uploads = 0
     for upload in list(uploads):
+        active_run = latest_pipeline_run_for_upload(upload.id) or latest_pipeline_run_for_accession(
+            upload.internal_accession
+        )
+        if active_run and active_run.status in {
+            active_run.STATUS_SUBMITTED,
+            active_run.STATUS_RUNNING,
+        }:
+            cancel_pipeline_run(active_run)
         _delete_upload_artifacts(upload)
         upload.delete()
         deleted_uploads += 1
@@ -260,6 +271,14 @@ def clear_genome_upload_history(owner):
     deleted_count = 0
 
     for upload in uploads:
+        active_run = latest_pipeline_run_for_upload(upload.id) or latest_pipeline_run_for_accession(
+            upload.internal_accession
+        )
+        if active_run and active_run.status in {
+            active_run.STATUS_SUBMITTED,
+            active_run.STATUS_RUNNING,
+        }:
+            cancel_pipeline_run(active_run)
         if upload.status != GenomeUpload.STATUS_FINISHED:
             _delete_workspace_biodatabases(upload.internal_accession)
 

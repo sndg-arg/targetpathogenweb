@@ -473,7 +473,9 @@
                         {% endfor %}
                     </div>
                 </section>
-            {% else %}
+            {% endif %}
+
+            {% if not structure %}
                 <section class="protein-card tp-ui-panel" id="section-structure">
                     <div class="section-head tp-ui-panel-head">
                         <div>

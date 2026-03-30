@@ -14,6 +14,7 @@ from bioseq.models.BioentryDbxref import BioentryDbxref
 from bioseq.models.Biodatabase import Biodatabase
 from tpweb.models.BioentryStructure import BioentryStructure
 from tpweb.models.GenomeUpload import GenomeUpload
+from tpweb.models.PipelineRun import PipelineRun
 from tpweb.models.ScoreFormula import ScoreFormula
 from tpweb.models.ScoreParam import ScoreParam
 from tpweb.services.assembly_workspace import build_assembly_workspace_metrics
@@ -580,6 +581,57 @@ class GenomeUploadQueueTests(TestCase):
         upload.refresh_from_db()
         self.assertEqual(upload.status, GenomeUpload.STATUS_RUNNING)
         self.assertEqual(upload.error_message, "")
+
+    @patch("tpweb.services.genome_upload_status._upload_has_matching_process")
+    @patch("tpweb.services.genome_upload_status._process_exists")
+    def test_reconcile_ignores_cancelled_legacy_run_for_new_upload(
+        self, process_exists, upload_has_matching_process
+    ):
+        upload = self.create_upload(self.alice, "NZ_AP023069.1", GenomeUpload.STATUS_SUBMITTED)
+        process_exists.return_value = False
+        upload_has_matching_process.return_value = False
+
+        PipelineRun.objects.create(
+            genome_upload=None,
+            internal_accession=upload.internal_accession,
+            source_accession="NZ_AP023069.1",
+            gram="n",
+            status=PipelineRun.STATUS_CANCELLED,
+            error_message="Old cancelled legacy run",
+        )
+
+        reconcile_genome_uploads(
+            {
+                "running": False,
+                "genome_accession": None,
+                "state_label": "No pipeline activity detected",
+            },
+            owner=self.alice,
+        )
+
+        upload.refresh_from_db()
+        self.assertEqual(upload.status, GenomeUpload.STATUS_SUBMITTED)
+        self.assertEqual(upload.error_message, "")
+
+    def test_sanitize_pipeline_status_prefers_workspace_owner_for_private_run(self):
+        status = sanitize_pipeline_status_for_user(
+            {
+                "available": True,
+                "running": True,
+                "state_label": "Pipeline running",
+                "state_class": "running",
+                "genome_accession": build_workspace_genome_name("NZ_AP023069.1", self.alice),
+                "genome_display_accession": "NZ_AP023069.1",
+                "workspace_slug": "user-999",
+                "workspace_owner_id": self.alice.id,
+                "stage_current": 10,
+            },
+            self.alice,
+        )
+
+        self.assertTrue(status["genome_visible_to_user"])
+        self.assertFalse(status["running_for_other_workspace"])
+        self.assertEqual(status["genome_accession"], build_workspace_genome_name("NZ_AP023069.1", self.alice))
 
 
 class ProteinSerializerServiceTests(SimpleTestCase):

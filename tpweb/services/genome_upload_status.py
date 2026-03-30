@@ -8,6 +8,7 @@ from django.utils import timezone
 
 from bioseq.models.Biodatabase import Biodatabase
 from tpweb.models import GenomeUpload
+from tpweb.services.pipeline_runs import latest_pipeline_run_for_accession, latest_pipeline_run_for_upload
 
 
 ARGENTINA_UPLOAD_TZ = timezone.get_fixed_timezone(-180)
@@ -32,7 +33,7 @@ def _process_exists(pid):
 
 def _pipeline_process_lines():
     try:
-        ps_output = subprocess.check_output(["ps", "-eo", "pid,args"], text=True)
+        ps_output = subprocess.check_output(["ps", "-eo", "pid,args"], text=True, timeout=5)
     except Exception:
         return []
     return ps_output.splitlines()
@@ -124,6 +125,27 @@ def _extract_error_message(job):
     return "Pipeline stopped before completion."
 
 
+def _latest_run_for_upload(job):
+    run = latest_pipeline_run_for_upload(job.id)
+    if run is not None:
+        return run
+
+    run = latest_pipeline_run_for_accession(job.internal_accession)
+    if run is None:
+        return None
+
+    # Legacy/manual runs may not be linked to a GenomeUpload. Those runs are
+    # useful only while still active. A cancelled/failed historical run with
+    # the same accession must not poison newer uploads created from the UI.
+    if run.genome_upload_id is None and run.status not in {
+        run.STATUS_SUBMITTED,
+        run.STATUS_RUNNING,
+    }:
+        return None
+
+    return run
+
+
 def reconcile_genome_uploads(pipeline_status, owner=None):
     queryset = GenomeUpload.objects.all()
     if owner is not None:
@@ -150,6 +172,11 @@ def reconcile_genome_uploads(pipeline_status, owner=None):
         is_latest_for_accession = job.id == latest_id_by_accession.get(job.internal_accession)
         next_status = job.status
         next_error = job.error_message
+        pipeline_run = _latest_run_for_upload(job)
+        if pipeline_run is not None and pipeline_run.genome_upload_id not in {None, job.id}:
+            pipeline_run = None
+        if pipeline_run is not None and pipeline_run.genome_upload_id is None and not is_latest_for_accession:
+            pipeline_run = None
         matching_process_exists = _process_exists(job.launch_pid) or _upload_has_matching_process(job)
         pipeline_failed_for_job = (
             not pipeline_running
@@ -160,7 +187,24 @@ def reconcile_genome_uploads(pipeline_status, owner=None):
             }
         )
 
-        if job.status == GenomeUpload.STATUS_SUBMITTED:
+        if pipeline_run is not None:
+            if pipeline_run.status in {pipeline_run.STATUS_SUBMITTED, pipeline_run.STATUS_RUNNING}:
+                next_status = (
+                    GenomeUpload.STATUS_RUNNING
+                    if pipeline_run.status == pipeline_run.STATUS_RUNNING or is_latest_for_accession
+                    else GenomeUpload.STATUS_SUBMITTED
+                )
+                next_error = ""
+            elif pipeline_run.status == pipeline_run.STATUS_FINISHED:
+                next_status = GenomeUpload.STATUS_FINISHED if _dataset_ready(job.internal_accession) else GenomeUpload.STATUS_FAILED
+                next_error = "" if next_status == GenomeUpload.STATUS_FINISHED else _extract_error_message(job)
+            elif pipeline_run.status in {pipeline_run.STATUS_FAILED, pipeline_run.STATUS_CANCELLED}:
+                next_status = GenomeUpload.STATUS_FAILED
+                next_error = str(pipeline_run.error_message or _extract_error_message(job))[:1000]
+            else:
+                next_status = job.status
+                next_error = job.error_message
+        elif job.status == GenomeUpload.STATUS_SUBMITTED:
             if matching_process_exists or (pipeline_running and running_internal == job.internal_accession and is_latest_for_accession):
                 next_status = GenomeUpload.STATUS_RUNNING
                 next_error = ""

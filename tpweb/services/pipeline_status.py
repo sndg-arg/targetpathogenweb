@@ -3,6 +3,7 @@ import re
 import shlex
 import shutil
 import subprocess
+import threading
 import time
 import os
 from dataclasses import asdict, dataclass
@@ -13,35 +14,11 @@ from typing import Mapping
 from bioseq.models.Biodatabase import Biodatabase
 from django.conf import settings
 from tpweb.services.genome_workspace import display_genome_name, user_can_access_genome_name
+from tpweb.services.workspace import PUBLIC_WORKSPACE_USERNAME, workspace_slug_for_user
+from tpweb.services.pipeline_runs import latest_active_pipeline_run, latest_pipeline_run
+from tpweb.services.pipeline_stages import PIPELINE_STAGE_TOTAL, STAGE_LABELS
 
-# Main pipeline stages from parsl/run_pipeline.py.
-PIPELINE_STAGE_TOTAL = 23
 INPUT_APPS = {"test_gbk", "download_gbk", "custom_gbk"}
-STAGE_LABELS = {
-    1: "Cleaning previous output",
-    2: "Loading genome input",
-    3: "Importing genome records",
-    4: "Running FastTarget scoring",
-    5: "Loading human offtarget score",
-    6: "Loading microbiome offtarget score",
-    7: "Loading essentiality score",
-    8: "Building DB indexes",
-    9: "Indexing sequence files",
-    10: "Running InterProScan",
-    11: "Loading InterPro annotations",
-    12: "Mapping to UniProt",
-    13: "Fetching UniProt annotations",
-    14: "Collecting UniProt list",
-    15: "Generating AlphaFold models",
-    16: "Predicting missing structures (ESMFold)",
-    17: "Loading structures and pockets",
-    18: "Computing druggability table",
-    19: "Loading druggability score",
-    20: "Predicting subcellular localization",
-    21: "Loading PSORT score",
-    22: "Collecting binder candidates",
-    23: "Loading binders",
-}
 ARGENTINA_TZ = timezone(timedelta(hours=-3))
 PIPELINE_STATUS_CACHE_TTL_SECONDS = float(
     os.getenv("TPW_PIPELINE_STATUS_CACHE_TTL_SECONDS", "4")
@@ -50,6 +27,7 @@ _PIPELINE_STATUS_CACHE: dict = {
     "expires_at": 0.0,
     "status": None,
 }
+_PIPELINE_STATUS_CACHE_LOCK = threading.Lock()
 RUNINFO_CANDIDATE_RELATIVE_DIRS = ("data/parsl/runinfo", "parsl/runinfo", "runinfo")
 LAST_RUN_MARKER_RELATIVE_PATHS = (
     "data/parsl/last_pipeline_run.json",
@@ -60,6 +38,7 @@ FAILED_PIPELINE_STATE_LABELS = {"Last pipeline run failed"}
 INCOMPLETE_PIPELINE_STATE_LABELS = FAILED_PIPELINE_STATE_LABELS | {
     "Last pipeline run stopped before completion"
 }
+PIPELINE_EVENT_TERMINAL_STATUSES = {"completed", "failed"}
 
 
 @dataclass(frozen=True)
@@ -78,6 +57,8 @@ class PipelineStatus:
     genome_accession: str | None = None
     genome_display_accession: str | None = None
     activity_label: str | None = None
+    workspace_slug: str | None = None
+    workspace_owner_id: int | None = None
 
     def as_dict(self) -> dict:
         return asdict(self)
@@ -214,7 +195,7 @@ def _status_from_last_run_marker(base_dir: Path):
 
 def _ps_args_lines():
     try:
-        ps_output = subprocess.check_output(["ps", "-eo", "args"], text=True)
+        ps_output = subprocess.check_output(["ps", "-eo", "args"], text=True, timeout=5)
     except Exception:
         return []
     return ps_output.splitlines()
@@ -393,7 +374,7 @@ def _stage_from_app(app_name, load_score_seen):
         return 15
     if app_name == "esmfold_predict":
         return 16
-    if app_name == "strucutures_af":
+    if app_name == "structures_af":
         return 17
     if app_name in {"fpocket2json", "load_pocket", "p2rank2json", "load_p2pocket", "load_af_model"}:
         return 17
@@ -462,9 +443,153 @@ def _status_from_running_upload(upload):
     return PipelineStatus(**status_data)
 
 
+def _format_pipeline_timestamp(value):
+    if value is None:
+        return None
+    if value.tzinfo is None:
+        value = value.replace(tzinfo=timezone.utc)
+    return value.astimezone(ARGENTINA_TZ).strftime("%Y-%m-%d %H:%M (UTC-3)")
+
+
+def _progress_percent(stage_number):
+    if stage_number is None or stage_number <= 0:
+        return 0
+    return int((stage_number / PIPELINE_STAGE_TOTAL) * 100)
+
+
+def _active_stage_from_pipeline_run(run):
+    stage_events = list(run.stage_events.order_by("created_at", "id"))
+    latest_by_task = {}
+    latest_stage_event = None
+    latest_failed_event = None
+    for event in stage_events:
+        if event.stage_number is not None:
+            latest_stage_event = event
+        if event.status == "failed" and event.stage_number is not None:
+            latest_failed_event = event
+        if event.task_id is not None:
+            latest_by_task[event.task_id] = event
+
+    pending_events = [
+        event
+        for event in latest_by_task.values()
+        if event.status not in PIPELINE_EVENT_TERMINAL_STATUSES
+    ]
+    pending_events.sort(
+        key=lambda event: (
+            event.stage_number if event.stage_number is not None else PIPELINE_STAGE_TOTAL + 1,
+            event.task_id if event.task_id is not None else -1,
+        )
+    )
+    active_event = pending_events[0] if pending_events else None
+    if active_event is not None:
+        return {
+            "stage_number": active_event.stage_number,
+            "task_id": active_event.task_id,
+            "app_name": active_event.app_name,
+            "failed_event": latest_failed_event,
+            "latest_stage_event": latest_stage_event,
+        }
+
+    if latest_failed_event is not None:
+        return {
+            "stage_number": latest_failed_event.stage_number,
+            "task_id": latest_failed_event.task_id,
+            "app_name": latest_failed_event.app_name,
+            "failed_event": latest_failed_event,
+            "latest_stage_event": latest_stage_event,
+        }
+
+    return {
+        "stage_number": run.current_stage or (latest_stage_event.stage_number if latest_stage_event else None),
+        "task_id": run.current_task_id,
+        "app_name": run.current_app or (latest_stage_event.app_name if latest_stage_event else ""),
+        "failed_event": latest_failed_event,
+        "latest_stage_event": latest_stage_event,
+    }
+
+
+def _status_from_pipeline_run(run):
+    if run is None:
+        return None
+
+    status_data = _default_pipeline_status().as_dict()
+    status_data["available"] = True
+    status_data["run_id"] = f"pipeline:{run.id}"
+    genome_accession = str(run.internal_accession or "").strip() or None
+    status_data["genome_accession"] = genome_accession
+    status_data["genome_display_accession"] = display_genome_name(genome_accession)
+    workspace_slug = None
+    workspace_owner_id = None
+    genome_upload = getattr(run, "genome_upload", None)
+    if genome_upload is not None:
+        workspace_owner_id = getattr(genome_upload, "owner_id", None)
+        if workspace_owner_id:
+            workspace_slug = f"user-{workspace_owner_id}"
+    if workspace_slug is None and genome_accession:
+        prefix = genome_accession.split("__", 1)[0].strip().lower()
+        workspace_slug = prefix or None
+    status_data["workspace_slug"] = workspace_slug
+    status_data["workspace_owner_id"] = workspace_owner_id
+    status_data["last_updated"] = _format_pipeline_timestamp(
+        run.updated_at or run.finished_at or run.started_at
+    )
+
+    active_info = _active_stage_from_pipeline_run(run)
+    stage_number = active_info["stage_number"]
+    active_app = active_info["app_name"] or run.current_app
+    task_id = active_info["task_id"]
+    if stage_number is not None:
+        status_data["stage_current"] = stage_number
+        status_data["stage_label"] = STAGE_LABELS.get(stage_number)
+        status_data["progress_percent"] = _progress_percent(stage_number)
+    if task_id is not None:
+        status_data["task_id"] = task_id
+
+    if run.status == run.STATUS_FINISHED:
+        status_data["running"] = False
+        status_data["state_label"] = "Last pipeline run finished"
+        status_data["state_class"] = "finished"
+        status_data["stage_current"] = PIPELINE_STAGE_TOTAL
+        status_data["stage_label"] = STAGE_LABELS.get(PIPELINE_STAGE_TOTAL)
+        status_data["progress_percent"] = 100
+        return PipelineStatus(**status_data)
+
+    if run.status == run.STATUS_FAILED:
+        status_data["running"] = False
+        status_data["state_label"] = "Last pipeline run failed"
+        status_data["state_class"] = "failed"
+        return PipelineStatus(**status_data)
+
+    if run.status == run.STATUS_CANCELLED:
+        status_data["running"] = False
+        status_data["state_label"] = "Last pipeline run cancelled"
+        status_data["state_class"] = "failed"
+        return PipelineStatus(**status_data)
+
+    status_data["running"] = True
+    if run.status == run.STATUS_SUBMITTED:
+        status_data["state_label"] = "Pipeline queued"
+    else:
+        status_data["state_label"] = "Pipeline running"
+    status_data["state_class"] = "running"
+
+    if stage_number is not None:
+        ps_lines = _ps_args_lines() if run.status == run.STATUS_RUNNING else None
+        status_data["activity_label"] = _activity_label_for_stage(
+            stage_number,
+            active_app,
+            ps_lines=ps_lines,
+        )
+    elif run.status == run.STATUS_SUBMITTED:
+        status_data["activity_label"] = "Genome upload queued"
+
+    return PipelineStatus(**status_data)
+
+
 def _stage_by_task_id(tracked_tasks: Mapping[int, str]) -> dict[int, int | None]:
     # The pipeline has multiple load_score calls at different stages.
-    # Sub-tasks spawned by join_apps (strucutures_af) can have higher task IDs
+    # Sub-tasks spawned by join_apps (structures_af) can have higher task IDs
     # than later main-pipeline tasks, so we must track load_score order only
     # for the *first* occurrence of each load_score task_id in submission order.
     #
@@ -480,7 +605,7 @@ def _stage_by_task_id(tracked_tasks: Mapping[int, str]) -> dict[int, int | None]
     # (everything except alphafold_unips, load_af_model, fpocket2json, etc.),
     # take the first task_id.  For load_score, keep all task_ids that appear
     # *before* any sub-task app (load_af_model, fpocket2json, load_pocket,
-    # p2rank2json, load_p2pocket) OR *after* strucutures_af completes.
+    # p2rank2json, load_p2pocket) OR *after* structures_af completes.
     SUB_TASK_APPS = {"load_af_model", "fpocket2json", "load_pocket", "p2rank2json", "load_p2pocket"}
 
     # Identify which load_score tasks belong to the main pipeline.
@@ -508,12 +633,25 @@ def _stage_by_task_id(tracked_tasks: Mapping[int, str]) -> dict[int, int | None]
     return stage_by_task
 
 
+def _cache_put(status: PipelineStatus, now: float) -> None:
+    _PIPELINE_STATUS_CACHE["status"] = status
+    _PIPELINE_STATUS_CACHE["expires_at"] = now + PIPELINE_STATUS_CACHE_TTL_SECONDS
+
+
 def get_pipeline_status_dto() -> PipelineStatus:
     now = time.monotonic()
-    cached_status = _PIPELINE_STATUS_CACHE.get("status")
-    expires_at = _PIPELINE_STATUS_CACHE.get("expires_at", 0.0)
-    if cached_status is not None and now < expires_at:
-        return cached_status
+    with _PIPELINE_STATUS_CACHE_LOCK:
+        cached_status = _PIPELINE_STATUS_CACHE.get("status")
+        expires_at = _PIPELINE_STATUS_CACHE.get("expires_at", 0.0)
+        if cached_status is not None and now < expires_at:
+            return cached_status
+
+    pipeline_run = latest_active_pipeline_run() or latest_pipeline_run()
+    if pipeline_run is not None:
+        final_status = _status_from_pipeline_run(pipeline_run)
+        with _PIPELINE_STATUS_CACHE_LOCK:
+            _cache_put(final_status, now)
+        return final_status
 
     status = _default_pipeline_status()
     running_upload = _current_running_upload()
@@ -589,8 +727,8 @@ def get_pipeline_status_dto() -> PipelineStatus:
     log_recently_updated = (time.time() - log_path.stat().st_mtime) < 30
     if running_upload_status is not None and not process_running and not log_recently_updated:
         final_status = running_upload_status
-        _PIPELINE_STATUS_CACHE["status"] = final_status
-        _PIPELINE_STATUS_CACHE["expires_at"] = now + PIPELINE_STATUS_CACHE_TTL_SECONDS
+        with _PIPELINE_STATUS_CACHE_LOCK:
+            _cache_put(final_status, now)
         return final_status
     running = bool(pending_task_ids) and not cleanup_complete and (
         process_running or log_recently_updated
@@ -662,8 +800,8 @@ def get_pipeline_status_dto() -> PipelineStatus:
                 )
 
     final_status = PipelineStatus(**status_data)
-    _PIPELINE_STATUS_CACHE["status"] = final_status
-    _PIPELINE_STATUS_CACHE["expires_at"] = now + PIPELINE_STATUS_CACHE_TTL_SECONDS
+    with _PIPELINE_STATUS_CACHE_LOCK:
+        _cache_put(final_status, now)
     return final_status
 
 
@@ -691,7 +829,19 @@ def _reset_pipeline_status_to_idle(status: dict) -> dict:
 def sanitize_pipeline_status_for_user(pipeline_status: Mapping | None, user) -> dict:
     status = dict(pipeline_status or {})
     genome_accession = str(status.get("genome_accession") or "").strip()
-    genome_visible_to_user = not genome_accession or user_can_access_genome_name(user, genome_accession)
+    workspace_slug = str(status.get("workspace_slug") or "").strip().lower()
+    workspace_owner_id = status.get("workspace_owner_id")
+    current_workspace_slug = workspace_slug_for_user(user)
+
+    if workspace_owner_id is not None and getattr(user, "is_authenticated", False):
+        genome_visible_to_user = int(workspace_owner_id) == int(getattr(user, "pk", 0) or 0)
+    elif workspace_slug:
+        genome_visible_to_user = workspace_slug in {
+            PUBLIC_WORKSPACE_USERNAME,
+            current_workspace_slug,
+        }
+    else:
+        genome_visible_to_user = not genome_accession or user_can_access_genome_name(user, genome_accession)
     genome_hidden_from_user = bool(genome_accession) and not genome_visible_to_user
     genome_exists = True
     if genome_accession and not status.get("running"):
@@ -700,6 +850,8 @@ def sanitize_pipeline_status_for_user(pipeline_status: Mapping | None, user) -> 
 
     status["genome_visible_to_user"] = genome_visible_to_user
     status["genome_exists"] = genome_exists
+    status["workspace_slug"] = workspace_slug or None
+    status["workspace_owner_id"] = workspace_owner_id
     status["running_for_other_workspace"] = bool(
         status.get("running") and genome_hidden_from_user
     )
@@ -730,6 +882,24 @@ def sanitize_pipeline_status_for_user(pipeline_status: Mapping | None, user) -> 
 
 
 def clear_pipeline_activity_state():
+    active_run = None
+    try:
+        from tpweb.services.pipeline_runs import latest_active_pipeline_run
+
+        active_run = latest_active_pipeline_run()
+    except Exception:
+        active_run = None
+
+    with _PIPELINE_STATUS_CACHE_LOCK:
+        _PIPELINE_STATUS_CACHE["status"] = None
+        _PIPELINE_STATUS_CACHE["expires_at"] = 0.0
+
+    # Keep runtime state intact while a pipeline run is still active. Removing
+    # runinfo mid-flight leaves HTEX workers alive but blind, which looks like a
+    # hung pipeline from the UI.
+    if active_run is not None:
+        return
+
     base_dir = Path(settings.BASE_DIR)
     for relative in LAST_RUN_MARKER_RELATIVE_PATHS:
         try:
@@ -748,10 +918,6 @@ def clear_pipeline_activity_state():
                 shutil.rmtree(child)
             except Exception:
                 pass
-
-    _PIPELINE_STATUS_CACHE["status"] = None
-    _PIPELINE_STATUS_CACHE["expires_at"] = 0.0
-
 
 def annotate_pipeline_status_for_genome(
     pipeline_status: Mapping | None, genome_accession: str | None

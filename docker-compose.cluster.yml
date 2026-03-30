@@ -1,21 +1,24 @@
 services:
   db:
-    mem_limit: 2g
-    mem_reservation: 512m
-    cpus: 1.0
+    deploy:
+      resources:
+        limits:
+          memory: 2g
+          cpus: '1.0'
+        reservations:
+          memory: 512m
     labels: []
     environment:
       POSTGRES_PASSWORD: ${DJANGO_DATABASE_PASSWORD}
 
   web:
-    mem_limit: 4g
-    mem_reservation: 1g
-    cpus: 2.0
     deploy:
       resources:
         limits:
           memory: 4g
           cpus: '2.0'
+        reservations:
+          memory: 1g
     build:
       args:
         HTTP_PROXY: ${HTTP_PROXY:-}
@@ -36,14 +39,13 @@ services:
       - PYTHONPATH=/app/sndgjobs:/app/sndgbiodb:/app/targetpathogen:/app/sndg-bio:/app/target:/app/targetpathogenweb
 
   queue:
-    mem_limit: 2g
-    mem_reservation: 512m
-    cpus: 1.0
     deploy:
       resources:
         limits:
           memory: 2g
           cpus: '1.0'
+        reservations:
+          memory: 512m
     environment:
       - TPW_PROFILE=cluster
       - DJANGO_DATABASE_URL=postgres://postgres:${DJANGO_DATABASE_PASSWORD}@db:5432/tp
@@ -59,6 +61,10 @@ services:
       - PYTHONPATH=/app/sndgjobs:/app/sndgbiodb:/app/targetpathogen:/app/sndg-bio:/app/target:/app/targetpathogenweb
 
   jbrowse:
-    mem_limit: 1g
-    mem_reservation: 256m
-    cpus: 0.5
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+          cpus: '0.5'
+        reservations:
+          memory: 256m

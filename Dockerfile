@@ -87,3 +87,13 @@ RUN rm -rf /app/fasttarget/logs /app/fasttarget/organism \
 WORKDIR /app/targetpathogenweb
 
 ENV PYTHONPATH=/app/sndgjobs:/app/sndgbiodb:/app/targetpathogen:/app/sndg-bio:/app/target:/app/targetpathogenweb
+
+# Run as non-root user. The docker group GID is set to match the host's
+# docker socket so that fpocket/PSORT Docker-in-Docker still works.
+ARG DOCKER_GID=999
+RUN groupadd -g ${DOCKER_GID} docker || true \
+    && useradd -m -s /bin/bash -G docker appuser \
+    && chown -R appuser:appuser /app \
+    && chmod -R a+rX /opt/conda
+
+USER appuser

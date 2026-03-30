@@ -1,4 +1,5 @@
 from django.contrib import messages
+from django.db import transaction
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views import View
@@ -135,16 +136,6 @@ class GenomeUploadView(View):
 
         if request.POST.get("action") == self.ACTION_USE_TEST_GENOME:
             internal_accession = build_workspace_genome_name(TEST_GENOME_ACCESSION, request.user)
-            if GenomeUpload.objects.filter(
-                owner=workspace_user,
-                internal_accession=internal_accession,
-                status__in=[GenomeUpload.STATUS_SUBMITTED, GenomeUpload.STATUS_RUNNING],
-            ).exists():
-                messages.error(
-                    request,
-                    f"Genome {TEST_GENOME_ACCESSION} is already queued or running for this account.",
-                )
-                return redirect(upload_url)
 
             if Biodatabase.objects.filter(name=internal_accession).exists():
                 messages.info(
@@ -153,14 +144,26 @@ class GenomeUploadView(View):
                 )
                 return redirect(upload_url)
 
-            GenomeUpload.objects.create(
-                owner=workspace_user,
-                display_accession=TEST_GENOME_ACCESSION,
-                internal_accession=internal_accession,
-                gram="n",
-                gbk_file="",
-                status=GenomeUpload.STATUS_SUBMITTED,
-            )
+            with transaction.atomic():
+                if GenomeUpload.objects.select_for_update().filter(
+                    owner=workspace_user,
+                    internal_accession=internal_accession,
+                    status__in=[GenomeUpload.STATUS_SUBMITTED, GenomeUpload.STATUS_RUNNING],
+                ).exists():
+                    messages.error(
+                        request,
+                        f"Genome {TEST_GENOME_ACCESSION} is already queued or running for this account.",
+                    )
+                    return redirect(upload_url)
+
+                GenomeUpload.objects.create(
+                    owner=workspace_user,
+                    display_accession=TEST_GENOME_ACCESSION,
+                    internal_accession=internal_accession,
+                    gram="n",
+                    gbk_file="",
+                    status=GenomeUpload.STATUS_SUBMITTED,
+                )
             messages.success(request, f"Test genome {TEST_GENOME_ACCESSION} was added to the queue.")
             return redirect(upload_url)
 
@@ -170,16 +173,6 @@ class GenomeUploadView(View):
 
         display_accession = form.cleaned_data["accession"]
         internal_accession = build_workspace_genome_name(display_accession, request.user)
-        if GenomeUpload.objects.filter(
-            owner=workspace_user,
-            internal_accession=internal_accession,
-            status__in=[GenomeUpload.STATUS_SUBMITTED, GenomeUpload.STATUS_RUNNING],
-        ).exists():
-            messages.error(
-                request,
-                f"Genome {display_accession} is already queued or running for this account.",
-            )
-            return redirect(upload_url)
 
         if Biodatabase.objects.filter(name=internal_accession).exists():
             messages.info(
@@ -188,13 +181,25 @@ class GenomeUploadView(View):
             )
             return redirect(upload_url)
 
-        GenomeUpload.objects.create(
-            owner=workspace_user,
-            display_accession=display_accession,
-            internal_accession=internal_accession,
-            gram=form.cleaned_data["gram"],
-            gbk_file=form.cleaned_data["gbk_file"],
-            status=GenomeUpload.STATUS_SUBMITTED,
-        )
+        with transaction.atomic():
+            if GenomeUpload.objects.select_for_update().filter(
+                owner=workspace_user,
+                internal_accession=internal_accession,
+                status__in=[GenomeUpload.STATUS_SUBMITTED, GenomeUpload.STATUS_RUNNING],
+            ).exists():
+                messages.error(
+                    request,
+                    f"Genome {display_accession} is already queued or running for this account.",
+                )
+                return redirect(upload_url)
+
+            GenomeUpload.objects.create(
+                owner=workspace_user,
+                display_accession=display_accession,
+                internal_accession=internal_accession,
+                gram=form.cleaned_data["gram"],
+                gbk_file=form.cleaned_data["gbk_file"],
+                status=GenomeUpload.STATUS_SUBMITTED,
+            )
         messages.success(request, f"Genome {display_accession} was added to the queue.")
         return redirect(upload_url)
