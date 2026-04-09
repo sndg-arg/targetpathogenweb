@@ -1,4 +1,5 @@
 import os
+import signal
 import shlex
 import subprocess
 import sys
@@ -37,12 +38,14 @@ def _build_pipeline_runtime(upload, command_suffix):
     env["TPW_GENOME_UPLOAD_ID"] = str(upload.id)
     env["TPW_PIPELINE_LOG_PATH"] = str(log_path)
 
+    use_direct = os.environ.get("TPW_USE_DIRECT_PIPELINE", "").strip().lower() in {"1", "true", "yes"}
+    script = "run_pipeline_direct.py" if use_direct else "run_pipeline.py"
     command = [
         "bash",
         "-lc",
         (
             f"source {shlex.quote(str(parsl_dir / 'exports.sh'))} && "
-            f"{shlex.quote(sys.executable)} run_pipeline.py "
+            f"{shlex.quote(sys.executable)} {script} "
             f"{command_suffix}"
         ),
     ]
@@ -151,6 +154,7 @@ def _finalize_upload(upload, returncode):
     else:
         upload.status = upload.STATUS_FAILED
         upload.error_message = _extract_error_message(upload.run_log_path)
+        _delete_workspace_biodatabases(upload.internal_accession)
     upload.launch_pid = None
     upload.save(update_fields=["status", "error_message", "launch_pid", "updated_at"])
     return upload.status
@@ -185,6 +189,16 @@ def launch_test_genome_pipeline(upload):
     return launch_genome_upload_pipeline(upload)
 
 
+def _pipeline_timeout_seconds():
+    raw = os.environ.get("TPW_PIPELINE_TIMEOUT_SEC")
+    if raw is None:
+        return 6 * 3600  # 6 hours default
+    try:
+        return max(60, int(raw.strip()))
+    except (TypeError, ValueError):
+        return 6 * 3600
+
+
 def run_genome_upload_pipeline(upload):
     runtime = _build_pipeline_runtime(upload, _build_command_suffix(upload))
     log_handle = open(runtime["log_path"], "ab")
@@ -198,7 +212,15 @@ def run_genome_upload_pipeline(upload):
             start_new_session=True,
         )
         _mark_upload_running(upload, process.pid, runtime["log_path"])
-        returncode = process.wait()
+        try:
+            returncode = process.wait(timeout=_pipeline_timeout_seconds())
+        except subprocess.TimeoutExpired:
+            os.killpg(process.pid, signal.SIGTERM)
+            try:
+                returncode = process.wait(timeout=30)
+            except subprocess.TimeoutExpired:
+                os.killpg(process.pid, signal.SIGKILL)
+                returncode = process.wait(timeout=10)
     finally:
         log_handle.close()
 

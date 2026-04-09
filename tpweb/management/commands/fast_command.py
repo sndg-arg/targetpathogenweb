@@ -1,4 +1,5 @@
 import os
+import sys
 import yaml
 import subprocess as sp
 import gzip
@@ -108,7 +109,7 @@ class Command(BaseCommand):
         with open(input_filename, 'w') as file:
             yaml.safe_dump(config, file)
 
-        command = ["python", "/app/fasttarget/fasttarget.py"]
+        command = [sys.executable, "/app/fasttarget/fasttarget.py"]
         if skip_exec and not allow_fallback:
             raise CommandError(
                 "TPW_FASTTARGET_SKIP_EXEC=1 requires TPW_FASTTARGET_ALLOW_FALLBACK=1."

@@ -1,4 +1,5 @@
 import fcntl
+import signal
 import time
 from pathlib import Path
 
@@ -14,6 +15,10 @@ class Command(BaseCommand):
     help = "Processes queued genome uploads serially."
     lock_path = Path("/tmp/tpweb_genome_upload_queue.lock")
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._shutdown_requested = False
+
     def add_arguments(self, parser):
         parser.add_argument(
             "--poll-interval",
@@ -27,9 +32,17 @@ class Command(BaseCommand):
             help="Process at most one queued upload and exit.",
         )
 
+    def _request_shutdown(self, signum, frame):
+        sig_name = signal.Signals(signum).name
+        self.stdout.write(f"Received {sig_name} — finishing current job before shutdown.")
+        self._shutdown_requested = True
+
     def handle(self, *args, **options):
         poll_interval = max(0.5, float(options["poll_interval"]))
         run_once = bool(options["once"])
+
+        signal.signal(signal.SIGTERM, self._request_shutdown)
+        signal.signal(signal.SIGINT, self._request_shutdown)
 
         self.lock_path.parent.mkdir(parents=True, exist_ok=True)
         with self.lock_path.open("w") as lock_handle:
@@ -40,12 +53,14 @@ class Command(BaseCommand):
                 return
 
             self.stdout.write("Genome upload queue worker started.")
-            while True:
+            while not self._shutdown_requested:
                 processed = self._process_next_upload()
                 if run_once:
                     return
-                if not processed:
+                if not processed and not self._shutdown_requested:
                     time.sleep(poll_interval)
+
+            self.stdout.write("Genome upload queue worker stopped gracefully.")
 
     def _process_next_upload(self):
         pipeline_status = get_pipeline_status()

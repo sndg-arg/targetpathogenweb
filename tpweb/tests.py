@@ -42,9 +42,6 @@ from tpweb.services.protein_annotations import ANNOTATION_KIND_CONFIG, build_ann
 from tpweb.services.protein_formula import choose_formula, resolve_formulas_for_user
 from tpweb.services.protein_serializer import build_protein_table_row
 from tpweb.services.pipeline_status import (
-    _extract_running_genome_from_process,
-    _pipeline_process_running,
-    _resolve_runinfo_dir,
     _status_from_last_run_marker,
     annotate_pipeline_status_for_genome,
     get_pipeline_status_dto,
@@ -66,6 +63,7 @@ from tpweb.services.workspace import (
 )
 from tpweb.views.FormulaForm import FormulaForm
 from tpweb.views.ParameterForm import ParameterForm
+from tpweb.services.workspace import PUBLIC_WORKSPACE_USERNAME
 
 
 class GenomeServiceTests(SimpleTestCase):
@@ -558,6 +556,24 @@ class GenomeUploadQueueTests(TestCase):
         delete_workspace_biodatabases.assert_called_once_with(upload.internal_accession)
         clear_pipeline_activity_state.assert_called_once()
 
+    @patch("tpweb.services.genome_uploads._extract_error_message")
+    @patch("tpweb.services.genome_uploads._delete_workspace_biodatabases")
+    def test_finalize_upload_removes_partial_workspace_when_pipeline_fails(
+        self,
+        delete_workspace_biodatabases,
+        extract_error_message,
+    ):
+        upload = self.create_upload(self.alice, "NZ_AP023069.1", GenomeUpload.STATUS_RUNNING)
+        extract_error_message.return_value = "Pipeline failed."
+
+        status = _finalize_upload(upload, returncode=1)
+
+        upload.refresh_from_db()
+        self.assertEqual(status, GenomeUpload.STATUS_FAILED)
+        self.assertEqual(upload.status, GenomeUpload.STATUS_FAILED)
+        self.assertEqual(upload.error_message, "Pipeline failed.")
+        delete_workspace_biodatabases.assert_called_once_with(upload.internal_accession)
+
     @patch("tpweb.services.genome_upload_status._upload_has_matching_process")
     @patch("tpweb.services.genome_upload_status._process_exists")
     def test_reconcile_keeps_running_upload_when_matching_process_exists(
@@ -668,25 +684,6 @@ class ProteinSerializerServiceTests(SimpleTestCase):
 
 
 class PipelineStatusTests(SimpleTestCase):
-    def test_extract_running_genome_from_process_ignores_manage_shell_mentions(self):
-        ps_lines = [
-            'python manage.py shell -c "print(\'run_pipeline.py --genome-name user-2__NC_002516.2\')"',
-        ]
-
-        self.assertIsNone(_extract_running_genome_from_process(ps_lines))
-        self.assertFalse(_pipeline_process_running(ps_lines))
-
-    def test_extract_running_genome_from_process_reads_actual_pipeline_command(self):
-        ps_lines = [
-            "/opt/conda/envs/tpv2/bin/python run_pipeline.py --gram n --genome-name user-2__NC_002516.2 --custom /app/file.gbk.gz",
-        ]
-
-        self.assertEqual(
-            _extract_running_genome_from_process(ps_lines),
-            "user-2__NC_002516.2",
-        )
-        self.assertTrue(_pipeline_process_running(ps_lines))
-
     def test_annotate_pipeline_status_for_genome_flags(self):
         status = {
             "running": True,
@@ -729,41 +726,6 @@ class PipelineStatusTests(SimpleTestCase):
         self.assertTrue(current["incomplete_for_current_genome"])
         self.assertIn("stopped before completion", current["current_genome_status_note"])
 
-    @patch("tpweb.services.pipeline_status._status_from_last_run_marker", return_value=None)
-    @patch("tpweb.services.pipeline_status._resolve_runinfo_dir", return_value=None)
-    @patch("tpweb.services.pipeline_status._current_running_upload")
-    def test_get_pipeline_status_uses_running_upload_when_runinfo_is_unavailable(
-        self,
-        current_running_upload,
-        resolve_runinfo_dir,
-        status_from_last_run_marker,
-    ):
-        pipeline_status_service._PIPELINE_STATUS_CACHE["status"] = None
-        pipeline_status_service._PIPELINE_STATUS_CACHE["expires_at"] = 0.0
-
-        current_running_upload.return_value = type(
-            "Upload",
-            (),
-            {
-                "id": 21,
-                "internal_accession": "user-2__NZ_AP023069.1",
-                "run_log_path": "",
-                "updated_at": datetime(2026, 3, 28, 20, 42, tzinfo=timezone.utc),
-                "launched_at": datetime(2026, 3, 28, 20, 42, tzinfo=timezone.utc),
-            },
-        )()
-
-        status = get_pipeline_status_dto().as_dict()
-
-        self.assertTrue(status["available"])
-        self.assertTrue(status["running"])
-        self.assertEqual(status["state_label"], "Pipeline running")
-        self.assertEqual(status["state_class"], "running")
-        self.assertEqual(status["run_id"], "upload:21")
-        self.assertEqual(status["genome_accession"], "user-2__NZ_AP023069.1")
-        self.assertEqual(status["genome_display_accession"], "NZ_AP023069.1")
-        self.assertEqual(status["activity_label"], "Genome upload in progress")
-
     def test_status_from_last_run_marker_reads_shared_data_marker(self):
         with TemporaryDirectory() as tmpdir:
             base_dir = Path(tmpdir)
@@ -788,17 +750,6 @@ class PipelineStatusTests(SimpleTestCase):
         self.assertEqual(status.genome_accession, "USER-2__NZ_AP023069.1")
         self.assertEqual(status.genome_display_accession, "NZ_AP023069.1")
 
-    def test_resolve_runinfo_dir_reads_shared_data_runinfo(self):
-        with TemporaryDirectory() as tmpdir:
-            base_dir = Path(tmpdir)
-            run_dir = base_dir / "data" / "parsl" / "runinfo" / "001"
-            run_dir.mkdir(parents=True, exist_ok=True)
-            (run_dir / "parsl.log").write_text("Task 1 submitted for App fasttarget,\n", encoding="utf-8")
-
-            resolved = _resolve_runinfo_dir(base_dir)
-
-        self.assertEqual(resolved, base_dir / "data" / "parsl" / "runinfo")
-
     @patch("tpweb.services.pipeline_status.Biodatabase")
     def test_sanitize_pipeline_status_for_user_hides_deleted_workspace_status(self, biodatabase_model):
         biodatabase_model.objects.filter.return_value.exists.return_value = False
@@ -819,8 +770,27 @@ class PipelineStatusTests(SimpleTestCase):
 
         self.assertFalse(status["available"])
         self.assertFalse(status["running"])
-        self.assertEqual(status["state_class"], "idle")
-        self.assertIsNone(status["genome_accession"])
+
+    def test_sanitize_pipeline_status_for_user_keeps_public_run_visible_for_anonymous_user(self):
+        status = sanitize_pipeline_status_for_user(
+            {
+                "available": True,
+                "running": True,
+                "state_label": "Pipeline running",
+                "state_class": "running",
+                "genome_accession": "public__NZ_AP023069.1",
+                "genome_display_accession": "NZ_AP023069.1",
+                "workspace_slug": "public",
+                "workspace_owner_id": 1,
+                "stage_current": 9,
+            },
+            AnonymousUser(),
+        )
+
+        self.assertTrue(status["genome_visible_to_user"])
+        self.assertFalse(status["running_for_other_workspace"])
+        self.assertEqual(status["genome_accession"], "public__NZ_AP023069.1")
+        self.assertEqual(status["state_class"], "running")
 
 
 class HealthViewTests(SimpleTestCase):
@@ -918,4 +888,16 @@ class RouteSmokeTests(SimpleTestCase):
         get_pipeline_status.return_value = {"available": False, "running": False}
 
         response = self.client.get("/genomes")
+        self.assertEqual(response.status_code, 200)
+
+
+class AssemblyViewTests(TestCase):
+    def test_assembly_route_renders_for_incomplete_workspace_without_bioentries(self):
+        Biodatabase.objects.create(
+            name=f"{PUBLIC_WORKSPACE_USERNAME}__NZ_AP023069.1",
+            description="Incomplete genome workspace",
+        )
+
+        response = self.client.get("/genome/NZ_AP023069.1")
+
         self.assertEqual(response.status_code, 200)

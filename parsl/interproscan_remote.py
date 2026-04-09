@@ -129,6 +129,7 @@ class InterProScanRemoteConfig:
     remote_completion_grace_seconds: int
     conda_prefix: str
     iprscan_install_dir: str
+    iprscan_applications: str | None
     slurm_partition: str
     slurm_time: str
     slurm_mem: str
@@ -183,6 +184,7 @@ def _build_remote_config(cfg_dict):
         ),
         conda_prefix=_env_text("TPW_INTERPRO_CONDA_PREFIX", default="/home/shared/miniconda3.8"),
         iprscan_install_dir=_env_text("TPW_INTERPRO_INSTALL_DIR", default="/grupos/public/iprscan/current"),
+        iprscan_applications=_env_text("TPW_INTERPRO_APPLICATIONS", default=None),
         slurm_partition=os.getenv("TPW_INTERPRO_PARTITION", "cpu"),
         slurm_time=os.getenv("TPW_INTERPRO_TIME", "05:00:00"),
         slurm_mem=os.getenv("TPW_INTERPRO_MEM", "32gb"),
@@ -247,26 +249,34 @@ def run_remote_interproscan(cfg_dict, folder_path, genome):
                 f"{mkdir_err or f'exit status {mkdir_exit}'}"
             )
         scp.put(os.path.join(folder_path, genome + ".faa.gz"), remote_input)
+        applications_flag = (
+            f"-appl {shlex.quote(config.iprscan_applications)} "
+            if config.iprscan_applications
+            else ""
+        )
 
         runner_text = "\n".join(
             [
                 "#!/bin/bash",
-                "set -euo pipefail",
+                "set -eo pipefail",
+                f'eval "$({config.conda_prefix}/bin/conda shell.bash hook)"',
+                "conda activate interproscan",
+                "set -u",
                 f'JOB_BASE="${{SLURM_TMPDIR:-{remote_job_dir}/slurm_tmp}}"',
                 'mkdir -p "$JOB_BASE"',
                 f'TMP_ROOT="$(mktemp -d "$JOB_BASE/{safe_genome}_${{SLURM_JOB_ID:-manual}}_XXXXXX")"',
                 'trap \'rm -rf "$TMP_ROOT"\' EXIT',
                 'mkdir -p "$TMP_ROOT/work" "$TMP_ROOT/out" "$TMP_ROOT/tmp"',
                 f'cp {shlex.quote(remote_input)} "$TMP_ROOT/work/{genome}.faa.gz"',
-                f'gzip -dc "$TMP_ROOT/work/{genome}.faa.gz" > "$TMP_ROOT/work/{genome}.faa"',
                 (
-                    f"{config.conda_prefix}/bin/conda run -n interproscan "
+                    f'zcat "$TMP_ROOT/work/{genome}.faa.gz" | '
+                    f'LD_LIBRARY_PATH="{config.conda_prefix}/envs/interproscan/lib/:${{LD_LIBRARY_PATH:-}}" '
                     f"{config.iprscan_install_dir}/interproscan.sh --pathways --goterms "
                     f"--cpu {config.ssh_cores} -iprlookup --formats tsv "
-                    f'-T "$TMP_ROOT/tmp" -i "$TMP_ROOT/work/{genome}.faa" '
-                    f'-o "$TMP_ROOT/out/{genome}.faa.tsv"'
+                    f"{applications_flag}"
+                    f'-T "$TMP_ROOT/tmp" -b "$TMP_ROOT/out/output" -i -'
                 ),
-                f'cp "$TMP_ROOT/out/{genome}.faa.tsv" {shlex.quote(remote_output)}',
+                f'cp "$TMP_ROOT/out/output.tsv" {shlex.quote(remote_output)}',
                 "",
             ]
         )

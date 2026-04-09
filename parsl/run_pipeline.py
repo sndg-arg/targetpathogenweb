@@ -254,12 +254,30 @@ def run(genome, gram, custom, source_genome=None, is_test=False):
         3,
         "load_gbk",
     )
+    # ===================================================================
+    # DAG: 5 parallel branches after load_gbk, with real dependencies
+    # ===================================================================
+    #
+    #                 ┌→ fasttarget → [load_human, load_micro, load_essen]
+    #                 │
+    # load_gbk ──────┼→ index_db → index_seq → interproscan → load_interpro
+    #                 │
+    #                 ├→ gbk2uniprot ┬→ fetch_uniprot_annotations
+    #                 │              ├→ get_unipslst → alphafold → esmfold
+    #                 │              │    → structures → druggability → load_drug
+    #                 │              └→ get_binders → load_binders
+    #                 │
+    #                 └→ psort → load_psort
+    #
+    # Pipeline is done when ALL terminal futures complete.
+    # ===================================================================
+
+    # --- Branch A: Scoring (fasttarget + 3 parallel score loads) ---
     r_fasttarget = _track_future(
         fasttarget(working_dir=working_dir, folder_path=folder_path, genome=genome, inputs=[r_load]),
         4,
         "fasttarget",
     )
-    # --- Parallel branch: three independent score loads ---
     load_human_offt = _track_future(
         load_score(working_dir=working_dir, genome=genome, inputs=[r_fasttarget], param='human_offtarget'),
         5,
@@ -275,9 +293,10 @@ def run(genome, gram, custom, source_genome=None, is_test=False):
         7,
         "load_score",
     )
-    # --- Merge: index needs all scores loaded ---
+
+    # --- Branch B: Indexing → InterProScan (needs load_gbk only) ---
     r_index_db = _track_future(
-        index_genome_db(working_dir=working_dir, inputs=[load_human_offt, load_micro_offt, load_essen], genome=genome),
+        index_genome_db(working_dir=working_dir, inputs=[r_load], genome=genome),
         8,
         "index_genome_db",
     )
@@ -296,23 +315,26 @@ def run(genome, gram, custom, source_genome=None, is_test=False):
         11,
         "load_interpro",
     )
+
+    # --- Branch C: UniProt mapping → structures → druggability ---
+    # gbk2uniprot only needs bioentries in DB (from load_gbk), not interpro
     r_gbk2uniprot = _track_future(
-        gbk2uniprot_map(working_dir=working_dir, genome=genome, folder_path=folder_path, inputs=[r_load_interpro]),
+        gbk2uniprot_map(working_dir=working_dir, genome=genome, folder_path=folder_path, inputs=[r_load]),
         12,
         "gbk2uniprot_map",
     )
+    # fetch_uniprot_annotations and get_unipslst both read _unips.lst → parallel
     r_uniprot_annotations = _track_future(
         fetch_uniprot_annotations(working_dir=working_dir, genome=genome, folder_path=folder_path, inputs=[r_gbk2uniprot]),
         13,
         "fetch_uniprot_annotations",
     )
     protein_list = _track_future(
-        get_unipslst(folder_path=folder_path, genome=genome, inputs=[r_uniprot_annotations]),
+        get_unipslst(folder_path=folder_path, genome=genome, inputs=[r_gbk2uniprot]),
         14,
         "get_unipslst",
     )
     r_alphafolds = scatter_alphafold(protein_list, folder_path=folder_path, genome=genome)
-
     r_esmfold = _track_future(
         esmfold_predict(
             working_dir=working_dir,
@@ -323,38 +345,40 @@ def run(genome, gram, custom, source_genome=None, is_test=False):
         16,
         "esmfold_predict",
     )
-
     r_stru = _track_future(
         structures_af(working_dir=working_dir, folder_path=folder_path, genome=genome, inputs=[r_esmfold]),
         17,
         "structures_af",
     )
-    
     d_2_csv = _track_future(
         druggability_2_csv(working_dir=working_dir, genome=genome, inputs=[r_stru]),
         18,
         "druggability_2_csv",
     )
-
     load_d = _track_future(
         load_score(working_dir=working_dir, genome=genome, inputs=[d_2_csv], param='druggability'),
         19,
         "load_score",
     )
-    
-    p_run = _track_future(psort(genome=genome, gram=gram, inputs=[load_d]), 20, "psort")
 
+    # --- Branch D: Localization (only needs genome loaded) ---
+    p_run = _track_future(psort(genome=genome, gram=gram, inputs=[r_load]), 20, "psort")
     load_p = _track_future(
         load_score(working_dir=working_dir, genome=genome, inputs=[p_run], param='psort'),
         21,
         "load_score",
     )
-    
-    get_b = _track_future(get_binders(working_dir=working_dir, genome=genome, inputs=[load_p]), 22, "get_binders")
 
+    # --- Branch E: Binders (needs _unips.lst from gbk2uniprot) ---
+    get_b = _track_future(get_binders(working_dir=working_dir, genome=genome, inputs=[r_gbk2uniprot]), 22, "get_binders")
     load_b = _track_future(load_binders(working_dir=working_dir, genome=genome, inputs=[get_b]), 23, "load_binders")
 
-    return load_b
+    # Pipeline done when ALL branches complete
+    return [load_human_offt, load_micro_offt, load_essen,  # Branch A
+            r_load_interpro,                                # Branch B
+            r_uniprot_annotations, load_d,                  # Branch C
+            load_p,                                         # Branch D
+            load_b]                                         # Branch E
 
 if __name__ == "__main__":
     start = time.time()
