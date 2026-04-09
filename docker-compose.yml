@@ -49,12 +49,13 @@ services:
           cpus: '0.5'
           memory: 512M
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     networks:
       - edge
     expose:
       - "8000"
-    command: /bin/sh -c "chmod +x start.sh && ./start.sh"
+    command: ["./start.sh"]
     working_dir: /app/targetpathogenweb
     volumes:
       - ${TPW_DATA_DIR:-./data}:/app/targetpathogenweb/data
@@ -94,6 +95,10 @@ services:
       - SSH_WORKDIR=${SSH_WORKDIR:-}
       - SSH_CORES=${SSH_CORES:-}
       - SSH_PORT=${SSH_PORT:-}
+      - TPW_USE_DIRECT_PIPELINE=${TPW_USE_DIRECT_PIPELINE:-}
+      - TPW_FASTTARGET_ALLOW_FALLBACK=${TPW_FASTTARGET_ALLOW_FALLBACK:-}
+      - TPW_FASTTARGET_SKIP_EXEC=${TPW_FASTTARGET_SKIP_EXEC:-}
+      - TPW_INTERPRO_APPLICATIONS=${TPW_INTERPRO_APPLICATIONS:-}
     restart: always
     labels:
       - 'traefik.enable=true'
@@ -111,11 +116,13 @@ services:
     image: targetpathogenweb-app:latest
     pull_policy: never
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     networks:
       - edge
-    command: /bin/sh -c "chmod +x start_queue.sh && ./start_queue.sh"
+    command: ["./start_queue.sh"]
     working_dir: /app/targetpathogenweb
+    stop_grace_period: 120s
     volumes:
       - ${TPW_DATA_DIR:-./data}:/app/targetpathogenweb/data
       - ${TPW_FASTTARGET_DB_DIR:-./fasttarget_mac/databases}:/app/fasttarget/databases:ro
@@ -153,6 +160,10 @@ services:
       - SSH_WORKDIR=${SSH_WORKDIR:-}
       - SSH_CORES=${SSH_CORES:-}
       - SSH_PORT=${SSH_PORT:-}
+      - TPW_USE_DIRECT_PIPELINE=${TPW_USE_DIRECT_PIPELINE:-}
+      - TPW_FASTTARGET_ALLOW_FALLBACK=${TPW_FASTTARGET_ALLOW_FALLBACK:-}
+      - TPW_FASTTARGET_SKIP_EXEC=${TPW_FASTTARGET_SKIP_EXEC:-}
+      - TPW_INTERPRO_APPLICATIONS=${TPW_INTERPRO_APPLICATIONS:-}
     restart: always
 
   jbrowse:

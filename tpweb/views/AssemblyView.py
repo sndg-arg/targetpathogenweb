@@ -67,7 +67,8 @@ class AssemblyView(View):
     def _build_context(self, request, biodb, error_message=""):
         props = {bqv.term.identifier: bqv.value
                  for bqv in BiodatabaseQualifierValue.objects.filter(biodatabase=biodb)}
-        config_lt = Bioentry.objects.filter(biodatabase=biodb).first().accession
+        reference_entry = Bioentry.objects.filter(biodatabase=biodb).only("accession").first()
+        reference_accession = str(getattr(reference_entry, "accession", "") or "").strip()
         assembly = {
             "id": biodb.biodatabase_id,
             "name": display_genome_name(biodb.name),
@@ -107,13 +108,18 @@ class AssemblyView(View):
         jbrowse_url = (
             f"{jbrowse_base_url}"
             f"?config=data/jbrowse/{biodb.name}/config.json"
-            f"&loc={config_lt}:1..15000"
             f"&assembly={jbrowse_assembly_name}"
             f"&tracks={jbrowse_reference_track},{jbrowse_annotation_track}"
         )
+        if reference_accession:
+            jbrowse_url = f"{jbrowse_url}&loc={reference_accession}:1..15000"
         jbrowse_host = urlparse(jbrowse_base_url).hostname or ""
         jbrowse_embed = {
-            "enabled": bool(getattr(settings, "JBROWSE_EMBED_ENABLED", False)) and jbrowse_config_exists,
+            "enabled": (
+                bool(getattr(settings, "JBROWSE_EMBED_ENABLED", False))
+                and jbrowse_config_exists
+                and bool(reference_accession)
+            ),
             "uses_local_service": jbrowse_host in {"localhost", "127.0.0.1", "0.0.0.0"},
             "config_exists": jbrowse_config_exists,
         }

@@ -8,6 +8,8 @@ services:
         reservations:
           memory: 512m
     labels: []
+    volumes:
+      - ${TPW_DB_DIR:-/data/targetpathogen/db}:/var/lib/postgresql/data
     environment:
       POSTGRES_PASSWORD: ${DJANGO_DATABASE_PASSWORD}
 
@@ -24,6 +26,13 @@ services:
         HTTP_PROXY: ${HTTP_PROXY:-}
         HTTPS_PROXY: ${HTTPS_PROXY:-}
         NO_PROXY: ${NO_PROXY:-}
+    volumes:
+      - ${TPW_DATA_DIR:-/data/targetpathogen/data}:/app/targetpathogenweb/data
+      - ${TPW_FASTTARGET_DB_DIR:-/data/targetpathogen/fasttarget_db}:/app/fasttarget/databases:ro
+      - ${TPW_FASTTARGET_RUNTIME_DIR:-/data/targetpathogen/fasttarget_organism}:/app/fasttarget/organism
+      - ${TPW_FASTTARGET_LOG_DIR:-/data/targetpathogen/fasttarget_logs}:/app/fasttarget/logs
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${TPW_SSH_DIR:-/home/appuser/.ssh}:/home/appuser/.ssh:ro
     environment:
       - TPW_PROFILE=cluster
       - DJANGO_DATABASE_URL=postgres://postgres:${DJANGO_DATABASE_PASSWORD}@db:5432/tp
@@ -46,6 +55,13 @@ services:
           cpus: '1.0'
         reservations:
           memory: 512m
+    volumes:
+      - ${TPW_DATA_DIR:-/data/targetpathogen/data}:/app/targetpathogenweb/data
+      - ${TPW_FASTTARGET_DB_DIR:-/data/targetpathogen/fasttarget_db}:/app/fasttarget/databases:ro
+      - ${TPW_FASTTARGET_RUNTIME_DIR:-/data/targetpathogen/fasttarget_organism}:/app/fasttarget/organism
+      - ${TPW_FASTTARGET_LOG_DIR:-/data/targetpathogen/fasttarget_logs}:/app/fasttarget/logs
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${TPW_SSH_DIR:-/home/appuser/.ssh}:/home/appuser/.ssh:ro
     environment:
       - TPW_PROFILE=cluster
       - DJANGO_DATABASE_URL=postgres://postgres:${DJANGO_DATABASE_PASSWORD}@db:5432/tp
@@ -68,3 +84,5 @@ services:
           cpus: '0.5'
         reservations:
           memory: 256m
+    volumes:
+      - ${TPW_DATA_DIR:-/data/targetpathogen/data}:/jbrowse2/data
