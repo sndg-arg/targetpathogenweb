@@ -25,13 +25,13 @@ _PIPELINE_STATUS_CACHE: dict = {
 }
 _PIPELINE_STATUS_CACHE_LOCK = threading.Lock()
 LAST_RUN_MARKER_RELATIVE_PATHS = (
-    "data/parsl/last_pipeline_run.json",
-    "parsl/last_pipeline_run.json",
+    "data/pipeline/last_pipeline_run.json",
+    "pipeline/last_pipeline_run.json",
     "last_pipeline_run.json",
 )
 # Legacy Parsl runinfo dirs — kept here only so clear_pipeline_activity_state()
 # can wipe leftover files on disk during a reset.
-LEGACY_RUNINFO_RELATIVE_DIRS = ("data/parsl/runinfo", "parsl/runinfo", "runinfo")
+LEGACY_RUNINFO_RELATIVE_DIRS = ("data/pipeline/runinfo", "pipeline/runinfo", "runinfo")
 FAILED_PIPELINE_STATE_LABELS = {"Last pipeline run failed"}
 INCOMPLETE_PIPELINE_STATE_LABELS = FAILED_PIPELINE_STATE_LABELS | {
     "Last pipeline run stopped before completion"

@@ -164,7 +164,7 @@ def _build_remote_config(cfg_dict):
     if missing:
         missing_csv = ", ".join(missing)
         raise RuntimeError(
-            f"InterProScan remote configuration is incomplete. Set {missing_csv} via environment or parsl/settings.ini."
+            f"InterProScan remote configuration is incomplete. Set {missing_csv} via environment or pipeline/settings.ini."
         )
 
     return InterProScanRemoteConfig(

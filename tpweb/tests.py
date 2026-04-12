@@ -729,7 +729,7 @@ class PipelineStatusTests(SimpleTestCase):
     def test_status_from_last_run_marker_reads_shared_data_marker(self):
         with TemporaryDirectory() as tmpdir:
             base_dir = Path(tmpdir)
-            marker_path = base_dir / "data" / "parsl" / "last_pipeline_run.json"
+            marker_path = base_dir / "data" / "pipeline" / "last_pipeline_run.json"
             marker_path.parent.mkdir(parents=True, exist_ok=True)
             marker_path.write_text(
                 """

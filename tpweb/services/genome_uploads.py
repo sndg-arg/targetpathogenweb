@@ -19,7 +19,7 @@ TEST_GENOME_ACCESSION = "NZ_AP023069.1"
 
 
 def _build_pipeline_runtime(upload, command_suffix):
-    parsl_dir = Path(settings.BASE_DIR) / "parsl"
+    pipeline_dir = Path(settings.BASE_DIR) / "pipeline"
     log_dir = Path(settings.MEDIA_ROOT) / "pipeline_logs"
     log_dir.mkdir(parents=True, exist_ok=True)
     log_path = log_dir / f"genome-upload-{upload.id}.log"
@@ -29,7 +29,7 @@ def _build_pipeline_runtime(upload, command_suffix):
     existing_pythonpath = env.get("PYTHONPATH", "")
     python_bin_dir = str(Path(sys.executable).resolve().parent)
     existing_path = env.get("PATH", "")
-    pythonpath_parts = [base_dir, str(parsl_dir)]
+    pythonpath_parts = [base_dir, str(pipeline_dir)]
     if existing_pythonpath:
         pythonpath_parts.append(existing_pythonpath)
     env["PYTHONPATH"] = ":".join(pythonpath_parts)
@@ -44,7 +44,7 @@ def _build_pipeline_runtime(upload, command_suffix):
         "bash",
         "-lc",
         (
-            f"source {shlex.quote(str(parsl_dir / 'exports.sh'))} && "
+            f"source {shlex.quote(str(pipeline_dir / 'exports.sh'))} && "
             f"{shlex.quote(sys.executable)} {script} "
             f"{command_suffix}"
         ),
@@ -52,7 +52,7 @@ def _build_pipeline_runtime(upload, command_suffix):
 
     return {
         "command": command,
-        "cwd": str(parsl_dir),
+        "cwd": str(pipeline_dir),
         "env": env,
         "log_path": log_path,
     }

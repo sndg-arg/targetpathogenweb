@@ -499,14 +499,18 @@ pyrightconfig.json
 
 
 .idea/
-data/
+/data/
 
 # Parsl
 ligq/
 opt/
-parsl/runinfo/
+pipeline/runinfo/
 psort/
 runinfo/
 pwtools/pgdbs/user
 biolip/BioLiP.txt.gz
 biolip
+pipeline/settings.env
+pipeline/*.log
+pipeline/*.json
+.claude/

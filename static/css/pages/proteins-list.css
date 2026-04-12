@@ -168,6 +168,10 @@ a.filter-pill .filter-pill-remove {
     margin: 2px 6px 2px 0;
 }
 
+.protein-table td[data-col="go"] {
+    min-width: 150px;
+}
+
 .toolbar-card {
     border: 1px solid var(--tp-color-border);
     border-radius: var(--tp-ui-radius-panel);
@@ -1963,6 +1967,25 @@ a.filter-pill .filter-pill-remove {
 
     .columns-layout {
         grid-template-columns: 1fr;
+    }
+
+    .protein-table td[data-col="go"] {
+        text-align: center;
+    }
+
+    .protein-table td[data-col="go"] .annotation-cell {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-inline: auto;
+        width: min(100%, 280px);
+        max-width: 280px;
+    }
+
+    .protein-table td[data-col="go"] .annotation-empty {
+        display: inline-flex;
+        justify-content: center;
+        margin-inline: auto;
     }
 }
 

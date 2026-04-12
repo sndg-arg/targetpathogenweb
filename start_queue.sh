@@ -7,8 +7,8 @@ fi
 . /opt/conda/etc/profile.d/conda.sh
 conda activate tpv2
 
-if [ -f ./parsl/exports.sh ]; then
-  . ./parsl/exports.sh
+if [ -f ./pipeline/exports.sh ]; then
+  . ./pipeline/exports.sh
 fi
 
 QUEUE_POLL_INTERVAL="${QUEUE_POLL_INTERVAL:-5}"

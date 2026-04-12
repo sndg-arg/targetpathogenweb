@@ -8,7 +8,7 @@ Web platform for genome-level protein exploration, structural evidence analysis,
 |-------|-----------|
 | Backend | Django 4, Python 3.10 |
 | Database | PostgreSQL 14 |
-| Pipeline | Parsl + bioinformatics tools (InterProScan, AlphaFold, FPocket, P2Rank, PSORTb) |
+| Pipeline | subprocess orchestrator + bioinformatics tools (InterProScan, AlphaFold, FPocket, P2Rank, PSORTb) |
 | Frontend | Django templates, modular CSS (design tokens), vanilla JS |
 | Auth | django-allauth (username/email login, admin-only registration) |
 | Runtime | Docker Compose (4 services: web, db, queue, jbrowse) |
@@ -33,7 +33,7 @@ static/
 ├── js/pages/        # Page-specific JS (protein-detail.js, etc.)
 └── bundle.js        # Webpack bundle (feature-viewer, MSA, 3D libs)
 
-parsl/               # Pipeline definition and execution
+pipeline/             # Pipeline orchestrator and commands
 tpwebconfig/         # Django project settings, urls, wsgi
 ```
 
@@ -114,7 +114,7 @@ URLs use clean accessions (e.g. `/genome/NZ_AP023069.1/proteins`), not internal 
 
 ## Pipeline
 
-The genome processing pipeline runs 21 stages via Parsl:
+The genome processing pipeline runs 23 stages via a direct subprocess orchestrator:
 
 1. **Genome acquisition** — download from NCBI, use test genome, or upload `.gbk.gz`
 2. **Import** — load GenBank into database
@@ -131,7 +131,7 @@ The genome processing pipeline runs 21 stages via Parsl:
 ```bash
 docker compose exec -it web bash
 source /opt/conda/etc/profile.d/conda.sh && conda activate tpv2
-cd /app/targetpathogenweb/parsl && source exports.sh
+cd /app/targetpathogenweb/pipeline && source exports.sh
 python run_pipeline.py --test                    # test genome
 python run_pipeline.py --gram n NC_002516.2      # NCBI accession
 python run_pipeline.py --gram n --custom file.gbk.gz  # custom file

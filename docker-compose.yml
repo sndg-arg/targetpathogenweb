@@ -83,7 +83,7 @@ services:
       - DJANGO_DATABASE_USER=postgres
       - DJANGO_DATABASE_URL=postgres://postgres:${TPW_DB_PASSWORD:-changeme}@db:5432/tp
       - DJANGO_DATABASE_PASSWORD=${TPW_DB_PASSWORD:-changeme}
-      - DJANGO_ALLOWED_HOSTS=localhost,0.0.0.0,127.0.0.1,targettestv2_test.cluster.qb.fcen.uba.ar
+      - DJANGO_ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS:-localhost,0.0.0.0,127.0.0.1}
       - PYTHONPATH=/app/sndgjobs:/app/sndgbiodb:/app/targetpathogen:/app/sndg-bio:/app/target:/app/targetpathogenweb
       - HTTP_PROXY=${HTTP_PROXY:-}
       - HTTPS_PROXY=${HTTPS_PROXY:-}
@@ -104,7 +104,7 @@ services:
       - 'traefik.enable=true'
       - "traefik.docker.network=${TPW_EDGE_NETWORK:-web}"
       - 'traefik.http.routers.target2_nodo0.entrypoints=websecure'
-      - "traefik.http.routers.target2_nodo0.rule=Host(`target2.sbg.qb.fcen.uba.ar`)"
+      - "traefik.http.routers.target2_nodo0.rule=Host(`${TPW_DOMAIN:-target2.infra.cluster.qb.fcen.uba.ar}`)"
       - "traefik.http.services.target2_nodo0.loadbalancer.server.port=8000"
       - "traefik.http.routers.target2_nodo0.tls=true"
       - "traefik.http.routers.target2_nodo0.tls.certresolver=leresolver"
@@ -147,7 +147,7 @@ services:
       - DJANGO_DATABASE_USER=postgres
       - DJANGO_DATABASE_URL=postgres://postgres:${TPW_DB_PASSWORD:-changeme}@db:5432/tp
       - DJANGO_DATABASE_PASSWORD=${TPW_DB_PASSWORD:-changeme}
-      - DJANGO_ALLOWED_HOSTS=localhost,0.0.0.0,127.0.0.1,targettestv2_test.cluster.qb.fcen.uba.ar
+      - DJANGO_ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS:-localhost,0.0.0.0,127.0.0.1}
       - PYTHONPATH=/app/sndgjobs:/app/sndgbiodb:/app/targetpathogen:/app/sndg-bio:/app/target:/app/targetpathogenweb
       - QUEUE_POLL_INTERVAL=${QUEUE_POLL_INTERVAL:-5}
       - HTTP_PROXY=${HTTP_PROXY:-}
