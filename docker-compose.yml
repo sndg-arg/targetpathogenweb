@@ -103,11 +103,11 @@ services:
     labels:
       - 'traefik.enable=true'
       - "traefik.docker.network=${TPW_EDGE_NETWORK:-web}"
-      - 'traefik.http.routers.target2_nodo0.entrypoints=websecure'
-      - "traefik.http.routers.target2_nodo0.rule=Host(`${TPW_DOMAIN:-target2.infra.cluster.qb.fcen.uba.ar}`)"
-      - "traefik.http.services.target2_nodo0.loadbalancer.server.port=8000"
-      - "traefik.http.routers.target2_nodo0.tls=true"
-      - "traefik.http.routers.target2_nodo0.tls.certresolver=leresolver"
+      - "traefik.http.routers.${TPW_ROUTER_NAME:-tpw_target2_nodo0}.entrypoints=websecure"
+      - "traefik.http.routers.${TPW_ROUTER_NAME:-tpw_target2_nodo0}.rule=Host(`${TPW_DOMAIN:-target2.infra.cluster.qb.fcen.uba.ar}`)"
+      - "traefik.http.services.${TPW_ROUTER_NAME:-tpw_target2_nodo0}.loadbalancer.server.port=8000"
+      - "traefik.http.routers.${TPW_ROUTER_NAME:-tpw_target2_nodo0}.tls=true"
+      - "traefik.http.routers.${TPW_ROUTER_NAME:-tpw_target2_nodo0}.tls.certresolver=leresolver"
       - "traefik.http.middlewares.https_redirect.redirectscheme.scheme=https"
       - "traefik.http.middlewares.https_redirect.redirectscheme.permanent=true"
 
