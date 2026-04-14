@@ -16,7 +16,7 @@ STAGE_LABELS = {
     13: "Fetching UniProt annotations",
     14: "Collecting UniProt list",
     15: "Generating AlphaFold models",
-    16: "Predicting missing structures (ESMFold)",
+    16: "Predicting missing structures (ColabFold)",
     17: "Loading structures and pockets",
     18: "Computing druggability table",
     19: "Loading druggability score",

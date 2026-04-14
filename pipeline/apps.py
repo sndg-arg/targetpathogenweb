@@ -11,6 +11,23 @@ def _flag_enabled(name, default=False):
         return default
     return raw.strip().lower() in {"1", "true", "yes", "on"}
 
+
+def _host_bind_path(container_path, env_name, container_base):
+    host_base = os.environ.get(env_name, "").strip()
+    container_base = os.path.abspath(container_base)
+    container_path = os.path.abspath(container_path)
+    if not host_base or not (
+        container_path == container_base
+        or container_path.startswith(container_base + os.sep)
+    ):
+        return container_path
+    if not os.path.isabs(host_base):
+        cwd = os.environ.get("CWD", "").strip()
+        if cwd:
+            host_base = os.path.abspath(os.path.join(cwd, host_base))
+    rel_path = os.path.relpath(container_path, container_base)
+    return host_base if rel_path == "." else os.path.join(host_base, rel_path)
+
 @python_app(executors=['local_executor'])
 def clear_folder(folder_path, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
     import os, shutil
@@ -114,6 +131,33 @@ def load_af_model(locus_tag, working_dir, folder_path, inputs=[], stderr=parsl.A
 
 
 @bash_app(executors=["local_executor"])
+def run_fpocket(folder_path, locus_tag, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
+    import os
+    import shlex
+
+    locus_dir = os.path.abspath(os.path.join(folder_path, "alphafold", locus_tag))
+    host_locus_dir = _host_bind_path(
+        locus_dir,
+        env_name="TPW_DATA_DIR",
+        container_base="/app/targetpathogenweb/data",
+    )
+    pdb_path = os.path.join(locus_dir, f"{locus_tag}_af.pdb")
+    fpocket_pdb_path = f"/work/{locus_tag}_af.pdb"
+    fpocket_out = os.path.join(locus_dir, f"{locus_tag}_af_out")
+    if not os.path.exists(pdb_path):
+        return f"echo 'No structure PDB for {locus_tag}, skipping fpocket'"
+    return (
+        f"if [ -d {shlex.quote(fpocket_out)} ]; then "
+        f"echo 'fpocket output already exists for {locus_tag}'; "
+        f"elif command -v docker >/dev/null 2>&1; then "
+        f"docker run --user $(id -u):$(id -g) --rm -i "
+        f"-v {shlex.quote(host_locus_dir)}:/work "
+        f"ezequieljsosa/fpocket fpocket -f {shlex.quote(fpocket_pdb_path)} -m 2 -D 6; "
+        f"else echo 'Docker not available for fpocket on {locus_tag}, skipping'; fi"
+    )
+
+
+@bash_app(executors=["local_executor"])
 def fpocket2json(folder_path, locus_tag, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
     import os
     locustag_af = os.path.join(folder_path, "alphafold", locus_tag, f"{locus_tag}_af_out")
@@ -165,8 +209,10 @@ def structures_af(working_dir, folder_path, genome, inputs=[], stderr=parsl.AUTO
         print(os.path.join(alphafold_dir, protein, f'{protein}_af.pdb'))
         r_load = load_af_model(protein, working_dir,
                                 folder_path, inputs=[proteins_with_pdb])
-        r_json = fpocket2json(
+        r_fpocket = run_fpocket(
             folder_path, protein, inputs=[r_load])
+        r_json = fpocket2json(
+            folder_path, protein, inputs=[r_fpocket])
         p_load = load_pocket(
             folder_path, protein, working_dir, inputs=[r_json])
         r2_json = p2rank2json(genome, protein, working_dir, inputs=[r_load])

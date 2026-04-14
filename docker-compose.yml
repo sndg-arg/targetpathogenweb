@@ -64,6 +64,7 @@ services:
       - ${TPW_FASTTARGET_LOG_DIR:-./data/fasttarget/logs}:/app/fasttarget/logs
       - /var/run/docker.sock:/var/run/docker.sock
       - ${HOME}/.ssh:/home/appuser/.ssh:ro
+      - ${HOME}/.ssh:/root/.ssh:ro
     ports:
       - "${TPW_WEB_PORT_BIND:-8085}:8000"
     init: true
@@ -85,6 +86,7 @@ services:
       - DJANGO_DATABASE_PASSWORD=${TPW_DB_PASSWORD:-changeme}
       - DJANGO_ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS:-localhost,0.0.0.0,127.0.0.1}
       - PYTHONPATH=/app/sndgjobs:/app/sndgbiodb:/app/targetpathogen:/app/sndg-bio:/app/target:/app/targetpathogenweb
+      - TPW_DATA_DIR=${TPW_DATA_DIR:-./data}
       - HTTP_PROXY=${HTTP_PROXY:-}
       - HTTPS_PROXY=${HTTPS_PROXY:-}
       - NO_PROXY=${NO_PROXY:-}
@@ -99,6 +101,9 @@ services:
       - TPW_FASTTARGET_ALLOW_FALLBACK=${TPW_FASTTARGET_ALLOW_FALLBACK:-}
       - TPW_FASTTARGET_SKIP_EXEC=${TPW_FASTTARGET_SKIP_EXEC:-}
       - TPW_INTERPRO_APPLICATIONS=${TPW_INTERPRO_APPLICATIONS:-}
+      - TPW_COLABFOLD_BIN=${TPW_COLABFOLD_BIN:-colabfold_batch}
+      - TPW_COLABFOLD_NUM_RECYCLES=${TPW_COLABFOLD_NUM_RECYCLES:-3}
+      - TPW_COLABFOLD_NUM_MODELS=${TPW_COLABFOLD_NUM_MODELS:-1}
     restart: always
     labels:
       - 'traefik.enable=true'
@@ -115,6 +120,7 @@ services:
     container_name: ${TPW_CONTAINER_PREFIX:-targetpathogenweb}_queue
     image: targetpathogenweb-app:latest
     pull_policy: never
+    user: "0:0"
     depends_on:
       db:
         condition: service_healthy
@@ -130,6 +136,7 @@ services:
       - ${TPW_FASTTARGET_LOG_DIR:-./data/fasttarget/logs}:/app/fasttarget/logs
       - /var/run/docker.sock:/var/run/docker.sock
       - ${HOME}/.ssh:/home/appuser/.ssh:ro
+      - ${HOME}/.ssh:/root/.ssh:ro
     init: true
     healthcheck:
       test: ["CMD-SHELL", "pgrep -f tpweb_process_genome_queue >/dev/null || exit 1"]
@@ -149,6 +156,7 @@ services:
       - DJANGO_DATABASE_PASSWORD=${TPW_DB_PASSWORD:-changeme}
       - DJANGO_ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS:-localhost,0.0.0.0,127.0.0.1}
       - PYTHONPATH=/app/sndgjobs:/app/sndgbiodb:/app/targetpathogen:/app/sndg-bio:/app/target:/app/targetpathogenweb
+      - TPW_DATA_DIR=${TPW_DATA_DIR:-./data}
       - QUEUE_POLL_INTERVAL=${QUEUE_POLL_INTERVAL:-5}
       - HTTP_PROXY=${HTTP_PROXY:-}
       - HTTPS_PROXY=${HTTPS_PROXY:-}
@@ -164,6 +172,9 @@ services:
       - TPW_FASTTARGET_ALLOW_FALLBACK=${TPW_FASTTARGET_ALLOW_FALLBACK:-}
       - TPW_FASTTARGET_SKIP_EXEC=${TPW_FASTTARGET_SKIP_EXEC:-}
       - TPW_INTERPRO_APPLICATIONS=${TPW_INTERPRO_APPLICATIONS:-}
+      - TPW_COLABFOLD_BIN=${TPW_COLABFOLD_BIN:-colabfold_batch}
+      - TPW_COLABFOLD_NUM_RECYCLES=${TPW_COLABFOLD_NUM_RECYCLES:-3}
+      - TPW_COLABFOLD_NUM_MODELS=${TPW_COLABFOLD_NUM_MODELS:-1}
     restart: always
 
   jbrowse:

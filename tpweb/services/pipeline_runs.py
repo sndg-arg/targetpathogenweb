@@ -102,6 +102,7 @@ def record_pipeline_stage_event(
 
         updates = []
         if stage_number is not None and status in {
+            PipelineStageEvent.STATUS_SUBMITTED,
             PipelineStageEvent.STATUS_RUNNING,
             PipelineStageEvent.STATUS_COMPLETED,
             PipelineStageEvent.STATUS_FAILED,

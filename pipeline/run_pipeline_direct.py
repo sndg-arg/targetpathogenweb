@@ -38,8 +38,9 @@ from pipeline_commands import (
     gbk2uniprot_cmd,
     fetch_annotations_cmd,
     alphafold_cmd,
-    esmfold_cmd,
+    colabfold_cmd,
     load_af_model_cmd,
+    run_fpocket_cmd,
     fpocket2json_cmd,
     load_pocket_cmd,
     p2rank2json_cmd,
@@ -126,6 +127,7 @@ def _run_structures_chain(stage, working_dir, folder_path, genome):
     for protein in proteins_with_pdb:
         print(os.path.join(alphafold_dir, protein, f"{protein}_af.pdb"))
         _run_stage(stage, "load_af_model", load_af_model_cmd(protein, working_dir, folder_path))
+        _run_stage(stage, "run_fpocket", run_fpocket_cmd(folder_path, protein))
         _run_stage(stage, "fpocket2json", fpocket2json_cmd(folder_path, protein))
         _run_stage(stage, "load_pocket", load_pocket_cmd(folder_path, protein, working_dir))
         _run_stage(stage, "p2rank2json", p2rank2json_cmd(genome, protein, working_dir))
@@ -136,46 +138,76 @@ def _run_structures_chain(stage, working_dir, folder_path, genome):
 # Main genome pipeline
 # ---------------------------------------------------------------------------
 
-def run_genome(genome, gram, custom, source_genome, is_test, working_dir, cfg_dict):
-    """Run the full 23-stage pipeline for one genome. Raises on any failure."""
+def run_genome(genome, gram, custom, source_genome, is_test, working_dir, cfg_dict, start_stage=1):
+    """Run the full 23-stage pipeline for one genome. Raises on any failure.
+
+    start_stage: skip all stages with number < start_stage (used to resume after a failure).
+    Stage 1 (clear_folder) is always skipped when start_stage > 1 to preserve existing data.
+    """
     folder_path = _compute_folder_path(working_dir, genome)
     source_accession = (source_genome or genome).strip()
 
-    _run_python_stage(1, "clear_folder", _clear_folder, folder_path)
+    def _skip(stage):
+        return stage < start_stage
 
-    if is_test:
-        _run_stage(2, "test_gbk", test_gbk_cmd(working_dir, genome))
-    elif custom:
-        _run_stage(2, "custom_gbk", custom_gbk_cmd(working_dir, genome, custom))
-    else:
-        _run_stage(2, "download_gbk", download_gbk_cmd(working_dir, source_accession, target_accession=genome))
+    if not _skip(1):
+        _run_python_stage(1, "clear_folder", _clear_folder, folder_path)
 
-    _run_stage(3, "load_gbk", load_gbk_cmd(working_dir, folder_path, genome))
-    _run_stage(4, "fasttarget", fasttarget_cmd(working_dir, genome, folder_path))
-    _run_stage(5, "load_score", load_score_cmd(working_dir, genome, "human_offtarget"))
-    _run_stage(6, "load_score", load_score_cmd(working_dir, genome, "micro_offtarget"))
-    _run_stage(7, "load_score", load_score_cmd(working_dir, genome, "essenciality"))
-    _run_stage(8, "index_genome_db", index_db_cmd(working_dir, genome))
-    _run_stage(9, "index_genome_seq", index_seq_cmd(working_dir, genome))
-    _run_python_stage(10, "interproscan", run_remote_interproscan,
-                      cfg_dict=cfg_dict, folder_path=folder_path, genome=genome)
-    _run_stage(11, "load_interpro", load_interpro_cmd(working_dir, genome, folder_path))
-    _run_stage(12, "gbk2uniprot_map", gbk2uniprot_cmd(working_dir, genome, folder_path))
-    _run_stage(13, "fetch_uniprot_annotations", fetch_annotations_cmd(working_dir, genome, folder_path))
-    protein_list = _run_python_stage(14, "get_unipslst", _read_unips, folder_path, genome)
-    for line in protein_list.strip().split("\n"):
-        line = line.strip()
-        if not line:
-            continue
-        _run_stage(15, "alphafold_unips", alphafold_cmd(line, folder_path, genome))
-    _run_stage(16, "esmfold_predict", esmfold_cmd(working_dir, genome))
-    _run_structures_chain(17, working_dir, folder_path, genome)
-    _run_stage(18, "druggability_2_csv", druggability_cmd(working_dir, genome))
-    _run_stage(19, "load_score", load_score_cmd(working_dir, genome, "druggability"))
-    _run_stage(20, "psort", psort_cmd(genome, gram))
-    _run_stage(21, "load_score", load_score_cmd(working_dir, genome, "psort"))
-    _run_stage(22, "get_binders", get_binders_cmd(working_dir, genome))
-    _run_stage(23, "load_binders", load_binders_cmd(working_dir, genome))
+    if not _skip(2):
+        if is_test:
+            _run_stage(2, "test_gbk", test_gbk_cmd(working_dir, genome))
+        elif custom:
+            _run_stage(2, "custom_gbk", custom_gbk_cmd(working_dir, genome, custom))
+        else:
+            _run_stage(2, "download_gbk", download_gbk_cmd(working_dir, source_accession, target_accession=genome))
+
+    if not _skip(3):
+        _run_stage(3, "load_gbk", load_gbk_cmd(working_dir, folder_path, genome))
+    if not _skip(4):
+        _run_stage(4, "fasttarget", fasttarget_cmd(working_dir, genome, folder_path))
+    if not _skip(5):
+        _run_stage(5, "load_score", load_score_cmd(working_dir, genome, "human_offtarget"))
+    if not _skip(6):
+        _run_stage(6, "load_score", load_score_cmd(working_dir, genome, "micro_offtarget"))
+    if not _skip(7):
+        _run_stage(7, "load_score", load_score_cmd(working_dir, genome, "essenciality"))
+    if not _skip(8):
+        _run_stage(8, "index_genome_db", index_db_cmd(working_dir, genome))
+    if not _skip(9):
+        _run_stage(9, "index_genome_seq", index_seq_cmd(working_dir, genome))
+    if not _skip(10):
+        _run_python_stage(10, "interproscan", run_remote_interproscan,
+                          cfg_dict=cfg_dict, folder_path=folder_path, genome=genome)
+    if not _skip(11):
+        _run_stage(11, "load_interpro", load_interpro_cmd(working_dir, genome, folder_path))
+    if not _skip(12):
+        _run_stage(12, "gbk2uniprot_map", gbk2uniprot_cmd(working_dir, genome, folder_path))
+    if not _skip(13):
+        _run_stage(13, "fetch_uniprot_annotations", fetch_annotations_cmd(working_dir, genome, folder_path))
+    if not _skip(14) or not _skip(15):
+        protein_list = _run_python_stage(14, "get_unipslst", _read_unips, folder_path, genome)
+        if not _skip(15):
+            for line in protein_list.strip().split("\n"):
+                line = line.strip()
+                if not line:
+                    continue
+                _run_stage(15, "alphafold_unips", alphafold_cmd(line, folder_path, genome))
+    if not _skip(16):
+        _run_stage(16, "colabfold_predict", colabfold_cmd(working_dir, genome))
+    if not _skip(17):
+        _run_structures_chain(17, working_dir, folder_path, genome)
+    if not _skip(18):
+        _run_stage(18, "druggability_2_csv", druggability_cmd(working_dir, genome))
+    if not _skip(19):
+        _run_stage(19, "load_score", load_score_cmd(working_dir, genome, "druggability"))
+    if not _skip(20):
+        _run_stage(20, "psort", psort_cmd(genome, gram))
+    if not _skip(21):
+        _run_stage(21, "load_score", load_score_cmd(working_dir, genome, "psort"))
+    if not _skip(22):
+        _run_stage(22, "get_binders", get_binders_cmd(working_dir, genome))
+    if not _skip(23):
+        _run_stage(23, "load_binders", load_binders_cmd(working_dir, genome))
 
 
 def _clear_folder(folder_path):
@@ -206,6 +238,13 @@ if __name__ == "__main__":
     )
     parser.add_argument("--custom", "-c", default=None, help="Specify the path to the custom GBK file")
     parser.add_argument("--genome-name", default=None, help="Internal genome accession to use for custom uploads")
+    parser.add_argument(
+        "--start-stage",
+        type=int,
+        default=1,
+        metavar="N",
+        help="Resume from stage N, skipping earlier stages (stage 1 always skipped when N>1 to preserve data)",
+    )
 
     args = parser.parse_args()
     gram = args.gram
@@ -267,6 +306,7 @@ if __name__ == "__main__":
                 is_test=args.test,
                 working_dir=working_dir,
                 cfg_dict=cfg,
+                start_stage=args.start_stage,
             )
 
     except Exception as exc:

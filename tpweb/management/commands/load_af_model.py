@@ -52,7 +52,7 @@ class Command(BaseCommand):
         be = be.get()
         genome = be.biodatabase.name.replace(BioIO.GENOME_PROT_POSTFIX, "")
         pdb_model_qs = PDB.objects.filter(code=code,
-                                          experiment="AF")
+                                          experiment__in=("AF", "CF"))
         if options["overwrite"]:
             self.stderr.write(f"deleting... {code} ")
             pdb_model_qs.delete()
@@ -60,9 +60,12 @@ class Command(BaseCommand):
             self.stderr.write(f"structure {code} already exists")
             sys.exit(1)
         else:
+            pdb_dir = os.path.dirname(options["pdb_file"])
+            uniprot_file = os.path.join(pdb_dir, f"{code}_uniprot.txt")
+            experiment = "AF" if os.path.exists(uniprot_file) else "CF"
             try:
                 pdb_model = PDB(code=code,
-                                experiment="AF")
+                                experiment=experiment)
                 pdb_model.save()
                 self.load_pdb_file(pdb_model, options["pdb_file"])
                 BioentryStructure(bioentry=be, pdb=pdb_model).save()

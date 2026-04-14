@@ -1,6 +1,7 @@
 STRUCTURE_SOURCE_NONE = "none"
 STRUCTURE_SOURCE_EXPERIMENTAL = "experimental"
 STRUCTURE_SOURCE_ALPHAFOLD = "alphafold"
+STRUCTURE_SOURCE_COLABFOLD = "colabfold"
 STRUCTURE_SOURCE_MODEL = "model"
 STRUCTURE_SOURCE_MIXED = "mixed"
 
@@ -8,6 +9,7 @@ STRUCTURE_SOURCE_LABELS = {
     STRUCTURE_SOURCE_NONE: "Unavailable",
     STRUCTURE_SOURCE_EXPERIMENTAL: "Experimental",
     STRUCTURE_SOURCE_ALPHAFOLD: "AlphaFold",
+    STRUCTURE_SOURCE_COLABFOLD: "ColabFold",
     STRUCTURE_SOURCE_MODEL: "Model",
     STRUCTURE_SOURCE_MIXED: "Experimental + AlphaFold",
 }
@@ -16,6 +18,7 @@ STRUCTURE_SOURCE_CHOICES = (
     (STRUCTURE_SOURCE_NONE, "No structure"),
     (STRUCTURE_SOURCE_EXPERIMENTAL, "Experimental"),
     (STRUCTURE_SOURCE_ALPHAFOLD, "AlphaFold"),
+    (STRUCTURE_SOURCE_COLABFOLD, "ColabFold"),
     (STRUCTURE_SOURCE_MODEL, "Model"),
     (STRUCTURE_SOURCE_MIXED, "Experimental + AlphaFold"),
 )
@@ -29,6 +32,8 @@ def classify_structure_experiment(experiment):
     normalized = _normalize_experiment(experiment)
     if not normalized:
         return STRUCTURE_SOURCE_MODEL
+    if normalized == "CF" or "COLABFOLD" in normalized:
+        return STRUCTURE_SOURCE_COLABFOLD
     if normalized == "AF" or "ALPHAFOLD" in normalized:
         return STRUCTURE_SOURCE_ALPHAFOLD
     return STRUCTURE_SOURCE_EXPERIMENTAL
@@ -61,6 +66,7 @@ def summarize_structure_sources(structures):
         for source in (
             STRUCTURE_SOURCE_EXPERIMENTAL,
             STRUCTURE_SOURCE_ALPHAFOLD,
+            STRUCTURE_SOURCE_COLABFOLD,
             STRUCTURE_SOURCE_MODEL,
         )
         if source in source_keys

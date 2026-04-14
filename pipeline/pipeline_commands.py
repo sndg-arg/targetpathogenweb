@@ -12,6 +12,23 @@ import sys
 PYTHON_BIN = shlex.quote(sys.executable)
 
 
+def _host_bind_path(container_path, env_name, container_base):
+    host_base = os.environ.get(env_name, "").strip()
+    container_base = os.path.abspath(container_base)
+    container_path = os.path.abspath(container_path)
+    if not host_base or not (
+        container_path == container_base
+        or container_path.startswith(container_base + os.sep)
+    ):
+        return container_path
+    if not os.path.isabs(host_base):
+        cwd = os.environ.get("CWD", "").strip()
+        if cwd:
+            host_base = os.path.abspath(os.path.join(cwd, host_base))
+    rel_path = os.path.relpath(container_path, container_base)
+    return host_base if rel_path == "." else os.path.join(host_base, rel_path)
+
+
 # --- Stage 2: Genome download variants ---
 
 def download_gbk_cmd(working_dir, genome, target_accession=None):
@@ -110,10 +127,16 @@ def alphafold_cmd(protein_list_line, folder_path, genome):
     )
 
 
-# --- Stage 16: ESMFold ---
+# --- Stage 16: ESMFold (legacy, kept as fallback) ---
 
 def esmfold_cmd(working_dir, genome):
     return f"{PYTHON_BIN} {working_dir}/manage.py esmfold_predict {genome} --datadir {working_dir}/data"
+
+
+# --- Stage 16: ColabFold (replaces ESMFold — no size limit, no external API dependency) ---
+
+def colabfold_cmd(working_dir, genome):
+    return f"{PYTHON_BIN} {working_dir}/manage.py colabfold_predict {genome} --datadir {working_dir}/data"
 
 
 # --- Stage 17: Structure loading sub-stages ---
@@ -121,6 +144,29 @@ def esmfold_cmd(working_dir, genome):
 def load_af_model_cmd(locus_tag, working_dir, folder_path):
     protein_pdb = os.path.join(folder_path, "alphafold", locus_tag, f"{locus_tag}_af.pdb")
     return f"{PYTHON_BIN} {working_dir}/manage.py load_af_model {locus_tag} {protein_pdb} {locus_tag} --overwrite --datadir '../data'"
+
+
+def run_fpocket_cmd(folder_path, locus_tag):
+    locus_dir = os.path.abspath(os.path.join(folder_path, "alphafold", locus_tag))
+    host_locus_dir = _host_bind_path(
+        locus_dir,
+        env_name="TPW_DATA_DIR",
+        container_base="/app/targetpathogenweb/data",
+    )
+    pdb_path = os.path.join(locus_dir, f"{locus_tag}_af.pdb")
+    fpocket_pdb_path = f"/work/{locus_tag}_af.pdb"
+    fpocket_out = os.path.join(locus_dir, f"{locus_tag}_af_out")
+    if not os.path.exists(pdb_path):
+        return f"echo 'No structure PDB for {locus_tag}, skipping fpocket'"
+    return (
+        f"if [ -d {shlex.quote(fpocket_out)} ]; then "
+        f"echo 'fpocket output already exists for {locus_tag}'; "
+        f"elif command -v docker >/dev/null 2>&1; then "
+        f"docker run --user $(id -u):$(id -g) --rm -i "
+        f"-v {shlex.quote(host_locus_dir)}:/work "
+        f"ezequieljsosa/fpocket fpocket -f {shlex.quote(fpocket_pdb_path)} -m 2 -D 6; "
+        f"else echo 'Docker not available for fpocket on {locus_tag}, skipping'; fi"
+    )
 
 
 def fpocket2json_cmd(folder_path, locus_tag):

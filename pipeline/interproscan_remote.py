@@ -194,6 +194,12 @@ def _build_remote_config(cfg_dict):
 def run_remote_interproscan(cfg_dict, folder_path, genome):
     tsv_path = os.path.join(folder_path, genome + ".faa.tsv")
     tsv_gz_path = os.path.join(folder_path, genome + ".faa.tsv.gz")
+
+    # Skip if output already exists (idempotent re-runs after failure at a later stage)
+    if os.path.exists(tsv_gz_path) and os.path.getsize(tsv_gz_path) > 0:
+        print(f"InterProScan output already exists for {genome}, skipping remote job.")
+        return 0
+
     config = _build_remote_config(cfg_dict)
     _assert_ssh_reachable(
         config.ssh_host,
@@ -270,7 +276,6 @@ def run_remote_interproscan(cfg_dict, folder_path, genome):
                 f'cp {shlex.quote(remote_input)} "$TMP_ROOT/work/{genome}.faa.gz"',
                 (
                     f'zcat "$TMP_ROOT/work/{genome}.faa.gz" | '
-                    f'LD_LIBRARY_PATH="{config.conda_prefix}/envs/interproscan/lib/:${{LD_LIBRARY_PATH:-}}" '
                     f"{config.iprscan_install_dir}/interproscan.sh --pathways --goterms "
                     f"--cpu {config.ssh_cores} -iprlookup --formats tsv "
                     f"{applications_flag}"

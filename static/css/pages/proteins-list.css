@@ -170,6 +170,21 @@ a.filter-pill .filter-pill-remove {
 
 .protein-table td[data-col="go"] {
     min-width: 150px;
+    text-align: center;
+}
+
+.protein-table td[data-col="go"] .annotation-cell {
+    display: grid;
+    justify-items: center;
+    gap: 4px;
+    width: min(100%, 220px);
+    margin-inline: auto;
+}
+
+.protein-table td[data-col="go"] .annotation-empty {
+    display: inline-flex;
+    justify-content: center;
+    margin-inline: auto;
 }
 
 .toolbar-card {
@@ -493,7 +508,16 @@ a.filter-pill .filter-pill-remove {
 .protein-table {
     margin-bottom: 0;
     width: 100%;
+    min-width: 100%;
     table-layout: auto;
+}
+
+.protein-table-panel .tp-table-shell.is-h-scrollable::after {
+    content: none;
+}
+
+.protein-table-panel .tp-table-shell.is-h-scrollable .protein-table {
+    width: max-content;
 }
 
 .protein-table thead th {
@@ -559,6 +583,12 @@ a.filter-pill .filter-pill-remove {
     min-width: 98px;
     text-align: center;
     white-space: nowrap;
+}
+
+.protein-table thead th:last-child,
+.protein-table tbody td:last-child {
+    width: 100%;
+    min-width: 148px;
 }
 
 .rank-col {
@@ -1974,9 +2004,8 @@ a.filter-pill .filter-pill-remove {
     }
 
     .protein-table td[data-col="go"] .annotation-cell {
-        display: flex;
-        justify-content: center;
-        align-items: center;
+        display: grid;
+        justify-items: center;
         margin-inline: auto;
         width: min(100%, 280px);
         max-width: 280px;

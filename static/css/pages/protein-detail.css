@@ -1280,3 +1280,126 @@ body.residue-modal-open {
         transform: translateY(0);
     }
 }
+
+/* ── Dark mode overrides ── */
+.tp-dark .protein-page {
+    --protein-accent-ink: var(--tp-color-text-primary);
+    --protein-accent-soft: color-mix(in srgb, var(--tp-color-brand-800) 16%, transparent);
+    --protein-accent-border: var(--tp-color-brand-600);
+}
+
+/* Feature viewer renders on canvas — invert it so it reads on dark backgrounds */
+.tp-dark .feature-viewer-shell canvas {
+    filter: invert(0.88) hue-rotate(180deg);
+    border-radius: 4px;
+}
+
+/* Feature viewer shell — soften border and background */
+.tp-dark .feature-viewer-shell {
+    background: var(--tp-color-surface-soft);
+    border-color: var(--tp-color-border);
+}
+
+/* Feature viewer buttons */
+.tp-dark .feature-viewer-shell button,
+.tp-dark .feature-viewer-shell .button {
+    background: var(--tp-color-surface) !important;
+    border-color: var(--tp-color-border) !important;
+    color: var(--tp-color-text-secondary) !important;
+}
+
+/* Outline buttons — swap light gradients for dark-friendly flat bg */
+.tp-dark .protein-page .btn-copy-seq.tp-btn--outline,
+.tp-dark .protein-page .features-reset-btn.tp-btn--outline,
+.tp-dark .protein-page #copy-residue-list.tp-btn--outline,
+.tp-dark .protein-page .structure-icon-btn.tp-btn--outline,
+.tp-dark .protein-page .structure-action-btn.tp-btn--outline,
+.tp-dark .protein-page .structure-table-btn.tp-btn--outline {
+    color: var(--tp-color-text-primary) !important;
+    border-color: var(--tp-color-border) !important;
+    background: var(--tp-color-surface) !important;
+}
+
+.tp-dark .protein-page .btn-copy-seq.tp-btn--outline:hover,
+.tp-dark .protein-page .btn-copy-seq.tp-btn--outline:focus-visible,
+.tp-dark .protein-page .features-reset-btn.tp-btn--outline:hover,
+.tp-dark .protein-page .features-reset-btn.tp-btn--outline:focus-visible,
+.tp-dark .protein-page #copy-residue-list.tp-btn--outline:hover,
+.tp-dark .protein-page #copy-residue-list.tp-btn--outline:focus-visible,
+.tp-dark .protein-page .structure-icon-btn.tp-btn--outline:hover,
+.tp-dark .protein-page .structure-icon-btn.tp-btn--outline:focus-visible,
+.tp-dark .protein-page .structure-action-btn.tp-btn--outline:hover,
+.tp-dark .protein-page .structure-action-btn.tp-btn--outline:focus-visible,
+.tp-dark .protein-page .structure-table-btn.tp-btn--outline:hover,
+.tp-dark .protein-page .structure-table-btn.tp-btn--outline:focus-visible {
+    background: color-mix(in srgb, var(--tp-color-brand-800) 12%, transparent) !important;
+    border-color: var(--tp-color-brand-600) !important;
+    color: var(--tp-color-text-primary) !important;
+}
+
+/* Structure mode switch — pill toggle */
+.tp-dark .structure-mode-switch {
+    background: var(--tp-color-surface-muted);
+    border-color: var(--tp-color-border);
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+
+.tp-dark .structure-mode-switch .btn:not(.is-active) {
+    color: var(--tp-color-text-muted) !important;
+    background: transparent !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
+}
+
+.tp-dark .structure-mode-switch .btn:not(.is-active):hover {
+    color: var(--tp-color-text-primary) !important;
+    background: color-mix(in srgb, var(--tp-color-brand-800) 10%, transparent) !important;
+}
+
+.tp-dark .structure-mode-switch .btn.is-active {
+    background: linear-gradient(180deg, var(--tp-color-brand-700) 0%, var(--tp-color-brand-800) 100%) !important;
+    border-color: var(--tp-color-brand-600) !important;
+    color: var(--tp-color-surface) !important;
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.35) !important;
+}
+
+/* Structure toolbar */
+.tp-dark .structure-toolbar {
+    background: var(--tp-color-surface-soft);
+    border-color: var(--tp-color-border);
+    box-shadow: none;
+}
+
+/* Structure viewport — subtle accent glow */
+.tp-dark .structure-viewport-wrap {
+    background: var(--tp-color-surface);
+    border-color: color-mix(in srgb, var(--tp-color-brand-800) 25%, var(--tp-color-border));
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+}
+
+.tp-dark #viewport {
+    background: var(--tp-color-structure-bg);
+    border-color: var(--tp-color-border);
+}
+
+/* Table hover rows */
+.tp-dark #pocketsTable.table-hover tbody tr:hover,
+.tp-dark #p2pocketsTable.table-hover tbody tr:hover,
+.tp-dark #residuesetsTable.table-hover tbody tr:hover {
+    background: color-mix(in srgb, var(--tp-color-brand-800) 10%, transparent);
+}
+
+/* Binder cards */
+.tp-dark .binder-card {
+    border-color: var(--tp-color-border);
+    background: var(--tp-color-surface-soft);
+}
+
+.tp-dark .binder-preview {
+    background: var(--tp-color-surface-muted);
+}
+
+/* Residue modal backdrop */
+.tp-dark .residue-modal-backdrop {
+    background: rgba(0, 0, 0, 0.6);
+}

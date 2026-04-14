@@ -714,3 +714,42 @@ body.pipeline-info-open {
         max-width: none;
     }
 }
+
+/* ── Dark mode overrides — pipeline roadmap panel ── */
+.tp-dark .pipeline-info-panel {
+    background: var(--tp-color-surface);
+    border-color: var(--tp-color-border-soft);
+    box-shadow: var(--tp-ui-shadow-panel);
+}
+
+.tp-dark .pipeline-info-head {
+    border-bottom-color: var(--tp-color-border-soft);
+}
+
+.tp-dark .pipeline-info-overview {
+    background: var(--tp-color-surface-soft);
+    border-color: var(--tp-color-border-soft);
+    box-shadow: none;
+}
+
+.tp-dark .pipeline-info-overview-tag {
+    background: var(--tp-color-surface-muted);
+    border-color: var(--tp-color-border);
+}
+
+.tp-dark .pipeline-info-branch {
+    background: var(--tp-color-surface-soft);
+    border-color: var(--tp-color-border-soft);
+    box-shadow: none;
+}
+
+.tp-dark .pipeline-info-foot {
+    background: var(--tp-color-surface-soft);
+    border-top-color: var(--tp-color-border-soft);
+}
+
+.tp-dark .pipeline-info-step.is-done .pipeline-info-step-num {
+    background: color-mix(in srgb, var(--tp-color-brand-800) 22%, transparent);
+    border-color: var(--tp-color-brand-600);
+    color: var(--tp-color-brand-700);
+}

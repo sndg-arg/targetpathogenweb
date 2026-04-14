@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260326-1">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260414-3">
 {% endblock %}
 
 {% block body %}
@@ -320,7 +320,6 @@
                                 onclick="ngl_reset_zoom()"
                                 class="btn tp-btn tp-btn--outline tp-btn--md structure-action-btn"
                                 disabled>{% trans "Reset Zoom" %}</button>
-                        <a href="{% url 'tpwebapp:structure' structure.id %}?protein_id={{ protein.id }}" class="btn tp-btn tp-btn--outline tp-btn--md structure-action-btn" target="_blank" rel="noopener">{% trans "Full Screen" %}</a>
                         <a href="{% url "tpwebapp:structure_export" structure.id %}" class="btn tp-btn tp-btn--outline tp-btn--md structure-action-btn">{% trans "Download TCL VMD" %}</a>
                     </div>
 
@@ -489,7 +488,7 @@
                         </div>
                         <div class="no-structure-body">
                             <p class="no-structure-title">{% trans "Structure unavailable" %}</p>
-                            <p class="no-structure-reason">{% trans "This protein's sequence exceeds the length threshold for automated structure prediction. No pre-computed model was found in the AlphaFold database, and ESMFold predictions are limited to sequences under 400 residues." %}</p>
+                            <p class="no-structure-reason">{% trans "No pre-computed model was found in the AlphaFold database and no ColabFold prediction is available for this protein." %}</p>
                             <p class="no-structure-meta">{% trans "Sequence length" %}: <strong>{{ protein.size }} aa</strong></p>
                         </div>
                     </div>
@@ -741,7 +740,7 @@
                 }
 
                 var viewer = $3Dmol.createViewer("viewport", {
-                    backgroundColor: tpColor("--tp-color-surface-panel") || "#f6fbf9"
+                    backgroundColor: tpColor("--tp-color-structure-bg") || "#f6fbf9"
                 });
                 var currentMode = "cartoon";
 
@@ -781,7 +780,7 @@
                     var isDensity = currentMode === "density";
                     viewer.setStyle({}, {
                         cartoon: {
-                            color: tpColor("--tp-color-brand-700") || "#22758e",
+                            color: tpColor("--tp-color-structure-cartoon") || "#2288a3",
                             opacity: isDensity ? STRUCTURE_VIEWER_CONFIG.densityCartoonOpacity : 1
                         }
                     });
@@ -842,9 +841,9 @@
                         }
                         if (repr.kind === "labels") {
                             viewer.addResLabels(repr.selection, {
-                                fontColor: tpColor("--tp-color-nav-900") || "#0e2330",
+                                fontColor: tpColor("--tp-color-structure-label") || "#0e2330",
                                 showBackground: true,
-                                backgroundColor: "rgba(255,255,255,0.7)",
+                                backgroundColor: tpColor("--tp-color-structure-label-bg") || "rgba(255,255,255,0.78)",
                                 fontSize: 12
                             });
                         }
@@ -1005,9 +1004,11 @@
                 }
 
                 var stage = new NGL("viewport", {
-                    backgroundColor: tpColor("--tp-color-surface-panel")
+                    backgroundColor: tpColor("--tp-color-structure-bg") || tpColor("--tp-color-surface-panel")
                 });
-                disableStructureScrollZoom(stage);
+                document.getElementById("viewport").addEventListener("wheel", function (e) {
+                    e.preventDefault();
+                }, { passive: false });
 
                 stage.loadFile("{% url "tpwebapp:structure_raw" structure.id %}", {
                     ext: "pdb",
@@ -1027,12 +1028,24 @@
                         setStructureResetZoomEnabled(false);
                     };
 
+                    function updateDensityForPockets() {
+                        if (!visible.__main_density) return;
+                        var anyPocketVisible = pocketSurfaceKeys.some(function (key) {
+                            return !!visible[key];
+                        });
+                        var targetOpacity = anyPocketVisible ? 0.35 : STRUCTURE_VIEWER_CONFIG.densityShellOpacity;
+                        if (typeof representations.__main_density.setParameters === "function") {
+                            representations.__main_density.setParameters({ opacity: targetOpacity });
+                        }
+                    }
+
                     window.toogle_view = function (repr) {
                         if (!(repr in representations)) {
                             return;
                         }
                         visible[repr] = !visible[repr];
                         representations[repr].setVisibility(visible[repr]);
+                        updateDensityForPockets();
                     };
 
                     window.ngl_zoom_to = function (repr) {
@@ -1061,7 +1074,8 @@
                     representations.__main_cartoon = component.addRepresentation("cartoon", {
                         aspectRatio: STRUCTURE_VIEWER_CONFIG.mainCartoonAspectRatio,
                         scale: STRUCTURE_VIEWER_CONFIG.mainCartoonScale,
-                        sele: "backbone and :A"
+                        sele: "backbone and :A",
+                        color: tpColor("--tp-color-structure-cartoon") || "#2288a3"
                     });
                     visible.__main_cartoon = true;
                     representations.__main_cartoon.sele = "backbone and :A";
@@ -1097,6 +1111,7 @@
                             const shouldShow = !!visible[key];
                             representations[key].setVisibility(shouldShow);
                         });
+                        updateDensityForPockets();
                         setModeButtonState(normalized);
                     };
 
@@ -1109,8 +1124,8 @@
                             multipleBond: false,
                             color: tpColor("--tp-color-structure-pocket-apolar"),
                             opacity: STRUCTURE_VIEWER_CONFIG.surfaceOpacity,
-                            side: "front",
-                            opaqueBack: false
+                            side: "double",
+                            opaqueBack: true
                         });
                         representations["{{p.name}}_apol"].sele = sele;
                         pocketSurfaceKeys.push("{{p.name}}_apol");
@@ -1124,8 +1139,8 @@
                             multipleBond: false,
                             color: tpColor("--tp-color-structure-pocket-polar"),
                             opacity: STRUCTURE_VIEWER_CONFIG.surfaceOpacity,
-                            side: "front",
-                            opaqueBack: false
+                            side: "double",
+                            opaqueBack: true
                         });
                         representations["{{p.name}}_pol"].sele = sele;
                         pocketSurfaceKeys.push("{{p.name}}_pol");
@@ -1157,7 +1172,16 @@
 
                         representations["{{p.name}}_lbl"] = component.addRepresentation("label", {
                             labelType: "res",
-                            sele: ":A AND .CA AND ({{p.residues|join:" OR "}})"
+                            sele: ":A AND .CA AND ({{p.residues|join:" OR "}})",
+                            color: tpColor("--tp-color-structure-label") || "#0e2330",
+                            backgroundColor: tpColor("--tp-color-structure-label-bg") || "rgba(255,255,255,0.78)",
+                            showBackground: true,
+                            fontWeight: "bold",
+                            xOffset: 0,
+                            yOffset: 0,
+                            zOffset: 1.5,
+                            fixedSize: true,
+                            attachment: "middle-center"
                         });
                         visible["{{p.name}}_lbl"] = false;
                         representations["{{p.name}}_lbl"].setVisibility(false);
@@ -1174,8 +1198,8 @@
                             multipleBond: false,
                             color: tpColor("--tp-color-structure-p2-apolar"),
                             opacity: STRUCTURE_VIEWER_CONFIG.surfaceOpacity,
-                            side: "front",
-                            opaqueBack: false
+                            side: "double",
+                            opaqueBack: true
                         });
                         representations["p2_{{p2.name}}_apol"].sele = sele;
                         pocketSurfaceKeys.push("p2_{{p2.name}}_apol");
@@ -1189,8 +1213,8 @@
                             multipleBond: false,
                             color: tpColor("--tp-color-structure-p2-polar"),
                             opacity: STRUCTURE_VIEWER_CONFIG.surfaceOpacity,
-                            side: "front",
-                            opaqueBack: false
+                            side: "double",
+                            opaqueBack: true
                         });
                         representations["p2_{{p2.name}}_pol"].sele = sele;
                         pocketSurfaceKeys.push("p2_{{p2.name}}_pol");
@@ -1222,7 +1246,16 @@
 
                         representations["p2_{{p2.name}}_lbl"] = component.addRepresentation("label", {
                             labelType: "res",
-                            sele: ":A AND .CA AND ({{p2.residues|join:" OR "}})"
+                            sele: ":A AND .CA AND ({{p2.residues|join:" OR "}})",
+                            color: tpColor("--tp-color-structure-label") || "#0e2330",
+                            backgroundColor: tpColor("--tp-color-structure-label-bg") || "rgba(255,255,255,0.78)",
+                            showBackground: true,
+                            fontWeight: "bold",
+                            xOffset: 0,
+                            yOffset: 0,
+                            zOffset: 1.5,
+                            fixedSize: true,
+                            attachment: "middle-center"
                         });
                         visible["p2_{{p2.name}}_lbl"] = false;
                         representations["p2_{{p2.name}}_lbl"].setVisibility(false);

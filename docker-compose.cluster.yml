@@ -33,6 +33,8 @@ services:
       - ${TPW_FASTTARGET_LOG_DIR:-/data/targetpathogen/fasttarget_logs}:/app/fasttarget/logs
       - /var/run/docker.sock:/var/run/docker.sock
       - ${TPW_SSH_DIR:-/home/appuser/.ssh}:/home/appuser/.ssh:ro
+      - ${TPW_SSH_DIR:-/home/appuser/.ssh}:/root/.ssh:ro
+      - ${TPW_COLABFOLD_DIR:-/opt/localcolabfold}:${TPW_COLABFOLD_MOUNT:-/opt/localcolabfold}:ro
     environment:
       - TPW_PROFILE=cluster
       - DJANGO_DATABASE_URL=postgres://postgres:${DJANGO_DATABASE_PASSWORD}@db:5432/tp
@@ -46,8 +48,10 @@ services:
       - REDIS_URL=${REDIS_URL:-}
       - SENTRY_DSN=${SENTRY_DSN:-}
       - PYTHONPATH=/app/sndgjobs:/app/sndgbiodb:/app/targetpathogen:/app/sndg-bio:/app/target:/app/targetpathogenweb
+      - TPW_DATA_DIR=${TPW_DATA_DIR:-/data/targetpathogen/data}
 
   queue:
+    user: "0:0"
     deploy:
       resources:
         limits:
@@ -62,6 +66,8 @@ services:
       - ${TPW_FASTTARGET_LOG_DIR:-/data/targetpathogen/fasttarget_logs}:/app/fasttarget/logs
       - /var/run/docker.sock:/var/run/docker.sock
       - ${TPW_SSH_DIR:-/home/appuser/.ssh}:/home/appuser/.ssh:ro
+      - ${TPW_SSH_DIR:-/home/appuser/.ssh}:/root/.ssh:ro
+      - ${TPW_COLABFOLD_DIR:-/opt/localcolabfold}:${TPW_COLABFOLD_MOUNT:-/opt/localcolabfold}:ro
     environment:
       - TPW_PROFILE=cluster
       - DJANGO_DATABASE_URL=postgres://postgres:${DJANGO_DATABASE_PASSWORD}@db:5432/tp
@@ -75,6 +81,7 @@ services:
       - REDIS_URL=${REDIS_URL:-}
       - SENTRY_DSN=${SENTRY_DSN:-}
       - PYTHONPATH=/app/sndgjobs:/app/sndgbiodb:/app/targetpathogen:/app/sndg-bio:/app/target:/app/targetpathogenweb
+      - TPW_DATA_DIR=${TPW_DATA_DIR:-/data/targetpathogen/data}
 
   jbrowse:
     deploy:
