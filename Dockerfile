@@ -72,6 +72,7 @@ RUN git clone --depth 1 https://github.com/ezequieljsosa/sndg-bio.git /app/sndg-
     && git clone --depth 1 https://github.com/sndg-arg/targetpathogen.git /app/targetpathogen \
     && git clone --depth 1 https://github.com/sndg-arg/sndgjobs.git /app/sndgjobs \
     && git clone --depth 1 https://github.com/sndg-arg/sndgbiodb.git /app/sndgbiodb \
+    && git clone --depth 1 https://github.com/L-G-g/fasttarget.git /app/fasttarget \
     && ln -s /app/targetpathogen /app/target \
     && find /app -type d -name .git -prune -exec rm -rf {} +
 
@@ -123,9 +124,10 @@ COPY --from=builder /app/sndgjobs /app/sndgjobs
 COPY --from=builder /app/sndgbiodb /app/sndgbiodb
 COPY --from=builder /app/target /app/target
 
+# Copy fasttarget from builder
+COPY --from=builder /app/fasttarget /app/fasttarget
+
 # Copy application code
-COPY fasttarget_mac /app/fasttarget
-COPY opt /app/opt
 COPY . /app/targetpathogenweb
 
 RUN rm -rf /app/fasttarget/logs /app/fasttarget/organism \
