@@ -315,12 +315,16 @@ else:
     # CACHE_URL=memcache://127.0.0.1:11211,127.0.0.1:11212,127.0.0.1:11213
     # REDIS_URL=rediscache://127.0.0.1:6379/1?client_class=django_redis.client.DefaultClient&password=ungithubbed-secret
 
-    import sentry_sdk
     import logging
-    from sentry_sdk.integrations.logging import LoggingIntegration
-    from sentry_sdk.integrations.celery import CeleryIntegration
-    from sentry_sdk.integrations.django import DjangoIntegration
-    from sentry_sdk.integrations.redis import RedisIntegration
+    try:
+        import sentry_sdk
+        from sentry_sdk.integrations.logging import LoggingIntegration
+        from sentry_sdk.integrations.celery import CeleryIntegration
+        from sentry_sdk.integrations.django import DjangoIntegration
+        from sentry_sdk.integrations.redis import RedisIntegration
+        _has_sentry = True
+    except ImportError:
+        _has_sentry = False
 
     SECRET_KEY = env("DJANGO_SECRET_KEY")
 
@@ -391,7 +395,7 @@ else:
     # Sentry
     # ------------------------------------------------------------------------------
     SENTRY_DSN = env("SENTRY_DSN", default="")
-    if SENTRY_DSN:
+    if SENTRY_DSN and _has_sentry:
         SENTRY_LOG_LEVEL = env.int("DJANGO_SENTRY_LOG_LEVEL", logging.INFO)
         sentry_logging = LoggingIntegration(
             level=SENTRY_LOG_LEVEL,  # Capture info and above as breadcrumbs
