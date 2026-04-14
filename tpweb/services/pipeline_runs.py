@@ -12,11 +12,9 @@ from tpweb.services.pipeline_stages import STAGE_LABELS
 def _ensure_django():
     import django
     from django.apps import apps
-    from django.db import close_old_connections
 
     if not apps.ready:
         django.setup()
-    close_old_connections()
 
 
 def _models():
