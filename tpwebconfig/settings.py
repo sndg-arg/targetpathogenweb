@@ -330,6 +330,7 @@ else:
 
     DATABASES["default"]["ATOMIC_REQUESTS"] = True  # noqa F405
     DATABASES["default"]["CONN_MAX_AGE"] = env.int("CONN_MAX_AGE", default=60)  # noqa F405
+    DATABASES["default"]["CONN_HEALTH_CHECKS"] = True
 
     redis_url = env("REDIS_URL", default="")
     if redis_url:
