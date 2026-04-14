@@ -37,6 +37,7 @@ services:
       - ${TPW_COLABFOLD_DIR:-/opt/localcolabfold}:${TPW_COLABFOLD_MOUNT:-/opt/localcolabfold}:ro
     environment:
       - TPW_PROFILE=cluster
+      - TPW_USE_DIRECT_PIPELINE=1
       - DJANGO_DATABASE_URL=postgres://postgres:${DJANGO_DATABASE_PASSWORD}@db:5432/tp
       - DJANGO_DATABASE_PASSWORD=${DJANGO_DATABASE_PASSWORD}
       - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
@@ -70,6 +71,7 @@ services:
       - ${TPW_COLABFOLD_DIR:-/opt/localcolabfold}:${TPW_COLABFOLD_MOUNT:-/opt/localcolabfold}:ro
     environment:
       - TPW_PROFILE=cluster
+      - TPW_USE_DIRECT_PIPELINE=1
       - DJANGO_DATABASE_URL=postgres://postgres:${DJANGO_DATABASE_PASSWORD}@db:5432/tp
       - DJANGO_DATABASE_PASSWORD=${DJANGO_DATABASE_PASSWORD}
       - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
