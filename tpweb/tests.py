@@ -7,6 +7,7 @@ import tpweb.services.pipeline_status as pipeline_status_service
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
+from django.db.utils import InterfaceError
 from django.test import SimpleTestCase, TestCase
 
 from bioseq.models.Bioentry import Bioentry
@@ -840,6 +841,16 @@ class HealthViewTests(SimpleTestCase):
     def test_request_timing_header_is_exposed(self):
         response = self.client.get("/health/live")
         self.assertIn("X-Request-Duration-Ms", response.headers)
+
+    @patch("tpweb.services.pipeline_status.latest_active_pipeline_run")
+    def test_get_pipeline_status_falls_back_to_idle_on_database_error(self, latest_active_pipeline_run):
+        latest_active_pipeline_run.side_effect = InterfaceError("connection already closed")
+
+        payload = pipeline_status_service.get_pipeline_status()
+
+        self.assertFalse(payload["available"])
+        self.assertFalse(payload["running"])
+        self.assertEqual(payload["state_class"], "idle")
 
 
 class RouteSmokeTests(SimpleTestCase):

@@ -1,4 +1,5 @@
 import json
+import logging
 import shutil
 import threading
 import time
@@ -10,10 +11,13 @@ from typing import Mapping
 
 from bioseq.models.Biodatabase import Biodatabase
 from django.conf import settings
+from django.db.utils import DatabaseError
 from tpweb.services.genome_workspace import display_genome_name, user_can_access_genome_name
 from tpweb.services.workspace import PUBLIC_WORKSPACE_USERNAME, workspace_slug_for_user
 from tpweb.services.pipeline_runs import latest_active_pipeline_run, latest_pipeline_run
 from tpweb.services.pipeline_stages import PIPELINE_STAGE_TOTAL, STAGE_LABELS
+
+logger = logging.getLogger(__name__)
 
 ARGENTINA_TZ = timezone(timedelta(hours=-3))
 PIPELINE_STATUS_CACHE_TTL_SECONDS = float(
@@ -427,7 +431,14 @@ def get_pipeline_status_dto() -> PipelineStatus:
 
 
 def get_pipeline_status() -> dict:
-    return get_pipeline_status_dto().as_dict()
+    try:
+        return get_pipeline_status_dto().as_dict()
+    except DatabaseError:
+        logger.warning(
+            "Falling back to idle pipeline status after database error.",
+            exc_info=True,
+        )
+        return _default_pipeline_status().as_dict()
 
 
 def _reset_pipeline_status_to_idle(status: dict) -> dict:
