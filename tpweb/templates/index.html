@@ -234,9 +234,7 @@
                 if (status.genome_accession) {
                     parts.push(`${labels.genome} <code>${escapeHtml(status.genome_display_accession || status.genome_accession)}</code>`);
                 }
-                if (!status.running_for_other_workspace && status.run_id) {
-                    parts.push(`${labels.run} <code>${escapeHtml(status.run_id)}</code>`);
-                }
+
                 if (status.last_updated) {
                     parts.push(`${labels.updated} ${escapeHtml(status.last_updated)}`);
                 }
