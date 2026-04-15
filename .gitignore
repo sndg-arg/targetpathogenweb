@@ -10,6 +10,7 @@ js/package-lock.json
 static
 !static/
 static/*
+!static/bundle.js
 !static/css/
 static/css/*
 !static/css/pages/
