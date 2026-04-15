@@ -56,10 +56,10 @@ services:
     deploy:
       resources:
         limits:
-          memory: 2g
-          cpus: '1.0'
+          memory: 4g
+          cpus: '4.0'
         reservations:
-          memory: 512m
+          memory: 1g
     volumes:
       - ${TPW_DATA_DIR:-/data/targetpathogen/data}:/app/targetpathogenweb/data
       - ${TPW_FASTTARGET_DB_DIR:-/data/targetpathogen/fasttarget_db}:/app/fasttarget/databases:ro
