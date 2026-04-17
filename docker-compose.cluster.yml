@@ -50,6 +50,10 @@ services:
       - SENTRY_DSN=${SENTRY_DSN:-}
       - PYTHONPATH=/app/sndgjobs:/app/sndgbiodb:/app/targetpathogen:/app/sndg-bio:/app/target:/app/targetpathogenweb
       - TPW_DATA_DIR=${TPW_DATA_DIR:-/data/targetpathogen/data}
+      - SSH_HOSTNAME=${SSH_HOSTNAME:-cluster.qb.fcen.uba.ar}
+      - SSH_USERNAME=${SSH_USERNAME:-agutson}
+      - SSH_WORKDIR=${SSH_WORKDIR:-/home/agutson}
+      - SSH_CORES=${SSH_CORES:-4}
 
   queue:
     user: "0:0"
@@ -84,6 +88,10 @@ services:
       - SENTRY_DSN=${SENTRY_DSN:-}
       - PYTHONPATH=/app/sndgjobs:/app/sndgbiodb:/app/targetpathogen:/app/sndg-bio:/app/target:/app/targetpathogenweb
       - TPW_DATA_DIR=${TPW_DATA_DIR:-/data/targetpathogen/data}
+      - SSH_HOSTNAME=${SSH_HOSTNAME:-cluster.qb.fcen.uba.ar}
+      - SSH_USERNAME=${SSH_USERNAME:-agutson}
+      - SSH_WORKDIR=${SSH_WORKDIR:-/home/agutson}
+      - SSH_CORES=${SSH_CORES:-4}
 
   jbrowse:
     deploy:
