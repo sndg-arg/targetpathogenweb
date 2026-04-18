@@ -630,6 +630,32 @@ class GenomeUploadQueueTests(TestCase):
         self.assertEqual(upload.status, GenomeUpload.STATUS_SUBMITTED)
         self.assertEqual(upload.error_message, "")
 
+    def test_reconcile_revives_failed_upload_when_linked_pipeline_run_is_active(self):
+        upload = self.create_upload(self.alice, "NZ_AP023069.1", GenomeUpload.STATUS_FAILED)
+        upload.error_message = "Old failure"
+        upload.save(update_fields=["error_message"])
+
+        PipelineRun.objects.create(
+            genome_upload=upload,
+            internal_accession=upload.internal_accession,
+            source_accession=upload.display_accession,
+            gram=upload.gram,
+            status=PipelineRun.STATUS_RUNNING,
+        )
+
+        reconcile_genome_uploads(
+            {
+                "running": True,
+                "genome_accession": upload.internal_accession,
+                "state_label": "Pipeline running",
+            },
+            owner=self.alice,
+        )
+
+        upload.refresh_from_db()
+        self.assertEqual(upload.status, GenomeUpload.STATUS_RUNNING)
+        self.assertEqual(upload.error_message, "")
+
     def test_sanitize_pipeline_status_prefers_workspace_owner_for_private_run(self):
         status = sanitize_pipeline_status_for_user(
             {

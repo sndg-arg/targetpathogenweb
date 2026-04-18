@@ -1,9 +1,10 @@
 from pathlib import Path
 
+from django.db.models import Q
 from django.utils import timezone
 
 from bioseq.models.Biodatabase import Biodatabase
-from tpweb.models import GenomeUpload
+from tpweb.models import GenomeUpload, PipelineRun
 from tpweb.services.pipeline_runs import latest_pipeline_run_for_accession, latest_pipeline_run_for_upload
 
 
@@ -92,8 +93,24 @@ def reconcile_genome_uploads(pipeline_status=None, owner=None):
     if owner is not None:
         queryset = queryset.filter(owner=owner)
 
+    active_pipeline_statuses = [PipelineRun.STATUS_SUBMITTED, PipelineRun.STATUS_RUNNING]
+    active_run_upload_ids = list(
+        PipelineRun.objects.filter(
+            status__in=active_pipeline_statuses,
+            genome_upload_id__isnull=False,
+        ).values_list("genome_upload_id", flat=True)
+    )
+    active_legacy_accessions = list(
+        PipelineRun.objects.filter(
+            status__in=active_pipeline_statuses,
+            genome_upload_id__isnull=True,
+        ).values_list("internal_accession", flat=True)
+    )
+
     queryset = queryset.filter(
-        status__in=[GenomeUpload.STATUS_SUBMITTED, GenomeUpload.STATUS_RUNNING]
+        Q(status__in=[GenomeUpload.STATUS_SUBMITTED, GenomeUpload.STATUS_RUNNING])
+        | Q(status=GenomeUpload.STATUS_FAILED, id__in=active_run_upload_ids)
+        | Q(status=GenomeUpload.STATUS_FAILED, internal_accession__in=active_legacy_accessions)
     )
 
     # When multiple jobs share the same internal_accession, only the one with
