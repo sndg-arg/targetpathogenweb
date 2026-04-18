@@ -16,6 +16,7 @@ from tpweb.services.genome_workspace import display_genome_name, user_can_access
 from tpweb.services.workspace import PUBLIC_WORKSPACE_USERNAME, workspace_slug_for_user
 from tpweb.services.pipeline_runs import latest_active_pipeline_run, latest_pipeline_run
 from tpweb.services.pipeline_stages import PIPELINE_STAGE_TOTAL, STAGE_LABELS
+from tpweb.services.slurm_messages import classify_slurm_resource_message
 
 logger = logging.getLogger(__name__)
 
@@ -234,11 +235,14 @@ def _active_stage_from_pipeline_run(run):
     latest_by_task = {}
     latest_stage_event = None
     latest_failed_event = None
+    latest_info_event = None
     for event in stage_events:
         if event.stage_number is not None:
             latest_stage_event = event
         if event.status == "failed" and event.stage_number is not None:
             latest_failed_event = event
+        if event.status == "info" and event.stage_number is not None:
+            latest_info_event = event
         if event.task_id is not None:
             latest_by_task[event.task_id] = event
 
@@ -275,6 +279,7 @@ def _active_stage_from_pipeline_run(run):
             "task_id": display_event.task_id,
             "app_name": display_event.app_name,
             "failed_event": latest_failed_event,
+            "info_event": latest_info_event,
             "latest_stage_event": latest_stage_event,
             "stages_completed": tuple(sorted(completed_stages)),
             "stages_active": tuple(sorted(active_stages)),
@@ -286,6 +291,7 @@ def _active_stage_from_pipeline_run(run):
             "task_id": latest_failed_event.task_id,
             "app_name": latest_failed_event.app_name,
             "failed_event": latest_failed_event,
+            "info_event": latest_info_event,
             "latest_stage_event": latest_stage_event,
             "stages_completed": tuple(sorted(completed_stages)),
             "stages_active": tuple(sorted(active_stages)),
@@ -296,6 +302,7 @@ def _active_stage_from_pipeline_run(run):
         "task_id": run.current_task_id,
         "app_name": run.current_app or (latest_stage_event.app_name if latest_stage_event else ""),
         "failed_event": latest_failed_event,
+        "info_event": latest_info_event,
         "latest_stage_event": latest_stage_event,
         "stages_completed": tuple(sorted(completed_stages)),
         "stages_active": tuple(sorted(active_stages)),
@@ -332,6 +339,7 @@ def _status_from_pipeline_run(run):
     stage_number = active_info["stage_number"]
     active_app = active_info["app_name"] or run.current_app
     task_id = active_info["task_id"]
+    info_event = active_info.get("info_event")
     stages_completed = active_info.get("stages_completed", ())
     stages_active = active_info.get("stages_active", ())
     status_data["stages_completed"] = stages_completed
@@ -382,6 +390,10 @@ def _status_from_pipeline_run(run):
             stage_number,
             active_app,
         )
+        info_message = str(getattr(info_event, "message", "") or "").strip()
+        friendly_info = classify_slurm_resource_message(info_message, running=True)
+        if friendly_info:
+            status_data["activity_label"] = friendly_info
     elif run.status == run.STATUS_SUBMITTED:
         status_data["activity_label"] = "Genome upload queued"
 

@@ -24,6 +24,7 @@ from tpweb.services.genome_workspace import (
 )
 from tpweb.services.pipeline_status import get_pipeline_status
 from tpweb.services.pipeline_status import sanitize_pipeline_status_for_user
+from tpweb.services.slurm_messages import classify_slurm_resource_message
 from tpweb.services.workspace import resolve_workspace_user
 
 
@@ -93,6 +94,8 @@ class GenomeUploadView(View):
                     "state_class": state["class"],
                     "queue_position": queue_positions.get(job.id),
                     "protein_workspace_url": genome_url_slug(job.internal_accession),
+                    "error_message": classify_slurm_resource_message(job.error_message)
+                    or str(job.error_message or "").strip(),
                 }
             )
 

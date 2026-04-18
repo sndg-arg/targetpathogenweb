@@ -9,6 +9,8 @@ from datetime import datetime
 import paramiko
 from scp import SCPClient
 
+from tpweb.services.slurm_messages import classify_slurm_resource_message
+
 
 REMOTE_FAILURE_PREFIXES = (
     "FAILED",
@@ -102,6 +104,24 @@ def _record_remote_job(run_id_raw, *, job_id, remote_job_dir):
             int(run_id_raw),
             job_id=job_id,
             remote_job_dir=remote_job_dir,
+        )
+    except Exception:
+        pass
+
+
+def _record_remote_info(run_id_raw, *, message, payload=None):
+    if not run_id_raw or not message:
+        return
+    try:
+        from tpweb.services.pipeline_runs import record_pipeline_stage_event
+
+        record_pipeline_stage_event(
+            int(run_id_raw),
+            stage_number=10,
+            app_name="interproscan",
+            status="info",
+            message=message,
+            payload=dict(payload or {}),
         )
     except Exception:
         pass
@@ -311,16 +331,21 @@ def run_remote_interproscan(cfg_dict, folder_path, genome):
             f"cd {shlex.quote(remote_job_dir)} && sbatch --parsable {shlex.quote(remote_slurm)}"
         )
         if submit_exit != 0:
+            details = submit_err or submit_out or f"exit status {submit_exit}"
+            friendly = classify_slurm_resource_message(details)
+            if friendly:
+                details = f"{friendly} SLURM response: {details}"
             raise RuntimeError(
                 f"Unable to submit remote InterProScan job for {genome}: "
-                f"{submit_err or submit_out or f'exit status {submit_exit}'}"
+                f"{details}"
             )
 
+        run_id_raw = str(os.getenv("TPW_PIPELINE_RUN_ID") or "").strip()
         job_id = submit_out.split(";")[0].strip()
         if not job_id:
             raise RuntimeError(f"Unable to parse Slurm job id for remote InterProScan on {genome}")
         _record_remote_job(
-            str(os.getenv("TPW_PIPELINE_RUN_ID") or "").strip(),
+            run_id_raw,
             job_id=job_id,
             remote_job_dir=remote_job_dir,
         )
@@ -331,6 +356,7 @@ def run_remote_interproscan(cfg_dict, folder_path, genome):
         waited_seconds = 0
         last_state = "PENDING"
         completion_seen_at = None
+        last_wait_notice = None
 
         while not finished and waited_seconds <= config.remote_wait_seconds:
             try:
@@ -349,6 +375,20 @@ def run_remote_interproscan(cfg_dict, folder_path, genome):
                 _, remote_state, remote_exit_code = state_parts[:3]
                 last_state = remote_state or last_state
                 normalized = remote_state.upper()
+                _, queue_out, _ = _run_remote(
+                    f"squeue -j {shlex.quote(job_id)} -h -o '%T|%R' 2>/dev/null | head -n 1"
+                )
+                queue_line = queue_out.splitlines()[0].strip() if queue_out.strip() else ""
+                queue_parts = queue_line.split("|", 1) if queue_line else []
+                queue_reason = queue_parts[1].strip() if len(queue_parts) == 2 else ""
+                wait_notice = classify_slurm_resource_message(queue_reason, running=True)
+                if wait_notice and wait_notice != last_wait_notice:
+                    _record_remote_info(
+                        run_id_raw,
+                        message=wait_notice,
+                        payload={"remote_state": remote_state, "remote_reason": queue_reason},
+                    )
+                    last_wait_notice = wait_notice
                 if normalized.startswith(REMOTE_FAILURE_PREFIXES):
                     _, slurm_out_text, _ = _run_remote(
                         f"tail -n 120 {shlex.quote(remote_stdout)} 2>/dev/null || true"
@@ -357,6 +397,9 @@ def run_remote_interproscan(cfg_dict, folder_path, genome):
                         f"tail -n 120 {shlex.quote(remote_stderr)} 2>/dev/null || true"
                     )
                     details = slurm_err_text or slurm_out_text or state_err or "no remote output captured"
+                    friendly = classify_slurm_resource_message(details)
+                    if friendly:
+                        details = f"{friendly} SLURM details: {details}"
                     raise RuntimeError(
                         f"Remote InterProScan failed for {genome} "
                         f"({remote_state} / {remote_exit_code}): {details}"

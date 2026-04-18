@@ -151,6 +151,9 @@
                                         <span class="text-muted">{% trans "Processing" %}</span>
                                     {% elif job.state_class == "failed" %}
                                         <span class="text-muted">{% trans "Run failed" %}</span>
+                                        {% if job.error_message %}
+                                            <p class="tp-state-note tp-state-note--error mt-2 mb-0">{{ job.error_message }}</p>
+                                        {% endif %}
                                     {% else %}
                                         <span class="text-muted">{% trans "Pending" %}</span>
                                     {% endif %}
