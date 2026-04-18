@@ -106,8 +106,57 @@ def _read_unips(folder_path, genome):
         return f.read()
 
 
+def _run_alphafold_parallel(stage, lines, folder_path, genome):
+    """Download AlphaFold models in parallel (network-bound)."""
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+
+    max_workers = min(4, len(lines))
+    print(f"Downloading {len(lines)} AlphaFold models with {max_workers} workers...")
+
+    def _fetch_one(line):
+        _run_stage(stage, "alphafold_unips", alphafold_cmd(line, folder_path, genome))
+        return line.split()[1]  # locus_tag
+
+    errors = []
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        futures = {executor.submit(_fetch_one, line): line for line in lines}
+        for future in as_completed(futures):
+            line = futures[future]
+            try:
+                locus = future.result()
+                print(f"  alphafold done: {locus}")
+            except Exception as exc:
+                errors.append((line, exc))
+                print(f"  alphafold FAILED: {line.split()[1] if len(line.split()) > 1 else line}: {exc}")
+
+    if errors:
+        failed = ", ".join(l.split()[1] if len(l.split()) > 1 else l for l, _ in errors)
+        raise RuntimeError(f"AlphaFold download failed for: {failed}")
+
+
+def _process_single_protein(args):
+    """Process one protein through the full structures chain. Used by the parallel executor."""
+    from django.db import connections
+
+    stage, protein, working_dir, folder_path, genome = args
+    try:
+        alphafold_dir = os.path.join(folder_path, "alphafold")
+        print(os.path.join(alphafold_dir, protein, f"{protein}_af.pdb"))
+        _run_stage(stage, "load_af_model", load_af_model_cmd(protein, working_dir, folder_path))
+        _run_stage(stage, "run_fpocket", run_fpocket_cmd(folder_path, protein))
+        _run_stage(stage, "fpocket2json", fpocket2json_cmd(folder_path, protein))
+        _run_stage(stage, "load_pocket", load_pocket_cmd(folder_path, protein, working_dir))
+        _run_stage(stage, "p2rank2json", p2rank2json_cmd(genome, protein, working_dir))
+        _run_stage(stage, "load_p2pocket", load_p2pocket_cmd(genome, protein, working_dir))
+        return protein
+    finally:
+        connections.close_all()
+
+
 def _run_structures_chain(stage, working_dir, folder_path, genome):
     """Replaces the structures_af @join_app: scan PDB files, run per-protein chain."""
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+
     alphafold_dir = os.path.join(folder_path, "alphafold")
     if not os.path.isdir(alphafold_dir):
         print("No protein structures found to load.")
@@ -123,15 +172,26 @@ def _run_structures_chain(stage, working_dir, folder_path, genome):
         print("No protein structures found to load.")
         return
 
-    print(f"Loading {len(proteins_with_pdb)} structures...")
-    for protein in proteins_with_pdb:
-        print(os.path.join(alphafold_dir, protein, f"{protein}_af.pdb"))
-        _run_stage(stage, "load_af_model", load_af_model_cmd(protein, working_dir, folder_path))
-        _run_stage(stage, "run_fpocket", run_fpocket_cmd(folder_path, protein))
-        _run_stage(stage, "fpocket2json", fpocket2json_cmd(folder_path, protein))
-        _run_stage(stage, "load_pocket", load_pocket_cmd(folder_path, protein, working_dir))
-        _run_stage(stage, "p2rank2json", p2rank2json_cmd(genome, protein, working_dir))
-        _run_stage(stage, "load_p2pocket", load_p2pocket_cmd(genome, protein, working_dir))
+    max_workers = min(4, len(proteins_with_pdb))
+    print(f"Loading {len(proteins_with_pdb)} structures with {max_workers} workers...")
+
+    tasks = [(stage, p, working_dir, folder_path, genome) for p in proteins_with_pdb]
+    errors = []
+
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        futures = {executor.submit(_process_single_protein, t): t[1] for t in tasks}
+        for future in as_completed(futures):
+            protein = futures[future]
+            try:
+                future.result()
+                print(f"  completed: {protein}")
+            except Exception as exc:
+                errors.append((protein, exc))
+                print(f"  FAILED: {protein}: {exc}")
+
+    if errors:
+        failed_names = ", ".join(p for p, _ in errors)
+        raise RuntimeError(f"Structure processing failed for: {failed_names}")
 
 
 # ---------------------------------------------------------------------------
@@ -187,11 +247,9 @@ def run_genome(genome, gram, custom, source_genome, is_test, working_dir, cfg_di
     if not _skip(14) or not _skip(15):
         protein_list = _run_python_stage(14, "get_unipslst", _read_unips, folder_path, genome)
         if not _skip(15):
-            for line in protein_list.strip().split("\n"):
-                line = line.strip()
-                if not line:
-                    continue
-                _run_stage(15, "alphafold_unips", alphafold_cmd(line, folder_path, genome))
+            lines = [l.strip() for l in protein_list.strip().split("\n") if l.strip()]
+            if lines:
+                _run_alphafold_parallel(15, lines, folder_path, genome)
     if not _skip(16):
         _run_stage(16, "colabfold_predict", colabfold_cmd(working_dir, genome))
     if not _skip(17):
