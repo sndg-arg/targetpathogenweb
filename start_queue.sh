@@ -16,6 +16,10 @@ if [ -d "$SSH_SOURCE_DIR" ]; then
   chmod 700 "$FAKE_HOME" "$FAKE_SSH_DIR" 2>/dev/null || true
   find "$FAKE_SSH_DIR" -type d -exec chmod 700 {} \; 2>/dev/null || true
   find "$FAKE_SSH_DIR" -type f -exec chmod 600 {} \; 2>/dev/null || true
+  # Ensure paramiko can find the key for the cluster SSH host
+  if [ -n "$SSH_HOSTNAME" ] && [ -f "$FAKE_SSH_DIR/id_ed25519_agutson_cluster" ]; then
+    printf '\nHost %s\n  IdentityFile %s/id_ed25519_agutson_cluster\n  StrictHostKeyChecking no\n' "$SSH_HOSTNAME" "$FAKE_SSH_DIR" >> "$FAKE_SSH_DIR/config"
+  fi
   export HOME="$FAKE_HOME"
 fi
 
