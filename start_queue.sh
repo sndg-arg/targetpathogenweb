@@ -4,17 +4,19 @@ if [ -S /var/run/docker.sock ]; then
   chmod 666 /var/run/docker.sock 2>/dev/null || true
 fi
 
-# Fix SSH config permissions (mounted volume is :ro with wrong owner for paramiko)
-if [ -d "$HOME/.ssh" ]; then
-  mkdir -p /tmp/fakehome
-  cp -rp "$HOME/.ssh" /tmp/fakehome/.ssh 2>/dev/null || true
-  chmod 700 /tmp/fakehome/.ssh 2>/dev/null || true
-  chmod 600 /tmp/fakehome/.ssh/config /tmp/fakehome/.ssh/id_* /tmp/fakehome/.ssh/cluster_qb 2>/dev/null || true
-  # Ensure paramiko can find the key for the cluster SSH host
-  if [ -n "$SSH_HOSTNAME" ] && [ -f /tmp/fakehome/.ssh/id_ed25519_agutson_cluster ]; then
-    printf '\nHost %s\n  IdentityFile /tmp/fakehome/.ssh/id_ed25519_agutson_cluster\n  StrictHostKeyChecking no\n' "$SSH_HOSTNAME" >> /tmp/fakehome/.ssh/config
-  fi
-  export HOME=/tmp/fakehome
+# Paramiko rejects a mounted read-only ~/.ssh if ownership or modes look unsafe.
+# Copy it into a writable HOME and normalize permissions, but keep host/key selection
+# delegated to the existing ~/.ssh/config mounted from the host.
+SSH_SOURCE_DIR="${HOME}/.ssh"
+FAKE_HOME=/tmp/fakehome
+FAKE_SSH_DIR="${FAKE_HOME}/.ssh"
+if [ -d "$SSH_SOURCE_DIR" ]; then
+  mkdir -p "$FAKE_SSH_DIR"
+  cp -rp "$SSH_SOURCE_DIR"/. "$FAKE_SSH_DIR"/ 2>/dev/null || true
+  chmod 700 "$FAKE_HOME" "$FAKE_SSH_DIR" 2>/dev/null || true
+  find "$FAKE_SSH_DIR" -type d -exec chmod 700 {} \; 2>/dev/null || true
+  find "$FAKE_SSH_DIR" -type f -exec chmod 600 {} \; 2>/dev/null || true
+  export HOME="$FAKE_HOME"
 fi
 
 . /opt/conda/etc/profile.d/conda.sh

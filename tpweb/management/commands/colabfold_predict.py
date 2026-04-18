@@ -151,6 +151,10 @@ class Command(BaseCommand):
         self.stdout.write(
             f"ColabFold done: {predicted} predicted, {failed} failed"
         )
+        if not success:
+            raise RuntimeError(
+                "colabfold_batch failed; no reliable ColabFold predictions were produced."
+            )
 
     # ------------------------------------------------------------------
 
@@ -194,11 +198,23 @@ class Command(BaseCommand):
 
         self.stdout.write("CMD: " + " ".join(cmd))
 
+        env = os.environ.copy()
+        colabfold_root = os.path.dirname(os.path.dirname(os.path.abspath(colabfold_bin)))
+        colabfold_lib = os.path.join(colabfold_root, "lib")
+        if os.path.isdir(colabfold_lib):
+            current_ld_path = env.get("LD_LIBRARY_PATH", "").strip()
+            env["LD_LIBRARY_PATH"] = (
+                f"{colabfold_lib}:{current_ld_path}"
+                if current_ld_path
+                else colabfold_lib
+            )
+
         proc = subprocess.Popen(
             cmd,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
+            env=env,
         )
         for line in proc.stdout:
             self.stdout.write(line.rstrip())
