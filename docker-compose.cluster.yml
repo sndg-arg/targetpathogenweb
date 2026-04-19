@@ -50,6 +50,7 @@ services:
       - SENTRY_DSN=${SENTRY_DSN:-}
       - PYTHONPATH=/app/sndgjobs:/app/sndgbiodb:/app/targetpathogen:/app/sndg-bio:/app/target:/app/targetpathogenweb
       - TPW_DATA_DIR=${TPW_DATA_DIR:-/data/targetpathogen/data}
+      - TPW_PIPELINE_TIMEOUT_SEC=${TPW_PIPELINE_TIMEOUT_SEC:-86400}
       - SSH_HOSTNAME=${SSH_HOSTNAME:-cluster.qb.fcen.uba.ar}
       - SSH_USERNAME=${SSH_USERNAME:-agutson}
       - SSH_WORKDIR=${SSH_WORKDIR:-/home/agutson}
@@ -88,6 +89,7 @@ services:
       - SENTRY_DSN=${SENTRY_DSN:-}
       - PYTHONPATH=/app/sndgjobs:/app/sndgbiodb:/app/targetpathogen:/app/sndg-bio:/app/target:/app/targetpathogenweb
       - TPW_DATA_DIR=${TPW_DATA_DIR:-/data/targetpathogen/data}
+      - TPW_PIPELINE_TIMEOUT_SEC=${TPW_PIPELINE_TIMEOUT_SEC:-86400}
       - SSH_HOSTNAME=${SSH_HOSTNAME:-cluster.qb.fcen.uba.ar}
       - SSH_USERNAME=${SSH_USERNAME:-agutson}
       - SSH_WORKDIR=${SSH_WORKDIR:-/home/agutson}

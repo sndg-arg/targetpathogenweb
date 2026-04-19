@@ -575,6 +575,30 @@ class GenomeUploadQueueTests(TestCase):
         self.assertEqual(upload.error_message, "Pipeline failed.")
         delete_workspace_biodatabases.assert_called_once_with(upload.internal_accession)
 
+    @patch("tpweb.services.genome_uploads._extract_error_message")
+    @patch("tpweb.services.genome_uploads._delete_workspace_biodatabases")
+    def test_finalize_upload_prefers_explicit_error_message(
+        self,
+        delete_workspace_biodatabases,
+        extract_error_message,
+    ):
+        upload = self.create_upload(self.alice, "NZ_AP023069.1", GenomeUpload.STATUS_RUNNING)
+        extract_error_message.return_value = "Generic failure."
+
+        status = _finalize_upload(
+            upload,
+            returncode=1,
+            error_message="Pipeline exceeded timeout of 86400 seconds during genome processing.",
+        )
+
+        upload.refresh_from_db()
+        self.assertEqual(status, GenomeUpload.STATUS_FAILED)
+        self.assertEqual(
+            upload.error_message,
+            "Pipeline exceeded timeout of 86400 seconds during genome processing.",
+        )
+        delete_workspace_biodatabases.assert_called_once_with(upload.internal_accession)
+
     @patch("tpweb.services.genome_upload_status._upload_has_matching_process")
     @patch("tpweb.services.genome_upload_status._process_exists")
     def test_reconcile_keeps_running_upload_when_matching_process_exists(

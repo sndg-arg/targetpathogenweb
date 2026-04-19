@@ -140,7 +140,7 @@ def _upload_was_deleted(upload):
     return not GenomeUpload.objects.filter(pk=upload_id).exists()
 
 
-def _finalize_upload(upload, returncode):
+def _finalize_upload(upload, returncode, error_message=None):
     if _upload_was_deleted(upload):
         _delete_upload_artifacts(upload)
         _delete_workspace_biodatabases(upload.internal_accession)
@@ -153,7 +153,9 @@ def _finalize_upload(upload, returncode):
         upload.error_message = ""
     else:
         upload.status = upload.STATUS_FAILED
-        upload.error_message = _extract_error_message(upload.run_log_path)
+        upload.error_message = str(
+            error_message or _extract_error_message(upload.run_log_path)
+        )[:1000]
         _delete_workspace_biodatabases(upload.internal_accession)
     upload.launch_pid = None
     upload.save(update_fields=["status", "error_message", "launch_pid", "updated_at"])
@@ -202,6 +204,7 @@ def _pipeline_timeout_seconds():
 def run_genome_upload_pipeline(upload):
     runtime = _build_pipeline_runtime(upload, _build_command_suffix(upload))
     log_handle = open(runtime["log_path"], "ab")
+    error_message = None
     try:
         process = subprocess.Popen(
             runtime["command"],
@@ -212,9 +215,16 @@ def run_genome_upload_pipeline(upload):
             start_new_session=True,
         )
         _mark_upload_running(upload, process.pid, runtime["log_path"])
+        timeout_seconds = _pipeline_timeout_seconds()
         try:
-            returncode = process.wait(timeout=_pipeline_timeout_seconds())
+            returncode = process.wait(timeout=timeout_seconds)
         except subprocess.TimeoutExpired:
+            error_message = (
+                f"Pipeline exceeded timeout of {timeout_seconds} seconds "
+                f"during genome processing."
+            )
+            log_handle.write((error_message + "\n").encode("utf-8", errors="ignore"))
+            log_handle.flush()
             os.killpg(process.pid, signal.SIGTERM)
             try:
                 returncode = process.wait(timeout=30)
@@ -224,7 +234,7 @@ def run_genome_upload_pipeline(upload):
     finally:
         log_handle.close()
 
-    return _finalize_upload(upload, returncode)
+    return _finalize_upload(upload, returncode, error_message=error_message)
 
 
 def dequeue_next_genome_upload():
