@@ -39,6 +39,7 @@ def ParameterFormView(request, genome):
         {"value": "", "label": "All"},
         {"value": "experimental", "label": "Experimental"},
         {"value": "alphafold", "label": "AlphaFold"},
+        {"value": "colabfold", "label": "ColabFold"},
         {"value": "none", "label": "No structure"},
     ]
 
@@ -237,6 +238,7 @@ def load_options(request):
         options = [
             {"id": "experimental", "label": "Experimental"},
             {"id": "alphafold", "label": "AlphaFold"},
+            {"id": "colabfold", "label": "ColabFold"},
             {"id": "none", "label": "No structure"},
         ]
     elif param_id in {SPECIAL_PARAM_EC_NUMBER, SPECIAL_PARAM_GO_TERM}:

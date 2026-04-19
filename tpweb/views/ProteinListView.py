@@ -62,6 +62,11 @@ from tpweb.services.pipeline_status import (
     get_pipeline_status,
 )
 from tpweb.services.score_params import visible_score_params_queryset
+from tpweb.services.structure_sources import (
+    PDB_EXPERIMENT_ALPHAFOLD,
+    PDB_EXPERIMENT_COLABFOLD,
+    PDB_MODEL_EXPERIMENTS,
+)
 
 
 class ProteinSearchSuggestionsView(View):
@@ -453,9 +458,13 @@ class ProteinListView(View):
         if structure_source == "none":
             proteins = proteins.filter(structures__isnull=True)
         elif structure_source == "experimental":
-            proteins = proteins.filter(structures__isnull=False).exclude(structures__pdb__experiment="AF")
+            proteins = proteins.filter(structures__isnull=False).exclude(
+                structures__pdb__experiment__in=PDB_MODEL_EXPERIMENTS
+            )
         elif structure_source == "alphafold":
-            proteins = proteins.filter(structures__pdb__experiment="AF")
+            proteins = proteins.filter(structures__pdb__experiment=PDB_EXPERIMENT_ALPHAFOLD)
+        elif structure_source == "colabfold":
+            proteins = proteins.filter(structures__pdb__experiment=PDB_EXPERIMENT_COLABFOLD)
 
         if annotation_value:
             annotation_query = {
@@ -671,6 +680,7 @@ class ProteinListView(View):
                 {"value": "", "label": "All"},
                 {"value": "experimental", "label": "Experimental"},
                 {"value": "alphafold", "label": "AlphaFold"},
+                {"value": "colabfold", "label": "ColabFold"},
                 {"value": "none", "label": "No structure"},
             ],
             "ec_filter_value": annotation_value if annotation_kind == "ec" else "",

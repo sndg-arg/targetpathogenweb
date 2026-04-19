@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import tpweb.services.pipeline_status as pipeline_status_service
 
@@ -63,7 +63,7 @@ from tpweb.services.workspace import (
     set_workspace_session_value,
 )
 from tpweb.views.FormulaForm import FormulaForm
-from tpweb.views.ParameterForm import ParameterForm
+from tpweb.views.ParameterForm import ParameterForm, SPECIAL_PARAM_STRUCTURE
 from tpweb.services.workspace import PUBLIC_WORKSPACE_USERNAME
 
 
@@ -180,6 +180,48 @@ class GenomeServiceTests(SimpleTestCase):
         self.assertEqual(protein_coding_loaded, "62")
         self.assertEqual(untranslated_cds, "11")
 
+    @patch("tpweb.services.assembly_workspace.BioentryStructure")
+    @patch("tpweb.services.assembly_workspace.Bioentry")
+    def test_build_assembly_workspace_metrics_treats_colabfold_as_model_not_experimental(
+        self,
+        bioentry_model,
+        bioentry_structure_model,
+    ):
+        proteins = MagicMock()
+        bioentry_model.objects.filter.return_value = proteins
+        proteins.count.return_value = 62
+
+        distinct_count_values = iter([11, 10, 1, 31, 22, 44])
+
+        def build_distinct_qs():
+            distinct_qs = MagicMock()
+            distinct_qs.count.return_value = next(distinct_count_values)
+            filtered_qs = MagicMock()
+            filtered_qs.distinct.return_value = distinct_qs
+            return filtered_qs
+
+        proteins.filter.side_effect = [build_distinct_qs() for _ in range(6)]
+
+        structure_filtered = MagicMock()
+        structure_excluded = MagicMock()
+        structure_values = MagicMock()
+        structure_distinct = MagicMock()
+        structure_distinct.count.return_value = 0
+        bioentry_structure_model.objects.filter.return_value = structure_filtered
+        structure_filtered.exclude.return_value = structure_excluded
+        structure_excluded.values.return_value = structure_values
+        structure_values.distinct.return_value = structure_distinct
+
+        metrics = build_assembly_workspace_metrics("public__NZ_AP023069.1")
+
+        self.assertEqual(metrics["proteins_with_structure"], 11)
+        self.assertEqual(metrics["experimental_structures"], 0)
+        self.assertEqual(metrics["alphafold_structures"], 10)
+        self.assertEqual(metrics["colabfold_structures"], 1)
+        structure_filtered.exclude.assert_called_once_with(
+            pdb__experiment__in=("AF", "CF")
+        )
+
 
 class ProteinListServiceTests(SimpleTestCase):
     def test_normalize_selected_parameters(self):
@@ -277,6 +319,19 @@ class StructureAndAnnotationServiceTests(SimpleTestCase):
         self.assertEqual(summary["source"], "mixed")
         self.assertEqual(summary["label"], "Experimental + AlphaFold")
         self.assertEqual(summary["count"], 2)
+
+    def test_summarize_structure_sources_handles_colabfold(self):
+        colabfold_structure = type(
+            "Structure",
+            (),
+            {"pdb": type("PDB", (), {"experiment": "CF"})()},
+        )()
+
+        summary = summarize_structure_sources([colabfold_structure])
+
+        self.assertEqual(summary["source"], "colabfold")
+        self.assertEqual(summary["label"], "ColabFold")
+        self.assertEqual(summary["count"], 1)
 
     def test_build_annotation_explorer_builds_ec_hierarchy(self):
         dbxref_relation = lambda accession, name="": type(
@@ -455,6 +510,16 @@ class WorkspaceIsolationTests(TestCase):
         self.assertIn("GlobalBuiltin", visible_names)
         self.assertIn("AliceCustom", visible_names)
         self.assertNotIn("BobCustom", visible_names)
+
+    def test_parameter_form_offers_colabfold_structure_filter(self):
+        parameter_form = ParameterForm(
+            data={"param": SPECIAL_PARAM_STRUCTURE},
+            user=self.alice,
+        )
+
+        structure_choices = [value for value, _ in parameter_form.fields["options"].choices]
+
+        self.assertIn("colabfold", structure_choices)
 
     def test_workspace_genome_names_are_hidden_from_other_users(self):
         alice_internal = build_workspace_genome_name("NZ_AP023069.1", self.alice)

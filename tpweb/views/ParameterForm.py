@@ -18,6 +18,7 @@ SPECIAL_PARAM_GO_TERM = "__go_term__"
 SPECIAL_STRUCTURE_CHOICES = (
     ("experimental", _("Experimental")),
     ("alphafold", _("AlphaFold")),
+    ("colabfold", _("ColabFold")),
     ("none", _("No structure")),
 )
 
@@ -30,6 +31,7 @@ ACRONYM_TOKENS = {
     "p2rank": "P2RANK",
     "fpocket": "FPocket",
     "alphafold": "AlphaFold",
+    "colabfold": "ColabFold",
     "id": "ID",
     "ec": "EC",
 }

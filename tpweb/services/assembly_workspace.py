@@ -4,6 +4,11 @@ from bioseq.models.Bioentry import Bioentry
 from bioseq.models.Biodatabase import Biodatabase
 from bioseq.models.Ontology import Ontology
 from tpweb.models.BioentryStructure import BioentryStructure
+from tpweb.services.structure_sources import (
+    PDB_EXPERIMENT_ALPHAFOLD,
+    PDB_EXPERIMENT_COLABFOLD,
+    PDB_MODEL_EXPERIMENTS,
+)
 
 
 EC_DBNAMES = {str(Ontology.EC or "").strip(), "ec", "EC"}
@@ -17,9 +22,12 @@ def build_assembly_workspace_metrics(assembly_name):
     proteins_with_structure = proteins.filter(structures__isnull=False).distinct().count()
     experimental_structures = BioentryStructure.objects.filter(
         bioentry__biodatabase__name=assembly_name + Biodatabase.PROT_POSTFIX
-    ).exclude(pdb__experiment="AF").values("bioentry_id").distinct().count()
+    ).exclude(pdb__experiment__in=PDB_MODEL_EXPERIMENTS).values("bioentry_id").distinct().count()
     alphafold_structures = (
-        proteins.filter(structures__pdb__experiment="AF").distinct().count()
+        proteins.filter(structures__pdb__experiment=PDB_EXPERIMENT_ALPHAFOLD).distinct().count()
+    )
+    colabfold_structures = (
+        proteins.filter(structures__pdb__experiment=PDB_EXPERIMENT_COLABFOLD).distinct().count()
     )
     ec_annotated = proteins.filter(dbxrefs__dbxref__dbname__in=EC_DBNAMES).distinct().count()
     go_annotated = proteins.filter(dbxrefs__dbxref__dbname=Ontology.GO).distinct().count()
@@ -32,6 +40,7 @@ def build_assembly_workspace_metrics(assembly_name):
         "proteins_with_structure": proteins_with_structure,
         "experimental_structures": experimental_structures,
         "alphafold_structures": alphafold_structures,
+        "colabfold_structures": colabfold_structures,
         "functional_annotated": functional_annotated,
         "ec_annotated": ec_annotated,
         "go_annotated": go_annotated,

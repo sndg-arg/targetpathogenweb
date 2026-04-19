@@ -428,7 +428,7 @@
                     </div>
                     <div class="assembly-record-item">
                         <span class="assembly-record-label">{% trans "Structures loaded" %}</span>
-                        <span class="assembly-record-value">{% blocktrans with total=workspace_metrics.proteins_with_structure experimental=workspace_metrics.experimental_structures alphafold=workspace_metrics.alphafold_structures %}{{ total }} total (Experimental {{ experimental }}, AlphaFold {{ alphafold }}){% endblocktrans %}</span>
+                        <span class="assembly-record-value">{% blocktrans with total=workspace_metrics.proteins_with_structure experimental=workspace_metrics.experimental_structures alphafold=workspace_metrics.alphafold_structures colabfold=workspace_metrics.colabfold_structures %}{{ total }} total (Experimental {{ experimental }}, AlphaFold {{ alphafold }}, ColabFold {{ colabfold }}){% endblocktrans %}</span>
                     </div>
                     <div class="assembly-record-item">
                         <span class="assembly-record-label">{% trans "Functional annotation available" %}</span>

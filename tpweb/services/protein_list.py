@@ -1,6 +1,11 @@
 from django.db.models import Q
 import re
 
+from tpweb.services.structure_sources import (
+    PDB_EXPERIMENT_ALPHAFOLD,
+    PDB_EXPERIMENT_COLABFOLD,
+    PDB_MODEL_EXPERIMENTS,
+)
 
 MIN_PAGE_SIZE = 10
 MAX_PAGE_SIZE = 100
@@ -14,6 +19,7 @@ ACRONYM_TOKENS = {
     "p2rank": "P2RANK",
     "fpocket": "FPocket",
     "alphafold": "AlphaFold",
+    "colabfold": "ColabFold",
     "id": "ID",
 }
 
@@ -148,9 +154,14 @@ def apply_selected_parameter_filters(queryset, selected_parameters):
         if "none" in structure_values:
             structure_query |= Q(structures__isnull=True)
         if "experimental" in structure_values:
-            structure_query |= (Q(structures__isnull=False) & ~Q(structures__pdb__experiment="AF"))
+            structure_query |= (
+                Q(structures__isnull=False)
+                & ~Q(structures__pdb__experiment__in=PDB_MODEL_EXPERIMENTS)
+            )
         if "alphafold" in structure_values:
-            structure_query |= Q(structures__pdb__experiment="AF")
+            structure_query |= Q(structures__pdb__experiment=PDB_EXPERIMENT_ALPHAFOLD)
+        if "colabfold" in structure_values:
+            structure_query |= Q(structures__pdb__experiment=PDB_EXPERIMENT_COLABFOLD)
         filtered_queryset = filtered_queryset.filter(structure_query)
 
     ec_values = [value for value in special_groups.get("ec_filter", []) if value]

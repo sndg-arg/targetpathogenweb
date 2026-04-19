@@ -37,6 +37,7 @@ def humanize_identifier(value):
         "p2rank": "P2RANK",
         "fpocket": "FPocket",
         "alphafold": "AlphaFold",
+        "colabfold": "ColabFold",
         "id": "ID",
     }
     token_replacements = {

@@ -10,6 +10,7 @@ from tpweb.services.genome_workspace import (
     genome_url_slug,
     visible_genome_name_filter,
 )
+from tpweb.services.structure_sources import PDB_MODEL_EXPERIMENTS
 
 
 GENOME_TABLE_COLUMNS = {
@@ -94,7 +95,7 @@ def _experimental_counts_by_genome(genome_names):
                 f"{name}{Biodatabase.PROT_POSTFIX}" for name in genome_names
             ]
         )
-        .exclude(pdb__experiment="AF")
+        .exclude(pdb__experiment__in=PDB_MODEL_EXPERIMENTS)
         .values("bioentry__biodatabase__name")
         .annotate(total=Count("bioentry_id", distinct=True))
         .values_list("bioentry__biodatabase__name", "total")

@@ -170,7 +170,12 @@ class AssemblyView(View):
                         ["Proteins available for analysis", workspace_metrics.get("total_proteins")],
                         [
                             "Structures loaded",
-                            f"{workspace_metrics.get('proteins_with_structure')} total (Experimental {workspace_metrics.get('experimental_structures')}, AlphaFold {workspace_metrics.get('alphafold_structures')})",
+                            (
+                                f"{workspace_metrics.get('proteins_with_structure')} total "
+                                f"(Experimental {workspace_metrics.get('experimental_structures')}, "
+                                f"AlphaFold {workspace_metrics.get('alphafold_structures')}, "
+                                f"ColabFold {workspace_metrics.get('colabfold_structures')})"
+                            ),
                         ],
                         [
                             "Functional annotation available",

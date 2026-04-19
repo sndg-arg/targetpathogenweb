@@ -5,6 +5,13 @@ STRUCTURE_SOURCE_COLABFOLD = "colabfold"
 STRUCTURE_SOURCE_MODEL = "model"
 STRUCTURE_SOURCE_MIXED = "mixed"
 
+PDB_EXPERIMENT_ALPHAFOLD = "AF"
+PDB_EXPERIMENT_COLABFOLD = "CF"
+PDB_MODEL_EXPERIMENTS = (
+    PDB_EXPERIMENT_ALPHAFOLD,
+    PDB_EXPERIMENT_COLABFOLD,
+)
+
 STRUCTURE_SOURCE_LABELS = {
     STRUCTURE_SOURCE_NONE: "Unavailable",
     STRUCTURE_SOURCE_EXPERIMENTAL: "Experimental",
@@ -32,9 +39,9 @@ def classify_structure_experiment(experiment):
     normalized = _normalize_experiment(experiment)
     if not normalized:
         return STRUCTURE_SOURCE_MODEL
-    if normalized == "CF" or "COLABFOLD" in normalized:
+    if normalized == PDB_EXPERIMENT_COLABFOLD or "COLABFOLD" in normalized:
         return STRUCTURE_SOURCE_COLABFOLD
-    if normalized == "AF" or "ALPHAFOLD" in normalized:
+    if normalized == PDB_EXPERIMENT_ALPHAFOLD or "ALPHAFOLD" in normalized:
         return STRUCTURE_SOURCE_ALPHAFOLD
     return STRUCTURE_SOURCE_EXPERIMENTAL
 
