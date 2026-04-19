@@ -4,11 +4,13 @@ Run ColabFold on a remote SLURM GPU node via SSH.
 Analogous to interproscan_remote.py: SSH → SCP input → sbatch → poll → SCP results.
 Activated when TPW_COLABFOLD_USE_REMOTE=1 is set; otherwise stage 16 runs locally.
 
-The remote job:
-  1. Receives a FASTA with all candidate proteins (no existing AlphaFold structure).
-  2. Runs colabfold_batch on a GPU node via SLURM.
-  3. Produces one PDB per protein (rank_001).
-  4. Results are SCP'd back and placed into alphafold/<locus_tag>/<locus_tag>_af.pdb.
+The remote path:
+  1. Identifies proteins without an existing structure.
+  2. Runs one SLURM GPU job per protein when the sequence length is within the
+     configured safe VRAM envelope.
+  3. Falls back to local ColabFold-on-CPU for proteins above the GPU length
+     limit or when an individual GPU job fails.
+  4. Places results into alphafold/<locus_tag>/<locus_tag>_af.pdb.
 """
 
 import gzip
@@ -17,6 +19,8 @@ import os
 import shlex
 import shutil
 import socket
+import subprocess
+import sys
 import time
 from dataclasses import dataclass
 from datetime import datetime
@@ -27,6 +31,10 @@ from scp import SCPClient
 from tpweb.services.slurm_messages import classify_slurm_resource_message
 
 
+DEFAULT_LOCAL_COLABFOLD_BIN = os.getenv(
+    "TPW_COLABFOLD_BIN",
+    "/opt/localcolabfold/colabfold-conda/bin/colabfold_batch",
+)
 REMOTE_FAILURE_PREFIXES = (
     "FAILED",
     "CANCELLED",
@@ -152,8 +160,10 @@ class ColabFoldRemoteConfig:
     remote_completion_grace_seconds: int
     conda_prefix: str
     conda_env: str
+    local_colabfold_bin: str
     num_recycles: int
     num_models: int
+    max_sequence_length: int
     slurm_partition: str
     slurm_time: str
     slurm_mem: str
@@ -204,8 +214,10 @@ def _build_colabfold_config(cfg_dict):
         ),
         conda_prefix=_env_text("TPW_COLABFOLD_CONDA_PREFIX", default="/home/shared/miniconda3.8"),
         conda_env=_env_text("TPW_COLABFOLD_CONDA_ENV", default="colabfold"),
+        local_colabfold_bin=_env_text("TPW_COLABFOLD_BIN", default=DEFAULT_LOCAL_COLABFOLD_BIN),
         num_recycles=_env_int("TPW_COLABFOLD_NUM_RECYCLES", default=3),
         num_models=_env_int("TPW_COLABFOLD_NUM_MODELS", default=1),
+        max_sequence_length=_env_int("TPW_COLABFOLD_MAX_SEQ_LENGTH", default=800),
         slurm_partition=os.getenv("TPW_COLABFOLD_PARTITION", "gpu"),
         slurm_time=os.getenv("TPW_COLABFOLD_TIME", "12:00:00"),
         slurm_mem=os.getenv("TPW_COLABFOLD_MEM", "16gb"),
@@ -288,6 +300,306 @@ def _find_best_pdb(directory, locus_tag):
     return os.path.join(directory, candidates[0])
 
 
+def _copy_predicted_pdb(results_dir, folder_path, locus_tag):
+    pdb_src = _find_best_pdb(results_dir, locus_tag)
+    if pdb_src is None:
+        raise RuntimeError(f"No ColabFold rank_001 PDB produced for {locus_tag}")
+    locus_dir = os.path.join(folder_path, "alphafold", locus_tag)
+    os.makedirs(locus_dir, exist_ok=True)
+    pdb_dst = os.path.join(locus_dir, f"{locus_tag}_af.pdb")
+    shutil.copy2(pdb_src, pdb_dst)
+    return pdb_dst
+
+
+def _build_local_colabfold_env(colabfold_bin):
+    env = os.environ.copy()
+    colabfold_root = os.path.dirname(os.path.dirname(os.path.abspath(colabfold_bin)))
+    colabfold_lib = os.path.join(colabfold_root, "lib")
+    if os.path.isdir(colabfold_lib):
+        current_ld_path = env.get("LD_LIBRARY_PATH", "").strip()
+        env["LD_LIBRARY_PATH"] = (
+            f"{colabfold_lib}:{current_ld_path}"
+            if current_ld_path
+            else colabfold_lib
+        )
+    return env
+
+
+def _run_local_colabfold_fallback(*, folder_path, locus_tag, sequence, config, reason):
+    import tempfile
+
+    print(
+        f"ColabFold local fallback: {locus_tag} ({len(sequence)} aa). "
+        f"Reason: {reason}"
+    )
+    with tempfile.TemporaryDirectory(prefix="colabfold_local_fallback_") as tmpdir:
+        input_fasta = os.path.join(tmpdir, "input.fasta")
+        output_dir = os.path.join(tmpdir, "output")
+        os.makedirs(output_dir)
+
+        with open(input_fasta, "w", encoding="utf-8") as handle:
+            handle.write(f">{locus_tag}\n{sequence}\n")
+
+        cmd = [
+            config.local_colabfold_bin,
+            input_fasta,
+            output_dir,
+            "--num-recycle", str(config.num_recycles),
+            "--num-models", str(config.num_models),
+            "--model-type", "alphafold2_ptm",
+        ]
+        env = _build_local_colabfold_env(config.local_colabfold_bin)
+        proc = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            env=env,
+        )
+        for line in proc.stdout:
+            print(line.rstrip())
+            sys.stdout.flush()
+
+        proc.wait()
+        if proc.returncode != 0:
+            raise RuntimeError(
+                f"Local ColabFold fallback failed for {locus_tag} (rc={proc.returncode})"
+            )
+
+        _copy_predicted_pdb(output_dir, folder_path, locus_tag)
+        print(f"  ColabFold local fallback: saved structure for {locus_tag}")
+
+
+def _run_remote_colabfold_candidate(
+    *,
+    ssh,
+    scp_client,
+    sftp,
+    config,
+    run_id_raw,
+    folder_path,
+    genome,
+    locus_tag,
+    sequence,
+):
+    import tempfile
+
+    job_id = None
+    finished = False
+
+    def _run_remote(command):
+        stdin, stdout, stderr = ssh.exec_command(command)
+        exit_code = stdout.channel.recv_exit_status()
+        out = stdout.read().decode("utf-8", errors="replace").strip()
+        err = stderr.read().decode("utf-8", errors="replace").strip()
+        return exit_code, out, err
+
+    safe_genome = "".join(ch if ch.isalnum() or ch in ("_", "-") else "_" for ch in genome)
+    safe_locus = "".join(ch if ch.isalnum() or ch in ("_", "-") else "_" for ch in locus_tag)
+    run_label = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+    remote_job_dir = (
+        f"{config.ssh_rootfolder.rstrip('/')}/tpw_colabfold/"
+        f"{safe_genome}_{safe_locus}_{run_label}"
+    )
+    remote_input = f"{remote_job_dir}/input.fasta"
+    remote_output_dir = f"{remote_job_dir}/output"
+    remote_script = f"{remote_job_dir}/run_colabfold.sh"
+    remote_slurm = f"{remote_job_dir}/colabfold.slurm"
+    remote_done_marker = f"{remote_job_dir}/DONE"
+    remote_stdout_pattern = f"{remote_job_dir}/slurm-%j.out"
+    remote_stderr_pattern = f"{remote_job_dir}/slurm-%j.err"
+
+    try:
+        with tempfile.TemporaryDirectory(prefix=f"colabfold_remote_{locus_tag}_") as local_tmpdir:
+            local_input_fasta = os.path.join(local_tmpdir, "input.fasta")
+            with open(local_input_fasta, "w", encoding="utf-8") as handle:
+                handle.write(f">{locus_tag}\n{sequence}\n")
+
+            mkdir_exit, _, mkdir_err = _run_remote(f"mkdir -p {shlex.quote(remote_job_dir)}")
+            if mkdir_exit != 0:
+                raise RuntimeError(
+                    f"Unable to create remote ColabFold directory for {locus_tag}: "
+                    f"{mkdir_err or f'exit {mkdir_exit}'}"
+                )
+
+            scp_client.put(local_input_fasta, remote_input)
+
+            runner_text = "\n".join([
+                "#!/bin/bash",
+                "set -eo pipefail",
+                f'eval "$({config.conda_prefix}/bin/conda shell.bash hook)"',
+                f"conda activate {shlex.quote(config.conda_env)}",
+                "set -u",
+                f"mkdir -p {shlex.quote(remote_output_dir)}",
+                (
+                    f"colabfold_batch"
+                    f" {shlex.quote(remote_input)}"
+                    f" {shlex.quote(remote_output_dir)}"
+                    f" --num-recycle {config.num_recycles}"
+                    f" --num-models {config.num_models}"
+                    f" --model-type alphafold2_ptm"
+                ),
+                f"touch {shlex.quote(remote_done_marker)}",
+                "",
+            ])
+
+            slurm_text = "\n".join([
+                "#!/bin/bash",
+                f"#SBATCH --job-name=cf_{safe_locus[:20]}",
+                f"#SBATCH -p {config.slurm_partition}",
+                f"#SBATCH --gres={config.slurm_gres}",
+                f"#SBATCH --cpus-per-task=4",
+                f"#SBATCH --time={config.slurm_time}",
+                f"#SBATCH --mem={config.slurm_mem}",
+                f"#SBATCH -o {remote_stdout_pattern}",
+                f"#SBATCH -e {remote_stderr_pattern}",
+                f"#SBATCH --chdir={remote_job_dir}",
+                f"bash {remote_script}",
+                "",
+            ])
+
+            with sftp.file(remote_script, "w") as handle:
+                handle.write(runner_text)
+            with sftp.file(remote_slurm, "w") as handle:
+                handle.write(slurm_text)
+            _run_remote(f"chmod 700 {shlex.quote(remote_script)} {shlex.quote(remote_slurm)}")
+
+            submit_exit, submit_out, submit_err = _run_remote(
+                f"cd {shlex.quote(remote_job_dir)} && sbatch --parsable {shlex.quote(remote_slurm)}"
+            )
+            if submit_exit != 0:
+                details = submit_err or submit_out or f"exit status {submit_exit}"
+                friendly = classify_slurm_resource_message(details)
+                if friendly:
+                    details = f"{friendly} SLURM response: {details}"
+                raise RuntimeError(
+                    f"Unable to submit ColabFold SLURM job for {locus_tag}: {details}"
+                )
+
+            job_id = submit_out.split(";")[0].strip()
+            if not job_id:
+                raise RuntimeError(f"Unable to parse SLURM job id for ColabFold on {locus_tag}")
+
+            print(
+                f"ColabFold remote: submitted SLURM job {job_id} for "
+                f"{locus_tag} ({len(sequence)} aa) on partition {config.slurm_partition}"
+            )
+            _record_remote_job(
+                run_id_raw,
+                job_id=job_id,
+                remote_job_dir=remote_job_dir,
+            )
+            _record_remote_info(
+                run_id_raw,
+                stage_number=16,
+                message=f"Submitted remote ColabFold job {job_id} for {locus_tag}",
+                payload={"job_id": job_id, "remote_job_dir": remote_job_dir, "locus_tag": locus_tag},
+            )
+
+            remote_stdout = f"{remote_job_dir}/slurm-{job_id}.out"
+            remote_stderr = f"{remote_job_dir}/slurm-{job_id}.err"
+            waited_seconds = 0
+            last_state = "PENDING"
+            completion_seen_at = None
+            last_wait_notice = None
+
+            while not finished and waited_seconds <= config.remote_wait_seconds:
+                done_exit, _, _ = _run_remote(f"test -f {shlex.quote(remote_done_marker)}")
+                if done_exit == 0:
+                    finished = True
+                    continue
+
+                _, state_out, state_err = _run_remote(
+                    f"sacct -j {shlex.quote(job_id)} --format=JobID,State,ExitCode -P -n | head -n 1"
+                )
+                state_line = state_out.splitlines()[0].strip() if state_out.strip() else ""
+                state_parts = state_line.split("|") if state_line else []
+
+                if len(state_parts) >= 3:
+                    _, remote_state, remote_exit_code = state_parts[:3]
+                    last_state = remote_state or last_state
+                    normalized = remote_state.upper()
+                    _, queue_out, _ = _run_remote(
+                        f"squeue -j {shlex.quote(job_id)} -h -o '%T|%R' 2>/dev/null | head -n 1"
+                    )
+                    queue_line = queue_out.splitlines()[0].strip() if queue_out.strip() else ""
+                    queue_parts = queue_line.split("|", 1) if queue_line else []
+                    queue_reason = queue_parts[1].strip() if len(queue_parts) == 2 else ""
+                    wait_notice = classify_slurm_resource_message(queue_reason, running=True)
+                    if wait_notice and wait_notice != last_wait_notice:
+                        wait_notice = wait_notice.replace("InterProScan", "ColabFold")
+                        _record_remote_info(
+                            run_id_raw,
+                            stage_number=16,
+                            message=f"{wait_notice} ({locus_tag})",
+                            payload={"remote_state": remote_state, "remote_reason": queue_reason},
+                        )
+                        last_wait_notice = wait_notice
+
+                    if normalized.startswith(REMOTE_FAILURE_PREFIXES):
+                        _, slurm_out_text, _ = _run_remote(
+                            f"tail -n 120 {shlex.quote(remote_stdout)} 2>/dev/null || true"
+                        )
+                        _, slurm_err_text, _ = _run_remote(
+                            f"tail -n 120 {shlex.quote(remote_stderr)} 2>/dev/null || true"
+                        )
+                        details = slurm_err_text or slurm_out_text or state_err or "no remote output"
+                        friendly = classify_slurm_resource_message(details)
+                        if friendly:
+                            details = f"{friendly} SLURM details: {details}"
+                        raise RuntimeError(
+                            f"Remote ColabFold failed for {locus_tag} "
+                            f"({remote_state} / {remote_exit_code}): {details}"
+                        )
+
+                    if normalized.startswith("COMPLETED"):
+                        if completion_seen_at is None:
+                            completion_seen_at = waited_seconds
+                        elif (waited_seconds - completion_seen_at) >= config.remote_completion_grace_seconds:
+                            _, slurm_out_text, _ = _run_remote(
+                                f"tail -n 120 {shlex.quote(remote_stdout)} 2>/dev/null || true"
+                            )
+                            _, slurm_err_text, _ = _run_remote(
+                                f"tail -n 120 {shlex.quote(remote_stderr)} 2>/dev/null || true"
+                            )
+                            details = slurm_err_text or slurm_out_text or "no remote output"
+                            raise RuntimeError(
+                                f"Remote ColabFold finished for {locus_tag} but DONE marker not found "
+                                f"after {config.remote_completion_grace_seconds}s grace period. "
+                                f"Details: {details}"
+                            )
+
+                print(
+                    f"ColabFold remote: waiting for {locus_tag} "
+                    f"(state={last_state}, {waited_seconds}s elapsed)"
+                )
+                time.sleep(config.remote_poll_seconds)
+                waited_seconds += config.remote_poll_seconds
+
+            if not finished:
+                raise TimeoutError(
+                    f"ColabFold output not retrieved for {locus_tag} after "
+                    f"{waited_seconds}s (last remote state: {last_state})"
+                )
+
+            local_results_dir = os.path.join(local_tmpdir, "output")
+            os.makedirs(local_results_dir, exist_ok=True)
+            scp_client.get(remote_output_dir, local_results_dir, recursive=True)
+            actual_results = os.path.join(local_results_dir, "output")
+            if not os.path.isdir(actual_results):
+                actual_results = local_results_dir
+
+            _copy_predicted_pdb(actual_results, folder_path, locus_tag)
+            print(f"  ColabFold remote: saved structure for {locus_tag}")
+    finally:
+        if not finished and job_id:
+            try:
+                _run_remote(f"scancel {shlex.quote(job_id)} 2>/dev/null || true")
+                print(f"ColabFold remote: cancelled orphan SLURM job {job_id}")
+            except Exception:
+                pass
+
+
 # ---------------------------------------------------------------------------
 # Main entry point
 # ---------------------------------------------------------------------------
@@ -296,37 +608,30 @@ def run_remote_colabfold(cfg_dict, folder_path, genome):
     """
     Run ColabFold on a remote SLURM GPU node.
 
-    1. Build a FASTA of proteins that don't have structures yet.
-    2. SSH to the cluster, SCP the FASTA.
-    3. Submit a SLURM job to the GPU partition.
-    4. Poll until complete.
-    5. SCP results back, place PDBs in alphafold/<locus_tag>/<locus_tag>_af.pdb.
+    1. Identify proteins without structures yet.
+    2. Run one GPU job per protein for candidates within the VRAM-safe limit.
+    3. Fall back to local CPU ColabFold for long proteins or per-protein GPU failures.
+    4. Place results in alphafold/<locus_tag>/<locus_tag>_af.pdb.
 
     Returns the number of predicted structures.
     """
+    config = _build_colabfold_config(cfg_dict)
+
     candidates = _find_candidates(folder_path, genome)
     if not candidates:
         print("ColabFold remote: no candidates to predict.")
         return 0
 
-    print(f"ColabFold remote: {len(candidates)} proteins to predict on GPU.")
+    print(
+        f"ColabFold remote: {len(candidates)} proteins to predict "
+        f"(GPU <= {config.max_sequence_length} aa, CPU fallback otherwise)."
+    )
 
-    config = _build_colabfold_config(cfg_dict)
     _assert_ssh_reachable(config.ssh_host, config.ssh_port, config.ssh_connect_timeout)
-
-    # Write candidate FASTA to a local temp file
-    import tempfile
-    local_tmpdir = tempfile.mkdtemp(prefix="colabfold_remote_")
-    local_input_fasta = os.path.join(local_tmpdir, "input.fasta")
-    with open(local_input_fasta, "w") as fh:
-        for locus_tag, seq in candidates:
-            fh.write(f">{locus_tag}\n{seq}\n")
 
     ssh = None
     scp_client = None
     sftp = None
-    job_id = None
-    finished = False
     try:
         ssh = paramiko.SSHClient()
         ssh.load_system_host_keys()
@@ -343,254 +648,68 @@ def run_remote_colabfold(cfg_dict, folder_path, genome):
             look_for_keys=True,
             key_filename=config.ssh_key_filename,
         )
-
-        def _run_remote(command):
-            stdin, stdout, stderr = ssh.exec_command(command)
-            exit_code = stdout.channel.recv_exit_status()
-            out = stdout.read().decode("utf-8", errors="replace").strip()
-            err = stderr.read().decode("utf-8", errors="replace").strip()
-            return exit_code, out, err
-
         scp_client = SCPClient(ssh.get_transport())
         sftp = ssh.open_sftp()
-
-        run_label = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
-        safe_genome = "".join(ch if ch.isalnum() or ch in ("_", "-") else "_" for ch in genome)
-        remote_job_dir = (
-            f"{config.ssh_rootfolder.rstrip('/')}/tpw_colabfold/{safe_genome}_{run_label}"
-        )
-        remote_input = f"{remote_job_dir}/input.fasta"
-        remote_output_dir = f"{remote_job_dir}/output"
-        remote_script = f"{remote_job_dir}/run_colabfold.sh"
-        remote_slurm = f"{remote_job_dir}/colabfold.slurm"
-        remote_done_marker = f"{remote_job_dir}/DONE"
-        remote_stdout_pattern = f"{remote_job_dir}/slurm-%j.out"
-        remote_stderr_pattern = f"{remote_job_dir}/slurm-%j.err"
-
-        # Create remote directory and upload input
-        mkdir_exit, _, mkdir_err = _run_remote(f"mkdir -p {shlex.quote(remote_job_dir)}")
-        if mkdir_exit != 0:
-            raise RuntimeError(
-                f"Unable to create remote ColabFold directory: {mkdir_err or f'exit {mkdir_exit}'}"
-            )
-
-        scp_client.put(local_input_fasta, remote_input)
-
-        # Build the runner script
-        runner_text = "\n".join([
-            "#!/bin/bash",
-            "set -eo pipefail",
-            f'eval "$({config.conda_prefix}/bin/conda shell.bash hook)"',
-            f"conda activate {shlex.quote(config.conda_env)}",
-            "set -u",
-            f"mkdir -p {shlex.quote(remote_output_dir)}",
-            (
-                f"colabfold_batch"
-                f" {shlex.quote(remote_input)}"
-                f" {shlex.quote(remote_output_dir)}"
-                f" --num-recycle {config.num_recycles}"
-                f" --num-models {config.num_models}"
-                f" --model-type alphafold2_ptm"
-            ),
-            f"touch {shlex.quote(remote_done_marker)}",
-            "",
-        ])
-
-        # Build the SLURM submission script
-        slurm_text = "\n".join([
-            "#!/bin/bash",
-            f"#SBATCH --job-name=cf_{safe_genome[:20]}",
-            f"#SBATCH -p {config.slurm_partition}",
-            f"#SBATCH --gres={config.slurm_gres}",
-            f"#SBATCH --cpus-per-task=4",
-            f"#SBATCH --time={config.slurm_time}",
-            f"#SBATCH --mem={config.slurm_mem}",
-            f"#SBATCH -o {remote_stdout_pattern}",
-            f"#SBATCH -e {remote_stderr_pattern}",
-            f"#SBATCH --chdir={remote_job_dir}",
-            f"bash {remote_script}",
-            "",
-        ])
-
-        with sftp.file(remote_script, "w") as handle:
-            handle.write(runner_text)
-        with sftp.file(remote_slurm, "w") as handle:
-            handle.write(slurm_text)
-        _run_remote(f"chmod 700 {shlex.quote(remote_script)} {shlex.quote(remote_slurm)}")
-
-        # Submit the SLURM job
-        submit_exit, submit_out, submit_err = _run_remote(
-            f"cd {shlex.quote(remote_job_dir)} && sbatch --parsable {shlex.quote(remote_slurm)}"
-        )
-        if submit_exit != 0:
-            details = submit_err or submit_out or f"exit status {submit_exit}"
-            friendly = classify_slurm_resource_message(details)
-            if friendly:
-                details = f"{friendly} SLURM response: {details}"
-            raise RuntimeError(f"Unable to submit ColabFold SLURM job for {genome}: {details}")
-
         run_id_raw = str(os.getenv("TPW_PIPELINE_RUN_ID") or "").strip()
-        job_id = submit_out.split(";")[0].strip()
-        if not job_id:
-            raise RuntimeError(f"Unable to parse SLURM job id for ColabFold on {genome}")
-
-        print(f"ColabFold remote: submitted SLURM job {job_id} on partition {config.slurm_partition}")
-        _record_remote_job(
-            run_id_raw,
-            job_id=job_id,
-            remote_job_dir=remote_job_dir,
-        )
-
-        remote_stdout = f"{remote_job_dir}/slurm-{job_id}.out"
-        remote_stderr = f"{remote_job_dir}/slurm-{job_id}.err"
-
-        # Poll for completion
-        finished = False
-        waited_seconds = 0
-        last_state = "PENDING"
-        completion_seen_at = None
-        last_wait_notice = None
-
-        while not finished and waited_seconds <= config.remote_wait_seconds:
-            # Check if DONE marker exists (colabfold_batch finished successfully)
-            done_exit, _, _ = _run_remote(f"test -f {shlex.quote(remote_done_marker)}")
-            if done_exit == 0:
-                finished = True
-                continue
-
-            # Check SLURM job state
-            _, state_out, state_err = _run_remote(
-                f"sacct -j {shlex.quote(job_id)} --format=JobID,State,ExitCode -P -n | head -n 1"
-            )
-            state_line = state_out.splitlines()[0].strip() if state_out.strip() else ""
-            state_parts = state_line.split("|") if state_line else []
-
-            if len(state_parts) >= 3:
-                _, remote_state, remote_exit_code = state_parts[:3]
-                last_state = remote_state or last_state
-                normalized = remote_state.upper()
-
-                # Check for queue wait reasons
-                _, queue_out, _ = _run_remote(
-                    f"squeue -j {shlex.quote(job_id)} -h -o '%T|%R' 2>/dev/null | head -n 1"
-                )
-                queue_line = queue_out.splitlines()[0].strip() if queue_out.strip() else ""
-                queue_parts = queue_line.split("|", 1) if queue_line else []
-                queue_reason = queue_parts[1].strip() if len(queue_parts) == 2 else ""
-                wait_notice = classify_slurm_resource_message(queue_reason, running=True)
-                if wait_notice and wait_notice != last_wait_notice:
-                    # Rewrite for ColabFold context
-                    wait_notice = wait_notice.replace("InterProScan", "ColabFold")
-                    _record_remote_info(
-                        run_id_raw,
-                        stage_number=16,
-                        message=wait_notice,
-                        payload={"remote_state": remote_state, "remote_reason": queue_reason},
-                    )
-                    last_wait_notice = wait_notice
-
-                if normalized.startswith(REMOTE_FAILURE_PREFIXES):
-                    _, slurm_out_text, _ = _run_remote(
-                        f"tail -n 120 {shlex.quote(remote_stdout)} 2>/dev/null || true"
-                    )
-                    _, slurm_err_text, _ = _run_remote(
-                        f"tail -n 120 {shlex.quote(remote_stderr)} 2>/dev/null || true"
-                    )
-                    details = slurm_err_text or slurm_out_text or state_err or "no remote output"
-                    friendly = classify_slurm_resource_message(details)
-                    if friendly:
-                        details = f"{friendly} SLURM details: {details}"
-                    raise RuntimeError(
-                        f"Remote ColabFold failed for {genome} "
-                        f"({remote_state} / {remote_exit_code}): {details}"
-                    )
-
-                if normalized.startswith("COMPLETED"):
-                    if completion_seen_at is None:
-                        completion_seen_at = waited_seconds
-                    elif (waited_seconds - completion_seen_at) >= config.remote_completion_grace_seconds:
-                        _, slurm_out_text, _ = _run_remote(
-                            f"tail -n 120 {shlex.quote(remote_stdout)} 2>/dev/null || true"
-                        )
-                        _, slurm_err_text, _ = _run_remote(
-                            f"tail -n 120 {shlex.quote(remote_stderr)} 2>/dev/null || true"
-                        )
-                        details = slurm_err_text or slurm_out_text or "no remote output"
-                        raise RuntimeError(
-                            f"Remote ColabFold finished for {genome} but DONE marker not found "
-                            f"after {config.remote_completion_grace_seconds}s grace period. "
-                            f"Details: {details}"
-                        )
-
-            # Print progress from the SLURM log if available
-            _, progress_out, _ = _run_remote(
-                f"grep -c 'rank_001' {shlex.quote(remote_output_dir)}/*.pdb 2>/dev/null | wc -l || echo 0"
-            )
-            print(
-                f"ColabFold remote: waiting (state={last_state}, "
-                f"{waited_seconds}s elapsed, polling every {config.remote_poll_seconds}s)"
-            )
-
-            time.sleep(config.remote_poll_seconds)
-            waited_seconds += config.remote_poll_seconds
-
-        if not finished:
-            # Cancel the orphan GPU job before raising
-            try:
-                _run_remote(f"scancel {shlex.quote(job_id)} 2>/dev/null || true")
-                print(f"ColabFold remote: cancelled orphan SLURM job {job_id}")
-            except Exception:
-                pass
-            raise TimeoutError(
-                f"ColabFold output not retrieved for {genome} after "
-                f"{waited_seconds}s (last remote state: {last_state})"
-            )
-
-        # Download results — SCP the entire output directory
-        local_results_dir = os.path.join(local_tmpdir, "output")
-        os.makedirs(local_results_dir, exist_ok=True)
-        scp_client.get(remote_output_dir, local_results_dir, recursive=True)
-
-        # The SCP recursive get places files in local_results_dir/output/
-        actual_results = os.path.join(local_results_dir, "output")
-        if not os.path.isdir(actual_results):
-            actual_results = local_results_dir
-
-        # Distribute PDBs to alphafold/<locus_tag>/<locus_tag>_af.pdb
-        alphafold_dir = os.path.join(folder_path, "alphafold")
         predicted = 0
-        failed = 0
-        for locus_tag, _ in candidates:
-            pdb_src = _find_best_pdb(actual_results, locus_tag)
-            if pdb_src is None:
-                print(f"  ColabFold: no PDB produced for {locus_tag}")
-                failed += 1
+
+        for locus_tag, sequence in candidates:
+            if config.max_sequence_length > 0 and len(sequence) > config.max_sequence_length:
+                _record_remote_info(
+                    run_id_raw,
+                    stage_number=16,
+                    message=(
+                        f"Using local ColabFold fallback for {locus_tag} "
+                        f"({len(sequence)} aa exceeds GPU limit {config.max_sequence_length} aa)."
+                    ),
+                    payload={"locus_tag": locus_tag, "length": len(sequence)},
+                )
+                _run_local_colabfold_fallback(
+                    folder_path=folder_path,
+                    locus_tag=locus_tag,
+                    sequence=sequence,
+                    config=config,
+                    reason=f"length {len(sequence)} aa exceeds GPU limit {config.max_sequence_length} aa",
+                )
+                predicted += 1
                 continue
-            locus_dir = os.path.join(alphafold_dir, locus_tag)
-            os.makedirs(locus_dir, exist_ok=True)
-            pdb_dst = os.path.join(locus_dir, f"{locus_tag}_af.pdb")
-            shutil.copy2(pdb_src, pdb_dst)
-            print(f"  ColabFold: saved structure for {locus_tag}")
-            predicted += 1
 
-        print(f"ColabFold remote done: {predicted} predicted, {failed} failed")
+            try:
+                _run_remote_colabfold_candidate(
+                    ssh=ssh,
+                    scp_client=scp_client,
+                    sftp=sftp,
+                    config=config,
+                    run_id_raw=run_id_raw,
+                    folder_path=folder_path,
+                    genome=genome,
+                    locus_tag=locus_tag,
+                    sequence=sequence,
+                )
+                predicted += 1
+            except Exception as exc:
+                _record_remote_info(
+                    run_id_raw,
+                    stage_number=16,
+                    message=(
+                        f"Remote ColabFold failed for {locus_tag}; "
+                        f"falling back to local CPU. Details: {exc}"
+                    )[:1000],
+                    payload={"locus_tag": locus_tag},
+                )
+                _run_local_colabfold_fallback(
+                    folder_path=folder_path,
+                    locus_tag=locus_tag,
+                    sequence=sequence,
+                    config=config,
+                    reason=f"remote failure: {exc}",
+                )
+                predicted += 1
 
-        if predicted == 0 and len(candidates) > 0:
-            raise RuntimeError(
-                f"ColabFold remote produced no structures for {genome} "
-                f"({len(candidates)} candidates)"
-            )
-
+        print(f"ColabFold stage 16 done: {predicted} predicted")
         return predicted
 
     finally:
-        # Cancel orphan SLURM job if we exit without finishing
-        if not finished and job_id and ssh is not None:
-            try:
-                ssh.exec_command(f"scancel {shlex.quote(job_id)} 2>/dev/null || true")
-                print(f"ColabFold remote: cancelled orphan SLURM job {job_id}")
-            except Exception:
-                pass
         if scp_client is not None:
             try:
                 scp_client.close()
