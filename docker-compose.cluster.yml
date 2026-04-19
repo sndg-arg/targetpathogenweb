@@ -55,6 +55,9 @@ services:
       - SSH_USERNAME=${SSH_USERNAME:-agutson}
       - SSH_WORKDIR=${SSH_WORKDIR:-/home/agutson}
       - SSH_CORES=${SSH_CORES:-4}
+      - TPW_COLABFOLD_USE_REMOTE=${TPW_COLABFOLD_USE_REMOTE:-0}
+      - TPW_COLABFOLD_CONDA_PREFIX=${TPW_COLABFOLD_CONDA_PREFIX:-/home/shared/miniconda3.8}
+      - TPW_COLABFOLD_CONDA_ENV=${TPW_COLABFOLD_CONDA_ENV:-colabfold}
 
   queue:
     user: "0:0"
@@ -94,6 +97,9 @@ services:
       - SSH_USERNAME=${SSH_USERNAME:-agutson}
       - SSH_WORKDIR=${SSH_WORKDIR:-/home/agutson}
       - SSH_CORES=${SSH_CORES:-4}
+      - TPW_COLABFOLD_USE_REMOTE=${TPW_COLABFOLD_USE_REMOTE:-0}
+      - TPW_COLABFOLD_CONDA_PREFIX=${TPW_COLABFOLD_CONDA_PREFIX:-/home/shared/miniconda3.8}
+      - TPW_COLABFOLD_CONDA_ENV=${TPW_COLABFOLD_CONDA_ENV:-colabfold}
 
   jbrowse:
     deploy:

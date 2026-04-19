@@ -51,6 +51,7 @@ from pipeline_commands import (
     load_binders_cmd,
 )
 from interproscan_remote import run_remote_interproscan
+from colabfold_remote import run_remote_colabfold
 
 
 # ---------------------------------------------------------------------------
@@ -251,7 +252,11 @@ def run_genome(genome, gram, custom, source_genome, is_test, working_dir, cfg_di
             if lines:
                 _run_alphafold_parallel(15, lines, folder_path, genome)
     if not _skip(16):
-        _run_stage(16, "colabfold_predict", colabfold_cmd(working_dir, genome))
+        if os.environ.get("TPW_COLABFOLD_USE_REMOTE", "").strip() == "1":
+            _run_python_stage(16, "colabfold_predict", run_remote_colabfold,
+                              cfg_dict=cfg_dict, folder_path=folder_path, genome=genome)
+        else:
+            _run_stage(16, "colabfold_predict", colabfold_cmd(working_dir, genome))
     if not _skip(17):
         _run_structures_chain(17, working_dir, folder_path, genome)
     if not _skip(18):
