@@ -725,8 +725,3 @@ def run_remote_colabfold(cfg_dict, folder_path, genome):
                 ssh.close()
             except Exception:
                 pass
-        # Clean up local temp dir
-        try:
-            shutil.rmtree(local_tmpdir, ignore_errors=True)
-        except Exception:
-            pass
