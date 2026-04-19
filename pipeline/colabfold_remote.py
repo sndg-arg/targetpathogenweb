@@ -8,8 +8,8 @@ The remote path:
   1. Identifies proteins without an existing structure.
   2. Runs one SLURM GPU job per protein when the sequence length is within the
      configured safe VRAM envelope.
-  3. Falls back to local ColabFold-on-CPU for proteins above the GPU length
-     limit or when an individual GPU job fails.
+  3. Falls back to remote ColabFold-on-CPU on the cluster for proteins above
+     the GPU length limit or when an individual GPU job fails.
   4. Places results into alphafold/<locus_tag>/<locus_tag>_af.pdb.
 """
 
@@ -19,8 +19,6 @@ import os
 import shlex
 import shutil
 import socket
-import subprocess
-import sys
 import time
 from dataclasses import dataclass
 from datetime import datetime
@@ -31,10 +29,6 @@ from scp import SCPClient
 from tpweb.services.slurm_messages import classify_slurm_resource_message
 
 
-DEFAULT_LOCAL_COLABFOLD_BIN = os.getenv(
-    "TPW_COLABFOLD_BIN",
-    "/opt/localcolabfold/colabfold-conda/bin/colabfold_batch",
-)
 REMOTE_FAILURE_PREFIXES = (
     "FAILED",
     "CANCELLED",
@@ -160,14 +154,18 @@ class ColabFoldRemoteConfig:
     remote_completion_grace_seconds: int
     conda_prefix: str
     conda_env: str
-    local_colabfold_bin: str
     num_recycles: int
     num_models: int
     max_sequence_length: int
-    slurm_partition: str
-    slurm_time: str
-    slurm_mem: str
-    slurm_gres: str
+    gpu_slurm_partition: str
+    gpu_slurm_time: str
+    gpu_slurm_mem: str
+    gpu_slurm_gres: str
+    gpu_slurm_cpus_per_task: int
+    cpu_slurm_partition: str
+    cpu_slurm_time: str
+    cpu_slurm_mem: str
+    cpu_slurm_cpus_per_task: int
 
 
 def _build_colabfold_config(cfg_dict):
@@ -214,14 +212,18 @@ def _build_colabfold_config(cfg_dict):
         ),
         conda_prefix=_env_text("TPW_COLABFOLD_CONDA_PREFIX", default="/home/shared/miniconda3.8"),
         conda_env=_env_text("TPW_COLABFOLD_CONDA_ENV", default="colabfold"),
-        local_colabfold_bin=_env_text("TPW_COLABFOLD_BIN", default=DEFAULT_LOCAL_COLABFOLD_BIN),
         num_recycles=_env_int("TPW_COLABFOLD_NUM_RECYCLES", default=3),
         num_models=_env_int("TPW_COLABFOLD_NUM_MODELS", default=1),
         max_sequence_length=_env_int("TPW_COLABFOLD_MAX_SEQ_LENGTH", default=800),
-        slurm_partition=os.getenv("TPW_COLABFOLD_PARTITION", "gpu"),
-        slurm_time=os.getenv("TPW_COLABFOLD_TIME", "12:00:00"),
-        slurm_mem=os.getenv("TPW_COLABFOLD_MEM", "16gb"),
-        slurm_gres=os.getenv("TPW_COLABFOLD_GRES", "gpu:1"),
+        gpu_slurm_partition=os.getenv("TPW_COLABFOLD_PARTITION", "gpu"),
+        gpu_slurm_time=os.getenv("TPW_COLABFOLD_TIME", "12:00:00"),
+        gpu_slurm_mem=os.getenv("TPW_COLABFOLD_MEM", "16gb"),
+        gpu_slurm_gres=os.getenv("TPW_COLABFOLD_GRES", "gpu:1"),
+        gpu_slurm_cpus_per_task=_env_int("TPW_COLABFOLD_CPUS", default=4),
+        cpu_slurm_partition=os.getenv("TPW_COLABFOLD_CPU_PARTITION", "cpu"),
+        cpu_slurm_time=os.getenv("TPW_COLABFOLD_CPU_TIME", "24:00:00"),
+        cpu_slurm_mem=os.getenv("TPW_COLABFOLD_CPU_MEM", "32gb"),
+        cpu_slurm_cpus_per_task=_env_int("TPW_COLABFOLD_CPU_CPUS", default=8),
     )
 
 
@@ -311,65 +313,6 @@ def _copy_predicted_pdb(results_dir, folder_path, locus_tag):
     return pdb_dst
 
 
-def _build_local_colabfold_env(colabfold_bin):
-    env = os.environ.copy()
-    colabfold_root = os.path.dirname(os.path.dirname(os.path.abspath(colabfold_bin)))
-    colabfold_lib = os.path.join(colabfold_root, "lib")
-    if os.path.isdir(colabfold_lib):
-        current_ld_path = env.get("LD_LIBRARY_PATH", "").strip()
-        env["LD_LIBRARY_PATH"] = (
-            f"{colabfold_lib}:{current_ld_path}"
-            if current_ld_path
-            else colabfold_lib
-        )
-    return env
-
-
-def _run_local_colabfold_fallback(*, folder_path, locus_tag, sequence, config, reason):
-    import tempfile
-
-    print(
-        f"ColabFold local fallback: {locus_tag} ({len(sequence)} aa). "
-        f"Reason: {reason}"
-    )
-    with tempfile.TemporaryDirectory(prefix="colabfold_local_fallback_") as tmpdir:
-        input_fasta = os.path.join(tmpdir, "input.fasta")
-        output_dir = os.path.join(tmpdir, "output")
-        os.makedirs(output_dir)
-
-        with open(input_fasta, "w", encoding="utf-8") as handle:
-            handle.write(f">{locus_tag}\n{sequence}\n")
-
-        cmd = [
-            config.local_colabfold_bin,
-            input_fasta,
-            output_dir,
-            "--num-recycle", str(config.num_recycles),
-            "--num-models", str(config.num_models),
-            "--model-type", "alphafold2_ptm",
-        ]
-        env = _build_local_colabfold_env(config.local_colabfold_bin)
-        proc = subprocess.Popen(
-            cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
-            env=env,
-        )
-        for line in proc.stdout:
-            print(line.rstrip())
-            sys.stdout.flush()
-
-        proc.wait()
-        if proc.returncode != 0:
-            raise RuntimeError(
-                f"Local ColabFold fallback failed for {locus_tag} (rc={proc.returncode})"
-            )
-
-        _copy_predicted_pdb(output_dir, folder_path, locus_tag)
-        print(f"  ColabFold local fallback: saved structure for {locus_tag}")
-
-
 def _run_remote_colabfold_candidate(
     *,
     ssh,
@@ -381,6 +324,8 @@ def _run_remote_colabfold_candidate(
     genome,
     locus_tag,
     sequence,
+    mode,
+    fallback_reason=None,
 ):
     import tempfile
 
@@ -399,7 +344,7 @@ def _run_remote_colabfold_candidate(
     run_label = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
     remote_job_dir = (
         f"{config.ssh_rootfolder.rstrip('/')}/tpw_colabfold/"
-        f"{safe_genome}_{safe_locus}_{run_label}"
+        f"{safe_genome}_{safe_locus}_{mode}_{run_label}"
     )
     remote_input = f"{remote_job_dir}/input.fasta"
     remote_output_dir = f"{remote_job_dir}/output"
@@ -408,6 +353,25 @@ def _run_remote_colabfold_candidate(
     remote_done_marker = f"{remote_job_dir}/DONE"
     remote_stdout_pattern = f"{remote_job_dir}/slurm-%j.out"
     remote_stderr_pattern = f"{remote_job_dir}/slurm-%j.err"
+
+    if mode == "gpu":
+        slurm_partition = config.gpu_slurm_partition
+        slurm_time = config.gpu_slurm_time
+        slurm_mem = config.gpu_slurm_mem
+        slurm_gres = config.gpu_slurm_gres
+        slurm_cpus = config.gpu_slurm_cpus_per_task
+        job_prefix = "cfg"
+        mode_label = "GPU"
+    elif mode == "cpu":
+        slurm_partition = config.cpu_slurm_partition
+        slurm_time = config.cpu_slurm_time
+        slurm_mem = config.cpu_slurm_mem
+        slurm_gres = ""
+        slurm_cpus = config.cpu_slurm_cpus_per_task
+        job_prefix = "cfc"
+        mode_label = "CPU"
+    else:
+        raise ValueError(f"Unknown ColabFold execution mode: {mode}")
 
     try:
         with tempfile.TemporaryDirectory(prefix=f"colabfold_remote_{locus_tag}_") as local_tmpdir:
@@ -445,12 +409,12 @@ def _run_remote_colabfold_candidate(
 
             slurm_text = "\n".join([
                 "#!/bin/bash",
-                f"#SBATCH --job-name=cf_{safe_locus[:20]}",
-                f"#SBATCH -p {config.slurm_partition}",
-                f"#SBATCH --gres={config.slurm_gres}",
-                f"#SBATCH --cpus-per-task=4",
-                f"#SBATCH --time={config.slurm_time}",
-                f"#SBATCH --mem={config.slurm_mem}",
+                f"#SBATCH --job-name={job_prefix}_{safe_locus[:20]}",
+                f"#SBATCH -p {slurm_partition}",
+                *((f"#SBATCH --gres={slurm_gres}",) if slurm_gres else ()),
+                f"#SBATCH --cpus-per-task={slurm_cpus}",
+                f"#SBATCH --time={slurm_time}",
+                f"#SBATCH --mem={slurm_mem}",
                 f"#SBATCH -o {remote_stdout_pattern}",
                 f"#SBATCH -e {remote_stderr_pattern}",
                 f"#SBATCH --chdir={remote_job_dir}",
@@ -481,8 +445,8 @@ def _run_remote_colabfold_candidate(
                 raise RuntimeError(f"Unable to parse SLURM job id for ColabFold on {locus_tag}")
 
             print(
-                f"ColabFold remote: submitted SLURM job {job_id} for "
-                f"{locus_tag} ({len(sequence)} aa) on partition {config.slurm_partition}"
+                f"ColabFold remote: submitted {mode_label} SLURM job {job_id} for "
+                f"{locus_tag} ({len(sequence)} aa) on partition {slurm_partition}"
             )
             _record_remote_job(
                 run_id_raw,
@@ -492,8 +456,14 @@ def _run_remote_colabfold_candidate(
             _record_remote_info(
                 run_id_raw,
                 stage_number=16,
-                message=f"Submitted remote ColabFold job {job_id} for {locus_tag}",
-                payload={"job_id": job_id, "remote_job_dir": remote_job_dir, "locus_tag": locus_tag},
+                message=f"Submitted remote ColabFold {mode_label} job {job_id} for {locus_tag}",
+                payload={
+                    "job_id": job_id,
+                    "remote_job_dir": remote_job_dir,
+                    "locus_tag": locus_tag,
+                    "mode": mode,
+                    "fallback_reason": fallback_reason,
+                },
             )
 
             remote_stdout = f"{remote_job_dir}/slurm-{job_id}.out"
@@ -570,7 +540,7 @@ def _run_remote_colabfold_candidate(
                             )
 
                 print(
-                    f"ColabFold remote: waiting for {locus_tag} "
+                    f"ColabFold remote ({mode_label}): waiting for {locus_tag} "
                     f"(state={last_state}, {waited_seconds}s elapsed)"
                 )
                 time.sleep(config.remote_poll_seconds)
@@ -590,7 +560,7 @@ def _run_remote_colabfold_candidate(
                 actual_results = local_results_dir
 
             _copy_predicted_pdb(actual_results, folder_path, locus_tag)
-            print(f"  ColabFold remote: saved structure for {locus_tag}")
+            print(f"  ColabFold remote ({mode_label}): saved structure for {locus_tag}")
     finally:
         if not finished and job_id:
             try:
@@ -610,7 +580,7 @@ def run_remote_colabfold(cfg_dict, folder_path, genome):
 
     1. Identify proteins without structures yet.
     2. Run one GPU job per protein for candidates within the VRAM-safe limit.
-    3. Fall back to local CPU ColabFold for long proteins or per-protein GPU failures.
+    3. Fall back to remote CPU ColabFold on the cluster for long proteins or per-protein GPU failures.
     4. Place results in alphafold/<locus_tag>/<locus_tag>_af.pdb.
 
     Returns the number of predicted structures.
@@ -624,7 +594,7 @@ def run_remote_colabfold(cfg_dict, folder_path, genome):
 
     print(
         f"ColabFold remote: {len(candidates)} proteins to predict "
-        f"(GPU <= {config.max_sequence_length} aa, CPU fallback otherwise)."
+        f"(GPU <= {config.max_sequence_length} aa, remote CPU fallback otherwise)."
     )
 
     _assert_ssh_reachable(config.ssh_host, config.ssh_port, config.ssh_connect_timeout)
@@ -659,17 +629,26 @@ def run_remote_colabfold(cfg_dict, folder_path, genome):
                     run_id_raw,
                     stage_number=16,
                     message=(
-                        f"Using local ColabFold fallback for {locus_tag} "
+                        f"Using remote CPU ColabFold fallback for {locus_tag} "
                         f"({len(sequence)} aa exceeds GPU limit {config.max_sequence_length} aa)."
                     ),
                     payload={"locus_tag": locus_tag, "length": len(sequence)},
                 )
-                _run_local_colabfold_fallback(
+                _run_remote_colabfold_candidate(
+                    ssh=ssh,
+                    scp_client=scp_client,
+                    sftp=sftp,
+                    config=config,
+                    run_id_raw=run_id_raw,
                     folder_path=folder_path,
+                    genome=genome,
                     locus_tag=locus_tag,
                     sequence=sequence,
-                    config=config,
-                    reason=f"length {len(sequence)} aa exceeds GPU limit {config.max_sequence_length} aa",
+                    mode="cpu",
+                    fallback_reason=(
+                        f"length {len(sequence)} aa exceeds GPU limit "
+                        f"{config.max_sequence_length} aa"
+                    ),
                 )
                 predicted += 1
                 continue
@@ -685,6 +664,7 @@ def run_remote_colabfold(cfg_dict, folder_path, genome):
                     genome=genome,
                     locus_tag=locus_tag,
                     sequence=sequence,
+                    mode="gpu",
                 )
                 predicted += 1
             except Exception as exc:
@@ -693,16 +673,22 @@ def run_remote_colabfold(cfg_dict, folder_path, genome):
                     stage_number=16,
                     message=(
                         f"Remote ColabFold failed for {locus_tag}; "
-                        f"falling back to local CPU. Details: {exc}"
+                        f"falling back to remote CPU. Details: {exc}"
                     )[:1000],
                     payload={"locus_tag": locus_tag},
                 )
-                _run_local_colabfold_fallback(
+                _run_remote_colabfold_candidate(
+                    ssh=ssh,
+                    scp_client=scp_client,
+                    sftp=sftp,
+                    config=config,
+                    run_id_raw=run_id_raw,
                     folder_path=folder_path,
+                    genome=genome,
                     locus_tag=locus_tag,
                     sequence=sequence,
-                    config=config,
-                    reason=f"remote failure: {exc}",
+                    mode="cpu",
+                    fallback_reason=f"remote GPU failure: {exc}",
                 )
                 predicted += 1
 
