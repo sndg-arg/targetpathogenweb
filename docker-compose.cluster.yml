@@ -35,6 +35,7 @@ services:
       - ${TPW_SSH_DIR:-/home/appuser/.ssh}:/home/appuser/.ssh:ro
       - ${TPW_SSH_DIR:-/home/appuser/.ssh}:/root/.ssh:ro
       - ${TPW_COLABFOLD_DIR:-/opt/localcolabfold}:${TPW_COLABFOLD_MOUNT:-/opt/localcolabfold}:ro
+      - ${TPW_P2RANK_DIR:-/data/targetpathogen/opt/p2rank}:/app/targetpathogenweb/opt/p2rank/distro:ro
     environment:
       - TPW_PROFILE=cluster
       - TPW_USE_DIRECT_PIPELINE=1
@@ -82,6 +83,7 @@ services:
       - ${TPW_SSH_DIR:-/home/appuser/.ssh}:/home/appuser/.ssh:ro
       - ${TPW_SSH_DIR:-/home/appuser/.ssh}:/root/.ssh:ro
       - ${TPW_COLABFOLD_DIR:-/opt/localcolabfold}:${TPW_COLABFOLD_MOUNT:-/opt/localcolabfold}:ro
+      - ${TPW_P2RANK_DIR:-/data/targetpathogen/opt/p2rank}:/app/targetpathogenweb/opt/p2rank/distro:ro
     environment:
       - TPW_PROFILE=cluster
       - TPW_USE_DIRECT_PIPELINE=1
