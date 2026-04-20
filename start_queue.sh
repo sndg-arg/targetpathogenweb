@@ -1,4 +1,6 @@
 #!/bin/sh
+umask 0022
+
 # Allow appuser to use the Docker socket (needed for TP.psort → docker run psortb)
 if [ -S /var/run/docker.sock ]; then
   chmod 666 /var/run/docker.sock 2>/dev/null || true
