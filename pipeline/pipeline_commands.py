@@ -75,7 +75,7 @@ def load_score_cmd(working_dir, genome, param):
     if getter is None:
         raise ValueError(f"Unknown score param: {param}")
     tsv_file = getter(genome)
-    return f"{PYTHON_BIN} {working_dir}/manage.py load_score_values {genome} {tsv_file} --datadir ../data"
+    return f"{PYTHON_BIN} {working_dir}/manage.py load_score_values {genome} {tsv_file} --datadir ../data --overwrite"
 
 
 # --- Stage 8-9: Indexing ---
