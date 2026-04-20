@@ -45,7 +45,7 @@ services:
       - DJANGO_ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS:-localhost}
       - DJANGO_ROOT=${DJANGO_ROOT:-/app/staticfiles}
       - JBROWSE_BASE_URL=${JBROWSE_BASE_URL:-http://localhost:3000/}
-      - SEQS_DATA_DIR=${SEQS_DATA_DIR:-/app/targetpathogenweb/data/seqs}
+      - SEQS_DATA_DIR=${SEQS_DATA_DIR:-/app/targetpathogenweb/data}
       - REDIS_URL=${REDIS_URL:-}
       - SENTRY_DSN=${SENTRY_DSN:-}
       - PYTHONPATH=/app/sndgjobs:/app/sndgbiodb:/app/targetpathogen:/app/sndg-bio:/app/target:/app/targetpathogenweb
@@ -92,7 +92,7 @@ services:
       - DJANGO_ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS:-localhost}
       - DJANGO_ROOT=${DJANGO_ROOT:-/app/staticfiles}
       - JBROWSE_BASE_URL=${JBROWSE_BASE_URL:-http://localhost:3000/}
-      - SEQS_DATA_DIR=${SEQS_DATA_DIR:-/app/targetpathogenweb/data/seqs}
+      - SEQS_DATA_DIR=${SEQS_DATA_DIR:-/app/targetpathogenweb/data}
       - REDIS_URL=${REDIS_URL:-}
       - SENTRY_DSN=${SENTRY_DSN:-}
       - PYTHONPATH=/app/sndgjobs:/app/sndgbiodb:/app/targetpathogen:/app/sndg-bio:/app/target:/app/targetpathogenweb

@@ -48,6 +48,7 @@ from tpweb.services.pipeline_status import (
     get_pipeline_status_dto,
     sanitize_pipeline_status_for_user,
 )
+from tpweb.services.structure_files import _candidate_seqstore_dirs
 from tpweb.services.structure_sources import summarize_structure_sources
 from tpweb.services.genome_workspace import (
     build_workspace_genome_name,
@@ -302,6 +303,21 @@ class ProteinFormulaServiceTests(SimpleTestCase):
 
 
 class StructureAndAnnotationServiceTests(SimpleTestCase):
+    @patch("tpweb.services.structure_files.settings")
+    def test_structure_file_candidates_include_media_root_and_seqs_parent(self, settings_mock):
+        settings_mock.SEQS_DATA_DIR = "/app/targetpathogenweb/data/seqs"
+        settings_mock.MEDIA_ROOT = "/app/targetpathogenweb/data"
+
+        candidates = _candidate_seqstore_dirs()
+
+        self.assertEqual(
+            candidates,
+            [
+                "/app/targetpathogenweb/data/seqs",
+                "/app/targetpathogenweb/data",
+            ],
+        )
+
     def test_summarize_structure_sources_handles_mixed_sources(self):
         experimental_structure = type(
             "Structure",
