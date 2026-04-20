@@ -152,7 +152,7 @@ def run_fpocket(folder_path, locus_tag, inputs=[], stderr=parsl.AUTO_LOGNAME, st
         f"elif command -v docker >/dev/null 2>&1; then "
         f"docker run --user $(id -u):$(id -g) --rm -i "
         f"-v {shlex.quote(host_locus_dir)}:/work "
-        f"ezequieljsosa/fpocket fpocket -f {shlex.quote(fpocket_pdb_path)} -m 2 -D 6; "
+        f"ezequieljsosa/fpocket fpocket -f {shlex.quote(fpocket_pdb_path)}; "
         f"else echo 'Docker not available for fpocket on {locus_tag}, skipping'; fi"
     )
 
