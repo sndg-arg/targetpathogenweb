@@ -19,7 +19,9 @@ static/css/         # Design system — tokens only, no hardcoded hex
 - **Commands**: `pipeline/pipeline_commands.py` — one function per stage returning a bash command string
 - **Activation**: `TPW_USE_DIRECT_PIPELINE=1` env var selects the new orchestrator
 - **Legacy**: `pipeline/apps.py`, `pipeline/config.py`, `pipeline/run_pipeline.py` — old Parsl code, kept as fallback, do not modify
-- **23 stages**, fully linear — any failure raises immediately (no silent partial failures)
+- **23 stages**, mostly linear — any failure raises immediately (no silent partial failures)
+- **Remote stages**: stage 10 (InterProScan via `interproscan_remote.py`) and optionally stage 16 (ColabFold via `colabfold_remote.py`) run on SLURM cluster nodes over SSH
+- **Parallelized stages**: stage 15 (AlphaFold downloads, 4 workers) and stage 17 (structure processing, 4 workers) use `ThreadPoolExecutor`. All other stages run sequentially.
 - **Stage events** tracked in `PipelineStageEvent` model (submitted → completed/failed)
 - **Status**: `tpweb/services/pipeline_status.py` — reads from `PipelineRun` as source of truth
 
@@ -27,7 +29,7 @@ static/css/         # Design system — tokens only, no hardcoded hex
 1. clear_folder → download/test/custom gbk → load_gbk
 2. fasttarget → load_score (×3: human_offtarget, micro_offtarget, essenciality)
 3. index_genome_db → index_genome_seq → interproscan (remote SSH) → load_interpro
-4. gbk2uniprot_map → fetch_uniprot_annotations → alphafold loop → colabfold → structures chain → druggability → load_score
+4. gbk2uniprot_map → fetch_uniprot_annotations → alphafold loop → colabfold (local CPU or remote GPU) → structures chain → druggability → load_score
 5. psort → load_score
 6. get_binders → load_binders
 
@@ -40,14 +42,30 @@ conda env: `interproscan`. Key fix: `set -u` must come AFTER `conda activate`.
 - If `slurm-<jobid>.out` exists and shows `% completed`, InterProScan is healthy even if the UI still says stage 10.
 
 ## ColabFold
-- Stage 16 runs inside `target2_nodo0_queue`, not on SLURM.
-- `run_pipeline_direct.py` executes `colabfold_predict` with `capture_output=True`, so live ColabFold progress does NOT appear in `docker logs target2_nodo0_queue`.
-- Real progress is in `/tmp/colabfold_*/output/log.txt` inside the queue container:
-  - `Query N/total`
-  - `recycle=...`
-  - `rank_001...`
-- ColabFold output is written to a temporary directory first and copied into `data/.../alphafold/...` later, so the final `*_af.pdb` count may stay flat for a long time even while stage 16 is healthy.
-- CPU-only runs are extremely slow. With `TPW_COLABFOLD_NUM_RECYCLES=3`, long proteins can take >1 hour each. Keep `num_recycles=3` if prioritizing model quality over wall-clock time.
+- **Two execution modes** for stage 16, controlled by `TPW_COLABFOLD_USE_REMOTE`:
+  - `0` (default): runs locally on CPU inside `target2_nodo0_queue` via `colabfold_predict` management command. Extremely slow (~30–60 min per protein).
+  - `1`: runs remotely on SLURM GPU nodes via `pipeline/colabfold_remote.py`. **One SLURM job per protein** (not batch), so one failure doesn't kill the rest.
+- **Remote mode behavior**:
+  - Proteins <= `TPW_COLABFOLD_MAX_SEQ_LENGTH` (default 800 aa) → GPU via SLURM
+  - Proteins > limit → fallback to local ColabFold CPU (same quality, just slower)
+  - If an individual GPU job fails → fallback to local CPU for that protein
+  - Persists `job_id` and `remote_job_dir` in `PipelineRun`. On timeout/failure, does `scancel` to avoid orphan GPU jobs.
+- **Remote GPU config** (env vars, all have defaults):
+  - `TPW_COLABFOLD_USE_REMOTE=1` — activate remote mode
+  - `TPW_COLABFOLD_CONDA_PREFIX` — default `/home/shared/miniconda3.8`
+  - `TPW_COLABFOLD_CONDA_ENV` — default `colabfold`
+  - `TPW_COLABFOLD_MAX_SEQ_LENGTH` — default `800` (safe for 8 GB VRAM GPUs like RTX 2080)
+  - `TPW_COLABFOLD_PARTITION` — default `gpu`
+  - `TPW_COLABFOLD_GRES` — default `gpu:1`
+  - `TPW_COLABFOLD_TIME` — default `12:00:00`
+  - `TPW_COLABFOLD_MEM` — default `16gb`
+  - `TPW_COLABFOLD_NUM_RECYCLES` — default `3`
+  - `TPW_COLABFOLD_NUM_MODELS` — default `1`
+- **Local mode progress** (when `TPW_COLABFOLD_USE_REMOTE=0`):
+  - `run_pipeline_direct.py` executes `colabfold_predict` with `capture_output=True`, so live progress does NOT appear in `docker logs`.
+  - Real progress is in `/tmp/colabfold_*/output/log.txt` inside the queue container.
+  - Output is written to a temp dir first and copied into `data/.../alphafold/...` later, so `*_af.pdb` count may stay flat for a long time even while stage 16 is healthy.
+- Keep `num_recycles=3` if prioritizing model quality over wall-clock time.
 
 ## PSORTb
 Runs via Docker-in-Docker (`/var/run/docker.sock` mounted). Has fallback to `tpweb_psort_fallback` management command when Docker is unavailable.
@@ -124,7 +142,27 @@ docker exec target2_nodo0_queue ssh -F /tmp/fakehome/.ssh/config -i /tmp/fakehom
 ```
 The SLURM job ID appears in the stage event message (e.g. "Submitted remote InterProScan job 194464").
 
-### Checking live ColabFold progress
+### Checking ColabFold progress
+
+**Remote GPU mode** (`TPW_COLABFOLD_USE_REMOTE=1`):
+```bash
+# Find the SLURM job ID from pipeline events:
+docker exec target2_nodo0_web bash -c ". /opt/conda/etc/profile.d/conda.sh && conda activate tpv2 && python manage.py shell -c \"
+from tpweb.models import PipelineStageEvent
+evt = PipelineStageEvent.objects.filter(app_name='colabfold_remote').order_by('-id').first()
+print(evt.message, evt.payload)\""
+
+# Check SLURM job status (replace JOB_ID):
+docker exec target2_nodo0_queue ssh -F /tmp/fakehome/.ssh/config -i /tmp/fakehome/.ssh/id_ed25519_agutson_cluster agutson@cluster.qb.fcen.uba.ar "sacct -j JOB_ID --format=JobID,State,Elapsed,ExitCode -P"
+
+# Follow remote ColabFold log (replace JOB_DIR from payload):
+docker exec target2_nodo0_queue ssh -F /tmp/fakehome/.ssh/config -i /tmp/fakehome/.ssh/id_ed25519_agutson_cluster agutson@cluster.qb.fcen.uba.ar "tail -30 JOB_DIR/slurm-JOB_ID.out"
+
+# Count PDBs produced so far on the remote node:
+docker exec target2_nodo0_queue ssh -F /tmp/fakehome/.ssh/config -i /tmp/fakehome/.ssh/id_ed25519_agutson_cluster agutson@cluster.qb.fcen.uba.ar "ls JOB_DIR/output/*rank_001*.pdb 2>/dev/null | wc -l"
+```
+
+**Local CPU mode** (`TPW_COLABFOLD_USE_REMOTE=0`):
 ```bash
 # Discover the temporary ColabFold directory:
 docker compose -f docker-compose.yml -f docker-compose.cluster.yml exec queue sh -lc "find /tmp -maxdepth 2 -type d -name 'colabfold_*' -print"
@@ -134,9 +172,11 @@ docker compose -f docker-compose.yml -f docker-compose.cluster.yml exec queue sh
 
 # Show the latest query only:
 docker compose -f docker-compose.yml -f docker-compose.cluster.yml exec queue sh -lc "grep 'Query ' /tmp/colabfold_*/output/log.txt | tail -1"
+```
 
-# Count final PDBs copied into the workspace:
-find /data/targetpathogen/data -path '*public__NZ_AP023069.1/alphafold/*/*_af.pdb' | wc -l
+**Both modes** — count final PDBs in workspace (replace ACC):
+```bash
+find /data/targetpathogen/data -path '*ACC/alphafold/*/*_af.pdb' | wc -l
 ```
 
 ### Resetting a genome for re-processing
@@ -149,10 +189,12 @@ acc = u.internal_accession
 print(f'Deleting upload id={u.id} accession={acc} status={u.status}')
 delete_genome_workspace(acc, owner=u.owner)
 PipelineRun.objects.filter(internal_accession=acc).delete()
+from bioseq.models.Biodatabase import Biodatabase
+Biodatabase.objects.filter(name__contains=u.accession).delete()
 print(acc)\""
 
-# Then remove only the matching on-disk paths (replace ACC if needed):
-ACC='public__NZ_AP023069.1'
+# Then remove only the matching on-disk paths (replace ACC with the value printed above):
+ACC='public__ACCESSION_HERE'
 MID=$(ACC="$ACC" python3 - <<'PY'
 import math, os
 acc = os.environ['ACC']
