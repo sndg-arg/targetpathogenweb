@@ -2,7 +2,19 @@
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,django,eclipse,intellij+iml,web,visualstudiocode,pythonvanilla,jupyternotebooks
 
 .DS_Store
-fasttarget_mac/
+
+# Vendored fasttarget (mcpalumbo fork) — ignore runtime artifacts only.
+# Keep source code and the pre-built human_pdb_index_all_*.csv under databases/.
+fasttarget/logs/
+fasttarget/organism/
+fasttarget/databases/species_catalogue/
+fasttarget/databases/human_structures/
+fasttarget/databases/HUMAN_DB*
+fasttarget/databases/DEG_DB*
+fasttarget/databases/*.faa
+fasttarget/databases/*.tar.gz
+fasttarget/databases/uhgp-90/
+
 .npm
 js/bundle.js
 js/node_modules/

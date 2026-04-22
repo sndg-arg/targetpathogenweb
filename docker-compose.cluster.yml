@@ -28,7 +28,7 @@ services:
         NO_PROXY: ${NO_PROXY:-}
     volumes:
       - ${TPW_DATA_DIR:-/data/targetpathogen/data}:/app/targetpathogenweb/data
-      - ${TPW_FASTTARGET_DB_DIR:-/data/targetpathogen/fasttarget_db}:/app/fasttarget/databases:ro
+      - ${TPW_FASTTARGET_DB_DIR:-/data/targetpathogen/fasttarget_db}:/app/fasttarget/databases
       - ${TPW_FASTTARGET_RUNTIME_DIR:-/data/targetpathogen/fasttarget_organism}:/app/fasttarget/organism
       - ${TPW_FASTTARGET_LOG_DIR:-/data/targetpathogen/fasttarget_logs}:/app/fasttarget/logs
       - /var/run/docker.sock:/var/run/docker.sock
@@ -76,7 +76,7 @@ services:
           memory: 1g
     volumes:
       - ${TPW_DATA_DIR:-/data/targetpathogen/data}:/app/targetpathogenweb/data
-      - ${TPW_FASTTARGET_DB_DIR:-/data/targetpathogen/fasttarget_db}:/app/fasttarget/databases:ro
+      - ${TPW_FASTTARGET_DB_DIR:-/data/targetpathogen/fasttarget_db}:/app/fasttarget/databases
       - ${TPW_FASTTARGET_RUNTIME_DIR:-/data/targetpathogen/fasttarget_organism}:/app/fasttarget/organism
       - ${TPW_FASTTARGET_LOG_DIR:-/data/targetpathogen/fasttarget_logs}:/app/fasttarget/logs
       - /var/run/docker.sock:/var/run/docker.sock

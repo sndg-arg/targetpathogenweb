@@ -44,3 +44,4 @@ docker
 sndg-bio
 pdbecif
 openpyxl
+beautifulsoup4

@@ -34,8 +34,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Conda environment
+# Note: `diamond` and `cd-hit` added for the vendored fasttarget (mcpalumbo fork),
+# which uses Diamond against the MGnify species catalogue for microbiome off-target.
 RUN conda create -n tpv2 -c conda-forge -c bioconda \
-    python=3.10 samtools blast bedtools bcftools setuptools requests \
+    python=3.10 samtools blast diamond cd-hit bedtools bcftools setuptools requests \
     urllib3 xmltodict python-libsbml ncbi-datasets-cli pyyaml \
     && conda clean -afy
 
@@ -68,11 +70,13 @@ RUN set -eux; \
     | tar -xz -C /usr/local/bin --strip-components=1 docker/docker
 
 # Clone Python deps (shallow, strip .git to save space)
+# Note: fasttarget is vendored in this repo (see ./fasttarget/). It used to be
+# cloned from L-G-g/fasttarget here, but we now track mcpalumbo/fasttarget
+# pinned in-tree for reproducibility and in-place edits.
 RUN git clone --depth 1 https://github.com/ezequieljsosa/sndg-bio.git /app/sndg-bio \
     && git clone --depth 1 https://github.com/sndg-arg/targetpathogen.git /app/targetpathogen \
     && git clone --depth 1 https://github.com/sndg-arg/sndgjobs.git /app/sndgjobs \
     && git clone --depth 1 https://github.com/sndg-arg/sndgbiodb.git /app/sndgbiodb \
-    && git clone --depth 1 https://github.com/L-G-g/fasttarget.git /app/fasttarget \
     && ln -s /app/targetpathogen /app/target \
     && find /app -type d -name .git -prune -exec rm -rf {} +
 
@@ -124,13 +128,12 @@ COPY --from=builder /app/sndgjobs /app/sndgjobs
 COPY --from=builder /app/sndgbiodb /app/sndgbiodb
 COPY --from=builder /app/target /app/target
 
-# Copy fasttarget from builder
-COPY --from=builder /app/fasttarget /app/fasttarget
-
-# Copy application code
+# Copy application code (contains vendored fasttarget under ./fasttarget)
 COPY . /app/targetpathogenweb
 
-RUN rm -rf /app/fasttarget/logs /app/fasttarget/organism \
+# Install vendored fasttarget (mcpalumbo fork) at the legacy path used by wrappers
+RUN cp -a /app/targetpathogenweb/fasttarget /app/fasttarget \
+    && rm -rf /app/fasttarget/logs /app/fasttarget/organism \
     && mkdir -p /app/fasttarget/logs /app/fasttarget/organism \
     && chmod +x /app/targetpathogenweb/start.sh /app/targetpathogenweb/start_queue.sh
 

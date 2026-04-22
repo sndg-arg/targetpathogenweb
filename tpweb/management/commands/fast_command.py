@@ -90,9 +90,27 @@ class Command(BaseCommand):
         if config is None:
             print("Error: Unable to parse the YAML file.")
         else:
+            config.setdefault('organism', {})
             config['organism']['name'] = name
             config['organism']['tax_id'] = taxon_id
+            config['organism']['strain_taxid'] = taxon_id
             config['organism']['gbk_file'] = gbk_path
+
+            config.setdefault('container_engine', 'docker')
+
+            config.setdefault('offtarget', {})
+            config['offtarget']['enabled'] = True
+            config['offtarget']['human'] = True
+            config['offtarget']['microbiome'] = True
+            config['offtarget'].setdefault('microbiome_identity_filter', 40)
+            config['offtarget'].setdefault('microbiome_coverage_filter', 70)
+            config['offtarget'].setdefault('foldseek_human', False)
+
+            config.setdefault('deg', {})
+            config['deg']['enabled'] = True
+            config['deg'].setdefault('deg_identity_filter', 40)
+            config['deg'].setdefault('deg_coverage_filter', 70)
+
             ft_cpus_raw = os.getenv("TPW_FASTTARGET_CPUS", "").strip()
             if ft_cpus_raw:
                 try:
@@ -108,6 +126,37 @@ class Command(BaseCommand):
                 config['cpus'] = ft_cpus
         with open(input_filename, 'w') as file:
             yaml.safe_dump(config, file)
+
+        # mcpalumbo's fasttarget does NOT auto-download DBs from fasttarget.py.
+        # Bootstrap missing ones before invoking the pipeline. The DB dir is
+        # typically a mounted volume (TPW_FASTTARGET_DB_DIR) so downloads
+        # persist across runs.
+        db_dir = "/app/fasttarget/databases"
+        if not skip_exec:
+            downloads = []
+            if not os.path.exists(os.path.join(db_dir, "HUMAN_DB.phr")):
+                downloads.append("human-sequences")
+            if not os.path.exists(os.path.join(db_dir, "DEG_DB.phr")):
+                downloads.append("deg")
+            species_dir = os.path.join(db_dir, "species_catalogue")
+            if not os.path.isdir(species_dir) or not os.listdir(species_dir):
+                downloads.append("microbiome")
+            for db_name in downloads:
+                self.stderr.write(self.style.WARNING(
+                    f"FastTarget DB missing: bootstrapping '{db_name}' into {db_dir}"
+                ))
+                boot_cmd = [
+                    sys.executable,
+                    "/app/fasttarget/databases.py",
+                    "--download", db_name,
+                    "--database-path", db_dir,
+                ]
+                boot = sp.run(boot_cmd, capture_output=True, text=True)
+                print(boot.stdout, boot.stderr)
+                if boot.returncode != 0 and not allow_fallback:
+                    raise CommandError(
+                        f"Failed to download FastTarget DB '{db_name}' (rc={boot.returncode})."
+                    )
 
         command = [sys.executable, "/app/fasttarget/fasttarget.py"]
         if skip_exec and not allow_fallback:
@@ -221,14 +270,34 @@ class Command(BaseCommand):
                 raise CommandError(f"Missing required FastTarget output: {human_src}")
             _write_fallback(human_out, "human_offtarget", "no_hit")
 
-        micro_src = os.path.join(tables_dir, "gut_microbiome_offtarget.tsv")
+        # mcpalumbo's fasttarget emits per-species counts (gut_microbiome_offtarget_counts.tsv)
+        # instead of the legacy hit/no_hit column. Adapt to the TP score shape here:
+        # any species with >=1 hit (count > 0) → "hit", else "no_hit".
+        micro_counts_src = os.path.join(tables_dir, "gut_microbiome_offtarget_counts.tsv")
+        micro_legacy_src = os.path.join(tables_dir, "gut_microbiome_offtarget.tsv")
         micro_out = ss.micro_offtarget(genome)
-        if os.path.exists(micro_src):
-            micro = pd.read_csv(micro_src, sep="\t")
+        if os.path.exists(micro_counts_src):
+            micro = pd.read_csv(micro_counts_src, sep="\t")
+            count_col = next(
+                (c for c in micro.columns if c != "gene"),
+                None,
+            )
+            if count_col is None:
+                raise CommandError(
+                    f"Unexpected schema in {micro_counts_src}: missing value column."
+                )
+            micro["gut_microbiome_offtarget"] = micro[count_col].apply(
+                lambda v: "hit" if pd.notna(v) and float(v) > 0 else "no_hit"
+            )
+            micro[["gene", "gut_microbiome_offtarget"]].to_csv(micro_out, index=False, sep="\t")
+        elif os.path.exists(micro_legacy_src):
+            micro = pd.read_csv(micro_legacy_src, sep="\t")
             micro.to_csv(micro_out, index=False, sep="\t")
         else:
             if not allow_fallback:
-                raise CommandError(f"Missing required FastTarget output: {micro_src}")
+                raise CommandError(
+                    f"Missing required FastTarget output: {micro_counts_src} (or legacy {micro_legacy_src})"
+                )
             _write_fallback(micro_out, "gut_microbiome_offtarget", "no_hit")
 
         deg_src = os.path.join(tables_dir, "hit_in_deg.tsv")

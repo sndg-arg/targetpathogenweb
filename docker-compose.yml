@@ -59,7 +59,7 @@ services:
     working_dir: /app/targetpathogenweb
     volumes:
       - ${TPW_DATA_DIR:-./data}:/app/targetpathogenweb/data
-      - ${TPW_FASTTARGET_DB_DIR:-./fasttarget_mac/databases}:/app/fasttarget/databases:ro
+      - ${TPW_FASTTARGET_DB_DIR:-./fasttarget/databases}:/app/fasttarget/databases
       - ${TPW_FASTTARGET_RUNTIME_DIR:-./data/fasttarget/organism}:/app/fasttarget/organism
       - ${TPW_FASTTARGET_LOG_DIR:-./data/fasttarget/logs}:/app/fasttarget/logs
       - /var/run/docker.sock:/var/run/docker.sock
@@ -131,7 +131,7 @@ services:
     stop_grace_period: 120s
     volumes:
       - ${TPW_DATA_DIR:-./data}:/app/targetpathogenweb/data
-      - ${TPW_FASTTARGET_DB_DIR:-./fasttarget_mac/databases}:/app/fasttarget/databases:ro
+      - ${TPW_FASTTARGET_DB_DIR:-./fasttarget/databases}:/app/fasttarget/databases
       - ${TPW_FASTTARGET_RUNTIME_DIR:-./data/fasttarget/organism}:/app/fasttarget/organism
       - ${TPW_FASTTARGET_LOG_DIR:-./data/fasttarget/logs}:/app/fasttarget/logs
       - /var/run/docker.sock:/var/run/docker.sock
