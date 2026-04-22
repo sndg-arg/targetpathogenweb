@@ -145,8 +145,7 @@ ENV PYTHONPATH=/app/sndgjobs:/app/sndgbiodb:/app/targetpathogen:/app/sndg-bio:/a
 ARG DOCKER_GID=999
 RUN groupadd -g ${DOCKER_GID} docker || true \
     && useradd -m -s /bin/bash -G docker appuser \
-    && chown -R appuser:appuser /app \
-    && chmod -R a+rX /opt/conda
+    && chown -R appuser:appuser /app
 
 USER appuser
 
