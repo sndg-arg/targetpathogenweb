@@ -1139,6 +1139,73 @@
             }
         }
 
+        /* ── Mobile nav polish (<768px, hamburger active) ── */
+        @media (max-width: 767.98px) {
+            .tp-topbar-mobile .navbar-toggler {
+                min-width: 44px;
+                min-height: 44px;
+                padding: 6px 10px;
+                border-color: rgba(255, 255, 255, 0.28);
+            }
+
+            .tp-topbar-mobile .navbar-toggler:focus {
+                box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.25);
+                outline: none;
+            }
+
+            .tp-topbar-mobile .navbar-collapse {
+                margin-top: 8px;
+                padding: 8px;
+                border-radius: 12px;
+                background: rgba(0, 0, 0, 0.22);
+                border: 1px solid rgba(255, 255, 255, 0.08);
+            }
+
+            .tp-topbar-mobile .navbar-nav {
+                gap: 2px;
+            }
+
+            .tp-topbar-mobile .nav-item + .nav-item {
+                border-top: 1px solid rgba(255, 255, 255, 0.06);
+            }
+
+            .tp-topbar-mobile .nav-link {
+                min-height: 44px;
+                padding: 10px 12px !important;
+                display: flex;
+                align-items: center;
+                font-size: 0.98rem;
+            }
+
+            .tp-topbar-mobile .nav-link:hover,
+            .tp-topbar-mobile .nav-link:focus {
+                background: rgba(255, 255, 255, 0.08);
+                color: var(--tp-color-on-accent) !important;
+            }
+
+            .tp-topbar-mobile .dropdown-menu {
+                position: static;
+                float: none;
+                width: 100%;
+                margin-top: 4px;
+                border: 1px solid rgba(255, 255, 255, 0.08);
+                background: rgba(0, 0, 0, 0.18);
+                box-shadow: none;
+            }
+
+            .tp-topbar-mobile .dropdown-menu .dropdown-item {
+                color: rgba(235, 246, 251, 0.9);
+                padding: 10px 12px;
+                min-height: 44px;
+            }
+
+            .tp-topbar-mobile .dropdown-menu .dropdown-item:hover,
+            .tp-topbar-mobile .dropdown-menu .dropdown-item:focus {
+                background: rgba(255, 255, 255, 0.08);
+                color: var(--tp-color-on-accent);
+            }
+        }
+
         @media (min-width: 992px) {
             body {
                 padding-top: 0;

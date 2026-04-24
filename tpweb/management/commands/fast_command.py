@@ -7,6 +7,7 @@ import signal
 from django.core.management.base import BaseCommand, CommandError
 from bioseq.io.SeqStore import SeqStore
 from bioseq.models.Bioentry import Bioentry
+from bioseq.models.Biodatabase import Biodatabase
 import pandas as pd
 import shutil
 
@@ -221,6 +222,15 @@ class Command(BaseCommand):
             ))
 
         def _all_genes():
+            proteome_name = f"{genome}{Biodatabase.PROT_POSTFIX}"
+            genes = list(
+                Bioentry.objects.filter(
+                    biodatabase__name=proteome_name,
+                ).values_list("accession", flat=True)
+            )
+            if genes:
+                return sorted({g for g in genes if g})
+
             genes = []
             faa = os.path.join(folder_path, f"{genome}.faa")
             faa_gz = os.path.join(folder_path, f"{genome}.faa.gz")
@@ -240,7 +250,7 @@ class Command(BaseCommand):
             genes = list(
                 Bioentry.objects.filter(
                     taxon=taxon,
-                    biodatabase__name=f"{genome}_prots"
+                    biodatabase__name=proteome_name,
                 ).values_list("accession", flat=True)
             )
             if not genes:

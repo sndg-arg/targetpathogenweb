@@ -1,3 +1,16 @@
+/* ── Breakpoint contract ──────────────────────────────────────────
+   Use these LITERAL values in all @media queries. CSS media queries
+   cannot read custom properties, so this block is documentation.
+
+     640px  — --tp-bp-sm   small phones (min card-view threshold)
+     768px  — --tp-bp-md   tablets portrait (card→table threshold)
+     992px  — --tp-bp-lg   desktop (sidebar shows, topbar hides)
+    1280px  — --tp-bp-xl   wide desktop
+
+   Convention: use `max-width: (bp - 1)px` for "and below".
+   Example: @media (max-width: 767px) { /* mobile only */ }
+─────────────────────────────────────────────────────────────────── */
+
 :root {
     --tp-ui-control-height: 44px;
     --tp-ui-control-height-compact: 40px;
@@ -975,6 +988,49 @@ a.tp-chip--go:hover {
         right: 10px;
         bottom: 10px;
         padding: 6px 9px;
+    }
+}
+
+/* ── Mobile tables (<768px): tighten padding, keep horizontal scroll ── */
+@media (max-width: 767.98px) {
+    .tp-table-shell {
+        --tp-table-cell-px: 0.5rem;
+        --tp-table-cell-py: 0.55rem;
+        --tp-table-cell-first-pl: 0.7rem;
+        --tp-table-thead-font: 0.78rem;
+        border-radius: 10px;
+    }
+
+    .tp-table--premium {
+        font-size: 0.88rem;
+    }
+
+    /* Sticky first column as anchor while scrolling horizontally */
+    .tp-table--premium thead th:first-child,
+    .tp-table--premium tbody td:first-child {
+        position: sticky;
+        left: 0;
+        background: inherit;
+        z-index: 1;
+        box-shadow: 4px 0 6px -4px rgba(10, 24, 33, 0.12);
+    }
+
+    .tp-table--premium thead th:first-child {
+        z-index: calc(var(--tp-table-sticky-z) + 1);
+        background: var(--tp-color-surface-panel);
+    }
+
+    .tp-pagination {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 2px;
+    }
+
+    .tp-pagination .page-link {
+        min-width: 36px;
+        min-height: 36px;
+        padding: 0 0.55rem;
+        font-size: 0.86rem;
     }
 }
 

@@ -162,6 +162,8 @@ class ColabFoldRemoteConfig:
     gpu_slurm_mem: str
     gpu_slurm_gres: str
     gpu_slurm_cpus_per_task: int
+    gpu_slurm_exclude: str
+    strict_gpu: bool
     cpu_slurm_partition: str
     cpu_slurm_time: str
     cpu_slurm_mem: str
@@ -220,6 +222,9 @@ def _build_colabfold_config(cfg_dict):
         gpu_slurm_mem=os.getenv("TPW_COLABFOLD_MEM", "16gb"),
         gpu_slurm_gres=os.getenv("TPW_COLABFOLD_GRES", "gpu:1"),
         gpu_slurm_cpus_per_task=_env_int("TPW_COLABFOLD_CPUS", default=4),
+        gpu_slurm_exclude=os.getenv("TPW_COLABFOLD_EXCLUDE", "").strip(),
+        strict_gpu=_env_text("TPW_COLABFOLD_STRICT", default="").strip().lower()
+            in ("1", "true", "yes"),
         cpu_slurm_partition=os.getenv("TPW_COLABFOLD_CPU_PARTITION", "cpu"),
         cpu_slurm_time=os.getenv("TPW_COLABFOLD_CPU_TIME", "24:00:00"),
         cpu_slurm_mem=os.getenv("TPW_COLABFOLD_CPU_MEM", "32gb"),
@@ -360,6 +365,7 @@ def _run_remote_colabfold_candidate(
         slurm_mem = config.gpu_slurm_mem
         slurm_gres = config.gpu_slurm_gres
         slurm_cpus = config.gpu_slurm_cpus_per_task
+        slurm_exclude = config.gpu_slurm_exclude
         job_prefix = "cfg"
         mode_label = "GPU"
     elif mode == "cpu":
@@ -368,6 +374,7 @@ def _run_remote_colabfold_candidate(
         slurm_mem = config.cpu_slurm_mem
         slurm_gres = ""
         slurm_cpus = config.cpu_slurm_cpus_per_task
+        slurm_exclude = ""
         job_prefix = "cfc"
         mode_label = "CPU"
     else:
@@ -412,6 +419,7 @@ def _run_remote_colabfold_candidate(
                 f"#SBATCH --job-name={job_prefix}_{safe_locus[:20]}",
                 f"#SBATCH -p {slurm_partition}",
                 *((f"#SBATCH --gres={slurm_gres}",) if slurm_gres else ()),
+                *((f"#SBATCH --exclude={slurm_exclude}",) if slurm_exclude else ()),
                 f"#SBATCH --cpus-per-task={slurm_cpus}",
                 f"#SBATCH --time={slurm_time}",
                 f"#SBATCH --mem={slurm_mem}",
@@ -668,6 +676,17 @@ def run_remote_colabfold(cfg_dict, folder_path, genome):
                 )
                 predicted += 1
             except Exception as exc:
+                if config.strict_gpu:
+                    _record_remote_info(
+                        run_id_raw,
+                        stage_number=16,
+                        message=(
+                            f"Remote ColabFold GPU failed for {locus_tag}; "
+                            f"strict mode on, aborting. Details: {exc}"
+                        )[:1000],
+                        payload={"locus_tag": locus_tag},
+                    )
+                    raise
                 _record_remote_info(
                     run_id_raw,
                     stage_number=16,
