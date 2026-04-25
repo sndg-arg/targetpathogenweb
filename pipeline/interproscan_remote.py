@@ -153,6 +153,7 @@ class InterProScanRemoteConfig:
     slurm_partition: str
     slurm_time: str
     slurm_mem: str
+    slurm_exclude: str
 
 
 def _build_remote_config(cfg_dict):
@@ -208,6 +209,7 @@ def _build_remote_config(cfg_dict):
         slurm_partition=os.getenv("TPW_INTERPRO_PARTITION", "cpu"),
         slurm_time=os.getenv("TPW_INTERPRO_TIME", "05:00:00"),
         slurm_mem=os.getenv("TPW_INTERPRO_MEM", "32gb"),
+        slurm_exclude=os.getenv("TPW_INTERPRO_EXCLUDE", "").strip(),
     )
 
 
@@ -310,6 +312,7 @@ def run_remote_interproscan(cfg_dict, folder_path, genome):
                 "#!/bin/bash",
                 f"#SBATCH --job-name=ipr_{safe_genome[:20]}",
                 f"#SBATCH -p {config.slurm_partition}",
+                *((f"#SBATCH --exclude={config.slurm_exclude}",) if config.slurm_exclude else ()),
                 f"#SBATCH --cpus-per-task={config.ssh_cores}",
                 f"#SBATCH --time={config.slurm_time}",
                 f"#SBATCH --mem={config.slurm_mem}",
