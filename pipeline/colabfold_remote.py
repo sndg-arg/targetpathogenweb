@@ -20,6 +20,7 @@ import shlex
 import shutil
 import socket
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from datetime import datetime
 
@@ -164,6 +165,7 @@ class ColabFoldRemoteConfig:
     gpu_slurm_cpus_per_task: int
     gpu_slurm_exclude: str
     strict_gpu: bool
+    max_parallel: int
     cpu_slurm_partition: str
     cpu_slurm_time: str
     cpu_slurm_mem: str
@@ -225,6 +227,7 @@ def _build_colabfold_config(cfg_dict):
         gpu_slurm_exclude=os.getenv("TPW_COLABFOLD_EXCLUDE", "").strip(),
         strict_gpu=_env_text("TPW_COLABFOLD_STRICT", default="").strip().lower()
             in ("1", "true", "yes"),
+        max_parallel=_env_int("TPW_COLABFOLD_MAX_PARALLEL", default=8),
         cpu_slurm_partition=os.getenv("TPW_COLABFOLD_CPU_PARTITION", "cpu"),
         cpu_slurm_time=os.getenv("TPW_COLABFOLD_CPU_TIME", "24:00:00"),
         cpu_slurm_mem=os.getenv("TPW_COLABFOLD_CPU_MEM", "32gb"),
@@ -607,126 +610,176 @@ def run_remote_colabfold(cfg_dict, folder_path, genome):
 
     _assert_ssh_reachable(config.ssh_host, config.ssh_port, config.ssh_connect_timeout)
 
-    ssh = None
-    scp_client = None
-    sftp = None
-    try:
-        ssh = paramiko.SSHClient()
-        ssh.load_system_host_keys()
-        ssh.set_missing_host_key_policy(paramiko.WarningPolicy())
-        ssh.connect(
-            config.ssh_host,
-            port=config.ssh_port,
-            username=config.ssh_user,
-            password=config.ssh_password,
-            timeout=config.ssh_connect_timeout,
-            banner_timeout=config.ssh_connect_timeout,
-            auth_timeout=config.ssh_connect_timeout,
-            allow_agent=True,
-            look_for_keys=True,
-            key_filename=config.ssh_key_filename,
+    run_id_raw = str(os.getenv("TPW_PIPELINE_RUN_ID") or "").strip()
+    workers = max(1, min(config.max_parallel, len(candidates)))
+    print(f"ColabFold remote: parallelism={workers}")
+
+    if workers == 1:
+        return _run_remote_colabfold_sequential(
+            config, candidates, folder_path, genome, run_id_raw,
         )
-        scp_client = SCPClient(ssh.get_transport())
-        sftp = ssh.open_sftp()
-        run_id_raw = str(os.getenv("TPW_PIPELINE_RUN_ID") or "").strip()
-        predicted = 0
+    return _run_remote_colabfold_parallel(
+        config, candidates, folder_path, genome, run_id_raw, workers,
+    )
 
-        for locus_tag, sequence in candidates:
-            if config.max_sequence_length > 0 and len(sequence) > config.max_sequence_length:
+
+def _open_remote_session(config):
+    ssh = paramiko.SSHClient()
+    ssh.load_system_host_keys()
+    ssh.set_missing_host_key_policy(paramiko.WarningPolicy())
+    ssh.connect(
+        config.ssh_host,
+        port=config.ssh_port,
+        username=config.ssh_user,
+        password=config.ssh_password,
+        timeout=config.ssh_connect_timeout,
+        banner_timeout=config.ssh_connect_timeout,
+        auth_timeout=config.ssh_connect_timeout,
+        allow_agent=True,
+        look_for_keys=True,
+        key_filename=config.ssh_key_filename,
+    )
+    scp_client = SCPClient(ssh.get_transport())
+    sftp = ssh.open_sftp()
+    return ssh, scp_client, sftp
+
+
+def _close_remote_session(ssh, scp_client, sftp):
+    if scp_client is not None:
+        try:
+            scp_client.close()
+        except Exception:
+            pass
+    if sftp is not None:
+        try:
+            sftp.close()
+        except Exception:
+            pass
+    if ssh is not None:
+        try:
+            ssh.close()
+        except Exception:
+            pass
+
+
+def _process_one_candidate(config, locus_tag, sequence, folder_path, genome, run_id_raw):
+    """Run one ColabFold candidate with its own SSH session.
+
+    Used by both the sequential and parallel paths. Honours
+    max_sequence_length routing (>limit → CPU partition) and strict_gpu
+    (raise on GPU failure instead of falling back to CPU).
+    """
+    ssh, scp_client, sftp = _open_remote_session(config)
+    try:
+        if config.max_sequence_length > 0 and len(sequence) > config.max_sequence_length:
+            _record_remote_info(
+                run_id_raw,
+                stage_number=16,
+                message=(
+                    f"Using remote CPU ColabFold fallback for {locus_tag} "
+                    f"({len(sequence)} aa exceeds GPU limit {config.max_sequence_length} aa)."
+                ),
+                payload={"locus_tag": locus_tag, "length": len(sequence)},
+            )
+            _run_remote_colabfold_candidate(
+                ssh=ssh,
+                scp_client=scp_client,
+                sftp=sftp,
+                config=config,
+                run_id_raw=run_id_raw,
+                folder_path=folder_path,
+                genome=genome,
+                locus_tag=locus_tag,
+                sequence=sequence,
+                mode="cpu",
+                fallback_reason=(
+                    f"length {len(sequence)} aa exceeds GPU limit "
+                    f"{config.max_sequence_length} aa"
+                ),
+            )
+            return
+
+        try:
+            _run_remote_colabfold_candidate(
+                ssh=ssh,
+                scp_client=scp_client,
+                sftp=sftp,
+                config=config,
+                run_id_raw=run_id_raw,
+                folder_path=folder_path,
+                genome=genome,
+                locus_tag=locus_tag,
+                sequence=sequence,
+                mode="gpu",
+            )
+        except Exception as exc:
+            if config.strict_gpu:
                 _record_remote_info(
                     run_id_raw,
                     stage_number=16,
                     message=(
-                        f"Using remote CPU ColabFold fallback for {locus_tag} "
-                        f"({len(sequence)} aa exceeds GPU limit {config.max_sequence_length} aa)."
-                    ),
-                    payload={"locus_tag": locus_tag, "length": len(sequence)},
-                )
-                _run_remote_colabfold_candidate(
-                    ssh=ssh,
-                    scp_client=scp_client,
-                    sftp=sftp,
-                    config=config,
-                    run_id_raw=run_id_raw,
-                    folder_path=folder_path,
-                    genome=genome,
-                    locus_tag=locus_tag,
-                    sequence=sequence,
-                    mode="cpu",
-                    fallback_reason=(
-                        f"length {len(sequence)} aa exceeds GPU limit "
-                        f"{config.max_sequence_length} aa"
-                    ),
-                )
-                predicted += 1
-                continue
-
-            try:
-                _run_remote_colabfold_candidate(
-                    ssh=ssh,
-                    scp_client=scp_client,
-                    sftp=sftp,
-                    config=config,
-                    run_id_raw=run_id_raw,
-                    folder_path=folder_path,
-                    genome=genome,
-                    locus_tag=locus_tag,
-                    sequence=sequence,
-                    mode="gpu",
-                )
-                predicted += 1
-            except Exception as exc:
-                if config.strict_gpu:
-                    _record_remote_info(
-                        run_id_raw,
-                        stage_number=16,
-                        message=(
-                            f"Remote ColabFold GPU failed for {locus_tag}; "
-                            f"strict mode on, aborting. Details: {exc}"
-                        )[:1000],
-                        payload={"locus_tag": locus_tag},
-                    )
-                    raise
-                _record_remote_info(
-                    run_id_raw,
-                    stage_number=16,
-                    message=(
-                        f"Remote ColabFold failed for {locus_tag}; "
-                        f"falling back to remote CPU. Details: {exc}"
+                        f"Remote ColabFold GPU failed for {locus_tag}; "
+                        f"strict mode on, aborting. Details: {exc}"
                     )[:1000],
                     payload={"locus_tag": locus_tag},
                 )
-                _run_remote_colabfold_candidate(
-                    ssh=ssh,
-                    scp_client=scp_client,
-                    sftp=sftp,
-                    config=config,
-                    run_id_raw=run_id_raw,
-                    folder_path=folder_path,
-                    genome=genome,
-                    locus_tag=locus_tag,
-                    sequence=sequence,
-                    mode="cpu",
-                    fallback_reason=f"remote GPU failure: {exc}",
-                )
-                predicted += 1
-
-        print(f"ColabFold stage 16 done: {predicted} predicted")
-        return predicted
-
+                raise
+            _record_remote_info(
+                run_id_raw,
+                stage_number=16,
+                message=(
+                    f"Remote ColabFold failed for {locus_tag}; "
+                    f"falling back to remote CPU. Details: {exc}"
+                )[:1000],
+                payload={"locus_tag": locus_tag},
+            )
+            _run_remote_colabfold_candidate(
+                ssh=ssh,
+                scp_client=scp_client,
+                sftp=sftp,
+                config=config,
+                run_id_raw=run_id_raw,
+                folder_path=folder_path,
+                genome=genome,
+                locus_tag=locus_tag,
+                sequence=sequence,
+                mode="cpu",
+                fallback_reason=f"remote GPU failure: {exc}",
+            )
     finally:
-        if scp_client is not None:
-            try:
-                scp_client.close()
-            except Exception:
-                pass
-        if sftp is not None:
-            try:
-                sftp.close()
-            except Exception:
-                pass
-        if ssh is not None:
-            try:
-                ssh.close()
-            except Exception:
-                pass
+        _close_remote_session(ssh, scp_client, sftp)
+
+
+def _run_remote_colabfold_sequential(config, candidates, folder_path, genome, run_id_raw):
+    predicted = 0
+    for locus_tag, sequence in candidates:
+        _process_one_candidate(config, locus_tag, sequence, folder_path, genome, run_id_raw)
+        predicted += 1
+    print(f"ColabFold stage 16 done: {predicted} predicted")
+    return predicted
+
+
+def _run_remote_colabfold_parallel(config, candidates, folder_path, genome, run_id_raw, workers):
+    predicted = 0
+    with ThreadPoolExecutor(max_workers=workers, thread_name_prefix="cfold") as ex:
+        futures = {
+            ex.submit(
+                _process_one_candidate,
+                config, locus_tag, sequence, folder_path, genome, run_id_raw,
+            ): locus_tag
+            for locus_tag, sequence in candidates
+        }
+        try:
+            for fut in as_completed(futures):
+                locus_tag = futures[fut]
+                fut.result()
+                predicted += 1
+        except Exception:
+            for f in futures:
+                if not f.done():
+                    f.cancel()
+            raise
+    print(f"ColabFold stage 16 done: {predicted} predicted")
+    return predicted
+
+
