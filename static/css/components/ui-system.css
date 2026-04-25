@@ -8,15 +8,15 @@
     1280px  — --tp-bp-xl   wide desktop
 
    Convention: use `max-width: (bp - 1)px` for "and below".
-   Example: @media (max-width: 767px) { /* mobile only */ }
+   Example: @media (max-width: 767px) { ... }
 ─────────────────────────────────────────────────────────────────── */
 
 :root {
     --tp-ui-control-height: 44px;
     --tp-ui-control-height-compact: 40px;
-    --tp-ui-radius-control: 10px;
-    --tp-ui-radius-panel: 16px;
-    --tp-ui-radius-hero: 18px;
+    --tp-ui-radius-control: 12px;
+    --tp-ui-radius-panel: 20px;
+    --tp-ui-radius-hero: 26px;
     --tp-ui-panel-padding: 12px;
     --tp-ui-gap-xs: 6px;
     --tp-ui-gap-sm: 8px;
