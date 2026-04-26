@@ -166,11 +166,13 @@ class ColabFoldRemoteConfig:
     gpu_slurm_exclude: str
     strict_gpu: bool
     max_parallel: int
+    gpu_retry_attempts: int
     cpu_slurm_partition: str
     cpu_slurm_time: str
     cpu_slurm_mem: str
     cpu_slurm_cpus_per_task: int
     cpu_slurm_exclude: str
+    cpu_retry_attempts: int
 
 
 def _build_colabfold_config(cfg_dict):
@@ -229,6 +231,7 @@ def _build_colabfold_config(cfg_dict):
         strict_gpu=_env_text("TPW_COLABFOLD_STRICT", default="").strip().lower()
             in ("1", "true", "yes"),
         max_parallel=_env_int("TPW_COLABFOLD_MAX_PARALLEL", default=8),
+        gpu_retry_attempts=_env_int("TPW_COLABFOLD_GPU_RETRIES", default=1),
         cpu_slurm_partition=os.getenv("TPW_COLABFOLD_CPU_PARTITION", "cpu"),
         cpu_slurm_time=os.getenv("TPW_COLABFOLD_CPU_TIME", "24:00:00"),
         cpu_slurm_mem=os.getenv("TPW_COLABFOLD_CPU_MEM", "32gb"),
@@ -237,6 +240,7 @@ def _build_colabfold_config(cfg_dict):
             "TPW_COLABFOLD_CPU_EXCLUDE",
             os.getenv("TPW_COLABFOLD_EXCLUDE", ""),
         ).strip(),
+        cpu_retry_attempts=_env_int("TPW_COLABFOLD_CPU_RETRIES", default=2),
     )
 
 
@@ -667,43 +671,35 @@ def _close_remote_session(ssh, scp_client, sftp):
             pass
 
 
+def _candidate_pdb_path(folder_path, locus_tag):
+    return os.path.join(folder_path, "alphafold", locus_tag, f"{locus_tag}_af.pdb")
+
+
+def _format_attempt_error(mode_label, attempt, total_attempts, exc):
+    return (
+        f"{mode_label} attempt {attempt}/{total_attempts} failed: {exc}"
+    )[:1000]
+
+
+def _record_retry(run_id_raw, locus_tag, message, payload=None):
+    _record_remote_info(
+        run_id_raw,
+        stage_number=16,
+        message=f"{locus_tag}: {message}"[:1000],
+        payload={"locus_tag": locus_tag, **dict(payload or {})},
+    )
+
+
 def _process_one_candidate(config, locus_tag, sequence, folder_path, genome, run_id_raw):
-    """Run one ColabFold candidate with its own SSH session.
+    """Run one ColabFold candidate with retries.
 
-    Used by both the sequential and parallel paths. Honours
-    max_sequence_length routing (>limit → CPU partition) and strict_gpu
-    (raise on GPU failure instead of falling back to CPU).
+    Returns ``None`` on success. When strict mode is disabled, returns a short
+    error string instead of raising so the rest of stage 16 can continue and we
+    can fail once at the end with the full missing set.
     """
-    ssh, scp_client, sftp = _open_remote_session(config)
-    try:
-        if config.max_sequence_length > 0 and len(sequence) > config.max_sequence_length:
-            _record_remote_info(
-                run_id_raw,
-                stage_number=16,
-                message=(
-                    f"Using remote CPU ColabFold fallback for {locus_tag} "
-                    f"({len(sequence)} aa exceeds GPU limit {config.max_sequence_length} aa)."
-                ),
-                payload={"locus_tag": locus_tag, "length": len(sequence)},
-            )
-            _run_remote_colabfold_candidate(
-                ssh=ssh,
-                scp_client=scp_client,
-                sftp=sftp,
-                config=config,
-                run_id_raw=run_id_raw,
-                folder_path=folder_path,
-                genome=genome,
-                locus_tag=locus_tag,
-                sequence=sequence,
-                mode="cpu",
-                fallback_reason=(
-                    f"length {len(sequence)} aa exceeds GPU limit "
-                    f"{config.max_sequence_length} aa"
-                ),
-            )
-            return
 
+    def run_attempt(mode, *, fallback_reason=""):
+        ssh, scp_client, sftp = _open_remote_session(config)
         try:
             _run_remote_colabfold_candidate(
                 ssh=ssh,
@@ -715,9 +711,59 @@ def _process_one_candidate(config, locus_tag, sequence, folder_path, genome, run
                 genome=genome,
                 locus_tag=locus_tag,
                 sequence=sequence,
-                mode="gpu",
+                mode=mode,
+                fallback_reason=fallback_reason,
             )
+        finally:
+            _close_remote_session(ssh, scp_client, sftp)
+
+    pdb_path = _candidate_pdb_path(folder_path, locus_tag)
+
+    if config.max_sequence_length > 0 and len(sequence) > config.max_sequence_length:
+        _record_remote_info(
+            run_id_raw,
+            stage_number=16,
+            message=(
+                f"Using remote CPU ColabFold fallback for {locus_tag} "
+                f"({len(sequence)} aa exceeds GPU limit {config.max_sequence_length} aa)."
+            ),
+            payload={"locus_tag": locus_tag, "length": len(sequence)},
+        )
+        last_cpu_exc = None
+        cpu_attempts = max(1, config.cpu_retry_attempts)
+        for attempt in range(1, cpu_attempts + 1):
+            try:
+                run_attempt(
+                    "cpu",
+                    fallback_reason=(
+                        f"length {len(sequence)} aa exceeds GPU limit "
+                        f"{config.max_sequence_length} aa"
+                    ),
+                )
+                if os.path.exists(pdb_path):
+                    return None
+            except Exception as exc:
+                last_cpu_exc = exc
+                _record_retry(
+                    run_id_raw,
+                    locus_tag,
+                    _format_attempt_error("CPU", attempt, cpu_attempts, exc),
+                    payload={"mode": "cpu", "attempt": attempt, "total_attempts": cpu_attempts},
+                )
+        return (
+            f"Remote ColabFold CPU failed for {locus_tag} after {cpu_attempts} attempts: "
+            f"{last_cpu_exc}"
+        )[:1000]
+
+    gpu_attempts = max(1, config.gpu_retry_attempts)
+    last_gpu_exc = None
+    for attempt in range(1, gpu_attempts + 1):
+        try:
+            run_attempt("gpu")
+            if os.path.exists(pdb_path):
+                return None
         except Exception as exc:
+            last_gpu_exc = exc
             if config.strict_gpu:
                 _record_remote_info(
                     run_id_raw,
@@ -729,43 +775,67 @@ def _process_one_candidate(config, locus_tag, sequence, folder_path, genome, run
                     payload={"locus_tag": locus_tag},
                 )
                 raise
-            _record_remote_info(
+            _record_retry(
                 run_id_raw,
-                stage_number=16,
-                message=(
-                    f"Remote ColabFold failed for {locus_tag}; "
-                    f"falling back to remote CPU. Details: {exc}"
-                )[:1000],
-                payload={"locus_tag": locus_tag},
+                locus_tag,
+                _format_attempt_error("GPU", attempt, gpu_attempts, exc),
+                payload={"mode": "gpu", "attempt": attempt, "total_attempts": gpu_attempts},
             )
-            _run_remote_colabfold_candidate(
-                ssh=ssh,
-                scp_client=scp_client,
-                sftp=sftp,
-                config=config,
-                run_id_raw=run_id_raw,
-                folder_path=folder_path,
-                genome=genome,
-                locus_tag=locus_tag,
-                sequence=sequence,
-                mode="cpu",
-                fallback_reason=f"remote GPU failure: {exc}",
+
+    _record_remote_info(
+        run_id_raw,
+        stage_number=16,
+        message=(
+            f"Remote ColabFold failed for {locus_tag}; "
+            f"falling back to remote CPU. Details: {last_gpu_exc}"
+        )[:1000],
+        payload={"locus_tag": locus_tag},
+    )
+
+    last_cpu_exc = None
+    cpu_attempts = max(1, config.cpu_retry_attempts)
+    for attempt in range(1, cpu_attempts + 1):
+        try:
+            run_attempt("cpu", fallback_reason=f"remote GPU failure: {last_gpu_exc}")
+            if os.path.exists(pdb_path):
+                return None
+        except Exception as exc:
+            last_cpu_exc = exc
+            _record_retry(
+                run_id_raw,
+                locus_tag,
+                _format_attempt_error("CPU", attempt, cpu_attempts, exc),
+                payload={"mode": "cpu", "attempt": attempt, "total_attempts": cpu_attempts},
             )
-    finally:
-        _close_remote_session(ssh, scp_client, sftp)
+
+    return (
+        f"Remote ColabFold failed for {locus_tag} after GPU retries ({gpu_attempts}) "
+        f"and CPU retries ({cpu_attempts}): {last_cpu_exc or last_gpu_exc}"
+    )[:1000]
 
 
 def _run_remote_colabfold_sequential(config, candidates, folder_path, genome, run_id_raw):
     predicted = 0
+    failures = []
     for locus_tag, sequence in candidates:
-        _process_one_candidate(config, locus_tag, sequence, folder_path, genome, run_id_raw)
-        predicted += 1
+        error = _process_one_candidate(config, locus_tag, sequence, folder_path, genome, run_id_raw)
+        if error:
+            failures.append((locus_tag, error))
+        else:
+            predicted += 1
+    if failures:
+        failed_tags = ", ".join(tag for tag, _ in failures[:10])
+        raise RuntimeError(
+            f"ColabFold stage 16 incomplete for {len(failures)} proteins. "
+            f"Missing structures include: {failed_tags}"
+        )
     print(f"ColabFold stage 16 done: {predicted} predicted")
     return predicted
 
 
 def _run_remote_colabfold_parallel(config, candidates, folder_path, genome, run_id_raw, workers):
     predicted = 0
+    failures = []
     with ThreadPoolExecutor(max_workers=workers, thread_name_prefix="cfold") as ex:
         futures = {
             ex.submit(
@@ -774,16 +844,18 @@ def _run_remote_colabfold_parallel(config, candidates, folder_path, genome, run_
             ): locus_tag
             for locus_tag, sequence in candidates
         }
-        try:
-            for fut in as_completed(futures):
-                locus_tag = futures[fut]
-                fut.result()
+        for fut in as_completed(futures):
+            locus_tag = futures[fut]
+            error = fut.result()
+            if error:
+                failures.append((locus_tag, error))
+            else:
                 predicted += 1
-        except Exception:
-            for f in futures:
-                if not f.done():
-                    f.cancel()
-            raise
+    if failures:
+        failed_tags = ", ".join(tag for tag, _ in failures[:10])
+        raise RuntimeError(
+            f"ColabFold stage 16 incomplete for {len(failures)} proteins. "
+            f"Missing structures include: {failed_tags}"
+        )
     print(f"ColabFold stage 16 done: {predicted} predicted")
     return predicted
-
