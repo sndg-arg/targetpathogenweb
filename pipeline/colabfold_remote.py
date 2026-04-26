@@ -407,6 +407,15 @@ def _run_remote_colabfold_candidate(
 
             scp_client.put(local_input_fasta, remote_input)
 
+            cpu_only_exports = []
+            if mode == "cpu":
+                # Force ColabFold/JAX/TensorFlow onto CPU for fallback jobs.
+                cpu_only_exports = [
+                    "export CUDA_VISIBLE_DEVICES=''",
+                    "export JAX_PLATFORMS=cpu",
+                    "export JAX_PLATFORM_NAME=cpu",
+                ]
+
             runner_text = "\n".join([
                 "#!/bin/bash",
                 "set -eo pipefail",
@@ -414,6 +423,7 @@ def _run_remote_colabfold_candidate(
                 f"conda activate {shlex.quote(config.conda_env)}",
                 "set -u",
                 f"mkdir -p {shlex.quote(remote_output_dir)}",
+                *cpu_only_exports,
                 (
                     f"colabfold_batch"
                     f" {shlex.quote(remote_input)}"
