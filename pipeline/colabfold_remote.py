@@ -170,6 +170,7 @@ class ColabFoldRemoteConfig:
     cpu_slurm_time: str
     cpu_slurm_mem: str
     cpu_slurm_cpus_per_task: int
+    cpu_slurm_exclude: str
 
 
 def _build_colabfold_config(cfg_dict):
@@ -232,6 +233,10 @@ def _build_colabfold_config(cfg_dict):
         cpu_slurm_time=os.getenv("TPW_COLABFOLD_CPU_TIME", "24:00:00"),
         cpu_slurm_mem=os.getenv("TPW_COLABFOLD_CPU_MEM", "32gb"),
         cpu_slurm_cpus_per_task=_env_int("TPW_COLABFOLD_CPU_CPUS", default=8),
+        cpu_slurm_exclude=os.getenv(
+            "TPW_COLABFOLD_CPU_EXCLUDE",
+            os.getenv("TPW_COLABFOLD_EXCLUDE", ""),
+        ).strip(),
     )
 
 
@@ -377,7 +382,7 @@ def _run_remote_colabfold_candidate(
         slurm_mem = config.cpu_slurm_mem
         slurm_gres = ""
         slurm_cpus = config.cpu_slurm_cpus_per_task
-        slurm_exclude = ""
+        slurm_exclude = config.cpu_slurm_exclude
         job_prefix = "cfc"
         mode_label = "CPU"
     else:
@@ -781,5 +786,4 @@ def _run_remote_colabfold_parallel(config, candidates, folder_path, genome, run_
             raise
     print(f"ColabFold stage 16 done: {predicted} predicted")
     return predicted
-
 
