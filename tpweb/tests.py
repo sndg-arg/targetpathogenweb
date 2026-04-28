@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+import gzip
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import MagicMock, patch
@@ -50,6 +51,7 @@ from tpweb.services.pipeline_status import (
 )
 from tpweb.services.structure_files import _candidate_seqstore_dirs
 from tpweb.services.structure_sources import summarize_structure_sources
+from tpweb.management.commands.load_af_model import store_structure_file
 from tpweb.services.genome_workspace import (
     build_workspace_genome_name,
     describe_genome_scope,
@@ -317,6 +319,18 @@ class StructureAndAnnotationServiceTests(SimpleTestCase):
                 "/app/targetpathogenweb/data",
             ],
         )
+
+    def test_store_structure_file_writes_world_readable_gzip(self):
+        with TemporaryDirectory() as tmpdir:
+            source = Path(tmpdir) / "model.pdb"
+            destination = Path(tmpdir) / "seqstore" / "model.pdb.gz"
+            source.write_text("HEADER test\nATOM test\n")
+
+            store_structure_file(str(source), str(destination))
+
+            self.assertEqual(destination.stat().st_mode & 0o777, 0o644)
+            with gzip.open(destination, "rt") as handle:
+                self.assertEqual(handle.read(), "HEADER test\nATOM test\n")
 
     def test_summarize_structure_sources_handles_mixed_sources(self):
         experimental_structure = type(

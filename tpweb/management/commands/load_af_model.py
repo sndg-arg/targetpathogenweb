@@ -16,12 +16,21 @@ from bioseq.io.SeqStore import SeqStore
 from bioseq.models.Bioentry import Bioentry
 from tpweb.models.BioentryStructure import BioentryStructure
 from tpweb.models.pdb import PDB, Residue, Atom
-import subprocess as sp
 
 
 def mkdir(dirpath):
     if not os.path.exists(dirpath):
         os.makedirs(dirpath)
+
+
+def store_structure_file(pdb_file, destination):
+    os.makedirs(os.path.dirname(destination), exist_ok=True)
+    if pdb_file.endswith(".gz"):
+        shutil.copyfile(pdb_file, destination)
+    else:
+        with open(pdb_file, "rb") as source, gzip.open(destination, "wb") as target:
+            shutil.copyfileobj(source, target)
+    os.chmod(destination, 0o644)
 
 
 class Command(BaseCommand):
@@ -80,16 +89,10 @@ class Command(BaseCommand):
             #if not os.path.exists(seqstore.structure_dir(genome, be.accession)):
             #    os.makedirs(seqstore.structure_dir(genome, be.accession))
 
-            if not options["pdb_file"].endswith(".gz"):
-                th = tempfile.NamedTemporaryFile(dir='/tmp', delete=False)
-                pdb_file = th.name
-                th.close()
-                sp.call(f'cat {options["pdb_file"]} | gzip > {pdb_file}', shell=True)
-            else:
-                pdb_file = options["pdb_file"]
-
-            shutil.copy(pdb_file,
-                        seqstore.structure(genome, be.accession, code))
+            store_structure_file(
+                options["pdb_file"],
+                seqstore.structure(genome, be.accession, code),
+            )
 
         self.stderr.write(f"done processing: {code} ")
 
