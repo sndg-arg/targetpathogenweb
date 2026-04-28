@@ -268,25 +268,55 @@ class Command(BaseCommand):
             df.to_csv(path, index=False, sep="\t")
             self.stderr.write(self.style.WARNING(f"Fallback generated: {path}"))
 
-        tables_dir = f"/app/fasttarget/organism/{name}/tables_for_TP"
+        def _find_existing(*paths):
+            return next((path for path in paths if os.path.exists(path)), None)
 
-        human_src = os.path.join(tables_dir, "human_offtarget.tsv")
+        def _as_hit_no_hit(value):
+            normalized = str(value).strip().lower()
+            return "no_hit" if normalized in {"", "none", "nan", "no_hit", "no hit"} else "hit"
+
+        def _as_yes_no(value):
+            normalized = str(value).strip().lower()
+            return "Y" if normalized in {"true", "t", "1", "yes", "y", "hit"} else "N"
+
+        organism_dir = f"/app/fasttarget/organism/{name}"
+        tables_dir = os.path.join(organism_dir, "tables_for_TP")
+        offtarget_dir = os.path.join(organism_dir, "offtarget")
+        essentiality_dir = os.path.join(organism_dir, "essentiality")
+
+        human_src = _find_existing(
+            os.path.join(tables_dir, "human_offtarget.tsv"),
+            os.path.join(offtarget_dir, "human_offtarget.tsv"),
+        )
         human_out = ss.human_offtarget(genome)
-        if os.path.exists(human_src):
+        if human_src:
             human = pd.read_csv(human_src, sep="\t")
-            human.to_csv(human_out, index=False, sep="\t")
+            if "gene" not in human.columns or "human_offtarget" not in human.columns:
+                raise CommandError(f"Unexpected schema in {human_src}: expected gene,human_offtarget.")
+            human["human_offtarget"] = human["human_offtarget"].apply(_as_hit_no_hit)
+            human[["gene", "human_offtarget"]].to_csv(human_out, index=False, sep="\t")
         else:
             if not allow_fallback:
-                raise CommandError(f"Missing required FastTarget output: {human_src}")
+                raise CommandError(
+                    f"Missing required FastTarget output: {os.path.join(tables_dir, 'human_offtarget.tsv')} "
+                    f"or {os.path.join(offtarget_dir, 'human_offtarget.tsv')}"
+                )
             _write_fallback(human_out, "human_offtarget", "no_hit")
 
         # mcpalumbo's fasttarget emits per-species counts (gut_microbiome_offtarget_counts.tsv)
         # instead of the legacy hit/no_hit column. Adapt to the TP score shape here:
         # any species with >=1 hit (count > 0) → "hit", else "no_hit".
-        micro_counts_src = os.path.join(tables_dir, "gut_microbiome_offtarget_counts.tsv")
-        micro_legacy_src = os.path.join(tables_dir, "gut_microbiome_offtarget.tsv")
+        micro_counts_src = _find_existing(
+            os.path.join(tables_dir, "gut_microbiome_offtarget_counts.tsv"),
+            os.path.join(offtarget_dir, "gut_microbiome_offtarget_counts.tsv"),
+        )
+        micro_legacy_src = _find_existing(
+            os.path.join(tables_dir, "gut_microbiome_offtarget.tsv"),
+            os.path.join(offtarget_dir, "gut_microbiome_offtarget.tsv"),
+        )
+        micro_species_dir = os.path.join(offtarget_dir, "species_blast_results")
         micro_out = ss.micro_offtarget(genome)
-        if os.path.exists(micro_counts_src):
+        if micro_counts_src:
             micro = pd.read_csv(micro_counts_src, sep="\t")
             count_col = next(
                 (c for c in micro.columns if c != "gene"),
@@ -300,21 +330,61 @@ class Command(BaseCommand):
                 lambda v: "hit" if pd.notna(v) and float(v) > 0 else "no_hit"
             )
             micro[["gene", "gut_microbiome_offtarget"]].to_csv(micro_out, index=False, sep="\t")
-        elif os.path.exists(micro_legacy_src):
+        elif micro_legacy_src:
             micro = pd.read_csv(micro_legacy_src, sep="\t")
+            if "gene" not in micro.columns or "gut_microbiome_offtarget" not in micro.columns:
+                raise CommandError(
+                    f"Unexpected schema in {micro_legacy_src}: expected gene,gut_microbiome_offtarget."
+                )
+            micro["gut_microbiome_offtarget"] = micro["gut_microbiome_offtarget"].apply(_as_hit_no_hit)
+            micro[["gene", "gut_microbiome_offtarget"]].to_csv(micro_out, index=False, sep="\t")
+        elif os.path.isdir(micro_species_dir):
+            hit_genes = set()
+            for root, _, files in os.walk(micro_species_dir):
+                for filename in files:
+                    if not filename.endswith("_offtarget.tsv"):
+                        continue
+                    path = os.path.join(root, filename)
+                    if os.path.getsize(path) <= 0:
+                        continue
+                    with open(path, "r") as handle:
+                        for line in handle:
+                            parts = line.strip().split("\t")
+                            if parts and parts[0]:
+                                hit_genes.add(parts[0])
+            genes = _all_genes()
+            micro = pd.DataFrame({
+                "gene": genes,
+                "gut_microbiome_offtarget": [
+                    "hit" if gene in hit_genes else "no_hit" for gene in genes
+                ],
+            })
             micro.to_csv(micro_out, index=False, sep="\t")
         else:
             if not allow_fallback:
                 raise CommandError(
-                    f"Missing required FastTarget output: {micro_counts_src} (or legacy {micro_legacy_src})"
+                    "Missing required FastTarget microbiome output: "
+                    f"{os.path.join(tables_dir, 'gut_microbiome_offtarget_counts.tsv')}, "
+                    f"{os.path.join(offtarget_dir, 'gut_microbiome_offtarget_counts.tsv')}, "
+                    f"or {micro_species_dir}"
                 )
             _write_fallback(micro_out, "gut_microbiome_offtarget", "no_hit")
 
-        deg_src = os.path.join(tables_dir, "hit_in_deg.tsv")
+        deg_src = _find_existing(
+            os.path.join(tables_dir, "hit_in_deg.tsv"),
+            os.path.join(essentiality_dir, "hit_in_deg.tsv"),
+        )
         deg_out = ss.essenciality(genome)
-        if os.path.exists(deg_src):
-            shutil.copy2(deg_src, deg_out)
+        if deg_src:
+            deg = pd.read_csv(deg_src, sep="\t")
+            if "gene" not in deg.columns or "hit_in_deg" not in deg.columns:
+                raise CommandError(f"Unexpected schema in {deg_src}: expected gene,hit_in_deg.")
+            deg["hit_in_deg"] = deg["hit_in_deg"].apply(_as_yes_no)
+            deg[["gene", "hit_in_deg"]].to_csv(deg_out, index=False, sep="\t")
         else:
             if not allow_fallback:
-                raise CommandError(f"Missing required FastTarget output: {deg_src}")
+                raise CommandError(
+                    f"Missing required FastTarget output: {os.path.join(tables_dir, 'hit_in_deg.tsv')} "
+                    f"or {os.path.join(essentiality_dir, 'hit_in_deg.tsv')}"
+                )
             _write_fallback(deg_out, "hit_in_deg", "N")
