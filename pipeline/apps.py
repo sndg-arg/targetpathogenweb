@@ -1,6 +1,7 @@
 import parsl
 from parsl import python_app, bash_app, join_app
 import os
+import shlex
 from parsl.data_provider.files import File
 from interproscan_remote import run_remote_interproscan
 
@@ -224,12 +225,36 @@ def structures_af(working_dir, folder_path, genome, inputs=[], stderr=parsl.AUTO
 
 @bash_app(executors=["local_executor"])
 def psort(genome, gram, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
+    folder_name = genome[int(len(genome) / 2 - 1):int(len(genome) / 2 + 2)]
+    container_folder_path = os.path.join("/app/targetpathogenweb/data", folder_name, genome)
+    host_folder_path = _host_bind_path(
+        container_folder_path,
+        env_name="TPW_DATA_DIR",
+        container_base="/app/targetpathogenweb/data",
+    )
+    psort_script = (
+        "set -e; "
+        f"GENOME={shlex.quote(genome)}; "
+        "if [ ! -s \"/work/$GENOME.faa\" ] && [ -s \"/work/$GENOME.faa.gz\" ]; then "
+        "gzip -dc \"/work/$GENOME.faa.gz\" > \"/work/$GENOME.faa\"; "
+        "fi; "
+        "rm -f /work/*_psortb_*.txt /work/psort.tsv; "
+        f"/usr/local/psortb/bin/psort -{shlex.quote(gram)} -o terse -i \"/work/$GENOME.faa\"; "
+        "cp /tmp/results/*_psortb_*.txt /work/; "
+        "RAW=$(ls -1 /work/*_psortb_*.txt | tail -n 1); "
+        "awk -F '\\t' 'BEGIN{OFS=\"\\t\"; print \"gene\",\"Localization\"} "
+        "NR>1 && NF>=2 {split($1,a,\" \"); print a[1],$2}' \"$RAW\" > /work/psort.tsv; "
+        "chmod 0644 /work/psort.tsv"
+    )
     return (
         "if command -v docker >/dev/null 2>&1; then "
-        f"python -m TP.psort {genome} -{gram} --tpwebdir /app/targetpathogenweb "
-        f"|| python /app/targetpathogenweb/manage.py tpweb_psort_fallback {genome} --datadir ../data; "
-        "else "
-        f"python /app/targetpathogenweb/manage.py tpweb_psort_fallback {genome} --datadir ../data; "
+        f"docker run --rm --entrypoint /bin/sh "
+        f"-v {shlex.quote(host_folder_path)}:/work "
+        f"brinkmanlab/psortb_commandline:1.0.2 "
+        f"-lc {shlex.quote(psort_script)}; "
+        "elif [ \"${TPW_PSORT_ALLOW_FALLBACK:-0}\" = \"1\" ]; then "
+        f"python /app/targetpathogenweb/manage.py tpweb_psort_fallback {shlex.quote(genome)} --datadir ../data; "
+        "else echo 'Docker is required for PSORT; set TPW_PSORT_ALLOW_FALLBACK=1 to generate Unknown localization fallback.' >&2; exit 1; "
         "fi"
     )
 
