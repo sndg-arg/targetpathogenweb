@@ -152,6 +152,8 @@ class ColabFoldRemoteConfig:
     ssh_connect_timeout: int
     remote_poll_seconds: int
     remote_wait_seconds: int
+    gpu_pending_wait_seconds: int
+    cpu_pending_wait_seconds: int
     remote_completion_grace_seconds: int
     conda_prefix: str
     conda_env: str
@@ -214,6 +216,12 @@ def _build_colabfold_config(cfg_dict):
         ssh_connect_timeout=ssh_connect_timeout,
         remote_poll_seconds=_env_int("TPW_COLABFOLD_REMOTE_POLL_SEC", default=60),
         remote_wait_seconds=_env_int("TPW_COLABFOLD_REMOTE_WAIT_SEC", default=43200),
+        gpu_pending_wait_seconds=_env_int(
+            "TPW_COLABFOLD_GPU_PENDING_WAIT_SEC", default=0,
+        ),
+        cpu_pending_wait_seconds=_env_int(
+            "TPW_COLABFOLD_CPU_PENDING_WAIT_SEC", default=0,
+        ),
         remote_completion_grace_seconds=_env_int(
             "TPW_COLABFOLD_REMOTE_COMPLETION_GRACE_SEC", default=120,
         ),
@@ -502,6 +510,11 @@ def _run_remote_colabfold_candidate(
             last_state = "PENDING"
             completion_seen_at = None
             last_wait_notice = None
+            pending_wait_limit = (
+                config.gpu_pending_wait_seconds
+                if mode == "gpu"
+                else config.cpu_pending_wait_seconds
+            )
 
             while not finished and waited_seconds <= config.remote_wait_seconds:
                 done_exit, _, _ = _run_remote(f"test -f {shlex.quote(remote_done_marker)}")
@@ -535,6 +548,17 @@ def _run_remote_colabfold_candidate(
                             payload={"remote_state": remote_state, "remote_reason": queue_reason},
                         )
                         last_wait_notice = wait_notice
+
+                    if (
+                        pending_wait_limit > 0
+                        and normalized.startswith("PENDING")
+                        and waited_seconds >= pending_wait_limit
+                    ):
+                        raise TimeoutError(
+                            f"ColabFold job for {locus_tag} stayed PENDING for "
+                            f"{waited_seconds}s, exceeding {mode_label} pending wait limit "
+                            f"{pending_wait_limit}s"
+                        )
 
                     if normalized.startswith(REMOTE_FAILURE_PREFIXES):
                         _, slurm_out_text, _ = _run_remote(
