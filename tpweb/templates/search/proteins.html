@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20260504-1">
+    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20260505-1">
 {% endblock %}
 
 {% block body %}
@@ -152,32 +152,29 @@
                             </select>
                         </div>
                         <div class="toolbar-workbench" aria-label="{% trans 'Protein list controls' %}">
-                            <div class="toolbar-workbench__meta">
-                                <span class="toolbar-workbench__eyebrow">{% trans "Refine and compare proteins" %}</span>
-                                <span class="toolbar-workbench__hint">{% trans "First choose biological filters, then adjust the ranking score, and finally decide which evidence columns remain visible." %}</span>
+                            <div class="toolbar-workbench__group toolbar-workbench__group--primary" aria-label="{% trans 'Filtering and ranking' %}">
+                                <button type="button" class="btn tp-btn tp-btn--neutral toolbar-action-btn toolbar-action-btn--primary" id="open-filters-btn">
+                                    <span class="toolbar-action-btn__title">{% trans "Filters" %}</span>
+                                    <span class="toolbar-action-btn__meta">
+                                        {% if selection_criteria_count %}
+                                            {% blocktrans count total=selection_criteria_count %}{{ total }} active{% plural %}{{ total }} active{% endblocktrans %}
+                                        {% else %}
+                                            {% trans "No filters" %}
+                                        {% endif %}
+                                    </span>
+                                </button>
+                                {% if formulas %}
+                                    <button type="button" class="btn tp-btn tp-btn--neutral toolbar-action-btn toolbar-action-btn--primary" id="open-formula-btn">
+                                        <span class="toolbar-action-btn__title">{% trans "Scoring" %}</span>
+                                        <span class="toolbar-action-btn__meta">{{ formula.name|default:_("No scoring") }}</span>
+                                    </button>
+                                {% endif %}
                             </div>
-                            <div class="toolbar-workbench__rail">
-                                <div class="toolbar-workbench__group toolbar-workbench__group--primary" aria-label="{% trans 'Filtering and ranking tools' %}">
-                                    <button type="button" class="btn tp-btn tp-btn--neutral toolbar-action-btn toolbar-action-btn--primary" id="open-filters-btn">
-                                        <span class="toolbar-action-btn__title">{% trans "Filter proteins" %}</span>
-                                        <span class="toolbar-action-btn__meta">
-                                            {% blocktrans count total=selection_criteria_count %}{{ total }} active criterion{% plural %}{{ total }} active criteria{% endblocktrans %}
-                                        </span>
-                                    </button>
-                                    {% if formulas %}
-                                        <button type="button" class="btn tp-btn tp-btn--neutral toolbar-action-btn toolbar-action-btn--primary" id="open-formula-btn">
-                                            <span class="toolbar-action-btn__title">{% trans "Ranking score" %}</span>
-                                            <span class="toolbar-action-btn__meta">{{ formula.name|default:_("No formula selected") }}</span>
-                                        </button>
-                                    {% endif %}
-                                </div>
-                                <div class="toolbar-workbench__divider" aria-hidden="true"></div>
-                                <div class="toolbar-workbench__group toolbar-workbench__group--secondary" aria-label="{% trans 'Table display tools' %}">
-                                    <button type="button" class="btn tp-btn tp-btn--neutral toolbar-action-btn toolbar-action-btn--secondary" id="open-columns-btn">
-                                        <span class="toolbar-action-btn__title">{% trans "Visible metrics" %}</span>
-                                        <span class="toolbar-action-btn__meta">{% trans "Show or hide columns" %}</span>
-                                    </button>
-                                </div>
+                            <div class="toolbar-workbench__group toolbar-workbench__group--secondary" aria-label="{% trans 'Table display' %}">
+                                <button type="button" class="btn tp-btn tp-btn--neutral toolbar-action-btn toolbar-action-btn--secondary" id="open-columns-btn">
+                                    <span class="toolbar-action-btn__title">{% trans "Columns" %}</span>
+                                    <span class="toolbar-action-btn__meta">{% blocktrans count total=fixed_column_labels|length|add:selected_column_names|length %}{{ total }} visible{% plural %}{{ total }} visible{% endblocktrans %}</span>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -558,11 +555,11 @@
             {% if numeric_param_count or formulas %}
                 <p class="drawer-advanced-hint">
                     {% if numeric_param_count %}
-                        {% blocktrans count total=numeric_param_count %}For numeric ranges or thresholds ({{ total }} parameter), use{% plural %}For numeric ranges or thresholds ({{ total }} parameters), use{% endblocktrans %}
+                        {% blocktrans count total=numeric_param_count %}{{ total }} numeric parameter supports range or threshold filters.{% plural %}{{ total }} numeric parameters support range or threshold filters.{% endblocktrans %}
                     {% else %}
                         {% trans "Need ranges, thresholds, or expression-based criteria?" %}
                     {% endif %}
-                    <a href="{% url 'tpwebapp:parameterformview' genome=genome %}{% if query_string %}?{{ query_string }}{% endif %}">{% trans "advanced criteria" %}</a>.
+                    <a href="{% url 'tpwebapp:parameterformview' genome=genome %}{% if query_string %}?{{ query_string }}{% endif %}">{% trans "Open advanced criteria" %}</a>
                 </p>
             {% endif %}
         </div>
