@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20260505-1">
+    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20260505-2">
 {% endblock %}
 
 {% block body %}
@@ -582,191 +582,128 @@
     <div class="tp-overlay" id="columns-overlay"></div>
     <div class="formula-modal columns-modal" id="columns-modal" aria-hidden="true">
         <div class="formula-head">
-            <div class="columns-modal-headline">
-                <h2>{% trans "Visible metrics" %}</h2>
-                <p>{% trans "Choose which evidence columns biologists should see first in the protein table." %}</p>
-            </div>
+            <h2>{% trans "Columns" %}</h2>
             <button class="btn tp-btn tp-btn--neutral drawer-close-btn" type="button" id="close-columns-btn" aria-label="{% trans 'Close' %}">
                 <span class="drawer-close-glyph" aria-hidden="true">&times;</span>
             </button>
         </div>
         <div class="formula-body columns-body">
-            <section class="modal-guide-strip columns-guide-strip" aria-label="{% trans 'How to use visible metrics' %}">
-                <div class="modal-guide-step">
-                    <span class="modal-guide-step__index">1</span>
-                    <div>
-                        <strong>{% trans "Keep essentials visible" %}</strong>
-                        <p>{% trans "Protein identifiers always stay on screen, so you only manage the optional evidence." %}</p>
-                    </div>
+            <div class="columns-fixed-note">
+                <span class="columns-fixed-note__label">{% trans "Always shown" %}</span>
+                <div class="columns-fixed-note__chips">
+                    {% for label in fixed_column_labels %}
+                        <span class="tp-chip tp-chip--meta tp-chip--sm columns-fixed-chip">{{ label }}</span>
+                    {% endfor %}
                 </div>
-                <div class="modal-guide-step">
-                    <span class="modal-guide-step__index">2</span>
-                    <div>
-                        <strong>{% trans "Show the evidence you need" %}</strong>
-                        <p>{% trans "Add or remove metrics depending on whether you are screening, comparing, or reviewing candidates." %}</p>
-                    </div>
-                </div>
-                <div class="modal-guide-step">
-                    <span class="modal-guide-step__index">3</span>
-                    <div>
-                        <strong>{% trans "Order metrics for reading" %}</strong>
-                        <p>{% trans "Drag visible metrics to decide the left-to-right reading order in the table." %}</p>
-                    </div>
-                </div>
-            </section>
-            <section class="columns-summary">
-                <div class="columns-summary-head">
-                    <div>
-                        <h3>{% trans "Current table setup" %}</h3>
-                        <p>{% trans "The base protein identifiers stay fixed. Below, you decide which optional evidence stays visible and in what order." %}</p>
-                    </div>
-                    <span class="columns-summary-count" id="columns-selected-count">{{ selected_column_names|length }}</span>
-                </div>
-                <div class="columns-summary-grid">
-                    <div class="columns-summary-block">
-                        <span class="columns-summary-label">{% trans "Always shown" %}</span>
-                        <div class="columns-fixed-list">
-                            {% for label in fixed_column_labels %}
-                                <span class="tp-chip tp-chip--meta tp-chip--sm columns-fixed-chip">{{ label }}</span>
-                            {% endfor %}
-                        </div>
-                    </div>
-                    <div class="columns-summary-block">
-                        <span class="columns-summary-label">{% trans "Visible optional metrics" %}</span>
-                        <div class="columns-selected-list columns-selected-list--chips" id="columns-selected-list">
-                            {% for row in column_rows %}
-                                {% if row.selected %}
-                                    <span class="tp-chip tp-chip--meta tp-chip--sm columns-selected-chip" data-columns-selected-chip="{{ row.name }}">{{ row.label }}</span>
-                                {% endif %}
-                            {% endfor %}
-                        </div>
-                    </div>
-                </div>
-            </section>
+            </div>
+
             <form method="POST" action="" class="columns-form" id="columns-form">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="update_columns">
                 <input type="hidden" name="return_query" value="{{ query_string }}">
-                <div class="columns-layout">
-                    <section class="columns-customize">
-                        <div class="columns-section-head">
-                            <div>
-                                <h3>{% trans "Metrics shown in the table" %}</h3>
-                                <p>{% trans "These columns are visible right now. Drag them to set the reading order and hide any that are not useful for the current analysis." %}</p>
+
+                <section class="columns-section">
+                    <header class="columns-section-head">
+                        <h3>{% trans "Visible" %}</h3>
+                        <span class="columns-section-count" id="columns-selected-count">{{ selected_column_names|length }}</span>
+                    </header>
+                    <p class="columns-section-hint">{% trans "Drag to reorder. Click the eye to hide." %}</p>
+                    <div class="columns-order-list" id="columns-visible-list">
+                        {% for row in column_rows %}
+                            {% if row.selected %}
+                            <div class="columns-row columns-row--selected"
+                                 data-column-row
+                                 data-column-name="{{ row.name }}"
+                                 data-column-label="{{ row.label }}"
+                                 data-selected="true"
+                                 draggable="true"
+                                 {% if row.description %}title="{{ row.description }}"{% endif %}>
+                                <input type="checkbox"
+                                       class="columns-option-input"
+                                       name="visible_columns"
+                                       value="{{ row.name }}"
+                                       checked>
+                                <button type="button"
+                                        class="columns-drag-handle"
+                                        data-columns-drag-handle
+                                        aria-label="{% trans 'Reorder' %}"
+                                        title="{% trans 'Drag to reorder' %}">
+                                    <span class="columns-drag-glyph" aria-hidden="true"></span>
+                                </button>
+                                <div class="columns-row-copy">
+                                    <span class="columns-row-label">{{ row.label }}</span>
+                                    <span class="columns-row-category">{{ row.category }}</span>
+                                </div>
+                                <span class="columns-order-index" aria-hidden="true"></span>
+                                <button type="button"
+                                        class="columns-icon-btn columns-visibility-btn"
+                                        data-columns-toggle
+                                        aria-label="{% trans 'Hide' %}"
+                                        title="{% trans 'Hide column' %}">
+                                    <span class="columns-icon columns-icon--visible">{% include "components/icons/eye.html" %}</span>
+                                    <span class="columns-icon columns-icon--hidden">{% include "components/icons/eye_off.html" %}</span>
+                                </button>
                             </div>
-                            <span class="columns-summary-count columns-panel-count" id="columns-visible-panel-count">{{ selected_column_names|length }}</span>
-                        </div>
-                        <div class="columns-order-list" id="columns-visible-list">
-                            {% for row in column_rows %}
-                                {% if row.selected %}
-                                <div class="columns-row columns-row--selected"
-                                     data-column-row
-                                     data-column-name="{{ row.name }}"
-                                     data-column-label="{{ row.label }}"
-                                     data-selected="true"
-                                     draggable="true"
-                                     {% if row.description %}title="{{ row.description }}"{% endif %}>
-                                    <input type="checkbox"
-                                           class="columns-option-input"
-                                           name="visible_columns"
-                                           value="{{ row.name }}"
-                                           checked>
-                                    <div class="columns-row-main">
-                                        <div class="columns-row-topline">
-                                            <button type="button"
-                                                    class="columns-drag-handle"
-                                                    data-columns-drag-handle
-                                                    aria-label="{% trans 'Reorder column' %}"
-                                                    title="{% trans 'Drag to reorder' %}">
-                                                <span class="columns-drag-glyph" aria-hidden="true"></span>
-                                            </button>
-                                            <div class="columns-row-copy">
-                                                <span class="columns-row-label">{{ row.label }}</span>
-                                                <span class="columns-row-category">{{ row.category }}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="columns-row-actions">
-                                        <span class="columns-order-index" aria-hidden="true"></span>
-                                        <button type="button"
-                                                class="columns-icon-btn columns-visibility-btn"
-                                                data-columns-toggle
-                                                aria-label="{% trans 'Hide column' %}"
-                                                title="{% trans 'Hide column' %}">
-                                            <span class="columns-icon columns-icon--visible">{% include "components/icons/eye.html" %}</span>
-                                            <span class="columns-icon columns-icon--hidden">{% include "components/icons/eye_off.html" %}</span>
-                                        </button>
-                                    </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    <p class="columns-empty-state tp-state-note tp-state-note--empty" id="columns-visible-empty" {% if selected_column_names %}hidden{% endif %}>
+                        {% trans "No optional columns visible. Add some from the list below." %}
+                    </p>
+                </section>
+
+                <section class="columns-section">
+                    <header class="columns-section-head">
+                        <h3>{% trans "Available" %}</h3>
+                    </header>
+                    <div class="columns-library-list" id="columns-library-list">
+                        {% for row in column_rows %}
+                            {% if not row.selected %}
+                            <div class="columns-row columns-row--available is-hidden"
+                                 data-column-row
+                                 data-column-name="{{ row.name }}"
+                                 data-column-label="{{ row.label }}"
+                                 data-selected="false"
+                                 {% if row.description %}title="{{ row.description }}"{% endif %}>
+                                <input type="checkbox"
+                                       class="columns-option-input"
+                                       name="visible_columns"
+                                       value="{{ row.name }}">
+                                <button type="button"
+                                        class="columns-drag-handle"
+                                        data-columns-drag-handle
+                                        aria-label="{% trans 'Reorder' %}"
+                                        title="{% trans 'Drag to reorder' %}">
+                                    <span class="columns-drag-glyph" aria-hidden="true"></span>
+                                </button>
+                                <div class="columns-row-copy">
+                                    <span class="columns-row-label">{{ row.label }}</span>
+                                    <span class="columns-row-category">{{ row.category }}</span>
                                 </div>
-                                {% endif %}
-                            {% endfor %}
-                        </div>
-                        <div class="columns-empty-state tp-state-note tp-state-note--empty" id="columns-visible-empty" {% if selected_column_names %}hidden{% endif %}>
-                            {% trans "No optional evidence columns are visible yet." %}
-                        </div>
-                    </section>
-                    <section class="columns-library">
-                        <div class="columns-section-head">
-                            <div>
-                                <h3>{% trans "More evidence you can add" %}</h3>
-                                <p>{% trans "Bring these metrics into the table when you need extra biological context for filtering, ranking, or manual review." %}</p>
+                                <span class="columns-order-index" aria-hidden="true"></span>
+                                <button type="button"
+                                        class="columns-icon-btn columns-visibility-btn"
+                                        data-columns-toggle
+                                        aria-label="{% trans 'Show' %}"
+                                        title="{% trans 'Show column' %}">
+                                    <span class="columns-icon columns-icon--visible">{% include "components/icons/eye.html" %}</span>
+                                    <span class="columns-icon columns-icon--hidden">{% include "components/icons/eye_off.html" %}</span>
+                                </button>
                             </div>
-                        </div>
-                        <div class="columns-library-list" id="columns-library-list">
-                            {% for row in column_rows %}
-                                {% if not row.selected %}
-                                <div class="columns-row columns-row--available is-hidden"
-                                     data-column-row
-                                     data-column-name="{{ row.name }}"
-                                     data-column-label="{{ row.label }}"
-                                     data-selected="false"
-                                     {% if row.description %}title="{{ row.description }}"{% endif %}>
-                                    <input type="checkbox"
-                                           class="columns-option-input"
-                                           name="visible_columns"
-                                           value="{{ row.name }}">
-                                <div class="columns-row-main">
-                                    <div class="columns-row-topline">
-                                        <button type="button"
-                                                class="columns-drag-handle"
-                                                data-columns-drag-handle
-                                                aria-label="{% trans 'Reorder column' %}"
-                                                title="{% trans 'Drag to reorder' %}">
-                                            <span class="columns-drag-glyph" aria-hidden="true"></span>
-                                        </button>
-                                        <div class="columns-row-copy">
-                                            <span class="columns-row-label">{{ row.label }}</span>
-                                            <span class="columns-row-category">{{ row.category }}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="columns-row-actions">
-                                    <span class="columns-order-index" aria-hidden="true"></span>
-                                    <button type="button"
-                                            class="columns-icon-btn columns-visibility-btn"
-                                            data-columns-toggle
-                                            aria-label="{% trans 'Show column' %}"
-                                                title="{% trans 'Show column' %}">
-                                            <span class="columns-icon columns-icon--visible">{% include "components/icons/eye.html" %}</span>
-                                            <span class="columns-icon columns-icon--hidden">{% include "components/icons/eye_off.html" %}</span>
-                                        </button>
-                                    </div>
-                                </div>
-                                {% endif %}
-                            {% endfor %}
-                        </div>
-                    </section>
-                </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </section>
             </form>
         </div>
         <div class="drawer-foot columns-foot">
-            <button class="btn tp-btn tp-btn--primary" type="submit" form="columns-form">{% trans "Update visible metrics" %}</button>
             <form method="POST" action="" class="drawer-reset-form">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="reset_columns">
                 <input type="hidden" name="return_query" value="{{ query_string }}">
-                <button type="submit" class="btn tp-btn tp-btn--clear">{% trans "Restore recommended metrics" %}</button>
+                <button type="submit" class="btn tp-btn tp-btn--clear">{% trans "Restore defaults" %}</button>
             </form>
+            <button class="btn tp-btn tp-btn--primary drawer-done-btn" type="submit" form="columns-form">{% trans "Apply" %}</button>
         </div>
     </div>
 
@@ -774,60 +711,13 @@
         <div class="tp-overlay" id="formula-overlay"></div>
         <div class="formula-modal" id="formula-modal" aria-hidden="true">
             <div class="formula-head">
-                <div class="formula-modal-headline">
-                    <h2>{% trans "Ranking score" %}</h2>
-                    <p>{% trans "Choose how proteins are ordered in the table, based on the evidence model most useful for your analysis." %}</p>
-                </div>
+                <h2>{% trans "Scoring" %}</h2>
                 <button class="btn tp-btn tp-btn--neutral drawer-close-btn" type="button" id="close-formula-btn" aria-label="{% trans 'Close' %}">
                     <span class="drawer-close-glyph" aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="formula-body">
-                <section class="modal-guide-strip formula-guide-strip" aria-label="{% trans 'How to use ranking score' %}">
-                    <div class="modal-guide-step">
-                        <span class="modal-guide-step__index">1</span>
-                        <div>
-                            <strong>{% trans "Pick a ranking model" %}</strong>
-                            <p>{% trans "Each formula prioritizes proteins using a different combination of biological evidence." %}</p>
-                        </div>
-                    </div>
-                    <div class="modal-guide-step">
-                        <span class="modal-guide-step__index">2</span>
-                        <div>
-                            <strong>{% trans "Reorder the table" %}</strong>
-                            <p>{% trans "Once applied, the protein list updates so the highest-ranked candidates appear first." %}</p>
-                        </div>
-                    </div>
-                    <div class="modal-guide-step">
-                        <span class="modal-guide-step__index">3</span>
-                        <div>
-                            <strong>{% trans "Review the formula details" %}</strong>
-                            <p>{% trans "Use the expression and setup links when you need to inspect or edit how the score is built." %}</p>
-                        </div>
-                    </div>
-                </section>
-                <section class="formula-current">
-                    <div class="formula-current-head">
-                        <h3>{% trans "Current ranking formula" %}</h3>
-                        {% if formula %}
-                            <span class="formula-count-chip tp-chip tp-chip--count tp-chip--sm">
-                                {% blocktrans count total=formula_term_count %}{{ total }} term{% plural %}{{ total }} terms{% endblocktrans %}
-                            </span>
-                        {% endif %}
-                    </div>
-                    {% if formula %}
-                        <p class="formula-current-name">{{ formula.name }}</p>
-                        {% if current_formula %}
-                            <details class="formula-expression">
-                                <summary>{% trans "Show expression" %}</summary>
-                                <code>{{ current_formula }}</code>
-                            </details>
-                        {% endif %}
-                    {% else %}
-                        <p class="formula-current-empty tp-state-note tp-state-note--empty">{% trans "No formula selected." %}</p>
-                    {% endif %}
-                </section>
-                <form method="GET" action="" class="toolbar-row formula-apply-row">
+                <form method="GET" action="" class="formula-apply-row">
                     {% if search_query %}
                         <input type="hidden" name="search" value="{{ search_query }}">
                     {% endif %}
@@ -839,37 +729,47 @@
                         <input type="hidden" name="annotation_value" value="{{ annotation_filter.value }}">
                     {% endif %}
                     <input type="hidden" name="pageSize" value="{{ page_size }}">
-                    <label for="score_formula_select" class="formula-select-label">{% trans "Choose how proteins should be ranked" %}</label>
+
+                    <label for="score_formula_select" class="formula-select-label">{% trans "Ranking formula" %}</label>
                     {% if formulas|length > 1 %}
-                        <select id="score_formula_select"
-                                name="scoreformula"
-                                class="form-control"
-                                data-current-value="{{ formula.name|default:'' }}">
-                            {% for f in formulas %}
-                                {% ifchanged f.name %}
-                                    <option value="{{ f.name }}" {% if f.name == formula.name %}selected{% endif %}>
-                                        {{ f.name }}{% if f.default %} · {% trans "Default" %}{% endif %}
-                                    </option>
-                                {% endifchanged %}
-                            {% endfor %}
-                        </select>
-                        <button class="btn tp-btn tp-btn--primary" type="submit" id="apply-formula-btn">{% trans "Update ranking" %}</button>
-                    {% else %}
-                        <div class="formula-static-value tp-state-note tp-state-note--empty">
-                            {{ formula.name|default:_("No formula available") }}
+                        <div class="formula-apply-row__controls">
+                            <select id="score_formula_select"
+                                    name="scoreformula"
+                                    class="form-control"
+                                    data-current-value="{{ formula.name|default:'' }}">
+                                {% for f in formulas %}
+                                    {% ifchanged f.name %}
+                                        <option value="{{ f.name }}" {% if f.name == formula.name %}selected{% endif %}>
+                                            {{ f.name }}{% if f.default %} · {% trans "Default" %}{% endif %}
+                                        </option>
+                                    {% endifchanged %}
+                                {% endfor %}
+                            </select>
+                            <button class="btn tp-btn tp-btn--primary" type="submit" id="apply-formula-btn">{% trans "Apply" %}</button>
                         </div>
+                    {% else %}
+                        <p class="formula-static-value">{{ formula.name|default:_("No formula available") }}</p>
                     {% endif %}
                 </form>
-                <section class="formula-resources">
-                    <div class="formula-resources-head">
-                        <h3>{% trans "Formula details and maintenance" %}</h3>
-                        <p>{% trans "Open the prioritization workspace to inspect terms, adjust weights, or maintain custom evidence used by this ranking model." %}</p>
-                    </div>
-                    {% url 'tpwebapp:prioritization_setup' genome=genome as prioritization_setup_base_url %}
-                    <div class="formula-resources-actions">
-                        <a href="{{ prioritization_setup_base_url }}{% if formula %}?scoreformula={{ formula.name|urlencode }}{% endif %}" class="btn tp-btn tp-btn--primary">{% trans "Open prioritization setup" %}</a>
-                    </div>
-                </section>
+
+                {% if formula and current_formula %}
+                    <details class="formula-expression" {% if formula_term_count and formula_term_count <= 5 %}open{% endif %}>
+                        <summary>
+                            <span class="formula-expression__title">{% trans "Formula expression" %}</span>
+                            <span class="formula-expression__count">{% blocktrans count total=formula_term_count %}{{ total }} term{% plural %}{{ total }} terms{% endblocktrans %}</span>
+                            <span class="formula-expression__chevron" aria-hidden="true"></span>
+                        </summary>
+                        <code class="formula-expression__code">{{ current_formula }}</code>
+                    </details>
+                {% elif not formula %}
+                    <p class="formula-current-empty tp-state-note tp-state-note--empty">{% trans "No formula selected." %}</p>
+                {% endif %}
+
+                {% url 'tpwebapp:prioritization_setup' genome=genome as prioritization_setup_base_url %}
+                <p class="drawer-advanced-hint">
+                    {% trans "Need to adjust weights or add custom evidence?" %}
+                    <a href="{{ prioritization_setup_base_url }}{% if formula %}?scoreformula={{ formula.name|urlencode }}{% endif %}">{% trans "Open prioritization setup" %}</a>
+                </p>
             </div>
         </div>
     {% endif %}
@@ -1330,20 +1230,22 @@
             }
 
             function syncColumnsSummary() {
-                if (!columnsSelectedCount || !columnsSelectedList) return;
                 const visibleRows = getVisibleColumnRows();
-                columnsSelectedCount.textContent = String(visibleRows.length);
+                if (columnsSelectedCount) {
+                    columnsSelectedCount.textContent = String(visibleRows.length);
+                }
                 if (columnsVisiblePanelCount) {
                     columnsVisiblePanelCount.textContent = String(visibleRows.length);
                 }
                 if (columnsVisibleEmpty) {
                     columnsVisibleEmpty.hidden = visibleRows.length > 0;
                 }
+                if (!columnsSelectedList) return;
                 columnsSelectedList.innerHTML = "";
                 if (!visibleRows.length) {
                     const chip = document.createElement("span");
                     chip.className = "tp-chip tp-chip--meta tp-chip--sm columns-selected-chip columns-selected-chip--empty";
-                    chip.textContent = "No optional metrics selected";
+                    chip.textContent = "No optional columns visible";
                     columnsSelectedList.appendChild(chip);
                     return;
                 }
