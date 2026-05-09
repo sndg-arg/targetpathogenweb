@@ -151,17 +151,38 @@
                                 <option value="100" {% if page_size == 100 %}selected{% endif %}>100</option>
                             </select>
                         </div>
-                        <button type="button" class="btn tp-btn tp-btn--neutral toolbar-action-btn" id="open-filters-btn">
-                            {% trans "Selection criteria" %} ({{ selection_criteria_count }})
-                        </button>
-                        <button type="button" class="btn tp-btn tp-btn--neutral toolbar-action-btn" id="open-columns-btn">
-                            {% trans "Visible metrics" %}
-                        </button>
-                        {% if formulas %}
-                            <button type="button" class="btn tp-btn tp-btn--neutral toolbar-action-btn" id="open-formula-btn">
-                                {% trans "Scoring setup" %}
-                            </button>
-                        {% endif %}
+                        <div class="toolbar-control-cluster toolbar-control-cluster--primary" aria-label="{% trans 'Protein refinement tools' %}">
+                            <div class="toolbar-control-cluster__meta">
+                                <span class="toolbar-control-cluster__eyebrow">{% trans "Refine proteins" %}</span>
+                                <span class="toolbar-control-cluster__hint">{% trans "Apply biological filters and choose how proteins are ranked." %}</span>
+                            </div>
+                            <div class="toolbar-control-cluster__actions">
+                                <button type="button" class="btn tp-btn tp-btn--neutral toolbar-action-btn toolbar-action-btn--primary" id="open-filters-btn">
+                                    <span class="toolbar-action-btn__title">{% trans "Filter proteins" %}</span>
+                                    <span class="toolbar-action-btn__meta">
+                                        {% blocktrans count total=selection_criteria_count %}{{ total }} active criterion{% plural %}{{ total }} active criteria{% endblocktrans %}
+                                    </span>
+                                </button>
+                                {% if formulas %}
+                                    <button type="button" class="btn tp-btn tp-btn--neutral toolbar-action-btn toolbar-action-btn--primary" id="open-formula-btn">
+                                        <span class="toolbar-action-btn__title">{% trans "Ranking score" %}</span>
+                                        <span class="toolbar-action-btn__meta">{{ formula.name|default:_("No formula selected") }}</span>
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="toolbar-control-cluster toolbar-control-cluster--secondary" aria-label="{% trans 'Table display tools' %}">
+                            <div class="toolbar-control-cluster__meta">
+                                <span class="toolbar-control-cluster__eyebrow">{% trans "Table display" %}</span>
+                                <span class="toolbar-control-cluster__hint">{% trans "Choose which evidence columns stay visible in the table." %}</span>
+                            </div>
+                            <div class="toolbar-control-cluster__actions">
+                                <button type="button" class="btn tp-btn tp-btn--neutral toolbar-action-btn toolbar-action-btn--secondary" id="open-columns-btn">
+                                    <span class="toolbar-action-btn__title">{% trans "Visible metrics" %}</span>
+                                    <span class="toolbar-action-btn__meta">{% trans "Show or hide columns" %}</span>
+                                </button>
+                            </div>
+                        </div>
                     </div>
 
                 </div>
