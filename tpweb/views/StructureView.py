@@ -90,13 +90,17 @@ def pdb_structure(pdbobj, graphic_features):
     # sq = ResidueSetProperty.objects.select_related(pdbresidue_set)\
     #     .filter(property=ds,value__gte=0.2,pdbresidue_set=OuterRef("id"))
 
-    context["pockets"] = PDBResidueSet.objects.prefetch_related("properties__property",
-                                                                "residue_set_residue__residue__atoms").filter(
-        Q(pdb=pdbobj), Q(residue_set=rs), Q(properties__property=ds) & Q(properties__value__gte=0.2)).all()
+    context["pockets"] = list(PDBResidueSet.objects.prefetch_related(
+        "properties__property",
+        "residue_set_residue__residue__atoms",
+    ).filter(
+        Q(pdb=pdbobj), Q(residue_set=rs), Q(properties__property=ds) & Q(properties__value__gte=0.2)
+    ))
 
-    context["p2_pockets"] = PDBResidueSet.objects.prefetch_related("properties__property",
-                                                                "residue_set_residue__residue__atoms").filter(
-        Q(pdb=pdbobj), Q(residue_set=p2_rs)).all()
+    context["p2_pockets"] = list(PDBResidueSet.objects.prefetch_related(
+        "properties__property",
+        "residue_set_residue__residue__atoms",
+    ).filter(Q(pdb=pdbobj), Q(residue_set=p2_rs)))
     for p in context["pockets"]:
         p.druggability = [x.value for x in p.properties.all() if x.property == ds][0]
         p.atoms = []
@@ -119,6 +123,8 @@ def pdb_structure(pdbobj, graphic_features):
             "filter": "type2"
         }
         graphic_features.append(gf)
+
+    context["pockets"].sort(key=lambda p: p.druggability or 0, reverse=True)
 
     for p2 in context["p2_pockets"]:
         p2.p2score = [x.value for x in p2.properties.all() if x.property == p2s][0]
@@ -143,6 +149,8 @@ def pdb_structure(pdbobj, graphic_features):
             "filter": "type2"
         }
         graphic_features.append(gf_p2)
+
+    context["p2_pockets"].sort(key=lambda p: p.probability or 0, reverse=True)
 
     ## Non pocket res
     rss = PDBResidueSet.objects.prefetch_related(

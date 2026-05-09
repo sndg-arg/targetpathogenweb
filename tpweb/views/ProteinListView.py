@@ -187,6 +187,111 @@ class ProteinListView(View):
         return ordered_rows
 
     @staticmethod
+    def _build_filter_groups(score_params, selected_parameters, structure_choices=None):
+        selected_option_ids = {
+            str(parameter.get("id"))
+            for parameter in selected_parameters
+            if str(parameter.get("type") or "categorical").lower() not in {"numeric", "special"}
+        }
+
+        grouped = {}
+        numeric_param_count = 0
+        for score_param in score_params:
+            type_code = (score_param.type or "").upper()
+            is_categorical = type_code.startswith("C") or type_code == "CATEGORICAL"
+            if not is_categorical:
+                numeric_param_count += 1
+                continue
+            choices = list(score_param.choices.all())
+            if not choices:
+                continue
+            category = (score_param.category or "Other").strip() or "Other"
+            param_label = humanize_identifier(score_param.name) or score_param.name
+            options = []
+            search_tokens = [param_label, category]
+            any_active = False
+            for option in choices:
+                option_label = humanize_identifier(option.name) or option.name
+                option_active = str(option.pk) in selected_option_ids
+                if option_active:
+                    any_active = True
+                options.append({
+                    "id": option.pk,
+                    "name": option.name,
+                    "label": option_label,
+                    "description": option.description or "",
+                    "active": option_active,
+                })
+                search_tokens.append(option_label)
+            grouped.setdefault(category, []).append({
+                "id": score_param.pk,
+                "name": score_param.name,
+                "label": param_label,
+                "description": score_param.description or "",
+                "options": options,
+                "any_active": any_active,
+                "search_text": " ".join(search_tokens).lower(),
+            })
+
+        preferred_order = [
+            "Pocket",
+            "Off-target",
+            "Essentiality",
+            "Localization",
+            "Protein",
+            "Custom",
+            "Other",
+        ]
+
+        def _category_sort_key(category):
+            try:
+                return (preferred_order.index(category), "")
+            except ValueError:
+                return (len(preferred_order), category.casefold())
+
+        filter_groups = []
+        structure_choices = [choice for choice in (structure_choices or []) if choice.get("value")]
+        if structure_choices:
+            active_structure = next((choice for choice in structure_choices if choice.get("active")), None)
+            filter_groups.append({
+                "category": "Structure",
+                "params": [{
+                    "id": "structure_source",
+                    "name": "structure_source",
+                    "label": "Structure source",
+                    "description": "Limit proteins by the type of structure evidence currently available.",
+                    "options": [
+                        {
+                            "id": f"structure::{choice['value']}",
+                            "name": choice["value"],
+                            "label": choice["label"],
+                            "description": "",
+                            "active": bool(choice.get("active")),
+                            "url": choice["url"],
+                            "is_link": True,
+                        }
+                        for choice in structure_choices
+                    ],
+                    "any_active": bool(active_structure),
+                    "search_text": "structure source " + " ".join(
+                        choice["label"] for choice in structure_choices
+                    ).lower(),
+                }],
+                "any_active": bool(active_structure),
+                "param_count": 1,
+            })
+
+        for category in sorted(grouped.keys(), key=_category_sort_key):
+            params = sorted(grouped[category], key=lambda entry: entry["label"].casefold())
+            filter_groups.append({
+                "category": category,
+                "params": params,
+                "any_active": any(entry["any_active"] for entry in params),
+                "param_count": len(params),
+            })
+        return filter_groups, numeric_param_count
+
+    @staticmethod
     def _build_clear_search_url(request, page_size):
         params = request.GET.copy()
         params["pageSize"] = page_size
@@ -205,6 +310,38 @@ class ProteinListView(View):
                 params.pop(key)
         encoded = params.urlencode()
         return f"?{encoded}" if encoded else "?"
+
+    @staticmethod
+    def _build_clear_structure_url(request, page_size):
+        params = request.GET.copy()
+        params["pageSize"] = page_size
+        for key in ("structure_source", "page"):
+            if key in params:
+                params.pop(key)
+        encoded = params.urlencode()
+        return f"?{encoded}" if encoded else "?"
+
+    @staticmethod
+    def _build_structure_source_choices(request, page_size, current_value):
+        base_choices = [
+            {"value": "experimental", "label": "Experimental"},
+            {"value": "alphafold", "label": "AlphaFold"},
+            {"value": "colabfold", "label": "ColabFold"},
+            {"value": "none", "label": "No structure"},
+        ]
+        choices = []
+        for choice in base_choices:
+            params = request.GET.copy()
+            params["pageSize"] = page_size
+            params["structure_source"] = choice["value"]
+            if "page" in params:
+                params.pop("page")
+            choices.append({
+                **choice,
+                "active": current_value == choice["value"],
+                "url": f"?{params.urlencode()}",
+            })
+        return choices
 
     @staticmethod
     def _build_page_numbers(current_page, total_pages):
@@ -370,7 +507,7 @@ class ProteinListView(View):
         if return_query:
             params = parse_qs(return_query, keep_blank_values=False)
             if action == "reset_filters":
-                for key in ("annotation_kind", "annotation_value", "ec_filter"):
+                for key in ("annotation_kind", "annotation_value", "ec_filter", "structure_source"):
                     params.pop(key, None)
             cleaned = urlencode(
                 {k: v[0] if len(v) == 1 else v for k, v in params.items()},
@@ -408,7 +545,9 @@ class ProteinListView(View):
             formuladto = formula_to_dto(formula, col_descriptions)
             current_formula = formula.get_current_formula()
 
-        all_visible_score_params = list(visible_score_params_queryset(request.user))
+        all_visible_score_params = list(
+            visible_score_params_queryset(request.user).prefetch_related("choices")
+        )
         visible_score_param_by_name = {
             score_param.name: score_param for score_param in all_visible_score_params
         }
@@ -616,12 +755,12 @@ class ProteinListView(View):
             query_params.pop("page")
         query_string = query_params.urlencode()
 
-        if formula_term_list:
-            filter_options = ScoreParamOptions.objects.filter(
-                score_param_id__in=[term.score_param_id for term in formula_term_list]
-            ).select_related("score_param").order_by("score_param__name", "name")
-        else:
-            filter_options = ScoreParamOptions.objects.none()
+        structure_source_choices = self._build_structure_source_choices(
+            request, page_size, structure_source
+        )
+        filter_groups, numeric_param_count = self._build_filter_groups(
+            all_visible_score_params, selected_parameters, structure_choices=structure_source_choices
+        )
 
         # Pagination info
         pagination_info = {
@@ -644,6 +783,10 @@ class ProteinListView(View):
             "value": annotation_value,
             "name": annotation_term_name(annotation_kind, annotation_value),
         } if annotation_value else None
+        structure_filter = next(
+            (choice for choice in structure_source_choices if choice.get("active")),
+            None,
+        )
 
         return render(request, self.template_name, {
             "biodb__name": bdb.description if bdb.description else bdb.name,
@@ -664,25 +807,29 @@ class ProteinListView(View):
             "assembly_name":assembly_name,
             "assembly_label": display_genome_name(assembly_name),
             "parameters":selected_parameters,
-            "selection_criteria_count": len(selected_parameters) + (1 if annotation_value else 0),
+            "selection_criteria_count": (
+                len(selected_parameters)
+                + (1 if annotation_value else 0)
+                + (1 if structure_filter else 0)
+            ),
             "display_parameters":display_parameters,
             "grouped_parameters":grouped_parameters,
             "pagination":pagination_info,
             "page_size": page_size,
             "search_query": search_query,
             "page_numbers": page_numbers,
-            "filter_options": filter_options,
+            "filter_groups": filter_groups,
+            "filter_groups_total_options": sum(
+                len(param["options"]) for group in filter_groups for param in group["params"]
+            ),
+            "numeric_param_count": numeric_param_count,
             "pipeline_status": pipeline_status,
             "clear_search_url": clear_search_url,
             "clear_annotation_url": self._build_clear_annotation_url(request, page_size),
+            "clear_structure_url": self._build_clear_structure_url(request, page_size),
             "structure_source": structure_source,
-            "structure_source_choices": [
-                {"value": "", "label": "All"},
-                {"value": "experimental", "label": "Experimental"},
-                {"value": "alphafold", "label": "AlphaFold"},
-                {"value": "colabfold", "label": "ColabFold"},
-                {"value": "none", "label": "No structure"},
-            ],
+            "structure_filter": structure_filter,
+            "structure_source_choices": structure_source_choices,
             "ec_filter_value": annotation_value if annotation_kind == "ec" else "",
             "annotation_filter": annotation_filter,
             "column_rows": self._build_column_rows(all_visible_score_params, selected_column_names),

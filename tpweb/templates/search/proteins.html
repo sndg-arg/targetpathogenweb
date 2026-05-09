@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20260414-1">
+    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20260504-1">
 {% endblock %}
 
 {% block body %}
@@ -40,14 +40,8 @@
                 {% if formula %}
                     <span class="tp-chip tp-chip--meta">{% trans "Scoring" %}: {{ formula.name }}</span>
                 {% endif %}
-                {% for score_param, values in grouped_parameters.items %}
-                    <span class="tp-chip tp-chip--meta">{{ score_param|humanize_identifier }}: {{ values|humanize_identifier }}</span>
-                {% endfor %}
                 {% if structure_source %}
                     <span class="tp-chip tp-chip--meta">{% trans "Structure" %}: {{ structure_source|humanize_identifier }}</span>
-                {% endif %}
-                {% if annotation_filter %}
-                    <span class="tp-chip tp-chip--meta">{{ annotation_filter.kind_label }}: {{ annotation_filter.value }}</span>
                 {% endif %}
             </div>
             {% if pipeline_status.available and pipeline_status.running_for_current_genome %}
@@ -173,6 +167,45 @@
                 </div>
             </form>
         </section>
+
+        {% if display_parameters or annotation_filter or structure_filter %}
+        <section class="filter-tray" role="region" aria-label="{% trans 'Active criteria' %}">
+            <div class="filter-tray-head">
+                <span class="filter-tray-label">{% trans "Active criteria" %}</span>
+                <span class="filter-tray-count tp-chip tp-chip--count tp-chip--sm">{{ selection_criteria_count }}</span>
+            </div>
+            <div class="filter-tray-pills">
+                {% if structure_filter %}
+                    <a href="{{ clear_structure_url }}" class="filter-pill tp-chip tp-chip--filter">
+                        <span><strong>{% trans "Structure" %}:</strong> {{ structure_filter.label }}</span>
+                        <span class="filter-pill-remove" title="{% trans 'Remove filter' %}" aria-label="{% trans 'Remove filter' %}">&times;</span>
+                    </a>
+                {% endif %}
+                {% if annotation_filter %}
+                    <a href="{{ clear_annotation_url }}" class="filter-pill tp-chip tp-chip--filter">
+                        <span><strong>{{ annotation_filter.kind_label }}:</strong> {{ annotation_filter.value }}{% if annotation_filter.name %} · {{ annotation_filter.name }}{% endif %}</span>
+                        <span class="filter-pill-remove" title="{% trans 'Remove filter' %}" aria-label="{% trans 'Remove filter' %}">&times;</span>
+                    </a>
+                {% endif %}
+                {% for parameter in display_parameters %}
+                    <form method="POST" action="" class="filter-pill tp-chip tp-chip--filter">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="remove_filter">
+                        <input type="hidden" name="filter_option_id" value="{{ parameter.id }}">
+                        <input type="hidden" name="return_query" value="{{ query_string }}">
+                        <span><strong>{{ parameter.display_score_param_name|default:parameter.score_param_name|humanize_identifier }}:</strong> {{ parameter.display_name|default:parameter.name|humanize_identifier }}</span>
+                        <button type="submit" class="filter-pill-remove tp-focusable" title="{% trans 'Remove filter' %}" aria-label="{% trans 'Remove filter' %}">&times;</button>
+                    </form>
+                {% endfor %}
+            </div>
+            <form method="POST" action="" class="filter-tray-clear-form">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="reset_filters">
+                <input type="hidden" name="return_query" value="{{ query_string }}">
+                <button type="submit" class="filter-tray-clear-btn">{% trans "Clear all" %}</button>
+            </form>
+        </section>
+        {% endif %}
 
         <section class="protein-workspace" id="protein-workspace">
             <div class="protein-table-panel">
@@ -382,87 +415,152 @@
             </button>
         </div>
         <div class="drawer-body">
-            <div class="drawer-block drawer-block--add-filter">
-                <div class="drawer-block-head">
-                    <h3>{% trans "Add criterion" %}</h3>
-                    <span class="drawer-meta tp-chip tp-chip--count tp-chip--sm">
-                        {% blocktrans count total=filter_options|length %}{{ total }} option{% plural %}{{ total }} options{% endblocktrans %}
-                    </span>
-                </div>
-                <form method="POST" action="" class="filter-add-form" id="filter-add-form" novalidate>
-                    {% csrf_token %}
-                    <input type="hidden" name="action" value="add_filter">
-                    <input type="hidden" name="return_query" value="{{ query_string }}">
-                    {% regroup filter_options by score_param.name as filter_groups %}
-                    <select id="filter-option-select"
-                            name="filter_option_id"
-                            class="form-control filter-option-select"
-                            required
-                            aria-describedby="filter-add-feedback">
-                        <option value="">{% trans "Select evidence/value..." %}</option>
-                        {% for group in filter_groups %}
-                            <optgroup label="{{ group.grouper|humanize_identifier }}">
-                                {% for option in group.list %}
-                                    <option value="{{ option.id }}">{{ option.name|humanize_identifier }}</option>
-                                {% endfor %}
-                            </optgroup>
-                        {% endfor %}
-                    </select>
-                    <p class="filter-add-feedback tp-ui-feedback"
-                       id="filter-add-feedback"
-                       role="status"
-                       aria-live="polite"
-                       data-empty-message="{% trans "Select an evidence/value pair to enable Add criterion." %}"
-                       data-duplicate-message="{% trans "This criterion is already active." %}"
-                       data-ready-message="{% trans "Ready to add this criterion." %}">{% trans "Select an evidence/value pair to enable Add criterion." %}</p>
-                    <button type="submit" class="btn tp-btn tp-btn--primary filter-add-btn" id="add-filter-btn" disabled>{% trans "Add criterion" %}</button>
-                </form>
-            </div>
-
-            <div class="drawer-block drawer-block--active-filters">
+            <div class="drawer-active-summary {% if not display_parameters and not annotation_filter and not structure_filter %}is-empty{% endif %}">
                 <div class="drawer-block-head">
                     <h3>{% trans "Active criteria" %}</h3>
-                    <span class="drawer-meta tp-chip tp-chip--count tp-chip--sm">{% if annotation_filter %}{{ display_parameters|length|add:1 }}{% else %}{{ display_parameters|length }}{% endif %}</span>
+                    <span class="drawer-meta tp-chip tp-chip--count tp-chip--sm">{{ selection_criteria_count }}</span>
                 </div>
-                <div class="active-filters {% if not display_parameters and not annotation_filter %}is-empty{% endif %}">
-                    {% if annotation_filter %}
-                        <a href="{{ clear_annotation_url }}" class="filter-pill tp-chip tp-chip--filter">
-                            <span>{{ annotation_filter.kind_label }}: {{ annotation_filter.value }}{% if annotation_filter.name %} · {{ annotation_filter.name }}{% endif %}</span>
-                            <span class="filter-pill-remove" title="{% trans 'Remove filter' %}" aria-label="{% trans 'Remove filter' %}">&times;</span>
-                        </a>
-                    {% endif %}
-                    {% for parameter in display_parameters %}
-                        <form method="POST" action="" class="filter-pill tp-chip tp-chip--filter">
-                            {% csrf_token %}
-                            <input type="hidden" name="action" value="remove_filter">
-                            <input type="hidden" name="filter_option_id" value="{{ parameter.id }}">
-                            <input type="hidden" name="return_query" value="{{ query_string }}">
-                            <span>{{ parameter.display_score_param_name|default:parameter.score_param_name|humanize_identifier }}: {{ parameter.display_name|default:parameter.name|humanize_identifier }}</span>
-                            <button type="submit" class="filter-pill-remove tp-focusable" title="{% trans "Remove filter" %}" aria-label="{% trans "Remove filter" %}">&times;</button>
-                        </form>
-                    {% empty %}
-                        {% if not annotation_filter %}
-                        <p class="active-filters-empty tp-state-note tp-state-note--empty">{% trans "No active criteria yet. Add one above to narrow the protein set." %}</p>
+                {% if display_parameters or annotation_filter or structure_filter %}
+                    <div class="active-filters">
+                        {% if structure_filter %}
+                            <a href="{{ clear_structure_url }}" class="filter-pill tp-chip tp-chip--filter">
+                                <span><strong>{% trans "Structure" %}:</strong> {{ structure_filter.label }}</span>
+                                <span class="filter-pill-remove" title="{% trans 'Remove filter' %}" aria-label="{% trans 'Remove filter' %}">&times;</span>
+                            </a>
                         {% endif %}
-                    {% endfor %}
-                </div>
+                        {% if annotation_filter %}
+                            <a href="{{ clear_annotation_url }}" class="filter-pill tp-chip tp-chip--filter">
+                                <span><strong>{{ annotation_filter.kind_label }}:</strong> {{ annotation_filter.value }}{% if annotation_filter.name %} · {{ annotation_filter.name }}{% endif %}</span>
+                                <span class="filter-pill-remove" title="{% trans 'Remove filter' %}" aria-label="{% trans 'Remove filter' %}">&times;</span>
+                            </a>
+                        {% endif %}
+                        {% for parameter in display_parameters %}
+                            <form method="POST" action="" class="filter-pill tp-chip tp-chip--filter">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="remove_filter">
+                                <input type="hidden" name="filter_option_id" value="{{ parameter.id }}">
+                                <input type="hidden" name="return_query" value="{{ query_string }}">
+                                <span><strong>{{ parameter.display_score_param_name|default:parameter.score_param_name|humanize_identifier }}:</strong> {{ parameter.display_name|default:parameter.name|humanize_identifier }}</span>
+                                <button type="submit" class="filter-pill-remove tp-focusable" title="{% trans 'Remove filter' %}" aria-label="{% trans 'Remove filter' %}">&times;</button>
+                            </form>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="active-filters-empty tp-state-note tp-state-note--empty">{% trans "No active criteria yet. Pick from the catalogue below." %}</p>
+                {% endif %}
             </div>
+
+            <div class="drawer-search">
+                <span class="drawer-search-icon" aria-hidden="true">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="7" r="5"/><path d="M14 14l-3.6-3.6"/></svg>
+                </span>
+                <input type="search"
+                       id="filter-search-input"
+                       class="drawer-search-input"
+                       placeholder="{% trans 'Search criteria, evidence, or values…' %}"
+                       autocomplete="off"
+                       aria-label="{% trans 'Search criteria' %}">
+                <button type="button" class="drawer-search-clear" id="filter-search-clear" hidden aria-label="{% trans 'Clear search' %}">&times;</button>
+            </div>
+
+            <div class="drawer-catalogue-meta">
+                <span class="drawer-catalogue-count">
+                    {% blocktrans count total=filter_groups_total_options %}{{ total }} criterion across {{ filter_groups|length }} categories{% plural %}{{ total }} criteria across {{ filter_groups|length }} categories{% endblocktrans %}
+                </span>
+                <button type="button" class="drawer-catalogue-toggle" id="filter-expand-all" data-expand-all="false">{% trans "Expand all" %}</button>
+            </div>
+
+            <div class="drawer-filter-catalogue" id="drawer-filter-catalogue">
+                {% for group in filter_groups %}
+                    <details class="filter-group"
+                             data-filter-group
+                             data-category="{{ group.category|lower }}"
+                             {% if group.any_active %}open{% endif %}>
+                        <summary class="filter-group-summary">
+                            <span class="filter-group-name">{{ group.category|humanize_identifier }}</span>
+                            <span class="filter-group-meta">
+                                {% if group.any_active %}
+                                    <span class="filter-group-active-dot" aria-label="{% trans 'Has active criteria' %}"></span>
+                                {% endif %}
+                                <span class="filter-group-count">{{ group.param_count }}</span>
+                                <span class="filter-group-chevron" aria-hidden="true"></span>
+                            </span>
+                        </summary>
+                        <div class="filter-group-body">
+                            {% for param in group.params %}
+                                <div class="filter-param" data-filter-param data-search-text="{{ param.search_text }}">
+                                    <div class="filter-param-head">
+                                        <span class="filter-param-label">{{ param.label }}</span>
+                                        {% if param.description %}
+                                            <span class="filter-param-help" tabindex="0" role="button" aria-label="{% trans 'About this criterion' %}">
+                                                <span aria-hidden="true">i</span>
+                                                <span class="filter-param-tooltip" role="tooltip">{{ param.description }}</span>
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="filter-chip-group">
+                                        {% for option in param.options %}
+                                            {% if option.is_link %}
+                                                <a href="{{ option.url }}"
+                                                   class="filter-chip {% if option.active %}filter-chip--active{% endif %}"
+                                                   {% if option.description %}title="{{ option.description }}"{% endif %}
+                                                   aria-pressed="{% if option.active %}true{% else %}false{% endif %}">
+                                                    {% if option.active %}<span class="filter-chip-glyph" aria-hidden="true">&times;</span>{% endif %}
+                                                    <span class="filter-chip-label">{{ option.label }}</span>
+                                                </a>
+                                            {% else %}
+                                                <form method="POST" action="" class="filter-chip-form">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="action" value="{% if option.active %}remove_filter{% else %}add_filter{% endif %}">
+                                                    <input type="hidden" name="filter_option_id" value="{{ option.id }}">
+                                                    <input type="hidden" name="return_query" value="{{ query_string }}">
+                                                    <button type="submit"
+                                                            class="filter-chip {% if option.active %}filter-chip--active{% endif %}"
+                                                            {% if option.description %}title="{{ option.description }}"{% endif %}
+                                                            aria-pressed="{% if option.active %}true{% else %}false{% endif %}">
+                                                        {% if option.active %}<span class="filter-chip-glyph" aria-hidden="true">&times;</span>{% endif %}
+                                                        <span class="filter-chip-label">{{ option.label }}</span>
+                                                    </button>
+                                                </form>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </details>
+                {% empty %}
+                    <p class="tp-state-note tp-state-note--empty filter-catalogue-empty">{% trans "No criteria available for this genome yet." %}</p>
+                {% endfor %}
+                <p class="filter-search-no-results tp-state-note tp-state-note--empty" id="filter-search-no-results" hidden>
+                    {% trans "No criteria match the search." %}
+                </p>
+            </div>
+
+            {% if numeric_param_count or formulas %}
+                <p class="drawer-advanced-hint">
+                    {% if numeric_param_count %}
+                        {% blocktrans count total=numeric_param_count %}For numeric ranges or thresholds ({{ total }} parameter), use{% plural %}For numeric ranges or thresholds ({{ total }} parameters), use{% endblocktrans %}
+                    {% else %}
+                        {% trans "Need ranges, thresholds, or expression-based criteria?" %}
+                    {% endif %}
+                    <a href="{% url 'tpwebapp:parameterformview' genome=genome %}{% if query_string %}?{{ query_string }}{% endif %}">{% trans "advanced criteria" %}</a>.
+                </p>
+            {% endif %}
         </div>
         <div class="drawer-foot">
-            <a href="{% url 'tpwebapp:parameterformview' genome=genome %}{% if query_string %}?{{ query_string }}{% endif %}" class="btn tp-btn tp-btn--clear drawer-advanced-btn">
-                {% trans "Advanced criteria" %}
-            </a>
             <form method="POST" action="" class="drawer-reset-form">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="reset_filters">
                 <input type="hidden" name="return_query" value="{{ query_string }}">
-                {% trans "Clear criteria" as clear_filters_label %}
-                {% if parameters or annotation_filter %}
+                {% trans "Clear all criteria" as clear_filters_label %}
+                {% if parameters or annotation_filter or structure_filter %}
                     {% include "components/buttons/clear_action.html" with label=clear_filters_label button_type="submit" classes="btn tp-btn tp-btn--clear tp-btn--clear-caution tp-btn-with-icon drawer-clear-btn" %}
                 {% else %}
                     {% include "components/buttons/clear_action.html" with label=clear_filters_label button_type="submit" disabled="1" classes="btn tp-btn tp-btn--clear tp-btn--clear-caution tp-btn-with-icon drawer-clear-btn" %}
                 {% endif %}
             </form>
+            <button type="button" class="btn tp-btn tp-btn--primary drawer-done-btn" id="filters-done-btn">{% trans "Done" %}</button>
         </div>
     </aside>
 
@@ -752,12 +850,14 @@
             const autocompleteRoot = document.getElementById("protein-search-autocomplete");
             const suggestionsBox = document.getElementById("protein-search-suggestions");
             const suggestUrl = autocompleteRoot ? autocompleteRoot.getAttribute("data-suggest-url") : "";
-            const filterAddForm = document.getElementById("filter-add-form");
-            const filterOptionSelect = document.getElementById("filter-option-select");
-            const addFilterBtn = document.getElementById("add-filter-btn");
-            const filterAddFeedback = document.getElementById("filter-add-feedback");
             const scoreFormulaSelect = document.getElementById("score_formula_select");
             const applyFormulaBtn = document.getElementById("apply-formula-btn");
+            const filterSearchInput = document.getElementById("filter-search-input");
+            const filterSearchClearBtn = document.getElementById("filter-search-clear");
+            const filterCatalogue = document.getElementById("drawer-filter-catalogue");
+            const filterExpandAllBtn = document.getElementById("filter-expand-all");
+            const filterSearchNoResults = document.getElementById("filter-search-no-results");
+            const filtersDoneBtn = document.getElementById("filters-done-btn");
             let suggestionsTimer = null;
             let suggestionRequestId = 0;
             let activeSuggestionIndex = -1;
@@ -768,10 +868,7 @@
                 blurDelayMs: 120
             });
             const UI_TEXT = Object.freeze({
-                suggestionRequestFailed: autocompleteRoot ? (autocompleteRoot.getAttribute("data-suggest-error") || "") : "",
-                addFilterEmpty: filterAddFeedback ? (filterAddFeedback.getAttribute("data-empty-message") || "") : "",
-                addFilterDuplicate: filterAddFeedback ? (filterAddFeedback.getAttribute("data-duplicate-message") || "") : "",
-                addFilterReady: filterAddFeedback ? (filterAddFeedback.getAttribute("data-ready-message") || "") : ""
+                suggestionRequestFailed: autocompleteRoot ? (autocompleteRoot.getAttribute("data-suggest-error") || "") : ""
             });
 
             function submitSearchForm() {
@@ -1015,50 +1112,81 @@
                 }
             });
 
-            function syncAddFilterState() {
-                if (!filterOptionSelect || !addFilterBtn) return;
-                const selectedValue = (filterOptionSelect.value || "").trim();
-                const activeFilterOptionIds = new Set(
-                    Array.from(document.querySelectorAll(".filter-pill input[name='filter_option_id']"))
-                        .map(function (input) {
-                            return (input.value || "").trim();
-                        })
-                        .filter(Boolean)
-                );
-                const hasSelection = selectedValue.length > 0;
-                const duplicateSelection = hasSelection && activeFilterOptionIds.has(selectedValue);
-                addFilterBtn.disabled = !hasSelection || duplicateSelection;
-
-                if (filterAddFeedback) {
-                    filterAddFeedback.classList.remove("is-error", "is-ok");
-                    if (!hasSelection) {
-                        filterAddFeedback.textContent = UI_TEXT.addFilterEmpty;
-                    } else if (duplicateSelection) {
-                        filterAddFeedback.textContent = UI_TEXT.addFilterDuplicate;
-                        filterAddFeedback.classList.add("is-error");
-                    } else {
-                        filterAddFeedback.textContent = UI_TEXT.addFilterReady;
-                        filterAddFeedback.classList.add("is-ok");
+            function applyFilterCatalogueSearch() {
+                if (!filterCatalogue) return;
+                const query = filterSearchInput ? (filterSearchInput.value || "").trim().toLowerCase() : "";
+                const groups = filterCatalogue.querySelectorAll("[data-filter-group]");
+                let matchedTotal = 0;
+                groups.forEach(function (group) {
+                    const params = group.querySelectorAll("[data-filter-param]");
+                    const groupCategory = (group.getAttribute("data-category") || "").toLowerCase();
+                    const categoryMatches = Boolean(query) && groupCategory.indexOf(query) >= 0;
+                    let visibleParams = 0;
+                    params.forEach(function (param) {
+                        const text = (param.getAttribute("data-search-text") || "").toLowerCase();
+                        const matches = !query || text.indexOf(query) >= 0 || categoryMatches;
+                        param.classList.toggle("is-search-hidden", !matches);
+                        if (matches) visibleParams += 1;
+                    });
+                    const groupVisible = visibleParams > 0;
+                    group.classList.toggle("is-search-hidden", !groupVisible);
+                    if (query && groupVisible) {
+                        group.open = true;
                     }
+                    if (groupVisible) matchedTotal += visibleParams;
+                });
+                if (filterSearchNoResults) {
+                    filterSearchNoResults.hidden = matchedTotal !== 0;
+                }
+                if (filterSearchClearBtn) {
+                    filterSearchClearBtn.hidden = !query;
                 }
             }
 
-            if (filterOptionSelect) {
-                filterOptionSelect.addEventListener("change", syncAddFilterState);
-                filterOptionSelect.addEventListener("input", syncAddFilterState);
+            function setExpandAllState(expanded) {
+                if (!filterCatalogue) return;
+                const groups = filterCatalogue.querySelectorAll("[data-filter-group]");
+                groups.forEach(function (group) {
+                    if (expanded) {
+                        group.open = true;
+                    } else {
+                        const hasActive = group.querySelector(".filter-chip--active");
+                        group.open = Boolean(hasActive);
+                    }
+                });
+                if (filterExpandAllBtn) {
+                    filterExpandAllBtn.setAttribute("data-expand-all", expanded ? "true" : "false");
+                    filterExpandAllBtn.textContent = expanded ? "{% trans 'Collapse all' %}" : "{% trans 'Expand all' %}";
+                }
             }
 
-            if (filterAddForm) {
-                filterAddForm.addEventListener("submit", function (event) {
-                    syncAddFilterState();
-                    if (addFilterBtn && addFilterBtn.disabled) {
-                        event.preventDefault();
-                        if (filterOptionSelect) filterOptionSelect.focus();
+            if (filterSearchInput) {
+                filterSearchInput.addEventListener("input", applyFilterCatalogueSearch);
+                filterSearchInput.addEventListener("keydown", function (event) {
+                    if (event.key === "Escape") {
+                        filterSearchInput.value = "";
+                        applyFilterCatalogueSearch();
                     }
                 });
             }
-
-            syncAddFilterState();
+            if (filterSearchClearBtn) {
+                filterSearchClearBtn.addEventListener("click", function () {
+                    if (!filterSearchInput) return;
+                    filterSearchInput.value = "";
+                    filterSearchInput.focus();
+                    applyFilterCatalogueSearch();
+                });
+            }
+            if (filterExpandAllBtn) {
+                filterExpandAllBtn.addEventListener("click", function () {
+                    const isExpanded = filterExpandAllBtn.getAttribute("data-expand-all") === "true";
+                    setExpandAllState(!isExpanded);
+                });
+            }
+            if (filtersDoneBtn) {
+                filtersDoneBtn.addEventListener("click", function () { setDrawerState(false); });
+            }
+            applyFilterCatalogueSearch();
 
             function syncApplyFormulaState() {
                 if (!scoreFormulaSelect || !applyFormulaBtn) return;
