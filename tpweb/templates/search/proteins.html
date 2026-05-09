@@ -583,25 +583,48 @@
     <div class="formula-modal columns-modal" id="columns-modal" aria-hidden="true">
         <div class="formula-head">
             <div class="columns-modal-headline">
-                <h2>{% trans "Table columns" %}</h2>
-                <p>{% trans "Choose which optional evidence columns appear in the protein table." %}</p>
+                <h2>{% trans "Visible metrics" %}</h2>
+                <p>{% trans "Choose which evidence columns biologists should see first in the protein table." %}</p>
             </div>
             <button class="btn tp-btn tp-btn--neutral drawer-close-btn" type="button" id="close-columns-btn" aria-label="{% trans 'Close' %}">
                 <span class="drawer-close-glyph" aria-hidden="true">&times;</span>
             </button>
         </div>
         <div class="formula-body columns-body">
+            <section class="modal-guide-strip columns-guide-strip" aria-label="{% trans 'How to use visible metrics' %}">
+                <div class="modal-guide-step">
+                    <span class="modal-guide-step__index">1</span>
+                    <div>
+                        <strong>{% trans "Keep essentials visible" %}</strong>
+                        <p>{% trans "Protein identifiers always stay on screen, so you only manage the optional evidence." %}</p>
+                    </div>
+                </div>
+                <div class="modal-guide-step">
+                    <span class="modal-guide-step__index">2</span>
+                    <div>
+                        <strong>{% trans "Show the evidence you need" %}</strong>
+                        <p>{% trans "Add or remove metrics depending on whether you are screening, comparing, or reviewing candidates." %}</p>
+                    </div>
+                </div>
+                <div class="modal-guide-step">
+                    <span class="modal-guide-step__index">3</span>
+                    <div>
+                        <strong>{% trans "Order metrics for reading" %}</strong>
+                        <p>{% trans "Drag visible metrics to decide the left-to-right reading order in the table." %}</p>
+                    </div>
+                </div>
+            </section>
             <section class="columns-summary">
                 <div class="columns-summary-head">
                     <div>
-                        <h3>{% trans "Table structure" %}</h3>
-                        <p>{% trans "Core identifiers remain visible in every table configuration. Optional evidence columns can be added, removed, or reordered below." %}</p>
+                        <h3>{% trans "Current table setup" %}</h3>
+                        <p>{% trans "The base protein identifiers stay fixed. Below, you decide which optional evidence stays visible and in what order." %}</p>
                     </div>
                     <span class="columns-summary-count" id="columns-selected-count">{{ selected_column_names|length }}</span>
                 </div>
                 <div class="columns-summary-grid">
                     <div class="columns-summary-block">
-                        <span class="columns-summary-label">{% trans "Core identifiers" %}</span>
+                        <span class="columns-summary-label">{% trans "Always shown" %}</span>
                         <div class="columns-fixed-list">
                             {% for label in fixed_column_labels %}
                                 <span class="tp-chip tp-chip--meta tp-chip--sm columns-fixed-chip">{{ label }}</span>
@@ -609,7 +632,7 @@
                         </div>
                     </div>
                     <div class="columns-summary-block">
-                        <span class="columns-summary-label">{% trans "Selected optional metrics" %}</span>
+                        <span class="columns-summary-label">{% trans "Visible optional metrics" %}</span>
                         <div class="columns-selected-list columns-selected-list--chips" id="columns-selected-list">
                             {% for row in column_rows %}
                                 {% if row.selected %}
@@ -628,8 +651,8 @@
                     <section class="columns-customize">
                         <div class="columns-section-head">
                             <div>
-                                <h3>{% trans "Visible optional metrics" %}</h3>
-                                <p>{% trans "These evidence columns are currently shown in the table. Drag to reorder them." %}</p>
+                                <h3>{% trans "Metrics shown in the table" %}</h3>
+                                <p>{% trans "These columns are visible right now. Drag them to set the reading order and hide any that are not useful for the current analysis." %}</p>
                             </div>
                             <span class="columns-summary-count columns-panel-count" id="columns-visible-panel-count">{{ selected_column_names|length }}</span>
                         </div>
@@ -679,14 +702,14 @@
                             {% endfor %}
                         </div>
                         <div class="columns-empty-state tp-state-note tp-state-note--empty" id="columns-visible-empty" {% if selected_column_names %}hidden{% endif %}>
-                            {% trans "No optional metrics selected yet." %}
+                            {% trans "No optional evidence columns are visible yet." %}
                         </div>
                     </section>
                     <section class="columns-library">
                         <div class="columns-section-head">
                             <div>
-                                <h3>{% trans "Available evidence metrics" %}</h3>
-                                <p>{% trans "Add evidence columns when needed for inspection, filtering, or comparison." %}</p>
+                                <h3>{% trans "More evidence you can add" %}</h3>
+                                <p>{% trans "Bring these metrics into the table when you need extra biological context for filtering, ranking, or manual review." %}</p>
                             </div>
                         </div>
                         <div class="columns-library-list" id="columns-library-list">
@@ -737,12 +760,12 @@
             </form>
         </div>
         <div class="drawer-foot columns-foot">
-            <button class="btn tp-btn tp-btn--primary" type="submit" form="columns-form">{% trans "Apply column selection" %}</button>
+            <button class="btn tp-btn tp-btn--primary" type="submit" form="columns-form">{% trans "Update visible metrics" %}</button>
             <form method="POST" action="" class="drawer-reset-form">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="reset_columns">
                 <input type="hidden" name="return_query" value="{{ query_string }}">
-                <button type="submit" class="btn tp-btn tp-btn--clear">{% trans "Restore default columns" %}</button>
+                <button type="submit" class="btn tp-btn tp-btn--clear">{% trans "Restore recommended metrics" %}</button>
             </form>
         </div>
     </div>
@@ -751,15 +774,41 @@
         <div class="tp-overlay" id="formula-overlay"></div>
         <div class="formula-modal" id="formula-modal" aria-hidden="true">
             <div class="formula-head">
-                <h2>{% trans "Scoring setup" %}</h2>
+                <div class="formula-modal-headline">
+                    <h2>{% trans "Ranking score" %}</h2>
+                    <p>{% trans "Choose how proteins are ordered in the table, based on the evidence model most useful for your analysis." %}</p>
+                </div>
                 <button class="btn tp-btn tp-btn--neutral drawer-close-btn" type="button" id="close-formula-btn" aria-label="{% trans 'Close' %}">
                     <span class="drawer-close-glyph" aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="formula-body">
+                <section class="modal-guide-strip formula-guide-strip" aria-label="{% trans 'How to use ranking score' %}">
+                    <div class="modal-guide-step">
+                        <span class="modal-guide-step__index">1</span>
+                        <div>
+                            <strong>{% trans "Pick a ranking model" %}</strong>
+                            <p>{% trans "Each formula prioritizes proteins using a different combination of biological evidence." %}</p>
+                        </div>
+                    </div>
+                    <div class="modal-guide-step">
+                        <span class="modal-guide-step__index">2</span>
+                        <div>
+                            <strong>{% trans "Reorder the table" %}</strong>
+                            <p>{% trans "Once applied, the protein list updates so the highest-ranked candidates appear first." %}</p>
+                        </div>
+                    </div>
+                    <div class="modal-guide-step">
+                        <span class="modal-guide-step__index">3</span>
+                        <div>
+                            <strong>{% trans "Review the formula details" %}</strong>
+                            <p>{% trans "Use the expression and setup links when you need to inspect or edit how the score is built." %}</p>
+                        </div>
+                    </div>
+                </section>
                 <section class="formula-current">
                     <div class="formula-current-head">
-                        <h3>{% trans "Current scoring model" %}</h3>
+                        <h3>{% trans "Current ranking formula" %}</h3>
                         {% if formula %}
                             <span class="formula-count-chip tp-chip tp-chip--count tp-chip--sm">
                                 {% blocktrans count total=formula_term_count %}{{ total }} term{% plural %}{{ total }} terms{% endblocktrans %}
@@ -790,7 +839,7 @@
                         <input type="hidden" name="annotation_value" value="{{ annotation_filter.value }}">
                     {% endif %}
                     <input type="hidden" name="pageSize" value="{{ page_size }}">
-                    <label for="score_formula_select" class="formula-select-label">{% trans "Select scoring formula" %}</label>
+                    <label for="score_formula_select" class="formula-select-label">{% trans "Choose how proteins should be ranked" %}</label>
                     {% if formulas|length > 1 %}
                         <select id="score_formula_select"
                                 name="scoreformula"
@@ -804,7 +853,7 @@
                                 {% endifchanged %}
                             {% endfor %}
                         </select>
-                        <button class="btn tp-btn tp-btn--primary" type="submit" id="apply-formula-btn">{% trans "Apply formula" %}</button>
+                        <button class="btn tp-btn tp-btn--primary" type="submit" id="apply-formula-btn">{% trans "Update ranking" %}</button>
                     {% else %}
                         <div class="formula-static-value tp-state-note tp-state-note--empty">
                             {{ formula.name|default:_("No formula available") }}
@@ -813,8 +862,8 @@
                 </form>
                 <section class="formula-resources">
                     <div class="formula-resources-head">
-                        <h3>{% trans "Scoring resources" %}</h3>
-                        <p>{% trans "Maintain the scoring model and custom evidence that define this analysis context." %}</p>
+                        <h3>{% trans "Formula details and maintenance" %}</h3>
+                        <p>{% trans "Open the prioritization workspace to inspect terms, adjust weights, or maintain custom evidence used by this ranking model." %}</p>
                     </div>
                     {% url 'tpwebapp:prioritization_setup' genome=genome as prioritization_setup_base_url %}
                     <div class="formula-resources-actions">
