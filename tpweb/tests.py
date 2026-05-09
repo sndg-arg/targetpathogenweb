@@ -29,6 +29,7 @@ from tpweb.services.genome_uploads import (
     owner_has_active_uploads,
     workspace_has_active_upload,
 )
+from tpweb.services.genome_metadata import build_genome_metadata_rows, genome_metadata_label
 from tpweb.services.genome_upload_status import reconcile_genome_uploads
 from tpweb.services.genomes import build_genome_dto, safe_int, summarize_genomes
 from tpweb.services.protein_list import (
@@ -223,6 +224,24 @@ class GenomeServiceTests(SimpleTestCase):
         self.assertEqual(metrics["colabfold_structures"], 1)
         structure_filtered.exclude.assert_called_once_with(
             pdb__experiment__in=("AF", "CF")
+        )
+
+    def test_genome_metadata_labels_are_human_readable(self):
+        self.assertEqual(genome_metadata_label("EntryLength"), "Sequence length [bp]")
+        self.assertEqual(genome_metadata_label("COUNT_CDS"), "Protein-coding features")
+        self.assertEqual(genome_metadata_label("COUNT_tmRNA"), "tmRNA features")
+
+    def test_genome_metadata_rows_follow_expected_order(self):
+        rows = build_genome_metadata_rows(
+            {
+                "COUNT_tmRNA": "1",
+                "EntryLength": "6264404",
+                "COUNT_CDS": "5572",
+            }
+        )
+        self.assertEqual(
+            [row["key"] for row in rows],
+            ["EntryLength", "COUNT_CDS", "COUNT_tmRNA"],
         )
 
 

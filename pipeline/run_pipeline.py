@@ -11,7 +11,7 @@ from parsl import join_app
 
 from config import TargetConfig
 from apps import (
-    clear_folder, download_gbk, test_gbk, custom_gbk, load_gbk,
+    clear_folder, download_gbk, test_gbk, custom_gbk, load_gbk, sync_genome_metadata,
     fasttarget, load_score, index_genome_db, index_genome_seq,
     interproscan, load_interpro, gbk2uniprot_map, fetch_uniprot_annotations,
     get_unipslst, alphafold_unips, esmfold_predict, structures_af,
@@ -254,6 +254,11 @@ def run(genome, gram, custom, source_genome=None, is_test=False):
         3,
         "load_gbk",
     )
+    r_metadata = _track_future(
+        sync_genome_metadata(working_dir=working_dir, folder_path=folder_path, genome=genome, inputs=[r_load]),
+        3,
+        "sync_genome_metadata",
+    )
     # ===================================================================
     # DAG: 5 parallel branches after load_gbk, with real dependencies
     # ===================================================================
@@ -274,7 +279,7 @@ def run(genome, gram, custom, source_genome=None, is_test=False):
 
     # --- Branch A: Scoring (fasttarget + 3 parallel score loads) ---
     r_fasttarget = _track_future(
-        fasttarget(working_dir=working_dir, folder_path=folder_path, genome=genome, inputs=[r_load]),
+        fasttarget(working_dir=working_dir, folder_path=folder_path, genome=genome, inputs=[r_metadata]),
         4,
         "fasttarget",
     )
@@ -296,7 +301,7 @@ def run(genome, gram, custom, source_genome=None, is_test=False):
 
     # --- Branch B: Indexing → InterProScan (needs load_gbk only) ---
     r_index_db = _track_future(
-        index_genome_db(working_dir=working_dir, inputs=[r_load], genome=genome),
+        index_genome_db(working_dir=working_dir, inputs=[r_metadata], genome=genome),
         8,
         "index_genome_db",
     )
@@ -319,7 +324,7 @@ def run(genome, gram, custom, source_genome=None, is_test=False):
     # --- Branch C: UniProt mapping → structures → druggability ---
     # gbk2uniprot only needs bioentries in DB (from load_gbk), not interpro
     r_gbk2uniprot = _track_future(
-        gbk2uniprot_map(working_dir=working_dir, genome=genome, folder_path=folder_path, inputs=[r_load]),
+        gbk2uniprot_map(working_dir=working_dir, genome=genome, folder_path=folder_path, inputs=[r_metadata]),
         12,
         "gbk2uniprot_map",
     )

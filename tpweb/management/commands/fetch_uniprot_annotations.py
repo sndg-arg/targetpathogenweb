@@ -1,6 +1,10 @@
+from django.conf import settings
 from django.core.management.base import BaseCommand
 
 from tpweb.services.functional_annotations import fetch_and_load_uniprot_annotations
+
+
+DEFAULT_DATA_DIR = str(settings.BASE_DIR / "data")
 
 
 class Command(BaseCommand):
@@ -13,8 +17,8 @@ class Command(BaseCommand):
         parser.add_argument("assembly_name", help="Genome accession (e.g. GCF_000009045.1)")
         parser.add_argument(
             "--datadir",
-            default="../data",
-            help="Base data directory containing the genome folders (default: ../data)",
+            default=DEFAULT_DATA_DIR,
+            help="Base data directory containing the genome folders (default: %(default)s)",
         )
         parser.add_argument(
             "--lst",

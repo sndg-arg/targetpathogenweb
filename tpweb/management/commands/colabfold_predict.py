@@ -6,7 +6,7 @@ then runs AlphaFold2 inference locally on CPU.  Slower than ESMFold but
 produces AF2-quality models and handles proteins of any size.
 
 Usage:
-    python manage.py colabfold_predict <genome> --datadir ../data
+    python manage.py colabfold_predict <genome> --datadir /app/targetpathogenweb/data
 
 Requirements:
     colabfold_batch must be installed and on PATH, or its full path
@@ -27,12 +27,14 @@ import subprocess
 import sys
 import tempfile
 
+from django.conf import settings
 from django.core.management.base import BaseCommand
 
 
 DEFAULT_COLABFOLD_BIN = os.getenv("TPW_COLABFOLD_BIN", "colabfold_batch")
 DEFAULT_NUM_RECYCLES = int(os.getenv("TPW_COLABFOLD_NUM_RECYCLES", "3"))
 DEFAULT_NUM_MODELS = int(os.getenv("TPW_COLABFOLD_NUM_MODELS", "1"))
+DEFAULT_DATA_DIR = str(settings.BASE_DIR / "data")
 
 
 class Command(BaseCommand):
@@ -40,7 +42,7 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("genome", help="Genome accession (internal name)")
-        parser.add_argument("--datadir", default="../data")
+        parser.add_argument("--datadir", default=DEFAULT_DATA_DIR)
         parser.add_argument(
             "--colabfold-bin",
             default=DEFAULT_COLABFOLD_BIN,

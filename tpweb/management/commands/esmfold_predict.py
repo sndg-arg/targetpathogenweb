@@ -2,7 +2,7 @@
 Predict structures with ESMFold for proteins that lack an AlphaFold model.
 
 Usage:
-    python manage.py esmfold_predict <genome> --datadir ../data
+    python manage.py esmfold_predict <genome> --datadir /app/targetpathogenweb/data
 """
 
 import gzip
@@ -11,6 +11,7 @@ import os
 import time
 
 import requests
+from django.conf import settings
 from django.core.management.base import BaseCommand
 
 
@@ -22,6 +23,7 @@ DEFAULT_MAX_LENGTH = int(os.getenv("TPW_ESMFOLD_MAX_LENGTH", "400"))
 DEFAULT_DELAY = float(os.getenv("TPW_ESMFOLD_DELAY_SEC", "1"))
 DEFAULT_TIMEOUT = int(os.getenv("TPW_ESMFOLD_TIMEOUT_SEC", "120"))
 MAX_RETRIES = 3
+DEFAULT_DATA_DIR = str(settings.BASE_DIR / "data")
 
 
 class Command(BaseCommand):
@@ -29,7 +31,7 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("genome", help="Genome accession (internal name)")
-        parser.add_argument("--datadir", default="../data")
+        parser.add_argument("--datadir", default=DEFAULT_DATA_DIR)
         parser.add_argument(
             "--max-length",
             type=int,

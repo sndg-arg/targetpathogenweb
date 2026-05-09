@@ -30,6 +30,7 @@ from pipeline_commands import (
     test_gbk_cmd,
     custom_gbk_cmd,
     load_gbk_cmd,
+    sync_genome_metadata_cmd,
     fasttarget_cmd,
     load_score_cmd,
     index_db_cmd,
@@ -224,6 +225,7 @@ def run_genome(genome, gram, custom, source_genome, is_test, working_dir, cfg_di
 
     if not _skip(3):
         _run_stage(3, "load_gbk", load_gbk_cmd(working_dir, folder_path, genome))
+        _run_stage(3, "sync_genome_metadata", sync_genome_metadata_cmd(working_dir, folder_path, genome))
     if not _skip(4):
         _run_stage(4, "fasttarget", fasttarget_cmd(working_dir, genome, folder_path))
     if not _skip(5):

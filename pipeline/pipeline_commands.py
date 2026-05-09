@@ -12,6 +12,10 @@ import sys
 PYTHON_BIN = shlex.quote(sys.executable)
 
 
+def _data_dir(working_dir):
+    return os.path.join(working_dir, "data")
+
+
 def _host_bind_path(container_path, env_name, container_base):
     host_base = os.environ.get(env_name, "").strip()
     container_base = os.path.abspath(container_base)
@@ -39,11 +43,11 @@ def download_gbk_cmd(working_dir, genome, target_accession=None):
 
 
 def test_gbk_cmd(working_dir, genome):
-    return f"{PYTHON_BIN} {working_dir}/manage.py tpweb_test_gbk --datadir ../data --target-accession {genome}"
+    return f"{PYTHON_BIN} {working_dir}/manage.py tpweb_test_gbk --datadir {_data_dir(working_dir)} --target-accession {genome}"
 
 
 def custom_gbk_cmd(working_dir, genome, custom):
-    return f"{PYTHON_BIN} {working_dir}/manage.py custom_gbk {genome} --datadir ../data --custom {custom}"
+    return f"{PYTHON_BIN} {working_dir}/manage.py custom_gbk {genome} --datadir {_data_dir(working_dir)} --custom {custom}"
 
 
 # --- Stage 3: Load genome ---
@@ -53,17 +57,22 @@ def load_gbk_cmd(working_dir, folder_path, genome):
     return f"{PYTHON_BIN} {working_dir}/manage.py load_gbk {gbk_path} --overwrite --accession {genome} --datadir {working_dir}/data"
 
 
+def sync_genome_metadata_cmd(working_dir, folder_path, genome):
+    gbk_path = os.path.join(folder_path, f"{genome}.gbk.gz")
+    return f"{PYTHON_BIN} {working_dir}/manage.py sync_genome_metadata {genome} {gbk_path}"
+
+
 # --- Stage 4: FastTarget ---
 
 def fasttarget_cmd(working_dir, genome, folder_path):
-    return f"{PYTHON_BIN} {working_dir}/manage.py fast_command {genome} {folder_path} --datadir ../data"
+    return f"{PYTHON_BIN} {working_dir}/manage.py fast_command {genome} {folder_path} --datadir {_data_dir(working_dir)}"
 
 
 # --- Stages 5-7, 19, 21: Score loading ---
 
 def load_score_cmd(working_dir, genome, param):
     from bioseq.io.SeqStore import SeqStore
-    ss = SeqStore("../data")
+    ss = SeqStore(_data_dir(working_dir))
     tsv_getters = {
         "druggability": ss.druggability_tsv,
         "psort": ss.psort_tsv,
@@ -75,7 +84,7 @@ def load_score_cmd(working_dir, genome, param):
     if getter is None:
         raise ValueError(f"Unknown score param: {param}")
     tsv_file = getter(genome)
-    return f"{PYTHON_BIN} {working_dir}/manage.py load_score_values {genome} {tsv_file} --datadir ../data --overwrite"
+    return f"{PYTHON_BIN} {working_dir}/manage.py load_score_values {genome} {tsv_file} --datadir {_data_dir(working_dir)} --overwrite"
 
 
 # --- Stage 8-9: Indexing ---
@@ -143,7 +152,7 @@ def colabfold_cmd(working_dir, genome):
 
 def load_af_model_cmd(locus_tag, working_dir, folder_path):
     protein_pdb = os.path.join(folder_path, "alphafold", locus_tag, f"{locus_tag}_af.pdb")
-    return f"{PYTHON_BIN} {working_dir}/manage.py load_af_model {locus_tag} {protein_pdb} {locus_tag} --overwrite --datadir '../data'"
+    return f"{PYTHON_BIN} {working_dir}/manage.py load_af_model {locus_tag} {protein_pdb} {locus_tag} --overwrite --datadir {_data_dir(working_dir)}"
 
 
 def run_fpocket_cmd(folder_path, locus_tag):
@@ -179,25 +188,25 @@ def fpocket2json_cmd(folder_path, locus_tag):
 def load_pocket_cmd(folder_path, locus_tag, working_dir):
     locustag_af = os.path.join(folder_path, "alphafold", locus_tag, f"{locus_tag}_af_out", "fpocket.json.gz")
     if os.path.exists(locustag_af):
-        return f"{PYTHON_BIN} {working_dir}/manage.py load_fpocket --pocket_json {locustag_af} {locus_tag} --datadir '../data'"
+        return f"{PYTHON_BIN} {working_dir}/manage.py load_fpocket --pocket_json {locustag_af} {locus_tag} --datadir {_data_dir(working_dir)}"
     return f"echo 'No fpocket data for {locus_tag}, skipping'"
 
 
 def p2rank2json_cmd(genome, locus_tag, working_dir):
-    return f"{PYTHON_BIN} {working_dir}/manage.py p2rank_2_json {genome} {locus_tag} --datadir '../data'"
+    return f"{PYTHON_BIN} {working_dir}/manage.py p2rank_2_json {genome} {locus_tag} --datadir {_data_dir(working_dir)}"
 
 
 def load_p2pocket_cmd(genome, locus_tag, working_dir):
     from bioseq.io.SeqStore import SeqStore
-    ss = SeqStore("../data")
+    ss = SeqStore(_data_dir(working_dir))
     p2pocket_json = ss.p2rank_json(genome, locus_tag)
-    return f"{PYTHON_BIN} {working_dir}/manage.py load_fpocket --pocket_json {p2pocket_json} {locus_tag} --datadir '../data' --P2rank_pocket"
+    return f"{PYTHON_BIN} {working_dir}/manage.py load_fpocket --pocket_json {p2pocket_json} {locus_tag} --datadir {_data_dir(working_dir)} --P2rank_pocket"
 
 
 # --- Stage 18: Druggability ---
 
 def druggability_cmd(working_dir, genome):
-    return f"{PYTHON_BIN} {working_dir}/manage.py druggability_2_csv {genome} --datadir ../data"
+    return f"{PYTHON_BIN} {working_dir}/manage.py druggability_2_csv {genome} --datadir {_data_dir(working_dir)}"
 
 
 # --- Stage 20: PSORT ---
@@ -212,7 +221,7 @@ def psort_cmd(genome, gram):
     )
     fallback = (
         f"{PYTHON_BIN} /app/targetpathogenweb/manage.py "
-        f"tpweb_psort_fallback {shlex.quote(genome)} --datadir ../data"
+        f"tpweb_psort_fallback {shlex.quote(genome)} --datadir {_data_dir('/app/targetpathogenweb')}"
     )
     psort_script = (
         "set -e; "
@@ -244,8 +253,8 @@ def psort_cmd(genome, gram):
 # --- Stages 22-23: Binders ---
 
 def get_binders_cmd(working_dir, genome):
-    return f"{PYTHON_BIN} {working_dir}/manage.py get_binders {genome} --datadir ../data"
+    return f"{PYTHON_BIN} {working_dir}/manage.py get_binders {genome} --datadir {_data_dir(working_dir)}"
 
 
 def load_binders_cmd(working_dir, genome):
-    return f"{PYTHON_BIN} {working_dir}/manage.py load_binders {genome} --datadir ../data"
+    return f"{PYTHON_BIN} {working_dir}/manage.py load_binders {genome} --datadir {_data_dir(working_dir)}"

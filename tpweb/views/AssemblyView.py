@@ -19,6 +19,7 @@ from tpweb.services.pipeline_status import (
 )
 from tpweb.services.assembly_workspace import build_assembly_workspace_metrics
 from tpweb.services.assembly_overview import build_assembly_overview
+from tpweb.services.genome_metadata import build_genome_metadata_rows
 from tpweb.services.genome_workspace import (
     display_genome_name,
     genome_url_slug,
@@ -74,7 +75,8 @@ class AssemblyView(View):
             "name": display_genome_name(biodb.name),
             "internal_name": biodb.name,
             "description": biodb.description,
-            "props": props
+            "props": props,
+            "prop_rows": build_genome_metadata_rows(props),
         }
         workspace_metrics = build_assembly_workspace_metrics(biodb.name)
         overview = build_assembly_overview(
@@ -187,9 +189,9 @@ class AssemblyView(View):
                     ],
                 },
                 {
-                    "title": "Imported record properties",
+                    "title": "Imported genome details",
                     "headers": ["Property", "Value"],
-                    "rows": [[key, value] for key, value in assembly["props"].items()],
+                    "rows": [[row["label"], row["value"]] for row in assembly["prop_rows"]],
                 },
             ]
             return xlsx_sections_response(f"{assembly['name']}-overview", sections)
