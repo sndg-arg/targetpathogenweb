@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20260505-2">
+    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20260510-1">
 {% endblock %}
 
 {% block body %}
@@ -604,7 +604,7 @@
 
                 <section class="columns-section">
                     <header class="columns-section-head">
-                        <h3>{% trans "Visible" %}</h3>
+                        <h3>{% trans "In the table" %}</h3>
                         <span class="columns-section-count" id="columns-selected-count">{{ selected_column_names|length }}</span>
                     </header>
                     <p class="columns-section-hint">{% trans "Drag to reorder. Click the eye to hide." %}</p>
@@ -652,9 +652,9 @@
                     </p>
                 </section>
 
-                <section class="columns-section">
+                <section class="columns-section" id="columns-available-section" {% if column_rows|length == selected_column_names|length %}hidden{% endif %}>
                     <header class="columns-section-head">
-                        <h3>{% trans "Available" %}</h3>
+                        <h3>{% trans "Available to add" %}</h3>
                     </header>
                     <div class="columns-library-list" id="columns-library-list">
                         {% for row in column_rows %}
@@ -697,11 +697,11 @@
             </form>
         </div>
         <div class="drawer-foot columns-foot">
-            <form method="POST" action="" class="drawer-reset-form">
+            <form method="POST" action="" class="columns-restore-form">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="reset_columns">
                 <input type="hidden" name="return_query" value="{{ query_string }}">
-                <button type="submit" class="btn tp-btn tp-btn--clear">{% trans "Restore defaults" %}</button>
+                <button type="submit" class="columns-restore-link">{% trans "Restore defaults" %}</button>
             </form>
             <button class="btn tp-btn tp-btn--primary drawer-done-btn" type="submit" form="columns-form">{% trans "Apply" %}</button>
         </div>
@@ -730,12 +730,12 @@
                     {% endif %}
                     <input type="hidden" name="pageSize" value="{{ page_size }}">
 
-                    <label for="score_formula_select" class="formula-select-label">{% trans "Ranking formula" %}</label>
                     {% if formulas|length > 1 %}
                         <div class="formula-apply-row__controls">
                             <select id="score_formula_select"
                                     name="scoreformula"
                                     class="form-control"
+                                    aria-label="{% trans 'Ranking formula' %}"
                                     data-current-value="{{ formula.name|default:'' }}">
                                 {% for f in formulas %}
                                     {% ifchanged f.name %}
@@ -767,8 +767,8 @@
 
                 {% url 'tpwebapp:prioritization_setup' genome=genome as prioritization_setup_base_url %}
                 <p class="drawer-advanced-hint">
-                    {% trans "Need to adjust weights or add custom evidence?" %}
-                    <a href="{{ prioritization_setup_base_url }}{% if formula %}?scoreformula={{ formula.name|urlencode }}{% endif %}">{% trans "Open prioritization setup" %}</a>
+                    {% trans "Want to adjust weights or use custom evidence?" %}
+                    <a href="{{ prioritization_setup_base_url }}{% if formula %}?scoreformula={{ formula.name|urlencode }}{% endif %}">{% trans "Customize this formula" %}</a>
                 </p>
             </div>
         </div>
@@ -1282,6 +1282,13 @@
                 }
             }
 
+            function syncLibrarySectionVisibility() {
+                if (!columnsLibraryList) return;
+                const wrapper = columnsLibraryList.closest(".columns-section");
+                if (!wrapper) return;
+                wrapper.hidden = columnsLibraryList.children.length === 0;
+            }
+
             function syncAllColumnRows() {
                 const visibleRows = getVisibleColumnRows();
                 getColumnRows().forEach(function (row) {
@@ -1289,6 +1296,7 @@
                     syncColumnRow(row, visibleRows, rowIndex >= 0 ? rowIndex : null);
                 });
                 syncColumnsSummary();
+                syncLibrarySectionVisibility();
             }
 
             function getDragAfterElement(container, y) {

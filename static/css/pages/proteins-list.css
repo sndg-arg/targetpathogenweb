@@ -1340,19 +1340,18 @@ a.filter-pill .filter-pill-remove {
 }
 
 .formula-apply-row__controls {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
 }
 
 .formula-apply-row__controls select {
-    flex: 1 1 220px;
     min-width: 0;
 }
 
 .formula-apply-row__controls .btn {
-    flex: 0 0 auto;
+    white-space: nowrap;
 }
 
 .formula-static-value {
@@ -1593,10 +1592,10 @@ a.filter-pill .filter-pill-remove {
 }
 
 .columns-row-category {
-    color: var(--tp-color-text-muted);
-    font-size: 0.7rem;
-    font-weight: 600;
-    letter-spacing: 0.06em;
+    color: var(--tp-color-text-soft);
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
     text-transform: uppercase;
 }
 
@@ -1655,11 +1654,12 @@ a.filter-pill .filter-pill-remove {
 .columns-row.is-hidden .columns-icon--hidden { display: inline-flex; }
 
 .columns-order-index {
-    min-width: 1.4rem;
+    min-width: 1.2rem;
     text-align: center;
-    font-size: 0.76rem;
-    font-weight: 700;
-    color: var(--tp-color-text-muted);
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: var(--tp-color-text-soft);
+    font-variant-numeric: tabular-nums;
     flex: 0 0 auto;
 }
 
@@ -1713,6 +1713,33 @@ a.filter-pill .filter-pill-remove {
     background: var(--tp-color-surface);
     padding-top: 12px;
     gap: 10px;
+    align-items: center;
+}
+
+.columns-restore-form {
+    margin: 0;
+}
+
+.columns-restore-link {
+    appearance: none;
+    background: transparent;
+    border: none;
+    padding: 6px 8px;
+    color: var(--tp-color-text-muted);
+    font: inherit;
+    font-size: 0.84rem;
+    font-weight: 500;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: color 140ms ease, background 140ms ease;
+}
+
+.columns-restore-link:hover,
+.columns-restore-link:focus-visible {
+    color: var(--tp-color-text-primary);
+    background: var(--tp-color-surface-soft);
+    outline: none;
+    text-decoration: underline;
 }
 
 .proteins-hero,
