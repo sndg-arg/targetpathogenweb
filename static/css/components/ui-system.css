@@ -457,9 +457,9 @@
 }
 
 .tp-select-option.is-selected {
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-sage-050) 100%);
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-brand-050) 100%);
     color: var(--tp-color-nav-800);
-    border-color: var(--tp-color-sage-500);
+    border-color: var(--tp-color-brand-600);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.88), 0 4px 12px rgba(20, 41, 56, 0.1);
     font-weight: 700;
 }
@@ -471,16 +471,16 @@
     top: 50%;
     width: 6px;
     height: 10px;
-    border-right: 2px solid var(--tp-color-sage-700);
-    border-bottom: 2px solid var(--tp-color-sage-700);
+    border-right: 2px solid var(--tp-color-brand-700);
+    border-bottom: 2px solid var(--tp-color-brand-700);
     transform: translateY(-60%) rotate(45deg);
     opacity: 0.95;
 }
 
 .tp-select-option.is-selected:hover,
 .tp-select-option.is-selected:focus-visible {
-    border-color: var(--tp-color-sage-700);
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-sage-100) 100%);
+    border-color: var(--tp-color-brand-700);
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-brand-100) 100%);
     color: var(--tp-color-nav-800);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 5px 14px rgba(20, 41, 56, 0.11);
     transform: translateY(-1px);
