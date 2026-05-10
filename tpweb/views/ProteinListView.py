@@ -1041,7 +1041,9 @@ class ProteinListView(View):
             "page_numbers": page_numbers,
             "filter_groups": filter_groups,
             "filter_groups_total_options": sum(
-                len(param["options"]) for group in filter_groups for param in group["params"]
+                len(param.get("options", []))
+                for group in filter_groups
+                for param in group.get("params", [])
             ),
             "numeric_param_count": numeric_param_count,
             "pipeline_status": pipeline_status,
