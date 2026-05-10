@@ -1,0 +1,136 @@
+{% extends '../base/masterpage.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block head %}
+    <link rel="stylesheet" href="{% static 'css/pages/binder-detail.css' %}?v=20260510-1">
+{% endblock %}
+
+{% block body %}
+    <div class="binder-detail-page">
+        <section class="binder-detail-hero">
+            <div class="tp-view-head">
+                <div class="tp-view-head-copy">
+                    {% trans "Home" as crumb_home %}
+                    {% trans "Genomes" as crumb_genomes %}
+                    {% trans "Proteins" as crumb_proteins %}
+                    {% trans "Binder" as crumb_binder %}
+                    {% url 'tpwebapp:index' as index_url %}
+                    {% url 'tpwebapp:genomes_list' as genomes_url %}
+                    {% url 'tpwebapp:assembly' genome as assembly_url %}
+                    {% with crumb_genome="Genome: "|add:assembly_label %}
+                    {% include "components/navigation/breadcrumbs.html" with crumb_1_label=crumb_home crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_genome crumb_3_url=assembly_url crumb_4_label=crumb_proteins crumb_4_url=proteins_url crumb_5_label=protein.accession crumb_5_url=protein_url crumb_6_label=binder.name %}
+                    {% endwith %}
+                    <h1>{{ binder.name }}</h1>
+                    <div class="binder-detail-chips tp-chip-group">
+                        <span class="tp-chip {% if binder.is_pdb %}tp-chip--meta{% else %}tp-chip--filter{% endif %} tp-chip--sm">{{ binder.source_label }}</span>
+                        {% if binder.score is not None %}
+                            <span class="tp-chip tp-chip--score tp-chip--sm">{% trans "Score" %}: {{ binder.score|floatformat:3 }}</span>
+                        {% endif %}
+                        <span class="tp-chip tp-chip--meta tp-chip--sm">{% trans "Protein" %}: <a href="{{ protein_url }}">{{ protein.accession }}</a></span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="binder-detail-grid">
+            {% if binder.is_pdb and binder.svg %}
+                <article class="binder-detail-card binder-detail-card--structure">
+                    <header class="binder-detail-card-head">
+                        <h2>{% trans "Structure" %}</h2>
+                    </header>
+                    <div class="binder-detail-svg">{{ binder.svg|safe }}</div>
+                </article>
+            {% endif %}
+
+            <article class="binder-detail-card">
+                <header class="binder-detail-card-head">
+                    <h2>{% trans "SMILES" %}</h2>
+                </header>
+                <pre class="binder-detail-smiles">{{ binder.smiles }}</pre>
+                <button type="button"
+                        class="binder-detail-copy"
+                        data-copy-target="binder-smiles-text"
+                        aria-label="{% trans 'Copy SMILES' %}">{% trans "Copy SMILES" %}</button>
+                <span hidden id="binder-smiles-text">{{ binder.smiles }}</span>
+            </article>
+
+            <article class="binder-detail-card">
+                <header class="binder-detail-card-head">
+                    <h2>{% trans "Identifiers" %}</h2>
+                </header>
+                <dl class="binder-detail-list">
+                    {% if binder.ccd_id %}
+                        <div class="binder-detail-row">
+                            <dt>{% trans "Ligand ID" %}</dt>
+                            <dd>{{ binder.ccd_id }}</dd>
+                        </div>
+                    {% endif %}
+                    {% if binder.pdb_id %}
+                        <div class="binder-detail-row">
+                            <dt>{% trans "PDB" %}</dt>
+                            <dd>{{ binder.pdb_id }}</dd>
+                        </div>
+                    {% endif %}
+                    {% if binder.uniprot %}
+                        <div class="binder-detail-row">
+                            <dt>{% trans "UniProt" %}</dt>
+                            <dd>{{ binder.uniprot }}</dd>
+                        </div>
+                    {% endif %}
+                    <div class="binder-detail-row">
+                        <dt>{% trans "Source" %}</dt>
+                        <dd>{{ binder.source_label }}</dd>
+                    </div>
+                </dl>
+            </article>
+
+            {% if rcsb_ligand_url or rcsb_structure_url %}
+                <article class="binder-detail-card">
+                    <header class="binder-detail-card-head">
+                        <h2>{% trans "External resources" %}</h2>
+                    </header>
+                    <ul class="binder-detail-links">
+                        {% if rcsb_ligand_url %}
+                            <li><a href="{{ rcsb_ligand_url }}" target="_blank" rel="noopener">{% trans "RCSB ligand" %} {{ binder.ccd_id }} →</a></li>
+                        {% endif %}
+                        {% if rcsb_structure_url %}
+                            <li><a href="{{ rcsb_structure_url }}" target="_blank" rel="noopener">{% trans "RCSB structure" %} {{ binder.pdb_id }} →</a></li>
+                        {% endif %}
+                    </ul>
+                </article>
+            {% endif %}
+
+            {% if binder.notes %}
+                <article class="binder-detail-card binder-detail-card--notes">
+                    <header class="binder-detail-card-head">
+                        <h2>{% trans "Notes" %}</h2>
+                    </header>
+                    <p class="binder-detail-notes">{{ binder.notes|linebreaksbr }}</p>
+                </article>
+            {% endif %}
+        </section>
+    </div>
+{% endblock %}
+
+{% block jsloaded %}
+    <script>
+        (function () {
+            const button = document.querySelector('[data-copy-target]');
+            if (!button) return;
+            button.addEventListener('click', function () {
+                const target = document.getElementById(button.getAttribute('data-copy-target'));
+                if (!target) return;
+                const text = target.textContent || '';
+                if (!text) return;
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(text).then(function () {
+                        const originalLabel = button.textContent;
+                        button.textContent = "{% trans 'Copied' %}";
+                        setTimeout(function () { button.textContent = originalLabel; }, 1400);
+                    });
+                }
+            });
+        })();
+    </script>
+{% endblock %}

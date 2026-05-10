@@ -66,7 +66,7 @@
                 </div>
                 <div class="metric-pill">
                     <span class="metric-label">{% trans "Binders" %}</span>
-                    <span class="metric-value">{{ binders|length }}</span>
+                    <span class="metric-value">{{ binders.total }}</span>
                 </div>
             </div>
         </section>
@@ -77,7 +77,7 @@
             <a href="#section-annotations" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "GO/EC" %}</a>
             <a href="#section-features" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Features" %}</a>
             <a href="#section-structure" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "3D Structure" %}</a>
-            {% if binders %}
+            {% if binders.total %}
                 <a href="#section-binders" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Binders" %}</a>
             {% endif %}
         </nav>
@@ -446,30 +446,109 @@
                 </section>
             {% endif %}
 
-            {% if binders %}
+            {% if binders.total or binders.search_query %}
                 <section class="protein-card tp-ui-panel" id="section-binders">
                     <div class="section-head tp-ui-panel-head">
                         <div>
                             <h2>{% trans "Binders" %}</h2>
-                            <p class="section-subtitle">{% trans "Ligands associated with this protein from mapped structures." %}</p>
+                            <p class="section-subtitle">{% trans "Ligands linked to this protein — from solved structures and from virtual screening." %}</p>
                         </div>
                         <div class="section-tools">
-                            <span class="tp-chip tp-chip--count tp-chip--sm">{{ binders|length }} {% trans "records" %}</span>
+                            <span class="tp-chip tp-chip--count tp-chip--sm">{{ binders.total }} {% trans "records" %}</span>
                         </div>
                     </div>
-                    <div class="binder-grid">
-                        {% for binder in binders.values %}
-                            <article class="binder-card">
-                                <div class="binder-preview">
-                                    {{ binder.svg|safe }}
+
+                    <form method="GET" class="binders-search" role="search">
+                        <input type="search"
+                               name="binder_search"
+                               class="binders-search__input"
+                               value="{{ binders.search_query }}"
+                               placeholder="{% trans 'Search by ligand ID, PDB, SMILES…' %}"
+                               aria-label="{% trans 'Search binders' %}">
+                        {% if binders.search_query %}
+                            <a href="?#section-binders" class="binders-search__clear" aria-label="{% trans 'Clear search' %}">&times;</a>
+                        {% endif %}
+                        <button type="submit" class="btn tp-btn tp-btn--primary binders-search__submit">{% trans "Search" %}</button>
+                    </form>
+
+                    <div class="binders-tabs" role="tablist" data-binders-tabs>
+                        <button type="button"
+                                class="binders-tab {% if binders.pdb or not binders.proposed %}is-active{% endif %}"
+                                role="tab"
+                                aria-selected="{% if binders.pdb or not binders.proposed %}true{% else %}false{% endif %}"
+                                data-binders-tab="pdb">
+                            <span>{% trans "PDB" %}</span>
+                            <span class="binders-tab__count">{{ binders.pdb|length }}</span>
+                        </button>
+                        <button type="button"
+                                class="binders-tab {% if binders.proposed and not binders.pdb %}is-active{% endif %}"
+                                role="tab"
+                                aria-selected="{% if binders.proposed and not binders.pdb %}true{% else %}false{% endif %}"
+                                data-binders-tab="proposed">
+                            <span>{% trans "Proposed" %}</span>
+                            <span class="binders-tab__count">{{ binders.proposed|length }}</span>
+                        </button>
+                    </div>
+
+                    <div class="binders-panel {% if not binders.pdb and binders.proposed %}is-hidden{% endif %}"
+                         data-binders-panel="pdb"
+                         role="tabpanel">
+                        {% if binders.pdb %}
+                            <div class="binder-grid">
+                                {% for binder in binders.pdb %}
+                                    <a class="binder-card binder-card--link" href="{% url 'tpwebapp:binder_detail' binder_id=binder.id %}">
+                                        <div class="binder-preview">{{ binder.svg|safe }}</div>
+                                        <h3 class="binder-name">{{ binder.name }}</h3>
+                                        {% if binder.pdb %}
+                                            <span class="binder-card-meta">PDB {{ binder.pdb }}</span>
+                                        {% endif %}
+                                    </a>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="tp-state-note tp-state-note--empty binders-empty">
+                                {% if binders.search_query %}
+                                    {% trans "No PDB binders match the search." %}
+                                {% else %}
+                                    {% trans "No PDB binders mapped to this protein yet." %}
+                                {% endif %}
+                            </p>
+                        {% endif %}
+                    </div>
+
+                    <div class="binders-panel {% if binders.pdb or not binders.proposed %}is-hidden{% endif %}"
+                         data-binders-panel="proposed"
+                         role="tabpanel">
+                        {% if binders.proposed %}
+                            <div class="binder-table">
+                                <div class="binder-table__head">
+                                    <span>{% trans "Ligand" %}</span>
+                                    <span class="binder-table__score-col">{% trans "Score" %}</span>
+                                    <span>SMILES</span>
                                 </div>
-                                <h3 class="binder-name">{{ binder.name }}</h3>
-                                <div class="binder-links">
-                                    <a href="https://www.rcsb.org/ligand/{{ binder.name }}" target="_blank" rel="noopener">RCSB Ligand</a>
-                                    <a href="https://www.rcsb.org/structure/{{ binder.pdb }}" target="_blank" rel="noopener">RCSB Structure {{ binder.pdb }}</a>
-                                </div>
-                            </article>
-                        {% endfor %}
+                                {% for binder in binders.proposed %}
+                                    <a class="binder-table__row" href="{% url 'tpwebapp:binder_detail' binder_id=binder.id %}">
+                                        <span class="binder-table__name">{{ binder.name }}</span>
+                                        <span class="binder-table__score">
+                                            {% if binder.score is not None %}
+                                                {{ binder.score|floatformat:3 }}
+                                            {% else %}
+                                                <span class="binder-table__score-empty">—</span>
+                                            {% endif %}
+                                        </span>
+                                        <code class="binder-table__smiles">{{ binder.smiles }}</code>
+                                    </a>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="tp-state-note tp-state-note--empty binders-empty">
+                                {% if binders.search_query %}
+                                    {% trans "No proposed binders match the search." %}
+                                {% else %}
+                                    {% trans "No proposed binders for this protein. Add them with the load_binders management command using --source proposed." %}
+                                {% endif %}
+                            </p>
+                        {% endif %}
                     </div>
                 </section>
             {% endif %}
@@ -717,6 +796,30 @@
             const viewportElement = document.getElementById("viewport");
             let structureInitialized = false;
             const enable3DmolViewer = STRUCTURE_VIEWER_CONFIG.enable3DmolViewer;
+            let nglStageInstance = null;
+            let molViewerInstance = null;
+
+            function applyStructureTheme() {
+                const backgroundColor = tpColor("--tp-color-structure-bg") || tpColor("--tp-color-surface-panel") || "#f6fbf9";
+                if (molViewerInstance && typeof molViewerInstance.setBackgroundColor === "function") {
+                    molViewerInstance.setBackgroundColor(backgroundColor);
+                    if (typeof molViewerInstance.render === "function") {
+                        molViewerInstance.render();
+                    }
+                }
+                if (nglStageInstance && typeof nglStageInstance.setParameters === "function") {
+                    nglStageInstance.setParameters({
+                        backgroundColor: backgroundColor
+                    });
+                    if (nglStageInstance.viewer && typeof nglStageInstance.viewer.requestRender === "function") {
+                        nglStageInstance.viewer.requestRender();
+                    }
+                }
+            }
+
+            document.addEventListener("tp:themechange", function () {
+                window.requestAnimationFrame(applyStructureTheme);
+            });
 
             function disableStructureScrollZoom(stageInstance) {
                 if (!stageInstance || !stageInstance.mouseControls || typeof stageInstance.mouseControls.remove !== "function") {
@@ -742,6 +845,7 @@
                 var viewer = $3Dmol.createViewer("viewport", {
                     backgroundColor: tpColor("--tp-color-structure-bg") || "#f6fbf9"
                 });
+                molViewerInstance = viewer;
                 var currentMode = "cartoon";
 
                 function setModeButtonState(mode) {
@@ -968,6 +1072,7 @@
                         window.ngl_set_mode("cartoon");
                         viewer.zoomTo();
                         viewer.render();
+                        applyStructureTheme();
                         setStructureResetZoomEnabled(false);
                         if (structureLoadingNote) {
                             structureLoadingNote.style.display = "none";
@@ -1006,6 +1111,7 @@
                 var stage = new NGL("viewport", {
                     backgroundColor: tpColor("--tp-color-structure-bg") || tpColor("--tp-color-surface-panel")
                 });
+                nglStageInstance = stage;
                 document.getElementById("viewport").addEventListener("wheel", function (e) {
                     e.preventDefault();
                 }, { passive: false });
@@ -1291,6 +1397,7 @@
 
                     window.ngl_set_mode("cartoon");
                     component.autoView();
+                    applyStructureTheme();
                     setStructureResetZoomEnabled(false);
                     if (structureLoadingNote) {
                         structureLoadingNote.style.display = "none";
@@ -1369,5 +1476,24 @@
         } else {
             jsloaded();
         }
+
+        (function () {
+            const tabs = document.querySelectorAll("[data-binders-tab]");
+            const panels = document.querySelectorAll("[data-binders-panel]");
+            if (!tabs.length || !panels.length) return;
+            tabs.forEach(function (tab) {
+                tab.addEventListener("click", function () {
+                    const target = tab.getAttribute("data-binders-tab");
+                    tabs.forEach(function (t) {
+                        const isActive = t === tab;
+                        t.classList.toggle("is-active", isActive);
+                        t.setAttribute("aria-selected", isActive ? "true" : "false");
+                    });
+                    panels.forEach(function (panel) {
+                        panel.classList.toggle("is-hidden", panel.getAttribute("data-binders-panel") !== target);
+                    });
+                });
+            });
+        })();
     </script>
 {% endblock %}

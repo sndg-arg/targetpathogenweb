@@ -14,6 +14,7 @@ from .views.FormView import FormView
 from .views.NewView import NewView
 from .views.MoleculeView import MoleculeView
 from .views.ParameterFormView import load_options
+from .views.BinderDetailView import BinderDetailView
 from .views.FormulaFormView import FormulaFormView
 from .views.TestCelery import test_celery
 #from debug_toolbar.toolbar import debug_toolbar_urls
@@ -58,6 +59,7 @@ urlpatterns = [
     path("structure_export/<int:struct_id>", view=StructureExportView.as_view(), name="structure_export"),
     path("load_options/", load_options, name="load_options"),
     path("structure/<int:struct_id>", view=StructureView.as_view(), name="structure"),
+    path("binder/<int:binder_id>", view=BinderDetailView.as_view(), name="binder_detail"),
     path("test", view=untestview, name="untestview"),
     path("form", view=FormView.as_view(), name="form"),
     path("result/<str:result_id>", view=NewView.as_view(), name="blast_res"),

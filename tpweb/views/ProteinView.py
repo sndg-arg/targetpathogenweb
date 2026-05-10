@@ -52,7 +52,7 @@ def _annotation_name(dbxref_relation):
 def serialize_prot(protein: Bioentry):
     bdb = Biodatabase.objects.filter(name=protein.biodatabase.name.split(Biodatabase.PROT_POSTFIX)[0]).get()
     protein2 = {"id": protein.bioentry_id,
-                "accession": protein.name,
+                "accession": protein.accession,
                 "description": protein.description,
                 "gene": " ".join(protein.genes()),
                 "size": protein.seq.length,
@@ -128,29 +128,70 @@ def serialize_prot(protein: Bioentry):
         )
     return protein2, features, annotations, graphic_features
 
-def create_binders_dict(protein):
+def make_binder_svg(smiles):
+    if not smiles:
+        return ""
+    try:
+        mol = Chem.MolFromSmiles(smiles)
+    except Exception:
+        return ""
+    if mol is None:
+        return ""
+    drawer = rdMolDraw2D.MolDraw2DSVG(300, 300)
+    drawer.DrawMolecule(mol)
+    drawer.FinishDrawing()
+    return drawer.GetDrawingText()
 
-    def make_svg(smile):
-        mol = Chem.MolFromSmiles(smile)
-        canvas_width_pixels = 300
-        canvas_height_pixels = 300
-        drawer = rdMolDraw2D.MolDraw2DSVG(canvas_width_pixels, canvas_height_pixels)
-        drawer.DrawMolecule(mol)
-        drawer.FinishDrawing()
-        svg_data = drawer.GetDrawingText()
-        return svg_data
+
+def _binder_to_dto(binder, render_svg):
+    return {
+        "id": binder.id,
+        "name": binder.ccd_id or f"Binder {binder.id}",
+        "pdb": binder.pdb_id,
+        "smiles": binder.smiles,
+        "score": binder.score,
+        "notes": binder.notes,
+        "source": binder.source,
+        "svg": make_binder_svg(binder.smiles) if render_svg else "",
+    }
 
 
-    binders = Binders.objects.filter(locustag=protein)
-    smiles_dict = {}
-    for binder in binders:
-        id = binder.id
-        name = binder.ccd_id
-        pdb = binder.pdb_id
-        smiles = binder.smiles
-        svg = make_svg(smiles)
-        smiles_dict[id] = {'name': name, 'pdb': pdb, 'smiles': smiles, 'svg': svg}
-    return smiles_dict
+def create_binders_dict(protein, search_query=""):
+    """Build a binders payload split by source (pdb / proposed).
+
+    SVG rendering is only run for PDB binders (proposed entries are SMILES-only).
+    `search_query` filters by ccd_id, pdb_id or smiles substring (case-insensitive).
+    """
+    binders_qs = Binders.objects.filter(locustag=protein).order_by("source", "ccd_id", "id")
+    cleaned_query = (search_query or "").strip()
+    if cleaned_query:
+        from django.db.models import Q
+
+        binders_qs = binders_qs.filter(
+            Q(ccd_id__icontains=cleaned_query)
+            | Q(pdb_id__icontains=cleaned_query)
+            | Q(smiles__icontains=cleaned_query)
+            | Q(notes__icontains=cleaned_query)
+        )
+
+    pdb_binders = []
+    proposed_binders = []
+    for binder in binders_qs:
+        if binder.source == Binders.SOURCE_PROPOSED:
+            proposed_binders.append(_binder_to_dto(binder, render_svg=False))
+        else:
+            pdb_binders.append(_binder_to_dto(binder, render_svg=True))
+
+    proposed_binders.sort(
+        key=lambda entry: (entry["score"] is None, -(entry["score"] or 0))
+    )
+
+    return {
+        "pdb": pdb_binders,
+        "proposed": proposed_binders,
+        "total": len(pdb_binders) + len(proposed_binders),
+        "search_query": cleaned_query,
+    }
 
 class ProteinView(View):
     template_name = 'genomic/protein.html'
@@ -176,7 +217,8 @@ class ProteinView(View):
             raise Http404("Protein not found")
         proteinDTO, features, annotations, graphic_features = serialize_prot(protein)
         structures = protein.structures.prefetch_related("pdb__residues").all()
-        binders = create_binders_dict(protein)
+        binders_search_query = request.GET.get("binder_search", "").strip()
+        binders = create_binders_dict(protein, search_query=binders_search_query)
         structure_summary = summarize_structure_sources(structures)
         ec_all = list(iter_protein_annotations(protein, "ec"))
         go_all = list(iter_protein_annotations(protein, "go"))
@@ -202,7 +244,7 @@ class ProteinView(View):
                         ["Structure source", structure_summary.get("label", "-")],
                         ["Functional annotations", len(annotations)],
                         ["Sequence features", len(features)],
-                        ["Binders", len(binders)],
+                        ["Binders", binders["total"]],
                     ],
                 },
                 {
@@ -236,14 +278,22 @@ class ProteinView(View):
                     }
                 )
 
-            if binders:
+            if binders["total"]:
                 sections.append(
                     {
                         "title": "Binders",
-                        "headers": ["ID", "Name", "PDB", "SMILES"],
+                        "headers": ["Source", "ID", "Name", "PDB", "SMILES", "Score", "Notes"],
                         "rows": [
-                            [binder_id, binder["name"], binder["pdb"], binder["smiles"]]
-                            for binder_id, binder in binders.items()
+                            [
+                                binder["source"],
+                                binder["id"],
+                                binder["name"],
+                                binder["pdb"],
+                                binder["smiles"],
+                                binder["score"] if binder["score"] is not None else "",
+                                binder["notes"],
+                            ]
+                            for binder in (*binders["pdb"], *binders["proposed"])
                         ],
                     }
                 )

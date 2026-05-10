@@ -2086,6 +2086,12 @@
                 btn.querySelector(".tp-theme-toggle-icon").textContent = ICONS[mode];
                 btn.querySelector(".tp-theme-toggle-label").textContent = LABELS[mode];
             }
+            document.dispatchEvent(new CustomEvent("tp:themechange", {
+                detail: {
+                    mode: mode,
+                    dark: dark
+                }
+            }));
         }
 
         function current() {
