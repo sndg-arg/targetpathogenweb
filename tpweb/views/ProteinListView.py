@@ -189,27 +189,140 @@ class ProteinListView(View):
             )
         return ordered_rows
 
+    EC_CLASSES = [
+        ("1", "Oxidoreductases"),
+        ("2", "Transferases"),
+        ("3", "Hydrolases"),
+        ("4", "Lyases"),
+        ("5", "Isomerases"),
+        ("6", "Ligases"),
+        ("7", "Translocases"),
+    ]
+
     @staticmethod
-    def _build_filter_groups(score_params, selected_parameters, structure_choices=None):
+    def _build_special_filter_payload(kind, value):
+        value = (value or "").strip()
+        if not value:
+            return None
+        if kind == "ec":
+            return {
+                "id": f"special:ec:{value}",
+                "score_param_name": "ec_number",
+                "name": value,
+                "type": "special",
+                "special_key": "ec_filter",
+                "special_value": value,
+                "display_name": value,
+            }
+        if kind == "go":
+            normalized = value.upper() if not value.upper().startswith("GO:") else value.upper()
+            if not normalized.startswith("GO:") and normalized.isdigit():
+                normalized = f"GO:{normalized.zfill(7)}"
+            return {
+                "id": f"special:go:{normalized}",
+                "score_param_name": "go_term",
+                "name": normalized,
+                "type": "special",
+                "special_key": "go_filter",
+                "special_value": normalized,
+                "display_name": normalized,
+            }
+        return None
+
+    @staticmethod
+    def _build_numeric_filter_payload(score_param_id, raw_min, raw_max):
+        try:
+            param_pk = int(score_param_id)
+        except (TypeError, ValueError):
+            return None
+        from tpweb.models.ScoreParam import ScoreParam as _ScoreParam
+        try:
+            score_param = _ScoreParam.objects.get(pk=param_pk)
+        except _ScoreParam.DoesNotExist:
+            return None
+        try:
+            value_min = float(raw_min) if raw_min not in ("", None) else None
+        except (TypeError, ValueError):
+            value_min = None
+        try:
+            value_max = float(raw_max) if raw_max not in ("", None) else None
+        except (TypeError, ValueError):
+            value_max = None
+        if value_min is None and value_max is None:
+            return None
+        if value_min is not None and value_max is not None:
+            operation = "between"
+            display_value = f"{value_min:g} – {value_max:g}"
+            filter_id = f"numeric:{score_param.pk}:between:{value_min:g}:{value_max:g}"
+            primary_value = value_min
+        elif value_min is not None:
+            operation = ">="
+            display_value = f"≥ {value_min:g}"
+            filter_id = f"numeric:{score_param.pk}:>=:{value_min:g}"
+            primary_value = value_min
+        else:
+            operation = "<="
+            display_value = f"≤ {value_max:g}"
+            filter_id = f"numeric:{score_param.pk}:<=:{value_max:g}"
+            primary_value = value_max
+            value_max = None
+        return {
+            "id": filter_id,
+            "score_param_id": score_param.pk,
+            "score_param_name": score_param.name,
+            "type": "numeric",
+            "operation": operation,
+            "value": primary_value,
+            "value_max": value_max if operation == "between" else None,
+            "display_name": display_value,
+        }
+
+    @staticmethod
+    def _build_filter_groups(score_params, selected_parameters, structure_choices=None, function_data=None):
         selected_option_ids = {
             str(parameter.get("id"))
             for parameter in selected_parameters
             if str(parameter.get("type") or "categorical").lower() not in {"numeric", "special"}
         }
 
+        active_numeric_by_param = {}
+        for parameter in selected_parameters:
+            if str(parameter.get("type") or "").lower() != "numeric":
+                continue
+            param_id = str(parameter.get("score_param_id"))
+            active_numeric_by_param.setdefault(param_id, []).append(parameter)
+
         grouped = {}
         numeric_param_count = 0
         for score_param in score_params:
             type_code = (score_param.type or "").upper()
             is_categorical = type_code.startswith("C") or type_code == "CATEGORICAL"
+            category = (score_param.category or "Other").strip() or "Other"
+            param_label = humanize_identifier(score_param.name) or score_param.name
+
             if not is_categorical:
                 numeric_param_count += 1
+                active_filters = active_numeric_by_param.get(str(score_param.pk), [])
+                grouped.setdefault(category, []).append({
+                    "id": score_param.pk,
+                    "name": score_param.name,
+                    "label": param_label,
+                    "description": score_param.description or "",
+                    "type": "numeric",
+                    "active_filters": [
+                        {
+                            "id": entry.get("id"),
+                            "display_name": entry.get("display_name", ""),
+                        }
+                        for entry in active_filters
+                    ],
+                    "any_active": bool(active_filters),
+                    "search_text": (param_label + " " + category).lower(),
+                })
                 continue
             choices = list(score_param.choices.all())
             if not choices:
                 continue
-            category = (score_param.category or "Other").strip() or "Other"
-            param_label = humanize_identifier(score_param.name) or score_param.name
             options = []
             search_tokens = [param_label, category]
             any_active = False
@@ -231,6 +344,7 @@ class ProteinListView(View):
                 "name": score_param.name,
                 "label": param_label,
                 "description": score_param.description or "",
+                "type": "categorical",
                 "options": options,
                 "any_active": any_active,
                 "search_text": " ".join(search_tokens).lower(),
@@ -253,6 +367,29 @@ class ProteinListView(View):
                 return (len(preferred_order), category.casefold())
 
         filter_groups = []
+
+        function_data = function_data or {}
+        ec_classes = function_data.get("ec_classes") or []
+        ec_specific_active = function_data.get("ec_specific_active") or []
+        go_active = function_data.get("go_active") or []
+        ec_explorer_url = function_data.get("ec_explorer_url", "")
+        if ec_classes or ec_specific_active or go_active or ec_explorer_url:
+            any_function_active = (
+                any(cls.get("active") for cls in ec_classes)
+                or bool(ec_specific_active)
+                or bool(go_active)
+            )
+            filter_groups.append({
+                "category": "Function",
+                "is_function": True,
+                "ec_classes": ec_classes,
+                "ec_specific_active": ec_specific_active,
+                "go_active": go_active,
+                "ec_explorer_url": ec_explorer_url,
+                "any_active": any_function_active,
+                "param_count": len(ec_specific_active) + len(go_active) + sum(1 for c in ec_classes if c.get("active")),
+            })
+
         structure_choices = [choice for choice in (structure_choices or []) if choice.get("value")]
         if structure_choices:
             active_structure = next((choice for choice in structure_choices if choice.get("active")), None)
@@ -472,6 +609,21 @@ class ProteinListView(View):
                     )
                 except (ScoreParamOptions.DoesNotExist, ValueError, TypeError):
                     pass
+
+        elif action == "add_special_filter":
+            kind = (request.POST.get("special_kind") or "").strip().lower()
+            value = (request.POST.get("special_value") or "").strip()
+            payload = self._build_special_filter_payload(kind, value)
+            if payload:
+                selected_parameters = add_selected_parameter(selected_parameters, payload)
+
+        elif action == "add_numeric_filter":
+            score_param_id = (request.POST.get("score_param_id") or "").strip()
+            raw_min = (request.POST.get("value") or "").strip()
+            raw_max = (request.POST.get("value_max") or "").strip()
+            payload = self._build_numeric_filter_payload(score_param_id, raw_min, raw_max)
+            if payload:
+                selected_parameters = add_selected_parameter(selected_parameters, payload)
 
         elif action == "remove_filter":
             option_id = request.POST.get("filter_option_id")
@@ -780,8 +932,50 @@ class ProteinListView(View):
         structure_source_choices = self._build_structure_source_choices(
             request, page_size, structure_source
         )
+
+        active_ec_values = []
+        active_go_values = []
+        for parameter in selected_parameters:
+            if str(parameter.get("type") or "").lower() != "special":
+                continue
+            special_key = parameter.get("special_key")
+            special_value = parameter.get("special_value")
+            entry_id = parameter.get("id")
+            if special_key == "ec_filter" and special_value:
+                active_ec_values.append({"value": special_value, "id": entry_id})
+            elif special_key == "go_filter" and special_value:
+                active_go_values.append({"value": special_value, "id": entry_id})
+
+        ec_class_value_set = {value for value, _ in self.EC_CLASSES}
+        active_ec_class_set = {entry["value"] for entry in active_ec_values if entry["value"] in ec_class_value_set}
+        ec_specific_active = [entry for entry in active_ec_values if entry["value"] not in ec_class_value_set]
+
+        ec_classes_for_drawer = [
+            {
+                "value": value,
+                "label": f"{value} · {label}",
+                "short_label": value,
+                "name": label,
+                "active": value in active_ec_class_set,
+            }
+            for value, label in self.EC_CLASSES
+        ]
+
+        function_data = {
+            "ec_classes": ec_classes_for_drawer,
+            "ec_specific_active": ec_specific_active,
+            "go_active": active_go_values,
+            "ec_explorer_url": reverse(
+                "tpwebapp:annotation_explorer",
+                kwargs={"genome": genome_url_slug(assembly_name), "annotation_kind": "ec"},
+            ),
+        }
+
         filter_groups, numeric_param_count = self._build_filter_groups(
-            all_visible_score_params, selected_parameters, structure_choices=structure_source_choices
+            all_visible_score_params,
+            selected_parameters,
+            structure_choices=structure_source_choices,
+            function_data=function_data,
         )
 
         # Pagination info

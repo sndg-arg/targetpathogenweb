@@ -431,9 +431,8 @@
                     {% trans "Home" as crumb_home %}
                     {% trans "Genomes" as crumb_genomes %}
                     {% trans "Proteins" as crumb_proteins %}
-                    {% trans "Advanced Filters" as crumb_advanced_filters %}
                     {% if explorer.kind == "ec" %}
-                        {% trans "EC hierarchy" as crumb_explorer %}
+                        {% trans "EC tree" as crumb_explorer %}
                     {% else %}
                         {% trans "GO terms" as crumb_explorer %}
                     {% endif %}
@@ -441,9 +440,8 @@
                     {% url 'tpwebapp:genomes_list' as genomes_url %}
                     {% url 'tpwebapp:assembly' genome as assembly_url %}
                     {% url 'tpwebapp:protein_list' genome=genome as proteins_url %}
-                    {% url 'tpwebapp:parameterformview' genome=genome as advanced_filters_url %}
                     {% with crumb_workspace="Genome: "|add:assembly_label %}
-                    {% include "components/navigation/breadcrumbs.html" with crumb_1_label=crumb_home crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_workspace crumb_3_url=assembly_url crumb_4_label=crumb_proteins crumb_4_url=proteins_url crumb_5_label=crumb_advanced_filters crumb_5_url=advanced_filters_url crumb_6_label=crumb_explorer %}
+                    {% include "components/navigation/breadcrumbs.html" with crumb_1_label=crumb_home crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_workspace crumb_3_url=assembly_url crumb_4_label=crumb_proteins crumb_4_url=proteins_url crumb_5_label=crumb_explorer %}
                     {% endwith %}
                 </div>
                 <div class="tp-view-head-actions">
@@ -574,10 +572,8 @@
                         <p>{% trans "You can still inspect the protein ranking, review other annotation types, or continue with genome-level analysis." %}</p>
                         <div class="explorer-empty-actions">
                             <a href="{% url 'tpwebapp:protein_list' genome=genome %}" class="btn tp-btn tp-btn--primary">{% trans "Open protein analysis" %}</a>
-                            {% if explorer.kind == "ec" %}
-                                <a href="{% url 'tpwebapp:parameterformview' genome=genome %}" class="btn tp-btn tp-btn--neutral">{% trans "Open Advanced Filters" %}</a>
-                            {% else %}
-                                <a href="{% url 'tpwebapp:annotation_explorer' genome=genome annotation_kind='ec' %}" class="btn tp-btn tp-btn--neutral">{% trans "Switch to EC hierarchy" %}</a>
+                            {% if explorer.kind != "ec" %}
+                                <a href="{% url 'tpwebapp:annotation_explorer' genome=genome annotation_kind='ec' %}" class="btn tp-btn tp-btn--neutral">{% trans "Switch to EC tree" %}</a>
                             {% endif %}
                         </div>
                     </div>

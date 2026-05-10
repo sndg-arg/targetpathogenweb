@@ -13,7 +13,7 @@ from .views.StructureView import StructureView
 from .views.FormView import FormView
 from .views.NewView import NewView
 from .views.MoleculeView import MoleculeView
-from .views.ParameterFormView import ParameterFormView, load_options, reset_filters
+from .views.ParameterFormView import load_options
 from .views.FormulaFormView import FormulaFormView
 from .views.TestCelery import test_celery
 #from debug_toolbar.toolbar import debug_toolbar_urls
@@ -56,13 +56,11 @@ urlpatterns = [
     path("molecule", view=MoleculeView.as_view(), name="molecules"),
     path("structure_raw/<int:struct_id>", view=StructureRawView.as_view(), name="structure_raw"),
     path("structure_export/<int:struct_id>", view=StructureExportView.as_view(), name="structure_export"),
-    path("genome/<str:genome>/parameters", view=ParameterFormView, name="parameterformview"),
     path("load_options/", load_options, name="load_options"),
     path("structure/<int:struct_id>", view=StructureView.as_view(), name="structure"),
     path("test", view=untestview, name="untestview"),
     path("form", view=FormView.as_view(), name="form"),
     path("result/<str:result_id>", view=NewView.as_view(), name="blast_res"),
-    path("genome/<str:genome>/reset-filters", reset_filters, name="reset_filters"),
     path("genome/<str:genome>/formula", view=FormulaFormView, name="formula_form"),
     path("genome/<str:genome>/custom-evidence", view=upload_form, name="customparam"),
     path("health/live", view=HealthLiveView.as_view(), name="health_live"),

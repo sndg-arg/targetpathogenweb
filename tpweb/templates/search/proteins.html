@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20260510-3">
+    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20260510-4">
 {% endblock %}
 
 {% block body %}
@@ -487,7 +487,7 @@
 
             <div class="drawer-filter-catalogue" id="drawer-filter-catalogue">
                 {% for group in filter_groups %}
-                    <details class="filter-group"
+                    <details class="filter-group {% if group.is_function %}filter-group--function{% endif %}"
                              data-filter-group
                              data-category="{{ group.category|lower }}"
                              {% if group.any_active %}open{% endif %}>
@@ -497,51 +497,189 @@
                                 {% if group.any_active %}
                                     <span class="filter-group-active-dot" aria-label="{% trans 'Has active criteria' %}"></span>
                                 {% endif %}
-                                <span class="filter-group-count">{{ group.param_count }}</span>
+                                {% if group.param_count %}<span class="filter-group-count">{{ group.param_count }}</span>{% endif %}
                                 <span class="filter-group-chevron" aria-hidden="true"></span>
                             </span>
                         </summary>
                         <div class="filter-group-body">
-                            {% for param in group.params %}
-                                <div class="filter-param" data-filter-param data-search-text="{{ param.search_text }}">
+                            {% if group.is_function %}
+                                <div class="filter-param" data-filter-param data-search-text="ec class enzyme function">
                                     <div class="filter-param-head">
-                                        <span class="filter-param-label">{{ param.label }}</span>
-                                        {% if param.description %}
-                                            <span class="filter-param-help" tabindex="0" role="button" aria-label="{% trans 'About this criterion' %}">
-                                                <span aria-hidden="true">i</span>
-                                                <span class="filter-param-tooltip" role="tooltip">{{ param.description }}</span>
-                                            </span>
-                                        {% endif %}
+                                        <span class="filter-param-label">{% trans "EC class" %}</span>
                                     </div>
                                     <div class="filter-chip-group">
-                                        {% for option in param.options %}
-                                            {% if option.is_link %}
-                                                <a href="{{ option.url }}"
-                                                   class="filter-chip {% if option.active %}filter-chip--active{% endif %}"
-                                                   {% if option.description %}title="{{ option.description }}"{% endif %}
-                                                   aria-pressed="{% if option.active %}true{% else %}false{% endif %}">
-                                                    {% if option.active %}<span class="filter-chip-glyph" aria-hidden="true">&times;</span>{% endif %}
-                                                    <span class="filter-chip-label">{{ option.label }}</span>
-                                                </a>
-                                            {% else %}
-                                                <form method="POST" action="" class="filter-chip-form">
-                                                    {% csrf_token %}
-                                                    <input type="hidden" name="action" value="{% if option.active %}remove_filter{% else %}add_filter{% endif %}">
-                                                    <input type="hidden" name="filter_option_id" value="{{ option.id }}">
-                                                    <input type="hidden" name="return_query" value="{{ query_string }}">
-                                                    <button type="submit"
-                                                            class="filter-chip {% if option.active %}filter-chip--active{% endif %}"
-                                                            {% if option.description %}title="{{ option.description }}"{% endif %}
-                                                            aria-pressed="{% if option.active %}true{% else %}false{% endif %}">
-                                                        {% if option.active %}<span class="filter-chip-glyph" aria-hidden="true">&times;</span>{% endif %}
-                                                        <span class="filter-chip-label">{{ option.label }}</span>
-                                                    </button>
-                                                </form>
-                                            {% endif %}
+                                        {% for cls in group.ec_classes %}
+                                            <form method="POST" action="" class="filter-chip-form">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="return_query" value="{{ query_string }}">
+                                                {% if cls.active %}
+                                                    <input type="hidden" name="action" value="remove_filter">
+                                                    <input type="hidden" name="filter_option_id" value="special:ec:{{ cls.value }}">
+                                                {% else %}
+                                                    <input type="hidden" name="action" value="add_special_filter">
+                                                    <input type="hidden" name="special_kind" value="ec">
+                                                    <input type="hidden" name="special_value" value="{{ cls.value }}">
+                                                {% endif %}
+                                                <button type="submit"
+                                                        class="filter-chip {% if cls.active %}filter-chip--active{% endif %}"
+                                                        title="{{ cls.name }}"
+                                                        aria-pressed="{% if cls.active %}true{% else %}false{% endif %}">
+                                                    {% if cls.active %}<span class="filter-chip-glyph" aria-hidden="true">&times;</span>{% endif %}
+                                                    <span class="filter-chip-label">{{ cls.label }}</span>
+                                                </button>
+                                            </form>
                                         {% endfor %}
                                     </div>
                                 </div>
-                            {% endfor %}
+
+                                <div class="filter-param" data-filter-param data-search-text="ec code specific number">
+                                    <div class="filter-param-head">
+                                        <span class="filter-param-label">{% trans "Specific EC code" %}</span>
+                                    </div>
+                                    <form method="POST" action="" class="filter-text-form">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="add_special_filter">
+                                        <input type="hidden" name="special_kind" value="ec">
+                                        <input type="hidden" name="return_query" value="{{ query_string }}">
+                                        <input type="text"
+                                               name="special_value"
+                                               class="filter-text-input"
+                                               placeholder="1.1.1.1"
+                                               aria-label="{% trans 'EC code (e.g. 1.1.1.1)' %}"
+                                               pattern="^[0-9]+(\.[0-9]+){0,3}$"
+                                               autocomplete="off">
+                                        <button type="submit" class="filter-text-add">{% trans "Add" %}</button>
+                                    </form>
+                                    {% if group.ec_specific_active %}
+                                        <div class="filter-chip-group filter-chip-group--active">
+                                            {% for entry in group.ec_specific_active %}
+                                                <form method="POST" action="" class="filter-chip-form">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="action" value="remove_filter">
+                                                    <input type="hidden" name="filter_option_id" value="{{ entry.id }}">
+                                                    <input type="hidden" name="return_query" value="{{ query_string }}">
+                                                    <button type="submit" class="filter-chip filter-chip--active">
+                                                        <span class="filter-chip-glyph" aria-hidden="true">&times;</span>
+                                                        <span class="filter-chip-label">{{ entry.value }}</span>
+                                                    </button>
+                                                </form>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="filter-param" data-filter-param data-search-text="go term gene ontology">
+                                    <div class="filter-param-head">
+                                        <span class="filter-param-label">{% trans "GO term" %}</span>
+                                    </div>
+                                    <form method="POST" action="" class="filter-text-form">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="add_special_filter">
+                                        <input type="hidden" name="special_kind" value="go">
+                                        <input type="hidden" name="return_query" value="{{ query_string }}">
+                                        <input type="text"
+                                               name="special_value"
+                                               class="filter-text-input"
+                                               placeholder="GO:0008270"
+                                               aria-label="{% trans 'GO term (e.g. GO:0008270)' %}"
+                                               autocomplete="off">
+                                        <button type="submit" class="filter-text-add">{% trans "Add" %}</button>
+                                    </form>
+                                    {% if group.go_active %}
+                                        <div class="filter-chip-group filter-chip-group--active">
+                                            {% for entry in group.go_active %}
+                                                <form method="POST" action="" class="filter-chip-form">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="action" value="remove_filter">
+                                                    <input type="hidden" name="filter_option_id" value="{{ entry.id }}">
+                                                    <input type="hidden" name="return_query" value="{{ query_string }}">
+                                                    <button type="submit" class="filter-chip filter-chip--active">
+                                                        <span class="filter-chip-glyph" aria-hidden="true">&times;</span>
+                                                        <span class="filter-chip-label">{{ entry.value }}</span>
+                                                    </button>
+                                                </form>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                {% if group.ec_explorer_url %}
+                                    <a href="{{ group.ec_explorer_url }}" class="filter-explorer-link">
+                                        <span>{% trans "Browse the EC tree" %}</span>
+                                        <span aria-hidden="true">→</span>
+                                    </a>
+                                {% endif %}
+                            {% else %}
+                                {% for param in group.params %}
+                                    <div class="filter-param" data-filter-param data-search-text="{{ param.search_text }}">
+                                        <div class="filter-param-head">
+                                            <span class="filter-param-label">{{ param.label }}</span>
+                                            {% if param.description %}
+                                                <span class="filter-param-help" tabindex="0" role="button" aria-label="{% trans 'About this criterion' %}">
+                                                    <span aria-hidden="true">i</span>
+                                                    <span class="filter-param-tooltip" role="tooltip">{{ param.description }}</span>
+                                                </span>
+                                            {% endif %}
+                                        </div>
+                                        {% if param.type == "numeric" %}
+                                            <form method="POST" action="" class="filter-numeric-form">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="action" value="add_numeric_filter">
+                                                <input type="hidden" name="score_param_id" value="{{ param.id }}">
+                                                <input type="hidden" name="return_query" value="{{ query_string }}">
+                                                <input type="number" step="any" name="value" class="filter-numeric-input" placeholder="{% trans 'Min' %}" aria-label="{% trans 'Minimum' %}">
+                                                <span class="filter-numeric-sep" aria-hidden="true">–</span>
+                                                <input type="number" step="any" name="value_max" class="filter-numeric-input" placeholder="{% trans 'Max' %}" aria-label="{% trans 'Maximum' %}">
+                                                <button type="submit" class="filter-text-add">{% trans "Apply" %}</button>
+                                            </form>
+                                            {% if param.active_filters %}
+                                                <div class="filter-chip-group filter-chip-group--active">
+                                                    {% for entry in param.active_filters %}
+                                                        <form method="POST" action="" class="filter-chip-form">
+                                                            {% csrf_token %}
+                                                            <input type="hidden" name="action" value="remove_filter">
+                                                            <input type="hidden" name="filter_option_id" value="{{ entry.id }}">
+                                                            <input type="hidden" name="return_query" value="{{ query_string }}">
+                                                            <button type="submit" class="filter-chip filter-chip--active">
+                                                                <span class="filter-chip-glyph" aria-hidden="true">&times;</span>
+                                                                <span class="filter-chip-label">{{ entry.display_name }}</span>
+                                                            </button>
+                                                        </form>
+                                                    {% endfor %}
+                                                </div>
+                                            {% endif %}
+                                        {% else %}
+                                            <div class="filter-chip-group">
+                                                {% for option in param.options %}
+                                                    {% if option.is_link %}
+                                                        <a href="{{ option.url }}"
+                                                           class="filter-chip {% if option.active %}filter-chip--active{% endif %}"
+                                                           {% if option.description %}title="{{ option.description }}"{% endif %}
+                                                           aria-pressed="{% if option.active %}true{% else %}false{% endif %}">
+                                                            {% if option.active %}<span class="filter-chip-glyph" aria-hidden="true">&times;</span>{% endif %}
+                                                            <span class="filter-chip-label">{{ option.label }}</span>
+                                                        </a>
+                                                    {% else %}
+                                                        <form method="POST" action="" class="filter-chip-form">
+                                                            {% csrf_token %}
+                                                            <input type="hidden" name="action" value="{% if option.active %}remove_filter{% else %}add_filter{% endif %}">
+                                                            <input type="hidden" name="filter_option_id" value="{{ option.id }}">
+                                                            <input type="hidden" name="return_query" value="{{ query_string }}">
+                                                            <button type="submit"
+                                                                    class="filter-chip {% if option.active %}filter-chip--active{% endif %}"
+                                                                    {% if option.description %}title="{{ option.description }}"{% endif %}
+                                                                    aria-pressed="{% if option.active %}true{% else %}false{% endif %}">
+                                                                {% if option.active %}<span class="filter-chip-glyph" aria-hidden="true">&times;</span>{% endif %}
+                                                                <span class="filter-chip-label">{{ option.label }}</span>
+                                                            </button>
+                                                        </form>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
                         </div>
                     </details>
                 {% empty %}
@@ -552,16 +690,6 @@
                 </p>
             </div>
 
-            {% if numeric_param_count or formulas %}
-                <p class="drawer-advanced-hint">
-                    {% if numeric_param_count %}
-                        {% blocktrans count total=numeric_param_count %}{{ total }} numeric parameter supports range or threshold filters.{% plural %}{{ total }} numeric parameters support range or threshold filters.{% endblocktrans %}
-                    {% else %}
-                        {% trans "Need ranges, thresholds, or expression-based criteria?" %}
-                    {% endif %}
-                    <a href="{% url 'tpwebapp:parameterformview' genome=genome %}{% if query_string %}?{{ query_string }}{% endif %}">{% trans "Open advanced criteria" %}</a>
-                </p>
-            {% endif %}
         </div>
         <div class="drawer-foot">
             <form method="POST" action="" class="drawer-reset-form">

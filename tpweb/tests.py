@@ -67,7 +67,6 @@ from tpweb.services.workspace import (
     set_workspace_session_value,
 )
 from tpweb.views.FormulaForm import FormulaForm
-from tpweb.views.ParameterForm import ParameterForm, SPECIAL_PARAM_STRUCTURE
 from tpweb.services.workspace import PUBLIC_WORKSPACE_USERNAME
 
 
@@ -544,31 +543,17 @@ class WorkspaceIsolationTests(TestCase):
         self.assertEqual(anonymous_formulas, ["PublicFormula"])
         self.assertEqual(alice_formulas, ["AliceFormula"])
 
-    def test_parameter_and_formula_forms_only_show_visible_params(self):
+    def test_formula_form_only_shows_visible_params(self):
         self.create_score_param(name="GlobalBuiltin", category="Protein", user=None)
         self.create_score_param(name="AliceCustom", category="Custom", user=self.alice)
         self.create_score_param(name="BobCustom", category="Custom", user=self.bob)
 
-        parameter_form = ParameterForm(user=self.alice)
         formula_form = FormulaForm(user=self.alice)
-
-        visible_names = list(parameter_form.fields["param"].queryset.values_list("name", flat=True))
         formula_names = list(formula_form.fields["param"].queryset.values_list("name", flat=True))
 
-        self.assertEqual(visible_names, formula_names)
-        self.assertIn("GlobalBuiltin", visible_names)
-        self.assertIn("AliceCustom", visible_names)
-        self.assertNotIn("BobCustom", visible_names)
-
-    def test_parameter_form_offers_colabfold_structure_filter(self):
-        parameter_form = ParameterForm(
-            data={"param": SPECIAL_PARAM_STRUCTURE},
-            user=self.alice,
-        )
-
-        structure_choices = [value for value, _ in parameter_form.fields["options"].choices]
-
-        self.assertIn("colabfold", structure_choices)
+        self.assertIn("GlobalBuiltin", formula_names)
+        self.assertIn("AliceCustom", formula_names)
+        self.assertNotIn("BobCustom", formula_names)
 
     def test_workspace_genome_names_are_hidden_from_other_users(self):
         alice_internal = build_workspace_genome_name("NZ_AP023069.1", self.alice)

@@ -2394,6 +2394,138 @@ a.filter-pill .filter-pill-remove {
     line-height: 1.2;
 }
 
+/* === Filter drawer — Function group + numeric range UI === */
+
+.filter-chip-group--active {
+    margin-top: 8px;
+}
+
+.filter-text-form {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.filter-text-input {
+    flex: 1 1 120px;
+    min-width: 0;
+    border: 1px solid var(--tp-color-border);
+    border-radius: 8px;
+    padding: 7px 10px;
+    background: var(--tp-color-surface);
+    color: var(--tp-color-text-primary);
+    font: inherit;
+    font-size: 0.88rem;
+    transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.filter-text-input::placeholder {
+    color: var(--tp-color-text-soft);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.84rem;
+}
+
+.filter-text-input:focus {
+    outline: none;
+    border-color: var(--tp-color-border-accent);
+    box-shadow: 0 0 0 3px var(--tp-color-brand-100);
+}
+
+.filter-text-input:invalid:not(:placeholder-shown) {
+    border-color: var(--tp-color-danger-border);
+}
+
+.filter-text-add {
+    appearance: none;
+    border: 1px solid var(--tp-color-border);
+    background: var(--tp-color-surface);
+    color: var(--tp-color-text-primary);
+    padding: 7px 14px;
+    border-radius: 8px;
+    font: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: border-color 140ms ease, background 140ms ease, color 140ms ease;
+    flex: 0 0 auto;
+}
+
+.filter-text-add:hover,
+.filter-text-add:focus-visible {
+    border-color: var(--tp-color-brand-700);
+    background: var(--tp-color-brand-100);
+    color: var(--tp-color-brand-900);
+    outline: none;
+}
+
+.filter-numeric-form {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.filter-numeric-input {
+    flex: 1 1 90px;
+    min-width: 0;
+    border: 1px solid var(--tp-color-border);
+    border-radius: 8px;
+    padding: 7px 10px;
+    background: var(--tp-color-surface);
+    color: var(--tp-color-text-primary);
+    font: inherit;
+    font-size: 0.88rem;
+    font-variant-numeric: tabular-nums;
+    transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.filter-numeric-input::placeholder {
+    color: var(--tp-color-text-soft);
+}
+
+.filter-numeric-input:focus {
+    outline: none;
+    border-color: var(--tp-color-border-accent);
+    box-shadow: 0 0 0 3px var(--tp-color-brand-100);
+}
+
+.filter-numeric-sep {
+    color: var(--tp-color-text-muted);
+    font-weight: 600;
+    flex: 0 0 auto;
+}
+
+.filter-explorer-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 4px;
+    padding: 8px 0;
+    color: var(--tp-color-link);
+    font-size: 0.86rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 140ms ease;
+}
+
+.filter-explorer-link span:last-child {
+    transition: transform 140ms ease;
+    display: inline-block;
+}
+
+.filter-explorer-link:hover,
+.filter-explorer-link:focus-visible {
+    color: var(--tp-color-link-hover);
+    text-decoration: underline;
+    outline: none;
+}
+
+.filter-explorer-link:hover span:last-child,
+.filter-explorer-link:focus-visible span:last-child {
+    transform: translateX(2px);
+}
+
 /* ==========================================================================
    Drawer — empty / no-results / advanced hint / done button
    ========================================================================== */
