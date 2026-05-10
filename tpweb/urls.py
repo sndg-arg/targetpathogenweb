@@ -15,7 +15,6 @@ from .views.NewView import NewView
 from .views.MoleculeView import MoleculeView
 from .views.ParameterFormView import ParameterFormView, load_options, reset_filters
 from .views.FormulaFormView import FormulaFormView
-from .views.PrioritizationSetupView import PrioritizationSetupView
 from .views.TestCelery import test_celery
 #from debug_toolbar.toolbar import debug_toolbar_urls
 from .views.CustomParamView import upload_form
@@ -65,7 +64,6 @@ urlpatterns = [
     path("result/<str:result_id>", view=NewView.as_view(), name="blast_res"),
     path("genome/<str:genome>/reset-filters", reset_filters, name="reset_filters"),
     path("genome/<str:genome>/formula", view=FormulaFormView, name="formula_form"),
-    path("genome/<str:genome>/prioritization", view=PrioritizationSetupView.as_view(), name="prioritization_setup"),
     path("genome/<str:genome>/custom-evidence", view=upload_form, name="customparam"),
     path("health/live", view=HealthLiveView.as_view(), name="health_live"),
     path("health/ready", view=HealthReadyView.as_view(), name="health_ready"),

@@ -11,19 +11,19 @@
         <section class="customparam-hero">
             {% trans "Home" as crumb_home %}
             {% trans "Genomes" as crumb_genomes %}
-            {% trans "Prioritization setup" as crumb_setup %}
-            {% trans "Upload custom scores" as crumb_upload_custom_scores %}
+            {% trans "Proteins" as crumb_proteins %}
+            {% trans "Add my own data" as crumb_add_data %}
             {% url 'tpwebapp:index' as index_url %}
             {% url 'tpwebapp:genomes_list' as genomes_url %}
             {% url 'tpwebapp:assembly' genome as assembly_url %}
-            {% url 'tpwebapp:prioritization_setup' genome=genome as setup_url %}
+            {% url 'tpwebapp:protein_list' genome=genome as proteins_url %}
             {% with genome_label=assembly_label|default:assembly_name %}
             {% with crumb_genome="Genome: "|add:genome_label %}
-            {% include "components/navigation/breadcrumbs.html" with crumb_1_label=crumb_home crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_genome crumb_3_url=assembly_url crumb_4_label=crumb_setup crumb_4_url=setup_url crumb_5_label=crumb_upload_custom_scores %}
+            {% include "components/navigation/breadcrumbs.html" with crumb_1_label=crumb_home crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_genome crumb_3_url=assembly_url crumb_4_label=crumb_proteins crumb_4_url=proteins_url crumb_5_label=crumb_add_data %}
             {% endwith %}
             {% endwith %}
-            <h1>{% trans "Upload custom evidence" %}</h1>
-            <p class="customparam-subtitle">{% trans "Import a TSV file to add project-specific quantitative or categorical evidence to protein ranking." %}</p>
+            <h1>{% trans "Add my own data" %}</h1>
+            <p class="customparam-subtitle">{% trans "Bring a TSV file with your own per-protein data (numeric or categorical) so you can use it as another scoring or filter signal." %}</p>
             <p class="customparam-context"><strong>{% trans "Genome" %}:</strong> <span class="customparam-context-id">{{ assembly_label|default:assembly_name }}</span></p>
             <div class="customparam-chip-group tp-chip-group">
                 <span class="tp-chip tp-chip--meta tp-chip--sm">{% trans "Format" %}: TSV</span>

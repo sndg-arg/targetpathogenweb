@@ -67,6 +67,9 @@ from tpweb.services.structure_sources import (
     PDB_EXPERIMENT_COLABFOLD,
     PDB_MODEL_EXPERIMENTS,
 )
+from tpweb.services.workspace import resolve_workspace_user
+from tpweb.models.CustomParamFile import CustomParam
+from pathlib import Path
 
 
 class ProteinSearchSuggestionsView(View):
@@ -555,6 +558,15 @@ class ProteinListView(View):
                 "expression": f.get_current_formula(),
             })
 
+        workspace_user = resolve_workspace_user(request.user)
+        custom_data_files = list(
+            CustomParam.objects.filter(owner=workspace_user, accession=assembly_name).order_by("tsv")
+        )
+        custom_data_for_drawer = [
+            {"file_name": Path(cp.tsv.name).name}
+            for cp in custom_data_files
+        ]
+
         all_visible_score_params = list(
             visible_score_params_queryset(request.user).prefetch_related("choices")
         )
@@ -811,6 +823,10 @@ class ProteinListView(View):
             "col_descriptions": col_descriptions,
             "formulas":formulas,
             "formulas_for_drawer": formulas_for_drawer,
+            "custom_data_for_drawer": custom_data_for_drawer,
+            "custom_data_count": len(custom_data_for_drawer),
+            "custom_score_url": reverse("tpwebapp:formula_form", kwargs={"genome": genome_url_slug(assembly_name)}),
+            "custom_data_url": reverse("tpwebapp:customparam", kwargs={"genome": genome_url_slug(assembly_name)}),
             "current_formula":current_formula,
             "formula_term_count": len(formula_term_list),
             "query_string": query_string,

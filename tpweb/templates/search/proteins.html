@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20260510-2">
+    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20260510-3">
 {% endblock %}
 
 {% block body %}
@@ -752,11 +752,38 @@
                     <p class="tp-state-note tp-state-note--empty">{% trans "No scoring formulas available for this workspace." %}</p>
                 {% endif %}
 
-                {% url 'tpwebapp:prioritization_setup' genome=genome as prioritization_setup_base_url %}
-                <p class="drawer-advanced-hint">
-                    {% trans "Want to adjust weights or use custom evidence?" %}
-                    <a href="{{ prioritization_setup_base_url }}{% if formula %}?scoreformula={{ formula.name|urlencode }}{% endif %}">{% trans "Customize this formula" %}</a>
-                </p>
+                <section class="scoring-mydata">
+                    <h3 class="scoring-mydata__title">{% trans "My data" %}</h3>
+
+                    <div class="scoring-mydata__actions">
+                        <a href="{{ custom_score_url }}" class="scoring-mydata__action">
+                            <span class="scoring-mydata__action-label">{% trans "Make my own score" %}</span>
+                            <span class="scoring-mydata__action-arrow" aria-hidden="true">→</span>
+                        </a>
+                        <a href="{{ custom_data_url }}" class="scoring-mydata__action">
+                            <span class="scoring-mydata__action-label">{% trans "Add my own data" %}</span>
+                            <span class="scoring-mydata__action-arrow" aria-hidden="true">→</span>
+                        </a>
+                    </div>
+
+                    {% if custom_data_for_drawer %}
+                        <div class="scoring-mydata__files">
+                            <span class="scoring-mydata__files-label">
+                                {% blocktrans count total=custom_data_count %}{{ total }} file added{% plural %}{{ total }} files added{% endblocktrans %}
+                            </span>
+                            <ul class="scoring-mydata__files-list">
+                                {% for entry in custom_data_for_drawer|slice:":4" %}
+                                    <li class="scoring-mydata__file">{{ entry.file_name }}</li>
+                                {% endfor %}
+                                {% if custom_data_count > 4 %}
+                                    <li class="scoring-mydata__file scoring-mydata__file--more">
+                                        <a href="{{ custom_data_url }}">{% blocktrans count more=custom_data_count|add:"-4" %}+{{ more }} more{% plural %}+{{ more }} more{% endblocktrans %}</a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                    {% endif %}
+                </section>
             </div>
         </aside>
     {% endif %}

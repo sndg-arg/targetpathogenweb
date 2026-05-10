@@ -14,19 +14,19 @@
         <section class="formula-hero">
             {% trans "Home" as crumb_home %}
             {% trans "Genomes" as crumb_genomes %}
-            {% trans "Prioritization setup" as crumb_setup %}
-            {% trans "Formula Builder" as crumb_formula_builder %}
+            {% trans "Proteins" as crumb_proteins %}
+            {% trans "Custom score" as crumb_custom_score %}
             {% url 'tpwebapp:index' as index_url %}
             {% url 'tpwebapp:genomes_list' as genomes_url %}
             {% url 'tpwebapp:assembly' genome as assembly_url %}
-            {% url 'tpwebapp:prioritization_setup' genome=genome as setup_url %}
+            {% url 'tpwebapp:protein_list' genome=genome as proteins_url %}
             {% with genome_label=assembly_label|default:assembly_name %}
             {% with crumb_genome="Genome: "|add:genome_label %}
-            {% include "components/navigation/breadcrumbs.html" with crumb_1_label=crumb_home crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_genome crumb_3_url=assembly_url crumb_4_label=crumb_setup crumb_4_url=setup_url crumb_5_label=crumb_formula_builder %}
+            {% include "components/navigation/breadcrumbs.html" with crumb_1_label=crumb_home crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_genome crumb_3_url=assembly_url crumb_4_label=crumb_proteins crumb_4_url=proteins_url crumb_5_label=crumb_custom_score %}
             {% endwith %}
             {% endwith %}
-            <h1>{% trans "Formula Builder" %}</h1>
-            <p class="formula-subtitle">{% trans "Define a weighted scoring expression for protein ranking in this genome." %}</p>
+            <h1>{% trans "Make my own score" %}</h1>
+            <p class="formula-subtitle">{% trans "Combine signals (off-target, druggability, essentiality, etc.) into a custom ranking score for this genome." %}</p>
             <p class="formula-context"><strong>{% trans "Genome" %}:</strong> <span class="formula-context-id">{{ assembly_label|default:assembly_name }}</span></p>
             <div class="formula-chip-group tp-chip-group">
                 <span class="tp-chip tp-chip--meta tp-chip--sm">{% trans "Draft" %}: {{ formula_name|default:"Untitled formula" }}</span>

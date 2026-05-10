@@ -1416,6 +1416,126 @@ a.filter-pill .filter-pill-remove {
     border-color: var(--tp-color-brand-200);
 }
 
+/* === Scoring drawer — My data section (custom score + custom files) === */
+
+.scoring-mydata {
+    margin-top: 4px;
+    padding-top: 18px;
+    border-top: 1px solid var(--tp-color-border-soft);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.scoring-mydata__title {
+    margin: 0;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--tp-color-text-secondary);
+}
+
+.scoring-mydata__actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.scoring-mydata__action {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    border: 1px solid var(--tp-color-border);
+    border-radius: 10px;
+    background: var(--tp-color-surface);
+    color: var(--tp-color-text-primary);
+    text-decoration: none;
+    transition: border-color 140ms ease, background 140ms ease, color 140ms ease;
+}
+
+.scoring-mydata__action:hover,
+.scoring-mydata__action:focus-visible {
+    border-color: var(--tp-color-border-accent);
+    background: var(--tp-color-surface-soft);
+    color: var(--tp-color-link-hover);
+    text-decoration: none;
+    outline: none;
+}
+
+.scoring-mydata__action-label {
+    font-size: 0.92rem;
+    font-weight: 600;
+}
+
+.scoring-mydata__action-arrow {
+    color: var(--tp-color-link);
+    font-size: 1rem;
+    line-height: 1;
+    transition: transform 140ms ease;
+}
+
+.scoring-mydata__action:hover .scoring-mydata__action-arrow,
+.scoring-mydata__action:focus-visible .scoring-mydata__action-arrow {
+    transform: translateX(2px);
+    color: var(--tp-color-link-hover);
+}
+
+.scoring-mydata__files {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    background: var(--tp-color-surface-soft);
+    border: 1px solid var(--tp-color-border-soft);
+}
+
+.scoring-mydata__files-label {
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--tp-color-text-muted);
+}
+
+.scoring-mydata__files-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.scoring-mydata__file {
+    color: var(--tp-color-text-secondary);
+    font-size: 0.85rem;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.scoring-mydata__file--more {
+    font-family: inherit;
+}
+
+.scoring-mydata__file--more a {
+    color: var(--tp-color-link);
+    font-weight: 600;
+    text-decoration: none;
+    font-size: 0.84rem;
+}
+
+.scoring-mydata__file--more a:hover,
+.scoring-mydata__file--more a:focus-visible {
+    color: var(--tp-color-link-hover);
+    text-decoration: underline;
+    outline: none;
+}
+
 /* === Columns modal — fixed-note (always-shown chips) === */
 
 .columns-body {

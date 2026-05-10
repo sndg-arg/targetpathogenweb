@@ -89,7 +89,6 @@ class AssemblyView(View):
         slug = genome_url_slug(biodb.name)
         workspace_links = {
             "proteins_url": reverse("tpwebapp:protein_list", kwargs={"genome": slug}),
-            "prioritization_setup_url": reverse("tpwebapp:prioritization_setup", kwargs={"genome": slug}),
             "custom_scores_url": reverse("tpwebapp:customparam", kwargs={"genome": slug}),
             "ec_explorer_url": reverse(
                 "tpwebapp:annotation_explorer",
