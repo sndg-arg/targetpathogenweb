@@ -216,52 +216,88 @@ class Command(BaseCommand):
         stats["raw"] = len(df)
         self.stdout.write(self.style.NOTICE(f"known: {len(df)} raw rows"))
 
-        df["_pchembl_sort"] = pd.to_numeric(df.get("pchembl"), errors="coerce")
-        df = df.sort_values(
-            ["_locustag", "_pchembl_sort"], ascending=[True, False], na_position="last"
+        df["_inner_source"] = df.get("source", "").apply(
+            lambda v: str(v).strip().lower() if v is not None else ""
         )
-        df = df.groupby("_locustag", as_index=False, sort=False).head(max_per_protein)
-        stats["kept"] = len(df)
-        self.stdout.write(f"  after top-{max_per_protein}/protein filter: {len(df)} rows")
+        pdb_mask = df["_inner_source"] == "pdb"
+        pdb_rows = df[pdb_mask].copy()
+        affinity_rows = df[~pdb_mask].copy()
+        self.stdout.write(
+            f"  inner split: pdb-crystallized={len(pdb_rows)}, affinity/predicted={len(affinity_rows)}"
+        )
+
+        pdb_rows = self._top_n_by_pchembl(pdb_rows, max_per_protein)
+        affinity_rows = self._top_n_by_pchembl(affinity_rows, max_per_protein)
+        stats["kept"] = len(pdb_rows) + len(affinity_rows)
+        self.stdout.write(
+            f"  after top-{max_per_protein}/protein filter: "
+            f"pdb={len(pdb_rows)}, affinity={len(affinity_rows)}"
+        )
 
         if dry_run:
             return
 
-        bioentry_map = self._bioentry_map(df["_locustag"].unique())
+        all_locustags = set(pdb_rows["_locustag"].unique()) | set(
+            affinity_rows["_locustag"].unique()
+        )
+        bioentry_map = self._bioentry_map(all_locustags)
 
         with transaction.atomic():
-            for _, row in tqdm(df.iterrows(), total=len(df), desc="known"):
-                bioentry = bioentry_map.get(row["_locustag"])
-                if bioentry is None:
-                    stats["skipped_locustag"] += 1
-                    continue
+            self._write_known_rows(
+                pdb_rows, Binders.SOURCE_PDB, bioentry_map, stats, desc="known/pdb"
+            )
+            self._write_known_rows(
+                affinity_rows,
+                Binders.SOURCE_PROPOSED,
+                bioentry_map,
+                stats,
+                desc="known/affinity",
+            )
 
-                chem_comp_id = str(row.get("chem_comp_id", "") or "").strip()
-                smiles = str(row.get("smiles", "") or "").strip()
-                if not chem_comp_id or not smiles:
-                    continue
+    @staticmethod
+    def _top_n_by_pchembl(df, n):
+        if df.empty:
+            return df
+        df = df.copy()
+        df["_pchembl_sort"] = pd.to_numeric(df.get("pchembl"), errors="coerce")
+        df = df.sort_values(
+            ["_locustag", "_pchembl_sort"], ascending=[True, False], na_position="last"
+        )
+        return df.groupby("_locustag", as_index=False, sort=False).head(n)
 
-                pdb_first = _parse_first_token(row.get("pdb_ids"))
-                uniprot = str(row.get("uniprot_id", "") or "").strip()
-                score = _safe_float(row.get("pchembl"))
-                notes = self._format_known_notes(row)
+    def _write_known_rows(self, df, target_source, bioentry_map, stats, *, desc):
+        for _, row in tqdm(df.iterrows(), total=len(df), desc=desc):
+            bioentry = bioentry_map.get(row["_locustag"])
+            if bioentry is None:
+                stats["skipped_locustag"] += 1
+                continue
 
-                try:
-                    Binders.objects.update_or_create(
-                        ccd_id=chem_comp_id,
-                        pdb_id=pdb_first,
-                        uniprot=uniprot,
-                        locustag=bioentry,
-                        defaults={
-                            "smiles": smiles,
-                            "source": Binders.SOURCE_PDB,
-                            "score": score,
-                            "notes": notes,
-                        },
-                    )
-                    stats["written"] += 1
-                except IntegrityError:
-                    continue
+            chem_comp_id = str(row.get("chem_comp_id", "") or "").strip()
+            smiles = str(row.get("smiles", "") or "").strip()
+            if not chem_comp_id or not smiles:
+                continue
+
+            pdb_first = _parse_first_token(row.get("pdb_ids"))
+            uniprot = str(row.get("uniprot_id", "") or "").strip()
+            score = _safe_float(row.get("pchembl"))
+            notes = self._format_known_notes(row)
+
+            try:
+                Binders.objects.update_or_create(
+                    ccd_id=chem_comp_id,
+                    pdb_id=pdb_first,
+                    uniprot=uniprot,
+                    locustag=bioentry,
+                    defaults={
+                        "smiles": smiles,
+                        "source": target_source,
+                        "score": score,
+                        "notes": notes,
+                    },
+                )
+                stats["written"] += 1
+            except IntegrityError:
+                continue
 
     def _load_zinc(self, df, *, max_per_protein, min_tanimoto, dry_run, stats):
         stats["raw"] = len(df)
