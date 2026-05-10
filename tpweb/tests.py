@@ -32,6 +32,7 @@ from tpweb.services.genome_uploads import (
 from tpweb.services.genome_metadata import build_genome_metadata_rows, genome_metadata_label
 from tpweb.services.genome_upload_status import reconcile_genome_uploads
 from tpweb.services.genomes import build_genome_dto, safe_int, summarize_genomes
+from tpweb.services.go_ontology import expand_go_records, parse_go_obo
 from tpweb.services.protein_list import (
     add_selected_parameter,
     apply_protein_search,
@@ -242,6 +243,58 @@ class GenomeServiceTests(SimpleTestCase):
             [row["key"] for row in rows],
             ["EntryLength", "COUNT_CDS", "COUNT_tmRNA"],
         )
+
+
+class GOOntologyServiceTests(SimpleTestCase):
+    def test_parse_go_obo_extracts_primary_fields(self):
+        text = """
+format-version: 1.2
+
+[Term]
+id: GO:0000001
+name: mitochondrion inheritance
+namespace: biological_process
+def: "The distribution of mitochondria..." [GOC:mcc]
+alt_id: GO:1234567
+
+[Term]
+id: GO:0000002
+name: obsolete mitochondrial genome maintenance
+def: "Something obsolete." [GOC:ai]
+is_obsolete: true
+"""
+
+        records = parse_go_obo(text)
+
+        self.assertEqual(len(records), 2)
+        self.assertEqual(records[0].identifier, "GO:0000001")
+        self.assertEqual(records[0].name, "mitochondrion inheritance")
+        self.assertEqual(records[0].definition, "The distribution of mitochondria...")
+        self.assertEqual(records[0].alt_ids, ("GO:1234567",))
+        self.assertFalse(records[0].is_obsolete)
+        self.assertTrue(records[1].is_obsolete)
+
+    def test_expand_go_records_includes_alt_ids_as_obsolete_aliases(self):
+        text = """
+[Term]
+id: GO:0000001
+name: mitochondrion inheritance
+def: "Definition one." [GOC:x]
+alt_id: GO:1234567
+alt_id: GO:7654321
+"""
+
+        records = parse_go_obo(text)
+        expanded = expand_go_records(records)
+
+        self.assertEqual(
+            [item.identifier for item in expanded],
+            ["GO:0000001", "GO:1234567", "GO:7654321"],
+        )
+        self.assertFalse(expanded[0].is_obsolete)
+        self.assertTrue(expanded[1].is_obsolete)
+        self.assertEqual(expanded[1].canonical_id, "GO:0000001")
+        self.assertEqual(expanded[1].name, "mitochondrion inheritance")
 
 
 class ProteinListServiceTests(SimpleTestCase):
