@@ -1,0 +1,186 @@
+/* Binder detail page — focused layout for a single ligand. */
+
+.binder-detail-page {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 18px 16px 36px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.binder-detail-hero h1 {
+    margin: 6px 0 8px;
+    font-size: clamp(1.4rem, 3vw, 1.85rem);
+    color: var(--tp-color-text-primary);
+}
+
+.binder-detail-chips {
+    margin-top: 4px;
+}
+
+.binder-detail-chips .tp-chip a {
+    color: inherit;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.binder-detail-chips .tp-chip a:hover,
+.binder-detail-chips .tp-chip a:focus-visible {
+    text-decoration: underline;
+    outline: none;
+}
+
+.binder-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+    align-items: start;
+}
+
+.binder-detail-card {
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 14px;
+    background: var(--tp-color-surface);
+    padding: 16px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.binder-detail-card--structure {
+    grid-column: span 1;
+}
+
+.binder-detail-card--notes {
+    grid-column: 1 / -1;
+}
+
+.binder-detail-card-head h2 {
+    margin: 0;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--tp-color-text-secondary);
+}
+
+.binder-detail-svg {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    max-width: 360px;
+    margin: 0 auto;
+    background: var(--tp-color-surface-soft);
+    border-radius: 12px;
+    overflow: hidden;
+    display: grid;
+    place-items: center;
+}
+
+.binder-detail-svg svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.binder-detail-smiles {
+    margin: 0;
+    padding: 12px 14px;
+    background: var(--tp-color-surface-soft);
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 10px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.84rem;
+    line-height: 1.5;
+    color: var(--tp-color-text-secondary);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.binder-detail-copy {
+    align-self: flex-start;
+    appearance: none;
+    background: transparent;
+    border: 1px solid var(--tp-color-border);
+    color: var(--tp-color-text-primary);
+    padding: 6px 12px;
+    border-radius: 8px;
+    font: inherit;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: border-color 140ms ease, background 140ms ease, color 140ms ease;
+}
+
+.binder-detail-copy:hover,
+.binder-detail-copy:focus-visible {
+    border-color: var(--tp-color-brand-700);
+    background: var(--tp-color-brand-100);
+    color: var(--tp-color-brand-900);
+    outline: none;
+}
+
+.binder-detail-list {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.binder-detail-row {
+    display: grid;
+    grid-template-columns: 110px minmax(0, 1fr);
+    gap: 12px;
+    align-items: baseline;
+}
+
+.binder-detail-row dt {
+    color: var(--tp-color-text-muted);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.binder-detail-row dd {
+    margin: 0;
+    color: var(--tp-color-text-primary);
+    font-weight: 500;
+    overflow-wrap: anywhere;
+}
+
+.binder-detail-links {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.binder-detail-links a {
+    color: var(--tp-color-link);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.binder-detail-links a:hover,
+.binder-detail-links a:focus-visible {
+    color: var(--tp-color-link-hover);
+    text-decoration: underline;
+    outline: none;
+}
+
+.binder-detail-notes {
+    margin: 0;
+    color: var(--tp-color-text-secondary);
+    line-height: 1.55;
+}
+
+@media (max-width: 640px) {
+    .binder-detail-row {
+        grid-template-columns: 1fr;
+        gap: 2px;
+    }
+}
