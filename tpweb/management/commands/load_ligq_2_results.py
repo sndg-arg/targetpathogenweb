@@ -53,13 +53,14 @@ def _short(value, limit=200):
 class Command(BaseCommand):
     help = (
         "Load ligands predicted by LigQ_2 (known + zinc) into the Binders table. "
-        "Reads known_ligands.tsv and zinc_ligands.tsv from the LigQ_2 output dir."
+        "Expects the LigQ_2 output layout: <output_dir>/search_results/<qseqid>/{known,zinc}_ligands.tsv. "
+        "Also accepts a flat layout with known_ligands.tsv / zinc_ligands.tsv at the root."
     )
 
     def add_arguments(self, parser):
         parser.add_argument(
             "output_dir",
-            help="LigQ_2 output directory containing known_ligands.tsv and zinc_ligands.tsv.",
+            help="LigQ_2 output directory (containing 'search_results/' or flat TSVs).",
         )
         parser.add_argument(
             "--max-zinc-per-protein",
@@ -83,8 +84,8 @@ class Command(BaseCommand):
             "--locustag-fallback",
             default=None,
             help=(
-                "Bioentry accession to use as locustag for known_ligands.tsv rows when "
-                "the file has no 'qseqid' column (single-protein LigQ_2 run)."
+                "Bioentry accession to assign as locustag for flat-layout TSVs that have "
+                "no 'qseqid' column (only useful when output_dir contains flat files)."
             ),
         )
         parser.add_argument(
@@ -98,37 +99,37 @@ class Command(BaseCommand):
         if not out_dir.is_dir():
             raise CommandError(f"Output directory not found: {out_dir}")
 
-        known_path = out_dir / "known_ligands.tsv"
-        zinc_path = out_dir / "zinc_ligands.tsv"
-        if not known_path.exists() and not zinc_path.exists():
+        known_df, zinc_df = self._collect_tables(out_dir, options["locustag_fallback"])
+
+        if known_df is None and zinc_df is None:
             raise CommandError(
-                f"Neither known_ligands.tsv nor zinc_ligands.tsv found in {out_dir}"
+                f"No known_ligands.tsv or zinc_ligands.tsv found under {out_dir}. "
+                "Expected layout: <output_dir>/search_results/<qseqid>/*.tsv or flat at root."
             )
 
         known_stats = {"raw": 0, "kept": 0, "written": 0, "skipped_locustag": 0}
         zinc_stats = {"raw": 0, "kept": 0, "written": 0, "skipped_locustag": 0}
 
-        if known_path.exists():
+        if known_df is not None:
             self._load_known(
-                known_path,
+                known_df,
                 max_per_protein=options["max_known_per_protein"],
-                locustag_fallback=options["locustag_fallback"],
                 dry_run=options["dry_run"],
                 stats=known_stats,
             )
         else:
-            self.stdout.write(self.style.WARNING("Skipping known_ligands.tsv (file not present)"))
+            self.stdout.write(self.style.WARNING("No known_ligands.tsv files found"))
 
-        if zinc_path.exists():
+        if zinc_df is not None:
             self._load_zinc(
-                zinc_path,
+                zinc_df,
                 max_per_protein=options["max_zinc_per_protein"],
                 min_tanimoto=options["min_tanimoto"],
                 dry_run=options["dry_run"],
                 stats=zinc_stats,
             )
         else:
-            self.stdout.write(self.style.WARNING("Skipping zinc_ligands.tsv (file not present)"))
+            self.stdout.write(self.style.WARNING("No zinc_ligands.tsv files found"))
 
         self.stdout.write("")
         self.stdout.write(self.style.SUCCESS("=== LigQ_2 load summary ==="))
@@ -143,23 +144,77 @@ class Command(BaseCommand):
         if options["dry_run"]:
             self.stdout.write(self.style.WARNING("(dry-run: no rows were written)"))
 
-    def _load_known(self, path, *, max_per_protein, locustag_fallback, dry_run, stats):
-        df = pd.read_csv(path, sep="\t")
-        stats["raw"] = len(df)
-        self.stdout.write(self.style.NOTICE(f"known_ligands.tsv: {len(df)} raw rows"))
+    def _collect_tables(self, out_dir, locustag_fallback):
+        known_frames = []
+        zinc_frames = []
+        protein_count = 0
 
-        if "qseqid" in df.columns:
-            df["_locustag"] = df["qseqid"].astype(str)
-        elif locustag_fallback:
-            df["_locustag"] = str(locustag_fallback)
+        search_root = out_dir / "search_results"
+        if search_root.is_dir():
+            per_protein_dirs = sorted(p for p in search_root.iterdir() if p.is_dir())
+            for prot_dir in per_protein_dirs:
+                qseqid = prot_dir.name
+                protein_count += 1
+                kf = prot_dir / "known_ligands.tsv"
+                if kf.exists() and kf.stat().st_size > 0:
+                    df = pd.read_csv(kf, sep="\t")
+                    if not df.empty:
+                        df["_locustag"] = qseqid
+                        known_frames.append(df)
+                zf = prot_dir / "zinc_ligands.tsv"
+                if zf.exists() and zf.stat().st_size > 0:
+                    df = pd.read_csv(zf, sep="\t")
+                    if not df.empty:
+                        df["_locustag"] = qseqid
+                        zinc_frames.append(df)
             self.stdout.write(
-                f"  using --locustag-fallback={locustag_fallback} for all known rows"
+                self.style.NOTICE(
+                    f"Walked search_results/: {protein_count} protein dirs, "
+                    f"{len(known_frames)} non-empty known TSVs, "
+                    f"{len(zinc_frames)} non-empty zinc TSVs"
+                )
             )
-        else:
-            raise CommandError(
-                "known_ligands.tsv has no 'qseqid' column. "
-                "Pass --locustag-fallback <accession> to map rows to a Bioentry."
-            )
+
+        flat_known = out_dir / "known_ligands.tsv"
+        if flat_known.exists() and flat_known.stat().st_size > 0:
+            df = pd.read_csv(flat_known, sep="\t")
+            if "qseqid" in df.columns:
+                df["_locustag"] = df["qseqid"].astype(str)
+            elif locustag_fallback:
+                df["_locustag"] = str(locustag_fallback)
+                self.stdout.write(
+                    f"  flat known_ligands.tsv: using --locustag-fallback={locustag_fallback}"
+                )
+            else:
+                raise CommandError(
+                    "Flat known_ligands.tsv has no 'qseqid' column. "
+                    "Pass --locustag-fallback <accession>."
+                )
+            if not df.empty:
+                known_frames.append(df)
+
+        flat_zinc = out_dir / "zinc_ligands.tsv"
+        if flat_zinc.exists() and flat_zinc.stat().st_size > 0:
+            df = pd.read_csv(flat_zinc, sep="\t")
+            if "qseqid" in df.columns:
+                df["_locustag"] = df["qseqid"].astype(str)
+            elif locustag_fallback:
+                df["_locustag"] = str(locustag_fallback)
+            else:
+                raise CommandError(
+                    "Flat zinc_ligands.tsv has no 'qseqid' column. "
+                    "Pass --locustag-fallback <accession>."
+                )
+            if not df.empty:
+                zinc_frames.append(df)
+
+        known_df = pd.concat(known_frames, ignore_index=True) if known_frames else None
+        zinc_df = pd.concat(zinc_frames, ignore_index=True) if zinc_frames else None
+        return known_df, zinc_df
+
+    def _load_known(self, df, *, max_per_protein, dry_run, stats):
+        stats["raw"] = len(df)
+        self.stdout.write(self.style.NOTICE(f"known: {len(df)} raw rows"))
 
         df["_pchembl_sort"] = pd.to_numeric(df.get("pchembl"), errors="coerce")
         df = df.sort_values(
@@ -176,8 +231,7 @@ class Command(BaseCommand):
 
         with transaction.atomic():
             for _, row in tqdm(df.iterrows(), total=len(df), desc="known"):
-                locustag = row["_locustag"]
-                bioentry = bioentry_map.get(locustag)
+                bioentry = bioentry_map.get(row["_locustag"])
                 if bioentry is None:
                     stats["skipped_locustag"] += 1
                     continue
@@ -190,7 +244,6 @@ class Command(BaseCommand):
                 pdb_first = _parse_first_token(row.get("pdb_ids"))
                 uniprot = str(row.get("uniprot_id", "") or "").strip()
                 score = _safe_float(row.get("pchembl"))
-
                 notes = self._format_known_notes(row)
 
                 try:
@@ -210,20 +263,15 @@ class Command(BaseCommand):
                 except IntegrityError:
                     continue
 
-    def _load_zinc(self, path, *, max_per_protein, min_tanimoto, dry_run, stats):
-        df = pd.read_csv(path, sep="\t")
+    def _load_zinc(self, df, *, max_per_protein, min_tanimoto, dry_run, stats):
         stats["raw"] = len(df)
-        self.stdout.write(self.style.NOTICE(f"zinc_ligands.tsv: {len(df)} raw rows"))
-
-        if "qseqid" not in df.columns:
-            raise CommandError("zinc_ligands.tsv missing required column 'qseqid'.")
+        self.stdout.write(self.style.NOTICE(f"zinc: {len(df)} raw rows"))
 
         df["_tani"] = pd.to_numeric(df.get("tanimoto"), errors="coerce")
         df = df.dropna(subset=["_tani"])
         df = df[df["_tani"] >= min_tanimoto]
         self.stdout.write(f"  after tanimoto >= {min_tanimoto}: {len(df)} rows")
 
-        df["_locustag"] = df["qseqid"].astype(str)
         df = df.sort_values(["_locustag", "_tani"], ascending=[True, False])
         df = df.groupby("_locustag", as_index=False, sort=False).head(max_per_protein)
         stats["kept"] = len(df)
@@ -236,8 +284,7 @@ class Command(BaseCommand):
 
         with transaction.atomic():
             for _, row in tqdm(df.iterrows(), total=len(df), desc="zinc"):
-                locustag = row["_locustag"]
-                bioentry = bioentry_map.get(locustag)
+                bioentry = bioentry_map.get(row["_locustag"])
                 if bioentry is None:
                     stats["skipped_locustag"] += 1
                     continue
@@ -249,7 +296,6 @@ class Command(BaseCommand):
 
                 uniprot = str(row.get("uniprot_id", "") or "").strip()
                 score = _safe_float(row.get("tanimoto"))
-
                 notes = self._format_zinc_notes(row)
 
                 try:
