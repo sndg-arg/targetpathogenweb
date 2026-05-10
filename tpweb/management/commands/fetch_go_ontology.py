@@ -149,7 +149,7 @@ class Command(BaseCommand):
         for identifier in incoming_ids:
             term = term_id_map[identifier]
             dbxref = dbxref_id_map[identifier]
-            key = (term.id, dbxref.id)
+            key = (term.pk, dbxref.pk)
             if key in existing_links:
                 continue
             links_to_create.append(TermDbxref(term=term, dbxref=dbxref, rank=0))
