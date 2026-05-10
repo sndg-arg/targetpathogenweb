@@ -545,6 +545,16 @@ class ProteinListView(View):
             formuladto = formula_to_dto(formula, col_descriptions)
             current_formula = formula.get_current_formula()
 
+        current_formula_pk = getattr(formula, "pk", None)
+        formulas_for_drawer = []
+        for f in formulas:
+            formulas_for_drawer.append({
+                "name": f.name,
+                "is_default": bool(f.default),
+                "is_current": f.pk == current_formula_pk,
+                "expression": f.get_current_formula(),
+            })
+
         all_visible_score_params = list(
             visible_score_params_queryset(request.user).prefetch_related("choices")
         )
@@ -800,6 +810,7 @@ class ProteinListView(View):
             "formula": formuladto,
             "col_descriptions": col_descriptions,
             "formulas":formulas,
+            "formulas_for_drawer": formulas_for_drawer,
             "current_formula":current_formula,
             "formula_term_count": len(formula_term_list),
             "query_string": query_string,

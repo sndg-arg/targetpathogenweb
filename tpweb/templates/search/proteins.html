@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20260510-1">
+    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20260510-2">
 {% endblock %}
 
 {% block body %}
@@ -580,14 +580,14 @@
     </aside>
 
     <div class="tp-overlay" id="columns-overlay"></div>
-    <div class="formula-modal columns-modal" id="columns-modal" aria-hidden="true">
-        <div class="formula-head">
+    <aside class="filters-drawer columns-drawer" id="columns-modal" aria-hidden="true" aria-label="{% trans 'Columns' %}">
+        <div class="drawer-head">
             <h2>{% trans "Columns" %}</h2>
             <button class="btn tp-btn tp-btn--neutral drawer-close-btn" type="button" id="close-columns-btn" aria-label="{% trans 'Close' %}">
                 <span class="drawer-close-glyph" aria-hidden="true">&times;</span>
             </button>
         </div>
-        <div class="formula-body columns-body">
+        <div class="drawer-body columns-body">
             <div class="columns-fixed-note">
                 <span class="columns-fixed-note__label">{% trans "Always shown" %}</span>
                 <div class="columns-fixed-note__chips">
@@ -705,64 +705,51 @@
             </form>
             <button class="btn tp-btn tp-btn--primary drawer-done-btn" type="submit" form="columns-form">{% trans "Apply" %}</button>
         </div>
-    </div>
+    </aside>
 
     {% if formulas %}
         <div class="tp-overlay" id="formula-overlay"></div>
-        <div class="formula-modal" id="formula-modal" aria-hidden="true">
-            <div class="formula-head">
+        <aside class="filters-drawer scoring-drawer" id="formula-modal" aria-hidden="true" aria-label="{% trans 'Scoring' %}">
+            <div class="drawer-head">
                 <h2>{% trans "Scoring" %}</h2>
                 <button class="btn tp-btn tp-btn--neutral drawer-close-btn" type="button" id="close-formula-btn" aria-label="{% trans 'Close' %}">
                     <span class="drawer-close-glyph" aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <div class="formula-body">
-                <form method="GET" action="" class="formula-apply-row">
-                    {% if search_query %}
-                        <input type="hidden" name="search" value="{{ search_query }}">
-                    {% endif %}
-                    {% if structure_source %}
-                        <input type="hidden" name="structure_source" value="{{ structure_source }}">
-                    {% endif %}
-                    {% if annotation_filter %}
-                        <input type="hidden" name="annotation_kind" value="{{ annotation_filter.kind }}">
-                        <input type="hidden" name="annotation_value" value="{{ annotation_filter.value }}">
-                    {% endif %}
-                    <input type="hidden" name="pageSize" value="{{ page_size }}">
-
-                    {% if formulas|length > 1 %}
-                        <div class="formula-apply-row__controls">
-                            <select id="score_formula_select"
-                                    name="scoreformula"
-                                    class="form-control"
-                                    aria-label="{% trans 'Ranking formula' %}"
-                                    data-current-value="{{ formula.name|default:'' }}">
-                                {% for f in formulas %}
-                                    {% ifchanged f.name %}
-                                        <option value="{{ f.name }}" {% if f.name == formula.name %}selected{% endif %}>
-                                            {{ f.name }}{% if f.default %} · {% trans "Default" %}{% endif %}
-                                        </option>
-                                    {% endifchanged %}
-                                {% endfor %}
-                            </select>
-                            <button class="btn tp-btn tp-btn--primary" type="submit" id="apply-formula-btn">{% trans "Apply" %}</button>
-                        </div>
-                    {% else %}
-                        <p class="formula-static-value">{{ formula.name|default:_("No formula available") }}</p>
-                    {% endif %}
-                </form>
-
-                {% if formula and current_formula %}
-                    <details class="formula-expression" {% if formula_term_count and formula_term_count <= 5 %}open{% endif %}>
-                        <summary>
-                            <span class="formula-expression__title">{% trans "Formula expression" %}</span>
-                            <span class="formula-expression__count">{% blocktrans count total=formula_term_count %}{{ total }} term{% plural %}{{ total }} terms{% endblocktrans %}</span>
-                            <span class="formula-expression__chevron" aria-hidden="true"></span>
-                        </summary>
-                        <code class="formula-expression__code">{{ current_formula }}</code>
-                    </details>
-                {% elif not formula %}
-                    <p class="formula-current-empty tp-state-note tp-state-note--empty">{% trans "No formula selected." %}</p>
+            <div class="drawer-body scoring-drawer-body">
+                {% if formulas_for_drawer %}
+                    <div class="scoring-formula-list" role="radiogroup" aria-label="{% trans 'Ranking formula' %}">
+                        {% for entry in formulas_for_drawer %}
+                            <form method="GET" action="" class="scoring-formula-form">
+                                {% if search_query %}<input type="hidden" name="search" value="{{ search_query }}">{% endif %}
+                                {% if structure_source %}<input type="hidden" name="structure_source" value="{{ structure_source }}">{% endif %}
+                                {% if annotation_filter %}
+                                    <input type="hidden" name="annotation_kind" value="{{ annotation_filter.kind }}">
+                                    <input type="hidden" name="annotation_value" value="{{ annotation_filter.value }}">
+                                {% endif %}
+                                <input type="hidden" name="pageSize" value="{{ page_size }}">
+                                <input type="hidden" name="scoreformula" value="{{ entry.name }}">
+                                <button type="submit"
+                                        class="scoring-formula-row {% if entry.is_current %}scoring-formula-row--current{% endif %}"
+                                        role="radio"
+                                        aria-checked="{% if entry.is_current %}true{% else %}false{% endif %}"
+                                        {% if entry.is_current %}aria-current="true"{% endif %}>
+                                    <span class="scoring-formula-row__radio" aria-hidden="true"></span>
+                                    <span class="scoring-formula-row__body">
+                                        <span class="scoring-formula-row__title">
+                                            <span class="scoring-formula-row__name">{{ entry.name }}</span>
+                                            {% if entry.is_default %}<span class="scoring-formula-row__badge">{% trans "Default" %}</span>{% endif %}
+                                        </span>
+                                        {% if entry.expression %}
+                                            <code class="scoring-formula-row__expression">{{ entry.expression }}</code>
+                                        {% endif %}
+                                    </span>
+                                </button>
+                            </form>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="tp-state-note tp-state-note--empty">{% trans "No scoring formulas available for this workspace." %}</p>
                 {% endif %}
 
                 {% url 'tpwebapp:prioritization_setup' genome=genome as prioritization_setup_base_url %}
@@ -771,7 +758,7 @@
                     <a href="{{ prioritization_setup_base_url }}{% if formula %}?scoreformula={{ formula.name|urlencode }}{% endif %}">{% trans "Customize this formula" %}</a>
                 </p>
             </div>
-        </div>
+        </aside>
     {% endif %}
 {% endblock %}
 
@@ -1170,10 +1157,6 @@
             const closeFiltersBtn = document.getElementById("close-filters-btn");
             const filtersOverlay = document.getElementById("filters-overlay");
 
-            if (openFiltersBtn) openFiltersBtn.addEventListener("click", function () { setDrawerState(true); });
-            if (closeFiltersBtn) closeFiltersBtn.addEventListener("click", function () { setDrawerState(false); });
-            if (filtersOverlay) filtersOverlay.addEventListener("click", function () { setDrawerState(false); });
-
             const openFormulaBtn = document.getElementById("open-formula-btn");
             const closeFormulaBtn = document.getElementById("close-formula-btn");
             const formulaOverlay = document.getElementById("formula-overlay");
@@ -1188,10 +1171,20 @@
             const columnsVisiblePanelCount = document.getElementById("columns-visible-panel-count");
             let draggedColumnRow = null;
 
-            if (openFormulaBtn) openFormulaBtn.addEventListener("click", function () { setFormulaState(true); });
+            function openOnly(target) {
+                setDrawerState(target === "filters");
+                setFormulaState(target === "scoring");
+                setColumnsState(target === "columns");
+            }
+
+            if (openFiltersBtn) openFiltersBtn.addEventListener("click", function () { openOnly("filters"); });
+            if (closeFiltersBtn) closeFiltersBtn.addEventListener("click", function () { setDrawerState(false); });
+            if (filtersOverlay) filtersOverlay.addEventListener("click", function () { setDrawerState(false); });
+
+            if (openFormulaBtn) openFormulaBtn.addEventListener("click", function () { openOnly("scoring"); });
             if (closeFormulaBtn) closeFormulaBtn.addEventListener("click", function () { setFormulaState(false); });
             if (formulaOverlay) formulaOverlay.addEventListener("click", function () { setFormulaState(false); });
-            if (openColumnsBtn) openColumnsBtn.addEventListener("click", function () { setColumnsState(true); });
+            if (openColumnsBtn) openColumnsBtn.addEventListener("click", function () { openOnly("columns"); });
             if (closeColumnsBtn) closeColumnsBtn.addEventListener("click", function () { setColumnsState(false); });
             if (columnsOverlay) columnsOverlay.addEventListener("click", function () { setColumnsState(false); });
 

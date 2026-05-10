@@ -436,11 +436,12 @@
     border-radius: 8px;
     background: transparent;
     color: var(--tp-color-text-secondary);
-    font-size: var(--tp-font-size-sm);
+    font-size: var(--tp-font-size-md);
     font-weight: 600;
     text-align: left;
-    line-height: 1.25;
-    padding: 8px 34px 8px 10px;
+    line-height: 1.3;
+    padding: 11px 36px 11px 14px;
+    min-height: 42px;
     cursor: pointer;
     position: relative;
     transition: border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard), background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard), color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard), box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard), transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
