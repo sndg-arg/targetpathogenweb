@@ -1,9 +1,18 @@
 import re
+import urllib.error
 import urllib.request
 from dataclasses import dataclass
 
 
 GO_BASIC_OBO_URL = "https://current.geneontology.org/ontology/go-basic.obo"
+GO_BASIC_OBO_FALLBACK_URLS = (
+    GO_BASIC_OBO_URL,
+    "https://release.geneontology.org/latest/ontology/go-basic.obo",
+)
+GO_DOWNLOAD_HEADERS = {
+    "User-Agent": "targetpathogenweb/1.0 (+https://github.com/sndg-arg/targetpathogenweb)",
+    "Accept": "text/plain, text/*;q=0.9, */*;q=0.8",
+}
 
 _QUOTED_TEXT_RE = re.compile(r'^"((?:[^"\\]|\\.)*)"')
 
@@ -27,8 +36,24 @@ class GOResolvedTerm:
 
 
 def download_go_obo(url=GO_BASIC_OBO_URL, timeout=60):
-    with urllib.request.urlopen(url, timeout=timeout) as response:
-        return response.read().decode("utf-8", errors="replace")
+    urls = [str(url or "").strip()] if str(url or "").strip() else []
+    for fallback in GO_BASIC_OBO_FALLBACK_URLS:
+        if fallback not in urls:
+            urls.append(fallback)
+
+    last_error = None
+    for candidate in urls:
+        request = urllib.request.Request(candidate, headers=GO_DOWNLOAD_HEADERS)
+        try:
+            with urllib.request.urlopen(request, timeout=timeout) as response:
+                return response.read().decode("utf-8", errors="replace")
+        except (urllib.error.HTTPError, urllib.error.URLError) as exc:
+            last_error = exc
+            continue
+
+    if last_error is not None:
+        raise last_error
+    raise RuntimeError("No GO ontology download URL was available")
 
 
 def _parse_obo_quoted_value(raw_value):
