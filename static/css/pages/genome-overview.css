@@ -343,6 +343,17 @@
     border-radius: 999px;
 }
 
+.targets-evidence {
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--tp-color-text-muted);
+    padding: 4px 10px;
+    background: var(--tp-color-surface-soft);
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 999px;
+}
+
 .targets-factors {
     display: flex;
     flex-wrap: wrap;

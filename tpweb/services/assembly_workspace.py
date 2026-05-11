@@ -81,6 +81,12 @@ _FACTOR_LABELS = {
     "druggability": {
         "Y": ("Druggable pocket", "good"),
         "N": ("No druggable pocket", "neutral"),
+        "High": ("Highly druggable pocket", "good"),
+        "H": ("Highly druggable pocket", "good"),
+        "Medium": ("Moderately druggable", "neutral"),
+        "M": ("Moderately druggable", "neutral"),
+        "Low": ("Low druggability", "bad"),
+        "L": ("Low druggability", "bad"),
     },
     "psort": {
         "Y": ("Surface-exposed", "good"),
@@ -126,19 +132,22 @@ def get_top_targets_by_score(assembly_name, user, limit=5):
     proteins = (
         Bioentry.objects.filter(biodatabase__name=proteome_name)
         .prefetch_related("score_params__score_param")
+        .annotate(binder_total=Count("binders_set"))
     )
 
     scored = []
     for p in proteins:
         param_values = score_param_value_map(p)
         score, weights = compute_score_value(param_values, coef)
-        scored.append((p, score, weights, param_values))
+        binder_count = getattr(p, "binder_total", 0) or 0
+        scored.append((p, score, weights, param_values, binder_count))
 
-    scored.sort(key=lambda row: row[1], reverse=True)
+    # Sort by score, breaking ties by binder count so well-evidenced proteins surface first.
+    scored.sort(key=lambda row: (row[1], row[4]), reverse=True)
     top = scored[:limit]
 
     items = []
-    for p, score, weights, param_values in top:
+    for p, score, weights, param_values, binder_count in top:
         # Top 3 contributing params by absolute coefficient
         ranked_params = sorted(weights.items(), key=lambda kv: abs(kv[1]), reverse=True)[:4]
         factors = []
@@ -160,6 +169,7 @@ def get_top_targets_by_score(assembly_name, user, limit=5):
             "description": p.description,
             "score": round(score, 2),
             "factors": factors,
+            "binder_count": binder_count,
         })
 
     return {"formula_name": formula.name, "items": items}

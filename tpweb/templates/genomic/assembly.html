@@ -65,9 +65,9 @@
                         <p class="tp-state-note tp-state-note--error">{{ delete_error_message }}</p>
                     {% endif %}
                     <div class="genome-hero-actions">
-                        <a href="{{ workspace_links.proteins_url }}" class="btn tp-btn tp-btn--primary">{% trans "Open protein list" %}</a>
-                        <a href="{{ workspace_links.custom_scores_url }}" class="btn tp-btn tp-btn--outline">{% trans "Custom score" %}</a>
-                        <a href="{{ workspace_links.blast_url }}" class="btn tp-btn tp-btn--outline">{% trans "BLAST search" %}</a>
+                        <a href="{{ workspace_links.proteins_url }}" class="btn tp-btn tp-btn--primary">{% trans "Proteins" %}</a>
+                        <a href="{{ workspace_links.custom_scores_url }}" class="btn tp-btn tp-btn--outline">{% trans "Score" %}</a>
+                        <a href="{{ workspace_links.blast_url }}" class="btn tp-btn tp-btn--outline">BLAST</a>
                     </div>
                 </div>
                 <div class="tp-view-head-actions">
@@ -123,11 +123,8 @@
                                 <div>
                                     <h2>{% trans "Top drug-target candidates" %}</h2>
                                     <p class="section-subtitle">
-                                        {% blocktrans with formula=top_targets_by_score.formula_name %}Ranked by the system's Druggability score ({{ formula }}) — combines essentiality, structural druggability, off-target risk, and ligand evidence.{% endblocktrans %}
+                                        {% blocktrans with formula=top_targets_by_score.formula_name %}Ranked by the Druggability score ({{ formula }}) — essentiality, structure quality, off-target risk, and ligand evidence. Ties broken by binder count.{% endblocktrans %}
                                     </p>
-                                </div>
-                                <div class="section-tools">
-                                    <a href="{{ workspace_links.proteins_url }}" class="btn tp-btn tp-btn--neutral tp-btn--sm">{% trans "See all" %} →</a>
                                 </div>
                             </div>
                             <ol class="targets-list">
@@ -139,6 +136,7 @@
                                                     <span class="targets-rank">#{{ forloop.counter }}</span>
                                                     <span class="targets-accession">{{ t.accession }}</span>
                                                     <span class="targets-score">{{ t.score|floatformat:2 }}</span>
+                                                    {% if t.binder_count %}<span class="targets-evidence">{{ t.binder_count }} {% trans "binders" %}</span>{% endif %}
                                                 </div>
                                                 <p class="targets-description">{{ t.description|default:"-" }}</p>
                                                 {% if t.factors %}
@@ -168,9 +166,6 @@
                                     <p class="section-subtitle">
                                         {% trans "Proteins with the most binders identified. Useful as a 'chemical tractability' signal — but well-studied human homologs (kinases, GPCRs) accumulate hits regardless of being good bacterial targets." %}
                                     </p>
-                                </div>
-                                <div class="section-tools">
-                                    <a href="{{ workspace_links.proteins_url }}" class="btn tp-btn tp-btn--neutral tp-btn--sm">{% trans "See all" %} →</a>
                                 </div>
                             </div>
                             <ol class="targets-list">
@@ -256,7 +251,8 @@
                     </div>
                 </div>
                 <p class="evidence-footnote">
-                    {% trans "LigQ_2 typically finds many more candidates per protein; we keep the top 100 ChEMBL hits (by pchembl) and the top 50 ZINC candidates (by Tanimoto ≥ 0.5) for readability." %}
+                    <strong>{% trans "Note" %}:</strong>
+                    {% trans "the binder numbers above are the curated subset we keep — up to top 100 ChEMBL hits (ranked by pchembl) plus top 50 ZINC candidates (Tanimoto ≥ 0.5) per protein. LigQ_2's raw search typically returns 10k–30k candidate binders per protein; we cap for readability. PDB co-crystallized ligands are not capped." %}
                 </p>
             </section>
 
