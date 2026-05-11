@@ -66,7 +66,7 @@
                     {% endif %}
                     <div class="genome-hero-actions">
                         <a href="{{ workspace_links.proteins_url }}" class="btn tp-btn tp-btn--primary">{% trans "Proteins" %}</a>
-                        <a href="{{ workspace_links.custom_scores_url }}" class="btn tp-btn tp-btn--outline">{% trans "Score" %}</a>
+                        <a href="{{ workspace_links.custom_scores_url }}" class="btn tp-btn tp-btn--outline">{% trans "Scoring" %}</a>
                         <a href="{{ workspace_links.blast_url }}" class="btn tp-btn tp-btn--outline">BLAST</a>
                     </div>
                 </div>
@@ -91,7 +91,7 @@
                     <span class="metric-value">{{ workspace_metrics.functional_annotated }}</span>
                 </div>
                 <div class="metric-pill">
-                    <span class="metric-label">{% trans "Top binders kept" %}</span>
+                    <span class="metric-label">{% trans "Curated binders" %}</span>
                     <span class="metric-value">{{ workspace_metrics.binder_total }}</span>
                 </div>
             </div>
@@ -136,7 +136,7 @@
                                                     <span class="targets-rank">#{{ forloop.counter }}</span>
                                                     <span class="targets-accession">{{ t.accession }}</span>
                                                     <span class="targets-score">{{ t.score|floatformat:2 }}</span>
-                                                    {% if t.binder_count %}<span class="targets-evidence" title="{% trans 'Curated subset; ChEMBL capped at top 100, ZINC at top 50 per protein' %}">{{ t.binder_count }} {% trans "binders" %}</span>{% endif %}
+                                                    {% if t.binder_count %}<span class="targets-evidence" title="{% trans 'Curated subset — PDB and ChEMBL capped at top 100 per protein, ZINC at top 50. True counts may be higher.' %}">{{ t.binder_count }}{% if t.pdb_count >= 100 or t.chembl_count >= 100 or t.zinc_count >= 50 %}+{% endif %} {% trans "binders" %}</span>{% endif %}
                                                 </div>
                                                 <p class="targets-description">{{ t.description|default:"-" }}</p>
                                                 {% if t.factors %}
@@ -153,7 +153,7 @@
                             </ol>
                             <p class="targets-footnote">
                                 {% trans "Want to tune the formula?" %}
-                                <a href="{{ workspace_links.custom_scores_url }}">{% trans "Make your own score" %} →</a>
+                                <a href="{{ workspace_links.custom_scores_url }}">{% trans "Create a custom score" %} →</a>
                             </p>
                         </div>
                     {% endif %}
@@ -162,7 +162,7 @@
                         <div class="genome-card tp-ui-panel genome-card--ranking">
                             <div class="section-head tp-ui-panel-head">
                                 <div>
-                                    <h2>{% trans "Most ligand evidence" %}</h2>
+                                    <h2>{% trans "Strongest ligand support" %}</h2>
                                     <p class="section-subtitle">
                                         {% trans "Proteins with the most binders identified. Useful as a 'chemical tractability' signal — but well-studied human homologs (kinases, GPCRs) accumulate hits regardless of being good bacterial targets." %}
                                     </p>
@@ -181,11 +181,11 @@
                                             </div>
                                             <div class="targets-stats">
                                                 <span class="targets-stat targets-stat--total">
-                                                    <span class="targets-stat-value">{{ t.binder_count }}{% if t.chembl_count >= 100 or t.zinc_count >= 50 %}+{% endif %}</span>
+                                                    <span class="targets-stat-value">{{ t.binder_count }}{% if t.pdb_count >= 100 or t.chembl_count >= 100 or t.zinc_count >= 50 %}+{% endif %}</span>
                                                     <span class="targets-stat-label">{% trans "binders" %}</span>
                                                 </span>
                                                 <div class="targets-breakdown">
-                                                    {% if t.pdb_count %}<span class="targets-bd targets-bd--pdb">PDB <strong>{{ t.pdb_count }}</strong></span>{% endif %}
+                                                    {% if t.pdb_count %}<span class="targets-bd targets-bd--pdb" title="{% if t.pdb_count >= 100 %}{% trans 'Capped at top 100 by pchembl — true count is higher' %}{% endif %}">PDB <strong>{{ t.pdb_count }}{% if t.pdb_count >= 100 %}+{% endif %}</strong></span>{% endif %}
                                                     {% if t.chembl_count %}<span class="targets-bd targets-bd--chembl" title="{% if t.chembl_count >= 100 %}{% trans 'Capped at top 100 by pchembl — true count is higher' %}{% endif %}">ChEMBL <strong>{{ t.chembl_count }}{% if t.chembl_count >= 100 %}+{% endif %}</strong></span>{% endif %}
                                                     {% if t.zinc_count %}<span class="targets-bd targets-bd--zinc" title="{% if t.zinc_count >= 50 %}{% trans 'Capped at top 50 by Tanimoto — true count is higher' %}{% endif %}">ZINC <strong>{{ t.zinc_count }}{% if t.zinc_count >= 50 %}+{% endif %}</strong></span>{% endif %}
                                                 </div>
@@ -252,7 +252,7 @@
                 </div>
                 <p class="evidence-footnote">
                     <strong>{% trans "Note" %}:</strong>
-                    {% trans "the binder numbers above are the curated subset we keep — up to top 100 ChEMBL hits (ranked by pchembl) plus top 50 ZINC candidates (Tanimoto ≥ 0.5) per protein. LigQ_2's raw search typically returns 10k–30k candidate binders per protein; we cap for readability. PDB co-crystallized ligands are not capped." %}
+                    {% trans "the binder numbers above are the curated subset we keep — up to top 100 PDB-crystallized ligands and top 100 ChEMBL hits (both ranked by pchembl, with NaN last) plus top 50 ZINC candidates (Tanimoto ≥ 0.5) per protein. LigQ_2's raw search typically returns 10k–30k candidate binders per protein; we cap for readability." %}
                 </p>
             </section>
 

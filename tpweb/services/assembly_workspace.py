@@ -134,26 +134,32 @@ def get_top_targets_by_score(assembly_name, user, limit=5):
         .prefetch_related("score_params__score_param")
     )
 
-    binder_counts = dict(
+    binder_counts_by_source = {}
+    for row in (
         Binders.objects.filter(locustag__biodatabase__name=proteome_name)
-        .values_list("locustag__accession")
+        .values("locustag__accession", "source")
         .annotate(count=Count("id"))
-        .values_list("locustag__accession", "count")
-    )
+    ):
+        acc = row["locustag__accession"]
+        binder_counts_by_source.setdefault(acc, {})[row["source"]] = row["count"]
 
     scored = []
     for p in proteins:
         param_values = score_param_value_map(p)
         score, weights = compute_score_value(param_values, coef)
-        binder_count = binder_counts.get(p.accession, 0)
-        scored.append((p, score, weights, param_values, binder_count))
+        counts = binder_counts_by_source.get(p.accession, {})
+        pdb_c = counts.get(Binders.SOURCE_PDB, 0)
+        chembl_c = counts.get(Binders.SOURCE_CHEMBL, 0)
+        zinc_c = counts.get(Binders.SOURCE_PROPOSED, 0)
+        binder_count = pdb_c + chembl_c + zinc_c
+        scored.append((p, score, weights, param_values, binder_count, pdb_c, chembl_c, zinc_c))
 
     # Sort by score, breaking ties by binder count so well-evidenced proteins surface first.
     scored.sort(key=lambda row: (row[1], row[4]), reverse=True)
     top = scored[:limit]
 
     items = []
-    for p, score, weights, param_values, binder_count in top:
+    for p, score, weights, param_values, binder_count, pdb_c, chembl_c, zinc_c in top:
         # Top 3 contributing params by absolute coefficient
         ranked_params = sorted(weights.items(), key=lambda kv: abs(kv[1]), reverse=True)[:4]
         factors = []
@@ -176,6 +182,9 @@ def get_top_targets_by_score(assembly_name, user, limit=5):
             "score": round(score, 2),
             "factors": factors,
             "binder_count": binder_count,
+            "pdb_count": pdb_c,
+            "chembl_count": chembl_c,
+            "zinc_count": zinc_c,
         })
 
     return {"formula_name": formula.name, "items": items}

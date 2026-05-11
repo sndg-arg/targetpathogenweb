@@ -16,8 +16,8 @@ from tpweb.services.structure_sources import PDB_MODEL_EXPERIMENTS
 GENOME_TABLE_COLUMNS = {
     "EntryLength": "Length [bp]",
     "COUNT_CDS": "# Proteins",
-    "COUNT_EXPERIMENTAL": "Experimental",
-    "COUNT_EC": "EC annotated",
+    "COUNT_EXPERIMENTAL": "Experimental structures",
+    "COUNT_EC": "EC-annotated proteins",
 }
 
 EC_DBNAMES = {str(Ontology.EC or "").strip(), "ec", "EC"}

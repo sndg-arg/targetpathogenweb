@@ -70,7 +70,7 @@ class GenomesView(View):
                             ["Visible genomes", genome_metrics["total_genomes"]],
                             ["Visible proteins", genome_metrics["total_proteins"]],
                             ["Experimental structures", genome_metrics["total_experimental"]],
-                            ["EC annotated", genome_metrics["total_ec_annotated"]],
+                            ["EC-annotated proteins", genome_metrics["total_ec_annotated"]],
                             ["Visible columns", ", ".join(["Name", "Scope", "Description", *GenomesView.tcolumns.values()])],
                         ],
                     },

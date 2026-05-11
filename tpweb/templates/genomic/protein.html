@@ -15,7 +15,7 @@
                     {% trans "Home" as crumb_home %}
                     {% trans "Genomes" as crumb_genomes %}
                     {% trans "Proteins" as crumb_proteins %}
-                    {% trans "Protein Detail" as crumb_protein_detail %}
+                    {% trans "Protein details" as crumb_protein_detail %}
                     {% url 'tpwebapp:index' as index_url %}
                     {% url 'tpwebapp:genomes_list' as genomes_url %}
                     {% url 'tpwebapp:assembly' protein.genome as assembly_url %}
@@ -53,7 +53,7 @@
             </div>
             <div class="protein-metrics" aria-label="{% trans "Protein summary" %}">
                 <div class="metric-pill">
-                    <span class="metric-label">{% trans "Amino Acids" %}</span>
+                    <span class="metric-label">{% trans "Amino acids" %}</span>
                     <span class="metric-value">{{ protein.size }}</span>
                 </div>
                 <div class="metric-pill">
@@ -74,7 +74,7 @@
         <nav class="quick-nav" aria-label="{% trans "Protein sections" %}">
             <a href="#section-overview" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Overview" %}</a>
             <a href="#section-sequence" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Sequence" %}</a>
-            <a href="#section-annotations" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "GO/EC" %}</a>
+            <a href="#section-annotations" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Annotations" %}</a>
             <a href="#section-features" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Features" %}</a>
             <a href="#section-structure" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "3D Structure" %}</a>
             {% if binders.total %}
@@ -87,7 +87,7 @@
                 <div class="section-head tp-ui-panel-head">
                     <div>
                         <h2>{% trans "Overview" %}</h2>
-                        <p class="section-subtitle">{% trans "Basic metadata for this protein and source assembly." %}</p>
+                        <p class="section-subtitle">{% trans "Basic information about this protein and its source genome." %}</p>
                     </div>
                 </div>
                 <dl class="overview-grid">
