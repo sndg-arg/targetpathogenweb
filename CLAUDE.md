@@ -67,6 +67,30 @@ conda env: `interproscan`. Key fix: `set -u` must come AFTER `conda activate`.
   - Output is written to a temp dir first and copied into `data/.../alphafold/...` later, so `*_af.pdb` count may stay flat for a long time even while stage 16 is healthy.
 - Keep `num_recycles=3` if prioritizing model quality over wall-clock time.
 
+## LigQ_2 (binders enrichment)
+- **Stage 24**, controlled by `TPW_LIGQ_USE_REMOTE`:
+  - `0` (default): stage is skipped.
+  - `1`: runs LigQ_2 remotely on a SLURM CPU node via `pipeline/ligq_remote.py`. **One SLURM job per genome** (LigQ_2 processes all proteins internally). Tested at 1m46s for 62 prots and 32min for 5572 prots.
+- **Flow**: dump FASTA from DB → SCP to cranex → sbatch → poll → tar-pipe output back → `load_ligq_2_results` loads into `Binders` (split into PDB / ChEMBL / ZINC by inner source).
+- **Output filtering**: top 100 ChEMBL by pchembl, top 50 ZINC by tanimoto ≥ 0.5, all PDB-crystallized. Skips non-drug-like HET codes (amino acids, water, ions, buffers) by default.
+- **Config** (env vars, all have defaults):
+  - `TPW_LIGQ_USE_REMOTE=1` — activate remote mode
+  - `TPW_LIGQ_DIR` — default `/home/agutson/work/LigQ_2`
+  - `TPW_LIGQ_DATA_DIR` — default `/home/agutson/work/ligq_data`
+  - `TPW_LIGQ_CONDA_PREFIX` — default `/home/shared/miniconda3.8`
+  - `TPW_LIGQ_CONDA_ENV` — default `/home/agutson/work/conda_envs/ligq_2_local` (prefix env, not name)
+  - `TPW_LIGQ_SLURM_PARTITION` — default `cpu`
+  - `TPW_LIGQ_SLURM_TIME` — default `48:00:00`
+  - `TPW_LIGQ_SLURM_MEM` — default `32G`
+  - `TPW_LIGQ_SLURM_CPUS` — default `8`
+  - `TPW_LIGQ_REMOTE_POLL_SEC` — default `60`
+  - `TPW_LIGQ_REMOTE_WAIT_SEC` — default `172800` (48h)
+  - `TPW_LIGQ_MAX_KNOWN` — default `100`
+  - `TPW_LIGQ_MAX_ZINC` — default `50`
+  - `TPW_LIGQ_MIN_TANIMOTO` — default `0.5`
+- **Per-genome workspace**: `<folder_path>/ligq2/proteins.fasta`, `<folder_path>/ligq2/output/` (search_results subtree).
+- **Remote workdir**: `${SSH_WORKDIR}/tpw_ligq/<safe_genome>_<timestamp>/`. Cleaning up after success is optional.
+
 ## PSORTb
 Runs via Docker-in-Docker (`/var/run/docker.sock` mounted). Has fallback to `tpweb_psort_fallback` management command when Docker is unavailable.
 

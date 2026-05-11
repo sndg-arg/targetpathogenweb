@@ -53,6 +53,7 @@ from pipeline_commands import (
 )
 from interproscan_remote import run_remote_interproscan
 from colabfold_remote import run_remote_colabfold
+from ligq_remote import run_remote_ligq
 
 
 # ---------------------------------------------------------------------------
@@ -273,6 +274,12 @@ def run_genome(genome, gram, custom, source_genome, is_test, working_dir, cfg_di
         _run_stage(22, "get_binders", get_binders_cmd(working_dir, genome))
     if not _skip(23):
         _run_stage(23, "load_binders", load_binders_cmd(working_dir, genome))
+    if not _skip(24):
+        if os.environ.get("TPW_LIGQ_USE_REMOTE", "").strip() == "1":
+            _run_python_stage(24, "ligq_remote", run_remote_ligq,
+                              cfg_dict=cfg_dict, folder_path=folder_path, genome=genome)
+        else:
+            print("LigQ_2 stage 24 skipped: set TPW_LIGQ_USE_REMOTE=1 to enable.")
 
 
 def _clear_folder(folder_path):
