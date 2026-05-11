@@ -120,7 +120,13 @@ class Command(BaseCommand):
         if not out_dir.is_dir():
             raise CommandError(f"Output directory not found: {out_dir}")
 
-        known_df, zinc_df = self._collect_tables(out_dir, options["locustag_fallback"])
+        known_df, zinc_df = self._collect_tables(
+            out_dir,
+            options["locustag_fallback"],
+            max_known_per_protein=options["max_known_per_protein"],
+            max_zinc_per_protein=options["max_zinc_per_protein"],
+            min_tanimoto=options["min_tanimoto"],
+        )
 
         if known_df is None and zinc_df is None:
             raise CommandError(
@@ -166,10 +172,24 @@ class Command(BaseCommand):
         if options["dry_run"]:
             self.stdout.write(self.style.WARNING("(dry-run: no rows were written)"))
 
-    def _collect_tables(self, out_dir, locustag_fallback):
+    def _collect_tables(
+        self,
+        out_dir,
+        locustag_fallback,
+        *,
+        max_known_per_protein=None,
+        max_zinc_per_protein=None,
+        min_tanimoto=None,
+    ):
         known_frames = []
         zinc_frames = []
         protein_count = 0
+
+        # Buffer per-protein top-N at read time so the final concat stays bounded.
+        # Genomes like PAO1 produce 19M+ raw ZINC rows; concating all of them OOMs.
+        # We over-fetch slightly (2x cap) to preserve flexibility for the downstream sort.
+        known_pre_cap = (max_known_per_protein or 100) * 2 if max_known_per_protein else None
+        zinc_pre_cap = (max_zinc_per_protein or 50) * 2 if max_zinc_per_protein else None
 
         search_root = out_dir / "search_results"
         if search_root.is_dir():
@@ -181,14 +201,27 @@ class Command(BaseCommand):
                 if kf.exists() and kf.stat().st_size > 0:
                     df = pd.read_csv(kf, sep="\t")
                     if not df.empty:
+                        if known_pre_cap and len(df) > known_pre_cap and "pchembl" in df.columns:
+                            df["_pchembl_sort"] = pd.to_numeric(df["pchembl"], errors="coerce")
+                            df = df.sort_values("_pchembl_sort", ascending=False, na_position="last").head(known_pre_cap)
+                            df = df.drop(columns=["_pchembl_sort"])
                         df["_locustag"] = qseqid
                         known_frames.append(df)
                 zf = prot_dir / "zinc_ligands.tsv"
                 if zf.exists() and zf.stat().st_size > 0:
                     df = pd.read_csv(zf, sep="\t")
                     if not df.empty:
-                        df["_locustag"] = qseqid
-                        zinc_frames.append(df)
+                        if "tanimoto" in df.columns:
+                            df["_tani"] = pd.to_numeric(df["tanimoto"], errors="coerce")
+                            df = df.dropna(subset=["_tani"])
+                            if min_tanimoto is not None:
+                                df = df[df["_tani"] >= min_tanimoto]
+                            if zinc_pre_cap and len(df) > zinc_pre_cap:
+                                df = df.nlargest(zinc_pre_cap, "_tani")
+                            df = df.drop(columns=["_tani"])
+                        if not df.empty:
+                            df["_locustag"] = qseqid
+                            zinc_frames.append(df)
             self.stdout.write(
                 self.style.NOTICE(
                     f"Walked search_results/: {protein_count} protein dirs, "
