@@ -267,9 +267,22 @@
 .genome-card--evidence,
 .genome-card--composition,
 .genome-card--browse,
+.genome-card--downloads,
 .genome-card--details,
 .genome-card--danger {
     grid-column: 1 / -1;
+}
+
+.genome-card--downloads .tp-ui-toolbar-form {
+    max-width: 640px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 14px;
+    align-items: end;
+}
+
+.genome-card--downloads .tp-ui-field {
+    min-width: 0;
 }
 
 /* ── Top targets (two rankings side-by-side) ─────────────────────── */

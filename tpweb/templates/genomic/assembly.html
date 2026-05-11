@@ -266,31 +266,25 @@
                 </div>
                 <dl class="composition-list">
                     <div class="composition-row">
-                        <dt>{% trans "Proteins available for analysis" %}</dt>
+                        <dt>{% trans "Protein-coding sequences" %}</dt>
                         <dd>{{ workspace_metrics.total_proteins }}</dd>
                     </div>
-                    <div class="composition-row">
-                        <dt>{% trans "Annotated coding sequences" %}</dt>
-                        <dd>{{ overview.source_cds_display|default:"-" }}</dd>
-                    </div>
-                    <div class="composition-row">
-                        <dt>{% trans "CDS without translated protein" %}</dt>
-                        <dd>{{ overview.untranslated_cds_display|default:"-" }}</dd>
-                    </div>
-                    <div class="composition-row">
-                        <dt>{% trans "RNA features" %}</dt>
-                        <dd>{{ overview.rna_total_display|default:"-" }}</dd>
-                    </div>
+                    {% if overview.untranslated_cds_display and overview.untranslated_cds_display != "0" and overview.untranslated_cds_display != 0 %}
+                        <div class="composition-row">
+                            <dt>{% trans "CDS without translated protein" %}</dt>
+                            <dd>{{ overview.untranslated_cds_display }}</dd>
+                        </div>
+                    {% endif %}
+                    {% if overview.rna_total_display %}
+                        <div class="composition-row">
+                            <dt>{% trans "RNA features" %}</dt>
+                            <dd>{{ overview.rna_total_display }}</dd>
+                        </div>
+                    {% endif %}
                     {% if overview.feature_count_display %}
                         <div class="composition-row">
                             <dt>{% trans "Annotated features (total)" %}</dt>
                             <dd>{{ overview.feature_count_display }}</dd>
-                        </div>
-                    {% endif %}
-                    {% if overview.record_display %}
-                        <div class="composition-row">
-                            <dt>{% trans "Record" %}</dt>
-                            <dd>{{ overview.record_display }}</dd>
                         </div>
                     {% endif %}
                 </dl>
