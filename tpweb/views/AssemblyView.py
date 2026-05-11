@@ -17,7 +17,10 @@ from tpweb.services.pipeline_status import (
     get_pipeline_status,
     sanitize_pipeline_status_for_user,
 )
-from tpweb.services.assembly_workspace import build_assembly_workspace_metrics
+from tpweb.services.assembly_workspace import (
+    build_assembly_workspace_metrics,
+    get_top_targets_by_binders,
+)
 from tpweb.services.assembly_overview import build_assembly_overview
 from tpweb.services.genome_metadata import build_genome_metadata_rows
 from tpweb.services.genome_workspace import (
@@ -79,6 +82,7 @@ class AssemblyView(View):
             "prop_rows": build_genome_metadata_rows(props),
         }
         workspace_metrics = build_assembly_workspace_metrics(biodb.name)
+        top_targets = get_top_targets_by_binders(biodb.name, limit=5)
         overview = build_assembly_overview(
             request.user,
             biodb.name,
@@ -132,6 +136,7 @@ class AssemblyView(View):
             "assembly": assembly,
             "overview": overview,
             "workspace_metrics": workspace_metrics,
+            "top_targets": top_targets,
             "workspace_links": workspace_links,
             "view_export_url": self._build_view_export_url(request),
             "jbrowse_url": jbrowse_url,

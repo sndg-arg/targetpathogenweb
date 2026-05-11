@@ -18,9 +18,12 @@
                     {% with crumb_workspace_label="Genome: "|add:assembly.name %}
                     {% include "components/navigation/breadcrumbs.html" with crumb_1_label=crumb_home crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_workspace_label %}
                     {% endwith %}
-                    <p class="genome-hero-eyebrow">{% trans "Genome overview" %}</p>
+                    <p class="genome-hero-eyebrow">{% trans "Drug-target discovery · Bacterial genome" %}</p>
                     <h1>{{ assembly.name }}</h1>
                     <p class="genome-description">{{ assembly.description|default:"No description available." }}</p>
+                    <p class="genome-mission">
+                        {% blocktrans count proteins=workspace_metrics.total_proteins %}Explore {{ proteins }} protein and find your best drug-target candidates.{% plural %}Explore {{ proteins }} proteins and find your best drug-target candidates.{% endblocktrans %}
+                    </p>
                     <div class="hero-chip-list tp-chip-group">
                         {% for fact in overview.primary_hero_facts %}
                             {% if fact.label != "Annotated features" %}
@@ -62,9 +65,9 @@
                         <p class="tp-state-note tp-state-note--error">{{ delete_error_message }}</p>
                     {% endif %}
                     <div class="genome-hero-actions">
-                        <a href="{{ workspace_links.proteins_url }}" class="btn tp-btn tp-btn--primary">{% trans "Open protein analysis" %}</a>
+                        <a href="{{ workspace_links.proteins_url }}" class="btn tp-btn tp-btn--primary">{% trans "Find drug targets" %} →</a>
+                        <a href="{{ workspace_links.custom_scores_url }}" class="btn tp-btn tp-btn--outline">{% trans "Make my own score" %}</a>
                         <a href="{{ workspace_links.blast_url }}" class="btn tp-btn tp-btn--outline">{% trans "BLAST" %}</a>
-                        <a href="{{ workspace_links.custom_scores_url }}" class="btn tp-btn tp-btn--outline">{% trans "Custom score" %}</a>
                     </div>
                 </div>
                 <div class="tp-view-head-actions">
@@ -80,21 +83,15 @@
                     <span class="metric-value">{{ workspace_metrics.total_proteins }}</span>
                 </div>
                 <div class="metric-pill">
-                    <span class="metric-label">{% trans "With structure" %}</span>
-                    <span class="metric-value">
-                        {{ workspace_metrics.proteins_with_structure }}
-                        <span class="metric-value-pct">{{ workspace_metrics.structure_coverage_pct }}%</span>
-                    </span>
+                    <span class="metric-label">{% trans "With 3D structure" %}</span>
+                    <span class="metric-value">{{ workspace_metrics.proteins_with_structure }}</span>
                 </div>
                 <div class="metric-pill">
-                    <span class="metric-label">{% trans "Functional annotation" %}</span>
-                    <span class="metric-value">
-                        {{ workspace_metrics.functional_annotated }}
-                        <span class="metric-value-pct">{{ workspace_metrics.functional_coverage_pct }}%</span>
-                    </span>
+                    <span class="metric-label">{% trans "Annotated" %}</span>
+                    <span class="metric-value">{{ workspace_metrics.functional_annotated }}</span>
                 </div>
                 <div class="metric-pill">
-                    <span class="metric-label">{% trans "Binders" %}</span>
+                    <span class="metric-label">{% trans "Binders found" %}</span>
                     <span class="metric-value">{{ workspace_metrics.binder_total }}</span>
                 </div>
             </div>
@@ -102,7 +99,10 @@
 
         <nav class="quick-nav" aria-label="{% trans 'Genome sections' %}">
             <a href="#section-overview" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Overview" %}</a>
-            <a href="#section-coverage" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Coverage" %}</a>
+            {% if top_targets %}
+                <a href="#section-targets" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Best targets" %}</a>
+            {% endif %}
+            <a href="#section-evidence" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Evidence" %}</a>
             <a href="#section-composition" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Composition" %}</a>
             {% if jbrowse_embed.enabled %}
                 <a href="#section-browse" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Genome browser" %}</a>
@@ -115,48 +115,98 @@
         </nav>
 
         <div class="genome-grid">
-            <!-- Coverage progress bars -->
-            <section class="genome-card tp-ui-panel genome-card--coverage" id="section-coverage">
+            {% if top_targets %}
+                <!-- Best targets so far -->
+                <section class="genome-card tp-ui-panel genome-card--targets" id="section-targets">
+                    <div class="section-head tp-ui-panel-head">
+                        <div>
+                            <h2>{% trans "Best targets so far" %}</h2>
+                            <p class="section-subtitle">{% trans "Top proteins ranked by the number of binders identified — strong candidates for further investigation." %}</p>
+                        </div>
+                        <div class="section-tools">
+                            <a href="{{ workspace_links.proteins_url }}" class="btn tp-btn tp-btn--neutral tp-btn--sm">{% trans "See all proteins" %} →</a>
+                        </div>
+                    </div>
+                    <ol class="targets-list">
+                        {% for t in top_targets %}
+                            <li class="targets-item">
+                                <a class="targets-link" href="{% url 'tpwebapp:protein' protein_id=t.bioentry_id %}">
+                                    <div class="targets-main">
+                                        <div class="targets-title">
+                                            <span class="targets-rank">#{{ forloop.counter }}</span>
+                                            <span class="targets-accession">{{ t.accession }}</span>
+                                        </div>
+                                        <p class="targets-description">{{ t.description|default:"-" }}</p>
+                                    </div>
+                                    <div class="targets-stats">
+                                        <span class="targets-stat targets-stat--total">
+                                            <span class="targets-stat-value">{{ t.binder_count }}</span>
+                                            <span class="targets-stat-label">{% trans "binders" %}</span>
+                                        </span>
+                                        <div class="targets-breakdown">
+                                            {% if t.pdb_count %}<span class="targets-bd targets-bd--pdb">PDB <strong>{{ t.pdb_count }}</strong></span>{% endif %}
+                                            {% if t.chembl_count %}<span class="targets-bd targets-bd--chembl">ChEMBL <strong>{{ t.chembl_count }}</strong></span>{% endif %}
+                                            {% if t.zinc_count %}<span class="targets-bd targets-bd--zinc">ZINC <strong>{{ t.zinc_count }}</strong></span>{% endif %}
+                                        </div>
+                                    </div>
+                                </a>
+                            </li>
+                        {% endfor %}
+                    </ol>
+                </section>
+            {% endif %}
+
+            <!-- Evidence available -->
+            <section class="genome-card tp-ui-panel genome-card--evidence" id="section-evidence">
                 <div class="section-head tp-ui-panel-head">
                     <div>
-                        <h2>{% trans "Analysis coverage" %}</h2>
-                        <p class="section-subtitle">{% trans "What proportion of proteins have been processed by each analysis step." %}</p>
+                        <h2>{% trans "Evidence available" %}</h2>
+                        <p class="section-subtitle">{% trans "Computed analyses available for proteins in this genome." %}</p>
                     </div>
                 </div>
-                <ul class="coverage-list">
-                    <li class="coverage-row">
-                        <div class="coverage-row-head">
-                            <span class="coverage-name">{% trans "3D structure" %}</span>
-                            <span class="coverage-value">{{ workspace_metrics.proteins_with_structure }} / {{ workspace_metrics.total_proteins }} <span class="coverage-pct">({{ workspace_metrics.structure_coverage_pct }}%)</span></span>
-                        </div>
-                        <div class="coverage-bar"><span style="width: {{ workspace_metrics.structure_coverage_pct }}%"></span></div>
-                        <p class="coverage-detail">
-                            {% if workspace_metrics.experimental_structures %}<strong>{% trans "Experimental" %}:</strong> {{ workspace_metrics.experimental_structures }}{% endif %}
-                            {% if workspace_metrics.alphafold_structures %}{% if workspace_metrics.experimental_structures %} · {% endif %}<strong>AlphaFold:</strong> {{ workspace_metrics.alphafold_structures }}{% endif %}
-                            {% if workspace_metrics.colabfold_structures %} · <strong>ColabFold:</strong> {{ workspace_metrics.colabfold_structures }}{% endif %}
-                        </p>
-                    </li>
-                    <li class="coverage-row">
-                        <div class="coverage-row-head">
-                            <span class="coverage-name">{% trans "Functional annotation" %}</span>
-                            <span class="coverage-value">{{ workspace_metrics.functional_annotated }} / {{ workspace_metrics.total_proteins }} <span class="coverage-pct">({{ workspace_metrics.functional_coverage_pct }}%)</span></span>
-                        </div>
-                        <div class="coverage-bar"><span style="width: {{ workspace_metrics.functional_coverage_pct }}%"></span></div>
-                        <p class="coverage-detail">
-                            <strong>EC:</strong> {{ workspace_metrics.ec_annotated }} ({{ workspace_metrics.ec_coverage_pct }}%) · <strong>GO:</strong> {{ workspace_metrics.go_annotated }} ({{ workspace_metrics.go_coverage_pct }}%)
-                        </p>
-                    </li>
-                    <li class="coverage-row">
-                        <div class="coverage-row-head">
-                            <span class="coverage-name">{% trans "Binders identified" %}</span>
-                            <span class="coverage-value">{{ workspace_metrics.proteins_with_binders }} / {{ workspace_metrics.total_proteins }} <span class="coverage-pct">({{ workspace_metrics.binder_coverage_pct }}%)</span></span>
-                        </div>
-                        <div class="coverage-bar"><span style="width: {{ workspace_metrics.binder_coverage_pct }}%"></span></div>
-                        <p class="coverage-detail">
-                            <strong>PDB:</strong> {{ workspace_metrics.binder_pdb }} · <strong>ChEMBL:</strong> {{ workspace_metrics.binder_chembl }} · <strong>ZINC:</strong> {{ workspace_metrics.binder_zinc }}
-                        </p>
-                    </li>
-                </ul>
+                <div class="evidence-grid">
+                    <div class="evidence-card evidence-card--structure">
+                        <span class="evidence-label">{% trans "3D structures" %}</span>
+                        <span class="evidence-headline">
+                            {% blocktrans count proteins=workspace_metrics.proteins_with_structure %}{{ proteins }} protein{% plural %}{{ proteins }} proteins{% endblocktrans %}
+                        </span>
+                        <ul class="evidence-breakdown">
+                            {% if workspace_metrics.experimental_structures %}
+                                <li><span class="evidence-bd-label">{% trans "Experimental" %}</span><span class="evidence-bd-value">{{ workspace_metrics.experimental_structures }}</span></li>
+                            {% endif %}
+                            {% if workspace_metrics.alphafold_structures %}
+                                <li><span class="evidence-bd-label">AlphaFold</span><span class="evidence-bd-value">{{ workspace_metrics.alphafold_structures }}</span></li>
+                            {% endif %}
+                            {% if workspace_metrics.colabfold_structures %}
+                                <li><span class="evidence-bd-label">ColabFold</span><span class="evidence-bd-value">{{ workspace_metrics.colabfold_structures }}</span></li>
+                            {% endif %}
+                        </ul>
+                    </div>
+
+                    <div class="evidence-card evidence-card--annotation">
+                        <span class="evidence-label">{% trans "Functional annotation" %}</span>
+                        <span class="evidence-headline">
+                            {% blocktrans count proteins=workspace_metrics.functional_annotated %}{{ proteins }} annotated protein{% plural %}{{ proteins }} annotated proteins{% endblocktrans %}
+                        </span>
+                        <ul class="evidence-breakdown">
+                            <li><span class="evidence-bd-label">EC</span><span class="evidence-bd-value">{{ workspace_metrics.ec_annotated }}</span></li>
+                            <li><span class="evidence-bd-label">GO</span><span class="evidence-bd-value">{{ workspace_metrics.go_annotated }}</span></li>
+                        </ul>
+                    </div>
+
+                    <div class="evidence-card evidence-card--binders">
+                        <span class="evidence-label">{% trans "Binders" %}</span>
+                        <span class="evidence-headline">
+                            {% blocktrans count binders=workspace_metrics.binder_total %}{{ binders }} binder{% plural %}{{ binders }} binders{% endblocktrans %}
+                            <span class="evidence-headline-sub">{% blocktrans count proteins=workspace_metrics.proteins_with_binders %}on {{ proteins }} protein{% plural %}on {{ proteins }} proteins{% endblocktrans %}</span>
+                        </span>
+                        <ul class="evidence-breakdown">
+                            <li><span class="evidence-bd-label">PDB</span><span class="evidence-bd-value">{{ workspace_metrics.binder_pdb }}</span></li>
+                            <li><span class="evidence-bd-label">ChEMBL</span><span class="evidence-bd-value">{{ workspace_metrics.binder_chembl }}</span></li>
+                            <li><span class="evidence-bd-label">ZINC</span><span class="evidence-bd-value">{{ workspace_metrics.binder_zinc }}</span></li>
+                        </ul>
+                    </div>
+                </div>
             </section>
 
             <!-- Composition -->

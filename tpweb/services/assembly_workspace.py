@@ -1,4 +1,4 @@
-from django.db.models import Q
+from django.db.models import Count, Q
 
 from bioseq.models.Bioentry import Bioentry
 from bioseq.models.Biodatabase import Biodatabase
@@ -19,6 +19,41 @@ def _pct(numerator, denominator):
     if not denominator:
         return 0
     return round(100 * numerator / denominator, 1)
+
+
+def get_top_targets_by_binders(assembly_name, limit=5):
+    """Return the top-N proteins of a genome ranked by total binder count.
+
+    Used to surface the most actionable drug-target leads on the genome overview.
+    """
+    proteome_name = assembly_name + Biodatabase.PROT_POSTFIX
+    rows = (
+        Binders.objects.filter(locustag__biodatabase__name=proteome_name)
+        .values(
+            "locustag__bioentry_id",
+            "locustag__accession",
+            "locustag__description",
+        )
+        .annotate(
+            binder_count=Count("id"),
+            pdb_count=Count("id", filter=Q(source=Binders.SOURCE_PDB)),
+            chembl_count=Count("id", filter=Q(source=Binders.SOURCE_CHEMBL)),
+            zinc_count=Count("id", filter=Q(source=Binders.SOURCE_PROPOSED)),
+        )
+        .order_by("-binder_count")[:limit]
+    )
+    return [
+        {
+            "bioentry_id": r["locustag__bioentry_id"],
+            "accession": r["locustag__accession"],
+            "description": r["locustag__description"],
+            "binder_count": r["binder_count"],
+            "pdb_count": r["pdb_count"],
+            "chembl_count": r["chembl_count"],
+            "zinc_count": r["zinc_count"],
+        }
+        for r in rows
+    ]
 
 
 def build_assembly_workspace_metrics(assembly_name):
