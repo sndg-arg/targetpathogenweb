@@ -11,7 +11,8 @@
 .formula-page h2,
 .formula-page h3,
 .formula-page h4 {
-    letter-spacing: -0.01em;
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    letter-spacing: 0.2px;
 }
 
 .formula-hero {
@@ -22,7 +23,7 @@
     background:
         radial-gradient(circle at top right, color-mix(in srgb, var(--tp-color-brand-200) 36%, transparent) 0%, transparent 34%),
         linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
-    padding: 22px 22px 18px;
+    padding: 20px 20px 18px;
     box-shadow: var(--tp-ui-shadow-panel);
 }
 
@@ -43,10 +44,10 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    margin: 4px 0 8px;
+    margin: 0 0 10px;
     color: var(--tp-color-text-muted);
     font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
-    font-size: 0.78rem;
+    font-size: 0.75rem;
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -55,15 +56,15 @@
 .formula-hero h1 {
     margin: 0;
     color: var(--formula-accent-ink);
-    font-size: clamp(2rem, 3vw, 2.65rem);
-    line-height: 1.05;
+    font-size: var(--tp-heading-xl);
+    line-height: 1.1;
 }
 
 .formula-subtitle {
-    margin: 8px 0 0;
-    max-width: 720px;
+    margin: 10px 0 0;
+    max-width: 920px;
     color: var(--tp-color-text-secondary);
-    font-size: 0.98rem;
+    font-size: 1rem;
     line-height: 1.42;
 }
 
