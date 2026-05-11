@@ -1,16 +1,17 @@
 {% extends '../base/masterpage.html' %}
 {% load i18n %}
 {% load static %}
-{% load crispy_forms_tags %}
+
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/formula-form.css' %}?v=20260315-6">
+    <link rel="stylesheet" href="{% static 'css/pages/formula-form.css' %}?v=20260511-2">
 {% endblock %}
 
 {% block body %}
     <script src="https://unpkg.com/htmx.org@1.9.2"></script>
 
     <div class="formula-page">
+
         <section class="formula-hero">
             {% trans "Home" as crumb_home %}
             {% trans "Genomes" as crumb_genomes %}
@@ -25,97 +26,150 @@
             {% include "components/navigation/breadcrumbs.html" with crumb_1_label=crumb_home crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_genome crumb_3_url=assembly_url crumb_4_label=crumb_proteins crumb_4_url=proteins_url crumb_5_label=crumb_custom_score %}
             {% endwith %}
             {% endwith %}
+
+            <span class="formula-eyebrow">{% trans "Scoring formula · Custom ranking" %}</span>
             <h1>{% trans "Make my own score" %}</h1>
-            <p class="formula-subtitle">{% trans "Combine signals (off-target, druggability, essentiality, etc.) into a custom ranking score for this genome." %}</p>
-            <p class="formula-context"><strong>{% trans "Genome" %}:</strong> <span class="formula-context-id">{{ assembly_label|default:assembly_name }}</span></p>
+            <p class="formula-subtitle">{% trans "Combine available evidence signals — druggability, essentiality, off-target risk, and more — into a custom ranking score for this genome." %}</p>
             <div class="formula-chip-group tp-chip-group">
-                <span class="tp-chip tp-chip--meta tp-chip--sm">{% trans "Draft" %}: {{ formula_name|default:"Untitled formula" }}</span>
-                <span class="tp-chip tp-chip--count tp-chip--sm">{% trans "Terms" %}: {{ term_count }}</span>
+                <span class="tp-chip tp-chip--meta tp-chip--sm">
+                    <strong>{% trans "Genome" %}:</strong>
+                    <span class="formula-chip-id">{{ assembly_label|default:assembly_name }}</span>
+                </span>
+                <span class="tp-chip tp-chip--meta tp-chip--sm">
+                    <strong>{% trans "Draft" %}:</strong>
+                    <span>{{ formula_name|default:"Untitled formula" }}</span>
+                </span>
+                <span class="tp-chip tp-chip--count tp-chip--sm">
+                    {{ term_count }} {% if term_count == 1 %}{% trans "term" %}{% else %}{% trans "terms" %}{% endif %}
+                </span>
             </div>
         </section>
 
         {% if request.GET.error_message %}
-            <section class="formula-card tp-ui-panel">
+            <section class="formula-alert">
                 <p class="tp-state-note tp-state-note--error mb-0">{{ request.GET.error_message }}</p>
             </section>
         {% endif %}
 
-        <section class="formula-main">
-            <article class="formula-card tp-ui-panel">
+        <section class="formula-workbench">
+
+            <article class="formula-card formula-card--build tp-ui-panel">
                 <div class="formula-card-head tp-ui-panel-head">
-                    <h2>{% trans "Add scoring term" %}</h2>
+                    <div>
+                        <h2>{% trans "Add a scoring term" %}</h2>
+                        <p class="formula-card-note">{% trans "Each term assigns a numeric weight to one value of one evidence parameter. Build the formula term by term." %}</p>
+                    </div>
                 </div>
-                <p class="formula-muted">{% trans "Each term assigns a coefficient to one option of one evidence parameter." %}</p>
 
                 <form id="add-parameter-form" class="formula-add-form" method="POST" novalidate>
                     {% csrf_token %}
-                    <div class="row">
-                        <div class="col-12">{{ form.new_formula_name|as_crispy_field }}</div>
+
+                    <div class="formula-name-field tp-ui-field">
+                        <label class="tp-ui-field-label" for="{{ form.new_formula_name.id_for_label }}">{% trans "Formula name" %}</label>
+                        {{ form.new_formula_name }}
+                        {% if form.new_formula_name.errors %}
+                            <p class="formula-field-error">{{ form.new_formula_name.errors|striptags }}</p>
+                        {% endif %}
                     </div>
-                    <div class="row">
-                        <div class="col-md-4">{{ form.param|as_crispy_field }}</div>
-                        <div class="col-md-4">{{ form.options|as_crispy_field }}</div>
-                        <div class="col-md-4">{{ form.coefficient|as_crispy_field }}</div>
+
+                    <div class="formula-term-fields">
+                        <div class="tp-ui-field">
+                            <label class="tp-ui-field-label" for="{{ form.param.id_for_label }}">{% trans "Parameter" %}</label>
+                            {{ form.param }}
+                            {% if form.param.errors %}
+                                <p class="formula-field-error">{{ form.param.errors|striptags }}</p>
+                            {% endif %}
+                        </div>
+                        <div class="tp-ui-field">
+                            <label class="tp-ui-field-label" for="{{ form.options.id_for_label }}">{% trans "Value" %}</label>
+                            {{ form.options }}
+                            {% if form.options.errors %}
+                                <p class="formula-field-error">{{ form.options.errors|striptags }}</p>
+                            {% endif %}
+                        </div>
+                        <div class="tp-ui-field">
+                            <label class="tp-ui-field-label" for="{{ form.coefficient.id_for_label }}">{% trans "Coefficient" %}</label>
+                            {{ form.coefficient }}
+                            {% if form.coefficient.errors %}
+                                <p class="formula-field-error">{{ form.coefficient.errors|striptags }}</p>
+                            {% endif %}
+                        </div>
                     </div>
-                    <div class="formula-actions">
-                        <button type="submit" class="btn tp-btn tp-btn--primary">{% trans "Add term" %}</button>
-                    </div>
+
                 </form>
 
-                {% if term_count > 0 %}
-                    <div class="formula-actions">
-                        <form method="POST">
+                <div class="formula-add-actions">
+                    <button type="submit" form="add-parameter-form" class="btn tp-btn tp-btn--primary tp-btn-with-icon">
+                        <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/plus.html" %}</span>
+                        {% trans "Add term" %}
+                    </button>
+                    {% if term_count > 0 %}
+                        <form method="POST" class="formula-undo-form">
                             {% csrf_token %}
                             <input type="hidden" name="remove_last_term" value="true">
                             <button type="submit" class="btn tp-btn tp-btn--neutral">{% trans "Undo last term" %}</button>
                         </form>
-                    </div>
-                {% endif %}
+                    {% endif %}
+                </div>
             </article>
 
-            <article class="formula-card tp-ui-panel">
+            <article class="formula-card formula-card--draft tp-ui-panel">
                 <div class="formula-card-head tp-ui-panel-head">
-                    <h2>{% trans "Formula draft" %}</h2>
+                    <div>
+                        <h2>{% trans "Formula draft" %}</h2>
+                        <p class="formula-card-note">{% trans "The terms you have added so far. Each term contributes additively to the final score." %}</p>
+                    </div>
                     <span class="tp-chip tp-chip--count tp-chip--sm">{{ term_count }}</span>
                 </div>
+
                 {% if preview_terms %}
                     <div class="formula-term-table">
-                        <table class="table table-sm table-striped table-hover mb-0 tp-table tp-table--plain tp-table--premium">
+                        <table class="table table-sm table-hover mb-0 tp-table tp-table--plain tp-table--premium">
                             <thead>
                             <tr>
                                 <th>#</th>
                                 <th>{% trans "Parameter" %}</th>
-                                <th>{% trans "Option" %}</th>
-                                <th>{% trans "Coefficient" %}</th>
+                                <th>{% trans "Value" %}</th>
+                                <th>{% trans "Coeff." %}</th>
                             </tr>
                             </thead>
                             <tbody>
                             {% for term in preview_terms %}
                                 <tr>
-                                    <td>{{ term.index }}</td>
+                                    <td class="formula-term-index">{{ term.index }}</td>
                                     <td>{{ term.param_name }}</td>
                                     <td>{{ term.option_name }}</td>
-                                    <td>{{ term.coefficient }}</td>
+                                    <td class="formula-term-coeff">{{ term.coefficient }}</td>
                                 </tr>
                             {% endfor %}
                             </tbody>
                         </table>
                     </div>
                 {% else %}
-                    <p class="tp-state-note tp-state-note--empty">{% trans "No terms added yet." %}</p>
+                    <p class="tp-state-note tp-state-note--empty formula-empty-note">{% trans "No terms added yet. Use the form on the left to start building." %}</p>
                 {% endif %}
 
-                <p class="formula-muted mb-0">{% trans "Expression preview" %}</p>
-                <div class="formula-expression-block">{{ parameters }}</div>
+                <div class="formula-expression-wrap">
+                    <p class="formula-expression-label">{% trans "Expression" %}</p>
+                    <div class="formula-expression-block">{{ parameters }}</div>
+                </div>
             </article>
+
         </section>
 
-        <section class="formula-footer-card tp-ui-panel">
-            <div class="formula-actions">
+        <section class="formula-footer tp-ui-panel">
+            <div class="formula-footer-copy">
+                <p class="formula-footer-title">{% trans "Save and apply" %}</p>
+                <p class="formula-footer-note">{% trans "Saving creates a new scoring formula for this genome. It will appear as an option in the protein ranking." %}</p>
+            </div>
+            <div class="formula-footer-actions">
                 <form id="finish-process-form" method="POST">
                     {% csrf_token %}
                     <input type="hidden" name="finish_process" value="true">
-                    <button type="submit" class="btn tp-btn tp-btn--primary" {% if term_count == 0 or not formula_name %}disabled{% endif %}>{% trans "Save scoring formula" %}</button>
+                    <button type="submit" class="btn tp-btn tp-btn--primary"
+                            {% if term_count == 0 or not formula_name %}disabled{% endif %}>
+                        {% trans "Save scoring formula" %}
+                    </button>
                 </form>
                 <form id="reset-process-form" method="POST">
                     {% csrf_token %}
@@ -129,5 +183,6 @@
                 </form>
             </div>
         </section>
+
     </div>
 {% endblock %}

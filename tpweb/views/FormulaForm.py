@@ -8,12 +8,15 @@ from tpweb.services.score_params import (
 )
 from tpweb.views.ParameterForm import HumanizedModelChoiceField
 
+_CTRL = "form-control tp-ui-control"
+
 class FormulaForm(forms.Form):
     param = HumanizedModelChoiceField(
         queryset=ScoreParam.objects.none(),
         empty_label="Select parameter...",
         widget=forms.Select(
             attrs={
+                "class": _CTRL,
                 "hx-get": reverse_lazy("tpwebapp:load_options"),
                 "hx-target": "#id_options",
                 "hx-trigger": "change",
@@ -24,9 +27,14 @@ class FormulaForm(forms.Form):
     options = HumanizedModelChoiceField(
         queryset=ScoreParamOptions.objects.none(),
         empty_label="Select value...",
+        widget=forms.Select(attrs={"class": _CTRL}),
     )
-    coefficient = forms.FloatField()
-    new_formula_name = forms.CharField()
+    coefficient = forms.FloatField(
+        widget=forms.NumberInput(attrs={"class": _CTRL, "step": "any"}),
+    )
+    new_formula_name = forms.CharField(
+        widget=forms.TextInput(attrs={"class": _CTRL}),
+    )
 
     def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
