@@ -1196,6 +1196,27 @@
     display: none;
 }
 
+.binders-panel-caption {
+    margin: 0 0 12px;
+    padding: 8px 12px;
+    background: var(--tp-color-surface-soft);
+    border-left: 3px solid var(--tp-color-brand-700);
+    border-radius: 6px;
+    font-size: 0.85rem;
+    line-height: 1.45;
+    color: var(--tp-color-text-secondary);
+}
+
+.binders-footnote {
+    margin: 18px 0 0;
+    padding-top: 14px;
+    border-top: 1px dashed var(--tp-color-border-soft);
+    font-size: 0.78rem;
+    line-height: 1.5;
+    color: var(--tp-color-text-muted);
+    font-style: italic;
+}
+
 .binder-card--link {
     display: block;
     text-decoration: none;

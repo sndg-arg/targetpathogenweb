@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260510-binders2">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260510-binders3tabs">
 {% endblock %}
 
 {% block body %}
@@ -473,26 +473,35 @@
 
                     <div class="binders-tabs" role="tablist" data-binders-tabs>
                         <button type="button"
-                                class="binders-tab {% if binders.pdb or not binders.proposed %}is-active{% endif %}"
+                                class="binders-tab {% if binders.default_tab == 'pdb' %}is-active{% endif %}"
                                 role="tab"
-                                aria-selected="{% if binders.pdb or not binders.proposed %}true{% else %}false{% endif %}"
+                                aria-selected="{% if binders.default_tab == 'pdb' %}true{% else %}false{% endif %}"
                                 data-binders-tab="pdb">
                             <span>{% trans "PDB" %}</span>
                             <span class="binders-tab__count">{{ binders.pdb|length }}</span>
                         </button>
                         <button type="button"
-                                class="binders-tab {% if binders.proposed and not binders.pdb %}is-active{% endif %}"
+                                class="binders-tab {% if binders.default_tab == 'chembl' %}is-active{% endif %}"
                                 role="tab"
-                                aria-selected="{% if binders.proposed and not binders.pdb %}true{% else %}false{% endif %}"
+                                aria-selected="{% if binders.default_tab == 'chembl' %}true{% else %}false{% endif %}"
+                                data-binders-tab="chembl">
+                            <span>{% trans "ChEMBL" %}</span>
+                            <span class="binders-tab__count">{{ binders.chembl|length }}</span>
+                        </button>
+                        <button type="button"
+                                class="binders-tab {% if binders.default_tab == 'proposed' %}is-active{% endif %}"
+                                role="tab"
+                                aria-selected="{% if binders.default_tab == 'proposed' %}true{% else %}false{% endif %}"
                                 data-binders-tab="proposed">
-                            <span>{% trans "Proposed" %}</span>
+                            <span>{% trans "ZINC" %}</span>
                             <span class="binders-tab__count">{{ binders.proposed|length }}</span>
                         </button>
                     </div>
 
-                    <div class="binders-panel {% if not binders.pdb and binders.proposed %}is-hidden{% endif %}"
+                    <div class="binders-panel {% if binders.default_tab != 'pdb' %}is-hidden{% endif %}"
                          data-binders-panel="pdb"
                          role="tabpanel">
+                        <p class="binders-panel-caption">{% trans "Ligands co-crystallized with a homologous protein (Protein Data Bank)." %}</p>
                         {% if binders.pdb %}
                             <div class="binder-grid">
                                 {% for binder in binders.pdb %}
@@ -510,20 +519,57 @@
                                 {% if binders.search_query %}
                                     {% trans "No PDB binders match the search." %}
                                 {% else %}
-                                    {% trans "No PDB binders mapped to this protein yet." %}
+                                    {% trans "No co-crystallized ligands for a homolog of this protein." %}
                                 {% endif %}
                             </p>
                         {% endif %}
                     </div>
 
-                    <div class="binders-panel {% if binders.pdb or not binders.proposed %}is-hidden{% endif %}"
+                    <div class="binders-panel {% if binders.default_tab != 'chembl' %}is-hidden{% endif %}"
+                         data-binders-panel="chembl"
+                         role="tabpanel">
+                        <p class="binders-panel-caption">{% trans "Bioactivity hits from ChEMBL on homologous proteins. Score = pchembl (−log of Ki/IC₅₀, higher means more potent)." %}</p>
+                        {% if binders.chembl %}
+                            <div class="binder-table">
+                                <div class="binder-table__head">
+                                    <span>{% trans "Ligand" %}</span>
+                                    <span class="binder-table__score-col">{% trans "pchembl" %}</span>
+                                    <span>SMILES</span>
+                                </div>
+                                {% for binder in binders.chembl %}
+                                    <a class="binder-table__row" href="{% url 'tpwebapp:binder_detail' binder_id=binder.id %}">
+                                        <span class="binder-table__name">{{ binder.name }}</span>
+                                        <span class="binder-table__score">
+                                            {% if binder.score is not None %}
+                                                {{ binder.score|floatformat:3 }}
+                                            {% else %}
+                                                <span class="binder-table__score-empty">—</span>
+                                            {% endif %}
+                                        </span>
+                                        <code class="binder-table__smiles">{{ binder.smiles }}</code>
+                                    </a>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="tp-state-note tp-state-note--empty binders-empty">
+                                {% if binders.search_query %}
+                                    {% trans "No ChEMBL hits match the search." %}
+                                {% else %}
+                                    {% trans "No ChEMBL bioactivity hits for a homolog of this protein." %}
+                                {% endif %}
+                            </p>
+                        {% endif %}
+                    </div>
+
+                    <div class="binders-panel {% if binders.default_tab != 'proposed' %}is-hidden{% endif %}"
                          data-binders-panel="proposed"
                          role="tabpanel">
+                        <p class="binders-panel-caption">{% trans "Virtual-screening candidates from ZINC. Score = Tanimoto similarity to a known binder (0–1; higher means more similar)." %}</p>
                         {% if binders.proposed %}
                             <div class="binder-table">
                                 <div class="binder-table__head">
                                     <span>{% trans "Ligand" %}</span>
-                                    <span class="binder-table__score-col">{% trans "Score" %}</span>
+                                    <span class="binder-table__score-col">{% trans "tanimoto" %}</span>
                                     <span>SMILES</span>
                                 </div>
                                 {% for binder in binders.proposed %}
@@ -543,13 +589,17 @@
                         {% else %}
                             <p class="tp-state-note tp-state-note--empty binders-empty">
                                 {% if binders.search_query %}
-                                    {% trans "No proposed binders match the search." %}
+                                    {% trans "No ZINC candidates match the search." %}
                                 {% else %}
-                                    {% trans "No proposed binders for this protein. Add them with the load_binders management command using --source proposed." %}
+                                    {% trans "No virtual-screening candidates for this protein." %}
                                 {% endif %}
                             </p>
                         {% endif %}
                     </div>
+
+                    <p class="binders-footnote">
+                        {% blocktrans %}Showing up to the top 100 ChEMBL hits (by pchembl) and the top 50 ZINC candidates (by Tanimoto ≥ 0.5) per protein. LigQ_2 typically returns many more candidates; these caps are an editorial choice to keep the list readable.{% endblocktrans %}
+                    </p>
                 </section>
             {% endif %}
 

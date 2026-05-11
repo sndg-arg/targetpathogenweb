@@ -231,7 +231,7 @@ class Command(BaseCommand):
         stats["kept"] = len(pdb_rows) + len(affinity_rows)
         self.stdout.write(
             f"  after top-{max_per_protein}/protein filter: "
-            f"pdb={len(pdb_rows)}, affinity={len(affinity_rows)}"
+            f"pdb={len(pdb_rows)}, chembl={len(affinity_rows)}"
         )
 
         if dry_run:
@@ -248,10 +248,10 @@ class Command(BaseCommand):
             )
             self._write_known_rows(
                 affinity_rows,
-                Binders.SOURCE_PROPOSED,
+                Binders.SOURCE_CHEMBL,
                 bioentry_map,
                 stats,
-                desc="known/affinity",
+                desc="known/chembl",
             )
 
     @staticmethod

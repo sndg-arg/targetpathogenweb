@@ -5,10 +5,12 @@ from bioseq.models.Bioentry import Bioentry
 
 class Binders(models.Model):
     SOURCE_PDB = "pdb"
+    SOURCE_CHEMBL = "chembl"
     SOURCE_PROPOSED = "proposed"
     SOURCE_CHOICES = (
         (SOURCE_PDB, "PDB"),
-        (SOURCE_PROPOSED, "Proposed"),
+        (SOURCE_CHEMBL, "ChEMBL"),
+        (SOURCE_PROPOSED, "ZINC"),
     )
 
     id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')

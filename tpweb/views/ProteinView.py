@@ -157,10 +157,13 @@ def _binder_to_dto(binder, render_svg):
 
 
 def create_binders_dict(protein, search_query=""):
-    """Build a binders payload split by source (pdb / proposed).
+    """Build a binders payload split into three categories:
 
-    SVG rendering is only run for PDB binders (proposed entries are SMILES-only).
-    `search_query` filters by ccd_id, pdb_id or smiles substring (case-insensitive).
+    - pdb       → ligand co-crystallized in a PDB structure (with a homologous protein).
+    - chembl    → bioactivity hit from ChEMBL (pchembl-scored), brought in by homology.
+    - proposed  → ZINC virtual-screening hit (tanimoto-scored).
+
+    SVG is only rendered for the PDB category (the others can have hundreds of rows).
     """
     binders_qs = Binders.objects.filter(locustag=protein).order_by("source", "ccd_id", "id")
     cleaned_query = (search_query or "").strip()
@@ -175,21 +178,33 @@ def create_binders_dict(protein, search_query=""):
         )
 
     pdb_binders = []
+    chembl_binders = []
     proposed_binders = []
     for binder in binders_qs:
-        if binder.source == Binders.SOURCE_PROPOSED:
+        if binder.source == Binders.SOURCE_CHEMBL:
+            chembl_binders.append(_binder_to_dto(binder, render_svg=False))
+        elif binder.source == Binders.SOURCE_PROPOSED:
             proposed_binders.append(_binder_to_dto(binder, render_svg=False))
         else:
             pdb_binders.append(_binder_to_dto(binder, render_svg=True))
 
-    proposed_binders.sort(
-        key=lambda entry: (entry["score"] is None, -(entry["score"] or 0))
-    )
+    score_sort = lambda entry: (entry["score"] is None, -(entry["score"] or 0))
+    chembl_binders.sort(key=score_sort)
+    proposed_binders.sort(key=score_sort)
+
+    if pdb_binders:
+        default_tab = "pdb"
+    elif chembl_binders:
+        default_tab = "chembl"
+    else:
+        default_tab = "proposed"
 
     return {
         "pdb": pdb_binders,
+        "chembl": chembl_binders,
         "proposed": proposed_binders,
-        "total": len(pdb_binders) + len(proposed_binders),
+        "total": len(pdb_binders) + len(chembl_binders) + len(proposed_binders),
+        "default_tab": default_tab,
         "search_query": cleaned_query,
     }
 
@@ -293,7 +308,7 @@ class ProteinView(View):
                                 binder["score"] if binder["score"] is not None else "",
                                 binder["notes"],
                             ]
-                            for binder in (*binders["pdb"], *binders["proposed"])
+                            for binder in (*binders["pdb"], *binders["chembl"], *binders["proposed"])
                         ],
                     }
                 )
