@@ -90,7 +90,13 @@ class Command(BaseCommand):
             "--max-known-per-protein",
             type=int,
             default=100,
-            help="Top-N known binders per protein, ordered by pchembl desc, NaN last (default 100).",
+            help="Top-N ChEMBL/affinity binders per protein, ordered by pchembl desc, NaN last (default 100).",
+        )
+        parser.add_argument(
+            "--max-pdb-per-protein",
+            type=int,
+            default=0,
+            help="Top-N PDB binders per protein, ordered by pchembl desc. Use 0 to keep all PDB ligands (default 0).",
         )
         parser.add_argument(
             "--locustag-fallback",
@@ -124,6 +130,7 @@ class Command(BaseCommand):
             out_dir,
             options["locustag_fallback"],
             max_known_per_protein=options["max_known_per_protein"],
+            max_pdb_per_protein=options["max_pdb_per_protein"],
             max_zinc_per_protein=options["max_zinc_per_protein"],
             min_tanimoto=options["min_tanimoto"],
         )
@@ -141,6 +148,7 @@ class Command(BaseCommand):
             self._load_known(
                 known_df,
                 max_per_protein=options["max_known_per_protein"],
+                max_pdb_per_protein=options["max_pdb_per_protein"],
                 dry_run=options["dry_run"],
                 stats=known_stats,
                 skip_noise_het=not options["keep_noise_het"],
@@ -178,6 +186,7 @@ class Command(BaseCommand):
         locustag_fallback,
         *,
         max_known_per_protein=None,
+        max_pdb_per_protein=0,
         max_zinc_per_protein=None,
         min_tanimoto=None,
     ):
@@ -201,7 +210,21 @@ class Command(BaseCommand):
                 if kf.exists() and kf.stat().st_size > 0:
                     df = pd.read_csv(kf, sep="\t")
                     if not df.empty:
-                        if known_pre_cap and len(df) > known_pre_cap and "pchembl" in df.columns:
+                        if "source" in df.columns:
+                            df["_inner_source"] = df.get("source", "").apply(
+                                lambda v: str(v).strip().lower() if v is not None else ""
+                            )
+                            pdb_df = df[df["_inner_source"] == "pdb"].copy()
+                            other_df = df[df["_inner_source"] != "pdb"].copy()
+                            if known_pre_cap and len(other_df) > known_pre_cap and "pchembl" in other_df.columns:
+                                other_df["_pchembl_sort"] = pd.to_numeric(other_df["pchembl"], errors="coerce")
+                                other_df = other_df.sort_values(
+                                    "_pchembl_sort", ascending=False, na_position="last"
+                                ).head(known_pre_cap)
+                                other_df = other_df.drop(columns=["_pchembl_sort"])
+                            df = pd.concat([pdb_df, other_df], ignore_index=True)
+                            df = df.drop(columns=["_inner_source"], errors="ignore")
+                        elif known_pre_cap and len(df) > known_pre_cap and "pchembl" in df.columns:
                             df["_pchembl_sort"] = pd.to_numeric(df["pchembl"], errors="coerce")
                             df = df.sort_values("_pchembl_sort", ascending=False, na_position="last").head(known_pre_cap)
                             df = df.drop(columns=["_pchembl_sort"])
@@ -267,7 +290,7 @@ class Command(BaseCommand):
         zinc_df = pd.concat(zinc_frames, ignore_index=True) if zinc_frames else None
         return known_df, zinc_df
 
-    def _load_known(self, df, *, max_per_protein, dry_run, stats, skip_noise_het=True):
+    def _load_known(self, df, *, max_per_protein, max_pdb_per_protein=0, dry_run, stats, skip_noise_het=True):
         stats["raw"] = len(df)
         self.stdout.write(self.style.NOTICE(f"known: {len(df)} raw rows"))
 
@@ -291,12 +314,14 @@ class Command(BaseCommand):
             f"  inner split: pdb-crystallized={len(pdb_rows)}, affinity/predicted={len(affinity_rows)}"
         )
 
-        pdb_rows = self._top_n_by_pchembl(pdb_rows, max_per_protein)
+        if max_pdb_per_protein and max_pdb_per_protein > 0:
+            pdb_rows = self._top_n_by_pchembl(pdb_rows, max_pdb_per_protein)
         affinity_rows = self._top_n_by_pchembl(affinity_rows, max_per_protein)
         stats["kept"] = len(pdb_rows) + len(affinity_rows)
         self.stdout.write(
-            f"  after top-{max_per_protein}/protein filter: "
-            f"pdb={len(pdb_rows)}, chembl={len(affinity_rows)}"
+            f"  after per-protein filter: "
+            f"pdb={'all' if not max_pdb_per_protein or max_pdb_per_protein <= 0 else f'top-{max_pdb_per_protein}'} -> {len(pdb_rows)}, "
+            f"chembl=top-{max_per_protein} -> {len(affinity_rows)}"
         )
 
         if dry_run:

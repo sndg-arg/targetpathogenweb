@@ -206,7 +206,7 @@ def create_binders_dict(protein, search_query=""):
     chembl_count = len(chembl_binders)
     proposed_count = len(proposed_binders)
     total_count = pdb_count + chembl_count + proposed_count
-    pdb_capped = pdb_count >= KNOWN_BINDER_CAP
+    pdb_capped = False
     chembl_capped = chembl_count >= KNOWN_BINDER_CAP
     proposed_capped = proposed_count >= ZINC_BINDER_CAP
 
