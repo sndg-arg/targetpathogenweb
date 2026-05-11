@@ -40,19 +40,6 @@
     z-index: 1;
 }
 
-.formula-eyebrow {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    margin: 0 0 10px;
-    color: var(--tp-color-text-muted);
-    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
-    font-size: 0.75rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-}
-
 .formula-hero h1 {
     margin: 0;
     color: var(--formula-accent-ink);
@@ -68,14 +55,29 @@
     line-height: 1.42;
 }
 
-.formula-chip-group {
-    margin-top: 14px;
+.formula-context {
+    margin: 10px 0 0;
+    color: var(--tp-color-text-secondary);
+    font-size: 0.95rem;
 }
 
 .formula-context-id {
     font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
     color: var(--formula-accent-ink);
     font-weight: 700;
+}
+
+.formula-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.formula-summary-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
 }
 
 .formula-main {
@@ -98,7 +100,6 @@
     gap: 12px;
     padding: 14px;
     overflow: visible;
-    max-width: 1040px;
 }
 
 .formula-footer-card {
@@ -265,6 +266,10 @@
 }
 
 @media (max-width: 980px) {
+    .formula-summary {
+        align-items: flex-start;
+    }
+
     .formula-actions--footer {
         justify-content: flex-start;
     }

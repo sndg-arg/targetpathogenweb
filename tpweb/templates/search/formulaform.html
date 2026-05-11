@@ -24,14 +24,16 @@
             {% endwith %}
             {% endwith %}
             {% trans "Untitled" as untitled_label %}
-            <span class="formula-eyebrow">{% trans "Scoring design · Workspace ranking" %}</span>
             <h1>{% trans "Create a custom score" %}</h1>
             <p class="formula-subtitle">{% trans "Draft a ranking rule for this genome." %}</p>
-            <div class="formula-chip-group tp-chip-group" aria-label="{% trans 'Formula summary' %}">
-                <span class="tp-chip tp-chip--meta tp-chip--sm"><strong>{% trans "Genome" %}:</strong> <span class="formula-context-id">{{ assembly_label|default:assembly_name }}</span></span>
-                <span class="tp-chip tp-chip--meta tp-chip--sm"><strong>{% trans "Draft" %}:</strong> <span>{{ formula_name|default:untitled_label }}</span></span>
-                <span class="tp-chip tp-chip--count tp-chip--sm">{{ term_count }} {% trans "terms" %}</span>
-                <span class="tp-chip tp-chip--meta tp-chip--sm">
+            <p class="formula-context"><strong>{% trans "Genome" %}:</strong> <span class="formula-context-id">{{ assembly_label|default:assembly_name }}</span></p>
+        </section>
+
+        <section class="formula-summary tp-ui-toolbar" aria-label="{% trans 'Formula summary' %}">
+            <div class="formula-summary-chips tp-chip-group">
+                <span class="tp-chip tp-chip--meta"><strong>{% trans "Draft" %}:</strong> <span>{{ formula_name|default:untitled_label }}</span></span>
+                <span class="tp-chip tp-chip--count">{{ term_count }} {% trans "terms" %}</span>
+                <span class="tp-chip tp-chip--meta">
                     {% if term_count > 0 and formula_name %}{% trans "Ready to save" %}{% elif term_count > 0 %}{% trans "Name missing" %}{% else %}{% trans "Drafting" %}{% endif %}
                 </span>
             </div>
@@ -47,7 +49,6 @@
             <article class="formula-card formula-card--builder tp-ui-panel">
                 <div class="formula-card-head tp-ui-panel-head">
                     <h2>{% trans "Add term" %}</h2>
-                    <span class="tp-chip tp-chip--count tp-chip--sm">{{ term_count }}</span>
                 </div>
 
                 <form id="add-parameter-form" class="formula-add-form" method="POST" novalidate>
