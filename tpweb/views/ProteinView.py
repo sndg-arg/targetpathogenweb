@@ -23,6 +23,9 @@ from tpweb.services.genome_workspace import (
 )
 from tpweb.services.structure_sources import summarize_structure_sources
 
+KNOWN_BINDER_CAP = 100
+ZINC_BINDER_CAP = 50
+
 
 def _first_location(feature):
     locations = getattr(feature, "locations", None)
@@ -199,11 +202,26 @@ def create_binders_dict(protein, search_query=""):
     else:
         default_tab = "proposed"
 
+    pdb_count = len(pdb_binders)
+    chembl_count = len(chembl_binders)
+    proposed_count = len(proposed_binders)
+    total_count = pdb_count + chembl_count + proposed_count
+    pdb_capped = pdb_count >= KNOWN_BINDER_CAP
+    chembl_capped = chembl_count >= KNOWN_BINDER_CAP
+    proposed_capped = proposed_count >= ZINC_BINDER_CAP
+
     return {
         "pdb": pdb_binders,
         "chembl": chembl_binders,
         "proposed": proposed_binders,
-        "total": len(pdb_binders) + len(chembl_binders) + len(proposed_binders),
+        "pdb_count": pdb_count,
+        "chembl_count": chembl_count,
+        "proposed_count": proposed_count,
+        "total": total_count,
+        "pdb_capped": pdb_capped,
+        "chembl_capped": chembl_capped,
+        "proposed_capped": proposed_capped,
+        "total_capped": pdb_capped or chembl_capped or proposed_capped,
         "default_tab": default_tab,
         "search_query": cleaned_query,
     }

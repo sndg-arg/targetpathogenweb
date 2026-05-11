@@ -454,7 +454,7 @@
                             <p class="section-subtitle">{% trans "Ligands linked to this protein — from solved structures and from virtual screening." %}</p>
                         </div>
                         <div class="section-tools">
-                            <span class="tp-chip tp-chip--count tp-chip--sm">{{ binders.total }} {% trans "records" %}</span>
+                            <span class="tp-chip tp-chip--count tp-chip--sm">{{ binders.total }}{% if binders.total_capped %}+{% endif %} {% trans "records" %}</span>
                         </div>
                     </div>
 
@@ -478,7 +478,7 @@
                                 aria-selected="{% if binders.default_tab == 'pdb' %}true{% else %}false{% endif %}"
                                 data-binders-tab="pdb">
                             <span>{% trans "PDB" %}</span>
-                            <span class="binders-tab__count">{{ binders.pdb|length }}</span>
+                            <span class="binders-tab__count">{{ binders.pdb_count }}{% if binders.pdb_capped %}+{% endif %}</span>
                         </button>
                         <button type="button"
                                 class="binders-tab {% if binders.default_tab == 'chembl' %}is-active{% endif %}"
@@ -486,7 +486,7 @@
                                 aria-selected="{% if binders.default_tab == 'chembl' %}true{% else %}false{% endif %}"
                                 data-binders-tab="chembl">
                             <span>{% trans "ChEMBL" %}</span>
-                            <span class="binders-tab__count">{{ binders.chembl|length }}</span>
+                            <span class="binders-tab__count">{{ binders.chembl_count }}{% if binders.chembl_capped %}+{% endif %}</span>
                         </button>
                         <button type="button"
                                 class="binders-tab {% if binders.default_tab == 'proposed' %}is-active{% endif %}"
@@ -494,7 +494,7 @@
                                 aria-selected="{% if binders.default_tab == 'proposed' %}true{% else %}false{% endif %}"
                                 data-binders-tab="proposed">
                             <span>{% trans "ZINC" %}</span>
-                            <span class="binders-tab__count">{{ binders.proposed|length }}</span>
+                            <span class="binders-tab__count">{{ binders.proposed_count }}{% if binders.proposed_capped %}+{% endif %}</span>
                         </button>
                     </div>
 
@@ -598,7 +598,7 @@
                     </div>
 
                     <p class="binders-footnote">
-                        {% blocktrans %}Showing up to the top 100 ChEMBL hits (by pchembl) and the top 50 ZINC candidates (by Tanimoto ≥ 0.5) per protein. LigQ_2 typically returns many more candidates; these caps are an editorial choice to keep the list readable.{% endblocktrans %}
+                        {% blocktrans %}Showing a curated subset per protein: up to the top 100 PDB ligands and top 100 ChEMBL hits (both ranked by pchembl, with missing values last) plus the top 50 ZINC candidates (by Tanimoto ≥ 0.5). Counts shown as 100+ or 50+ may have higher true totals in the raw LigQ_2 output.{% endblocktrans %}
                     </p>
                 </section>
             {% endif %}
