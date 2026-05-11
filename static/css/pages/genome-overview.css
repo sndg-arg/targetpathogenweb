@@ -273,16 +273,22 @@
     grid-column: 1 / -1;
 }
 
+.genome-card--downloads {
+    overflow: visible;
+}
+
 .genome-card--downloads .tp-ui-toolbar-form {
     max-width: 640px;
     display: grid;
     grid-template-columns: 1fr auto;
     gap: 14px;
     align-items: end;
+    overflow: visible;
 }
 
 .genome-card--downloads .tp-ui-field {
     min-width: 0;
+    overflow: visible;
 }
 
 /* ── Top targets (two rankings side-by-side) ─────────────────────── */
