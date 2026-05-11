@@ -1,0 +1,505 @@
+/* Genome overview — mirrors protein-detail / binder-detail design language. */
+
+.genome-page {
+    font-family: "Source Sans 3", "Segoe UI", sans-serif;
+    color: var(--tp-ink);
+    margin: 0;
+    display: grid;
+    gap: var(--tp-space-4);
+    --genome-accent: var(--tp-color-brand-800);
+    --genome-accent-ink: var(--tp-color-brand-900);
+    --genome-accent-soft: var(--tp-color-brand-100);
+    --genome-accent-border: var(--tp-color-brand-300);
+}
+
+.genome-page h1,
+.genome-page h2,
+.genome-page h3 {
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    letter-spacing: 0.2px;
+}
+
+/* ── Hero ─────────────────────────────────────────────────────────── */
+
+.genome-hero {
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: var(--tp-ui-radius-hero);
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+    padding: 20px 20px 18px;
+    box-shadow: var(--tp-ui-shadow-panel);
+    position: relative;
+    overflow: hidden;
+}
+
+.genome-hero::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--tp-color-brand-800) 0%, var(--tp-color-sage-700) 64%, var(--tp-color-brand-600) 100%);
+}
+
+.genome-hero > * {
+    position: relative;
+    z-index: 1;
+}
+
+.genome-hero-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 18px;
+    align-items: flex-start;
+    margin-top: 8px;
+}
+
+.genome-hero-content {
+    max-width: none;
+    width: 100%;
+    min-width: 0;
+}
+
+.genome-hero-eyebrow {
+    margin: 0 0 10px;
+    color: var(--tp-color-text-muted);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.genome-hero h1 {
+    margin: 0;
+    font-size: var(--tp-heading-xl);
+    line-height: 1.1;
+    color: var(--genome-accent-ink);
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    word-break: break-all;
+}
+
+.genome-description {
+    margin: 10px 0 0;
+    color: var(--tp-color-text-secondary);
+    font-size: 1rem;
+    line-height: 1.42;
+    max-width: 920px;
+}
+
+.genome-hero .hero-chip-list {
+    margin-top: 12px;
+}
+
+.genome-pipeline-group {
+    margin-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: flex-start;
+    max-width: min(100%, 720px);
+}
+
+.hero-pipeline-note {
+    margin: 0;
+    color: var(--tp-color-text-muted);
+    font-size: 0.84rem;
+    font-weight: 600;
+    line-height: 1.35;
+}
+
+.genome-hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 18px;
+}
+
+.genome-hero-actions .tp-btn--primary {
+    min-width: 196px;
+    justify-content: center;
+}
+
+/* ── Metric pills ─────────────────────────────────────────────────── */
+
+.genome-metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.genome-page .metric-pill {
+    border: 1px solid var(--genome-accent-border);
+    border-radius: 12px;
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-panel) 100%);
+    padding: 10px 12px;
+    min-height: 68px;
+    display: grid;
+    align-content: center;
+    gap: 2px;
+    box-shadow: var(--tp-shadow-xs);
+}
+
+.genome-page .metric-label {
+    font-size: 0.76rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--tp-color-text-muted);
+}
+
+.genome-page .metric-value {
+    color: var(--genome-accent-ink);
+    font-size: 1.4rem;
+    line-height: 1.1;
+    font-weight: 700;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.metric-value-pct {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--tp-color-text-muted);
+}
+
+/* ── Quick-nav ────────────────────────────────────────────────────── */
+
+.genome-page .quick-nav {
+    position: sticky;
+    top: -2px;
+    z-index: 25;
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 8px 10px;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 12px;
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+    box-shadow: var(--tp-shadow-xs);
+}
+
+.genome-page .quick-nav::-webkit-scrollbar {
+    height: 6px;
+}
+
+.genome-page .quick-nav::-webkit-scrollbar-thumb {
+    background: var(--tp-color-border-strong);
+    border-radius: 999px;
+}
+
+.genome-page .quick-nav .quick-nav-link {
+    flex: 0 0 auto;
+    min-height: 36px;
+    padding: 0.32rem 0.85rem;
+    line-height: 1.1;
+    font-weight: 600;
+    border-radius: 999px;
+    border: 1px solid var(--tp-color-border-strong) !important;
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%) !important;
+    color: var(--tp-color-text-secondary) !important;
+    white-space: nowrap;
+    text-decoration: none !important;
+}
+
+.genome-page .quick-nav .quick-nav-link:hover,
+.genome-page .quick-nav .quick-nav-link:focus-visible {
+    color: var(--tp-color-link-hover) !important;
+    border-color: var(--genome-accent-border) !important;
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--genome-accent-soft) 100%) !important;
+}
+
+/* ── Grid + panels ────────────────────────────────────────────────── */
+
+.genome-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.genome-card {
+    border: 1px solid var(--tp-color-border);
+    border-radius: var(--tp-ui-radius-panel);
+    background: var(--tp-color-surface);
+    box-shadow: var(--tp-ui-shadow-panel);
+    padding: 16px;
+    overflow: hidden;
+    scroll-margin-top: 128px;
+}
+
+.genome-card h2 {
+    margin: 0;
+    font-size: 1.22rem;
+    color: var(--genome-accent-ink);
+}
+
+.genome-page .section-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.genome-page .section-subtitle {
+    margin: 4px 0 0;
+    color: var(--tp-color-text-muted);
+    font-size: 0.86rem;
+    line-height: 1.45;
+}
+
+.genome-card--coverage,
+.genome-card--composition,
+.genome-card--browse,
+.genome-card--details,
+.genome-card--danger {
+    grid-column: 1 / -1;
+}
+
+@media (max-width: 880px) {
+    .genome-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+/* ── Coverage progress bars ──────────────────────────────────────── */
+
+.coverage-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 16px;
+}
+
+.coverage-row {
+    display: grid;
+    gap: 6px;
+}
+
+.coverage-row-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.coverage-name {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--genome-accent-ink);
+}
+
+.coverage-value {
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 0.88rem;
+    color: var(--tp-color-text-primary);
+    font-weight: 600;
+}
+
+.coverage-pct {
+    color: var(--tp-color-text-muted);
+    font-weight: 500;
+}
+
+.coverage-bar {
+    height: 10px;
+    background: var(--tp-color-surface-soft);
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 999px;
+    overflow: hidden;
+    position: relative;
+}
+
+.coverage-bar > span {
+    display: block;
+    height: 100%;
+    background: linear-gradient(90deg, var(--tp-color-brand-700) 0%, var(--tp-color-sage-700) 100%);
+    border-radius: 999px;
+    transition: width 600ms cubic-bezier(0.22, 0.61, 0.36, 1);
+    min-width: 2px;
+}
+
+.coverage-detail {
+    margin: 0;
+    color: var(--tp-color-text-secondary);
+    font-size: 0.83rem;
+    line-height: 1.4;
+}
+
+.coverage-detail strong {
+    color: var(--tp-color-text-primary);
+}
+
+/* ── Composition list ────────────────────────────────────────────── */
+
+.composition-list {
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 10px;
+}
+
+.composition-row {
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 10px;
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+    padding: 10px 12px;
+    display: grid;
+    gap: 4px;
+    min-height: 68px;
+    align-content: center;
+}
+
+.composition-row dt {
+    font-size: 0.74rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--tp-color-text-muted);
+}
+
+.composition-row dd {
+    margin: 0;
+    color: var(--genome-accent-ink);
+    font-size: 1.02rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+/* ── JBrowse iframe ──────────────────────────────────────────────── */
+
+.jbrowse-frame {
+    width: 100%;
+    height: 540px;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--tp-color-surface-soft);
+}
+
+.jbrowse-frame iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
+
+/* ── Downloads form ──────────────────────────────────────────────── */
+
+.downloads-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: flex-end;
+}
+
+.downloads-field {
+    flex: 1 1 240px;
+    min-width: 220px;
+}
+
+/* ── Imported details ────────────────────────────────────────────── */
+
+.genome-raw-details summary {
+    cursor: pointer;
+    color: var(--genome-accent-ink);
+    font-weight: 700;
+    list-style: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 34px;
+    padding: 0 14px;
+    border: 1px solid var(--tp-color-border-strong);
+    border-radius: 999px;
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+    transition: border-color 140ms ease, background 140ms ease;
+}
+
+.genome-raw-details summary::-webkit-details-marker {
+    display: none;
+}
+
+.genome-raw-details summary:hover,
+.genome-raw-details summary:focus-visible {
+    outline: none;
+    border-color: var(--genome-accent-border);
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--genome-accent-soft) 100%);
+}
+
+.genome-raw-details[open] summary {
+    margin-bottom: 12px;
+    border-color: var(--genome-accent-border);
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--genome-accent-soft) 100%);
+}
+
+.genome-raw-table {
+    margin-top: 10px;
+}
+
+/* ── Dataset deletion danger card ────────────────────────────────── */
+
+.genome-card--danger {
+    border-color: var(--tp-color-danger-border);
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-danger-bg) 100%);
+}
+
+.genome-card--danger h2 {
+    color: var(--tp-color-danger-ink);
+}
+
+.genome-delete-summary summary {
+    cursor: pointer;
+    list-style: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 34px;
+    padding: 0 14px;
+    border: 1px solid var(--tp-color-danger-border);
+    border-radius: 999px;
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, color-mix(in srgb, var(--tp-color-danger-bg) 70%, var(--tp-color-surface)) 100%);
+    color: var(--tp-color-danger-ink);
+    font-size: 0.9rem;
+    font-weight: 700;
+    transition: border-color 140ms ease, background 140ms ease;
+}
+
+.genome-delete-summary summary::-webkit-details-marker {
+    display: none;
+}
+
+.genome-delete-summary[open] summary {
+    margin-bottom: 12px;
+}
+
+.genome-delete-form {
+    display: grid;
+    gap: 10px;
+}
+
+.genome-delete-copy {
+    margin: 0;
+    color: var(--tp-color-text-secondary);
+    font-size: 0.92rem;
+    line-height: 1.45;
+}
+
+.genome-delete-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+@media (max-width: 640px) {
+    .genome-hero {
+        padding: 18px 16px 16px;
+    }
+
+    .genome-hero-actions .btn,
+    .genome-delete-actions .btn {
+        width: 100%;
+    }
+}
