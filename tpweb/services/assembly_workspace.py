@@ -132,14 +132,20 @@ def get_top_targets_by_score(assembly_name, user, limit=5):
     proteins = (
         Bioentry.objects.filter(biodatabase__name=proteome_name)
         .prefetch_related("score_params__score_param")
-        .annotate(binder_total=Count("binders_set"))
+    )
+
+    binder_counts = dict(
+        Binders.objects.filter(locustag__biodatabase__name=proteome_name)
+        .values_list("locustag__accession")
+        .annotate(count=Count("id"))
+        .values_list("locustag__accession", "count")
     )
 
     scored = []
     for p in proteins:
         param_values = score_param_value_map(p)
         score, weights = compute_score_value(param_values, coef)
-        binder_count = getattr(p, "binder_total", 0) or 0
+        binder_count = binder_counts.get(p.accession, 0)
         scored.append((p, score, weights, param_values, binder_count))
 
     # Sort by score, breaking ties by binder count so well-evidenced proteins surface first.
