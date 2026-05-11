@@ -46,80 +46,71 @@
         {% endif %}
 
         <section class="formula-main">
-            <article class="formula-card formula-card--builder tp-ui-panel">
-                <div class="formula-card-head tp-ui-panel-head">
-                    <h2>{% trans "Add term" %}</h2>
-                </div>
-
-                <form id="add-parameter-form" class="formula-add-form" method="POST" novalidate>
-                    {% csrf_token %}
-                    <div class="formula-form-grid formula-form-grid--single">
-                        <div class="tp-ui-field formula-field">
-                            <label class="tp-ui-field-label" for="{{ form.new_formula_name.id_for_label }}">{{ form.new_formula_name.label }}</label>
-                            {{ form.new_formula_name }}
-                        </div>
+            <article class="formula-workbench tp-ui-panel">
+                <section class="formula-section formula-section--builder">
+                    <div class="formula-section-head">
+                        <h2>{% trans "Build formula" %}</h2>
                     </div>
 
-                    <div class="formula-form-grid">
-                        <div class="tp-ui-field formula-field">
-                            <label class="tp-ui-field-label" for="{{ form.param.id_for_label }}">{{ form.param.label }}</label>
-                            {{ form.param }}
-                        </div>
-
-                        <div class="tp-ui-field formula-field">
-                            <label class="tp-ui-field-label" for="{{ form.options.id_for_label }}">{{ form.options.label }}</label>
-                            {{ form.options }}
-                        </div>
-
-                        <div class="tp-ui-field formula-field">
-                            <label class="tp-ui-field-label" for="{{ form.coefficient.id_for_label }}">{{ form.coefficient.label }}</label>
-                            {{ form.coefficient }}
-                        </div>
-                    </div>
-
-                    <div class="formula-submit-row">
-                        {% if term_count > 0 %}
-                            <div class="formula-actions formula-actions--secondary">
-                                <form method="POST">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="remove_last_term" value="true">
-                                    <button type="submit" class="btn tp-btn tp-btn--neutral">{% trans "Undo last term" %}</button>
-                                </form>
+                    <form id="add-parameter-form" class="formula-add-form" method="POST" novalidate>
+                        {% csrf_token %}
+                        <div class="formula-form-grid formula-form-grid--single">
+                            <div class="tp-ui-field formula-field">
+                                <label class="tp-ui-field-label" for="{{ form.new_formula_name.id_for_label }}">{{ form.new_formula_name.label }}</label>
+                                {{ form.new_formula_name }}
                             </div>
-                        {% endif %}
-                        <div class="formula-actions">
-                            <button type="submit" class="btn tp-btn tp-btn--primary">{% trans "Add term" %}</button>
                         </div>
-                    </div>
-                </form>
 
-                <div class="formula-preview-inline">
-                    <div class="formula-card-head formula-card-head--preview tp-ui-panel-head">
+                        <div class="formula-form-grid">
+                            <div class="tp-ui-field formula-field">
+                                <label class="tp-ui-field-label" for="{{ form.param.id_for_label }}">{{ form.param.label }}</label>
+                                {{ form.param }}
+                            </div>
+
+                            <div class="tp-ui-field formula-field">
+                                <label class="tp-ui-field-label" for="{{ form.options.id_for_label }}">{{ form.options.label }}</label>
+                                {{ form.options }}
+                            </div>
+
+                            <div class="tp-ui-field formula-field">
+                                <label class="tp-ui-field-label" for="{{ form.coefficient.id_for_label }}">{{ form.coefficient.label }}</label>
+                                {{ form.coefficient }}
+                            </div>
+                        </div>
+
+                        <div class="formula-submit-row">
+                            {% if term_count > 0 %}
+                                <div class="formula-actions formula-actions--secondary">
+                                    <form method="POST">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="remove_last_term" value="true">
+                                        <button type="submit" class="btn tp-btn tp-btn--neutral">{% trans "Undo last term" %}</button>
+                                    </form>
+                                </div>
+                            {% endif %}
+                            <div class="formula-actions">
+                                <button type="submit" class="btn tp-btn tp-btn--primary">{% trans "Add term" %}</button>
+                            </div>
+                        </div>
+                    </form>
+                </section>
+
+                <section class="formula-section formula-section--preview">
+                    <div class="formula-section-head">
                         <h3>{% trans "Draft preview" %}</h3>
+                        <span class="tp-chip tp-chip--count tp-chip--sm">{{ term_count }}</span>
                     </div>
 
                     {% if preview_terms %}
-                        <div class="formula-term-table">
-                            <table class="table table-sm table-striped table-hover mb-0 tp-table tp-table--plain tp-table--premium">
-                                <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>{% trans "Parameter" %}</th>
-                                    <th>{% trans "Option" %}</th>
-                                    <th>{% trans "Coefficient" %}</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                {% for term in preview_terms %}
-                                    <tr>
-                                        <td>{{ term.index }}</td>
-                                        <td>{{ term.param_name }}</td>
-                                        <td>{{ term.option_name }}</td>
-                                        <td>{{ term.coefficient }}</td>
-                                    </tr>
-                                {% endfor %}
-                                </tbody>
-                            </table>
+                        <div class="formula-term-list">
+                            {% for term in preview_terms %}
+                                <div class="formula-term-row">
+                                    <span class="formula-term-row__index">#{{ term.index }}</span>
+                                    <span class="formula-term-row__param">{{ term.param_name }}</span>
+                                    <span class="formula-term-row__option">{{ term.option_name }}</span>
+                                    <span class="formula-term-row__coef">{{ term.coefficient }}</span>
+                                </div>
+                            {% endfor %}
                         </div>
                     {% else %}
                         <p class="tp-state-note tp-state-note--empty">{% trans "No terms added yet." %}</p>
@@ -129,29 +120,29 @@
                         <p class="formula-expression-label">{% trans "Current expression" %}</p>
                         <div class="formula-expression-block">{{ parameters }}</div>
                     </div>
-                </div>
-            </article>
-        </section>
+                </section>
 
-        <section class="formula-footer-card tp-ui-panel">
-            <p class="formula-footer-note">{% trans "Saved formulas become selectable from the Scoring drawer in the protein list." %}</p>
-            <div class="formula-actions formula-actions--footer">
-                <form id="finish-process-form" method="POST">
-                    {% csrf_token %}
-                    <input type="hidden" name="finish_process" value="true">
-                    <button type="submit" class="btn tp-btn tp-btn--primary" {% if term_count == 0 or not formula_name %}disabled{% endif %}>{% trans "Save scoring formula" %}</button>
-                </form>
-                <form id="reset-process-form" method="POST">
-                    {% csrf_token %}
-                    <input type="hidden" name="reset_process" value="true">
-                    {% trans "Reset draft" as reset_draft_label %}
-                    {% if term_count > 0 or formula_name %}
-                        {% include "components/buttons/clear_action.html" with label=reset_draft_label button_type="submit" classes="btn tp-btn tp-btn--clear tp-btn--clear-caution tp-btn-with-icon" %}
-                    {% else %}
-                        {% include "components/buttons/clear_action.html" with label=reset_draft_label button_type="submit" disabled="1" classes="btn tp-btn tp-btn--clear tp-btn--clear-caution tp-btn-with-icon" %}
-                    {% endif %}
-                </form>
-            </div>
+                <section class="formula-section formula-section--actions">
+                    <p class="formula-footer-note">{% trans "Saved formulas become selectable from the Scoring drawer in the protein list." %}</p>
+                    <div class="formula-actions formula-actions--footer">
+                        <form id="finish-process-form" method="POST">
+                            {% csrf_token %}
+                            <input type="hidden" name="finish_process" value="true">
+                            <button type="submit" class="btn tp-btn tp-btn--primary" {% if term_count == 0 or not formula_name %}disabled{% endif %}>{% trans "Save scoring formula" %}</button>
+                        </form>
+                        <form id="reset-process-form" method="POST">
+                            {% csrf_token %}
+                            <input type="hidden" name="reset_process" value="true">
+                            {% trans "Reset draft" as reset_draft_label %}
+                            {% if term_count > 0 or formula_name %}
+                                {% include "components/buttons/clear_action.html" with label=reset_draft_label button_type="submit" classes="btn tp-btn tp-btn--clear tp-btn--clear-caution tp-btn-with-icon" %}
+                            {% else %}
+                                {% include "components/buttons/clear_action.html" with label=reset_draft_label button_type="submit" disabled="1" classes="btn tp-btn tp-btn--clear tp-btn--clear-caution tp-btn-with-icon" %}
+                            {% endif %}
+                        </form>
+                    </div>
+                </section>
+            </article>
         </section>
     </div>
 {% endblock %}

@@ -87,55 +87,62 @@
     align-items: start;
 }
 
-.formula-card,
-.formula-footer-card {
+.formula-card {
     border: 1px solid var(--tp-color-border-soft);
     border-radius: var(--tp-ui-radius-panel);
     background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
     box-shadow: var(--tp-ui-shadow-panel);
+    padding: 14px;
 }
 
-.formula-card {
+.formula-workbench {
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: var(--tp-ui-radius-panel);
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+    box-shadow: var(--tp-ui-shadow-panel);
+    display: grid;
+    padding: 14px;
+    gap: 0;
+}
+
+.formula-section {
     display: grid;
     gap: 12px;
-    padding: 14px;
-    overflow: visible;
 }
 
-.formula-footer-card {
+.formula-section + .formula-section {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--tp-color-border-soft);
+}
+
+.formula-section--actions {
     display: flex;
-    gap: 12px;
     align-items: center;
     justify-content: space-between;
-    padding: 14px;
+    gap: 12px;
 }
 
-.formula-card-head {
-    align-items: flex-start;
+.formula-section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
 }
 
-.formula-card-head--preview {
-    margin-bottom: 0;
-}
-
-.formula-card h2,
-.formula-footer-card h2 {
+.formula-workbench h2,
+.formula-workbench h3 {
     margin: 0;
     color: var(--formula-accent-ink);
-    font-size: 1.22rem;
-    line-height: 1.15;
-}
-
-.formula-card h3 {
-    margin: 0;
-    color: var(--formula-accent-ink);
-    font-size: 1rem;
     line-height: 1.2;
 }
 
-.formula-muted,
-.formula-help {
-    color: var(--tp-color-text-muted);
+.formula-workbench h2 {
+    font-size: 1.18rem;
+}
+
+.formula-workbench h3 {
+    font-size: 1rem;
 }
 
 .formula-add-form {
@@ -220,30 +227,51 @@
     justify-content: flex-end;
 }
 
-.formula-preview-inline {
+.formula-term-list {
     display: grid;
-    gap: 12px;
-    padding-top: 12px;
-    border-top: 1px solid var(--tp-color-border-soft);
+    gap: 8px;
 }
 
-.formula-term-table {
+.formula-term-row {
+    display: grid;
+    grid-template-columns: auto minmax(160px, 1.1fr) minmax(160px, 1fr) auto;
+    gap: 10px;
+    align-items: center;
+    padding: 10px 12px;
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: 14px;
-    overflow: auto;
+    border-radius: 12px;
     background: var(--tp-color-surface);
 }
 
-.formula-term-table table {
-    margin: 0;
+.formula-term-row__index {
+    color: var(--tp-color-text-muted);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
 }
 
-.formula-term-table thead th {
-    background: linear-gradient(180deg, var(--tp-color-surface-soft) 0%, var(--tp-color-surface-muted) 100%);
-    color: var(--tp-color-text-secondary);
-    font-size: 0.84rem;
+.formula-term-row__param {
+    color: var(--tp-color-text-primary);
     font-weight: 700;
-    white-space: nowrap;
+}
+
+.formula-term-row__option {
+    color: var(--tp-color-text-secondary);
+}
+
+.formula-term-row__coef {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 56px;
+    padding: 5px 10px;
+    border-radius: 999px;
+    background: var(--tp-color-surface-soft);
+    border: 1px solid var(--tp-color-border-soft);
+    color: var(--formula-accent-ink);
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 0.8rem;
+    font-weight: 700;
 }
 
 .formula-expression {
@@ -277,21 +305,21 @@
     color: var(--tp-color-text-secondary);
     font-size: 0.9rem;
     line-height: 1.4;
-    max-width: 720px;
+    max-width: 780px;
 }
 
 .formula-hero,
-.formula-main,
-.formula-footer-card {
+.formula-summary,
+.formula-main {
     animation: formula-enter 0.36s ease;
 }
 
-.formula-main {
-    animation-delay: 0.04s;
+.formula-summary {
+    animation-delay: 0.08s;
 }
 
-.formula-footer-card {
-    animation-delay: 0.08s;
+.formula-main {
+    animation-delay: 0.12s;
 }
 
 @media (max-width: 980px) {
@@ -314,9 +342,18 @@
     }
 
     .formula-submit-row,
-    .formula-footer-card {
+    .formula-section--actions {
         flex-direction: column;
         align-items: stretch;
+    }
+
+    .formula-term-row {
+        grid-template-columns: 1fr;
+        align-items: start;
+    }
+
+    .formula-term-row__coef {
+        justify-self: start;
     }
 }
 
