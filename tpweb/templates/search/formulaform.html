@@ -3,9 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/formula-form.css' %}?v=20260511-3">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="{% static 'css/pages/formula-form.css' %}?v=20260511-4">
 {% endblock %}
 
 {% block body %}
@@ -263,81 +261,43 @@
             });
         }
 
-        // ── Expression → LaTeX conversion (best-effort) ───────────────────
-        function expressionToLatex(expr) {
+        // ── Pretty-print expression (no external dependencies) ───────────
+        function prettyExpression(expr) {
             if (!expr.trim()) return null;
             let s = expr;
-
-            // named functions first
-            const fns = {
-                sqrt:  (arg) => `\\sqrt{${arg}}`,
-                log2:  (arg) => `\\log_2\\!\\left(${arg}\\right)`,
-                log10: (arg) => `\\log_{10}\\!\\left(${arg}\\right)`,
-                log:   (arg) => `\\ln\\!\\left(${arg}\\right)`,
-                exp:   (arg) => `e^{${arg}}`,
-                abs:   (arg) => `\\left|${arg}\\right|`,
-                floor: (arg) => `\\lfloor ${arg} \\rfloor`,
-                ceil:  (arg) => `\\lceil ${arg} \\rceil`,
-                round: (arg) => `\\operatorname{round}\\!\\left(${arg}\\right)`,
-                pow:   (arg) => { const parts = arg.split(","); return parts.length === 2 ? `{${parts[0].trim()}}^{${parts[1].trim()}}` : `\\operatorname{pow}(${arg})`; },
-                max:   (arg) => `\\max(${arg})`,
-                min:   (arg) => `\\min(${arg})`,
+            // functions with nice Unicode
+            const fnMap = {
+                sqrt: "√", log2: "log₂", log10: "log₁₀",
+                log: "ln", exp: "exp", abs: "abs",
+                pow: "pow", max: "max", min: "min",
+                floor: "⌊⌋", ceil: "⌈⌉", round: "round",
             };
-
-            // replace fn(…) — only handles single-level, non-nested parens for simplicity
-            for (const [name, render] of Object.entries(fns)) {
-                const re = new RegExp(`\\b${name}\\(([^()]+)\\)`, "g");
-                s = s.replace(re, (_, arg) => render(arg.trim()));
+            for (const [name, sym] of Object.entries(fnMap)) {
+                s = s.replace(new RegExp(`\\b${name}\\b`, "g"), sym);
             }
-
-            // ** / ^ → LaTeX exponent (simple right-operand: digits/parens/word)
-            s = s.replace(/\*\*\s*(-?\d+(?:\.\d+)?)/g, "^{$1}");
-            s = s.replace(/\*\*\s*(\w+)/g, "^{$1}");
-            s = s.replace(/\^\s*(-?\d+(?:\.\d+)?)/g, "^{$1}");
-            s = s.replace(/\^\s*(\w+)/g, "^{$1}");
-
-            // multiplication sign
-            s = s.replace(/\*/g, " \\cdot ");
-
-            // underscored identifiers → \text{...}
-            s = s.replace(/\b([a-z][a-z0-9]*(?:_[a-z0-9]+)+)\b/g, "\\text{$1}");
-
-            return s;
+            s = s.replace(/\*\*/g, "^");
+            s = s.replace(/\*/g, " × ");
+            s = s.replace(/\//g, " ÷ ");
+            s = s.replace(/\s{2,}/g, " ");
+            return s.trim();
         }
 
-        // ── KaTeX live render ─────────────────────────────────────────────
-        function renderKatex() {
-            if (!katexBlock || typeof katex === "undefined") return;
+        function renderPreview() {
+            if (!katexBlock) return;
             const expr = textarea ? textarea.value.trim() : "";
             if (!expr) {
-                katexBlock.innerHTML = '<span class="formula-katex-placeholder">Formula will appear here as you type…</span>';
+                katexBlock.innerHTML = '<span class="formula-katex-placeholder">{% trans "Formula will appear here as you type…" %}</span>';
                 return;
             }
-            const latex = expressionToLatex(expr);
-            if (!latex) {
-                katexBlock.innerHTML = '<span class="formula-katex-placeholder">Formula will appear here as you type…</span>';
-                return;
-            }
-            try {
-                katex.render(latex, katexBlock, {
-                    throwOnError: false,
-                    displayMode: true,
-                    output: "html",
-                });
-            } catch (_) {
-                katexBlock.textContent = expr;
-            }
+            const pretty = prettyExpression(expr);
+            katexBlock.textContent = pretty || expr;
         }
 
         if (textarea) {
-            textarea.addEventListener("input", renderKatex);
-            textarea.addEventListener("keyup", renderKatex);
-            // initial render if form was re-submitted with value
-            if (textarea.value) renderKatex();
+            textarea.addEventListener("input", renderPreview);
+            textarea.addEventListener("keyup", renderPreview);
+            if (textarea.value) renderPreview();
         }
-
-        // trigger KaTeX after KaTeX script loads (since it's deferred)
-        window.addEventListener("load", renderKatex);
     })();
     </script>
 {% endblock %}
