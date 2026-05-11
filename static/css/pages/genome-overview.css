@@ -97,6 +97,12 @@
     margin-top: 12px;
 }
 
+.genome-hero .hero-chip {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 6px;
+}
+
 .genome-pipeline-group {
     margin-top: 12px;
     display: flex;
@@ -680,18 +686,16 @@
     border: 0;
 }
 
-/* ── Downloads form ──────────────────────────────────────────────── */
+/* ── Evidence footnote ───────────────────────────────────────────── */
 
-.downloads-form {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    align-items: flex-end;
-}
-
-.downloads-field {
-    flex: 1 1 240px;
-    min-width: 220px;
+.evidence-footnote {
+    margin: 14px 0 0;
+    padding-top: 12px;
+    border-top: 1px dashed var(--tp-color-border-soft);
+    font-size: 0.82rem;
+    color: var(--tp-color-text-muted);
+    line-height: 1.45;
+    font-style: italic;
 }
 
 /* ── Imported details ────────────────────────────────────────────── */

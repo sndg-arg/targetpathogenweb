@@ -18,11 +18,11 @@
                     {% with crumb_workspace_label="Genome: "|add:assembly.name %}
                     {% include "components/navigation/breadcrumbs.html" with crumb_1_label=crumb_home crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_workspace_label %}
                     {% endwith %}
-                    <p class="genome-hero-eyebrow">{% trans "Drug-target discovery · Bacterial genome" %}</p>
+                    <p class="genome-hero-eyebrow">{% trans "Bacterial genome" %}</p>
                     <h1>{{ assembly.name }}</h1>
                     <p class="genome-description">{{ assembly.description|default:"No description available." }}</p>
                     <p class="genome-mission">
-                        {% blocktrans count proteins=workspace_metrics.total_proteins %}Explore {{ proteins }} protein and find your best drug-target candidates.{% plural %}Explore {{ proteins }} proteins and find your best drug-target candidates.{% endblocktrans %}
+                        {% blocktrans count proteins=workspace_metrics.total_proteins %}{{ proteins }} protein available for target prioritization.{% plural %}{{ proteins }} proteins available for target prioritization.{% endblocktrans %}
                     </p>
                     <div class="hero-chip-list tp-chip-group">
                         {% for fact in overview.primary_hero_facts %}
@@ -65,9 +65,9 @@
                         <p class="tp-state-note tp-state-note--error">{{ delete_error_message }}</p>
                     {% endif %}
                     <div class="genome-hero-actions">
-                        <a href="{{ workspace_links.proteins_url }}" class="btn tp-btn tp-btn--primary">{% trans "Find drug targets" %} →</a>
-                        <a href="{{ workspace_links.custom_scores_url }}" class="btn tp-btn tp-btn--outline">{% trans "Make my own score" %}</a>
-                        <a href="{{ workspace_links.blast_url }}" class="btn tp-btn tp-btn--outline">{% trans "BLAST" %}</a>
+                        <a href="{{ workspace_links.proteins_url }}" class="btn tp-btn tp-btn--primary">{% trans "Open protein list" %}</a>
+                        <a href="{{ workspace_links.custom_scores_url }}" class="btn tp-btn tp-btn--outline">{% trans "Custom score" %}</a>
+                        <a href="{{ workspace_links.blast_url }}" class="btn tp-btn tp-btn--outline">{% trans "BLAST search" %}</a>
                     </div>
                 </div>
                 <div class="tp-view-head-actions">
@@ -91,7 +91,7 @@
                     <span class="metric-value">{{ workspace_metrics.functional_annotated }}</span>
                 </div>
                 <div class="metric-pill">
-                    <span class="metric-label">{% trans "Binders found" %}</span>
+                    <span class="metric-label">{% trans "Top binders kept" %}</span>
                     <span class="metric-value">{{ workspace_metrics.binder_total }}</span>
                 </div>
             </div>
@@ -243,7 +243,7 @@
                     </div>
 
                     <div class="evidence-card evidence-card--binders">
-                        <span class="evidence-label">{% trans "Binders" %}</span>
+                        <span class="evidence-label">{% trans "Binders (top kept per protein)" %}</span>
                         <span class="evidence-headline">
                             {% blocktrans count binders=workspace_metrics.binder_total %}{{ binders }} binder{% plural %}{{ binders }} binders{% endblocktrans %}
                             <span class="evidence-headline-sub">{% blocktrans count proteins=workspace_metrics.proteins_with_binders %}on {{ proteins }} protein{% plural %}on {{ proteins }} proteins{% endblocktrans %}</span>
@@ -255,6 +255,9 @@
                         </ul>
                     </div>
                 </div>
+                <p class="evidence-footnote">
+                    {% trans "LigQ_2 typically finds many more candidates per protein; we keep the top 100 ChEMBL hits (by pchembl) and the top 50 ZINC candidates (by Tanimoto ≥ 0.5) for readability." %}
+                </p>
             </section>
 
             <!-- Composition -->
@@ -322,10 +325,10 @@
                         <p class="section-subtitle">{% trans "Download source genome and annotation files." %}</p>
                     </div>
                 </div>
-                <form action="{% url 'tpwebapp:download' %}" method="get" class="downloads-form">
-                    <div class="tp-ui-field downloads-field">
+                <form action="{% url 'tpwebapp:download' %}" method="get" class="tp-ui-toolbar-form">
+                    <div class="tp-ui-field">
                         <label class="tp-ui-field-label" for="inputFormatSelect">{% trans "File type" %}</label>
-                        <select name="format" class="form-control tp-ui-control" id="inputFormatSelect" aria-label="Select download format">
+                        <select name="format" class="form-control" id="inputFormatSelect" aria-label="Select download format">
                             <option value="genome">{% trans 'Genome FASTA (fna)' %}</option>
                             <option value="genes">{% trans 'Genes FASTA (fna)' %}</option>
                             <option value="proteins">{% trans 'Proteins FASTA (faa)' %}</option>
