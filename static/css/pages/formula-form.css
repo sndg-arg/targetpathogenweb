@@ -1,30 +1,21 @@
 .formula-page {
     display: grid;
     gap: var(--tp-space-4);
-    --formula-accent-ink: var(--tp-color-brand-900);
-    --formula-accent-soft: var(--tp-color-info-bg);
-    --formula-accent-soft-2: color-mix(in srgb, var(--tp-color-brand-050) 72%, white);
-    --formula-accent-border: var(--tp-color-brand-300);
-}
-
-.formula-page h1,
-.formula-page h2,
-.formula-page h3,
-.formula-page h4 {
-    font-family: "Space Grotesk", "Segoe UI", sans-serif;
-    letter-spacing: 0.2px;
+    --view-accent: var(--tp-accent);
+    --view-accent-ink: var(--tp-color-brand-900);
+    --view-accent-soft: var(--tp-color-info-bg);
+    --view-accent-soft-2: var(--tp-color-brand-050);
+    --view-accent-border: var(--tp-color-brand-300);
 }
 
 .formula-hero {
-    position: relative;
-    overflow: hidden;
     border: 1px solid var(--tp-color-border-soft);
     border-radius: var(--tp-ui-radius-hero);
-    background:
-        radial-gradient(circle at top right, color-mix(in srgb, var(--tp-color-brand-200) 36%, transparent) 0%, transparent 34%),
-        linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
-    padding: 20px 20px 18px;
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+    padding: 18px;
     box-shadow: var(--tp-ui-shadow-panel);
+    position: relative;
+    overflow: hidden;
 }
 
 .formula-hero::before {
@@ -32,7 +23,7 @@
     position: absolute;
     inset: 0 0 auto 0;
     height: 4px;
-    background: linear-gradient(90deg, var(--tp-color-brand-800) 0%, var(--tp-color-sage-700) 55%, var(--tp-color-brand-500) 100%);
+    background: linear-gradient(90deg, var(--tp-color-brand-800) 0%, var(--tp-color-sage-700) 64%, var(--tp-color-brand-600) 100%);
 }
 
 .formula-hero > * {
@@ -42,174 +33,125 @@
 
 .formula-hero h1 {
     margin: 0;
-    color: var(--formula-accent-ink);
-    font-size: var(--tp-heading-xl);
-    line-height: 1.1;
+    font-size: var(--tp-heading-lg);
+    letter-spacing: 0.2px;
+    color: var(--view-accent-ink);
+    line-height: 1.08;
 }
 
 .formula-subtitle {
-    margin: 10px 0 0;
-    max-width: 920px;
-    color: var(--tp-color-text-secondary);
+    margin: 7px 0 0;
+    color: var(--tp-color-text-muted);
     font-size: 1rem;
-    line-height: 1.42;
+    line-height: 1.38;
+    max-width: 860px;
 }
 
 .formula-context {
-    margin: 10px 0 0;
+    margin: 8px 0 0;
     color: var(--tp-color-text-secondary);
-    font-size: 0.95rem;
+    font-size: 0.98rem;
+    line-height: 1.35;
 }
 
 .formula-context-id {
     font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
-    color: var(--formula-accent-ink);
+    color: var(--view-accent-ink);
     font-weight: 700;
 }
 
-.formula-summary {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-}
-
-.formula-summary-chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
+.formula-chip-group {
+    margin-top: 10px;
 }
 
 .formula-main {
     display: grid;
-    grid-template-columns: 1fr;
-    gap: 14px;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    gap: 12px;
     align-items: start;
+    position: relative;
+    z-index: 1;
 }
 
 .formula-card {
-    border: 1px solid var(--tp-color-border-soft);
+    border: 1px solid var(--tp-color-border);
     border-radius: var(--tp-ui-radius-panel);
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+    background: var(--tp-color-surface);
     box-shadow: var(--tp-ui-shadow-panel);
     padding: 14px;
-}
-
-.formula-workbench {
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: var(--tp-ui-radius-panel);
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
-    box-shadow: var(--tp-ui-shadow-panel);
     display: grid;
-    padding: 14px;
-    gap: 0;
+    gap: 10px;
+    align-content: start;
+    position: relative;
+    z-index: 1;
+    overflow: visible;
 }
 
-.formula-section {
-    display: grid;
-    gap: 12px;
+.formula-main > :first-child {
+    z-index: 3;
 }
 
-.formula-section + .formula-section {
-    margin-top: 14px;
-    padding-top: 14px;
-    border-top: 1px solid var(--tp-color-border-soft);
-}
-
-.formula-section--actions {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-}
-
-.formula-section-head {
+.formula-card-head {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 8px;
 }
 
-.formula-workbench h2,
-.formula-workbench h3 {
+.formula-card h2 {
     margin: 0;
-    color: var(--formula-accent-ink);
+    font-size: 1.18rem;
+    color: var(--view-accent-ink);
     line-height: 1.2;
 }
 
-.formula-workbench h2 {
-    font-size: 1.18rem;
-}
-
-.formula-workbench h3 {
-    font-size: 1rem;
+.formula-muted {
+    margin: 0;
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-sm);
+    line-height: 1.35;
 }
 
 .formula-add-form {
     display: grid;
-    gap: 14px;
+    gap: 10px;
 }
 
-.formula-form-grid {
+.formula-add-form .row {
+    margin-left: -5px;
+    margin-right: -5px;
+}
+
+.formula-add-form .row > [class*="col-"] {
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+.formula-add-form .form-group {
+    margin-bottom: 0;
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 14px;
+    gap: 5px;
 }
 
-.formula-form-grid--single {
-    grid-template-columns: 1fr;
-}
-
-.formula-field {
-    display: grid;
-    gap: 7px;
-}
-
-.formula-field .tp-ui-control,
-.formula-field .form-control,
-.formula-field select,
-.formula-field input[type="text"],
-.formula-field input[type="number"] {
-    min-height: 46px;
-    border-radius: 14px;
-    background: var(--tp-color-surface);
-    color: var(--tp-ink);
-    border: 1px solid var(--tp-color-border-soft);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
-}
-
-.formula-field .form-control::placeholder,
-.formula-field input[type="text"]::placeholder,
-.formula-field input[type="number"]::placeholder {
+.formula-add-form label {
+    margin: 0;
     color: var(--tp-color-text-muted);
-    opacity: 1;
+    font-size: var(--tp-font-size-xs);
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    line-height: 1.25;
 }
 
-.formula-field .form-control:focus,
-.formula-field select:focus,
-.formula-field input[type="text"]:focus,
-.formula-field input[type="number"]:focus {
-    background: var(--tp-color-surface);
-    color: var(--tp-ink);
-    border-color: var(--tp-color-brand-400);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--tp-color-brand-400) 20%, transparent);
+/* .form-control min-height inherited from base */
+
+.formula-add-form .tp-select {
+    position: relative;
+    z-index: 5;
 }
 
-.formula-field input:-webkit-autofill,
-.formula-field input:-webkit-autofill:hover,
-.formula-field input:-webkit-autofill:focus {
-    -webkit-text-fill-color: var(--tp-ink);
-    -webkit-box-shadow: 0 0 0 1000px var(--tp-color-surface) inset;
-    transition: background-color 9999s ease-out 0s;
-}
-
-.formula-submit-row {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-    justify-content: space-between;
-    padding-top: 2px;
-    border-top: 1px solid var(--tp-color-border-soft);
+.formula-add-form .tp-select-menu {
+    z-index: 30;
 }
 
 .formula-actions {
@@ -223,137 +165,64 @@
     margin: 0;
 }
 
-.formula-actions--footer {
-    justify-content: flex-end;
-}
-
-.formula-term-list {
-    display: grid;
-    gap: 8px;
-}
-
-.formula-term-row {
-    display: grid;
-    grid-template-columns: auto minmax(160px, 1.1fr) minmax(160px, 1fr) auto;
-    gap: 10px;
-    align-items: center;
-    padding: 10px 12px;
+.formula-term-table {
     border: 1px solid var(--tp-color-border-soft);
     border-radius: 12px;
+    overflow: auto;
     background: var(--tp-color-surface);
 }
 
-.formula-term-row__index {
-    color: var(--tp-color-text-muted);
-    font-size: 0.78rem;
-    font-weight: 700;
-    letter-spacing: 0.05em;
-}
-
-.formula-term-row__param {
-    color: var(--tp-color-text-primary);
-    font-weight: 700;
-}
-
-.formula-term-row__option {
-    color: var(--tp-color-text-secondary);
-}
-
-.formula-term-row__coef {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 56px;
-    padding: 5px 10px;
-    border-radius: 999px;
-    background: var(--tp-color-surface-soft);
-    border: 1px solid var(--tp-color-border-soft);
-    color: var(--formula-accent-ink);
-    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
-    font-size: 0.8rem;
-    font-weight: 700;
-}
-
-.formula-expression {
-    display: grid;
-    gap: 6px;
-}
-
-.formula-expression-label {
+.formula-term-table table {
     margin: 0;
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-size-xs);
+}
+
+.formula-term-table thead th {
+    background: linear-gradient(180deg, var(--tp-color-surface-soft) 0%, var(--tp-color-surface-muted) 100%);
+    color: var(--tp-color-text-secondary);
+    font-size: 0.84rem;
     font-weight: 700;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
+    white-space: nowrap;
 }
 
 .formula-expression-block {
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: 14px;
-    background: linear-gradient(180deg, var(--tp-color-surface-soft) 0%, var(--tp-color-surface-muted) 100%);
-    padding: 12px;
+    border-radius: 12px;
+    background: var(--tp-color-surface-soft);
+    padding: 10px;
     color: var(--tp-color-text-secondary);
     font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
-    font-size: 0.82rem;
-    line-height: 1.5;
+    font-size: 0.85rem;
+    line-height: 1.45;
     overflow-wrap: anywhere;
 }
 
-.formula-footer-note {
-    margin: 0;
-    color: var(--tp-color-text-secondary);
-    font-size: 0.9rem;
-    line-height: 1.4;
-    max-width: 780px;
+.formula-footer-card {
+    border: 1px solid var(--tp-color-border);
+    border-radius: var(--tp-ui-radius-panel);
+    background: var(--tp-color-surface);
+    box-shadow: var(--tp-ui-shadow-panel);
+    padding: 14px;
+    position: relative;
+    z-index: 1;
 }
 
 .formula-hero,
-.formula-summary,
-.formula-main {
+.formula-main,
+.formula-footer-card {
     animation: formula-enter 0.36s ease;
 }
 
-.formula-summary {
+.formula-main {
+    animation-delay: 0.04s;
+}
+
+.formula-footer-card {
     animation-delay: 0.08s;
 }
 
-.formula-main {
-    animation-delay: 0.12s;
-}
-
-@media (max-width: 980px) {
-    .formula-summary {
-        align-items: flex-start;
-    }
-
-    .formula-actions--footer {
-        justify-content: flex-start;
-    }
-}
-
-@media (max-width: 768px) {
-    .formula-hero {
-        padding: 18px 16px 16px;
-    }
-
-    .formula-form-grid {
+@media (max-width: 992px) {
+    .formula-main {
         grid-template-columns: 1fr;
-    }
-
-    .formula-submit-row,
-    .formula-section--actions {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .formula-term-row {
-        grid-template-columns: 1fr;
-        align-items: start;
-    }
-
-    .formula-term-row__coef {
-        justify-self: start;
     }
 }
 
