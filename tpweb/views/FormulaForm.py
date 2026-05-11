@@ -1,5 +1,6 @@
 from tpweb.models.ScoreParam import ScoreParam, ScoreParamOptions
 from django import forms
+from django.urls import reverse_lazy
 from tpweb.services.score_param_types import is_categorical_score_param
 from tpweb.services.score_params import (
     visible_score_param_options_queryset,
@@ -11,7 +12,14 @@ class FormulaForm(forms.Form):
     param = HumanizedModelChoiceField(
         queryset=ScoreParam.objects.none(),
         empty_label="Select parameter...",
-        widget=forms.Select(attrs={"hx-get": "../load_options/", "hx-target": "#id_options"}),
+        widget=forms.Select(
+            attrs={
+                "hx-get": reverse_lazy("tpwebapp:load_options"),
+                "hx-target": "#id_options",
+                "hx-trigger": "change",
+                "hx-swap": "innerHTML",
+            }
+        ),
     )
     options = HumanizedModelChoiceField(
         queryset=ScoreParamOptions.objects.none(),
