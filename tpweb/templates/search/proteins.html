@@ -848,32 +848,45 @@
                 {% if formulas_for_drawer %}
                     <div class="scoring-formula-list" role="radiogroup" aria-label="{% trans 'Ranking formula' %}">
                         {% for entry in formulas_for_drawer %}
-                            <form method="GET" action="" class="scoring-formula-form">
-                                {% if search_query %}<input type="hidden" name="search" value="{{ search_query }}">{% endif %}
-                                {% if structure_source %}<input type="hidden" name="structure_source" value="{{ structure_source }}">{% endif %}
-                                {% if annotation_filter %}
-                                    <input type="hidden" name="annotation_kind" value="{{ annotation_filter.kind }}">
-                                    <input type="hidden" name="annotation_value" value="{{ annotation_filter.value }}">
-                                {% endif %}
-                                <input type="hidden" name="pageSize" value="{{ page_size }}">
-                                <input type="hidden" name="scoreformula" value="{{ entry.name }}">
-                                <button type="submit"
-                                        class="scoring-formula-row {% if entry.is_current %}scoring-formula-row--current{% endif %}"
-                                        role="radio"
-                                        aria-checked="{% if entry.is_current %}true{% else %}false{% endif %}"
-                                        {% if entry.is_current %}aria-current="true"{% endif %}>
-                                    <span class="scoring-formula-row__radio" aria-hidden="true"></span>
-                                    <span class="scoring-formula-row__body">
-                                        <span class="scoring-formula-row__title">
-                                            <span class="scoring-formula-row__name">{{ entry.name }}</span>
-                                            {% if entry.is_default %}<span class="scoring-formula-row__badge">{% trans "Default" %}</span>{% endif %}
+                            <div class="scoring-formula-entry">
+                                <form method="GET" action="" class="scoring-formula-form">
+                                    {% if search_query %}<input type="hidden" name="search" value="{{ search_query }}">{% endif %}
+                                    {% if structure_source %}<input type="hidden" name="structure_source" value="{{ structure_source }}">{% endif %}
+                                    {% if annotation_filter %}
+                                        <input type="hidden" name="annotation_kind" value="{{ annotation_filter.kind }}">
+                                        <input type="hidden" name="annotation_value" value="{{ annotation_filter.value }}">
+                                    {% endif %}
+                                    <input type="hidden" name="pageSize" value="{{ page_size }}">
+                                    <input type="hidden" name="scoreformula" value="{{ entry.name }}">
+                                    <button type="submit"
+                                            class="scoring-formula-row {% if entry.is_current %}scoring-formula-row--current{% endif %}"
+                                            role="radio"
+                                            aria-checked="{% if entry.is_current %}true{% else %}false{% endif %}"
+                                            {% if entry.is_current %}aria-current="true"{% endif %}>
+                                        <span class="scoring-formula-row__radio" aria-hidden="true"></span>
+                                        <span class="scoring-formula-row__body">
+                                            <span class="scoring-formula-row__title">
+                                                <span class="scoring-formula-row__name">{{ entry.name }}</span>
+                                                {% if entry.is_default %}<span class="scoring-formula-row__badge">{% trans "Default" %}</span>{% endif %}
+                                            </span>
+                                            {% if entry.expression %}
+                                                <code class="scoring-formula-row__expression">{{ entry.expression }}</code>
+                                            {% endif %}
                                         </span>
-                                        {% if entry.expression %}
-                                            <code class="scoring-formula-row__expression">{{ entry.expression }}</code>
-                                        {% endif %}
-                                    </span>
-                                </button>
-                            </form>
+                                    </button>
+                                </form>
+                                {% if entry.is_user_formula %}
+                                    <form method="POST"
+                                          action="{% url 'tpwebapp:delete_formula' genome=genome entry.pk %}"
+                                          class="scoring-formula-delete-form"
+                                          onsubmit="return confirm('{% trans "Delete this formula?" %}')">
+                                        {% csrf_token %}
+                                        <button type="submit" class="scoring-formula-delete-btn" title="{% trans 'Delete formula' %}">
+                                            {% include "components/icons/trash.html" %}
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            </div>
                         {% endfor %}
                     </div>
                 {% else %}

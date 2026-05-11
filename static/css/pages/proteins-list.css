@@ -1285,8 +1285,42 @@ a.filter-pill .filter-pill-remove {
     gap: 10px;
 }
 
+.scoring-formula-entry {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 6px;
+    align-items: start;
+}
+
 .scoring-formula-form {
     margin: 0;
+    min-width: 0;
+}
+
+.scoring-formula-delete-form {
+    margin: 0;
+    flex-shrink: 0;
+}
+
+.scoring-formula-delete-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--tp-color-text-muted);
+    cursor: pointer;
+    transition: background 120ms, border-color 120ms, color 120ms;
+    margin-top: 8px;
+}
+
+.scoring-formula-delete-btn:hover {
+    background: var(--tp-color-danger-bg);
+    border-color: var(--tp-color-danger-border);
+    color: var(--tp-color-danger-ink);
 }
 
 .scoring-formula-row {
