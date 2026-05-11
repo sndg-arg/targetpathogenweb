@@ -23,8 +23,8 @@
             {% endwith %}
             {% endwith %}
             <span class="customparam-eyebrow">{% trans "Custom evidence · Workspace scoring" %}</span>
-            <h1>{% trans "Add my own data" %}</h1>
-            <p class="customparam-subtitle">{% trans "Bring a TSV file with your own per-protein evidence so it can be used as another filtering or scoring signal in this genome workspace." %}</p>
+            <h1>{% trans "Upload custom evidence" %}</h1>
+            <p class="customparam-subtitle">{% trans "Upload one TSV file per evidence source. After indexing, each file appears under My data in the protein list and becomes available for filtering or custom scoring." %}</p>
             <p class="customparam-context"><strong>{% trans "Genome" %}:</strong> <span class="customparam-context-id">{{ assembly_label|default:assembly_name }}</span></p>
             <div class="customparam-chip-group tp-chip-group">
                 <span class="tp-chip tp-chip--meta tp-chip--sm"><strong>{% trans "Format" %}:</strong> <span>TSV</span></span>
@@ -38,12 +38,12 @@
                     <span class="metric-value">{% trans "One per protein" %}</span>
                 </div>
                 <div class="metric-pill">
-                    <span class="metric-label">{% trans "Matching rule" %}</span>
-                    <span class="metric-value">{% trans "First column = accession" %}</span>
+                    <span class="metric-label">{% trans "Files in workspace" %}</span>
+                    <span class="metric-value">{{ existing_file_count }}</span>
                 </div>
                 <div class="metric-pill">
                     <span class="metric-label">{% trans "After upload" %}</span>
-                    <span class="metric-value">{% trans "Available in scoring" %}</span>
+                    <span class="metric-value">{% trans "Visible in My data" %}</span>
                 </div>
             </div>
         </section>
@@ -53,19 +53,19 @@
                 <div class="customparam-card-head tp-ui-panel-head">
                     <div>
                         <h2>{% trans "Upload custom evidence" %}</h2>
-                        <p class="customparam-muted">{% trans "Use this when you already have a per-protein signal from your own experiments, curation, or external analyses." %}</p>
+                        <p class="customparam-muted">{% trans "Use this page for the file itself. Selecting the file as a signal still happens from the protein list." %}</p>
                     </div>
                     <span class="tp-chip tp-chip--count tp-chip--sm">TSV</span>
                 </div>
                 <form id="add-custom-param-form" class="customparam-form" method="POST" enctype="multipart/form-data" novalidate>
                     {% csrf_token %}
                     <div class="tp-ui-field customparam-field">
-                        <label class="tp-ui-field-label" for="{{ form.tsv.id_for_label }}">{% trans "TSV file" %}</label>
-                        {{ form.tsv }}
-                        <p class="customparam-help">{% trans "Required. Use one row per protein, with an existing protein accession in the first column and your value in the second column." %}</p>
-                        {% if form.tsv.errors %}
-                            <p class="customparam-error">{{ form.tsv.errors|striptags }}</p>
-                        {% endif %}
+                            <label class="tp-ui-field-label" for="{{ form.tsv.id_for_label }}">{% trans "TSV file" %}</label>
+                            {{ form.tsv }}
+                            <p class="customparam-help">{% trans "Required. Use one row per protein, with an existing protein accession in the first column and your value in the second column." %}</p>
+                            {% if form.tsv.errors %}
+                                <p class="customparam-error">{{ form.tsv.errors|striptags }}</p>
+                            {% endif %}
                     </div>
                     <input type="hidden" name="overwrite" value="false">
 
@@ -80,7 +80,7 @@
                         <div class="customparam-submit-row">
                             <div class="customparam-submit-copy">
                                 <p class="customparam-submit-title">{% trans "What happens next" %}</p>
-                                <p class="customparam-submit-note">{% trans "The file is indexed immediately and the uploaded signal becomes available as another evidence column for filtering and score design." %}</p>
+                                <p class="customparam-submit-note">{% trans "The file is indexed immediately and then appears under My data in the protein list, where it can be used in filters and custom scores." %}</p>
                             </div>
                         </div>
                         <div class="customparam-actions">
@@ -94,7 +94,7 @@
                 <div class="customparam-card-head tp-ui-panel-head">
                     <div>
                         <h2>{% trans "Input guide" %}</h2>
-                        <p class="customparam-muted">{% trans "Keep the file simple. This page is meant for attaching one extra evidence channel to the current proteome." %}</p>
+                        <p class="customparam-muted">{% trans "Keep the file minimal and interpretable. This page is only for attaching the dataset; ranking choices stay in the protein list." %}</p>
                     </div>
                 </div>
                 <div class="customparam-guide">
@@ -131,6 +131,28 @@ A0A0000002&#9;0.41</code>
                     {% trans "gene-expression bins, essentiality classes, literature curation, phenotype labels, custom confidence scores, or any other per-protein signal you want to reuse in ranking." %}
                 </div>
             </aside>
+        </section>
+
+        <section class="customparam-library tp-ui-panel">
+            <div class="customparam-card-head tp-ui-panel-head">
+                <div>
+                    <h2>{% trans "Files already added" %}</h2>
+                    <p class="customparam-muted">{% trans "This is the full file list for the current genome workspace. The protein list drawer shows only a short summary." %}</p>
+                </div>
+                <span class="tp-chip tp-chip--count tp-chip--sm">{{ existing_file_count }}</span>
+            </div>
+            {% if existing_files %}
+                <div class="customparam-library-list">
+                    {% for entry in existing_files %}
+                        <div class="customparam-library-item">
+                            <span class="customparam-library-name">{{ entry.name }}</span>
+                            <span class="customparam-library-path">{{ entry.path }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="tp-state-note tp-state-note--empty mb-0">{% trans "No custom files added yet for this genome workspace." %}</p>
+            {% endif %}
         </section>
     </div>
 

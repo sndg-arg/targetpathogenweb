@@ -4,12 +4,10 @@
 {% load crispy_forms_tags %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/formula-form.css' %}?v=20260315-6">
+    <link rel="stylesheet" href="{% static 'css/pages/formula-form.css' %}?v=20260511-formula3">
 {% endblock %}
 
 {% block body %}
-    <script src="https://unpkg.com/htmx.org@1.9.2"></script>
-
     <div class="formula-page">
         <section class="formula-hero">
             {% trans "Home" as crumb_home %}
@@ -25,12 +23,26 @@
             {% include "components/navigation/breadcrumbs.html" with crumb_1_label=crumb_home crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_genome crumb_3_url=assembly_url crumb_4_label=crumb_proteins crumb_4_url=proteins_url crumb_5_label=crumb_custom_score %}
             {% endwith %}
             {% endwith %}
-            <h1>{% trans "Make my own score" %}</h1>
-            <p class="formula-subtitle">{% trans "Combine signals (off-target, druggability, essentiality, etc.) into a custom ranking score for this genome." %}</p>
+            {% trans "Untitled" as untitled_label %}
+            <span class="formula-eyebrow">{% trans "Scoring design · Workspace ranking" %}</span>
+            <h1>{% trans "Create a custom score" %}</h1>
+            <p class="formula-subtitle">{% trans "Build a new ranking rule for this genome by assigning coefficients to parameter options. Choosing between saved formulas happens back in the protein list; this page is only for drafting a new one." %}</p>
             <p class="formula-context"><strong>{% trans "Genome" %}:</strong> <span class="formula-context-id">{{ assembly_label|default:assembly_name }}</span></p>
-            <div class="formula-chip-group tp-chip-group">
-                <span class="tp-chip tp-chip--meta tp-chip--sm">{% trans "Draft" %}: {{ formula_name|default:"Untitled formula" }}</span>
-                <span class="tp-chip tp-chip--count tp-chip--sm">{% trans "Terms" %}: {{ term_count }}</span>
+            <div class="formula-metrics" aria-label="{% trans 'Formula summary' %}">
+                <div class="metric-pill">
+                    <span class="metric-label">{% trans "Draft name" %}</span>
+                    <span class="metric-value">{{ formula_name|default:untitled_label }}</span>
+                </div>
+                <div class="metric-pill">
+                    <span class="metric-label">{% trans "Terms" %}</span>
+                    <span class="metric-value">{{ term_count }}</span>
+                </div>
+                <div class="metric-pill">
+                    <span class="metric-label">{% trans "Status" %}</span>
+                    <span class="metric-value">
+                        {% if term_count > 0 and formula_name %}{% trans "Ready to save" %}{% elif term_count > 0 %}{% trans "Name missing" %}{% else %}{% trans "Drafting" %}{% endif %}
+                    </span>
+                </div>
             </div>
         </section>
 
@@ -41,29 +53,61 @@
         {% endif %}
 
         <section class="formula-main">
-            <article class="formula-card tp-ui-panel">
+            <article class="formula-card formula-card--builder tp-ui-panel">
                 <div class="formula-card-head tp-ui-panel-head">
-                    <h2>{% trans "Add scoring term" %}</h2>
+                    <div>
+                        <h2>{% trans "Design a scoring term" %}</h2>
+                        <p class="formula-muted">{% trans "Add one row at a time: choose the evidence parameter, pick the matching option, and assign the weight that option should contribute to the final score." %}</p>
+                    </div>
                 </div>
-                <p class="formula-muted">{% trans "Each term assigns a coefficient to one option of one evidence parameter." %}</p>
+
+                <div class="formula-guide-note">
+                    <strong>{% trans "How to think about coefficients" %}:</strong>
+                    {% trans "Positive values push proteins upward in the ranking, negative values penalize them, and larger magnitudes make that signal matter more strongly." %}
+                </div>
 
                 <form id="add-parameter-form" class="formula-add-form" method="POST" novalidate>
                     {% csrf_token %}
-                    <div class="row">
-                        <div class="col-12">{{ form.new_formula_name|as_crispy_field }}</div>
+                    <div class="formula-form-grid formula-form-grid--single">
+                        <div class="tp-ui-field formula-field">
+                            <label class="tp-ui-field-label" for="{{ form.new_formula_name.id_for_label }}">{{ form.new_formula_name.label }}</label>
+                            {{ form.new_formula_name }}
+                        </div>
                     </div>
-                    <div class="row">
-                        <div class="col-md-4">{{ form.param|as_crispy_field }}</div>
-                        <div class="col-md-4">{{ form.options|as_crispy_field }}</div>
-                        <div class="col-md-4">{{ form.coefficient|as_crispy_field }}</div>
+
+                    <div class="formula-form-grid">
+                        <div class="tp-ui-field formula-field">
+                            <label class="tp-ui-field-label" for="{{ form.param.id_for_label }}">{{ form.param.label }}</label>
+                            {{ form.param }}
+                            <p class="formula-help">{% trans "Pick the biological signal you want to use in the score." %}</p>
+                        </div>
+
+                        <div class="tp-ui-field formula-field">
+                            <label class="tp-ui-field-label" for="{{ form.options.id_for_label }}">{{ form.options.label }}</label>
+                            {{ form.options }}
+                            <p class="formula-help">{% trans "Choose the specific state or category that should receive this weight." %}</p>
+                        </div>
+
+                        <div class="tp-ui-field formula-field">
+                            <label class="tp-ui-field-label" for="{{ form.coefficient.id_for_label }}">{{ form.coefficient.label }}</label>
+                            {{ form.coefficient }}
+                            <p class="formula-help">{% trans "Use positive weights to reward and negative weights to penalize." %}</p>
+                        </div>
                     </div>
-                    <div class="formula-actions">
-                        <button type="submit" class="btn tp-btn tp-btn--primary">{% trans "Add term" %}</button>
+
+                    <div class="formula-submit-row">
+                        <div class="formula-submit-copy">
+                            <p class="formula-submit-title">{% trans "What happens next" %}</p>
+                            <p class="formula-submit-note">{% trans "The term is added to the draft immediately. You can keep building, undo the last addition, and save the full formula only when the draft looks right." %}</p>
+                        </div>
+                        <div class="formula-actions">
+                            <button type="submit" class="btn tp-btn tp-btn--primary">{% trans "Add term" %}</button>
+                        </div>
                     </div>
                 </form>
 
                 {% if term_count > 0 %}
-                    <div class="formula-actions">
+                    <div class="formula-actions formula-actions--secondary">
                         <form method="POST">
                             {% csrf_token %}
                             <input type="hidden" name="remove_last_term" value="true">
@@ -73,11 +117,15 @@
                 {% endif %}
             </article>
 
-            <article class="formula-card tp-ui-panel">
+            <article class="formula-card formula-card--preview tp-ui-panel">
                 <div class="formula-card-head tp-ui-panel-head">
-                    <h2>{% trans "Formula draft" %}</h2>
+                    <div>
+                        <h2>{% trans "Draft preview" %}</h2>
+                        <p class="formula-muted">{% trans "Review the rule set before saving. Once stored, this formula becomes selectable from the Scoring drawer in the protein list." %}</p>
+                    </div>
                     <span class="tp-chip tp-chip--count tp-chip--sm">{{ term_count }}</span>
                 </div>
+
                 {% if preview_terms %}
                     <div class="formula-term-table">
                         <table class="table table-sm table-striped table-hover mb-0 tp-table tp-table--plain tp-table--premium">
@@ -102,16 +150,27 @@
                         </table>
                     </div>
                 {% else %}
-                    <p class="tp-state-note tp-state-note--empty">{% trans "No terms added yet." %}</p>
+                    <p class="tp-state-note tp-state-note--empty">{% trans "No terms added yet. Start by naming the draft and adding the first coefficient rule." %}</p>
                 {% endif %}
 
-                <p class="formula-muted mb-0">{% trans "Expression preview" %}</p>
-                <div class="formula-expression-block">{{ parameters }}</div>
+                <div class="formula-expression">
+                    <p class="formula-expression-label">{% trans "Current expression" %}</p>
+                    <div class="formula-expression-block">{{ parameters }}</div>
+                </div>
+
+                <div class="formula-preview-note">
+                    <strong>{% trans "Practical tip" %}:</strong>
+                    {% trans "Keep the score interpretable. A small set of orthogonal signals is usually more useful than a long rule list with overlapping evidence." %}
+                </div>
             </article>
         </section>
 
         <section class="formula-footer-card tp-ui-panel">
-            <div class="formula-actions">
+            <div class="formula-footer-copy">
+                <h2>{% trans "Save or reset this draft" %}</h2>
+                <p>{% trans "Saving adds the formula to this workspace. You can then activate it from the Scoring drawer in the protein list. Resetting clears only the current draft." %}</p>
+            </div>
+            <div class="formula-actions formula-actions--footer">
                 <form id="finish-process-form" method="POST">
                     {% csrf_token %}
                     <input type="hidden" name="finish_process" value="true">
