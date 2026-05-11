@@ -1,6 +1,7 @@
 from django.http import HttpResponse
 
 from tpweb.services.formula_evaluator import validate_expression_syntax
+from tpweb.services.workspace import resolve_workspace_user
 
 
 def validate_expression_view(request):
@@ -11,7 +12,8 @@ def validate_expression_view(request):
             'Type an expression above</span>'
         )
 
-    result = validate_expression_syntax(expr, user=request.user)
+    user = resolve_workspace_user(request.user)
+    result = validate_expression_syntax(expr, user=user)
     if result["valid"]:
         return HttpResponse(
             '<span class="formula-valid-badge formula-valid-badge--ok">'
