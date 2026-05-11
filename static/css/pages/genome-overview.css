@@ -432,6 +432,35 @@
     opacity: 1;
 }
 
+/* Anchor leftmost / rightmost chips so their tooltips don't overflow horizontally.
+   PDB is the leftmost chip in the breakdown row → tooltip extends to the right.
+   ZINC is the rightmost → tooltip extends to the left.
+   .targets-evidence sits on the right edge of the score ranking → same as ZINC.
+   ChEMBL stays centered (default). */
+.targets-bd--pdb .targets-tooltip {
+    left: 0;
+    transform: none;
+}
+
+.targets-bd--pdb .targets-tooltip::after {
+    left: 20px;
+    transform: none;
+}
+
+.targets-bd--zinc .targets-tooltip,
+.targets-evidence .targets-tooltip {
+    left: auto;
+    right: 0;
+    transform: none;
+}
+
+.targets-bd--zinc .targets-tooltip::after,
+.targets-evidence .targets-tooltip::after {
+    left: auto;
+    right: 20px;
+    transform: none;
+}
+
 .targets-factors {
     display: flex;
     flex-wrap: wrap;
