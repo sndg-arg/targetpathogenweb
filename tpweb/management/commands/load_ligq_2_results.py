@@ -10,6 +10,18 @@ from bioseq.models.Bioentry import Bioentry
 from tpweb.models.Binders import Binders
 
 
+HET_DENYLIST = frozenset({
+    "ALA", "ARG", "ASN", "ASP", "CYS", "GLN", "GLU", "GLY", "HIS", "ILE",
+    "LEU", "LYS", "MET", "PHE", "PRO", "SER", "THR", "TRP", "TYR", "VAL",
+    "HOH", "DOD", "WAT",
+    "NA", "K", "MG", "CA", "CL", "ZN", "FE", "CU", "MN", "CO", "NI", "CD",
+    "HG", "FE2", "BR", "IOD", "LI", "BA", "CS", "SR", "AL", "RB", "PT",
+    "GOL", "EDO", "MPD", "PEG", "PG4", "PGE", "P6G", "1PE",
+    "FMT", "ACT", "CIT", "TRS", "IMD", "DMS", "BME", "EPE", "MES", "BCN",
+    "SO4", "PO4", "NO3", "CO3", "SCN", "ACE",
+})
+
+
 def _parse_first_token(value):
     if value is None or (isinstance(value, float) and pd.isna(value)):
         return ""
@@ -93,6 +105,15 @@ class Command(BaseCommand):
             action="store_true",
             help="Parse and filter only; do not write to the database.",
         )
+        parser.add_argument(
+            "--keep-noise-het",
+            action="store_true",
+            help=(
+                "Keep PDB HET codes that are typically crystallization noise "
+                "(amino acids, water, simple ions, buffers, cryoprotectants). "
+                "By default these are dropped so the PDB tab shows only drug-like ligands."
+            ),
+        )
 
     def handle(self, *args, **options):
         out_dir = Path(options["output_dir"]).resolve()
@@ -116,6 +137,7 @@ class Command(BaseCommand):
                 max_per_protein=options["max_known_per_protein"],
                 dry_run=options["dry_run"],
                 stats=known_stats,
+                skip_noise_het=not options["keep_noise_het"],
             )
         else:
             self.stdout.write(self.style.WARNING("No known_ligands.tsv files found"))
@@ -212,9 +234,19 @@ class Command(BaseCommand):
         zinc_df = pd.concat(zinc_frames, ignore_index=True) if zinc_frames else None
         return known_df, zinc_df
 
-    def _load_known(self, df, *, max_per_protein, dry_run, stats):
+    def _load_known(self, df, *, max_per_protein, dry_run, stats, skip_noise_het=True):
         stats["raw"] = len(df)
         self.stdout.write(self.style.NOTICE(f"known: {len(df)} raw rows"))
+
+        if skip_noise_het:
+            ccd_upper = df.get("chem_comp_id", "").astype(str).str.strip().str.upper()
+            keep_mask = ~ccd_upper.isin(HET_DENYLIST)
+            dropped = (~keep_mask).sum()
+            if dropped:
+                self.stdout.write(
+                    f"  skipping {dropped} non-drug-like HET codes (amino acids, water, ions, buffers)"
+                )
+            df = df[keep_mask].copy()
 
         df["_inner_source"] = df.get("source", "").apply(
             lambda v: str(v).strip().lower() if v is not None else ""
