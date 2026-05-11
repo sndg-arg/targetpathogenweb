@@ -136,7 +136,12 @@
                                                     <span class="targets-rank">#{{ forloop.counter }}</span>
                                                     <span class="targets-accession">{{ t.accession }}</span>
                                                     <span class="targets-score">{{ t.score|floatformat:2 }}</span>
-                                                    {% if t.binder_count %}<span class="targets-evidence" title="{% trans 'Curated subset — PDB and ChEMBL capped at top 100 per protein, ZINC at top 50. True counts may be higher.' %}">{{ t.binder_count }}{% if t.pdb_count >= 100 or t.chembl_count >= 100 or t.zinc_count >= 50 %}+{% endif %} {% trans "binders" %}</span>{% endif %}
+                                                    {% if t.binder_count %}
+                                                        <span class="targets-evidence">
+                                                            {{ t.binder_count }}{% if t.pdb_count >= 100 or t.chembl_count >= 100 or t.zinc_count >= 50 %}+{% endif %} {% trans "binders" %}
+                                                            <span class="targets-tooltip">{% trans "Curated subset — PDB and ChEMBL capped at top 100 per protein, ZINC at top 50. True counts may be higher." %}</span>
+                                                        </span>
+                                                    {% endif %}
                                                 </div>
                                                 <p class="targets-description">{{ t.description|default:"-" }}</p>
                                                 {% if t.factors %}
@@ -185,9 +190,24 @@
                                                     <span class="targets-stat-label">{% trans "binders" %}</span>
                                                 </span>
                                                 <div class="targets-breakdown">
-                                                    {% if t.pdb_count %}<span class="targets-bd targets-bd--pdb" title="{% if t.pdb_count >= 100 %}{% trans 'Capped at top 100 by pchembl — true count is higher' %}{% endif %}">PDB <strong>{{ t.pdb_count }}{% if t.pdb_count >= 100 %}+{% endif %}</strong></span>{% endif %}
-                                                    {% if t.chembl_count %}<span class="targets-bd targets-bd--chembl" title="{% if t.chembl_count >= 100 %}{% trans 'Capped at top 100 by pchembl — true count is higher' %}{% endif %}">ChEMBL <strong>{{ t.chembl_count }}{% if t.chembl_count >= 100 %}+{% endif %}</strong></span>{% endif %}
-                                                    {% if t.zinc_count %}<span class="targets-bd targets-bd--zinc" title="{% if t.zinc_count >= 50 %}{% trans 'Capped at top 50 by Tanimoto — true count is higher' %}{% endif %}">ZINC <strong>{{ t.zinc_count }}{% if t.zinc_count >= 50 %}+{% endif %}</strong></span>{% endif %}
+                                                    {% if t.pdb_count %}
+                                                        <span class="targets-bd targets-bd--pdb">
+                                                            PDB <strong>{{ t.pdb_count }}{% if t.pdb_count >= 100 %}+{% endif %}</strong>
+                                                            {% if t.pdb_count >= 100 %}<span class="targets-tooltip">{% trans "Capped at top 100 by pchembl — true count is higher" %}</span>{% endif %}
+                                                        </span>
+                                                    {% endif %}
+                                                    {% if t.chembl_count %}
+                                                        <span class="targets-bd targets-bd--chembl">
+                                                            ChEMBL <strong>{{ t.chembl_count }}{% if t.chembl_count >= 100 %}+{% endif %}</strong>
+                                                            {% if t.chembl_count >= 100 %}<span class="targets-tooltip">{% trans "Capped at top 100 by pchembl — true count is higher" %}</span>{% endif %}
+                                                        </span>
+                                                    {% endif %}
+                                                    {% if t.zinc_count %}
+                                                        <span class="targets-bd targets-bd--zinc">
+                                                            ZINC <strong>{{ t.zinc_count }}{% if t.zinc_count >= 50 %}+{% endif %}</strong>
+                                                            {% if t.zinc_count >= 50 %}<span class="targets-tooltip">{% trans "Capped at top 50 by Tanimoto — true count is higher" %}</span>{% endif %}
+                                                        </span>
+                                                    {% endif %}
                                                 </div>
                                             </div>
                                         </a>

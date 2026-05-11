@@ -371,21 +371,65 @@
     background: var(--tp-color-surface-soft);
     border: 1px solid var(--tp-color-border-soft);
     border-radius: 999px;
+    position: relative;
     cursor: help;
 }
 
-/* Visual hint on chips that have an explanatory tooltip (capped values). */
-.targets-bd[title]:not([title=""]),
-.targets-evidence[title]:not([title=""]) {
+/* Chips that contain a .targets-tooltip get the (i) hint + relative anchor. */
+.targets-bd:has(> .targets-tooltip),
+.targets-evidence:has(> .targets-tooltip) {
+    position: relative;
     cursor: help;
 }
 
-.targets-bd[title]:not([title=""])::after {
+.targets-bd:has(> .targets-tooltip) strong::after {
     content: " ⓘ";
     margin-left: 4px;
     font-weight: 400;
     opacity: 0.55;
     font-size: 0.92em;
+}
+
+/* Custom tooltip — same look as .cell-tooltip used across the app. */
+.targets-tooltip {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 8px 12px;
+    border-radius: 8px;
+    background: #1a2e38;
+    color: #e2e8f0;
+    font-family: "Source Sans 3", "Segoe UI", sans-serif;
+    font-size: 0.78rem;
+    font-weight: 500;
+    line-height: 1.45;
+    white-space: normal;
+    width: max-content;
+    max-width: 280px;
+    text-align: center;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 140ms ease;
+    z-index: 50;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.32);
+}
+
+.targets-tooltip::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: #1a2e38;
+}
+
+.targets-bd:hover .targets-tooltip,
+.targets-bd:focus-visible .targets-tooltip,
+.targets-evidence:hover .targets-tooltip,
+.targets-evidence:focus-visible .targets-tooltip {
+    opacity: 1;
 }
 
 .targets-factors {
