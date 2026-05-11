@@ -22,9 +22,12 @@ def _pct(numerator, denominator):
 
 
 def get_top_targets_by_binders(assembly_name, limit=5):
-    """Return the top-N proteins of a genome ranked by total binder count.
+    """Top-N proteins of a genome ranked by total binder count.
 
-    Used to surface the most actionable drug-target leads on the genome overview.
+    This is "most-studied" evidence, NOT a drug-target ranking — proteins with
+    well-studied human homologs (kinases, GPCRs) accumulate many ChEMBL/ZINC
+    hits regardless of whether they are good bacterial targets. Use as a
+    "ligand evidence" view, not a target prioritization.
     """
     proteome_name = assembly_name + Biodatabase.PROT_POSTFIX
     rows = (
@@ -54,6 +57,112 @@ def get_top_targets_by_binders(assembly_name, limit=5):
         }
         for r in rows
     ]
+
+
+_FACTOR_LABELS = {
+    # Map score_param values → biologist-friendly chip labels.
+    # First match wins; covers the canonical pipeline params.
+    "essenciality": {
+        "Y": ("Essential", "good"),
+        "N": ("Non-essential", "neutral"),
+    },
+    "essentiality": {
+        "Y": ("Essential", "good"),
+        "N": ("Non-essential", "neutral"),
+    },
+    "human_offtarget": {
+        "N": ("No human off-target", "good"),
+        "Y": ("Has human off-target", "bad"),
+    },
+    "micro_offtarget": {
+        "N": ("No microbiome off-target", "good"),
+        "Y": ("Has microbiome off-target", "bad"),
+    },
+    "druggability": {
+        "Y": ("Druggable pocket", "good"),
+        "N": ("No druggable pocket", "neutral"),
+    },
+    "psort": {
+        "Y": ("Surface-exposed", "good"),
+    },
+}
+
+
+def _humanize_factor(param_name, value):
+    spec = _FACTOR_LABELS.get(param_name.lower())
+    if not spec:
+        return None
+    return spec.get(value)
+
+
+def get_top_targets_by_score(assembly_name, user, limit=5):
+    """Top-N proteins of a genome ranked by the user's default scoring formula.
+
+    Returns each target with the top 3 contributing factors (chips), so a
+    biologist sees *why* a target ranks high (Essential, no human off-target,
+    druggable pocket…) without clicking through.
+    """
+    from tpweb.services.protein_formula import (
+        choose_formula,
+        coefficient_map,
+        resolve_formulas_for_user,
+    )
+    from tpweb.services.protein_serializer import (
+        compute_score_value,
+        score_param_value_map,
+    )
+
+    formulas = resolve_formulas_for_user(user)
+    if not formulas:
+        return {"formula_name": None, "items": []}
+    formula = choose_formula(formulas, None)
+    if not formula:
+        return {"formula_name": None, "items": []}
+
+    formula_terms = list(formula.terms.all())
+    coef = coefficient_map(formula_terms)
+
+    proteome_name = assembly_name + Biodatabase.PROT_POSTFIX
+    proteins = (
+        Bioentry.objects.filter(biodatabase__name=proteome_name)
+        .prefetch_related("score_params__score_param")
+    )
+
+    scored = []
+    for p in proteins:
+        param_values = score_param_value_map(p)
+        score, weights = compute_score_value(param_values, coef)
+        scored.append((p, score, weights, param_values))
+
+    scored.sort(key=lambda row: row[1], reverse=True)
+    top = scored[:limit]
+
+    items = []
+    for p, score, weights, param_values in top:
+        # Top 3 contributing params by absolute coefficient
+        ranked_params = sorted(weights.items(), key=lambda kv: abs(kv[1]), reverse=True)[:4]
+        factors = []
+        for param_name, contribution in ranked_params:
+            value = param_values.get(param_name)
+            label_spec = _humanize_factor(param_name, str(value))
+            if label_spec:
+                label, tone = label_spec
+                factors.append({"label": label, "tone": tone})
+            else:
+                # Generic chip if no friendly mapping exists
+                factors.append({
+                    "label": f"{param_name}: {value}",
+                    "tone": "good" if contribution > 0 else "neutral",
+                })
+        items.append({
+            "bioentry_id": p.bioentry_id,
+            "accession": p.accession,
+            "description": p.description,
+            "score": round(score, 2),
+            "factors": factors,
+        })
+
+    return {"formula_name": formula.name, "items": items}
 
 
 def build_assembly_workspace_metrics(assembly_name):

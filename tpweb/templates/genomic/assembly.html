@@ -99,8 +99,8 @@
 
         <nav class="quick-nav" aria-label="{% trans 'Genome sections' %}">
             <a href="#section-overview" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Overview" %}</a>
-            {% if top_targets %}
-                <a href="#section-targets" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Best targets" %}</a>
+            {% if top_targets_by_score.items or top_targets_by_binders %}
+                <a href="#section-targets" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Top targets" %}</a>
             {% endif %}
             <a href="#section-evidence" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Evidence" %}</a>
             <a href="#section-composition" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Composition" %}</a>
@@ -115,44 +115,92 @@
         </nav>
 
         <div class="genome-grid">
-            {% if top_targets %}
-                <!-- Best targets so far -->
-                <section class="genome-card tp-ui-panel genome-card--targets" id="section-targets">
-                    <div class="section-head tp-ui-panel-head">
-                        <div>
-                            <h2>{% trans "Best targets so far" %}</h2>
-                            <p class="section-subtitle">{% trans "Top proteins ranked by the number of binders identified — strong candidates for further investigation." %}</p>
+            {% if top_targets_by_score.items or top_targets_by_binders %}
+                <section class="genome-targets-wrap" id="section-targets">
+                    {% if top_targets_by_score.items %}
+                        <div class="genome-card tp-ui-panel genome-card--ranking">
+                            <div class="section-head tp-ui-panel-head">
+                                <div>
+                                    <h2>{% trans "Top drug-target candidates" %}</h2>
+                                    <p class="section-subtitle">
+                                        {% blocktrans with formula=top_targets_by_score.formula_name %}Ranked by the system's Druggability score ({{ formula }}) — combines essentiality, structural druggability, off-target risk, and ligand evidence.{% endblocktrans %}
+                                    </p>
+                                </div>
+                                <div class="section-tools">
+                                    <a href="{{ workspace_links.proteins_url }}" class="btn tp-btn tp-btn--neutral tp-btn--sm">{% trans "See all" %} →</a>
+                                </div>
+                            </div>
+                            <ol class="targets-list">
+                                {% for t in top_targets_by_score.items %}
+                                    <li class="targets-item">
+                                        <a class="targets-link targets-link--score" href="{% url 'tpwebapp:protein' protein_id=t.bioentry_id %}">
+                                            <div class="targets-main">
+                                                <div class="targets-title">
+                                                    <span class="targets-rank">#{{ forloop.counter }}</span>
+                                                    <span class="targets-accession">{{ t.accession }}</span>
+                                                    <span class="targets-score">{{ t.score|floatformat:2 }}</span>
+                                                </div>
+                                                <p class="targets-description">{{ t.description|default:"-" }}</p>
+                                                {% if t.factors %}
+                                                    <div class="targets-factors">
+                                                        {% for f in t.factors %}
+                                                            <span class="targets-factor targets-factor--{{ f.tone }}">{{ f.label }}</span>
+                                                        {% endfor %}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </a>
+                                    </li>
+                                {% endfor %}
+                            </ol>
+                            <p class="targets-footnote">
+                                {% trans "Want to tune the formula?" %}
+                                <a href="{{ workspace_links.custom_scores_url }}">{% trans "Make your own score" %} →</a>
+                            </p>
                         </div>
-                        <div class="section-tools">
-                            <a href="{{ workspace_links.proteins_url }}" class="btn tp-btn tp-btn--neutral tp-btn--sm">{% trans "See all proteins" %} →</a>
+                    {% endif %}
+
+                    {% if top_targets_by_binders %}
+                        <div class="genome-card tp-ui-panel genome-card--ranking">
+                            <div class="section-head tp-ui-panel-head">
+                                <div>
+                                    <h2>{% trans "Most ligand evidence" %}</h2>
+                                    <p class="section-subtitle">
+                                        {% trans "Proteins with the most binders identified. Useful as a 'chemical tractability' signal — but well-studied human homologs (kinases, GPCRs) accumulate hits regardless of being good bacterial targets." %}
+                                    </p>
+                                </div>
+                                <div class="section-tools">
+                                    <a href="{{ workspace_links.proteins_url }}" class="btn tp-btn tp-btn--neutral tp-btn--sm">{% trans "See all" %} →</a>
+                                </div>
+                            </div>
+                            <ol class="targets-list">
+                                {% for t in top_targets_by_binders %}
+                                    <li class="targets-item">
+                                        <a class="targets-link" href="{% url 'tpwebapp:protein' protein_id=t.bioentry_id %}">
+                                            <div class="targets-main">
+                                                <div class="targets-title">
+                                                    <span class="targets-rank">#{{ forloop.counter }}</span>
+                                                    <span class="targets-accession">{{ t.accession }}</span>
+                                                </div>
+                                                <p class="targets-description">{{ t.description|default:"-" }}</p>
+                                            </div>
+                                            <div class="targets-stats">
+                                                <span class="targets-stat targets-stat--total">
+                                                    <span class="targets-stat-value">{{ t.binder_count }}</span>
+                                                    <span class="targets-stat-label">{% trans "binders" %}</span>
+                                                </span>
+                                                <div class="targets-breakdown">
+                                                    {% if t.pdb_count %}<span class="targets-bd targets-bd--pdb">PDB <strong>{{ t.pdb_count }}</strong></span>{% endif %}
+                                                    {% if t.chembl_count %}<span class="targets-bd targets-bd--chembl">ChEMBL <strong>{{ t.chembl_count }}</strong></span>{% endif %}
+                                                    {% if t.zinc_count %}<span class="targets-bd targets-bd--zinc">ZINC <strong>{{ t.zinc_count }}</strong></span>{% endif %}
+                                                </div>
+                                            </div>
+                                        </a>
+                                    </li>
+                                {% endfor %}
+                            </ol>
                         </div>
-                    </div>
-                    <ol class="targets-list">
-                        {% for t in top_targets %}
-                            <li class="targets-item">
-                                <a class="targets-link" href="{% url 'tpwebapp:protein' protein_id=t.bioentry_id %}">
-                                    <div class="targets-main">
-                                        <div class="targets-title">
-                                            <span class="targets-rank">#{{ forloop.counter }}</span>
-                                            <span class="targets-accession">{{ t.accession }}</span>
-                                        </div>
-                                        <p class="targets-description">{{ t.description|default:"-" }}</p>
-                                    </div>
-                                    <div class="targets-stats">
-                                        <span class="targets-stat targets-stat--total">
-                                            <span class="targets-stat-value">{{ t.binder_count }}</span>
-                                            <span class="targets-stat-label">{% trans "binders" %}</span>
-                                        </span>
-                                        <div class="targets-breakdown">
-                                            {% if t.pdb_count %}<span class="targets-bd targets-bd--pdb">PDB <strong>{{ t.pdb_count }}</strong></span>{% endif %}
-                                            {% if t.chembl_count %}<span class="targets-bd targets-bd--chembl">ChEMBL <strong>{{ t.chembl_count }}</strong></span>{% endif %}
-                                            {% if t.zinc_count %}<span class="targets-bd targets-bd--zinc">ZINC <strong>{{ t.zinc_count }}</strong></span>{% endif %}
-                                        </div>
-                                    </div>
-                                </a>
-                            </li>
-                        {% endfor %}
-                    </ol>
+                    {% endif %}
                 </section>
             {% endif %}
 
