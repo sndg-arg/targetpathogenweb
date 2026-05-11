@@ -140,6 +140,15 @@ def build_expression_variables(protein, zero_cache: dict) -> dict:
     return variables
 
 
+def _is_numeric_option(name: str) -> bool:
+    """Return True if the option name is just a raw number (not a meaningful category)."""
+    try:
+        float(name.replace(",", "."))
+        return True
+    except ValueError:
+        return False
+
+
 def available_variables_grouped(user=None):
     """Return variables grouped by ScoreParam category for the UI palette."""
     from tpweb.models.ScoreParam import ScoreParam, ScoreParamOptions
@@ -159,6 +168,8 @@ def available_variables_grouped(user=None):
         cat = param.category or "Other"
         pname = normalize_var_name(param.name)
         for opt in param.choices.all():
+            if _is_numeric_option(opt.name):
+                continue
             vname = normalize_var_name(opt.name)
             if not vname:
                 continue
