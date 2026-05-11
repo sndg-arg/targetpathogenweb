@@ -365,6 +365,21 @@
     background: var(--tp-color-surface-soft);
     border: 1px solid var(--tp-color-border-soft);
     border-radius: 999px;
+    cursor: help;
+}
+
+/* Visual hint on chips that have an explanatory tooltip (capped values). */
+.targets-bd[title]:not([title=""]),
+.targets-evidence[title]:not([title=""]) {
+    cursor: help;
+}
+
+.targets-bd[title]:not([title=""])::after {
+    content: " ⓘ";
+    margin-left: 4px;
+    font-weight: 400;
+    opacity: 0.55;
+    font-size: 0.92em;
 }
 
 .targets-factors {
