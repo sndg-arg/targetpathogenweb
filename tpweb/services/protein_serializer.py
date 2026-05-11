@@ -32,14 +32,27 @@ def compute_score_value(param_values, coefficient_by_param):
     return score_value, weights
 
 
-def build_protein_table_row(protein, visible_columns, coefficient_by_param):
+def compute_expression_score(protein, expression, zero_cache):
+    from tpweb.services.formula_evaluator import build_expression_variables, safe_eval_expression
+    variables = build_expression_variables(protein, zero_cache)
+    try:
+        return float(safe_eval_expression(expression, variables)), {}
+    except (ValueError, ZeroDivisionError, OverflowError):
+        return 0.0, {}
+
+
+def build_protein_table_row(protein, visible_columns, coefficient_by_param,
+                             expression=None, zero_cache=None):
     param_values = score_param_value_map(protein)
     table_data = {
         name: _display_table_value(value)
         for name, value in param_values.items()
         if name in visible_columns
     }
-    score_value, weights = compute_score_value(param_values, coefficient_by_param)
+    if expression and zero_cache is not None:
+        score_value, weights = compute_expression_score(protein, expression, zero_cache)
+    else:
+        score_value, weights = compute_score_value(param_values, coefficient_by_param)
 
     table_data["Score"] = round(score_value, 2)
     genes = [gene for gene in protein.genes() if len(gene) <= 6]

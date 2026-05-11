@@ -16,7 +16,7 @@ class ScoreFormula(models.Model):
                              on_delete=models.CASCADE, null=True)
     default = models.BooleanField(default=False)
     public = models.BooleanField(default=False)
-
+    expression = models.TextField(blank=True, default="")
 
     class Meta:
         unique_together = ('name', 'user',)
@@ -28,6 +28,16 @@ class ScoreFormula(models.Model):
         return self.__repr__()
 
     def score(self, be: Bioentry):
+        if self.expression:
+            from tpweb.services.formula_evaluator import (
+                build_all_options_zero, build_expression_variables, safe_eval_expression,
+            )
+            zero_cache = build_all_options_zero()
+            variables = build_expression_variables(be, zero_cache)
+            try:
+                return float(safe_eval_expression(self.expression, variables))
+            except (ValueError, ZeroDivisionError, OverflowError):
+                return 0.0
         param_values = {spv.score_param.name: spv.value for spv in be.score_params.all()}
         return sum([term.score(param_values[term.score_param.name]) for term in self.terms.all()
                     if term.score_param.name in param_values])

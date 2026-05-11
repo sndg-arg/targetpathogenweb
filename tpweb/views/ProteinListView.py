@@ -501,9 +501,14 @@ class ProteinListView(View):
         return pages
 
     @staticmethod
-    def _build_table_rows(assembly_name, protein_ids, needed_score_param_names, col_descriptions, coefficient_by_param):
+    def _build_table_rows(assembly_name, protein_ids, needed_score_param_names, col_descriptions,
+                          coefficient_by_param, expression=None, zero_cache=None):
         if not protein_ids:
             return [], {}
+
+        spv_qs = ScoreParamValue.objects.select_related("score_param")
+        if needed_score_param_names is not None:
+            spv_qs = spv_qs.filter(score_param__name__in=needed_score_param_names)
 
         proteins_queryset = Bioentry.objects.filter(
             biodatabase__name=assembly_name + Biodatabase.PROT_POSTFIX,
@@ -512,12 +517,7 @@ class ProteinListView(View):
             "qualifiers__term",
             "structures__pdb",
             "dbxrefs__dbxref__terms__term",
-            Prefetch(
-                "score_params",
-                queryset=ScoreParamValue.objects.filter(
-                    score_param__name__in=needed_score_param_names
-                ).select_related("score_param"),
-            ),
+            Prefetch("score_params", queryset=spv_qs),
         )
 
         proteins_map = {
@@ -533,6 +533,8 @@ class ProteinListView(View):
                 protein,
                 visible_columns=col_descriptions,
                 coefficient_by_param=coefficient_by_param,
+                expression=expression,
+                zero_cache=zero_cache,
             )
             tdatas[protein.bioentry_id] = tdata
             proteins_dto.append(protein_dto)
@@ -815,28 +817,45 @@ class ProteinListView(View):
 
         proteins = apply_protein_search(proteins, search_query)
 
+        formula_expression = getattr(formula, "expression", "") or ""
         formula_param_names = {term.score_param.name for term in formula_term_list}
-        needed_score_param_names = formula_param_names | set(selected_column_names)
+        column_param_names = set(selected_column_names)
+        if formula_expression:
+            from tpweb.services.formula_evaluator import (
+                build_all_options_zero, build_expression_variables, safe_eval_expression,
+            )
+            zero_cache = build_all_options_zero(request.user)
+            needed_score_param_names = None  # prefetch all for expression scoring
+        else:
+            zero_cache = None
+            needed_score_param_names = formula_param_names | column_param_names
+
+        ranking_spv_qs = ScoreParamValue.objects.select_related("score_param")
+        if needed_score_param_names is not None:
+            ranking_spv_qs = ranking_spv_qs.filter(score_param__name__in=needed_score_param_names)
+
         ranking_queryset = proteins.only(
             "bioentry_id",
             "accession",
             "name",
             "description",
         ).prefetch_related(
-            Prefetch(
-                "score_params",
-                queryset=ScoreParamValue.objects.filter(
-                    score_param__name__in=needed_score_param_names
-                ).select_related("score_param")
-            )
+            Prefetch("score_params", queryset=ranking_spv_qs)
         ).distinct()
 
         coefficient_by_param = coefficient_map(formula_term_list)
 
         ranked_proteins = []
         for protein in ranking_queryset:
-            param_values = score_param_value_map(protein)
-            score_value, _ = compute_score_value(param_values, coefficient_by_param)
+            if formula_expression and zero_cache is not None:
+                variables = build_expression_variables(protein, zero_cache)
+                try:
+                    score_value = float(safe_eval_expression(formula_expression, variables))
+                except (ValueError, ZeroDivisionError, OverflowError):
+                    score_value = 0.0
+            else:
+                param_values = score_param_value_map(protein)
+                score_value, _ = compute_score_value(param_values, coefficient_by_param)
             ranked_proteins.append(
                 {
                     "id": protein.bioentry_id,
@@ -858,6 +877,8 @@ class ProteinListView(View):
                 needed_score_param_names,
                 col_descriptions,
                 coefficient_by_param,
+                expression=formula_expression or None,
+                zero_cache=zero_cache,
             )
             headers = ["Rank", "Protein", "Description", "Gene", "Structure", "EC", "GO"] + tcolumns
             rows = []
@@ -921,6 +942,8 @@ class ProteinListView(View):
             needed_score_param_names,
             col_descriptions,
             coefficient_by_param,
+            expression=formula_expression or None,
+            zero_cache=zero_cache,
         )
         page_tdatas = {pid: tdatas.get(pid, {}) for pid in proteins_ids_paginated}
 

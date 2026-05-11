@@ -2,9 +2,10 @@
 {% load i18n %}
 {% load static %}
 
-
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/formula-form.css' %}?v=20260511-2">
+    <link rel="stylesheet" href="{% static 'css/pages/formula-form.css' %}?v=20260511-3">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
 {% endblock %}
 
 {% block body %}
@@ -12,6 +13,7 @@
 
     <div class="formula-page">
 
+        {# ── Hero ── #}
         <section class="formula-hero">
             {% trans "Home" as crumb_home %}
             {% trans "Genomes" as crumb_genomes %}
@@ -27,162 +29,315 @@
             {% endwith %}
             {% endwith %}
 
-            <span class="formula-eyebrow">{% trans "Scoring formula · Custom ranking" %}</span>
+            <span class="formula-eyebrow">
+                <span aria-hidden="true">∫</span>
+                {% trans "Custom scoring · Mathematical formula" %}
+            </span>
             <h1>{% trans "Make my own score" %}</h1>
-            <p class="formula-subtitle">{% trans "Combine available evidence signals — druggability, essentiality, off-target risk, and more — into a custom ranking score for this genome." %}</p>
+            <p class="formula-subtitle">{% trans "Write a mathematical expression combining any evidence signals — druggability, essentiality, off-target risk, and more — to rank proteins exactly how your research needs." %}</p>
             <div class="formula-chip-group tp-chip-group">
                 <span class="tp-chip tp-chip--meta tp-chip--sm">
                     <strong>{% trans "Genome" %}:</strong>
                     <span class="formula-chip-id">{{ assembly_label|default:assembly_name }}</span>
                 </span>
-                <span class="tp-chip tp-chip--meta tp-chip--sm">
-                    <strong>{% trans "Draft" %}:</strong>
-                    <span>{{ formula_name|default:"Untitled formula" }}</span>
-                </span>
-                <span class="tp-chip tp-chip--count tp-chip--sm">
-                    {{ term_count }} {% if term_count == 1 %}{% trans "term" %}{% else %}{% trans "terms" %}{% endif %}
-                </span>
+                <span class="tp-chip tp-chip--meta tp-chip--sm">{% trans "Supports" %}: <code>+  −  ×  ÷  ^  sqrt  log  exp  abs  max  min</code></span>
             </div>
         </section>
 
+        {# ── Error from GET params ── #}
         {% if request.GET.error_message %}
             <section class="formula-alert">
                 <p class="tp-state-note tp-state-note--error mb-0">{{ request.GET.error_message }}</p>
             </section>
         {% endif %}
 
+        <form id="formula-form" method="POST" novalidate>
+        {% csrf_token %}
+
+        {# ── Main workbench ── #}
         <section class="formula-workbench">
 
-            <article class="formula-card formula-card--build tp-ui-panel">
-                <div class="formula-card-head tp-ui-panel-head">
-                    <div>
-                        <h2>{% trans "Add a scoring term" %}</h2>
-                        <p class="formula-card-note">{% trans "Each term assigns a numeric weight to one value of one evidence parameter. Build the formula term by term." %}</p>
-                    </div>
-                </div>
+            {# ─── Left column: editor ─── #}
+            <div class="formula-editor-col">
 
-                <form id="add-parameter-form" class="formula-add-form" method="POST" novalidate>
-                    {% csrf_token %}
-
-                    <div class="formula-name-field tp-ui-field">
-                        <label class="tp-ui-field-label" for="{{ form.new_formula_name.id_for_label }}">{% trans "Formula name" %}</label>
-                        {{ form.new_formula_name }}
-                        {% if form.new_formula_name.errors %}
-                            <p class="formula-field-error">{{ form.new_formula_name.errors|striptags }}</p>
+                {# Name field #}
+                <div class="formula-card formula-card--name tp-ui-panel">
+                    <div class="tp-ui-field">
+                        <label class="tp-ui-field-label" for="{{ form.formula_name.id_for_label }}">
+                            {% trans "Formula name" %}
+                        </label>
+                        {{ form.formula_name }}
+                        {% if form.formula_name.errors %}
+                            <p class="formula-field-error">{{ form.formula_name.errors|striptags }}</p>
                         {% endif %}
                     </div>
+                </div>
 
-                    <div class="formula-term-fields">
-                        <div class="tp-ui-field">
-                            <label class="tp-ui-field-label" for="{{ form.param.id_for_label }}">{% trans "Parameter" %}</label>
-                            {{ form.param }}
-                            {% if form.param.errors %}
-                                <p class="formula-field-error">{{ form.param.errors|striptags }}</p>
-                            {% endif %}
-                        </div>
-                        <div class="tp-ui-field">
-                            <label class="tp-ui-field-label" for="{{ form.options.id_for_label }}">{% trans "Value" %}</label>
-                            {{ form.options }}
-                            {% if form.options.errors %}
-                                <p class="formula-field-error">{{ form.options.errors|striptags }}</p>
-                            {% endif %}
-                        </div>
-                        <div class="tp-ui-field">
-                            <label class="tp-ui-field-label" for="{{ form.coefficient.id_for_label }}">{% trans "Coefficient" %}</label>
-                            {{ form.coefficient }}
-                            {% if form.coefficient.errors %}
-                                <p class="formula-field-error">{{ form.coefficient.errors|striptags }}</p>
-                            {% endif %}
+                {# Expression editor #}
+                <div class="formula-card formula-card--editor tp-ui-panel">
+                    <div class="formula-card-head tp-ui-panel-head">
+                        <div>
+                            <h2>{% trans "Expression" %}</h2>
+                            <p class="formula-card-note">{% trans "Write your scoring formula. Use variable names from the palette on the right. Supports arithmetic operators, powers (** or ^), and math functions." %}</p>
                         </div>
                     </div>
 
-                </form>
-
-                <div class="formula-add-actions">
-                    <button type="submit" form="add-parameter-form" class="btn tp-btn tp-btn--primary tp-btn-with-icon">
-                        <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/plus.html" %}</span>
-                        {% trans "Add term" %}
-                    </button>
-                    {% if term_count > 0 %}
-                        <form method="POST" class="formula-undo-form">
-                            {% csrf_token %}
-                            <input type="hidden" name="remove_last_term" value="true">
-                            <button type="submit" class="btn tp-btn tp-btn--neutral">{% trans "Undo last term" %}</button>
-                        </form>
-                    {% endif %}
-                </div>
-            </article>
-
-            <article class="formula-card formula-card--draft tp-ui-panel">
-                <div class="formula-card-head tp-ui-panel-head">
-                    <div>
-                        <h2>{% trans "Formula draft" %}</h2>
-                        <p class="formula-card-note">{% trans "The terms you have added so far. Each term contributes additively to the final score." %}</p>
+                    <div class="tp-ui-field formula-expr-field">
+                        {{ form.expression }}
+                        {% if form.expression.errors %}
+                            <p class="formula-field-error">{{ form.expression.errors|striptags }}</p>
+                        {% endif %}
+                        <div class="formula-validation-row">
+                            <div id="formula-validation-result"
+                                 hx-get="{% url 'tpwebapp:validate_expression' %}"
+                                 hx-trigger="keyup from:#id_expression delay:500ms, change from:#id_expression"
+                                 hx-include="#id_expression"
+                                 hx-swap="innerHTML">
+                                <span class="formula-valid-badge formula-valid-badge--empty">{% trans "Type an expression above" %}</span>
+                            </div>
+                        </div>
                     </div>
-                    <span class="tp-chip tp-chip--count tp-chip--sm">{{ term_count }}</span>
-                </div>
 
-                {% if preview_terms %}
-                    <div class="formula-term-table">
-                        <table class="table table-sm table-hover mb-0 tp-table tp-table--plain tp-table--premium">
-                            <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>{% trans "Parameter" %}</th>
-                                <th>{% trans "Value" %}</th>
-                                <th>{% trans "Coeff." %}</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            {% for term in preview_terms %}
-                                <tr>
-                                    <td class="formula-term-index">{{ term.index }}</td>
-                                    <td>{{ term.param_name }}</td>
-                                    <td>{{ term.option_name }}</td>
-                                    <td class="formula-term-coeff">{{ term.coefficient }}</td>
-                                </tr>
+                    {# KaTeX preview #}
+                    <div class="formula-katex-wrap">
+                        <p class="formula-katex-label">{% trans "Preview" %}</p>
+                        <div id="formula-katex-preview" class="formula-katex-block">
+                            <span class="formula-katex-placeholder">{% trans "Formula will appear here as you type…" %}</span>
+                        </div>
+                    </div>
+
+                    {# Function palette #}
+                    <div class="formula-palette formula-palette--funcs">
+                        <p class="formula-palette-label">{% trans "Functions" %}</p>
+                        <div class="formula-palette-chips">
+                            {% for fn in safe_functions %}
+                                <button type="button"
+                                        class="formula-fn-chip"
+                                        data-insert="{{ fn.insert }}"
+                                        title="{{ fn.desc }}">{{ fn.label }}</button>
                             {% endfor %}
-                            </tbody>
-                        </table>
+                        </div>
                     </div>
-                {% else %}
-                    <p class="tp-state-note tp-state-note--empty formula-empty-note">{% trans "No terms added yet. Use the form on the left to start building." %}</p>
-                {% endif %}
 
-                <div class="formula-expression-wrap">
-                    <p class="formula-expression-label">{% trans "Expression" %}</p>
-                    <div class="formula-expression-block">{{ parameters }}</div>
+                    {# Operator shortcuts #}
+                    <div class="formula-palette formula-palette--ops">
+                        <p class="formula-palette-label">{% trans "Operators" %}</p>
+                        <div class="formula-palette-chips">
+                            <button type="button" class="formula-op-chip" data-insert=" + ">+</button>
+                            <button type="button" class="formula-op-chip" data-insert=" - ">−</button>
+                            <button type="button" class="formula-op-chip" data-insert=" * ">×</button>
+                            <button type="button" class="formula-op-chip" data-insert=" / ">÷</button>
+                            <button type="button" class="formula-op-chip" data-insert=" ** ">^</button>
+                            <button type="button" class="formula-op-chip" data-insert="(">( </button>
+                            <button type="button" class="formula-op-chip" data-insert=")"> )</button>
+                        </div>
+                    </div>
                 </div>
-            </article>
+
+            </div>
+
+            {# ─── Right column: variable palette ─── #}
+            <div class="formula-vars-col">
+                <div class="formula-card formula-card--vars tp-ui-panel">
+                    <div class="formula-card-head tp-ui-panel-head">
+                        <div>
+                            <h2>{% trans "Variables" %}</h2>
+                            <p class="formula-card-note">{% trans "Click any variable to insert it into your expression. Each variable equals 1.0 when that condition is met, and 0.0 otherwise." %}</p>
+                        </div>
+                    </div>
+
+                    <div class="formula-var-search-wrap">
+                        <input type="text" id="formula-var-search"
+                               class="form-control tp-ui-control formula-var-search"
+                               placeholder="{% trans 'Filter variables…' %}"
+                               autocomplete="off">
+                    </div>
+
+                    <div class="formula-var-groups" id="formula-var-groups">
+                        {% if variable_groups %}
+                            {% for category, vars in variable_groups.items %}
+                                <div class="formula-var-group" data-category="{{ category }}">
+                                    <p class="formula-var-group-label">{{ category }}</p>
+                                    <div class="formula-var-chips">
+                                        {% for v in vars %}
+                                            <button type="button"
+                                                    class="formula-var-chip"
+                                                    data-var="{{ v.var }}"
+                                                    title="{{ v.desc }}">{{ v.var }}</button>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <p class="tp-state-note tp-state-note--empty">{% trans "No scoring parameters available." %}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
 
         </section>
 
+        {# ── Footer ── #}
         <section class="formula-footer tp-ui-panel">
             <div class="formula-footer-copy">
                 <p class="formula-footer-title">{% trans "Save and apply" %}</p>
-                <p class="formula-footer-note">{% trans "Saving creates a new scoring formula for this genome. It will appear as an option in the protein ranking." %}</p>
+                <p class="formula-footer-note">{% trans "Saves this formula and takes you to the protein list ranked by your score." %}</p>
             </div>
             <div class="formula-footer-actions">
-                <form id="finish-process-form" method="POST">
-                    {% csrf_token %}
-                    <input type="hidden" name="finish_process" value="true">
-                    <button type="submit" class="btn tp-btn tp-btn--primary"
-                            {% if term_count == 0 or not formula_name %}disabled{% endif %}>
-                        {% trans "Save scoring formula" %}
-                    </button>
-                </form>
-                <form id="reset-process-form" method="POST">
-                    {% csrf_token %}
-                    <input type="hidden" name="reset_process" value="true">
-                    {% trans "Reset draft" as reset_draft_label %}
-                    {% if term_count > 0 or formula_name %}
-                        {% include "components/buttons/clear_action.html" with label=reset_draft_label button_type="submit" classes="btn tp-btn tp-btn--clear tp-btn--clear-caution tp-btn-with-icon" %}
-                    {% else %}
-                        {% include "components/buttons/clear_action.html" with label=reset_draft_label button_type="submit" disabled="1" classes="btn tp-btn tp-btn--clear tp-btn--clear-caution tp-btn-with-icon" %}
-                    {% endif %}
-                </form>
+                <button type="submit" form="formula-form" name="save_formula" value="1" class="btn tp-btn tp-btn--primary">
+                    {% trans "Save scoring formula" %}
+                </button>
+                <button type="submit" form="formula-form" name="reset_process" value="true"
+                        class="btn tp-btn tp-btn--clear tp-btn--clear-caution tp-btn-with-icon">
+                    {% include "components/icons/x-circle.html" %}
+                    {% trans "Reset" %}
+                </button>
             </div>
         </section>
 
+        </form>
+
     </div>
+
+    <script>
+    (function () {
+        "use strict";
+
+        const textarea = document.getElementById("id_expression");
+        const katexBlock = document.getElementById("formula-katex-preview");
+        const varSearch = document.getElementById("formula-var-search");
+
+        // ── Insert at cursor ──────────────────────────────────────────────
+        function insertAtCursor(text) {
+            if (!textarea) return;
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const val = textarea.value;
+            textarea.value = val.slice(0, start) + text + val.slice(end);
+            const pos = start + text.length;
+            textarea.setSelectionRange(pos, pos);
+            textarea.focus();
+            textarea.dispatchEvent(new Event("input", { bubbles: true }));
+            textarea.dispatchEvent(new Event("keyup", { bubbles: true }));
+        }
+
+        // ── Palette chips ────────────────────────────────────────────────
+        document.querySelectorAll("[data-insert]").forEach(btn => {
+            btn.addEventListener("click", () => {
+                const ins = btn.dataset.insert;
+                // For functions like sqrt(), position cursor inside parens
+                if (ins.endsWith("()")) {
+                    const base = ins.slice(0, -1);
+                    insertAtCursor(base + ")");
+                    const pos = textarea.value.lastIndexOf(base) + base.length;
+                    textarea.setSelectionRange(pos, pos);
+                } else if (ins.endsWith(",)")) {
+                    // pow(,) / max(,) — position cursor between parens
+                    const base = ins.slice(0, -2) + "(";
+                    insertAtCursor(base + ",)");
+                    const pos = textarea.value.lastIndexOf(base) + base.length;
+                    textarea.setSelectionRange(pos, pos);
+                } else {
+                    insertAtCursor(ins);
+                }
+            });
+        });
+
+        document.querySelectorAll("[data-var]").forEach(btn => {
+            btn.addEventListener("click", () => insertAtCursor(btn.dataset.var));
+        });
+
+        // ── Variable search ───────────────────────────────────────────────
+        if (varSearch) {
+            varSearch.addEventListener("input", () => {
+                const q = varSearch.value.toLowerCase().trim();
+                document.querySelectorAll(".formula-var-group").forEach(group => {
+                    let anyVisible = false;
+                    group.querySelectorAll(".formula-var-chip").forEach(chip => {
+                        const match = !q || chip.dataset.var.includes(q) || (chip.title || "").toLowerCase().includes(q);
+                        chip.style.display = match ? "" : "none";
+                        if (match) anyVisible = true;
+                    });
+                    group.style.display = anyVisible ? "" : "none";
+                });
+            });
+        }
+
+        // ── Expression → LaTeX conversion (best-effort) ───────────────────
+        function expressionToLatex(expr) {
+            if (!expr.trim()) return null;
+            let s = expr;
+
+            // named functions first
+            const fns = {
+                sqrt:  (arg) => `\\sqrt{${arg}}`,
+                log2:  (arg) => `\\log_2\\!\\left(${arg}\\right)`,
+                log10: (arg) => `\\log_{10}\\!\\left(${arg}\\right)`,
+                log:   (arg) => `\\ln\\!\\left(${arg}\\right)`,
+                exp:   (arg) => `e^{${arg}}`,
+                abs:   (arg) => `\\left|${arg}\\right|`,
+                floor: (arg) => `\\lfloor ${arg} \\rfloor`,
+                ceil:  (arg) => `\\lceil ${arg} \\rceil`,
+                round: (arg) => `\\operatorname{round}\\!\\left(${arg}\\right)`,
+                pow:   (arg) => { const parts = arg.split(","); return parts.length === 2 ? `{${parts[0].trim()}}^{${parts[1].trim()}}` : `\\operatorname{pow}(${arg})`; },
+                max:   (arg) => `\\max(${arg})`,
+                min:   (arg) => `\\min(${arg})`,
+            };
+
+            // replace fn(…) — only handles single-level, non-nested parens for simplicity
+            for (const [name, render] of Object.entries(fns)) {
+                const re = new RegExp(`\\b${name}\\(([^()]+)\\)`, "g");
+                s = s.replace(re, (_, arg) => render(arg.trim()));
+            }
+
+            // ** / ^ → LaTeX exponent (simple right-operand: digits/parens/word)
+            s = s.replace(/\*\*\s*(-?\d+(?:\.\d+)?)/g, "^{$1}");
+            s = s.replace(/\*\*\s*(\w+)/g, "^{$1}");
+            s = s.replace(/\^\s*(-?\d+(?:\.\d+)?)/g, "^{$1}");
+            s = s.replace(/\^\s*(\w+)/g, "^{$1}");
+
+            // multiplication sign
+            s = s.replace(/\*/g, " \\cdot ");
+
+            // underscored identifiers → \text{...}
+            s = s.replace(/\b([a-z][a-z0-9]*(?:_[a-z0-9]+)+)\b/g, "\\text{$1}");
+
+            return s;
+        }
+
+        // ── KaTeX live render ─────────────────────────────────────────────
+        function renderKatex() {
+            if (!katexBlock || typeof katex === "undefined") return;
+            const expr = textarea ? textarea.value.trim() : "";
+            if (!expr) {
+                katexBlock.innerHTML = '<span class="formula-katex-placeholder">Formula will appear here as you type…</span>';
+                return;
+            }
+            const latex = expressionToLatex(expr);
+            if (!latex) {
+                katexBlock.innerHTML = '<span class="formula-katex-placeholder">Formula will appear here as you type…</span>';
+                return;
+            }
+            try {
+                katex.render(latex, katexBlock, {
+                    throwOnError: false,
+                    displayMode: true,
+                    output: "html",
+                });
+            } catch (_) {
+                katexBlock.textContent = expr;
+            }
+        }
+
+        if (textarea) {
+            textarea.addEventListener("input", renderKatex);
+            textarea.addEventListener("keyup", renderKatex);
+            // initial render if form was re-submitted with value
+            if (textarea.value) renderKatex();
+        }
+
+        // trigger KaTeX after KaTeX script loads (since it's deferred)
+        window.addEventListener("load", renderKatex);
+    })();
+    </script>
 {% endblock %}

@@ -1,189 +1,71 @@
-from django.shortcuts import render, redirect
 from django.http import Http404
+from django.shortcuts import redirect, render
 from django.urls import reverse
 
-from tpweb.models.ScoreFormula import ScoreFormula, ScoreFormulaParam
-from tpweb.models.ScoreParam import ScoreParamOptions, ScoreParam
+from tpweb.models.ScoreFormula import ScoreFormula
+from tpweb.services.formula_evaluator import available_variables_grouped, validate_expression_syntax
 from tpweb.services.genome_workspace import display_genome_name, genome_url_slug, resolve_genome_from_slug
-from tpweb.services.workspace import (
-    get_workspace_session_value,
-    pop_workspace_session_value,
-    resolve_workspace_user,
-    set_workspace_session_value,
-)
+from tpweb.services.workspace import resolve_workspace_user
 from tpweb.views.FormulaForm import FormulaForm
+
+SAFE_FUNCTIONS = [
+    {"label": "sqrt(x)", "insert": "sqrt()", "desc": "Square root"},
+    {"label": "log(x)", "insert": "log()", "desc": "Natural logarithm"},
+    {"label": "log2(x)", "insert": "log2()", "desc": "Log base 2"},
+    {"label": "log10(x)", "insert": "log10()", "desc": "Log base 10"},
+    {"label": "exp(x)", "insert": "exp()", "desc": "Exponential e^x"},
+    {"label": "abs(x)", "insert": "abs()", "desc": "Absolute value"},
+    {"label": "pow(x,n)", "insert": "pow(,)", "desc": "Power x^n"},
+    {"label": "max(a,b)", "insert": "max(,)", "desc": "Maximum"},
+    {"label": "min(a,b)", "insert": "min(,)", "desc": "Minimum"},
+    {"label": "floor(x)", "insert": "floor()", "desc": "Round down"},
+    {"label": "ceil(x)", "insert": "ceil()", "desc": "Round up"},
+    {"label": "round(x)", "insert": "round()", "desc": "Round to nearest integer"},
+]
+
 
 def FormulaFormView(request, genome):
     assembly_name = resolve_genome_from_slug(request.user, genome)
     if not assembly_name:
         raise Http404("Genome not found")
 
-    def current_formula_string(formula, formulaname):
-        if not formula:
-            return "Start assigning coefficients to make the new formula"
-
-        option_ids = [term.get("option") for term in formula if term.get("option")]
-        option_map = {
-            str(opt.id): str(opt)
-            for opt in ScoreParamOptions.objects.filter(id__in=option_ids)
-        }
-
-        terms = []
-        for term in formula:
-            coefficient_raw = term.get("coefficient", "")
-            try:
-                coefficient_value = float(coefficient_raw)
-                coefficient_label = f"{coefficient_value:g}"
-            except (TypeError, ValueError):
-                coefficient_value = None
-                coefficient_label = str(coefficient_raw)
-
-            option_name = option_map.get(
-                str(term.get("option")),
-                f"Option {term.get('option', '?')}",
-            )
-            if coefficient_value is not None and coefficient_value < 0:
-                terms.append(f"({coefficient_label}) x {option_name}")
-            else:
-                terms.append(f"{coefficient_label} x {option_name}")
-
-        prefix = f"{formulaname} = " if formulaname else ""
-        return prefix + " + ".join(terms)
-
-    def build_preview_terms(formula):
-        if not formula:
-            return []
-
-        option_ids = [term.get("option") for term in formula if term.get("option")]
-        param_ids = [term.get("param") for term in formula if term.get("param")]
-
-        option_map = {
-            str(opt.id): opt.name
-            for opt in ScoreParamOptions.objects.filter(id__in=option_ids)
-        }
-        param_map = {
-            str(param.id): param.name
-            for param in ScoreParam.objects.filter(id__in=param_ids)
-        }
-
-        preview = []
-        for index, term in enumerate(formula, start=1):
-            coefficient_raw = term.get("coefficient", "")
-            try:
-                coefficient_label = f"{float(coefficient_raw):g}"
-            except (TypeError, ValueError):
-                coefficient_label = str(coefficient_raw)
-
-            preview.append({
-                "index": index,
-                "param_name": param_map.get(str(term.get("param")), "Unknown parameter"),
-                "option_name": option_map.get(str(term.get("option")), "Unknown option"),
-                "coefficient": coefficient_label,
-            })
-        return preview
-
-    def add_new_formula(formulaname, formulacoefficient):
-        if not formulaname:
-            return
-
-        user = resolve_workspace_user(request.user)
-        formula_obj, _ = ScoreFormula.objects.get_or_create(name=formulaname, user=user)
-        ScoreFormulaParam.objects.filter(formula=formula_obj).delete()
-
-        for term in formulacoefficient:
-            param_id = term.get("param")
-            option_id = term.get("option")
-            coefficient = term.get("coefficient")
-            if not (param_id and option_id):
-                continue
-            try:
-                param = ScoreParam.objects.get(id=param_id)
-                option = ScoreParamOptions.objects.get(id=option_id)
-            except (ScoreParam.DoesNotExist, ScoreParamOptions.DoesNotExist):
-                continue
-            ScoreFormulaParam.objects.get_or_create(
-                formula=formula_obj,
-                operation="=",
-                coefficient=coefficient,
-                value=option,
-                score_param=param,
-            )
-
-    current_formula = get_workspace_session_value(
-        request.session, request.user, "current_formula", []
-    )
-    if not isinstance(current_formula, list):
-        current_formula = []
-    formulaname = get_workspace_session_value(
-        request.session, request.user, "formulaname", ""
-    )
-    formulaform = FormulaForm(
-        initial={"new_formula_name": formulaname},
-        user=request.user,
-    )
+    user = resolve_workspace_user(request.user)
+    variable_groups = available_variables_grouped(user)
 
     if request.method == "POST":
         if "reset_process" in request.POST:
-            pop_workspace_session_value(request.session, request.user, "current_formula", None)
-            pop_workspace_session_value(request.session, request.user, "formulaname", None)
             return redirect(reverse("tpwebapp:formula_form", kwargs={"genome": genome_url_slug(assembly_name)}))
 
-        if "remove_last_term" in request.POST:
-            if current_formula:
-                current_formula.pop()
-                set_workspace_session_value(
-                    request.session, request.user, "current_formula", current_formula
+        form = FormulaForm(request.POST)
+        if form.is_valid():
+            name = form.cleaned_data["formula_name"].strip()
+            expression = form.cleaned_data["expression"].strip()
+
+            validation = validate_expression_syntax(expression, user=user)
+            if not validation["valid"]:
+                form.add_error("expression", validation["error"] or "Invalid expression")
+            else:
+                formula_obj, _ = ScoreFormula.objects.update_or_create(
+                    name=name,
+                    user=user,
+                    defaults={"expression": expression},
                 )
-            return redirect(reverse("tpwebapp:formula_form", kwargs={"genome": genome_url_slug(assembly_name)}))
-
-        if "finish_process" in request.POST:
-            if current_formula and formulaname:
-                add_new_formula(formulaname, current_formula)
-            pop_workspace_session_value(request.session, request.user, "current_formula", None)
-            pop_workspace_session_value(request.session, request.user, "formulaname", None)
-            return redirect(reverse("tpwebapp:protein_list", kwargs={"genome": genome_url_slug(assembly_name)}))
-
-        formulaform = FormulaForm(request.POST, user=request.user)
-        formulaname = formulaform.data.get("new_formula_name", "").strip()
-        formulaparam = formulaform.data.get("param")
-        formulaoption = formulaform.data.get("options")
-        formulacoefficient = formulaform.data.get("coefficient")
-        if formulaform.is_valid():
-            set_workspace_session_value(
-                request.session, request.user, "formulaname", formulaname
-            )
-            if any(d["param"] == formulaparam and d["option"] == formulaoption for d in current_formula):
                 return redirect(
-                    reverse("tpwebapp:formula_form", kwargs={"genome": genome_url_slug(assembly_name)})
-                    + "?error_message=Select+only+ONE+coefficient+per+parameter+option!.+Try+Again!"
+                    reverse("tpwebapp:protein_list", kwargs={"genome": genome_url_slug(assembly_name)})
+                    + f"?scoreformula={name}"
                 )
-            term_dict = {"param": formulaparam, "option": formulaoption, "coefficient": formulacoefficient}
-            current_formula.append(term_dict)
-            set_workspace_session_value(
-                request.session, request.user, "current_formula", current_formula
-            )
-        else:
-            print(formulaform.errors)
-
-    current_formula = get_workspace_session_value(
-        request.session, request.user, "current_formula", current_formula
-    )
-    formulaname = get_workspace_session_value(
-        request.session, request.user, "formulaname", formulaname
-    )
-    preview_terms = build_preview_terms(current_formula)
+    else:
+        form = FormulaForm()
 
     return render(
         request,
         "search/formulaform.html",
         {
-            "form": formulaform,
-            "parameters": current_formula_string(current_formula, formulaname),
-            "formula_name": formulaname,
-            "preview_terms": preview_terms,
-            "term_count": len(preview_terms),
+            "form": form,
             "assembly_name": assembly_name,
             "assembly_label": display_genome_name(assembly_name),
             "genome": genome_url_slug(assembly_name),
+            "variable_groups": variable_groups,
+            "safe_functions": SAFE_FUNCTIONS,
         },
     )

@@ -1,0 +1,184 @@
+"""
+Safe mathematical expression evaluator for scoring formulas.
+
+Variables are binary indicators built from per-protein ScoreParamValues:
+  druggability_high = 1.0 if the protein's Druggability == "High", else 0.0
+  human_offtarget_none = 1.0 if human_offtarget == "None", else 0.0
+  ...
+
+Supported operators: + - * / ^ ** %
+Supported functions: sqrt log log2 log10 exp abs max min pow floor ceil round
+"""
+
+import ast
+import math
+import operator
+import re
+
+SAFE_FUNCTIONS = {
+    "sqrt":   math.sqrt,
+    "log":    math.log,
+    "log2":   math.log2,
+    "log10":  math.log10,
+    "exp":    math.exp,
+    "abs":    abs,
+    "max":    max,
+    "min":    min,
+    "pow":    math.pow,
+    "floor":  math.floor,
+    "ceil":   math.ceil,
+    "round":  round,
+}
+
+_SAFE_NODES = (
+    ast.Expression, ast.BinOp, ast.UnaryOp, ast.Call,
+    ast.Constant, ast.Name, ast.Load,
+    ast.Add, ast.Sub, ast.Mult, ast.Div, ast.Pow,
+    ast.Mod, ast.FloorDiv,
+    ast.USub, ast.UAdd,
+)
+
+
+def normalize_var_name(s: str) -> str:
+    s = str(s).strip().lower()
+    s = re.sub(r"[^a-z0-9]+", "_", s)
+    return s.strip("_")
+
+
+def safe_eval_expression(expr_str: str, variables: dict) -> float:
+    """Evaluate a math expression string. Raises ValueError on any problem."""
+    normalized = expr_str.replace("^", "**")
+    try:
+        tree = ast.parse(normalized, mode="eval")
+    except SyntaxError as exc:
+        raise ValueError(f"Syntax error: {exc}") from exc
+
+    for node in ast.walk(tree):
+        if not isinstance(node, _SAFE_NODES):
+            raise ValueError(f"Unsupported operation: {type(node).__name__}")
+
+    def _eval(node):
+        if isinstance(node, ast.Expression):
+            return _eval(node.body)
+        if isinstance(node, ast.Constant):
+            if not isinstance(node.value, (int, float)):
+                raise ValueError("Only numeric literals are allowed")
+            return float(node.value)
+        if isinstance(node, ast.Name):
+            if node.id in SAFE_FUNCTIONS:
+                return SAFE_FUNCTIONS[node.id]
+            if node.id in variables:
+                return float(variables[node.id])
+            raise ValueError(f"Unknown variable: '{node.id}'")
+        if isinstance(node, ast.BinOp):
+            left = _eval(node.left)
+            right = _eval(node.right)
+            _ops = {
+                ast.Add:      operator.add,
+                ast.Sub:      operator.sub,
+                ast.Mult:     operator.mul,
+                ast.Div:      operator.truediv,
+                ast.Pow:      operator.pow,
+                ast.Mod:      operator.mod,
+                ast.FloorDiv: operator.floordiv,
+            }
+            op_fn = _ops.get(type(node.op))
+            if op_fn is None:
+                raise ValueError(f"Unsupported operator: {type(node.op).__name__}")
+            return op_fn(left, right)
+        if isinstance(node, ast.UnaryOp):
+            val = _eval(node.operand)
+            if isinstance(node.op, ast.USub):
+                return -val
+            return val
+        if isinstance(node, ast.Call):
+            func = _eval(node.func)
+            if not callable(func):
+                raise ValueError("Expression contains a non-callable call target")
+            args = [_eval(a) for a in node.args]
+            try:
+                return float(func(*args))
+            except Exception as exc:
+                raise ValueError(f"Function call error: {exc}") from exc
+        raise ValueError(f"Unsupported node: {type(node).__name__}")
+
+    return _eval(tree)
+
+
+def build_all_options_zero(user=None):
+    """Return {variable_name: 0.0} for every ScoreParam option visible to *user*.
+
+    Call once per formula evaluation batch; pass the result to
+    build_expression_variables() for each protein.
+    """
+    from tpweb.models.ScoreParam import ScoreParamOptions
+    from django.db.models import Q
+
+    qs = ScoreParamOptions.objects.select_related("score_param")
+    if user is not None:
+        qs = qs.filter(Q(score_param__user__isnull=True) | Q(score_param__user=user))
+    else:
+        qs = qs.filter(score_param__user__isnull=True)
+
+    cache = {}
+    for opt in qs:
+        pk = normalize_var_name(opt.score_param.name)
+        vk = normalize_var_name(opt.name)
+        if pk and vk:
+            cache[f"{pk}_{vk}"] = 0.0
+    return cache
+
+
+def build_expression_variables(protein, zero_cache: dict) -> dict:
+    """Build per-protein variable dict by overriding zeros with 1.0 for actual values."""
+    variables = dict(zero_cache)
+    for spv in protein.score_params.all():
+        pk = normalize_var_name(spv.score_param.name)
+        vk = normalize_var_name(spv.value or "")
+        if pk and vk:
+            variables[f"{pk}_{vk}"] = 1.0
+    return variables
+
+
+def available_variables_grouped(user=None):
+    """Return variables grouped by ScoreParam category for the UI palette."""
+    from tpweb.models.ScoreParam import ScoreParam, ScoreParamOptions
+    from django.db.models import Q
+
+    if user is not None:
+        param_qs = ScoreParam.objects.filter(
+            Q(user__isnull=True) | Q(user=user), type="C"
+        ).prefetch_related("choices").order_by("category", "name")
+    else:
+        param_qs = ScoreParam.objects.filter(
+            user__isnull=True, type="C"
+        ).prefetch_related("choices").order_by("category", "name")
+
+    groups = {}
+    for param in param_qs:
+        cat = param.category or "Other"
+        pname = normalize_var_name(param.name)
+        for opt in param.choices.all():
+            vname = normalize_var_name(opt.name)
+            if not vname:
+                continue
+            var = f"{pname}_{vname}"
+            desc = opt.description or f"{param.name} = {opt.name}"
+            groups.setdefault(cat, []).append({"var": var, "desc": desc})
+    return groups
+
+
+def validate_expression_syntax(expr_str: str, user=None) -> dict:
+    """Validate an expression string. Returns {valid: bool, error: str|None}."""
+    if not expr_str.strip():
+        return {"valid": False, "error": "Expression is empty"}
+    zero_cache = build_all_options_zero(user)
+    try:
+        result = safe_eval_expression(expr_str, zero_cache)
+        if not isinstance(result, float) or result != result:  # NaN check
+            return {"valid": False, "error": "Expression produces NaN"}
+        return {"valid": True, "error": None}
+    except (ValueError, ZeroDivisionError, OverflowError) as exc:
+        return {"valid": False, "error": str(exc)}
+    except Exception as exc:
+        return {"valid": False, "error": f"Evaluation error: {exc}"}

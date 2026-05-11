@@ -16,6 +16,7 @@ from .views.MoleculeView import MoleculeView
 from .views.ParameterFormView import load_options
 from .views.BinderDetailView import BinderDetailView
 from .views.FormulaFormView import FormulaFormView
+from .views.ValidateExpressionView import validate_expression_view
 from .views.TestCelery import test_celery
 #from debug_toolbar.toolbar import debug_toolbar_urls
 from .views.CustomParamView import upload_form
@@ -64,6 +65,7 @@ urlpatterns = [
     path("form", view=FormView.as_view(), name="form"),
     path("result/<str:result_id>", view=NewView.as_view(), name="blast_res"),
     path("genome/<str:genome>/formula", view=FormulaFormView, name="formula_form"),
+    path("formula/validate-expression/", view=validate_expression_view, name="validate_expression"),
     path("genome/<str:genome>/custom-evidence", view=upload_form, name="customparam"),
     path("health/live", view=HealthLiveView.as_view(), name="health_live"),
     path("health/ready", view=HealthReadyView.as_view(), name="health_ready"),
