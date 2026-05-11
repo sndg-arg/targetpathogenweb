@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/customparam.css' %}?v=20260309-4">
+    <link rel="stylesheet" href="{% static 'css/pages/customparam.css' %}?v=20260511-customdata2">
 {% endblock %}
 
 {% block body %}
@@ -22,28 +22,47 @@
             {% include "components/navigation/breadcrumbs.html" with crumb_1_label=crumb_home crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_genome crumb_3_url=assembly_url crumb_4_label=crumb_proteins crumb_4_url=proteins_url crumb_5_label=crumb_add_data %}
             {% endwith %}
             {% endwith %}
+            <span class="customparam-eyebrow">{% trans "Custom evidence · Workspace scoring" %}</span>
             <h1>{% trans "Add my own data" %}</h1>
-            <p class="customparam-subtitle">{% trans "Bring a TSV file with your own per-protein data (numeric or categorical) so you can use it as another scoring or filter signal." %}</p>
+            <p class="customparam-subtitle">{% trans "Bring a TSV file with your own per-protein evidence so it can be used as another filtering or scoring signal in this genome workspace." %}</p>
             <p class="customparam-context"><strong>{% trans "Genome" %}:</strong> <span class="customparam-context-id">{{ assembly_label|default:assembly_name }}</span></p>
             <div class="customparam-chip-group tp-chip-group">
-                <span class="tp-chip tp-chip--meta tp-chip--sm">{% trans "Format" %}: TSV</span>
-                <span class="tp-chip tp-chip--meta tp-chip--sm">{% trans "Expected columns" %}: 2</span>
-                <span class="tp-chip tp-chip--meta tp-chip--sm">{% trans "Value type" %}: {% trans "categorical or numeric" %}</span>
+                <span class="tp-chip tp-chip--meta tp-chip--sm"><strong>{% trans "Format" %}:</strong> <span>TSV</span></span>
+                <span class="tp-chip tp-chip--meta tp-chip--sm"><strong>{% trans "Expected columns" %}:</strong> <span>2</span></span>
+                <span class="tp-chip tp-chip--meta tp-chip--sm"><strong>{% trans "Protein key" %}:</strong> <span>{% trans "accession" %}</span></span>
+                <span class="tp-chip tp-chip--meta tp-chip--sm"><strong>{% trans "Value type" %}:</strong> <span>{% trans "categorical or numeric" %}</span></span>
+            </div>
+            <div class="customparam-metrics" aria-label="{% trans 'Upload summary' %}">
+                <div class="metric-pill">
+                    <span class="metric-label">{% trans "Rows" %}</span>
+                    <span class="metric-value">{% trans "One per protein" %}</span>
+                </div>
+                <div class="metric-pill">
+                    <span class="metric-label">{% trans "Matching rule" %}</span>
+                    <span class="metric-value">{% trans "First column = accession" %}</span>
+                </div>
+                <div class="metric-pill">
+                    <span class="metric-label">{% trans "After upload" %}</span>
+                    <span class="metric-value">{% trans "Available in scoring" %}</span>
+                </div>
             </div>
         </section>
 
         <section class="customparam-main">
-            <article class="customparam-card tp-ui-panel">
-                <div class="customparam-card-head">
-                    <h2>{% trans "Upload evidence file" %}</h2>
-                    <span class="tp-chip tp-chip--count tp-chip--sm">{% trans "TSV" %}</span>
+            <article class="customparam-card customparam-card--form tp-ui-panel">
+                <div class="customparam-card-head tp-ui-panel-head">
+                    <div>
+                        <h2>{% trans "Upload custom evidence" %}</h2>
+                        <p class="customparam-muted">{% trans "Use this when you already have a per-protein signal from your own experiments, curation, or external analyses." %}</p>
+                    </div>
+                    <span class="tp-chip tp-chip--count tp-chip--sm">TSV</span>
                 </div>
                 <form id="add-custom-param-form" class="customparam-form" method="POST" enctype="multipart/form-data" novalidate>
                     {% csrf_token %}
                     <div class="tp-ui-field customparam-field">
                         <label class="tp-ui-field-label" for="{{ form.tsv.id_for_label }}">{% trans "TSV file" %}</label>
                         {{ form.tsv }}
-                        <p class="customparam-help">{% trans "Required. Use one row per protein with a matching accession in the first column." %}</p>
+                        <p class="customparam-help">{% trans "Required. Use one row per protein, with an existing protein accession in the first column and your value in the second column." %}</p>
                         {% if form.tsv.errors %}
                             <p class="customparam-error">{{ form.tsv.errors|striptags }}</p>
                         {% endif %}
@@ -52,12 +71,18 @@
 
                     {% if file_exists %}
                         <p class="customparam-warning tp-state-note tp-state-note--error">
-                            {% blocktrans %}A file with this name already exists. Do you want to replace it?{% endblocktrans %}
+                            {% blocktrans %}A file with this name already exists for this genome. Replace it only if you want to overwrite the indexed values currently available in scoring.{% endblocktrans %}
                         </p>
                         <div class="customparam-actions">
                             <button type="button" class="btn tp-btn tp-btn--danger" onclick="confirmOverwrite()">{% trans "Replace file" %}</button>
                         </div>
                     {% else %}
+                        <div class="customparam-submit-row">
+                            <div class="customparam-submit-copy">
+                                <p class="customparam-submit-title">{% trans "What happens next" %}</p>
+                                <p class="customparam-submit-note">{% trans "The file is indexed immediately and the uploaded signal becomes available as another evidence column for filtering and score design." %}</p>
+                            </div>
+                        </div>
                         <div class="customparam-actions">
                             <button type="submit" class="btn tp-btn tp-btn--primary">{% trans "Upload file" %}</button>
                         </div>
@@ -65,19 +90,45 @@
                 </form>
             </article>
 
-            <aside class="customparam-card tp-ui-panel">
-                <h2>{% trans "Input guide" %}</h2>
-                <ul class="customparam-guide-list">
-                    <li>{% trans "Use tab-separated values (TSV)." %}</li>
-                    <li>{% trans "Include a protein identifier column that matches existing accessions." %}</li>
-                    <li>{% trans "One row per protein score value." %}</li>
-                    <li>{% trans "The second column can be numeric or categorical." %}</li>
-                </ul>
+            <aside class="customparam-card customparam-card--guide tp-ui-panel">
+                <div class="customparam-card-head tp-ui-panel-head">
+                    <div>
+                        <h2>{% trans "Input guide" %}</h2>
+                        <p class="customparam-muted">{% trans "Keep the file simple. This page is meant for attaching one extra evidence channel to the current proteome." %}</p>
+                    </div>
+                </div>
+                <div class="customparam-guide">
+                    <div class="customparam-guide-item">
+                        <span class="customparam-guide-step">1</span>
+                        <div>
+                            <h3>{% trans "Match existing accessions" %}</h3>
+                            <p>{% trans "The first column must contain protein accessions already present in this genome workspace." %}</p>
+                        </div>
+                    </div>
+                    <div class="customparam-guide-item">
+                        <span class="customparam-guide-step">2</span>
+                        <div>
+                            <h3>{% trans "Use one value per protein" %}</h3>
+                            <p>{% trans "The second column can be numeric or categorical, depending on the kind of evidence you want to add." %}</p>
+                        </div>
+                    </div>
+                    <div class="customparam-guide-item">
+                        <span class="customparam-guide-step">3</span>
+                        <div>
+                            <h3>{% trans "Keep the table minimal" %}</h3>
+                            <p>{% trans "A two-column TSV is enough. This keeps matching, indexing, and later interpretation straightforward." %}</p>
+                        </div>
+                    </div>
+                </div>
                 <div class="customparam-guide-sample">
                     <p>{% trans "Example" %}</p>
                     <code>protein_accession&#9;custom_score
 A0A0000001&#9;0.83
 A0A0000002&#9;0.41</code>
+                </div>
+                <div class="customparam-guide-note">
+                    <strong>{% trans "Typical uses" %}:</strong>
+                    {% trans "gene-expression bins, essentiality classes, literature curation, phenotype labels, custom confidence scores, or any other per-protein signal you want to reuse in ranking." %}
                 </div>
             </aside>
         </section>
