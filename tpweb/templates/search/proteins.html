@@ -877,7 +877,7 @@
                                 </form>
                                 {% if entry.is_user_formula %}
                                     <form method="POST"
-                                          action="{% url 'tpwebapp:delete_formula' genome=genome entry.pk %}"
+                                          action="{% url 'tpwebapp:delete_formula' genome=genome formula_pk=entry.pk %}"
                                           class="scoring-formula-delete-form"
                                           onsubmit="return confirm('{% trans "Delete this formula?" %}')">
                                         {% csrf_token %}
