@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/formula-form.css' %}?v=20260511-4">
+    <link rel="stylesheet" href="{% static 'css/pages/formula-form.css' %}?v=20260511-5">
 {% endblock %}
 
 {% block body %}
@@ -182,7 +182,8 @@
                 <p class="formula-footer-note">{% trans "Saves this formula and takes you to the protein list ranked by your score." %}</p>
             </div>
             <div class="formula-footer-actions">
-                <button type="submit" form="formula-form" name="save_formula" value="1" class="btn tp-btn tp-btn--primary">
+                <button id="formula-save-btn" type="submit" form="formula-form" name="save_formula" value="1"
+                        class="btn tp-btn tp-btn--primary" style="display:none">
                     {% trans "Save scoring formula" %}
                 </button>
                 <button type="submit" form="formula-form" name="reset_process" value="true"
@@ -297,6 +298,20 @@
             textarea.addEventListener("input", renderPreview);
             textarea.addEventListener("keyup", renderPreview);
             if (textarea.value) renderPreview();
+        }
+
+        // ── Save button visibility ────────────────────────────────────────
+        const saveBtn = document.getElementById("formula-save-btn");
+        const validationDiv = document.getElementById("formula-validation-result");
+
+        function updateSaveBtn() {
+            if (!saveBtn || !validationDiv) return;
+            const ok = validationDiv.querySelector(".formula-valid-badge--ok");
+            saveBtn.style.display = ok ? "" : "none";
+        }
+
+        if (validationDiv) {
+            validationDiv.addEventListener("htmx:afterSettle", updateSaveBtn);
         }
     })();
     </script>
