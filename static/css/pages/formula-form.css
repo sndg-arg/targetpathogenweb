@@ -18,6 +18,10 @@
     letter-spacing: -0.01em;
 }
 
+.formula-page > form {
+    display: contents;
+}
+
 /* ── Hero ── */
 
 .formula-hero {
