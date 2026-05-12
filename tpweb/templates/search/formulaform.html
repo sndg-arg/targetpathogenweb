@@ -183,7 +183,7 @@
             </div>
             <div class="formula-footer-actions">
                 <button id="formula-save-btn" type="submit" form="formula-form" name="save_formula" value="1"
-                        class="btn tp-btn tp-btn--primary" style="display:none">
+                        class="btn tp-btn tp-btn--primary" disabled>
                     {% trans "Save scoring formula" %}
                 </button>
                 <button type="submit" form="formula-form" name="reset_process" value="true"
@@ -307,7 +307,7 @@
         function updateSaveBtn() {
             if (!saveBtn || !validationDiv) return;
             const ok = validationDiv.querySelector(".formula-valid-badge--ok");
-            saveBtn.style.display = ok ? "" : "none";
+            saveBtn.disabled = !ok;
         }
 
         if (validationDiv) {
