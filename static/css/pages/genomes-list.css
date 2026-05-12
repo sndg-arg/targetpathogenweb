@@ -12,9 +12,11 @@
 .genomes-hero {
     border: 1px solid var(--tp-color-border-soft);
     border-radius: var(--tp-ui-radius-hero);
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
-    padding: 18px;
-    box-shadow: var(--tp-shadow-sm);
+    background:
+        radial-gradient(circle at top right, color-mix(in srgb, var(--tp-color-brand-200) 38%, transparent) 0%, transparent 34%),
+        linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+    padding: 22px 22px 18px;
+    box-shadow: var(--tp-ui-shadow-panel);
     position: relative;
     overflow: hidden;
 }
@@ -44,12 +46,25 @@
     min-width: 0;
 }
 
+.genomes-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: 4px 0 8px;
+    color: var(--tp-color-text-muted);
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
 .genomes-hero h1 {
     margin: 0;
-    font-size: var(--tp-heading-lg);
-    letter-spacing: 0.2px;
+    font-size: clamp(1.9rem, 2.8vw, 2.5rem);
+    letter-spacing: -0.01em;
     color: var(--view-accent-ink);
-    line-height: 1.08;
+    line-height: 1.05;
 }
 
 .genomes-subtitle {
