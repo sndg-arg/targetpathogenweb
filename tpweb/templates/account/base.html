@@ -1,10 +1,15 @@
-{% extends "base.html" %}
-{% block title %}{% block head_title %}{% endblock head_title %}{% endblock title %}
+{% extends "../base/masterpage.html" %}
+{% load i18n %}
+{% load static %}
 
-{% block content %}
-<div class="row">
-  <div class="col-md-6 offset-md-3">
-    {% block inner %}{% endblock %}
-  </div>
-</div>
+{% block head %}
+    <link rel="stylesheet" href="{% static 'css/pages/auth.css' %}?v=20260512-1">
+{% endblock %}
+
+{% block body %}
+    <div class="auth-page">
+        <div class="auth-card">
+            {% block inner %}{% endblock %}
+        </div>
+    </div>
 {% endblock %}

@@ -1,66 +1,18 @@
 {% extends '../base/masterpage.html' %}
 {% load i18n %}
+{% load static %}
 
 {% block head %}
-    <style>
-        .auth-page {
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            padding: 48px 16px;
-            min-height: 60vh;
-        }
-
-        .auth-card {
-            width: 100%;
-            max-width: 420px;
-            border: 1px solid var(--tp-color-border-soft);
-            border-radius: 16px;
-            background: var(--tp-color-surface);
-            box-shadow: var(--tp-shadow-md);
-            padding: 36px 32px 32px;
-            display: grid;
-            gap: 24px;
-            text-align: center;
-        }
-
-        .auth-card h1 {
-            margin: 0;
-            font-family: "Space Grotesk", "Segoe UI", sans-serif;
-            font-size: 1.6rem;
-            font-weight: 700;
-            color: var(--tp-color-text-primary);
-        }
-
-        .auth-card p {
-            margin: 0;
-            color: var(--tp-color-text-muted);
-            font-size: 0.95rem;
-        }
-
-        .auth-actions {
-            display: flex;
-            gap: 12px;
-            justify-content: center;
-        }
-
-        .auth-actions button,
-        .auth-actions a {
-            min-width: 120px;
-            height: 44px;
-            font-weight: 700;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-        }
-    </style>
+    <link rel="stylesheet" href="{% static 'css/pages/auth.css' %}?v=20260512-1">
 {% endblock %}
 
 {% block body %}
     <div class="auth-page">
-        <div class="auth-card">
-            <h1>{% trans "Sign out" %}</h1>
-            <p>{% trans "Are you sure you want to sign out?" %}</p>
+        <div class="auth-card" style="text-align:center">
+            <div class="auth-header">
+                <h1>{% trans "Sign out" %}</h1>
+                <p>{% trans "Are you sure you want to sign out?" %}</p>
+            </div>
 
             <form method="post" action="{% url 'account_logout' %}">
                 {% csrf_token %}

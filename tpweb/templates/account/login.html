@@ -4,140 +4,7 @@
 {% load account %}
 
 {% block head %}
-    <style>
-        .auth-page {
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            padding: 48px 16px;
-            min-height: 60vh;
-        }
-
-        .auth-card {
-            width: 100%;
-            max-width: 420px;
-            border: 1px solid var(--tp-color-border-soft);
-            border-radius: 16px;
-            background: var(--tp-color-surface);
-            box-shadow: var(--tp-shadow-md);
-            padding: 36px 32px 32px;
-            display: grid;
-            gap: 24px;
-        }
-
-        .auth-header {
-            text-align: center;
-        }
-
-        .auth-header h1 {
-            margin: 0;
-            font-family: "Space Grotesk", "Segoe UI", sans-serif;
-            font-size: 1.6rem;
-            font-weight: 700;
-            color: var(--tp-color-text-primary);
-        }
-
-        .auth-header p {
-            margin: 8px 0 0;
-            color: var(--tp-color-text-muted);
-            font-size: 0.92rem;
-        }
-
-        .auth-form {
-            display: grid;
-            gap: 16px;
-        }
-
-        .auth-field {
-            display: grid;
-            gap: 6px;
-        }
-
-        .auth-field label {
-            font-size: 0.82rem;
-            font-weight: 700;
-            color: var(--tp-color-text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-        }
-
-        .auth-field input {
-            width: 100%;
-            height: 44px;
-            padding: 0 14px;
-            border: 1px solid var(--tp-color-border);
-            border-radius: 10px;
-            background: var(--tp-color-surface-soft);
-            color: var(--tp-color-text-primary);
-            font-size: 0.95rem;
-            transition: border-color 150ms ease, box-shadow 150ms ease;
-        }
-
-        .auth-field input:focus {
-            outline: none;
-            border-color: var(--tp-color-brand-600);
-            box-shadow: 0 0 0 3px var(--tp-focus-ring);
-        }
-
-        .auth-field input::placeholder {
-            color: var(--tp-color-text-soft);
-        }
-
-        .auth-field .helptext,
-        .auth-field .errorlist {
-            font-size: 0.8rem;
-            margin: 2px 0 0;
-        }
-
-        .auth-field .errorlist {
-            color: var(--tp-color-danger-ink);
-            list-style: none;
-            padding: 0;
-        }
-
-        .auth-submit {
-            margin-top: 4px;
-        }
-
-        .auth-submit button {
-            width: 100%;
-            height: 46px;
-            font-size: 1rem;
-            font-weight: 700;
-        }
-
-        .auth-footer {
-            text-align: center;
-            color: var(--tp-color-text-muted);
-            font-size: 0.84rem;
-        }
-
-        .auth-footer a {
-            color: var(--tp-color-link);
-            text-decoration: none;
-            font-weight: 600;
-        }
-
-        .auth-footer a:hover {
-            color: var(--tp-color-link-hover);
-            text-decoration: underline;
-        }
-
-        .auth-errors {
-            padding: 10px 14px;
-            border-radius: 10px;
-            background: var(--tp-color-danger-bg);
-            border: 1px solid var(--tp-color-danger-border);
-            color: var(--tp-color-danger-ink);
-            font-size: 0.88rem;
-        }
-
-        .auth-errors ul {
-            margin: 0;
-            padding: 0;
-            list-style: none;
-        }
-    </style>
+    <link rel="stylesheet" href="{% static 'css/pages/auth.css' %}?v=20260512-1">
 {% endblock %}
 
 {% block body %}
@@ -198,6 +65,9 @@
                 </div>
             </form>
 
+            <div class="auth-footer">
+                <a href="{% url 'account_reset_password' %}">{% trans "Forgot your password?" %}</a>
+            </div>
         </div>
     </div>
 {% endblock %}
