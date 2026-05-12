@@ -2,447 +2,32 @@
 {% load i18n %}
 {% load static %}
 
-{% block body %}
-    <style>
-        .explorer-page {
-            display: grid;
-            gap: 12px;
-        }
-
-        .explorer-hero,
-        .explorer-card {
-            border: 1px solid var(--tp-color-border);
-            border-radius: var(--tp-ui-radius-panel);
-            background: var(--tp-color-surface);
-            box-shadow: var(--tp-ui-shadow-panel);
-            padding: 18px;
-        }
-
-        .explorer-hero {
-            position: relative;
-            overflow: hidden;
-            background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
-        }
-
-        .explorer-hero::before {
-            content: "";
-            position: absolute;
-            inset: 0 0 auto 0;
-            height: 4px;
-            background: linear-gradient(90deg, var(--tp-color-brand-800) 0%, var(--tp-color-sage-700) 62%, var(--tp-color-brand-600) 100%);
-        }
-
-        .explorer-hero > * {
-            position: relative;
-            z-index: 1;
-        }
-
-        .explorer-hero h1 {
-            margin: 6px 0 0;
-            color: var(--tp-color-brand-900);
-            font-size: clamp(1.6rem, 2.3vw, 2.05rem);
-            line-height: 1.12;
-        }
-
-        .explorer-subtitle {
-            margin: 8px 0 0;
-            color: var(--tp-color-text-secondary);
-            max-width: 980px;
-            line-height: 1.5;
-        }
-
-        .explorer-meta {
-            margin-top: 12px;
-        }
-
-        .explorer-grid {
-            display: grid;
-            gap: 12px;
-        }
-
-        .explorer-workbench {
-            display: grid;
-            grid-template-columns: minmax(0, 1.32fr) minmax(320px, 0.68fr);
-            gap: 0;
-            padding: 0;
-            overflow: hidden;
-        }
-
-        .explorer-workbench-main,
-        .explorer-workbench-side {
-            min-width: 0;
-        }
-
-        .explorer-workbench-main {
-            padding: 18px;
-        }
-
-        .explorer-workbench-side {
-            border-left: 1px solid color-mix(in srgb, var(--tp-color-border-soft) 82%, white);
-            background: linear-gradient(180deg, color-mix(in srgb, var(--tp-color-surface) 96%, white) 0%, color-mix(in srgb, var(--tp-color-surface-soft) 92%, white) 100%);
-            padding: 18px;
-            display: grid;
-            align-content: start;
-            gap: 16px;
-        }
-
-        .explorer-empty-layout {
-            display: grid;
-            grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
-            gap: 14px;
-        }
-
-        .explorer-empty-card {
-            min-height: 0;
-        }
-
-        .explorer-empty-state {
-            border: 1px dashed var(--tp-color-border);
-            border-radius: 14px;
-            background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
-            padding: 18px;
-            display: grid;
-            gap: 10px;
-        }
-
-        .explorer-empty-state h2 {
-            margin: 0;
-            color: var(--tp-color-brand-900);
-            font-size: 1.18rem;
-        }
-
-        .explorer-empty-state p {
-            margin: 0;
-            color: var(--tp-color-text-secondary);
-            line-height: 1.45;
-            max-width: 64ch;
-        }
-
-        .explorer-empty-actions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 4px;
-        }
-
-        .explorer-empty-facts {
-            display: grid;
-            gap: 10px;
-            align-content: start;
-        }
-
-        .explorer-fact-list {
-            display: grid;
-            gap: 10px;
-        }
-
-        .explorer-fact {
-            border: 1px solid var(--tp-color-border-soft);
-            border-radius: 12px;
-            background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
-            padding: 14px;
-            display: grid;
-            gap: 4px;
-        }
-
-        .explorer-fact-label {
-            color: var(--tp-color-text-muted);
-            font-size: 0.78rem;
-            font-weight: 700;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-        }
-
-        .explorer-fact-value {
-            color: var(--tp-color-brand-900);
-            font-size: 1rem;
-            font-weight: 700;
-            line-height: 1.3;
-        }
-
-        .explorer-plot-shell {
-            min-height: 540px;
-        }
-
-        .explorer-plot-fallback {
-            display: grid;
-            gap: 8px;
-            align-content: center;
-            justify-items: start;
-            min-height: 220px;
-            padding: 18px;
-            border: 1px dashed var(--tp-color-border-soft);
-            border-radius: 12px;
-            background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
-        }
-
-        .explorer-plot-fallback[hidden] {
-            display: none;
-        }
-
-        .explorer-plot-fallback p {
-            margin: 0;
-            color: var(--tp-color-text-secondary);
-            line-height: 1.45;
-            max-width: 56ch;
-        }
-
-        .explorer-head {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-
-        .explorer-head h2 {
-            margin: 0;
-            color: var(--tp-color-brand-900);
-            font-size: 1.02rem;
-            letter-spacing: 0.01em;
-        }
-
-        .explorer-head p {
-            margin: 4px 0 0;
-            color: var(--tp-color-text-muted);
-            font-size: 0.88rem;
-        }
-
-        .explorer-selection {
-            display: grid;
-            gap: 16px;
-        }
-
-        .explorer-selection-card {
-            border: 1px solid var(--tp-color-border-soft);
-            border-radius: 12px;
-            background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
-            padding: 12px;
-            transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
-        }
-
-        .explorer-selection-card.is-empty {
-            border-style: dashed;
-            background: linear-gradient(180deg, color-mix(in srgb, var(--tp-color-surface-soft) 94%, white) 0%, color-mix(in srgb, var(--tp-color-surface) 90%, white) 100%);
-        }
-
-        .explorer-selection-card.is-empty .explorer-action-link {
-            display: none;
-        }
-
-        .explorer-selection-card.is-active {
-            border-color: color-mix(in srgb, var(--tp-color-brand-400) 60%, var(--tp-color-border));
-            box-shadow: 0 0 0 1px color-mix(in srgb, var(--tp-color-brand-300) 34%, transparent);
-        }
-
-        .explorer-selection-card h3 {
-            margin: 0 0 4px;
-            color: var(--tp-color-brand-900);
-            font-size: 1rem;
-        }
-
-        .explorer-selection-card p {
-            margin: 0;
-            color: var(--tp-color-text-secondary);
-            line-height: 1.4;
-        }
-
-        .explorer-selection-path {
-            display: none;
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 1px solid color-mix(in srgb, var(--tp-color-border-soft) 78%, white);
-        }
-
-        .explorer-selection-path.is-visible {
-            display: grid;
-            gap: 6px;
-        }
-
-        .explorer-selection-path-label {
-            color: var(--tp-color-text-muted);
-            font-size: 0.78rem;
-            font-weight: 700;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-        }
-
-        .explorer-selection-path-items {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-        }
-
-        .explorer-selection-path-item {
-            display: inline-flex;
-            align-items: center;
-            min-height: 26px;
-            padding: 0 10px;
-            border: 1px solid color-mix(in srgb, var(--tp-color-brand-300) 58%, var(--tp-color-border));
-            border-radius: 999px;
-            background: linear-gradient(180deg, color-mix(in srgb, var(--tp-color-surface) 90%, white) 0%, color-mix(in srgb, var(--tp-color-surface-soft) 84%, white) 100%);
-            color: var(--tp-color-brand-900);
-            font-size: 0.88rem;
-            line-height: 1.2;
-        }
-
-        .explorer-search {
-            width: 100%;
-        }
-
-        .explorer-side-panel {
-            display: grid;
-            gap: 10px;
-        }
-
-        .explorer-side-panel + .explorer-side-panel {
-            padding-top: 16px;
-            border-top: 1px solid color-mix(in srgb, var(--tp-color-border-soft) 82%, white);
-        }
-
-        .explorer-table-shell {
-            height: 340px;
-            min-height: 340px;
-            scrollbar-gutter: stable;
-            border: 1px solid var(--tp-color-border-soft);
-            border-radius: 14px;
-            background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
-            overflow: hidden;
-        }
-
-        .explorer-table-shell > .tp-table-shell__scroll,
-        .explorer-table-shell.tp-table-shell--with-export > .tp-table-shell__scroll {
-            height: calc(340px - 52px);
-            max-height: calc(340px - 52px);
-            overflow-y: scroll !important;
-            overflow-x: hidden !important;
-            overscroll-behavior: contain;
-            -webkit-overflow-scrolling: touch;
-            scrollbar-gutter: stable;
-        }
-
-        .explorer-table-shell table {
-            margin-bottom: 0;
-        }
-
-        .explorer-table-shell thead th {
-            position: sticky;
-            top: 0;
-            z-index: 2;
-            background: linear-gradient(180deg, color-mix(in srgb, var(--tp-color-surface-soft) 86%, white) 0%, color-mix(in srgb, var(--tp-color-surface-muted) 80%, white) 100%);
-        }
-
-        .explorer-table-shell > .tp-table-shell__scroll::-webkit-scrollbar,
-        .explorer-table-shell.tp-table-shell--with-export > .tp-table-shell__scroll::-webkit-scrollbar {
-            width: 13px;
-        }
-
-        .explorer-table-shell > .tp-table-shell__scroll::-webkit-scrollbar-track,
-        .explorer-table-shell.tp-table-shell--with-export > .tp-table-shell__scroll::-webkit-scrollbar-track {
-            background: color-mix(in srgb, var(--tp-color-surface-muted) 86%, white);
-            border-radius: 999px;
-        }
-
-        .explorer-table-shell > .tp-table-shell__scroll::-webkit-scrollbar-thumb,
-        .explorer-table-shell.tp-table-shell--with-export > .tp-table-shell__scroll::-webkit-scrollbar-thumb {
-            background: linear-gradient(180deg, color-mix(in srgb, var(--tp-color-brand-400) 82%, white) 0%, color-mix(in srgb, var(--tp-color-brand-700) 76%, white) 100%);
-            border-radius: 999px;
-            border: 2px solid color-mix(in srgb, var(--tp-color-surface-muted) 86%, white);
-        }
-
-        .explorer-table-empty {
-            display: none;
-            margin-top: 10px;
-            color: var(--tp-color-text-muted);
-            font-size: 0.92rem;
-        }
-
-        .explorer-table-empty.is-visible {
-            display: block;
-        }
-
-        .explorer-annotation-row.is-active {
-            background: linear-gradient(180deg, color-mix(in srgb, var(--tp-color-surface-soft) 78%, white) 0%, color-mix(in srgb, var(--tp-color-surface-muted) 72%, white) 100%);
-        }
-
-        .explorer-annotation-row.is-active strong {
-            color: var(--tp-color-brand-900);
-        }
-
-        .explorer-table-shell .explorer-select-btn,
-        .explorer-table-shell .js-select-annotation {
-            appearance: none;
-            -webkit-appearance: none;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 92px;
-            padding: 0.52rem 0.95rem;
-            border-radius: 10px;
-            border: 1.5px solid color-mix(in srgb, var(--tp-color-brand-700) 74%, var(--tp-color-border)) !important;
-            font-weight: 700;
-            color: var(--tp-color-brand-900) !important;
-            background: linear-gradient(180deg, color-mix(in srgb, var(--tp-color-surface) 92%, white) 0%, color-mix(in srgb, var(--tp-color-surface-soft) 86%, white) 100%) !important;
-            box-shadow: 0 1px 2px color-mix(in srgb, var(--tp-color-brand-900) 8%, transparent);
-        }
-
-        .explorer-table-shell .explorer-select-btn.is-active,
-        .explorer-table-shell .js-select-annotation.is-active {
-            color: var(--tp-color-brand-900);
-            border-color: color-mix(in srgb, var(--tp-color-brand-400) 62%, var(--tp-color-border));
-            background: color-mix(in srgb, var(--tp-color-surface-soft) 74%, white);
-            box-shadow: 0 0 0 1px color-mix(in srgb, var(--tp-color-brand-300) 28%, transparent);
-        }
-
-        .explorer-table-shell .explorer-select-btn:hover,
-        .explorer-table-shell .explorer-select-btn:focus-visible,
-        .explorer-table-shell .js-select-annotation:hover,
-        .explorer-table-shell .js-select-annotation:focus-visible {
-            border-color: color-mix(in srgb, var(--tp-color-brand-600) 68%, var(--tp-color-border)) !important;
-            background: color-mix(in srgb, var(--tp-color-surface-soft) 78%, white) !important;
-            color: var(--tp-color-brand-900) !important;
-        }
-
-        .explorer-action-link {
-            margin-top: 10px;
-        }
-
-        @media (max-width: 980px) {
-            .explorer-grid,
-            .explorer-workbench,
-            .explorer-empty-layout {
-                grid-template-columns: 1fr;
-            }
-
-            .explorer-workbench-side {
-                border-left: 0;
-                border-top: 1px solid color-mix(in srgb, var(--tp-color-border-soft) 82%, white);
-            }
-        }
-    </style>
-
+{% block head %}
+    <link rel="stylesheet" href="{% static 'css/pages/annotation-explorer.css' %}?v=20260512-1">
     <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+{% endblock %}
+
+{% block body %}
     {{ explorer.chart|json_script:"annotation-chart-data" }}
 
     <div class="explorer-page">
         <section class="explorer-hero">
+            {% trans "Home" as crumb_home %}
+            {% trans "Genomes" as crumb_genomes %}
+            {% trans "Proteins" as crumb_proteins %}
+            {% if explorer.kind == "ec" %}
+                {% trans "EC tree" as crumb_explorer %}
+            {% else %}
+                {% trans "GO terms" as crumb_explorer %}
+            {% endif %}
+            {% url 'tpwebapp:index' as index_url %}
+            {% url 'tpwebapp:genomes_list' as genomes_url %}
+            {% url 'tpwebapp:assembly' genome as assembly_url %}
+            {% url 'tpwebapp:protein_list' genome=genome as proteins_url %}
+            {% with crumb_workspace="Genome: "|add:assembly_label %}
             <div class="tp-view-head">
                 <div class="tp-view-head-copy">
-                    {% trans "Home" as crumb_home %}
-                    {% trans "Genomes" as crumb_genomes %}
-                    {% trans "Proteins" as crumb_proteins %}
-                    {% if explorer.kind == "ec" %}
-                        {% trans "EC tree" as crumb_explorer %}
-                    {% else %}
-                        {% trans "GO terms" as crumb_explorer %}
-                    {% endif %}
-                    {% url 'tpwebapp:index' as index_url %}
-                    {% url 'tpwebapp:genomes_list' as genomes_url %}
-                    {% url 'tpwebapp:assembly' genome as assembly_url %}
-                    {% url 'tpwebapp:protein_list' genome=genome as proteins_url %}
-                    {% with crumb_workspace="Genome: "|add:assembly_label %}
                     {% include "components/navigation/breadcrumbs.html" with crumb_1_label=crumb_home crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_workspace crumb_3_url=assembly_url crumb_4_label=crumb_proteins crumb_4_url=proteins_url crumb_5_label=crumb_explorer %}
-                    {% endwith %}
                 </div>
                 <div class="tp-view-head-actions">
                     <a href="{{ view_export_url }}" class="btn tp-btn tp-btn--neutral tp-btn-with-icon tp-view-export-link">
@@ -451,10 +36,15 @@
                     </a>
                 </div>
             </div>
+            {% endwith %}
+
+            <span class="explorer-eyebrow">
+                {% if explorer.kind == "ec" %}{% trans "Functional annotation · EC hierarchy" %}{% else %}{% trans "Functional annotation · GO terms" %}{% endif %}
+            </span>
             <h1>{% blocktrans with kind=explorer.kind_label %}Filter proteins by {{ kind }} hierarchy{% endblocktrans %}</h1>
             <p class="explorer-subtitle">
                 {% blocktrans with assembly=assembly_label kind=explorer.kind_label %}
-                    Browse the {{ kind }} annotation hierarchy for {{ assembly }} and select a node to open the corresponding proteins in the ranking table. The interactive hierarchy is rendered with Krona.
+                    Browse the {{ kind }} annotation hierarchy for {{ assembly }} and select a node to open the corresponding proteins in the ranking table.
                 {% endblocktrans %}
             </p>
             <div class="explorer-meta tp-chip-group">
@@ -489,8 +79,8 @@
                     <section class="explorer-side-panel">
                         <div class="explorer-head">
                             <div>
-                            <h2>{% trans "Selected annotation" %}</h2>
-                            <p>{% trans "Selection syncs with clicks from the hierarchy or the table." %}</p>
+                                <h2>{% trans "Selected annotation" %}</h2>
+                                <p>{% trans "Selection syncs with clicks from the hierarchy or the table." %}</p>
                             </div>
                         </div>
                         <div class="explorer-selection-card is-empty" id="selected-annotation-card">
@@ -510,14 +100,14 @@
                     <section class="explorer-side-panel">
                         <div class="explorer-head">
                             <div>
-                            <h2>{% trans "Search annotation terms" %}</h2>
-                            <p>{% trans "Filter the annotation table by accession or description." %}</p>
+                                <h2>{% trans "Search annotation terms" %}</h2>
+                                <p>{% trans "Filter the annotation table by accession or description." %}</p>
                             </div>
                         </div>
                         <input id="annotation-search-input"
                                type="text"
                                class="form-control explorer-search"
-                               placeholder="{% trans "Search accession or description..." %}">
+                               placeholder="{% trans 'Search accession or description…' %}">
                         <div class="explorer-table-shell tp-table-shell mt-3">
                             <table class="table table-striped table-hover mb-0 tp-table tp-table--plain tp-table--premium"
                                    data-export-url="{{ export_url }}"
@@ -559,6 +149,7 @@
                     </section>
                 </aside>
             </section>
+
         {% else %}
             <section class="explorer-empty-layout">
                 <article class="explorer-card explorer-empty-card">
@@ -635,12 +226,8 @@
             let currentEcDisplayRootId = chartData && chartData.ids ? chartData.ids[0] : "";
 
             function clearRowSelection() {
-                rowElements.forEach(function (row) {
-                    row.classList.remove("is-active");
-                });
-                rowButtons.forEach(function (button) {
-                    button.classList.remove("is-active");
-                });
+                rowElements.forEach(function (row) { row.classList.remove("is-active"); });
+                rowButtons.forEach(function (button) { button.classList.remove("is-active"); });
             }
 
             function updateRowSelection(accession) {
@@ -652,9 +239,7 @@
                 if (!row) return;
                 row.classList.add("is-active");
                 const button = row.querySelector(".js-select-annotation");
-                if (button) {
-                    button.classList.add("is-active");
-                }
+                if (button) button.classList.add("is-active");
             }
 
             function buildParentMap() {
@@ -700,12 +285,8 @@
                 const activeIds = targetId ? ancestorSet(targetId) : null;
                 return chartData.ids.map(function (id) {
                     const depth = nodeDepth(id, chartParentMap);
-                    if (!activeIds) {
-                        return colorForDepth(depth, basePalette);
-                    }
-                    if (activeIds.has(id)) {
-                        return colorForDepth(depth, activePalette);
-                    }
+                    if (!activeIds) return colorForDepth(depth, basePalette);
+                    if (activeIds.has(id)) return colorForDepth(depth, activePalette);
                     return mutedColor;
                 });
             }
@@ -726,10 +307,7 @@
                 const index = chartData.ids.indexOf(id);
                 if (index < 0) return "";
                 const hover = (chartData.hover_labels || [])[index] || "";
-                if (hover) {
-                    return hover;
-                }
-                return (chartData.labels || [])[index] || nodeAccessionFromId(id);
+                return hover || (chartData.labels || [])[index] || nodeAccessionFromId(id);
             }
 
             function buildPathDescriptors(accession) {
@@ -777,17 +355,11 @@
                 if (!chartData || !chartData.ids) return [];
                 const labels = chartData.labels || [];
                 return chartData.ids.map(function (id, index) {
-                    if (annotationKind !== "ec") {
-                        return labels[index];
-                    }
-                    if (id === chartData.ids[0]) {
-                        return labels[index] || nodeAccessionFromId(id);
-                    }
+                    if (annotationKind !== "ec") return labels[index];
+                    if (id === chartData.ids[0]) return labels[index] || nodeAccessionFromId(id);
                     const accession = nodeAccessionFromId(id);
                     const relativeDepth = nodeDepthFromRoot(id, displayRootId);
-                    if (relativeDepth === 1) {
-                        return labels[index] || accession;
-                    }
+                    if (relativeDepth === 1) return labels[index] || accession;
                     return accession;
                 });
             }
@@ -795,9 +367,7 @@
             function updatePlotLabels(displayRootId) {
                 if (!plotTarget || !window.Plotly || !chartData || !chartData.ids) return;
                 currentEcDisplayRootId = displayRootId || chartData.ids[0];
-                Plotly.restyle(plotTarget, {
-                    labels: [buildDisplayLabels(currentEcDisplayRootId)]
-                });
+                Plotly.restyle(plotTarget, { labels: [buildDisplayLabels(currentEcDisplayRootId)] });
             }
 
             function updatePlotSelection(accession) {
@@ -805,9 +375,7 @@
                 const targetId = accession ? chartData.ids.find(function (id) {
                     return String(id).split(":").slice(1).join(":") === accession;
                 }) : "";
-                Plotly.restyle(plotTarget, {
-                    "marker.colors": [buildMarkerColors(targetId)]
-                });
+                Plotly.restyle(plotTarget, { "marker.colors": [buildMarkerColors(targetId)] });
             }
 
             function updateVisibleRowCount() {
@@ -833,16 +401,12 @@
                     updatePlotSelection("");
                     return;
                 }
-
                 if (selectedCard) selectedCard.classList.remove("is-empty");
                 if (selectedCard) selectedCard.classList.add("is-active");
                 selectedAccession.textContent = accession;
                 selectedCopy.textContent = name || "{{ selected_link_copy|escapejs }}";
                 renderSelectionPath(accession);
-                const params = new URLSearchParams({
-                    annotation_kind: annotationKind,
-                    annotation_value: accession,
-                });
+                const params = new URLSearchParams({ annotation_kind: annotationKind, annotation_value: accession });
                 selectedLink.setAttribute("href", proteinBaseUrl + "?" + params.toString());
                 selectedLink.setAttribute("aria-disabled", "false");
                 selectedLink.classList.remove("is-disabled");
@@ -851,12 +415,8 @@
             }
 
             function enableFallback() {
-                if (plotFallback) {
-                    plotFallback.hidden = false;
-                }
-                if (plotTarget) {
-                    plotTarget.hidden = true;
-                }
+                if (plotFallback) plotFallback.hidden = false;
+                if (plotTarget) plotTarget.hidden = true;
             }
 
             if (plotTarget && chartData && window.Plotly) {
@@ -874,9 +434,7 @@
                             insidetextorientation: "auto",
                             hovertext: chartData.hover_labels,
                             hovertemplate: "<b>%{hovertext}</b><br>%{value} proteins<extra></extra>",
-                            marker: {
-                                colors: buildMarkerColors("")
-                            }
+                            marker: { colors: buildMarkerColors("") }
                         }],
                         {
                             margin: {t: 0, r: 0, b: 0, l: 0},
@@ -891,11 +449,6 @@
                         var point = event.points && event.points[0];
                         if (!point) return;
                         var clickedId = point.id || "";
-
-                        /* event.nextLevel tells us the new visible root after
-                           this click.  When drilling in it equals the clicked
-                           node; when zooming out (clicking the center) it is
-                           undefined/empty — meaning we return to the tree root. */
                         var nextLevel = event.nextLevel || "";
                         if (annotationKind === "ec") {
                             if (!nextLevel || String(nextLevel).endsWith(":root")) {
@@ -935,9 +488,7 @@
 
             if (selectedLink) {
                 selectedLink.addEventListener("click", function (event) {
-                    if (selectedLink.getAttribute("aria-disabled") === "true") {
-                        event.preventDefault();
-                    }
+                    if (selectedLink.getAttribute("aria-disabled") === "true") event.preventDefault();
                 });
             }
 
