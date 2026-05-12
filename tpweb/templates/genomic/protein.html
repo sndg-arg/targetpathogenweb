@@ -15,13 +15,14 @@
                     {% trans "Home" as crumb_home %}
                     {% trans "Genomes" as crumb_genomes %}
                     {% trans "Proteins" as crumb_proteins %}
-                    {% trans "Protein details" as crumb_protein_detail %}
                     {% url 'tpwebapp:index' as index_url %}
                     {% url 'tpwebapp:genomes_list' as genomes_url %}
                     {% url 'tpwebapp:assembly' protein.genome as assembly_url %}
                     {% url 'tpwebapp:protein_list' protein.genome as proteins_url %}
                     {% with crumb_genome_overview="Genome: "|add:protein.assembly_label %}
-                    {% include "components/navigation/breadcrumbs.html" with crumb_1_label=crumb_home crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_genome_overview crumb_3_url=assembly_url crumb_4_label=crumb_proteins crumb_4_url=proteins_url crumb_5_label=crumb_protein_detail %}
+                    {% with crumb_protein=protein.accession|add:" · "|add:protein.description %}
+                    {% include "components/navigation/breadcrumbs.html" with crumb_1_label=crumb_home crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_genome_overview crumb_3_url=assembly_url crumb_4_label=crumb_proteins crumb_4_url=proteins_url crumb_5_label=crumb_protein %}
+                    {% endwith %}
                     {% endwith %}
                     <p class="protein-hero-eyebrow">{% trans "Protein profile" %}</p>
                     <h1>{{ protein.accession }}</h1>
