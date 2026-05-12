@@ -18,9 +18,10 @@ from tpweb.models.BioentryStructure import BioentryStructure
 from tpweb.models.GenomeUpload import GenomeUpload
 from tpweb.models.PipelineRun import PipelineRun
 from tpweb.models.ScoreFormula import ScoreFormula
-from tpweb.models.ScoreParam import ScoreParam
+from tpweb.models.ScoreParam import ScoreParam, ScoreParamOptions
 from tpweb.services.assembly_workspace import build_assembly_workspace_metrics
 from tpweb.services.assembly_overview import build_assembly_overview
+from tpweb.services.formula_evaluator import available_variables_grouped, build_all_options_zero
 from tpweb.services.genome_uploads import (
     _finalize_upload,
     build_queue_position_map,
@@ -607,6 +608,30 @@ class WorkspaceIsolationTests(TestCase):
         self.assertIn("GlobalBuiltin", formula_names)
         self.assertIn("AliceCustom", formula_names)
         self.assertNotIn("BobCustom", formula_names)
+
+    def test_expression_variable_helpers_use_public_workspace_for_anonymous_user(self):
+        global_param = self.create_score_param(name="GlobalBuiltin", category="Protein", user=None)
+        public_param = self.create_score_param(name="PublicCustom", category="Custom", user=self.public_user)
+        alice_param = self.create_score_param(name="AliceCustom", category="Custom", user=self.alice)
+
+        ScoreParamOptions.objects.create(score_param=global_param, name="High", description="")
+        ScoreParamOptions.objects.create(score_param=public_param, name="Y", description="")
+        ScoreParamOptions.objects.create(score_param=alice_param, name="Private", description="")
+
+        zero_cache = build_all_options_zero(AnonymousUser())
+        self.assertIn("globalbuiltin_high", zero_cache)
+        self.assertIn("publiccustom_y", zero_cache)
+        self.assertNotIn("alicecustom_private", zero_cache)
+
+        grouped = available_variables_grouped(AnonymousUser())
+        flattened = {
+            entry["var"]
+            for entries in grouped.values()
+            for entry in entries
+        }
+        self.assertIn("globalbuiltin_high", flattened)
+        self.assertIn("publiccustom_y", flattened)
+        self.assertNotIn("alicecustom_private", flattened)
 
     def test_workspace_genome_names_are_hidden_from_other_users(self):
         alice_internal = build_workspace_genome_name("NZ_AP023069.1", self.alice)

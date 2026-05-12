@@ -113,10 +113,12 @@ def build_all_options_zero(user=None):
     """
     from tpweb.models.ScoreParam import ScoreParamOptions
     from django.db.models import Q
+    from tpweb.services.workspace import resolve_workspace_user
 
     qs = ScoreParamOptions.objects.select_related("score_param")
     if user is not None:
-        qs = qs.filter(Q(score_param__user__isnull=True) | Q(score_param__user=user))
+        workspace_user = resolve_workspace_user(user)
+        qs = qs.filter(Q(score_param__user__isnull=True) | Q(score_param__user=workspace_user))
     else:
         qs = qs.filter(score_param__user__isnull=True)
 
@@ -153,10 +155,12 @@ def available_variables_grouped(user=None):
     """Return variables grouped by ScoreParam category for the UI palette."""
     from tpweb.models.ScoreParam import ScoreParam, ScoreParamOptions
     from django.db.models import Q
+    from tpweb.services.workspace import resolve_workspace_user
 
     if user is not None:
+        workspace_user = resolve_workspace_user(user)
         param_qs = ScoreParam.objects.filter(
-            Q(user__isnull=True) | Q(user=user), type="C"
+            Q(user__isnull=True) | Q(user=workspace_user), type="C"
         ).prefetch_related("choices").order_by("category", "name")
     else:
         param_qs = ScoreParam.objects.filter(
