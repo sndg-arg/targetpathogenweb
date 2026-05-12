@@ -712,7 +712,7 @@ class ProteinListView(View):
                 "is_default": bool(f.default),
                 "is_current": f.pk == current_formula_pk,
                 "expression": f.get_current_formula(),
-                "is_user_formula": f.user_id is not None and f.user == workspace_user_for_drawer,
+                "is_user_formula": f.user_id is not None and f.user_id == getattr(workspace_user_for_drawer, "pk", None),
             })
 
         workspace_user = resolve_workspace_user(request.user)
