@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20260309-9">
+    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20260512-1">
 {% endblock %}
 
 {% block body %}
@@ -103,37 +103,27 @@
 
                 {% if structure.pockets %}
                     <div class="mini-section">
-                        <h3>{% trans "Pockets" %} (FPOCKET)</h3>
-                        <p class="table-hint">{% trans "Druggability is color-coded: high (0.7 or higher), medium (0.4 to 0.69), low (below 0.4)." %}</p>
-                        <div class="table-shell">
-                            <table id="pocketsTable" class="table table-striped table-hover table-sm tp-table tp-table--plain tp-table--premium">
-                                <thead>
-                                <tr>
-                                    <th>FPOCKET</th>
-                                    <th>{% trans "Sticks" %}</th>
-                                    <th>{% trans "Spheres" %}</th>
-                                    <th>{% trans "Surfaces" %}</th>
-                                    <th>{% trans "Druggability" %}</th>
-                                    <th>{% trans "Labels" %}</th>
-                                    <th>{% trans "Zoom" %}</th>
-                                    <th>{% trans "Positions" %}</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                {% for p in structure.pockets %}
-                                    <tr>
-                                        <td>{{ p.name }}</td>
-                                        <td><input type="checkbox" class="structure-toggle" aria-label="Toggle sticks {{ p.name }}" onchange="toogle_view('{{p.name}}_atm')" /></td>
-                                        <td><input type="checkbox" class="structure-toggle" aria-label="Toggle spheres {{ p.name }}" onchange="toogle_view('{{p.name}}_sph')" /></td>
-                                        <td><input type="checkbox" class="structure-toggle" aria-label="Toggle surfaces {{ p.name }}" onchange="toogle_view('{{p.name}}_pol');toogle_view('{{p.name}}_apol')" /></td>
-                                        <td><span class="tp-score-tag js-score-tag" data-score="{{ p.druggability }}">{{ p.druggability }}</span></td>
-                                        <td><input type="checkbox" class="structure-toggle" aria-label="Toggle labels {{ p.name }}" onchange="toogle_view('{{p.name}}_lbl')" /></td>
-                                        <td><button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm structure-table-btn" onclick="ngl_zoom_to('{{p.name}}_zoom')">{% trans "Zoom" %}</button></td>
-                                        <td><button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm structure-table-btn js-show-residues" data-residues="{{ p.residues | join:' ' }}">{% trans "Show" %}</button></td>
-                                    </tr>
-                                {% endfor %}
-                                </tbody>
-                            </table>
+                        <h3>{% trans "Binding pockets" %} · FPocket</h3>
+                        <p class="table-hint">{% trans "Druggability: high ≥ 0.7 · medium 0.4–0.69 · low < 0.4" %}</p>
+                        <div class="pocket-cards">
+                            {% for p in structure.pockets %}
+                                <div class="pocket-card">
+                                    <div class="pocket-card-head">
+                                        <strong class="pocket-card-name">{{ p.name }}</strong>
+                                        <span class="tp-score-tag js-score-tag" data-score="{{ p.druggability }}">{{ p.druggability }}</span>
+                                    </div>
+                                    <div class="pocket-card-reprs">
+                                        <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="{{p.name}}_atm" aria-pressed="false">{% trans "Ball & stick" %}</button>
+                                        <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="{{p.name}}_sph" aria-pressed="false">{% trans "Space-fill" %}</button>
+                                        <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="{{p.name}}_pol {{p.name}}_apol" aria-pressed="false">{% trans "Surface" %}</button>
+                                        <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="{{p.name}}_lbl" aria-pressed="false">{% trans "Labels" %}</button>
+                                    </div>
+                                    <div class="pocket-card-actions">
+                                        <button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm" onclick="ngl_zoom_to('{{p.name}}_zoom')">{% trans "Zoom" %}</button>
+                                        <button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm js-show-residues" data-residues="{{ p.residues|join:' ' }}">{% trans "Positions" %}</button>
+                                    </div>
+                                </div>
+                            {% endfor %}
                         </div>
                     </div>
                 {% endif %}
@@ -141,39 +131,28 @@
                 {% if structure.p2_pockets %}
                     <div class="mini-section">
                         <details class="data-details">
-                            <summary>{% trans "Show P2RANK pockets" %}</summary>
-                            <p class="table-hint px-3 pt-2">{% trans "Probability is color-coded per P2Rank calibration: high (&ge; 0.5), medium (0.2 &ndash; 0.49), low (&lt; 0.2)." %}</p>
-                            <div class="table-shell">
-                                <table id="p2pocketsTable" class="table table-striped table-hover table-sm tp-table tp-table--plain tp-table--premium">
-                                    <thead>
-                                    <tr>
-                                        <th>P2RANK</th>
-                                        <th>{% trans "Sticks" %}</th>
-                                        <th>{% trans "Spheres" %}</th>
-                                        <th>{% trans "Surfaces" %}</th>
-                                        <th>{% trans "Score" %}</th>
-                                        <th>{% trans "Probability" %}</th>
-                                        <th>{% trans "Labels" %}</th>
-                                        <th>{% trans "Zoom" %}</th>
-                                        <th>{% trans "Positions" %}</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    {% for p2 in structure.p2_pockets %}
-                                        <tr>
-                                            <td>{{ p2.name }}</td>
-                                            <td><input type="checkbox" class="structure-toggle" aria-label="Toggle sticks {{ p2.name }}" onchange="toogle_view('p2_{{p2.name}}_atm')" /></td>
-                                            <td><input type="checkbox" class="structure-toggle" aria-label="Toggle spheres {{ p2.name }}" onchange="toogle_view('p2_{{p2.name}}_sph')" /></td>
-                                            <td><input type="checkbox" class="structure-toggle" aria-label="Toggle surfaces {{ p2.name }}" onchange="toogle_view('p2_{{p2.name}}_pol');toogle_view('p2_{{p2.name}}_apol')" /></td>
-                                            <td><span class="tp-score-tag js-score-tag" data-score="{{ p2.p2score }}">{{ p2.p2score }}</span></td>
-                                            <td><span class="tp-score-tag js-score-tag" data-score="{{ p2.probability }}" data-score-type="p2rank-prob">{{ p2.probability }}</span></td>
-                                            <td><input type="checkbox" class="structure-toggle" aria-label="Toggle labels {{ p2.name }}" onchange="toogle_view('p2_{{p2.name}}_lbl')" /></td>
-                                            <td><button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm structure-table-btn" onclick="ngl_zoom_to('p2_{{p2.name}}_zoom')">{% trans "Zoom" %}</button></td>
-                                            <td><button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm structure-table-btn js-show-residues" data-residues="{{ p2.residues | join:' ' }}">{% trans "Show" %}</button></td>
-                                        </tr>
-                                    {% endfor %}
-                                    </tbody>
-                                </table>
+                            <summary>{% trans "Binding pockets" %} · P2Rank</summary>
+                            <p class="table-hint p-3 pb-0">{% trans "Probability: high ≥ 0.5 · medium 0.2–0.49 · low < 0.2" %}</p>
+                            <div class="pocket-cards p-3 pt-2">
+                                {% for p2 in structure.p2_pockets %}
+                                    <div class="pocket-card">
+                                        <div class="pocket-card-head">
+                                            <strong class="pocket-card-name">{{ p2.name }}</strong>
+                                            <span class="tp-score-tag js-score-tag" data-score="{{ p2.p2score }}">{{ p2.p2score }}</span>
+                                            <span class="tp-score-tag js-score-tag" data-score="{{ p2.probability }}" data-score-type="p2rank-prob">{{ p2.probability }}</span>
+                                        </div>
+                                        <div class="pocket-card-reprs">
+                                            <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="p2_{{p2.name}}_atm" aria-pressed="false">{% trans "Ball & stick" %}</button>
+                                            <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="p2_{{p2.name}}_sph" aria-pressed="false">{% trans "Space-fill" %}</button>
+                                            <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="p2_{{p2.name}}_pol p2_{{p2.name}}_apol" aria-pressed="false">{% trans "Surface" %}</button>
+                                            <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="p2_{{p2.name}}_lbl" aria-pressed="false">{% trans "Labels" %}</button>
+                                        </div>
+                                        <div class="pocket-card-actions">
+                                            <button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm" onclick="ngl_zoom_to('p2_{{p2.name}}_zoom')">{% trans "Zoom" %}</button>
+                                            <button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm js-show-residues" data-residues="{{ p2.residues|join:' ' }}">{% trans "Positions" %}</button>
+                                        </div>
+                                    </div>
+                                {% endfor %}
                             </div>
                         </details>
                     </div>
@@ -182,30 +161,21 @@
                 {% if structure.residuesets %}
                     <div class="mini-section">
                         <details class="data-details">
-                            <summary>{% trans "Show residue sets" %}</summary>
-                            <div class="table-shell">
-                                <table id="residuesetsTable" class="table table-striped table-hover table-sm tp-table tp-table--plain tp-table--premium">
-                                    <thead>
-                                    <tr>
-                                        <th>{% trans "Type" %}</th>
-                                        <th>{% trans "Name" %}</th>
-                                        <th>{% trans "View" %}</th>
-                                        <th>{% trans "Zoom" %}</th>
-                                        <th>{% trans "Positions" %}</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    {% for rs in structure.residuesets %}
-                                        <tr>
-                                            <td>{{ rs.rs_name }}</td>
-                                            <td><a title="{{ rs.description }}">{{ rs.description }}</a></td>
-                                            <td><input type="checkbox" class="structure-toggle" aria-label="Toggle residue set {{ rs.name }}" onchange="toogle_view('{{rs.name}}')" /></td>
-                                            <td><button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm structure-table-btn" onclick="ngl_zoom_to('{{rs.name}}_zoom')">{% trans "Zoom" %}</button></td>
-                                            <td><button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm structure-table-btn js-show-residues" data-residues="{{ rs.residues | join:' ' }}">{% trans "Show" %}</button></td>
-                                        </tr>
-                                    {% endfor %}
-                                    </tbody>
-                                </table>
+                            <summary>{% trans "Residue sets" %}</summary>
+                            <div class="residueset-list">
+                                {% for rs in structure.residuesets %}
+                                    <div class="residueset-row">
+                                        <div class="residueset-row-info">
+                                            <span class="residueset-type">{{ rs.rs_name }}</span>
+                                            <span class="residueset-name" title="{{ rs.description }}">{{ rs.description }}</span>
+                                        </div>
+                                        <div class="residueset-row-actions">
+                                            <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="{{rs.name}}" aria-pressed="false">{% trans "Show" %}</button>
+                                            <button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm" onclick="ngl_zoom_to('{{rs.name}}_zoom')">{% trans "Zoom" %}</button>
+                                            <button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm js-show-residues" data-residues="{{ rs.residues|join:' ' }}">{% trans "Positions" %}</button>
+                                        </div>
+                                    </div>
+                                {% endfor %}
                             </div>
                         </details>
                     </div>
@@ -450,8 +420,37 @@
                 return $(selector).DataTable(options || {});
             }
 
+            function setReprToggles() {
+                document.addEventListener("click", function (event) {
+                    const btn = event.target.closest(".js-repr-toggle");
+                    if (!btn) return;
+                    const reprs = (btn.getAttribute("data-repr") || "").trim().split(/\s+/).filter(Boolean);
+                    const isPressed = btn.getAttribute("aria-pressed") === "true";
+
+                    // If this is a visualization repr (not Labels), deactivate siblings in the same card
+                    const card = btn.closest(".pocket-card");
+                    if (card && btn.getAttribute("data-repr") && !btn.getAttribute("data-repr").endsWith("_lbl")) {
+                        const vizBtns = Array.from(card.querySelectorAll(".js-repr-toggle")).filter(function (b) {
+                            return !b.getAttribute("data-repr").endsWith("_lbl");
+                        });
+                        vizBtns.forEach(function (sibling) {
+                            if (sibling === btn) return;
+                            if (sibling.getAttribute("aria-pressed") === "true") {
+                                const sibReprs = (sibling.getAttribute("data-repr") || "").trim().split(/\s+/).filter(Boolean);
+                                sibReprs.forEach(function (r) { window.toogle_view(r); });
+                                sibling.setAttribute("aria-pressed", "false");
+                            }
+                        });
+                    }
+
+                    reprs.forEach(function (repr) { window.toogle_view(repr); });
+                    btn.setAttribute("aria-pressed", isPressed ? "false" : "true");
+                });
+            }
+
             decorateScoreTags();
             setResidueModal();
+            setReprToggles();
             setResetZoomEnabled(false);
             setLayersPanelState(false);
 
@@ -723,41 +722,6 @@
                 }
             });
 
-            if ($.fn.dataTable && $("#pocketsTable").length && $("#pocketsTable tbody tr").length > 5) {
-                initDataTableVariant("#pocketsTable", {
-                    tpVariant: "compact",
-                    searching: false,
-                    pageLength: 5,
-                    paging: true,
-                    lengthChange: false,
-                    ordering: false,
-                    autoWidth: false
-                });
-            }
-
-            if ($.fn.dataTable && $("#p2pocketsTable").length && $("#p2pocketsTable tbody tr").length > 5) {
-                initDataTableVariant("#p2pocketsTable", {
-                    tpVariant: "compact",
-                    searching: false,
-                    pageLength: 5,
-                    paging: true,
-                    lengthChange: false,
-                    ordering: false,
-                    autoWidth: false
-                });
-            }
-
-            if ($.fn.dataTable && $("#residuesetsTable").length && $("#residuesetsTable tbody tr").length > 5) {
-                initDataTableVariant("#residuesetsTable", {
-                    tpVariant: "compact",
-                    searching: true,
-                    pageLength: 10,
-                    paging: true,
-                    lengthChange: false,
-                    ordering: false,
-                    autoWidth: false
-                });
-            }
 
             document.querySelectorAll(".data-details").forEach(function (details) {
                 details.addEventListener("toggle", function () {

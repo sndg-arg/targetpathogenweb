@@ -288,45 +288,138 @@
     margin-top: 6px;
 }
 
-#pocketsTable th:first-child,
-#p2pocketsTable th:first-child,
-#pocketsTable td:first-child,
-#p2pocketsTable td:first-child {
-    padding-left: var(--tp-table-cell-first-pl);
-    padding-right: var(--tp-table-cell-px);
-    min-width: 74px;
+/* ── Pocket cards ── */
+
+.pocket-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 8px;
+    margin-top: 8px;
 }
 
-#pocketsTable th,
-#pocketsTable td,
-#p2pocketsTable th,
-#p2pocketsTable td {
-    vertical-align: middle !important;
-    padding: var(--tp-table-cell-py) var(--tp-table-cell-px);
+.pocket-card {
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 12px;
+    background: var(--tp-color-surface);
+    padding: 10px 12px;
+    display: grid;
+    gap: 8px;
 }
 
-#pocketsTable th:not(:first-child),
-#p2pocketsTable th:not(:first-child),
-#pocketsTable td:not(:first-child),
-#p2pocketsTable td:not(:first-child) {
-    text-align: center;
+.pocket-card-head {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
 }
 
-#pocketsTable td:first-child,
-#p2pocketsTable td:first-child {
-    text-align: left;
+.pocket-card-name {
+    font-size: 0.88rem;
+    color: var(--structure-accent-ink);
+    flex: 1 1 auto;
 }
 
-#pocketsTable .structure-toggle,
-#p2pocketsTable .structure-toggle {
-    display: block;
-    margin: 0 auto;
+.pocket-card-reprs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
 }
 
-.structure-table-btn {
-    min-width: 102px;
+.pocket-repr-btn {
+    appearance: none;
+    -webkit-appearance: none;
+    display: inline-flex;
+    align-items: center;
     justify-content: center;
-    margin: 0 auto;
+    padding: 5px 8px;
+    border: 1px solid var(--tp-color-border);
+    border-radius: 8px;
+    background: var(--tp-color-surface-soft);
+    color: var(--tp-color-text-secondary);
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+                border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+                color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+    text-align: center;
+    line-height: 1.2;
+}
+
+.pocket-repr-btn:hover {
+    background: var(--tp-color-surface-alt);
+    border-color: var(--tp-color-border-strong);
+    color: var(--tp-color-text-primary);
+}
+
+.pocket-repr-btn[aria-pressed="true"] {
+    background: color-mix(in srgb, var(--structure-accent) 14%, var(--tp-color-surface));
+    border-color: var(--structure-accent-border);
+    color: var(--structure-accent-ink);
+}
+
+.pocket-card-actions {
+    display: flex;
+    gap: 4px;
+}
+
+.pocket-card-actions .btn {
+    flex: 1;
+    justify-content: center;
+    font-size: 0.78rem;
+    padding: 4px 6px;
+}
+
+/* ── Residue sets ── */
+
+.residueset-list {
+    padding: 10px 12px;
+    display: grid;
+    gap: 6px;
+}
+
+.residueset-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 8px;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 8px;
+    background: var(--tp-color-surface);
+}
+
+.residueset-row-info {
+    flex: 1 1 0;
+    min-width: 0;
+    display: grid;
+    gap: 1px;
+}
+
+.residueset-type {
+    font-size: 0.74rem;
+    font-weight: 700;
+    color: var(--tp-color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.residueset-name {
+    font-size: 0.84rem;
+    color: var(--tp-color-text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.residueset-row-actions {
+    display: flex;
+    gap: 4px;
+    flex-shrink: 0;
+}
+
+.residueset-row-actions .btn {
+    font-size: 0.78rem;
+    padding: 4px 8px;
 }
 
 .data-details {
