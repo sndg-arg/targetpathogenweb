@@ -411,18 +411,20 @@
 
 .formula-footer {
     display: flex;
-    align-items: center;
-    gap: 16px;
+    align-items: flex-end;
+    gap: 24px;
     justify-content: space-between;
     border: 1px solid var(--ff-border);
     border-radius: var(--tp-ui-radius-panel);
     background: linear-gradient(180deg, var(--ff-accent-soft-2) 0%, var(--tp-color-surface) 100%);
     box-shadow: var(--tp-ui-shadow-panel);
-    padding: 14px 18px;
+    padding: 18px 22px;
 }
 
 .formula-footer-copy {
     min-width: 0;
+    max-width: 720px;
+    padding-bottom: 2px;
 }
 
 .formula-footer-title {
@@ -433,18 +435,19 @@
 }
 
 .formula-footer-note {
-    margin: 4px 0 0;
+    margin: 6px 0 0;
     color: var(--tp-color-text-secondary);
     font-size: 0.9rem;
-    line-height: 1.45;
+    line-height: 1.5;
 }
 
 .formula-footer-actions {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 12px;
     align-items: center;
     flex-shrink: 0;
+    justify-content: flex-end;
 }
 
 .formula-footer-actions form {
@@ -495,11 +498,13 @@
     .formula-footer {
         flex-direction: column;
         align-items: stretch;
-        gap: 14px;
+        gap: 16px;
+        padding: 16px;
     }
 
     .formula-footer-actions {
         flex-direction: column;
+        align-items: stretch;
     }
 
     .formula-footer-actions .btn {
