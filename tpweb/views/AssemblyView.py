@@ -96,6 +96,7 @@ class AssemblyView(View):
         workspace_links = {
             "proteins_url": reverse("tpwebapp:protein_list", kwargs={"genome": slug}),
             "custom_scores_url": reverse("tpwebapp:customparam", kwargs={"genome": slug}),
+            "formula_url": reverse("tpwebapp:formula_form", kwargs={"genome": slug}),
             "ec_explorer_url": reverse(
                 "tpwebapp:annotation_explorer",
                 kwargs={"genome": slug, "annotation_kind": "ec"},
