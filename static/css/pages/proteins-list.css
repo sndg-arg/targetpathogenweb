@@ -1317,6 +1317,15 @@ a.filter-pill .filter-pill-remove {
     margin-top: 8px;
 }
 
+.scoring-formula-delete-btn svg {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+    overflow: visible;
+}
+
 .scoring-formula-delete-btn:hover {
     background: var(--tp-color-danger-bg);
     border-color: var(--tp-color-danger-border);

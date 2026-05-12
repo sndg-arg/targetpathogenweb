@@ -43,6 +43,8 @@ class ScoreFormula(models.Model):
                     if term.score_param.name in param_values])
 
     def get_current_formula(self):
+        if self.expression:
+            return f"{self.name} = {self.expression}"
         terms = {}
         for t in self.terms.all():
             if t.score_param.name in terms:
