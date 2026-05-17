@@ -316,6 +316,15 @@
     align-self: stretch;
 }
 
+/* Clamp descriptions and chips to 1 row so items in both cards are the same height */
+.genome-card--ranking .targets-description {
+    -webkit-line-clamp: 1;
+}
+
+.genome-card--ranking .targets-breakdown {
+    flex-wrap: nowrap;
+    overflow: hidden;
+}
 
 .targets-list {
     list-style: none;
