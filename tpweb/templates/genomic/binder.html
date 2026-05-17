@@ -26,10 +26,10 @@
                     <p class="binder-description">
                         {% if binder.is_pdb %}
                             {% if binder.is_direct %}{% trans "Ligand co-crystallized with this exact protein (Protein Data Bank)." %}
-                            {% else %}{% trans "Ligand co-crystallized with a homologous protein (Protein Data Bank)." %}{% endif %}
+                            {% else %}{% trans "Ligand co-crystallized with a similar protein (Protein Data Bank)." %}{% endif %}
                         {% elif binder.source == 'chembl' %}
                             {% if binder.is_direct %}{% trans "Bioactivity data from ChEMBL measured on this exact protein." %}
-                            {% else %}{% trans "Bioactivity hit from ChEMBL on a homologous protein." %}{% endif %}
+                            {% else %}{% trans "Bioactivity hit from ChEMBL on a similar protein." %}{% endif %}
                         {% else %}
                             {% trans "Virtual-screening candidate from ZINC." %}
                         {% endif %}
@@ -50,7 +50,7 @@
                         </span>
                         {% if binder.source != 'proposed' %}
                             <span class="hero-chip tp-chip {% if binder.is_direct %}tp-chip--direct{% else %}tp-chip--homolog{% endif %} tp-chip--sm">
-                                {% if binder.is_direct %}{% trans "Direct hit" %}{% else %}{% trans "Via homolog" %}{% endif %}
+                                {% if binder.is_direct %}{% trans "This protein" %}{% else %}{% trans "Similar protein" %}{% endif %}
                             </span>
                         {% endif %}
                         {% if binder.pdb_id %}
@@ -157,7 +157,7 @@
                     {% endif %}
                     {% if binder.uniprot %}
                         <div class="binder-id-row">
-                            <dt>{% trans "UniProt (homolog)" %}</dt>
+                            <dt>{% if binder.is_direct %}{% trans "UniProt (this protein)" %}{% else %}{% trans "UniProt (similar protein)" %}{% endif %}</dt>
                             <dd><code>{{ binder.uniprot }}</code></dd>
                         </div>
                     {% endif %}

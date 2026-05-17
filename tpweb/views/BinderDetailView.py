@@ -265,11 +265,11 @@ class BinderDetailView(View):
 
         is_pdb = binder.source == Binders.SOURCE_PDB
         if binder.source == Binders.SOURCE_PDB:
-            evidence_label = "PDB direct" if binder.is_direct else "PDB similar protein"
+            evidence_label = "PDB: this protein" if binder.is_direct else "PDB: similar protein"
         elif binder.source == Binders.SOURCE_CHEMBL:
-            evidence_label = "ChEMBL direct" if binder.is_direct else "ChEMBL similar protein"
+            evidence_label = "ChEMBL: this protein" if binder.is_direct else "ChEMBL: similar protein"
         else:
-            evidence_label = "ZINC candidate"
+            evidence_label = "ZINC: proposed compound"
         properties = _compute_properties(binder.smiles)
         notes_items = _parse_notes(binder.notes)
         external_links = _build_external_links(binder, properties)

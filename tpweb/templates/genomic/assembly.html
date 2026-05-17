@@ -171,7 +171,7 @@
                                 <div>
                                     <h2>{% trans "Strongest ligand support" %}</h2>
                                     <p class="section-subtitle">
-                                        {% trans "Proteins ranked by direct ligand evidence first. Similar-protein and ZINC records are shown separately as supporting context." %}
+                                        {% trans "Proteins with ligands reported for the same protein are ranked first. Ligands inferred from similar proteins and proposed ZINC compounds are shown separately." %}
                                     </p>
                                 </div>
                             </div>
@@ -189,23 +189,23 @@
                                             <div class="targets-stats">
                                                 <span class="targets-stat targets-stat--total">
                                                     <span class="targets-stat-value">{{ t.direct_count }}</span>
-                                                    <span class="targets-stat-label">{% trans "direct" %}</span>
+                                                    <span class="targets-stat-label">{% trans "on this protein" %}</span>
                                                 </span>
                                                 <div class="targets-breakdown">
                                                     {% if t.pdb_direct_count %}
                                                         <span class="targets-bd targets-bd--pdb-direct">
-                                                            PDB direct <strong>{{ t.pdb_direct_count }}</strong>
+                                                            PDB: this protein <strong>{{ t.pdb_direct_count }}</strong>
                                                         </span>
                                                     {% endif %}
                                                     {% if t.chembl_direct_count %}
                                                         <span class="targets-bd targets-bd--chembl-direct">
-                                                            ChEMBL direct <strong>{{ t.chembl_direct_count }}</strong>
+                                                            ChEMBL: this protein <strong>{{ t.chembl_direct_count }}</strong>
                                                         </span>
                                                     {% endif %}
                                                     {% if t.homolog_count %}
                                                         <span class="targets-bd targets-bd--homolog">
-                                                            Similar <strong>{{ t.homolog_count }}{% if t.chembl_homolog_count >= 100 %}+{% endif %}</strong>
-                                                            {% if t.chembl_homolog_count >= 100 %}<span class="targets-tooltip">{% trans "Includes PDB and ChEMBL evidence transferred from similar proteins. ChEMBL similar-protein records are capped at top 100 by pchembl." %}</span>{% endif %}
+                                                            Similar proteins <strong>{{ t.homolog_count }}{% if t.chembl_homolog_count >= 100 %}+{% endif %}</strong>
+                                                            {% if t.chembl_homolog_count >= 100 %}<span class="targets-tooltip">{% trans "Includes PDB and ChEMBL evidence inferred from similar proteins. ChEMBL similar-protein records are capped at top 100 by pchembl." %}</span>{% endif %}
                                                         </span>
                                                     {% endif %}
                                                     {% if t.zinc_count %}
@@ -266,9 +266,9 @@
                     <div class="evidence-card evidence-card--binders">
                         <span class="evidence-label">{% trans "Ligand evidence for this genome" %}</span>
                         <span class="evidence-headline">
-                            {% blocktrans count binders=workspace_metrics.binder_pdb_direct %}{{ binders }} direct PDB ligand{% plural %}{{ binders }} direct PDB ligands{% endblocktrans %}
+                            {% blocktrans count binders=workspace_metrics.binder_pdb_direct %}{{ binders }} PDB ligand on this protein{% plural %}{{ binders }} PDB ligands on this protein{% endblocktrans %}
                             <span class="evidence-headline-sub">
-                                {% blocktrans count direct=workspace_metrics.binder_direct %}{{ direct }} direct record{% plural %}{{ direct }} direct records{% endblocktrans %}
+                                {% blocktrans count direct=workspace_metrics.binder_direct %}{{ direct }} record on this protein{% plural %}{{ direct }} records on this protein{% endblocktrans %}
                                 ·
                                 {% blocktrans count total=workspace_metrics.binder_total %}{{ total }} total record{% plural %}{{ total }} total records{% endblocktrans %}
                                 ·
@@ -276,17 +276,17 @@
                             </span>
                         </span>
                         <ul class="evidence-breakdown">
-                            <li class="evidence-breakdown-priority"><span class="evidence-bd-label">{% trans "PDB direct" %}</span><span class="evidence-bd-value">{{ workspace_metrics.binder_pdb_direct }}</span></li>
+                            <li class="evidence-breakdown-priority"><span class="evidence-bd-label">{% trans "PDB: this protein" %}</span><span class="evidence-bd-value">{{ workspace_metrics.binder_pdb_direct }}</span></li>
                             <li><span class="evidence-bd-label">{% trans "PDB similar proteins" %}</span><span class="evidence-bd-value">{{ workspace_metrics.binder_pdb_homolog }}</span></li>
-                            <li class="evidence-breakdown-priority"><span class="evidence-bd-label">{% trans "ChEMBL direct" %}</span><span class="evidence-bd-value">{{ workspace_metrics.binder_chembl_direct }}</span></li>
+                            <li class="evidence-breakdown-priority"><span class="evidence-bd-label">{% trans "ChEMBL: this protein" %}</span><span class="evidence-bd-value">{{ workspace_metrics.binder_chembl_direct }}</span></li>
                             <li><span class="evidence-bd-label">{% trans "ChEMBL similar proteins" %}</span><span class="evidence-bd-value">{{ workspace_metrics.binder_chembl_homolog }}</span></li>
-                            <li><span class="evidence-bd-label">ZINC</span><span class="evidence-bd-value">{{ workspace_metrics.binder_zinc }}</span></li>
+                            <li><span class="evidence-bd-label">{% trans "ZINC proposed" %}</span><span class="evidence-bd-value">{{ workspace_metrics.binder_zinc }}</span></li>
                         </ul>
                     </div>
                 </div>
                 <p class="evidence-footnote">
                     <strong>{% trans "Note" %}:</strong>
-                    {% trans "Direct PDB and ChEMBL records are evidence on the same protein. Similar-protein records come from homologs/templates and should be interpreted as transferred evidence. ChEMBL similar-protein records are capped at the top 100 per protein and ZINC at the top 50 candidates." %}
+                    {% trans "PDB and ChEMBL records on this protein are the strongest ligand evidence. Similar-protein records are inferred from related proteins and should be interpreted as transferred evidence. ChEMBL similar-protein records are capped at the top 100 per protein and ZINC at the top 50 candidates." %}
                 </p>
             </section>
 

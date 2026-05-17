@@ -474,12 +474,12 @@
 
                     <div class="binder-evidence-guide" aria-label="{% trans 'Binder evidence guide' %}">
                         <div class="binder-evidence-guide__item binder-evidence-guide__item--direct">
-                            <strong>{% trans "Direct" %}</strong>
-                            <span>{% trans "Ligand evidence measured on this protein. Prioritize these when they exist." %}</span>
+                            <strong>{% trans "This protein" %}</strong>
+                            <span>{% trans "Ligand evidence measured or structurally observed for the same protein. Prioritize these when they exist." %}</span>
                         </div>
                         <div class="binder-evidence-guide__item">
-                            <strong>{% trans "Similar protein" %}</strong>
-                            <span>{% trans "Evidence transferred from a homolog/template protein. Useful, but less direct." %}</span>
+                            <strong>{% trans "Similar proteins" %}</strong>
+                            <span>{% trans "Evidence inferred from related proteins. Useful support, but less specific than evidence on this protein." %}</span>
                         </div>
                         <div class="binder-evidence-guide__item">
                             <strong>{% trans "ADME flags" %}</strong>
@@ -493,7 +493,7 @@
                                 role="tab"
                                 aria-selected="{% if binders.default_tab == 'pdb_direct' %}true{% else %}false{% endif %}"
                                 data-binders-tab="pdb_direct">
-                            <span>{% trans "PDB direct" %}</span>
+                            <span>{% trans "PDB: this protein" %}</span>
                             <span class="binders-tab__count">{{ binders.pdb_direct_count }}</span>
                         </button>
                         <button type="button"
@@ -501,7 +501,7 @@
                                 role="tab"
                                 aria-selected="{% if binders.default_tab == 'pdb_homolog' %}true{% else %}false{% endif %}"
                                 data-binders-tab="pdb_homolog">
-                            <span>{% trans "PDB similar" %}</span>
+                            <span>{% trans "PDB: similar proteins" %}</span>
                             <span class="binders-tab__count">{{ binders.pdb_homolog_count }}</span>
                         </button>
                         <button type="button"
@@ -509,7 +509,7 @@
                                 role="tab"
                                 aria-selected="{% if binders.default_tab == 'chembl_direct' %}true{% else %}false{% endif %}"
                                 data-binders-tab="chembl_direct">
-                            <span>{% trans "ChEMBL direct" %}</span>
+                            <span>{% trans "ChEMBL: this protein" %}</span>
                             <span class="binders-tab__count">{{ binders.chembl_direct_count }}</span>
                         </button>
                         <button type="button"
@@ -517,7 +517,7 @@
                                 role="tab"
                                 aria-selected="{% if binders.default_tab == 'chembl_homolog' %}true{% else %}false{% endif %}"
                                 data-binders-tab="chembl_homolog">
-                            <span>{% trans "ChEMBL similar" %}</span>
+                            <span>{% trans "ChEMBL: similar proteins" %}</span>
                             <span class="binders-tab__count">{{ binders.chembl_homolog_count }}{% if binders.chembl_homolog_capped %}+{% endif %}</span>
                         </button>
                         <button type="button"
@@ -546,12 +546,12 @@
                     {# PDB — homologs #}
                     <div class="binders-panel {% if binders.default_tab != 'pdb_homolog' %}is-hidden{% endif %}"
                          data-binders-panel="pdb_homolog" role="tabpanel">
-                        <p class="binders-panel-caption">{% trans "Structural evidence transferred from homologous proteins. The UniProt column identifies the protein that carried the ligand in PDB." %}</p>
+                        <p class="binders-panel-caption">{% trans "Structural evidence inferred from similar proteins. The UniProt column identifies the protein that carried the ligand in PDB." %}</p>
                         {% if binders.pdb_homolog %}
                             {% include "components/binders/table_pdb.html" with binder_list=binders.pdb_homolog show_uniprot=True %}
                         {% else %}
                             <p class="tp-state-note tp-state-note--empty binders-empty">
-                                {% if binders.search_query %}{% trans "No matches." %}{% else %}{% trans "No PDB ligands found via homologous proteins." %}{% endif %}
+                                {% if binders.search_query %}{% trans "No matches." %}{% else %}{% trans "No PDB ligands found through similar proteins." %}{% endif %}
                             </p>
                         {% endif %}
                     </div>
@@ -572,12 +572,12 @@
                     {# ChEMBL — homologs #}
                     <div class="binders-panel {% if binders.default_tab != 'chembl_homolog' %}is-hidden{% endif %}"
                          data-binders-panel="chembl_homolog" role="tabpanel">
-                        <p class="binders-panel-caption">{% trans "Bioactivity transferred from homologous proteins in ChEMBL. Score = pchembl (−log Ki/IC₅₀; higher = more potent)." %}</p>
+                        <p class="binders-panel-caption">{% trans "Bioactivity inferred from similar proteins in ChEMBL. Score = pchembl (−log Ki/IC₅₀; higher = more potent)." %}</p>
                         {% if binders.chembl_homolog %}
                             {% include "components/binders/table_chembl.html" with binder_list=binders.chembl_homolog show_uniprot=True %}
                         {% else %}
                             <p class="tp-state-note tp-state-note--empty binders-empty">
-                                {% if binders.search_query %}{% trans "No matches." %}{% else %}{% trans "No ChEMBL hits found via homologous proteins." %}{% endif %}
+                                {% if binders.search_query %}{% trans "No matches." %}{% else %}{% trans "No ChEMBL hits found through similar proteins." %}{% endif %}
                             </p>
                         {% endif %}
                     </div>
@@ -585,7 +585,7 @@
                     {# ZINC #}
                     <div class="binders-panel {% if binders.default_tab != 'zinc' %}is-hidden{% endif %}"
                          data-binders-panel="zinc" role="tabpanel">
-                        <p class="binders-panel-caption">{% trans "Virtual-screening candidates from ZINC. Score = Tanimoto similarity to a known binder (0–1; higher = more similar)." %}</p>
+                        <p class="binders-panel-caption">{% trans "Proposed virtual-screening candidates from ZINC. Score = Tanimoto similarity to a known binder (0–1; higher = more similar)." %}</p>
                         {% if binders.zinc %}
                             {% include "components/binders/table_zinc.html" with binder_list=binders.zinc %}
                         {% else %}
@@ -596,7 +596,7 @@
                     </div>
 
                     <p class="binders-footnote">
-                        {% blocktrans %}PDB and ChEMBL direct hits are shown in full. ChEMBL homologs are capped at the top 100 per protein (by pchembl) and ZINC at the top 50 (Tanimoto ≥ 0.5). ADME columns are descriptor-based screening flags, not experimental toxicity results.{% endblocktrans %}
+                        {% blocktrans %}PDB and ChEMBL records on this protein are shown in full. ChEMBL records from similar proteins are capped at the top 100 per protein (by pchembl) and ZINC at the top 50 (Tanimoto ≥ 0.5). ADME columns are descriptor-based screening flags, not experimental toxicity results.{% endblocktrans %}
                     </p>
                 </section>
             {% endif %}
