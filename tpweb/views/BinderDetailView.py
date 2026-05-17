@@ -62,6 +62,7 @@ def _compute_properties(smiles):
         {"name": "TPSA ≤ 140 Å²", "value": f"{tpsa:.1f}", "ok": tpsa <= 140},
     ]
     veber_violations = sum(0 if c["ok"] else 1 for c in veber_checks)
+    permeability_ok = tpsa <= 90 and -1 <= logp <= 5
 
     try:
         pains_params = FilterCatalogParams()
@@ -99,6 +100,8 @@ def _compute_properties(smiles):
         "veber_checks": veber_checks,
         "veber_violations": veber_violations,
         "veber_pass": veber_violations == 0,
+        "permeability_ok": permeability_ok,
+        "permeability_label": "High" if permeability_ok else "Check",
         "pains_hit": pains_hit,
     }
 
@@ -163,9 +166,10 @@ def _build_external_links(binder, props):
         })
 
     if binder.uniprot:
+        uniprot_role = "same protein" if binder.is_direct else "homolog"
         links.append({
             "category": "UniProt",
-            "label": f"UniProt {binder.uniprot} (homolog)",
+            "label": f"UniProt {binder.uniprot} ({uniprot_role})",
             "url": f"https://www.uniprot.org/uniprotkb/{binder.uniprot}",
         })
 
@@ -260,6 +264,12 @@ class BinderDetailView(View):
             raise Http404("Binder not found")
 
         is_pdb = binder.source == Binders.SOURCE_PDB
+        if binder.source == Binders.SOURCE_PDB:
+            evidence_label = "PDB direct" if binder.is_direct else "PDB similar protein"
+        elif binder.source == Binders.SOURCE_CHEMBL:
+            evidence_label = "ChEMBL direct" if binder.is_direct else "ChEMBL similar protein"
+        else:
+            evidence_label = "ZINC candidate"
         properties = _compute_properties(binder.smiles)
         notes_items = _parse_notes(binder.notes)
         external_links = _build_external_links(binder, properties)
@@ -275,6 +285,7 @@ class BinderDetailView(View):
                 "smiles": binder.smiles,
                 "source": binder.source,
                 "source_label": SOURCE_LABEL.get(binder.source, binder.get_source_display()),
+                "evidence_label": evidence_label,
                 "is_pdb": is_pdb,
                 "is_direct": binder.is_direct,
                 "score": binder.score,

@@ -452,7 +452,7 @@
                     <div class="section-head tp-ui-panel-head">
                         <div>
                             <h2>{% trans "Ligand evidence" %}</h2>
-                            <p class="section-subtitle">{% trans "Known and predicted ligands grouped by evidence type." %}</p>
+                            <p class="section-subtitle">{% trans "Known and predicted ligands separated by source and by whether the evidence comes from this protein or a similar protein." %}</p>
                         </div>
                         <div class="section-tools">
                             <span class="tp-chip tp-chip--count tp-chip--sm">{{ binders.total }} {% trans "records" %}</span>
@@ -472,13 +472,28 @@
                         <button type="submit" class="btn tp-btn tp-btn--primary binders-search__submit">{% trans "Search" %}</button>
                     </form>
 
+                    <div class="binder-evidence-guide" aria-label="{% trans 'Binder evidence guide' %}">
+                        <div class="binder-evidence-guide__item binder-evidence-guide__item--direct">
+                            <strong>{% trans "Direct" %}</strong>
+                            <span>{% trans "Ligand evidence measured on this protein. Prioritize these when they exist." %}</span>
+                        </div>
+                        <div class="binder-evidence-guide__item">
+                            <strong>{% trans "Similar protein" %}</strong>
+                            <span>{% trans "Evidence transferred from a homolog/template protein. Useful, but less direct." %}</span>
+                        </div>
+                        <div class="binder-evidence-guide__item">
+                            <strong>{% trans "ADME flags" %}</strong>
+                            <span>{% trans "MW, LogP and TPSA are computed from SMILES; permeability and PAINS are screening flags, not toxicity assays." %}</span>
+                        </div>
+                    </div>
+
                     <div class="binders-tabs" role="tablist" data-binders-tabs>
                         <button type="button"
                                 class="binders-tab {% if binders.default_tab == 'pdb_direct' %}is-active{% endif %}"
                                 role="tab"
                                 aria-selected="{% if binders.default_tab == 'pdb_direct' %}true{% else %}false{% endif %}"
                                 data-binders-tab="pdb_direct">
-                            <span>{% trans "PDB — this protein" %}</span>
+                            <span>{% trans "PDB direct" %}</span>
                             <span class="binders-tab__count">{{ binders.pdb_direct_count }}</span>
                         </button>
                         <button type="button"
@@ -486,7 +501,7 @@
                                 role="tab"
                                 aria-selected="{% if binders.default_tab == 'pdb_homolog' %}true{% else %}false{% endif %}"
                                 data-binders-tab="pdb_homolog">
-                            <span>{% trans "PDB — homologs" %}</span>
+                            <span>{% trans "PDB similar" %}</span>
                             <span class="binders-tab__count">{{ binders.pdb_homolog_count }}</span>
                         </button>
                         <button type="button"
@@ -494,7 +509,7 @@
                                 role="tab"
                                 aria-selected="{% if binders.default_tab == 'chembl_direct' %}true{% else %}false{% endif %}"
                                 data-binders-tab="chembl_direct">
-                            <span>{% trans "ChEMBL — this protein" %}</span>
+                            <span>{% trans "ChEMBL direct" %}</span>
                             <span class="binders-tab__count">{{ binders.chembl_direct_count }}</span>
                         </button>
                         <button type="button"
@@ -502,7 +517,7 @@
                                 role="tab"
                                 aria-selected="{% if binders.default_tab == 'chembl_homolog' %}true{% else %}false{% endif %}"
                                 data-binders-tab="chembl_homolog">
-                            <span>{% trans "ChEMBL — homologs" %}</span>
+                            <span>{% trans "ChEMBL similar" %}</span>
                             <span class="binders-tab__count">{{ binders.chembl_homolog_count }}{% if binders.chembl_homolog_capped %}+{% endif %}</span>
                         </button>
                         <button type="button"
@@ -518,7 +533,7 @@
                     {# PDB — this protein #}
                     <div class="binders-panel {% if binders.default_tab != 'pdb_direct' %}is-hidden{% endif %}"
                          data-binders-panel="pdb_direct" role="tabpanel">
-                        <p class="binders-panel-caption">{% trans "Ligands co-crystallized with this exact protein in the Protein Data Bank." %}</p>
+                        <p class="binders-panel-caption">{% trans "Highest-confidence structural evidence: ligands co-crystallized with this exact protein in the Protein Data Bank." %}</p>
                         {% if binders.pdb_direct %}
                             {% include "components/binders/table_pdb.html" with binder_list=binders.pdb_direct %}
                         {% else %}
@@ -531,7 +546,7 @@
                     {# PDB — homologs #}
                     <div class="binders-panel {% if binders.default_tab != 'pdb_homolog' %}is-hidden{% endif %}"
                          data-binders-panel="pdb_homolog" role="tabpanel">
-                        <p class="binders-panel-caption">{% trans "Ligands co-crystallized with homologous proteins. The UniProt column identifies which homolog the structure came from." %}</p>
+                        <p class="binders-panel-caption">{% trans "Structural evidence transferred from homologous proteins. The UniProt column identifies the protein that carried the ligand in PDB." %}</p>
                         {% if binders.pdb_homolog %}
                             {% include "components/binders/table_pdb.html" with binder_list=binders.pdb_homolog show_uniprot=True %}
                         {% else %}
@@ -544,7 +559,7 @@
                     {# ChEMBL — this protein #}
                     <div class="binders-panel {% if binders.default_tab != 'chembl_direct' %}is-hidden{% endif %}"
                          data-binders-panel="chembl_direct" role="tabpanel">
-                        <p class="binders-panel-caption">{% trans "Bioactivity data from ChEMBL measured directly on this protein. Score = pchembl (−log Ki/IC₅₀; higher = more potent)." %}</p>
+                        <p class="binders-panel-caption">{% trans "Experimental bioactivity from ChEMBL measured directly on this protein. Score = pchembl (−log Ki/IC₅₀; higher = more potent)." %}</p>
                         {% if binders.chembl_direct %}
                             {% include "components/binders/table_chembl.html" with binder_list=binders.chembl_direct %}
                         {% else %}
@@ -557,7 +572,7 @@
                     {# ChEMBL — homologs #}
                     <div class="binders-panel {% if binders.default_tab != 'chembl_homolog' %}is-hidden{% endif %}"
                          data-binders-panel="chembl_homolog" role="tabpanel">
-                        <p class="binders-panel-caption">{% trans "Bioactivity hits from ChEMBL on homologous proteins. Score = pchembl (−log Ki/IC₅₀; higher = more potent)." %}</p>
+                        <p class="binders-panel-caption">{% trans "Bioactivity transferred from homologous proteins in ChEMBL. Score = pchembl (−log Ki/IC₅₀; higher = more potent)." %}</p>
                         {% if binders.chembl_homolog %}
                             {% include "components/binders/table_chembl.html" with binder_list=binders.chembl_homolog show_uniprot=True %}
                         {% else %}
@@ -581,7 +596,7 @@
                     </div>
 
                     <p class="binders-footnote">
-                        {% blocktrans %}PDB and ChEMBL direct hits are shown in full. ChEMBL homologs are capped at the top 100 per protein (by pchembl) and ZINC at the top 50 (Tanimoto ≥ 0.5).{% endblocktrans %}
+                        {% blocktrans %}PDB and ChEMBL direct hits are shown in full. ChEMBL homologs are capped at the top 100 per protein (by pchembl) and ZINC at the top 50 (Tanimoto ≥ 0.5). ADME columns are descriptor-based screening flags, not experimental toxicity results.{% endblocktrans %}
                     </p>
                 </section>
             {% endif %}

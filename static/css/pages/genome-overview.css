@@ -744,6 +744,17 @@
     font-size: 0.92rem;
 }
 
+.evidence-breakdown-priority {
+    padding: 5px 8px;
+    margin-inline: -8px;
+    border-radius: 8px;
+    background: var(--tp-color-sage-050);
+}
+
+.evidence-breakdown-priority .evidence-bd-label {
+    color: var(--tp-color-sage-900);
+}
+
 .evidence-bd-label {
     color: var(--tp-color-text-secondary);
     font-weight: 600;

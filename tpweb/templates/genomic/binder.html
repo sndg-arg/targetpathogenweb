@@ -44,6 +44,10 @@
                             <strong>{% trans "Source" %}:</strong>
                             <span>{{ binder.source_label }}</span>
                         </span>
+                        <span class="hero-chip tp-chip {% if binder.is_direct %}tp-chip--direct{% else %}tp-chip--homolog{% endif %} tp-chip--sm">
+                            <strong>{% trans "Evidence" %}:</strong>
+                            <span>{{ binder.evidence_label }}</span>
+                        </span>
                         {% if binder.source != 'proposed' %}
                             <span class="hero-chip tp-chip {% if binder.is_direct %}tp-chip--direct{% else %}tp-chip--homolog{% endif %} tp-chip--sm">
                                 {% if binder.is_direct %}{% trans "Direct hit" %}{% else %}{% trans "Via homolog" %}{% endif %}
@@ -93,6 +97,16 @@
                     <div class="metric-pill">
                         <span class="metric-label">MW</span>
                         <span class="metric-value">{{ properties.mw }} Da</span>
+                    </div>
+                {% endif %}
+                {% if properties %}
+                    <div class="metric-pill">
+                        <span class="metric-label">{% trans "Permeability" %}</span>
+                        <span class="metric-value metric-value--text">{{ properties.permeability_label }}</span>
+                    </div>
+                    <div class="metric-pill">
+                        <span class="metric-label">PAINS</span>
+                        <span class="metric-value metric-value--text">{% if properties.pains_hit %}{% trans "Alert" %}{% else %}{% trans "Clear" %}{% endif %}</span>
                     </div>
                 {% endif %}
             </div>
@@ -236,10 +250,22 @@
                     <div class="section-head tp-ui-panel-head">
                         <div>
                             <h2>{% trans "Drug-likeness" %}</h2>
-                            <p class="section-subtitle">{% trans "Lipinski Rule of Five, Veber, and PAINS structural alerts." %}</p>
+                            <p class="section-subtitle">{% trans "Descriptor-based ADME screening flags from SMILES. These are not experimental toxicity results." %}</p>
                         </div>
                     </div>
                     <div class="druglike-grid">
+                        <div class="druglike-block">
+                            <div class="druglike-head">
+                                <span class="druglike-title">{% trans "Permeability proxy" %}</span>
+                                <span class="druglike-badge {% if properties.permeability_ok %}is-pass{% else %}is-warn{% endif %}">
+                                    {{ properties.permeability_label }}
+                                </span>
+                            </div>
+                            <p class="druglike-note">
+                                {% trans "Estimated from TPSA and LogP only: TPSA ≤ 90 Å² and −1 ≤ LogP ≤ 5 are treated as a favorable small-molecule permeability screen." %}
+                            </p>
+                        </div>
+
                         <div class="druglike-block">
                             <div class="druglike-head">
                                 <span class="druglike-title">Lipinski's Rule of Five</span>

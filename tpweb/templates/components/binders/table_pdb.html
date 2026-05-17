@@ -6,6 +6,11 @@
                 <th scope="col">{% trans "Ligand" %}</th>
                 <th scope="col">{% trans "PDB structure" %}</th>
                 {% if show_uniprot %}<th scope="col">{% trans "UniProt (homolog)" %}</th>{% endif %}
+                <th scope="col">{% trans "MW" %}</th>
+                <th scope="col">{% trans "LogP" %}</th>
+                <th scope="col">{% trans "TPSA" %}</th>
+                <th scope="col">{% trans "Permeability" %}</th>
+                <th scope="col">{% trans "PAINS" %}</th>
                 <th scope="col">{% trans "SMILES" %}</th>
             </tr>
         </thead>
@@ -15,6 +20,19 @@
                     <td class="binder-tbl__name">{{ binder.name }}</td>
                     <td class="binder-tbl__pdb">{% if binder.pdb %}<span class="binder-tbl__pdb-id">{{ binder.pdb }}</span>{% else %}—{% endif %}</td>
                     {% if show_uniprot %}<td class="binder-tbl__uniprot">{{ binder.uniprot|default:"—" }}</td>{% endif %}
+                    <td class="binder-tbl__metric">{{ binder.props.mw|default:"—" }}</td>
+                    <td class="binder-tbl__metric">{{ binder.props.logp|default:"—" }}</td>
+                    <td class="binder-tbl__metric">{{ binder.props.tpsa|default:"—" }}</td>
+                    <td>
+                        {% if binder.props %}
+                            <span class="binder-quality {% if binder.props.permeability_ok %}binder-quality--ok{% else %}binder-quality--check{% endif %}">{{ binder.props.permeability_label }}</span>
+                        {% else %}—{% endif %}
+                    </td>
+                    <td>
+                        {% if binder.props %}
+                            <span class="binder-quality {% if binder.props.pains_alert %}binder-quality--alert{% else %}binder-quality--ok{% endif %}">{{ binder.props.pains_label }}</span>
+                        {% else %}—{% endif %}
+                    </td>
                     <td class="binder-tbl__smiles"><code>{{ binder.smiles|truncatechars:60 }}</code></td>
                 </tr>
             {% endfor %}

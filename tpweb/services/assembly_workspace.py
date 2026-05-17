@@ -222,6 +222,8 @@ def build_assembly_workspace_metrics(assembly_name):
     binder_chembl_direct = binders_qs.filter(source=Binders.SOURCE_CHEMBL, is_direct=True).count()
     binder_chembl_homolog = binders_qs.filter(source=Binders.SOURCE_CHEMBL, is_direct=False).count()
     binder_zinc = binders_qs.filter(source=Binders.SOURCE_PROPOSED).count()
+    binder_direct = binder_pdb_direct + binder_chembl_direct
+    binder_homolog = binder_pdb_homolog + binder_chembl_homolog
     proteins_with_binders = (
         binders_qs.values("locustag_id").distinct().count() if binder_total else 0
     )
@@ -245,6 +247,8 @@ def build_assembly_workspace_metrics(assembly_name):
         "binder_chembl_direct": binder_chembl_direct,
         "binder_chembl_homolog": binder_chembl_homolog,
         "binder_zinc": binder_zinc,
+        "binder_direct": binder_direct,
+        "binder_homolog": binder_homolog,
         # legacy keys kept for backward compat
         "binder_pdb": binder_pdb_direct + binder_pdb_homolog,
         "binder_chembl": binder_chembl_direct + binder_chembl_homolog,

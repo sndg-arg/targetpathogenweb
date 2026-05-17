@@ -2,7 +2,9 @@ from django.shortcuts import render
 from django.http import Http404
 from django.views import View
 from rdkit import Chem
+from rdkit.Chem import Crippen, Descriptors, Lipinski
 from rdkit.Chem.Draw import rdMolDraw2D
+from rdkit.Chem.FilterCatalog import FilterCatalog, FilterCatalogParams
 
 import itertools
 
@@ -25,6 +27,7 @@ from tpweb.services.structure_sources import summarize_structure_sources
 
 KNOWN_BINDER_CAP = 100
 ZINC_BINDER_CAP = 50
+_PAINS_CATALOG = None
 
 
 def _first_location(feature):
@@ -146,6 +149,60 @@ def make_binder_svg(smiles):
     return drawer.GetDrawingText()
 
 
+def _pains_alert(mol):
+    global _PAINS_CATALOG
+    try:
+        if _PAINS_CATALOG is None:
+            params = FilterCatalogParams()
+            params.AddCatalog(FilterCatalogParams.FilterCatalogs.PAINS)
+            _PAINS_CATALOG = FilterCatalog(params)
+        return bool(_PAINS_CATALOG.GetFirstMatch(mol))
+    except Exception:
+        return False
+
+
+def _binder_table_properties(smiles):
+    """Small-molecule descriptors for binder tables; not a full ADMET prediction."""
+    if not smiles:
+        return {}
+    try:
+        mol = Chem.MolFromSmiles(smiles)
+    except Exception:
+        return {}
+    if mol is None:
+        return {}
+
+    mw = Descriptors.MolWt(mol)
+    logp = Crippen.MolLogP(mol)
+    tpsa = Descriptors.TPSA(mol)
+    rotb = Lipinski.NumRotatableBonds(mol)
+    hbd = Lipinski.NumHDonors(mol)
+    hba = Lipinski.NumHAcceptors(mol)
+    lipinski_violations = sum([
+        mw > 500,
+        logp > 5,
+        hbd > 5,
+        hba > 10,
+    ])
+    veber_ok = rotb <= 10 and tpsa <= 140
+    # Conservative oral/permeability proxy: TPSA below ~90 A2 and reasonable LogP.
+    permeability_ok = tpsa <= 90 and -1 <= logp <= 5
+    pains_alert = _pains_alert(mol)
+
+    return {
+        "mw": f"{mw:.1f}",
+        "logp": f"{logp:.2f}",
+        "tpsa": f"{tpsa:.1f}",
+        "rotb": rotb,
+        "lipinski_violations": lipinski_violations,
+        "veber_ok": veber_ok,
+        "permeability_label": "High" if permeability_ok else "Check",
+        "permeability_ok": permeability_ok,
+        "pains_label": "Alert" if pains_alert else "Clear",
+        "pains_alert": pains_alert,
+    }
+
+
 def _binder_to_dto(binder):
     return {
         "id": binder.id,
@@ -157,6 +214,7 @@ def _binder_to_dto(binder):
         "notes": binder.notes,
         "source": binder.source,
         "is_direct": binder.is_direct,
+        "props": _binder_table_properties(binder.smiles),
     }
 
 

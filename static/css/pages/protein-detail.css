@@ -1229,6 +1229,39 @@
     border-radius: 10px;
 }
 
+.binder-evidence-guide {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    margin: 14px 0 16px;
+}
+
+.binder-evidence-guide__item {
+    border: 1px solid var(--tp-color-border-soft);
+    border-left: 3px solid var(--tp-color-border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    background: var(--tp-color-surface-soft);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.binder-evidence-guide__item--direct {
+    border-left-color: var(--tp-color-sage-700);
+}
+
+.binder-evidence-guide__item strong {
+    font-size: 0.84rem;
+    color: var(--tp-color-text-primary);
+}
+
+.binder-evidence-guide__item span {
+    font-size: 0.8rem;
+    line-height: 1.35;
+    color: var(--tp-color-text-secondary);
+}
+
 .binder-tbl {
     width: 100%;
     border-collapse: collapse;
@@ -1311,6 +1344,14 @@
     color: var(--tp-color-text-secondary);
 }
 
+.binder-tbl__metric {
+    font-variant-numeric: tabular-nums;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.82rem;
+    color: var(--tp-color-text-secondary);
+    white-space: nowrap;
+}
+
 .binder-tbl__score-empty {
     color: var(--tp-color-text-soft);
     font-weight: 400;
@@ -1326,17 +1367,52 @@
     white-space: nowrap;
 }
 
+.binder-quality {
+    display: inline-flex;
+    align-items: center;
+    min-height: 22px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.binder-quality--ok {
+    background: var(--tp-color-sage-050);
+    color: var(--tp-color-sage-800);
+    border: 1px solid var(--tp-color-sage-200);
+}
+
+.binder-quality--check {
+    background: var(--tp-color-warning-bg);
+    color: var(--tp-color-warning-ink);
+    border: 1px solid var(--tp-color-warning-border);
+}
+
+.binder-quality--alert {
+    background: var(--tp-color-danger-bg);
+    color: var(--tp-color-danger-ink);
+    border: 1px solid var(--tp-color-danger-border);
+}
+
 /* Direct / homolog chips (used in binder detail hero) */
 .tp-chip--direct {
-    background: var(--tp-color-teal-050, #e8fdf8);
-    color: var(--tp-color-teal-800, #0c4a3e);
-    border: 1px solid var(--tp-color-teal-200, #9fe0d3);
+    background: var(--tp-color-sage-050);
+    color: var(--tp-color-sage-900);
+    border: 1px solid var(--tp-color-sage-200);
 }
 
 .tp-chip--homolog {
     background: var(--tp-color-surface-muted);
     color: var(--tp-color-text-muted);
     border: 1px solid var(--tp-color-border-soft);
+}
+
+@media (max-width: 900px) {
+    .binder-evidence-guide {
+        grid-template-columns: 1fr;
+    }
 }
 
 .binder-card--link {

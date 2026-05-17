@@ -6,6 +6,11 @@
                 <th scope="col">{% trans "Ligand" %}</th>
                 {% if show_uniprot %}<th scope="col">{% trans "UniProt (homolog)" %}</th>{% endif %}
                 <th scope="col" class="binder-tbl__score-col">{% trans "pchembl" %}</th>
+                <th scope="col">{% trans "MW" %}</th>
+                <th scope="col">{% trans "LogP" %}</th>
+                <th scope="col">{% trans "TPSA" %}</th>
+                <th scope="col">{% trans "Permeability" %}</th>
+                <th scope="col">{% trans "PAINS" %}</th>
                 <th scope="col">{% trans "SMILES" %}</th>
             </tr>
         </thead>
@@ -16,6 +21,19 @@
                     {% if show_uniprot %}<td class="binder-tbl__uniprot">{{ binder.uniprot|default:"—" }}</td>{% endif %}
                     <td class="binder-tbl__score">
                         {% if binder.score is not None %}{{ binder.score|floatformat:2 }}{% else %}<span class="binder-tbl__score-empty">—</span>{% endif %}
+                    </td>
+                    <td class="binder-tbl__metric">{{ binder.props.mw|default:"—" }}</td>
+                    <td class="binder-tbl__metric">{{ binder.props.logp|default:"—" }}</td>
+                    <td class="binder-tbl__metric">{{ binder.props.tpsa|default:"—" }}</td>
+                    <td>
+                        {% if binder.props %}
+                            <span class="binder-quality {% if binder.props.permeability_ok %}binder-quality--ok{% else %}binder-quality--check{% endif %}">{{ binder.props.permeability_label }}</span>
+                        {% else %}—{% endif %}
+                    </td>
+                    <td>
+                        {% if binder.props %}
+                            <span class="binder-quality {% if binder.props.pains_alert %}binder-quality--alert{% else %}binder-quality--ok{% endif %}">{{ binder.props.pains_label }}</span>
+                        {% else %}—{% endif %}
                     </td>
                     <td class="binder-tbl__smiles"><code>{{ binder.smiles|truncatechars:60 }}</code></td>
                 </tr>
