@@ -371,11 +371,11 @@
 .targets-score {
     margin-left: auto;
     font-family: "Space Grotesk", "Segoe UI", sans-serif;
-    font-size: 1.45rem;
-    font-weight: 800;
+    font-size: 1.1rem;
+    font-weight: 700;
     color: var(--genome-accent-ink);
     line-height: 1;
-    padding: 4px 12px;
+    padding: 7px 12px;
     background: var(--genome-accent-soft);
     border: 1px solid var(--genome-accent-border);
     border-radius: 999px;
