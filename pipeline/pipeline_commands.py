@@ -124,6 +124,16 @@ def fetch_annotations_cmd(working_dir, genome, folder_path):
     return f"{PYTHON_BIN} {working_dir}/manage.py fetch_uniprot_annotations {genome} --datadir {working_dir}/data --lst {lst_path}"
 
 
+# --- Stage 14b: Experimental structures from PDB ---
+
+def fetch_exp_structures_cmd(working_dir, genome, folder_path):
+    lst_path = os.path.join(folder_path, genome + "_unips.lst")
+    return (
+        f"{PYTHON_BIN} {working_dir}/manage.py fetch_experimental_structures {genome}"
+        f" --datadir {_data_dir(working_dir)}"
+    )
+
+
 # --- Stage 15: AlphaFold per-protein ---
 
 def alphafold_cmd(protein_list_line, folder_path, genome):

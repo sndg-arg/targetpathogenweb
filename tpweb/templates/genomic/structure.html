@@ -181,6 +181,16 @@
                 {% endif %}
             </aside>
 
+            {% if alt_structure_id %}
+            <div class="structure-source-toggle" id="structure-source-toggle"
+                 data-primary-id="{{ structure.id }}"
+                 data-primary-label="{{ primary_structure_label }}"
+                 data-alt-id="{{ alt_structure_id }}"
+                 data-alt-label="{{ alt_structure_label }}">
+                <button type="button" class="structure-source-btn is-active" id="structure-src-primary" onclick="switchStructureSource('primary')">{{ primary_structure_label }}</button>
+                <button type="button" class="structure-source-btn" id="structure-src-alt" onclick="switchStructureSource('alt')">{{ alt_structure_label }}</button>
+            </div>
+            {% endif %}
             <div class="structure-fs-viewport-wrap">
                 <div id="viewport"></div>
                 <p class="table-hint structure-loading-note" id="structure-loading-note">{% trans "Loading 3D structure..." %}</p>
@@ -483,10 +493,26 @@
             });
             disableStructureScrollZoom(stage);
 
-            stage.loadFile("{% url "tpwebapp:structure_raw" structure.id %}", {
-                ext: "pdb",
-                defaultRepresentation: false
-            }).then(function (component) {
+            const structureUrls = {
+                primary: "{% url 'tpwebapp:structure_raw' structure.id %}",
+                {% if alt_structure_id %}alt: "{% url 'tpwebapp:structure_raw' alt_structure_id %}",{% endif %}
+            };
+
+            function _loadStructureById(urlKey) {
+                stage.removeAllComponents();
+                stage.loadFile(structureUrls[urlKey], { ext: "pdb", defaultRepresentation: false })
+                    .then(initStructureComponent);
+            }
+
+            window.switchStructureSource = function (which) {
+                const toggle = document.getElementById("structure-source-toggle");
+                if (!toggle) return;
+                toggle.querySelectorAll(".structure-source-btn").forEach(b => b.classList.remove("is-active"));
+                document.getElementById("structure-src-" + which).classList.add("is-active");
+                _loadStructureById(which);
+            };
+
+            function initStructureComponent(component) {
                 const pocketSurfaceKeys = [];
 
                 window.ngl_reset_zoom = function () {
@@ -714,12 +740,16 @@
                 if (loadingNote) {
                     loadingNote.style.display = "none";
                 }
-            }).catch(function () {
-                if (loadingNote) {
-                    loadingNote.textContent = UI_TEXT.loadError;
-                    loadingNote.style.display = "block";
-                }
-            });
+            }
+
+            stage.loadFile(structureUrls.primary, { ext: "pdb", defaultRepresentation: false })
+                .then(initStructureComponent)
+                .catch(function () {
+                    if (loadingNote) {
+                        loadingNote.textContent = UI_TEXT.loadError;
+                        loadingNote.style.display = "block";
+                    }
+                });
 
 
             document.querySelectorAll(".data-details").forEach(function (details) {

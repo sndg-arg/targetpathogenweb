@@ -43,6 +43,8 @@ class Command(BaseCommand):
         parser.add_argument('--tmp', default="/tmp/load_pdb")
         parser.add_argument('--overwrite', action="store_true")
         parser.add_argument('--datadir', default="./data")
+        parser.add_argument('--experiment', default=None,
+                            help="Force experiment type (AF, CF, EX). Auto-detected if not set.")
 
     def handle(self, *args, **options):
         seqstore = SeqStore(options['datadir'])
@@ -60,8 +62,11 @@ class Command(BaseCommand):
 
         be = be.get()
         genome = be.biodatabase.name.replace(BioIO.GENOME_PROT_POSTFIX, "")
-        pdb_model_qs = PDB.objects.filter(code=code,
-                                          experiment__in=("AF", "CF"))
+        forced_experiment = (options.get("experiment") or "").strip().upper() or None
+        if forced_experiment:
+            pdb_model_qs = PDB.objects.filter(code=code, experiment=forced_experiment)
+        else:
+            pdb_model_qs = PDB.objects.filter(code=code, experiment__in=("AF", "CF"))
         if options["overwrite"]:
             self.stderr.write(f"deleting... {code} ")
             pdb_model_qs.delete()
@@ -69,9 +74,12 @@ class Command(BaseCommand):
             self.stderr.write(f"structure {code} already exists")
             sys.exit(1)
         else:
-            pdb_dir = os.path.dirname(options["pdb_file"])
-            uniprot_file = os.path.join(pdb_dir, f"{code}_uniprot.txt")
-            experiment = "AF" if os.path.exists(uniprot_file) else "CF"
+            if forced_experiment:
+                experiment = forced_experiment
+            else:
+                pdb_dir = os.path.dirname(options["pdb_file"])
+                uniprot_file = os.path.join(pdb_dir, f"{code}_uniprot.txt")
+                experiment = "AF" if os.path.exists(uniprot_file) else "CF"
             try:
                 pdb_model = PDB(code=code,
                                 experiment=experiment)

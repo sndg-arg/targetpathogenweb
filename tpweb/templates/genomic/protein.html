@@ -323,6 +323,12 @@
                         <a href="{% url "tpwebapp:structure_export" structure.id %}" class="btn tp-btn tp-btn--outline tp-btn--md structure-action-btn">{% trans "Download TCL VMD" %}</a>
                     </div>
 
+                    {% if alt_structure_id %}
+                    <div class="structure-source-toggle" id="structure-source-toggle">
+                        <button type="button" class="structure-source-btn is-active" id="structure-src-primary" onclick="switchStructureSource('primary')">{{ primary_structure_label }}</button>
+                        <button type="button" class="structure-source-btn" id="structure-src-alt" onclick="switchStructureSource('alt')">{{ alt_structure_label }}</button>
+                    </div>
+                    {% endif %}
                     <div class="structure-viewport-wrap">
                         <div id="viewport"></div>
                     </div>
@@ -1196,10 +1202,26 @@
                     e.preventDefault();
                 }, { passive: false });
 
-                stage.loadFile("{% url "tpwebapp:structure_raw" structure.id %}", {
-                    ext: "pdb",
-                    defaultRepresentation: false
-                }).then(function (component) {
+                const structureUrls = {
+                    primary: "{% url 'tpwebapp:structure_raw' structure.id %}",
+                    {% if alt_structure_id %}alt: "{% url 'tpwebapp:structure_raw' alt_structure_id %}",{% endif %}
+                };
+
+                function _loadStructureById(urlKey) {
+                    stage.removeAllComponents();
+                    stage.loadFile(structureUrls[urlKey], { ext: "pdb", defaultRepresentation: false })
+                        .then(initStructureComponent);
+                }
+
+                window.switchStructureSource = function (which) {
+                    const toggle = document.getElementById("structure-source-toggle");
+                    if (!toggle) return;
+                    toggle.querySelectorAll(".structure-source-btn").forEach(function (b) { b.classList.remove("is-active"); });
+                    document.getElementById("structure-src-" + which).classList.add("is-active");
+                    _loadStructureById(which);
+                };
+
+                function initStructureComponent(component) {
                     function setModeButtonState(mode) {
                         structureModeButtons.forEach(function (button) {
                             const isActive = button.getAttribute("data-mode") === mode;
@@ -1482,11 +1504,15 @@
                     if (structureLoadingNote) {
                         structureLoadingNote.style.display = "none";
                     }
-                }).catch(function () {
-                    if (structureLoadingNote) {
-                        structureLoadingNote.textContent = structureLoadErrorMessage;
-                    }
-                });
+                }
+
+                stage.loadFile(structureUrls.primary, { ext: "pdb", defaultRepresentation: false })
+                    .then(initStructureComponent)
+                    .catch(function () {
+                        if (structureLoadingNote) {
+                            structureLoadingNote.textContent = structureLoadErrorMessage;
+                        }
+                    });
             }
 
             if ("IntersectionObserver" in window && structureSection) {

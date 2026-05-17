@@ -57,13 +57,13 @@ def _fetch_uniprot_batch(accessions):
     """Query the UniProt REST API for a batch of accessions.
 
     Returns a list of dicts with keys ``accession``, ``ec_numbers``,
-    ``go_terms`` (each a list of ``{id, name}``).
+    ``go_terms``, ``pdb_xrefs`` (each a list of dicts).
     """
     query = " OR ".join(f"accession:{acc}" for acc in accessions)
     params = {
         "query": query,
         "format": "json",
-        "fields": "accession,ec,go_id",
+        "fields": "accession,ec,go_id,xref_pdb",
         "size": len(accessions),
     }
 
@@ -91,8 +91,11 @@ def _fetch_uniprot_batch(accessions):
     return []
 
 
+_PDB_ACCEPTED_METHODS = {"X-RAY DIFFRACTION", "ELECTRON MICROSCOPY", "X-RAY", "EM", "CRYO-EM"}
+
+
 def _parse_uniprot_response(data):
-    """Extract EC and GO from UniProt JSON search response."""
+    """Extract EC, GO, and PDB xrefs from UniProt JSON search response."""
     results = []
     for entry in data.get("results", []):
         accession = entry.get("primaryAccession", "")
@@ -114,25 +117,54 @@ def _parse_uniprot_response(data):
 
         # GO terms — from uniProtKBCrossReferences with database "GO"
         go_terms = []
+        # PDB xrefs — X-ray and cryo-EM only, sorted best resolution first
+        pdb_xrefs = []
         for xref in entry.get("uniProtKBCrossReferences", []):
-            if xref.get("database") == "GO":
+            db = xref.get("database", "")
+            if db == "GO":
                 go_id = xref.get("id", "").strip()
                 go_name = ""
                 for prop in xref.get("properties", []):
                     if prop.get("key") == "GoTerm":
                         raw = prop.get("value", "")
-                        # Format: "C:cytoplasm" or "F:binding" or "P:transport"
                         if ":" in raw:
                             go_name = raw.split(":", 1)[1].strip()
                         else:
                             go_name = raw.strip()
                 if go_id:
                     go_terms.append({"id": go_id, "name": go_name})
+            elif db == "PDB":
+                pdb_id = xref.get("id", "").strip()
+                if not pdb_id:
+                    continue
+                method = ""
+                resolution = None
+                for prop in xref.get("properties", []):
+                    key = prop.get("key", "")
+                    val = prop.get("value", "").strip()
+                    if key == "Method":
+                        method = val.upper()
+                    elif key == "Resolution":
+                        try:
+                            resolution = float(val.replace(" A", "").replace("A", ""))
+                        except (ValueError, TypeError):
+                            pass
+                # Accept X-ray and cryo-EM; skip NMR and unknown
+                if any(m in method for m in ("X-RAY", "DIFFRACTION", "ELECTRON", "MICROSCOPY", "CRYO")):
+                    pdb_xrefs.append({
+                        "id": pdb_id,
+                        "method": method,
+                        "resolution": resolution,
+                    })
+
+        # Sort best resolution first (None last)
+        pdb_xrefs.sort(key=lambda x: (x["resolution"] is None, x["resolution"] or 999))
 
         results.append({
             "accession": accession,
             "ec_numbers": ec_numbers,
             "go_terms": go_terms,
+            "pdb_xrefs": pdb_xrefs,
         })
     return results
 
@@ -174,6 +206,24 @@ def _persist_annotations(protein, annotations, dbname, ontology):
         TermDbxref.objects.get_or_create(term=term, dbxref=dbxref, defaults={"rank": 0})
 
     return created
+
+
+def _persist_pdb_xrefs(protein, pdb_xrefs):
+    """Store PDB cross-references for a protein. rank = resolution * 100 (lower = better)."""
+    for xref in pdb_xrefs:
+        pdb_id = xref["id"]
+        resolution = xref.get("resolution")
+        rank = int(resolution * 100) if resolution is not None else 9999
+        dbxref, _ = Dbxref.objects.get_or_create(
+            dbname="PDB",
+            accession=pdb_id,
+            defaults={"version": 0},
+        )
+        BioentryDbxref.objects.get_or_create(
+            bioentry=protein,
+            dbxref=dbxref,
+            defaults={"rank": rank},
+        )
 
 
 def fetch_and_load_uniprot_annotations(assembly_name, lst_path=None, datadir=None):
@@ -248,6 +298,7 @@ def fetch_and_load_uniprot_annotations(assembly_name, lst_path=None, datadir=Non
 
                 ec_created = _persist_annotations(protein, entry["ec_numbers"], "ec", ec_ontology)
                 go_created = _persist_annotations(protein, entry["go_terms"], Ontology.GO, go_ontology)
+                _persist_pdb_xrefs(protein, entry.get("pdb_xrefs", []))
 
                 total_ec += ec_created
                 total_go += go_created

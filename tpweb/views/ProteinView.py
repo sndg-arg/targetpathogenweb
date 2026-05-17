@@ -26,6 +26,23 @@ from tpweb.services.genome_workspace import (
 from tpweb.services.structure_sources import summarize_structure_sources
 
 KNOWN_BINDER_CAP = 100
+
+_STRUCTURE_PREFERENCE = {"EX": 0, "AF": 1, "CF": 2}
+_STRUCTURE_TOGGLE_LABELS = {
+    "EX": "Crystal structure",
+    "AF": "AlphaFold model",
+    "CF": "ColabFold model",
+}
+
+
+def _sort_structures_by_preference(structures):
+    """Return structures sorted EX first, then AF, then CF."""
+    return sorted(structures, key=lambda s: _STRUCTURE_PREFERENCE.get(
+        (getattr(s.pdb, "experiment", "") or "").upper(), 9))
+
+
+def _structure_toggle_label(experiment):
+    return _STRUCTURE_TOGGLE_LABELS.get((experiment or "").upper(), "Model")
 ZINC_BINDER_CAP = 50
 _PAINS_CATALOG = None
 
@@ -324,6 +341,7 @@ class ProteinView(View):
             raise Http404("Protein not found")
         proteinDTO, features, annotations, graphic_features = serialize_prot(protein)
         structures = protein.structures.prefetch_related("pdb__residues").all()
+        structures = _sort_structures_by_preference(structures)
         binders_search_query = request.GET.get("binder_search", "").strip()
         binders = create_binders_dict(protein, search_query=binders_search_query)
         structure_summary = summarize_structure_sources(structures)
@@ -430,7 +448,12 @@ class ProteinView(View):
                "view_export_url": self._build_view_export_url(request)}
         if structures:
             structure = structures[0].pdb
-            dto["structure"] = pdb_structure(structure,graphic_features)
+            dto["structure"] = pdb_structure(structure, graphic_features)
+            if len(structures) > 1:
+                alt = structures[1].pdb
+                dto["alt_structure_id"] = alt.id
+                dto["alt_structure_label"] = _structure_toggle_label(alt.experiment)
+                dto["primary_structure_label"] = _structure_toggle_label(structure.experiment)
             """structureDTO ={
                 "id" : structure.id,
                 "code" : structure.code

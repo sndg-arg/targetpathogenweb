@@ -38,6 +38,7 @@ from pipeline_commands import (
     load_interpro_cmd,
     gbk2uniprot_cmd,
     fetch_annotations_cmd,
+    fetch_exp_structures_cmd,
     alphafold_cmd,
     colabfold_cmd,
     load_af_model_cmd,
@@ -248,6 +249,7 @@ def run_genome(genome, gram, custom, source_genome, is_test, working_dir, cfg_di
         _run_stage(12, "gbk2uniprot_map", gbk2uniprot_cmd(working_dir, genome, folder_path))
     if not _skip(13):
         _run_stage(13, "fetch_uniprot_annotations", fetch_annotations_cmd(working_dir, genome, folder_path))
+        _run_stage(13, "fetch_experimental_structures", fetch_exp_structures_cmd(working_dir, genome, folder_path))
     if not _skip(14) or not _skip(15):
         protein_list = _run_python_stage(14, "get_unipslst", _read_unips, folder_path, genome)
         if not _skip(15):

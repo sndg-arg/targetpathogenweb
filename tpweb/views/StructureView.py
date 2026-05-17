@@ -7,6 +7,7 @@ from tpweb.models.BioentryStructure import BioentryStructure
 from tpweb.models.pdb import PDB, Residue, Property, ResidueSet, PDBResidueSet
 from django.db.models import Q
 from tpweb.services.genome_workspace import user_can_access_genome_name, genome_url_slug
+from tpweb.views.ProteinView import _structure_toggle_label
 
 
 class StructureView(View):
@@ -27,7 +28,12 @@ class StructureView(View):
             dto["source_genome"] = genome_url_slug(source_assembly_name)
             if not user_can_access_genome_name(request.user, source_assembly_name):
                 raise Http404("Structure not found")
-
+            # Expose alternative structure for toggle (EX ↔ AF/CF)
+            alt = self._find_alt_structure(source_bioentry, structure)
+            if alt:
+                dto["alt_structure_id"] = alt.id
+                dto["alt_structure_label"] = _structure_toggle_label(alt.experiment)
+                dto["primary_structure_label"] = _structure_toggle_label(structure.experiment)
 
         return render(request, self.template_name, dto)
 
@@ -45,6 +51,23 @@ class StructureView(View):
         first_link = BioentryStructure.objects.select_related("bioentry__biodatabase").filter(pdb=structure).first()
         if first_link and first_link.bioentry:
             return first_link.bioentry
+        return None
+
+    @staticmethod
+    def _find_alt_structure(source_bioentry, current_structure):
+        """Return a PDB object that is the counterpart to current_structure (EX↔AF/CF)."""
+        current_exp = (current_structure.experiment or "").upper()
+        all_structures = BioentryStructure.objects.select_related("pdb").filter(
+            bioentry=source_bioentry
+        ).exclude(pdb=current_structure)
+        if current_exp == "EX":
+            preferred = ["AF", "CF"]
+        else:
+            preferred = ["EX"]
+        for exp in preferred:
+            match = all_structures.filter(pdb__experiment=exp).first()
+            if match:
+                return match.pdb
         return None
 
     @staticmethod

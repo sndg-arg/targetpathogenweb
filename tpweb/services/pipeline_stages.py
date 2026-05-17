@@ -13,7 +13,7 @@ STAGE_LABELS = {
     10: "Running InterProScan",
     11: "Loading InterPro annotations",
     12: "Mapping to UniProt",
-    13: "Fetching UniProt annotations",
+    13: "Fetching UniProt annotations and experimental structures",
     14: "Collecting UniProt list",
     15: "Generating AlphaFold models",
     16: "Predicting missing structures (ColabFold)",
