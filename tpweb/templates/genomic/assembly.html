@@ -93,8 +93,8 @@
                     <span class="metric-value">{{ workspace_metrics.functional_annotated }}</span>
                 </div>
                 <div class="metric-pill">
-                    <span class="metric-label">{% trans "Binder evidence" %}</span>
-                    <span class="metric-value">{{ workspace_metrics.binder_total }}</span>
+                    <span class="metric-label">{% trans "Direct ligand hits" %}</span>
+                    <span class="metric-value">{{ workspace_metrics.binder_direct }}</span>
                 </div>
             </div>
         </section>
@@ -266,10 +266,12 @@
                     <div class="evidence-card evidence-card--binders">
                         <span class="evidence-label">{% trans "Ligand evidence for this genome" %}</span>
                         <span class="evidence-headline">
-                            {% blocktrans count binders=workspace_metrics.binder_pdb_direct %}{{ binders }} PDB ligand on this protein{% plural %}{{ binders }} PDB ligands on this protein{% endblocktrans %}
+                            {% if workspace_metrics.binder_direct %}
+                                {% blocktrans count n=workspace_metrics.binder_direct %}{{ n }} direct hit{% plural %}{{ n }} direct hits{% endblocktrans %}
+                            {% else %}
+                                {% trans "All via homologs" %}
+                            {% endif %}
                             <span class="evidence-headline-sub">
-                                {% blocktrans count direct=workspace_metrics.binder_direct %}{{ direct }} record on this protein{% plural %}{{ direct }} records on this protein{% endblocktrans %}
-                                ·
                                 {% blocktrans count total=workspace_metrics.binder_total %}{{ total }} total record{% plural %}{{ total }} total records{% endblocktrans %}
                                 ·
                                 {% blocktrans count proteins=workspace_metrics.proteins_with_binders %}{{ proteins }} protein{% plural %}{{ proteins }} proteins{% endblocktrans %}
