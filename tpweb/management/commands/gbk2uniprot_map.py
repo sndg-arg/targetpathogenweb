@@ -94,6 +94,72 @@ class Command(BaseCommand):
             return self._fetch_results(session, job_id), payload
         return None, last_status or {"jobStatus": "TIMEOUT"}
 
+    def _search_refseq_batch(self, session, ids):
+        """Fallback for UniProt's async mapper: query UniProtKB by RefSeq xref."""
+        if not ids:
+            return pd.DataFrame()
+        query = " OR ".join(f"xref:RefSeq-{protein_id}" for protein_id in ids)
+        resp = session.get(
+            "https://rest.uniprot.org/uniprotkb/search",
+            params={
+                "query": query,
+                "format": "tsv",
+                "fields": "accession,id,reviewed,protein_name,gene_names,organism_name,length,xref_refseq",
+                "size": 500,
+            },
+            headers={"User-Agent": "TargetPathogenWeb/1.0"},
+            timeout=120,
+        )
+        resp.raise_for_status()
+        df = pd.read_csv(StringIO(resp.text), sep="\t")
+        if df.empty or "Entry" not in df.columns or "RefSeq" not in df.columns:
+            return pd.DataFrame()
+
+        rows = []
+        requested = set(ids)
+        for _, row in df.fillna("").iterrows():
+            refseq_ids = {
+                token.strip()
+                for token in str(row.get("RefSeq", "")).replace(",", ";").split(";")
+                if token.strip()
+            }
+            for protein_id in requested.intersection(refseq_ids):
+                rows.append(
+                    {
+                        "From": protein_id,
+                        "Entry": row.get("Entry", ""),
+                        "Entry Name": row.get("Entry Name", ""),
+                        "Reviewed": row.get("Reviewed", ""),
+                        "Protein names": row.get("Protein names", ""),
+                        "Gene Names": row.get("Gene Names", ""),
+                        "Organism": row.get("Organism", ""),
+                        "Length": row.get("Length", ""),
+                    }
+                )
+        return pd.DataFrame(rows)
+
+    def _fallback_search_refseq(self, session, ids, progress):
+        frames = []
+        # Keep the OR query short enough for proxy/server URL limits.
+        chunk_size = 25
+        for start in range(0, len(ids), chunk_size):
+            chunk = ids[start:start + chunk_size]
+            try:
+                chunk_df = self._search_refseq_batch(session, chunk)
+            except Exception as exc:
+                self.stderr.write(
+                    self.style.WARNING(
+                        f"UniProt RefSeq search fallback failed for ids {start + 1}-{start + len(chunk)}: {exc}"
+                    )
+                )
+                continue
+            if not chunk_df.empty:
+                frames.append(chunk_df)
+            progress.set_description("Using RefSeq xref fallback")
+        if frames:
+            return pd.concat(frames, ignore_index=True)
+        return pd.DataFrame()
+
     def handle(self, *args, **options):
         accession = options["accession"] + BioIO.GENOME_PROT_POSTFIX
         batch_size = max(1, options["batch_size"])
@@ -142,55 +208,49 @@ class Command(BaseCommand):
                             session, job_id, polling_interval, progress
                         )
                     except Exception as exc:
-                        failed_ids.update(batch_ids)
                         self.stderr.write(
                             self.style.WARNING(
                                 f"UniProt mapping request failed for batch starting at {i}: {exc}"
                             )
                         )
-                        if not mapping_frames:
-                            self.stderr.write(
-                                self.style.WARNING(
-                                    "Stopping UniProt mapping early because the first batch failed and no mappings "
-                                    "were recovered. The pipeline will continue with an empty mapping table."
-                                )
-                            )
-                            break
+                        batch_df = self._fallback_search_refseq(session, batch_ids, progress)
+                        if not batch_df.empty:
+                            mapping_frames.append(batch_df)
+                            mapped = set(batch_df["From"])
+                            failed_ids.update(set(batch_ids) - mapped)
+                            continue
+                        failed_ids.update(batch_ids)
                         continue
 
                     if not tsv_text:
-                        failed_ids.update(batch_ids)
                         self.stderr.write(
                             self.style.WARNING(
                                 f"UniProt mapping returned no results for batch starting at {i}: {status_payload}"
                             )
                         )
-                        if not mapping_frames:
-                            self.stderr.write(
-                                self.style.WARNING(
-                                    "Stopping UniProt mapping early because the first batch returned no usable data. "
-                                    "The pipeline will continue with an empty mapping table."
-                                )
-                            )
-                            break
+                        batch_df = self._fallback_search_refseq(session, batch_ids, progress)
+                        if not batch_df.empty:
+                            mapping_frames.append(batch_df)
+                            mapped = set(batch_df["From"])
+                            failed_ids.update(set(batch_ids) - mapped)
+                            continue
+                        failed_ids.update(batch_ids)
                         continue
 
                     batch_df = pd.read_csv(StringIO(tsv_text), sep="\t")
                     if batch_df.empty or "From" not in batch_df.columns:
-                        failed_ids.update(batch_ids)
                         self.stderr.write(
                             self.style.WARNING(
                                 f"UniProt mapping produced an empty/invalid table for batch starting at {i}."
                             )
                         )
-                        if not mapping_frames:
-                            self.stderr.write(
-                                self.style.WARNING(
-                                    "Stopping UniProt mapping early because the first batch produced an empty table. "
-                                    "The pipeline will continue with an empty mapping table."
-                                )
-                            )
-                            break
+                        batch_df = self._fallback_search_refseq(session, batch_ids, progress)
+                        if not batch_df.empty:
+                            mapping_frames.append(batch_df)
+                            mapped = set(batch_df["From"])
+                            failed_ids.update(set(batch_ids) - mapped)
+                            continue
+                        failed_ids.update(batch_ids)
                         continue
                     mapping_frames.append(batch_df)
 

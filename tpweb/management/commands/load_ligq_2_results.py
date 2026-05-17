@@ -503,7 +503,10 @@ class Command(BaseCommand):
             return {}
         result = {}
         qs = (
-            BioentryDbxref.objects.filter(bioentry__accession__in=clean)
+            BioentryDbxref.objects.filter(
+                bioentry__accession__in=clean,
+                dbxref__dbname__in=["UnipSp", "UnipTr"],
+            )
             .values("bioentry__accession", "dbxref__accession")
         )
         for row in qs:
