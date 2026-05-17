@@ -7,7 +7,7 @@ from tpweb.models.BioentryStructure import BioentryStructure
 from tpweb.models.pdb import PDB, Residue, Property, ResidueSet, PDBResidueSet
 from django.db.models import Q
 from tpweb.services.genome_workspace import user_can_access_genome_name, genome_url_slug
-from tpweb.views.ProteinView import _structure_toggle_label
+from tpweb.services.structure_sources import structure_toggle_label as _structure_toggle_label
 
 
 class StructureView(View):

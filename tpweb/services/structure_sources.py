@@ -31,6 +31,23 @@ STRUCTURE_SOURCE_CHOICES = (
 )
 
 
+_STRUCTURE_PREFERENCE = {"EX": 0, "AF": 1, "CF": 2}
+_STRUCTURE_TOGGLE_LABELS = {
+    "EX": "Crystal structure",
+    "AF": "AlphaFold model",
+    "CF": "ColabFold model",
+}
+
+
+def structure_toggle_label(experiment):
+    return _STRUCTURE_TOGGLE_LABELS.get((experiment or "").upper(), "Model")
+
+
+def sort_structures_by_preference(structures):
+    return sorted(structures, key=lambda s: _STRUCTURE_PREFERENCE.get(
+        (getattr(s.pdb, "experiment", "") or "").upper(), 9))
+
+
 def _normalize_experiment(experiment):
     return str(experiment or "").strip().upper()
 

@@ -23,26 +23,13 @@ from tpweb.services.genome_workspace import (
     genome_url_slug,
     user_can_access_genome_name,
 )
-from tpweb.services.structure_sources import summarize_structure_sources
+from tpweb.services.structure_sources import (
+    summarize_structure_sources,
+    sort_structures_by_preference as _sort_structures_by_preference,
+    structure_toggle_label as _structure_toggle_label,
+)
 
 KNOWN_BINDER_CAP = 100
-
-_STRUCTURE_PREFERENCE = {"EX": 0, "AF": 1, "CF": 2}
-_STRUCTURE_TOGGLE_LABELS = {
-    "EX": "Crystal structure",
-    "AF": "AlphaFold model",
-    "CF": "ColabFold model",
-}
-
-
-def _sort_structures_by_preference(structures):
-    """Return structures sorted EX first, then AF, then CF."""
-    return sorted(structures, key=lambda s: _STRUCTURE_PREFERENCE.get(
-        (getattr(s.pdb, "experiment", "") or "").upper(), 9))
-
-
-def _structure_toggle_label(experiment):
-    return _STRUCTURE_TOGGLE_LABELS.get((experiment or "").upper(), "Model")
 ZINC_BINDER_CAP = 50
 _PAINS_CATALOG = None
 
