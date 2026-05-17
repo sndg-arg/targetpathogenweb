@@ -13,8 +13,6 @@ Resolution is pre-ranked during UniProt fetch: rank = int(resolution * 100).
 import logging
 import math
 import os
-import subprocess
-import sys
 import time
 
 import requests
@@ -68,6 +66,8 @@ def fetch_and_load_experimental_structures(assembly_name, folder_path, working_d
 
     Returns a dict with keys: downloaded, loaded, skipped, total.
     """
+    from django.core.management import call_command
+
     proteome_name = f"{assembly_name}{Biodatabase.PROT_POSTFIX}"
 
     # Get best PDB per protein (lowest rank = best resolution)
@@ -93,7 +93,6 @@ def fetch_and_load_experimental_structures(assembly_name, folder_path, working_d
 
     exp_dir = os.path.join(folder_path, "experimental")
     datadir = os.path.join(working_dir, "data")
-    python_bin = sys.executable
 
     downloaded = 0
     loaded = 0
@@ -112,18 +111,26 @@ def fetch_and_load_experimental_structures(assembly_name, folder_path, working_d
                 continue
             downloaded += 1
 
-        cmd = (
-            f"{python_bin} {working_dir}/manage.py load_af_model"
-            f" {pdb_id} {dest_path} {locus_tag}"
-            f" --experiment EX --overwrite --datadir {datadir}"
-        )
-        result = subprocess.run(["bash", "-c", cmd], capture_output=True, text=True)
-        if result.returncode != 0:
-            logger.error("load_af_model failed for PDB %s / %s: %s", pdb_id, locus_tag, result.stderr[-500:])
-            skipped += 1
-        else:
+        try:
+            call_command(
+                "load_af_model",
+                pdb_id, dest_path, locus_tag,
+                experiment="EX",
+                overwrite=True,
+                datadir=datadir,
+            )
             loaded += 1
-            logger.debug("Loaded PDB %s for %s", pdb_id, locus_tag)
+            logger.info("Loaded PDB %s for %s", pdb_id, locus_tag)
+        except SystemExit as exc:
+            if exc.code == 0:
+                loaded += 1
+                logger.info("Loaded PDB %s for %s (exit 0)", pdb_id, locus_tag)
+            else:
+                logger.error("load_af_model exited %s for PDB %s / %s", exc.code, pdb_id, locus_tag)
+                skipped += 1
+        except Exception as exc:
+            logger.error("load_af_model failed for PDB %s / %s: %s", pdb_id, locus_tag, exc)
+            skipped += 1
 
     stats = {"downloaded": downloaded, "loaded": loaded, "skipped": skipped, "total": total}
     logger.info("Experimental structures complete for %s: %s", assembly_name, stats)
