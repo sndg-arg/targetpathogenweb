@@ -171,7 +171,7 @@
                                 <div>
                                     <h2>{% trans "Strongest ligand support" %}</h2>
                                     <p class="section-subtitle">
-                                        {% trans "Proteins with the most binders identified. Useful as a 'chemical tractability' signal — but well-studied human homologs (kinases, GPCRs) accumulate hits regardless of being good bacterial targets." %}
+                                        {% trans "Proteins ranked by direct ligand evidence first. Similar-protein and ZINC records are shown separately as supporting context." %}
                                     </p>
                                 </div>
                             </div>
@@ -188,19 +188,24 @@
                                             </div>
                                             <div class="targets-stats">
                                                 <span class="targets-stat targets-stat--total">
-                                                    <span class="targets-stat-value">{{ t.binder_count }}{% if t.chembl_count >= 100 or t.zinc_count >= 50 %}+{% endif %}</span>
-                                                    <span class="targets-stat-label">{% trans "binders" %}</span>
+                                                    <span class="targets-stat-value">{{ t.direct_count }}</span>
+                                                    <span class="targets-stat-label">{% trans "direct" %}</span>
                                                 </span>
                                                 <div class="targets-breakdown">
-                                                    {% if t.pdb_count %}
-                                                        <span class="targets-bd targets-bd--pdb">
-                                                            PDB <strong>{{ t.pdb_count }}</strong>
+                                                    {% if t.pdb_direct_count %}
+                                                        <span class="targets-bd targets-bd--pdb-direct">
+                                                            PDB direct <strong>{{ t.pdb_direct_count }}</strong>
                                                         </span>
                                                     {% endif %}
-                                                    {% if t.chembl_count %}
-                                                        <span class="targets-bd targets-bd--chembl">
-                                                            ChEMBL <strong>{{ t.chembl_count }}{% if t.chembl_count >= 100 %}+{% endif %}</strong>
-                                                            {% if t.chembl_count >= 100 %}<span class="targets-tooltip">{% trans "Capped at top 100 by pchembl — true count is higher" %}</span>{% endif %}
+                                                    {% if t.chembl_direct_count %}
+                                                        <span class="targets-bd targets-bd--chembl-direct">
+                                                            ChEMBL direct <strong>{{ t.chembl_direct_count }}</strong>
+                                                        </span>
+                                                    {% endif %}
+                                                    {% if t.homolog_count %}
+                                                        <span class="targets-bd targets-bd--homolog">
+                                                            Similar <strong>{{ t.homolog_count }}{% if t.chembl_homolog_count >= 100 %}+{% endif %}</strong>
+                                                            {% if t.chembl_homolog_count >= 100 %}<span class="targets-tooltip">{% trans "Includes PDB and ChEMBL evidence transferred from similar proteins. ChEMBL similar-protein records are capped at top 100 by pchembl." %}</span>{% endif %}
                                                         </span>
                                                     {% endif %}
                                                     {% if t.zinc_count %}

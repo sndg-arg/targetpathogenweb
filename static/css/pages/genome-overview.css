@@ -620,16 +620,24 @@
     font-weight: 800;
 }
 
-.targets-bd--pdb {
+.targets-bd--pdb,
+.targets-bd--pdb-direct {
     background: var(--tp-color-brand-100);
     color: var(--tp-color-brand-900);
     border-color: var(--tp-color-brand-300);
 }
 
-.targets-bd--chembl {
+.targets-bd--chembl,
+.targets-bd--chembl-direct {
     background: color-mix(in srgb, var(--tp-color-sage-700) 12%, var(--tp-color-surface));
     color: var(--tp-color-sage-900, var(--tp-color-text-primary));
     border-color: color-mix(in srgb, var(--tp-color-sage-700) 28%, var(--tp-color-border-soft));
+}
+
+.targets-bd--homolog {
+    background: var(--tp-color-surface-muted);
+    color: var(--tp-color-text-secondary);
+    border-color: var(--tp-color-border-soft);
 }
 
 .targets-bd--zinc {

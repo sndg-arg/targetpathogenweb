@@ -39,11 +39,17 @@ def get_top_targets_by_binders(assembly_name, limit=5):
         )
         .annotate(
             binder_count=Count("id"),
+            direct_count=Count("id", filter=Q(source__in=[Binders.SOURCE_PDB, Binders.SOURCE_CHEMBL], is_direct=True)),
+            homolog_count=Count("id", filter=Q(source__in=[Binders.SOURCE_PDB, Binders.SOURCE_CHEMBL], is_direct=False)),
             pdb_count=Count("id", filter=Q(source=Binders.SOURCE_PDB)),
+            pdb_direct_count=Count("id", filter=Q(source=Binders.SOURCE_PDB, is_direct=True)),
+            pdb_homolog_count=Count("id", filter=Q(source=Binders.SOURCE_PDB, is_direct=False)),
             chembl_count=Count("id", filter=Q(source=Binders.SOURCE_CHEMBL)),
+            chembl_direct_count=Count("id", filter=Q(source=Binders.SOURCE_CHEMBL, is_direct=True)),
+            chembl_homolog_count=Count("id", filter=Q(source=Binders.SOURCE_CHEMBL, is_direct=False)),
             zinc_count=Count("id", filter=Q(source=Binders.SOURCE_PROPOSED)),
         )
-        .order_by("-binder_count")[:limit]
+        .order_by("-direct_count", "-binder_count")[:limit]
     )
     return [
         {
@@ -51,8 +57,14 @@ def get_top_targets_by_binders(assembly_name, limit=5):
             "accession": r["locustag__accession"],
             "description": r["locustag__description"],
             "binder_count": r["binder_count"],
+            "direct_count": r["direct_count"],
+            "homolog_count": r["homolog_count"],
             "pdb_count": r["pdb_count"],
+            "pdb_direct_count": r["pdb_direct_count"],
+            "pdb_homolog_count": r["pdb_homolog_count"],
             "chembl_count": r["chembl_count"],
+            "chembl_direct_count": r["chembl_direct_count"],
+            "chembl_homolog_count": r["chembl_homolog_count"],
             "zinc_count": r["zinc_count"],
         }
         for r in rows
