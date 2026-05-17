@@ -316,9 +316,6 @@
     align-self: stretch;
 }
 
-.genome-card--ranking .targets-list {
-    flex: 1;
-}
 
 .targets-list {
     list-style: none;
