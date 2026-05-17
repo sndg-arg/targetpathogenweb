@@ -69,8 +69,8 @@ if not WORKERPROC:
 
 LOCAL_APPS = [
     "sndgjobs",
-    "bioseq",
     "tpweb.apps.TPappConfig",
+    "bioseq",
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS + ALLAUTHAPPS
