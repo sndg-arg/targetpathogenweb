@@ -184,9 +184,14 @@ def _binder_table_properties(smiles):
         hbd > 5,
         hba > 10,
     ])
+    if lipinski_violations == 0:
+        lipinski_label, lipinski_class = "✓ Ro5", "ok"
+    elif lipinski_violations == 1:
+        lipinski_label, lipinski_class = "1 viol.", "check"
+    else:
+        lipinski_label, lipinski_class = f"{lipinski_violations} viol.", "alert"
+
     veber_ok = rotb <= 10 and tpsa <= 140
-    # Conservative oral/permeability proxy: TPSA below ~90 A2 and reasonable LogP.
-    permeability_ok = tpsa <= 90 and -1 <= logp <= 5
     pains_alert = _pains_alert(mol)
 
     return {
@@ -195,9 +200,9 @@ def _binder_table_properties(smiles):
         "tpsa": f"{tpsa:.1f}",
         "rotb": rotb,
         "lipinski_violations": lipinski_violations,
+        "lipinski_label": lipinski_label,
+        "lipinski_class": lipinski_class,
         "veber_ok": veber_ok,
-        "permeability_label": "High" if permeability_ok else "Check",
-        "permeability_ok": permeability_ok,
         "pains_label": "Alert" if pains_alert else "Clear",
         "pains_alert": pains_alert,
     }

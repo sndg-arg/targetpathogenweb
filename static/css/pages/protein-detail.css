@@ -1344,12 +1344,18 @@
     color: var(--tp-color-text-secondary);
 }
 
+.binder-tbl__metric-col {
+    width: 68px;
+    text-align: right;
+}
+
 .binder-tbl__metric {
     font-variant-numeric: tabular-nums;
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     font-size: 0.82rem;
     color: var(--tp-color-text-secondary);
     white-space: nowrap;
+    text-align: right;
 }
 
 .binder-tbl__score-empty {
@@ -1396,18 +1402,7 @@
     border: 1px solid var(--tp-color-danger-border);
 }
 
-/* Direct / homolog chips (used in binder detail hero) */
-.tp-chip--direct {
-    background: var(--tp-color-sage-050);
-    color: var(--tp-color-sage-900);
-    border: 1px solid var(--tp-color-sage-200);
-}
-
-.tp-chip--homolog {
-    background: var(--tp-color-surface-muted);
-    color: var(--tp-color-text-muted);
-    border: 1px solid var(--tp-color-border-soft);
-}
+/* .tp-chip--direct and .tp-chip--homolog live in ui-system.css */
 
 @media (max-width: 900px) {
     .binder-evidence-guide {
