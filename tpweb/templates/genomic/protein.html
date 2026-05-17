@@ -452,7 +452,7 @@
                     <div class="section-head tp-ui-panel-head">
                         <div>
                             <h2>{% trans "Ligand evidence" %}</h2>
-                            <p class="section-subtitle">{% trans "Known and predicted ligands separated by source and by whether the evidence comes from this protein or a similar protein." %}</p>
+                            <p class="section-subtitle">{% trans "Ligands grouped by evidence source — prioritize those reported for this exact protein." %}</p>
                         </div>
                         <div class="section-tools">
                             <span class="tp-chip tp-chip--count tp-chip--sm">{{ binders.total }} {% trans "records" %}</span>
@@ -520,6 +520,15 @@
                          data-binders-panel="pdb_direct" role="tabpanel">
                         <p class="binders-panel-caption">{% trans "Highest-confidence structural evidence: ligands co-crystallized with this exact protein in the Protein Data Bank." %}</p>
                         {% if binders.pdb_direct %}
+                            <div class="binder-filter-bar" data-binder-filter-bar>
+                                <span class="binder-filter-label">Show only:</span>
+                                <button class="binder-filter-chip" data-filter="ro5" type="button" title="Lipinski Rule of 5: MW ≤ 500 Da, LogP ≤ 5, HBD ≤ 5, HBA ≤ 10">Ro5-compliant</button>
+                                <button class="binder-filter-chip" data-filter="nopains" type="button" title="Hide compounds likely to cause false positives in biochemical assays">No PAINS</button>
+                                <button class="binder-filter-chip" data-filter="mw500" type="button" title="Molecular weight under 500 Da — favors membrane permeability">MW &lt; 500 Da</button>
+                                <span class="binder-filter-sep"></span>
+                                <span class="binder-filter-count" hidden></span>
+                                <button class="binder-filter-clear" type="button" hidden>Clear filters</button>
+                            </div>
                             {% include "components/binders/table_pdb.html" with binder_list=binders.pdb_direct %}
                         {% else %}
                             <p class="tp-state-note tp-state-note--empty binders-empty">
@@ -533,6 +542,15 @@
                          data-binders-panel="pdb_homolog" role="tabpanel">
                         <p class="binders-panel-caption">{% trans "Structural evidence inferred from similar proteins. The UniProt column identifies the protein that carried the ligand in PDB." %}</p>
                         {% if binders.pdb_homolog %}
+                            <div class="binder-filter-bar" data-binder-filter-bar>
+                                <span class="binder-filter-label">Show only:</span>
+                                <button class="binder-filter-chip" data-filter="ro5" type="button" title="Lipinski Rule of 5: MW ≤ 500 Da, LogP ≤ 5, HBD ≤ 5, HBA ≤ 10">Ro5-compliant</button>
+                                <button class="binder-filter-chip" data-filter="nopains" type="button" title="Hide compounds likely to cause false positives in biochemical assays">No PAINS</button>
+                                <button class="binder-filter-chip" data-filter="mw500" type="button" title="Molecular weight under 500 Da — favors membrane permeability">MW &lt; 500 Da</button>
+                                <span class="binder-filter-sep"></span>
+                                <span class="binder-filter-count" hidden></span>
+                                <button class="binder-filter-clear" type="button" hidden>Clear filters</button>
+                            </div>
                             {% include "components/binders/table_pdb.html" with binder_list=binders.pdb_homolog show_uniprot=True %}
                         {% else %}
                             <p class="tp-state-note tp-state-note--empty binders-empty">
@@ -546,6 +564,16 @@
                          data-binders-panel="chembl_direct" role="tabpanel">
                         <p class="binders-panel-caption">{% trans "Experimental bioactivity from ChEMBL measured directly on this protein. Score = pchembl (−log Ki/IC₅₀; higher = more potent)." %}</p>
                         {% if binders.chembl_direct %}
+                            <div class="binder-filter-bar" data-binder-filter-bar>
+                                <span class="binder-filter-label">Show only:</span>
+                                <button class="binder-filter-chip" data-filter="ro5" type="button" title="Lipinski Rule of 5: MW ≤ 500 Da, LogP ≤ 5, HBD ≤ 5, HBA ≤ 10">Ro5-compliant</button>
+                                <button class="binder-filter-chip" data-filter="nopains" type="button" title="Hide compounds likely to cause false positives in biochemical assays">No PAINS</button>
+                                <button class="binder-filter-chip" data-filter="mw500" type="button" title="Molecular weight under 500 Da — favors membrane permeability">MW &lt; 500 Da</button>
+                                <button class="binder-filter-chip" data-filter="pchembl6" type="button" title="pchembl ≥ 6 corresponds to IC₅₀ ≤ 1 μM — a standard hit threshold">pchembl ≥ 6</button>
+                                <span class="binder-filter-sep"></span>
+                                <span class="binder-filter-count" hidden></span>
+                                <button class="binder-filter-clear" type="button" hidden>Clear filters</button>
+                            </div>
                             {% include "components/binders/table_chembl.html" with binder_list=binders.chembl_direct %}
                         {% else %}
                             <p class="tp-state-note tp-state-note--empty binders-empty">
@@ -559,6 +587,16 @@
                          data-binders-panel="chembl_homolog" role="tabpanel">
                         <p class="binders-panel-caption">{% trans "Bioactivity inferred from similar proteins in ChEMBL. Score = pchembl (−log Ki/IC₅₀; higher = more potent)." %}</p>
                         {% if binders.chembl_homolog %}
+                            <div class="binder-filter-bar" data-binder-filter-bar>
+                                <span class="binder-filter-label">Show only:</span>
+                                <button class="binder-filter-chip" data-filter="ro5" type="button" title="Lipinski Rule of 5: MW ≤ 500 Da, LogP ≤ 5, HBD ≤ 5, HBA ≤ 10">Ro5-compliant</button>
+                                <button class="binder-filter-chip" data-filter="nopains" type="button" title="Hide compounds likely to cause false positives in biochemical assays">No PAINS</button>
+                                <button class="binder-filter-chip" data-filter="mw500" type="button" title="Molecular weight under 500 Da — favors membrane permeability">MW &lt; 500 Da</button>
+                                <button class="binder-filter-chip" data-filter="pchembl6" type="button" title="pchembl ≥ 6 corresponds to IC₅₀ ≤ 1 μM — a standard hit threshold">pchembl ≥ 6</button>
+                                <span class="binder-filter-sep"></span>
+                                <span class="binder-filter-count" hidden></span>
+                                <button class="binder-filter-clear" type="button" hidden>Clear filters</button>
+                            </div>
                             {% include "components/binders/table_chembl.html" with binder_list=binders.chembl_homolog show_uniprot=True %}
                         {% else %}
                             <p class="tp-state-note tp-state-note--empty binders-empty">
@@ -572,6 +610,16 @@
                          data-binders-panel="zinc" role="tabpanel">
                         <p class="binders-panel-caption">{% trans "Proposed virtual-screening candidates from ZINC. Score = Tanimoto similarity to a known binder (0–1; higher = more similar)." %}</p>
                         {% if binders.zinc %}
+                            <div class="binder-filter-bar" data-binder-filter-bar>
+                                <span class="binder-filter-label">Show only:</span>
+                                <button class="binder-filter-chip" data-filter="ro5" type="button" title="Lipinski Rule of 5: MW ≤ 500 Da, LogP ≤ 5, HBD ≤ 5, HBA ≤ 10">Ro5-compliant</button>
+                                <button class="binder-filter-chip" data-filter="nopains" type="button" title="Hide compounds likely to cause false positives in biochemical assays">No PAINS</button>
+                                <button class="binder-filter-chip" data-filter="mw500" type="button" title="Molecular weight under 500 Da — favors membrane permeability">MW &lt; 500 Da</button>
+                                <button class="binder-filter-chip" data-filter="tanimoto07" type="button" title="Tanimoto similarity ≥ 0.7 — high structural resemblance to a known active compound">Tanimoto ≥ 0.7</button>
+                                <span class="binder-filter-sep"></span>
+                                <span class="binder-filter-count" hidden></span>
+                                <button class="binder-filter-clear" type="button" hidden>Clear filters</button>
+                            </div>
                             {% include "components/binders/table_zinc.html" with binder_list=binders.zinc %}
                         {% else %}
                             <p class="tp-state-note tp-state-note--empty binders-empty">
@@ -1550,5 +1598,62 @@
                 }, 1400);
             });
         }
+
+        (function () {
+            function applyFilters(bar) {
+                const panel = bar.closest('.binders-panel');
+                const rows = panel.querySelectorAll('.binder-tbl__row');
+                const activeChips = bar.querySelectorAll('.binder-filter-chip.is-active');
+                const filters = Array.from(activeChips).map(function (c) { return c.dataset.filter; });
+                let shown = 0;
+                rows.forEach(function (row) {
+                    let visible = true;
+                    if (filters.includes('ro5') && row.dataset.li !== 'ok') visible = false;
+                    if (filters.includes('nopains') && row.dataset.pa === '1') visible = false;
+                    if (filters.includes('mw500')) {
+                        const mw = parseFloat(row.dataset.mw);
+                        if (!isNaN(mw) && mw >= 500) visible = false;
+                    }
+                    if (filters.includes('pchembl6')) {
+                        const s = parseFloat(row.dataset.score);
+                        if (isNaN(s) || s < 6) visible = false;
+                    }
+                    if (filters.includes('tanimoto07')) {
+                        const s = parseFloat(row.dataset.score);
+                        if (isNaN(s) || s < 0.7) visible = false;
+                    }
+                    row.style.display = visible ? '' : 'none';
+                    if (visible) shown++;
+                });
+                const countEl = bar.querySelector('.binder-filter-count');
+                const clearBtn = bar.querySelector('.binder-filter-clear');
+                if (filters.length > 0) {
+                    countEl.textContent = shown + ' of ' + rows.length + ' compounds';
+                    countEl.hidden = false;
+                    clearBtn.hidden = false;
+                } else {
+                    countEl.hidden = true;
+                    clearBtn.hidden = true;
+                    rows.forEach(function (r) { r.style.display = ''; });
+                }
+            }
+
+            document.addEventListener('click', function (e) {
+                const chip = e.target.closest('.binder-filter-chip');
+                const clear = e.target.closest('.binder-filter-clear');
+                if (chip) {
+                    e.stopPropagation();
+                    chip.classList.toggle('is-active');
+                    applyFilters(chip.closest('.binder-filter-bar'));
+                }
+                if (clear) {
+                    e.stopPropagation();
+                    clear.closest('.binder-filter-bar')
+                        .querySelectorAll('.binder-filter-chip.is-active')
+                        .forEach(function (c) { c.classList.remove('is-active'); });
+                    applyFilters(clear.closest('.binder-filter-bar'));
+                }
+            });
+        })();
     </script>
 {% endblock %}

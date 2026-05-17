@@ -13,7 +13,11 @@
         </thead>
         <tbody>
             {% for binder in binder_list %}
-                <tr class="binder-tbl__row" data-href="{% url 'tpwebapp:binder_detail' binder_id=binder.id %}">
+                <tr class="binder-tbl__row" data-href="{% url 'tpwebapp:binder_detail' binder_id=binder.id %}"
+                    data-li="{{ binder.props.lipinski_class|default:'' }}"
+                    data-pa="{% if binder.props and binder.props.pains_alert %}1{% else %}0{% endif %}"
+                    data-mw="{{ binder.props.mw|default:'' }}"
+                    data-score="{{ binder.score|default:'' }}">
                     <td class="binder-tbl__name">{{ binder.name }}</td>
                     <td class="binder-tbl__score">
                         {% if binder.score is not None %}{{ binder.score|floatformat:3 }}{% else %}<span class="binder-tbl__score-empty">—</span>{% endif %}
