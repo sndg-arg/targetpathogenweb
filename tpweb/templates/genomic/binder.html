@@ -25,9 +25,11 @@
                     <h1>{{ binder.name }}</h1>
                     <p class="binder-description">
                         {% if binder.is_pdb %}
-                            {% trans "Ligand co-crystallized with a homologous protein (Protein Data Bank)." %}
+                            {% if binder.is_direct %}{% trans "Ligand co-crystallized with this exact protein (Protein Data Bank)." %}
+                            {% else %}{% trans "Ligand co-crystallized with a homologous protein (Protein Data Bank)." %}{% endif %}
                         {% elif binder.source == 'chembl' %}
-                            {% trans "Bioactivity hit from ChEMBL on a homologous protein." %}
+                            {% if binder.is_direct %}{% trans "Bioactivity data from ChEMBL measured on this exact protein." %}
+                            {% else %}{% trans "Bioactivity hit from ChEMBL on a homologous protein." %}{% endif %}
                         {% else %}
                             {% trans "Virtual-screening candidate from ZINC." %}
                         {% endif %}
@@ -42,6 +44,11 @@
                             <strong>{% trans "Source" %}:</strong>
                             <span>{{ binder.source_label }}</span>
                         </span>
+                        {% if binder.source != 'proposed' %}
+                            <span class="hero-chip tp-chip {% if binder.is_direct %}tp-chip--direct{% else %}tp-chip--homolog{% endif %} tp-chip--sm">
+                                {% if binder.is_direct %}{% trans "Direct hit" %}{% else %}{% trans "Via homolog" %}{% endif %}
+                            </span>
+                        {% endif %}
                         {% if binder.pdb_id %}
                             <span class="hero-chip tp-chip tp-chip--meta tp-chip--sm">
                                 <strong>PDB:</strong>

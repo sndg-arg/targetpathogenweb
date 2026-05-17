@@ -27,6 +27,11 @@ class Binders(models.Model):
     )
     score = models.FloatField(null=True, blank=True)
     notes = models.TextField(blank=True, default="")
+    is_direct = models.BooleanField(
+        default=False,
+        db_index=True,
+        help_text="True when the template protein's UniProt matches this protein's own UniProt.",
+    )
 
     def __str__(self):
         return f"Ligand ID: {self.ccd_id}, PDB: {self.pdb_id}, UNIPROT: {self.uniprot}, Locustag: {self.locustag}, SMILES: {self.smiles}"

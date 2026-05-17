@@ -146,33 +146,34 @@ def make_binder_svg(smiles):
     return drawer.GetDrawingText()
 
 
-def _binder_to_dto(binder, render_svg):
+def _binder_to_dto(binder):
     return {
         "id": binder.id,
         "name": binder.ccd_id or f"Binder {binder.id}",
         "pdb": binder.pdb_id,
+        "uniprot": binder.uniprot,
         "smiles": binder.smiles,
         "score": binder.score,
         "notes": binder.notes,
         "source": binder.source,
-        "svg": make_binder_svg(binder.smiles) if render_svg else "",
+        "is_direct": binder.is_direct,
     }
 
 
 def create_binders_dict(protein, search_query=""):
-    """Build a binders payload split into three categories:
+    """Build a binders payload split into five categories:
 
-    - pdb       → ligand co-crystallized in a PDB structure (with a homologous protein).
-    - chembl    → bioactivity hit from ChEMBL (pchembl-scored), brought in by homology.
-    - proposed  → ZINC virtual-screening hit (tanimoto-scored).
-
-    SVG is only rendered for the PDB category (the others can have hundreds of rows).
+    - pdb_direct    → PDB ligand, template UniProt matches this protein's own UniProt.
+    - pdb_homolog   → PDB ligand found via a homologous protein.
+    - chembl_direct → ChEMBL bioactivity hit on this exact protein.
+    - chembl_homolog→ ChEMBL hit brought in by homology.
+    - zinc          → ZINC virtual-screening candidate (tanimoto-scored).
     """
-    binders_qs = Binders.objects.filter(locustag=protein).order_by("source", "ccd_id", "id")
+    from django.db.models import Q
+
+    binders_qs = Binders.objects.filter(locustag=protein).order_by("source", "is_direct", "ccd_id", "id")
     cleaned_query = (search_query or "").strip()
     if cleaned_query:
-        from django.db.models import Q
-
         binders_qs = binders_qs.filter(
             Q(ccd_id__icontains=cleaned_query)
             | Q(pdb_id__icontains=cleaned_query)
@@ -180,48 +181,58 @@ def create_binders_dict(protein, search_query=""):
             | Q(notes__icontains=cleaned_query)
         )
 
-    pdb_binders = []
-    chembl_binders = []
-    proposed_binders = []
+    pdb_direct = []
+    pdb_homolog = []
+    chembl_direct = []
+    chembl_homolog = []
+    zinc = []
+
     for binder in binders_qs:
-        if binder.source == Binders.SOURCE_CHEMBL:
-            chembl_binders.append(_binder_to_dto(binder, render_svg=False))
-        elif binder.source == Binders.SOURCE_PROPOSED:
-            proposed_binders.append(_binder_to_dto(binder, render_svg=False))
+        dto = _binder_to_dto(binder)
+        if binder.source == Binders.SOURCE_PDB:
+            if binder.is_direct:
+                pdb_direct.append(dto)
+            else:
+                pdb_homolog.append(dto)
+        elif binder.source == Binders.SOURCE_CHEMBL:
+            if binder.is_direct:
+                chembl_direct.append(dto)
+            else:
+                chembl_homolog.append(dto)
         else:
-            pdb_binders.append(_binder_to_dto(binder, render_svg=True))
+            zinc.append(dto)
 
-    score_sort = lambda entry: (entry["score"] is None, -(entry["score"] or 0))
-    chembl_binders.sort(key=score_sort)
-    proposed_binders.sort(key=score_sort)
+    score_sort = lambda e: (e["score"] is None, -(e["score"] or 0))
+    chembl_direct.sort(key=score_sort)
+    chembl_homolog.sort(key=score_sort)
+    zinc.sort(key=score_sort)
 
-    if pdb_binders:
-        default_tab = "pdb"
-    elif chembl_binders:
-        default_tab = "chembl"
-    else:
-        default_tab = "proposed"
+    tab_order = ["pdb_direct", "pdb_homolog", "chembl_direct", "chembl_homolog", "zinc"]
+    tab_data = {
+        "pdb_direct": pdb_direct,
+        "pdb_homolog": pdb_homolog,
+        "chembl_direct": chembl_direct,
+        "chembl_homolog": chembl_homolog,
+        "zinc": zinc,
+    }
+    default_tab = next((t for t in tab_order if tab_data[t]), "zinc")
 
-    pdb_count = len(pdb_binders)
-    chembl_count = len(chembl_binders)
-    proposed_count = len(proposed_binders)
-    total_count = pdb_count + chembl_count + proposed_count
-    pdb_capped = False
-    chembl_capped = chembl_count >= KNOWN_BINDER_CAP
-    proposed_capped = proposed_count >= ZINC_BINDER_CAP
+    total_all = sum(len(v) for v in tab_data.values())
 
     return {
-        "pdb": pdb_binders,
-        "chembl": chembl_binders,
-        "proposed": proposed_binders,
-        "pdb_count": pdb_count,
-        "chembl_count": chembl_count,
-        "proposed_count": proposed_count,
-        "total": total_count,
-        "pdb_capped": pdb_capped,
-        "chembl_capped": chembl_capped,
-        "proposed_capped": proposed_capped,
-        "total_capped": pdb_capped or chembl_capped or proposed_capped,
+        "pdb_direct": pdb_direct,
+        "pdb_homolog": pdb_homolog,
+        "chembl_direct": chembl_direct,
+        "chembl_homolog": chembl_homolog,
+        "zinc": zinc,
+        "pdb_direct_count": len(pdb_direct),
+        "pdb_homolog_count": len(pdb_homolog),
+        "chembl_direct_count": len(chembl_direct),
+        "chembl_homolog_count": len(chembl_homolog),
+        "zinc_count": len(zinc),
+        "total": total_all,
+        "chembl_homolog_capped": len(chembl_homolog) >= KNOWN_BINDER_CAP,
+        "zinc_capped": len(zinc) >= ZINC_BINDER_CAP,
         "default_tab": default_tab,
         "search_query": cleaned_query,
     }
@@ -315,18 +326,24 @@ class ProteinView(View):
                 sections.append(
                     {
                         "title": "Binders",
-                        "headers": ["Source", "ID", "Name", "PDB", "SMILES", "Score", "Notes"],
+                        "headers": ["Source", "Direct", "ID", "Name", "PDB", "UniProt", "SMILES", "Score", "Notes"],
                         "rows": [
                             [
                                 binder["source"],
+                                "yes" if binder["is_direct"] else "no",
                                 binder["id"],
                                 binder["name"],
                                 binder["pdb"],
+                                binder["uniprot"],
                                 binder["smiles"],
                                 binder["score"] if binder["score"] is not None else "",
                                 binder["notes"],
                             ]
-                            for binder in (*binders["pdb"], *binders["chembl"], *binders["proposed"])
+                            for binder in (
+                                *binders["pdb_direct"], *binders["pdb_homolog"],
+                                *binders["chembl_direct"], *binders["chembl_homolog"],
+                                *binders["zinc"],
+                            )
                         ],
                     }
                 )

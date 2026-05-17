@@ -276,6 +276,7 @@ class BinderDetailView(View):
                 "source": binder.source,
                 "source_label": SOURCE_LABEL.get(binder.source, binder.get_source_display()),
                 "is_pdb": is_pdb,
+                "is_direct": binder.is_direct,
                 "score": binder.score,
                 "notes": binder.notes,
                 "notes_items": notes_items,

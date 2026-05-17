@@ -1,0 +1,23 @@
+{% load i18n %}
+<div class="binder-table-wrap">
+    <table class="binder-tbl tp-table tp-table--plain">
+        <thead>
+            <tr>
+                <th scope="col">{% trans "Ligand" %}</th>
+                <th scope="col">{% trans "PDB structure" %}</th>
+                {% if show_uniprot %}<th scope="col">{% trans "UniProt (homolog)" %}</th>{% endif %}
+                <th scope="col">{% trans "SMILES" %}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for binder in binder_list %}
+                <tr class="binder-tbl__row" data-href="{% url 'tpwebapp:binder_detail' binder_id=binder.id %}">
+                    <td class="binder-tbl__name">{{ binder.name }}</td>
+                    <td class="binder-tbl__pdb">{% if binder.pdb %}<span class="binder-tbl__pdb-id">{{ binder.pdb }}</span>{% else %}—{% endif %}</td>
+                    {% if show_uniprot %}<td class="binder-tbl__uniprot">{{ binder.uniprot|default:"—" }}</td>{% endif %}
+                    <td class="binder-tbl__smiles"><code>{{ binder.smiles|truncatechars:60 }}</code></td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

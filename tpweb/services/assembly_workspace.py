@@ -217,8 +217,10 @@ def build_assembly_workspace_metrics(assembly_name):
 
     binders_qs = Binders.objects.filter(locustag__biodatabase__name=proteome_name)
     binder_total = binders_qs.count()
-    binder_pdb = binders_qs.filter(source=Binders.SOURCE_PDB).count()
-    binder_chembl = binders_qs.filter(source=Binders.SOURCE_CHEMBL).count()
+    binder_pdb_direct = binders_qs.filter(source=Binders.SOURCE_PDB, is_direct=True).count()
+    binder_pdb_homolog = binders_qs.filter(source=Binders.SOURCE_PDB, is_direct=False).count()
+    binder_chembl_direct = binders_qs.filter(source=Binders.SOURCE_CHEMBL, is_direct=True).count()
+    binder_chembl_homolog = binders_qs.filter(source=Binders.SOURCE_CHEMBL, is_direct=False).count()
     binder_zinc = binders_qs.filter(source=Binders.SOURCE_PROPOSED).count()
     proteins_with_binders = (
         binders_qs.values("locustag_id").distinct().count() if binder_total else 0
@@ -238,9 +240,14 @@ def build_assembly_workspace_metrics(assembly_name):
         "go_annotated": go_annotated,
         "go_coverage_pct": _pct(go_annotated, total_proteins),
         "binder_total": binder_total,
-        "binder_pdb": binder_pdb,
-        "binder_chembl": binder_chembl,
+        "binder_pdb_direct": binder_pdb_direct,
+        "binder_pdb_homolog": binder_pdb_homolog,
+        "binder_chembl_direct": binder_chembl_direct,
+        "binder_chembl_homolog": binder_chembl_homolog,
         "binder_zinc": binder_zinc,
+        # legacy keys kept for backward compat
+        "binder_pdb": binder_pdb_direct + binder_pdb_homolog,
+        "binder_chembl": binder_chembl_direct + binder_chembl_homolog,
         "proteins_with_binders": proteins_with_binders,
         "binder_coverage_pct": _pct(proteins_with_binders, total_proteins),
     }

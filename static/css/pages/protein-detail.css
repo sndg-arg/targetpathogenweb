@@ -1217,6 +1217,128 @@
     font-style: italic;
 }
 
+/* === Binder tables (5-category layout) === */
+
+.binders-tabs {
+    flex-wrap: wrap;
+}
+
+.binder-table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 10px;
+}
+
+.binder-tbl {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.91rem;
+}
+
+.binder-tbl thead tr {
+    background: var(--tp-color-surface-soft);
+    border-bottom: 1px solid var(--tp-color-border-soft);
+}
+
+.binder-tbl th {
+    padding: 10px 14px;
+    text-align: left;
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--tp-color-text-muted);
+    white-space: nowrap;
+}
+
+.binder-tbl tbody tr {
+    border-bottom: 1px solid var(--tp-color-border-soft);
+    transition: background 120ms ease;
+}
+
+.binder-tbl tbody tr:last-child {
+    border-bottom: none;
+}
+
+.binder-tbl__row {
+    cursor: pointer;
+}
+
+.binder-tbl__row:hover {
+    background: var(--tp-color-surface-soft);
+}
+
+.binder-tbl td {
+    padding: 11px 14px;
+    color: var(--tp-color-text-primary);
+    vertical-align: middle;
+}
+
+.binder-tbl__name {
+    font-weight: 600;
+    white-space: nowrap;
+    color: var(--tp-color-link);
+}
+
+.binder-tbl__row:hover .binder-tbl__name {
+    color: var(--tp-color-link-hover);
+    text-decoration: underline;
+}
+
+.binder-tbl__pdb,
+.binder-tbl__uniprot {
+    font-size: 0.88rem;
+    color: var(--tp-color-text-secondary);
+    white-space: nowrap;
+}
+
+.binder-tbl__pdb-id {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-weight: 600;
+    font-size: 0.83rem;
+    background: var(--tp-color-surface-muted);
+    padding: 2px 8px;
+    border-radius: 6px;
+}
+
+.binder-tbl__score-col {
+    width: 96px;
+}
+
+.binder-tbl__score {
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    color: var(--tp-color-text-secondary);
+}
+
+.binder-tbl__score-empty {
+    color: var(--tp-color-text-soft);
+    font-weight: 400;
+}
+
+.binder-tbl__smiles {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.81rem;
+    color: var(--tp-color-text-muted);
+    max-width: 320px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Direct / homolog chips (used in binder detail hero) */
+.tp-chip--direct {
+    background: var(--tp-color-teal-050, #e8fdf8);
+    color: var(--tp-color-teal-800, #0c4a3e);
+    border: 1px solid var(--tp-color-teal-200, #9fe0d3);
+}
+
+.tp-chip--homolog {
+    background: var(--tp-color-surface-muted);
+    color: var(--tp-color-text-muted);
+    border: 1px solid var(--tp-color-border-soft);
+}
+
 .binder-card--link {
     display: block;
     text-decoration: none;

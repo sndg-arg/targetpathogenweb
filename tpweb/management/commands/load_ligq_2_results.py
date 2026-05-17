@@ -331,15 +331,17 @@ class Command(BaseCommand):
             affinity_rows["_locustag"].unique()
         )
         bioentry_map = self._bioentry_map(all_locustags)
+        uniprot_map = self._uniprot_map(all_locustags)
 
         with transaction.atomic():
             self._write_known_rows(
-                pdb_rows, Binders.SOURCE_PDB, bioentry_map, stats, desc="known/pdb"
+                pdb_rows, Binders.SOURCE_PDB, bioentry_map, uniprot_map, stats, desc="known/pdb"
             )
             self._write_known_rows(
                 affinity_rows,
                 Binders.SOURCE_CHEMBL,
                 bioentry_map,
+                uniprot_map,
                 stats,
                 desc="known/chembl",
             )
@@ -355,9 +357,10 @@ class Command(BaseCommand):
         )
         return df.groupby("_locustag", as_index=False, sort=False).head(n)
 
-    def _write_known_rows(self, df, target_source, bioentry_map, stats, *, desc):
+    def _write_known_rows(self, df, target_source, bioentry_map, uniprot_map, stats, *, desc):
         for _, row in tqdm(df.iterrows(), total=len(df), desc=desc):
-            bioentry = bioentry_map.get(row["_locustag"])
+            locustag_acc = row["_locustag"]
+            bioentry = bioentry_map.get(locustag_acc)
             if bioentry is None:
                 stats["skipped_locustag"] += 1
                 continue
@@ -371,6 +374,8 @@ class Command(BaseCommand):
             uniprot = str(row.get("uniprot_id", "") or "").strip()
             score = _safe_float(row.get("pchembl"))
             notes = self._format_known_notes(row)
+            protein_uniprots = uniprot_map.get(locustag_acc, frozenset())
+            is_direct = bool(uniprot and uniprot in protein_uniprots)
 
             try:
                 Binders.objects.update_or_create(
@@ -383,6 +388,7 @@ class Command(BaseCommand):
                         "source": target_source,
                         "score": score,
                         "notes": notes,
+                        "is_direct": is_direct,
                     },
                 )
                 stats["written"] += 1
@@ -487,3 +493,22 @@ class Command(BaseCommand):
             be.accession: be
             for be in Bioentry.objects.filter(accession__in=clean)
         }
+
+    @staticmethod
+    def _uniprot_map(accessions):
+        """Returns {protein_accession: frozenset_of_uniprot_ids} from BioentryDbxref."""
+        from bioseq.models.BioentryDbxref import BioentryDbxref
+        clean = list({str(a) for a in accessions if a and str(a).strip()})
+        if not clean:
+            return {}
+        result = {}
+        qs = (
+            BioentryDbxref.objects.filter(bioentry__accession__in=clean)
+            .values("bioentry__accession", "dbxref__accession")
+        )
+        for row in qs:
+            acc = row["bioentry__accession"]
+            xref = row["dbxref__accession"]
+            if xref:
+                result.setdefault(acc, set()).add(xref)
+        return {k: frozenset(v) for k, v in result.items()}

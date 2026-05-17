@@ -259,21 +259,23 @@
                     </div>
 
                     <div class="evidence-card evidence-card--binders">
-                        <span class="evidence-label">{% trans "Binders loaded for this genome" %}</span>
+                        <span class="evidence-label">{% trans "Ligand evidence for this genome" %}</span>
                         <span class="evidence-headline">
-                            {% blocktrans count binders=workspace_metrics.binder_total %}{{ binders }} binder{% plural %}{{ binders }} binders{% endblocktrans %}
+                            {% blocktrans count binders=workspace_metrics.binder_total %}{{ binders }} record{% plural %}{{ binders }} records{% endblocktrans %}
                             <span class="evidence-headline-sub">{% blocktrans count proteins=workspace_metrics.proteins_with_binders %}on {{ proteins }} protein{% plural %}on {{ proteins }} proteins{% endblocktrans %}</span>
                         </span>
                         <ul class="evidence-breakdown">
-                            <li><span class="evidence-bd-label">PDB</span><span class="evidence-bd-value">{{ workspace_metrics.binder_pdb }}</span></li>
-                            <li><span class="evidence-bd-label">ChEMBL</span><span class="evidence-bd-value">{{ workspace_metrics.binder_chembl }}</span></li>
+                            <li><span class="evidence-bd-label">{% trans "PDB — this protein" %}</span><span class="evidence-bd-value">{{ workspace_metrics.binder_pdb_direct }}</span></li>
+                            <li><span class="evidence-bd-label">{% trans "PDB — homologs" %}</span><span class="evidence-bd-value">{{ workspace_metrics.binder_pdb_homolog }}</span></li>
+                            <li><span class="evidence-bd-label">{% trans "ChEMBL — this protein" %}</span><span class="evidence-bd-value">{{ workspace_metrics.binder_chembl_direct }}</span></li>
+                            <li><span class="evidence-bd-label">{% trans "ChEMBL — homologs" %}</span><span class="evidence-bd-value">{{ workspace_metrics.binder_chembl_homolog }}</span></li>
                             <li><span class="evidence-bd-label">ZINC</span><span class="evidence-bd-value">{{ workspace_metrics.binder_zinc }}</span></li>
                         </ul>
                     </div>
                 </div>
                 <p class="evidence-footnote">
                     <strong>{% trans "Note" %}:</strong>
-                    {% trans "the binder numbers above combine all loaded PDB ligands with curated ChEMBL and ZINC subsets. ChEMBL is limited to the top 100 hits per protein (ranked by pchembl, with NaN last) and ZINC to the top 50 candidates per protein (Tanimoto ≥ 0.5). LigQ_2's raw search typically returns many more candidates, so only those two sources are capped for readability." %}
+                    {% trans "PDB and ChEMBL direct hits are shown in full. ChEMBL homologs are capped at the top 100 per protein (ranked by pchembl) and ZINC at the top 50 candidates (Tanimoto ≥ 0.5)." %}
                 </p>
             </section>
 
