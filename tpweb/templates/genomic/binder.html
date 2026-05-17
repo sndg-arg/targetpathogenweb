@@ -14,12 +14,15 @@
                     {% trans "Home" as crumb_home %}
                     {% trans "Genomes" as crumb_genomes %}
                     {% trans "Proteins" as crumb_proteins %}
-                    {% trans "Binder Detail" as crumb_binder %}
                     {% url 'tpwebapp:index' as index_url %}
                     {% url 'tpwebapp:genomes_list' as genomes_url %}
                     {% url 'tpwebapp:assembly' genome as assembly_url %}
                     {% with crumb_genome="Genome: "|add:assembly_label %}
-                    {% include "components/navigation/breadcrumbs.html" with crumb_1_label=crumb_home crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_genome crumb_3_url=assembly_url crumb_4_label=crumb_proteins crumb_4_url=proteins_url crumb_5_label=protein.accession crumb_5_url=protein_url crumb_6_label=crumb_binder %}
+                    {% with crumb_protein="Protein: "|add:protein.accession %}
+                    {% with crumb_binder="Binder: "|add:binder.name %}
+                    {% include "components/navigation/breadcrumbs.html" with crumb_1_label=crumb_home crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_genome crumb_3_url=assembly_url crumb_4_label=crumb_proteins crumb_4_url=proteins_url crumb_5_label=crumb_protein crumb_5_url=protein_url crumb_6_label=crumb_binder %}
+                    {% endwith %}
+                    {% endwith %}
                     {% endwith %}
                     <p class="binder-hero-eyebrow">{% trans "Binder profile" %}</p>
                     <h1>{{ binder.name }}</h1>
@@ -48,15 +51,13 @@
                                href="https://www.rcsb.org/structure/{{ binder.pdb_id }}"
                                target="_blank" rel="noopener noreferrer"
                                title="{% trans 'View in RCSB PDB' %}">
-                                <strong>PDB</strong>
-                                <span>{{ binder.pdb_id }}</span>
+                                <strong>PDB</strong> <span>{{ binder.pdb_id }}</span>
                                 <svg class="binder-ext-icon" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M7 1h4v4M11 1L6 6M5 2H2a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h7a1 1 0 0 0 1-1V8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
                             </a>
                         {% endif %}
                         {% if binder.uniprot %}
                             <span class="hero-chip tp-chip tp-chip--meta tp-chip--sm">
-                                <strong>UniProt</strong>
-                                <span>{{ binder.uniprot }}</span>
+                                <strong>UniProt</strong> <span>{{ binder.uniprot }}</span>
                             </span>
                         {% endif %}
                         {% if properties.formula %}
