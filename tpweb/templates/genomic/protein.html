@@ -12,7 +12,6 @@
         <section class="protein-hero" id="section-overview">
             <div class="protein-hero-top tp-view-head">
                 <div class="protein-hero-content tp-view-head-copy">
-                    {% trans "Home" as crumb_home %}
                     {% trans "Genomes" as crumb_genomes %}
                     {% trans "Proteins" as crumb_proteins %}
                     {% url 'tpwebapp:index' as index_url %}
@@ -21,7 +20,7 @@
                     {% url 'tpwebapp:protein_list' protein.genome as proteins_url %}
                     {% with crumb_genome_overview="Genome: "|add:protein.assembly_label %}
                     {% with crumb_protein="Protein: "|add:protein.accession|add:" · "|add:protein.description %}
-                    {% include "components/navigation/breadcrumbs.html" with crumb_1_label=crumb_home crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_genome_overview crumb_3_url=assembly_url crumb_4_label=crumb_proteins crumb_4_url=proteins_url crumb_5_label=crumb_protein %}
+                    {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_genome_overview crumb_3_url=assembly_url crumb_4_label=crumb_proteins crumb_4_url=proteins_url crumb_5_label=crumb_protein %}
                     {% endwith %}
                     {% endwith %}
                     <p class="protein-hero-eyebrow">{% trans "Protein profile" %}</p>

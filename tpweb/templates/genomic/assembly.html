@@ -11,12 +11,11 @@
         <section class="genome-hero" id="section-overview">
             <div class="genome-hero-top tp-view-head">
                 <div class="genome-hero-content tp-view-head-copy">
-                    {% trans "Home" as crumb_home %}
                     {% trans "Genomes" as crumb_genomes %}
                     {% url 'tpwebapp:index' as index_url %}
                     {% url 'tpwebapp:genomes_list' as genomes_url %}
                     {% with crumb_workspace_label="Genome: "|add:assembly.name %}
-                    {% include "components/navigation/breadcrumbs.html" with crumb_1_label=crumb_home crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_workspace_label %}
+                    {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_workspace_label %}
                     {% endwith %}
                     <p class="genome-hero-eyebrow">{% trans "Bacterial genome" %}</p>
                     <h1>{{ assembly.name }}</h1>

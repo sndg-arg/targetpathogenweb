@@ -12,17 +12,16 @@
 
         {# ── Hero ── #}
         <section class="blast-hero">
-            {% trans "Home" as crumb_home %}
             {% trans "BLAST" as crumb_blast %}
             {% url 'tpwebapp:index' as index_url %}
             {% if blast_locked_to_genome %}
                 {% trans "Genomes" as crumb_genomes %}
                 {% url 'tpwebapp:genomes_list' as genomes_url %}
                 {% with crumb_genome="Genome: "|add:selected_genome_label %}
-                {% include "components/navigation/breadcrumbs.html" with crumb_1_label=crumb_home crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_genome crumb_3_url=selected_genome_workspace_url crumb_4_label=crumb_blast %}
+                {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_genome crumb_3_url=selected_genome_workspace_url crumb_4_label=crumb_blast %}
                 {% endwith %}
             {% else %}
-                {% include "components/navigation/breadcrumbs.html" with crumb_1_label=crumb_home crumb_1_url=index_url crumb_2_label=crumb_blast %}
+                {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_blast %}
             {% endif %}
 
             <span class="blast-eyebrow">

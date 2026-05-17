@@ -11,7 +11,6 @@
         <section class="binder-hero" id="section-overview">
             <div class="binder-hero-top tp-view-head">
                 <div class="binder-hero-content tp-view-head-copy">
-                    {% trans "Home" as crumb_home %}
                     {% trans "Genomes" as crumb_genomes %}
                     {% trans "Proteins" as crumb_proteins %}
                     {% url 'tpwebapp:index' as index_url %}
@@ -20,7 +19,7 @@
                     {% with crumb_genome="Genome: "|add:assembly_label %}
                     {% with crumb_protein="Protein: "|add:protein.accession %}
                     {% with crumb_binder="Binder: "|add:binder.name %}
-                    {% include "components/navigation/breadcrumbs.html" with crumb_1_label=crumb_home crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_genome crumb_3_url=assembly_url crumb_4_label=crumb_proteins crumb_4_url=proteins_url crumb_5_label=crumb_protein crumb_5_url=protein_url crumb_6_label=crumb_binder %}
+                    {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_genome crumb_3_url=assembly_url crumb_4_label=crumb_proteins crumb_4_url=proteins_url crumb_5_label=crumb_protein crumb_5_url=protein_url crumb_6_label=crumb_binder %}
                     {% endwith %}
                     {% endwith %}
                     {% endwith %}
@@ -74,7 +73,7 @@
                             {% elif binder.source == 'proposed' %}Tanimoto
                             {% else %}{% trans "Score" %}{% endif %}
                         </span>
-                        <span class="metric-value">{{ binder.score|floatformat:2 }}</span>
+                        <span class="metric-value">{{ binder.score|stringformat:".2f" }}</span>
                     </div>
                 {% endif %}
                 {% if properties.mw %}
@@ -145,10 +144,6 @@
                             <dd><code>{{ binder.uniprot }}</code></dd>
                         </div>
                     {% endif %}
-                    <div class="binder-id-row">
-                        <dt>{% trans "Source" %}</dt>
-                        <dd>{{ binder.source_label }}</dd>
-                    </div>
                     {% if binder.score is not None %}
                         <div class="binder-id-row">
                             <dt>
@@ -156,7 +151,7 @@
                                 {% elif binder.source == 'chembl' %}pchembl
                                 {% else %}Tanimoto{% endif %}
                             </dt>
-                            <dd>{{ binder.score|floatformat:3 }}</dd>
+                            <dd>{{ binder.score|stringformat:".3f" }}</dd>
                         </div>
                     {% endif %}
                     <div class="binder-id-row">
@@ -399,7 +394,11 @@
                         {% if siblings.pdb %}
                             <div class="siblings-group">
                                 <h3 class="siblings-group-title">PDB <span class="siblings-group-count">{{ siblings.pdb_total }}</span></h3>
-                                <ul class="siblings-list">
+                                <div class="siblings-col-head">
+                                    <span>{% trans "Ligand" %}</span>
+                                    <span>{% trans "Structure" %}</span>
+                                </div>
+                                <ul class="siblings-list siblings-list--two-col">
                                     {% for s in siblings.pdb %}
                                         <li><a href="{% url 'tpwebapp:binder_detail' binder_id=s.id %}"><code>{{ s.name }}</code>{% if s.pdb_id %} <span class="siblings-meta">{{ s.pdb_id }}</span>{% endif %}</a></li>
                                     {% endfor %}
@@ -411,7 +410,7 @@
                                 <h3 class="siblings-group-title">ChEMBL <span class="siblings-group-count">{{ siblings.chembl_total }}</span></h3>
                                 <ul class="siblings-list">
                                     {% for s in siblings.chembl %}
-                                        <li><a href="{% url 'tpwebapp:binder_detail' binder_id=s.id %}"><code>{{ s.name }}</code>{% if s.score is not None %} <span class="siblings-meta">pchembl {{ s.score|floatformat:2 }}</span>{% endif %}</a></li>
+                                        <li><a href="{% url 'tpwebapp:binder_detail' binder_id=s.id %}"><code>{{ s.name }}</code>{% if s.score is not None %} <span class="siblings-meta">pchembl {{ s.score|stringformat:".2f" }}</span>{% endif %}</a></li>
                                     {% endfor %}
                                 </ul>
                             </div>
@@ -421,7 +420,7 @@
                                 <h3 class="siblings-group-title">ZINC <span class="siblings-group-count">{{ siblings.proposed_total }}</span></h3>
                                 <ul class="siblings-list">
                                     {% for s in siblings.proposed %}
-                                        <li><a href="{% url 'tpwebapp:binder_detail' binder_id=s.id %}"><code>{{ s.name }}</code>{% if s.score is not None %} <span class="siblings-meta">Tanimoto {{ s.score|floatformat:2 }}</span>{% endif %}</a></li>
+                                        <li><a href="{% url 'tpwebapp:binder_detail' binder_id=s.id %}"><code>{{ s.name }}</code>{% if s.score is not None %} <span class="siblings-meta">Tanimoto {{ s.score|stringformat:".2f" }}</span>{% endif %}</a></li>
                                     {% endfor %}
                                 </ul>
                             </div>

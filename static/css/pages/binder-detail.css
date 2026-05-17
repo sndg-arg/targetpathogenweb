@@ -718,3 +718,16 @@
     color: var(--tp-color-text-muted);
     font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
 }
+
+.siblings-col-head {
+    display: flex;
+    justify-content: space-between;
+    padding: 0 10px 4px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--tp-color-text-muted);
+    border-bottom: 1px solid var(--tp-color-border-soft);
+    margin-bottom: 4px;
+}

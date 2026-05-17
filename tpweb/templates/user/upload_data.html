@@ -9,12 +9,11 @@
 {% block body %}
     <div class="genome-upload-page">
         <section class="genome-upload-hero">
-            {% trans "Home" as crumb_home %}
             {% trans "Genomes" as crumb_genomes %}
             {% trans "Add your own data" as crumb_upload %}
             {% url 'tpwebapp:index' as index_url %}
             {% url 'tpwebapp:genomes_list' as genomes_url %}
-            {% include "components/navigation/breadcrumbs.html" with crumb_1_label=crumb_home crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_upload %}
+            {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_upload %}
             <span class="genome-upload-eyebrow">{% trans "Genome submission · Workspace pipeline" %}</span>
             <h1>{% trans "Add your own data" %}</h1>
             <p class="genome-upload-subtitle">{% trans "Upload a compressed GenBank record to create a genome workspace and queue a new target-prioritization run." %}</p>

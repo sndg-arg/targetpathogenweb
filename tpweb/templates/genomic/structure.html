@@ -10,7 +10,6 @@
     <section class="structure-fs tp-ui-panel" id="structure-fs-root">
         <header class="structure-fs-head tp-ui-panel-head">
             <div>
-                {% trans "Home" as crumb_home %}
                 {% trans "Genomes" as crumb_genomes %}
                 {% trans "Proteins" as crumb_proteins %}
                 {% trans "Protein details" as crumb_protein_detail %}
@@ -21,12 +20,12 @@
                     {% url 'tpwebapp:protein' source_protein_id as protein_detail_url %}
                     {% if source_genome %}
                         {% url 'tpwebapp:protein_list' source_genome as proteins_url %}
-                        {% include "components/navigation/breadcrumbs.html" with crumb_1_label=crumb_home crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_proteins crumb_3_url=proteins_url crumb_4_label=crumb_protein_detail crumb_4_url=protein_detail_url crumb_5_label=crumb_structure %}
+                        {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_proteins crumb_3_url=proteins_url crumb_4_label=crumb_protein_detail crumb_4_url=protein_detail_url crumb_5_label=crumb_structure %}
                     {% else %}
-                        {% include "components/navigation/breadcrumbs.html" with crumb_1_label=crumb_home crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_protein_detail crumb_3_url=protein_detail_url crumb_4_label=crumb_structure %}
+                        {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_protein_detail crumb_3_url=protein_detail_url crumb_4_label=crumb_structure %}
                     {% endif %}
                 {% else %}
-                    {% include "components/navigation/breadcrumbs.html" with crumb_1_label=crumb_home crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_structure %}
+                    {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_structure %}
                 {% endif %}
                 <p class="structure-fs-eyebrow">{% trans "Interactive model" %}</p>
                 <h1>{% trans "3D Structure" %}</h1>

@@ -106,6 +106,9 @@ def _compute_properties(smiles):
     }
 
 
+_SOURCE_NORMALISE = {"pdb": "PDB", "chembl": "ChEMBL", "zinc": "ZINC"}
+
+
 def _clean_note_value(value):
     """Strip Python list/string repr: ['PF03331', 'X'] → PF03331, X"""
     v = value.strip()
@@ -113,7 +116,7 @@ def _clean_note_value(value):
         inner = v[1:-1]
         items = [s.strip().strip("'\"") for s in inner.split(",") if s.strip().strip("'\"")]
         return ", ".join(items) if items else v
-    return v
+    return _SOURCE_NORMALISE.get(v.lower(), v)
 
 
 def _parse_notes(raw_notes):

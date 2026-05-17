@@ -12,12 +12,11 @@
 
         {# ── Hero ── #}
         <section class="blast-hero">
-            {% trans "Home" as crumb_home %}
             {% trans "BLAST" as crumb_blast %}
             {% trans "Results" as crumb_results %}
             {% url 'tpwebapp:index' as index_url %}
             {% url 'tpwebapp:form' as blast_url %}
-            {% include "components/navigation/breadcrumbs.html" with crumb_1_label=crumb_home crumb_1_url=index_url crumb_2_label=crumb_blast crumb_2_url=blast_url crumb_3_label=crumb_results %}
+            {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_blast crumb_2_url=blast_url crumb_3_label=crumb_results %}
 
             <span class="blast-eyebrow">{% trans "Sequence search · blastn" %}</span>
             <h1>{% trans "BLAST Results" %}</h1>

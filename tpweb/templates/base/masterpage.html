@@ -1780,8 +1780,8 @@
     <nav class="tp-side-nav">
         <div class="tp-side-section">
             <p class="tp-side-section-label">{% trans "Analysis" %}</p>
-            <a class="tp-side-link tp-side-link--primary {% if request.resolver_match.url_name == 'index' %}active{% endif %}" data-short="HM" data-label="{% trans 'Home' %}" title="{% trans 'Home' %}" href="{% url 'tpwebapp:index' %}">
-                <span class="tp-side-text">{% trans "Home" %}</span>
+            <a class="tp-side-link tp-side-link--primary {% if request.resolver_match.url_name == 'index' %}active{% endif %}" data-short="HM" data-label="Home" title="Home" href="{% url 'tpwebapp:index' %}">
+                <span class="tp-side-text">Home</span>
             </a>
             <a class="tp-side-link tp-side-link--primary {% if request.resolver_match.url_name == 'genomes_list' or request.resolver_match.url_name == 'assembly' or request.resolver_match.url_name == 'protein_list' or request.resolver_match.url_name == 'protein' or request.resolver_match.url_name == 'annotation_explorer' %}active{% endif %}" data-short="GE" data-label="{% trans 'Genomes' %}" title="{% trans 'Genomes' %}" href="{% url 'tpwebapp:genomes_list' %}">
                 <span class="tp-side-text">{% trans "Genomes" %}</span>
@@ -1829,7 +1829,7 @@
         <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav mr-auto mb-2 mb-md-0">
                 <li class="nav-item">
-                    <a class="nav-link" aria-current="page" href="{% url 'tpwebapp:index' %}">{% trans "Home" %}</a>
+                    <a class="nav-link" aria-current="page" href="{% url 'tpwebapp:index' %}">Home</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" aria-current="page" href="{% url 'tpwebapp:genomes_list' %}">{% trans "Genomes" %}</a>
