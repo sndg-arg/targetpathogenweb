@@ -194,17 +194,17 @@
                                                 <div class="targets-breakdown">
                                                     {% if t.pdb_direct_count %}
                                                         <span class="targets-bd targets-bd--pdb-direct">
-                                                            PDB: this protein <strong>{{ t.pdb_direct_count }}</strong>
+                                                            PDB co-crystal <strong>{{ t.pdb_direct_count }}</strong>
                                                         </span>
                                                     {% endif %}
                                                     {% if t.chembl_direct_count %}
                                                         <span class="targets-bd targets-bd--chembl-direct">
-                                                            ChEMBL: this protein <strong>{{ t.chembl_direct_count }}</strong>
+                                                            ChEMBL bioactive <strong>{{ t.chembl_direct_count }}</strong>
                                                         </span>
                                                     {% endif %}
                                                     {% if t.homolog_count %}
                                                         <span class="targets-bd targets-bd--homolog">
-                                                            Similar proteins <strong>{{ t.homolog_count }}{% if t.chembl_homolog_count >= 100 %}+{% endif %}</strong>
+                                                            Via homologs <strong>{{ t.homolog_count }}{% if t.chembl_homolog_count >= 100 %}+{% endif %}</strong>
                                                             {% if t.chembl_homolog_count >= 100 %}<span class="targets-tooltip">{% trans "Includes PDB and ChEMBL evidence inferred from similar proteins. ChEMBL similar-protein records are capped at top 100 by pchembl." %}</span>{% endif %}
                                                         </span>
                                                     {% endif %}
@@ -220,6 +220,9 @@
                                     </li>
                                 {% endfor %}
                             </ol>
+                            <p class="targets-footnote">
+                                {% trans "PDB co-crystal ligands and ChEMBL bioactivity data reported for this exact protein are ranked first." %}
+                            </p>
                         </div>
                     {% endif %}
                 </section>
@@ -278,10 +281,10 @@
                             </span>
                         </span>
                         <ul class="evidence-breakdown">
-                            <li class="evidence-breakdown-priority"><span class="evidence-bd-label">{% trans "PDB: this protein" %}</span><span class="evidence-bd-value">{{ workspace_metrics.binder_pdb_direct }}</span></li>
-                            <li><span class="evidence-bd-label">{% trans "PDB similar proteins" %}</span><span class="evidence-bd-value">{{ workspace_metrics.binder_pdb_homolog }}</span></li>
-                            <li class="evidence-breakdown-priority"><span class="evidence-bd-label">{% trans "ChEMBL: this protein" %}</span><span class="evidence-bd-value">{{ workspace_metrics.binder_chembl_direct }}</span></li>
-                            <li><span class="evidence-bd-label">{% trans "ChEMBL similar proteins" %}</span><span class="evidence-bd-value">{{ workspace_metrics.binder_chembl_homolog }}</span></li>
+                            <li class="evidence-breakdown-priority"><span class="evidence-bd-label">{% trans "PDB co-crystal" %}</span><span class="evidence-bd-value">{{ workspace_metrics.binder_pdb_direct }}</span></li>
+                            <li><span class="evidence-bd-label">{% trans "PDB via homologs" %}</span><span class="evidence-bd-value">{{ workspace_metrics.binder_pdb_homolog }}</span></li>
+                            <li class="evidence-breakdown-priority"><span class="evidence-bd-label">{% trans "ChEMBL bioactive" %}</span><span class="evidence-bd-value">{{ workspace_metrics.binder_chembl_direct }}</span></li>
+                            <li><span class="evidence-bd-label">{% trans "ChEMBL via homologs" %}</span><span class="evidence-bd-value">{{ workspace_metrics.binder_chembl_homolog }}</span></li>
                             <li><span class="evidence-bd-label">{% trans "ZINC proposed" %}</span><span class="evidence-bd-value">{{ workspace_metrics.binder_zinc }}</span></li>
                         </ul>
                     </div>

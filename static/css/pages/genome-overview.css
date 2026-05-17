@@ -313,6 +313,11 @@
 .genome-card--ranking {
     display: flex;
     flex-direction: column;
+    align-self: stretch;
+}
+
+.genome-card--ranking .targets-list {
+    flex: 1;
 }
 
 .targets-list {
@@ -507,7 +512,7 @@
 }
 
 .targets-footnote {
-    margin: 14px 0 0;
+    margin: auto 0 0;
     padding-top: 12px;
     border-top: 1px dashed var(--tp-color-border-soft);
     font-size: 0.86rem;
