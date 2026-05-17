@@ -1346,42 +1346,32 @@
     font-weight: 400;
 }
 
-.binder-tbl__actions-col {
-    width: 80px;
+.binder-tbl__smiles-col {
+    max-width: 260px;
 }
 
-.binder-tbl__actions {
-    text-align: right;
-    white-space: nowrap;
-}
-
-.binder-copy-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 0.7rem;
-    font-weight: 700;
-    letter-spacing: 0.04em;
+.binder-tbl__smiles {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.78rem;
     color: var(--tp-color-text-muted);
-    background: var(--tp-color-surface-soft);
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: 6px;
-    padding: 3px 8px;
-    cursor: pointer;
-    transition: color 120ms ease, border-color 120ms ease, background 120ms ease;
+    max-width: 260px;
+    overflow: hidden;
+    text-overflow: ellipsis;
     white-space: nowrap;
+    cursor: copy;
+    transition: color 120ms ease, background 120ms ease;
 }
 
-.binder-copy-btn:hover {
+.binder-tbl__smiles[data-smiles]:hover {
     color: var(--tp-color-text-primary);
-    border-color: var(--tp-color-border-strong);
-    background: var(--tp-color-surface-muted);
+    background: color-mix(in srgb, var(--tp-color-brand-100) 50%, transparent);
+    border-radius: 4px;
 }
 
-.binder-copy-btn--done {
-    color: var(--tp-color-sage-800);
-    background: var(--tp-color-sage-050);
-    border-color: var(--tp-color-sage-200);
+.binder-tbl__smiles--copied {
+    color: var(--tp-color-sage-800) !important;
+    background: var(--tp-color-sage-050) !important;
+    border-radius: 4px;
 }
 
 .binder-tbl__pdb-link {
