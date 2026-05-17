@@ -311,10 +311,6 @@
     line-height: 1.45;
 }
 
-.binder-card--identifiers {
-    align-self: start;
-}
-
 .binder-card--properties,
 .binder-card--druglikeness,
 .binder-card--strings,
