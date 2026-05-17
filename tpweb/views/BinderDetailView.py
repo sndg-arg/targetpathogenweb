@@ -108,6 +108,21 @@ def _compute_properties(smiles):
 
 _SOURCE_NORMALISE = {"pdb": "PDB", "chembl": "ChEMBL", "zinc": "ZINC"}
 
+_NOTES_LABEL_MAP = {
+    "info": "Method",
+    "source": "Source",
+    "binding_sites": "Binding sites",
+    "binding_site": "Binding site",
+    "uniprot_id": "UniProt",
+    "uniprot": "UniProt",
+    "pdb_id": "PDB structure",
+    "similarity": "Similarity",
+    "score": "Score",
+    "e_value": "E-value",
+    "identity": "Identity",
+    "coverage": "Coverage",
+}
+
 
 def _clean_note_value(value):
     """Strip Python list/string repr: ['PF03331', 'X'] → PF03331, X"""
@@ -127,13 +142,15 @@ def _parse_notes(raw_notes):
     items = []
     for part in parts:
         if ":" in part:
-            label, value = part.split(":", 1)
-            items.append({"label": label.strip(), "value": _clean_note_value(value.strip())})
+            raw_label, value = part.split(":", 1)
         elif "=" in part:
-            label, value = part.split("=", 1)
-            items.append({"label": label.strip(), "value": _clean_note_value(value.strip())})
+            raw_label, value = part.split("=", 1)
         else:
-            items.append({"label": "info", "value": part})
+            items.append({"label": "Method", "value": part})
+            continue
+        key = raw_label.strip().lower()
+        label = _NOTES_LABEL_MAP.get(key, raw_label.strip().replace("_", " ").capitalize())
+        items.append({"label": label, "value": _clean_note_value(value.strip())})
     return items
 
 
