@@ -915,6 +915,10 @@ a.tp-chip--go:hover {
 .tp-table-shell--with-export > .table,
 .tp-table-shell--with-export > .tp-dt-wrapper,
 .tp-table-shell--with-export > .dataTables_wrapper,
+.tp-table-shell--with-export {
+    position: relative;
+}
+
 .tp-table-shell--with-export > .tp-table-shell__scroll {
     margin-top: 0;
 }
