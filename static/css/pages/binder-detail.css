@@ -230,7 +230,6 @@
     z-index: 25;
     display: flex;
     flex-wrap: nowrap;
-    justify-content: center;
     gap: 8px;
     overflow-x: auto;
     padding: 8px 10px;
@@ -251,6 +250,9 @@
 
 .binder-page .quick-nav .quick-nav-link {
     flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     min-height: 36px;
     padding: 0.32rem 0.85rem;
     line-height: 1.1;
