@@ -36,14 +36,14 @@
                     </td>
                     <td>
                         {% if binder.props %}
-                            <span class="binder-quality {% if binder.props.pains_alert %}binder-quality--alert{% else %}binder-quality--ok{% endif %}">{{ binder.props.pains_label }}</span>
+                            <span class="binder-quality {% if binder.props.pains_alert %}binder-quality--alert{% else %}binder-quality--ok{% endif %}">{% if binder.props.pains_alert %}{{ binder.props.pains_label }}{% else %}✓ Clean{% endif %}</span>
                         {% else %}—{% endif %}
                     </td>
                     <td class="binder-tbl__smiles"
                         {% if binder.smiles %}data-smiles="{{ binder.smiles }}"
                         onclick="event.stopPropagation(); copySmiles(this)"
                         title="{% trans 'Click to copy SMILES' %}"{% endif %}>
-                        {% if binder.smiles %}<code>{{ binder.smiles|truncatechars:48 }}</code>{% else %}—{% endif %}
+                        {% if binder.smiles %}<code>{{ binder.smiles|truncatechars:48 }}</code><svg class="binder-tbl__copy-icon" viewBox="0 0 14 14" fill="none" aria-hidden="true"><rect x="4" y="4" width="8" height="9" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M2 10V2.5A1.5 1.5 0 0 1 3.5 1H9" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>{% else %}—{% endif %}
                     </td>
                 </tr>
             {% endfor %}

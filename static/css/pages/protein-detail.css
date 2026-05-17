@@ -1355,11 +1355,34 @@
     font-size: 0.78rem;
     color: var(--tp-color-text-muted);
     max-width: 260px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    cursor: copy;
+    transition: color 120ms ease, background 120ms ease;
+}
+
+.binder-tbl__smiles code {
+    color: inherit;
+    background: none;
+    min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    cursor: copy;
-    transition: color 120ms ease, background 120ms ease;
+    flex: 1;
+}
+
+.binder-tbl__copy-icon {
+    width: 11px;
+    height: 11px;
+    flex-shrink: 0;
+    color: var(--tp-color-text-soft);
+    opacity: 0.35;
+    transition: opacity 120ms ease;
+}
+
+.binder-tbl__smiles[data-smiles]:hover .binder-tbl__copy-icon {
+    opacity: 1;
 }
 
 .binder-tbl__smiles[data-smiles]:hover {
@@ -1413,10 +1436,8 @@
 }
 
 .binder-filter-label {
-    font-size: 0.74rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
+    font-size: 0.76rem;
+    font-weight: 600;
     color: var(--tp-color-text-muted);
     white-space: nowrap;
     margin-right: 2px;
