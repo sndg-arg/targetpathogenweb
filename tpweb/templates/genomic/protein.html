@@ -472,28 +472,13 @@
                         <button type="submit" class="btn tp-btn tp-btn--primary binders-search__submit">{% trans "Search" %}</button>
                     </form>
 
-                    <div class="binder-evidence-guide" aria-label="{% trans 'Binder evidence guide' %}">
-                        <div class="binder-evidence-guide__item binder-evidence-guide__item--direct">
-                            <strong>{% trans "This protein" %}</strong>
-                            <span>{% trans "Ligand evidence measured or structurally observed for the same protein. Prioritize these when they exist." %}</span>
-                        </div>
-                        <div class="binder-evidence-guide__item">
-                            <strong>{% trans "Similar proteins" %}</strong>
-                            <span>{% trans "Evidence inferred from related proteins. Useful support, but less specific than evidence on this protein." %}</span>
-                        </div>
-                        <div class="binder-evidence-guide__item">
-                            <strong>{% trans "ADME flags" %}</strong>
-                            <span>{% trans "MW, LogP and TPSA are computed from SMILES; permeability and PAINS are screening flags, not toxicity assays." %}</span>
-                        </div>
-                    </div>
-
                     <div class="binders-tabs" role="tablist" data-binders-tabs>
                         <button type="button"
                                 class="binders-tab {% if binders.default_tab == 'pdb_direct' %}is-active{% endif %}"
                                 role="tab"
                                 aria-selected="{% if binders.default_tab == 'pdb_direct' %}true{% else %}false{% endif %}"
                                 data-binders-tab="pdb_direct">
-                            <span>{% trans "PDB: this protein" %}</span>
+                            <span>{% trans "PDB co-crystal" %}</span>
                             <span class="binders-tab__count">{{ binders.pdb_direct_count }}</span>
                         </button>
                         <button type="button"
@@ -501,7 +486,7 @@
                                 role="tab"
                                 aria-selected="{% if binders.default_tab == 'pdb_homolog' %}true{% else %}false{% endif %}"
                                 data-binders-tab="pdb_homolog">
-                            <span>{% trans "PDB: similar proteins" %}</span>
+                            <span>{% trans "PDB via homologs" %}</span>
                             <span class="binders-tab__count">{{ binders.pdb_homolog_count }}</span>
                         </button>
                         <button type="button"
@@ -509,7 +494,7 @@
                                 role="tab"
                                 aria-selected="{% if binders.default_tab == 'chembl_direct' %}true{% else %}false{% endif %}"
                                 data-binders-tab="chembl_direct">
-                            <span>{% trans "ChEMBL: this protein" %}</span>
+                            <span>{% trans "ChEMBL bioactive" %}</span>
                             <span class="binders-tab__count">{{ binders.chembl_direct_count }}</span>
                         </button>
                         <button type="button"
@@ -517,7 +502,7 @@
                                 role="tab"
                                 aria-selected="{% if binders.default_tab == 'chembl_homolog' %}true{% else %}false{% endif %}"
                                 data-binders-tab="chembl_homolog">
-                            <span>{% trans "ChEMBL: similar proteins" %}</span>
+                            <span>{% trans "ChEMBL via homologs" %}</span>
                             <span class="binders-tab__count">{{ binders.chembl_homolog_count }}{% if binders.chembl_homolog_capped %}+{% endif %}</span>
                         </button>
                         <button type="button"
@@ -1551,5 +1536,18 @@
                 window.location.href = row.getAttribute("data-href");
             });
         })();
+
+        function copySmiles(btn) {
+            const smiles = btn.dataset.smiles;
+            navigator.clipboard.writeText(smiles).then(function () {
+                const orig = btn.textContent;
+                btn.textContent = "Copied!";
+                btn.classList.add("binder-copy-btn--done");
+                setTimeout(function () {
+                    btn.textContent = orig;
+                    btn.classList.remove("binder-copy-btn--done");
+                }, 1400);
+            });
+        }
     </script>
 {% endblock %}

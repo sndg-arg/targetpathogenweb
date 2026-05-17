@@ -11,14 +11,26 @@
                 <th scope="col" class="binder-tbl__metric-col">{% trans "TPSA" %}</th>
                 <th scope="col">{% trans "Lipinski" %}</th>
                 <th scope="col">{% trans "PAINS" %}</th>
-                <th scope="col">{% trans "SMILES" %}</th>
+                <th scope="col" class="binder-tbl__actions-col"></th>
             </tr>
         </thead>
         <tbody>
             {% for binder in binder_list %}
                 <tr class="binder-tbl__row" data-href="{% url 'tpwebapp:binder_detail' binder_id=binder.id %}">
                     <td class="binder-tbl__name">{{ binder.name }}</td>
-                    <td class="binder-tbl__pdb">{% if binder.pdb %}<span class="binder-tbl__pdb-id">{{ binder.pdb }}</span>{% else %}—{% endif %}</td>
+                    <td class="binder-tbl__pdb">
+                        {% if binder.pdb %}
+                            <a class="binder-tbl__pdb-link"
+                               href="https://www.rcsb.org/structure/{{ binder.pdb }}"
+                               target="_blank"
+                               rel="noopener noreferrer"
+                               onclick="event.stopPropagation()"
+                               title="{% trans 'View in RCSB PDB' %}">
+                                <span class="binder-tbl__pdb-id">{{ binder.pdb }}</span>
+                                <svg class="binder-tbl__ext-icon" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M7 1h4v4M11 1L6 6M5 2H2a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h7a1 1 0 0 0 1-1V8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            </a>
+                        {% else %}—{% endif %}
+                    </td>
                     {% if show_uniprot %}<td class="binder-tbl__uniprot">{{ binder.uniprot|default:"—" }}</td>{% endif %}
                     <td class="binder-tbl__metric">{{ binder.props.mw|default:"—" }}</td>
                     <td class="binder-tbl__metric">{{ binder.props.logp|default:"—" }}</td>
@@ -33,7 +45,16 @@
                             <span class="binder-quality {% if binder.props.pains_alert %}binder-quality--alert{% else %}binder-quality--ok{% endif %}">{{ binder.props.pains_label }}</span>
                         {% else %}—{% endif %}
                     </td>
-                    <td class="binder-tbl__smiles"><code>{{ binder.smiles|truncatechars:60 }}</code></td>
+                    <td class="binder-tbl__actions">
+                        {% if binder.smiles %}
+                            <button class="binder-copy-btn"
+                                    data-smiles="{{ binder.smiles }}"
+                                    onclick="event.stopPropagation(); copySmiles(this)"
+                                    title="{% trans 'Copy SMILES to clipboard' %}">
+                                SMILES
+                            </button>
+                        {% endif %}
+                    </td>
                 </tr>
             {% endfor %}
         </tbody>
