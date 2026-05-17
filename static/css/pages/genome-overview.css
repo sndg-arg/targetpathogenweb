@@ -316,12 +316,16 @@
     align-self: stretch;
 }
 
-/* Clamp descriptions and chips to 1 row so items in both cards are the same height */
+/* Clamp descriptions to 1 line for uniform item height */
 .genome-card--ranking .targets-description {
     -webkit-line-clamp: 1;
 }
 
+/* Breakdown chips inside targets-main (right card) align left like factor chips */
 .genome-card--ranking .targets-breakdown {
+    justify-content: flex-start;
+    padding-left: 38px;
+    margin-top: 8px;
     flex-wrap: nowrap;
     overflow: hidden;
 }
@@ -375,6 +379,20 @@
     background: var(--genome-accent-soft);
     border: 1px solid var(--genome-accent-border);
     border-radius: 999px;
+}
+
+.targets-direct-count {
+    margin-left: auto;
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--genome-accent-ink);
+    line-height: 1;
+    padding: 4px 12px;
+    background: var(--tp-color-sage-050);
+    border: 1px solid var(--tp-color-sage-200);
+    border-radius: 999px;
+    white-space: nowrap;
 }
 
 .targets-evidence {

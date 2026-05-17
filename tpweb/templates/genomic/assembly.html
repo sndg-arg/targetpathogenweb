@@ -178,19 +178,14 @@
                             <ol class="targets-list">
                                 {% for t in top_targets_by_binders %}
                                     <li class="targets-item">
-                                        <a class="targets-link" href="{% url 'tpwebapp:protein' protein_id=t.bioentry_id %}">
+                                        <a class="targets-link targets-link--score" href="{% url 'tpwebapp:protein' protein_id=t.bioentry_id %}">
                                             <div class="targets-main">
                                                 <div class="targets-title">
                                                     <span class="targets-rank">#{{ forloop.counter }}</span>
                                                     <span class="targets-accession">{{ t.accession }}</span>
+                                                    <span class="targets-direct-count">{{ t.direct_count }} {% trans "direct" %}</span>
                                                 </div>
                                                 <p class="targets-description">{{ t.description|default:"-" }}</p>
-                                            </div>
-                                            <div class="targets-stats">
-                                                <span class="targets-stat targets-stat--total">
-                                                    <span class="targets-stat-value">{{ t.direct_count }}</span>
-                                                    <span class="targets-stat-label">{% trans "on this protein" %}</span>
-                                                </span>
                                                 <div class="targets-breakdown">
                                                     {% if t.pdb_direct_count %}
                                                         <span class="targets-bd targets-bd--pdb-direct">
