@@ -40,73 +40,56 @@
                         {% if protein.description %}<span class="binder-context-desc">— {{ protein.description }}</span>{% endif %}
                     </p>
                     <div class="hero-chip-list tp-chip-group">
-                        <span class="hero-chip tp-chip {% if binder.is_pdb %}tp-chip--meta{% else %}tp-chip--filter{% endif %} tp-chip--sm">
-                            <strong>{% trans "Source" %}:</strong>
-                            <span>{{ binder.source_label }}</span>
-                        </span>
                         <span class="hero-chip tp-chip {% if binder.is_direct %}tp-chip--direct{% else %}tp-chip--homolog{% endif %} tp-chip--sm">
-                            <strong>{% trans "Evidence" %}:</strong>
-                            <span>{{ binder.evidence_label }}</span>
+                            {% if binder.is_direct %}{% trans "Direct evidence" %}{% else %}{% trans "Via homolog" %}{% endif %}
                         </span>
-                        {% if binder.source != 'proposed' %}
-                            <span class="hero-chip tp-chip {% if binder.is_direct %}tp-chip--direct{% else %}tp-chip--homolog{% endif %} tp-chip--sm">
-                                {% if binder.is_direct %}{% trans "This protein" %}{% else %}{% trans "Similar protein" %}{% endif %}
-                            </span>
-                        {% endif %}
                         {% if binder.pdb_id %}
-                            <span class="hero-chip tp-chip tp-chip--meta tp-chip--sm">
-                                <strong>PDB:</strong>
+                            <a class="hero-chip tp-chip tp-chip--meta tp-chip--sm binder-pdb-chip"
+                               href="https://www.rcsb.org/structure/{{ binder.pdb_id }}"
+                               target="_blank" rel="noopener noreferrer"
+                               title="{% trans 'View in RCSB PDB' %}">
+                                <strong>PDB</strong>
                                 <span>{{ binder.pdb_id }}</span>
-                            </span>
+                                <svg class="binder-ext-icon" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M7 1h4v4M11 1L6 6M5 2H2a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h7a1 1 0 0 0 1-1V8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            </a>
                         {% endif %}
                         {% if binder.uniprot %}
                             <span class="hero-chip tp-chip tp-chip--meta tp-chip--sm">
-                                <strong>UniProt:</strong>
+                                <strong>UniProt</strong>
                                 <span>{{ binder.uniprot }}</span>
                             </span>
                         {% endif %}
                         {% if properties.formula %}
-                            <span class="hero-chip tp-chip tp-chip--meta tp-chip--sm">
-                                <strong>{% trans "Formula" %}:</strong>
-                                <span>{{ properties.formula }}</span>
-                            </span>
+                            <span class="hero-chip tp-chip tp-chip--meta tp-chip--sm binder-formula-chip">{{ properties.formula }}</span>
                         {% endif %}
                     </div>
                 </div>
             </div>
             <div class="binder-metrics" aria-label="{% trans 'Binder summary' %}">
-                <div class="metric-pill">
-                    <span class="metric-label">{% trans "Ligand ID" %}</span>
-                    <span class="metric-value metric-value--text">{{ binder.ccd_id|default:"-" }}</span>
-                </div>
-                <div class="metric-pill">
-                    <span class="metric-label">{% trans "Type" %}</span>
-                    <span class="metric-value metric-value--text">{{ binder.source_label }}</span>
-                </div>
                 {% if binder.score is not None %}
                     <div class="metric-pill">
                         <span class="metric-label">
-                            {% if binder.is_pdb %}{% trans "Score" %}
-                            {% elif binder.source == 'chembl' %}pchembl
-                            {% else %}Tanimoto{% endif %}
+                            {% if binder.source == 'chembl' %}pchembl
+                            {% elif binder.source == 'proposed' %}Tanimoto
+                            {% else %}{% trans "Score" %}{% endif %}
                         </span>
-                        <span class="metric-value">{{ binder.score|floatformat:3 }}</span>
+                        <span class="metric-value">{{ binder.score|floatformat:2 }}</span>
                     </div>
                 {% endif %}
                 {% if properties.mw %}
                     <div class="metric-pill">
-                        <span class="metric-label">MW</span>
-                        <span class="metric-value">{{ properties.mw }} Da</span>
+                        <span class="metric-label">{% trans "Mol. weight" %}</span>
+                        <span class="metric-value">{{ properties.mw }} <span class="metric-unit">Da</span></span>
                     </div>
                 {% endif %}
                 {% if properties %}
                     <div class="metric-pill">
                         <span class="metric-label">{% trans "Permeability" %}</span>
-                        <span class="metric-value metric-value--text">{{ properties.permeability_label }}</span>
+                        <span class="metric-value metric-value--text metric-value--{{ properties.permeability_ok|yesno:'ok,warn' }}">{{ properties.permeability_label }}</span>
                     </div>
                     <div class="metric-pill">
                         <span class="metric-label">PAINS</span>
-                        <span class="metric-value metric-value--text">{% if properties.pains_hit %}{% trans "Alert" %}{% else %}{% trans "Clear" %}{% endif %}</span>
+                        <span class="metric-value metric-value--text metric-value--{{ properties.pains_hit|yesno:'warn,ok' }}">{% if properties.pains_hit %}{% trans "Alert" %}{% else %}{% trans "Clean" %}{% endif %}</span>
                     </div>
                 {% endif %}
             </div>
@@ -437,7 +420,7 @@
                                 <h3 class="siblings-group-title">ZINC <span class="siblings-group-count">{{ siblings.proposed_total }}</span></h3>
                                 <ul class="siblings-list">
                                     {% for s in siblings.proposed %}
-                                        <li><a href="{% url 'tpwebapp:binder_detail' binder_id=s.id %}"><code>{{ s.name }}</code>{% if s.score is not None %} <span class="siblings-meta">T {{ s.score|floatformat:2 }}</span>{% endif %}</a></li>
+                                        <li><a href="{% url 'tpwebapp:binder_detail' binder_id=s.id %}"><code>{{ s.name }}</code>{% if s.score is not None %} <span class="siblings-meta">Tanimoto {{ s.score|floatformat:2 }}</span>{% endif %}</a></li>
                                     {% endfor %}
                                 </ul>
                             </div>

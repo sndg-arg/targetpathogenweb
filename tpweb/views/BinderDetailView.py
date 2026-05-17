@@ -106,6 +106,16 @@ def _compute_properties(smiles):
     }
 
 
+def _clean_note_value(value):
+    """Strip Python list/string repr: ['PF03331', 'X'] → PF03331, X"""
+    v = value.strip()
+    if v.startswith("[") and v.endswith("]"):
+        inner = v[1:-1]
+        items = [s.strip().strip("'\"") for s in inner.split(",") if s.strip().strip("'\"")]
+        return ", ".join(items) if items else v
+    return v
+
+
 def _parse_notes(raw_notes):
     """Split LigQ_2 notes (foo | bar | baz) into structured key/value items."""
     if not raw_notes:
@@ -115,10 +125,10 @@ def _parse_notes(raw_notes):
     for part in parts:
         if ":" in part:
             label, value = part.split(":", 1)
-            items.append({"label": label.strip(), "value": value.strip()})
+            items.append({"label": label.strip(), "value": _clean_note_value(value.strip())})
         elif "=" in part:
             label, value = part.split("=", 1)
-            items.append({"label": label.strip(), "value": value.strip()})
+            items.append({"label": label.strip(), "value": _clean_note_value(value.strip())})
         else:
             items.append({"label": "info", "value": part})
     return items
