@@ -112,6 +112,8 @@ make restart svc=web ENV=cluster    # restart web only
 make status ENV=cluster             # container + volume status
 ```
 
+Binder/LigQ_2 recovery, UniProt mapping, and direct-vs-homolog evidence loading are documented in [`docs/BINDERS_LIGQ2.md`](BINDERS_LIGQ2.md).
+
 ---
 
 ## IMPORTANT: never delete volumes

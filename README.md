@@ -126,6 +126,8 @@ The genome processing pipeline runs 23 stages via a direct subprocess orchestrat
 8. **Druggability & localization** — druggability score, PSORTb
 9. **Binders** — extract and load binder candidates
 
+Binder evidence is split into PDB direct, PDB homolog, ChEMBL direct, ChEMBL homolog, and ZINC. See [`docs/BINDERS_LIGQ2.md`](docs/BINDERS_LIGQ2.md) for the LigQ_2/UniProt operational workflow.
+
 ### Run pipeline manually
 
 ```bash

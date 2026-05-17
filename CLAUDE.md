@@ -71,8 +71,11 @@ conda env: `interproscan`. Key fix: `set -u` must come AFTER `conda activate`.
 - **Stage 24**, controlled by `TPW_LIGQ_USE_REMOTE`:
   - `0` (default): stage is skipped.
   - `1`: runs LigQ_2 remotely on a SLURM CPU node via `pipeline/ligq_remote.py`. **One SLURM job per genome** (LigQ_2 processes all proteins internally). Tested at 1m46s for 62 prots and 32min for 5572 prots.
-- **Flow**: dump FASTA from DB → SCP to cranex → sbatch → poll → tar-pipe output back → `load_ligq_2_results` loads into `Binders` (split into PDB / ChEMBL / ZINC by inner source).
+- **Flow**: dump FASTA from DB → SCP to cranex → sbatch → poll → tar-pipe output back → `load_ligq_2_results` loads into `Binders`.
+- **Evidence split**: PDB direct, PDB homolog, ChEMBL direct, ChEMBL homolog, ZINC. `is_direct=True` when LigQ_2's `uniprot_id` matches the protein's own `UnipSp`/`UnipTr` crossrefs.
+- **UniProt prerequisite**: run `gbk2uniprot_map` before loading binders. If UniProt async idmapping returns HTTP 400, tpweb falls back to UniProtKB RefSeq xref search (`xref:RefSeq-NP_...`). If an empty `unips_mapping.csv` was cached, remove it and rerun.
 - **Output filtering**: top 100 ChEMBL by pchembl, top 50 ZINC by tanimoto ≥ 0.5, all PDB-crystallized. Skips non-drug-like HET codes (amino acids, water, ions, buffers) by default.
+- **Operations doc**: see `docs/BINDERS_LIGQ2.md` for manual cranex jobs, copying outputs back, reload commands, and direct/homolog verification.
 - **Config** (env vars, all have defaults):
   - `TPW_LIGQ_USE_REMOTE=1` — activate remote mode
   - `TPW_LIGQ_DIR` — default `/home/agutson/work/LigQ_2`
