@@ -9,25 +9,51 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
-            model_name="bioentrystructure",
-            name="chain",
-            field=models.CharField(blank=True, default="", max_length=64),
-        ),
-        migrations.AddField(
-            model_name="bioentrystructure",
-            name="resolution",
-            field=models.FloatField(blank=True, null=True),
-        ),
-        migrations.AddField(
-            model_name="bioentrystructure",
-            name="uniprot_end",
-            field=models.IntegerField(blank=True, null=True),
-        ),
-        migrations.AddField(
-            model_name="bioentrystructure",
-            name="uniprot_start",
-            field=models.IntegerField(blank=True, null=True),
+        migrations.SeparateDatabaseAndState(
+            database_operations=[
+                migrations.RunSQL(
+                    "ALTER TABLE tpweb_bioentrystructure "
+                    "ADD COLUMN IF NOT EXISTS chain varchar(64) NOT NULL DEFAULT '';",
+                    reverse_sql="ALTER TABLE tpweb_bioentrystructure DROP COLUMN IF EXISTS chain;",
+                ),
+                migrations.RunSQL(
+                    "ALTER TABLE tpweb_bioentrystructure "
+                    "ADD COLUMN IF NOT EXISTS resolution double precision NULL;",
+                    reverse_sql="ALTER TABLE tpweb_bioentrystructure DROP COLUMN IF EXISTS resolution;",
+                ),
+                migrations.RunSQL(
+                    "ALTER TABLE tpweb_bioentrystructure "
+                    "ADD COLUMN IF NOT EXISTS uniprot_end integer NULL;",
+                    reverse_sql="ALTER TABLE tpweb_bioentrystructure DROP COLUMN IF EXISTS uniprot_end;",
+                ),
+                migrations.RunSQL(
+                    "ALTER TABLE tpweb_bioentrystructure "
+                    "ADD COLUMN IF NOT EXISTS uniprot_start integer NULL;",
+                    reverse_sql="ALTER TABLE tpweb_bioentrystructure DROP COLUMN IF EXISTS uniprot_start;",
+                ),
+            ],
+            state_operations=[
+                migrations.AddField(
+                    model_name="bioentrystructure",
+                    name="chain",
+                    field=models.CharField(blank=True, default="", max_length=64),
+                ),
+                migrations.AddField(
+                    model_name="bioentrystructure",
+                    name="resolution",
+                    field=models.FloatField(blank=True, null=True),
+                ),
+                migrations.AddField(
+                    model_name="bioentrystructure",
+                    name="uniprot_end",
+                    field=models.IntegerField(blank=True, null=True),
+                ),
+                migrations.AddField(
+                    model_name="bioentrystructure",
+                    name="uniprot_start",
+                    field=models.IntegerField(blank=True, null=True),
+                ),
+            ],
         ),
         migrations.CreateModel(
             name="ExperimentalStructureXref",
