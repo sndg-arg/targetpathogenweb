@@ -34,6 +34,8 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_DATA_DIR = str(settings.BASE_DIR / "data")
 PYTHON_BIN = "/opt/conda/envs/tpv2/bin/python"
+CONTAINER_DATA_PREFIX = "/app/targetpathogenweb/data"
+HOST_DATA_PREFIX = "/data/targetpathogen/data"
 
 
 def _chain_tokens(chain):
@@ -95,6 +97,14 @@ def _tool_safe_pdb_path(locus_dir, pdb_path):
     return safe_path
 
 
+def _docker_mount_source(path):
+    """Translate container data paths to host paths for Docker socket mounts."""
+    abs_path = os.path.abspath(path)
+    if abs_path == CONTAINER_DATA_PREFIX or abs_path.startswith(f"{CONTAINER_DATA_PREFIX}/"):
+        return abs_path.replace(CONTAINER_DATA_PREFIX, HOST_DATA_PREFIX, 1)
+    return abs_path
+
+
 def _run_fpocket(locus_dir, pdb_path):
     """Run FPocket via Docker. Returns path to output dir or None on failure."""
     pdb_path = _tool_safe_pdb_path(locus_dir, pdb_path)
@@ -110,14 +120,14 @@ def _run_fpocket(locus_dir, pdb_path):
     cmd = [
         "docker", "run",
         "--rm", "-i",
-        "-v", f"{os.path.abspath(locus_dir)}:/work",
+        "-v", f"{_docker_mount_source(locus_dir)}:/work",
         "ezequieljsosa/fpocket",
         "fpocket", "-f", f"/work/{pdb_basename_only}",
     ]
     logger.info("Running FPocket for %s", pdb_basename)
     result = subprocess.run(cmd, capture_output=True, cwd=locus_dir)
     if result.returncode != 0:
-        logger.error("FPocket failed for %s: %s", pdb_basename, result.stderr.decode()[:500])
+        logger.error("FPocket failed for %s: %s", pdb_basename, result.stderr.decode(errors="replace")[:500])
         return None
 
     if os.path.isdir(out_dir):
@@ -168,7 +178,7 @@ def _run_p2rank(locus_dir, pdb_path, cpus=2):
     cmd = [
         "docker", "run",
         "--rm", "-i",
-        "-v", f"{os.path.abspath(locus_dir)}:/work",
+        "-v", f"{_docker_mount_source(locus_dir)}:/work",
         "mcpalumbo/p2rank:latest",
         "prank", "predict",
         "-f", f"/work/{pdb_basename_only}",
