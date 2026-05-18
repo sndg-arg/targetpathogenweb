@@ -145,6 +145,7 @@ def _run_fpocket(locus_dir, pdb_path):
 
 def _fpocket_to_json(fpocket_dir, python_bin=PYTHON_BIN):
     """Convert FPocket output dir to fpocket.json.gz. Returns path or None."""
+    subprocess.run(["chmod", "-R", "a+rwX", fpocket_dir], capture_output=True)
     json_gz = os.path.join(fpocket_dir, "fpocket.json.gz")
     if os.path.exists(json_gz):
         return json_gz
@@ -152,8 +153,9 @@ def _fpocket_to_json(fpocket_dir, python_bin=PYTHON_BIN):
     cmd = f"{shlex.quote(python_bin)} -m SNDG.Structure.FPocket 2json {shlex.quote(fpocket_dir)} | gzip > {shlex.quote(json_gz)}"
     result = subprocess.run(cmd, shell=True, capture_output=True)
     if result.returncode != 0 or not os.path.exists(json_gz):
-        logger.error("fpocket2json failed for %s: %s", fpocket_dir, result.stderr.decode()[:500])
+        logger.error("fpocket2json failed for %s: %s", fpocket_dir, result.stderr.decode(errors="replace")[:500])
         return None
+    subprocess.run(["chmod", "a+rw", json_gz], capture_output=True)
     return json_gz
 
 
@@ -201,6 +203,14 @@ def _run_p2rank(locus_dir, pdb_path, cpus=2):
 def _p2rank_to_json(p2rank_dir, pdb_basename):
     """Convert P2Rank predictions CSV to p2pocket.json.gz. Returns path or None."""
     csv_path = os.path.join(p2rank_dir, f"{pdb_basename}_predictions.csv")
+    if not os.path.exists(csv_path):
+        candidates = [
+            os.path.join(p2rank_dir, name)
+            for name in os.listdir(p2rank_dir)
+            if name.endswith("_predictions.csv")
+        ]
+        if len(candidates) == 1:
+            csv_path = candidates[0]
     json_gz = os.path.join(p2rank_dir, "p2pocket.json.gz")
 
     if os.path.exists(json_gz):
