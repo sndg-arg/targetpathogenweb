@@ -105,6 +105,19 @@ def _docker_mount_source(path):
     return abs_path
 
 
+def _docker_chmod_work_path(locus_dir, work_path):
+    """Use the host Docker daemon to chmod files created by tool containers."""
+    cmd = [
+        "docker", "run",
+        "--rm",
+        "--entrypoint", "chmod",
+        "-v", f"{_docker_mount_source(locus_dir)}:/work",
+        "ezequieljsosa/fpocket",
+        "-R", "a+rwX", work_path,
+    ]
+    return subprocess.run(cmd, capture_output=True, cwd=locus_dir)
+
+
 def _run_fpocket(locus_dir, pdb_path):
     """Run FPocket via Docker. Returns path to output dir or None on failure."""
     pdb_path = _tool_safe_pdb_path(locus_dir, pdb_path)
@@ -131,6 +144,7 @@ def _run_fpocket(locus_dir, pdb_path):
         return None
 
     if os.path.isdir(out_dir):
+        _docker_chmod_work_path(locus_dir, f"/work/{os.path.basename(out_dir)}")
         os.rename(out_dir, final_dir)
     elif not os.path.isdir(final_dir):
         stdout = result.stdout.decode(errors="replace")[:500]
@@ -138,7 +152,7 @@ def _run_fpocket(locus_dir, pdb_path):
         logger.error("FPocket produced no output for %s. stdout=%s stderr=%s", pdb_basename, stdout, stderr)
         return None
 
-    subprocess.run(["chmod", "-R", "a+rwX", final_dir], capture_output=True)
+    _docker_chmod_work_path(locus_dir, f"/work/{os.path.basename(final_dir)}")
 
     return final_dir
 
