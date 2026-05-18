@@ -101,7 +101,7 @@
                 </div>
 
                 {% if structure.pockets %}
-                    <div class="mini-section">
+                    <div class="mini-section js-primary-structure-annotations">
                         <h3>{% trans "Binding pockets" %} · FPocket</h3>
                         <p class="table-hint">{% trans "Druggability: high ≥ 0.7 · medium 0.4–0.69 · low < 0.4" %}</p>
                         <div class="pocket-cards">
@@ -128,7 +128,7 @@
                 {% endif %}
 
                 {% if structure.p2_pockets %}
-                    <div class="mini-section">
+                    <div class="mini-section js-primary-structure-annotations">
                         <h3>{% trans "Binding pockets" %} · P2Rank</h3>
                         <p class="table-hint">{% trans "Probability: high ≥ 0.5 · medium 0.2–0.49 · low < 0.2" %}</p>
                         <div class="pocket-cards">
@@ -156,7 +156,7 @@
                 {% endif %}
 
                 {% if structure.residuesets %}
-                    <div class="mini-section">
+                    <div class="mini-section js-primary-structure-annotations">
                         <details class="data-details">
                             <summary>{% trans "Residue sets" %}</summary>
                             <div class="residueset-list">
@@ -188,6 +188,9 @@
                 <button type="button" class="structure-source-btn is-active" id="structure-src-primary" onclick="switchStructureSource('primary')">{{ primary_structure_label }}</button>
                 <button type="button" class="structure-source-btn" id="structure-src-alt" onclick="switchStructureSource('alt')">{{ alt_structure_label }}</button>
             </div>
+            <p class="table-hint structure-alt-pocket-note" id="structure-alt-pocket-note" hidden>
+                {% blocktrans with source=primary_structure_label %}Pocket annotations in the Layers panel belong to the {{ source }} structure. Switch back to that structure to view or edit them.{% endblocktrans %}
+            </p>
             {% endif %}
             <div class="structure-fs-viewport-wrap">
                 <div id="viewport"></div>
@@ -503,9 +506,24 @@
                 Object.keys(visible).forEach(function (key) { delete visible[key]; });
             }
 
+            function syncStructureAnnotationPanels(which) {
+                const showPrimaryAnnotations = which === "primary";
+                document.querySelectorAll(".js-primary-structure-annotations").forEach(function (panel) {
+                    panel.hidden = !showPrimaryAnnotations;
+                });
+                const altNote = document.getElementById("structure-alt-pocket-note");
+                if (altNote) {
+                    altNote.hidden = showPrimaryAnnotations;
+                }
+                document.querySelectorAll(".js-repr-toggle").forEach(function (control) {
+                    control.setAttribute("aria-pressed", "false");
+                });
+            }
+
             function _loadStructureById(urlKey) {
                 activeStructureKey = urlKey;
                 clearRepresentationState();
+                syncStructureAnnotationPanels(urlKey);
                 stage.removeAllComponents();
                 stage.loadFile(structureUrls[urlKey], { ext: "pdb", defaultRepresentation: false })
                     .then(initStructureComponent);
