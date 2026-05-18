@@ -434,17 +434,24 @@ class ProteinView(View):
                "pipeline_status": pipeline_status,
                "view_export_url": self._build_view_export_url(request)}
         if structures:
-            structure = structures[0].pdb
-            dto["structure"] = pdb_structure(structure, graphic_features)
+            primary_display = structures[0].pdb  # EX first if available
+            # Pockets are only computed for model structures (AF/CF). Use the
+            # model PDB for pocket data regardless of what the viewer shows first.
+            model_pdb = next(
+                (s.pdb for s in structures
+                 if (s.pdb.experiment or "").upper() in ("AF", "CF")),
+                primary_display,
+            )
+            dto["structure"] = pdb_structure(model_pdb, graphic_features)
+            # Tell the template which structure to load first in the NGL viewer.
+            # Defaults to structure.id (model_pdb) when there is no EX alternative.
+            if primary_display.id != model_pdb.id:
+                dto["viewer_structure_id"] = primary_display.id
             if len(structures) > 1:
                 alt = structures[1].pdb
                 dto["alt_structure_id"] = alt.id
                 dto["alt_structure_label"] = _structure_toggle_label(alt.experiment)
-                dto["primary_structure_label"] = _structure_toggle_label(structure.experiment)
-            """structureDTO ={
-                "id" : structure.id,
-                "code" : structure.code
-            }"""
+                dto["primary_structure_label"] = _structure_toggle_label(primary_display.experiment)
 
 
 

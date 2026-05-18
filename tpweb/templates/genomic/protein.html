@@ -1203,7 +1203,7 @@
                 }, { passive: false });
 
                 const structureUrls = {
-                    primary: "{% url 'tpwebapp:structure_raw' structure.id %}",
+                    primary: "{% url 'tpwebapp:structure_raw' viewer_structure_id|default:structure.id %}",
                     {% if alt_structure_id %}alt: "{% url 'tpwebapp:structure_raw' alt_structure_id %}",{% endif %}
                 };
 
