@@ -160,14 +160,34 @@ def _run_fpocket(locus_dir, pdb_path):
 def _fpocket_to_json(fpocket_dir, python_bin=PYTHON_BIN):
     """Convert FPocket output dir to fpocket.json.gz. Returns path or None."""
     subprocess.run(["chmod", "-R", "a+rwX", fpocket_dir], capture_output=True)
-    json_gz = os.path.join(fpocket_dir, "fpocket.json.gz")
+    json_basename = f"{os.path.basename(fpocket_dir)}.json.gz"
+    json_gz = os.path.join(os.path.dirname(fpocket_dir), json_basename)
     if os.path.exists(json_gz):
         return json_gz
 
-    cmd = f"{shlex.quote(python_bin)} -m SNDG.Structure.FPocket 2json {shlex.quote(fpocket_dir)} | gzip > {shlex.quote(json_gz)}"
-    result = subprocess.run(cmd, shell=True, capture_output=True)
-    if result.returncode != 0 or not os.path.exists(json_gz):
+    cmd = (
+        "set -o pipefail; "
+        f"{shlex.quote(python_bin)} -m SNDG.Structure.FPocket 2json {shlex.quote(fpocket_dir)} "
+        f"| gzip > {shlex.quote(json_gz)}"
+    )
+    result = subprocess.run(["bash", "-lc", cmd], capture_output=True)
+    if result.returncode != 0 or not os.path.exists(json_gz) or os.path.getsize(json_gz) == 0:
         logger.error("fpocket2json failed for %s: %s", fpocket_dir, result.stderr.decode(errors="replace")[:500])
+        try:
+            os.remove(json_gz)
+        except OSError:
+            pass
+        return None
+
+    try:
+        with gzip.open(json_gz, "rt") as fh:
+            json.load(fh)
+    except Exception as exc:
+        logger.error("fpocket2json produced invalid JSON for %s: %s", fpocket_dir, exc)
+        try:
+            os.remove(json_gz)
+        except OSError:
+            pass
         return None
     subprocess.run(["chmod", "a+rw", json_gz], capture_output=True)
     return json_gz
