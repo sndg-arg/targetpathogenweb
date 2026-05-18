@@ -46,6 +46,14 @@ class StructureView(View):
                 dto["alt_structure_id"] = alt.id
                 dto["alt_structure_label"] = _structure_toggle_label(alt.experiment)
                 dto["primary_structure_label"] = _structure_toggle_label(structure.experiment)
+                dto["alt_structure"] = pdb_structure(alt, [])
+                alt_link = BioentryStructure.objects.filter(
+                    pdb=alt,
+                    bioentry=source_bioentry,
+                ).first()
+                if alt_link:
+                    dto["alt_viewer_chain"] = alt_link.chain or ""
+                    dto["alt_viewer_chain_selector"] = _chain_selector(alt_link.chain)
 
         return render(request, self.template_name, dto)
 

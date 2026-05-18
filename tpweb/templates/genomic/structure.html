@@ -100,82 +100,9 @@
                             aria-label="{% trans "Close layers panel" %}">&times;</button>
                 </div>
 
-                {% if structure.pockets %}
-                    <div class="mini-section js-primary-structure-annotations">
-                        <h3>{% trans "Binding pockets" %} · FPocket</h3>
-                        <p class="table-hint">{% trans "Druggability: high ≥ 0.7 · medium 0.4–0.69 · low < 0.4" %}</p>
-                        <div class="pocket-cards">
-                            {% for p in structure.pockets %}
-                                <div class="pocket-card">
-                                    <div class="pocket-card-head">
-                                        <strong class="pocket-card-name">{{ p.name }}</strong>
-                                        <span class="tp-score-tag js-score-tag" data-score="{{ p.druggability }}">{{ p.druggability }}</span>
-                                    </div>
-                                    <div class="pocket-card-reprs">
-                                        <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="{{p.name}}_atm" aria-pressed="false">{% trans "Ball & stick" %}</button>
-                                        <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="{{p.name}}_sph" aria-pressed="false">{% trans "Space-fill" %}</button>
-                                        <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="{{p.name}}_pol {{p.name}}_apol" aria-pressed="false">{% trans "Surface" %}</button>
-                                        <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="{{p.name}}_lbl" aria-pressed="false">{% trans "Labels" %}</button>
-                                    </div>
-                                    <div class="pocket-card-actions">
-                                        <button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm" onclick="ngl_zoom_to('{{p.name}}_zoom')">{% trans "Zoom" %}</button>
-                                        <button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm js-show-residues" data-residues="{{ p.residues|join:' ' }}">{% trans "Positions" %}</button>
-                                    </div>
-                                </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                {% endif %}
-
-                {% if structure.p2_pockets %}
-                    <div class="mini-section js-primary-structure-annotations">
-                        <h3>{% trans "Binding pockets" %} · P2Rank</h3>
-                        <p class="table-hint">{% trans "Probability: high ≥ 0.5 · medium 0.2–0.49 · low < 0.2" %}</p>
-                        <div class="pocket-cards">
-                            {% for p2 in structure.p2_pockets %}
-                                <div class="pocket-card">
-                                    <div class="pocket-card-head">
-                                        <strong class="pocket-card-name">{{ p2.name }}</strong>
-                                        <span class="tp-score-tag js-score-tag" data-score="{{ p2.p2score }}">{{ p2.p2score }}</span>
-                                        <span class="tp-score-tag js-score-tag" data-score="{{ p2.probability }}" data-score-type="p2rank-prob">{{ p2.probability }}</span>
-                                    </div>
-                                    <div class="pocket-card-reprs">
-                                        <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="p2_{{p2.name}}_atm" aria-pressed="false">{% trans "Ball & stick" %}</button>
-                                        <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="p2_{{p2.name}}_sph" aria-pressed="false">{% trans "Space-fill" %}</button>
-                                        <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="p2_{{p2.name}}_pol p2_{{p2.name}}_apol" aria-pressed="false">{% trans "Surface" %}</button>
-                                        <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="p2_{{p2.name}}_lbl" aria-pressed="false">{% trans "Labels" %}</button>
-                                    </div>
-                                    <div class="pocket-card-actions">
-                                        <button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm" onclick="ngl_zoom_to('p2_{{p2.name}}_zoom')">{% trans "Zoom" %}</button>
-                                        <button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm js-show-residues" data-residues="{{ p2.residues|join:' ' }}">{% trans "Positions" %}</button>
-                                    </div>
-                                </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                {% endif %}
-
-                {% if structure.residuesets %}
-                    <div class="mini-section js-primary-structure-annotations">
-                        <details class="data-details">
-                            <summary>{% trans "Residue sets" %}</summary>
-                            <div class="residueset-list">
-                                {% for rs in structure.residuesets %}
-                                    <div class="residueset-row">
-                                        <div class="residueset-row-info">
-                                            <span class="residueset-type">{{ rs.rs_name }}</span>
-                                            <span class="residueset-name" title="{{ rs.description }}">{{ rs.description }}</span>
-                                        </div>
-                                        <div class="residueset-row-actions">
-                                            <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="{{rs.name}}" aria-pressed="false">{% trans "Show" %}</button>
-                                            <button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm" onclick="ngl_zoom_to('{{rs.name}}_zoom')">{% trans "Zoom" %}</button>
-                                            <button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm js-show-residues" data-residues="{{ rs.residues|join:' ' }}">{% trans "Positions" %}</button>
-                                        </div>
-                                    </div>
-                                {% endfor %}
-                            </div>
-                        </details>
-                    </div>
+                {% include "components/structure/pocket_cards.html" with structure_data=structure structure_key="primary" %}
+                {% if alt_structure %}
+                    {% include "components/structure/pocket_cards.html" with structure_data=alt_structure structure_key="alt" hidden=True %}
                 {% endif %}
             </aside>
 
@@ -188,9 +115,6 @@
                 <button type="button" class="structure-source-btn is-active" id="structure-src-primary" onclick="switchStructureSource('primary')">{{ primary_structure_label }}</button>
                 <button type="button" class="structure-source-btn" id="structure-src-alt" onclick="switchStructureSource('alt')">{{ alt_structure_label }}</button>
             </div>
-            <p class="table-hint structure-alt-pocket-note" id="structure-alt-pocket-note" hidden>
-                {% blocktrans with source=primary_structure_label %}Pocket annotations in the Layers panel belong to the {{ source }} structure. Switch back to that structure to view or edit them.{% endblocktrans %}
-            </p>
             {% endif %}
             <div class="structure-fs-viewport-wrap">
                 <div id="viewport"></div>
@@ -499,6 +423,7 @@
                 {% if alt_structure_id %}alt: "{% url 'tpwebapp:structure_raw' alt_structure_id %}",{% endif %}
             };
             const proteinChainSelector = "{{ viewer_chain_selector|default:':A' }}";
+            const altChainSelector = "{{ alt_viewer_chain_selector|default:'' }}";
             let activeStructureKey = "primary";
 
             function clearRepresentationState() {
@@ -507,14 +432,9 @@
             }
 
             function syncStructureAnnotationPanels(which) {
-                const showPrimaryAnnotations = which === "primary";
-                document.querySelectorAll(".js-primary-structure-annotations").forEach(function (panel) {
-                    panel.hidden = !showPrimaryAnnotations;
+                document.querySelectorAll(".js-structure-annotations").forEach(function (panel) {
+                    panel.hidden = panel.getAttribute("data-structure-key") !== which;
                 });
-                const altNote = document.getElementById("structure-alt-pocket-note");
-                if (altNote) {
-                    altNote.hidden = showPrimaryAnnotations;
-                }
                 document.querySelectorAll(".js-repr-toggle").forEach(function (control) {
                     control.setAttribute("aria-pressed", "false");
                 });
@@ -538,7 +458,9 @@
             };
 
             function initStructureComponent(component) {
+                const activeChainSelector = (activeStructureKey === "alt" && altChainSelector) ? altChainSelector : proteinChainSelector;
                 const pocketSurfaceKeys = [];
+                const priorityPocketSurfaceKeys = [];
 
                 window.ngl_reset_zoom = function () {
                     component.autoView();
@@ -575,13 +497,13 @@
                 representations.__main_cartoon = component.addRepresentation("cartoon", {
                     aspectRatio: STRUCTURE_VIEWER_CONFIG.mainCartoonAspectRatio,
                     scale: STRUCTURE_VIEWER_CONFIG.mainCartoonScale,
-                    sele: "backbone and " + proteinChainSelector
+                    sele: "backbone and " + activeChainSelector
                 });
                 visible.__main_cartoon = true;
-                representations.__main_cartoon.sele = "backbone and " + proteinChainSelector;
+                representations.__main_cartoon.sele = "backbone and " + activeChainSelector;
 
                 representations.__main_density = component.addRepresentation("surface", {
-                    sele: "polymer and " + proteinChainSelector,
+                    sele: "polymer and " + activeChainSelector,
                     color: tpColor("--tp-color-structure-density"),
                     opacity: STRUCTURE_VIEWER_CONFIG.densityShellOpacity,
                     side: "double",
@@ -590,7 +512,7 @@
                 });
                 visible.__main_density = false;
                 representations.__main_density.setVisibility(false);
-                representations.__main_density.sele = "polymer and " + proteinChainSelector;
+                representations.__main_density.sele = "polymer and " + activeChainSelector;
 
                 window.ngl_set_mode = function (mode) {
                     const normalized = mode === "density" ? "density" : "cartoon";
@@ -616,140 +538,12 @@
                 };
 
                 let sele = null;
-
-                const shouldLoadPocketAnnotations = activeStructureKey === "primary";
-                if (shouldLoadPocketAnnotations) {
-
-                {% for p in structure.pockets %}
-                    sele = "(STP AND .APOL AND {{p.name}}) OR (NOT water AND @{{p.atoms|join:","}})";
-                    representations["{{p.name}}_apol"] = component.addRepresentation("surface", {
-                        sele: sele,
-                        multipleBond: false,
-                        color: tpColor("--tp-color-structure-pocket-apolar", "#20c3d6"),
-                        opacity: STRUCTURE_VIEWER_CONFIG.surfaceOpacity,
-                        side: "front",
-                        opaqueBack: false
-                    });
-                    representations["{{p.name}}_apol"].sele = sele;
-                    pocketSurfaceKeys.push("{{p.name}}_apol");
-
-                    sele = "(STP AND .POL AND {{p.name}}) OR (NOT water AND @{{p.atoms|join:","}})";
-                    representations["{{p.name}}_pol"] = component.addRepresentation("surface", {
-                        sele: sele,
-                        multipleBond: false,
-                        color: tpColor("--tp-color-structure-pocket-polar", "#0b4f6c"),
-                        opacity: STRUCTURE_VIEWER_CONFIG.surfaceOpacity,
-                        side: "front",
-                        opaqueBack: false
-                    });
-                    representations["{{p.name}}_pol"].sele = sele;
-                    pocketSurfaceKeys.push("{{p.name}}_pol");
-
-                    visible["{{p.name}}_pol"] = false;
-                    visible["{{p.name}}_apol"] = false;
-                    representations["{{p.name}}_pol"].setVisibility(false);
-                    representations["{{p.name}}_apol"].setVisibility(false);
-
-                    representations["{{p.name}}_atm"] = component.addRepresentation("ball+stick", {
-                        sele: "NOT STP AND NOT water AND @{{p.atoms|join:","}}",
-                        color: tpColor("--tp-color-structure-pocket-polar", "#0b4f6c")
-                    });
-                    visible["{{p.name}}_atm"] = false;
-                    representations["{{p.name}}_atm"].setVisibility(false);
-                    representations["{{p.name}}_atm"].sele = "NOT STP AND NOT water AND @{{p.atoms|join:","}}";
-
-                    representations["{{p.name}}_sph"] = component.addRepresentation("spacefill", {
-                        sele: "NOT STP AND NOT water AND @{{p.atoms|join:","}}",
-                        color: tpColor("--tp-color-structure-pocket-apolar", "#20c3d6"),
-                        radiusScale: 0.7
-                    });
-                    visible["{{p.name}}_sph"] = false;
-                    representations["{{p.name}}_sph"].setVisibility(false);
-                    representations["{{p.name}}_sph"].sele = "NOT STP AND NOT water AND @{{p.atoms|join:","}}";
-
-                    representations["{{p.name}}_lbl"] = component.addRepresentation("label", {
-                        labelType: "res",
-                        sele: proteinChainSelector + " AND .CA AND ({{p.residues|join:" OR "}})"
-                    });
-                    visible["{{p.name}}_lbl"] = false;
-                    representations["{{p.name}}_lbl"].setVisibility(false);
-                    representations["{{p.name}}_lbl"].sele = proteinChainSelector + " AND .CA AND ({{p.residues|join:" OR "}})";
-                    representations["{{p.name}}_zoom"] = {
-                        sele: "NOT STP AND NOT water AND @{{p.atoms|join:","}}"
-                    };
-                {% endfor %}
-
-                {% for p2 in structure.p2_pockets %}
-                    sele = "(STP AND .APOL AND {{p2.name}}) OR (NOT water AND @{{p2.atoms|join:","}})";
-                    representations["p2_{{p2.name}}_apol"] = component.addRepresentation("surface", {
-                        sele: sele,
-                        multipleBond: false,
-                        color: tpColor("--tp-color-structure-p2-apolar", "#f59e0b"),
-                        opacity: STRUCTURE_VIEWER_CONFIG.surfaceOpacity,
-                        side: "front",
-                        opaqueBack: false
-                    });
-                    representations["p2_{{p2.name}}_apol"].sele = sele;
-                    pocketSurfaceKeys.push("p2_{{p2.name}}_apol");
-
-                    sele = "(STP AND .POL AND {{p2.name}}) OR (NOT water AND @{{p2.atoms|join:","}})";
-                    representations["p2_{{p2.name}}_pol"] = component.addRepresentation("surface", {
-                        sele: sele,
-                        multipleBond: false,
-                        color: tpColor("--tp-color-structure-p2-polar", "#8b5cf6"),
-                        opacity: STRUCTURE_VIEWER_CONFIG.surfaceOpacity,
-                        side: "front",
-                        opaqueBack: false
-                    });
-                    representations["p2_{{p2.name}}_pol"].sele = sele;
-                    pocketSurfaceKeys.push("p2_{{p2.name}}_pol");
-
-                    visible["p2_{{p2.name}}_pol"] = false;
-                    visible["p2_{{p2.name}}_apol"] = false;
-                    representations["p2_{{p2.name}}_pol"].setVisibility(false);
-                    representations["p2_{{p2.name}}_apol"].setVisibility(false);
-
-                    representations["p2_{{p2.name}}_atm"] = component.addRepresentation("ball+stick", {
-                        sele: "NOT STP AND NOT water AND @{{p2.atoms|join:","}}",
-                        color: tpColor("--tp-color-structure-p2-polar", "#8b5cf6")
-                    });
-                    visible["p2_{{p2.name}}_atm"] = false;
-                    representations["p2_{{p2.name}}_atm"].setVisibility(false);
-                    representations["p2_{{p2.name}}_atm"].sele = "NOT STP AND NOT water AND @{{p2.atoms|join:","}}";
-
-                    representations["p2_{{p2.name}}_sph"] = component.addRepresentation("spacefill", {
-                        sele: "NOT STP AND NOT water AND @{{p2.atoms|join:","}}",
-                        color: tpColor("--tp-color-structure-p2-apolar", "#f59e0b"),
-                        radiusScale: 0.7
-                    });
-                    visible["p2_{{p2.name}}_sph"] = false;
-                    representations["p2_{{p2.name}}_sph"].setVisibility(false);
-                    representations["p2_{{p2.name}}_sph"].sele = "NOT STP AND NOT water AND @{{p2.atoms|join:","}}";
-
-                    representations["p2_{{p2.name}}_lbl"] = component.addRepresentation("label", {
-                        labelType: "res",
-                        sele: proteinChainSelector + " AND .CA AND ({{p2.residues|join:" OR "}})"
-                    });
-                    visible["p2_{{p2.name}}_lbl"] = false;
-                    representations["p2_{{p2.name}}_lbl"].setVisibility(false);
-                    representations["p2_{{p2.name}}_lbl"].sele = proteinChainSelector + " AND .CA AND ({{p2.residues|join:" OR "}})";
-                    representations["p2_{{p2.name}}_zoom"] = {
-                        sele: "NOT STP AND NOT water AND @{{p2.atoms|join:","}}"
-                    };
-                {% endfor %}
-
-                {% for rs in structure.residuesets %}
-                    sele = proteinChainSelector + " AND ({{rs.residues|join:" OR "}})";
-                    representations["{{rs.name}}"] = component.addRepresentation("ball+stick", {
-                        sele: sele
-                    });
-                    visible["{{rs.name}}"] = false;
-                    representations["{{rs.name}}"].setVisibility(false);
-                    representations["{{rs.name}}"].sele = sele;
-                    representations["{{rs.name}}_zoom"] = {
-                        sele: sele
-                    };
-                {% endfor %}
+                if (activeStructureKey === "alt") {
+                    {% if alt_structure %}
+                        {% include "components/structure/ngl_pocket_representations.js" with structure_data=alt_structure %}
+                    {% endif %}
+                } else {
+                    {% include "components/structure/ngl_pocket_representations.js" with structure_data=structure %}
                 }
 
                 structureModeButtons.forEach(function (button) {

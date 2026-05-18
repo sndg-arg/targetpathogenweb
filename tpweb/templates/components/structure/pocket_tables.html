@@ -1,0 +1,109 @@
+{% load i18n %}
+
+{% if structure_data.pockets %}
+    <div class="mini-section js-structure-annotations" data-structure-key="{{ structure_key }}" {% if hidden %}hidden{% endif %}>
+        <h3>{% trans "Pockets" %} (FPOCKET)</h3>
+        <p class="table-hint">{% trans "Druggability is color-coded: high (0.7 or higher), medium (0.4 to 0.69), low (below 0.4)." %}</p>
+        <div class="table-shell tp-table-shell">
+            <table id="{{ table_prefix }}pocketsTable" class="table table-striped table-hover table-sm tp-table tp-table--plain tp-table--premium">
+                <thead>
+                <tr>
+                    <th>FPOCKET</th>
+                    <th>{% trans "Sticks" %}</th>
+                    <th>{% trans "Spheres" %}</th>
+                    <th>{% trans "Surfaces" %}</th>
+                    <th>{% trans "Druggability" %}</th>
+                    <th>{% trans "Labels" %}</th>
+                    <th>{% trans "Zoom" %}</th>
+                    <th>{% trans "Positions" %}</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for p in structure_data.pockets %}
+                    <tr>
+                        <td>{{ p.name }}</td>
+                        <td><input type="checkbox" class="structure-toggle" aria-label="Toggle sticks {{ p.name }}" onchange="toogle_view('{{p.name}}_atm')" /></td>
+                        <td><input type="checkbox" class="structure-toggle" aria-label="Toggle spheres {{ p.name }}" onchange="toogle_view('{{p.name}}_sph')" /></td>
+                        <td><input type="checkbox" class="structure-toggle" aria-label="Toggle surfaces {{ p.name }}" onchange="toogle_view('{{p.name}}_pol');toogle_view('{{p.name}}_apol')" /></td>
+                        <td><span class="tp-score-tag js-score-tag" data-score="{{ p.druggability }}">{{ p.druggability }}</span></td>
+                        <td><input type="checkbox" class="structure-toggle" aria-label="Toggle labels {{ p.name }}" onchange="toogle_view('{{p.name}}_lbl')" /></td>
+                        <td><button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm structure-table-btn" onclick="ngl_zoom_to('{{p.name}}_zoom')">{% trans "Zoom" %}</button></td>
+                        <td><button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm structure-table-btn js-show-residues" data-residues="{{ p.residues | join:' ' }}">{% trans "Show" %}</button></td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endif %}
+
+{% if structure_data.p2_pockets %}
+    <div class="mini-section js-structure-annotations" data-structure-key="{{ structure_key }}" {% if hidden %}hidden{% endif %}>
+        <h3>{% trans "Pockets" %} (P2RANK)</h3>
+        <p class="table-hint">{% trans "Probability is color-coded per P2Rank calibration: high (&ge; 0.5), medium (0.2 &ndash; 0.49), low (&lt; 0.2)." %}</p>
+        <div class="table-shell tp-table-shell">
+            <table id="{{ table_prefix }}p2pocketsTable" class="table table-striped table-hover table-sm tp-table tp-table--plain tp-table--premium">
+                <thead>
+                <tr>
+                    <th>P2RANK</th>
+                    <th>{% trans "Sticks" %}</th>
+                    <th>{% trans "Spheres" %}</th>
+                    <th>{% trans "Surfaces" %}</th>
+                    <th>{% trans "Score" %}</th>
+                    <th>{% trans "Probability" %}</th>
+                    <th>{% trans "Labels" %}</th>
+                    <th>{% trans "Zoom" %}</th>
+                    <th>{% trans "Positions" %}</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for p2 in structure_data.p2_pockets %}
+                    <tr>
+                        <td>{{ p2.name }}</td>
+                        <td><input type="checkbox" class="structure-toggle" aria-label="Toggle sticks {{ p2.name }}" onchange="toogle_view('p2_{{p2.name}}_atm')" /></td>
+                        <td><input type="checkbox" class="structure-toggle" aria-label="Toggle spheres {{ p2.name }}" onchange="toogle_view('p2_{{p2.name}}_sph')" /></td>
+                        <td><input type="checkbox" class="structure-toggle" aria-label="Toggle surfaces {{ p2.name }}" onchange="toogle_view('p2_{{p2.name}}_pol');toogle_view('p2_{{p2.name}}_apol')" /></td>
+                        <td><span class="tp-score-tag js-score-tag" data-score="{{ p2.p2score }}">{{ p2.p2score }}</span></td>
+                        <td><span class="tp-score-tag js-score-tag" data-score="{{ p2.probability }}" data-score-type="p2rank-prob">{{ p2.probability }}</span></td>
+                        <td><input type="checkbox" class="structure-toggle" aria-label="Toggle labels {{ p2.name }}" onchange="toogle_view('p2_{{p2.name}}_lbl')" /></td>
+                        <td><button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm structure-table-btn" onclick="ngl_zoom_to('p2_{{p2.name}}_zoom')">{% trans "Zoom" %}</button></td>
+                        <td><button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm structure-table-btn js-show-residues" data-residues="{{ p2.residues | join:' ' }}">{% trans "Show" %}</button></td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endif %}
+
+{% if structure_data.residuesets %}
+    <div class="mini-section js-structure-annotations" data-structure-key="{{ structure_key }}" {% if hidden %}hidden{% endif %}>
+        <details class="data-details">
+            <summary>{% trans "Show residue sets" %}</summary>
+            <div class="table-shell tp-table-shell">
+                <table id="{{ table_prefix }}residuesetsTable" class="table table-striped table-hover table-sm tp-table tp-table--plain tp-table--premium">
+                    <thead>
+                    <tr>
+                        <th>{% trans "Type" %}</th>
+                        <th>{% trans "Name" %}</th>
+                        <th>{% trans "View" %}</th>
+                        <th>{% trans "Zoom" %}</th>
+                        <th>{% trans "Positions" %}</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for rs in structure_data.residuesets %}
+                        <tr>
+                            <td>{{ rs.rs_name }}</td>
+                            <td><a title="{{ rs.description }}">{{ rs.description }}</a></td>
+                            <td><input type="checkbox" class="structure-toggle" aria-label="Toggle residue set {{ rs.name }}" onchange="toogle_view('{{rs.name}}')" /></td>
+                            <td><button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm structure-table-btn" onclick="ngl_zoom_to('{{rs.name}}_zoom')">{% trans "Zoom" %}</button></td>
+                            <td><button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm structure-table-btn js-show-residues" data-residues="{{ rs.residues | join:' ' }}">{% trans "Show" %}</button></td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </details>
+    </div>
+{% endif %}

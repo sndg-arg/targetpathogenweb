@@ -463,6 +463,10 @@ class ProteinView(View):
                 alt_link = structures[1]
                 dto["alt_structure_id"] = alt_link.pdb.id
                 dto["alt_structure_label"] = _structure_toggle_label(alt_link.pdb.experiment)
+                dto["alt_structure"] = pdb_structure(alt_link.pdb, [])
+                dto["alt_viewer_chain"] = alt_link.chain or ""
+                dto["alt_viewer_chain_selector"] = _chain_selector(alt_link.chain)
+                dto["alt_structure_has_pockets"] = _has_pocket_data(alt_link.pdb)
 
 
 

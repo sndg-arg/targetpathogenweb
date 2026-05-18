@@ -328,9 +328,6 @@
                         <button type="button" class="structure-source-btn is-active" id="structure-src-primary" onclick="switchStructureSource('primary')">{{ primary_structure_label }}</button>
                         <button type="button" class="structure-source-btn" id="structure-src-alt" onclick="switchStructureSource('alt')">{{ alt_structure_label }}</button>
                     </div>
-                    <p class="table-hint structure-alt-pocket-note" id="structure-alt-pocket-note" hidden>
-                        {% blocktrans with source=pocket_structure_label %}Pocket annotations below belong to the {{ source }} structure. Switch back to that structure to view or edit them.{% endblocktrans %}
-                    </p>
                     {% endif %}
                     {% if structure and not pocket_structure_has_pockets %}
                         <p class="table-hint">{% blocktrans with source=pocket_structure_label %}No pockets are loaded yet for the displayed {{ source }} structure. Run experimental pocket backfill to show FPocket/P2Rank overlays on this structure.{% endblocktrans %}</p>
@@ -346,112 +343,9 @@
                         <span class="tp-score-tag low">{% trans "Low" %}</span>
                     </div>
 
-                    {% if structure.pockets %}
-                        <div class="mini-section js-primary-structure-annotations">
-                            <h3>{% trans "Pockets" %} (FPOCKET)</h3>
-                            <p class="table-hint">{% trans "Druggability is color-coded: high (0.7 or higher), medium (0.4 to 0.69), low (below 0.4)." %}</p>
-                                <div class="table-shell tp-table-shell">
-                                    <table id="pocketsTable" class="table table-striped table-hover table-sm tp-table tp-table--plain tp-table--premium">
-                                    <thead>
-                                    <tr>
-                                        <th>FPOCKET</th>
-                                        <th>{% trans "Sticks" %}</th>
-                                        <th>{% trans "Spheres" %}</th>
-                                        <th>{% trans "Surfaces" %}</th>
-                                        <th>{% trans "Druggability" %}</th>
-                                        <th>{% trans "Labels" %}</th>
-                                        <th>{% trans "Zoom" %}</th>
-                                        <th>{% trans "Positions" %}</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    {% for p in structure.pockets %}
-                                        <tr>
-                                            <td>{{ p.name }}</td>
-                                            <td><input type="checkbox" class="structure-toggle" aria-label="Toggle sticks {{ p.name }}" onchange="toogle_view('{{p.name}}_atm')" /></td>
-                                            <td><input type="checkbox" class="structure-toggle" aria-label="Toggle spheres {{ p.name }}" onchange="toogle_view('{{p.name}}_sph')" /></td>
-                                            <td><input type="checkbox" class="structure-toggle" aria-label="Toggle surfaces {{ p.name }}" onchange="toogle_view('{{p.name}}_pol');toogle_view('{{p.name}}_apol')" /></td>
-                                            <td><span class="tp-score-tag js-score-tag" data-score="{{ p.druggability }}">{{ p.druggability }}</span></td>
-                                            <td><input type="checkbox" class="structure-toggle" aria-label="Toggle labels {{ p.name }}" onchange="toogle_view('{{p.name}}_lbl')" /></td>
-                                            <td><button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm structure-table-btn" onclick="ngl_zoom_to('{{p.name}}_zoom')">{% trans "Zoom" %}</button></td>
-                                            <td><button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm structure-table-btn js-show-residues" data-residues="{{ p.residues | join:' ' }}">{% trans "Show" %}</button></td>
-                                        </tr>
-                                    {% endfor %}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    {% endif %}
-
-                    {% if structure.p2_pockets %}
-                        <div class="mini-section js-primary-structure-annotations">
-                            <h3>{% trans "Pockets" %} (P2RANK)</h3>
-                            <p class="table-hint">{% trans "Probability is color-coded per P2Rank calibration: high (&ge; 0.5), medium (0.2 &ndash; 0.49), low (&lt; 0.2)." %}</p>
-                            <div class="table-shell tp-table-shell">
-                                <table id="p2pocketsTable" class="table table-striped table-hover table-sm tp-table tp-table--plain tp-table--premium">
-                                    <thead>
-                                    <tr>
-                                        <th>P2RANK</th>
-                                        <th>{% trans "Sticks" %}</th>
-                                        <th>{% trans "Spheres" %}</th>
-                                        <th>{% trans "Surfaces" %}</th>
-                                        <th>{% trans "Score" %}</th>
-                                        <th>{% trans "Probability" %}</th>
-                                        <th>{% trans "Labels" %}</th>
-                                        <th>{% trans "Zoom" %}</th>
-                                        <th>{% trans "Positions" %}</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    {% for p2 in structure.p2_pockets %}
-                                        <tr>
-                                            <td>{{ p2.name }}</td>
-                                            <td><input type="checkbox" class="structure-toggle" aria-label="Toggle sticks {{ p2.name }}" onchange="toogle_view('p2_{{p2.name}}_atm')" /></td>
-                                            <td><input type="checkbox" class="structure-toggle" aria-label="Toggle spheres {{ p2.name }}" onchange="toogle_view('p2_{{p2.name}}_sph')" /></td>
-                                            <td><input type="checkbox" class="structure-toggle" aria-label="Toggle surfaces {{ p2.name }}" onchange="toogle_view('p2_{{p2.name}}_pol');toogle_view('p2_{{p2.name}}_apol')" /></td>
-                                            <td><span class="tp-score-tag js-score-tag" data-score="{{ p2.p2score }}">{{ p2.p2score }}</span></td>
-                                            <td><span class="tp-score-tag js-score-tag" data-score="{{ p2.probability }}" data-score-type="p2rank-prob">{{ p2.probability }}</span></td>
-                                            <td><input type="checkbox" class="structure-toggle" aria-label="Toggle labels {{ p2.name }}" onchange="toogle_view('p2_{{p2.name}}_lbl')" /></td>
-                                            <td><button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm structure-table-btn" onclick="ngl_zoom_to('p2_{{p2.name}}_zoom')">{% trans "Zoom" %}</button></td>
-                                            <td><button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm structure-table-btn js-show-residues" data-residues="{{ p2.residues | join:' ' }}">{% trans "Show" %}</button></td>
-                                        </tr>
-                                    {% endfor %}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    {% endif %}
-
-                    {% if structure.residuesets %}
-                        <div class="mini-section js-primary-structure-annotations">
-                            <details class="data-details">
-                                <summary>{% trans "Show residue sets" %}</summary>
-                                <div class="table-shell tp-table-shell">
-                                    <table id="residuesetsTable" class="table table-striped table-hover table-sm tp-table tp-table--plain tp-table--premium">
-                                        <thead>
-                                        <tr>
-                                            <th>{% trans "Type" %}</th>
-                                            <th>{% trans "Name" %}</th>
-                                            <th>{% trans "View" %}</th>
-                                            <th>{% trans "Zoom" %}</th>
-                                            <th>{% trans "Positions" %}</th>
-                                        </tr>
-                                        </thead>
-                                        <tbody>
-                                        {% for rs in structure.residuesets %}
-                                            <tr>
-                                                <td>{{ rs.rs_name }}</td>
-                                                <td><a title="{{ rs.description }}">{{ rs.description }}</a></td>
-                                                <td><input type="checkbox" class="structure-toggle" aria-label="Toggle residue set {{ rs.name }}" onchange="toogle_view('{{rs.name}}')" /></td>
-                                                <td><button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm structure-table-btn" onclick="ngl_zoom_to('{{rs.name}}_zoom')">{% trans "Zoom" %}</button></td>
-                                                <td><button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm structure-table-btn js-show-residues" data-residues="{{ rs.residues | join:' ' }}">{% trans "Show" %}</button></td>
-                                            </tr>
-                                        {% endfor %}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </details>
-                        </div>
+                    {% include "components/structure/pocket_tables.html" with structure_data=structure structure_key="primary" table_prefix="" %}
+                    {% if alt_structure %}
+                        {% include "components/structure/pocket_tables.html" with structure_data=alt_structure structure_key="alt" table_prefix="alt-" hidden=True %}
                     {% endif %}
                 </section>
             {% endif %}
@@ -1211,6 +1105,7 @@
                     {% if alt_structure_id %}alt: "{% url 'tpwebapp:structure_raw' alt_structure_id %}",{% endif %}
                 };
                 const proteinChainSelector = "{{ viewer_chain_selector|default:':A' }}";
+                const altChainSelector = "{{ alt_viewer_chain_selector|default:'' }}";
                 let activeStructureKey = "primary";
 
                 function clearRepresentationState() {
@@ -1219,14 +1114,9 @@
                 }
 
                 function syncStructureAnnotationPanels(which) {
-                    const showPrimaryAnnotations = which === "primary";
-                    document.querySelectorAll(".js-primary-structure-annotations").forEach(function (panel) {
-                        panel.hidden = !showPrimaryAnnotations;
+                    document.querySelectorAll(".js-structure-annotations").forEach(function (panel) {
+                        panel.hidden = panel.getAttribute("data-structure-key") !== which;
                     });
-                    const altNote = document.getElementById("structure-alt-pocket-note");
-                    if (altNote) {
-                        altNote.hidden = showPrimaryAnnotations;
-                    }
                     document.querySelectorAll("#section-structure input[type='checkbox'], #section-structure .js-repr-toggle").forEach(function (control) {
                         if (control.type === "checkbox") {
                             control.checked = false;
@@ -1255,6 +1145,7 @@
                 };
 
                 function initStructureComponent(component) {
+                    const activeChainSelector = (activeStructureKey === "alt" && altChainSelector) ? altChainSelector : proteinChainSelector;
                     function setModeButtonState(mode) {
                         structureModeButtons.forEach(function (button) {
                             const isActive = button.getAttribute("data-mode") === mode;
@@ -1315,14 +1206,14 @@
                     representations.__main_cartoon = component.addRepresentation("cartoon", {
                         aspectRatio: STRUCTURE_VIEWER_CONFIG.mainCartoonAspectRatio,
                         scale: STRUCTURE_VIEWER_CONFIG.mainCartoonScale,
-                        sele: "backbone and " + proteinChainSelector,
+                        sele: "backbone and " + activeChainSelector,
                         color: tpColor("--tp-color-structure-cartoon") || "#2288a3"
                     });
                     visible.__main_cartoon = true;
-                    representations.__main_cartoon.sele = "backbone and " + proteinChainSelector;
+                    representations.__main_cartoon.sele = "backbone and " + activeChainSelector;
 
                     representations.__main_density = component.addRepresentation("surface", {
-                        sele: "polymer and " + proteinChainSelector,
+                        sele: "polymer and " + activeChainSelector,
                         color: tpColor("--tp-color-structure-density"),
                         opacity: STRUCTURE_VIEWER_CONFIG.densityShellOpacity,
                         side: "double",
@@ -1331,7 +1222,7 @@
                     });
                     visible.__main_density = false;
                     representations.__main_density.setVisibility(false);
-                    representations.__main_density.sele = "polymer and " + proteinChainSelector;
+                    representations.__main_density.sele = "polymer and " + activeChainSelector;
 
                     window.ngl_set_mode = function (mode) {
                         const normalized = mode === "density" ? "density" : "cartoon";
@@ -1357,169 +1248,12 @@
                     };
 
                     let sele = null;
-                    const shouldLoadPocketAnnotations = activeStructureKey === "primary";
-                    if (shouldLoadPocketAnnotations) {
-
-                    {% for p in structure.pockets %}
-                        sele = "(STP AND .APOL AND {{p.name}}) OR (NOT water AND @{{p.atoms|join:","}})";
-                        representations["{{p.name}}_apol"] = component.addRepresentation("surface", {
-                            sele: sele,
-                            multipleBond: false,
-                            color: tpColor("--tp-color-structure-pocket-apolar"),
-                            opacity: STRUCTURE_VIEWER_CONFIG.surfaceOpacity,
-                            side: "double",
-                            opaqueBack: true
-                        });
-                        representations["{{p.name}}_apol"].sele = sele;
-                        pocketSurfaceKeys.push("{{p.name}}_apol");
-                        {% if forloop.counter <= 4 %}
-                            priorityPocketSurfaceKeys.push("{{p.name}}_apol");
+                    if (activeStructureKey === "alt") {
+                        {% if alt_structure %}
+                            {% include "components/structure/ngl_pocket_representations.js" with structure_data=alt_structure %}
                         {% endif %}
-
-                        sele = "(STP AND .POL AND {{p.name}}) OR (NOT water AND @{{p.atoms|join:","}})";
-                        representations["{{p.name}}_pol"] = component.addRepresentation("surface", {
-                            sele: sele,
-                            multipleBond: false,
-                            color: tpColor("--tp-color-structure-pocket-polar"),
-                            opacity: STRUCTURE_VIEWER_CONFIG.surfaceOpacity,
-                            side: "double",
-                            opaqueBack: true
-                        });
-                        representations["{{p.name}}_pol"].sele = sele;
-                        pocketSurfaceKeys.push("{{p.name}}_pol");
-                        {% if forloop.counter <= 4 %}
-                            priorityPocketSurfaceKeys.push("{{p.name}}_pol");
-                        {% endif %}
-
-                        visible["{{p.name}}_pol"] = false;
-                        visible["{{p.name}}_apol"] = false;
-                        representations["{{p.name}}_pol"].setVisibility(false);
-                        representations["{{p.name}}_apol"].setVisibility(false);
-
-                        representations["{{p.name}}_atm"] = component.addRepresentation("ball+stick", {
-                            sele: "NOT STP AND NOT water AND @{{p.atoms|join:","}}",
-                            color: tpColor("--tp-color-structure-pocket-polar")
-                        });
-                        visible["{{p.name}}_atm"] = false;
-                        representations["{{p.name}}_atm"].setVisibility(false);
-                        representations["{{p.name}}_atm"].sele = "NOT STP AND NOT water AND @{{p.atoms|join:","}}";
-
-                        representations["{{p.name}}_sph"] = component.addRepresentation("spacefill", {
-                            sele: "NOT STP AND NOT water AND @{{p.atoms|join:","}}",
-                            color: tpColor("--tp-color-structure-pocket-apolar"),
-                            radiusScale: 0.7
-                        });
-                        visible["{{p.name}}_sph"] = false;
-                        representations["{{p.name}}_sph"].setVisibility(false);
-                        representations["{{p.name}}_sph"].sele = "NOT STP AND NOT water AND @{{p.atoms|join:","}}";
-
-                        representations["{{p.name}}_lbl"] = component.addRepresentation("label", {
-                            labelType: "res",
-                            sele: proteinChainSelector + " AND .CA AND ({{p.residues|join:" OR "}})",
-                            color: tpColor("--tp-color-structure-label") || "#0e2330",
-                            backgroundColor: tpColor("--tp-color-structure-label-bg") || "rgba(255,255,255,0.78)",
-                            showBackground: true,
-                            fontWeight: "bold",
-                            xOffset: 0,
-                            yOffset: 0,
-                            zOffset: 1.5,
-                            fixedSize: true,
-                            attachment: "middle-center"
-                        });
-                        visible["{{p.name}}_lbl"] = false;
-                        representations["{{p.name}}_lbl"].setVisibility(false);
-                        representations["{{p.name}}_lbl"].sele = proteinChainSelector + " AND .CA AND ({{p.residues|join:" OR "}})";
-                        representations["{{p.name}}_zoom"] = {
-                            sele: "NOT STP AND NOT water AND @{{p.atoms|join:","}}"
-                        };
-                    {% endfor %}
-
-                    {% for p2 in structure.p2_pockets %}
-                        sele = "(STP AND .APOL AND {{p2.name}}) OR (NOT water AND @{{p2.atoms|join:","}})";
-                        representations["p2_{{p2.name}}_apol"] = component.addRepresentation("surface", {
-                            sele: sele,
-                            multipleBond: false,
-                            color: tpColor("--tp-color-structure-p2-apolar"),
-                            opacity: STRUCTURE_VIEWER_CONFIG.surfaceOpacity,
-                            side: "double",
-                            opaqueBack: true
-                        });
-                        representations["p2_{{p2.name}}_apol"].sele = sele;
-                        pocketSurfaceKeys.push("p2_{{p2.name}}_apol");
-                        {% if forloop.counter <= 3 %}
-                            priorityPocketSurfaceKeys.push("p2_{{p2.name}}_apol");
-                        {% endif %}
-
-                        sele = "(STP AND .POL AND {{p2.name}}) OR (NOT water AND @{{p2.atoms|join:","}})";
-                        representations["p2_{{p2.name}}_pol"] = component.addRepresentation("surface", {
-                            sele: sele,
-                            multipleBond: false,
-                            color: tpColor("--tp-color-structure-p2-polar"),
-                            opacity: STRUCTURE_VIEWER_CONFIG.surfaceOpacity,
-                            side: "double",
-                            opaqueBack: true
-                        });
-                        representations["p2_{{p2.name}}_pol"].sele = sele;
-                        pocketSurfaceKeys.push("p2_{{p2.name}}_pol");
-                        {% if forloop.counter <= 3 %}
-                            priorityPocketSurfaceKeys.push("p2_{{p2.name}}_pol");
-                        {% endif %}
-
-                        visible["p2_{{p2.name}}_pol"] = false;
-                        visible["p2_{{p2.name}}_apol"] = false;
-                        representations["p2_{{p2.name}}_pol"].setVisibility(false);
-                        representations["p2_{{p2.name}}_apol"].setVisibility(false);
-
-                        representations["p2_{{p2.name}}_atm"] = component.addRepresentation("ball+stick", {
-                            sele: "NOT STP AND NOT water AND @{{p2.atoms|join:","}}",
-                            color: tpColor("--tp-color-structure-p2-polar")
-                        });
-                        visible["p2_{{p2.name}}_atm"] = false;
-                        representations["p2_{{p2.name}}_atm"].setVisibility(false);
-                        representations["p2_{{p2.name}}_atm"].sele = "NOT STP AND NOT water AND @{{p2.atoms|join:","}}";
-
-                        representations["p2_{{p2.name}}_sph"] = component.addRepresentation("spacefill", {
-                            sele: "NOT STP AND NOT water AND @{{p2.atoms|join:","}}",
-                            color: tpColor("--tp-color-structure-p2-apolar"),
-                            radiusScale: 0.7
-                        });
-                        visible["p2_{{p2.name}}_sph"] = false;
-                        representations["p2_{{p2.name}}_sph"].setVisibility(false);
-                        representations["p2_{{p2.name}}_sph"].sele = "NOT STP AND NOT water AND @{{p2.atoms|join:","}}";
-
-                        representations["p2_{{p2.name}}_lbl"] = component.addRepresentation("label", {
-                            labelType: "res",
-                            sele: proteinChainSelector + " AND .CA AND ({{p2.residues|join:" OR "}})",
-                            color: tpColor("--tp-color-structure-label") || "#0e2330",
-                            backgroundColor: tpColor("--tp-color-structure-label-bg") || "rgba(255,255,255,0.78)",
-                            showBackground: true,
-                            fontWeight: "bold",
-                            xOffset: 0,
-                            yOffset: 0,
-                            zOffset: 1.5,
-                            fixedSize: true,
-                            attachment: "middle-center"
-                        });
-                        visible["p2_{{p2.name}}_lbl"] = false;
-                        representations["p2_{{p2.name}}_lbl"].setVisibility(false);
-                        representations["p2_{{p2.name}}_lbl"].sele = proteinChainSelector + " AND .CA AND ({{p2.residues|join:" OR "}})";
-                        representations["p2_{{p2.name}}_zoom"] = {
-                            sele: "NOT STP AND NOT water AND @{{p2.atoms|join:","}}"
-                        };
-                    {% endfor %}
-
-                    {% for rs in structure.residuesets %}
-                        sele = proteinChainSelector + " AND ({{rs.residues|join:" OR "}})";
-                        representations["{{rs.name}}"] = component.addRepresentation("ball+stick", {
-                            sele: sele
-                        });
-                        visible["{{rs.name}}"] = false;
-                        representations["{{rs.name}}"].setVisibility(false);
-                        representations["{{rs.name}}"].sele = sele;
-                        representations["{{rs.name}}_zoom"] = {
-                            sele: sele
-                        };
-                    {% endfor %}
+                    } else {
+                        {% include "components/structure/ngl_pocket_representations.js" with structure_data=structure %}
                     }
 
                     structureModeButtons.forEach(function (button) {
@@ -1571,41 +1305,47 @@
             }
             {% endif %}
 
-            if (window.jQuery && $.fn.dataTable && $('#pocketsTable').length && $('#pocketsTable tbody tr').length > 5) {
-                initDataTableVariant("#pocketsTable", {
-                    tpVariant: "compact",
-                    searching: false,
-                    pageLength: 5,
-                    paging: true,
-                    lengthChange: false,
-                    ordering: false,
-                    autoWidth: false
-                });
-            }
+            ["#pocketsTable", "#alt-pocketsTable"].forEach(function (selector) {
+                if (window.jQuery && $.fn.dataTable && $(selector).length && $(selector + " tbody tr").length > 5) {
+                    initDataTableVariant(selector, {
+                        tpVariant: "compact",
+                        searching: false,
+                        pageLength: 5,
+                        paging: true,
+                        lengthChange: false,
+                        ordering: false,
+                        autoWidth: false
+                    });
+                }
+            });
 
-            if (window.jQuery && $.fn.dataTable && $('#p2pocketsTable').length && $('#p2pocketsTable tbody tr').length > 5) {
-                initDataTableVariant("#p2pocketsTable", {
-                    tpVariant: "compact",
-                    searching: false,
-                    pageLength: 5,
-                    paging: true,
-                    lengthChange: false,
-                    ordering: false,
-                    autoWidth: false
-                });
-            }
+            ["#p2pocketsTable", "#alt-p2pocketsTable"].forEach(function (selector) {
+                if (window.jQuery && $.fn.dataTable && $(selector).length && $(selector + " tbody tr").length > 5) {
+                    initDataTableVariant(selector, {
+                        tpVariant: "compact",
+                        searching: false,
+                        pageLength: 5,
+                        paging: true,
+                        lengthChange: false,
+                        ordering: false,
+                        autoWidth: false
+                    });
+                }
+            });
 
-            if (window.jQuery && $.fn.dataTable && $('#residuesetsTable').length && $('#residuesetsTable tbody tr').length > 5) {
-                initDataTableVariant("#residuesetsTable", {
-                    tpVariant: "compact",
-                    searching: true,
-                    pageLength: 10,
-                    paging: true,
-                    lengthChange: false,
-                    ordering: false,
-                    autoWidth: false
-                });
-            }
+            ["#residuesetsTable", "#alt-residuesetsTable"].forEach(function (selector) {
+                if (window.jQuery && $.fn.dataTable && $(selector).length && $(selector + " tbody tr").length > 5) {
+                    initDataTableVariant(selector, {
+                        tpVariant: "compact",
+                        searching: true,
+                        pageLength: 10,
+                        paging: true,
+                        lengthChange: false,
+                        ordering: false,
+                        autoWidth: false
+                    });
+                }
+            });
 
             if (typeof proteinDetail.adjustDataTablesOnDetailsToggle === "function") {
                 proteinDetail.adjustDataTablesOnDetailsToggle();
