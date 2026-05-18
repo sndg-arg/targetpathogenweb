@@ -20,6 +20,7 @@ import math
 import os
 import subprocess
 import shlex
+import shutil
 
 import pandas as pd
 from django.conf import settings
@@ -93,7 +94,7 @@ def _run_fpocket(locus_dir, pdb_path):
 
     pdb_basename_only = os.path.basename(pdb_path)
     cmd = [
-        "docker", "run", "--user", f"{os.getuid()}:{os.getgid()}",
+        "docker", "run",
         "--rm", "-i",
         "-v", f"{os.path.abspath(locus_dir)}:/work",
         "ezequieljsosa/fpocket",
@@ -108,8 +109,12 @@ def _run_fpocket(locus_dir, pdb_path):
     if os.path.isdir(out_dir):
         os.rename(out_dir, final_dir)
     elif not os.path.isdir(final_dir):
-        logger.error("FPocket produced no output for %s", pdb_basename)
+        stdout = result.stdout.decode(errors="replace")[:500]
+        stderr = result.stderr.decode(errors="replace")[:500]
+        logger.error("FPocket produced no output for %s. stdout=%s stderr=%s", pdb_basename, stdout, stderr)
         return None
+
+    subprocess.run(["chmod", "-R", "a+rwX", final_dir], capture_output=True)
 
     return final_dir
 
@@ -132,17 +137,21 @@ def _run_p2rank(locus_dir, pdb_path, cpus=2):
     """Run P2Rank via Docker. Returns path to output dir or None."""
     pdb_basename = os.path.splitext(os.path.basename(pdb_path))[0]
     out_dir = os.path.join(locus_dir, f"{pdb_basename}_p2rank")
+    predictions_csv = os.path.join(out_dir, f"{pdb_basename}_predictions.csv")
+    p2json = os.path.join(out_dir, "p2pocket.json.gz")
 
-    if os.path.isdir(out_dir) and os.listdir(out_dir):
+    if os.path.exists(predictions_csv) or os.path.exists(p2json):
         logger.debug("P2Rank output already exists for %s", pdb_basename)
         return out_dir
+    if os.path.isdir(out_dir):
+        shutil.rmtree(out_dir)
 
     os.makedirs(out_dir, exist_ok=True)
     pdb_basename_only = os.path.basename(pdb_path)
     out_rel = os.path.relpath(out_dir, locus_dir)
 
     cmd = [
-        "docker", "run", "--user", f"{os.getuid()}:{os.getgid()}",
+        "docker", "run",
         "--rm", "-i",
         "-v", f"{os.path.abspath(locus_dir)}:/work",
         "mcpalumbo/p2rank:latest",
@@ -156,6 +165,8 @@ def _run_p2rank(locus_dir, pdb_path, cpus=2):
     if result.returncode != 0:
         logger.error("P2Rank failed for %s: %s", pdb_basename, result.stderr.decode()[:500])
         return None
+
+    subprocess.run(["chmod", "-R", "a+rwX", out_dir], capture_output=True)
 
     return out_dir
 
