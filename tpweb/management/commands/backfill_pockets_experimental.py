@@ -82,8 +82,22 @@ def _filtered_pdb_for_chain(pdb_path, chain, locus_dir):
     return filtered_path
 
 
+def _tool_safe_pdb_path(locus_dir, pdb_path):
+    """Return a filename that external pocket tools can resolve inside /work."""
+    basename = os.path.basename(pdb_path)
+    safe_basename = basename.lower()
+    if safe_basename == basename:
+        return pdb_path
+
+    safe_path = os.path.join(locus_dir, safe_basename)
+    if not os.path.exists(safe_path) or os.path.getmtime(safe_path) < os.path.getmtime(pdb_path):
+        shutil.copyfile(pdb_path, safe_path)
+    return safe_path
+
+
 def _run_fpocket(locus_dir, pdb_path):
     """Run FPocket via Docker. Returns path to output dir or None on failure."""
+    pdb_path = _tool_safe_pdb_path(locus_dir, pdb_path)
     pdb_basename = os.path.splitext(os.path.basename(pdb_path))[0]
     out_dir = os.path.join(locus_dir, f"{pdb_basename}_out")
     final_dir = os.path.join(locus_dir, f"{pdb_basename}_fpocket")
@@ -135,6 +149,7 @@ def _fpocket_to_json(fpocket_dir, python_bin=PYTHON_BIN):
 
 def _run_p2rank(locus_dir, pdb_path, cpus=2):
     """Run P2Rank via Docker. Returns path to output dir or None."""
+    pdb_path = _tool_safe_pdb_path(locus_dir, pdb_path)
     pdb_basename = os.path.splitext(os.path.basename(pdb_path))[0]
     out_dir = os.path.join(locus_dir, f"{pdb_basename}_p2rank")
     predictions_csv = os.path.join(out_dir, f"{pdb_basename}_predictions.csv")
@@ -163,7 +178,9 @@ def _run_p2rank(locus_dir, pdb_path, cpus=2):
     logger.info("Running P2Rank for %s", pdb_basename)
     result = subprocess.run(cmd, capture_output=True, cwd=locus_dir)
     if result.returncode != 0:
-        logger.error("P2Rank failed for %s: %s", pdb_basename, result.stderr.decode()[:500])
+        stdout = result.stdout.decode(errors="replace")[:1000]
+        stderr = result.stderr.decode(errors="replace")[:1000]
+        logger.error("P2Rank failed for %s. stdout=%s stderr=%s", pdb_basename, stdout, stderr)
         return None
 
     subprocess.run(["chmod", "-R", "a+rwX", out_dir], capture_output=True)
