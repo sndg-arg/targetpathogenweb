@@ -877,7 +877,7 @@ a.tp-chip--go:hover {
 
 .tp-table-shell.tp-table-shell--with-export {
     position: relative;
-    padding-top: 52px;
+    padding-top: 44px;
     overflow: hidden;
 }
 
@@ -920,14 +920,14 @@ a.tp-chip--go:hover {
 }
 
 .tp-table-shell--with-export > .tp-table-shell__scroll {
-    padding-top: 52px;
+    padding-top: 0;
 }
 
 .tp-table-export-bar {
     position: absolute;
     inset: 0 0 auto 0;
-    min-height: 52px;
-    padding: 9px 12px;
+    min-height: 44px;
+    padding: 6px 10px;
     z-index: 4;
     display: flex;
     align-items: center;
@@ -958,7 +958,7 @@ a.tp-chip--go:hover {
 }
 
 .tp-table-shell.tp-table-shell--with-export.is-h-scrollable:not(.is-h-scroll-end)::after {
-    top: 52px;
+    top: 44px;
 }
 
 .tp-table-scroll-hint {

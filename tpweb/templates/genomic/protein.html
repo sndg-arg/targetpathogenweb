@@ -382,42 +382,40 @@
 
                     {% if structure.p2_pockets %}
                         <div class="mini-section">
-                            <details class="data-details">
-                                <summary>{% trans "Show P2RANK pockets" %}</summary>
-                                <p class="table-hint px-3 pt-2">{% trans "Probability is color-coded per P2Rank calibration: high (&ge; 0.5), medium (0.2 &ndash; 0.49), low (&lt; 0.2)." %}</p>
-                                <div class="table-shell tp-table-shell">
-                                    <table id="p2pocketsTable" class="table table-striped table-hover table-sm tp-table tp-table--plain tp-table--premium">
-                                        <thead>
+                            <h3>{% trans "Pockets" %} (P2RANK)</h3>
+                            <p class="table-hint">{% trans "Probability is color-coded per P2Rank calibration: high (&ge; 0.5), medium (0.2 &ndash; 0.49), low (&lt; 0.2)." %}</p>
+                            <div class="table-shell tp-table-shell">
+                                <table id="p2pocketsTable" class="table table-striped table-hover table-sm tp-table tp-table--plain tp-table--premium">
+                                    <thead>
+                                    <tr>
+                                        <th>P2RANK</th>
+                                        <th>{% trans "Sticks" %}</th>
+                                        <th>{% trans "Spheres" %}</th>
+                                        <th>{% trans "Surfaces" %}</th>
+                                        <th>{% trans "Score" %}</th>
+                                        <th>{% trans "Probability" %}</th>
+                                        <th>{% trans "Labels" %}</th>
+                                        <th>{% trans "Zoom" %}</th>
+                                        <th>{% trans "Positions" %}</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {% for p2 in structure.p2_pockets %}
                                         <tr>
-                                            <th>P2RANK</th>
-                                            <th>{% trans "Sticks" %}</th>
-                                            <th>{% trans "Spheres" %}</th>
-                                            <th>{% trans "Surfaces" %}</th>
-                                            <th>{% trans "Score" %}</th>
-                                            <th>{% trans "Probability" %}</th>
-                                            <th>{% trans "Labels" %}</th>
-                                            <th>{% trans "Zoom" %}</th>
-                                            <th>{% trans "Positions" %}</th>
+                                            <td>{{ p2.name }}</td>
+                                            <td><input type="checkbox" class="structure-toggle" aria-label="Toggle sticks {{ p2.name }}" onchange="toogle_view('p2_{{p2.name}}_atm')" /></td>
+                                            <td><input type="checkbox" class="structure-toggle" aria-label="Toggle spheres {{ p2.name }}" onchange="toogle_view('p2_{{p2.name}}_sph')" /></td>
+                                            <td><input type="checkbox" class="structure-toggle" aria-label="Toggle surfaces {{ p2.name }}" onchange="toogle_view('p2_{{p2.name}}_pol');toogle_view('p2_{{p2.name}}_apol')" /></td>
+                                            <td><span class="tp-score-tag js-score-tag" data-score="{{ p2.p2score }}">{{ p2.p2score }}</span></td>
+                                            <td><span class="tp-score-tag js-score-tag" data-score="{{ p2.probability }}" data-score-type="p2rank-prob">{{ p2.probability }}</span></td>
+                                            <td><input type="checkbox" class="structure-toggle" aria-label="Toggle labels {{ p2.name }}" onchange="toogle_view('p2_{{p2.name}}_lbl')" /></td>
+                                            <td><button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm structure-table-btn" onclick="ngl_zoom_to('p2_{{p2.name}}_zoom')">{% trans "Zoom" %}</button></td>
+                                            <td><button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm structure-table-btn js-show-residues" data-residues="{{ p2.residues | join:' ' }}">{% trans "Show" %}</button></td>
                                         </tr>
-                                        </thead>
-                                        <tbody>
-                                        {% for p2 in structure.p2_pockets %}
-                                            <tr>
-                                                <td>{{ p2.name }}</td>
-                                                <td><input type="checkbox" class="structure-toggle" aria-label="Toggle sticks {{ p2.name }}" onchange="toogle_view('p2_{{p2.name}}_atm')" /></td>
-                                                <td><input type="checkbox" class="structure-toggle" aria-label="Toggle spheres {{ p2.name }}" onchange="toogle_view('p2_{{p2.name}}_sph')" /></td>
-                                                <td><input type="checkbox" class="structure-toggle" aria-label="Toggle surfaces {{ p2.name }}" onchange="toogle_view('p2_{{p2.name}}_pol');toogle_view('p2_{{p2.name}}_apol')" /></td>
-                                                <td><span class="tp-score-tag js-score-tag" data-score="{{ p2.p2score }}">{{ p2.p2score }}</span></td>
-                                                <td><span class="tp-score-tag js-score-tag" data-score="{{ p2.probability }}" data-score-type="p2rank-prob">{{ p2.probability }}</span></td>
-                                                <td><input type="checkbox" class="structure-toggle" aria-label="Toggle labels {{ p2.name }}" onchange="toogle_view('p2_{{p2.name}}_lbl')" /></td>
-                                                <td><button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm structure-table-btn" onclick="ngl_zoom_to('p2_{{p2.name}}_zoom')">{% trans "Zoom" %}</button></td>
-                                                <td><button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm structure-table-btn js-show-residues" data-residues="{{ p2.residues | join:' ' }}">{% trans "Show" %}</button></td>
-                                            </tr>
-                                        {% endfor %}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </details>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     {% endif %}
 

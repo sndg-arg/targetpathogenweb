@@ -129,31 +129,29 @@
 
                 {% if structure.p2_pockets %}
                     <div class="mini-section">
-                        <details class="data-details">
-                            <summary>{% trans "Binding pockets" %} · P2Rank</summary>
-                            <p class="table-hint p-3 pb-0">{% trans "Probability: high ≥ 0.5 · medium 0.2–0.49 · low < 0.2" %}</p>
-                            <div class="pocket-cards p-3 pt-2">
-                                {% for p2 in structure.p2_pockets %}
-                                    <div class="pocket-card">
-                                        <div class="pocket-card-head">
-                                            <strong class="pocket-card-name">{{ p2.name }}</strong>
-                                            <span class="tp-score-tag js-score-tag" data-score="{{ p2.p2score }}">{{ p2.p2score }}</span>
-                                            <span class="tp-score-tag js-score-tag" data-score="{{ p2.probability }}" data-score-type="p2rank-prob">{{ p2.probability }}</span>
-                                        </div>
-                                        <div class="pocket-card-reprs">
-                                            <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="p2_{{p2.name}}_atm" aria-pressed="false">{% trans "Ball & stick" %}</button>
-                                            <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="p2_{{p2.name}}_sph" aria-pressed="false">{% trans "Space-fill" %}</button>
-                                            <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="p2_{{p2.name}}_pol p2_{{p2.name}}_apol" aria-pressed="false">{% trans "Surface" %}</button>
-                                            <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="p2_{{p2.name}}_lbl" aria-pressed="false">{% trans "Labels" %}</button>
-                                        </div>
-                                        <div class="pocket-card-actions">
-                                            <button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm" onclick="ngl_zoom_to('p2_{{p2.name}}_zoom')">{% trans "Zoom" %}</button>
-                                            <button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm js-show-residues" data-residues="{{ p2.residues|join:' ' }}">{% trans "Positions" %}</button>
-                                        </div>
+                        <h3>{% trans "Binding pockets" %} · P2Rank</h3>
+                        <p class="table-hint">{% trans "Probability: high ≥ 0.5 · medium 0.2–0.49 · low < 0.2" %}</p>
+                        <div class="pocket-cards">
+                            {% for p2 in structure.p2_pockets %}
+                                <div class="pocket-card">
+                                    <div class="pocket-card-head">
+                                        <strong class="pocket-card-name">{{ p2.name }}</strong>
+                                        <span class="tp-score-tag js-score-tag" data-score="{{ p2.p2score }}">{{ p2.p2score }}</span>
+                                        <span class="tp-score-tag js-score-tag" data-score="{{ p2.probability }}" data-score-type="p2rank-prob">{{ p2.probability }}</span>
                                     </div>
-                                {% endfor %}
-                            </div>
-                        </details>
+                                    <div class="pocket-card-reprs">
+                                        <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="p2_{{p2.name}}_atm" aria-pressed="false">{% trans "Ball & stick" %}</button>
+                                        <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="p2_{{p2.name}}_sph" aria-pressed="false">{% trans "Space-fill" %}</button>
+                                        <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="p2_{{p2.name}}_pol p2_{{p2.name}}_apol" aria-pressed="false">{% trans "Surface" %}</button>
+                                        <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="p2_{{p2.name}}_lbl" aria-pressed="false">{% trans "Labels" %}</button>
+                                    </div>
+                                    <div class="pocket-card-actions">
+                                        <button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm" onclick="ngl_zoom_to('p2_{{p2.name}}_zoom')">{% trans "Zoom" %}</button>
+                                        <button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm js-show-residues" data-residues="{{ p2.residues|join:' ' }}">{% trans "Positions" %}</button>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
                     </div>
                 {% endif %}
 
