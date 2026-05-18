@@ -123,11 +123,10 @@ def _run_fpocket(locus_dir, pdb_path):
     pdb_path = _tool_safe_pdb_path(locus_dir, pdb_path)
     pdb_basename = os.path.splitext(os.path.basename(pdb_path))[0]
     out_dir = os.path.join(locus_dir, f"{pdb_basename}_out")
-    final_dir = os.path.join(locus_dir, f"{pdb_basename}_fpocket")
 
-    if os.path.isdir(final_dir) and os.listdir(final_dir):
+    if os.path.isdir(out_dir) and os.listdir(out_dir):
         logger.debug("FPocket output already exists for %s", pdb_basename)
-        return final_dir
+        return out_dir
 
     pdb_basename_only = os.path.basename(pdb_path)
     cmd = [
@@ -143,18 +142,15 @@ def _run_fpocket(locus_dir, pdb_path):
         logger.error("FPocket failed for %s: %s", pdb_basename, result.stderr.decode(errors="replace")[:500])
         return None
 
-    if os.path.isdir(out_dir):
-        _docker_chmod_work_path(locus_dir, f"/work/{os.path.basename(out_dir)}")
-        os.rename(out_dir, final_dir)
-    elif not os.path.isdir(final_dir):
+    if not os.path.isdir(out_dir):
         stdout = result.stdout.decode(errors="replace")[:500]
         stderr = result.stderr.decode(errors="replace")[:500]
         logger.error("FPocket produced no output for %s. stdout=%s stderr=%s", pdb_basename, stdout, stderr)
         return None
 
-    _docker_chmod_work_path(locus_dir, f"/work/{os.path.basename(final_dir)}")
+    _docker_chmod_work_path(locus_dir, f"/work/{os.path.basename(out_dir)}")
 
-    return final_dir
+    return out_dir
 
 
 def _fpocket_to_json(fpocket_dir, python_bin=PYTHON_BIN):
