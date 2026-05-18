@@ -5,6 +5,7 @@ from django.utils.translation import gettext_lazy as _
 from .CelularLocalization import CelularLocalization
 from .CustomParamFile import CustomParam
 from .Binders import Binders
+from .BioentryStructure import BioentryStructure, ExperimentalStructureXref
 from .GenomeUpload import GenomeUpload
 from .PipelineRun import PipelineRun, PipelineStageEvent
 

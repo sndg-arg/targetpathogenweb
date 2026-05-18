@@ -11,6 +11,7 @@ import itertools
 from bioseq.models.Biodatabase import Biodatabase
 from bioseq.models.Bioentry import Bioentry
 from tpweb.models.Binders import Binders
+from tpweb.models.pdb import PDBResidueSet
 from .StructureView import pdb_structure
 from tpweb.services.protein_annotations import annotation_dbnames, protein_annotation_badges, iter_protein_annotations
 from tpweb.services.csv_exports import xlsx_sections_response
@@ -32,6 +33,18 @@ from tpweb.services.structure_sources import (
 KNOWN_BINDER_CAP = 100
 ZINC_BINDER_CAP = 50
 _PAINS_CATALOG = None
+
+
+def _has_pocket_data(pdb_obj):
+    return PDBResidueSet.objects.filter(
+        pdb=pdb_obj,
+        residue_set__name__in=["FPocketPocket", "P2RankPocket"],
+    ).exists()
+
+
+def _chain_selector(chain):
+    chain = (chain or "").strip()
+    return f":{chain}" if chain else "polymer"
 
 
 def _first_location(feature):
@@ -434,24 +447,22 @@ class ProteinView(View):
                "pipeline_status": pipeline_status,
                "view_export_url": self._build_view_export_url(request)}
         if structures:
-            primary_display = structures[0].pdb  # EX first if available
-            # Pockets are only computed for model structures (AF/CF). Use the
-            # model PDB for pocket data regardless of what the viewer shows first.
-            model_pdb = next(
-                (s.pdb for s in structures
-                 if (s.pdb.experiment or "").upper() in ("AF", "CF")),
-                primary_display,
-            )
-            dto["structure"] = pdb_structure(model_pdb, graphic_features)
-            # Tell the template which structure to load first in the NGL viewer.
-            # Defaults to structure.id (model_pdb) when there is no EX alternative.
-            if primary_display.id != model_pdb.id:
-                dto["viewer_structure_id"] = primary_display.id
+            primary_link = structures[0]
+            primary_display = primary_link.pdb  # EX first if available
+            # Pocket overlays must belong to the same structure loaded first in
+            # the viewer. If EX has no pockets yet, show the crystal structure
+            # without pocket overlays instead of mixing AF/CF pockets onto it.
+            dto["structure"] = pdb_structure(primary_display, graphic_features)
+            dto["viewer_structure_id"] = primary_display.id
+            dto["primary_structure_label"] = _structure_toggle_label(primary_display.experiment)
+            dto["viewer_chain"] = primary_link.chain or ""
+            dto["viewer_chain_selector"] = _chain_selector(primary_link.chain)
+            dto["pocket_structure_label"] = _structure_toggle_label(primary_display.experiment)
+            dto["pocket_structure_has_pockets"] = _has_pocket_data(primary_display)
             if len(structures) > 1:
-                alt = structures[1].pdb
-                dto["alt_structure_id"] = alt.id
-                dto["alt_structure_label"] = _structure_toggle_label(alt.experiment)
-                dto["primary_structure_label"] = _structure_toggle_label(primary_display.experiment)
+                alt_link = structures[1]
+                dto["alt_structure_id"] = alt_link.pdb.id
+                dto["alt_structure_label"] = _structure_toggle_label(alt_link.pdb.experiment)
 
 
 

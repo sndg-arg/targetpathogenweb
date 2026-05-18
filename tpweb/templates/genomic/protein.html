@@ -329,6 +329,9 @@
                         <button type="button" class="structure-source-btn" id="structure-src-alt" onclick="switchStructureSource('alt')">{{ alt_structure_label }}</button>
                     </div>
                     {% endif %}
+                    {% if structure and not pocket_structure_has_pockets %}
+                        <p class="table-hint">{% blocktrans with source=pocket_structure_label %}No pockets are loaded yet for the displayed {{ source }} structure. Run experimental pocket backfill to show FPocket/P2Rank overlays on this structure.{% endblocktrans %}</p>
+                    {% endif %}
                     <div class="structure-viewport-wrap">
                         <div id="viewport"></div>
                     </div>
@@ -1206,8 +1209,17 @@
                     primary: "{% url 'tpwebapp:structure_raw' viewer_structure_id|default:structure.id %}",
                     {% if alt_structure_id %}alt: "{% url 'tpwebapp:structure_raw' alt_structure_id %}",{% endif %}
                 };
+                const proteinChainSelector = "{{ viewer_chain_selector|default:':A' }}";
+                let activeStructureKey = "primary";
+
+                function clearRepresentationState() {
+                    Object.keys(representations).forEach(function (key) { delete representations[key]; });
+                    Object.keys(visible).forEach(function (key) { delete visible[key]; });
+                }
 
                 function _loadStructureById(urlKey) {
+                    activeStructureKey = urlKey;
+                    clearRepresentationState();
                     stage.removeAllComponents();
                     stage.loadFile(structureUrls[urlKey], { ext: "pdb", defaultRepresentation: false })
                         .then(initStructureComponent);
@@ -1282,14 +1294,14 @@
                     representations.__main_cartoon = component.addRepresentation("cartoon", {
                         aspectRatio: STRUCTURE_VIEWER_CONFIG.mainCartoonAspectRatio,
                         scale: STRUCTURE_VIEWER_CONFIG.mainCartoonScale,
-                        sele: "backbone and :A",
+                        sele: "backbone and " + proteinChainSelector,
                         color: tpColor("--tp-color-structure-cartoon") || "#2288a3"
                     });
                     visible.__main_cartoon = true;
-                    representations.__main_cartoon.sele = "backbone and :A";
+                    representations.__main_cartoon.sele = "backbone and " + proteinChainSelector;
 
                     representations.__main_density = component.addRepresentation("surface", {
-                        sele: "polymer and :A",
+                        sele: "polymer and " + proteinChainSelector,
                         color: tpColor("--tp-color-structure-density"),
                         opacity: STRUCTURE_VIEWER_CONFIG.densityShellOpacity,
                         side: "double",
@@ -1298,7 +1310,7 @@
                     });
                     visible.__main_density = false;
                     representations.__main_density.setVisibility(false);
-                    representations.__main_density.sele = "polymer and :A";
+                    representations.__main_density.sele = "polymer and " + proteinChainSelector;
 
                     window.ngl_set_mode = function (mode) {
                         const normalized = mode === "density" ? "density" : "cartoon";
@@ -1324,6 +1336,8 @@
                     };
 
                     let sele = null;
+                    const shouldLoadPocketAnnotations = activeStructureKey === "primary";
+                    if (shouldLoadPocketAnnotations) {
 
                     {% for p in structure.pockets %}
                         sele = "(STP AND .APOL AND {{p.name}}) OR (NOT water AND @{{p.atoms|join:","}})";
@@ -1380,7 +1394,7 @@
 
                         representations["{{p.name}}_lbl"] = component.addRepresentation("label", {
                             labelType: "res",
-                            sele: ":A AND .CA AND ({{p.residues|join:" OR "}})",
+                            sele: proteinChainSelector + " AND .CA AND ({{p.residues|join:" OR "}})",
                             color: tpColor("--tp-color-structure-label") || "#0e2330",
                             backgroundColor: tpColor("--tp-color-structure-label-bg") || "rgba(255,255,255,0.78)",
                             showBackground: true,
@@ -1393,7 +1407,7 @@
                         });
                         visible["{{p.name}}_lbl"] = false;
                         representations["{{p.name}}_lbl"].setVisibility(false);
-                        representations["{{p.name}}_lbl"].sele = ":A AND .CA AND ({{p.residues|join:" OR "}})";
+                        representations["{{p.name}}_lbl"].sele = proteinChainSelector + " AND .CA AND ({{p.residues|join:" OR "}})";
                         representations["{{p.name}}_zoom"] = {
                             sele: "NOT STP AND NOT water AND @{{p.atoms|join:","}}"
                         };
@@ -1454,7 +1468,7 @@
 
                         representations["p2_{{p2.name}}_lbl"] = component.addRepresentation("label", {
                             labelType: "res",
-                            sele: ":A AND .CA AND ({{p2.residues|join:" OR "}})",
+                            sele: proteinChainSelector + " AND .CA AND ({{p2.residues|join:" OR "}})",
                             color: tpColor("--tp-color-structure-label") || "#0e2330",
                             backgroundColor: tpColor("--tp-color-structure-label-bg") || "rgba(255,255,255,0.78)",
                             showBackground: true,
@@ -1467,14 +1481,14 @@
                         });
                         visible["p2_{{p2.name}}_lbl"] = false;
                         representations["p2_{{p2.name}}_lbl"].setVisibility(false);
-                        representations["p2_{{p2.name}}_lbl"].sele = ":A AND .CA AND ({{p2.residues|join:" OR "}})";
+                        representations["p2_{{p2.name}}_lbl"].sele = proteinChainSelector + " AND .CA AND ({{p2.residues|join:" OR "}})";
                         representations["p2_{{p2.name}}_zoom"] = {
                             sele: "NOT STP AND NOT water AND @{{p2.atoms|join:","}}"
                         };
                     {% endfor %}
 
                     {% for rs in structure.residuesets %}
-                        sele = ":A AND ({{rs.residues|join:" OR "}})";
+                        sele = proteinChainSelector + " AND ({{rs.residues|join:" OR "}})";
                         representations["{{rs.name}}"] = component.addRepresentation("ball+stick", {
                             sele: sele
                         });
@@ -1485,6 +1499,7 @@
                             sele: sele
                         };
                     {% endfor %}
+                    }
 
                     structureModeButtons.forEach(function (button) {
                         button.addEventListener("click", function () {
@@ -1506,6 +1521,7 @@
                     }
                 }
 
+                activeStructureKey = "primary";
                 stage.loadFile(structureUrls.primary, { ext: "pdb", defaultRepresentation: false })
                     .then(initStructureComponent)
                     .catch(function () {

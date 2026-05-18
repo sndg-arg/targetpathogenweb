@@ -10,6 +10,11 @@ from tpweb.services.genome_workspace import user_can_access_genome_name, genome_
 from tpweb.services.structure_sources import structure_toggle_label as _structure_toggle_label
 
 
+def _chain_selector(chain):
+    chain = (chain or "").strip()
+    return f":{chain}" if chain else "polymer"
+
+
 class StructureView(View):
     template_name = 'genomic/structure.html'
 
@@ -28,6 +33,13 @@ class StructureView(View):
             dto["source_genome"] = genome_url_slug(source_assembly_name)
             if not user_can_access_genome_name(request.user, source_assembly_name):
                 raise Http404("Structure not found")
+            source_link = BioentryStructure.objects.filter(
+                pdb=structure,
+                bioentry=source_bioentry,
+            ).first()
+            if source_link:
+                dto["viewer_chain"] = source_link.chain or ""
+                dto["viewer_chain_selector"] = _chain_selector(source_link.chain)
             # Expose alternative structure for toggle (EX ↔ AF/CF)
             alt = self._find_alt_structure(source_bioentry, structure)
             if alt:

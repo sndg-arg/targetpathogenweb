@@ -19,6 +19,8 @@ import requests
 
 from bioseq.models.Biodatabase import Biodatabase
 from bioseq.models.BioentryDbxref import BioentryDbxref
+from tpweb.models.BioentryStructure import BioentryStructure, ExperimentalStructureXref
+from tpweb.models.pdb import PDB
 
 logger = logging.getLogger(__name__)
 
@@ -56,6 +58,77 @@ def _download_pdb(pdb_id, dest_path):
     return False
 
 
+def _coverage_span(xref):
+    start = getattr(xref, "uniprot_start", None)
+    end = getattr(xref, "uniprot_end", None)
+    if start is None or end is None:
+        return 0
+    return max(0, end - start + 1)
+
+
+def _best_xrefs_from_metadata(proteome_name):
+    xrefs = (
+        ExperimentalStructureXref.objects
+        .select_related("bioentry")
+        .filter(bioentry__biodatabase__name=proteome_name)
+        .order_by("bioentry_id", "resolution")
+    )
+    best = {}
+    for xref in xrefs:
+        current = best.get(xref.bioentry_id)
+        key = (
+            xref.resolution is None,
+            xref.resolution if xref.resolution is not None else 999,
+            -_coverage_span(xref),
+        )
+        if current is None or key < current[0]:
+            best[xref.bioentry_id] = (key, xref)
+    return {
+        bioentry_id: xref
+        for bioentry_id, (_, xref) in best.items()
+    }
+
+
+def _best_xrefs_from_legacy_dbxrefs(proteome_name):
+    pdb_xrefs = (
+        BioentryDbxref.objects
+        .select_related("bioentry", "dbxref")
+        .filter(bioentry__biodatabase__name=proteome_name, dbxref__dbname="PDB")
+        .order_by("bioentry_id", "rank")
+    )
+    best = {}
+    for xref in pdb_xrefs:
+        if xref.bioentry_id in best:
+            continue
+        best[xref.bioentry_id] = ExperimentalStructureXref(
+            bioentry=xref.bioentry,
+            pdb_id=xref.dbxref.accession,
+            resolution=(xref.rank / 100.0 if xref.rank and xref.rank < 9999 else None),
+        )
+    return best
+
+
+def _update_structure_link(xref, pdb_obj):
+    link, _ = BioentryStructure.objects.get_or_create(
+        bioentry=xref.bioentry,
+        pdb=pdb_obj,
+    )
+    updates = []
+    chain = (xref.chains or "").split(",", 1)[0].strip()
+    for field, value in (
+        ("chain", chain),
+        ("uniprot_start", xref.uniprot_start),
+        ("uniprot_end", xref.uniprot_end),
+        ("resolution", xref.resolution),
+    ):
+        if getattr(link, field) != value:
+            setattr(link, field, value)
+            updates.append(field)
+    if updates:
+        link.save(update_fields=updates)
+    return link
+
+
 def fetch_and_load_experimental_structures(assembly_name, folder_path, working_dir):
     """Download the best experimental PDB structure for each protein in the genome.
 
@@ -70,19 +143,9 @@ def fetch_and_load_experimental_structures(assembly_name, folder_path, working_d
 
     proteome_name = f"{assembly_name}{Biodatabase.PROT_POSTFIX}"
 
-    # Get best PDB per protein (lowest rank = best resolution)
-    pdb_xrefs = (
-        BioentryDbxref.objects
-        .select_related("bioentry", "dbxref")
-        .filter(bioentry__biodatabase__name=proteome_name, dbxref__dbname="PDB")
-        .order_by("bioentry_id", "rank")
-    )
-
-    best_per_protein = {}  # {bioentry_id: (protein_accession, pdb_id)}
-    for xref in pdb_xrefs:
-        bid = xref.bioentry_id
-        if bid not in best_per_protein:
-            best_per_protein[bid] = (xref.bioentry.accession, xref.dbxref.accession)
+    best_per_protein = _best_xrefs_from_metadata(proteome_name)
+    if not best_per_protein:
+        best_per_protein = _best_xrefs_from_legacy_dbxrefs(proteome_name)
 
     total = len(best_per_protein)
     if not total:
@@ -98,7 +161,9 @@ def fetch_and_load_experimental_structures(assembly_name, folder_path, working_d
     loaded = 0
     skipped = 0
 
-    for locus_tag, pdb_id in best_per_protein.values():
+    for xref in best_per_protein.values():
+        locus_tag = xref.bioentry.accession
+        pdb_id = xref.pdb_id
         dest_dir = os.path.join(exp_dir, locus_tag)
         dest_path = os.path.join(dest_dir, f"{pdb_id}.pdb")
 
@@ -111,16 +176,19 @@ def fetch_and_load_experimental_structures(assembly_name, folder_path, working_d
                 continue
             downloaded += 1
 
+        pdb_obj = PDB.objects.filter(code=pdb_id, experiment="EX").first()
         try:
-            call_command(
-                "load_af_model",
-                pdb_id, dest_path, locus_tag,
-                experiment="EX",
-                overwrite=True,
-                datadir=datadir,
-            )
+            if pdb_obj is None:
+                call_command(
+                    "load_af_model",
+                    pdb_id, dest_path, locus_tag,
+                    experiment="EX",
+                    datadir=datadir,
+                )
+                pdb_obj = PDB.objects.get(code=pdb_id, experiment="EX")
+            _update_structure_link(xref, pdb_obj)
             loaded += 1
-            logger.info("Loaded PDB %s for %s", pdb_id, locus_tag)
+            logger.info("Loaded/linked PDB %s for %s", pdb_id, locus_tag)
         except SystemExit as exc:
             if exc.code == 0:
                 loaded += 1

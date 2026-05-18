@@ -10,6 +10,7 @@ Usage (from a management command or pipeline step):
 
 import logging
 import time
+import re
 from pathlib import Path
 
 import requests
@@ -22,6 +23,7 @@ from bioseq.models.Dbxref import Dbxref
 from bioseq.models.Ontology import Ontology
 from bioseq.models.Term import Term
 from bioseq.models.TermDbxref import TermDbxref
+from tpweb.models.BioentryStructure import ExperimentalStructureXref
 
 logger = logging.getLogger(__name__)
 
@@ -94,6 +96,27 @@ def _fetch_uniprot_batch(accessions):
 _PDB_ACCEPTED_METHODS = {"X-RAY DIFFRACTION", "ELECTRON MICROSCOPY", "X-RAY", "EM", "CRYO-EM"}
 
 
+def _parse_pdb_chain_mapping(value):
+    """Parse UniProt PDB chain annotations like 'A/B=12-220'."""
+    value = (value or "").strip()
+    if not value:
+        return "", None, None
+    chain_part, _, range_part = value.partition("=")
+    chains = ",".join(
+        token.strip()
+        for token in re.split(r"[/,; ]+", chain_part)
+        if token.strip()
+    )
+    starts = []
+    ends = []
+    for start, end in re.findall(r"(\d+)\s*-\s*(\d+)", range_part):
+        starts.append(int(start))
+        ends.append(int(end))
+    if starts and ends:
+        return chains, min(starts), max(ends)
+    return chains, None, None
+
+
 def _parse_uniprot_response(data):
     """Extract EC, GO, and PDB xrefs from UniProt JSON search response."""
     results = []
@@ -139,6 +162,9 @@ def _parse_uniprot_response(data):
                     continue
                 method = ""
                 resolution = None
+                chains = ""
+                uniprot_start = None
+                uniprot_end = None
                 for prop in xref.get("properties", []):
                     key = prop.get("key", "")
                     val = prop.get("value", "").strip()
@@ -149,16 +175,25 @@ def _parse_uniprot_response(data):
                             resolution = float(val.replace(" A", "").replace("A", ""))
                         except (ValueError, TypeError):
                             pass
+                    elif key == "Chains":
+                        chains, uniprot_start, uniprot_end = _parse_pdb_chain_mapping(val)
                 # Accept X-ray and cryo-EM; skip NMR and unknown
                 if any(m in method for m in ("X-RAY", "DIFFRACTION", "ELECTRON", "MICROSCOPY", "CRYO")):
                     pdb_xrefs.append({
                         "id": pdb_id,
                         "method": method,
                         "resolution": resolution,
+                        "chains": chains,
+                        "uniprot_start": uniprot_start,
+                        "uniprot_end": uniprot_end,
                     })
 
-        # Sort best resolution first (None last)
-        pdb_xrefs.sort(key=lambda x: (x["resolution"] is None, x["resolution"] or 999))
+        # Sort best resolution first, then largest mapped span.
+        pdb_xrefs.sort(key=lambda x: (
+            x["resolution"] is None,
+            x["resolution"] or 999,
+            -((x.get("uniprot_end") or 0) - (x.get("uniprot_start") or 0)),
+        ))
 
         results.append({
             "accession": accession,
@@ -219,10 +254,24 @@ def _persist_pdb_xrefs(protein, pdb_xrefs):
             accession=pdb_id,
             defaults={"version": 0},
         )
-        BioentryDbxref.objects.get_or_create(
+        link, _ = BioentryDbxref.objects.get_or_create(
             bioentry=protein,
             dbxref=dbxref,
             defaults={"rank": rank},
+        )
+        if link.rank != rank:
+            link.rank = rank
+            link.save(update_fields=["rank"])
+        ExperimentalStructureXref.objects.update_or_create(
+            bioentry=protein,
+            pdb_id=pdb_id,
+            defaults={
+                "method": xref.get("method", ""),
+                "resolution": resolution,
+                "chains": xref.get("chains", ""),
+                "uniprot_start": xref.get("uniprot_start"),
+                "uniprot_end": xref.get("uniprot_end"),
+            },
         )
 
 
