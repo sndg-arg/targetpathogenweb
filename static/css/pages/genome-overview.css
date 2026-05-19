@@ -350,28 +350,26 @@
 
 .targets-score {
     margin-left: auto;
-    font-family: "Space Grotesk", "Segoe UI", sans-serif;
-    font-size: 1.1rem;
-    font-weight: 700;
+    font-size: 0.84rem;
+    font-weight: var(--tp-font-weight-semibold);
     color: var(--genome-accent-ink);
     line-height: 1;
-    padding: 7px 12px;
+    padding: 4px 10px;
     background: var(--genome-accent-soft);
     border: 1px solid var(--genome-accent-border);
-    border-radius: 999px;
+    border-radius: 8px;
 }
 
 .targets-direct-count {
     margin-left: auto;
-    font-family: "Space Grotesk", "Segoe UI", sans-serif;
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: var(--genome-accent-ink);
+    font-size: 0.84rem;
+    font-weight: var(--tp-font-weight-semibold);
+    color: var(--tp-color-sage-900, var(--tp-color-text-primary));
     line-height: 1;
-    padding: 7px 12px;
+    padding: 4px 10px;
     background: var(--tp-color-sage-050);
     border: 1px solid var(--tp-color-sage-200);
-    border-radius: 999px;
+    border-radius: 8px;
     white-space: nowrap;
 }
 
@@ -413,7 +411,6 @@
     border-radius: 8px;
     background: var(--tp-tooltip-bg);
     color: var(--tp-tooltip-color);
-    font-family: "Source Sans 3", "Segoe UI", sans-serif;
     font-size: 0.78rem;
     font-weight: 500;
     line-height: 1.45;
@@ -425,7 +422,7 @@
     opacity: 0;
     transition: opacity 140ms ease;
     z-index: 50;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.32);
+    box-shadow: var(--tp-shadow-lg);
 }
 
 .targets-tooltip::after {
