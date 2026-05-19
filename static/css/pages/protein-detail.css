@@ -39,7 +39,7 @@
 }
 
 .protein-hero-eyebrow {
-    margin: 0 0 10px;
+    margin: 6px 0 10px;
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-label);
     font-weight: 700;
@@ -49,7 +49,7 @@
 
 .protein-hero h1 {
     margin: 0;
-    font-size: var(--tp-heading-xl);
+    font-size: var(--tp-heading-lg);
     line-height: 1.1;
     color: var(--protein-accent-ink);
 }
@@ -597,25 +597,6 @@
     justify-content: center;
 }
 
-.protein-page .btn-copy-seq.tp-btn--outline,
-.protein-page .features-reset-btn.tp-btn--outline,
-.protein-page #copy-residue-list.tp-btn--outline {
-    color: var(--tp-color-brand-900) !important;
-    border-color: var(--tp-color-brand-300) !important;
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-brand-050) 100%) !important;
-    box-shadow: var(--tp-shadow-xs);
-}
-
-.protein-page .btn-copy-seq.tp-btn--outline:hover,
-.protein-page .btn-copy-seq.tp-btn--outline:focus-visible,
-.protein-page .features-reset-btn.tp-btn--outline:hover,
-.protein-page .features-reset-btn.tp-btn--outline:focus-visible,
-.protein-page #copy-residue-list.tp-btn--outline:hover,
-.protein-page #copy-residue-list.tp-btn--outline:focus-visible {
-    color: var(--tp-color-link-hover) !important;
-    border-color: var(--tp-color-brand-800) !important;
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-brand-100) 100%) !important;
-}
 
 .protein-page .features-reset-btn.tp-btn--outline:disabled,
 .protein-page .features-reset-btn.tp-btn--outline.disabled {

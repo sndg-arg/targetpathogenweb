@@ -57,7 +57,7 @@
 }
 
 .binder-hero-eyebrow {
-    margin: 0 0 10px;
+    margin: 6px 0 10px;
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-label);
     font-weight: 700;
@@ -67,7 +67,7 @@
 
 .binder-hero h1 {
     margin: 0;
-    font-size: var(--tp-heading-xl);
+    font-size: var(--tp-heading-lg);
     line-height: 1.1;
     color: var(--binder-accent-ink);
     font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;

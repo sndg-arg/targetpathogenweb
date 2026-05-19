@@ -155,25 +155,6 @@
     text-decoration: none !important;
 }
 
-.structure-fs .structure-icon-btn.tp-btn--outline,
-.structure-fs .structure-action-btn.tp-btn--outline,
-.structure-fs .structure-table-btn.tp-btn--outline {
-    color: var(--tp-color-brand-900) !important;
-    border-color: var(--tp-color-brand-300) !important;
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-brand-050) 100%) !important;
-    box-shadow: var(--tp-shadow-xs);
-}
-
-.structure-fs .structure-icon-btn.tp-btn--outline:hover,
-.structure-fs .structure-icon-btn.tp-btn--outline:focus-visible,
-.structure-fs .structure-action-btn.tp-btn--outline:hover,
-.structure-fs .structure-action-btn.tp-btn--outline:focus-visible,
-.structure-fs .structure-table-btn.tp-btn--outline:hover,
-.structure-fs .structure-table-btn.tp-btn--outline:focus-visible {
-    color: var(--tp-color-link-hover) !important;
-    border-color: var(--tp-color-brand-800) !important;
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-brand-100) 100%) !important;
-}
 
 .structure-fs-canvas-shell {
     position: relative;
