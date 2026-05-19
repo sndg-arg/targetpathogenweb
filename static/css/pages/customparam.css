@@ -43,10 +43,10 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    margin: 4px 0 8px;
+    margin: 0 0 8px;
     color: var(--tp-color-text-muted);
     font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
-    font-size: 0.78rem;
+    font-size: var(--tp-font-label);
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -114,7 +114,7 @@
 .customparam-card h2 {
     margin: 0;
     color: var(--cp-accent-ink);
-    font-size: 1.22rem;
+    font-size: var(--tp-heading-sm);
     line-height: 1.15;
 }
 
@@ -264,7 +264,7 @@
 .customparam-example-label {
     margin: 0 0 8px;
     color: var(--tp-color-text-muted);
-    font-size: 0.76rem;
+    font-size: var(--tp-font-label);
     font-weight: 700;
     letter-spacing: 0.07em;
     text-transform: uppercase;

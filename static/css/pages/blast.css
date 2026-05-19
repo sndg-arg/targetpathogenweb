@@ -46,10 +46,10 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    margin: 4px 0 8px;
+    margin: 0 0 8px;
     color: var(--tp-color-text-muted);
     font-family: var(--blast-mono);
-    font-size: 0.78rem;
+    font-size: var(--tp-font-label);
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -108,7 +108,7 @@
 .blast-card h2 {
     margin: 0;
     color: var(--blast-accent-ink);
-    font-size: 1.15rem;
+    font-size: var(--tp-heading-sm);
     line-height: 1.15;
 }
 
@@ -117,6 +117,10 @@
     color: var(--tp-color-text-muted);
     font-size: 0.92rem;
     line-height: 1.45;
+}
+
+.blast-card-note--label {
+    margin-bottom: 6px;
 }
 
 /* ── Form elements ── */
@@ -190,7 +194,7 @@
 .blast-result-head h2 {
     margin: 0;
     color: var(--blast-accent-ink);
-    font-size: 1.15rem;
+    font-size: var(--tp-heading-sm);
 }
 
 /* ── Animations ── */
