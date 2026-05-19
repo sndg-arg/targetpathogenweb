@@ -1018,10 +1018,11 @@
 }
 
 .structure-mode-switch .btn.is-active {
-    background: var(--protein-accent);
-    border-color: var(--protein-accent);
-    color: var(--tp-color-on-accent);
-    box-shadow: var(--tp-shadow-md);
+    background: var(--tp-color-surface);
+    border-color: var(--protein-accent-border);
+    color: var(--protein-accent-ink);
+    font-weight: 600;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), var(--tp-shadow-sm);
 }
 
 .structure-loading-note {
