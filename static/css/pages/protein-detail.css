@@ -1944,15 +1944,6 @@ body.residue-modal-open {
     border-radius: 4px;
 }
 
-/* SVG ruler/axis — style text and lines directly to match dark palette */
-.tp-dark .feature-viewer-shell svg text {
-    fill: var(--tp-color-text-muted) !important;
-}
-.tp-dark .feature-viewer-shell svg line,
-.tp-dark .feature-viewer-shell svg path {
-    stroke: var(--tp-color-border) !important;
-}
-
 /* Feature viewer shell — soften border and background */
 .tp-dark .feature-viewer-shell {
     background: var(--tp-color-surface-soft);
