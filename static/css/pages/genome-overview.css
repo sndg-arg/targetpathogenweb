@@ -40,7 +40,7 @@
 .genome-hero-eyebrow {
     margin: 0 0 10px;
     color: var(--tp-color-text-muted);
-    font-size: 0.75rem;
+    font-size: var(--tp-font-label);
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -133,7 +133,7 @@
 }
 
 .genome-page .metric-label {
-    font-size: 0.76rem;
+    font-size: var(--tp-font-label);
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -227,7 +227,8 @@
 
 .genome-card h2 {
     margin: 0;
-    font-size: 1.22rem;
+    font-size: var(--tp-heading-sm);
+    font-weight: var(--tp-font-weight-bold);
     color: var(--genome-accent-ink);
 }
 
@@ -482,7 +483,7 @@
 }
 
 .targets-factor {
-    font-size: 0.72rem;
+    font-size: var(--tp-font-label);
     font-weight: 600;
     padding: 3px 9px;
     border-radius: 999px;
@@ -595,7 +596,7 @@
 
 .targets-stat-value {
     font-size: 1.6rem;
-    font-weight: 800;
+    font-weight: 700;
     line-height: 1;
     font-family: "Space Grotesk", "Segoe UI", sans-serif;
 }
@@ -616,7 +617,7 @@
 }
 
 .targets-bd {
-    font-size: 0.72rem;
+    font-size: var(--tp-font-label);
     font-weight: 600;
     padding: 3px 8px;
     border-radius: 999px;
@@ -625,7 +626,7 @@
 }
 
 .targets-bd strong {
-    font-weight: 800;
+    font-weight: 700;
 }
 
 .targets-bd--pdb,
@@ -718,7 +719,7 @@
 }
 
 .evidence-label {
-    font-size: 0.74rem;
+    font-size: var(--tp-font-label);
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.06em;
@@ -803,7 +804,7 @@
 }
 
 .composition-row dt {
-    font-size: 0.74rem;
+    font-size: var(--tp-font-label);
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;

@@ -41,7 +41,7 @@
 .protein-hero-eyebrow {
     margin: 0 0 10px;
     color: var(--tp-color-text-muted);
-    font-size: 0.75rem;
+    font-size: var(--tp-font-label);
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -162,7 +162,7 @@
     padding: 0 6px;
     border-radius: 999px;
     font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
-    font-size: 0.72rem;
+    font-size: var(--tp-font-label);
     font-weight: 700;
     color: var(--tp-color-text-muted);
     background: var(--tp-color-surface);
@@ -276,7 +276,7 @@
 }
 
 .metric-label {
-    font-size: 0.76rem;
+    font-size: var(--tp-font-label);
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -389,7 +389,8 @@
 
 .protein-card h2 {
     margin: 0;
-    font-size: 1.22rem;
+    font-size: var(--tp-heading-sm);
+    font-weight: var(--tp-font-weight-bold);
     color: var(--protein-accent-ink);
 }
 
@@ -470,7 +471,7 @@
 .overview-item dt {
     margin: 0;
     color: var(--tp-color-text-muted);
-    font-size: 0.76rem;
+    font-size: var(--tp-font-label);
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.06em;
@@ -1253,7 +1254,7 @@
 }
 
 .binders-tab__count {
-    font-size: 0.74rem;
+    font-size: var(--tp-font-label);
     font-weight: 600;
     letter-spacing: 0.04em;
     background: var(--tp-color-surface-muted);
@@ -1326,7 +1327,7 @@
 .binder-tbl th {
     padding: 10px 14px;
     text-align: left;
-    font-size: 0.74rem;
+    font-size: var(--tp-font-label);
     font-weight: 700;
     letter-spacing: 0.06em;
     text-transform: uppercase;
@@ -1518,7 +1519,7 @@
 }
 
 .binder-filter-label {
-    font-size: 0.76rem;
+    font-size: var(--tp-font-label);
     font-weight: 600;
     color: var(--tp-color-text-muted);
     white-space: nowrap;
@@ -1591,7 +1592,7 @@
     min-height: 22px;
     padding: 2px 8px;
     border-radius: 999px;
-    font-size: 0.72rem;
+    font-size: var(--tp-font-label);
     font-weight: 700;
     white-space: nowrap;
 }
@@ -1668,7 +1669,7 @@
     padding: 10px 14px;
     background: var(--tp-color-surface-soft);
     color: var(--tp-color-text-muted);
-    font-size: 0.74rem;
+    font-size: var(--tp-font-label);
     font-weight: 700;
     letter-spacing: 0.06em;
     text-transform: uppercase;

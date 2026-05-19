@@ -280,7 +280,7 @@
     border: 1px solid var(--tp-color-success-border);
     background: var(--tp-color-success-bg);
     color: var(--tp-color-success-ink);
-    font-size: 0.74rem;
+    font-size: var(--tp-font-label);
     font-weight: 700;
     padding: 2px 8px;
     vertical-align: middle;
@@ -290,7 +290,7 @@
     display: inline-flex;
     align-items: center;
     border-radius: 999px;
-    font-size: 0.74rem;
+    font-size: var(--tp-font-label);
     font-weight: 700;
     padding: 2px 8px;
     vertical-align: middle;

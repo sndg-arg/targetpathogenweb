@@ -453,7 +453,7 @@ body.pipeline-info-open {
 
 .pipeline-info-overview-kicker {
     margin: 0;
-    font-size: 0.74rem;
+    font-size: var(--tp-font-label);
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -592,7 +592,7 @@ body.pipeline-info-open {
 .pipeline-info-sequential .pipeline-info-step-num {
     width: 26px;
     height: 26px;
-    font-size: 0.74rem;
+    font-size: var(--tp-font-label);
 }
 
 .pipeline-info-step.is-done .pipeline-info-step-num {

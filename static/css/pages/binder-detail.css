@@ -59,7 +59,7 @@
 .binder-hero-eyebrow {
     margin: 0 0 10px;
     color: var(--tp-color-text-muted);
-    font-size: 0.75rem;
+    font-size: var(--tp-font-label);
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -271,7 +271,8 @@
 
 .binder-card h2 {
     margin: 0;
-    font-size: 1.22rem;
+    font-size: var(--tp-heading-sm);
+    font-weight: var(--tp-font-weight-bold);
     color: var(--binder-accent-ink);
 }
 
@@ -384,7 +385,7 @@
 }
 
 .property-label {
-    font-size: 0.74rem;
+    font-size: var(--tp-font-label);
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -478,7 +479,7 @@
 }
 
 .druglike-badge-count {
-    font-size: 0.72rem;
+    font-size: var(--tp-font-label);
     font-weight: 500;
     opacity: 0.8;
     text-transform: none;
@@ -659,7 +660,7 @@
 }
 
 .siblings-group-count {
-    font-size: 0.75rem;
+    font-size: var(--tp-font-label);
     font-weight: 500;
     color: var(--tp-color-text-muted);
     background: var(--tp-color-surface);
@@ -705,7 +706,7 @@
     display: flex;
     justify-content: space-between;
     padding: 0 10px 4px;
-    font-size: 0.72rem;
+    font-size: var(--tp-font-label);
     font-weight: 600;
     letter-spacing: 0.04em;
     text-transform: uppercase;

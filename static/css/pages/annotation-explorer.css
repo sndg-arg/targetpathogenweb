@@ -7,30 +7,7 @@
 
 /* ── Hero ── */
 
-.explorer-hero {
-    position: relative;
-    overflow: hidden;
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: var(--tp-ui-radius-hero);
-    background:
-        radial-gradient(circle at top right, color-mix(in srgb, var(--tp-color-brand-200) 38%, transparent) 0%, transparent 34%),
-        linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
-    padding: 22px 22px 18px;
-    box-shadow: var(--tp-ui-shadow-panel);
-}
-
-.explorer-hero::before {
-    content: "";
-    position: absolute;
-    inset: 0 0 auto 0;
-    height: 4px;
-    background: linear-gradient(90deg, var(--tp-color-brand-800) 0%, var(--tp-color-sage-700) 62%, var(--tp-color-brand-600) 100%);
-}
-
-.explorer-hero > * {
-    position: relative;
-    z-index: 1;
-}
+/* Base styles from .tp-page-hero in ui-system.css */
 
 .explorer-eyebrow {
     display: inline-flex;
@@ -48,9 +25,9 @@
 .explorer-hero h1 {
     margin: 0;
     color: var(--tp-color-brand-900);
-    font-size: clamp(1.75rem, 2.6vw, 2.3rem);
+    font-size: var(--tp-heading-lg);
     line-height: 1.08;
-    letter-spacing: -0.01em;
+    letter-spacing: 0.2px;
 }
 
 .explorer-subtitle {
@@ -127,7 +104,7 @@
 .explorer-empty-state h2 {
     margin: 0;
     color: var(--tp-color-brand-900);
-    font-size: 1.18rem;
+    font-size: var(--tp-heading-sm);
 }
 
 .explorer-empty-state p {
