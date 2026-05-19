@@ -591,17 +591,16 @@
         $(document).ready(function () {
             jsloaded();
 
-            // Prevent page scroll while the mouse is over the 3D viewer
-            var wrap = document.getElementById("structure-fs-canvas-shell");
-            if (wrap) {
-                wrap.addEventListener("mouseenter", function () {
-                    document.body.style.overflow = "hidden";
-                    document.documentElement.style.overflow = "hidden";
-                });
-                wrap.addEventListener("mouseleave", function () {
-                    document.body.style.overflow = "";
-                    document.documentElement.style.overflow = "";
-                });
+            // Prevent page scroll when wheeling over the 3D viewer.
+            // Listens at document level with passive:false so preventDefault works.
+            // NGL still receives the event for zoom since we don't stopPropagation.
+            var shell = document.getElementById("structure-fs-canvas-shell");
+            if (shell) {
+                document.addEventListener("wheel", function (e) {
+                    if (shell.contains(e.target)) {
+                        e.preventDefault();
+                    }
+                }, { passive: false });
             }
         });
     </script>
