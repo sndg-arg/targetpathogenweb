@@ -1306,6 +1306,11 @@
     border-radius: 10px;
 }
 
+.binder-table-wrap.tp-table-shell--with-export {
+    padding-top: 44px;
+    overflow: hidden;
+}
+
 
 .binder-tbl {
     width: 100%;
