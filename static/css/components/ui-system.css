@@ -1133,9 +1133,7 @@ a.tp-chip--go:hover {
     justify-content: space-between;
     gap: 10px;
     flex-wrap: wrap;
-    padding: 10px 12px;
-    border-bottom: 1px solid var(--tp-color-border-soft);
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+    padding: 0 0 12px 0;
 }
 
 .tp-dt-wrapper .tp-dt-search {
@@ -1174,24 +1172,27 @@ a.tp-chip--go:hover {
 
 .tp-dt-wrapper .dataTables_length select,
 .tp-dt-wrapper .dataTables_filter input {
-    border: 1px solid var(--tp-color-border-strong);
-    border-radius: var(--tp-ui-radius-control);
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
-    color: var(--tp-color-text-secondary);
-    min-height: var(--tp-ui-control-height-compact);
-    box-shadow: var(--tp-shadow-xs);
+    border: 1px solid var(--tp-color-border);
+    border-radius: 10px;
+    background: var(--tp-color-surface);
+    color: var(--tp-color-text-primary);
+    font: inherit;
+    font-size: 0.92rem;
+    transition: border-color 140ms ease, box-shadow 140ms ease;
 }
 
 .tp-dt-wrapper .dataTables_length select {
     min-width: 78px;
+    min-height: var(--tp-ui-control-height-compact);
     font-weight: 700;
     padding: 0 32px 0 10px;
+    box-shadow: var(--tp-shadow-xs);
 }
 
 .tp-dt-wrapper .dataTables_filter input {
     width: 100%;
     margin-left: 0 !important;
-    padding: 0 12px;
+    padding: 9px 12px;
 }
 
 .tp-dt-wrapper .dataTables_filter .tp-dt-search-wrap {
@@ -1202,7 +1203,7 @@ a.tp-chip--go:hover {
 }
 
 .tp-dt-wrapper .dataTables_filter .tp-dt-search-wrap input {
-    padding-left: 32px !important;
+    padding-left: 34px !important;
 }
 
 .tp-dt-wrapper .dataTables_filter .tp-dt-search-icon {
@@ -1227,8 +1228,8 @@ a.tp-chip--go:hover {
 .tp-dt-wrapper .dataTables_length select:focus,
 .tp-dt-wrapper .dataTables_length select:focus-visible {
     outline: none;
-    border-color: var(--tp-color-brand-600);
-    box-shadow: 0 0 0 0.2rem var(--tp-focus-ring);
+    border-color: var(--tp-color-border-accent);
+    box-shadow: 0 0 0 3px var(--tp-color-brand-100);
 }
 
 .tp-dt-wrapper .tp-dt-footer {
