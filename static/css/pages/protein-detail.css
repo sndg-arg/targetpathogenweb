@@ -719,23 +719,29 @@
 
 .data-details {
     margin-top: 10px;
-    border: 1px solid var(--protein-accent-soft);
+    border: 1px solid var(--tp-color-border);
     border-radius: 12px;
     background: var(--tp-color-surface);
     overflow: hidden;
+    box-shadow: var(--tp-shadow-xs);
 }
 
 .data-details > summary {
     list-style: none;
     display: flex;
     align-items: center;
+    gap: 8px;
     cursor: pointer;
-    padding: 10px 12px;
+    padding: 10px 14px;
     color: var(--tp-color-text-secondary);
-    font-weight: 700;
-    font-size: 0.9rem;
+    font-weight: 600;
+    font-size: 0.88rem;
+    letter-spacing: 0.01em;
     border-bottom: 1px solid transparent;
-    transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard), border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+    transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+                border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+                color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
 }
 
 .data-details > summary:focus,
@@ -745,12 +751,14 @@
 }
 
 .data-details > summary:hover {
-    background: var(--tp-color-surface-alt);
+    color: var(--protein-accent-ink);
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-brand-050) 100%);
 }
 
 .data-details[open] > summary {
-    border-bottom-color: var(--protein-accent-soft);
-    background: var(--protein-accent-soft);
+    color: var(--protein-accent-ink);
+    border-bottom-color: var(--tp-color-border-soft);
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-brand-050) 100%);
 }
 
 .data-details > summary::-webkit-details-marker {
