@@ -858,6 +858,19 @@
     border-radius: 14px;
     background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
     padding: 8px;
+    position: relative;
+}
+
+.viewport-overlay {
+    position: absolute;
+    inset: 0;
+    border-radius: 14px;
+    cursor: pointer;
+    z-index: 10;
+}
+
+.viewport-overlay.is-active {
+    pointer-events: none;
 }
 
 .structure-actions {
@@ -1931,9 +1944,13 @@ body.residue-modal-open {
     border-radius: 4px;
 }
 
-/* SVG ruler/axis — also invert so ticks and labels are readable */
-.tp-dark .feature-viewer-shell svg {
-    filter: invert(0.88) hue-rotate(180deg);
+/* SVG ruler/axis — style text and lines directly to match dark palette */
+.tp-dark .feature-viewer-shell svg text {
+    fill: var(--tp-color-text-muted) !important;
+}
+.tp-dark .feature-viewer-shell svg line,
+.tp-dark .feature-viewer-shell svg path {
+    stroke: var(--tp-color-border) !important;
 }
 
 /* Feature viewer shell — soften border and background */

@@ -336,6 +336,7 @@
                     {% endif %}
                     <div class="structure-viewport-wrap">
                         <div id="viewport"></div>
+                        <div id="viewport-overlay" class="viewport-overlay" title="{% trans 'Click to interact' %}"></div>
                     </div>
                     <p class="table-hint structure-loading-note" id="structure-loading-note">{% trans "Loading 3D structure..." %}</p>
                     <div class="structure-score-legend" aria-label="{% trans "Pocket score legend" %}">
@@ -1099,16 +1100,17 @@
                 });
                 nglStageInstance = stage;
                 (function () {
-                    var viewportEl = document.getElementById("viewport");
-                    var viewportFocused = false;
-                    viewportEl.addEventListener("mousedown", function () { viewportFocused = true; });
-                    /* capture:true so we see the event even if NGL calls stopPropagation */
+                    var overlay = document.getElementById("viewport-overlay");
+                    var wrapEl = overlay && overlay.parentElement;
+                    if (!overlay) return;
+                    overlay.addEventListener("click", function () {
+                        overlay.classList.add("is-active");
+                    });
                     document.addEventListener("mousedown", function (e) {
-                        if (!viewportEl.contains(e.target)) { viewportFocused = false; }
+                        if (wrapEl && !wrapEl.contains(e.target)) {
+                            overlay.classList.remove("is-active");
+                        }
                     }, true);
-                    viewportEl.addEventListener("wheel", function (e) {
-                        if (viewportFocused) { e.preventDefault(); }
-                    }, { passive: false });
                 }());
 
                 const structureUrls = {
