@@ -712,7 +712,7 @@ a.filter-pill .filter-pill-remove {
     opacity: 0;
     transition: opacity 120ms ease;
     z-index: 50;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.28);
+    box-shadow: var(--tp-shadow-lg);
 }
 
 .metric-zero .metric-tooltip::after {
@@ -772,7 +772,7 @@ a.filter-pill .filter-pill-remove {
     opacity: 0;
     transition: opacity 120ms ease;
     z-index: 50;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.28);
+    box-shadow: var(--tp-shadow-lg);
 }
 
 .cell-tooltip::after {
@@ -845,7 +845,7 @@ a.filter-pill .filter-pill-remove {
     opacity: 0;
     transition: opacity 120ms ease;
     z-index: 50;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.28);
+    box-shadow: var(--tp-shadow-lg);
 }
 
 .metric-no-structure .metric-tooltip::after {
@@ -971,7 +971,7 @@ a.filter-pill .filter-pill-remove {
 .tp-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(10, 27, 39, 0.55);
+    background: color-mix(in srgb, var(--tp-color-brand-950) 55%, transparent);
     backdrop-filter: blur(4px);
     -webkit-backdrop-filter: blur(4px);
     opacity: 0;
@@ -993,7 +993,7 @@ a.filter-pill .filter-pill-remove {
     width: min(460px, 95vw);
     background: var(--tp-color-surface);
     border-left: 1px solid var(--tp-color-border-soft);
-    box-shadow: -4px 0 20px rgba(15, 34, 46, 0.14);
+    box-shadow: -4px 0 20px color-mix(in srgb, var(--tp-color-brand-950) 14%, transparent);
     transform: translateX(100%);
     transition: transform var(--tp-ui-motion-base) var(--tp-ui-ease-standard);
     z-index: 1050;
@@ -1340,7 +1340,7 @@ a.filter-pill .filter-pill-remove {
 .scoring-formula-row--current {
     background: var(--tp-color-brand-050);
     border-color: var(--tp-color-brand-700);
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    box-shadow: var(--tp-shadow-xs);
 }
 
 .scoring-formula-row--current:hover {
@@ -1813,7 +1813,7 @@ a.filter-pill .filter-pill-remove {
 
 .columns-row.is-dragging {
     opacity: 0.6;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+    box-shadow: var(--tp-shadow-sm);
 }
 
 .columns-foot {
@@ -1977,7 +1977,7 @@ a.filter-pill .filter-pill-remove {
     flex-wrap: wrap;
     align-items: center;
     gap: 12px 16px;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    box-shadow: var(--tp-shadow-xs);
 }
 
 .filter-tray-head {
@@ -2178,7 +2178,7 @@ a.filter-pill .filter-pill-remove {
 
 .filter-group[open] {
     border-color: var(--tp-color-border);
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    box-shadow: var(--tp-shadow-xs);
 }
 
 .filter-group.is-search-hidden {
@@ -2334,7 +2334,7 @@ a.filter-pill .filter-pill-remove {
     opacity: 0;
     transition: opacity 140ms ease;
     z-index: 5;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+    box-shadow: var(--tp-shadow-md);
 }
 
 .filter-param-help:hover .filter-param-tooltip,

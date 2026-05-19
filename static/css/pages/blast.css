@@ -24,9 +24,7 @@
     overflow: hidden;
     border: 1px solid var(--blast-border);
     border-radius: var(--tp-ui-radius-hero);
-    background:
-        radial-gradient(circle at top right, color-mix(in srgb, var(--tp-color-brand-200) 38%, transparent) 0%, transparent 34%),
-        linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
     padding: 22px 22px 18px;
     box-shadow: var(--tp-ui-shadow-panel);
 }
@@ -59,7 +57,7 @@
 
 .blast-hero h1 {
     margin: 0;
-    font-size: clamp(1.9rem, 2.8vw, 2.5rem);
+    font-size: var(--tp-heading-lg);
     line-height: 1.05;
     color: var(--blast-accent-ink);
 }

@@ -21,9 +21,7 @@
     overflow: hidden;
     border: 1px solid var(--cp-border);
     border-radius: var(--tp-ui-radius-hero);
-    background:
-        radial-gradient(circle at top right, color-mix(in srgb, var(--tp-color-brand-200) 42%, transparent) 0%, transparent 34%),
-        linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
     padding: 22px 22px 18px;
     box-shadow: var(--tp-ui-shadow-panel);
 }
@@ -56,7 +54,7 @@
 
 .customparam-hero h1 {
     margin: 0;
-    font-size: clamp(1.9rem, 2.8vw, 2.5rem);
+    font-size: var(--tp-heading-lg);
     line-height: 1.05;
     color: var(--cp-accent-ink);
 }
@@ -103,9 +101,7 @@
 }
 
 .customparam-card--guide {
-    background:
-        radial-gradient(circle at top right, color-mix(in srgb, var(--tp-color-brand-200) 24%, transparent) 0%, transparent 38%),
-        linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
     display: grid;
     gap: 8px;
 }
@@ -237,8 +233,7 @@
     background: var(--cp-accent-soft);
     border: 1px solid var(--cp-accent-border);
     color: var(--cp-accent-ink);
-    font-family: "Space Grotesk", "Segoe UI", sans-serif;
-    font-weight: 800;
+    font-weight: var(--tp-font-weight-bold);
     font-size: 0.92rem;
     flex-shrink: 0;
 }

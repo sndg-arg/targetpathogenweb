@@ -21,9 +21,7 @@
     overflow: hidden;
     border: 1px solid var(--upload-border);
     border-radius: var(--tp-ui-radius-hero);
-    background:
-        radial-gradient(circle at top right, color-mix(in srgb, var(--tp-color-brand-200) 42%, transparent) 0%, transparent 34%),
-        linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
     padding: 22px 22px 18px;
     box-shadow: var(--tp-ui-shadow-panel);
 }
@@ -56,7 +54,7 @@
 
 .genome-upload-hero h1 {
     margin: 0;
-    font-size: clamp(2rem, 3vw, 2.65rem);
+    font-size: var(--tp-heading-lg);
     line-height: 1.05;
     color: var(--upload-accent-ink);
 }
@@ -119,14 +117,14 @@
     gap: 6px;
     padding: 13px 15px;
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: 18px;
-    background: color-mix(in srgb, var(--tp-color-surface) 85%, white);
-    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.06);
+    border-radius: 14px;
+    background: var(--tp-color-surface);
+    box-shadow: var(--tp-shadow-xs);
 }
 
 .metric-label {
     color: var(--tp-color-text-muted);
-    font-size: 0.76rem;
+    font-size: var(--tp-font-label);
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -134,9 +132,8 @@
 
 .metric-value {
     color: var(--upload-accent-ink);
-    font-family: "Space Grotesk", "Segoe UI", sans-serif;
     font-size: 1.15rem;
-    font-weight: 800;
+    font-weight: var(--tp-font-weight-bold);
     line-height: 1.05;
 }
 
@@ -274,9 +271,7 @@
 .genome-upload-card--guide {
     display: grid;
     gap: 8px;
-    background:
-        radial-gradient(circle at top right, color-mix(in srgb, var(--tp-color-brand-200) 24%, transparent) 0%, transparent 38%),
-        linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
 }
 
 .genome-upload-guide {
@@ -308,8 +303,7 @@
     background: var(--upload-accent-soft);
     border: 1px solid var(--upload-accent-border);
     color: var(--upload-accent-ink);
-    font-family: "Space Grotesk", "Segoe UI", sans-serif;
-    font-weight: 800;
+    font-weight: var(--tp-font-weight-bold);
     font-size: 0.92rem;
 }
 

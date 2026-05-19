@@ -364,7 +364,7 @@
 .pipeline-info-backdrop {
     position: fixed;
     inset: 0;
-    background: rgba(10, 27, 39, 0.5);
+    background: color-mix(in srgb, var(--tp-color-brand-950) 50%, transparent);
     backdrop-filter: blur(4px);
     display: none;
     align-items: center;
@@ -443,12 +443,10 @@ body.pipeline-info-open {
     display: grid;
     gap: 10px;
     padding: 16px 16px 14px;
-    border: 1px solid color-mix(in srgb, var(--tp-color-brand-300, #a3c9af) 32%, white);
+    border: 1px solid color-mix(in srgb, var(--tp-color-brand-300) 32%, var(--tp-color-border-soft));
     border-radius: 14px;
-    background:
-        radial-gradient(circle at top right, color-mix(in srgb, var(--tp-color-brand-100, #e8f0e8) 78%, white) 0%, transparent 42%),
-        linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, color-mix(in srgb, var(--tp-color-brand-100, #e8f0e8) 26%, white) 100%);
-    box-shadow: 0 18px 42px -34px rgba(15, 56, 43, 0.45);
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, color-mix(in srgb, var(--tp-color-brand-100) 26%, var(--tp-color-surface)) 100%);
+    box-shadow: var(--tp-shadow-sm);
 }
 
 .pipeline-info-overview-kicker {
@@ -457,7 +455,7 @@ body.pipeline-info-open {
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: var(--tp-color-brand-700, #3d7a4f);
+    color: var(--tp-color-brand-700);
 }
 
 .pipeline-info-overview-tags {
@@ -472,8 +470,8 @@ body.pipeline-info-open {
     min-height: 32px;
     padding: 0 12px;
     border-radius: 999px;
-    border: 1px solid color-mix(in srgb, var(--tp-color-brand-300, #a3c9af) 36%, white);
-    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid color-mix(in srgb, var(--tp-color-brand-300) 36%, var(--tp-color-border-soft));
+    background: var(--tp-color-surface);
     color: var(--tp-color-text-primary);
     font-size: 0.82rem;
     font-weight: 600;
@@ -487,11 +485,11 @@ body.pipeline-info-open {
 .pipeline-info-parallel-label {
     margin: 2px 2px 2px;
     padding: 4px 0;
-    font-size: 0.68rem;
+    font-size: var(--tp-font-label);
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: var(--tp-color-brand-600, #4a8c5c);
+    color: var(--tp-color-brand-600);
     text-align: center;
     position: relative;
 }
@@ -502,7 +500,7 @@ body.pipeline-info-open {
     position: absolute;
     top: 50%;
     height: 1px;
-    background: var(--tp-color-brand-300, #a3c9af);
+    background: var(--tp-color-brand-300);
 }
 
 .pipeline-info-parallel-label::before {
@@ -523,12 +521,12 @@ body.pipeline-info-open {
 }
 
 .pipeline-info-branch {
-    border: 1px solid color-mix(in srgb, var(--tp-color-border-soft) 88%, white);
+    border: 1px solid var(--tp-color-border-soft);
     border-radius: 14px;
     padding: 0;
     overflow: hidden;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, color-mix(in srgb, var(--tp-color-brand-100, #e8f0e8) 18%, white) 100%);
-    box-shadow: 0 20px 44px -36px rgba(11, 39, 29, 0.45);
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, color-mix(in srgb, var(--tp-color-brand-100) 18%, var(--tp-color-surface)) 100%);
+    box-shadow: var(--tp-shadow-sm);
 }
 
 .pipeline-info-branch-head {
@@ -580,7 +578,7 @@ body.pipeline-info-open {
     height: 22px;
     border-radius: 999px;
     font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
-    font-size: 0.68rem;
+    font-size: var(--tp-font-label);
     font-weight: 600;
     border: 1.5px solid var(--tp-color-border);
     color: var(--tp-color-text-muted);
@@ -596,15 +594,15 @@ body.pipeline-info-open {
 }
 
 .pipeline-info-step.is-done .pipeline-info-step-num {
-    background: var(--tp-color-brand-100, #e8f0e8);
-    border-color: var(--tp-color-brand-600, #4a8c5c);
-    color: var(--tp-color-brand-800, #2d5a3a);
+    background: var(--tp-color-brand-100);
+    border-color: var(--tp-color-brand-600);
+    color: var(--tp-color-brand-800);
 }
 
 .pipeline-info-step.is-active .pipeline-info-step-num {
-    background: var(--tp-color-brand-800, #2d5a3a);
-    border-color: var(--tp-color-brand-800, #2d5a3a);
-    color: #fff;
+    background: var(--tp-color-brand-800);
+    border-color: var(--tp-color-brand-800);
+    color: var(--tp-color-on-accent);
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--tp-color-brand-800) 20%, transparent);
 }
 
@@ -620,7 +618,7 @@ body.pipeline-info-open {
 .pipeline-info-foot {
     padding: 12px 18px 16px;
     border-top: 1px solid var(--tp-color-border-soft);
-    background: color-mix(in srgb, var(--tp-color-surface-soft, #f7faf8) 65%, white);
+    background: color-mix(in srgb, var(--tp-color-surface-soft) 65%, var(--tp-color-surface));
 }
 
 .pipeline-info-note {
