@@ -305,7 +305,6 @@
 .genome-card--ranking .targets-breakdown {
     justify-content: flex-start;
     padding-left: 38px;
-    margin-top: 8px;
     flex-wrap: nowrap;
     overflow: hidden;
 }
