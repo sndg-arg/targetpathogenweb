@@ -1102,10 +1102,10 @@
                     var viewportEl = document.getElementById("viewport");
                     var viewportFocused = false;
                     viewportEl.addEventListener("mousedown", function () { viewportFocused = true; });
-                    viewportEl.addEventListener("mouseleave", function () { viewportFocused = false; });
+                    /* capture:true so we see the event even if NGL calls stopPropagation */
                     document.addEventListener("mousedown", function (e) {
                         if (!viewportEl.contains(e.target)) { viewportFocused = false; }
-                    });
+                    }, true);
                     viewportEl.addEventListener("wheel", function (e) {
                         if (viewportFocused) { e.preventDefault(); }
                     }, { passive: false });

@@ -1925,18 +1925,29 @@ body.residue-modal-open {
     --protein-accent-border: var(--tp-color-brand-600);
 }
 
-/* Invert the whole feature viewer (canvas + SVG ruler) for dark mode */
-.tp-dark .feature-viewer-shell {
-    background: var(--tp-color-surface-soft);
-    border-color: var(--tp-color-border);
+/* Feature viewer canvas — invert for dark mode */
+.tp-dark .feature-viewer-shell canvas {
     filter: invert(0.88) hue-rotate(180deg);
     border-radius: 4px;
 }
 
-/* Re-invert buttons so they don't look inverted on top of the inverted shell */
+/* SVG ruler/axis — also invert so ticks and labels are readable */
+.tp-dark .feature-viewer-shell svg {
+    filter: invert(0.88) hue-rotate(180deg);
+}
+
+/* Feature viewer shell — soften border and background */
+.tp-dark .feature-viewer-shell {
+    background: var(--tp-color-surface-soft);
+    border-color: var(--tp-color-border);
+}
+
+/* Feature viewer buttons */
 .tp-dark .feature-viewer-shell button,
 .tp-dark .feature-viewer-shell .button {
-    filter: invert(1) hue-rotate(180deg);
+    background: var(--tp-color-surface) !important;
+    border-color: var(--tp-color-border) !important;
+    color: var(--tp-color-text-secondary) !important;
 }
 
 /* Outline buttons — swap light gradients for dark-friendly flat bg */
