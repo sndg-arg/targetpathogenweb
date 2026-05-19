@@ -12,7 +12,7 @@
     width: 100%;
     max-width: 420px;
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: 18px;
+    border-radius: var(--tp-ui-radius-panel);
     background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
     box-shadow: var(--tp-ui-shadow-panel);
     padding: 36px 32px 32px;
@@ -130,7 +130,6 @@
 .auth-actions .btn {
     height: 46px;
     font-size: 0.95rem;
-    font-weight: 700;
 }
 
 .auth-submit button {

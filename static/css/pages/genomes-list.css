@@ -107,7 +107,7 @@
     margin: 0;
     color: var(--tp-color-text-muted);
     font-size: 0.84rem;
-    font-weight: 600;
+    font-weight: 500;
     line-height: 1.3;
 }
 
@@ -147,16 +147,11 @@
 }
 
 .genome-list-card {
-    border: 1px solid var(--genomes-border);
+    border: 1px solid var(--tp-color-border);
     border-radius: var(--tp-ui-radius-panel);
     background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
-    box-shadow: var(--tp-ui-shadow-panel);
-}
-
-.genome-list-card {
-    overflow: hidden;
-    border-color: var(--tp-color-border);
     box-shadow: var(--tp-shadow-sm);
+    overflow: hidden;
 }
 
 .genome-list-head {

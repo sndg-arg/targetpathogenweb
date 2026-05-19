@@ -116,7 +116,7 @@
     margin: 0;
     color: var(--tp-color-text-muted);
     font-size: 0.84rem;
-    font-weight: 600;
+    font-weight: 500;
     line-height: 1.35;
 }
 
@@ -431,8 +431,8 @@
     transform: translateX(-50%);
     padding: 8px 12px;
     border-radius: 8px;
-    background: #1a2e38;
-    color: #e2e8f0;
+    background: var(--tp-tooltip-bg);
+    color: var(--tp-tooltip-color);
     font-family: "Source Sans 3", "Segoe UI", sans-serif;
     font-size: 0.78rem;
     font-weight: 500;
@@ -455,7 +455,7 @@
     left: 50%;
     transform: translateX(-50%);
     border: 5px solid transparent;
-    border-top-color: #1a2e38;
+    border-top-color: var(--tp-tooltip-bg);
 }
 
 .targets-bd:hover .targets-tooltip,
@@ -512,15 +512,15 @@
 }
 
 .targets-factor--good {
-    background: #e7f5ec;
-    color: #1f8a4c;
-    border-color: #b5dec5;
+    background: var(--tp-color-success-bg);
+    color: var(--tp-color-success-ink);
+    border-color: var(--tp-color-success-border);
 }
 
 .targets-factor--bad {
-    background: #fbecec;
-    color: #b3271f;
-    border-color: #f1c2c2;
+    background: var(--tp-color-danger-bg);
+    color: var(--tp-color-danger-ink);
+    border-color: var(--tp-color-danger-border);
 }
 
 .targets-factor--neutral {

@@ -50,7 +50,7 @@
 
 .hero-subtitle {
     margin: 6px 0 0;
-    color: var(--tp-muted);
+    color: var(--tp-color-text-muted);
     font-size: 1rem;
     line-height: 1.4;
 }
@@ -99,7 +99,7 @@
     margin: 0;
     color: var(--tp-color-text-muted);
     font-size: 0.84rem;
-    font-weight: 600;
+    font-weight: 500;
     line-height: 1.3;
 }
 
@@ -720,8 +720,8 @@ a.filter-pill .filter-pill-remove {
     transform: translateX(-50%);
     padding: 8px 12px;
     border-radius: 8px;
-    background: #1a2e38;
-    color: #e2e8f0;
+    background: var(--tp-tooltip-bg);
+    color: var(--tp-tooltip-color);
     font-size: 0.76rem;
     font-weight: 500;
     line-height: 1.4;
@@ -743,7 +743,7 @@ a.filter-pill .filter-pill-remove {
     left: 50%;
     transform: translateX(-50%);
     border: 5px solid transparent;
-    border-top-color: #1a2e38;
+    border-top-color: var(--tp-tooltip-bg);
 }
 
 .metric-zero:hover .metric-tooltip {
@@ -780,8 +780,8 @@ a.filter-pill .filter-pill-remove {
     transform: translateX(-50%);
     padding: 6px 10px;
     border-radius: 8px;
-    background: #1a2e38;
-    color: #e2e8f0;
+    background: var(--tp-tooltip-bg);
+    color: var(--tp-tooltip-color);
     font-size: 0.74rem;
     font-weight: 500;
     line-height: 1.4;
@@ -803,7 +803,7 @@ a.filter-pill .filter-pill-remove {
     left: 50%;
     transform: translateX(-50%);
     border: 5px solid transparent;
-    border-top-color: #1a2e38;
+    border-top-color: var(--tp-tooltip-bg);
 }
 
 .structure-unavailable {
@@ -853,8 +853,8 @@ a.filter-pill .filter-pill-remove {
     transform: translateX(-50%);
     padding: 8px 12px;
     border-radius: 8px;
-    background: #1a2e38;
-    color: #e2e8f0;
+    background: var(--tp-tooltip-bg);
+    color: var(--tp-tooltip-color);
     font-size: 0.76rem;
     font-weight: 500;
     line-height: 1.4;
@@ -876,7 +876,7 @@ a.filter-pill .filter-pill-remove {
     left: 50%;
     transform: translateX(-50%);
     border: 5px solid transparent;
-    border-top-color: #1a2e38;
+    border-top-color: var(--tp-tooltip-bg);
 }
 
 .metric-no-structure:hover .metric-tooltip {
@@ -950,7 +950,7 @@ a.filter-pill .filter-pill-remove {
 }
 
 .pagination-label {
-    color: var(--tp-muted);
+    color: var(--tp-color-text-muted);
     font-size: 0.9rem;
 }
 

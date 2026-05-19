@@ -11,15 +11,15 @@
     --binder-accent-ink: var(--tp-color-brand-900);
     --binder-accent-soft: var(--tp-color-brand-100);
     --binder-accent-border: var(--tp-color-brand-300);
-    --binder-pass: #1f8a4c;
-    --binder-pass-soft: #e7f5ec;
-    --binder-pass-border: #b5dec5;
-    --binder-fail: #b3271f;
-    --binder-fail-soft: #fbecec;
-    --binder-fail-border: #f1c2c2;
-    --binder-warn: #8a6100;
-    --binder-warn-soft: #fff5dd;
-    --binder-warn-border: #f0d68b;
+    --binder-pass: var(--tp-color-success-ink);
+    --binder-pass-soft: var(--tp-color-success-bg);
+    --binder-pass-border: var(--tp-color-success-border);
+    --binder-fail: var(--tp-color-danger-ink);
+    --binder-fail-soft: var(--tp-color-danger-bg);
+    --binder-fail-border: var(--tp-color-danger-border);
+    --binder-warn: var(--tp-color-warning-ink);
+    --binder-warn-soft: var(--tp-color-warning-bg);
+    --binder-warn-border: var(--tp-color-warning-border);
 }
 
 .binder-page h1,
