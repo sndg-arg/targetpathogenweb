@@ -376,6 +376,7 @@
     font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
     font-size: 0.78rem;
     font-weight: 600;
+    line-height: 1;
     color: var(--tp-color-text-muted);
     padding: 4px 10px;
     background: var(--tp-color-surface-soft);
