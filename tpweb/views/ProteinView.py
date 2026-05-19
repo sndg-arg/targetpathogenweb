@@ -89,10 +89,15 @@ def serialize_prot(protein: Bioentry):
                 }
 
     features = []
+    _seen_features = set()
     for feature in protein.features.all():
         location = _first_location(feature)
         if location is None:
             continue
+        dedup_key = (location.start_pos, location.end_pos, feature.type_term.identifier)
+        if dedup_key in _seen_features:
+            continue
+        _seen_features.add(dedup_key)
         features.append(
             {
                 "start": location.start_pos,
