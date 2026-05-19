@@ -1098,9 +1098,18 @@
                     backgroundColor: tpColor("--tp-color-structure-bg") || tpColor("--tp-color-surface-panel")
                 });
                 nglStageInstance = stage;
-                document.getElementById("viewport").addEventListener("wheel", function (e) {
-                    e.preventDefault();
-                }, { passive: false });
+                (function () {
+                    var viewportEl = document.getElementById("viewport");
+                    var viewportFocused = false;
+                    viewportEl.addEventListener("mousedown", function () { viewportFocused = true; });
+                    viewportEl.addEventListener("mouseleave", function () { viewportFocused = false; });
+                    document.addEventListener("mousedown", function (e) {
+                        if (!viewportEl.contains(e.target)) { viewportFocused = false; }
+                    });
+                    viewportEl.addEventListener("wheel", function (e) {
+                        if (viewportFocused) { e.preventDefault(); }
+                    }, { passive: false });
+                }());
 
                 const structureUrls = {
                     primary: "{% url 'tpwebapp:structure_raw' viewer_structure_id|default:structure.id %}",
