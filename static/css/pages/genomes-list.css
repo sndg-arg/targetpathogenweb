@@ -27,7 +27,7 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    margin: 4px 0 8px;
+    margin: 0 0 8px;
     color: var(--tp-color-text-muted);
     font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
     font-size: 0.78rem;
