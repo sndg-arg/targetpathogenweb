@@ -589,5 +589,14 @@
         }
 
         $(document).ready(jsloaded);
+
+        // Prevent page scroll while the mouse is over the 3D viewer
+        (function () {
+            var viewportEl = document.getElementById("viewport");
+            if (!viewportEl) return;
+            viewportEl.addEventListener("wheel", function (e) {
+                e.preventDefault();
+            }, { passive: false });
+        })();
     </script>
 {% endblock %}
