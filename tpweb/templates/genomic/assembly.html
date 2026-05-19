@@ -140,7 +140,7 @@
                                                     {% if t.binder_count %}
                                                         <span class="targets-evidence">
                                                             {{ t.binder_count }}{% if t.chembl_count >= 100 or t.zinc_count >= 50 %}+{% endif %} {% trans "binders" %}
-                                                            <span class="targets-tooltip">{% trans "Total includes exact PDB ligands plus curated ChEMBL/ZINC subsets. ChEMBL is capped at top 100 per protein and ZINC at top 50. True totals may be higher." %}</span>
+                                                            <span class="targets-tooltip">{% trans "PDB co-crystallized ligands, ChEMBL bioactive compounds (top 100), and ZINC proposals (top 50). Source databases may contain additional records." %}</span>
                                                         </span>
                                                     {% endif %}
                                                 </div>
