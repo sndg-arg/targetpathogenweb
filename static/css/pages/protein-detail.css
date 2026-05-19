@@ -823,25 +823,27 @@
 .structure-source-toggle {
     display: inline-flex;
     align-items: center;
-    gap: 3px;
+    gap: 2px;
     background: var(--tp-color-surface-muted);
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: 20px;
+    border: 1px solid var(--tp-color-border-strong);
+    border-radius: 12px;
     padding: 3px;
-    margin-bottom: 8px;
+    box-shadow: var(--tp-shadow-xs);
+    flex-shrink: 0;
 }
 
 .structure-source-btn {
-    padding: 4px 14px;
+    padding: 5px 16px;
     border: none;
-    border-radius: 16px;
+    border-radius: 9px;
     background: transparent;
     color: var(--tp-color-text-muted);
-    font-size: 0.78rem;
+    font-size: 0.82rem;
     font-weight: 500;
     cursor: pointer;
     transition: background 0.15s, color 0.15s;
     line-height: 1.4;
+    white-space: nowrap;
 }
 
 .structure-source-btn:hover {
@@ -851,9 +853,9 @@
 
 .structure-source-btn.is-active {
     background: var(--tp-color-surface-panel);
-    color: var(--tp-color-brand-600);
+    color: var(--tp-color-brand-700);
     font-weight: 600;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.10);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
 }
 
 #viewport {
@@ -906,12 +908,54 @@
 }
 
 .structure-actions .structure-action-btn {
-    min-width: 170px;
     white-space: nowrap;
 }
 
+.structure-actions .structure-reset-btn {
+    min-width: 0;
+    color: var(--tp-color-text-muted);
+    font-weight: 500;
+}
+
+.structure-actions .structure-reset-btn:disabled {
+    opacity: 0.4;
+}
+
 .protein-page .structure-icon-btn.tp-btn--outline,
-.protein-page .structure-action-btn.tp-btn--outline,
+.protein-page .structure-reset-btn.tp-btn--outline {
+    color: var(--tp-color-text-muted) !important;
+    background: transparent !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
+    font-weight: 500 !important;
+}
+
+.protein-page .structure-icon-btn.tp-btn--outline:hover,
+.protein-page .structure-reset-btn.tp-btn--outline:hover {
+    color: var(--tp-color-text) !important;
+    background: var(--tp-color-surface-soft) !important;
+    border-color: var(--tp-color-border-soft) !important;
+}
+
+.protein-page .structure-reset-btn:disabled {
+    opacity: 0.35 !important;
+    cursor: default !important;
+}
+
+.protein-page .structure-download-btn.tp-btn--outline {
+    color: var(--tp-color-brand-900) !important;
+    border-color: var(--tp-color-brand-300) !important;
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-brand-050) 100%) !important;
+    box-shadow: var(--tp-shadow-xs);
+}
+
+.protein-page .structure-download-btn.tp-btn--outline:hover,
+.protein-page .structure-download-btn.tp-btn--outline:focus-visible {
+    color: var(--tp-color-link-hover) !important;
+    border-color: var(--tp-color-brand-800) !important;
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-brand-100) 100%) !important;
+}
+
 .protein-page .structure-table-btn.tp-btn--outline {
     color: var(--tp-color-brand-900) !important;
     border-color: var(--tp-color-brand-300) !important;
@@ -919,10 +963,6 @@
     box-shadow: var(--tp-shadow-xs);
 }
 
-.protein-page .structure-icon-btn.tp-btn--outline:hover,
-.protein-page .structure-icon-btn.tp-btn--outline:focus-visible,
-.protein-page .structure-action-btn.tp-btn--outline:hover,
-.protein-page .structure-action-btn.tp-btn--outline:focus-visible,
 .protein-page .structure-table-btn.tp-btn--outline:hover,
 .protein-page .structure-table-btn.tp-btn--outline:focus-visible {
     color: var(--tp-color-link-hover) !important;

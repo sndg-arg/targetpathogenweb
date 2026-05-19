@@ -279,6 +279,12 @@
                             <h2>{% trans "3D Structure" %}</h2>
                             <p class="section-subtitle">{% trans "Interactive model with pockets and residue sets." %}</p>
                         </div>
+                        {% if alt_structure_id %}
+                        <div class="structure-source-toggle" id="structure-source-toggle">
+                            <button type="button" class="structure-source-btn is-active" id="structure-src-primary" onclick="switchStructureSource('primary')">{{ primary_structure_label }}</button>
+                            <button type="button" class="structure-source-btn" id="structure-src-alt" onclick="switchStructureSource('alt')">{{ alt_structure_label }}</button>
+                        </div>
+                        {% endif %}
                     </div>
 
                     <div class="structure-actions tp-ui-toolbar structure-toolbar">
@@ -318,17 +324,10 @@
                         <button type="button"
                                 id="structure-reset-zoom-btn"
                                 onclick="ngl_reset_zoom()"
-                                class="btn tp-btn tp-btn--outline tp-btn--md structure-action-btn"
+                                class="btn tp-btn tp-btn--outline tp-btn--md structure-action-btn structure-reset-btn"
                                 disabled>{% trans "Reset Zoom" %}</button>
-                        <a href="{% url "tpwebapp:structure_export" structure.id %}" class="btn tp-btn tp-btn--outline tp-btn--md structure-action-btn">{% trans "Download TCL VMD" %}</a>
+                        <a href="{% url "tpwebapp:structure_export" structure.id %}" class="btn tp-btn tp-btn--outline tp-btn--md structure-action-btn structure-download-btn">{% trans "Download VMD script" %}</a>
                     </div>
-
-                    {% if alt_structure_id %}
-                    <div class="structure-source-toggle" id="structure-source-toggle">
-                        <button type="button" class="structure-source-btn is-active" id="structure-src-primary" onclick="switchStructureSource('primary')">{{ primary_structure_label }}</button>
-                        <button type="button" class="structure-source-btn" id="structure-src-alt" onclick="switchStructureSource('alt')">{{ alt_structure_label }}</button>
-                    </div>
-                    {% endif %}
                     {% if structure and not pocket_structure_has_pockets %}
                         <p class="table-hint">{% blocktrans with source=pocket_structure_label %}No pockets are loaded yet for the displayed {{ source }} structure. Run experimental pocket backfill to show FPocket/P2Rank overlays on this structure.{% endblocktrans %}</p>
                     {% endif %}
