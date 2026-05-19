@@ -98,6 +98,30 @@
     min-height: var(--tp-ui-control-height);
 }
 
+/* ── Canonical page hero ── */
+.tp-page-hero {
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: var(--tp-ui-radius-hero);
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+    padding: 20px;
+    box-shadow: var(--tp-shadow-sm);
+    position: relative;
+    overflow: hidden;
+}
+
+.tp-page-hero::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--tp-color-brand-800) 0%, var(--tp-color-sage-700) 64%, var(--tp-color-brand-600) 100%);
+}
+
+.tp-page-hero > * {
+    position: relative;
+    z-index: 1;
+}
+
 .tp-ui-search {
     position: relative;
     min-width: min(300px, 100%);

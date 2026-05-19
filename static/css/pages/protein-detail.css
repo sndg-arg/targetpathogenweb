@@ -19,28 +19,7 @@
     letter-spacing: 0.2px;
 }
 
-.protein-hero {
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: var(--tp-ui-radius-hero);
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
-    padding: 20px 20px 18px;
-    box-shadow: var(--tp-ui-shadow-panel);
-    position: relative;
-    overflow: hidden;
-}
-
-.protein-hero::before {
-    content: "";
-    position: absolute;
-    inset: 0 0 auto 0;
-    height: 4px;
-    background: linear-gradient(90deg, var(--tp-color-brand-800) 0%, var(--tp-color-sage-700) 64%, var(--tp-color-brand-600) 100%);
-}
-
-.protein-hero > * {
-    position: relative;
-    z-index: 1;
-}
+/* Base styles from .tp-page-hero in ui-system.css */
 
 .protein-hero-top {
     display: flex;
