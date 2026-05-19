@@ -2091,8 +2091,8 @@ a.filter-pill .filter-pill-remove {
     flex: 1 1 auto;
     min-width: 0;
     border: 1px solid var(--tp-color-border);
-    border-radius: 8px;
-    padding: 8px 12px;
+    border-radius: 10px;
+    padding: 9px 14px;
     background: var(--tp-color-surface);
     color: var(--tp-color-text-primary);
     font: inherit;

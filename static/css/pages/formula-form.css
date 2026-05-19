@@ -333,9 +333,7 @@
 }
 
 .formula-var-search {
-    min-height: 38px !important;
-    border-radius: 10px !important;
-    font-size: 0.9rem !important;
+    min-height: 38px;
 }
 
 .formula-var-groups {

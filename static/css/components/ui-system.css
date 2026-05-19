@@ -254,6 +254,26 @@
 .tp-ui-search-input {
     min-width: min(300px, 100%);
     flex: 1 1 auto;
+    border: 1px solid var(--tp-color-border) !important;
+    border-radius: 10px !important;
+    background: var(--tp-color-surface) !important;
+    color: var(--tp-color-text-primary) !important;
+    font: inherit !important;
+    font-size: 0.92rem !important;
+    padding: 9px 14px !important;
+    box-shadow: none !important;
+    transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.tp-ui-search-input::placeholder {
+    color: var(--tp-color-text-soft);
+}
+
+.tp-ui-search-input:focus,
+.tp-ui-search-input:focus-visible {
+    outline: none !important;
+    border-color: var(--tp-color-border-accent) !important;
+    box-shadow: 0 0 0 3px var(--tp-color-brand-100) !important;
 }
 
 .tp-ui-search-actions {
@@ -1192,7 +1212,10 @@ a.tp-chip--go:hover {
 .tp-dt-wrapper .dataTables_filter input {
     width: 100%;
     margin-left: 0 !important;
-    padding: 9px 12px;
+    padding: 9px 14px !important;
+    min-height: unset !important;
+    height: unset !important;
+    font-size: 0.92rem !important;
 }
 
 .tp-dt-wrapper .dataTables_filter .tp-dt-search-wrap {
@@ -1204,6 +1227,7 @@ a.tp-chip--go:hover {
 
 .tp-dt-wrapper .dataTables_filter .tp-dt-search-wrap input {
     padding-left: 34px !important;
+    padding-right: 14px !important;
 }
 
 .tp-dt-wrapper .dataTables_filter .tp-dt-search-icon {

@@ -1176,7 +1176,7 @@
     min-width: 0;
     border: 1px solid var(--tp-color-border);
     border-radius: 10px;
-    padding: 9px 12px;
+    padding: 9px 14px;
     background: var(--tp-color-surface);
     color: var(--tp-color-text-primary);
     font: inherit;
