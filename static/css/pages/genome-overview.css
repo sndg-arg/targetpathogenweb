@@ -475,7 +475,6 @@
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
-    margin-top: 10px;
     padding-left: 38px;
 }
 
@@ -540,6 +539,8 @@
 
 .targets-main {
     min-width: 0;
+    display: grid;
+    gap: 6px;
 }
 
 .targets-title {
@@ -610,7 +611,7 @@
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
-    justify-content: flex-end;
+    padding-left: 38px;
 }
 
 .targets-bd {
