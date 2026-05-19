@@ -1997,6 +1997,22 @@
 
             const table = $(selector).DataTable(config);
             applyWrapperClasses(table);
+
+            const wrapper = $(table.table().container());
+            wrapper.find(".dataTables_filter label").each(function () {
+                const $label = $(this);
+                const $input = $label.find("input[type=search]");
+                if ($input.length && !$label.find(".tp-dt-search-icon").length) {
+                    $input.wrap('<span class="tp-dt-search-wrap"></span>');
+                    $label.find(".tp-dt-search-wrap").prepend(
+                        '<svg class="tp-dt-search-icon" width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">' +
+                        '<circle cx="6" cy="6" r="4" stroke="currentColor" stroke-width="1.4"/>' +
+                        '<path d="M9.5 9.5l2.5 2.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>' +
+                        '</svg>'
+                    );
+                }
+            });
+
             return table;
         };
     }
