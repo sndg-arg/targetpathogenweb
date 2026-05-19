@@ -592,11 +592,14 @@
 
         // Prevent page scroll while the mouse is over the 3D viewer
         (function () {
-            var viewportEl = document.getElementById("viewport");
-            if (!viewportEl) return;
-            viewportEl.addEventListener("wheel", function (e) {
-                e.preventDefault();
-            }, { passive: false });
+            var wrap = document.querySelector(".structure-fs-viewport-wrap");
+            if (!wrap) return;
+            wrap.addEventListener("mouseenter", function () {
+                document.body.style.overflow = "hidden";
+            });
+            wrap.addEventListener("mouseleave", function () {
+                document.body.style.overflow = "";
+            });
         })();
     </script>
 {% endblock %}
