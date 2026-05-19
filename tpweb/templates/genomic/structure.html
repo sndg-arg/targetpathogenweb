@@ -588,18 +588,21 @@
             });
         }
 
-        $(document).ready(jsloaded);
+        $(document).ready(function () {
+            jsloaded();
 
-        // Prevent page scroll while the mouse is over the 3D viewer
-        (function () {
-            var wrap = document.querySelector(".structure-fs-viewport-wrap");
-            if (!wrap) return;
-            wrap.addEventListener("mouseenter", function () {
-                document.body.style.overflow = "hidden";
-            });
-            wrap.addEventListener("mouseleave", function () {
-                document.body.style.overflow = "";
-            });
-        })();
+            // Prevent page scroll while the mouse is over the 3D viewer
+            var wrap = document.getElementById("structure-fs-canvas-shell");
+            if (wrap) {
+                wrap.addEventListener("mouseenter", function () {
+                    document.body.style.overflow = "hidden";
+                    document.documentElement.style.overflow = "hidden";
+                });
+                wrap.addEventListener("mouseleave", function () {
+                    document.body.style.overflow = "";
+                    document.documentElement.style.overflow = "";
+                });
+            }
+        });
     </script>
 {% endblock %}
