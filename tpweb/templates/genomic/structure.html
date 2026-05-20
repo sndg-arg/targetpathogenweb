@@ -591,7 +591,7 @@
         $(document).ready(function () {
             jsloaded();
 
-            // Lock page scroll while viewer is focused; restore on click outside.
+            // Lock page scroll while mouse is over the viewer.
             var shell = document.getElementById("structure-fs-canvas-shell");
             if (shell) {
                 var scrollLocked = false;
@@ -603,15 +603,13 @@
                     }
                 });
 
-                shell.addEventListener("click", function () {
+                shell.addEventListener("mouseenter", function () {
                     scrollLocked = true;
                     lockedScrollY = window.scrollY;
                 });
 
-                document.addEventListener("click", function (e) {
-                    if (!shell.contains(e.target)) {
-                        scrollLocked = false;
-                    }
+                shell.addEventListener("mouseleave", function () {
+                    scrollLocked = false;
                 });
             }
         });
