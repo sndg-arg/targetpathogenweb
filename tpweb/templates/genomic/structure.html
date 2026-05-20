@@ -178,8 +178,7 @@
                 nglWheelZoomStepOut: -0.055,
                 mainCartoonAspectRatio: 3.0,
                 mainCartoonScale: 1.5,
-                densityShellOpacity: 0.92,
-                densityPocketShellOpacity: 0.84,
+                densityShellOpacity: 0.78,
                 surfaceOpacity: 0.96
             });
 
@@ -492,25 +491,10 @@
                     setResetZoomEnabled(false);
                 };
 
-                function updateDensityForPockets() {
-                    if (!visible.__main_density) return;
-                    const anyPocketVisible = pocketSurfaceKeys.some(function (key) {
-                        return !!visible[key];
-                    });
-                    if (typeof representations.__main_density.setParameters === "function") {
-                        representations.__main_density.setParameters({
-                            opacity: anyPocketVisible
-                                ? STRUCTURE_VIEWER_CONFIG.densityPocketShellOpacity
-                                : STRUCTURE_VIEWER_CONFIG.densityShellOpacity
-                        });
-                    }
-                }
-
                 window.toogle_view = function (repr) {
                     if (!(repr in representations)) return;
                     visible[repr] = !visible[repr];
                     representations[repr].setVisibility(visible[repr]);
-                    updateDensityForPockets();
                 };
 
                 window.ngl_zoom_to = function (repr) {
@@ -537,8 +521,7 @@
                 representations.__main_cartoon = component.addRepresentation("cartoon", {
                     aspectRatio: STRUCTURE_VIEWER_CONFIG.mainCartoonAspectRatio,
                     scale: STRUCTURE_VIEWER_CONFIG.mainCartoonScale,
-                    sele: "backbone and " + activeChainSelector,
-                    color: tpColor("--tp-color-structure-cartoon") || "#2288a3"
+                    sele: "backbone and " + activeChainSelector
                 });
                 visible.__main_cartoon = true;
                 representations.__main_cartoon.sele = "backbone and " + activeChainSelector;
@@ -549,8 +532,7 @@
                     opacity: STRUCTURE_VIEWER_CONFIG.densityShellOpacity,
                     side: "double",
                     opaqueBack: true,
-                    surfaceType: "ms",
-                    useWorker: true
+                    surfaceType: "ms"
                 });
                 visible.__main_density = false;
                 representations.__main_density.setVisibility(false);
@@ -576,7 +558,6 @@
                         const shouldShow = !!visible[key];
                         representations[key].setVisibility(shouldShow);
                     });
-                    updateDensityForPockets();
                     setModeButtonState(normalized);
                 };
 
