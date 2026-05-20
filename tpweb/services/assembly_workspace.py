@@ -117,12 +117,13 @@ def _humanize_factor(param_name, value):
     if param_name.lower() == "druggability":
         try:
             v = float(value)
+            fmt = f"{v:.2f}"
             if v >= 0.7:
-                return ("Highly druggable pocket", "good")
+                return (f"Highly druggable · {fmt}", "good")
             elif v >= 0.4:
-                return ("Moderately druggable", "neutral")
+                return (f"Moderately druggable · {fmt}", "neutral")
             elif v > 0:
-                return ("Low druggability", "bad")
+                return (f"Low druggability · {fmt}", "bad")
             else:
                 return ("No druggable pocket", "neutral")
         except (ValueError, TypeError):
