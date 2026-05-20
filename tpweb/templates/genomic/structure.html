@@ -180,7 +180,6 @@
                 mainCartoonScale: 1.5,
                 densityShellOpacity: 0.72,
                 densityPocketShellOpacity: 0.58,
-                densityCartoonOpacity: 0.34,
                 surfaceOpacity: 0.96
             });
 
@@ -560,13 +559,14 @@
                 window.ngl_set_mode = function (mode) {
                     const normalized = mode === "density" ? "density" : "cartoon";
                     const isDensity = normalized === "density";
+                    const showCartoon = !isDensity;
                     const showDensityShell = isDensity;
-                    visible.__main_cartoon = true;
+                    visible.__main_cartoon = showCartoon;
                     visible.__main_density = showDensityShell;
-                    representations.__main_cartoon.setVisibility(true);
+                    representations.__main_cartoon.setVisibility(showCartoon);
                     if (typeof representations.__main_cartoon.setParameters === "function") {
                         representations.__main_cartoon.setParameters({
-                            opacity: isDensity ? STRUCTURE_VIEWER_CONFIG.densityCartoonOpacity : 1
+                            opacity: 1
                         });
                     }
                     representations.__main_density.setVisibility(showDensityShell);
