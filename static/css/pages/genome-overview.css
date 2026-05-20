@@ -512,7 +512,7 @@
 }
 
 .targets-footnote {
-    margin: auto 0 0;
+    margin: 18px 0 0;
     padding-top: 12px;
     border-top: 1px dashed var(--tp-color-border-soft);
     font-size: 0.86rem;
