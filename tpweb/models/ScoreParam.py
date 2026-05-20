@@ -204,16 +204,18 @@ class ScoreParam(models.Model):
     @staticmethod
     def Initialize_druggability():
         from tpweb.models.ScoreFormula import ScoreFormula
+        default_expression = "druggability"
+        legacy_default_expressions = {"", "3 * druggability", "3*druggability"}
         users = TPUser.objects.all()
         for user in users:
             formula, _ = ScoreFormula.objects.get_or_create(
                 name="Druggability",
                 user=user,
-                defaults={"default": True, "expression": "3 * druggability"},
+                defaults={"default": True, "expression": default_expression},
             )
             updated_fields = []
-            if not formula.expression:
-                formula.expression = "3 * druggability"
+            if (formula.expression or "").strip() in legacy_default_expressions:
+                formula.expression = default_expression
                 updated_fields.append("expression")
             if not formula.default:
                 formula.default = True
@@ -250,8 +252,8 @@ class ScoreParam(models.Model):
 
         formulas = ScoreFormula.objects.filter(name='Druggability')
         for formula in formulas:
-            if not formula.expression:
-                formula.expression = "3 * druggability"
+            if (formula.expression or "").strip() in legacy_default_expressions:
+                formula.expression = default_expression
                 formula.save(update_fields=["expression"])
 
 

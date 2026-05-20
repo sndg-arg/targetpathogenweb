@@ -666,8 +666,8 @@ class WorkspaceIsolationTests(TestCase):
         self.assertIn("druggability", zero_cache)
         self.assertEqual(variables["druggability"], 0.82)
         self.assertAlmostEqual(
-            safe_eval_expression("3 * druggability", variables),
-            2.46,
+            safe_eval_expression("druggability", variables),
+            0.82,
         )
 
     def test_workspace_genome_names_are_hidden_from_other_users(self):
