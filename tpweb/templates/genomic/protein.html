@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260520-viewer-wheel">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260520-viewer-canvas">
 {% endblock %}
 
 {% block body %}
@@ -825,6 +825,16 @@
                 }, { passive: false, capture: true });
             }
 
+            function syncNglViewportSize(stageInstance) {
+                if (!stageInstance || typeof stageInstance.handleResize !== "function") return;
+                window.requestAnimationFrame(function () {
+                    stageInstance.handleResize();
+                    window.setTimeout(function () {
+                        stageInstance.handleResize();
+                    }, 80);
+                });
+            }
+
             function initStructureViewerWith3Dmol() {
                 if (!enable3DmolViewer) {
                     return false;
@@ -1106,6 +1116,10 @@
                     backgroundColor: tpColor("--tp-color-structure-bg") || tpColor("--tp-color-surface-panel")
                 });
                 nglStageInstance = stage;
+                syncNglViewportSize(stage);
+                window.addEventListener("resize", function () {
+                    syncNglViewportSize(stage);
+                });
                 (function () {
                     var overlay = document.getElementById("viewport-overlay");
                     var wrapEl = overlay && overlay.parentElement;
@@ -1290,6 +1304,7 @@
                     window.ngl_set_mode("cartoon");
                     component.autoView();
                     applyStructureTheme();
+                    syncNglViewportSize(stage);
                     setStructureResetZoomEnabled(false);
                     if (structureLoadingNote) {
                         structureLoadingNote.style.display = "none";

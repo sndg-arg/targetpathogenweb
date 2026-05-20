@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20260520-viewer-wheel">
+    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20260520-viewer-canvas">
 {% endblock %}
 
 {% block body %}
@@ -228,6 +228,16 @@
                 }, { passive: false, capture: true });
             }
 
+            function syncNglViewportSize(stageInstance) {
+                if (!stageInstance || typeof stageInstance.handleResize !== "function") return;
+                window.requestAnimationFrame(function () {
+                    stageInstance.handleResize();
+                    window.setTimeout(function () {
+                        stageInstance.handleResize();
+                    }, 80);
+                });
+            }
+
             function setLayersPanelState(isOpen) {
                 if (!layersPanel || !layersToggleBtn || !structureRoot) return;
                 structureRoot.classList.toggle("is-layers-open", isOpen);
@@ -427,6 +437,10 @@
                 backgroundColor: tpColor("--tp-color-surface-panel", "#f6fbf9")
             });
             bindStructureWheelToViewer(document.querySelector(".structure-fs-viewport-wrap"));
+            syncNglViewportSize(stage);
+            window.addEventListener("resize", function () {
+                syncNglViewportSize(stage);
+            });
 
             const structureUrls = {
                 primary: "{% url 'tpwebapp:structure_raw' structure.id %}",
@@ -569,6 +583,7 @@
 
                 window.ngl_set_mode("cartoon");
                 component.autoView();
+                syncNglViewportSize(stage);
                 setResetZoomEnabled(false);
                 if (loadingNote) {
                     loadingNote.style.display = "none";

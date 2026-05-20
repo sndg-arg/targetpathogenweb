@@ -833,6 +833,13 @@
     border-radius: 13px;
     border: 1px solid var(--tp-color-border-soft);
     background: linear-gradient(180deg, var(--tp-color-surface-panel) 0%, var(--tp-color-surface-muted) 100%);
+    overflow: hidden;
+}
+
+#viewport canvas {
+    width: 100% !important;
+    height: 100% !important;
+    display: block;
 }
 
 .structure-viewport-wrap {
