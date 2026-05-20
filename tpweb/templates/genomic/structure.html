@@ -592,15 +592,14 @@
             jsloaded();
 
             // Prevent page scroll when wheeling over the 3D viewer.
-            // Listens at document level with passive:false so preventDefault works.
-            // NGL still receives the event for zoom since we don't stopPropagation.
+            // capture:true fires before NGL's own listeners (including any
+            // stopPropagation calls). preventDefault blocks page scroll;
+            // the event still reaches the NGL canvas for zoom.
             var shell = document.getElementById("structure-fs-canvas-shell");
             if (shell) {
-                document.addEventListener("wheel", function (e) {
-                    if (shell.contains(e.target)) {
-                        e.preventDefault();
-                    }
-                }, { passive: false });
+                shell.addEventListener("wheel", function (e) {
+                    e.preventDefault();
+                }, { capture: true, passive: false });
             }
         });
     </script>
