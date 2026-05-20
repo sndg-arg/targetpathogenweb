@@ -203,26 +203,56 @@ class ScoreParam(models.Model):
         ScoreFormulaParam(formula=sf_to,operation="=",coefficient=2,value="outer_membrane",score_param=sp).save()
     @staticmethod
     def Initialize_druggability():
-        from tpweb.models.ScoreFormula import ScoreFormula, ScoreFormulaParam
+        from tpweb.models.ScoreFormula import ScoreFormula
         users = TPUser.objects.all()
         for user in users:
-            drug_formula = ScoreFormula.objects.get_or_create(name="Druggability",user=user,default=True)
-            
-        sp = ScoreParam.objects.get_or_create(
-            category="Pocket", name="Druggability", type="CATEGORICAL",
-            description="Categorical representation of the druggability",
-            default_operation="=", default_value="-", user=None)[0]
-        
-        ScoreParamOptions.objects.get_or_create(score_param=sp, name="High",description="Protein with high druggability")
-        ScoreParamOptions.objects.get_or_create(score_param=sp, name="Medium",description="Protein with medium druggability")
-        ScoreParamOptions.objects.get_or_create(score_param=sp, name="Low",description="Protein with low druggability")
-   
-        sp = ScoreParam.objects.get(name='Druggability', user__isnull=True)
+            formula, _ = ScoreFormula.objects.get_or_create(
+                name="Druggability",
+                user=user,
+                defaults={"default": True, "expression": "3 * druggability"},
+            )
+            updated_fields = []
+            if not formula.expression:
+                formula.expression = "3 * druggability"
+                updated_fields.append("expression")
+            if not formula.default:
+                formula.default = True
+                updated_fields.append("default")
+            if updated_fields:
+                formula.save(update_fields=updated_fields)
+
+        sp = ScoreParam.objects.filter(name="Druggability", user__isnull=True).order_by("id").first()
+        if sp is None:
+            sp = ScoreParam.objects.create(
+                category="Pocket",
+                name="Druggability",
+                type="N",
+                description="Raw FPocket druggability score for the best pocket.",
+                default_operation=">=",
+                default_value="0",
+                user=None,
+            )
+        else:
+            updated_fields = []
+            desired = {
+                "category": "Pocket",
+                "type": "N",
+                "description": "Raw FPocket druggability score for the best pocket.",
+                "default_operation": ">=",
+                "default_value": "0",
+            }
+            for field, value in desired.items():
+                if getattr(sp, field) != value:
+                    setattr(sp, field, value)
+                    updated_fields.append(field)
+            if updated_fields:
+                sp.save(update_fields=updated_fields)
+
         formulas = ScoreFormula.objects.filter(name='Druggability')
         for formula in formulas:
-            low = ScoreFormulaParam.objects.get_or_create(formula=formula,operation="=",coefficient=1,value="Low",score_param=sp)
-            med = ScoreFormulaParam.objects.get_or_create(formula=formula,operation="=",coefficient=2,value="Medium",score_param=sp)
-            hig = ScoreFormulaParam.objects.get_or_create(formula=formula,operation="=",coefficient=3,value="High",score_param=sp)
+            if not formula.expression:
+                formula.expression = "3 * druggability"
+                formula.save(update_fields=["expression"])
 
 
     @staticmethod

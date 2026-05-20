@@ -17,7 +17,21 @@ def _display_table_value(value):
 
 
 def score_param_value_map(protein):
-    return {spv.score_param.name: spv.value for spv in protein.score_params.all()}
+    from tpweb.services.score_param_types import is_numeric_score_param
+
+    values = {}
+    for spv in protein.score_params.all():
+        if is_numeric_score_param(spv.score_param):
+            if spv.numeric_value is not None:
+                values[spv.score_param.name] = spv.numeric_value
+                continue
+            try:
+                values[spv.score_param.name] = float(str(spv.value).replace(",", "."))
+            except (TypeError, ValueError):
+                values[spv.score_param.name] = None
+            continue
+        values[spv.score_param.name] = spv.value
+    return values
 
 
 def compute_score_value(param_values, coefficient_by_param):

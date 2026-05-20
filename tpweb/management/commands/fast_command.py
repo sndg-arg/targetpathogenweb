@@ -268,6 +268,15 @@ class Command(BaseCommand):
             df.to_csv(path, index=False, sep="\t")
             self.stderr.write(self.style.WARNING(f"Fallback generated: {path}"))
 
+        def _write_fallback_table(path, values):
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+            genes = _all_genes()
+            df = pd.DataFrame({"gene": genes})
+            for column, default_value in values.items():
+                df[column] = [default_value] * len(genes)
+            df.to_csv(path, index=False, sep="\t")
+            self.stderr.write(self.style.WARNING(f"Fallback generated: {path}"))
+
         def _find_existing(*paths):
             return next((path for path in paths if os.path.exists(path)), None)
 
@@ -279,6 +288,38 @@ class Command(BaseCommand):
             normalized = str(value).strip().lower()
             return "Y" if normalized in {"true", "t", "1", "yes", "y", "hit"} else "N"
 
+        def _best_blast_metrics(path):
+            if not path or not os.path.exists(path) or os.path.getsize(path) <= 0:
+                return pd.DataFrame(columns=["gene", "identity", "evalue"])
+            blast_columns = [
+                "qseqid", "sseqid", "pident", "length", "mismatch", "gapopen",
+                "qstart", "qend", "sstart", "send", "evalue", "bitscore",
+                "qcovhsp", "qcovs",
+            ]
+            blast = pd.read_csv(path, sep="\t", header=None)
+            if blast.empty:
+                return pd.DataFrame(columns=["gene", "identity", "evalue"])
+            if str(blast.iloc[0, 0]).strip().lower() == "qseqid":
+                blast = blast.iloc[1:].reset_index(drop=True)
+            blast = blast.iloc[:, :min(len(blast.columns), len(blast_columns))]
+            blast.columns = blast_columns[:len(blast.columns)]
+            required = {"qseqid", "pident", "evalue"}
+            if not required.issubset(set(blast.columns)):
+                return pd.DataFrame(columns=["gene", "identity", "evalue"])
+            blast = blast.rename(columns={"qseqid": "gene", "pident": "identity"})
+            blast["identity"] = pd.to_numeric(blast["identity"], errors="coerce")
+            blast["evalue"] = pd.to_numeric(blast["evalue"], errors="coerce")
+            blast = blast.dropna(subset=["gene", "identity", "evalue"])
+            if blast.empty:
+                return pd.DataFrame(columns=["gene", "identity", "evalue"])
+            blast = blast.sort_values(["gene", "identity", "evalue"], ascending=[True, False, True])
+            return blast.groupby("gene", as_index=False).first()[["gene", "identity", "evalue"]]
+
+        def _numeric_column(df, column, default_value):
+            if column not in df.columns:
+                return pd.Series([default_value] * len(df), index=df.index)
+            return pd.to_numeric(df[column], errors="coerce").fillna(default_value)
+
         organism_dir = f"/app/fasttarget/organism/{name}"
         tables_dir = os.path.join(organism_dir, "tables_for_TP")
         offtarget_dir = os.path.join(organism_dir, "offtarget")
@@ -288,20 +329,42 @@ class Command(BaseCommand):
             os.path.join(tables_dir, "human_offtarget.tsv"),
             os.path.join(offtarget_dir, "human_offtarget.tsv"),
         )
+        human_blast_src = _find_existing(
+            os.path.join(tables_dir, "human_offtarget_blast.tsv"),
+            os.path.join(offtarget_dir, "human_offtarget_blast.tsv"),
+        )
         human_out = ss.human_offtarget(genome)
         if human_src:
             human = pd.read_csv(human_src, sep="\t")
             if "gene" not in human.columns or "human_offtarget" not in human.columns:
                 raise CommandError(f"Unexpected schema in {human_src}: expected gene,human_offtarget.")
+            human = human.copy()
+            blast_metrics = _best_blast_metrics(human_blast_src).rename(
+                columns={"identity": "human_identity", "evalue": "human_evalue"}
+            )
+            if not blast_metrics.empty:
+                human = human.merge(blast_metrics, on="gene", how="left", suffixes=("", "_blast"))
+                if "human_identity_blast" in human.columns and "human_identity" not in human.columns:
+                    human["human_identity"] = human["human_identity_blast"]
+                if "human_evalue_blast" in human.columns and "human_evalue" not in human.columns:
+                    human["human_evalue"] = human["human_evalue_blast"]
+            if "human_identity" not in human.columns:
+                human["human_identity"] = _numeric_column(human, "human_offtarget", 0)
+            else:
+                human["human_identity"] = _numeric_column(human, "human_identity", 0)
+            human["human_evalue"] = _numeric_column(human, "human_evalue", 1)
             human["human_offtarget"] = human["human_offtarget"].apply(_as_hit_no_hit)
-            human[["gene", "human_offtarget"]].to_csv(human_out, index=False, sep="\t")
+            human[["gene", "human_offtarget", "human_identity", "human_evalue"]].to_csv(human_out, index=False, sep="\t")
         else:
             if not allow_fallback:
                 raise CommandError(
                     f"Missing required FastTarget output: {os.path.join(tables_dir, 'human_offtarget.tsv')} "
                     f"or {os.path.join(offtarget_dir, 'human_offtarget.tsv')}"
                 )
-            _write_fallback(human_out, "human_offtarget", "no_hit")
+            _write_fallback_table(
+                human_out,
+                {"human_offtarget": "no_hit", "human_identity": 0, "human_evalue": 1},
+            )
 
         # mcpalumbo's fasttarget emits per-species counts (gut_microbiome_offtarget_counts.tsv)
         # instead of the legacy hit/no_hit column. Adapt to the TP score shape here:
@@ -374,17 +437,36 @@ class Command(BaseCommand):
             os.path.join(tables_dir, "hit_in_deg.tsv"),
             os.path.join(essentiality_dir, "hit_in_deg.tsv"),
         )
+        deg_blast_src = _find_existing(
+            os.path.join(tables_dir, "deg_blast.tsv"),
+            os.path.join(essentiality_dir, "deg_blast.tsv"),
+        )
         deg_out = ss.essenciality(genome)
         if deg_src:
             deg = pd.read_csv(deg_src, sep="\t")
             if "gene" not in deg.columns or "hit_in_deg" not in deg.columns:
                 raise CommandError(f"Unexpected schema in {deg_src}: expected gene,hit_in_deg.")
+            deg = deg.copy()
+            blast_metrics = _best_blast_metrics(deg_blast_src).rename(
+                columns={"identity": "deg_identity", "evalue": "deg_evalue"}
+            )
+            if not blast_metrics.empty:
+                deg = deg.merge(blast_metrics, on="gene", how="left", suffixes=("", "_blast"))
+                if "deg_identity_blast" in deg.columns and "deg_identity" not in deg.columns:
+                    deg["deg_identity"] = deg["deg_identity_blast"]
+                if "deg_evalue_blast" in deg.columns and "deg_evalue" not in deg.columns:
+                    deg["deg_evalue"] = deg["deg_evalue_blast"]
+            deg["deg_identity"] = _numeric_column(deg, "deg_identity", 0)
+            deg["deg_evalue"] = _numeric_column(deg, "deg_evalue", 1)
             deg["hit_in_deg"] = deg["hit_in_deg"].apply(_as_yes_no)
-            deg[["gene", "hit_in_deg"]].to_csv(deg_out, index=False, sep="\t")
+            deg[["gene", "hit_in_deg", "deg_identity", "deg_evalue"]].to_csv(deg_out, index=False, sep="\t")
         else:
             if not allow_fallback:
                 raise CommandError(
                     f"Missing required FastTarget output: {os.path.join(tables_dir, 'hit_in_deg.tsv')} "
                     f"or {os.path.join(essentiality_dir, 'hit_in_deg.tsv')}"
                 )
-            _write_fallback(deg_out, "hit_in_deg", "N")
+            _write_fallback_table(
+                deg_out,
+                {"hit_in_deg": "N", "deg_identity": 0, "deg_evalue": 1},
+            )

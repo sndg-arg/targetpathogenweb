@@ -129,6 +129,11 @@ def get_top_targets_by_score(assembly_name, user, limit=5):
         compute_score_value,
         score_param_value_map,
     )
+    from tpweb.services.formula_evaluator import (
+        build_all_options_zero,
+        build_expression_variables,
+        safe_eval_expression,
+    )
 
     formulas = resolve_formulas_for_user(user)
     if not formulas:
@@ -139,6 +144,7 @@ def get_top_targets_by_score(assembly_name, user, limit=5):
 
     formula_terms = list(formula.terms.all())
     coef = coefficient_map(formula_terms)
+    zero_cache = build_all_options_zero(user) if formula.expression else None
 
     proteome_name = assembly_name + Biodatabase.PROT_POSTFIX
     proteins = (
@@ -158,7 +164,15 @@ def get_top_targets_by_score(assembly_name, user, limit=5):
     scored = []
     for p in proteins:
         param_values = score_param_value_map(p)
-        score, weights = compute_score_value(param_values, coef)
+        if formula.expression and zero_cache is not None:
+            try:
+                variables = build_expression_variables(p, zero_cache)
+                score = float(safe_eval_expression(formula.expression, variables))
+            except (ValueError, ZeroDivisionError, OverflowError):
+                score = 0.0
+            weights = {}
+        else:
+            score, weights = compute_score_value(param_values, coef)
         counts = binder_counts_by_source.get(p.accession, {})
         pdb_c = counts.get(Binders.SOURCE_PDB, 0)
         chembl_c = counts.get(Binders.SOURCE_CHEMBL, 0)

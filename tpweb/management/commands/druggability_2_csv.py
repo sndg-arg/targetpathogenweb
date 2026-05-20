@@ -48,7 +48,7 @@ class Command(BaseCommand):
         rsp = ResidueSetProperty.objects.filter(pdbresidue_set_id__in=rs_ids, property_id=property_id.id)
         rsp_ids = rsp.values_list('value', flat=True)
         
-        df = pd.DataFrame(columns=['gene', 'rsp_value', 'd_char'])
+        df = pd.DataFrame(columns=['gene', 'Druggability'])
 
 
         index = 0
@@ -67,29 +67,14 @@ class Command(BaseCommand):
             if rs.exists():
                 highest_rsp_value = None
                 highest_bioentry_id = None
-                highest_d_char = None
                 for resset in rs:
                     rsp = ResidueSetProperty.objects.get(pdbresidue_set_id=resset.id, property_id=property_id.id)
-                    if rsp.value < 0.5:
-                        d_char = 'Low'
-                    elif rsp.value > 0.5 and rsp.value < 0.7:
-                        d_char = 'Medium'
-                    else:
-                        d_char = 'High'
                     if highest_rsp_value is None or rsp.value > highest_rsp_value:
                         highest_rsp_value = rsp.value
                         highest_bioentry_id = bioentry_name
-                        highest_d_char = d_char
-                df.loc[index] = [highest_bioentry_id, highest_rsp_value, highest_d_char]
+                df.loc[index] = [highest_bioentry_id, highest_rsp_value]
             index += 1
         df.drop_duplicates()
-
-        # Drop the 'rsp_value' column
-        df.drop(columns=['rsp_value'], inplace=True)
-
-        # Rename the 'd_char' column to 'druggability'
-        df.rename(columns={'d_char': 'Druggability'}, inplace=True)
-        # After creating and manipulating the DataFrame df
 
         seqstore = SeqStore(options['datadir'])
         db_dir = seqstore.db_dir(accession)

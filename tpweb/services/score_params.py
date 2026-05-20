@@ -1,27 +1,61 @@
 from django.db.models import Q
 
 from tpweb.models.ScoreParam import ScoreParam, ScoreParamOptions
-from tpweb.services.score_param_types import is_categorical_score_param
+from tpweb.services.score_param_types import is_categorical_score_param, is_numeric_score_param
 from tpweb.services.workspace import PUBLIC_WORKSPACE_USERNAME, resolve_workspace_user
 
 SYSTEM_SCORE_PARAM_DEFINITIONS = {
     "human_offtarget": {
         "category": "Off-target",
         "description": "Sequence overlaps with a human protein.",
+        "type": "C",
+        "default_operation": "=",
         "default_value": "no_hit",
         "options": ("hit", "no_hit"),
+    },
+    "human_identity": {
+        "category": "Off-target",
+        "description": "Best human BLAST identity percentage.",
+        "type": "N",
+        "default_operation": "<=",
+        "default_value": "0",
+    },
+    "human_evalue": {
+        "category": "Off-target",
+        "description": "Best human BLAST E-value.",
+        "type": "N",
+        "default_operation": "<=",
+        "default_value": "1",
     },
     "gut_microbiome_offtarget": {
         "category": "Off-target",
         "description": "Sequence overlaps with a gut microbiome protein.",
+        "type": "C",
+        "default_operation": "=",
         "default_value": "no_hit",
         "options": ("hit", "no_hit"),
     },
     "hit_in_deg": {
         "category": "Essentiality",
         "description": "Protein has a hit in the DEG database.",
+        "type": "C",
+        "default_operation": "=",
         "default_value": "N",
         "options": ("Y", "N"),
+    },
+    "deg_identity": {
+        "category": "Essentiality",
+        "description": "Best DEG BLAST identity percentage.",
+        "type": "N",
+        "default_operation": ">=",
+        "default_value": "0",
+    },
+    "deg_evalue": {
+        "category": "Essentiality",
+        "description": "Best DEG BLAST E-value.",
+        "type": "N",
+        "default_operation": "<=",
+        "default_value": "1",
     },
 }
 
@@ -35,25 +69,25 @@ def ensure_system_score_param(name, source_df=None):
         ScoreParam.objects.filter(name=name, user__isnull=True).order_by("id").first()
     )
     if score_param is None:
-            score_param = ScoreParam.objects.create(
-                category=definition["category"],
-                name=name,
-                user=None,
-                type="C",
-                description=definition["description"],
-                default_operation="=",
-                default_value=definition["default_value"],
-            )
+        score_param = ScoreParam.objects.create(
+            category=definition["category"],
+            name=name,
+            user=None,
+            type=definition["type"],
+            description=definition["description"],
+            default_operation=definition["default_operation"],
+            default_value=definition["default_value"],
+        )
     else:
         updated_fields = []
         if score_param.category != definition["category"]:
             score_param.category = definition["category"]
             updated_fields.append("category")
-        if not is_categorical_score_param(score_param):
-            score_param.type = "C"
+        if score_param.type != definition["type"]:
+            score_param.type = definition["type"]
             updated_fields.append("type")
-        if score_param.default_operation != "=":
-            score_param.default_operation = "="
+        if score_param.default_operation != definition["default_operation"]:
+            score_param.default_operation = definition["default_operation"]
             updated_fields.append("default_operation")
         if score_param.default_value != definition["default_value"]:
             score_param.default_value = definition["default_value"]
@@ -64,7 +98,10 @@ def ensure_system_score_param(name, source_df=None):
         if updated_fields:
             score_param.save(update_fields=updated_fields)
 
-    option_names = list(definition["options"])
+    if is_numeric_score_param(score_param):
+        return score_param
+
+    option_names = list(definition.get("options", ()))
     if source_df is not None and len(source_df.columns) >= 2:
         imported_values = []
         for raw_value in source_df.iloc[:, 1].dropna().tolist():

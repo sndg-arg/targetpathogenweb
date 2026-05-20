@@ -19,9 +19,15 @@ from tpweb.models.GenomeUpload import GenomeUpload
 from tpweb.models.PipelineRun import PipelineRun
 from tpweb.models.ScoreFormula import ScoreFormula
 from tpweb.models.ScoreParam import ScoreParam, ScoreParamOptions
+from tpweb.models.ScoreParamValue import ScoreParamValue
 from tpweb.services.assembly_workspace import build_assembly_workspace_metrics
 from tpweb.services.assembly_overview import build_assembly_overview
-from tpweb.services.formula_evaluator import available_variables_grouped, build_all_options_zero
+from tpweb.services.formula_evaluator import (
+    available_variables_grouped,
+    build_all_options_zero,
+    build_expression_variables,
+    safe_eval_expression,
+)
 from tpweb.services.genome_uploads import (
     _finalize_upload,
     build_queue_position_map,
@@ -537,12 +543,12 @@ class WorkspaceIsolationTests(TestCase):
         )
         self.public_user = get_public_workspace_user()
 
-    def create_score_param(self, name, category, user=None):
+    def create_score_param(self, name, category, user=None, type="C"):
         return ScoreParam.objects.create(
             category=category,
             name=name,
-            type="C",
-            default_operation="=",
+            type=type,
+            default_operation="=" if type == "C" else ">=",
             default_value="",
             description="",
             user=user,
@@ -632,6 +638,37 @@ class WorkspaceIsolationTests(TestCase):
         self.assertIn("globalbuiltin_high", flattened)
         self.assertIn("publiccustom_y", flattened)
         self.assertNotIn("alicecustom_private", flattened)
+
+    def test_expression_variable_helpers_include_numeric_values(self):
+        proteome = Biodatabase.objects.create(name="TEST_protein")
+        protein = Bioentry.objects.create(
+            biodatabase=proteome,
+            name="protA",
+            accession="protA",
+            identifier="protA",
+        )
+        numeric_param = self.create_score_param(
+            name="Druggability",
+            category="Pocket",
+            user=None,
+            type="N",
+        )
+        ScoreParamValue.objects.create(
+            bioentry=protein,
+            score_param=numeric_param,
+            value="0.82",
+            numeric_value=0.82,
+        )
+
+        zero_cache = build_all_options_zero(AnonymousUser())
+        variables = build_expression_variables(protein, zero_cache)
+
+        self.assertIn("druggability", zero_cache)
+        self.assertEqual(variables["druggability"], 0.82)
+        self.assertAlmostEqual(
+            safe_eval_expression("3 * druggability", variables),
+            2.46,
+        )
 
     def test_workspace_genome_names_are_hidden_from_other_users(self):
         alice_internal = build_workspace_genome_name("NZ_AP023069.1", self.alice)

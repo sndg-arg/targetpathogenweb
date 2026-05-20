@@ -1,8 +1,9 @@
 """
 Safe mathematical expression evaluator for scoring formulas.
 
-Variables are binary indicators built from per-protein ScoreParamValues:
+Variables are built from per-protein ScoreParamValues:
   druggability_high = 1.0 if the protein's Druggability == "High", else 0.0
+  druggability = the raw numeric Druggability value if the parameter is numeric
   human_offtarget_none = 1.0 if human_offtarget == "None", else 0.0
   ...
 
@@ -106,23 +107,33 @@ def safe_eval_expression(expr_str: str, variables: dict) -> float:
 
 
 def build_all_options_zero(user=None):
-    """Return {variable_name: 0.0} for every ScoreParam option visible to *user*.
+    """Return {variable_name: 0.0} for every visible variable for *user*.
 
     Call once per formula evaluation batch; pass the result to
     build_expression_variables() for each protein.
     """
-    from tpweb.models.ScoreParam import ScoreParamOptions
+    from tpweb.models.ScoreParam import ScoreParam, ScoreParamOptions
     from django.db.models import Q
+    from tpweb.services.score_param_types import is_numeric_score_param
     from tpweb.services.workspace import resolve_workspace_user
 
-    qs = ScoreParamOptions.objects.select_related("score_param")
     if user is not None:
         workspace_user = resolve_workspace_user(user)
-        qs = qs.filter(Q(score_param__user__isnull=True) | Q(score_param__user=workspace_user))
+        param_visibility = Q(user__isnull=True) | Q(user=workspace_user)
+        option_visibility = Q(score_param__user__isnull=True) | Q(score_param__user=workspace_user)
     else:
-        qs = qs.filter(score_param__user__isnull=True)
+        param_visibility = Q(user__isnull=True)
+        option_visibility = Q(score_param__user__isnull=True)
 
     cache = {}
+    params = ScoreParam.objects.filter(param_visibility).order_by("category", "name", "id")
+    for param in params:
+        if is_numeric_score_param(param):
+            pk = normalize_var_name(param.name)
+            if pk:
+                cache[pk] = 0.0
+
+    qs = ScoreParamOptions.objects.select_related("score_param").filter(option_visibility)
     for opt in qs:
         pk = normalize_var_name(opt.score_param.name)
         vk = normalize_var_name(opt.name)
@@ -132,12 +143,25 @@ def build_all_options_zero(user=None):
 
 
 def build_expression_variables(protein, zero_cache: dict) -> dict:
-    """Build per-protein variable dict by overriding zeros with 1.0 for actual values."""
+    """Build per-protein variable dict with categorical indicators and numeric values."""
+    from tpweb.services.score_param_types import is_numeric_score_param
+
     variables = dict(zero_cache)
     for spv in protein.score_params.all():
         pk = normalize_var_name(spv.score_param.name)
+        if not pk:
+            continue
+        if is_numeric_score_param(spv.score_param):
+            if spv.numeric_value is not None:
+                variables[pk] = float(spv.numeric_value)
+                continue
+            try:
+                variables[pk] = float(str(spv.value).replace(",", "."))
+            except (TypeError, ValueError):
+                variables[pk] = 0.0
+            continue
         vk = normalize_var_name(spv.value or "")
-        if pk and vk:
+        if vk:
             variables[f"{pk}_{vk}"] = 1.0
     return variables
 
@@ -153,24 +177,30 @@ def _is_numeric_option(name: str) -> bool:
 
 def available_variables_grouped(user=None):
     """Return variables grouped by ScoreParam category for the UI palette."""
-    from tpweb.models.ScoreParam import ScoreParam, ScoreParamOptions
+    from tpweb.models.ScoreParam import ScoreParam
     from django.db.models import Q
+    from tpweb.services.score_param_types import is_numeric_score_param
     from tpweb.services.workspace import resolve_workspace_user
 
     if user is not None:
         workspace_user = resolve_workspace_user(user)
         param_qs = ScoreParam.objects.filter(
-            Q(user__isnull=True) | Q(user=workspace_user), type="C"
+            Q(user__isnull=True) | Q(user=workspace_user)
         ).prefetch_related("choices").order_by("category", "name")
     else:
         param_qs = ScoreParam.objects.filter(
-            user__isnull=True, type="C"
+            user__isnull=True
         ).prefetch_related("choices").order_by("category", "name")
 
     groups = {}
     for param in param_qs:
         cat = param.category or "Other"
         pname = normalize_var_name(param.name)
+        if is_numeric_score_param(param):
+            if pname:
+                desc = param.description or f"{param.name} raw numeric value"
+                groups.setdefault(cat, []).append({"var": pname, "desc": desc, "kind": "numeric"})
+            continue
         for opt in param.choices.all():
             if _is_numeric_option(opt.name):
                 continue
@@ -179,7 +209,7 @@ def available_variables_grouped(user=None):
                 continue
             var = f"{pname}_{vname}"
             desc = opt.description or f"{param.name} = {opt.name}"
-            groups.setdefault(cat, []).append({"var": var, "desc": desc})
+            groups.setdefault(cat, []).append({"var": var, "desc": desc, "kind": "categorical"})
     return groups
 
 
