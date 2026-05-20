@@ -608,8 +608,12 @@
                 enable3DmolViewer: false,
                 nglZoomStepIn: 0.2,
                 nglZoomStepOut: -0.2,
+                nglWheelZoomStepIn: 0.055,
+                nglWheelZoomStepOut: -0.055,
                 molZoomFactorIn: 0.8,
                 molZoomFactorOut: 1.25,
+                molWheelZoomFactorIn: 0.95,
+                molWheelZoomFactorOut: 1.05,
                 mainCartoonAspectRatio: 3.0,
                 mainCartoonScale: 1.5,
                 densityShellOpacity: 0.78,
@@ -817,7 +821,7 @@
                     }
                     event.preventDefault();
                     event.stopPropagation();
-                    window.ngl_zoom_step(event.deltaY < 0 ? 1 : -1);
+                    window.ngl_zoom_step(event.deltaY < 0 ? 1 : -1, true);
                 }, { passive: false, capture: true });
             }
 
@@ -965,8 +969,10 @@
                     setStructureResetZoomEnabled(true);
                 };
 
-                window.ngl_zoom_step = function (direction) {
-                    var factor = direction > 0 ? STRUCTURE_VIEWER_CONFIG.molZoomFactorIn : STRUCTURE_VIEWER_CONFIG.molZoomFactorOut;
+                window.ngl_zoom_step = function (direction, isWheel) {
+                    var factor = direction > 0
+                        ? (isWheel ? STRUCTURE_VIEWER_CONFIG.molWheelZoomFactorIn : STRUCTURE_VIEWER_CONFIG.molZoomFactorIn)
+                        : (isWheel ? STRUCTURE_VIEWER_CONFIG.molWheelZoomFactorOut : STRUCTURE_VIEWER_CONFIG.molZoomFactorOut);
                     if (typeof viewer.zoom === "function") {
                         viewer.zoom(factor, 0);
                         viewer.render();
@@ -1202,10 +1208,10 @@
                         setStructureResetZoomEnabled(true);
                     };
 
-                    window.ngl_zoom_step = function (direction) {
+                    window.ngl_zoom_step = function (direction, isWheel) {
                         const step = direction > 0
-                            ? STRUCTURE_VIEWER_CONFIG.nglZoomStepIn
-                            : STRUCTURE_VIEWER_CONFIG.nglZoomStepOut;
+                            ? (isWheel ? STRUCTURE_VIEWER_CONFIG.nglWheelZoomStepIn : STRUCTURE_VIEWER_CONFIG.nglZoomStepIn)
+                            : (isWheel ? STRUCTURE_VIEWER_CONFIG.nglWheelZoomStepOut : STRUCTURE_VIEWER_CONFIG.nglZoomStepOut);
                         if (stage && stage.viewerControls && typeof stage.viewerControls.zoom === "function") {
                             stage.viewerControls.zoom(step);
                             setStructureResetZoomEnabled(true);
