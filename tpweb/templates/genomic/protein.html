@@ -616,10 +616,11 @@
                 molWheelZoomFactorOut: 1.05,
                 mainCartoonAspectRatio: 3.0,
                 mainCartoonScale: 1.5,
-                densityShellOpacity: 0.78,
-                densityFallbackOpacity: 0.45,
+                densityShellOpacity: 0.3,
+                densityPocketShellOpacity: 0.16,
+                densityFallbackOpacity: 0.3,
                 surfaceOpacity: 0.96,
-                densityCartoonOpacity: 0.3
+                densityCartoonOpacity: 0.56
             });
 
             var seq1 = new SeqView(proteinSequence);
@@ -1199,7 +1200,9 @@
                         var anyPocketVisible = pocketSurfaceKeys.some(function (key) {
                             return !!visible[key];
                         });
-                        var targetOpacity = anyPocketVisible ? 0.35 : STRUCTURE_VIEWER_CONFIG.densityShellOpacity;
+                        var targetOpacity = anyPocketVisible
+                            ? STRUCTURE_VIEWER_CONFIG.densityPocketShellOpacity
+                            : STRUCTURE_VIEWER_CONFIG.densityShellOpacity;
                         if (typeof representations.__main_density.setParameters === "function") {
                             representations.__main_density.setParameters({ opacity: targetOpacity });
                         }
@@ -1251,8 +1254,9 @@
                         color: tpColor("--tp-color-structure-density"),
                         opacity: STRUCTURE_VIEWER_CONFIG.densityShellOpacity,
                         side: "double",
-                        opaqueBack: true,
-                        surfaceType: "ms"
+                        opaqueBack: false,
+                        surfaceType: "ms",
+                        useWorker: true
                     });
                     visible.__main_density = false;
                     representations.__main_density.setVisibility(false);
@@ -1261,14 +1265,13 @@
                     window.ngl_set_mode = function (mode) {
                         const normalized = mode === "density" ? "density" : "cartoon";
                         const isDensity = normalized === "density";
-                        const showCartoon = !isDensity;
                         const showDensityShell = isDensity;
-                        visible.__main_cartoon = showCartoon;
+                        visible.__main_cartoon = true;
                         visible.__main_density = showDensityShell;
-                        representations.__main_cartoon.setVisibility(showCartoon);
+                        representations.__main_cartoon.setVisibility(true);
                         if (typeof representations.__main_cartoon.setParameters === "function") {
                             representations.__main_cartoon.setParameters({
-                                opacity: 1
+                                opacity: isDensity ? STRUCTURE_VIEWER_CONFIG.densityCartoonOpacity : 1
                             });
                         }
                         representations.__main_density.setVisibility(showDensityShell);

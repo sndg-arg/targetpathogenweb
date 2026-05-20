@@ -178,7 +178,9 @@
                 nglWheelZoomStepOut: -0.055,
                 mainCartoonAspectRatio: 3.0,
                 mainCartoonScale: 1.5,
-                densityShellOpacity: 0.78,
+                densityShellOpacity: 0.3,
+                densityPocketShellOpacity: 0.16,
+                densityCartoonOpacity: 0.56,
                 surfaceOpacity: 0.96
             });
 
@@ -491,10 +493,25 @@
                     setResetZoomEnabled(false);
                 };
 
+                function updateDensityForPockets() {
+                    if (!visible.__main_density) return;
+                    const anyPocketVisible = pocketSurfaceKeys.some(function (key) {
+                        return !!visible[key];
+                    });
+                    if (typeof representations.__main_density.setParameters === "function") {
+                        representations.__main_density.setParameters({
+                            opacity: anyPocketVisible
+                                ? STRUCTURE_VIEWER_CONFIG.densityPocketShellOpacity
+                                : STRUCTURE_VIEWER_CONFIG.densityShellOpacity
+                        });
+                    }
+                }
+
                 window.toogle_view = function (repr) {
                     if (!(repr in representations)) return;
                     visible[repr] = !visible[repr];
                     representations[repr].setVisibility(visible[repr]);
+                    updateDensityForPockets();
                 };
 
                 window.ngl_zoom_to = function (repr) {
@@ -521,7 +538,8 @@
                 representations.__main_cartoon = component.addRepresentation("cartoon", {
                     aspectRatio: STRUCTURE_VIEWER_CONFIG.mainCartoonAspectRatio,
                     scale: STRUCTURE_VIEWER_CONFIG.mainCartoonScale,
-                    sele: "backbone and " + activeChainSelector
+                    sele: "backbone and " + activeChainSelector,
+                    color: tpColor("--tp-color-structure-cartoon") || "#2288a3"
                 });
                 visible.__main_cartoon = true;
                 representations.__main_cartoon.sele = "backbone and " + activeChainSelector;
@@ -531,8 +549,9 @@
                     color: tpColor("--tp-color-structure-density"),
                     opacity: STRUCTURE_VIEWER_CONFIG.densityShellOpacity,
                     side: "double",
-                    opaqueBack: true,
-                    surfaceType: "ms"
+                    opaqueBack: false,
+                    surfaceType: "ms",
+                    useWorker: true
                 });
                 visible.__main_density = false;
                 representations.__main_density.setVisibility(false);
@@ -541,14 +560,13 @@
                 window.ngl_set_mode = function (mode) {
                     const normalized = mode === "density" ? "density" : "cartoon";
                     const isDensity = normalized === "density";
-                    const showCartoon = !isDensity;
                     const showDensityShell = isDensity;
-                    visible.__main_cartoon = showCartoon;
+                    visible.__main_cartoon = true;
                     visible.__main_density = showDensityShell;
-                    representations.__main_cartoon.setVisibility(showCartoon);
+                    representations.__main_cartoon.setVisibility(true);
                     if (typeof representations.__main_cartoon.setParameters === "function") {
                         representations.__main_cartoon.setParameters({
-                            opacity: 1
+                            opacity: isDensity ? STRUCTURE_VIEWER_CONFIG.densityCartoonOpacity : 1
                         });
                     }
                     representations.__main_density.setVisibility(showDensityShell);
@@ -558,6 +576,7 @@
                         const shouldShow = !!visible[key];
                         representations[key].setVisibility(shouldShow);
                     });
+                    updateDensityForPockets();
                     setModeButtonState(normalized);
                 };
 
