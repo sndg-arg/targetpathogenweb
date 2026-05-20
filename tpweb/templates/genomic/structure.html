@@ -591,15 +591,19 @@
         $(document).ready(function () {
             jsloaded();
 
-            // Prevent page scroll when wheeling over the 3D viewer.
-            // capture:true fires before NGL's own listeners (including any
-            // stopPropagation calls). preventDefault blocks page scroll;
-            // the event still reaches the NGL canvas for zoom.
+            // Lock page scroll on click inside viewer, restore on click outside.
             var shell = document.getElementById("structure-fs-canvas-shell");
             if (shell) {
-                shell.addEventListener("wheel", function (e) {
-                    e.preventDefault();
-                }, { capture: true, passive: false });
+                shell.addEventListener("click", function () {
+                    document.body.style.overflow = "hidden";
+                    document.documentElement.style.overflow = "hidden";
+                });
+                document.addEventListener("click", function (e) {
+                    if (!shell.contains(e.target)) {
+                        document.body.style.overflow = "";
+                        document.documentElement.style.overflow = "";
+                    }
+                });
             }
         });
     </script>
