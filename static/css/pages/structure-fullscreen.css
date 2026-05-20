@@ -173,6 +173,7 @@
     border-radius: 11px;
     border: 1px solid var(--tp-color-border-soft);
     background: linear-gradient(180deg, var(--tp-color-surface-panel) 0%, var(--tp-color-surface-muted) 100%);
+    overscroll-behavior: contain;
 }
 
 .structure-source-toggle {

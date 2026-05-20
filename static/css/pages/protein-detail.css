@@ -833,6 +833,7 @@
     border-radius: 13px;
     border: 1px solid var(--tp-color-border-soft);
     background: linear-gradient(180deg, var(--tp-color-surface-panel) 0%, var(--tp-color-surface-muted) 100%);
+    overscroll-behavior: contain;
 }
 
 .structure-viewport-wrap {
@@ -841,6 +842,7 @@
     background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
     padding: 8px;
     position: relative;
+    overscroll-behavior: contain;
 }
 
 .viewport-overlay {

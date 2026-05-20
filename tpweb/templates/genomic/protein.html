@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260510-binders3tabs">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260520-viewer-wheel">
 {% endblock %}
 
 {% block body %}
@@ -606,7 +606,6 @@
             });
             const STRUCTURE_VIEWER_CONFIG = Object.freeze({
                 enable3DmolViewer: false,
-                scrollZoomActions: ["scroll", "scroll-ctrl", "scroll-shift", "scroll-alt", "scroll-meta"],
                 nglZoomStepIn: 0.2,
                 nglZoomStepOut: -0.2,
                 molZoomFactorIn: 0.8,
@@ -808,17 +807,18 @@
                 window.requestAnimationFrame(applyStructureTheme);
             });
 
-            function disableStructureScrollZoom(stageInstance) {
-                if (!stageInstance || !stageInstance.mouseControls || typeof stageInstance.mouseControls.remove !== "function") {
-                    return;
-                }
-                STRUCTURE_VIEWER_CONFIG.scrollZoomActions.forEach(function (actionName) {
-                    try {
-                        stageInstance.mouseControls.remove(actionName);
-                    } catch (error) {
-                        // Ignore unsupported bindings across NGL versions.
+            function bindStructureWheelToViewer(viewerElement) {
+                if (!viewerElement || viewerElement.__tpWheelBound) return;
+                viewerElement.__tpWheelBound = true;
+                viewerElement.addEventListener("wheel", function (event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    var overlay = document.getElementById("viewport-overlay");
+                    if (overlay && !overlay.classList.contains("is-active")) {
+                        overlay.classList.add("is-active");
                     }
-                });
+                    window.ngl_zoom_step(event.deltaY < 0 ? 1 : -1);
+                }, { passive: false, capture: true });
             }
 
             function initStructureViewerWith3Dmol() {
@@ -1082,6 +1082,7 @@
                 if (structureLoadingNote) {
                     structureLoadingNote.style.display = "block";
                 }
+                bindStructureWheelToViewer(viewportElement.parentElement || viewportElement);
 
                 if (initStructureViewerWith3Dmol()) {
                     return;

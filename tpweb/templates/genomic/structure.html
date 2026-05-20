@@ -209,7 +209,9 @@
                 viewerElement.__tpWheelBound = true;
                 viewerElement.addEventListener("wheel", function (event) {
                     event.preventDefault();
-                }, { passive: false });
+                    event.stopPropagation();
+                    window.ngl_zoom_step(event.deltaY < 0 ? 1 : -1);
+                }, { passive: false, capture: true });
             }
 
             function setLayersPanelState(isOpen) {
@@ -584,28 +586,6 @@
 
         $(document).ready(function () {
             jsloaded();
-
-            // On click inside viewer: freeze page scroll position.
-            // On click outside: restore normal scrolling.
-            // Uses window.scrollTo to enforce the lock regardless of CSS.
-            var shell = document.getElementById("structure-fs-canvas-shell");
-            if (shell) {
-                var scrollLocked = false;
-                var lockedScrollY = 0;
-
-                window.addEventListener("scroll", function () {
-                    if (scrollLocked) { window.scrollTo(0, lockedScrollY); }
-                });
-
-                shell.addEventListener("click", function () {
-                    scrollLocked = true;
-                    lockedScrollY = window.scrollY;
-                });
-
-                document.addEventListener("click", function (e) {
-                    if (!shell.contains(e.target)) { scrollLocked = false; }
-                });
-            }
         });
     </script>
 {% endblock %}
