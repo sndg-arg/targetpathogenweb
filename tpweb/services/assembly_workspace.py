@@ -110,7 +110,24 @@ def _humanize_factor(param_name, value):
     spec = _FACTOR_LABELS.get(param_name.lower())
     if not spec:
         return None
-    return spec.get(value)
+    result = spec.get(str(value))
+    if result:
+        return result
+    # Numeric druggability: apply FPocket thresholds (≥0.7 high, ≥0.4 medium)
+    if param_name.lower() == "druggability":
+        try:
+            v = float(value)
+            if v >= 0.7:
+                return ("Highly druggable pocket", "good")
+            elif v >= 0.4:
+                return ("Moderately druggable", "neutral")
+            elif v > 0:
+                return ("Low druggability", "bad")
+            else:
+                return ("No druggable pocket", "neutral")
+        except (ValueError, TypeError):
+            pass
+    return None
 
 
 def get_top_targets_by_score(assembly_name, user, limit=5):
