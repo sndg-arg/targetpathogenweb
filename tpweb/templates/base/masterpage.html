@@ -1405,7 +1405,14 @@
             .tp-main {
                 max-width: none;
                 margin: 0;
+                min-height: 100vh;
                 padding: 16px 16px 34px;
+            }
+
+            @supports (min-height: 100dvh) {
+                .tp-main {
+                    min-height: 100dvh;
+                }
             }
 
             body.tp-sidebar-collapsed {
