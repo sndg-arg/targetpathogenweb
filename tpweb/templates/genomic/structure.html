@@ -207,7 +207,19 @@
             function bindStructureWheelToViewer(viewerElement) {
                 if (!viewerElement || viewerElement.__tpWheelBound) return;
                 viewerElement.__tpWheelBound = true;
+                let viewerWheelActive = false;
+                viewerElement.addEventListener("click", function () {
+                    viewerWheelActive = true;
+                });
+                document.addEventListener("mousedown", function (event) {
+                    if (!viewerElement.contains(event.target)) {
+                        viewerWheelActive = false;
+                    }
+                }, true);
                 viewerElement.addEventListener("wheel", function (event) {
+                    if (!viewerWheelActive) {
+                        return;
+                    }
                     event.preventDefault();
                     event.stopPropagation();
                     window.ngl_zoom_step(event.deltaY < 0 ? 1 : -1);

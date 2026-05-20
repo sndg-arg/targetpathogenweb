@@ -811,12 +811,12 @@
                 if (!viewerElement || viewerElement.__tpWheelBound) return;
                 viewerElement.__tpWheelBound = true;
                 viewerElement.addEventListener("wheel", function (event) {
-                    event.preventDefault();
-                    event.stopPropagation();
                     var overlay = document.getElementById("viewport-overlay");
                     if (overlay && !overlay.classList.contains("is-active")) {
-                        overlay.classList.add("is-active");
+                        return;
                     }
+                    event.preventDefault();
+                    event.stopPropagation();
                     window.ngl_zoom_step(event.deltaY < 0 ? 1 : -1);
                 }, { passive: false, capture: true });
             }
