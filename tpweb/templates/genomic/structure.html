@@ -591,17 +591,26 @@
         $(document).ready(function () {
             jsloaded();
 
-            // Lock page scroll on click inside viewer, restore on click outside.
+            // Lock page scroll while viewer is focused; restore on click outside.
             var shell = document.getElementById("structure-fs-canvas-shell");
             if (shell) {
-                shell.addEventListener("click", function () {
-                    document.body.style.overflow = "hidden";
-                    document.documentElement.style.overflow = "hidden";
+                var scrollLocked = false;
+                var lockedScrollY = 0;
+
+                window.addEventListener("scroll", function () {
+                    if (scrollLocked) {
+                        window.scrollTo(0, lockedScrollY);
+                    }
                 });
+
+                shell.addEventListener("click", function () {
+                    scrollLocked = true;
+                    lockedScrollY = window.scrollY;
+                });
+
                 document.addEventListener("click", function (e) {
                     if (!shell.contains(e.target)) {
-                        document.body.style.overflow = "";
-                        document.documentElement.style.overflow = "";
+                        scrollLocked = false;
                     }
                 });
             }
