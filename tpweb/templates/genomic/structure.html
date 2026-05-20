@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20260512-1">
+    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20260520-viewer-wheel">
 {% endblock %}
 
 {% block body %}
@@ -172,7 +172,6 @@
                 copiedFeedbackMs: 1500
             });
             const STRUCTURE_VIEWER_CONFIG = Object.freeze({
-                scrollZoomActions: ["scroll", "scroll-ctrl", "scroll-shift", "scroll-alt", "scroll-meta"],
                 nglZoomStepIn: 0.2,
                 nglZoomStepOut: -0.2,
                 mainCartoonAspectRatio: 3.0,
@@ -205,17 +204,12 @@
                 });
             }
 
-            function disableStructureScrollZoom(stageInstance) {
-                if (!stageInstance || !stageInstance.mouseControls || typeof stageInstance.mouseControls.remove !== "function") {
-                    return;
-                }
-                STRUCTURE_VIEWER_CONFIG.scrollZoomActions.forEach(function (actionName) {
-                    try {
-                        stageInstance.mouseControls.remove(actionName);
-                    } catch (error) {
-                        // Ignore unsupported bindings across NGL versions.
-                    }
-                });
+            function bindStructureWheelToViewer(viewerElement) {
+                if (!viewerElement || viewerElement.__tpWheelBound) return;
+                viewerElement.__tpWheelBound = true;
+                viewerElement.addEventListener("wheel", function (event) {
+                    event.preventDefault();
+                }, { passive: false });
             }
 
             function setLayersPanelState(isOpen) {
@@ -416,7 +410,7 @@
             const stage = new NGL("viewport", {
                 backgroundColor: tpColor("--tp-color-surface-panel", "#f6fbf9")
             });
-            disableStructureScrollZoom(stage);
+            bindStructureWheelToViewer(document.querySelector(".structure-fs-viewport-wrap"));
 
             const structureUrls = {
                 primary: "{% url 'tpwebapp:structure_raw' structure.id %}",
@@ -591,25 +585,25 @@
         $(document).ready(function () {
             jsloaded();
 
-            // Lock page scroll while mouse is over the viewer.
+            // On click inside viewer: freeze page scroll position.
+            // On click outside: restore normal scrolling.
+            // Uses window.scrollTo to enforce the lock regardless of CSS.
             var shell = document.getElementById("structure-fs-canvas-shell");
             if (shell) {
                 var scrollLocked = false;
                 var lockedScrollY = 0;
 
                 window.addEventListener("scroll", function () {
-                    if (scrollLocked) {
-                        window.scrollTo(0, lockedScrollY);
-                    }
+                    if (scrollLocked) { window.scrollTo(0, lockedScrollY); }
                 });
 
-                shell.addEventListener("mouseenter", function () {
+                shell.addEventListener("click", function () {
                     scrollLocked = true;
                     lockedScrollY = window.scrollY;
                 });
 
-                shell.addEventListener("mouseleave", function () {
-                    scrollLocked = false;
+                document.addEventListener("click", function (e) {
+                    if (!shell.contains(e.target)) { scrollLocked = false; }
                 });
             }
         });
