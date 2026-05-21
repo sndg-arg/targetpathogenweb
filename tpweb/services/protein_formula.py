@@ -40,7 +40,7 @@ def choose_formula(formulas, requested_formula_name):
     default_formula = [formula for formula in formulas if formula.default]
     if default_formula:
         return default_formula[0]
-    return formulas[0] if formulas else None
+    return None
 
 
 def build_col_descriptions(formula_term_list):
