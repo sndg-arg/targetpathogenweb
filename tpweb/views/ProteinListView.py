@@ -1120,6 +1120,11 @@ class ProteinListView(View):
                 continue
             sort_col_urls[_col] = self._build_sort_url(request, _col, effective_sort_col, effective_sort_dir, default_dir="desc")
 
+        sort_label_by_col = {"__accession__": "Protein"}
+        sort_label_by_col.update({col: humanize_identifier(col) or col for col in tcolumns})
+        sort_direction_label = "ascending" if effective_sort_dir == "asc" else "descending"
+        sorted_by_label = f"{sort_label_by_col.get(effective_sort_col, effective_sort_col)} ({sort_direction_label})"
+
         return render(request, self.template_name, {
             "biodb__name": bdb.description if bdb.description else bdb.name,
             "biodb_accession": display_genome_name(bdb.name),
@@ -1180,6 +1185,7 @@ class ProteinListView(View):
             "sort_col": effective_sort_col,
             "sort_dir": effective_sort_dir,
             "sort_col_urls": sort_col_urls,
+            "sorted_by_label": sorted_by_label,
             "formula_active": formula is not None,
 
         })  # , {'form': form})

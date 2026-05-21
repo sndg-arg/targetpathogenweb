@@ -52,7 +52,11 @@
             <div class="hero-analysis-context">
                 <p class="hero-analysis-line">
                     <span class="hero-analysis-label">{% trans "Scoring formula" %}</span>
-                    <span class="hero-analysis-value">{% if formula %}{{ formula.name }}{% else %}{% trans "None" %}{% endif %}</span>
+                    <span class="hero-analysis-value">{% if formula %}{{ formula.name }}{% else %}None{% endif %}</span>
+                </p>
+                <p class="hero-analysis-line">
+                    <span class="hero-analysis-label">{% trans "Sorted by" %}</span>
+                    <span class="hero-analysis-value">{{ sorted_by_label }}</span>
                 </p>
                 <p class="hero-analysis-line">
                     <span class="hero-analysis-label">{% trans "Applied filters" %}</span>
