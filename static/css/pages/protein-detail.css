@@ -2042,3 +2042,25 @@ body.residue-modal-open {
 .tp-dark .residue-modal-backdrop {
     background: rgba(0, 0, 0, 0.6);
 }
+
+/* Druggability metric pill */
+.metric-pill--drugg-high {
+    border-color: var(--tp-color-success-border);
+    background: linear-gradient(180deg, var(--tp-color-success-bg) 0%, var(--tp-color-success-bg) 100%);
+}
+.metric-pill--drugg-high .metric-value { color: var(--tp-color-success-ink); }
+.metric-pill--drugg-high .metric-label { color: var(--tp-color-success-ink); opacity: 0.75; }
+
+.metric-pill--drugg-mid {
+    border-color: var(--tp-color-warning-border);
+    background: linear-gradient(180deg, var(--tp-color-warning-bg) 0%, var(--tp-color-warning-bg) 100%);
+}
+.metric-pill--drugg-mid .metric-value { color: var(--tp-color-warning-ink); }
+.metric-pill--drugg-mid .metric-label { color: var(--tp-color-warning-ink); opacity: 0.75; }
+
+.metric-pill--drugg-low {
+    border-color: var(--tp-color-danger-border);
+    background: linear-gradient(180deg, var(--tp-color-danger-bg) 0%, var(--tp-color-danger-bg) 100%);
+}
+.metric-pill--drugg-low .metric-value { color: var(--tp-color-danger-ink); }
+.metric-pill--drugg-low .metric-label { color: var(--tp-color-danger-ink); opacity: 0.75; }

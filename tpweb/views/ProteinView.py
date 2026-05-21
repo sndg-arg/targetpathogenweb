@@ -12,6 +12,7 @@ from bioseq.models.Biodatabase import Biodatabase
 from bioseq.models.Bioentry import Bioentry
 from tpweb.models.Binders import Binders
 from tpweb.models.pdb import PDBResidueSet
+from tpweb.models.ScoreParamValue import ScoreParamValue
 from .StructureView import pdb_structure
 from tpweb.services.protein_annotations import annotation_dbnames, protein_annotation_badges, iter_protein_annotations
 from tpweb.services.csv_exports import xlsx_sections_response
@@ -33,6 +34,23 @@ from tpweb.services.structure_sources import (
 KNOWN_BINDER_CAP = 100
 ZINC_BINDER_CAP = 50
 _PAINS_CATALOG = None
+
+
+def _druggability_label(value):
+    """Return (label, tone) for a numeric FPocket druggability score."""
+    if value is None:
+        return None
+    try:
+        v = float(str(value).replace(",", "."))
+    except (TypeError, ValueError):
+        return None
+    if v >= 0.7:
+        return (f"{v:.2f}", "high")
+    elif v >= 0.4:
+        return (f"{v:.2f}", "mid")
+    elif v > 0:
+        return (f"{v:.2f}", "low")
+    return None
 
 
 def _has_pocket_data(pdb_obj):
@@ -358,6 +376,14 @@ class ProteinView(View):
             get_pipeline_status(), proteinDTO["assembly_name"]
         )
 
+        drugg_spv = ScoreParamValue.objects.filter(
+            bioentry=protein, score_param__name="Druggability"
+        ).first()
+        drugg_raw = None
+        if drugg_spv is not None:
+            drugg_raw = drugg_spv.numeric_value if drugg_spv.numeric_value is not None else drugg_spv.value or None
+        druggability = _druggability_label(drugg_raw)
+
         if request.GET.get("export") == "view_csv":
             sections = [
                 {
@@ -450,6 +476,7 @@ class ProteinView(View):
                "ec_badges": ec_badges,
                "go_badges": go_badges,
                "pipeline_status": pipeline_status,
+               "druggability": druggability,
                "view_export_url": self._build_view_export_url(request)}
         if structures:
             primary_link = structures[0]
