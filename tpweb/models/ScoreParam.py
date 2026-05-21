@@ -266,7 +266,10 @@ class ScoreParam(models.Model):
         from tpweb.models.ScoreFormula import ScoreFormula, ScoreFormulaParam
         users = TPUser.objects.all()
         for user in users:
-            drug_formula = ScoreFormula.objects.get_or_create(name="Localization",user=user,default=True)
+            drug_formula, _ = ScoreFormula.objects.get_or_create(name="Localization", user=user, defaults={"default": False})
+            if drug_formula.default:
+                drug_formula.default = False
+                drug_formula.save(update_fields=["default"])
             
         sp = ScoreParam.objects.get_or_create(
             category="Localization", name="Localization", type="CATEGORICAL",
