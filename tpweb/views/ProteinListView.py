@@ -26,6 +26,7 @@ from tpweb.services.protein_list import (
     remove_selected_parameter,
 )
 from tpweb.services.protein_formula import (
+    NO_FORMULA_SENTINEL,
     build_col_descriptions,
     build_score_dict_and_columns,
     choose_formula,
@@ -694,7 +695,8 @@ class ProteinListView(View):
         page_size = parse_page_size(request.GET.get("pageSize", DEFAULT_PAGE_SIZE))
         clear_search_url = self._build_clear_search_url(request, page_size)
         formulas = resolve_formulas_for_user(request.user)
-        formula = choose_formula(formulas, request.GET.get("scoreformula"))
+        requested_formula = request.GET.get("scoreformula", NO_FORMULA_SENTINEL)
+        formula = choose_formula(formulas, requested_formula)
 
         bdb = Biodatabase.objects.get(name=assembly_name)
         #ScoreParam.initialize()
