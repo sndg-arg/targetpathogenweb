@@ -2240,7 +2240,7 @@ a.filter-pill .filter-pill-remove {
     border: 1px solid var(--tp-color-border-soft);
     border-radius: 12px;
     background: var(--tp-color-surface);
-    overflow: hidden;
+    overflow: visible;
     transition: border-color 140ms ease, box-shadow 140ms ease;
 }
 
@@ -2387,9 +2387,9 @@ a.filter-pill .filter-pill-remove {
 
 .filter-param-tooltip {
     position: absolute;
-    bottom: calc(100% + 8px);
-    left: 50%;
-    transform: translateX(-50%);
+    top: calc(100% + 8px);
+    left: auto;
+    right: -10px;
     background: var(--tp-color-text-primary);
     color: var(--tp-color-surface);
     padding: 8px 12px;
@@ -2400,13 +2400,22 @@ a.filter-pill .filter-pill-remove {
     text-transform: none;
     letter-spacing: 0;
     white-space: normal;
-    width: max-content;
-    max-width: 260px;
+    width: min(320px, calc(100vw - 56px));
+    max-width: calc(100vw - 56px);
     pointer-events: none;
     opacity: 0;
     transition: opacity 140ms ease;
     z-index: 5;
     box-shadow: var(--tp-shadow-md);
+}
+
+.filter-param-tooltip::before {
+    content: "";
+    position: absolute;
+    bottom: 100%;
+    right: 12px;
+    border: 5px solid transparent;
+    border-bottom-color: var(--tp-color-text-primary);
 }
 
 .filter-param-help:hover .filter-param-tooltip,
