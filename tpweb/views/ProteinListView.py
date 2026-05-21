@@ -452,6 +452,18 @@ class ProteinListView(View):
         return f"?{encoded}" if encoded else "?"
 
     @staticmethod
+    def _build_sort_url(request, col, current_sort_col, current_sort_dir, default_dir="desc"):
+        params = request.GET.copy()
+        params["sort_col"] = col
+        if col == current_sort_col:
+            params["sort_dir"] = "asc" if current_sort_dir == "desc" else "desc"
+        else:
+            params["sort_dir"] = default_dir
+        if "page" in params:
+            params.pop("page")
+        return f"?{params.urlencode()}"
+
+    @staticmethod
     def _build_clear_structure_url(request, page_size):
         params = request.GET.copy()
         params["pageSize"] = page_size
@@ -760,9 +772,16 @@ class ProteinListView(View):
             **col_descriptions,
         }
 
+        if formula is None:
+            tcolumns = [c for c in tcolumns if c != "Score"]
+
         tdatas = {}
         page = request.GET.get('page', 1)
         search_query = request.GET.get('search', '').strip()
+        raw_sort_col = request.GET.get("sort_col", "").strip()
+        raw_sort_dir = request.GET.get("sort_dir", "").strip().lower()
+        if raw_sort_dir not in ("asc", "desc"):
+            raw_sort_dir = ""
         structure_source = request.GET.get("structure_source", "").strip().lower()
         ec_filter_value = request.GET.get("ec_filter", "").strip()
         annotation_kind = normalize_annotation_kind(request.GET.get("annotation_kind", "ec"))
@@ -823,6 +842,8 @@ class ProteinListView(View):
         formula_expression = getattr(formula, "expression", "") or ""
         formula_param_names = {term.score_param.name for term in formula_term_list}
         column_param_names = set(selected_column_names)
+        # Include sort column in prefetch when it's a score param column
+        sort_param_for_prefetch = raw_sort_col if raw_sort_col in selected_column_names else None
         if formula_expression:
             from tpweb.services.formula_evaluator import (
                 build_all_options_zero, build_expression_variables, safe_eval_expression,
@@ -832,6 +853,8 @@ class ProteinListView(View):
         else:
             zero_cache = None
             needed_score_param_names = formula_param_names | column_param_names
+            if sort_param_for_prefetch:
+                needed_score_param_names = needed_score_param_names | {sort_param_for_prefetch}
 
         ranking_spv_qs = ScoreParamValue.objects.select_related("score_param")
         if needed_score_param_names is not None:
@@ -848,8 +871,18 @@ class ProteinListView(View):
 
         coefficient_by_param = coefficient_map(formula_term_list)
 
+        # Resolve effective sort: which column and direction
+        sort_by_param = raw_sort_col if raw_sort_col in selected_column_names else None
+        sort_by_score = (raw_sort_col == "Score" and formula is not None) or (
+            not raw_sort_col and formula is not None and sort_by_param is None
+        )
+        sort_by_accession = not sort_by_param and not sort_by_score
+        effective_sort_col = sort_by_param or ("Score" if sort_by_score else "__accession__")
+        effective_sort_dir = raw_sort_dir or ("asc" if sort_by_accession else "desc")
+
         ranked_proteins = []
         for protein in ranking_queryset:
+            param_values = score_param_value_map(protein)
             if formula_expression and zero_cache is not None:
                 variables = build_expression_variables(protein, zero_cache)
                 try:
@@ -857,19 +890,52 @@ class ProteinListView(View):
                 except (ValueError, ZeroDivisionError, OverflowError):
                     score_value = 0.0
             else:
-                param_values = score_param_value_map(protein)
                 score_value, _ = compute_score_value(param_values, coefficient_by_param)
             ranked_proteins.append(
                 {
                     "id": protein.bioentry_id,
                     "accession": protein.accession,
                     "score": score_value,
+                    "col_val": param_values.get(sort_by_param) if sort_by_param else None,
                 }
             )
-        ranked_proteins = sorted(
-            ranked_proteins,
-            key=lambda item: (-item["score"], item["accession"]),
-        )
+
+        if sort_by_param:
+            is_desc = effective_sort_dir == "desc"
+            non_null, null_group = [], []
+            for p in ranked_proteins:
+                v = p["col_val"]
+                if v is None or str(v).strip() in ("", "-"):
+                    null_group.append(p)
+                else:
+                    non_null.append(p)
+            sample = non_null[0]["col_val"] if non_null else None
+            is_numeric_sort = False
+            if sample is not None:
+                try:
+                    float(str(sample).replace(",", "."))
+                    is_numeric_sort = True
+                except (ValueError, TypeError):
+                    pass
+            if is_numeric_sort:
+                non_null.sort(
+                    key=lambda p: (float(str(p["col_val"]).replace(",", ".")), p["accession"]),
+                    reverse=is_desc,
+                )
+            else:
+                non_null.sort(
+                    key=lambda p: (str(p["col_val"]).casefold(), p["accession"]),
+                    reverse=is_desc,
+                )
+            ranked_proteins = non_null + null_group
+        elif sort_by_score:
+            if effective_sort_dir == "asc":
+                ranked_proteins = sorted(ranked_proteins, key=lambda p: (p["score"], p["accession"]))
+            else:
+                ranked_proteins = sorted(ranked_proteins, key=lambda p: (-p["score"], p["accession"]))
+        else:
+            ranked_proteins = sorted(ranked_proteins, key=lambda p: p["accession"],
+                                     reverse=(effective_sort_dir == "desc"))
 
         export_mode = request.GET.get("export")
         if export_mode in {"csv", "view_csv"}:
@@ -1030,6 +1096,16 @@ class ProteinListView(View):
             None,
         )
 
+        sort_col_urls = {
+            "__accession__": self._build_sort_url(request, "__accession__", effective_sort_col, effective_sort_dir, default_dir="asc"),
+        }
+        if formula is not None:
+            sort_col_urls["Score"] = self._build_sort_url(request, "Score", effective_sort_col, effective_sort_dir, default_dir="desc")
+        for _col in tcolumns:
+            if _col == "Score":
+                continue
+            sort_col_urls[_col] = self._build_sort_url(request, _col, effective_sort_col, effective_sort_dir, default_dir="desc")
+
         return render(request, self.template_name, {
             "biodb__name": bdb.description if bdb.description else bdb.name,
             "biodb_accession": display_genome_name(bdb.name),
@@ -1087,5 +1163,8 @@ class ProteinListView(View):
             "fixed_column_labels": self.FIXED_COLUMN_LABELS,
             "export_url": self._build_export_url(request),
             "view_export_url": self._build_view_export_url(request),
+            "sort_col": effective_sort_col,
+            "sort_dir": effective_sort_dir,
+            "sort_col_urls": sort_col_urls,
 
         })  # , {'form': form})

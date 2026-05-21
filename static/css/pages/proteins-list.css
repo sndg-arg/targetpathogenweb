@@ -938,6 +938,33 @@ a.filter-pill .filter-pill-remove {
     border-color: var(--tp-color-danger-border) !important;
 }
 
+/* Sortable column headers */
+.th-sortable { white-space: nowrap; }
+
+.th-sort-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: inherit;
+    text-decoration: none;
+    font-weight: inherit;
+}
+
+.th-sort-link:hover { color: var(--tp-accent); text-decoration: none; }
+
+.th-sort-icon::after {
+    content: "⇅";
+    font-size: 0.7em;
+    opacity: 0.35;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.th-sorted .th-sort-link { color: var(--tp-accent); }
+.th-sorted .th-sort-icon::after { opacity: 1; }
+.th-sorted--asc .th-sort-icon::after { content: "↑"; }
+.th-sorted--desc .th-sort-icon::after { content: "↓"; }
+
 .pipeline-like-code {
     color: var(--tp-color-rose-700);
     font-weight: 700;

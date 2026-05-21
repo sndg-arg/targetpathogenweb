@@ -238,14 +238,19 @@
                         <thead>
                         <tr>
                             <th>#</th>
-                            <th>{% trans "Protein" %}</th>
+                            <th class="th-sortable{% if sort_col == '__accession__' %} th-sorted th-sorted--{{ sort_dir }}{% endif %}">
+                                <a href="{{ sort_col_urls|dictkey:'__accession__' }}" class="th-sort-link">{% trans "Protein" %}<span class="th-sort-icon" aria-hidden="true"></span></a>
+                            </th>
                             <th>{% trans "Description" %}</th>
                             <th>{% trans "Gene" %}</th>
                         <th>{% trans "Structure" %}</th>
                         <th>{% trans "EC" %}</th>
                         <th>{% trans "GO" %}</th>
                         {% for col in tcolumns %}
-                            <th data-col="{{ col|slugify }}" title="{{ col_descriptions|dictkey:col }}">{{ col|humanize_identifier }}</th>
+                            <th data-col="{{ col|slugify }}" title="{{ col_descriptions|dictkey:col }}"
+                                class="th-sortable{% if sort_col == col %} th-sorted th-sorted--{{ sort_dir }}{% endif %}">
+                                <a href="{{ sort_col_urls|dictkey:col }}" class="th-sort-link">{{ col|humanize_identifier }}<span class="th-sort-icon" aria-hidden="true"></span></a>
+                            </th>
                         {% endfor %}
                         </tr>
                         </thead>
