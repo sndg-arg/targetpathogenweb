@@ -231,7 +231,7 @@ class ProteinListView(View):
         return None
 
     @staticmethod
-    def _build_numeric_filter_payload(score_param_id, raw_min, raw_max):
+    def _build_numeric_filter_payload(score_param_id, raw_min, raw_max, operation=None):
         try:
             param_pk = int(score_param_id)
         except (TypeError, ValueError):
@@ -242,18 +242,43 @@ class ProteinListView(View):
         except _ScoreParam.DoesNotExist:
             return None
         try:
-            value_min = float(raw_min) if raw_min not in ("", None) else None
+            value_min = float(str(raw_min).replace(",", ".")) if raw_min not in ("", None) else None
         except (TypeError, ValueError):
             value_min = None
         try:
-            value_max = float(raw_max) if raw_max not in ("", None) else None
+            value_max = float(str(raw_max).replace(",", ".")) if raw_max not in ("", None) else None
         except (TypeError, ValueError):
             value_max = None
+
+        requested_operation = str(operation or "").strip().lower()
+        operation_map = {
+            "gte": ">=",
+            ">=": ">=",
+            "min": ">=",
+            "lte": "<=",
+            "<=": "<=",
+            "max": "<=",
+            "between": "between",
+            "range": "between",
+        }
+        requested_operation = operation_map.get(requested_operation)
+
+        if requested_operation == ">=":
+            value_max = None
+        elif requested_operation == "<=":
+            if value_max is None:
+                value_max = value_min
+            value_min = None
+        elif requested_operation == "between":
+            pass
+
         if value_min is None and value_max is None:
             return None
         if value_min is not None and value_max is not None:
+            if value_min > value_max:
+                value_min, value_max = value_max, value_min
             operation = "between"
-            display_value = f"{value_min:g} – {value_max:g}"
+            display_value = f"between {value_min:g} and {value_max:g}"
             filter_id = f"numeric:{score_param.pk}:between:{value_min:g}:{value_max:g}"
             primary_value = value_min
         elif value_min is not None:
@@ -634,9 +659,15 @@ class ProteinListView(View):
 
         elif action == "add_numeric_filter":
             score_param_id = (request.POST.get("score_param_id") or "").strip()
+            numeric_operation = (request.POST.get("numeric_operation") or "").strip()
             raw_min = (request.POST.get("value") or "").strip()
             raw_max = (request.POST.get("value_max") or "").strip()
-            payload = self._build_numeric_filter_payload(score_param_id, raw_min, raw_max)
+            payload = self._build_numeric_filter_payload(
+                score_param_id,
+                raw_min,
+                raw_max,
+                operation=numeric_operation,
+            )
             if payload:
                 selected_parameters = add_selected_parameter(selected_parameters, payload)
 

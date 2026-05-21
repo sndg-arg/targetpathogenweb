@@ -656,10 +656,31 @@
                                                 <input type="hidden" name="action" value="add_numeric_filter">
                                                 <input type="hidden" name="score_param_id" value="{{ param.id }}">
                                                 <input type="hidden" name="return_query" value="{{ query_string }}">
-                                                <input type="number" step="any" name="value" class="filter-numeric-input" placeholder="{% trans 'Min' %}" aria-label="{% trans 'Minimum' %}">
-                                                <span class="filter-numeric-sep" aria-hidden="true">–</span>
-                                                <input type="number" step="any" name="value_max" class="filter-numeric-input" placeholder="{% trans 'Max' %}" aria-label="{% trans 'Maximum' %}">
-                                                <button type="submit" class="filter-text-add">{% trans "Apply" %}</button>
+                                                <div class="filter-numeric-toolbar" role="radiogroup" aria-label="{% trans 'Numeric filter mode' %}">
+                                                    <label class="filter-numeric-mode">
+                                                        <input type="radio" name="numeric_operation" value="gte" checked>
+                                                        <span>{% trans "At least" %}</span>
+                                                    </label>
+                                                    <label class="filter-numeric-mode">
+                                                        <input type="radio" name="numeric_operation" value="lte">
+                                                        <span>{% trans "At most" %}</span>
+                                                    </label>
+                                                    <label class="filter-numeric-mode">
+                                                        <input type="radio" name="numeric_operation" value="between">
+                                                        <span>{% trans "Between" %}</span>
+                                                    </label>
+                                                </div>
+                                                <div class="filter-numeric-values">
+                                                    <label class="filter-numeric-field" data-numeric-field="primary">
+                                                        <span class="filter-numeric-field-label">{% trans "Value" %}</span>
+                                                        <input type="number" step="any" name="value" class="filter-numeric-input" placeholder="0.70" aria-label="{% trans 'Numeric value' %}">
+                                                    </label>
+                                                    <label class="filter-numeric-field filter-numeric-field--max" data-numeric-field="secondary">
+                                                        <span class="filter-numeric-field-label">{% trans "Upper bound" %}</span>
+                                                        <input type="number" step="any" name="value_max" class="filter-numeric-input" placeholder="1.00" aria-label="{% trans 'Upper bound' %}">
+                                                    </label>
+                                                    <button type="submit" class="filter-numeric-apply">{% trans "Apply" %}</button>
+                                                </div>
                                             </form>
                                             {% if param.active_filters %}
                                                 <div class="filter-chip-group filter-chip-group--active">
@@ -1672,6 +1693,30 @@
                     setFormulaState(false);
                     setColumnsState(false);
                 }
+            });
+
+            document.querySelectorAll(".filter-numeric-form").forEach(function (form) {
+                const primaryLabel = form.querySelector('[data-numeric-field="primary"] .filter-numeric-field-label');
+                const secondaryInput = form.querySelector('[data-numeric-field="secondary"] input');
+
+                function syncNumericMode() {
+                    const selected = form.querySelector('input[name="numeric_operation"]:checked');
+                    const mode = selected ? selected.value : "gte";
+                    form.classList.toggle("is-between", mode === "between");
+                    if (primaryLabel) {
+                        if (mode === "lte") primaryLabel.textContent = "Maximum";
+                        else if (mode === "between") primaryLabel.textContent = "Lower bound";
+                        else primaryLabel.textContent = "Minimum";
+                    }
+                    if (secondaryInput && mode !== "between") {
+                        secondaryInput.value = "";
+                    }
+                }
+
+                form.querySelectorAll('input[name="numeric_operation"]').forEach(function (input) {
+                    input.addEventListener("change", syncNumericMode);
+                });
+                syncNumericMode();
             });
 
             // Color-code druggability chips using FPocket thresholds
