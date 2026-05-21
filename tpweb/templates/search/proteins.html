@@ -861,6 +861,31 @@
             <div class="drawer-body scoring-drawer-body">
                 {% if formulas_for_drawer %}
                     <div class="scoring-formula-list" role="radiogroup" aria-label="{% trans 'Ranking formula' %}">
+                        <div class="scoring-formula-entry">
+                            <form method="GET" action="" class="scoring-formula-form">
+                                {% if search_query %}<input type="hidden" name="search" value="{{ search_query }}">{% endif %}
+                                {% if structure_source %}<input type="hidden" name="structure_source" value="{{ structure_source }}">{% endif %}
+                                {% if annotation_filter %}
+                                    <input type="hidden" name="annotation_kind" value="{{ annotation_filter.kind }}">
+                                    <input type="hidden" name="annotation_value" value="{{ annotation_filter.value }}">
+                                {% endif %}
+                                <input type="hidden" name="pageSize" value="{{ page_size }}">
+                                <input type="hidden" name="scoreformula" value="__none__">
+                                <button type="submit"
+                                        class="scoring-formula-row {% if not formula_active %}scoring-formula-row--current{% endif %}"
+                                        role="radio"
+                                        aria-checked="{% if not formula_active %}true{% else %}false{% endif %}">
+                                    <span class="scoring-formula-row__radio" aria-hidden="true"></span>
+                                    <span class="scoring-formula-row__body">
+                                        <span class="scoring-formula-row__title">
+                                            <span class="scoring-formula-row__name">{% trans "No scoring" %}</span>
+                                            <span class="scoring-formula-row__badge">{% trans "Default" %}</span>
+                                        </span>
+                                        <code class="scoring-formula-row__expression">{% trans "Sort by any column independently" %}</code>
+                                    </span>
+                                </button>
+                            </form>
+                        </div>
                         {% for entry in formulas_for_drawer %}
                             <div class="scoring-formula-entry">
                                 <form method="GET" action="" class="scoring-formula-form">

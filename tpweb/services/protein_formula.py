@@ -30,8 +30,13 @@ def resolve_formulas_for_user(user):
     return _dedupe_formulas_by_name(formulas)
 
 
+NO_FORMULA_SENTINEL = "__none__"
+
+
 def choose_formula(formulas, requested_formula_name):
     requested_name = (requested_formula_name or "").strip()
+    if requested_name == NO_FORMULA_SENTINEL:
+        return None
     if requested_name:
         selected = [formula for formula in formulas if formula.name == requested_name]
         if selected:
