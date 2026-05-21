@@ -249,10 +249,15 @@
                         <th>{% trans "EC" %}</th>
                         <th>{% trans "GO" %}</th>
                         {% for col in tcolumns %}
-                            <th data-col="{{ col|slugify }}" title="{{ col_descriptions|dictkey:col }}"
+                            {% with col_desc=col_descriptions|dictkey:col %}
+                            <th data-col="{{ col|slugify }}"
                                 class="th-sortable{% if sort_col == col %} th-sorted th-sorted--{{ sort_dir }}{% endif %}">
-                                <a href="{{ sort_col_urls|dictkey:col }}" class="th-sort-link">{{ col|humanize_identifier }}<span class="th-sort-icon" aria-hidden="true"></span></a>
+                                <a href="{{ sort_col_urls|dictkey:col }}" class="th-sort-link">
+                                    {{ col|humanize_identifier }}<span class="th-sort-icon" aria-hidden="true"></span>
+                                    {% if col_desc %}<span class="cell-tooltip" role="tooltip">{{ col_desc }}</span>{% endif %}
+                                </a>
                             </th>
+                            {% endwith %}
                         {% endfor %}
                         </tr>
                         </thead>
@@ -322,9 +327,15 @@
                                         {% elif col == "Druggability" %}
                                             {% with val=tdata|dictkey:protein.id|dictkey:col %}
                                                 {% if val and val != "-" %}
-                                                    <span class="tp-chip tp-chip--score js-drugg-cell" data-score="{{ val }}">{{ val|floatformat:2 }}</span>
+                                                    <span class="tp-chip tp-chip--score js-drugg-cell druggability-tip" data-score="{{ val }}">
+                                                        {{ val|floatformat:2 }}
+                                                        <span class="cell-tooltip" role="tooltip">{% trans "FPocket druggability score, 0 to 1. Higher is better: ≥ 0.7 high, ≥ 0.4 medium, < 0.4 low." %}</span>
+                                                    </span>
                                                 {% else %}
-                                                    <span class="tp-drugg-none">{% trans "No pocket" %}</span>
+                                                    <span class="tp-drugg-none druggability-tip">
+                                                        {% trans "No pocket" %}
+                                                        <span class="cell-tooltip" role="tooltip">{% trans "No predicted pocket score is available for this protein." %}</span>
+                                                    </span>
                                                 {% endif %}
                                             {% endwith %}
                                         {% else %}

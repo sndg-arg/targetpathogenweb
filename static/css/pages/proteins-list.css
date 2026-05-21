@@ -802,7 +802,9 @@ a.filter-pill .filter-pill-remove {
 .metric-na:hover .cell-tooltip,
 .annotation-empty:hover .cell-tooltip,
 .structure-unavailable:hover .cell-tooltip,
-.annotation-chip-tip:hover .cell-tooltip {
+.annotation-chip-tip:hover .cell-tooltip,
+.druggability-tip:hover .cell-tooltip,
+.druggability-tip:focus-visible .cell-tooltip {
     opacity: 1;
 }
 
@@ -920,9 +922,12 @@ a.filter-pill .filter-pill-remove {
 }
 
 .tp-drugg-none {
+    position: relative;
+    display: inline-block;
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-label);
     font-style: italic;
+    cursor: default;
 }
 
 .tp-chip--drugg-high {
@@ -943,10 +948,16 @@ a.filter-pill .filter-pill-remove {
     border-color: var(--tp-color-danger-border) !important;
 }
 
+.druggability-tip {
+    position: relative;
+    cursor: default;
+}
+
 /* Sortable column headers */
 .th-sortable { white-space: nowrap; }
 
 .th-sort-link {
+    position: relative;
     display: inline-flex;
     align-items: center;
     gap: 4px;
@@ -956,6 +967,11 @@ a.filter-pill .filter-pill-remove {
 }
 
 .th-sort-link:hover { color: var(--tp-accent); text-decoration: none; }
+
+.th-sort-link:hover .cell-tooltip,
+.th-sort-link:focus-visible .cell-tooltip {
+    opacity: 1;
+}
 
 .th-sort-icon::after {
     content: "⇅";
