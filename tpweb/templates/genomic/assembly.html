@@ -124,7 +124,7 @@
                                 <div>
                                     <h2>{% trans "Top drug-target candidates" %}</h2>
                                     <p class="section-subtitle">
-                                        {% blocktrans with formula=top_targets_by_score.formula_name %}Ranked by {{ formula }}. Contributing factors shown per candidate.{% endblocktrans %}
+                                        {% trans "Ranked by raw FPocket druggability score. Higher values indicate more druggable predicted pockets." %}
                                     </p>
                                 </div>
                             </div>

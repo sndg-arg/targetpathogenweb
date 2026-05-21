@@ -132,37 +132,12 @@ def _humanize_factor(param_name, value):
 
 
 def get_top_targets_by_score(assembly_name, user, limit=5):
-    """Top-N proteins of a genome ranked by the user's default scoring formula.
+    """Top-N proteins of a genome ranked by raw FPocket druggability.
 
-    Returns each target with the top 3 contributing factors (chips), so a
-    biologist sees *why* a target ranks high (Essential, no human off-target,
-    druggable pocket…) without clicking through.
+    The genome overview should show an interpretable single-evidence ranking by
+    default. Composite formulas belong in the protein list scoring drawer.
     """
-    from tpweb.services.protein_formula import (
-        choose_formula,
-        coefficient_map,
-        resolve_formulas_for_user,
-    )
-    from tpweb.services.protein_serializer import (
-        compute_score_value,
-        score_param_value_map,
-    )
-    from tpweb.services.formula_evaluator import (
-        build_all_options_zero,
-        build_expression_variables,
-        safe_eval_expression,
-    )
-
-    formulas = resolve_formulas_for_user(user)
-    if not formulas:
-        return {"formula_name": None, "items": []}
-    formula = choose_formula(formulas, None)
-    if not formula:
-        return {"formula_name": None, "items": []}
-
-    formula_terms = list(formula.terms.all())
-    coef = coefficient_map(formula_terms)
-    zero_cache = build_all_options_zero(user) if formula.expression else None
+    from tpweb.services.protein_serializer import score_param_value_map
 
     proteome_name = assembly_name + Biodatabase.PROT_POSTFIX
     proteins = (
@@ -182,43 +157,29 @@ def get_top_targets_by_score(assembly_name, user, limit=5):
     scored = []
     for p in proteins:
         param_values = score_param_value_map(p)
-        if formula.expression and zero_cache is not None:
-            try:
-                variables = build_expression_variables(p, zero_cache)
-                score = float(safe_eval_expression(formula.expression, variables))
-            except (ValueError, ZeroDivisionError, OverflowError):
-                score = 0.0
-            weights = {}
-        else:
-            score, weights = compute_score_value(param_values, coef)
+        raw_druggability = param_values.get("Druggability")
+        try:
+            score = float(raw_druggability or 0)
+        except (TypeError, ValueError):
+            score = 0.0
         counts = binder_counts_by_source.get(p.accession, {})
         pdb_c = counts.get(Binders.SOURCE_PDB, 0)
         chembl_c = counts.get(Binders.SOURCE_CHEMBL, 0)
         zinc_c = counts.get(Binders.SOURCE_PROPOSED, 0)
         binder_count = pdb_c + chembl_c + zinc_c
-        scored.append((p, score, weights, param_values, binder_count, pdb_c, chembl_c, zinc_c))
+        scored.append((p, score, param_values, binder_count, pdb_c, chembl_c, zinc_c))
 
-    # Sort by score, breaking ties by binder count so well-evidenced proteins surface first.
-    scored.sort(key=lambda row: (row[1], row[4]), reverse=True)
+    # Sort by druggability, breaking ties by binder count so well-evidenced proteins surface first.
+    scored.sort(key=lambda row: (row[1], row[3]), reverse=True)
     top = scored[:limit]
 
     items = []
-    for p, score, weights, param_values, binder_count, pdb_c, chembl_c, zinc_c in top:
-        # Top 3 contributing params by absolute coefficient
-        ranked_params = sorted(weights.items(), key=lambda kv: abs(kv[1]), reverse=True)[:4]
+    for p, score, param_values, binder_count, pdb_c, chembl_c, zinc_c in top:
         factors = []
-        for param_name, contribution in ranked_params:
-            value = param_values.get(param_name)
-            label_spec = _humanize_factor(param_name, str(value))
-            if label_spec:
-                label, tone = label_spec
-                factors.append({"label": label, "tone": tone})
-            else:
-                # Generic chip if no friendly mapping exists
-                factors.append({
-                    "label": f"{param_name}: {value}",
-                    "tone": "good" if contribution > 0 else "neutral",
-                })
+        label_spec = _humanize_factor("Druggability", score)
+        if label_spec:
+            label, tone = label_spec
+            factors.append({"label": label, "tone": tone})
         items.append({
             "bioentry_id": p.bioentry_id,
             "accession": p.accession,
@@ -231,7 +192,7 @@ def get_top_targets_by_score(assembly_name, user, limit=5):
             "zinc_count": zinc_c,
         })
 
-    return {"formula_name": formula.name, "items": items}
+    return {"formula_name": "Druggability", "items": items}
 
 
 def build_assembly_workspace_metrics(assembly_name):
