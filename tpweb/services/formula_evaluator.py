@@ -2,9 +2,9 @@
 Safe mathematical expression evaluator for scoring formulas.
 
 Variables are built from per-protein ScoreParamValues:
-  druggability_high = 1.0 if the protein's Druggability == "High", else 0.0
   druggability = the raw numeric Druggability value if the parameter is numeric
-  human_offtarget_none = 1.0 if human_offtarget == "None", else 0.0
+  human_identity = the raw numeric identity value if the parameter is numeric
+  human_offtarget_hit = 1.0 if human_offtarget == "hit", else 0.0
   ...
 
 Supported operators: + - * / ^ ** %

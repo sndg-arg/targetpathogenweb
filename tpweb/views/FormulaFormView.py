@@ -23,6 +23,24 @@ SAFE_FUNCTIONS = [
     {"label": "round(x)", "insert": "round()", "desc": "Round to nearest integer"},
 ]
 
+EXAMPLE_FORMULAS = [
+    {
+        "label": "Druggability + essentiality",
+        "expression": "0.7 * druggability + 2 * hit_in_deg_y",
+        "desc": "Use raw pocket druggability and reward DEG essentiality hits.",
+    },
+    {
+        "label": "Penalize human similarity",
+        "expression": "druggability + 2 * hit_in_deg_y - 0.02 * human_identity",
+        "desc": "Keep druggability high while lowering rank for human sequence identity.",
+    },
+    {
+        "label": "Off-target aware",
+        "expression": "druggability + hit_in_deg_y - gut_microbiome_offtarget_hit - human_offtarget_hit",
+        "desc": "Combine pocket score with binary off-target indicators.",
+    },
+]
+
 
 def FormulaFormView(request, genome):
     assembly_name = resolve_genome_from_slug(request.user, genome)
@@ -67,5 +85,6 @@ def FormulaFormView(request, genome):
             "genome": genome_url_slug(assembly_name),
             "variable_groups": variable_groups,
             "safe_functions": SAFE_FUNCTIONS,
+            "example_formulas": EXAMPLE_FORMULAS,
         },
     )

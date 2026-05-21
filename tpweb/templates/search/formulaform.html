@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/formula-form.css' %}?v=20260511-5">
+    <link rel="stylesheet" href="{% static 'css/pages/formula-form.css' %}?v=20260521-score-builder">
 {% endblock %}
 
 {% block body %}
@@ -31,7 +31,7 @@
                 {% trans "Custom scoring · Mathematical formula" %}
             </span>
             <h1>{% trans "Make my own score" %}</h1>
-            <p class="formula-subtitle">{% trans "Write a mathematical expression combining any evidence signals — druggability, essentiality, off-target risk, and more — to rank proteins exactly how your research needs." %}</p>
+            <p class="formula-subtitle">{% trans "Build an optional composite score by combining raw numeric evidence, such as druggability or identity, with binary categorical signals such as essentiality and off-target hits." %}</p>
             <div class="formula-chip-group tp-chip-group">
                 <span class="tp-chip tp-chip--meta tp-chip--sm">
                     <strong>{% trans "Genome" %}:</strong>
@@ -75,7 +75,7 @@
                     <div class="formula-card-head tp-ui-panel-head">
                         <div>
                             <h2>{% trans "Expression" %}</h2>
-                            <p class="formula-card-note">{% trans "Write your scoring formula. Use variable names from the palette on the right. Supports arithmetic operators, powers (** or ^), and math functions." %}</p>
+                            <p class="formula-card-note">{% trans "Write a composite ranking formula. Use raw numeric variables directly, and use categorical variables as 1/0 indicators." %}</p>
                         </div>
                     </div>
 
@@ -102,6 +102,24 @@
                             <span class="formula-katex-placeholder">{% trans "Formula will appear here as you type…" %}</span>
                         </div>
                     </div>
+
+                    {% if example_formulas %}
+                        <div class="formula-palette formula-palette--examples">
+                            <p class="formula-palette-label">{% trans "Examples" %}</p>
+                            <div class="formula-palette-chips">
+                                {% for example in example_formulas %}
+                                    <button type="button"
+                                            class="formula-example-chip"
+                                            data-example="{{ example.expression }}"
+                                            data-desc="{{ example.desc }}"
+                                            aria-label="{{ example.desc }}">
+                                        <span>{{ example.label }}</span>
+                                        <code>{{ example.expression }}</code>
+                                    </button>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
 
                     {# Function palette #}
                     <div class="formula-palette formula-palette--funcs">
@@ -139,7 +157,7 @@
                     <div class="formula-card-head tp-ui-panel-head">
                         <div>
                             <h2>{% trans "Variables" %}</h2>
-                            <p class="formula-card-note">{% trans "Click any variable to insert it into your expression. Categorical variables are 1.0 or 0.0; quantitative variables use their raw numeric value." %}</p>
+                            <p class="formula-card-note">{% trans "Click any variable to insert it. Numeric variables keep their raw value; categorical variables are 1.0 when true and 0.0 otherwise." %}</p>
                         </div>
                     </div>
 
@@ -158,9 +176,15 @@
                                     <div class="formula-var-chips">
                                         {% for v in vars %}
                                             <button type="button"
-                                                    class="formula-var-chip"
+                                                    class="formula-var-chip formula-var-chip--{{ v.kind|default:'categorical' }}"
                                                     data-var="{{ v.var }}"
-                                                    title="{{ v.desc }}">{{ v.var }}</button>
+                                                    data-desc="{{ v.desc }}"
+                                                    aria-label="{{ v.desc }}">
+                                                <span class="formula-var-name">{{ v.var }}</span>
+                                                <span class="formula-var-kind">
+                                                    {% if v.kind == "numeric" %}{% trans "numeric" %}{% else %}{% trans "0/1" %}{% endif %}
+                                                </span>
+                                            </button>
                                         {% endfor %}
                                     </div>
                                 </div>
@@ -241,6 +265,16 @@
             });
         });
 
+        document.querySelectorAll("[data-example]").forEach(btn => {
+            btn.addEventListener("click", () => {
+                if (!textarea) return;
+                textarea.value = btn.dataset.example || "";
+                textarea.focus();
+                textarea.dispatchEvent(new Event("input", { bubbles: true }));
+                textarea.dispatchEvent(new Event("keyup", { bubbles: true }));
+            });
+        });
+
         document.querySelectorAll("[data-var]").forEach(btn => {
             btn.addEventListener("click", () => insertAtCursor(btn.dataset.var));
         });
@@ -252,7 +286,7 @@
                 document.querySelectorAll(".formula-var-group").forEach(group => {
                     let anyVisible = false;
                     group.querySelectorAll(".formula-var-chip").forEach(chip => {
-                        const match = !q || chip.dataset.var.includes(q) || (chip.title || "").toLowerCase().includes(q);
+                        const match = !q || chip.dataset.var.includes(q) || (chip.dataset.desc || "").toLowerCase().includes(q);
                         chip.style.display = match ? "" : "none";
                         if (match) anyVisible = true;
                     });

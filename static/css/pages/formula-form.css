@@ -277,7 +277,8 @@
 }
 
 .formula-fn-chip,
-.formula-op-chip {
+.formula-op-chip,
+.formula-example-chip {
     display: inline-flex;
     align-items: center;
     border: 1px solid var(--tp-color-border-soft);
@@ -294,14 +295,16 @@
 }
 
 .formula-fn-chip:hover,
-.formula-op-chip:hover {
+.formula-op-chip:hover,
+.formula-example-chip:hover {
     background: var(--ff-accent-soft-2);
     border-color: var(--ff-accent-border);
     transform: translateY(-1px);
 }
 
 .formula-fn-chip:active,
-.formula-op-chip:active {
+.formula-op-chip:active,
+.formula-example-chip:active {
     transform: translateY(0);
 }
 
@@ -310,6 +313,31 @@
     padding: 3px 12px;
     min-width: 38px;
     justify-content: center;
+}
+
+.formula-example-chip {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 3px;
+    max-width: 100%;
+    padding: 8px 10px;
+    font-family: inherit;
+}
+
+.formula-example-chip span {
+    color: var(--ff-accent-ink);
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
+.formula-example-chip code {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--tp-color-text-secondary);
+    font-family: var(--ff-mono);
+    font-size: 0.76rem;
+    white-space: nowrap;
 }
 
 /* ── Variables column ── */
@@ -369,6 +397,7 @@
 .formula-var-chip {
     display: inline-flex;
     align-items: center;
+    gap: 6px;
     border: 1px solid var(--tp-color-border-soft);
     border-radius: 7px;
     background: var(--tp-color-surface-soft);
@@ -385,6 +414,36 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+.formula-var-name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.formula-var-kind {
+    flex: 0 0 auto;
+    border-radius: 999px;
+    background: var(--tp-color-surface-muted);
+    color: var(--tp-color-text-muted);
+    font-family: var(--tp-font-body);
+    font-size: 0.64rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    line-height: 1;
+    padding: 3px 6px;
+    text-transform: uppercase;
+}
+
+.formula-var-chip--numeric {
+    border-color: var(--tp-color-success-border);
+    background: color-mix(in srgb, var(--tp-color-success-bg) 58%, var(--tp-color-surface));
+}
+
+.formula-var-chip--numeric .formula-var-kind {
+    background: var(--tp-color-success-bg);
+    color: var(--tp-color-success-ink);
 }
 
 .formula-var-chip:hover {

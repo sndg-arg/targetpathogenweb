@@ -15,7 +15,7 @@ class FormulaForm(forms.Form):
         widget=forms.Textarea(attrs={
             "class": f"{_CTRL} formula-expression-input",
             "rows": "5",
-            "placeholder": "e.g.  3 * druggability_high + 2 * essenciality_essential - human_offtarget_high",
+            "placeholder": "e.g.  0.6 * druggability + 2 * hit_in_deg_y - 0.02 * human_identity",
             "spellcheck": "false",
             "autocomplete": "off",
             "id": "id_expression",
