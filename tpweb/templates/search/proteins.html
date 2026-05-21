@@ -312,6 +312,14 @@
                                                     </span>
                                                 {% endif %}
                                             {% endwith %}
+                                        {% elif col == "druggability" %}
+                                            {% with val=tdata|dictkey:protein.id|dictkey:col %}
+                                                {% if val != "-" and val != "" %}
+                                                    <span class="tp-chip tp-chip--score js-drugg-cell" data-score="{{ val }}">{{ val|floatformat:2 }}</span>
+                                                {% else %}
+                                                    <span class="metric-na">N/A<span class="cell-tooltip" role="tooltip">{% trans "Not available for this protein" %}</span></span>
+                                                {% endif %}
+                                            {% endwith %}
                                         {% else %}
                                             {% with val=tdata|dictkey:protein.id|dictkey:col %}
                                                 {% if val != "-" and val != "" %}
@@ -1617,6 +1625,15 @@
                     setFormulaState(false);
                     setColumnsState(false);
                 }
+            });
+
+            // Color-code druggability chips using FPocket thresholds
+            document.querySelectorAll(".js-drugg-cell").forEach(function (el) {
+                var v = parseFloat(el.dataset.score);
+                if (isNaN(v)) return;
+                if (v >= 0.7) { el.classList.add("tp-chip--drugg-high"); }
+                else if (v >= 0.4) { el.classList.add("tp-chip--drugg-mid"); }
+                else { el.classList.add("tp-chip--drugg-low"); }
             });
         }
 

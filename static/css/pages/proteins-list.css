@@ -914,6 +914,24 @@ a.filter-pill .filter-pill-remove {
     font-size: 0.9rem;
 }
 
+.tp-chip--drugg-high {
+    color: var(--tp-color-success-ink);
+    background: var(--tp-color-success-bg);
+    border-color: var(--tp-color-success-border) !important;
+}
+
+.tp-chip--drugg-mid {
+    color: var(--tp-color-warning-ink);
+    background: var(--tp-color-warning-bg);
+    border-color: var(--tp-color-warning-border) !important;
+}
+
+.tp-chip--drugg-low {
+    color: var(--tp-color-danger-ink);
+    background: var(--tp-color-danger-bg);
+    border-color: var(--tp-color-danger-border) !important;
+}
+
 .pipeline-like-code {
     color: var(--tp-color-rose-700);
     font-weight: 700;
