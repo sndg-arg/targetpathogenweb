@@ -206,19 +206,23 @@ class ScoreParam(models.Model):
         from tpweb.models.ScoreFormula import ScoreFormula
         default_expression = "druggability"
         legacy_default_expressions = {"", "3 * druggability", "3*druggability"}
+        drugg_description = (
+            "FPocket druggability score for the best predicted pocket (0–1). "
+            "≥ 0.7 highly druggable · ≥ 0.4 moderately druggable · < 0.4 low druggability."
+        )
         users = TPUser.objects.all()
         for user in users:
             formula, _ = ScoreFormula.objects.get_or_create(
                 name="Druggability",
                 user=user,
-                defaults={"default": True, "expression": default_expression},
+                defaults={"default": False, "expression": default_expression},
             )
             updated_fields = []
             if (formula.expression or "").strip() in legacy_default_expressions:
                 formula.expression = default_expression
                 updated_fields.append("expression")
-            if not formula.default:
-                formula.default = True
+            if formula.default:
+                formula.default = False
                 updated_fields.append("default")
             if updated_fields:
                 formula.save(update_fields=updated_fields)
@@ -229,7 +233,7 @@ class ScoreParam(models.Model):
                 category="Pocket",
                 name="Druggability",
                 type="N",
-                description="Raw FPocket druggability score for the best pocket.",
+                description=drugg_description,
                 default_operation=">=",
                 default_value="0",
                 user=None,
@@ -239,7 +243,7 @@ class ScoreParam(models.Model):
             desired = {
                 "category": "Pocket",
                 "type": "N",
-                "description": "Raw FPocket druggability score for the best pocket.",
+                "description": drugg_description,
                 "default_operation": ">=",
                 "default_value": "0",
             }

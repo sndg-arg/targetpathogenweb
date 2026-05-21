@@ -163,9 +163,11 @@
                                     </span>
                                 </button>
                                 {% if formulas %}
-                                    <button type="button" class="btn tp-btn tp-btn--neutral toolbar-action-btn toolbar-action-btn--primary" id="open-formula-btn">
+                                    <button type="button" class="btn tp-btn tp-btn--neutral toolbar-action-btn toolbar-action-btn--primary{% if not formula_active %} toolbar-action-btn--cta{% endif %}" id="open-formula-btn">
                                         <span class="toolbar-action-btn__title">{% trans "Scoring" %}</span>
-                                        <span class="toolbar-action-btn__meta">{{ formula.name|default:_("No scoring") }}</span>
+                                        <span class="toolbar-action-btn__meta">
+                                            {% if formula_active %}{{ formula.name }}{% else %}{% trans "Combine criteria →" %}{% endif %}
+                                        </span>
                                     </button>
                                 {% endif %}
                             </div>

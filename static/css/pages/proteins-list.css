@@ -296,6 +296,11 @@ a.filter-pill .filter-pill-remove {
     font-weight: 500;
 }
 
+.toolbar-action-btn--cta .toolbar-action-btn__meta {
+    color: var(--tp-accent);
+    font-weight: 600;
+}
+
 .toolbar-controls-left .toolbar-action-btn:hover .toolbar-action-btn__meta,
 .toolbar-controls-left .toolbar-action-btn:focus-visible .toolbar-action-btn__meta {
     color: var(--tp-color-text-secondary);

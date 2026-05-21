@@ -743,6 +743,11 @@ class ProteinListView(View):
             score_param.name: score_param for score_param in all_visible_score_params
         }
         default_column_names = [score_param.name for score_param in ordered_score_params(formula_term_list)]
+        if not default_column_names:
+            # No formula active — default to Druggability column if it exists
+            default_column_names = [
+                name for name in ["Druggability"] if name in visible_score_param_by_name
+            ]
         stored_column_names = get_workspace_session_value(
             request.session,
             request.user,
@@ -872,9 +877,16 @@ class ProteinListView(View):
         coefficient_by_param = coefficient_map(formula_term_list)
 
         # Resolve effective sort: which column and direction
-        sort_by_param = raw_sort_col if raw_sort_col in selected_column_names else None
+        # When no formula and no explicit sort, default to Druggability desc if available
+        _drugg_default = (
+            not raw_sort_col and formula is None
+            and "Druggability" in selected_column_names
+        )
+        sort_by_param = raw_sort_col if raw_sort_col in selected_column_names else (
+            "Druggability" if _drugg_default else None
+        )
         sort_by_score = (raw_sort_col == "Score" and formula is not None) or (
-            not raw_sort_col and formula is not None and sort_by_param is None
+            not raw_sort_col and formula is not None and not sort_by_param
         )
         sort_by_accession = not sort_by_param and not sort_by_score
         effective_sort_col = sort_by_param or ("Score" if sort_by_score else "__accession__")
@@ -1166,5 +1178,6 @@ class ProteinListView(View):
             "sort_col": effective_sort_col,
             "sort_dir": effective_sort_dir,
             "sort_col_urls": sort_col_urls,
+            "formula_active": formula is not None,
 
         })  # , {'form': form})
