@@ -312,7 +312,7 @@
                                                     </span>
                                                 {% endif %}
                                             {% endwith %}
-                                        {% elif col == "druggability" %}
+                                        {% elif col == "Druggability" %}
                                             {% with val=tdata|dictkey:protein.id|dictkey:col %}
                                                 {% if val != "-" and val != "" %}
                                                     <span class="tp-chip tp-chip--score js-drugg-cell" data-score="{{ val }}">{{ val|floatformat:2 }}</span>
