@@ -314,10 +314,10 @@
                                             {% endwith %}
                                         {% elif col == "Druggability" %}
                                             {% with val=tdata|dictkey:protein.id|dictkey:col %}
-                                                {% if val != "-" and val != "" %}
+                                                {% if val and val != "-" %}
                                                     <span class="tp-chip tp-chip--score js-drugg-cell" data-score="{{ val }}">{{ val|floatformat:2 }}</span>
                                                 {% else %}
-                                                    <span class="metric-na">N/A<span class="cell-tooltip" role="tooltip">{% trans "Not available for this protein" %}</span></span>
+                                                    <span class="tp-drugg-none">{% trans "No pocket" %}</span>
                                                 {% endif %}
                                             {% endwith %}
                                         {% else %}

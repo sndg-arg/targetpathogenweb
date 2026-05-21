@@ -914,6 +914,12 @@ a.filter-pill .filter-pill-remove {
     font-size: 0.9rem;
 }
 
+.tp-drugg-none {
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-label);
+    font-style: italic;
+}
+
 .tp-chip--drugg-high {
     color: var(--tp-color-success-ink);
     background: var(--tp-color-success-bg);
