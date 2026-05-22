@@ -973,6 +973,11 @@ a.filter-pill .filter-pill-remove {
 /* Sortable column headers */
 .th-sortable { white-space: nowrap; }
 
+.protein-table thead th:hover,
+.protein-table thead th:focus-within {
+    z-index: calc(var(--tp-table-sticky-z) + 5);
+}
+
 .th-sort-link {
     position: relative;
     display: inline-flex;
@@ -988,6 +993,7 @@ a.filter-pill .filter-pill-remove {
 .th-sort-link .cell-tooltip {
     top: calc(100% + 8px);
     bottom: auto;
+    z-index: 1500;
 }
 
 .th-sort-link .cell-tooltip::after {
