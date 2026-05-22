@@ -345,7 +345,13 @@
                                         {% else %}
                                             {% with val=tdata|dictkey:protein.id|dictkey:col %}
                                                 {% if val != "-" and val != "" %}
-                                                    <span class="protein-metric-value">{{ val }}</span>
+                                                    {% with tone=val|score_metric_tone:col %}
+                                                        {% if tone %}
+                                                            <span class="tp-chip protein-metric-chip protein-metric-chip--{{ tone }}">{{ val|score_metric_display:col }}</span>
+                                                        {% else %}
+                                                            <span class="protein-metric-value">{{ val|score_metric_display:col }}</span>
+                                                        {% endif %}
+                                                    {% endwith %}
                                                 {% else %}
                                                     <span class="metric-na">N/A<span class="cell-tooltip" role="tooltip">{% trans "Not available for this protein" %}</span></span>
                                                 {% endif %}

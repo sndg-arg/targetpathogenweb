@@ -821,7 +821,13 @@ class ProteinListView(View):
         if not default_column_names:
             # No formula active — default to Druggability column if it exists
             default_column_names = [
-                name for name in ["Druggability"] if name in visible_score_param_by_name
+                name for name in [
+                    "Druggability",
+                    "human_offtarget",
+                    "human_identity",
+                    "human_evalue",
+                ]
+                if name in visible_score_param_by_name
             ]
         stored_column_names = get_workspace_session_value(
             request.session,

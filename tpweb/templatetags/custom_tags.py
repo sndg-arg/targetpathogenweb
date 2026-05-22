@@ -22,6 +22,10 @@ def humanize_identifier(value):
     exact_replacements = {
         "human_offtarget": "Human off-target",
         "gut_microbiome_offtarget": "Gut microbiome off-target",
+        "human_identity": "Human identity (%)",
+        "human_evalue": "Human E-value",
+        "deg_identity": "DEG identity (%)",
+        "deg_evalue": "DEG E-value",
         "hit_in_deg": "Hit in DEG",
         "no_hit": "No hit",
     }
@@ -64,3 +68,35 @@ def humanize_identifier(value):
         human_tokens.append(token.capitalize())
 
     return " ".join(human_tokens)
+
+
+@register.filter
+def score_metric_display(value, column_name):
+    text = str(value if value is not None else "").strip()
+    if not text or text in {"-", "—"} or text.lower() in {"none", "nan", "null"}:
+        return "—"
+
+    column_key = str(column_name or "").strip().lower()
+    try:
+        numeric = float(text.replace(",", "."))
+    except (TypeError, ValueError):
+        return humanize_identifier(text) or text
+
+    if column_key.endswith("_evalue"):
+        return f"{numeric:.2e}"
+    if column_key.endswith("_identity"):
+        return f"{numeric:.1f}%"
+    return f"{numeric:g}"
+
+
+@register.filter
+def score_metric_tone(value, column_name):
+    text = str(value if value is not None else "").strip().lower()
+    column_key = str(column_name or "").strip().lower()
+
+    if column_key in {"human_offtarget", "gut_microbiome_offtarget"}:
+        if text == "hit":
+            return "risk"
+        if text in {"no_hit", "no hit"}:
+            return "favorable"
+    return ""

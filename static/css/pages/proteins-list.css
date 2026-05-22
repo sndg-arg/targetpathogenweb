@@ -948,6 +948,22 @@ a.filter-pill .filter-pill-remove {
     border-color: var(--tp-color-danger-border) !important;
 }
 
+.protein-metric-chip {
+    font-weight: 800;
+}
+
+.protein-metric-chip--risk {
+    color: var(--tp-color-danger-ink);
+    background: var(--tp-color-danger-bg);
+    border-color: var(--tp-color-danger-border) !important;
+}
+
+.protein-metric-chip--favorable {
+    color: var(--tp-color-success-ink);
+    background: var(--tp-color-success-bg);
+    border-color: var(--tp-color-success-border) !important;
+}
+
 .druggability-tip {
     position: relative;
     cursor: default;

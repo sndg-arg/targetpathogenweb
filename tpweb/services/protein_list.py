@@ -31,6 +31,10 @@ LOWER_CONNECTORS = {"and", "or", "of", "in", "on", "to", "for", "with", "without
 EXACT_REPLACEMENTS = {
     "human_offtarget": "Human off-target",
     "gut_microbiome_offtarget": "Gut microbiome off-target",
+    "human_identity": "Human identity (%)",
+    "human_evalue": "Human E-value",
+    "deg_identity": "DEG identity (%)",
+    "deg_evalue": "DEG E-value",
     "hit_in_deg": "Hit in DEG",
     "no_hit": "No hit",
     "ec_number": "EC number",
