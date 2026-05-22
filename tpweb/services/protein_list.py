@@ -57,6 +57,13 @@ def _coerce_numeric_filter_value(value):
         return None
 
 
+def _coerce_score_param_id(value):
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
 def _format_numeric_filter_value(value):
     coerced = _coerce_numeric_filter_value(value)
     if coerced is None:
@@ -119,7 +126,9 @@ def humanize_identifier(value):
 def grouped_selected_parameters(selected_parameters, humanize=False):
     grouped_data = {}
     for item in selected_parameters:
-        score_param_name = item["score_param_name"]
+        score_param_name = item.get("score_param_name")
+        if not score_param_name:
+            continue
         option_name = _selected_parameter_display_value(item, humanize=humanize)
         if humanize:
             score_param_name = humanize_identifier(score_param_name) or score_param_name
@@ -211,7 +220,9 @@ def apply_selected_parameter_filters(queryset, selected_parameters):
     for parameter in selected_parameters:
         if _selected_parameter_kind(parameter) != "numeric":
             continue
-        param_id = parameter.get("score_param_id")
+        param_id = _coerce_score_param_id(parameter.get("score_param_id"))
+        if param_id is None:
+            continue
         operation = parameter.get("operation")
         value = _coerce_numeric_filter_value(parameter.get("value"))
         value_max = _coerce_numeric_filter_value(parameter.get("value_max"))
