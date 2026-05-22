@@ -557,6 +557,8 @@ a.filter-pill .filter-pill-remove {
 .protein-table-panel .tp-table-shell.is-h-scrollable .protein-table {
     width: max-content;
     min-width: 100%;
+    overflow-x: clip;
+    overflow-y: visible;
 }
 
 .protein-table thead th {
