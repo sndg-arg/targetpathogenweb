@@ -547,7 +547,7 @@ a.filter-pill .filter-pill-remove {
     margin-bottom: 0;
     width: 100%;
     min-width: 100%;
-    table-layout: auto;
+    table-layout: fixed;
 }
 
 .protein-table-panel .tp-table-shell.is-h-scrollable::after {
@@ -555,7 +555,7 @@ a.filter-pill .filter-pill-remove {
 }
 
 .protein-table-panel .tp-table-shell.is-h-scrollable .protein-table {
-    width: max-content;
+    width: 100%;
     min-width: 100%;
 }
 
