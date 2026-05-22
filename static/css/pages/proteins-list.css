@@ -562,6 +562,7 @@ a.filter-pill .filter-pill-remove {
 .protein-table-panel .tp-table-shell.is-h-scrollable .protein-table thead th:last-child,
 .protein-table-panel .tp-table-shell.is-h-scrollable .protein-table tbody td:last-child {
     width: auto;
+    box-shadow: none;
 }
 
 .protein-table thead th {
