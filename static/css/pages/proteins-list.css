@@ -559,12 +559,6 @@ a.filter-pill .filter-pill-remove {
     min-width: 100%;
 }
 
-.protein-table-panel .tp-table-shell.is-h-scrollable .protein-table thead th:last-child,
-.protein-table-panel .tp-table-shell.is-h-scrollable .protein-table tbody td:last-child {
-    width: auto;
-    box-shadow: none;
-}
-
 .protein-table thead th {
     background: var(--tp-table-thead-bg);
     position: sticky;
@@ -639,22 +633,6 @@ a.filter-pill .filter-pill-remove {
 .protein-table tbody td:last-child {
     width: 100%;
     min-width: 148px;
-}
-
-.protein-table thead th:last-child {
-    box-shadow: 72vw 0 0 0 var(--tp-color-surface-muted);
-}
-
-.protein-table tbody tr:nth-of-type(odd) td:last-child {
-    box-shadow: 72vw 0 0 0 var(--tp-color-surface-panel);
-}
-
-.protein-table tbody tr:nth-of-type(even) td:last-child {
-    box-shadow: 72vw 0 0 0 var(--tp-color-surface);
-}
-
-.protein-table tbody tr:hover td:last-child {
-    box-shadow: 72vw 0 0 0 var(--tp-color-brand-050);
 }
 
 .rank-col {
