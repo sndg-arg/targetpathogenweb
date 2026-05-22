@@ -582,6 +582,11 @@ a.filter-pill .filter-pill-remove {
     padding-left: var(--tp-table-cell-first-pl);
 }
 
+.protein-table thead th:last-child,
+.protein-table tbody td:last-child {
+    padding-right: 32px;
+}
+
 .protein-table tbody tr {
     transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
 }
