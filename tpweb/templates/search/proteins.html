@@ -1695,6 +1695,46 @@
                 }
             });
 
+            document.querySelectorAll(".filter-param-help").forEach(function (help) {
+                const tooltip = help.querySelector(".filter-param-tooltip");
+                if (!tooltip) return;
+
+                function positionTooltip() {
+                    const pad = 12;
+                    const gap = 10;
+                    const maxWidth = Math.min(340, window.innerWidth - (pad * 2));
+                    const anchor = help.getBoundingClientRect();
+                    tooltip.style.width = maxWidth + "px";
+                    tooltip.classList.remove("is-above");
+
+                    const size = tooltip.getBoundingClientRect();
+                    let left = anchor.left + (anchor.width / 2) - (maxWidth / 2);
+                    left = Math.max(pad, Math.min(left, window.innerWidth - pad - maxWidth));
+
+                    let top = anchor.bottom + gap;
+                    const canFitBelow = top + size.height <= window.innerHeight - pad;
+                    const canFitAbove = anchor.top - size.height - gap >= pad;
+                    if (!canFitBelow && canFitAbove) {
+                        top = anchor.top - size.height - gap;
+                        tooltip.classList.add("is-above");
+                    }
+
+                    const arrowLeft = anchor.left + (anchor.width / 2) - left;
+                    tooltip.style.left = left + "px";
+                    tooltip.style.top = top + "px";
+                    tooltip.style.setProperty("--tooltip-arrow-left", Math.max(12, Math.min(maxWidth - 12, arrowLeft)) + "px");
+                }
+
+                help.addEventListener("mouseenter", positionTooltip);
+                help.addEventListener("focusin", positionTooltip);
+                window.addEventListener("resize", positionTooltip);
+                document.addEventListener("scroll", function () {
+                    if (help.matches(":hover") || help.contains(document.activeElement)) {
+                        positionTooltip();
+                    }
+                }, true);
+            });
+
             document.querySelectorAll(".filter-numeric-form").forEach(function (form) {
                 const primaryLabel = form.querySelector('[data-numeric-field="primary"] .filter-numeric-field-label');
                 const secondaryInput = form.querySelector('[data-numeric-field="secondary"] input');
