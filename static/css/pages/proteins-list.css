@@ -2425,8 +2425,7 @@ a.filter-pill .filter-pill-remove {
     border-top-color: var(--tp-color-text-primary);
 }
 
-.filter-param-help:hover .filter-param-tooltip,
-.filter-param-help:focus-visible .filter-param-tooltip {
+.filter-param-tooltip.is-visible {
     opacity: 1;
 }
 

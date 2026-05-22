@@ -408,6 +408,32 @@ class ProteinListView(View):
             except ValueError:
                 return (len(preferred_order), category.casefold())
 
+        preferred_param_order = {
+            "Pocket": {
+                "Druggability": 0,
+                "druggability": 0,
+            },
+            "Off-target": {
+                "human_offtarget": 0,
+                "human_identity": 1,
+                "human_evalue": 2,
+                "gut_microbiome_offtarget": 3,
+            },
+            "Essentiality": {
+                "hit_in_deg": 0,
+                "deg_identity": 1,
+                "deg_evalue": 2,
+            },
+            "Localization": {
+                "Localization": 0,
+            },
+        }
+
+        def _param_sort_key(category, entry):
+            category_order = preferred_param_order.get(category, {})
+            name = entry.get("name", "")
+            return (category_order.get(name, 100), entry["label"].casefold())
+
         filter_groups = []
 
         function_data = function_data or {}
@@ -464,7 +490,7 @@ class ProteinListView(View):
             })
 
         for category in sorted(grouped.keys(), key=_category_sort_key):
-            params = sorted(grouped[category], key=lambda entry: entry["label"].casefold())
+            params = sorted(grouped[category], key=lambda entry: _param_sort_key(category, entry))
             filter_groups.append({
                 "category": category,
                 "params": params,

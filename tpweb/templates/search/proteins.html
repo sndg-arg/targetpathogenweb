@@ -644,9 +644,8 @@
                                         <div class="filter-param-head">
                                             <span class="filter-param-label">{{ param.label }}</span>
                                             {% if param.description %}
-                                                <span class="filter-param-help" tabindex="0" role="button" aria-label="{% trans 'About this criterion' %}">
+                                                <span class="filter-param-help" tabindex="0" role="button" aria-label="{% trans 'About this criterion' %}" data-filter-tooltip="{{ param.description }}">
                                                     <span aria-hidden="true">i</span>
-                                                    <span class="filter-param-tooltip" role="tooltip">{{ param.description }}</span>
                                                 </span>
                                             {% endif %}
                                         </div>
@@ -1697,8 +1696,13 @@
             });
 
             document.querySelectorAll(".filter-param-help").forEach(function (help) {
-                const tooltip = help.querySelector(".filter-param-tooltip");
-                if (!tooltip) return;
+                const tooltipText = help.getAttribute("data-filter-tooltip") || "";
+                if (!tooltipText) return;
+                const tooltip = document.createElement("span");
+                tooltip.className = "filter-param-tooltip";
+                tooltip.setAttribute("role", "tooltip");
+                tooltip.textContent = tooltipText;
+                document.body.appendChild(tooltip);
 
                 function positionTooltip() {
                     const pad = 12;
@@ -1726,8 +1730,19 @@
                     tooltip.style.setProperty("--tooltip-arrow-left", Math.max(12, Math.min(maxWidth - 12, arrowLeft)) + "px");
                 }
 
-                help.addEventListener("mouseenter", positionTooltip);
-                help.addEventListener("focusin", positionTooltip);
+                function showTooltip() {
+                    positionTooltip();
+                    tooltip.classList.add("is-visible");
+                }
+
+                function hideTooltip() {
+                    tooltip.classList.remove("is-visible");
+                }
+
+                help.addEventListener("mouseenter", showTooltip);
+                help.addEventListener("mouseleave", hideTooltip);
+                help.addEventListener("focusin", showTooltip);
+                help.addEventListener("focusout", hideTooltip);
                 window.addEventListener("resize", positionTooltip);
                 document.addEventListener("scroll", function () {
                     if (help.matches(":hover") || help.contains(document.activeElement)) {
