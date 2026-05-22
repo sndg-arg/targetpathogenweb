@@ -1614,13 +1614,23 @@
                 if (!proteinTableShell || !proteinTableScrollNote) return;
                 const scrollHost = proteinTableShell.querySelector(":scope > .tp-table-shell__scroll") || proteinTableShell;
                 if (!scrollHost) return;
-                const hasOverflow = (scrollHost.scrollWidth - scrollHost.clientWidth) > 16;
+                const table = scrollHost.querySelector("#proteins_table");
+                const contentWidth = Math.max(
+                    scrollHost.clientWidth || 1,
+                    table ? Math.ceil(table.getBoundingClientRect().width) : 0,
+                    table ? table.scrollWidth : 0
+                );
+                const maxScrollLeft = Math.max(0, contentWidth - scrollHost.clientWidth);
+                if (scrollHost.scrollLeft > maxScrollLeft) {
+                    scrollHost.scrollLeft = maxScrollLeft;
+                }
+                const hasOverflow = maxScrollLeft > 16;
                 proteinTableScrollNote.hidden = !hasOverflow;
                 if (proteinTableTopScroll && proteinTableTopScrollInner) {
                     proteinTableTopScroll.hidden = !hasOverflow;
                     const trackInset = 6;
                     const trackWidth = Math.max(1, (proteinTableTopScroll.clientWidth || scrollHost.clientWidth || 1) - trackInset);
-                    const proportionalThumb = Math.round((scrollHost.clientWidth / scrollHost.scrollWidth) * trackWidth);
+                    const proportionalThumb = Math.round((scrollHost.clientWidth / contentWidth) * trackWidth);
                     const thumbWidth = hasOverflow
                         ? Math.min(
                             Math.round(trackWidth * 0.72),
@@ -1628,7 +1638,6 @@
                         )
                         : trackWidth;
                     const maxThumbOffset = Math.max(0, trackWidth - thumbWidth);
-                    const maxScrollLeft = Math.max(1, scrollHost.scrollWidth - scrollHost.clientWidth);
                     const thumbOffset = hasOverflow
                         ? Math.round((scrollHost.scrollLeft / maxScrollLeft) * maxThumbOffset)
                         : 0;
@@ -1636,7 +1645,7 @@
                     proteinTableTopScroll.classList.toggle("is-disabled", !hasOverflow);
                     proteinTableTopScroll.style.setProperty("--protein-scroll-thumb-size", `${thumbWidth}px`);
                     proteinTableTopScroll.style.setProperty("--protein-scroll-thumb-offset", `${thumbOffset}px`);
-                    proteinTableTopScrollInner.style.width = scrollHost.scrollWidth + "px";
+                    proteinTableTopScrollInner.style.width = contentWidth + "px";
                 }
             }
 
@@ -1652,9 +1661,15 @@
                             const trackInset = 6;
                             const trackWidth = Math.max(1, trackRect.width - trackInset);
                             const trackLeft = trackRect.left + (trackInset / 2);
-                            const maxScrollLeft = Math.max(0, scrollHost.scrollWidth - scrollHost.clientWidth);
+                            const table = scrollHost.querySelector("#proteins_table");
+                            const contentWidth = Math.max(
+                                scrollHost.clientWidth || 1,
+                                table ? Math.ceil(table.getBoundingClientRect().width) : 0,
+                                table ? table.scrollWidth : 0
+                            );
+                            const maxScrollLeft = Math.max(0, contentWidth - scrollHost.clientWidth);
                             if (maxScrollLeft <= 0) return;
-                            const proportionalThumb = Math.round((scrollHost.clientWidth / scrollHost.scrollWidth) * trackWidth);
+                            const proportionalThumb = Math.round((scrollHost.clientWidth / contentWidth) * trackWidth);
                             const thumbWidth = Math.min(
                                 Math.round(trackWidth * 0.72),
                                 Math.max(88, proportionalThumb)
