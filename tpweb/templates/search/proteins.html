@@ -1615,13 +1615,23 @@
                 const scrollHost = proteinTableShell.querySelector(":scope > .tp-table-shell__scroll") || proteinTableShell;
                 if (!scrollHost) return;
                 const table = scrollHost.querySelector("#proteins_table");
+                if (table) {
+                    table.style.width = "max-content";
+                    table.style.minWidth = "100%";
+                    const tableWidth = Math.ceil(table.getBoundingClientRect().width);
+                    if (tableWidth < scrollHost.clientWidth) {
+                        table.style.width = scrollHost.clientWidth + "px";
+                    }
+                }
                 const contentWidth = Math.max(
                     scrollHost.clientWidth || 1,
                     table ? Math.ceil(table.getBoundingClientRect().width) : 0,
                     table ? table.scrollWidth : 0
                 );
                 const maxScrollLeft = Math.max(0, contentWidth - scrollHost.clientWidth);
-                if (scrollHost.scrollLeft > maxScrollLeft) {
+                if (maxScrollLeft <= 0) {
+                    scrollHost.scrollLeft = 0;
+                } else if (scrollHost.scrollLeft > maxScrollLeft) {
                     scrollHost.scrollLeft = maxScrollLeft;
                 }
                 const hasOverflow = maxScrollLeft > 16;
