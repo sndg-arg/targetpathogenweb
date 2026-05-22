@@ -102,7 +102,7 @@ def ensure_system_score_param(name, source_df=None):
         return score_param
 
     option_names = list(definition.get("options", ()))
-    if source_df is not None and len(source_df.columns) >= 2:
+    if source_df is not None and len(source_df.columns) >= 2 and not option_names:
         imported_values = []
         for raw_value in source_df.iloc[:, 1].dropna().tolist():
             value = str(raw_value).strip()
