@@ -640,6 +640,22 @@ a.filter-pill .filter-pill-remove {
     min-width: 148px;
 }
 
+.protein-table thead th:last-child {
+    box-shadow: 72vw 0 0 0 var(--tp-color-surface-muted);
+}
+
+.protein-table tbody tr:nth-of-type(odd) td:last-child {
+    box-shadow: 72vw 0 0 0 var(--tp-color-surface-panel);
+}
+
+.protein-table tbody tr:nth-of-type(even) td:last-child {
+    box-shadow: 72vw 0 0 0 var(--tp-color-surface);
+}
+
+.protein-table tbody tr:hover td:last-child {
+    box-shadow: 72vw 0 0 0 var(--tp-color-brand-050);
+}
+
 .rank-col {
     width: 56px;
     text-align: center;
