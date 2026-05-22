@@ -572,7 +572,6 @@ a.filter-pill .filter-pill-remove {
 
 .protein-table thead th,
 .protein-table tbody td {
-    position: relative;
     padding: var(--tp-table-cell-py) var(--tp-table-cell-px);
     vertical-align: middle;
     white-space: nowrap;
@@ -629,16 +628,6 @@ a.filter-pill .filter-pill-remove {
 .protein-table tbody td:last-child {
     width: 100%;
     min-width: 148px;
-}
-
-.protein-table thead th:last-child::after,
-.protein-table tbody td:last-child::after {
-    content: "";
-    position: absolute;
-    inset: 0 auto 0 100%;
-    width: 100vw;
-    background: inherit;
-    pointer-events: none;
 }
 
 .rank-col {
