@@ -870,6 +870,7 @@ class ProteinListView(View):
                 "display_score_param_name": (
                     humanize_identifier(parameter.get("score_param_name")) or parameter.get("score_param_name")
                 ),
+                "name": parameter.get("name") or parameter.get("display_name") or "",
                 "display_name": (
                     parameter.get("display_name")
                     if str(parameter.get("type") or "").lower() in {"numeric", "special"}
