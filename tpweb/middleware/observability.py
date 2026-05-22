@@ -18,7 +18,11 @@ class RequestTimingMiddleware:
 
         response["X-Request-Duration-Ms"] = f"{duration_ms:.1f}"
         logger.info(
-            "request completed",
+            "request completed method=%s path=%s status=%s duration_ms=%s",
+            request.method,
+            request.path,
+            response.status_code,
+            round(duration_ms, 1),
             extra={
                 "method": request.method,
                 "path": request.path,
