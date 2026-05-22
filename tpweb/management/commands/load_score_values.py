@@ -62,7 +62,7 @@ class Command(BaseCommand):
         assert os.path.exists(options["score_tsv"]), f'"{options["score_tsv"]}" does not exists!'
         genome = genome.get()
 
-        df = pd.read_csv(options["score_tsv"], sep=options["separator"], index_col=False).fillna("None")
+        df = pd.read_csv(options["score_tsv"], sep=options["separator"], index_col=False)
 
         assert "gene" in df.columns, "'gene' is not in the column list"
 
@@ -84,9 +84,11 @@ class Command(BaseCommand):
                 continue
             if is_numeric_score_param(sp):
                 invalid_values = []
-                coerced_values = pd.to_numeric(df[c], errors="coerce")
+                raw_series = df[c]
+                coerced_values = pd.to_numeric(raw_series, errors="coerce")
                 for raw_value, numeric_value in zip(df[c], coerced_values):
-                    if pd.isna(numeric_value) and str(raw_value).strip():
+                    raw_text = str(raw_value).strip()
+                    if pd.isna(numeric_value) and raw_text and raw_text.lower() not in {"none", "nan", "null"}:
                         invalid_values.append(str(raw_value))
                 if invalid_values:
                     sys.stderr.write(
@@ -130,7 +132,12 @@ class Command(BaseCommand):
                         raw_value = r[c]
                         numeric_value = None
                         if is_numeric_score_param(sp):
-                            numeric_value = float(raw_value)
+                            if pd.isna(raw_value):
+                                raw_value = ""
+                            else:
+                                numeric_value = float(raw_value)
+                        elif pd.isna(raw_value):
+                            raw_value = ""
                         ScoreParamValue(
                             score_param=sp,
                             bioentry=be.get(),

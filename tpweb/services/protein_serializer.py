@@ -9,7 +9,7 @@ def _display_table_value(value):
     if isinstance(value, (int, float)):
         return value
     text = str(value).strip()
-    if not text:
+    if not text or text.lower() in {"none", "nan", "null"}:
         return "-"
     if text.replace(".", "", 1).isdigit():
         return text
