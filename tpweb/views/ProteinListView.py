@@ -71,6 +71,10 @@ from tpweb.services.structure_sources import (
 from tpweb.services.workspace import resolve_workspace_user
 from tpweb.models.CustomParamFile import CustomParam
 from pathlib import Path
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 
 class ProteinSearchSuggestionsView(View):
@@ -876,7 +880,11 @@ class ProteinListView(View):
         ]
 
         if selected_parameters:
-            proteins = apply_selected_parameter_filters(proteins, selected_parameters)
+            try:
+                proteins = apply_selected_parameter_filters(proteins, selected_parameters)
+            except Exception:
+                logger.exception("Failed to build protein selected-parameter filters: %s", selected_parameters)
+                raise
 
         proteins = apply_protein_search(proteins, search_query)
 
@@ -929,24 +937,34 @@ class ProteinListView(View):
         effective_sort_dir = raw_sort_dir or ("asc" if sort_by_accession else "desc")
 
         ranked_proteins = []
-        for protein in ranking_queryset:
-            param_values = score_param_value_map(protein)
-            if formula_expression and zero_cache is not None:
-                variables = build_expression_variables(protein, zero_cache)
-                try:
-                    score_value = float(safe_eval_expression(formula_expression, variables))
-                except (ValueError, ZeroDivisionError, OverflowError):
-                    score_value = 0.0
-            else:
-                score_value, _ = compute_score_value(param_values, coefficient_by_param)
-            ranked_proteins.append(
-                {
-                    "id": protein.bioentry_id,
-                    "accession": protein.accession,
-                    "score": score_value,
-                    "col_val": param_values.get(sort_by_param) if sort_by_param else None,
-                }
+        try:
+            for protein in ranking_queryset:
+                param_values = score_param_value_map(protein)
+                if formula_expression and zero_cache is not None:
+                    variables = build_expression_variables(protein, zero_cache)
+                    try:
+                        score_value = float(safe_eval_expression(formula_expression, variables))
+                    except (ValueError, ZeroDivisionError, OverflowError):
+                        score_value = 0.0
+                else:
+                    score_value, _ = compute_score_value(param_values, coefficient_by_param)
+                ranked_proteins.append(
+                    {
+                        "id": protein.bioentry_id,
+                        "accession": protein.accession,
+                        "score": score_value,
+                        "col_val": param_values.get(sort_by_param) if sort_by_param else None,
+                    }
+                )
+        except Exception:
+            logger.exception(
+                "Failed to evaluate protein ranking. selected_parameters=%s sort_col=%s sort_dir=%s needed_score_param_names=%s",
+                selected_parameters,
+                effective_sort_col,
+                effective_sort_dir,
+                sorted(needed_score_param_names) if needed_score_param_names is not None else "all",
             )
+            raise
 
         if sort_by_param:
             is_desc = effective_sort_dir == "desc"
@@ -1049,7 +1067,7 @@ class ProteinListView(View):
         except PageNotAnInteger:
             proteins_page = paginator.page(1)
         except EmptyPage:
-            proteins_page = paginator.page(paginator.num_pages)
+            proteins_page = paginator.page(max(1, paginator.num_pages))
 
         proteins_ids_paginated = [protein["id"] for protein in proteins_page.object_list]
 
