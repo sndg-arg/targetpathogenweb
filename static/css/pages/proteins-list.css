@@ -559,6 +559,11 @@ a.filter-pill .filter-pill-remove {
     min-width: 100%;
 }
 
+.protein-table-panel .tp-table-shell.is-h-scrollable .protein-table thead th:last-child,
+.protein-table-panel .tp-table-shell.is-h-scrollable .protein-table tbody td:last-child {
+    width: auto;
+}
+
 .protein-table thead th {
     background: var(--tp-table-thead-bg);
     position: sticky;
