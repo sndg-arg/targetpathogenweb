@@ -315,7 +315,10 @@ class ProteinListView(View):
         for parameter in selected_parameters:
             if str(parameter.get("type") or "").lower() != "numeric":
                 continue
-            param_id = str(parameter.get("score_param_id"))
+            param_id = parameter.get("score_param_id")
+            if param_id in ("", None):
+                continue
+            param_id = str(param_id)
             active_numeric_by_param.setdefault(param_id, []).append(parameter)
 
         grouped = {}

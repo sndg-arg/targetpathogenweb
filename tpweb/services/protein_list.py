@@ -64,6 +64,20 @@ def _coerce_score_param_id(value):
         return None
 
 
+def _normalize_numeric_operation(value):
+    operation = str(value or "").strip().lower()
+    return {
+        "gte": ">=",
+        "min": ">=",
+        ">=": ">=",
+        "lte": "<=",
+        "max": "<=",
+        "<=": "<=",
+        "between": "between",
+        "range": "between",
+    }.get(operation)
+
+
 def _format_numeric_filter_value(value):
     coerced = _coerce_numeric_filter_value(value)
     if coerced is None:
@@ -80,7 +94,7 @@ def _selected_parameter_display_value(parameter, humanize=False):
         option_name = parameter.get("name", "")
         return humanize_identifier(option_name) if humanize else option_name
 
-    operation = str(parameter.get("operation") or "").strip()
+    operation = _normalize_numeric_operation(parameter.get("operation")) or ""
     value = _coerce_numeric_filter_value(parameter.get("value"))
     value_max = _coerce_numeric_filter_value(parameter.get("value_max"))
     if operation == "between":
@@ -155,8 +169,10 @@ def selected_parameters_to_filter_map(selected_parameters):
     for parameter in selected_parameters:
         if _selected_parameter_kind(parameter) in {"numeric", "special"}:
             continue
-        score_param = parameter.get("score_param_id")
+        score_param = _coerce_score_param_id(parameter.get("score_param_id"))
         score_name = parameter.get("name")
+        if score_param is None or score_name in ("", None):
+            continue
         if score_param not in parameter_map:
             parameter_map[score_param] = [score_name]
         else:
@@ -223,7 +239,9 @@ def apply_selected_parameter_filters(queryset, selected_parameters):
         param_id = _coerce_score_param_id(parameter.get("score_param_id"))
         if param_id is None:
             continue
-        operation = parameter.get("operation")
+        operation = _normalize_numeric_operation(parameter.get("operation"))
+        if operation is None:
+            continue
         value = _coerce_numeric_filter_value(parameter.get("value"))
         value_max = _coerce_numeric_filter_value(parameter.get("value_max"))
         if operation == ">=":
