@@ -38,12 +38,6 @@ EXACT_REPLACEMENTS = {
 }
 
 
-def normalize_selected_parameters(raw_selected_parameters):
-    if not isinstance(raw_selected_parameters, list):
-        return []
-    return [item for item in raw_selected_parameters if isinstance(item, dict)]
-
-
 def _selected_parameter_kind(parameter):
     return str(parameter.get("type") or "categorical").strip().lower()
 
@@ -76,6 +70,47 @@ def _normalize_numeric_operation(value):
         "between": "between",
         "range": "between",
     }.get(operation)
+
+
+def normalize_selected_parameters(raw_selected_parameters):
+    if not isinstance(raw_selected_parameters, list):
+        return []
+
+    selected_parameters = []
+    numeric_index_by_param_id = {}
+    for item in raw_selected_parameters:
+        if not isinstance(item, dict):
+            continue
+        if _selected_parameter_kind(item) != "numeric":
+            selected_parameters.append(item)
+            continue
+
+        param_id = _coerce_score_param_id(item.get("score_param_id"))
+        operation = _normalize_numeric_operation(item.get("operation"))
+        value = _coerce_numeric_filter_value(item.get("value"))
+        value_max = _coerce_numeric_filter_value(item.get("value_max"))
+        if param_id is None or operation is None:
+            continue
+        if operation == "between" and (value is None or value_max is None):
+            continue
+        if operation in {">=", "<="} and value is None:
+            continue
+
+        clean_item = {
+            **item,
+            "score_param_id": param_id,
+            "operation": operation,
+            "value": value,
+            "value_max": value_max if operation == "between" else None,
+            "name": item.get("name") or item.get("display_name") or "",
+        }
+        existing_index = numeric_index_by_param_id.get(param_id)
+        if existing_index is None:
+            numeric_index_by_param_id[param_id] = len(selected_parameters)
+            selected_parameters.append(clean_item)
+        else:
+            selected_parameters[existing_index] = clean_item
+    return selected_parameters
 
 
 def _format_numeric_filter_value(value):
@@ -153,6 +188,16 @@ def grouped_selected_parameters(selected_parameters, humanize=False):
 def add_selected_parameter(selected_parameters, option_dict):
     if not option_dict:
         return selected_parameters
+    option_kind = _selected_parameter_kind(option_dict)
+    if option_kind == "numeric":
+        option_param_id = _coerce_score_param_id(option_dict.get("score_param_id"))
+        if option_param_id is None:
+            return selected_parameters
+        selected_parameters = [
+            item for item in selected_parameters
+            if _selected_parameter_kind(item) != "numeric"
+            or _coerce_score_param_id(item.get("score_param_id")) != option_param_id
+        ]
     option_id = str(option_dict.get("id"))
     if any(str(item.get("id")) == option_id for item in selected_parameters):
         return selected_parameters

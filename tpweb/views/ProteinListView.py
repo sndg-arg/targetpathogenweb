@@ -274,7 +274,8 @@ class ProteinListView(View):
                 value_max = value_min
             value_min = None
         elif requested_operation == "between":
-            pass
+            if value_min is None or value_max is None:
+                return None
 
         if value_min is None and value_max is None:
             return None
