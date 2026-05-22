@@ -555,7 +555,8 @@ a.filter-pill .filter-pill-remove {
 }
 
 .protein-table-panel .tp-table-shell.is-h-scrollable .protein-table {
-    width: max-content;
+    width: 100%;
+    min-width: max-content;
 }
 
 .protein-table thead th {
@@ -983,6 +984,18 @@ a.filter-pill .filter-pill-remove {
 }
 
 .th-sort-link:hover { color: var(--tp-accent); text-decoration: none; }
+
+.th-sort-link .cell-tooltip {
+    top: calc(100% + 8px);
+    bottom: auto;
+}
+
+.th-sort-link .cell-tooltip::after {
+    top: auto;
+    bottom: 100%;
+    border-top-color: transparent;
+    border-bottom-color: var(--tp-tooltip-bg);
+}
 
 .th-sort-link:hover .cell-tooltip,
 .th-sort-link:focus-visible .cell-tooltip {
