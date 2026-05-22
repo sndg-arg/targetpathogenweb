@@ -673,14 +673,15 @@
                                                 <div class="filter-numeric-values">
                                                     <label class="filter-numeric-field" data-numeric-field="primary">
                                                         <span class="filter-numeric-field-label">{% trans "Value" %}</span>
-                                                        <input type="number" step="any" name="value" class="filter-numeric-input" placeholder="0.70" aria-label="{% trans 'Numeric value' %}">
+                                                        <input type="text" inputmode="decimal" name="value" class="filter-numeric-input" placeholder="0.70" aria-label="{% trans 'Numeric value' %}">
                                                     </label>
                                                     <label class="filter-numeric-field filter-numeric-field--max" data-numeric-field="secondary">
                                                         <span class="filter-numeric-field-label">{% trans "Upper bound" %}</span>
-                                                        <input type="number" step="any" name="value_max" class="filter-numeric-input" placeholder="1.00" aria-label="{% trans 'Upper bound' %}">
+                                                        <input type="text" inputmode="decimal" name="value_max" class="filter-numeric-input" placeholder="1.00" aria-label="{% trans 'Upper bound' %}">
                                                     </label>
-                                                    <button type="submit" class="filter-numeric-apply">{% trans "Apply" %}</button>
+                                                    <button type="submit" class="filter-numeric-apply" disabled>{% trans "Apply" %}</button>
                                                 </div>
+                                                <p class="filter-numeric-message" aria-live="polite"></p>
                                             </form>
                                             {% if param.active_filters %}
                                                 <div class="filter-chip-group filter-chip-group--active">
@@ -1737,7 +1738,62 @@
 
             document.querySelectorAll(".filter-numeric-form").forEach(function (form) {
                 const primaryLabel = form.querySelector('[data-numeric-field="primary"] .filter-numeric-field-label');
+                const primaryInput = form.querySelector('[data-numeric-field="primary"] input');
                 const secondaryInput = form.querySelector('[data-numeric-field="secondary"] input');
+                const applyButton = form.querySelector(".filter-numeric-apply");
+                const message = form.querySelector(".filter-numeric-message");
+
+                function parseDecimal(input) {
+                    const raw = (input && input.value ? input.value : "").trim();
+                    if (!raw) return null;
+                    if (!/^[+-]?(?:\d+(?:[.,]\d*)?|[.,]\d+)$/.test(raw)) return NaN;
+                    return Number(raw.replace(",", "."));
+                }
+
+                function setNumericState(isValid, text) {
+                    form.classList.toggle("has-numeric-error", Boolean(text));
+                    if (message) message.textContent = text || "";
+                    if (applyButton) applyButton.disabled = !isValid;
+                }
+
+                function validateNumericFilter() {
+                    const selected = form.querySelector('input[name="numeric_operation"]:checked');
+                    const mode = selected ? selected.value : "gte";
+                    const primaryValue = parseDecimal(primaryInput);
+                    const secondaryValue = parseDecimal(secondaryInput);
+
+                    if (mode === "between") {
+                        if (primaryValue === null && secondaryValue === null) {
+                            setNumericState(false, "Enter a lower and upper bound.");
+                            return false;
+                        }
+                        if (primaryValue === null || secondaryValue === null) {
+                            setNumericState(false, "Both bounds are required for a range.");
+                            return false;
+                        }
+                        if (Number.isNaN(primaryValue) || Number.isNaN(secondaryValue)) {
+                            setNumericState(false, "Use a valid decimal number.");
+                            return false;
+                        }
+                        if (primaryValue > secondaryValue) {
+                            setNumericState(false, "Lower bound must be less than or equal to upper bound.");
+                            return false;
+                        }
+                        setNumericState(true, "");
+                        return true;
+                    }
+
+                    if (primaryValue === null) {
+                        setNumericState(false, "Enter a numeric value.");
+                        return false;
+                    }
+                    if (Number.isNaN(primaryValue)) {
+                        setNumericState(false, "Use a valid decimal number.");
+                        return false;
+                    }
+                    setNumericState(true, "");
+                    return true;
+                }
 
                 function syncNumericMode() {
                     const selected = form.querySelector('input[name="numeric_operation"]:checked');
@@ -1751,10 +1807,21 @@
                     if (secondaryInput && mode !== "between") {
                         secondaryInput.value = "";
                     }
+                    validateNumericFilter();
                 }
 
                 form.querySelectorAll('input[name="numeric_operation"]').forEach(function (input) {
                     input.addEventListener("change", syncNumericMode);
+                });
+                [primaryInput, secondaryInput].forEach(function (input) {
+                    if (!input) return;
+                    input.addEventListener("input", validateNumericFilter);
+                    input.addEventListener("blur", validateNumericFilter);
+                });
+                form.addEventListener("submit", function (event) {
+                    if (!validateNumericFilter()) {
+                        event.preventDefault();
+                    }
                 });
                 syncNumericMode();
             });

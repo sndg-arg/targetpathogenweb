@@ -2687,6 +2687,11 @@ a.filter-pill .filter-pill-remove {
     box-shadow: 0 0 0 3px var(--tp-color-brand-100);
 }
 
+.filter-numeric-form.has-numeric-error .filter-numeric-input:focus {
+    border-color: var(--tp-color-danger-500, #d75151);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--tp-color-danger-500, #d75151) 18%, transparent);
+}
+
 .filter-numeric-apply {
     min-height: 37px;
     appearance: none;
@@ -2711,6 +2716,29 @@ a.filter-pill .filter-pill-remove {
 
 .filter-numeric-apply:active {
     transform: translateY(1px);
+}
+
+.filter-numeric-apply:disabled {
+    border-color: var(--tp-color-border);
+    background: var(--tp-color-surface-muted);
+    color: var(--tp-color-text-muted);
+    cursor: not-allowed;
+    transform: none;
+}
+
+.filter-numeric-apply:disabled:hover,
+.filter-numeric-apply:disabled:focus-visible {
+    border-color: var(--tp-color-border);
+    background: var(--tp-color-surface-muted);
+}
+
+.filter-numeric-message {
+    min-height: 1rem;
+    margin: -2px 2px 0;
+    color: var(--tp-color-danger-700, #9f2f2f);
+    font-size: 0.74rem;
+    font-weight: 700;
+    line-height: 1.25;
 }
 
 @media (max-width: 560px) {
