@@ -415,9 +415,9 @@ class ProteinListView(View):
             },
             "Off-target": {
                 "human_offtarget": 0,
-                "human_identity": 1,
-                "human_evalue": 2,
-                "gut_microbiome_offtarget": 3,
+                "gut_microbiome_offtarget": 1,
+                "human_identity": 2,
+                "human_evalue": 3,
             },
             "Essentiality": {
                 "hit_in_deg": 0,
