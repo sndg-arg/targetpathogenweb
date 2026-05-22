@@ -349,14 +349,29 @@
 
 .targets-score {
     margin-left: auto;
-    font-size: 0.84rem;
     font-weight: var(--tp-font-weight-semibold);
     color: var(--genome-accent-ink);
     line-height: 1;
-    padding: 4px 10px;
+    padding: 5px 10px;
     background: var(--genome-accent-soft);
     border: 1px solid var(--genome-accent-border);
     border-radius: 8px;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 6px;
+}
+
+.targets-score-label {
+    color: var(--tp-color-text-secondary);
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.targets-score-value {
+    font-size: 0.9rem;
+    font-variant-numeric: tabular-nums;
 }
 
 .targets-direct-count {

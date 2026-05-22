@@ -136,7 +136,10 @@
                                                 <div class="targets-title">
                                                     <span class="targets-rank">#{{ forloop.counter }}</span>
                                                     <span class="targets-accession">{{ t.accession }}</span>
-                                                    <span class="targets-score">{{ t.score|floatformat:2 }}</span>
+                                                    <span class="targets-score">
+                                                        <span class="targets-score-label">{% trans "Druggability" %}</span>
+                                                        <span class="targets-score-value">{{ t.score|floatformat:2 }}</span>
+                                                    </span>
                                                     {% if t.binder_count %}
                                                         <span class="targets-evidence">
                                                             {{ t.binder_count }}{% if t.chembl_count >= 100 or t.zinc_count >= 50 %}+{% endif %} {% trans "binders" %}
