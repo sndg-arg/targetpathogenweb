@@ -48,6 +48,22 @@ def _selected_parameter_kind(parameter):
     return str(parameter.get("type") or "categorical").strip().lower()
 
 
+def _coerce_numeric_filter_value(value):
+    if value in ("", None):
+        return None
+    try:
+        return float(str(value).replace(",", "."))
+    except (TypeError, ValueError):
+        return None
+
+
+def _format_numeric_filter_value(value):
+    coerced = _coerce_numeric_filter_value(value)
+    if coerced is None:
+        return ""
+    return f"{coerced:g}"
+
+
 def _selected_parameter_display_value(parameter, humanize=False):
     kind = _selected_parameter_kind(parameter)
     if kind == "special":
@@ -58,11 +74,19 @@ def _selected_parameter_display_value(parameter, humanize=False):
         return humanize_identifier(option_name) if humanize else option_name
 
     operation = str(parameter.get("operation") or "").strip()
-    value = parameter.get("value")
-    value_max = parameter.get("value_max")
+    value = _coerce_numeric_filter_value(parameter.get("value"))
+    value_max = _coerce_numeric_filter_value(parameter.get("value_max"))
     if operation == "between":
-        return f"{operation} {value:g} - {value_max:g}"
-    return f"{operation} {value:g}"
+        if value is None and value_max is None:
+            return parameter.get("display_name") or "range"
+        if value is None:
+            return f"≤ {_format_numeric_filter_value(value_max)}"
+        if value_max is None:
+            return f"≥ {_format_numeric_filter_value(value)}"
+        return f"between {_format_numeric_filter_value(value)} and {_format_numeric_filter_value(value_max)}"
+    if value is None:
+        return parameter.get("display_name") or operation
+    return f"{operation} {_format_numeric_filter_value(value)}"
 
 
 def humanize_identifier(value):
@@ -189,19 +213,37 @@ def apply_selected_parameter_filters(queryset, selected_parameters):
             continue
         param_id = parameter.get("score_param_id")
         operation = parameter.get("operation")
-        value = parameter.get("value")
-        value_max = parameter.get("value_max")
+        value = _coerce_numeric_filter_value(parameter.get("value"))
+        value_max = _coerce_numeric_filter_value(parameter.get("value_max"))
         if operation == ">=":
+            if value is None:
+                continue
             filtered_queryset = filtered_queryset.filter(
                 score_params__score_param_id=param_id,
                 score_params__numeric_value__gte=value,
             )
         elif operation == "<=":
+            if value is None:
+                continue
             filtered_queryset = filtered_queryset.filter(
                 score_params__score_param_id=param_id,
                 score_params__numeric_value__lte=value,
             )
         elif operation == "between":
+            if value is None and value_max is None:
+                continue
+            if value is None:
+                filtered_queryset = filtered_queryset.filter(
+                    score_params__score_param_id=param_id,
+                    score_params__numeric_value__lte=value_max,
+                )
+                continue
+            if value_max is None:
+                filtered_queryset = filtered_queryset.filter(
+                    score_params__score_param_id=param_id,
+                    score_params__numeric_value__gte=value,
+                )
+                continue
             filtered_queryset = filtered_queryset.filter(
                 score_params__score_param_id=param_id,
                 score_params__numeric_value__gte=value,
