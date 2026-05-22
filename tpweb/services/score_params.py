@@ -7,11 +7,18 @@ from tpweb.services.workspace import PUBLIC_WORKSPACE_USERNAME, resolve_workspac
 SYSTEM_SCORE_PARAM_DEFINITIONS = {
     "human_offtarget": {
         "category": "Off-target",
-        "description": "Sequence overlaps with a human protein.",
+        "description": (
+            "BLASTP against the human proteome. Hit means at least one human match "
+            "was detected at e-value <= 1e-5. Prefer No hit for pathogen-selective targets."
+        ),
         "type": "C",
         "default_operation": "=",
         "default_value": "no_hit",
         "options": ("hit", "no_hit"),
+        "option_descriptions": {
+            "hit": "At least one human proteome match was detected; potential host off-target risk.",
+            "no_hit": "No human proteome match detected under the pipeline cutoff; favorable for selectivity.",
+        },
     },
     "human_identity": {
         "category": "Off-target",
@@ -29,11 +36,18 @@ SYSTEM_SCORE_PARAM_DEFINITIONS = {
     },
     "gut_microbiome_offtarget": {
         "category": "Off-target",
-        "description": "Sequence overlaps with a gut microbiome protein.",
+        "description": (
+            "DIAMOND/BLASTP against gut microbiome reference genomes. Hit means at "
+            "least one microbiome match passing identity > 40% and query coverage > 70%."
+        ),
         "type": "C",
         "default_operation": "=",
         "default_value": "no_hit",
         "options": ("hit", "no_hit"),
+        "option_descriptions": {
+            "hit": "At least one gut microbiome match passed identity > 40% and query coverage > 70%; microbiome cross-reactivity risk.",
+            "no_hit": "No gut microbiome match passed the identity/coverage cutoff; favorable for microbiome sparing.",
+        },
     },
     "hit_in_deg": {
         "category": "Essentiality",
@@ -115,11 +129,15 @@ def ensure_system_score_param(name, source_df=None):
                 score_param.save(update_fields=["default_value"])
 
     for option_name in option_names:
-        ScoreParamOptions.objects.get_or_create(
+        option, created = ScoreParamOptions.objects.get_or_create(
             score_param=score_param,
             name=option_name,
             defaults={"description": ""},
         )
+        option_description = definition.get("option_descriptions", {}).get(option_name)
+        if option_description and option.description != option_description:
+            option.description = option_description
+            option.save(update_fields=["description"])
 
     return score_param
 

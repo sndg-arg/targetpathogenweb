@@ -2492,6 +2492,48 @@ a.filter-pill .filter-pill-remove {
     color: var(--tp-color-brand-900);
 }
 
+.filter-chip--risk {
+    border-color: color-mix(in srgb, #d75151 34%, var(--tp-color-border));
+    color: #8f2d2d;
+}
+
+.filter-chip--risk:hover,
+.filter-chip--risk.filter-chip--active {
+    background: color-mix(in srgb, #d75151 12%, var(--tp-color-surface));
+    border-color: #d75151;
+    color: #7f2525;
+}
+
+.filter-chip--favorable {
+    border-color: color-mix(in srgb, #14966f 34%, var(--tp-color-border));
+    color: #0f684f;
+}
+
+.filter-chip--favorable:hover,
+.filter-chip--favorable.filter-chip--active {
+    background: color-mix(in srgb, #14966f 12%, var(--tp-color-surface));
+    border-color: #14966f;
+    color: #0d5c47;
+}
+
+.tp-dark .filter-chip--risk {
+    color: #f2b8b8;
+}
+
+.tp-dark .filter-chip--risk:hover,
+.tp-dark .filter-chip--risk.filter-chip--active {
+    color: #ffd2d2;
+}
+
+.tp-dark .filter-chip--favorable {
+    color: #aee8d3;
+}
+
+.tp-dark .filter-chip--favorable:hover,
+.tp-dark .filter-chip--favorable.filter-chip--active {
+    color: #d4f7e9;
+}
+
 .filter-chip-glyph {
     font-size: 0.95rem;
     line-height: 1;

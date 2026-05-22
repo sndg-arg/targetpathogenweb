@@ -365,12 +365,20 @@ class ProteinListView(View):
                 option_active = str(option.pk) in selected_option_ids
                 if option_active:
                     any_active = True
+                option_tone = ""
+                if score_param.name in {"human_offtarget", "gut_microbiome_offtarget"}:
+                    normalized_option_name = str(option.name or "").strip().lower()
+                    if normalized_option_name in {"hit", "y", "yes"}:
+                        option_tone = "risk"
+                    elif normalized_option_name in {"no_hit", "no hit", "n", "no"}:
+                        option_tone = "favorable"
                 options.append({
                     "id": option.pk,
                     "name": option.name,
                     "label": option_label,
                     "description": option.description or "",
                     "active": option_active,
+                    "tone": option_tone,
                 })
                 search_tokens.append(option_label)
             grouped.setdefault(category, []).append({

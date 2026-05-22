@@ -704,7 +704,7 @@
                                                 {% for option in param.options %}
                                                     {% if option.is_link %}
                                                         <a href="{{ option.url }}"
-                                                           class="filter-chip {% if option.active %}filter-chip--active{% endif %}"
+                                                           class="filter-chip {% if option.tone %}filter-chip--{{ option.tone }}{% endif %} {% if option.active %}filter-chip--active{% endif %}"
                                                            {% if option.description %}title="{{ option.description }}"{% endif %}
                                                            aria-pressed="{% if option.active %}true{% else %}false{% endif %}">
                                                             {% if option.active %}<span class="filter-chip-glyph" aria-hidden="true">&times;</span>{% endif %}
@@ -717,7 +717,7 @@
                                                             <input type="hidden" name="filter_option_id" value="{{ option.id }}">
                                                             <input type="hidden" name="return_query" value="{{ query_string }}">
                                                             <button type="submit"
-                                                                    class="filter-chip {% if option.active %}filter-chip--active{% endif %}"
+                                                                    class="filter-chip {% if option.tone %}filter-chip--{{ option.tone }}{% endif %} {% if option.active %}filter-chip--active{% endif %}"
                                                                     {% if option.description %}title="{{ option.description }}"{% endif %}
                                                                     aria-pressed="{% if option.active %}true{% else %}false{% endif %}">
                                                                 {% if option.active %}<span class="filter-chip-glyph" aria-hidden="true">&times;</span>{% endif %}
