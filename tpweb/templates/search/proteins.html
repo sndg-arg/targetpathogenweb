@@ -678,11 +678,23 @@
                                                 <div class="filter-numeric-values">
                                                     <label class="filter-numeric-field" data-numeric-field="primary">
                                                         <span class="filter-numeric-field-label">{% trans "Value" %}</span>
-                                                        <input type="text" inputmode="decimal" name="value" class="filter-numeric-input" placeholder="0.70" aria-label="{% trans 'Numeric value' %}">
+                                                        {% if param.name == "human_identity" or param.name == "micro_identity" %}
+                                                            <input type="text" inputmode="decimal" name="value" class="filter-numeric-input" placeholder="30" aria-label="{% trans 'Numeric value' %}">
+                                                        {% elif param.name == "human_evalue" or param.name == "micro_evalue" %}
+                                                            <input type="text" inputmode="decimal" name="value" class="filter-numeric-input" placeholder="1e-5" aria-label="{% trans 'Numeric value' %}">
+                                                        {% else %}
+                                                            <input type="text" inputmode="decimal" name="value" class="filter-numeric-input" placeholder="0.70" aria-label="{% trans 'Numeric value' %}">
+                                                        {% endif %}
                                                     </label>
                                                     <label class="filter-numeric-field filter-numeric-field--max" data-numeric-field="secondary">
                                                         <span class="filter-numeric-field-label">{% trans "Upper bound" %}</span>
-                                                        <input type="text" inputmode="decimal" name="value_max" class="filter-numeric-input" placeholder="1.00" aria-label="{% trans 'Upper bound' %}">
+                                                        {% if param.name == "human_identity" or param.name == "micro_identity" %}
+                                                            <input type="text" inputmode="decimal" name="value_max" class="filter-numeric-input" placeholder="80" aria-label="{% trans 'Upper bound' %}">
+                                                        {% elif param.name == "human_evalue" or param.name == "micro_evalue" %}
+                                                            <input type="text" inputmode="decimal" name="value_max" class="filter-numeric-input" placeholder="0.01" aria-label="{% trans 'Upper bound' %}">
+                                                        {% else %}
+                                                            <input type="text" inputmode="decimal" name="value_max" class="filter-numeric-input" placeholder="1.00" aria-label="{% trans 'Upper bound' %}">
+                                                        {% endif %}
                                                     </label>
                                                     <button type="submit" class="filter-numeric-apply">{% trans "Apply" %}</button>
                                                 </div>
