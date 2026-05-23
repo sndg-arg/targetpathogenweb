@@ -80,9 +80,10 @@ class Command(BaseCommand):
         db_dir = seqstore.db_dir(accession)
         csv_filename = 'druggability.tsv' 
         
+        os.makedirs(db_dir, exist_ok=True)
         csv_path = os.path.join(db_dir,csv_filename)
         df.to_csv(csv_path, sep='\t', index=False)  # Save the DataFrame to a CSV file without including the index column
-        print(f'DataFrame saved to {csv_filename}')
+        print(f'DataFrame saved to {csv_path} ({len(df)} rows)')
 
     def _druggability_values(self, pdb_ids, property_instance):
         if not pdb_ids:
