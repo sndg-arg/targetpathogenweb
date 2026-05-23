@@ -1,22 +1,22 @@
 import json
 import logging
+import os
 import shutil
 import threading
 import time
-import os
+from collections.abc import Mapping
 from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Mapping
 
 from bioseq.models.Biodatabase import Biodatabase
 from django.conf import settings
 from django.db.utils import DatabaseError, InterfaceError
 from tpweb.services.genome_workspace import display_genome_name, user_can_access_genome_name
-from tpweb.services.workspace import PUBLIC_WORKSPACE_USERNAME, workspace_slug_for_user
 from tpweb.services.pipeline_runs import latest_active_pipeline_run, latest_pipeline_run
 from tpweb.services.pipeline_stages import PIPELINE_STAGE_TOTAL, STAGE_LABELS
 from tpweb.services.slurm_messages import classify_slurm_resource_message
+from tpweb.services.workspace import PUBLIC_WORKSPACE_USERNAME, workspace_slug_for_user
 
 logger = logging.getLogger(__name__)
 
