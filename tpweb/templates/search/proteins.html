@@ -178,7 +178,7 @@
                             <div class="toolbar-workbench__group toolbar-workbench__group--secondary" aria-label="{% trans 'Table display' %}">
                                 <button type="button" class="btn tp-btn tp-btn--neutral toolbar-action-btn toolbar-action-btn--secondary" id="open-columns-btn">
                                     <span class="toolbar-action-btn__title">{% trans "Columns" %}</span>
-                                    <span class="toolbar-action-btn__meta">{% blocktrans count total=fixed_column_labels|length|add:selected_column_names|length %}{{ total }} visible{% plural %}{{ total }} visible{% endblocktrans %}</span>
+                                    <span class="toolbar-action-btn__meta">{% blocktrans count total=selected_column_count %}{{ total }} visible{% plural %}{{ total }} visible{% endblocktrans %}</span>
                                 </button>
                             </div>
                         </div>

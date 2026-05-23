@@ -1272,6 +1272,7 @@ class ProteinListView(View):
             "annotation_filter": annotation_filter,
             "column_rows": self._build_column_rows(all_visible_score_params, selected_column_names),
             "selected_column_names": selected_column_names,
+            "selected_column_count": len(selected_column_names),
             "default_column_names": default_column_names,
             "fixed_column_labels": [
                 label for label in self.FIXED_COLUMN_LABELS
