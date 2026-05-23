@@ -10,6 +10,10 @@ on:
 jobs:
   checks:
     runs-on: ubuntu-latest
+    env:
+      DJANGO_DEBUG: "False"
+      DJANGO_SECRET_KEY: "ci-secret-key"
+      DJANGO_ALLOWED_HOSTS: "localhost,127.0.0.1"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
