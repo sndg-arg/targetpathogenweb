@@ -25,6 +25,16 @@ jobs:
           python -m pip install -r requirements/base.txt
           python -m pip install ruff
 
+      - name: Checkout runtime library dependencies
+        run: |
+          mkdir -p /tmp/targetpathogen-deps
+          git clone --depth 1 https://github.com/ezequieljsosa/sndg-bio.git /tmp/targetpathogen-deps/sndg-bio
+          git clone --depth 1 https://github.com/sndg-arg/targetpathogen.git /tmp/targetpathogen-deps/targetpathogen
+          git clone --depth 1 https://github.com/sndg-arg/sndgjobs.git /tmp/targetpathogen-deps/sndgjobs
+          git clone --depth 1 https://github.com/sndg-arg/sndgbiodb.git /tmp/targetpathogen-deps/sndgbiodb
+          ln -s /tmp/targetpathogen-deps/targetpathogen /tmp/targetpathogen-deps/target
+          echo "PYTHONPATH=/tmp/targetpathogen-deps/sndgjobs:/tmp/targetpathogen-deps/sndgbiodb:/tmp/targetpathogen-deps/targetpathogen:/tmp/targetpathogen-deps/sndg-bio:/tmp/targetpathogen-deps/target:${GITHUB_WORKSPACE}" >> "$GITHUB_ENV"
+
       - name: Django system check
         run: python manage.py check
 
