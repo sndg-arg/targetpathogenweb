@@ -363,10 +363,10 @@
 
 .targets-score-label {
     color: var(--tp-color-text-secondary);
-    font-size: 0.68rem;
-    font-weight: 800;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
+    font-size: 0.78rem;
+    font-weight: var(--tp-font-weight-semibold);
+    letter-spacing: 0;
+    text-transform: none;
 }
 
 .targets-score-value {
