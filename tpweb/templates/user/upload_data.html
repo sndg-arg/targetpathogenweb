@@ -237,6 +237,32 @@
                 <p class="tp-state-note tp-state-note--empty genome-upload-empty-note mb-0">{% trans "Queued, running, and finished genome submissions will appear here." %}</p>
             {% endif %}
         </section>
+
+        <section class="genome-upload-history tp-ui-panel" id="data-file-upload-panel">
+            <div class="genome-upload-card-head tp-ui-panel-head">
+                <h2 class="tp-ui-panel-title">{% trans "Upload a data file" %}</h2>
+                <p class="tp-ui-panel-subtitle">{% trans "Upload a results TSV or structure archive to the server so it can be used with management commands." %}</p>
+            </div>
+            <div style="padding: var(--tp-panel-body-py) var(--tp-panel-body-px);">
+                <form id="data-file-upload-form" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="genome-upload-field tp-ui-field" style="max-width: 480px;">
+                        <label class="tp-ui-field-label" for="data_file_input">{% trans "File" %}</label>
+                        <input class="tp-ui-field-input" type="file" id="data_file_input" name="data_file"
+                               accept=".tsv,.csv,.gz,.tar,.txt,.json">
+                        <p class="genome-upload-field-help">{% trans "Accepted: .tsv, .csv, .tar.gz, .json" %}</p>
+                    </div>
+                    <button class="tp-btn tp-btn--primary" type="submit" id="data-file-upload-btn">
+                        {% trans "Upload file" %}
+                    </button>
+                </form>
+                <div id="data-file-upload-result" style="display:none; margin-top: 16px;">
+                    <p class="tp-ui-field-label" style="margin-bottom: 6px;">{% trans "File saved. Use this path in the management command:" %}</p>
+                    <code id="data-file-upload-path" style="display:block; background: var(--tp-color-surface-muted); padding: 8px 12px; border-radius: 6px; font-size: 0.85rem; word-break: break-all;"></code>
+                </div>
+                <div id="data-file-upload-error" style="display:none; margin-top: 12px; color: var(--tp-color-danger-600, #b91c1c); font-size: var(--tp-font-label);"></div>
+            </div>
+        </section>
     </div>
 {% endblock %}
 
@@ -260,6 +286,47 @@
                 submits.forEach(function (b) { b.disabled = true; });
             });
         });
+
+        // Data file upload (async)
+        var dataFileForm = document.getElementById("data-file-upload-form");
+        if (dataFileForm) {
+            dataFileForm.addEventListener("submit", function (e) {
+                e.preventDefault();
+                var btn = document.getElementById("data-file-upload-btn");
+                var result = document.getElementById("data-file-upload-result");
+                var pathEl = document.getElementById("data-file-upload-path");
+                var errEl = document.getElementById("data-file-upload-error");
+                result.style.display = "none";
+                errEl.style.display = "none";
+                btn.disabled = true;
+                btn.textContent = "Uploading…";
+
+                var formData = new FormData(dataFileForm);
+                fetch("{% url 'tpwebapp:data_file_upload' %}", {
+                    method: "POST",
+                    body: formData,
+                    headers: {"X-CSRFToken": formData.get("csrfmiddlewaretoken")}
+                })
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                    btn.disabled = false;
+                    btn.textContent = "Upload file";
+                    if (data.error) {
+                        errEl.textContent = data.error;
+                        errEl.style.display = "block";
+                    } else {
+                        pathEl.textContent = data.path;
+                        result.style.display = "block";
+                    }
+                })
+                .catch(function () {
+                    btn.disabled = false;
+                    btn.textContent = "Upload file";
+                    errEl.textContent = "Upload failed. Check the server logs.";
+                    errEl.style.display = "block";
+                });
+            });
+        }
     }
     $(document).ready(jsloaded);
 </script>
