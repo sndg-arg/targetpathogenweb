@@ -1,0 +1,452 @@
+/* ── Annotation explorer — EC tree · GO terms ── */
+
+.explorer-page {
+    display: grid;
+    gap: var(--tp-space-4);
+}
+
+/* ── Hero ── */
+
+/* Base styles from .tp-page-hero in ui-system.css */
+
+.explorer-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0 0 8px;
+    color: var(--tp-color-text-muted);
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.explorer-hero h1 {
+    margin: 0;
+    color: var(--tp-color-brand-900);
+    font-size: var(--tp-heading-lg);
+    line-height: 1.08;
+    letter-spacing: 0.2px;
+}
+
+.explorer-subtitle {
+    margin: 10px 0 0;
+    color: var(--tp-color-text-secondary);
+    max-width: 980px;
+    font-size: 1.01rem;
+    line-height: 1.52;
+}
+
+.explorer-meta {
+    margin-top: 14px;
+}
+
+/* ── Cards ── */
+
+.explorer-card {
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: var(--tp-ui-radius-panel);
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+    box-shadow: var(--tp-ui-shadow-panel);
+    padding: 18px;
+}
+
+/* ── Workbench ── */
+
+.explorer-workbench {
+    display: grid;
+    grid-template-columns: minmax(0, 1.32fr) minmax(320px, 0.68fr);
+    gap: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+.explorer-workbench-main,
+.explorer-workbench-side {
+    min-width: 0;
+}
+
+.explorer-workbench-main {
+    padding: 18px;
+}
+
+.explorer-workbench-side {
+    border-left: 1px solid color-mix(in srgb, var(--tp-color-border-soft) 82%, white);
+    background: linear-gradient(180deg, color-mix(in srgb, var(--tp-color-surface) 96%, white) 0%, color-mix(in srgb, var(--tp-color-surface-soft) 92%, white) 100%);
+    padding: 18px;
+    display: grid;
+    align-content: start;
+    gap: 16px;
+}
+
+/* ── Empty state ── */
+
+.explorer-empty-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
+    gap: 14px;
+}
+
+.explorer-empty-card {
+    min-height: 0;
+}
+
+.explorer-empty-state {
+    border: 1px dashed var(--tp-color-border);
+    border-radius: 14px;
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+    padding: 18px;
+    display: grid;
+    gap: 10px;
+}
+
+.explorer-empty-state h2 {
+    margin: 0;
+    color: var(--tp-color-brand-900);
+    font-size: var(--tp-heading-sm);
+}
+
+.explorer-empty-state p {
+    margin: 0;
+    color: var(--tp-color-text-secondary);
+    line-height: 1.45;
+    max-width: 64ch;
+}
+
+.explorer-empty-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 4px;
+}
+
+.explorer-empty-facts {
+    display: grid;
+    gap: 10px;
+    align-content: start;
+}
+
+/* ── Fact cards (empty state sidebar) ── */
+
+.explorer-fact-list {
+    display: grid;
+    gap: 10px;
+}
+
+.explorer-fact {
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 12px;
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+    padding: 14px;
+    display: grid;
+    gap: 4px;
+}
+
+.explorer-fact-label {
+    color: var(--tp-color-text-muted);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.explorer-fact-value {
+    color: var(--tp-color-brand-900);
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+/* ── Plot ── */
+
+.explorer-plot-shell {
+    min-height: 540px;
+}
+
+.explorer-plot-fallback {
+    display: grid;
+    gap: 8px;
+    align-content: center;
+    justify-items: start;
+    min-height: 220px;
+    padding: 18px;
+    border: 1px dashed var(--tp-color-border-soft);
+    border-radius: 12px;
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+}
+
+.explorer-plot-fallback[hidden] {
+    display: none;
+}
+
+.explorer-plot-fallback p {
+    margin: 0;
+    color: var(--tp-color-text-secondary);
+    line-height: 1.45;
+    max-width: 56ch;
+}
+
+/* ── Section heads ── */
+
+.explorer-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.explorer-head h2 {
+    margin: 0;
+    color: var(--tp-color-brand-900);
+    font-size: 1.02rem;
+    letter-spacing: 0.01em;
+}
+
+.explorer-head p {
+    margin: 4px 0 0;
+    color: var(--tp-color-text-muted);
+    font-size: 0.88rem;
+}
+
+/* ── Selection panel ── */
+
+.explorer-selection {
+    display: grid;
+    gap: 16px;
+}
+
+.explorer-selection-card {
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 12px;
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+    padding: 12px;
+    transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+}
+
+.explorer-selection-card.is-empty {
+    border-style: dashed;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--tp-color-surface-soft) 94%, white) 0%, color-mix(in srgb, var(--tp-color-surface) 90%, white) 100%);
+}
+
+.explorer-selection-card.is-empty .explorer-action-link {
+    display: none;
+}
+
+.explorer-selection-card.is-active {
+    border-color: color-mix(in srgb, var(--tp-color-brand-400) 60%, var(--tp-color-border));
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--tp-color-brand-300) 34%, transparent);
+}
+
+.explorer-selection-card h3 {
+    margin: 0 0 4px;
+    color: var(--tp-color-brand-900);
+    font-size: 1rem;
+}
+
+.explorer-selection-card p {
+    margin: 0;
+    color: var(--tp-color-text-secondary);
+    line-height: 1.4;
+}
+
+.explorer-selection-path {
+    display: none;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid color-mix(in srgb, var(--tp-color-border-soft) 78%, white);
+}
+
+.explorer-selection-path.is-visible {
+    display: grid;
+    gap: 6px;
+}
+
+.explorer-selection-path-label {
+    color: var(--tp-color-text-muted);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.explorer-selection-path-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.explorer-selection-path-item {
+    display: inline-flex;
+    align-items: center;
+    min-height: 26px;
+    padding: 0 10px;
+    border: 1px solid color-mix(in srgb, var(--tp-color-brand-300) 58%, var(--tp-color-border));
+    border-radius: 999px;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--tp-color-surface) 90%, white) 0%, color-mix(in srgb, var(--tp-color-surface-soft) 84%, white) 100%);
+    color: var(--tp-color-brand-900);
+    font-size: 0.88rem;
+    line-height: 1.2;
+}
+
+/* ── Search ── */
+
+.explorer-search {
+    width: 100%;
+}
+
+/* ── Side panels ── */
+
+.explorer-side-panel {
+    display: grid;
+    gap: 10px;
+}
+
+.explorer-side-panel + .explorer-side-panel {
+    padding-top: 16px;
+    border-top: 1px solid color-mix(in srgb, var(--tp-color-border-soft) 82%, white);
+}
+
+/* ── Annotation table ── */
+
+.explorer-table-shell {
+    height: 340px;
+    min-height: 340px;
+    scrollbar-gutter: stable;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 14px;
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+    overflow: hidden;
+}
+
+.explorer-table-shell > .tp-table-shell__scroll,
+.explorer-table-shell.tp-table-shell--with-export > .tp-table-shell__scroll {
+    height: calc(340px - 52px);
+    max-height: calc(340px - 52px);
+    overflow-y: scroll !important;
+    overflow-x: hidden !important;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-gutter: stable;
+}
+
+.explorer-table-shell table {
+    margin-bottom: 0;
+}
+
+.explorer-table-shell thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--tp-color-surface-soft) 86%, white) 0%, color-mix(in srgb, var(--tp-color-surface-muted) 80%, white) 100%);
+}
+
+.explorer-table-shell > .tp-table-shell__scroll::-webkit-scrollbar,
+.explorer-table-shell.tp-table-shell--with-export > .tp-table-shell__scroll::-webkit-scrollbar {
+    width: 13px;
+}
+
+.explorer-table-shell > .tp-table-shell__scroll::-webkit-scrollbar-track,
+.explorer-table-shell.tp-table-shell--with-export > .tp-table-shell__scroll::-webkit-scrollbar-track {
+    background: color-mix(in srgb, var(--tp-color-surface-muted) 86%, white);
+    border-radius: 999px;
+}
+
+.explorer-table-shell > .tp-table-shell__scroll::-webkit-scrollbar-thumb,
+.explorer-table-shell.tp-table-shell--with-export > .tp-table-shell__scroll::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, color-mix(in srgb, var(--tp-color-brand-400) 82%, white) 0%, color-mix(in srgb, var(--tp-color-brand-700) 76%, white) 100%);
+    border-radius: 999px;
+    border: 2px solid color-mix(in srgb, var(--tp-color-surface-muted) 86%, white);
+}
+
+.explorer-table-empty {
+    display: none;
+    margin-top: 10px;
+    color: var(--tp-color-text-muted);
+    font-size: 0.92rem;
+}
+
+.explorer-table-empty.is-visible {
+    display: block;
+}
+
+.explorer-annotation-row.is-active {
+    background: linear-gradient(180deg, color-mix(in srgb, var(--tp-color-surface-soft) 78%, white) 0%, color-mix(in srgb, var(--tp-color-surface-muted) 72%, white) 100%);
+}
+
+.explorer-annotation-row.is-active strong {
+    color: var(--tp-color-brand-900);
+}
+
+/* ── Select button in table ── */
+
+.explorer-table-shell .explorer-select-btn,
+.explorer-table-shell .js-select-annotation {
+    appearance: none;
+    -webkit-appearance: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 92px;
+    padding: 0.52rem 0.95rem;
+    border-radius: 10px;
+    border: 1.5px solid color-mix(in srgb, var(--tp-color-brand-700) 74%, var(--tp-color-border)) !important;
+    font-weight: 700;
+    color: var(--tp-color-brand-900) !important;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--tp-color-surface) 92%, white) 0%, color-mix(in srgb, var(--tp-color-surface-soft) 86%, white) 100%) !important;
+    box-shadow: 0 1px 2px color-mix(in srgb, var(--tp-color-brand-900) 8%, transparent);
+}
+
+.explorer-table-shell .explorer-select-btn.is-active,
+.explorer-table-shell .js-select-annotation.is-active {
+    color: var(--tp-color-brand-900);
+    border-color: color-mix(in srgb, var(--tp-color-brand-400) 62%, var(--tp-color-border));
+    background: color-mix(in srgb, var(--tp-color-surface-soft) 74%, white);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--tp-color-brand-300) 28%, transparent);
+}
+
+.explorer-table-shell .explorer-select-btn:hover,
+.explorer-table-shell .explorer-select-btn:focus-visible,
+.explorer-table-shell .js-select-annotation:hover,
+.explorer-table-shell .js-select-annotation:focus-visible {
+    border-color: color-mix(in srgb, var(--tp-color-brand-600) 68%, var(--tp-color-border)) !important;
+    background: color-mix(in srgb, var(--tp-color-surface-soft) 78%, white) !important;
+    color: var(--tp-color-brand-900) !important;
+}
+
+.explorer-action-link {
+    margin-top: 10px;
+}
+
+/* ── Animations ── */
+
+.explorer-hero,
+.explorer-card {
+    animation: explorer-enter 0.34s ease both;
+}
+
+.explorer-card { animation-delay: 0.04s; }
+
+@keyframes explorer-enter {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Responsive ── */
+
+@media (max-width: 980px) {
+    .explorer-workbench,
+    .explorer-empty-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .explorer-workbench-side {
+        border-left: 0;
+        border-top: 1px solid color-mix(in srgb, var(--tp-color-border-soft) 82%, white);
+    }
+
+    .explorer-hero {
+        padding: 18px 16px 16px;
+    }
+}

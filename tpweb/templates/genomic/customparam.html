@@ -1,38 +1,137 @@
 {% extends '../base/masterpage.html' %}
 {% load i18n %}
-{% load crispy_forms_tags %}
+{% load static %}
+
 {% block head %}
+    <link rel="stylesheet" href="{% static 'css/pages/customparam.css' %}?v=20260511-2">
 {% endblock %}
 
 {% block body %}
-<div class="container">
-    <h1 class="font-medium leading-tight text-4xl mt-0 mb-4 text-blue-600">Load custom Parameter</h1>
-    <form id="add-custom-param-form" method="POST" enctype="multipart/form-data">
-        {% csrf_token %}
-        {{ form.tsv|as_crispy_field }}
-        <input type="hidden" name="overwrite" value="false">
-        {% if file_exists %}
+    <div class="customparam-page">
+        <section class="customparam-hero">
+            {% trans "Genomes" as crumb_genomes %}
+            {% trans "Proteins" as crumb_proteins %}
+            {% trans "Add my own data" as crumb_add_data %}
+            {% url 'tpwebapp:index' as index_url %}
+            {% url 'tpwebapp:genomes_list' as genomes_url %}
+            {% url 'tpwebapp:assembly' genome as assembly_url %}
+            {% url 'tpwebapp:protein_list' genome=genome as proteins_url %}
+            {% with genome_label=assembly_label|default:assembly_name %}
+            {% with crumb_genome="Genome: "|add:genome_label %}
+            {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_genome crumb_3_url=assembly_url crumb_4_label=crumb_proteins crumb_4_url=proteins_url crumb_5_label=crumb_add_data %}
+            {% endwith %}
+            {% endwith %}
 
-            <input type="hidden" name="overwriting" value="true">
-            <div class="alert alert-warning" role="alert">
-                A file with the name "{{ form.tsv.value }}" already exists. Do you want to overwrite it?
+            <span class="customparam-eyebrow">{% trans "Protein data · Per-genome import" %}</span>
+            <h1>{% trans "Add my own data" %}</h1>
+            <p class="customparam-subtitle">{% trans "Import a tab-separated file with per-protein values — experimental, computational, or literature-derived — and use it as an additional signal in scoring and filtering." %}</p>
+
+            <div class="customparam-chip-group tp-chip-group">
+                <span class="tp-chip tp-chip--meta tp-chip--sm">
+                    <strong>{% trans "Genome" %}:</strong>
+                    <span class="customparam-chip-id">{{ assembly_label|default:assembly_name }}</span>
+                </span>
+                <span class="tp-chip tp-chip--meta tp-chip--sm"><strong>{% trans "Format" %}:</strong> TSV</span>
+                <span class="tp-chip tp-chip--meta tp-chip--sm"><strong>{% trans "Columns" %}:</strong> {% trans "protein accession, value" %}</span>
+                <span class="tp-chip tp-chip--meta tp-chip--sm"><strong>{% trans "Value type" %}:</strong> {% trans "numeric or categorical" %}</span>
             </div>
+        </section>
 
-            <button type="button" class="btn btn-danger mr-2 ml-3" style="height: 50px;" onclick="confirmOverwrite(this)">Overwrite</button>
-        {% else %}
-            <button type="submit" class="btn btn-primary mr-2 ml-3" style="height: 50px;">Add TSV file</button>
-        {% endif %}
-        <button type="reset" class="btn btn-secondary mr-2 ml-3" style="height: 50px;" onclick="window.location.href='../../assembly/{{ assembly_name }}/protein';">Cancel</button>
-    </form>
+        <section class="customparam-layout">
+            <article class="customparam-card customparam-card--form tp-ui-panel">
+                <div class="customparam-card-head tp-ui-panel-head">
+                    <div>
+                        <h2>{% trans "Upload evidence file" %}</h2>
+                        <p class="customparam-card-note">{% trans "Each row pairs a protein accession with the value you want to import. After upload, the parameter becomes available in the scoring formula and protein filter." %}</p>
+                    </div>
+                </div>
+
+                {% if file_exists %}
+                    <div class="customparam-state-note tp-state-note tp-state-note--error">
+                        {% blocktrans %}A file with this name already exists. Upload again to replace it with the new version.{% endblocktrans %}
+                    </div>
+                {% endif %}
+
+                <form id="add-custom-param-form" class="customparam-form" method="POST" enctype="multipart/form-data" novalidate>
+                    {% csrf_token %}
+                    <input type="hidden" name="overwrite" value="false">
+
+                    <div class="tp-ui-field customparam-field">
+                        <label class="tp-ui-field-label" for="{{ form.tsv.id_for_label }}">{% trans "TSV file" %}</label>
+                        {{ form.tsv }}
+                        <p class="customparam-field-help">{% trans "Required. Tab-separated, one row per protein, protein accession in the first column." %}</p>
+                        {% if form.tsv.errors %}
+                            <p class="customparam-field-error">{{ form.tsv.errors|striptags }}</p>
+                        {% endif %}
+                    </div>
+
+                    <div class="customparam-submit-row">
+                        <div class="customparam-submit-copy">
+                            <p class="customparam-submit-title">{% trans "What happens next" %}</p>
+                            <p class="customparam-submit-note">{% trans "Values are indexed immediately and linked to the matching proteins in this genome. The parameter appears as a filter and scoring option." %}</p>
+                        </div>
+                        <div class="tp-ui-actions customparam-actions">
+                            {% if file_exists %}
+                                <button type="button" class="btn tp-btn tp-btn--danger" onclick="confirmOverwrite()">{% trans "Replace existing file" %}</button>
+                            {% else %}
+                                <button type="submit" class="btn tp-btn tp-btn--primary tp-btn-with-icon">
+                                    <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/upload.html" %}</span>
+                                    {% trans "Upload and index" %}
+                                </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </form>
+            </article>
+
+            <aside class="customparam-card customparam-card--guide tp-ui-panel">
+                <div class="customparam-card-head tp-ui-panel-head">
+                    <div>
+                        <h2>{% trans "File format" %}</h2>
+                        <p class="customparam-card-note">{% trans "Two columns, tab-separated. Accessions must match those already in the protein ranking for this genome." %}</p>
+                    </div>
+                </div>
+
+                <div class="customparam-guide">
+                    <div class="customparam-guide-item">
+                        <span class="customparam-guide-step">1</span>
+                        <div>
+                            <h3>{% trans "First column: protein accession" %}</h3>
+                            <p>{% trans "Use the same accession shown in the protein ranking table for this genome." %}</p>
+                        </div>
+                    </div>
+                    <div class="customparam-guide-item">
+                        <span class="customparam-guide-step">2</span>
+                        <div>
+                            <h3>{% trans "Second column: value" %}</h3>
+                            <p>{% trans "Numeric (e.g. 0.83) or categorical (e.g. essential). One value per protein." %}</p>
+                        </div>
+                    </div>
+                    <div class="customparam-guide-item">
+                        <span class="customparam-guide-step">3</span>
+                        <div>
+                            <h3>{% trans "Use it for scoring" %}</h3>
+                            <p>{% trans "After upload, go to Make my own score to include this parameter in a custom ranking formula." %}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="customparam-example">
+                    <p class="customparam-example-label">{% trans "Example" %}</p>
+                    <code class="customparam-example-code">protein_accession&#9;custom_score
+A0A0000001&#9;0.83
+A0A0000002&#9;0.41
+A0A0000003&#9;essential</code>
+                </div>
+            </aside>
+        </section>
+    </div>
+
     <script>
-    function confirmOverwrite(button) {
-        var form = document.getElementById('add-custom-param-form');
-        form.overwrite.value = 'true';
-        // Prevent default form submission
-        event.preventDefault();
-        // Submit the form programmatically
-        form.submit();
-    }
+        function confirmOverwrite() {
+            var form = document.getElementById("add-custom-param-form");
+            form.overwrite.value = "true";
+            form.submit();
+        }
     </script>
-</div>
 {% endblock %}

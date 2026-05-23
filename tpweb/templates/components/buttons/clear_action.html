@@ -1,0 +1,17 @@
+{% with clear_classes=classes|default:"btn tp-btn tp-btn--clear tp-btn--clear-caution tp-btn-with-icon" %}
+    {% if href and not disabled %}
+        <a href="{{ href }}" class="{{ clear_classes }}">
+            <span class="tp-btn-icon" aria-hidden="true">
+                {% include "components/icons/trash.html" %}
+            </span>
+            {{ label }}
+        </a>
+    {% else %}
+        <button type="{{ button_type|default:'button' }}" class="{{ clear_classes }}" {% if disabled %}disabled{% endif %}>
+            <span class="tp-btn-icon" aria-hidden="true">
+                {% include "components/icons/trash.html" %}
+            </span>
+            {{ label }}
+        </button>
+    {% endif %}
+{% endwith %}

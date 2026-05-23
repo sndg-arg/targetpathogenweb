@@ -1,0 +1,305 @@
+import parsl
+from parsl import python_app, bash_app, join_app
+import os
+import shlex
+from parsl.data_provider.files import File
+from interproscan_remote import run_remote_interproscan
+
+
+def _flag_enabled(name, default=False):
+    raw = os.getenv(name)
+    if raw is None:
+        return default
+    return raw.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _host_bind_path(container_path, env_name, container_base):
+    host_base = os.environ.get(env_name, "").strip()
+    container_base = os.path.abspath(container_base)
+    container_path = os.path.abspath(container_path)
+    if not host_base or not (
+        container_path == container_base
+        or container_path.startswith(container_base + os.sep)
+    ):
+        return container_path
+    if not os.path.isabs(host_base):
+        cwd = os.environ.get("CWD", "").strip()
+        if cwd:
+            host_base = os.path.abspath(os.path.join(cwd, host_base))
+    rel_path = os.path.relpath(container_path, container_base)
+    return host_base if rel_path == "." else os.path.join(host_base, rel_path)
+
+
+def _data_dir(working_dir):
+    return os.path.join(working_dir, "data")
+
+@python_app(executors=['local_executor'])
+def clear_folder(folder_path, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
+    import os, shutil
+    if os.path.exists(folder_path):
+        shutil.rmtree(folder_path)
+    return
+
+@bash_app(executors=["local_executor"])
+def download_gbk(working_dir, genome, target_accession=None, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
+    command = f"python {working_dir}/manage.py tpweb_download_gbk {genome} --datadir {working_dir}/data"
+    if target_accession:
+        command += f" --target-accession {target_accession}"
+    return command
+
+@bash_app(executors=["local_executor"])
+def test_gbk(working_dir, genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
+    return f"python {working_dir}/manage.py tpweb_test_gbk --datadir {_data_dir(working_dir)} --target-accession {genome}"
+
+@bash_app(executors=["local_executor"])
+def custom_gbk(working_dir, genome, custom,inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
+    import os
+    return f"python {working_dir}/manage.py custom_gbk {genome} --datadir {_data_dir(working_dir)} --custom {custom}"
+
+@bash_app(executors=["local_executor"])
+def load_gbk(working_dir, folder_path, genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
+    import os
+    gbk_path = os.path.join(folder_path, f"{genome}.gbk.gz")
+    return f"python {working_dir}/manage.py load_gbk {gbk_path} --overwrite --accession {genome} --datadir {working_dir}/data"
+
+
+@bash_app(executors=["local_executor"])
+def sync_genome_metadata(working_dir, folder_path, genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
+    import os
+    gbk_path = os.path.join(folder_path, f"{genome}.gbk.gz")
+    return f"python {working_dir}/manage.py sync_genome_metadata {genome} {gbk_path}"
+
+
+@bash_app(executors=["local_executor"])
+def index_genome_db(working_dir, genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
+    return f"python {working_dir}/manage.py index_genome_db {genome} --datadir {working_dir}/data"
+
+
+@bash_app(executors=["local_executor"])
+def index_genome_seq(working_dir, genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
+    return f"python {working_dir}/manage.py index_genome_seq_clean {genome} --datadir {working_dir}/data"
+
+
+@python_app(executors=['local_executor'])
+def interproscan(cfg_dict, folder_path, genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
+    return run_remote_interproscan(cfg_dict=cfg_dict, folder_path=folder_path, genome=genome)
+
+
+@bash_app(executors=["local_executor"])
+def load_interpro(working_dir, genome, folder_path, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME, **kwargs):
+    import os
+    protein_file = os.path.join(folder_path, genome + '.faa.tsv')
+    return f"python {working_dir}/manage.py load_interpro {genome} --interpro_tsv {protein_file}"
+
+
+@bash_app(executors=["local_executor"])
+def gbk2uniprot_map(working_dir, genome, folder_path, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
+    import os
+    unips_lst = os.path.join(folder_path, genome + '_unips.lst')
+    unips_not_mapped = os.path.join(
+        folder_path, genome + '_unips_not_mapped.lst')
+    unips_mapping = os.path.join(folder_path, genome + '_unips_mapping.csv')
+    # If we already have a mapping, reuse it to avoid hammering UniProt during local/dev runs
+    if _flag_enabled("TPW_REUSE_UNIPROT_MAP", default=False) and os.path.exists(unips_lst) and os.path.getsize(unips_lst) > 0:
+        return f"echo 'gbk2uniprot_map: reusing existing {unips_lst}'"
+    return f"python {working_dir}/manage.py gbk2uniprot_map {genome} --batch_size 300 --mapping_tmp \
+        {unips_mapping} --not_mapped {unips_not_mapped} \
+        > {unips_lst}" #Entiendo que queria guardar el stdout
+
+
+@bash_app(executors=["local_executor"])
+def fetch_uniprot_annotations(working_dir, genome, folder_path, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
+    import os
+    lst_path = os.path.join(folder_path, genome + '_unips.lst')
+    return f"python {working_dir}/manage.py fetch_uniprot_annotations {genome} --datadir {working_dir}/data --lst {lst_path}"
+
+
+@python_app(executors=["local_executor"])
+def get_unipslst(folder_path, genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
+    import os
+    with open(os.path.join(folder_path, genome + '_unips.lst'), 'r') as unip_lst:
+        return unip_lst.read()
+
+
+@bash_app(executors=["local_executor"])
+def alphafold_unips(protein_list, folder_path, genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
+    import os
+    alphafold_folder = os.path.join(folder_path, "alphafold")
+    accesion, locustag = protein_list.split(' ')[0], protein_list.split(' ')[1]
+    return f"python -m TP.alphafold -pr ../opt/p2rank/distro/prank -o \
+        {alphafold_folder} -T 10 -nc -parsl {accesion} -ltag {locustag}" #Hay que agregar el locustag en el echo.
+
+
+@bash_app(executors=["local_executor"])
+def esmfold_predict(working_dir, genome, folder_path, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
+    return f"python {working_dir}/manage.py esmfold_predict {genome} --datadir {working_dir}/data"
+
+
+@bash_app(executors=["local_executor"])
+def load_af_model(locus_tag, working_dir, folder_path, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME, **kwargs):
+    import os
+    protein_pdb = os.path.join(folder_path, 'alphafold', locus_tag, f"{locus_tag}_af.pdb")
+    return f"python {working_dir}/manage.py load_af_model {locus_tag} {protein_pdb} {locus_tag} --overwrite --datadir {_data_dir(working_dir)}"
+
+
+@bash_app(executors=["local_executor"])
+def run_fpocket(folder_path, locus_tag, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
+    import os
+    import shlex
+
+    locus_dir = os.path.abspath(os.path.join(folder_path, "alphafold", locus_tag))
+    host_locus_dir = _host_bind_path(
+        locus_dir,
+        env_name="TPW_DATA_DIR",
+        container_base="/app/targetpathogenweb/data",
+    )
+    pdb_path = os.path.join(locus_dir, f"{locus_tag}_af.pdb")
+    fpocket_pdb_path = f"/work/{locus_tag}_af.pdb"
+    fpocket_out = os.path.join(locus_dir, f"{locus_tag}_af_out")
+    if not os.path.exists(pdb_path):
+        return f"echo 'No structure PDB for {locus_tag}, skipping fpocket'"
+    return (
+        f"if [ -d {shlex.quote(fpocket_out)} ]; then "
+        f"echo 'fpocket output already exists for {locus_tag}'; "
+        f"elif command -v docker >/dev/null 2>&1; then "
+        f"docker run --user $(id -u):$(id -g) --rm -i "
+        f"-v {shlex.quote(host_locus_dir)}:/work "
+        f"ezequieljsosa/fpocket fpocket -f {shlex.quote(fpocket_pdb_path)}; "
+        f"else echo 'Docker not available for fpocket on {locus_tag}, skipping'; fi"
+    )
+
+
+@bash_app(executors=["local_executor"])
+def fpocket2json(folder_path, locus_tag, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
+    import os
+    locustag_af = os.path.join(folder_path, "alphafold", locus_tag, f"{locus_tag}_af_out")
+    if os.path.exists(locustag_af):
+        return f"python -m SNDG.Structure.FPocket 2json {locustag_af} | gzip > {locustag_af}/fpocket.json.gz"
+    return f"echo 'No fpocket output for {locus_tag}, skipping'"
+
+@bash_app(executors=["local_executor"])
+def p2rank2json(genome, locus_tag, working_dir, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
+    return f"python {working_dir}/manage.py p2rank_2_json {genome} {locus_tag} --datadir {_data_dir(working_dir)}"
+
+@bash_app(executors=["local_executor"])
+def load_pocket(folder_path, locus_tag, working_dir, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
+    import os
+    locustag_af = os.path.join(folder_path, "alphafold", locus_tag, f"{locus_tag}_af_out", "fpocket.json.gz")
+    if os.path.exists(locustag_af):
+        return f"python {working_dir}/manage.py load_fpocket --pocket_json {locustag_af} {locus_tag} --datadir {_data_dir(working_dir)}"
+    return f"echo 'No fpocket data for {locus_tag}, skipping'"
+
+@bash_app(executors=["local_executor"])
+def load_p2pocket(genome, locus_tag, working_dir, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
+    import os
+    from bioseq.io.SeqStore import SeqStore
+    ss = SeqStore(_data_dir(working_dir))
+    p2pocket_json = ss.p2rank_json(genome, locus_tag)
+    return f"python {working_dir}/manage.py load_fpocket --pocket_json {p2pocket_json} {locus_tag} --datadir {_data_dir(working_dir)} --P2rank_pocket"
+
+@join_app
+def structures_af(working_dir, folder_path, genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
+    import os
+
+    alphafold_dir = os.path.join(folder_path, 'alphafold')
+
+    # Scan all locus tags that have a PDB file (from AlphaFold DB or ESMFold)
+    proteins_with_pdb = []
+    if os.path.isdir(alphafold_dir):
+        for locus_tag in sorted(os.listdir(alphafold_dir)):
+            pdb_path = os.path.join(alphafold_dir, locus_tag, f'{locus_tag}_af.pdb')
+            if os.path.exists(pdb_path) and os.path.getsize(pdb_path) > 0:
+                proteins_with_pdb.append(locus_tag)
+
+    if not proteins_with_pdb:
+        print("No protein structures found to load.")
+        return None
+
+    print(f"Loading {len(proteins_with_pdb)} structures...")
+    all_terminal_futures = []
+    for protein in proteins_with_pdb:
+        print(os.path.join(alphafold_dir, protein, f'{protein}_af.pdb'))
+        r_load = load_af_model(protein, working_dir,
+                                folder_path, inputs=[proteins_with_pdb])
+        r_fpocket = run_fpocket(
+            folder_path, protein, inputs=[r_load])
+        r_json = fpocket2json(
+            folder_path, protein, inputs=[r_fpocket])
+        p_load = load_pocket(
+            folder_path, protein, working_dir, inputs=[r_json])
+        r2_json = p2rank2json(genome, protein, working_dir, inputs=[r_load])
+        r2_load = load_p2pocket(genome, protein, working_dir, inputs=[r2_json])
+        all_terminal_futures.append(p_load)
+        all_terminal_futures.append(r2_load)
+    return all_terminal_futures
+
+
+@bash_app(executors=["local_executor"])
+def psort(genome, gram, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
+    folder_name = genome[int(len(genome) / 2 - 1):int(len(genome) / 2 + 2)]
+    container_folder_path = os.path.join("/app/targetpathogenweb/data", folder_name, genome)
+    host_folder_path = _host_bind_path(
+        container_folder_path,
+        env_name="TPW_DATA_DIR",
+        container_base="/app/targetpathogenweb/data",
+    )
+    psort_script = (
+        "set -e; "
+        f"GENOME={shlex.quote(genome)}; "
+        "if [ ! -s \"/work/$GENOME.faa\" ] && [ -s \"/work/$GENOME.faa.gz\" ]; then "
+        "gzip -dc \"/work/$GENOME.faa.gz\" > \"/work/$GENOME.faa\"; "
+        "fi; "
+        "rm -f /work/*_psortb_*.txt /work/psort.tsv; "
+        f"/usr/local/psortb/bin/psort -{shlex.quote(gram)} -o terse -i \"/work/$GENOME.faa\"; "
+        "cp /tmp/results/*_psortb_*.txt /work/; "
+        "RAW=$(ls -1 /work/*_psortb_*.txt | tail -n 1); "
+        "awk -F '\\t' 'BEGIN{OFS=\"\\t\"; print \"gene\",\"Localization\"} "
+        "NR>1 && NF>=2 {split($1,a,\" \"); print a[1],$2}' \"$RAW\" > /work/psort.tsv; "
+        "chmod 0644 /work/psort.tsv"
+    )
+    return (
+        "if command -v docker >/dev/null 2>&1; then "
+        f"docker run --rm --entrypoint /bin/sh "
+        f"-v {shlex.quote(host_folder_path)}:/work "
+        f"brinkmanlab/psortb_commandline:1.0.2 "
+        f"-lc {shlex.quote(psort_script)}; "
+        "elif [ \"${TPW_PSORT_ALLOW_FALLBACK:-0}\" = \"1\" ]; then "
+        f"python /app/targetpathogenweb/manage.py tpweb_psort_fallback {shlex.quote(genome)} --datadir {_data_dir('/app/targetpathogenweb')}; "
+        "else echo 'Docker is required for PSORT; set TPW_PSORT_ALLOW_FALLBACK=1 to generate Unknown localization fallback.' >&2; exit 1; "
+        "fi"
+    )
+
+@bash_app(executors=["local_executor"])
+def druggability_2_csv(genome, working_dir, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME, **kwargs):
+    return f"python {working_dir}/manage.py druggability_2_csv {genome} --datadir {_data_dir(working_dir)}"
+
+@bash_app(executors=["local_executor"])
+def load_score(genome, working_dir, param, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME, **kwargs):
+    from bioseq.io.SeqStore import SeqStore
+    ss = SeqStore(_data_dir(working_dir))
+    tsv_getters = {
+        'druggability': ss.druggability_tsv,
+        'psort': ss.psort_tsv,
+        'human_offtarget': ss.human_offtarget,
+        'micro_offtarget': ss.micro_offtarget,
+        'essenciality': ss.essenciality,
+    }
+    getter = tsv_getters.get(param)
+    if getter is None:
+        raise ValueError(f"Unknown score param: {param}")
+    tsv_file = getter(genome)
+    return f"python {working_dir}/manage.py load_score_values {genome} {tsv_file} --datadir {_data_dir(working_dir)}"
+
+@bash_app(executors=["local_executor"])
+def fasttarget(genome, working_dir, folder_path, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME, **kwargs):
+    return f"python {working_dir}/manage.py fast_command {genome} {folder_path} --datadir {_data_dir(working_dir)}"
+
+@bash_app(executors=["local_executor"])
+def get_binders(working_dir, genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
+    import os
+    return f"python {working_dir}/manage.py get_binders {genome} --datadir {_data_dir(working_dir)}"
+
+@bash_app(executors=["local_executor"])
+def load_binders(working_dir, genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
+    import os
+    return f"python {working_dir}/manage.py load_binders {genome} --datadir {_data_dir(working_dir)}"

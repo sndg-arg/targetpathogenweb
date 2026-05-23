@@ -1,0 +1,66 @@
+{% load i18n %}
+{% trans "Breadcrumb" as default_breadcrumb_label %}
+
+<nav class="tp-breadcrumb" aria-label="{{ aria_label|default:default_breadcrumb_label }}">
+    <ol class="tp-breadcrumb-list">
+        {% if crumb_1_label %}
+            <li class="tp-breadcrumb-item">
+                {% if crumb_1_url %}
+                    <a class="tp-breadcrumb-link" href="{{ crumb_1_url }}">{{ crumb_1_label }}</a>
+                {% else %}
+                    <span class="tp-breadcrumb-current">{{ crumb_1_label }}</span>
+                {% endif %}
+            </li>
+        {% endif %}
+
+        {% if crumb_2_label %}
+            <li class="tp-breadcrumb-item">
+                {% if crumb_2_url %}
+                    <a class="tp-breadcrumb-link" href="{{ crumb_2_url }}">{{ crumb_2_label }}</a>
+                {% else %}
+                    <span class="tp-breadcrumb-current">{{ crumb_2_label }}</span>
+                {% endif %}
+            </li>
+        {% endif %}
+
+        {% if crumb_3_label %}
+            <li class="tp-breadcrumb-item">
+                {% if crumb_3_url %}
+                    <a class="tp-breadcrumb-link" href="{{ crumb_3_url }}">{{ crumb_3_label }}</a>
+                {% else %}
+                    <span class="tp-breadcrumb-current">{{ crumb_3_label }}</span>
+                {% endif %}
+            </li>
+        {% endif %}
+
+        {% if crumb_4_label %}
+            <li class="tp-breadcrumb-item">
+                {% if crumb_4_url %}
+                    <a class="tp-breadcrumb-link" href="{{ crumb_4_url }}">{{ crumb_4_label }}</a>
+                {% else %}
+                    <span class="tp-breadcrumb-current">{{ crumb_4_label }}</span>
+                {% endif %}
+            </li>
+        {% endif %}
+
+        {% if crumb_5_label %}
+            <li class="tp-breadcrumb-item">
+                {% if crumb_5_url %}
+                    <a class="tp-breadcrumb-link" href="{{ crumb_5_url }}">{{ crumb_5_label }}</a>
+                {% else %}
+                    <span class="tp-breadcrumb-current">{{ crumb_5_label }}</span>
+                {% endif %}
+            </li>
+        {% endif %}
+
+        {% if crumb_6_label %}
+            <li class="tp-breadcrumb-item">
+                {% if crumb_6_url %}
+                    <a class="tp-breadcrumb-link" href="{{ crumb_6_url }}">{{ crumb_6_label }}</a>
+                {% else %}
+                    <span class="tp-breadcrumb-current">{{ crumb_6_label }}</span>
+                {% endif %}
+            </li>
+        {% endif %}
+    </ol>
+</nav>

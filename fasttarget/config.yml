@@ -1,0 +1,68 @@
+# FastTarget Configuration File (vendored from mcpalumbo/fasttarget for TargetPathogenWeb)
+#
+# Defaults here are tuned for the TargetPathogenWeb pipeline (stage 4).
+# `fast_command.py` rewrites organism.* and cpus before each run.
+#
+# Source: https://github.com/mcpalumbo/fasttarget
+
+organism:
+  name: "MyPathogen"
+  tax_id: 123456
+  strain_taxid: 123456
+  gbk_file: /path/to/mypathogen.gbk
+
+cpus: null
+
+container_engine: docker
+
+metabolism-PathwayTools:
+  enabled: False
+  sbml_file: /path/to/model.sbml
+  chokepoint_file: /path/to/chokepoints.txt
+  smarttable_file: /path/to/genes_smarttable.tsv
+  curated_ubiquitous_file: /path/to/curated_ubiquitous.txt
+
+metabolism-SBML:
+  enabled: False
+  sbml_file: /path/to/model.sbml
+  filter_file: /path/to/filter_compounds.tsv
+
+structures:
+  enabled: False
+  proteome_uniprot: proteome_uniprot
+  pocket_full_mode: False
+
+colabfold:
+  enabled: False
+  amber: False
+  gpu: False
+  colabfold_run_all: False
+
+core:
+  enabled: False
+  roary: False
+  corecruncher: False
+  min_identity: 95
+  min_core_freq: 99
+
+offtarget:
+  enabled: True
+  human: True
+  microbiome: True
+  microbiome_identity_filter: 40
+  microbiome_coverage_filter: 70
+  foldseek_human: False
+
+deg:
+  enabled: True
+  deg_identity_filter: 40
+  deg_coverage_filter: 70
+
+psortb:
+  enabled: False
+  gram_type: n
+
+metadata:
+  enabled: False
+  meta_tables:
+    - /path/to/meta_table1.tsv

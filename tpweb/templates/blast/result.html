@@ -1,18 +1,36 @@
 {% extends '../base/masterpage.html' %}
 {% load i18n %}
+{% load static %}
 {% load custom_tags %}
 
-{% block body %}
-
-
-<h1>{% trans "Blastinson" %}</h1>
-<body>
-    <h3>Resultado del Blastinsong</h3>
-    <p>{{ result }}</p>
-</body>
-
+{% block head %}
+    <link rel="stylesheet" href="{% static 'css/pages/blast.css' %}?v=20260511-1">
 {% endblock %}
 
+{% block body %}
+    <div class="blast-page">
 
-{% block footer %}
+        {# ── Hero ── #}
+        <section class="blast-hero">
+            {% trans "BLAST" as crumb_blast %}
+            {% trans "Results" as crumb_results %}
+            {% url 'tpwebapp:index' as index_url %}
+            {% url 'tpwebapp:form' as blast_url %}
+            {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_blast crumb_2_url=blast_url crumb_3_label=crumb_results %}
+
+            <span class="blast-eyebrow">{% trans "Sequence search · blastn" %}</span>
+            <h1>{% trans "BLAST Results" %}</h1>
+            <p class="blast-subtitle">{% trans "Raw alignment report for the submitted query." %}</p>
+        </section>
+
+        {# ── Result card ── #}
+        <div class="blast-card">
+            <div class="blast-result-head">
+                <h2>{% trans "Alignment output" %}</h2>
+                <a class="btn tp-btn tp-btn--neutral" href="{% url 'tpwebapp:form' %}">{% trans "Run another search" %}</a>
+            </div>
+            <pre class="blast-result-pre">{{ result }}</pre>
+        </div>
+
+    </div>
 {% endblock %}

@@ -1,10 +1,9 @@
 from django.views import View
-from django.conf import settings
+from django.http import Http404
 
 from django.http import HttpResponse, HttpResponseNotFound
 
 from bioseq.io.BioIO import BioIO
-from bioseq.io.SeqStore import SeqStore
 from tpweb.models.pdb import PDB
 
 import gzip
@@ -12,6 +11,8 @@ import zipfile
 from tpweb.views.StructureView import pdb_structure
 import io
 from django.utils.encoding import smart_str
+from tpweb.services.genome_workspace import user_can_access_genome_name
+from tpweb.services.structure_files import structure_file_path
 
 class StructureExportView(View):
 
@@ -20,21 +21,28 @@ class StructureExportView(View):
 
         if pdbqs.exists():
             pdb = pdbqs.get()
-            be = pdb.sequences.all()[0].bioentry
+            sequence_links = pdb.sequences.select_related("bioentry__biodatabase").all()
+            if not sequence_links:
+                return HttpResponseNotFound("No linked protein found for this structure.")
+            be = sequence_links[0].bioentry
             biodb = be.biodatabase.name.replace(BioIO.GENOME_PROT_POSTFIX, "")
-            ss = SeqStore(settings.SEQS_DATA_DIR)
-            data = gzip.open(ss.structure(biodb, be.accession, pdb.code),"rt").read()
+            if not user_can_access_genome_name(request.user, biodb):
+                raise Http404("Structure not found")
+            try:
+                raw_structure_path = structure_file_path(biodb, be.accession, pdb.code)
+                data = gzip.open(raw_structure_path, "rt").read()
+            except (FileNotFoundError, OSError):
+                return HttpResponseNotFound("Structure source file not found.")
             pdb_dto = pdb_structure(pdb, [])
             vmd_txt = vmd_style(pdb_dto["pockets"])
             stream = io.BytesIO()
-            with zipfile.ZipFile(stream, mode='w') as zip_file:
+            with zipfile.ZipFile(stream, mode="w", compression=zipfile.ZIP_DEFLATED) as zip_file:
                 zip_file.writestr(f'{pdb.code}.tcl', vmd_txt)
                 zip_file.writestr(f'{pdb.code}.pdb', data)
-            stream.seek(0)
-
-
-            response = HttpResponse(stream, content_type='application/force-download')
-            response['Content-Disposition'] = 'attachment; filename=%s' % smart_str(be.accession + ".zip")
+            payload = stream.getvalue()
+            response = HttpResponse(payload, content_type="application/zip")
+            response["Content-Disposition"] = "attachment; filename=%s" % smart_str(be.accession + ".zip")
+            response["Content-Length"] = str(len(payload))
 
             return response
         else:

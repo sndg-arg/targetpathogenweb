@@ -16,12 +16,21 @@ from bioseq.io.SeqStore import SeqStore
 from bioseq.models.Bioentry import Bioentry
 from tpweb.models.BioentryStructure import BioentryStructure
 from tpweb.models.pdb import PDB, Residue, Atom
-import subprocess as sp
 
 
 def mkdir(dirpath):
     if not os.path.exists(dirpath):
         os.makedirs(dirpath)
+
+
+def store_structure_file(pdb_file, destination):
+    os.makedirs(os.path.dirname(destination), exist_ok=True)
+    if pdb_file.endswith(".gz"):
+        shutil.copyfile(pdb_file, destination)
+    else:
+        with open(pdb_file, "rb") as source, gzip.open(destination, "wb") as target:
+            shutil.copyfileobj(source, target)
+    os.chmod(destination, 0o644)
 
 
 class Command(BaseCommand):
@@ -34,6 +43,8 @@ class Command(BaseCommand):
         parser.add_argument('--tmp', default="/tmp/load_pdb")
         parser.add_argument('--overwrite', action="store_true")
         parser.add_argument('--datadir', default="./data")
+        parser.add_argument('--experiment', default=None,
+                            help="Force experiment type (AF, CF, EX). Auto-detected if not set.")
 
     def handle(self, *args, **options):
         seqstore = SeqStore(options['datadir'])
@@ -51,8 +62,11 @@ class Command(BaseCommand):
 
         be = be.get()
         genome = be.biodatabase.name.replace(BioIO.GENOME_PROT_POSTFIX, "")
-        pdb_model_qs = PDB.objects.filter(code=code,
-                                          experiment="AF")
+        forced_experiment = (options.get("experiment") or "").strip().upper() or None
+        if forced_experiment:
+            pdb_model_qs = PDB.objects.filter(code=code, experiment=forced_experiment)
+        else:
+            pdb_model_qs = PDB.objects.filter(code=code, experiment__in=("AF", "CF"))
         if options["overwrite"]:
             self.stderr.write(f"deleting... {code} ")
             pdb_model_qs.delete()
@@ -60,9 +74,15 @@ class Command(BaseCommand):
             self.stderr.write(f"structure {code} already exists")
             sys.exit(1)
         else:
+            if forced_experiment:
+                experiment = forced_experiment
+            else:
+                pdb_dir = os.path.dirname(options["pdb_file"])
+                uniprot_file = os.path.join(pdb_dir, f"{code}_uniprot.txt")
+                experiment = "AF" if os.path.exists(uniprot_file) else "CF"
             try:
                 pdb_model = PDB(code=code,
-                                experiment="AF")
+                                experiment=experiment)
                 pdb_model.save()
                 self.load_pdb_file(pdb_model, options["pdb_file"])
                 BioentryStructure(bioentry=be, pdb=pdb_model).save()
@@ -77,16 +97,10 @@ class Command(BaseCommand):
             #if not os.path.exists(seqstore.structure_dir(genome, be.accession)):
             #    os.makedirs(seqstore.structure_dir(genome, be.accession))
 
-            if not options["pdb_file"].endswith(".gz"):
-                th = tempfile.NamedTemporaryFile(dir='/tmp', delete=False)
-                pdb_file = th.name
-                th.close()
-                sp.call(f'cat {options["pdb_file"]} | gzip > {pdb_file}', shell=True)
-            else:
-                pdb_file = options["pdb_file"]
-
-            shutil.copy(pdb_file,
-                        seqstore.structure(genome, be.accession, code))
+            store_structure_file(
+                options["pdb_file"],
+                seqstore.structure(genome, be.accession, code),
+            )
 
         self.stderr.write(f"done processing: {code} ")
 

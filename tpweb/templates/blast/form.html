@@ -1,37 +1,137 @@
 {% extends '../base/masterpage.html' %}
 {% load i18n %}
+{% load static %}
 {% load custom_tags %}
 
-{% block body %}
-
-
-<h1>{% trans "Blast" %}</h1>
-<body>
-    <h3>Select a genome and enter some query:</h3>
-    <form method="POST">
-        {% csrf_token %}  <label for="dropdown">Genome:</label>
-        <select name="dropdown" id="dropdown">
-            {% for option in db_options %}
-                <option value="{{ option.value }}">{{ option.label }}</option>
-            {% endfor %}
-        </select>
-        <br>
-        <label for="text_input">Query sequence:</label>
-        <input type="text" name="text_input" id="text_input">
-        <br>
-        <button type="submit">Submit</button>
-    </form>
-    {% if error_message %}
-        <p style="color: red;">{{ error_message }}</p>
-    {% endif %}
-    {% if message %}
-        <p>{{ message }}</p>
-        <a href="{% url 'tpwebapp:blast_res' result_id %}">result</a>
-    {% endif %}
-</body>
-
+{% block head %}
+    <link rel="stylesheet" href="{% static 'css/pages/blast.css' %}?v=20260511-1">
 {% endblock %}
 
+{% block body %}
+    <div class="blast-page">
 
-{% block footer %}
+        {# ── Hero ── #}
+        <section class="blast-hero">
+            {% trans "BLAST" as crumb_blast %}
+            {% url 'tpwebapp:index' as index_url %}
+            {% if blast_locked_to_genome %}
+                {% trans "Genomes" as crumb_genomes %}
+                {% url 'tpwebapp:genomes_list' as genomes_url %}
+                {% with crumb_genome="Genome: "|add:selected_genome_label %}
+                {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_genome crumb_3_url=selected_genome_workspace_url crumb_4_label=crumb_blast %}
+                {% endwith %}
+            {% else %}
+                {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_blast %}
+            {% endif %}
+
+            <span class="blast-eyebrow">
+                {% if blast_locked_to_genome %}
+                    {% trans "Sequence search · Genome-specific" %}
+                {% else %}
+                    {% trans "Sequence search · blastn" %}
+                {% endif %}
+            </span>
+            <h1>{% trans "BLAST" %}</h1>
+            <p class="blast-subtitle">
+                {% if blast_locked_to_genome %}
+                    {% trans "Run nucleotide BLAST against the currently selected genome." %}
+                {% else %}
+                    {% trans "Run nucleotide BLAST against a selected genome dataset." %}
+                {% endif %}
+            </p>
+
+            {% if blast_locked_to_genome %}
+                <p class="blast-genome-note">
+                    <strong>{% trans "Genome" %}:</strong> {{ selected_genome_label }}
+                    {% if selected_genome_description and selected_genome_description != selected_genome_label %}
+                        &nbsp;·&nbsp; {{ selected_genome_description }}
+                    {% endif %}
+                </p>
+            {% endif %}
+
+            <div class="blast-chip-group tp-chip-group">
+                <span class="tp-chip tp-chip--meta tp-chip--sm">{% trans "Input" %}: FASTA / {% trans "raw sequence" %}</span>
+                <span class="tp-chip tp-chip--meta tp-chip--sm">{% trans "Mode" %}: blastn</span>
+                <span class="tp-chip tp-chip--meta tp-chip--sm">{% trans "Output" %}: {% trans "standard alignment report" %}</span>
+            </div>
+        </section>
+
+        {# ── Workbench ── #}
+        <section class="blast-workbench">
+
+            <div class="blast-card">
+                <div class="tp-ui-panel-head">
+                    <div>
+                        <h2>{% if blast_locked_to_genome %}{% trans "Run search against this genome" %}{% else %}{% trans "Run search" %}{% endif %}</h2>
+                    </div>
+                </div>
+
+                <form method="POST" class="blast-form-inner">
+                    {% csrf_token %}
+                    {% if blast_locked_to_genome %}
+                        <input type="hidden" name="genome_name" value="{{ selected_genome_name }}">
+                        <p class="tp-state-note tp-state-note--empty mb-0">
+                            {% trans "This search is bound to the current genome. To search another genome, open BLAST from that genome overview or use the global BLAST entry." %}
+                        </p>
+                    {% else %}
+                        <div class="tp-ui-field">
+                            <label class="tp-ui-field-label" for="dropdown">{% trans "Genome" %}</label>
+                            <select name="dropdown" id="dropdown" class="form-control tp-ui-control">
+                                {% for option in db_options %}
+                                    <option value="{{ option.value }}" {% if option.value|stringformat:"s" == selected_db_value|stringformat:"s" %}selected{% endif %}>{{ option.label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    {% endif %}
+
+                    <div class="tp-ui-field">
+                        <label class="tp-ui-field-label" for="text_input">{% trans "Query sequence" %}</label>
+                        <textarea name="text_input" id="text_input"
+                                  class="form-control tp-ui-control blast-seq-input"
+                                  placeholder="{% trans 'Paste FASTA or raw nucleotide sequence here…' %}">{{ text_input_value|default:"" }}</textarea>
+                    </div>
+
+                    <div class="tp-ui-actions">
+                        <button type="submit" class="btn tp-btn tp-btn--primary">
+                            {% if blast_locked_to_genome %}
+                                {% trans "Run BLAST against this genome" %}
+                            {% else %}
+                                {% trans "Run BLAST" %}
+                            {% endif %}
+                        </button>
+                    </div>
+                </form>
+
+                {% if error_message %}
+                    <p class="tp-state-note tp-state-note--error mb-0">{{ error_message }}</p>
+                {% endif %}
+
+                {% if message %}
+                    <p class="tp-state-note tp-state-note--empty mb-0">{% trans "BLAST completed." %}
+                        <a href="{% url 'tpwebapp:blast_res' result_id %}">{% trans "Open results →" %}</a>
+                    </p>
+                {% endif %}
+            </div>
+
+            <aside class="blast-card">
+                <div class="tp-ui-panel-head">
+                    <div>
+                        <h2>{% trans "Input guide" %}</h2>
+                        <p class="blast-card-note">{% trans "Nucleotide sequences only. Accepts a single FASTA entry or a plain sequence." %}</p>
+                    </div>
+                </div>
+                <ul class="blast-tip-list">
+                    <li>{% trans "Use nucleotide sequences only (A / C / G / T / N)." %}</li>
+                    <li>{% trans "Paste one FASTA entry or a plain sequence without a header." %}</li>
+                    <li>{% trans "Longer queries take more time depending on the selected genome." %}</li>
+                </ul>
+                <div>
+                    <p class="blast-card-note blast-card-note--label"><strong>{% trans "Example FASTA" %}</strong></p>
+                    <pre class="blast-format-block">&gt;query_1
+ATGACCACTGATCGTTGGTAACTTGACGCTAA</pre>
+                </div>
+            </aside>
+
+        </section>
+    </div>
 {% endblock %}

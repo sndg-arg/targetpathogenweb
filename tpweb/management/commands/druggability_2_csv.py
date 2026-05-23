@@ -14,6 +14,7 @@ from tpweb.models.pdb import ResidueSetProperty, PDB, PDBResidueSet, Property
 from tpweb.models.BioentryStructure import BioentryStructure
 from tpweb.models.ScoreParamValue import ScoreParamValue
 from tpweb.models.ScoreParam import ScoreParam
+from tpweb.services.structure_sources import classify_structure_experiment, STRUCTURE_SOURCE_EXPERIMENTAL
 import pandas as pd
 from django.db import IntegrityError
 
@@ -36,19 +37,9 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         accession = options['accession']
         proteins = Bioentry.objects.filter(biodatabase__name=accession + Biodatabase.PROT_POSTFIX)
-        protein_ids = proteins.values_list('bioentry_id', flat=True)
-        pdb = BioentryStructure.objects.filter(bioentry_id__in=protein_ids)
-        pdb_ids = pdb.values_list('pdb_id', flat=True)
-        rs = PDBResidueSet.objects.filter(pdb_id__in=pdb_ids, residue_set_id=1)
-        rs_ids = rs.values_list('id', flat=True)
-        property_id = Property.objects.get(name='druggability_score')
-
-
-
-        rsp = ResidueSetProperty.objects.filter(pdbresidue_set_id__in=rs_ids, property_id=property_id.id)
-        rsp_ids = rsp.values_list('value', flat=True)
+        property_instance = Property.objects.get(name='druggability_score')
         
-        df = pd.DataFrame(columns=['gene', 'rsp_value', 'd_char'])
+        df = pd.DataFrame(columns=['gene', 'Druggability'])
 
 
         index = 0
@@ -59,42 +50,49 @@ class Command(BaseCommand):
             # Get the bioentry_id for the current protein
             bioentry_id = protein.bioentry_id
             bioentry_name = protein.accession
-            try:
-                pdb_id = BioentryStructure.objects.get(bioentry_id=bioentry_id).pdb_id
-            except:
+            structures = list(BioentryStructure.objects.filter(
+                bioentry_id=bioentry_id
+            ).select_related("pdb"))
+            if not structures:
                 continue
-            rs = PDBResidueSet.objects.filter(pdb_id=pdb_id, residue_set_id=1)
-            if rs.exists():
-                highest_rsp_value = None
-                highest_bioentry_id = None
-                highest_d_char = None
-                for resset in rs:
-                    rsp = ResidueSetProperty.objects.get(pdbresidue_set_id=resset.id, property_id=property_id.id)
-                    if rsp.value < 0.5:
-                        d_char = 'Low'
-                    elif rsp.value > 0.5 and rsp.value < 0.7:
-                        d_char = 'Medium'
-                    else:
-                        d_char = 'High'
-                    if highest_rsp_value is None or rsp.value > highest_rsp_value:
-                        highest_rsp_value = rsp.value
-                        highest_bioentry_id = bioentry_name
-                        highest_d_char = d_char
-                df.loc[index] = [highest_bioentry_id, highest_rsp_value, highest_d_char]
-            index += 1
+
+            experimental_pdb_ids = [
+                structure.pdb_id for structure in structures
+                if classify_structure_experiment(structure.pdb.experiment) == STRUCTURE_SOURCE_EXPERIMENTAL
+            ]
+            model_pdb_ids = [
+                structure.pdb_id for structure in structures
+                if structure.pdb_id not in experimental_pdb_ids
+            ]
+
+            # Prefer experimentally determined structures. If none carry FPocket
+            # scores, fall back to predicted models (AlphaFold/ColabFold).
+            values = self._druggability_values(experimental_pdb_ids, property_instance)
+            if not values:
+                values = self._druggability_values(model_pdb_ids, property_instance)
+
+            if values:
+                df.loc[index] = [bioentry_name, max(values)]
+                index += 1
         df.drop_duplicates()
-
-        # Drop the 'rsp_value' column
-        df.drop(columns=['rsp_value'], inplace=True)
-
-        # Rename the 'd_char' column to 'druggability'
-        df.rename(columns={'d_char': 'Druggability'}, inplace=True)
-        # After creating and manipulating the DataFrame df
 
         seqstore = SeqStore(options['datadir'])
         db_dir = seqstore.db_dir(accession)
         csv_filename = 'druggability.tsv' 
         
+        os.makedirs(db_dir, exist_ok=True)
         csv_path = os.path.join(db_dir,csv_filename)
         df.to_csv(csv_path, sep='\t', index=False)  # Save the DataFrame to a CSV file without including the index column
-        print(f'DataFrame saved to {csv_filename}')
+        print(f'DataFrame saved to {csv_path} ({len(df)} rows)')
+
+    def _druggability_values(self, pdb_ids, property_instance):
+        if not pdb_ids:
+            return []
+        return list(
+            ResidueSetProperty.objects.filter(
+                pdbresidue_set__pdb_id__in=pdb_ids,
+                pdbresidue_set__residue_set__name="FPocketPocket",
+                property=property_instance,
+                value__isnull=False,
+            ).values_list('value', flat=True)
+        )

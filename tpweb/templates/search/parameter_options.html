@@ -1,3 +1,5 @@
+{% load i18n %}
+<option value="">{% trans "Select value..." %}</option>
 {% for option in options %}
-<option value="{{ option.id }}"> {{ option.name }}</option>
+<option value="{{ option.id }}">{{ option.label }}</option>
 {% endfor %}

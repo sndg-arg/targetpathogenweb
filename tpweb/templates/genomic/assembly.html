@@ -1,106 +1,441 @@
 {% extends '../base/masterpage.html' %}
 {% load i18n %}
+{% load static %}
+
+{% block head %}
+    <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20260511-redesign">
+{% endblock %}
+
 {% block body %}
-
-    <h1>{{ assembly.name }}</h1>
-
-    <p class="fs-5 col-md-8">
-        {{ assembly.description }}
-    </p>
-
-    <div class="input-group">
-        <form action="{% url 'tpwebapp:download' %}" method="get">
-            <select name="format" class="form-select" id="inputFormatSelect"
-                    aria-label="Select download format">
-                <option value="genome">{% trans 'Fasta genoma' %}</option>
-                <option value="genes">{% trans 'Fasta proteinas nt' %}</option>
-                <option value="proteins">{% trans 'Fasta proteinas aa' %}</option>
-                <option value="gff">{% trans 'GFF genoma' %}</option>
-                <option value="gbk">{% trans 'GBK genoma' %}</option>
-            </select>
-            <input type="hidden" name="accession" value="{{ assembly.name }}"/>
-            <input type="hidden" id="download_format" name="format" value="genome"/>
-            <button class="btn btn-primary"  type="submit"
-                    onclick="$('#download_format').val($('#inputFormatSelect').val())"
-                    >{% trans 'Descargar' %}</button>
-
-        </form>
-    </div>
-
-    <br/>
-
-
-        <a type="button" class="btn btn-danger form-control"
-            href="{% url 'tpwebapp:protein_list' assembly.name %}">
-            {% trans 'Prioritize Targets' %}
-        </a>
-
-
-
-
-    <hr class="col-3 col-md-2 mb-5"/>
-
-    <div class="row g-5">
-        <div class="col-md-6">
-            <h2>{% trans 'Propiedades' %}</h2>
-            <table class="table table-striped">
-
-                <tbody>
-                {% for k,v in assembly.props.items %}
-                    <tr>
-                        <th>{{ k }}</th>
-                        <td>{{ v }}</td>
-                    </tr>
-                {% endfor %}
-
-                </tbody>
-            </table>
-        </div>
-
-
-    </div>
-
-
-
-
-    <div style="width: 100%; margin: 0 auto;">
-        <iframe
-                src="{{ jbrowse_url }}"
-                style="border: 1px solid black"
-                width="100%"
-                height="500px"
-        >
-        </iframe>
-    </div>
-
-    {% if assembly.links %}
-
-        <div class="row g-5">
-            <div class="col-md-6">
-                <h2>{% trans 'Relaciones' %}</h2>
-                <p>{% trans 'Datos relacionados con este recurso' %}</p>
-                <ul class="icon-list">
-                    <li>{% trans 'Tax' %}: {{ assembly.tax_id }}</li>
-                    <li>{% trans 'bioproyecto' %}: {{ bioproject.id }}</li>
-                </ul>
+    <div class="genome-page">
+        <section class="genome-hero tp-page-hero" id="section-overview">
+            <div class="genome-hero-top tp-view-head">
+                <div class="genome-hero-content tp-view-head-copy">
+                    {% trans "Genomes" as crumb_genomes %}
+                    {% url 'tpwebapp:index' as index_url %}
+                    {% url 'tpwebapp:genomes_list' as genomes_url %}
+                    {% with crumb_workspace_label="Genome: "|add:assembly.name %}
+                    {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_workspace_label %}
+                    {% endwith %}
+                    <p class="genome-hero-eyebrow">{% trans "Bacterial genome" %}</p>
+                    <h1>{{ assembly.name }}</h1>
+                    <p class="genome-description">{{ assembly.description|default:"No description available." }}</p>
+                    <p class="genome-mission">
+                        {% blocktrans count proteins=workspace_metrics.total_proteins %}{{ proteins }} protein available for target prioritization.{% plural %}{{ proteins }} proteins available for target prioritization.{% endblocktrans %}
+                    </p>
+                    <div class="hero-chip-list tp-chip-group">
+                        {% for fact in overview.primary_hero_facts %}
+                            {% if fact.label != "Annotated features" %}
+                                <span class="hero-chip tp-chip tp-chip--meta tp-chip--sm">
+                                    <strong>{{ fact.label }}:</strong>
+                                    <span>{{ fact.value }}</span>
+                                </span>
+                            {% endif %}
+                        {% endfor %}
+                        {% if overview.strain_display %}
+                            <span class="hero-chip tp-chip tp-chip--meta tp-chip--sm">
+                                <strong>{% trans "Strain" %}:</strong>
+                                <span>{{ overview.strain_display }}</span>
+                            </span>
+                        {% endif %}
+                        {% if overview.completion_display %}
+                            <span class="hero-chip tp-chip tp-chip--meta tp-chip--sm">
+                                <strong>{% trans "Completion" %}:</strong>
+                                <span>{{ overview.completion_display }}</span>
+                            </span>
+                        {% endif %}
+                    </div>
+                    {% if pipeline_status.available %}
+                        {% if pipeline_status.running_for_current_genome or pipeline_status.current_genome_status_note %}
+                            <div class="genome-pipeline-group">
+                                <div>
+                                    {% include "components/pipeline/chip.html" with pipeline_status=pipeline_status mode="genome" chip_class="tp-chip tp-chip--state tp-chip--sm" %}
+                                </div>
+                                {% include "components/pipeline/note.html" with pipeline_status=pipeline_status mode="genome" note_class="hero-pipeline-note" %}
+                            </div>
+                            {% if pipeline_status.current_genome_status_note %}
+                                <p class="tp-state-note {% if pipeline_status.failed_for_current_genome %}tp-state-note--error{% else %}tp-state-note--empty{% endif %}">
+                                    {{ pipeline_status.current_genome_status_note }}
+                                </p>
+                            {% endif %}
+                        {% endif %}
+                    {% endif %}
+                    {% if delete_error_message %}
+                        <p class="tp-state-note tp-state-note--error">{{ delete_error_message }}</p>
+                    {% endif %}
+                    <div class="genome-hero-actions">
+                        <a href="{{ workspace_links.proteins_url }}" class="btn tp-btn tp-btn--primary">{% trans "Proteins" %}</a>
+                        <a href="{{ workspace_links.custom_scores_url }}" class="btn tp-btn tp-btn--outline">{% trans "Add data" %}</a>
+                        <a href="{{ workspace_links.formula_url }}" class="btn tp-btn tp-btn--outline">{% trans "Custom score" %}</a>
+                        <a href="{{ workspace_links.ec_explorer_url }}" class="btn tp-btn tp-btn--outline">{% trans "EC tree" %}</a>
+                        <a href="{{ workspace_links.blast_url }}" class="btn tp-btn tp-btn--outline">BLAST</a>
+                    </div>
+                </div>
+                <div class="tp-view-head-actions">
+                    <a href="{{ view_export_url }}" class="btn tp-btn tp-btn--neutral tp-btn-with-icon tp-view-export-link">
+                        <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/download.html" %}</span>
+                        {% trans "Export view" %}
+                    </a>
+                </div>
             </div>
+            <div class="genome-metrics" aria-label="{% trans 'Genome summary' %}">
+                <div class="metric-pill">
+                    <span class="metric-label">{% trans "Proteins" %}</span>
+                    <span class="metric-value">{{ workspace_metrics.total_proteins }}</span>
+                </div>
+                <div class="metric-pill">
+                    <span class="metric-label">{% trans "With 3D structure" %}</span>
+                    <span class="metric-value">{{ workspace_metrics.proteins_with_structure }}</span>
+                </div>
+                <div class="metric-pill">
+                    <span class="metric-label">{% trans "Annotated" %}</span>
+                    <span class="metric-value">{{ workspace_metrics.functional_annotated }}</span>
+                </div>
+                <div class="metric-pill">
+                    <span class="metric-label">{% trans "Direct ligand hits" %}</span>
+                    <span class="metric-value">{{ workspace_metrics.binder_direct }}</span>
+                </div>
+            </div>
+        </section>
 
+        <nav class="quick-nav" aria-label="{% trans 'Genome sections' %}">
+            <a href="#section-overview" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Overview" %}</a>
+            {% if top_targets_by_score.items or top_targets_by_binders %}
+                <a href="#section-targets" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Top targets" %}</a>
+            {% endif %}
+            <a href="#section-evidence" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Evidence" %}</a>
+            <a href="#section-composition" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Composition" %}</a>
+            {% if jbrowse_embed.enabled %}
+                <a href="#section-browse" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Genome browser" %}</a>
+            {% endif %}
+            <a href="#section-downloads" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Downloads" %}</a>
+            <a href="#section-details" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Details" %}</a>
+            {% if can_delete_workspace %}
+                <a href="#section-dataset" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Dataset" %}</a>
+            {% endif %}
+        </nav>
 
+        <div class="genome-grid">
+            {% if top_targets_by_score.items or top_targets_by_binders %}
+                <section class="genome-targets-wrap" id="section-targets">
+                    {% if top_targets_by_score.items %}
+                        <div class="genome-card tp-ui-panel genome-card--ranking">
+                            <div class="section-head tp-ui-panel-head">
+                                <div>
+                                    <h2>{% trans "Top drug-target candidates" %}</h2>
+                                    <p class="section-subtitle">
+                                        {% trans "Ranked by FPocket druggability score from the preferred structure: experimental when available, otherwise predicted model. Scale 0–1; higher values indicate more druggable pockets." %}
+                                    </p>
+                                </div>
+                            </div>
+                            <ol class="targets-list">
+                                {% for t in top_targets_by_score.items %}
+                                    <li class="targets-item">
+                                        <a class="targets-link targets-link--score" href="{% url 'tpwebapp:protein' protein_id=t.bioentry_id %}">
+                                            <div class="targets-main">
+                                                <div class="targets-title">
+                                                    <span class="targets-rank">#{{ forloop.counter }}</span>
+                                                    <span class="targets-accession">{{ t.accession }}</span>
+                                                    <span class="targets-score">
+                                                        <span class="targets-score-label">{% trans "Druggability" %}</span>
+                                                        <span class="targets-score-value">{{ t.score|floatformat:2 }}</span>
+                                                    </span>
+                                                    {% if t.binder_count %}
+                                                        <span class="targets-evidence">
+                                                            {{ t.binder_count }}{% if t.chembl_count >= 100 or t.zinc_count >= 50 %}+{% endif %} {% trans "binders" %}
+                                                            <span class="targets-tooltip">{% trans "PDB co-crystallized ligands, ChEMBL bioactive compounds (top 100), and ZINC proposals (top 50). Source databases may contain additional records." %}</span>
+                                                        </span>
+                                                    {% endif %}
+                                                </div>
+                                                <p class="targets-description">{{ t.description|default:"-" }}</p>
+                                                {% if t.factors %}
+                                                    <div class="targets-factors">
+                                                        {% for f in t.factors %}
+                                                            <span class="targets-factor targets-factor--{{ f.tone }}">{{ f.label }}</span>
+                                                        {% endfor %}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </a>
+                                    </li>
+                                {% endfor %}
+                            </ol>
+                            <p class="targets-footnote">
+                                {% trans "Want to tune the formula?" %}
+                                <a href="{{ workspace_links.custom_scores_url }}">{% trans "Create a custom score" %} →</a>
+                            </p>
+                        </div>
+                    {% endif %}
+
+                    {% if top_targets_by_binders %}
+                        <div class="genome-card tp-ui-panel genome-card--ranking">
+                            <div class="section-head tp-ui-panel-head">
+                                <div>
+                                    <h2>{% trans "Strongest ligand support" %}</h2>
+                                    <p class="section-subtitle">
+                                        {% trans "Proteins with ligands reported for the same protein are ranked first. Ligands inferred from similar proteins and proposed ZINC compounds are shown separately." %}
+                                    </p>
+                                </div>
+                            </div>
+                            <ol class="targets-list">
+                                {% for t in top_targets_by_binders %}
+                                    <li class="targets-item">
+                                        <a class="targets-link targets-link--score" href="{% url 'tpwebapp:protein' protein_id=t.bioentry_id %}">
+                                            <div class="targets-main">
+                                                <div class="targets-title">
+                                                    <span class="targets-rank">#{{ forloop.counter }}</span>
+                                                    <span class="targets-accession">{{ t.accession }}</span>
+                                                    <span class="targets-direct-count">{{ t.direct_count }} {% trans "direct" %}</span>
+                                                </div>
+                                                <p class="targets-description">{{ t.description|default:"-" }}</p>
+                                                <div class="targets-breakdown">
+                                                    {% if t.pdb_direct_count %}
+                                                        <span class="targets-bd targets-bd--pdb-direct">
+                                                            PDB co-crystal <strong>{{ t.pdb_direct_count }}</strong>
+                                                        </span>
+                                                    {% endif %}
+                                                    {% if t.chembl_direct_count %}
+                                                        <span class="targets-bd targets-bd--chembl-direct">
+                                                            ChEMBL bioactive <strong>{{ t.chembl_direct_count }}</strong>
+                                                        </span>
+                                                    {% endif %}
+                                                    {% if t.homolog_count %}
+                                                        <span class="targets-bd targets-bd--homolog">
+                                                            Via homologs <strong>{{ t.homolog_count }}{% if t.chembl_homolog_count >= 100 %}+{% endif %}</strong>
+                                                            {% if t.chembl_homolog_count >= 100 %}<span class="targets-tooltip">{% trans "Includes PDB and ChEMBL evidence inferred from similar proteins. ChEMBL similar-protein records are capped at top 100 by pchembl." %}</span>{% endif %}
+                                                        </span>
+                                                    {% endif %}
+                                                    {% if t.zinc_count %}
+                                                        <span class="targets-bd targets-bd--zinc">
+                                                            ZINC <strong>{{ t.zinc_count }}{% if t.zinc_count >= 50 %}+{% endif %}</strong>
+                                                            {% if t.zinc_count >= 50 %}<span class="targets-tooltip">{% trans "Capped at top 50 by Tanimoto — true count is higher" %}</span>{% endif %}
+                                                        </span>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </a>
+                                    </li>
+                                {% endfor %}
+                            </ol>
+                            <p class="targets-footnote">
+                                {% trans "PDB co-crystal ligands and ChEMBL bioactivity data reported for this exact protein are ranked first." %}
+                            </p>
+                        </div>
+                    {% endif %}
+                </section>
+            {% endif %}
+
+            <!-- Evidence available -->
+            <section class="genome-card tp-ui-panel genome-card--evidence" id="section-evidence">
+                <div class="section-head tp-ui-panel-head">
+                    <div>
+                        <h2>{% trans "Evidence available" %}</h2>
+                        <p class="section-subtitle">{% trans "Computed analyses available for proteins in this genome." %}</p>
+                    </div>
+                </div>
+                <div class="evidence-grid">
+                    <div class="evidence-card evidence-card--structure">
+                        <span class="evidence-label">{% trans "3D structures" %}</span>
+                        <span class="evidence-headline">
+                            {% blocktrans count proteins=workspace_metrics.proteins_with_structure %}{{ proteins }} protein{% plural %}{{ proteins }} proteins{% endblocktrans %}
+                        </span>
+                        <ul class="evidence-breakdown">
+                            {% if workspace_metrics.experimental_structures %}
+                                <li><span class="evidence-bd-label">{% trans "Experimental" %}</span><span class="evidence-bd-value">{{ workspace_metrics.experimental_structures }}</span></li>
+                            {% endif %}
+                            {% if workspace_metrics.alphafold_structures %}
+                                <li><span class="evidence-bd-label">AlphaFold</span><span class="evidence-bd-value">{{ workspace_metrics.alphafold_structures }}</span></li>
+                            {% endif %}
+                            {% if workspace_metrics.colabfold_structures %}
+                                <li><span class="evidence-bd-label">ColabFold</span><span class="evidence-bd-value">{{ workspace_metrics.colabfold_structures }}</span></li>
+                            {% endif %}
+                        </ul>
+                    </div>
+
+                    <div class="evidence-card evidence-card--annotation">
+                        <span class="evidence-label">{% trans "Functional annotation" %}</span>
+                        <span class="evidence-headline">
+                            {% blocktrans count proteins=workspace_metrics.functional_annotated %}{{ proteins }} annotated protein{% plural %}{{ proteins }} annotated proteins{% endblocktrans %}
+                        </span>
+                        <ul class="evidence-breakdown">
+                            <li><span class="evidence-bd-label">EC</span><span class="evidence-bd-value">{{ workspace_metrics.ec_annotated }}</span></li>
+                            <li><span class="evidence-bd-label">GO</span><span class="evidence-bd-value">{{ workspace_metrics.go_annotated }}</span></li>
+                        </ul>
+                    </div>
+
+                    <div class="evidence-card evidence-card--binders">
+                        <span class="evidence-label">{% trans "Ligand evidence for this genome" %}</span>
+                        <span class="evidence-headline">
+                            {% if workspace_metrics.binder_direct %}
+                                {% blocktrans count n=workspace_metrics.binder_direct %}{{ n }} direct hit{% plural %}{{ n }} direct hits{% endblocktrans %}
+                            {% else %}
+                                {% trans "All via homologs" %}
+                            {% endif %}
+                            <span class="evidence-headline-sub">
+                                {% blocktrans count total=workspace_metrics.binder_total %}{{ total }} total record{% plural %}{{ total }} total records{% endblocktrans %}
+                                ·
+                                {% blocktrans count proteins=workspace_metrics.proteins_with_binders %}{{ proteins }} protein{% plural %}{{ proteins }} proteins{% endblocktrans %}
+                            </span>
+                        </span>
+                        <ul class="evidence-breakdown">
+                            <li class="evidence-breakdown-priority"><span class="evidence-bd-label">{% trans "PDB co-crystal" %}</span><span class="evidence-bd-value">{{ workspace_metrics.binder_pdb_direct }}</span></li>
+                            <li><span class="evidence-bd-label">{% trans "PDB via homologs" %}</span><span class="evidence-bd-value">{{ workspace_metrics.binder_pdb_homolog }}</span></li>
+                            <li class="evidence-breakdown-priority"><span class="evidence-bd-label">{% trans "ChEMBL bioactive" %}</span><span class="evidence-bd-value">{{ workspace_metrics.binder_chembl_direct }}</span></li>
+                            <li><span class="evidence-bd-label">{% trans "ChEMBL via homologs" %}</span><span class="evidence-bd-value">{{ workspace_metrics.binder_chembl_homolog }}</span></li>
+                            <li><span class="evidence-bd-label">{% trans "ZINC proposed" %}</span><span class="evidence-bd-value">{{ workspace_metrics.binder_zinc }}</span></li>
+                        </ul>
+                    </div>
+                </div>
+                <p class="evidence-footnote">
+                    <strong>{% trans "Note" %}:</strong>
+                    {% trans "PDB and ChEMBL records on this protein are the strongest ligand evidence. Similar-protein records are inferred from related proteins and should be interpreted as transferred evidence. ChEMBL similar-protein records are capped at the top 100 per protein and ZINC at the top 50 candidates." %}
+                </p>
+            </section>
+
+            <!-- Composition -->
+            <section class="genome-card tp-ui-panel genome-card--composition" id="section-composition">
+                <div class="section-head tp-ui-panel-head">
+                    <div>
+                        <h2>{% trans "Genome composition" %}</h2>
+                        <p class="section-subtitle">{% trans "Summary of the annotated record and the subset available for protein analysis." %}</p>
+                    </div>
+                </div>
+                <dl class="composition-list">
+                    <div class="composition-row">
+                        <dt>{% trans "Protein-coding sequences" %}</dt>
+                        <dd>{{ workspace_metrics.total_proteins }}</dd>
+                    </div>
+                    {% if overview.untranslated_cds_display and overview.untranslated_cds_display != "0" and overview.untranslated_cds_display != 0 %}
+                        <div class="composition-row">
+                            <dt>{% trans "CDS without translated protein" %}</dt>
+                            <dd>{{ overview.untranslated_cds_display }}</dd>
+                        </div>
+                    {% endif %}
+                    {% if overview.rna_total_display %}
+                        <div class="composition-row">
+                            <dt>{% trans "RNA features" %}</dt>
+                            <dd>{{ overview.rna_total_display }}</dd>
+                        </div>
+                    {% endif %}
+                    {% if overview.feature_count_display %}
+                        <div class="composition-row">
+                            <dt>{% trans "Annotated features (total)" %}</dt>
+                            <dd>{{ overview.feature_count_display }}</dd>
+                        </div>
+                    {% endif %}
+                </dl>
+            </section>
+
+            {% if jbrowse_embed.enabled %}
+                <section class="genome-card tp-ui-panel genome-card--browse" id="section-browse">
+                    <div class="section-head tp-ui-panel-head">
+                        <div>
+                            <h2>{% trans "Genome browser" %}</h2>
+                            <p class="section-subtitle">{% trans "Interactive view of contigs and annotation tracks." %}</p>
+                        </div>
+                        <div class="section-tools">
+                            <a href="{{ jbrowse_url }}" target="_blank" rel="noopener" class="btn tp-btn tp-btn--neutral tp-btn--sm">{% trans "Open in new tab" %} →</a>
+                        </div>
+                    </div>
+                    <div class="jbrowse-frame">
+                        <iframe src="{{ jbrowse_url }}" loading="lazy" title="JBrowse"></iframe>
+                    </div>
+                </section>
+            {% endif %}
+
+            <!-- Downloads -->
+            <section class="genome-card tp-ui-panel genome-card--downloads" id="section-downloads">
+                <div class="section-head tp-ui-panel-head">
+                    <div>
+                        <h2>{% trans "Downloads" %}</h2>
+                        <p class="section-subtitle">{% trans "Download source genome and annotation files." %}</p>
+                    </div>
+                </div>
+                <form action="{% url 'tpwebapp:download' %}" method="get" class="tp-ui-toolbar-form">
+                    <div class="tp-ui-field">
+                        <label class="tp-ui-field-label" for="inputFormatSelect">{% trans "File type" %}</label>
+                        <select name="format" class="form-control" id="inputFormatSelect" aria-label="Select download format">
+                            <option value="genome">{% trans 'Genome FASTA (fna)' %}</option>
+                            <option value="genes">{% trans 'Genes FASTA (fna)' %}</option>
+                            <option value="proteins">{% trans 'Proteins FASTA (faa)' %}</option>
+                            <option value="gff">{% trans 'Genome GFF' %}</option>
+                            <option value="gbk">{% trans 'Genome GBK' %}</option>
+                        </select>
+                    </div>
+                    <input type="hidden" name="accession" value="{{ assembly.internal_name }}"/>
+                    <button class="btn tp-btn tp-btn--primary" type="submit">{% trans 'Download' %}</button>
+                </form>
+            </section>
+
+            <!-- Imported details -->
+            <section class="genome-card tp-ui-panel genome-card--details" id="section-details">
+                <div class="section-head tp-ui-panel-head">
+                    <div>
+                        <h2>{% trans "Imported genome details" %}</h2>
+                        <p class="section-subtitle">{% trans "Properties imported from the source record." %}</p>
+                    </div>
+                </div>
+                <details class="genome-raw-details">
+                    <summary>{% trans "Show imported genome details" %}</summary>
+                    <div class="tp-table-shell genome-raw-table">
+                        <table class="table table-striped table-hover mb-0 tp-table tp-table--plain">
+                            <tbody>
+                            {% for row in assembly.prop_rows %}
+                                <tr>
+                                    <th>{{ row.label }}</th>
+                                    <td>{{ row.value }}</td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="2">{% trans "No imported genome details available." %}</td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </details>
+            </section>
+
+            {% if can_delete_workspace %}
+                <section class="genome-card tp-ui-panel genome-card--danger" id="section-dataset">
+                    <div class="section-head tp-ui-panel-head">
+                        <div>
+                            <h2>{% trans "Dataset removal" %}</h2>
+                            <p class="section-subtitle">{% trans "Delete this uploaded genome dataset and all derived records." %}</p>
+                        </div>
+                    </div>
+                    <details class="genome-delete-summary">
+                        <summary>{% trans "Show deletion controls" %}</summary>
+                        <form method="post" class="genome-delete-form">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="delete_workspace">
+                            <p class="genome-delete-copy">
+                                {% trans "This removes the uploaded genome dataset, protein records, upload history, and generated analysis artifacts for this genome. This cannot be undone." %}
+                            </p>
+                            <div class="tp-ui-field">
+                                <label class="tp-ui-field-label" for="delete-workspace-confirm">{% trans "Type the accession to confirm" %}</label>
+                                <input
+                                    id="delete-workspace-confirm"
+                                    name="confirm_accession"
+                                    type="text"
+                                    class="form-control tp-ui-control"
+                                    placeholder="{{ assembly.name }}"
+                                    autocomplete="off"
+                                >
+                            </div>
+                            <div class="genome-delete-actions">
+                                <button type="submit" class="btn tp-btn tp-btn--clear tp-btn--clear-caution">{% trans "Delete dataset" %}</button>
+                            </div>
+                        </form>
+                    </details>
+                </section>
+            {% endif %}
         </div>
-    {% else %}
-        <h3>{% trans 'Este dato no esta relacionado con ningún otro' %}</h3>
-    {% endif %}
-
     </div>
-
 {% endblock %}
 
 {% block jsloaded %}
     <script>
-        function jsloaded() {
-        }
+        function jsloaded() {}
     </script>
-{% endblock %}
-
-{% block footer %}
 {% endblock %}

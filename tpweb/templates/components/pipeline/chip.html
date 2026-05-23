@@ -1,0 +1,35 @@
+{% load i18n %}
+
+{% if pipeline_status.available %}
+    {% if mode == "global" %}
+        <span class="{{ chip_class }} {{ pipeline_status.state_class }}">
+            {% if pipeline_status.running and pipeline_status.genome_accession %}
+                {% trans "Pipeline in progress for" %} <code>{{ pipeline_status.genome_display_accession|default:pipeline_status.genome_accession }}</code>
+                {% if pipeline_status.stage_current %}
+                    · {% trans "Stage" %} {{ pipeline_status.stage_current }}/{{ pipeline_status.stage_total }}
+                {% endif %}
+            {% elif pipeline_status.running %}
+                {% trans "Pipeline in progress" %}
+            {% else %}
+                {{ pipeline_status.state_label }}
+            {% endif %}
+        </span>
+    {% else %}
+        {% if pipeline_status.running_for_current_genome %}
+            <span class="{{ chip_class }} running">
+                {% trans "Pipeline in progress for" %} <code>{{ pipeline_status.genome_display_accession|default:pipeline_status.genome_accession }}</code>
+                {% if pipeline_status.stage_current %}
+                    · {% trans "Stage" %} {{ pipeline_status.stage_current }}/{{ pipeline_status.stage_total }}
+                {% endif %}
+            </span>
+        {% elif pipeline_status.running_for_other_genome %}
+            <span class="{{ chip_class }} running-other">
+                {% trans "Other genome in progress" %}: {{ pipeline_status.other_genome_display_accession|default:pipeline_status.other_genome_accession }}
+            </span>
+        {% elif not pipeline_status.running %}
+            <span class="{{ chip_class }} {{ pipeline_status.state_class }}">
+                {{ pipeline_status.state_label }}
+            </span>
+        {% endif %}
+    {% endif %}
+{% endif %}

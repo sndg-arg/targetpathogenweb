@@ -4,7 +4,8 @@ from .views.AssemblyView import AssemblyView
 from .views.DownloadView import DownloadView
 from .views.GenomesView import GenomesView
 from .views.IndexView import IndexView
-from .views.ProteinListView import ProteinListView
+from .views.HealthView import HealthLiveView, HealthPipelineView, HealthReadyView
+from .views.ProteinListView import ProteinListView, ProteinSearchSuggestionsView
 from .views.ProteinView import ProteinView
 from .views.StructureExportView import StructureExportView
 from .views.StructureRawView import StructureRawView
@@ -12,11 +13,16 @@ from .views.StructureView import StructureView
 from .views.FormView import FormView
 from .views.NewView import NewView
 from .views.MoleculeView import MoleculeView
-from .views.ParameterFormView import ParameterFormView, load_options, reset_filters
+from .views.ParameterFormView import load_options
+from .views.BinderDetailView import BinderDetailView
 from .views.FormulaFormView import FormulaFormView
+from .views.ValidateExpressionView import validate_expression_view
+from .views.DeleteFormulaView import delete_formula_view
 from .views.TestCelery import test_celery
 #from debug_toolbar.toolbar import debug_toolbar_urls
 from .views.CustomParamView import upload_form
+from .views.GenomeUploadView import GenomeUploadView
+from .views.AnnotationExplorerView import AnnotationExplorerView
 from django.conf.urls.static import static
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
@@ -42,23 +48,30 @@ urlpatterns = [
 
     #path("",view=login_required(IndexView.as_view()),name="index"),
     path("",view=IndexView.as_view(),name="index"),
-    path("assembly/<str:assembly_id>",view=AssemblyView.as_view(),name="assembly"),
-    path("protein/<int:protein_id>",view=ProteinView.as_view(),name="protein"),
-    path("assembly/<str:assembly_name>/protein",view=ProteinListView.as_view(),name="protein_list"),
-    path("download",view=DownloadView.as_view(),name="download"),
-    path("genomes",view=GenomesView.as_view(),name="genomes_list"),
-    path("molecule",view=MoleculeView.as_view(),name="molecules"),
-    path("structure_raw/<int:struct_id>",view=StructureRawView.as_view(),name="structure_raw"),
-    path("structure_export/<int:struct_id>",view=StructureExportView.as_view(),name="structure_export"),
-    path("parameterformview/<str:assembly_name>", view= ParameterFormView, name="parameterformview"),
+    path("genome/<str:genome>", view=AssemblyView.as_view(), name="assembly"),
+    path("genome/<str:genome>/explore/<str:annotation_kind>", view=AnnotationExplorerView.as_view(), name="annotation_explorer"),
+    path("protein/<int:protein_id>", view=ProteinView.as_view(), name="protein"),
+    path("genome/<str:genome>/proteins", view=ProteinListView.as_view(), name="protein_list"),
+    path("genome/<str:genome>/proteins/suggestions", view=ProteinSearchSuggestionsView.as_view(), name="protein_search_suggestions"),
+    path("download", view=DownloadView.as_view(), name="download"),
+    path("genomes", view=GenomesView.as_view(), name="genomes_list"),
+    path("genomes/upload", view=GenomeUploadView.as_view(), name="genome_upload"),
+    path("molecule", view=MoleculeView.as_view(), name="molecules"),
+    path("structure_raw/<int:struct_id>", view=StructureRawView.as_view(), name="structure_raw"),
+    path("structure_export/<int:struct_id>", view=StructureExportView.as_view(), name="structure_export"),
     path("load_options/", load_options, name="load_options"),
-    path("structure/<int:struct_id>",view=StructureView.as_view(),name="structure"),
-    path("test",view=untestview,name="untestview"),
-    path("form", view= FormView.as_view(), name="form"),
-    path("result/<str:result_id>",view=NewView.as_view(),name="blast_res"),
-    path('reset_filters/<str:assembly_name>', reset_filters, name='reset_filters'),
-    path('formula_form/<str:assembly_name>', view= FormulaFormView, name='formula_form'),
-    path("customparam/<str:assembly_name>", view= upload_form , name="customparam"),
+    path("structure/<int:struct_id>", view=StructureView.as_view(), name="structure"),
+    path("binder/<int:binder_id>", view=BinderDetailView.as_view(), name="binder_detail"),
+    path("test", view=untestview, name="untestview"),
+    path("form", view=FormView.as_view(), name="form"),
+    path("result/<str:result_id>", view=NewView.as_view(), name="blast_res"),
+    path("genome/<str:genome>/formula", view=FormulaFormView, name="formula_form"),
+    path("formula/validate-expression/", view=validate_expression_view, name="validate_expression"),
+    path("genome/<str:genome>/formula/<int:formula_pk>/delete", view=delete_formula_view, name="delete_formula"),
+    path("genome/<str:genome>/custom-evidence", view=upload_form, name="customparam"),
+    path("health/live", view=HealthLiveView.as_view(), name="health_live"),
+    path("health/ready", view=HealthReadyView.as_view(), name="health_ready"),
+    path("health/pipeline", view=HealthPipelineView.as_view(), name="health_pipeline"),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 #if 1:
 #    urlpatterns = urlpatterns + debug_toolbar_urls()

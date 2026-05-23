@@ -1,85 +1,245 @@
+# Target Pathogen Web
 
----
+Web platform for genome-level protein exploration, structural evidence analysis, and bioinformatics target prioritization.
 
-# TargetPathogenWeb
+## Stack
 
-**TargetPathogenWeb** is a bioinformatic web server designed to identify molecular targets for novel drugs, facilitating the discovery and testing of new pharmaceutical compounds.
+| Layer | Technology |
+|-------|-----------|
+| Backend | Django 4, Python 3.10 |
+| Database | PostgreSQL 14 |
+| Pipeline | subprocess orchestrator + bioinformatics tools (InterProScan, AlphaFold, FPocket, P2Rank, PSORTb) |
+| Frontend | Django templates, modular CSS (design tokens), vanilla JS |
+| Auth | django-allauth (username/email login, admin-only registration) |
+| Runtime | Docker Compose (4 services: web, db, queue, jbrowse) |
 
-## Features
-- **Target Identification:** Analyze molecular targets suitable for drug development.
-- **User-Friendly Interface:** Web-based platform accessible from any browser.
-- **Scalability:** Capable of handling large datasets efficiently.
+## Architecture
 
-## Requirements
+```
+tpweb/
+├── views/           # Request handling — thin, delegates to services
+├── services/        # Business logic — reusable, testable
+├── models/          # Django ORM models (TPUser, GenomeUpload, PDB, Binders, etc.)
+├── templates/       # Django templates (extends base/masterpage.html)
+├── management/      # Custom manage.py commands (pipeline, data imports)
+├── forms/           # Django forms (upload, user)
+├── adapters/        # django-allauth adapters
+├── middleware/       # Request timing observability
+└── io/              # File parsers (FPocket, PDB)
 
-To run TargetPathogenWeb, you need the following:
+static/
+├── css/components/  # Shared UI system (ui-system.css)
+├── css/pages/       # Page-specific styles (one file per page)
+├── js/pages/        # Page-specific JS (protein-detail.js, etc.)
+└── bundle.js        # Webpack bundle (feature-viewer, MSA, 3D libs)
 
-- **Operating System:** Linux
-- **Docker:** [Install Docker](https://docs.docker.com/get-docker/)
-- **Docker Compose:** [Install Docker Compose](https://docs.docker.com/compose/install/)
-- **SSH Key:** Ensure that your SSH key is loaded in your agent to access the Cluster of the Calculus Institute at the University of Buenos Aires.
+pipeline/             # Pipeline orchestrator and commands
+tpwebconfig/         # Django project settings, urls, wsgi
+```
 
-## Installation
+### Key conventions
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/sndg-arg/targetpathogenweb.git
-   cd targetpathogenweb
-   ```
+- **Views** parse inputs and return responses. No business logic.
+- **Services** hold domain logic. Views call services.
+- **CSS** uses semantic design tokens (`--tp-color-*`). No hardcoded hex outside `masterpage.html`.
+- **Templates** extend `base/masterpage.html`. Page styles load via `{% block head %}`.
+- **Dark mode** is fully supported via `.tp-dark` class and token overrides.
 
-2. **Run Docker Compose:**
-   ```bash
-   docker build --no-cache -t target:conded . && docker compose up
-   ```
+## Quick Start
 
-3. **Access the web server:**      
-   Open your browser and navigate to `http://localhost:8000`.
+```bash
+# 1. Local env
+cp .env.local.example .env
+docker network create web 2>/dev/null || true
 
-## Usage
+# 2. Build + start
+DOCKER_DEFAULT_PLATFORM=linux/amd64 docker compose up --build -d
 
-### **Important Warning:**
-Before running the `run_pipeline` step, please shut down any processes that may be running, such as Firefox or Chrome, to avoid potential issues. The process can take up to some days depending on the size of the genome.
+# 3. Verify
+docker compose ps
+curl -s http://localhost:8085/health/live
+```
 
-To add a new genome, first enter the web container. We recommend using [lazydocker](https://github.com/jesseduffield/lazydocker). Once inside the container, run the following commands:
+Open: http://localhost:8085
 
-1. **Activate the environment:**
-   ```bash
-   conda activate tpv2
-   ```
+Minimal deploy files:
 
-2. **Move to the parsl folder and source the exports:**
-   ```bash
-   cd parsl
-   source export.sh
-   ```
+- `docker-compose.yml` for the base stack
+- `docker-compose.cluster.yml` only for cluster overrides
+- `.env.local.example` for local
+- `.env.cluster.example` for cluster
 
-3. **(Needed the first time) Run the test command:**      
-   ```bash
-   python run_pipeline.py --test
-   ```
+FastTarget databases are mounted from the host via `TPW_FASTTARGET_DB_DIR` instead of being baked into the app image. Runtime outputs stay in `TPW_FASTTARGET_RUNTIME_DIR` and `TPW_FASTTARGET_LOG_DIR`.
 
-4. **Load the new genome using the NCBI accession:**
+Local runs also mount `${HOME}/.ssh` into `web` and `queue`, because remote pipeline stages submit work to the QB cluster over SSH.
 
-   You should pass the NCBI accession at the end and declare if the organism is Gram-positive (`--gram p`) or Gram-negative (`--gram n`).   
-   For example, to run the Gram-negative organism *Pseudomonas aeruginosa* PAO1, you should run:
-   ```bash
-   python run_pipeline.py --gram n NC_002516.2
-   ```
+### First admin user
 
-5. **Load the new genome using a custom .gbk.gz file:**
+```bash
+docker compose exec web python manage.py createsuperuser
+```
 
-   If instead of the official NCBI's genome you want to use a custom file corresponding to novel strains or with hand-made curations use the --custom to pass the custom gbk.gz file.
-   ```bash
-   python run_pipeline.py --gram n --custom NC_002516.2.gbk.gz
-   ```
+Regular users are created from Django admin (`/admin/` → Users → Add user). Public registration is disabled.
+
+## Services
+
+| Service | Container | Port | Purpose |
+|---------|-----------|------|---------|
+| web | `target2_nodo0` | 8085→8000 | Django app |
+| db | `db_target2_nodo0` | 5432 | PostgreSQL |
+| queue | `target2_queue_nodo0` | — | Genome pipeline worker |
+| jbrowse | `target2_jbrowse_nodo0` | 3000 | Genome browser |
+
+## URL Map
+
+| URL | View | Description |
+|-----|------|-------------|
+| `/` | Home | Landing page |
+| `/genomes/` | GenomesList | All accessible genomes |
+| `/genome/<accession>/` | Assembly | Genome overview |
+| `/genome/<accession>/proteins` | ProteinList | Filterable protein table |
+| `/genome/<accession>/explore/<ec\|go>` | AnnotationExplorer | Sunburst (Krona-style) annotation chart |
+| `/genome/<accession>/parameters` | ParameterForm | Scoring criteria editor |
+| `/genome/<accession>/formula` | FormulaForm | Scoring formula builder |
+| `/protein/<id>` | ProteinView | Protein detail (structure, annotations, binders) |
+| `/structure/<id>` | StructureView | Full-screen 3D structure + pockets |
+| `/upload/` | GenomeUpload | Upload genome, trigger pipeline |
+| `/form/` | BLAST | Sequence search |
+| `/accounts/login/` | allauth | Login |
+| `/admin/` | Django admin | User management, data admin |
+
+### URL design
+
+URLs use clean accessions (e.g. `/genome/NZ_AP023069.1/proteins`), not internal workspace names. The resolver (`genome_workspace.resolve_genome_from_slug`) maps accessions back to internal names transparently.
+
+## Pipeline
+
+The genome processing pipeline runs 23 stages via a direct subprocess orchestrator:
+
+1. **Genome acquisition** — download from NCBI, use test genome, or upload `.gbk.gz`
+2. **Import** — load GenBank into database
+3. **FastTarget scoring** — human off-target, microbiome off-target, essentiality
+4. **Indexing** — DB and sequence indexes
+5. **Functional annotation** — InterProScan → load annotations
+6. **UniProt mapping** — protein-to-UniProt ID mapping
+7. **Structure prediction** — AlphaFold models + FPocket/P2Rank pocket analysis
+8. **Druggability & localization** — druggability score, PSORTb
+9. **Binders** — extract and load binder candidates
+
+Binder evidence is split into PDB direct, PDB homolog, ChEMBL direct, ChEMBL homolog, and ZINC. See [`docs/BINDERS_LIGQ2.md`](docs/BINDERS_LIGQ2.md) for the LigQ_2/UniProt operational workflow.
+
+### Run pipeline manually
+
+```bash
+docker compose exec -it web bash
+source /opt/conda/etc/profile.d/conda.sh && conda activate tpv2
+cd /app/targetpathogenweb/pipeline && source exports.sh
+python run_pipeline.py --test                    # test genome
+python run_pipeline.py --gram n NC_002516.2      # NCBI accession
+python run_pipeline.py --gram n --custom file.gbk.gz  # custom file
+```
+
+### Monitor
+
+```bash
+curl -s http://localhost:8085/health/pipeline
+docker compose exec web tail -f /tmp/tpw_pipeline_test.log
+```
+
+### Recover stuck pipeline
+
+```bash
+docker compose exec web bash -lc '
+  pids=$(ps -eo pid,args | grep -E "run_pipeline|process_worker_pool|fasttarget" | grep -v grep | awk "{print \$1}")
+  [ -n "$pids" ] && echo "$pids" | xargs kill -TERM
+'
+```
+
+## Scoring System
+
+Proteins are scored via configurable formulas. Each formula combines weighted evidence parameters:
+
+- **Score parameters**: druggability, essentiality, human off-target, microbiome off-target, PSORTb localization
+- **Formulas**: user-defined weighted combinations of parameters
+- **Filters**: narrow protein list by parameter values, structure source, EC/GO annotations
+
+The protein list supports search, pagination, column selection, CSV/XLSX export, and the criteria drawer for interactive filtering.
+
+## Annotation Explorer
+
+The EC/GO annotation explorer renders a Plotly sunburst chart. For EC numbers:
+
+- Hierarchy: class → subclass → sub-subclass → enzyme (4 levels)
+- Labels come from `tpweb/data/ec_hierarchy_labels.json` (authoritative source: ExPASy)
+- Rebuild labels: `python manage.py fetch_ec_nomenclature`
+
+## Frontend Build (bundle.js)
+
+Only needed when changing JS dependencies (feature-viewer, MSA viewer, etc.):
+
+```bash
+cd js
+docker build -t tpweb-webpack .
+docker run --rm -w "$PWD" -v "$PWD:$PWD" tpweb-webpack bash -lc 'npm install && npm run build'
+cp bundle.js ../static/bundle.js
+```
+
+## Design System
+
+All colors use CSS custom properties defined in `masterpage.html`:
+
+| Token family | Usage |
+|-------------|-------|
+| `--tp-color-text-*` | Text hierarchy (primary, secondary, muted, soft) |
+| `--tp-color-brand-*` | Brand accent (050–900) |
+| `--tp-color-surface*` | Backgrounds (surface, soft, muted, panel) |
+| `--tp-color-border*` | Borders (soft, default, strong) |
+| `--tp-color-success-*` | Positive states (green) |
+| `--tp-color-warning-*` | Caution states (amber) |
+| `--tp-color-danger-*` | Error states (red) |
+| `--tp-color-info-*` | Informational states (blue) |
+
+Dark mode overrides all tokens via `:root.tp-dark`. Theme toggle is in the sidebar footer.
+
+### CSS file convention
+
+- `static/css/components/ui-system.css` — shared tokens, table system, panels
+- `static/css/pages/<page>.css` — one file per page, loaded in `{% block head %}`
+- Cache busting: `?v=YYYYMMDD-N` suffix on CSS links in templates
+
+## Health Endpoints
+
+| Endpoint | Purpose |
+|----------|---------|
+| `GET /health/live` | Process alive |
+| `GET /health/ready` | DB + dependencies ready (200/503) |
+| `GET /health/pipeline` | Pipeline status JSON |
+
+## Development
+
+```bash
+make lint      # ruff check
+make format    # ruff format
+make test      # run tests (inside container recommended)
+make qa        # lint + tests
+```
+
+Tests run best inside the container (DB host is `db`):
+
+```bash
+docker compose exec web make qa
+```
+
+## Cluster Deployment
+
+See [docs/CLUSTER_DEPLOY.md](docs/CLUSTER_DEPLOY.md). Minimal flow:
+
+```bash
+cp .env.cluster.example .env
+docker compose -f docker-compose.yml -f docker-compose.cluster.yml up --build -d
+docker compose exec web python manage.py createsuperuser
+```
 
 ## License
 
-
-
-## Contact
-
-
----
-
-
+See [LICENSE](./LICENSE).

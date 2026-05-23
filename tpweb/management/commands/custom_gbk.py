@@ -1,6 +1,7 @@
 
 import gzip
 import io
+import re
 import shutil
 import warnings
 import os
@@ -36,8 +37,10 @@ class Command(BaseCommand):
         if not isinstance(custom_path, str):
             raise ValidationError(f"Custom option must be a string, got {type(custom_path)}")
 
-        if not custom_path.endswith(".gbk.gz"):
-            raise ValidationError(f"Custom option must end with .gbk.gz, got {custom_path}")
+        # Django's FileField may append a random suffix before the final extension
+        # (e.g. "NC_002516.2.gbk_YFgkjFS.gz"), so we match the pattern loosely.
+        if not re.search(r"\.gbk[^/]*\.gz$", custom_path):
+            raise ValidationError(f"Custom option must be a .gbk.gz file, got {custom_path}")
 
         if not os.path.exists(custom_path):
             raise ValidationError(f"The file {custom_path} does not exist.")
@@ -47,10 +50,12 @@ class Command(BaseCommand):
 
         ss = SeqStore(options["datadir"])
         tmp_file = options["custom"]
+        target_accession = str(options["accession"] or "").strip()
+        if not target_accession:
+            raise ValidationError("An accession is required for custom uploads.")
+
         gbio = GenebankIO(tmp_file)
         gbio.init()
-        ss.create_idx_dir(gbio.accession)
-        print(tmp_file)
-        print(ss.gbk(gbio.accession))
-        shutil.copy(tmp_file, ss.gbk(gbio.accession))
+        ss.create_idx_dir(target_accession)
+        shutil.copy(tmp_file, ss.gbk(target_accession))
         self.stderr.write("genome imported!")

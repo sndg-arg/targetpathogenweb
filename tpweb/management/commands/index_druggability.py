@@ -79,7 +79,7 @@ class Command(BaseCommand):
             index += 1
         df.drop_duplicates()
         ScoreParam.Initialize2()
-        score_param_instance = ScoreParam.objects.get(name='Druggability')
+        score_param_instance = ScoreParam.objects.get(name='Druggability', user__isnull=True)
 
         # Inside your handle method, before the loop that iterates over df rows
         error_rows = []
@@ -96,5 +96,4 @@ class Command(BaseCommand):
         # After the loop, print the list of error-related rows if there are any
         if error_rows:
             print(f"Encountered errors in the following rows: {error_rows}")
-
 

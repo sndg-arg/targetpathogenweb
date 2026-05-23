@@ -69,14 +69,16 @@ if not WORKERPROC:
 
 LOCAL_APPS = [
     "sndgjobs",
-    "bioseq",
     "tpweb.apps.TPappConfig",
+    "bioseq",
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS + ALLAUTHAPPS
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
+    "tpweb.middleware.observability.RequestTimingMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     'django.contrib.sessions.middleware.SessionMiddleware',
     "django.middleware.locale.LocaleMiddleware",
@@ -113,7 +115,14 @@ SITE_ID = 1
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
 DATABASES = {
-    'default': env.db("DJANGO_DATABASE_URL")
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': env("DJANGO_DATABASE_NAME", default="tp"),
+        'USER': env("DJANGO_DATABASE_USER", default="postgres"),
+        'PASSWORD': env("DJANGO_DATABASE_PASSWORD", default="123"),
+        'HOST': env("DJANGO_DATABASE_HOST", default="db"),
+        'PORT': env("DJANGO_DATABASE_PORT", default="5432"),
+    }
 }
 
 # Password validation
@@ -168,7 +177,7 @@ AUTHENTICATION_BACKENDS = [
 # https://docs.djangoproject.com/en/dev/ref/settings/#auth-user-model
 AUTH_USER_MODEL = "tpweb.TPUser"
 # https://docs.djangoproject.com/en/dev/ref/settings/#login-redirect-url
-LOGIN_REDIRECT_URL = "users:redirect"
+LOGIN_REDIRECT_URL = "tpwebapp:index"
 # https://docs.djangoproject.com/en/dev/ref/settings/#login-url
 LOGIN_URL = "account_login"
 
@@ -244,13 +253,13 @@ SERVER_EMAIL=webmaster@example.com
 
 # django-allauth
 # ------------------------------------------------------------------------------
-ACCOUNT_ALLOW_REGISTRATION = env.bool("DJANGO_ACCOUNT_ALLOW_REGISTRATION", True)
+ACCOUNT_ALLOW_REGISTRATION = env.bool("DJANGO_ACCOUNT_ALLOW_REGISTRATION", False)
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
 ACCOUNT_AUTHENTICATION_METHOD = "username_email"
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
 ACCOUNT_EMAIL_REQUIRED = True
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
-ACCOUNT_EMAIL_VERIFICATION = "mandatory"
+ACCOUNT_EMAIL_VERIFICATION = "none"
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
 ACCOUNT_ADAPTER = "tpweb.adapters.AccountAdapters.AccountAdapter"
 # https://django-allauth.readthedocs.io/en/latest/forms.html
@@ -300,37 +309,52 @@ if DEBUG:
 
 
 else:
-    STATIC_ROOT = env("DJANGO_ROOT")
-    JBROWSE_BASE_URL = env("JBROWSE_BASE_URL")
-    SEQS_DATA_DIR = env("SEQS_DATA_DIR")
+    STATIC_ROOT = env("DJANGO_ROOT", default=str(BASE_DIR / "staticfiles"))
+    STATICFILES_DIRS = [str(BASE_DIR / "static")]
+    JBROWSE_BASE_URL = env("JBROWSE_BASE_URL", default="http://localhost:3000/")
+    SEQS_DATA_DIR = env("SEQS_DATA_DIR", default=str(BASE_DIR / "data/seqs"))
 
     # CACHE_URL=memcache://127.0.0.1:11211,127.0.0.1:11212,127.0.0.1:11213
     # REDIS_URL=rediscache://127.0.0.1:6379/1?client_class=django_redis.client.DefaultClient&password=ungithubbed-secret
 
-    import sentry_sdk
     import logging
-    from sentry_sdk.integrations.logging import LoggingIntegration
-    from sentry_sdk.integrations.celery import CeleryIntegration
-    from sentry_sdk.integrations.django import DjangoIntegration
-    from sentry_sdk.integrations.redis import RedisIntegration
+    try:
+        import sentry_sdk
+        from sentry_sdk.integrations.logging import LoggingIntegration
+        from sentry_sdk.integrations.celery import CeleryIntegration
+        from sentry_sdk.integrations.django import DjangoIntegration
+        from sentry_sdk.integrations.redis import RedisIntegration
+        _has_sentry = True
+    except ImportError:
+        _has_sentry = False
 
     SECRET_KEY = env("DJANGO_SECRET_KEY")
 
     DATABASES["default"]["ATOMIC_REQUESTS"] = True  # noqa F405
     DATABASES["default"]["CONN_MAX_AGE"] = env.int("CONN_MAX_AGE", default=60)  # noqa F405
+    DATABASES["default"]["CONN_HEALTH_CHECKS"] = True
 
-    CACHES = {
-        "default": {
-            "BACKEND": "django_redis.cache.RedisCache",
-            "LOCATION": env("REDIS_URL"),
-            "OPTIONS": {
-                "CLIENT_CLASS": "django_redis.client.DefaultClient",
-                # Mimicing memcache behavior.
-                # https://github.com/jazzband/django-redis#memcached-exceptions-behavior
-                "IGNORE_EXCEPTIONS": True,
-            },
+    redis_url = env("REDIS_URL", default="")
+    if redis_url:
+        CACHES = {
+            "default": {
+                "BACKEND": "django_redis.cache.RedisCache",
+                "LOCATION": redis_url,
+                "OPTIONS": {
+                    "CLIENT_CLASS": "django_redis.client.DefaultClient",
+                    # Mimic memcache behavior when Redis is briefly unavailable.
+                    # https://github.com/jazzband/django-redis#memcached-exceptions-behavior
+                    "IGNORE_EXCEPTIONS": True,
+                },
+            }
         }
-    }
+    else:
+        CACHES = {
+            "default": {
+                "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+                "LOCATION": "tpw-production-fallback",
+            }
+        }
 
     # LOGGING
     # ------------------------------------------------------------------------------
@@ -361,6 +385,11 @@ else:
                 "handlers": ["console"],
                 "propagate": False,
             },
+            "django.request": {
+                "level": "ERROR",
+                "handlers": ["console"],
+                "propagate": False,
+            },
             # Errors logged by the SDK itself
             "sentry_sdk": {"level": "ERROR", "handlers": ["console"], "propagate": False},
             "django.security.DisallowedHost": {
@@ -373,24 +402,27 @@ else:
 
     # Sentry
     # ------------------------------------------------------------------------------
-    SENTRY_DSN = env("SENTRY_DSN")
-    SENTRY_LOG_LEVEL = env.int("DJANGO_SENTRY_LOG_LEVEL", logging.INFO)
-    sentry_logging = LoggingIntegration(
-        level=SENTRY_LOG_LEVEL,  # Capture info and above as breadcrumbs
-        event_level=logging.ERROR,  # Send errors as events
-    )
-    integrations = [
-        sentry_logging,
-        DjangoIntegration(),
-        CeleryIntegration(),
-        RedisIntegration(),
-    ]
-    sentry_sdk.init(
-        dsn=SENTRY_DSN,
-        integrations=integrations,
-        environment=env("SENTRY_ENVIRONMENT", default="production"),
-        traces_sample_rate=env.float("SENTRY_TRACES_SAMPLE_RATE", default=0.0),
-    )
+    SENTRY_DSN = env("SENTRY_DSN", default="")
+    if SENTRY_DSN and _has_sentry:
+        SENTRY_LOG_LEVEL = env.int("DJANGO_SENTRY_LOG_LEVEL", logging.INFO)
+        sentry_logging = LoggingIntegration(
+            level=SENTRY_LOG_LEVEL,  # Capture info and above as breadcrumbs
+            event_level=logging.ERROR,  # Send errors as events
+        )
+        integrations = [
+            sentry_logging,
+            DjangoIntegration(),
+            CeleryIntegration(),
+            RedisIntegration(),
+        ]
+        sentry_sdk.init(
+            dsn=SENTRY_DSN,
+            integrations=integrations,
+            environment=env("SENTRY_ENVIRONMENT", default="production"),
+            traces_sample_rate=env.float("SENTRY_TRACES_SAMPLE_RATE", default=0.0),
+        )
+
+JBROWSE_EMBED_ENABLED = env.bool("JBROWSE_EMBED_ENABLED", default=True)
 # BLAST
 BLASTN_PATH = env('BLASTN_PATH', default = 'blastn')
 # CRISPY

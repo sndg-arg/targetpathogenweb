@@ -32,7 +32,7 @@
 
     <tr>
         <td>{% trans 'Ensamblado' %}</td>
-        <td><a href="{% url 'tpwebapp:assembly' protein.assembly_id %}">{{ protein.assembly_name }}</a></td>
+        <td><a href="{% url 'tpwebapp:assembly' protein.genome %}">{{ protein.assembly_name }}</a></td>
     </tr>
     </tbody>
 </table>
@@ -46,7 +46,7 @@
         <option value="3">{% trans 'GFF' %}</option>
 
     </select>
-    <button class="btn btn-outline-secondary" type="button">{% trans 'Descargar' %}</button>
+    <button class="btn tp-btn tp-btn--neutral" type="button">{% trans 'Descargar' %}</button>
 </div>
 
 
@@ -7952,7 +7952,4 @@ ka-blk-sigma gapped: 43.6362
 
     </script>
 
-{% endblock %}
-
-{% block footer %}
 {% endblock %}

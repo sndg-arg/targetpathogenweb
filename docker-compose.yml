@@ -1,43 +1,216 @@
+networks:
+  edge:
+    external: true
+    name: ${TPW_EDGE_NETWORK:-web}
+
 services:
   db:
-    image: postgres:14
+    container_name: ${TPW_CONTAINER_PREFIX:-targetpathogenweb}_db
+    image: postgres:14-bullseye
+    networks:
+      - edge
+    expose: [5432]
     environment:
-      POSTGRES_PASSWORD: 123
+      POSTGRES_PASSWORD: ${TPW_DB_PASSWORD:-changeme}
       POSTGRES_DB: tp
       POSTGRES_USER: postgres
     volumes:
-      - ./dbs/db:/var/lib/postgresql/data
+      - ${TPW_DB_DIR:-./dbs/db}:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - "${TPW_DB_PORT_BIND:-5432}:5432"
     shm_size: 512m
+    init: true
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d tp || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    restart: always
 
   web:
-    image: target:conded
-    command: /bin/sh -c "chmod +x start.sh && ./start.sh"
+    container_name: ${TPW_CONTAINER_PREFIX:-targetpathogenweb}_web
+    image: targetpathogenweb-app:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        HTTP_PROXY: ${HTTP_PROXY:-}
+        HTTPS_PROXY: ${HTTPS_PROXY:-}
+        NO_PROXY: ${NO_PROXY:-}
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - edge
+    expose:
+      - "8000"
+    command: ["./start.sh"]
     working_dir: /app/targetpathogenweb
     volumes:
-      - ./:/app/targetpathogenweb
-      - ../../fasttarget:/app/fasttarget
+      - ${TPW_DATA_DIR:-./data}:/app/targetpathogenweb/data
+      - ${TPW_FASTTARGET_DB_DIR:-./fasttarget/databases}:/app/fasttarget/databases
+      - ${TPW_FASTTARGET_RUNTIME_DIR:-./data/fasttarget/organism}:/app/fasttarget/organism
+      - ${TPW_FASTTARGET_LOG_DIR:-./data/fasttarget/logs}:/app/fasttarget/logs
       - /var/run/docker.sock:/var/run/docker.sock
-      - ${SSH_AUTH_SOCK}:/ssh-agent
-      - /tmp:/tmp
+      - ${HOME}/.ssh:/home/appuser/.ssh:ro
+      - ${HOME}/.ssh:/root/.ssh:ro
     ports:
-      - "8000:8000"
+      - "${TPW_WEB_PORT_BIND:-8085}:8000"
+    init: true
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8000/health/ready || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     environment:
       - DJANGO_DATABASE_NAME=tp
       - DJANGO_DATABASE_USER=postgres
-      - DJANGO_DATABASE_PASSWORD=123
-      - DJANGO_DATABASE_HOST=db
-      - DJANGO_DATABASE_PORT=5432
-      - POSTGRES_NAME=tp
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=123
-      - DJANGO_DATABASE_URL=postgres://postgres:123@db:5432/tp?sslmode=disable
-      - PYTHONPATH="$${PYTHONPATH}:../sndgjobs:../sndgbiodb:../targetpathogen:../sndg-bio:../targetpathogenweb/"
-      - DJANGO_DEBUG=True
-      - DJANGO_SETTINGS_MODULE=tpwebconfig.settings
-      - SSH_AUTH_SOCK=/ssh-agent
+      - DJANGO_DATABASE_URL=postgres://postgres:${TPW_DB_PASSWORD:-changeme}@db:5432/tp
+      - DJANGO_DATABASE_PASSWORD=${TPW_DB_PASSWORD:-changeme}
+      - DJANGO_ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS:-localhost,0.0.0.0,127.0.0.1}
+      - PYTHONPATH=/app/sndgjobs:/app/sndgbiodb:/app/targetpathogen:/app/sndg-bio:/app/target:/app/targetpathogenweb
+      - TPW_DATA_DIR=${TPW_DATA_DIR:-./data}
+      - HTTP_PROXY=${HTTP_PROXY:-}
+      - HTTPS_PROXY=${HTTPS_PROXY:-}
+      - NO_PROXY=${NO_PROXY:-}
       - CWD=${PWD}
-    depends_on:
-      - db
+      - SSH_HOSTNAME=${SSH_HOSTNAME:-}
+      - SSH_USERNAME=${SSH_USERNAME:-}
+      - SSH_PASSWORD=${SSH_PASSWORD:-}
+      - SSH_WORKDIR=${SSH_WORKDIR:-}
+      - SSH_CORES=${SSH_CORES:-}
+      - SSH_PORT=${SSH_PORT:-}
+      - TPW_USE_DIRECT_PIPELINE=${TPW_USE_DIRECT_PIPELINE:-}
+      - TPW_FASTTARGET_ALLOW_FALLBACK=${TPW_FASTTARGET_ALLOW_FALLBACK:-}
+      - TPW_FASTTARGET_SKIP_EXEC=${TPW_FASTTARGET_SKIP_EXEC:-}
+      - TPW_INTERPRO_APPLICATIONS=${TPW_INTERPRO_APPLICATIONS:-}
+      - TPW_INTERPRO_EXCLUDE=${TPW_INTERPRO_EXCLUDE:-}
+      - TPW_COLABFOLD_BIN=${TPW_COLABFOLD_BIN:-colabfold_batch}
+      - TPW_COLABFOLD_NUM_RECYCLES=${TPW_COLABFOLD_NUM_RECYCLES:-3}
+      - TPW_COLABFOLD_NUM_MODELS=${TPW_COLABFOLD_NUM_MODELS:-1}
+      - TPW_COLABFOLD_EXCLUDE=${TPW_COLABFOLD_EXCLUDE:-}
+      - TPW_COLABFOLD_STRICT=${TPW_COLABFOLD_STRICT:-}
+      - TPW_COLABFOLD_MAX_PARALLEL=${TPW_COLABFOLD_MAX_PARALLEL:-}
+    restart: always
+    labels:
+      - 'traefik.enable=true'
+      - "traefik.docker.network=${TPW_EDGE_NETWORK:-web}"
+      - "traefik.http.routers.${TPW_ROUTER_NAME:-tpw_target2_nodo0}.entrypoints=websecure"
+      - "traefik.http.routers.${TPW_ROUTER_NAME:-tpw_target2_nodo0}.rule=Host(`${TPW_DOMAIN:-target2.infra.cluster.qb.fcen.uba.ar}`)"
+      - "traefik.http.services.${TPW_ROUTER_NAME:-tpw_target2_nodo0}.loadbalancer.server.port=8000"
+      - "traefik.http.routers.${TPW_ROUTER_NAME:-tpw_target2_nodo0}.tls=true"
+      - "traefik.http.routers.${TPW_ROUTER_NAME:-tpw_target2_nodo0}.tls.certresolver=leresolver"
+      - "traefik.http.middlewares.https_redirect.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.https_redirect.redirectscheme.permanent=true"
 
+  queue:
+    container_name: ${TPW_CONTAINER_PREFIX:-targetpathogenweb}_queue
+    image: targetpathogenweb-app:latest
+    pull_policy: never
+    user: "0:0"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - edge
+    command: ["./start_queue.sh"]
+    working_dir: /app/targetpathogenweb
+    stop_grace_period: 120s
+    volumes:
+      - ${TPW_DATA_DIR:-./data}:/app/targetpathogenweb/data
+      - ${TPW_FASTTARGET_DB_DIR:-./fasttarget/databases}:/app/fasttarget/databases
+      - ${TPW_FASTTARGET_RUNTIME_DIR:-./data/fasttarget/organism}:/app/fasttarget/organism
+      - ${TPW_FASTTARGET_LOG_DIR:-./data/fasttarget/logs}:/app/fasttarget/logs
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${HOME}/.ssh:/home/appuser/.ssh:ro
+      - ${HOME}/.ssh:/root/.ssh:ro
+    init: true
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -f tpweb_process_genome_queue >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    environment:
+      - DJANGO_DATABASE_NAME=tp
+      - DJANGO_DATABASE_USER=postgres
+      - DJANGO_DATABASE_URL=postgres://postgres:${TPW_DB_PASSWORD:-changeme}@db:5432/tp
+      - DJANGO_DATABASE_PASSWORD=${TPW_DB_PASSWORD:-changeme}
+      - DJANGO_ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS:-localhost,0.0.0.0,127.0.0.1}
+      - PYTHONPATH=/app/sndgjobs:/app/sndgbiodb:/app/targetpathogen:/app/sndg-bio:/app/target:/app/targetpathogenweb
+      - TPW_DATA_DIR=${TPW_DATA_DIR:-./data}
+      - QUEUE_POLL_INTERVAL=${QUEUE_POLL_INTERVAL:-5}
+      - HTTP_PROXY=${HTTP_PROXY:-}
+      - HTTPS_PROXY=${HTTPS_PROXY:-}
+      - NO_PROXY=${NO_PROXY:-}
+      - CWD=${PWD}
+      - SSH_HOSTNAME=${SSH_HOSTNAME:-}
+      - SSH_USERNAME=${SSH_USERNAME:-}
+      - SSH_PASSWORD=${SSH_PASSWORD:-}
+      - SSH_WORKDIR=${SSH_WORKDIR:-}
+      - SSH_CORES=${SSH_CORES:-}
+      - SSH_PORT=${SSH_PORT:-}
+      - TPW_USE_DIRECT_PIPELINE=${TPW_USE_DIRECT_PIPELINE:-}
+      - TPW_FASTTARGET_ALLOW_FALLBACK=${TPW_FASTTARGET_ALLOW_FALLBACK:-}
+      - TPW_FASTTARGET_SKIP_EXEC=${TPW_FASTTARGET_SKIP_EXEC:-}
+      - TPW_INTERPRO_APPLICATIONS=${TPW_INTERPRO_APPLICATIONS:-}
+      - TPW_INTERPRO_EXCLUDE=${TPW_INTERPRO_EXCLUDE:-}
+      - TPW_COLABFOLD_BIN=${TPW_COLABFOLD_BIN:-colabfold_batch}
+      - TPW_COLABFOLD_NUM_RECYCLES=${TPW_COLABFOLD_NUM_RECYCLES:-3}
+      - TPW_COLABFOLD_NUM_MODELS=${TPW_COLABFOLD_NUM_MODELS:-1}
+      - TPW_COLABFOLD_EXCLUDE=${TPW_COLABFOLD_EXCLUDE:-}
+      - TPW_COLABFOLD_STRICT=${TPW_COLABFOLD_STRICT:-}
+      - TPW_COLABFOLD_MAX_PARALLEL=${TPW_COLABFOLD_MAX_PARALLEL:-}
+    restart: always
+
+  jbrowse:
+    container_name: ${TPW_CONTAINER_PREFIX:-targetpathogenweb}_jbrowse
+    image: targetpathogenweb-jbrowse:latest
+    build:
+      context: ./js/jbrowse
+      dockerfile: Dockerfile
+    networks:
+      - edge
+    expose:
+      - "3000"
+    command: npx serve .
+    working_dir: /jbrowse2
+    volumes:
+      - ${TPW_DATA_DIR:-./data}:/jbrowse2/data
+    ports:
+      - "${TPW_JBROWSE_PORT_BIND:-3000}:3000"
+    init: true
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:3000/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    restart: always

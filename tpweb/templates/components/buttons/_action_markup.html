@@ -1,0 +1,27 @@
+{% if href and not disabled %}
+    <a
+        href="{{ href }}"
+        class="{{ button_classes }}{% if classes %} {{ classes }}{% endif %}"
+        {% if id %}id="{{ id }}"{% endif %}
+        {% if title %}title="{{ title }}"{% endif %}
+        {% if target %}target="{{ target }}"{% endif %}
+        {% if rel %}rel="{{ rel }}"{% endif %}
+        {% if attrs %}{{ attrs|safe }}{% endif %}
+    >
+        {{ label }}
+    </a>
+{% else %}
+    <button
+        type="{{ button_type|default:'button' }}"
+        class="{{ button_classes }}{% if classes %} {{ classes }}{% endif %}"
+        {% if id %}id="{{ id }}"{% endif %}
+        {% if name %}name="{{ name }}"{% endif %}
+        {% if value %}value="{{ value }}"{% endif %}
+        {% if title %}title="{{ title }}"{% endif %}
+        {% if onclick %}onclick="{{ onclick }}"{% endif %}
+        {% if disabled %}disabled{% endif %}
+        {% if attrs %}{{ attrs|safe }}{% endif %}
+    >
+        {{ label }}
+    </button>
+{% endif %}

@@ -1,42 +1,19 @@
-from django.shortcuts import render, redirect
-from tpweb.views.ParameterForm import ParameterForm
-from django.views import View
-from tpweb.models.ScoreParam import ScoreParamOptions
+from django.shortcuts import render
 
-def ParameterFormView(request, assembly_name):
-    if 'selected_parameters' not in request.session.keys():
-        selected_parameters = []
-    else:
-        selected_parameters = request.session['selected_parameters']
+from tpweb.views.ParameterForm import humanize_identifier
+from tpweb.services.score_params import visible_score_param_options_queryset
 
-    if request.method == "POST":
-        if 'finish_process' in request.POST:
-            # User wants to finish the process
-            request.session['selected_parameters'] = selected_parameters
-            return redirect(f'../../assembly/{assembly_name}/protein')
-        elif 'reset_process' in request.POST:
-            parameterform = ParameterForm(request.POST)
-            request.session.pop('selected_parameters', None)
-            return render(request, 'search/parameterform.html', {"form": parameterform})
-        else:
-            # Add new parameters
-            parameterform = ParameterForm(request.POST)
-            if parameterform.is_valid() and parameterform.cleaned_data["options"].to_dict() not in selected_parameters:
-                selected_parameters.append(parameterform.cleaned_data["options"].to_dict())
-                request.session['selected_parameters'] = selected_parameters
-            else:
-                print(parameterform.errors)
-    else:
-        parameterform = ParameterForm()
-
-    return render(request, 'search/parameterform.html', {"form": parameterform,
-                                                         "parameters": selected_parameters})
 
 def load_options(request):
-    param_id = request.GET.get("param")
-    options = ScoreParamOptions.objects.filter(score_param_id = param_id)
-    return render(request, "search/parameter_options.html", {"options": options})
+    """HTMX endpoint that returns ScoreParam option markup for cascading selects.
 
-def reset_filters(request, assembly_name=None):
-    request.session.pop('selected_parameters', None)
-    return redirect(f'../../assembly/{assembly_name}/protein')
+    Used by FormulaForm to populate the value dropdown when a parameter is picked.
+    """
+    param_id = request.GET.get("param")
+    options = []
+    if param_id:
+        options = [
+            {"id": option.id, "label": humanize_identifier(option.name) or option.name}
+            for option in visible_score_param_options_queryset(request.user, param_id)
+        ]
+    return render(request, "search/parameter_options.html", {"options": options})

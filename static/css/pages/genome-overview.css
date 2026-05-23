@@ -1,0 +1,966 @@
+/* Genome overview — mirrors protein-detail / binder-detail design language. */
+
+.genome-page {
+    font-family: "Source Sans 3", "Segoe UI", sans-serif;
+    color: var(--tp-ink);
+    margin: 0;
+    display: grid;
+    gap: var(--tp-space-4);
+    --genome-accent: var(--tp-color-brand-800);
+    --genome-accent-ink: var(--tp-color-brand-900);
+    --genome-accent-soft: var(--tp-color-brand-100);
+    --genome-accent-border: var(--tp-color-brand-300);
+}
+
+.genome-page h1,
+.genome-page h2,
+.genome-page h3 {
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    letter-spacing: 0.2px;
+}
+
+/* ── Hero ─────────────────────────────────────────────────────────── */
+
+/* Base styles from .tp-page-hero in ui-system.css */
+
+.genome-hero-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 18px;
+    align-items: flex-start;
+    margin-top: 8px;
+}
+
+.genome-hero-content {
+    max-width: none;
+    width: 100%;
+    min-width: 0;
+}
+
+.genome-hero-eyebrow {
+    margin: 6px 0 10px;
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-label);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.genome-hero h1 {
+    margin: 0;
+    font-size: var(--tp-heading-lg);
+    line-height: 1.1;
+    color: var(--genome-accent-ink);
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    word-break: break-all;
+}
+
+.genome-description {
+    margin: 10px 0 0;
+    color: var(--tp-color-text-secondary);
+    font-size: 1rem;
+    line-height: 1.42;
+    max-width: 920px;
+}
+
+.genome-mission {
+    margin: 10px 0 0;
+    color: var(--genome-accent-ink);
+    font-size: 1.02rem;
+    font-weight: 600;
+    line-height: 1.45;
+    max-width: 920px;
+}
+
+.genome-hero .hero-chip-list {
+    margin-top: 12px;
+}
+
+.genome-hero .hero-chip {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 6px;
+}
+
+.genome-pipeline-group {
+    margin-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: flex-start;
+    max-width: min(100%, 720px);
+}
+
+.hero-pipeline-note {
+    margin: 0;
+    color: var(--tp-color-text-muted);
+    font-size: 0.84rem;
+    font-weight: 500;
+    line-height: 1.35;
+}
+
+.genome-hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 18px;
+}
+
+.genome-hero-actions .tp-btn--primary {
+    min-width: 196px;
+    justify-content: center;
+}
+
+/* ── Metric pills ─────────────────────────────────────────────────── */
+
+.genome-metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.genome-page .metric-pill {
+    border: 1px solid var(--genome-accent-border);
+    border-radius: 12px;
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-panel) 100%);
+    padding: 10px 12px;
+    min-height: 68px;
+    display: grid;
+    align-content: center;
+    gap: 2px;
+    box-shadow: var(--tp-shadow-xs);
+}
+
+.genome-page .metric-label {
+    font-size: var(--tp-font-label);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--tp-color-text-muted);
+}
+
+.genome-page .metric-value {
+    color: var(--genome-accent-ink);
+    font-size: 1.4rem;
+    line-height: 1.1;
+    font-weight: 700;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.metric-value-pct {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--tp-color-text-muted);
+}
+
+/* ── Quick-nav ────────────────────────────────────────────────────── */
+
+.genome-page .quick-nav {
+    position: sticky;
+    top: -2px;
+    z-index: 25;
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 8px 10px;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 12px;
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+    box-shadow: var(--tp-shadow-xs);
+}
+
+.genome-page .quick-nav::-webkit-scrollbar {
+    height: 6px;
+}
+
+.genome-page .quick-nav::-webkit-scrollbar-thumb {
+    background: var(--tp-color-border-strong);
+    border-radius: 999px;
+}
+
+.genome-page .quick-nav .quick-nav-link {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    min-height: 36px;
+    padding: 0.32rem 0.95rem;
+    line-height: 1.1;
+    font-weight: 600;
+    border-radius: 999px;
+    border: 1px solid var(--tp-color-border-strong) !important;
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%) !important;
+    color: var(--tp-color-text-secondary) !important;
+    white-space: nowrap;
+    text-decoration: none !important;
+}
+
+.genome-page .quick-nav .quick-nav-link:hover,
+.genome-page .quick-nav .quick-nav-link:focus-visible {
+    color: var(--tp-color-link-hover) !important;
+    border-color: var(--genome-accent-border) !important;
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--genome-accent-soft) 100%) !important;
+}
+
+/* ── Grid + panels ────────────────────────────────────────────────── */
+
+.genome-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.genome-card {
+    border: 1px solid var(--tp-color-border);
+    border-radius: var(--tp-ui-radius-panel);
+    background: var(--tp-color-surface);
+    box-shadow: var(--tp-ui-shadow-panel);
+    padding: 16px;
+    overflow: hidden;
+    scroll-margin-top: 128px;
+}
+
+.genome-card h2 {
+    margin: 0;
+    font-size: var(--tp-heading-sm);
+    font-weight: var(--tp-font-weight-bold);
+    color: var(--genome-accent-ink);
+}
+
+.genome-page .section-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.genome-page .section-subtitle {
+    margin: 4px 0 0;
+    color: var(--tp-color-text-muted);
+    font-size: 0.86rem;
+    line-height: 1.45;
+}
+
+.genome-targets-wrap,
+.genome-card--evidence,
+.genome-card--composition,
+.genome-card--browse,
+.genome-card--downloads,
+.genome-card--details,
+.genome-card--danger {
+    grid-column: 1 / -1;
+}
+
+.genome-card--downloads {
+    overflow: visible;
+}
+
+.genome-card--downloads .tp-ui-toolbar-form {
+    max-width: 640px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 14px;
+    align-items: end;
+    overflow: visible;
+}
+
+.genome-card--downloads .tp-ui-field {
+    min-width: 0;
+    overflow: visible;
+}
+
+/* ── Top targets (two rankings side-by-side) ─────────────────────── */
+
+.genome-targets-wrap {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    scroll-margin-top: 128px;
+}
+
+@media (max-width: 980px) {
+    .genome-targets-wrap {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+.genome-card--ranking {
+    display: flex;
+    flex-direction: column;
+    align-self: stretch;
+}
+
+/* Clamp descriptions to 1 line for uniform item height */
+.genome-card--ranking .targets-description {
+    -webkit-line-clamp: 1;
+}
+
+/* Breakdown chips inside targets-main (right card) align left like factor chips */
+.genome-card--ranking .targets-breakdown {
+    justify-content: flex-start;
+    padding-left: 38px;
+    flex-wrap: nowrap;
+    overflow: hidden;
+}
+
+.targets-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    counter-reset: targets-counter;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.targets-item {
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 12px;
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+    transition: transform 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.targets-item:hover {
+    border-color: var(--genome-accent-border);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--tp-color-brand-800) 10%, transparent);
+}
+
+.targets-link {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 16px;
+    align-items: center;
+    padding: 14px 16px;
+    color: inherit;
+    text-decoration: none;
+}
+
+.targets-link--score {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+}
+
+.targets-score {
+    margin-left: auto;
+    font-weight: var(--tp-font-weight-semibold);
+    color: var(--genome-accent-ink);
+    line-height: 1;
+    padding: 5px 10px;
+    background: var(--genome-accent-soft);
+    border: 1px solid var(--genome-accent-border);
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 6px;
+}
+
+.targets-score-label {
+    color: var(--tp-color-text-secondary);
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.targets-score-value {
+    font-size: 0.9rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.targets-direct-count {
+    margin-left: auto;
+    font-size: 0.84rem;
+    font-weight: var(--tp-font-weight-semibold);
+    color: var(--tp-color-sage-900, var(--tp-color-text-primary));
+    line-height: 1;
+    padding: 4px 10px;
+    background: var(--tp-color-sage-050);
+    border: 1px solid var(--tp-color-sage-200);
+    border-radius: 8px;
+    white-space: nowrap;
+}
+
+.targets-evidence {
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 0.78rem;
+    font-weight: 600;
+    line-height: 1;
+    color: var(--tp-color-text-muted);
+    padding: 4px 10px;
+    background: var(--tp-color-surface-soft);
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 999px;
+    position: relative;
+    cursor: help;
+}
+
+/* Chips that contain a .targets-tooltip get the (i) hint + relative anchor. */
+.targets-bd:has(> .targets-tooltip),
+.targets-evidence:has(> .targets-tooltip) {
+    position: relative;
+    cursor: help;
+}
+
+.targets-bd:has(> .targets-tooltip) strong::after {
+    content: " ⓘ";
+    margin-left: 4px;
+    font-weight: 400;
+    opacity: 0.55;
+    font-size: 0.92em;
+}
+
+/* Custom tooltip — same look as .cell-tooltip used across the app. */
+.targets-tooltip {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 8px 12px;
+    border-radius: 8px;
+    background: var(--tp-tooltip-bg);
+    color: var(--tp-tooltip-color);
+    font-size: 0.78rem;
+    font-weight: 500;
+    line-height: 1.45;
+    white-space: normal;
+    width: max-content;
+    max-width: 280px;
+    text-align: center;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 140ms ease;
+    z-index: 50;
+    box-shadow: var(--tp-shadow-lg);
+}
+
+.targets-tooltip::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: var(--tp-tooltip-bg);
+}
+
+.targets-bd:hover .targets-tooltip,
+.targets-bd:focus-visible .targets-tooltip,
+.targets-evidence:hover .targets-tooltip,
+.targets-evidence:focus-visible .targets-tooltip {
+    opacity: 1;
+}
+
+/* Anchor leftmost / rightmost chips so their tooltips don't overflow horizontally.
+   PDB is the leftmost chip in the breakdown row → tooltip extends to the right.
+   ZINC is the rightmost → tooltip extends to the left.
+   .targets-evidence sits on the right edge of the score ranking → same as ZINC.
+   ChEMBL stays centered (default). */
+.targets-bd--pdb .targets-tooltip {
+    left: 0;
+    transform: none;
+}
+
+.targets-bd--pdb .targets-tooltip::after {
+    left: 20px;
+    transform: none;
+}
+
+.targets-bd--zinc .targets-tooltip,
+.targets-evidence .targets-tooltip {
+    left: auto;
+    right: 0;
+    transform: none;
+}
+
+.targets-bd--zinc .targets-tooltip::after,
+.targets-evidence .targets-tooltip::after {
+    left: auto;
+    right: 20px;
+    transform: none;
+}
+
+.targets-factors {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding-left: 38px;
+}
+
+.targets-factor {
+    font-size: var(--tp-font-label);
+    font-weight: 600;
+    padding: 3px 9px;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    white-space: nowrap;
+}
+
+.targets-factor--good {
+    background: var(--tp-color-success-bg);
+    color: var(--tp-color-success-ink);
+    border-color: var(--tp-color-success-border);
+}
+
+.targets-factor--bad {
+    background: var(--tp-color-danger-bg);
+    color: var(--tp-color-danger-ink);
+    border-color: var(--tp-color-danger-border);
+}
+
+.targets-factor--neutral {
+    background: var(--tp-color-surface-soft);
+    color: var(--tp-color-text-secondary);
+    border-color: var(--tp-color-border-soft);
+}
+
+@media (max-width: 720px) {
+    .targets-factors {
+        padding-left: 0;
+    }
+}
+
+.targets-footnote {
+    margin: 18px 0 0;
+    padding-top: 12px;
+    border-top: 1px dashed var(--tp-color-border-soft);
+    font-size: 0.86rem;
+    color: var(--tp-color-text-muted);
+}
+
+.targets-footnote a {
+    color: var(--tp-color-link);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.targets-footnote a:hover,
+.targets-footnote a:focus-visible {
+    text-decoration: underline;
+}
+
+.targets-link:hover,
+.targets-link:focus-visible {
+    text-decoration: none;
+    color: inherit;
+    outline: none;
+}
+
+.targets-main {
+    min-width: 0;
+    display: grid;
+    gap: 6px;
+}
+
+.targets-title {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+}
+
+.targets-rank {
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--tp-color-text-muted);
+    min-width: 28px;
+}
+
+.targets-accession {
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--genome-accent-ink);
+}
+
+.targets-description {
+    margin: 0;
+    color: var(--tp-color-text-secondary);
+    font-size: 0.95rem;
+    line-height: 1.4;
+    padding-left: 38px;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.targets-stats {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+    flex: 0 0 auto;
+}
+
+.targets-stat--total {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    color: var(--genome-accent-ink);
+}
+
+.targets-stat-value {
+    font-size: 1.6rem;
+    font-weight: 700;
+    line-height: 1;
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+}
+
+.targets-stat-label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--tp-color-text-muted);
+}
+
+.targets-breakdown {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding-left: 38px;
+}
+
+.targets-bd {
+    font-size: var(--tp-font-label);
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    white-space: nowrap;
+}
+
+.targets-bd strong {
+    font-weight: 700;
+}
+
+.targets-bd--pdb,
+.targets-bd--pdb-direct {
+    background: var(--tp-color-brand-100);
+    color: var(--tp-color-brand-900);
+    border-color: var(--tp-color-brand-300);
+}
+
+.targets-bd--chembl,
+.targets-bd--chembl-direct {
+    background: color-mix(in srgb, var(--tp-color-sage-700) 12%, var(--tp-color-surface));
+    color: var(--tp-color-sage-900, var(--tp-color-text-primary));
+    border-color: color-mix(in srgb, var(--tp-color-sage-700) 28%, var(--tp-color-border-soft));
+}
+
+.targets-bd--homolog {
+    background: var(--tp-color-surface-muted);
+    color: var(--tp-color-text-secondary);
+    border-color: var(--tp-color-border-soft);
+}
+
+.targets-bd--zinc {
+    background: var(--tp-color-info-bg);
+    color: var(--tp-color-text-primary);
+    border-color: var(--tp-color-border-soft);
+}
+
+@media (max-width: 720px) {
+    .targets-link {
+        grid-template-columns: 1fr;
+    }
+    .targets-stats {
+        align-items: flex-start;
+    }
+    .targets-breakdown {
+        justify-content: flex-start;
+    }
+    .targets-description {
+        padding-left: 0;
+    }
+}
+
+@media (max-width: 880px) {
+    .genome-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+/* ── Evidence available ──────────────────────────────────────────── */
+
+.evidence-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 14px;
+}
+
+.evidence-card {
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 12px;
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+    padding: 16px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    position: relative;
+    overflow: hidden;
+}
+
+.evidence-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--evidence-accent, var(--tp-color-brand-700));
+}
+
+.evidence-card--structure {
+    --evidence-accent: var(--tp-color-brand-700);
+}
+
+.evidence-card--annotation {
+    --evidence-accent: var(--tp-color-sage-700);
+}
+
+.evidence-card--binders {
+    --evidence-accent: var(--tp-color-brand-600);
+}
+
+.evidence-label {
+    font-size: var(--tp-font-label);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--tp-color-text-muted);
+}
+
+.evidence-headline {
+    font-size: 1.45rem;
+    font-weight: 700;
+    color: var(--genome-accent-ink);
+    line-height: 1.1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.evidence-headline-sub {
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--tp-color-text-muted);
+}
+
+.evidence-breakdown {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    border-top: 1px dashed var(--tp-color-border-soft);
+    padding-top: 10px;
+}
+
+.evidence-breakdown li {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
+    font-size: 0.92rem;
+}
+
+.evidence-breakdown-priority {
+    padding: 5px 8px;
+    margin-inline: -8px;
+    border-radius: 8px;
+    background: var(--tp-color-sage-050);
+}
+
+.evidence-breakdown-priority .evidence-bd-label {
+    color: var(--tp-color-sage-900);
+}
+
+.evidence-bd-label {
+    color: var(--tp-color-text-secondary);
+    font-weight: 600;
+}
+
+.evidence-bd-value {
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    color: var(--genome-accent-ink);
+    font-weight: 700;
+}
+
+/* ── Composition list ────────────────────────────────────────────── */
+
+.composition-list {
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 10px;
+}
+
+.composition-row {
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 10px;
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+    padding: 10px 12px;
+    display: grid;
+    gap: 4px;
+    min-height: 68px;
+    align-content: center;
+}
+
+.composition-row dt {
+    font-size: var(--tp-font-label);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--tp-color-text-muted);
+}
+
+.composition-row dd {
+    margin: 0;
+    color: var(--genome-accent-ink);
+    font-size: 1.02rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+/* ── JBrowse iframe ──────────────────────────────────────────────── */
+
+.jbrowse-frame {
+    width: 100%;
+    height: 540px;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--tp-color-surface-soft);
+}
+
+.jbrowse-frame iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
+
+/* ── Evidence footnote ───────────────────────────────────────────── */
+
+.evidence-footnote {
+    margin: 14px 0 0;
+    padding-top: 12px;
+    border-top: 1px dashed var(--tp-color-border-soft);
+    font-size: 0.82rem;
+    color: var(--tp-color-text-muted);
+    line-height: 1.45;
+    font-style: italic;
+}
+
+/* ── Imported details ────────────────────────────────────────────── */
+
+.genome-raw-details summary {
+    cursor: pointer;
+    color: var(--genome-accent-ink);
+    font-weight: 700;
+    list-style: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 34px;
+    padding: 0 14px;
+    border: 1px solid var(--tp-color-border-strong);
+    border-radius: 999px;
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+    transition: border-color 140ms ease, background 140ms ease;
+}
+
+.genome-raw-details summary::-webkit-details-marker {
+    display: none;
+}
+
+.genome-raw-details summary:hover,
+.genome-raw-details summary:focus-visible {
+    outline: none;
+    border-color: var(--genome-accent-border);
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--genome-accent-soft) 100%);
+}
+
+.genome-raw-details[open] summary {
+    margin-bottom: 12px;
+    border-color: var(--genome-accent-border);
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--genome-accent-soft) 100%);
+}
+
+.genome-raw-table {
+    margin-top: 10px;
+}
+
+/* ── Dataset deletion danger card ────────────────────────────────── */
+
+.genome-card--danger {
+    border-color: var(--tp-color-danger-border);
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-danger-bg) 100%);
+}
+
+.genome-card--danger h2 {
+    color: var(--tp-color-danger-ink);
+}
+
+.genome-delete-summary summary {
+    cursor: pointer;
+    list-style: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 34px;
+    padding: 0 14px;
+    border: 1px solid var(--tp-color-danger-border);
+    border-radius: 999px;
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, color-mix(in srgb, var(--tp-color-danger-bg) 70%, var(--tp-color-surface)) 100%);
+    color: var(--tp-color-danger-ink);
+    font-size: 0.9rem;
+    font-weight: 700;
+    transition: border-color 140ms ease, background 140ms ease;
+}
+
+.genome-delete-summary summary::-webkit-details-marker {
+    display: none;
+}
+
+.genome-delete-summary[open] summary {
+    margin-bottom: 12px;
+}
+
+.genome-delete-form {
+    display: grid;
+    gap: 10px;
+}
+
+.genome-delete-copy {
+    margin: 0;
+    color: var(--tp-color-text-secondary);
+    font-size: 0.92rem;
+    line-height: 1.45;
+}
+
+.genome-delete-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+@media (max-width: 640px) {
+    .genome-hero {
+        padding: 18px 16px 16px;
+    }
+
+    .genome-hero-actions .btn,
+    .genome-delete-actions .btn {
+        width: 100%;
+    }
+}

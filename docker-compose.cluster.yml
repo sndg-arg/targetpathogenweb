@@ -1,0 +1,179 @@
+services:
+  db:
+    deploy:
+      resources:
+        limits:
+          memory: 2g
+          cpus: '1.0'
+        reservations:
+          memory: 512m
+    labels: []
+    volumes:
+      - ${TPW_DB_DIR:-/data/targetpathogen/db}:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: ${DJANGO_DATABASE_PASSWORD}
+
+  web:
+    deploy:
+      resources:
+        limits:
+          memory: 4g
+          cpus: '2.0'
+        reservations:
+          memory: 1g
+    build:
+      args:
+        HTTP_PROXY: ${HTTP_PROXY:-}
+        HTTPS_PROXY: ${HTTPS_PROXY:-}
+        NO_PROXY: ${NO_PROXY:-}
+    volumes:
+      - ${TPW_DATA_DIR:-/data/targetpathogen/data}:/app/targetpathogenweb/data
+      - ${TPW_FASTTARGET_DB_DIR:-/data/targetpathogen/fasttarget_db}:/app/fasttarget/databases
+      - ${TPW_FASTTARGET_RUNTIME_DIR:-/data/targetpathogen/fasttarget_organism}:/app/fasttarget/organism
+      - ${TPW_FASTTARGET_LOG_DIR:-/data/targetpathogen/fasttarget_logs}:/app/fasttarget/logs
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${TPW_SSH_DIR:-/home/appuser/.ssh}:/home/appuser/.ssh:ro
+      - ${TPW_SSH_DIR:-/home/appuser/.ssh}:/root/.ssh:ro
+      - ${TPW_COLABFOLD_DIR:-/opt/localcolabfold}:${TPW_COLABFOLD_MOUNT:-/opt/localcolabfold}:ro
+      - ${TPW_P2RANK_DIR:-/data/targetpathogen/opt/p2rank}:/app/targetpathogenweb/opt/p2rank/distro:ro
+    environment:
+      - TPW_PROFILE=cluster
+      - TPW_USE_DIRECT_PIPELINE=1
+      - DJANGO_DATABASE_URL=postgres://postgres:${DJANGO_DATABASE_PASSWORD}@db:5432/tp
+      - DJANGO_DATABASE_PASSWORD=${DJANGO_DATABASE_PASSWORD}
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
+      - DJANGO_DEBUG=${DJANGO_DEBUG:-False}
+      - DJANGO_ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS:-localhost}
+      - DJANGO_ROOT=${DJANGO_ROOT:-/app/staticfiles}
+      - JBROWSE_BASE_URL=${JBROWSE_BASE_URL:-http://localhost:3000/}
+      - SEQS_DATA_DIR=${SEQS_DATA_DIR:-/app/targetpathogenweb/data}
+      - REDIS_URL=${REDIS_URL:-}
+      - SENTRY_DSN=${SENTRY_DSN:-}
+      - PYTHONPATH=/app/sndgjobs:/app/sndgbiodb:/app/targetpathogen:/app/sndg-bio:/app/target:/app/targetpathogenweb
+      - TPW_DATA_DIR=${TPW_DATA_DIR:-/data/targetpathogen/data}
+      - TPW_PIPELINE_TIMEOUT_SEC=${TPW_PIPELINE_TIMEOUT_SEC:-86400}
+      - SSH_HOSTNAME=${SSH_HOSTNAME:-cluster.qb.fcen.uba.ar}
+      - SSH_USERNAME=${SSH_USERNAME:-agutson}
+      - SSH_WORKDIR=${SSH_WORKDIR:-/home/agutson}
+      - SSH_CORES=${SSH_CORES:-4}
+      - TPW_COLABFOLD_USE_REMOTE=${TPW_COLABFOLD_USE_REMOTE:-0}
+      - TPW_COLABFOLD_CONDA_PREFIX=${TPW_COLABFOLD_CONDA_PREFIX:-/home/shared/miniconda3.8}
+      - TPW_COLABFOLD_CONDA_ENV=${TPW_COLABFOLD_CONDA_ENV:-colabfold}
+      - TPW_COLABFOLD_MAX_SEQ_LENGTH=${TPW_COLABFOLD_MAX_SEQ_LENGTH:-800}
+      - TPW_COLABFOLD_PARTITION=${TPW_COLABFOLD_PARTITION:-gpu}
+      - TPW_COLABFOLD_TIME=${TPW_COLABFOLD_TIME:-12:00:00}
+      - TPW_COLABFOLD_MEM=${TPW_COLABFOLD_MEM:-16gb}
+      - TPW_COLABFOLD_GRES=${TPW_COLABFOLD_GRES:-gpu:1}
+      - TPW_COLABFOLD_CPUS=${TPW_COLABFOLD_CPUS:-4}
+      - TPW_COLABFOLD_CPU_PARTITION=${TPW_COLABFOLD_CPU_PARTITION:-cpu}
+      - TPW_COLABFOLD_CPU_TIME=${TPW_COLABFOLD_CPU_TIME:-24:00:00}
+      - TPW_COLABFOLD_CPU_MEM=${TPW_COLABFOLD_CPU_MEM:-32gb}
+      - TPW_COLABFOLD_CPU_CPUS=${TPW_COLABFOLD_CPU_CPUS:-8}
+      - TPW_COLABFOLD_REMOTE_WAIT_SEC=${TPW_COLABFOLD_REMOTE_WAIT_SEC:-43200}
+      - TPW_COLABFOLD_GPU_PENDING_WAIT_SEC=${TPW_COLABFOLD_GPU_PENDING_WAIT_SEC:-}
+      - TPW_COLABFOLD_CPU_PENDING_WAIT_SEC=${TPW_COLABFOLD_CPU_PENDING_WAIT_SEC:-}
+      - TPW_COLABFOLD_GPU_RETRIES=${TPW_COLABFOLD_GPU_RETRIES:-1}
+      - TPW_COLABFOLD_CPU_RETRIES=${TPW_COLABFOLD_CPU_RETRIES:-2}
+      - TPW_COLABFOLD_EXCLUDE=${TPW_COLABFOLD_EXCLUDE:-}
+      - TPW_COLABFOLD_STRICT=${TPW_COLABFOLD_STRICT:-}
+      - TPW_COLABFOLD_MAX_PARALLEL=${TPW_COLABFOLD_MAX_PARALLEL:-}
+      - TPW_LIGQ_USE_REMOTE=${TPW_LIGQ_USE_REMOTE:-0}
+      - TPW_LIGQ_DIR=${TPW_LIGQ_DIR:-/home/agutson/work/LigQ_2}
+      - TPW_LIGQ_DATA_DIR=${TPW_LIGQ_DATA_DIR:-/home/agutson/work/ligq_data}
+      - TPW_LIGQ_CONDA_PREFIX=${TPW_LIGQ_CONDA_PREFIX:-/home/shared/miniconda3.8}
+      - TPW_LIGQ_CONDA_ENV=${TPW_LIGQ_CONDA_ENV:-/home/agutson/work/conda_envs/ligq_2_local}
+      - TPW_LIGQ_SLURM_PARTITION=${TPW_LIGQ_SLURM_PARTITION:-cpu}
+      - TPW_LIGQ_SLURM_TIME=${TPW_LIGQ_SLURM_TIME:-48:00:00}
+      - TPW_LIGQ_SLURM_MEM=${TPW_LIGQ_SLURM_MEM:-32G}
+      - TPW_LIGQ_SLURM_CPUS=${TPW_LIGQ_SLURM_CPUS:-8}
+      - TPW_LIGQ_REMOTE_POLL_SEC=${TPW_LIGQ_REMOTE_POLL_SEC:-60}
+      - TPW_LIGQ_REMOTE_WAIT_SEC=${TPW_LIGQ_REMOTE_WAIT_SEC:-172800}
+      - TPW_LIGQ_MAX_KNOWN=${TPW_LIGQ_MAX_KNOWN:-100}
+      - TPW_LIGQ_MAX_ZINC=${TPW_LIGQ_MAX_ZINC:-50}
+      - TPW_LIGQ_MIN_TANIMOTO=${TPW_LIGQ_MIN_TANIMOTO:-0.5}
+
+  queue:
+    user: "0:0"
+    deploy:
+      resources:
+        limits:
+          memory: 4g
+          cpus: '4.0'
+        reservations:
+          memory: 1g
+    volumes:
+      - ${TPW_DATA_DIR:-/data/targetpathogen/data}:/app/targetpathogenweb/data
+      - ${TPW_FASTTARGET_DB_DIR:-/data/targetpathogen/fasttarget_db}:/app/fasttarget/databases
+      - ${TPW_FASTTARGET_RUNTIME_DIR:-/data/targetpathogen/fasttarget_organism}:/app/fasttarget/organism
+      - ${TPW_FASTTARGET_LOG_DIR:-/data/targetpathogen/fasttarget_logs}:/app/fasttarget/logs
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${TPW_SSH_DIR:-/home/appuser/.ssh}:/home/appuser/.ssh:ro
+      - ${TPW_SSH_DIR:-/home/appuser/.ssh}:/root/.ssh:ro
+      - ${TPW_COLABFOLD_DIR:-/opt/localcolabfold}:${TPW_COLABFOLD_MOUNT:-/opt/localcolabfold}:ro
+      - ${TPW_P2RANK_DIR:-/data/targetpathogen/opt/p2rank}:/app/targetpathogenweb/opt/p2rank/distro:ro
+    environment:
+      - TPW_PROFILE=cluster
+      - TPW_USE_DIRECT_PIPELINE=1
+      - DJANGO_DATABASE_URL=postgres://postgres:${DJANGO_DATABASE_PASSWORD}@db:5432/tp
+      - DJANGO_DATABASE_PASSWORD=${DJANGO_DATABASE_PASSWORD}
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
+      - DJANGO_DEBUG=${DJANGO_DEBUG:-False}
+      - DJANGO_ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS:-localhost}
+      - DJANGO_ROOT=${DJANGO_ROOT:-/app/staticfiles}
+      - JBROWSE_BASE_URL=${JBROWSE_BASE_URL:-http://localhost:3000/}
+      - SEQS_DATA_DIR=${SEQS_DATA_DIR:-/app/targetpathogenweb/data}
+      - REDIS_URL=${REDIS_URL:-}
+      - SENTRY_DSN=${SENTRY_DSN:-}
+      - PYTHONPATH=/app/sndgjobs:/app/sndgbiodb:/app/targetpathogen:/app/sndg-bio:/app/target:/app/targetpathogenweb
+      - TPW_DATA_DIR=${TPW_DATA_DIR:-/data/targetpathogen/data}
+      - TPW_PIPELINE_TIMEOUT_SEC=${TPW_PIPELINE_TIMEOUT_SEC:-86400}
+      - SSH_HOSTNAME=${SSH_HOSTNAME:-cluster.qb.fcen.uba.ar}
+      - SSH_USERNAME=${SSH_USERNAME:-agutson}
+      - SSH_WORKDIR=${SSH_WORKDIR:-/home/agutson}
+      - SSH_CORES=${SSH_CORES:-4}
+      - TPW_COLABFOLD_USE_REMOTE=${TPW_COLABFOLD_USE_REMOTE:-0}
+      - TPW_COLABFOLD_CONDA_PREFIX=${TPW_COLABFOLD_CONDA_PREFIX:-/home/shared/miniconda3.8}
+      - TPW_COLABFOLD_CONDA_ENV=${TPW_COLABFOLD_CONDA_ENV:-colabfold}
+      - TPW_COLABFOLD_MAX_SEQ_LENGTH=${TPW_COLABFOLD_MAX_SEQ_LENGTH:-800}
+      - TPW_COLABFOLD_PARTITION=${TPW_COLABFOLD_PARTITION:-gpu}
+      - TPW_COLABFOLD_TIME=${TPW_COLABFOLD_TIME:-12:00:00}
+      - TPW_COLABFOLD_MEM=${TPW_COLABFOLD_MEM:-16gb}
+      - TPW_COLABFOLD_GRES=${TPW_COLABFOLD_GRES:-gpu:1}
+      - TPW_COLABFOLD_CPUS=${TPW_COLABFOLD_CPUS:-4}
+      - TPW_COLABFOLD_CPU_PARTITION=${TPW_COLABFOLD_CPU_PARTITION:-cpu}
+      - TPW_COLABFOLD_CPU_TIME=${TPW_COLABFOLD_CPU_TIME:-24:00:00}
+      - TPW_COLABFOLD_CPU_MEM=${TPW_COLABFOLD_CPU_MEM:-32gb}
+      - TPW_COLABFOLD_CPU_CPUS=${TPW_COLABFOLD_CPU_CPUS:-8}
+      - TPW_COLABFOLD_REMOTE_WAIT_SEC=${TPW_COLABFOLD_REMOTE_WAIT_SEC:-43200}
+      - TPW_COLABFOLD_GPU_PENDING_WAIT_SEC=${TPW_COLABFOLD_GPU_PENDING_WAIT_SEC:-}
+      - TPW_COLABFOLD_CPU_PENDING_WAIT_SEC=${TPW_COLABFOLD_CPU_PENDING_WAIT_SEC:-}
+      - TPW_COLABFOLD_GPU_RETRIES=${TPW_COLABFOLD_GPU_RETRIES:-1}
+      - TPW_COLABFOLD_CPU_RETRIES=${TPW_COLABFOLD_CPU_RETRIES:-2}
+      - TPW_COLABFOLD_EXCLUDE=${TPW_COLABFOLD_EXCLUDE:-}
+      - TPW_COLABFOLD_STRICT=${TPW_COLABFOLD_STRICT:-}
+      - TPW_COLABFOLD_MAX_PARALLEL=${TPW_COLABFOLD_MAX_PARALLEL:-}
+      - TPW_LIGQ_USE_REMOTE=${TPW_LIGQ_USE_REMOTE:-0}
+      - TPW_LIGQ_DIR=${TPW_LIGQ_DIR:-/home/agutson/work/LigQ_2}
+      - TPW_LIGQ_DATA_DIR=${TPW_LIGQ_DATA_DIR:-/home/agutson/work/ligq_data}
+      - TPW_LIGQ_CONDA_PREFIX=${TPW_LIGQ_CONDA_PREFIX:-/home/shared/miniconda3.8}
+      - TPW_LIGQ_CONDA_ENV=${TPW_LIGQ_CONDA_ENV:-/home/agutson/work/conda_envs/ligq_2_local}
+      - TPW_LIGQ_SLURM_PARTITION=${TPW_LIGQ_SLURM_PARTITION:-cpu}
+      - TPW_LIGQ_SLURM_TIME=${TPW_LIGQ_SLURM_TIME:-48:00:00}
+      - TPW_LIGQ_SLURM_MEM=${TPW_LIGQ_SLURM_MEM:-32G}
+      - TPW_LIGQ_SLURM_CPUS=${TPW_LIGQ_SLURM_CPUS:-8}
+      - TPW_LIGQ_REMOTE_POLL_SEC=${TPW_LIGQ_REMOTE_POLL_SEC:-60}
+      - TPW_LIGQ_REMOTE_WAIT_SEC=${TPW_LIGQ_REMOTE_WAIT_SEC:-172800}
+      - TPW_LIGQ_MAX_KNOWN=${TPW_LIGQ_MAX_KNOWN:-100}
+      - TPW_LIGQ_MAX_ZINC=${TPW_LIGQ_MAX_ZINC:-50}
+      - TPW_LIGQ_MIN_TANIMOTO=${TPW_LIGQ_MIN_TANIMOTO:-0.5}
+
+  jbrowse:
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+          cpus: '0.5'
+        reservations:
+          memory: 256m
+    volumes:
+      - ${TPW_DATA_DIR:-/data/targetpathogen/data}:/jbrowse2/data

@@ -30,7 +30,7 @@ class Command(BaseCommand):
         genome = options["genome"]
         locus_tag = options["locus_tag"]
         seqstore = SeqStore(options["datadir"])
-        fpocket_template = "docker run --user $UID:$GID --rm -i -v {workdir}:{workdir} ezequieljsosa/fpocket fpocket -f {pdbinput} -m 2 -D 6"
+        fpocket_template = "docker run --user $UID:$GID --rm -i -v {workdir}:{workdir} ezequieljsosa/fpocket fpocket -f {pdbinput}"
         p2rank_output = seqstore.p2rank_pdb_predictions(genome,locus_tag)
         pdb = seqstore.structure_af_pdb(genome,locus_tag)
         fpocket_folder = seqstore.p2rank_fpocket_folder(genome,locus_tag)

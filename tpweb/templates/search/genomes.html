@@ -1,47 +1,228 @@
 {% extends '../base/masterpage.html' %}
 {% load i18n %}
 {% load custom_tags %}
+{% load static %}
+
+{% block head %}
+    <link rel="stylesheet" href="{% static 'css/pages/genomes-list.css' %}?v=20260512-1">
+{% endblock %}
 
 {% block body %}
 
+    <div class="genomes-page">
+        <section class="genomes-hero tp-page-hero">
+            <div class="tp-view-head">
+                <div class="tp-view-head-copy">
+                    {% trans "Genomes" as crumb_genomes %}
+                    {% url 'tpwebapp:index' as index_url %}
+                    {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes %}
+                </div>
+                <div class="tp-view-head-actions">
+                    <a href="{{ view_export_url }}" class="btn tp-btn tp-btn--neutral tp-btn-with-icon tp-view-export-link">
+                        <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/download.html" %}</span>
+                        {% trans "Export view" %}
+                    </a>
+                </div>
+            </div>
+            <span class="genomes-eyebrow">{% trans "Genome collection" %}</span>
+            <div class="genomes-hero-head">
+                <div class="genomes-hero-copy">
+                    <h1>{% trans "Genomes" %}</h1>
+                    {% if genomes or has_search %}
+                        <p class="genomes-subtitle">{% trans "Open a genome to inspect proteins, annotations, and structural evidence." %}</p>
+                    {% else %}
+                        <p class="genomes-subtitle">{% trans "Upload the first genome to start exploring proteins, annotations, and structures." %}</p>
+                    {% endif %}
+                </div>
+                {% if genomes or has_search %}
+                    <a class="btn tp-btn tp-btn--primary tp-btn-with-icon genomes-upload-btn" href="{% url 'tpwebapp:genome_upload' %}">
+                        <span class="tp-btn-icon" aria-hidden="true">
+                            {% include "components/icons/plus.html" %}
+                        </span>
+                        {% trans "Upload genome" %}
+                    </a>
+                {% endif %}
+            </div>
+            {% if pipeline_status.running and not pipeline_status.running_for_other_workspace %}
+                <div class="genomes-pipeline">
+                    {% include "components/pipeline/chip.html" with pipeline_status=pipeline_status mode="global" chip_class="tp-chip tp-chip--state tp-chip--sm" %}
+                    {% include "components/pipeline/note.html" with pipeline_status=pipeline_status mode="global" note_class="genomes-pipeline-note" %}
+                </div>
+            {% endif %}
+            <div class="genomes-meta" role="list" aria-label="{% trans "Genome summary" %}">
+                <span class="genomes-meta-chip tp-chip tp-chip--meta tp-chip--sm" role="listitem">{{ total_genomes }} {% trans "genomes" %}</span>
+                <span class="genomes-meta-chip tp-chip tp-chip--meta tp-chip--sm" role="listitem">{{ total_proteins }} {% trans "proteins" %}</span>
+                <span class="genomes-meta-chip tp-chip tp-chip--meta tp-chip--sm" role="listitem">{{ total_experimental }} {% trans "experimental structures" %}</span>
+                <span class="genomes-meta-chip tp-chip tp-chip--meta tp-chip--sm" role="listitem">{{ total_ec_annotated }} {% trans "EC-annotated proteins" %}</span>
+            </div>
+        </section>
 
-<h1>{% trans "Genomes" %}</h1>
+        {% if workspace_deleted %}
+            <section class="genomes-feedback tp-state-note tp-state-note--empty">
+                {% blocktrans with workspace_name=workspace_deleted %}Genome dataset {{ workspace_name }} was deleted.{% endblocktrans %}
+            </section>
+        {% endif %}
 
-<form method="GET" action="">
-    <input type="text" name="search" placeholder="Search genomes..." value="{{ request.GET.search }}">
-    <input type="submit" value="Search">
-</form>
+        {% if genomes or has_search %}
+            <section class="genomes-toolbar tp-ui-toolbar">
+                <form method="GET" action="" class="genomes-search tp-ui-toolbar-form" id="genomes-search-form">
+                    <div class="tp-ui-search-row tp-ui-toolbar-row tp-ui-toolbar-row--stack-sm">
+                        <input class="form-control tp-ui-control tp-ui-search-input" type="text" id="genomes-search-input" name="search" placeholder="{% trans "Search by accession or description..." %}" value="{{ search_query }}">
+                        <div class="tp-ui-search-actions">
+                            <button class="btn tp-btn tp-btn--primary" type="submit" id="genomes-search-submit">{% trans "Search" %}</button>
+                            {% url 'tpwebapp:genomes_list' as clear_genomes_search_url %}
+                            {% trans "Clear search" as clear_search_label %}
+                            {% if search_query %}
+                                {% include "components/buttons/clear_action.html" with label=clear_search_label href=clear_genomes_search_url %}
+                            {% else %}
+                                {% include "components/buttons/clear_action.html" with label=clear_search_label disabled="1" %}
+                            {% endif %}
+                        </div>
+                    </div>
+                </form>
+            </section>
+        {% endif %}
 
-<table  class="table">
-    <thead>
-    <tr>
-        <td>{% trans "Name" %}</td>
-        <td>{% trans "Description" %}</td>
-        {% for col,name in tcolumns.items %}
-            <td>{{name}}</td>
-        {% endfor %}
-    </tr>
-    </thead>
-    {% for genome in genomes %}
-<tr>
-
-    <td><a href="{% url 'tpwebapp:protein_list' genome.name %}">
-        {{genome.name}}</a></td>
-    <td>{{genome.description}}</td>
-    {% for col in tcolumns %}
-      <td>{{genome|dictkey:col|default_if_none:"-"}}</td>
-    {% endfor %}
-</tr>
-    {% endfor %}
-</table>
-
-
-
-
-
-
+        {% if genomes %}
+            <section class="genomes-workspace">
+                <div class="genome-list-card tp-ui-panel">
+                    <div class="genome-list-head">
+                    <div class="genome-list-head-copy">
+                        <h2>{% trans "Available genomes" %}</h2>
+                        <p>{% trans "Select a genome to open its overview and reach proteins, BLAST, and annotation explorers." %}</p>
+                    </div>
+                </div>
+                    <div class="tp-table-shell">
+                        <table class="table table-striped table-hover mb-0 tp-table tp-table--plain tp-table--premium"
+                               data-export-url="{{ export_url }}"
+                               data-export-title="{% trans 'Genomes' %}">
+                            <thead>
+                            <tr>
+                                <th>{% trans "Name" %}</th>
+                                <th class="genomes-scope-head">{% trans "Scope" %}</th>
+                                <th>{% trans "Description" %}</th>
+                                {% for col,name in tcolumns.items %}
+                                    <th class="genome-metric-head">{{ name }}</th>
+                                {% endfor %}
+                                <th class="genome-actions-head">{% trans "Actions" %}</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for genome in genomes %}
+                                <tr class="genome-row {% if pipeline_status.running and pipeline_status.genome_accession == genome.internal_name %}is-processing{% endif %}{% if genome.incomplete_for_current_genome %} is-incomplete{% endif %}"
+                                    tabindex="0"
+                                    data-assembly-url="{% url 'tpwebapp:assembly' genome.slug %}">
+                                    <td class="genomes-name">
+                                        <div class="genomes-name-stack">
+                                            <a href="{% url 'tpwebapp:assembly' genome.slug %}">{{ genome.name }}</a>
+                                            {% if pipeline_status.running and pipeline_status.genome_accession == genome.internal_name %}
+                                                <span class="genome-processing-badge">{% trans "In progress" %}</span>
+                                            {% elif genome.failed_for_current_genome %}
+                                                <span class="genome-status-badge genome-status-badge--failed">{% trans "Failed" %}</span>
+                                            {% elif genome.incomplete_for_current_genome %}
+                                                <span class="genome-status-badge genome-status-badge--incomplete">{% trans "Incomplete" %}</span>
+                                            {% endif %}
+                                        </div>
+                                        {% if genome.current_genome_status_note %}
+                                            <p class="genome-status-note">{{ genome.current_genome_status_note }}</p>
+                                        {% endif %}
+                                    </td>
+                                    <td class="genomes-scope-cell">
+                                        <span class="tp-chip tp-chip--sm {% if genome.workspace_scope_key == 'personal' %}tp-chip--state finished{% else %}tp-chip--meta{% endif %}">
+                                            {{ genome.workspace_scope_label }}
+                                        </span>
+                                    </td>
+                                    <td>{{ genome.description }}</td>
+                                    {% for col in tcolumns %}
+                                        <td class="genome-metric-cell">{{ genome|dictkey:col|default_if_none:"-" }}</td>
+                                    {% endfor %}
+                                    <td class="genome-actions-cell">
+                                        <div class="genome-actions-inline">
+                                            <a href="{% url 'tpwebapp:protein_list' genome.slug %}" class="btn tp-btn tp-btn--outline btn-sm">{% trans "Proteins" %}</a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        {% else %}
+            <section class="genome-workspace-empty tp-ui-panel">
+                {% if has_search %}
+                    <p class="tp-state-note tp-state-note--empty mb-0">{% trans "No genomes match the current search." %}</p>
+                {% else %}
+                    <div class="genome-workspace-empty-copy">
+                        <span class="genome-workspace-empty-kicker">{% trans "Genome collection" %}</span>
+                        <h2>{% trans "No genomes yet" %}</h2>
+                        <p>{% trans "Upload a compressed GenBank file to create the first genome overview for this account." %}</p>
+                    </div>
+                    <div class="genome-workspace-empty-actions">
+                        <a class="btn tp-btn tp-btn--primary tp-btn-with-icon" href="{% url 'tpwebapp:genome_upload' %}">
+                            <span class="tp-btn-icon" aria-hidden="true">
+                                {% include "components/icons/plus.html" %}
+                            </span>
+                            {% trans "Upload genome" %}
+                        </a>
+                    </div>
+                {% endif %}
+            </section>
+        {% endif %}
+    </div>
 {% endblock %}
 
+{% block jsloaded %}
+    <script>
+        function jsloaded() {
+            const rows = Array.from(document.querySelectorAll(".genome-row"));
+            const genomesSearchForm = document.getElementById("genomes-search-form");
+            const genomesSearchInput = document.getElementById("genomes-search-input");
+            const genomesSearchSubmit = document.getElementById("genomes-search-submit");
 
-{% block footer %}
+            function hasSearchText() {
+                return Boolean(genomesSearchInput && (genomesSearchInput.value || "").trim().length > 0);
+            }
+
+            function syncSearchSubmitState() {
+                if (!genomesSearchSubmit) return;
+                genomesSearchSubmit.disabled = !hasSearchText();
+            }
+
+            if (genomesSearchForm) {
+                genomesSearchForm.addEventListener("submit", function (event) {
+                    if (hasSearchText()) return;
+                    event.preventDefault();
+                    syncSearchSubmitState();
+                    if (genomesSearchInput) genomesSearchInput.focus();
+                });
+            }
+
+            if (genomesSearchInput) {
+                genomesSearchInput.addEventListener("input", syncSearchSubmitState);
+                genomesSearchInput.addEventListener("change", syncSearchSubmitState);
+            }
+
+            syncSearchSubmitState();
+
+            rows.forEach(function (row) {
+                row.addEventListener("click", function (event) {
+                    if (event.target.closest("a")) return;
+                    if (row.dataset.assemblyUrl) {
+                        window.location.href = row.dataset.assemblyUrl;
+                    }
+                });
+                row.addEventListener("keydown", function (event) {
+                    if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        if (row.dataset.assemblyUrl) {
+                            window.location.href = row.dataset.assemblyUrl;
+                        }
+                    }
+                });
+            });
+        }
+
+        $(document).ready(jsloaded);
+    </script>
 {% endblock %}

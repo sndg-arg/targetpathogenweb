@@ -1,0 +1,37 @@
+{% if variant == "outline" %}
+    {% with "btn tp-btn tp-btn--outline" as button_classes %}
+        {% include "components/buttons/_action_markup.html" %}
+    {% endwith %}
+{% elif variant == "secondary" %}
+    {% with "btn tp-btn tp-btn--secondary" as button_classes %}
+        {% include "components/buttons/_action_markup.html" %}
+    {% endwith %}
+{% elif variant == "neutral" %}
+    {% with "btn tp-btn tp-btn--neutral" as button_classes %}
+        {% include "components/buttons/_action_markup.html" %}
+    {% endwith %}
+{% elif variant == "dark" %}
+    {% with "btn tp-btn tp-btn--dark" as button_classes %}
+        {% include "components/buttons/_action_markup.html" %}
+    {% endwith %}
+{% elif variant == "danger" %}
+    {% with "btn tp-btn tp-btn--danger" as button_classes %}
+        {% include "components/buttons/_action_markup.html" %}
+    {% endwith %}
+{% elif variant == "success" %}
+    {% with "btn tp-btn tp-btn--success" as button_classes %}
+        {% include "components/buttons/_action_markup.html" %}
+    {% endwith %}
+{% elif variant == "info" %}
+    {% with "btn tp-btn tp-btn--info" as button_classes %}
+        {% include "components/buttons/_action_markup.html" %}
+    {% endwith %}
+{% elif variant == "light" %}
+    {% with "btn tp-btn tp-btn--light" as button_classes %}
+        {% include "components/buttons/_action_markup.html" %}
+    {% endwith %}
+{% else %}
+    {% with "btn tp-btn tp-btn--primary" as button_classes %}
+        {% include "components/buttons/_action_markup.html" %}
+    {% endwith %}
+{% endif %}

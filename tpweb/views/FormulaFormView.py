@@ -1,73 +1,90 @@
-from django.shortcuts import render, redirect
-from tpweb.models import TPUser
-from tpweb.views.FormulaForm import FormulaForm
-from django.views import View
-from tpweb.models.ScoreParam import ScoreParamOptions, ScoreParam
-from tpweb.models.ScoreFormula import ScoreFormula, ScoreFormulaParam
+from django.http import Http404
+from django.shortcuts import redirect, render
 from django.urls import reverse
 
-def FormulaFormView(request, assembly_name):
+from tpweb.models.ScoreFormula import ScoreFormula
+from tpweb.services.formula_evaluator import available_variables_grouped, validate_expression_syntax
+from tpweb.services.genome_workspace import display_genome_name, genome_url_slug, resolve_genome_from_slug
+from tpweb.services.workspace import resolve_workspace_user
+from tpweb.views.FormulaForm import FormulaForm
 
-    def current_formula_string(formula, formulaname):
-        result = f"{formulaname} = "
-        i = 0
-        if not formula:
-            return "Start assigning coefficients to make the new formula"
-        for term in formula:
-            option = ScoreParamOptions.objects.get(id=term['option'])
-            coefficient = term['coefficient']
-            if int(coefficient) < 0:
-                result += f"({coefficient}) x {option}"
-            else:
-                result += f"{coefficient} x {option}"
-            if i < len(formula) - 1:
-                result += " + "
-            i += 1
-        return result
+SAFE_FUNCTIONS = [
+    {"label": "sqrt(x)", "insert": "sqrt()", "desc": "Square root"},
+    {"label": "log(x)", "insert": "log()", "desc": "Natural logarithm"},
+    {"label": "log2(x)", "insert": "log2()", "desc": "Log base 2"},
+    {"label": "log10(x)", "insert": "log10()", "desc": "Log base 10"},
+    {"label": "exp(x)", "insert": "exp()", "desc": "Exponential e^x"},
+    {"label": "abs(x)", "insert": "abs()", "desc": "Absolute value"},
+    {"label": "pow(x,n)", "insert": "pow(,)", "desc": "Power x^n"},
+    {"label": "max(a,b)", "insert": "max(,)", "desc": "Maximum"},
+    {"label": "min(a,b)", "insert": "min(,)", "desc": "Minimum"},
+    {"label": "floor(x)", "insert": "floor()", "desc": "Round down"},
+    {"label": "ceil(x)", "insert": "ceil()", "desc": "Round up"},
+    {"label": "round(x)", "insert": "round()", "desc": "Round to nearest integer"},
+]
 
-    def add_new_formula(formulaname, formulacoefficient):
-        user = TPUser.objects.get(id=request.user.id)
-        new_formula = ScoreFormula.objects.get_or_create(name=f'{formulaname}',user=user)
-        new_formula_id = ScoreFormulaParam.objects.filter(formula = new_formula[0]).delete()
-        for term in formulacoefficient:
-            formula = ScoreFormula.objects.get(name=f'{formulaname}')
-            param = ScoreParam.objects.get(id=term['param'])
-            option = ScoreParamOptions.objects.get(id=term['option'])
-            coefficient = term['coefficient']
-            ScoreFormulaParam.objects.get_or_create(formula=formula ,operation="=",coefficient=coefficient ,value=option ,score_param=param)
+EXAMPLE_FORMULAS = [
+    {
+        "label": "Druggability + essentiality",
+        "expression": "0.7 * druggability + 2 * hit_in_deg_y",
+        "desc": "Use raw pocket druggability and reward DEG essentiality hits.",
+    },
+    {
+        "label": "Penalize human similarity",
+        "expression": "druggability + 2 * hit_in_deg_y - 0.02 * human_identity",
+        "desc": "Keep druggability high while lowering rank for human sequence identity.",
+    },
+    {
+        "label": "Off-target aware",
+        "expression": "druggability + hit_in_deg_y - gut_microbiome_offtarget_hit - human_offtarget_hit",
+        "desc": "Combine pocket score with binary off-target indicators.",
+    },
+]
 
-    if 'current_formula' not in request.session.keys():
-        current_formula = []
-    else:
-        current_formula = request.session['current_formula']
+
+def FormulaFormView(request, genome):
+    assembly_name = resolve_genome_from_slug(request.user, genome)
+    if not assembly_name:
+        raise Http404("Genome not found")
+
+    user = resolve_workspace_user(request.user)
+    variable_groups = available_variables_grouped(user)
 
     if request.method == "POST":
-        if 'reset_process' in request.POST:
-            request.session['current_formula'] = []
-            return redirect(f"./{assembly_name}")
-        if 'finish_process' in request.POST:
-            if 'current_formula' in request.session.keys():
-                add_new_formula(request.session['formulaname'], request.session['current_formula'])
-                request.session.pop('current_formula')
-            return redirect(f'../../assembly/{assembly_name}/protein')
-        formulaform = FormulaForm(request.POST)
-        formulaname = formulaform.data["new_formula_name"]
-        formulaparam = formulaform.data["param"]
-        formulaoption = formulaform.data["options"]
-        formulacoefficient = formulaform.data["coefficient"]
-        if formulaform.is_valid():
-            if any(d['param'] == formulaparam and d['option'] == formulaoption for d in current_formula):
-                request.session.pop('current_formula')
-                return redirect(reverse("tpwebapp:formula_form", kwargs={"assembly_name": assembly_name}) + '?error_message=Select+only+ONE+coefficient+per+parameter+option!. ¡Try Again!')
-            term_dict = {"param": formulaparam, "option": formulaoption, "coefficient": formulacoefficient}
-            current_formula.append(term_dict)
-            request.session['current_formula'] = current_formula
-            request.session['formulaname'] = formulaname
-        else:
-            print(formulaform.errors)
-    else:
-        formulaform = FormulaForm()
-        formulaname = ""
-    return render(request, 'search/formulaform.html', { "form": formulaform,
-                                                        "parameters": current_formula_string(current_formula, formulaname)})
+        if "reset_process" in request.POST:
+            return redirect(reverse("tpwebapp:formula_form", kwargs={"genome": genome_url_slug(assembly_name)}))
 
+        form = FormulaForm(request.POST)
+        if form.is_valid():
+            name = form.cleaned_data["formula_name"].strip()
+            expression = form.cleaned_data["expression"].strip()
+
+            validation = validate_expression_syntax(expression, user=user)
+            if not validation["valid"]:
+                form.add_error("expression", validation["error"] or "Invalid expression")
+            else:
+                formula_obj, _ = ScoreFormula.objects.update_or_create(
+                    name=name,
+                    user=user,
+                    defaults={"expression": expression},
+                )
+                return redirect(
+                    reverse("tpwebapp:protein_list", kwargs={"genome": genome_url_slug(assembly_name)})
+                    + f"?scoreformula={name}"
+                )
+    else:
+        form = FormulaForm()
+
+    return render(
+        request,
+        "search/formulaform.html",
+        {
+            "form": form,
+            "assembly_name": assembly_name,
+            "assembly_label": display_genome_name(assembly_name),
+            "genome": genome_url_slug(assembly_name),
+            "variable_groups": variable_groups,
+            "safe_functions": SAFE_FUNCTIONS,
+            "example_formulas": EXAMPLE_FORMULAS,
+        },
+    )

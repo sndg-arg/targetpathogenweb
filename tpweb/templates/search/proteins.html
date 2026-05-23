@@ -1,255 +1,1909 @@
 {% extends '../base/masterpage.html' %}
 {% load i18n %}
 {% load custom_tags %}
+{% load static %}
 
-<script src="https://unpkg.com/htmx.org@1.9.2"></script>
+{% block head %}
+    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20260510-4">
+{% endblock %}
+
 {% block body %}
 
-    <style>
-        .max-width-column {
-            max-width: 100px; /* Ajusta este valor según tus necesidades */
-            overflow: hidden;
-            text-overflow: ellipsis; /* Opcional: Agrega puntos suspensivos al final del contenido desbordado */
-            white-space: nowrap;
-        }
-        .search-controls-container {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        }
-        .parameter-table {
-        width: 15%;
-        margin-right: 10px;
-        margin-top: 25px;
-        }
-        .protein-table {
-        flex-grow: 1;
-        margin-top: 25px;
-        }
-        .formula-block {
-        display: block; /* Ensures the div acts as a block */
-        margin-top: 20px; /* Adds some space above the block */
-        }
-        .filter-form.search-and-filters {
-        display: flex;
-        align-items: center;
-        gap: 10px; /* Adjust the gap between the search bar and checkboxes as needed */
-        }
-        .tables-container {
-            display: flex;
-            justify-content: space-between;
-        }
-        .styled-select {
-            width: 120px; /* Adjust based on your needs */
-            height: 40px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-            padding: 10px;
-            font-size: 14px;
-            text-align: center;
-            text-align-last: center;
-            -moz-text-align-last: center;
-        }
-        .filter-form.checkbox-group {
-        display: flex;
-        gap: 10px; /* Adjust the gap between checkboxes as needed */
-        }
-        .centered-text {
-            display: block;
-            margin-left: auto;
-            margin-right: auto;
-            width: 1000px; /* Adjusts the width to fit the content */
-            word-wrap: break-word; /* Ensures words break and wrap */
-            text-align: center; /* Centers the text */
-
-        }
-        .search-form {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
-            max-width: 500px;
-            margin: 0 auto;
-        }
-
-
-/* Optional: Style individual checkboxes for better alignment */
-        .filter-form.checkbox-group div {
-            display: flex;
-            align-items: center;
-            gap: 5px; /* Adjust the gap between the checkbox and label as needed */
-        }
-            </style>
-
-
-<h1>{% trans "Proteins" %} ({{ biodb__name }})</h1>
-
-<div class="search-controls-container">
-<form method="GET" action="" class="search-form">
-    <input type="text" name="search" placeholder="Search proteins..." value="{{ request.GET.search }}">
-    <button type="submit">Search</button>
-</form>
-<div class="btn-group" role="group">
-    <a href="{% url 'tpwebapp:parameterformview' assembly_name=assembly_name %}" class="btn btn-primary mr-2 ml-5">Filter</a>
-    <form method="POST" action="{% url 'tpwebapp:reset_filters' assembly_name %}">
-        {% csrf_token %}
-        <input type="submit" class="btn btn-danger" value="Reset Filters">
-    </form>
-    <a href="{% url 'tpwebapp:customparam' assembly_name=assembly_name %}" class="btn btn-success mr-2 ml-2">Add</a>
-</div>
-
-<div>
-    <span class="centered-text" style="font-weight: bold;">{{ current_formula }}</span>
-</div>
-
-<div class="btn-group", role="group">
-    {% if formulas %}
-        <select id="score_formula_select" class="styled-select">
-        {% for f in formulas %}
-            <option value="{{ f.name }}"
-            {% if f.name == formula.name %}
-                selected="selected"
+    <div class="proteins-page">
+        <section class="proteins-hero tp-page-hero">
+            <div class="hero-top tp-view-head">
+                <div class="tp-view-head-copy">
+                    {% trans "Genomes" as crumb_genomes %}
+                    {% trans "Proteins" as crumb_proteins %}
+                    {% url 'tpwebapp:index' as index_url %}
+                    {% url 'tpwebapp:genomes_list' as genomes_url %}
+                    {% with crumb_workspace="Genome: "|add:biodb_accession %}
+                    {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_workspace crumb_3_url=assembly_url crumb_4_label=crumb_proteins %}
+                    {% endwith %}
+                    <h1>{% trans "Proteins" %}</h1>
+                    <p class="hero-context"><strong>{% trans "Genome" %}:</strong> <span class="hero-context-id">{{ biodb_accession }}</span></p>
+                    {% if biodb_description and biodb_description != biodb_accession %}
+                        <p class="hero-context-note"><strong>{% trans "Description" %}:</strong> {{ biodb_description }}</p>
                     {% endif %}
-            > {{ f.name }} </option>
-        {% endfor %}
-        </select>
-        <button class="btn-success ml-3" onclick="window.location='?scoreformula=' + $('#score_formula_select').val()">{% trans 'Change' %}</button>
-        <br />
-    {% endif %}
-
-    <a href="{% url 'tpwebapp:formula_form' assembly_name=assembly_name %}" class="btn btn-primary mr-2 ml-2">+Add</a>
-</div>
-</div>
-<div class="tables-container">
-    {% if parameters %}
-    <div class="parameter-table">
-    <table id="proteins_table"  class="table table-striped table-sm">
-        <thead>
-        <tr>
-          <th scope="col">Parameter</th>
-          <th scope="col">Value</th>
-        </tr>
-        </thead>
-        <tbody>
-            {% for parameter in grouped_parameters.items %}
-                <tr>
-                    <th scope="row">{{ parameter.0 }}</th>
-                    <td>{{ parameter.1 }}</td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    </div>
-    {% endif %}
-    <div class="protein-table">
-    <table id="proteins_table"  class="table table-striped table-sm">
-        <thead>
-        <tr>
-
-      <th>{% trans "Name" %}</th>
-            <th>{% trans "Description" %}</th>
-
-
-            <th>{% trans "Gene" %}</th>
-
-
-            {% for col in tcolumns %}
-                <th title="{{ col_descriptions|dictkey:col }}">{{col|replace_char:"_, " }} </th>
-            {% endfor %}
-        </tr>
-        </thead>
-        {% for protein in proteins %}
-      <tr>
-
-        <td><a href="{% url 'tpwebapp:protein' protein.id %}">
-            {{protein.accession}}</a></td>
-        <td>{{protein.description}}</td>
-
-        <td class="max-width-column ">{{protein.genes|join:'<br />'}}</td>
-        {% for col in tcolumns %}
-            <td>{{tdata|dictkey:protein.id|dictkey:col|default:""}}<br />{%  if col != "Score" %}
-
-            ({{ weights|dictkey:protein.id|dictkey:col|default:"0" }})
-
+                    <p class="hero-subtitle">{% trans "Search, filter, and prioritize proteins." %}</p>
+                </div>
+                <div class="tp-view-head-actions">
+                    <a href="{{ view_export_url }}" class="btn tp-btn tp-btn--neutral tp-btn-with-icon tp-view-export-link">
+                        <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/download.html" %}</span>
+                        {% trans "Export view" %}
+                    </a>
+                </div>
+            </div>
+            <div class="hero-chips tp-chip-group">
+                <span class="tp-chip tp-chip--meta">{{ pagination.proteins.paginator.count }} {% trans "proteins" %}</span>
+                {% if formula %}
+                    <span class="tp-chip tp-chip--meta">{% trans "Scoring" %}: {{ formula.name }}</span>
+                {% endif %}
+                {% if structure_source %}
+                    <span class="tp-chip tp-chip--meta">{% trans "Structure" %}: {{ structure_source|humanize_identifier }}</span>
+                {% endif %}
+            </div>
+            {% if pipeline_status.available and pipeline_status.running_for_current_genome %}
+                <div class="hero-pipeline-group">
+                    {% include "components/pipeline/chip.html" with pipeline_status=pipeline_status mode="genome" chip_class="tp-chip tp-chip--state tp-chip--sm" %}
+                    {% include "components/pipeline/note.html" with pipeline_status=pipeline_status mode="genome" note_class="hero-pipeline-note" %}
+                </div>
             {% endif %}
-            </td>
-        {% endfor %}
-
-    </tr>
-        {% endfor %}
-    </table>
-    </div>
-    </div>
-
-<style>
-    #proteins_table td:nth-child(4) {
-        font-weight: bold;
-        flex-grow: 1;
-    }
-    .pagination li {
-        margin-right: 5px; /* Adjust the spacing as needed */
-    }
-    .pagination li:last-child {
-        margin-right: 0; /* Remove extra spacing from the last item */
-    }
-</style>
-
-<div class="text-center pb-3">
-<span class="badge badge-primary justify-content-center">
-    Page {{ pagination.number }} of {{ pagination.num_pages }}.
-</span>
-</div>
-{% if not not_default_formula %}
-    <ul class="pagination justify-content-center">
-    {% if pagination.has_previous %}
-        <li class="page-item"><a class="page-link"  href="{{ base_url }}?page={{ pagination.previous_page_number }}">Previous</a>
-    {% endif %}
-
-       {% for num in pagination.page_range %}
-            {% if num == 1 %}
-                <li class="page-item"><a class="page-link" href="{{ base_url }}?page={{ num }}">{{ num }}</a></li>
-            {% elif num <= pagination.number|add:10 and num >= pagination.number|add:-10 %}
-                <li class="page-item"><a class="page-link" href="{{ base_url }}?page={{ num }}">{{ num }}</a></li>
-            {% elif num == pagination.num_pages %}
-                <li class="page-item"><a class="page-link" href="{{ base_url }}?page={{ num }}">{{ num }}</a></li>
+            <div class="hero-analysis-context">
+                <p class="hero-analysis-line">
+                    <span class="hero-analysis-label">{% trans "Scoring formula" %}</span>
+                    <span class="hero-analysis-value">{% if formula %}{{ formula.name }}{% else %}None{% endif %}</span>
+                </p>
+                <p class="hero-analysis-line">
+                    <span class="hero-analysis-label">{% trans "Sorted by" %}</span>
+                    <span class="hero-analysis-value">{{ sorted_by_label }}</span>
+                </p>
+                <p class="hero-analysis-line">
+                    <span class="hero-analysis-label">{% trans "Applied filters" %}</span>
+                    <span class="hero-analysis-value">
+                        {% if grouped_parameters or structure_source or annotation_filter %}
+                            {% for score_param, values in grouped_parameters.items %}
+                                <span><strong>{{ score_param|humanize_identifier }}:</strong> {{ values|humanize_identifier }}</span>{% if not forloop.last or structure_source or annotation_filter %}<span class="hero-analysis-sep"> · </span>{% endif %}
+                            {% endfor %}
+                            {% if structure_source %}
+                                <span><strong>{% trans "Structure" %}:</strong> {{ structure_source|humanize_identifier }}</span>{% if annotation_filter %}<span class="hero-analysis-sep"> · </span>{% endif %}
+                            {% endif %}
+                            {% if annotation_filter %}
+                                <span><strong>{{ annotation_filter.kind_label }}:</strong> {{ annotation_filter.value }}</span>
+                            {% endif %}
+                        {% else %}
+                            {% trans "No active filters" %}
+                        {% endif %}
+                    </span>
+                </p>
+                <p class="hero-analysis-line">
+                    <span class="hero-analysis-label">{% trans "Search query" %}</span>
+                    <span class="hero-analysis-value">
+                        {% if search_query %}
+                            <span title="{{ search_query }}">{{ search_query }}</span>
+                        {% else %}
+                            {% trans "No active search" %}
+                        {% endif %}
+                    </span>
+                </p>
+                <p class="hero-analysis-line">
+                    <span class="hero-analysis-label">{% trans "Rows per page" %}</span>
+                    <span class="hero-analysis-value">{{ page_size }}</span>
+                </p>
+            </div>
+            {% if pipeline_status.available and pipeline_status.current_genome_status_note %}
+                <p class="tp-state-note {% if pipeline_status.failed_for_current_genome %}tp-state-note--error{% else %}tp-state-note--empty{% endif %}">
+                    {{ pipeline_status.current_genome_status_note }}
+                </p>
             {% endif %}
-        {% endfor %}
+        </section>
 
-    {% if pagination.has_next %}
-        <li class="page-item"><a class="page-link" href="{{ base_url }}?page={{ pagination.next_page_number }}">Next</a>
+        <section class="toolbar-card tp-ui-toolbar">
+            <form method="GET" action="{{ request.path }}" class="search-form tp-ui-toolbar-form" id="protein-search-form">
+                {% if request.GET.scoreformula %}
+                    <input type="hidden" name="scoreformula" value="{{ request.GET.scoreformula }}">
+                {% endif %}
+                {% if annotation_filter %}
+                    <input type="hidden" name="annotation_kind" value="{{ annotation_filter.kind }}">
+                    <input type="hidden" name="annotation_value" value="{{ annotation_filter.value }}">
+                {% endif %}
+
+                <div class="toolbar-search-row tp-ui-search-row tp-ui-toolbar-row tp-ui-toolbar-row--stack-sm">
+                    <div id="protein-search-autocomplete"
+                         class="search-autocomplete tp-ui-search"
+                         data-suggest-url="{% url 'tpwebapp:protein_search_suggestions' genome=genome %}"
+                         data-suggest-error="{% trans 'Failed suggestions request' %}">
+                        <input id="protein-search-input"
+                               type="text"
+                               class="form-control search-input tp-ui-search-input"
+                               name="search"
+                               placeholder="{% trans "Search by accession or description..." %}"
+                               value="{{ search_query }}"
+                               autocomplete="off"
+                               role="combobox"
+                               aria-autocomplete="list"
+                               aria-haspopup="listbox"
+                               aria-expanded="false"
+                               aria-controls="protein-search-suggestions"
+                               aria-activedescendant="">
+                        <div id="protein-search-suggestions"
+                             class="search-suggestions"
+                             role="listbox"
+                             aria-label="{% trans 'Search suggestions' %}"
+                             hidden></div>
+                    </div>
+                    <div class="toolbar-search-actions tp-ui-search-actions tp-ui-group">
+                        <button type="submit" class="btn tp-btn tp-btn--primary" id="protein-search-submit">{% trans "Search" %}</button>
+                        {% trans "Clear search" as clear_search_label %}
+                        {% if search_query %}
+                            {% include "components/buttons/clear_action.html" with label=clear_search_label href=clear_search_url %}
+                        {% else %}
+                            {% include "components/buttons/clear_action.html" with label=clear_search_label disabled="1" %}
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="toolbar-controls-row tp-ui-toolbar-row tp-ui-toolbar-row--between">
+                    <div class="toolbar-controls-left tp-ui-group">
+                        <div class="per-page-control tp-ui-control" title="{% trans "Proteins per page" %}">
+                            <span class="per-page-label">{% trans "Rows" %}</span>
+                            <select id="pageSizeSelect" name="pageSize" class="per-page-select form-control tp-select--sm">
+                                <option value="10" {% if page_size == 10 %}selected{% endif %}>10</option>
+                                <option value="25" {% if page_size == 25 %}selected{% endif %}>25</option>
+                                <option value="50" {% if page_size == 50 %}selected{% endif %}>50</option>
+                                <option value="100" {% if page_size == 100 %}selected{% endif %}>100</option>
+                            </select>
+                        </div>
+                        <div class="toolbar-workbench" aria-label="{% trans 'Protein list controls' %}">
+                            <div class="toolbar-workbench__group toolbar-workbench__group--primary" aria-label="{% trans 'Filtering and ranking' %}">
+                                <button type="button" class="btn tp-btn tp-btn--neutral toolbar-action-btn toolbar-action-btn--primary" id="open-filters-btn">
+                                    <span class="toolbar-action-btn__title">{% trans "Filters" %}</span>
+                                    <span class="toolbar-action-btn__meta">
+                                        {% if selection_criteria_count %}
+                                            {% blocktrans count total=selection_criteria_count %}{{ total }} active{% plural %}{{ total }} active{% endblocktrans %}
+                                        {% else %}
+                                            {% trans "No filters" %}
+                                        {% endif %}
+                                    </span>
+                                </button>
+                                {% if formulas %}
+                                    <button type="button" class="btn tp-btn tp-btn--neutral toolbar-action-btn toolbar-action-btn--primary{% if not formula_active %} toolbar-action-btn--cta{% endif %}" id="open-formula-btn">
+                                        <span class="toolbar-action-btn__title">{% trans "Scoring" %}</span>
+                                        <span class="toolbar-action-btn__meta">
+                                            {% if formula_active %}{{ formula.name }}{% else %}{% trans "Combine criteria →" %}{% endif %}
+                                        </span>
+                                    </button>
+                                {% endif %}
+                            </div>
+                            <div class="toolbar-workbench__group toolbar-workbench__group--secondary" aria-label="{% trans 'Table display' %}">
+                                <button type="button" class="btn tp-btn tp-btn--neutral toolbar-action-btn toolbar-action-btn--secondary" id="open-columns-btn">
+                                    <span class="toolbar-action-btn__title">{% trans "Columns" %}</span>
+                                    <span class="toolbar-action-btn__meta">{% blocktrans count total=selected_column_count %}{{ total }} visible{% plural %}{{ total }} visible{% endblocktrans %}</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </form>
+        </section>
+
+        {% if display_parameters or annotation_filter or structure_filter %}
+        <section class="filter-tray" role="region" aria-label="{% trans 'Active criteria' %}">
+            <div class="filter-tray-head">
+                <span class="filter-tray-label">{% trans "Active criteria" %}</span>
+                <span class="filter-tray-count tp-chip tp-chip--count tp-chip--sm">{{ selection_criteria_count }}</span>
+            </div>
+            <div class="filter-tray-pills">
+                {% if structure_filter %}
+                    <a href="{{ clear_structure_url }}" class="filter-pill tp-chip tp-chip--filter">
+                        <span><strong>{% trans "Structure" %}:</strong> {{ structure_filter.label }}</span>
+                        <span class="filter-pill-remove" title="{% trans 'Remove filter' %}" aria-label="{% trans 'Remove filter' %}">&times;</span>
+                    </a>
+                {% endif %}
+                {% if annotation_filter %}
+                    <a href="{{ clear_annotation_url }}" class="filter-pill tp-chip tp-chip--filter">
+                        <span><strong>{{ annotation_filter.kind_label }}:</strong> {{ annotation_filter.value }}{% if annotation_filter.name %} · {{ annotation_filter.name }}{% endif %}</span>
+                        <span class="filter-pill-remove" title="{% trans 'Remove filter' %}" aria-label="{% trans 'Remove filter' %}">&times;</span>
+                    </a>
+                {% endif %}
+                {% for parameter in display_parameters %}
+                    <form method="POST" action="" class="filter-pill tp-chip tp-chip--filter">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="remove_filter">
+                        <input type="hidden" name="filter_option_id" value="{{ parameter.id }}">
+                        <input type="hidden" name="return_query" value="{{ query_string }}">
+                        <span><strong>{{ parameter.display_score_param_name|default:parameter.score_param_name|humanize_identifier }}:</strong> {{ parameter.display_name|default:parameter.name|humanize_identifier }}</span>
+                        <button type="submit" class="filter-pill-remove tp-focusable" title="{% trans 'Remove filter' %}" aria-label="{% trans 'Remove filter' %}">&times;</button>
+                    </form>
+                {% endfor %}
+            </div>
+            <form method="POST" action="" class="filter-tray-clear-form">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="reset_filters">
+                <input type="hidden" name="return_query" value="{{ query_string }}">
+                <button type="submit" class="filter-tray-clear-btn">{% trans "Clear all" %}</button>
+            </form>
+        </section>
+        {% endif %}
+
+        <section class="protein-workspace" id="protein-workspace">
+            <div class="protein-table-panel">
+                <div class="protein-table-scroll-note" id="protein-table-scroll-note" hidden>
+                    <span class="protein-table-scroll-note__label">{% trans "More columns available" %}</span>
+                    <span class="protein-table-scroll-note__hint">{% trans "Scroll right to inspect all evidence" %}</span>
+                </div>
+                <div class="protein-table-top-scroll" id="protein-table-top-scroll" hidden aria-hidden="true">
+                    <div class="protein-table-top-scroll__inner" id="protein-table-top-scroll-inner"></div>
+                </div>
+                <section class="table-wrap tp-table-shell">
+                    <table id="proteins_table"
+                           class="table table-striped table-hover table-sm tp-table tp-table--plain tp-table--premium protein-table"
+                           data-export-url="{{ export_url }}"
+                           data-export-title="{{ assembly_label }} proteins">
+                        <thead>
+                        <tr>
+                            <th>#</th>
+                            <th class="th-sortable{% if sort_col == '__accession__' %} th-sorted th-sorted--{{ sort_dir }}{% endif %}">
+                                <a href="{{ sort_col_urls|dictkey:'__accession__' }}" class="th-sort-link">{% trans "Protein" %}<span class="th-sort-icon" aria-hidden="true"></span></a>
+                            </th>
+                            <th>{% trans "Description" %}</th>
+                            <th>{% trans "Gene" %}</th>
+                        <th>{% trans "Structure" %}</th>
+                        <th>{% trans "EC" %}</th>
+                        <th>{% trans "GO" %}</th>
+                        {% for col in tcolumns %}
+                            {% with col_desc=col_descriptions|dictkey:col %}
+                            <th data-col="{{ col|slugify }}"
+                                class="th-sortable{% if sort_col == col %} th-sorted th-sorted--{{ sort_dir }}{% endif %}">
+                                <a href="{{ sort_col_urls|dictkey:col }}" class="th-sort-link">
+                                    {{ col|humanize_identifier }}<span class="th-sort-icon" aria-hidden="true"></span>
+                                    {% if col_desc %}<span class="cell-tooltip" role="tooltip">{{ col_desc }}</span>{% endif %}
+                                </a>
+                            </th>
+                            {% endwith %}
+                        {% endfor %}
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for protein in proteins %}
+                            <tr class="protein-row">
+                                <td class="rank-col">{{ pagination.proteins.start_index|add:forloop.counter0 }}</td>
+                                <td class="acc-col"><a href="{% url 'tpwebapp:protein' protein.id %}">{{ protein.accession }}</a></td>
+                                <td class="desc-col">{{ protein.description }}</td>
+                                <td class="gene-col">{{ protein.genes|join:', ' }}</td>
+                                <td data-col="structure-source">
+                                    {% if protein.has_structure %}
+                                        <span class="tp-chip tp-chip--meta tp-chip--sm">{{ protein.structure_source_label }}</span>
+                                    {% else %}
+                                        <span class="tp-chip tp-chip--warning tp-chip--sm structure-unavailable">{{ protein.structure_source_label }}<span class="cell-tooltip" role="tooltip">{% trans "No structure available — sequence may exceed the prediction length limit" %}</span></span>
+                                    {% endif %}
+                                </td>
+                                <td data-col="ec">
+                                    {% if protein.ec_badges %}
+                                        <div class="annotation-cell">
+                                            {% for ec in protein.ec_badges %}
+                                                <a href="{% url 'tpwebapp:protein_list' genome=genome %}?annotation_kind=ec&annotation_value={{ ec.accession }}" class="tp-chip tp-chip--ec tp-chip--sm annotation-chip-tip">{{ ec.accession }}{% if ec.name %}<span class="cell-tooltip" role="tooltip">{{ ec.name }}</span>{% endif %}</a>
+                                            {% endfor %}
+                                            {% if protein.ec_remaining %}
+                                                <span class="annotation-more annotation-chip-tip">+{{ protein.ec_remaining }}<span class="cell-tooltip" role="tooltip">{{ protein.ec_total }} {% trans "total" %}</span></span>
+                                            {% endif %}
+                                        </div>
+                                    {% else %}
+                                        <span class="annotation-empty">–<span class="cell-tooltip" role="tooltip">{% trans "No EC annotations" %}</span></span>
+                                    {% endif %}
+                                </td>
+                                <td data-col="go">
+                                    {% if protein.go_badges %}
+                                        <div class="annotation-cell">
+                                            {% for go in protein.go_badges %}
+                                                <a href="{% url 'tpwebapp:protein_list' genome=genome %}?annotation_kind=go&annotation_value={{ go.accession }}" class="tp-chip tp-chip--go tp-chip--sm annotation-chip-tip">{{ go.accession }}{% if go.name %}<span class="cell-tooltip" role="tooltip">{{ go.name }}</span>{% endif %}</a>
+                                            {% endfor %}
+                                            {% if protein.go_remaining %}
+                                                <span class="annotation-more annotation-chip-tip">+{{ protein.go_remaining }}<span class="cell-tooltip" role="tooltip">{{ protein.go_total }} {% trans "total" %}</span></span>
+                                            {% endif %}
+                                        </div>
+                                    {% else %}
+                                        <span class="annotation-empty">–<span class="cell-tooltip" role="tooltip">{% trans "No GO annotations" %}</span></span>
+                                    {% endif %}
+                                </td>
+                                {% for col in tcolumns %}
+                                    <td data-col="{{ col|slugify }}">
+                                        {% if not protein.has_structure %}
+                                            <span class="metric-no-structure">
+                                                <span class="metric-no-structure-icon" aria-hidden="true">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6v3"/><circle cx="8" cy="11.5" r="0.01" stroke-width="2"/><path d="M6.9 2.5l-5 8.5A1.3 1.3 0 0 0 3 13h10a1.3 1.3 0 0 0 1.1-2l-5-8.5a1.3 1.3 0 0 0-2.2 0z"/></svg>
+                                                </span>
+                                                {% trans "No structure" %}
+                                                <span class="metric-tooltip" role="tooltip">{% trans "No 3D structure available — this value cannot be computed without a structural model" %}</span>
+                                            </span>
+                                        {% elif col == "Score" %}
+                                            {% with score_val=tdata|dictkey:protein.id|dictkey:col %}
+                                                {% if score_val %}
+                                                    <span class="tp-chip tp-chip--score">{{ score_val|floatformat:2 }}</span>
+                                                {% else %}
+                                                    <span class="metric-zero">
+                                                        <span class="metric-zero-value">0.00</span>
+                                                        <span class="metric-tooltip" role="tooltip">{% trans "No weighted parameters contributed to the score" %}</span>
+                                                    </span>
+                                                {% endif %}
+                                            {% endwith %}
+                                        {% elif col == "Druggability" %}
+                                            {% with val=tdata|dictkey:protein.id|dictkey:col %}
+                                                {% if val and val != "-" %}
+                                                    <span class="tp-chip tp-chip--score js-drugg-cell druggability-tip" data-score="{{ val }}">
+                                                        {{ val|floatformat:2 }}
+                                                        <span class="cell-tooltip" role="tooltip">{% trans "FPocket druggability score for the preferred structure: experimental when available, otherwise predicted model. Scale 0 to 1; higher is better." %}</span>
+                                                    </span>
+                                                {% else %}
+                                                    <span class="tp-drugg-none druggability-tip">
+                                                        {% trans "No pocket" %}
+                                                        <span class="cell-tooltip" role="tooltip">{% trans "No predicted pocket score is available for this protein." %}</span>
+                                                    </span>
+                                                {% endif %}
+                                            {% endwith %}
+                                        {% else %}
+                                            {% with val=tdata|dictkey:protein.id|dictkey:col %}
+                                                {% if val != "-" and val != "" %}
+                                                    {% with tone=val|score_metric_tone:col %}
+                                                        {% if tone %}
+                                                            <span class="tp-chip protein-metric-chip protein-metric-chip--{{ tone }}">{{ val|score_metric_display:col }}</span>
+                                                        {% else %}
+                                                            <span class="protein-metric-value">{{ val|score_metric_display:col }}</span>
+                                                        {% endif %}
+                                                    {% endwith %}
+                                                {% else %}
+                                                    <span class="metric-na">N/A<span class="cell-tooltip" role="tooltip">{% trans "Not available for this protein" %}</span></span>
+                                                {% endif %}
+                                            {% endwith %}
+                                        {% endif %}
+                                    </td>
+                                {% endfor %}
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="99">
+                                    <p class="tp-state-note tp-state-note--empty protein-table-empty-note">{% trans "No proteins match the current search and filters." %}</p>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </section>
+
+                <div class="pagination-row">
+                    <span class="pagination-label">
+                        {% if pagination.num_pages > 1 %}
+                            {% trans "Page" %}
+                            <input type="number" id="pageJumpInput" class="page-jump-input" value="{{ pagination.number }}" min="1" max="{{ pagination.num_pages }}" aria-label="{% trans 'Go to page' %}">
+                            {% trans "of" %} {{ pagination.num_pages }}
+                        {% else %}
+                            {% trans "Page" %} 1 {% trans "of" %} 1
+                        {% endif %}
+                         · {{ pagination.proteins.paginator.count }} {% trans "total proteins" %}
+                    </span>
+                    <ul class="pagination tp-pagination">
+                        <li class="page-item {% if not pagination.has_previous %}disabled{% endif %}">
+                            {% if pagination.has_previous %}
+                                <a class="page-link" href="?{% if query_string %}{{ query_string }}&{% endif %}page=1">
+                                    <span class="sr-only">{% trans "First page" %}</span>
+                                    <span class="tp-chevron-group" aria-hidden="true">
+                                        <span class="tp-chevron tp-chevron--left"></span>
+                                        <span class="tp-chevron tp-chevron--left"></span>
+                                    </span>
+                                </a>
+                            {% else %}
+                                <span class="page-link" aria-hidden="true">
+                                    <span class="tp-chevron-group">
+                                        <span class="tp-chevron tp-chevron--left"></span>
+                                        <span class="tp-chevron tp-chevron--left"></span>
+                                    </span>
+                                </span>
+                            {% endif %}
+                        </li>
+                        <li class="page-item {% if not pagination.has_previous %}disabled{% endif %}">
+                            {% if pagination.has_previous %}
+                                <a class="page-link" href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ pagination.previous_page_number }}">
+                                    <span class="sr-only">{% trans "Previous page" %}</span>
+                                    <span class="tp-chevron tp-chevron--left" aria-hidden="true"></span>
+                                </a>
+                            {% else %}
+                                <span class="page-link" aria-hidden="true"><span class="tp-chevron tp-chevron--left"></span></span>
+                            {% endif %}
+                        </li>
+
+                        {% for p in page_numbers %}
+                            {% if p %}
+                                <li class="page-item {% if p == pagination.number %}active{% endif %}">
+                                    <a class="page-link" href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ p }}">{{ p }}</a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled"><span class="page-link">…</span></li>
+                            {% endif %}
+                        {% endfor %}
+
+                        <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+                            {% if pagination.has_next %}
+                                <a class="page-link" href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ pagination.next_page_number }}">
+                                    <span class="sr-only">{% trans "Next page" %}</span>
+                                    <span class="tp-chevron tp-chevron--right" aria-hidden="true"></span>
+                                </a>
+                            {% else %}
+                                <span class="page-link" aria-hidden="true"><span class="tp-chevron tp-chevron--right"></span></span>
+                            {% endif %}
+                        </li>
+                        <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+                            {% if pagination.has_next %}
+                                <a class="page-link" href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ pagination.num_pages }}">
+                                    <span class="sr-only">{% trans "Last page" %}</span>
+                                    <span class="tp-chevron-group" aria-hidden="true">
+                                        <span class="tp-chevron tp-chevron--right"></span>
+                                        <span class="tp-chevron tp-chevron--right"></span>
+                                    </span>
+                                </a>
+                            {% else %}
+                                <span class="page-link" aria-hidden="true">
+                                    <span class="tp-chevron-group">
+                                        <span class="tp-chevron tp-chevron--right"></span>
+                                        <span class="tp-chevron tp-chevron--right"></span>
+                                    </span>
+                                </span>
+                            {% endif %}
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div class="tp-overlay" id="filters-overlay"></div>
+    <aside class="filters-drawer" id="filters-drawer" aria-hidden="true">
+        <div class="drawer-head">
+            <h2>{% trans "Selection criteria" %}</h2>
+            <button class="btn tp-btn tp-btn--neutral drawer-close-btn" type="button" id="close-filters-btn" aria-label="{% trans 'Close' %}">
+                <span class="drawer-close-glyph" aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="drawer-body">
+            <div class="drawer-active-summary {% if not display_parameters and not annotation_filter and not structure_filter %}is-empty{% endif %}">
+                <div class="drawer-block-head">
+                    <h3>{% trans "Active criteria" %}</h3>
+                    <span class="drawer-meta tp-chip tp-chip--count tp-chip--sm">{{ selection_criteria_count }}</span>
+                </div>
+                {% if display_parameters or annotation_filter or structure_filter %}
+                    <div class="active-filters">
+                        {% if structure_filter %}
+                            <a href="{{ clear_structure_url }}" class="filter-pill tp-chip tp-chip--filter">
+                                <span><strong>{% trans "Structure" %}:</strong> {{ structure_filter.label }}</span>
+                                <span class="filter-pill-remove" title="{% trans 'Remove filter' %}" aria-label="{% trans 'Remove filter' %}">&times;</span>
+                            </a>
+                        {% endif %}
+                        {% if annotation_filter %}
+                            <a href="{{ clear_annotation_url }}" class="filter-pill tp-chip tp-chip--filter">
+                                <span><strong>{{ annotation_filter.kind_label }}:</strong> {{ annotation_filter.value }}{% if annotation_filter.name %} · {{ annotation_filter.name }}{% endif %}</span>
+                                <span class="filter-pill-remove" title="{% trans 'Remove filter' %}" aria-label="{% trans 'Remove filter' %}">&times;</span>
+                            </a>
+                        {% endif %}
+                        {% for parameter in display_parameters %}
+                            <form method="POST" action="" class="filter-pill tp-chip tp-chip--filter">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="remove_filter">
+                                <input type="hidden" name="filter_option_id" value="{{ parameter.id }}">
+                                <input type="hidden" name="return_query" value="{{ query_string }}">
+                                <span><strong>{{ parameter.display_score_param_name|default:parameter.score_param_name|humanize_identifier }}:</strong> {{ parameter.display_name|default:parameter.name|humanize_identifier }}</span>
+                                <button type="submit" class="filter-pill-remove tp-focusable" title="{% trans 'Remove filter' %}" aria-label="{% trans 'Remove filter' %}">&times;</button>
+                            </form>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="active-filters-empty tp-state-note tp-state-note--empty">{% trans "No active criteria yet. Pick from the catalogue below." %}</p>
+                {% endif %}
+            </div>
+
+            <div class="drawer-search">
+                <span class="drawer-search-icon" aria-hidden="true">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="7" r="5"/><path d="M14 14l-3.6-3.6"/></svg>
+                </span>
+                <input type="search"
+                       id="filter-search-input"
+                       class="drawer-search-input"
+                       placeholder="{% trans 'Search criteria, evidence, or values…' %}"
+                       autocomplete="off"
+                       aria-label="{% trans 'Search criteria' %}">
+                <button type="button" class="drawer-search-clear" id="filter-search-clear" hidden aria-label="{% trans 'Clear search' %}">&times;</button>
+            </div>
+
+            <div class="drawer-catalogue-meta">
+                <span class="drawer-catalogue-count">
+                    {% blocktrans count total=filter_groups_total_options %}{{ total }} criterion across {{ filter_groups|length }} categories{% plural %}{{ total }} criteria across {{ filter_groups|length }} categories{% endblocktrans %}
+                </span>
+                <button type="button" class="drawer-catalogue-toggle" id="filter-expand-all" data-expand-all="false">{% trans "Expand all" %}</button>
+            </div>
+
+            <div class="drawer-filter-catalogue" id="drawer-filter-catalogue">
+                {% for group in filter_groups %}
+                    <details class="filter-group {% if group.is_function %}filter-group--function{% endif %}"
+                             data-filter-group
+                             data-category="{{ group.category|lower }}"
+                             {% if group.any_active %}open{% endif %}>
+                        <summary class="filter-group-summary">
+                            <span class="filter-group-name">{{ group.category|humanize_identifier }}</span>
+                            <span class="filter-group-meta">
+                                {% if group.any_active %}
+                                    <span class="filter-group-active-dot" aria-label="{% trans 'Has active criteria' %}"></span>
+                                {% endif %}
+                                {% if group.param_count %}<span class="filter-group-count">{{ group.param_count }}</span>{% endif %}
+                                <span class="filter-group-chevron" aria-hidden="true"></span>
+                            </span>
+                        </summary>
+                        <div class="filter-group-body">
+                            {% if group.is_function %}
+                                <div class="filter-param" data-filter-param data-search-text="ec class enzyme function">
+                                    <div class="filter-param-head">
+                                        <span class="filter-param-label">{% trans "EC class" %}</span>
+                                    </div>
+                                    <div class="filter-chip-group">
+                                        {% for cls in group.ec_classes %}
+                                            <form method="POST" action="" class="filter-chip-form">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="return_query" value="{{ query_string }}">
+                                                {% if cls.active %}
+                                                    <input type="hidden" name="action" value="remove_filter">
+                                                    <input type="hidden" name="filter_option_id" value="special:ec:{{ cls.value }}">
+                                                {% else %}
+                                                    <input type="hidden" name="action" value="add_special_filter">
+                                                    <input type="hidden" name="special_kind" value="ec">
+                                                    <input type="hidden" name="special_value" value="{{ cls.value }}">
+                                                {% endif %}
+                                                <button type="submit"
+                                                        class="filter-chip {% if cls.active %}filter-chip--active{% endif %}"
+                                                        title="{{ cls.name }}"
+                                                        aria-pressed="{% if cls.active %}true{% else %}false{% endif %}">
+                                                    {% if cls.active %}<span class="filter-chip-glyph" aria-hidden="true">&times;</span>{% endif %}
+                                                    <span class="filter-chip-label">{{ cls.label }}</span>
+                                                </button>
+                                            </form>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+
+                                <div class="filter-param" data-filter-param data-search-text="ec code specific number">
+                                    <div class="filter-param-head">
+                                        <span class="filter-param-label">{% trans "Specific EC code" %}</span>
+                                    </div>
+                                    <form method="POST" action="" class="filter-text-form">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="add_special_filter">
+                                        <input type="hidden" name="special_kind" value="ec">
+                                        <input type="hidden" name="return_query" value="{{ query_string }}">
+                                        <input type="text"
+                                               name="special_value"
+                                               class="filter-text-input"
+                                               placeholder="1.1.1.1"
+                                               aria-label="{% trans 'EC code (e.g. 1.1.1.1)' %}"
+                                               pattern="^[0-9]+(\.[0-9]+){0,3}$"
+                                               autocomplete="off">
+                                        <button type="submit" class="filter-text-add">{% trans "Add" %}</button>
+                                    </form>
+                                    {% if group.ec_specific_active %}
+                                        <div class="filter-chip-group filter-chip-group--active">
+                                            {% for entry in group.ec_specific_active %}
+                                                <form method="POST" action="" class="filter-chip-form">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="action" value="remove_filter">
+                                                    <input type="hidden" name="filter_option_id" value="{{ entry.id }}">
+                                                    <input type="hidden" name="return_query" value="{{ query_string }}">
+                                                    <button type="submit" class="filter-chip filter-chip--active">
+                                                        <span class="filter-chip-glyph" aria-hidden="true">&times;</span>
+                                                        <span class="filter-chip-label">{{ entry.value }}</span>
+                                                    </button>
+                                                </form>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="filter-param" data-filter-param data-search-text="go term gene ontology">
+                                    <div class="filter-param-head">
+                                        <span class="filter-param-label">{% trans "GO term" %}</span>
+                                    </div>
+                                    <form method="POST" action="" class="filter-text-form">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="add_special_filter">
+                                        <input type="hidden" name="special_kind" value="go">
+                                        <input type="hidden" name="return_query" value="{{ query_string }}">
+                                        <input type="text"
+                                               name="special_value"
+                                               class="filter-text-input"
+                                               placeholder="GO:0008270"
+                                               aria-label="{% trans 'GO term (e.g. GO:0008270)' %}"
+                                               autocomplete="off">
+                                        <button type="submit" class="filter-text-add">{% trans "Add" %}</button>
+                                    </form>
+                                    {% if group.go_active %}
+                                        <div class="filter-chip-group filter-chip-group--active">
+                                            {% for entry in group.go_active %}
+                                                <form method="POST" action="" class="filter-chip-form">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="action" value="remove_filter">
+                                                    <input type="hidden" name="filter_option_id" value="{{ entry.id }}">
+                                                    <input type="hidden" name="return_query" value="{{ query_string }}">
+                                                    <button type="submit" class="filter-chip filter-chip--active">
+                                                        <span class="filter-chip-glyph" aria-hidden="true">&times;</span>
+                                                        <span class="filter-chip-label">{{ entry.value }}</span>
+                                                    </button>
+                                                </form>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                {% if group.ec_explorer_url %}
+                                    <a href="{{ group.ec_explorer_url }}" class="filter-explorer-link">
+                                        <span>{% trans "Browse the EC tree" %}</span>
+                                        <span aria-hidden="true">→</span>
+                                    </a>
+                                {% endif %}
+                            {% else %}
+                                {% for param in group.params %}
+                                    <div class="filter-param" data-filter-param data-search-text="{{ param.search_text }}">
+                                        <div class="filter-param-head">
+                                            <span class="filter-param-label">{{ param.label }}</span>
+                                            {% if param.description %}
+                                                <span class="filter-param-help" tabindex="0" role="button" aria-label="{% trans 'About this criterion' %}" data-filter-tooltip="{{ param.description }}">
+                                                    <span aria-hidden="true">i</span>
+                                                </span>
+                                            {% endif %}
+                                        </div>
+                                        {% if param.type == "numeric" %}
+                                            <form method="POST" action="" class="filter-numeric-form">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="action" value="add_numeric_filter">
+                                                <input type="hidden" name="score_param_id" value="{{ param.id }}">
+                                                <input type="hidden" name="return_query" value="{{ query_string }}">
+                                                <div class="filter-numeric-toolbar" role="radiogroup" aria-label="{% trans 'Numeric filter mode' %}">
+                                                    <label class="filter-numeric-mode">
+                                                        <input type="radio" name="numeric_operation" value="gte" checked>
+                                                        <span>{% trans "At least" %}</span>
+                                                    </label>
+                                                    <label class="filter-numeric-mode">
+                                                        <input type="radio" name="numeric_operation" value="lte">
+                                                        <span>{% trans "At most" %}</span>
+                                                    </label>
+                                                    <label class="filter-numeric-mode">
+                                                        <input type="radio" name="numeric_operation" value="between">
+                                                        <span>{% trans "Between" %}</span>
+                                                    </label>
+                                                </div>
+                                                <div class="filter-numeric-values">
+                                                    <label class="filter-numeric-field" data-numeric-field="primary">
+                                                        <span class="filter-numeric-field-label">{% trans "Value" %}</span>
+                                                        {% if param.name == "human_identity" or param.name == "micro_identity" %}
+                                                            <input type="text" inputmode="decimal" name="value" class="filter-numeric-input" placeholder="30" aria-label="{% trans 'Numeric value' %}">
+                                                        {% elif param.name == "human_evalue" or param.name == "micro_evalue" %}
+                                                            <input type="text" inputmode="decimal" name="value" class="filter-numeric-input" placeholder="1e-5" aria-label="{% trans 'Numeric value' %}">
+                                                        {% else %}
+                                                            <input type="text" inputmode="decimal" name="value" class="filter-numeric-input" placeholder="0.70" aria-label="{% trans 'Numeric value' %}">
+                                                        {% endif %}
+                                                    </label>
+                                                    <label class="filter-numeric-field filter-numeric-field--max" data-numeric-field="secondary">
+                                                        <span class="filter-numeric-field-label">{% trans "Upper bound" %}</span>
+                                                        {% if param.name == "human_identity" or param.name == "micro_identity" %}
+                                                            <input type="text" inputmode="decimal" name="value_max" class="filter-numeric-input" placeholder="80" aria-label="{% trans 'Upper bound' %}">
+                                                        {% elif param.name == "human_evalue" or param.name == "micro_evalue" %}
+                                                            <input type="text" inputmode="decimal" name="value_max" class="filter-numeric-input" placeholder="0.01" aria-label="{% trans 'Upper bound' %}">
+                                                        {% else %}
+                                                            <input type="text" inputmode="decimal" name="value_max" class="filter-numeric-input" placeholder="1.00" aria-label="{% trans 'Upper bound' %}">
+                                                        {% endif %}
+                                                    </label>
+                                                    <button type="submit" class="filter-numeric-apply">{% trans "Apply" %}</button>
+                                                </div>
+                                                <p class="filter-numeric-message" aria-live="polite"></p>
+                                            </form>
+                                            {% if param.active_filters %}
+                                                <div class="filter-chip-group filter-chip-group--active">
+                                                    {% for entry in param.active_filters %}
+                                                        <form method="POST" action="" class="filter-chip-form">
+                                                            {% csrf_token %}
+                                                            <input type="hidden" name="action" value="remove_filter">
+                                                            <input type="hidden" name="filter_option_id" value="{{ entry.id }}">
+                                                            <input type="hidden" name="return_query" value="{{ query_string }}">
+                                                            <button type="submit" class="filter-chip filter-chip--active">
+                                                                <span class="filter-chip-glyph" aria-hidden="true">&times;</span>
+                                                                <span class="filter-chip-label">{{ entry.display_name }}</span>
+                                                            </button>
+                                                        </form>
+                                                    {% endfor %}
+                                                </div>
+                                            {% endif %}
+                                        {% else %}
+                                            <div class="filter-chip-group">
+                                                {% for option in param.options %}
+                                                    {% if option.is_link %}
+                                                        <a href="{{ option.url }}"
+                                                           class="filter-chip {% if option.tone %}filter-chip--{{ option.tone }}{% endif %} {% if option.active %}filter-chip--active{% endif %}"
+                                                           {% if option.description %}title="{{ option.description }}"{% endif %}
+                                                           aria-pressed="{% if option.active %}true{% else %}false{% endif %}">
+                                                            {% if option.active %}<span class="filter-chip-glyph" aria-hidden="true">&times;</span>{% endif %}
+                                                            <span class="filter-chip-label">{{ option.label }}</span>
+                                                        </a>
+                                                    {% else %}
+                                                        <form method="POST" action="" class="filter-chip-form">
+                                                            {% csrf_token %}
+                                                            <input type="hidden" name="action" value="{% if option.active %}remove_filter{% else %}add_filter{% endif %}">
+                                                            <input type="hidden" name="filter_option_id" value="{{ option.id }}">
+                                                            <input type="hidden" name="return_query" value="{{ query_string }}">
+                                                            <button type="submit"
+                                                                    class="filter-chip {% if option.tone %}filter-chip--{{ option.tone }}{% endif %} {% if option.active %}filter-chip--active{% endif %}"
+                                                                    {% if option.description %}title="{{ option.description }}"{% endif %}
+                                                                    aria-pressed="{% if option.active %}true{% else %}false{% endif %}">
+                                                                {% if option.active %}<span class="filter-chip-glyph" aria-hidden="true">&times;</span>{% endif %}
+                                                                <span class="filter-chip-label">{{ option.label }}</span>
+                                                            </button>
+                                                        </form>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                    </details>
+                {% empty %}
+                    <p class="tp-state-note tp-state-note--empty filter-catalogue-empty">{% trans "No criteria available for this genome yet." %}</p>
+                {% endfor %}
+                <p class="filter-search-no-results tp-state-note tp-state-note--empty" id="filter-search-no-results" hidden>
+                    {% trans "No criteria match the search." %}
+                </p>
+            </div>
+
+        </div>
+        <div class="drawer-foot">
+            <form method="POST" action="" class="drawer-reset-form">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="reset_filters">
+                <input type="hidden" name="return_query" value="{{ query_string }}">
+                {% trans "Clear all criteria" as clear_filters_label %}
+                {% if parameters or annotation_filter or structure_filter %}
+                    {% include "components/buttons/clear_action.html" with label=clear_filters_label button_type="submit" classes="btn tp-btn tp-btn--clear tp-btn--clear-caution tp-btn-with-icon drawer-clear-btn" %}
+                {% else %}
+                    {% include "components/buttons/clear_action.html" with label=clear_filters_label button_type="submit" disabled="1" classes="btn tp-btn tp-btn--clear tp-btn--clear-caution tp-btn-with-icon drawer-clear-btn" %}
+                {% endif %}
+            </form>
+            <button type="button" class="btn tp-btn tp-btn--primary drawer-done-btn" id="filters-done-btn">{% trans "Done" %}</button>
+        </div>
+    </aside>
+
+    <div class="tp-overlay" id="columns-overlay"></div>
+    <aside class="filters-drawer columns-drawer" id="columns-modal" aria-hidden="true" aria-label="{% trans 'Columns' %}">
+        <div class="drawer-head">
+            <h2>{% trans "Columns" %}</h2>
+            <button class="btn tp-btn tp-btn--neutral drawer-close-btn" type="button" id="close-columns-btn" aria-label="{% trans 'Close' %}">
+                <span class="drawer-close-glyph" aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="drawer-body columns-body">
+            <div class="columns-fixed-note">
+                <span class="columns-fixed-note__label">{% trans "Always shown" %}</span>
+                <div class="columns-fixed-note__chips">
+                    {% for label in fixed_column_labels %}
+                        <span class="tp-chip tp-chip--meta tp-chip--sm columns-fixed-chip">{{ label }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <form method="POST" action="" class="columns-form" id="columns-form">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="update_columns">
+                <input type="hidden" name="return_query" value="{{ query_string }}">
+
+                <section class="columns-section">
+                    <header class="columns-section-head">
+                        <h3>{% trans "In the table" %}</h3>
+                        <span class="columns-section-count" id="columns-selected-count">{{ selected_column_names|length }}</span>
+                    </header>
+                    <p class="columns-section-hint">{% trans "Drag to reorder. Click the eye to hide." %}</p>
+                    <div class="columns-order-list" id="columns-visible-list">
+                        {% for row in column_rows %}
+                            {% if row.selected %}
+                            <div class="columns-row columns-row--selected"
+                                 data-column-row
+                                 data-column-name="{{ row.name }}"
+                                 data-column-label="{{ row.label }}"
+                                 data-selected="true"
+                                 draggable="true"
+                                 {% if row.description %}title="{{ row.description }}"{% endif %}>
+                                <input type="checkbox"
+                                       class="columns-option-input"
+                                       name="visible_columns"
+                                       value="{{ row.name }}"
+                                       checked>
+                                <button type="button"
+                                        class="columns-drag-handle"
+                                        data-columns-drag-handle
+                                        aria-label="{% trans 'Reorder' %}"
+                                        title="{% trans 'Drag to reorder' %}">
+                                    <span class="columns-drag-glyph" aria-hidden="true"></span>
+                                </button>
+                                <div class="columns-row-copy">
+                                    <span class="columns-row-label">{{ row.label }}</span>
+                                    <span class="columns-row-category">{{ row.category }}</span>
+                                </div>
+                                <span class="columns-order-index" aria-hidden="true"></span>
+                                <button type="button"
+                                        class="columns-icon-btn columns-visibility-btn"
+                                        data-columns-toggle
+                                        aria-label="{% trans 'Hide' %}"
+                                        title="{% trans 'Hide column' %}">
+                                    <span class="columns-icon columns-icon--visible">{% include "components/icons/eye.html" %}</span>
+                                    <span class="columns-icon columns-icon--hidden">{% include "components/icons/eye_off.html" %}</span>
+                                </button>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    <p class="columns-empty-state tp-state-note tp-state-note--empty" id="columns-visible-empty" {% if selected_column_names %}hidden{% endif %}>
+                        {% trans "No optional columns visible. Add some from the list below." %}
+                    </p>
+                </section>
+
+                <section class="columns-section" id="columns-available-section" {% if column_rows|length == selected_column_names|length %}hidden{% endif %}>
+                    <header class="columns-section-head">
+                        <h3>{% trans "Available to add" %}</h3>
+                    </header>
+                    <div class="columns-library-list" id="columns-library-list">
+                        {% for row in column_rows %}
+                            {% if not row.selected %}
+                            <div class="columns-row columns-row--available is-hidden"
+                                 data-column-row
+                                 data-column-name="{{ row.name }}"
+                                 data-column-label="{{ row.label }}"
+                                 data-selected="false"
+                                 {% if row.description %}title="{{ row.description }}"{% endif %}>
+                                <input type="checkbox"
+                                       class="columns-option-input"
+                                       name="visible_columns"
+                                       value="{{ row.name }}">
+                                <button type="button"
+                                        class="columns-drag-handle"
+                                        data-columns-drag-handle
+                                        aria-label="{% trans 'Reorder' %}"
+                                        title="{% trans 'Drag to reorder' %}">
+                                    <span class="columns-drag-glyph" aria-hidden="true"></span>
+                                </button>
+                                <div class="columns-row-copy">
+                                    <span class="columns-row-label">{{ row.label }}</span>
+                                    <span class="columns-row-category">{{ row.category }}</span>
+                                </div>
+                                <span class="columns-order-index" aria-hidden="true"></span>
+                                <button type="button"
+                                        class="columns-icon-btn columns-visibility-btn"
+                                        data-columns-toggle
+                                        aria-label="{% trans 'Show' %}"
+                                        title="{% trans 'Show column' %}">
+                                    <span class="columns-icon columns-icon--visible">{% include "components/icons/eye.html" %}</span>
+                                    <span class="columns-icon columns-icon--hidden">{% include "components/icons/eye_off.html" %}</span>
+                                </button>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </section>
+            </form>
+        </div>
+        <div class="drawer-foot columns-foot">
+            <form method="POST" action="" class="columns-restore-form">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="reset_columns">
+                <input type="hidden" name="return_query" value="{{ query_string }}">
+                <button type="submit" class="columns-restore-link">{% trans "Restore defaults" %}</button>
+            </form>
+            <button class="btn tp-btn tp-btn--primary drawer-done-btn" type="submit" form="columns-form">{% trans "Apply" %}</button>
+        </div>
+    </aside>
+
+    {% if formulas %}
+        <div class="tp-overlay" id="formula-overlay"></div>
+        <aside class="filters-drawer scoring-drawer" id="formula-modal" aria-hidden="true" aria-label="{% trans 'Scoring' %}">
+            <div class="drawer-head">
+                <h2>{% trans "Scoring" %}</h2>
+                <button class="btn tp-btn tp-btn--neutral drawer-close-btn" type="button" id="close-formula-btn" aria-label="{% trans 'Close' %}">
+                    <span class="drawer-close-glyph" aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="drawer-body scoring-drawer-body">
+                {% if formulas_for_drawer %}
+                    <div class="scoring-formula-list" role="radiogroup" aria-label="{% trans 'Ranking formula' %}">
+                        <div class="scoring-formula-entry">
+                            <form method="GET" action="" class="scoring-formula-form">
+                                {% if search_query %}<input type="hidden" name="search" value="{{ search_query }}">{% endif %}
+                                {% if structure_source %}<input type="hidden" name="structure_source" value="{{ structure_source }}">{% endif %}
+                                {% if annotation_filter %}
+                                    <input type="hidden" name="annotation_kind" value="{{ annotation_filter.kind }}">
+                                    <input type="hidden" name="annotation_value" value="{{ annotation_filter.value }}">
+                                {% endif %}
+                                <input type="hidden" name="pageSize" value="{{ page_size }}">
+                                <input type="hidden" name="scoreformula" value="__none__">
+                                <button type="submit"
+                                        class="scoring-formula-row {% if not formula_active %}scoring-formula-row--current{% endif %}"
+                                        role="radio"
+                                        aria-checked="{% if not formula_active %}true{% else %}false{% endif %}">
+                                    <span class="scoring-formula-row__radio" aria-hidden="true"></span>
+                                    <span class="scoring-formula-row__body">
+                                        <span class="scoring-formula-row__title">
+                                            <span class="scoring-formula-row__name">{% trans "No scoring" %}</span>
+                                            <span class="scoring-formula-row__badge">{% trans "Default" %}</span>
+                                        </span>
+                                        <code class="scoring-formula-row__expression">{% trans "Sort by any column independently" %}</code>
+                                    </span>
+                                </button>
+                            </form>
+                        </div>
+                        {% for entry in formulas_for_drawer %}
+                            <div class="scoring-formula-entry">
+                                <form method="GET" action="" class="scoring-formula-form">
+                                    {% if search_query %}<input type="hidden" name="search" value="{{ search_query }}">{% endif %}
+                                    {% if structure_source %}<input type="hidden" name="structure_source" value="{{ structure_source }}">{% endif %}
+                                    {% if annotation_filter %}
+                                        <input type="hidden" name="annotation_kind" value="{{ annotation_filter.kind }}">
+                                        <input type="hidden" name="annotation_value" value="{{ annotation_filter.value }}">
+                                    {% endif %}
+                                    <input type="hidden" name="pageSize" value="{{ page_size }}">
+                                    <input type="hidden" name="scoreformula" value="{{ entry.name }}">
+                                    <button type="submit"
+                                            class="scoring-formula-row {% if entry.is_current %}scoring-formula-row--current{% endif %}"
+                                            role="radio"
+                                            aria-checked="{% if entry.is_current %}true{% else %}false{% endif %}"
+                                            {% if entry.is_current %}aria-current="true"{% endif %}>
+                                        <span class="scoring-formula-row__radio" aria-hidden="true"></span>
+                                        <span class="scoring-formula-row__body">
+                                            <span class="scoring-formula-row__title">
+                                                <span class="scoring-formula-row__name">{{ entry.name }}</span>
+                                                {% if entry.is_default %}<span class="scoring-formula-row__badge">{% trans "Default" %}</span>{% endif %}
+                                            </span>
+                                            {% if entry.expression %}
+                                                <code class="scoring-formula-row__expression">{{ entry.expression }}</code>
+                                            {% endif %}
+                                        </span>
+                                    </button>
+                                </form>
+                                {% if entry.is_user_formula %}
+                                    <form method="POST"
+                                          action="{% url 'tpwebapp:delete_formula' genome=genome formula_pk=entry.pk %}"
+                                          class="scoring-formula-delete-form"
+                                          onsubmit="return confirm('{% trans "Delete this formula?" %}')">
+                                        {% csrf_token %}
+                                        <button type="submit" class="scoring-formula-delete-btn" title="{% trans 'Delete formula' %}">
+                                            {% include "components/icons/trash.html" %}
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="tp-state-note tp-state-note--empty">{% trans "No scoring formulas available for this workspace." %}</p>
+                {% endif %}
+
+                <section class="scoring-mydata">
+                    <h3 class="scoring-mydata__title">{% trans "My data" %}</h3>
+
+                    <div class="scoring-mydata__actions">
+                        <a href="{{ custom_score_url }}" class="scoring-mydata__action">
+                            <span class="scoring-mydata__action-label">{% trans "Make my own score" %}</span>
+                            <span class="scoring-mydata__action-arrow" aria-hidden="true">→</span>
+                        </a>
+                        <a href="{{ custom_data_url }}" class="scoring-mydata__action">
+                            <span class="scoring-mydata__action-label">{% trans "Add my own data" %}</span>
+                            <span class="scoring-mydata__action-arrow" aria-hidden="true">→</span>
+                        </a>
+                    </div>
+
+                    {% if custom_data_for_drawer %}
+                        <div class="scoring-mydata__files">
+                            <span class="scoring-mydata__files-label">
+                                {% blocktrans count total=custom_data_count %}{{ total }} file added{% plural %}{{ total }} files added{% endblocktrans %}
+                            </span>
+                            <ul class="scoring-mydata__files-list">
+                                {% for entry in custom_data_for_drawer|slice:":4" %}
+                                    <li class="scoring-mydata__file">{{ entry.file_name }}</li>
+                                {% endfor %}
+                                {% if custom_data_count > 4 %}
+                                    <li class="scoring-mydata__file scoring-mydata__file--more">
+                                        <a href="{{ custom_data_url }}">{% blocktrans count more=custom_data_count|add:"-4" %}+{{ more }} more{% plural %}+{{ more }} more{% endblocktrans %}</a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                    {% endif %}
+                </section>
+            </div>
+        </aside>
     {% endif %}
-
-    </ul>
-{% else %}
-    <ul class="pagination justify-content-center">
-    {% if pagination.has_previous %}
-        <li class="page-item"><a class="page-link"  href="{{ base_url }}&page={{ pagination.previous_page_number }}">Previous</a>
-    {% endif %}
-
-       {% for num in pagination.page_range %}
-            {% if num == 1 %}
-                <li class="page-item"><a class="page-link" href="{{ base_url }}&page={{ num }}">{{ num }}</a></li>
-            {% elif num <= pagination.number|add:10 and num >= pagination.number|add:-10 %}
-                <li class="page-item"><a class="page-link" href="{{ base_url }}&page={{ num }}">{{ num }}</a></li>
-            {% elif num == pagination.num_pages %}
-                <li class="page-item"><a class="page-link" href="{{ base_url }}&page={{ num }}">{{ num }}</a></li>
-            {% endif %}
-        {% endfor %}
-
-    {% if pagination.has_next %}
-        <li class="page-item"><a class="page-link" href="{{ base_url }}&page={{ pagination.next_page_number }}">Next</a>
-    {% endif %}
-
-    </ul>
-{% endif %}
 {% endblock %}
 
 {% block jsloaded %}
     <script>
+        function setDrawerState(isOpen) {
+            const overlay = document.getElementById("filters-overlay");
+            const drawer = document.getElementById("filters-drawer");
+            if (!overlay || !drawer) return;
+            overlay.classList.toggle("open", isOpen);
+            drawer.classList.toggle("open", isOpen);
+            drawer.setAttribute("aria-hidden", isOpen ? "false" : "true");
+        }
 
+        function setFormulaState(isOpen) {
+            const overlay = document.getElementById("formula-overlay");
+            const modal = document.getElementById("formula-modal");
+            if (!overlay || !modal) return;
+            overlay.classList.toggle("open", isOpen);
+            modal.classList.toggle("open", isOpen);
+            modal.setAttribute("aria-hidden", isOpen ? "false" : "true");
+        }
+
+        function setColumnsState(isOpen) {
+            const overlay = document.getElementById("columns-overlay");
+            const modal = document.getElementById("columns-modal");
+            if (!overlay || !modal) return;
+            overlay.classList.toggle("open", isOpen);
+            modal.classList.toggle("open", isOpen);
+            modal.setAttribute("aria-hidden", isOpen ? "false" : "true");
+        }
+
+        function jsloaded() {
+            const searchForm = document.getElementById("protein-search-form");
+            const pageSizeSelect = document.getElementById("pageSizeSelect");
+            const structureSourceSelect = document.getElementById("structureSourceSelect");
+            const pageSizeControl = document.querySelector(".per-page-control");
+            const searchInput = document.getElementById("protein-search-input");
+            const searchSubmitBtn = document.getElementById("protein-search-submit");
+            const autocompleteRoot = document.getElementById("protein-search-autocomplete");
+            const suggestionsBox = document.getElementById("protein-search-suggestions");
+            const suggestUrl = autocompleteRoot ? autocompleteRoot.getAttribute("data-suggest-url") : "";
+            const scoreFormulaSelect = document.getElementById("score_formula_select");
+            const applyFormulaBtn = document.getElementById("apply-formula-btn");
+            const filterSearchInput = document.getElementById("filter-search-input");
+            const filterSearchClearBtn = document.getElementById("filter-search-clear");
+            const filterCatalogue = document.getElementById("drawer-filter-catalogue");
+            const filterExpandAllBtn = document.getElementById("filter-expand-all");
+            const filterSearchNoResults = document.getElementById("filter-search-no-results");
+            const filtersDoneBtn = document.getElementById("filters-done-btn");
+            let suggestionsTimer = null;
+            let suggestionRequestId = 0;
+            let activeSuggestionIndex = -1;
+            const AUTOCOMPLETE_CONFIG = Object.freeze({
+                minChars: 2,
+                debounceMs: 180,
+                limit: 8,
+                blurDelayMs: 120
+            });
+            const UI_TEXT = Object.freeze({
+                suggestionRequestFailed: autocompleteRoot ? (autocompleteRoot.getAttribute("data-suggest-error") || "") : ""
+            });
+
+            function submitSearchForm() {
+                if (!searchForm) return;
+                searchForm.submit();
+            }
+
+            function hasSearchText() {
+                return Boolean(searchInput && (searchInput.value || "").trim().length > 0);
+            }
+
+            function syncSearchSubmitState() {
+                if (!searchSubmitBtn) return;
+                searchSubmitBtn.disabled = !hasSearchText();
+            }
+
+            if (pageSizeSelect) {
+                pageSizeSelect.addEventListener("change", submitSearchForm);
+            }
+
+            var pageJumpInput = document.getElementById("pageJumpInput");
+            if (pageJumpInput) {
+                function navigateToPage() {
+                    var page = parseInt(pageJumpInput.value, 10);
+                    var max = parseInt(pageJumpInput.max, 10);
+                    if (!page || page < 1) page = 1;
+                    if (page > max) page = max;
+                    if (page === {{ pagination.number }}) return;
+                    var params = new URLSearchParams(window.location.search);
+                    params.set("page", page);
+                    window.location.search = params.toString();
+                }
+                pageJumpInput.addEventListener("keydown", function (e) {
+                    if (e.key === "Enter") { e.preventDefault(); navigateToPage(); }
+                });
+                pageJumpInput.addEventListener("blur", navigateToPage);
+            }
+
+            if (searchForm) {
+                searchForm.addEventListener("submit", function (event) {
+                    if (event.submitter !== searchSubmitBtn) return;
+                    if (hasSearchText()) return;
+                    event.preventDefault();
+                    syncSearchSubmitState();
+                    if (searchInput) searchInput.focus();
+                });
+            }
+
+            if (pageSizeControl && pageSizeSelect) {
+                pageSizeControl.addEventListener("click", function (event) {
+                    if (event.target.closest(".tp-select-trigger") || event.target.closest(".tp-select-menu")) return;
+                    const enhancedWrapper = pageSizeSelect.closest(".tp-select");
+                    const enhancedTrigger = enhancedWrapper ? enhancedWrapper.querySelector(".tp-select-trigger") : null;
+                    if (enhancedTrigger) {
+                        enhancedTrigger.click();
+                        return;
+                    }
+                    if (event.target === pageSizeSelect) return;
+                    if (typeof pageSizeSelect.showPicker === "function") {
+                        pageSizeSelect.showPicker();
+                    } else {
+                        pageSizeSelect.focus();
+                        pageSizeSelect.click();
+                    }
+                });
+            }
+
+            function getSuggestionButtons() {
+                if (!suggestionsBox) return [];
+                return Array.from(suggestionsBox.querySelectorAll(".search-suggestion-item"));
+            }
+
+            function setSuggestionsExpanded(isExpanded) {
+                if (!searchInput) return;
+                searchInput.setAttribute("aria-expanded", isExpanded ? "true" : "false");
+            }
+
+            function setActiveSuggestion(index) {
+                const suggestionButtons = getSuggestionButtons();
+                activeSuggestionIndex = -1;
+                suggestionButtons.forEach(function (button) {
+                    button.classList.remove("is-active");
+                    button.setAttribute("aria-selected", "false");
+                });
+                if (!searchInput) return;
+                searchInput.setAttribute("aria-activedescendant", "");
+                if (index < 0 || index >= suggestionButtons.length) return;
+                activeSuggestionIndex = index;
+                const activeButton = suggestionButtons[index];
+                activeButton.classList.add("is-active");
+                activeButton.setAttribute("aria-selected", "true");
+                searchInput.setAttribute("aria-activedescendant", activeButton.id || "");
+            }
+
+            function applySuggestion(button) {
+                if (!button || !searchInput) return;
+                const selectedValue = button.getAttribute("data-accession") || "";
+                searchInput.value = selectedValue;
+                searchInput.focus();
+                hideSuggestions();
+                submitSearchForm();
+            }
+
+            function hideSuggestions() {
+                if (!suggestionsBox) return;
+                suggestionsBox.innerHTML = "";
+                suggestionsBox.hidden = true;
+                activeSuggestionIndex = -1;
+                setSuggestionsExpanded(false);
+                if (searchInput) {
+                    searchInput.setAttribute("aria-activedescendant", "");
+                }
+            }
+
+            function renderSuggestions(items) {
+                if (!suggestionsBox) return;
+                suggestionsBox.innerHTML = "";
+                activeSuggestionIndex = -1;
+                if (!items || !items.length) {
+                    suggestionsBox.hidden = true;
+                    setSuggestionsExpanded(false);
+                    return;
+                }
+
+                items.forEach(function (item, index) {
+                    const button = document.createElement("button");
+                    button.type = "button";
+                    button.className = "search-suggestion-item";
+                    button.id = "protein-search-suggestion-" + index;
+                    button.setAttribute("role", "option");
+                    button.setAttribute("aria-selected", "false");
+                    button.setAttribute("data-accession", item.accession || "");
+
+                    const accession = document.createElement("span");
+                    accession.className = "search-suggestion-accession";
+                    accession.textContent = item.accession || "";
+                    button.appendChild(accession);
+
+                    if (item.description) {
+                        const description = document.createElement("span");
+                        description.className = "search-suggestion-description";
+                        description.textContent = item.description;
+                        button.appendChild(description);
+                    }
+
+                    button.addEventListener("mousedown", function (event) {
+                        event.preventDefault();
+                    });
+
+                    button.addEventListener("click", function () {
+                        applySuggestion(button);
+                    });
+
+                    suggestionsBox.appendChild(button);
+                });
+
+                suggestionsBox.hidden = false;
+                setSuggestionsExpanded(true);
+            }
+
+            function fetchSuggestions(query) {
+                if (!suggestUrl || !query || query.length < AUTOCOMPLETE_CONFIG.minChars) {
+                    hideSuggestions();
+                    return;
+                }
+                suggestionRequestId += 1;
+                const currentRequestId = suggestionRequestId;
+                const url = suggestUrl + "?q=" + encodeURIComponent(query) + "&limit=" + AUTOCOMPLETE_CONFIG.limit;
+                fetch(url, {
+                    headers: {
+                        "X-Requested-With": "XMLHttpRequest"
+                    }
+                })
+                    .then(function (response) {
+                        if (!response.ok) {
+                            throw new Error(UI_TEXT.suggestionRequestFailed);
+                        }
+                        return response.json();
+                    })
+                    .then(function (payload) {
+                        if (currentRequestId !== suggestionRequestId) return;
+                        renderSuggestions(payload && payload.results ? payload.results : []);
+                    })
+                    .catch(function () {
+                        if (currentRequestId !== suggestionRequestId) return;
+                        hideSuggestions();
+                    });
+            }
+
+            if (searchInput) {
+                searchInput.addEventListener("input", function () {
+                    const query = (searchInput.value || "").trim();
+                    syncSearchSubmitState();
+                    window.clearTimeout(suggestionsTimer);
+                    suggestionsTimer = window.setTimeout(function () {
+                        fetchSuggestions(query);
+                    }, AUTOCOMPLETE_CONFIG.debounceMs);
+                });
+                searchInput.addEventListener("keydown", function (event) {
+                    const suggestionButtons = getSuggestionButtons();
+                    const hasSuggestions = suggestionsBox && !suggestionsBox.hidden && suggestionButtons.length > 0;
+                    if (event.key === "Escape") {
+                        hideSuggestions();
+                        return;
+                    }
+                    if (!hasSuggestions) return;
+                    if (event.key === "ArrowDown") {
+                        event.preventDefault();
+                        const nextIndex = activeSuggestionIndex >= suggestionButtons.length - 1 ? 0 : activeSuggestionIndex + 1;
+                        setActiveSuggestion(nextIndex);
+                        return;
+                    }
+                    if (event.key === "ArrowUp") {
+                        event.preventDefault();
+                        const prevIndex = activeSuggestionIndex <= 0 ? suggestionButtons.length - 1 : activeSuggestionIndex - 1;
+                        setActiveSuggestion(prevIndex);
+                        return;
+                    }
+                    if (event.key === "Enter" && activeSuggestionIndex >= 0) {
+                        event.preventDefault();
+                        applySuggestion(suggestionButtons[activeSuggestionIndex]);
+                    }
+                });
+                searchInput.addEventListener("blur", function () {
+                    window.setTimeout(hideSuggestions, AUTOCOMPLETE_CONFIG.blurDelayMs);
+                });
+                searchInput.addEventListener("focus", function () {
+                    const query = (searchInput.value || "").trim();
+                    if (query.length >= AUTOCOMPLETE_CONFIG.minChars) {
+                        fetchSuggestions(query);
+                    }
+                });
+                searchInput.addEventListener("change", syncSearchSubmitState);
+            }
+
+            syncSearchSubmitState();
+
+            document.addEventListener("click", function (event) {
+                if (!autocompleteRoot || !autocompleteRoot.contains(event.target)) {
+                    hideSuggestions();
+                }
+            });
+
+            function applyFilterCatalogueSearch() {
+                if (!filterCatalogue) return;
+                const query = filterSearchInput ? (filterSearchInput.value || "").trim().toLowerCase() : "";
+                const groups = filterCatalogue.querySelectorAll("[data-filter-group]");
+                let matchedTotal = 0;
+                groups.forEach(function (group) {
+                    const params = group.querySelectorAll("[data-filter-param]");
+                    const groupCategory = (group.getAttribute("data-category") || "").toLowerCase();
+                    const categoryMatches = Boolean(query) && groupCategory.indexOf(query) >= 0;
+                    let visibleParams = 0;
+                    params.forEach(function (param) {
+                        const text = (param.getAttribute("data-search-text") || "").toLowerCase();
+                        const matches = !query || text.indexOf(query) >= 0 || categoryMatches;
+                        param.classList.toggle("is-search-hidden", !matches);
+                        if (matches) visibleParams += 1;
+                    });
+                    const groupVisible = visibleParams > 0;
+                    group.classList.toggle("is-search-hidden", !groupVisible);
+                    if (query && groupVisible) {
+                        group.open = true;
+                    }
+                    if (groupVisible) matchedTotal += visibleParams;
+                });
+                if (filterSearchNoResults) {
+                    filterSearchNoResults.hidden = matchedTotal !== 0;
+                }
+                if (filterSearchClearBtn) {
+                    filterSearchClearBtn.hidden = !query;
+                }
+            }
+
+            function setExpandAllState(expanded) {
+                if (!filterCatalogue) return;
+                const groups = filterCatalogue.querySelectorAll("[data-filter-group]");
+                groups.forEach(function (group) {
+                    if (expanded) {
+                        group.open = true;
+                    } else {
+                        const hasActive = group.querySelector(".filter-chip--active");
+                        group.open = Boolean(hasActive);
+                    }
+                });
+                if (filterExpandAllBtn) {
+                    filterExpandAllBtn.setAttribute("data-expand-all", expanded ? "true" : "false");
+                    filterExpandAllBtn.textContent = expanded ? "{% trans 'Collapse all' %}" : "{% trans 'Expand all' %}";
+                }
+            }
+
+            if (filterSearchInput) {
+                filterSearchInput.addEventListener("input", applyFilterCatalogueSearch);
+                filterSearchInput.addEventListener("keydown", function (event) {
+                    if (event.key === "Escape") {
+                        filterSearchInput.value = "";
+                        applyFilterCatalogueSearch();
+                    }
+                });
+            }
+            if (filterSearchClearBtn) {
+                filterSearchClearBtn.addEventListener("click", function () {
+                    if (!filterSearchInput) return;
+                    filterSearchInput.value = "";
+                    filterSearchInput.focus();
+                    applyFilterCatalogueSearch();
+                });
+            }
+            if (filterExpandAllBtn) {
+                filterExpandAllBtn.addEventListener("click", function () {
+                    const isExpanded = filterExpandAllBtn.getAttribute("data-expand-all") === "true";
+                    setExpandAllState(!isExpanded);
+                });
+            }
+            if (filtersDoneBtn) {
+                filtersDoneBtn.addEventListener("click", function () { setDrawerState(false); });
+            }
+            applyFilterCatalogueSearch();
+
+            function syncApplyFormulaState() {
+                if (!scoreFormulaSelect || !applyFormulaBtn) return;
+                const selectedFormula = (scoreFormulaSelect.value || "").trim();
+                const currentFormula = (scoreFormulaSelect.getAttribute("data-current-value") || "").trim();
+                applyFormulaBtn.disabled = selectedFormula === currentFormula;
+            }
+
+            if (scoreFormulaSelect) {
+                scoreFormulaSelect.addEventListener("change", syncApplyFormulaState);
+                scoreFormulaSelect.addEventListener("input", syncApplyFormulaState);
+            }
+
+            syncApplyFormulaState();
+
+            const openFiltersBtn = document.getElementById("open-filters-btn");
+            const closeFiltersBtn = document.getElementById("close-filters-btn");
+            const filtersOverlay = document.getElementById("filters-overlay");
+
+            const openFormulaBtn = document.getElementById("open-formula-btn");
+            const closeFormulaBtn = document.getElementById("close-formula-btn");
+            const formulaOverlay = document.getElementById("formula-overlay");
+            const openColumnsBtn = document.getElementById("open-columns-btn");
+            const closeColumnsBtn = document.getElementById("close-columns-btn");
+            const columnsOverlay = document.getElementById("columns-overlay");
+            const columnsVisibleList = document.getElementById("columns-visible-list");
+            const columnsLibraryList = document.getElementById("columns-library-list");
+            const columnsSelectedCount = document.getElementById("columns-selected-count");
+            const columnsSelectedList = document.getElementById("columns-selected-list");
+            const columnsVisibleEmpty = document.getElementById("columns-visible-empty");
+            const columnsVisiblePanelCount = document.getElementById("columns-visible-panel-count");
+            let draggedColumnRow = null;
+
+            function openOnly(target) {
+                setDrawerState(target === "filters");
+                setFormulaState(target === "scoring");
+                setColumnsState(target === "columns");
+            }
+
+            if (openFiltersBtn) openFiltersBtn.addEventListener("click", function () { openOnly("filters"); });
+            if (closeFiltersBtn) closeFiltersBtn.addEventListener("click", function () { setDrawerState(false); });
+            if (filtersOverlay) filtersOverlay.addEventListener("click", function () { setDrawerState(false); });
+
+            if (openFormulaBtn) openFormulaBtn.addEventListener("click", function () { openOnly("scoring"); });
+            if (closeFormulaBtn) closeFormulaBtn.addEventListener("click", function () { setFormulaState(false); });
+            if (formulaOverlay) formulaOverlay.addEventListener("click", function () { setFormulaState(false); });
+            if (openColumnsBtn) openColumnsBtn.addEventListener("click", function () { openOnly("columns"); });
+            if (closeColumnsBtn) closeColumnsBtn.addEventListener("click", function () { setColumnsState(false); });
+            if (columnsOverlay) columnsOverlay.addEventListener("click", function () { setColumnsState(false); });
+
+            function getColumnRows() {
+                return Array.from(document.querySelectorAll("[data-column-row]"));
+            }
+
+            function getVisibleColumnRows() {
+                if (!columnsVisibleList) return [];
+                return Array.from(columnsVisibleList.querySelectorAll("[data-column-row]"));
+            }
+
+            function getLibraryRows() {
+                if (!columnsLibraryList) return [];
+                return Array.from(columnsLibraryList.querySelectorAll("[data-column-row]"));
+            }
+
+            function moveRowToVisibleList(row) {
+                if (!columnsVisibleList || !row) return;
+                columnsVisibleList.appendChild(row);
+            }
+
+            function moveRowToLibrary(row) {
+                if (!columnsLibraryList || !row) return;
+                const label = (row.getAttribute("data-column-label") || "").toLowerCase();
+                const rows = getLibraryRows().filter(function (candidate) { return candidate !== row; });
+                const nextRow = rows.find(function (candidate) {
+                    const candidateLabel = (candidate.getAttribute("data-column-label") || "").toLowerCase();
+                    return candidateLabel.localeCompare(label) > 0;
+                });
+                if (nextRow) {
+                    columnsLibraryList.insertBefore(row, nextRow);
+                    return;
+                }
+                columnsLibraryList.appendChild(row);
+            }
+
+            function syncColumnsSummary() {
+                const visibleRows = getVisibleColumnRows();
+                if (columnsSelectedCount) {
+                    columnsSelectedCount.textContent = String(visibleRows.length);
+                }
+                if (columnsVisiblePanelCount) {
+                    columnsVisiblePanelCount.textContent = String(visibleRows.length);
+                }
+                if (columnsVisibleEmpty) {
+                    columnsVisibleEmpty.hidden = visibleRows.length > 0;
+                }
+                if (!columnsSelectedList) return;
+                columnsSelectedList.innerHTML = "";
+                if (!visibleRows.length) {
+                    const chip = document.createElement("span");
+                    chip.className = "tp-chip tp-chip--meta tp-chip--sm columns-selected-chip columns-selected-chip--empty";
+                    chip.textContent = "No optional columns visible";
+                    columnsSelectedList.appendChild(chip);
+                    return;
+                }
+                visibleRows.forEach(function (row) {
+                    const chip = document.createElement("span");
+                    chip.className = "tp-chip tp-chip--meta tp-chip--sm columns-selected-chip";
+                    chip.textContent = row.getAttribute("data-column-label") || "";
+                    columnsSelectedList.appendChild(chip);
+                });
+            }
+
+            function syncColumnRow(row, visibleRows, rowIndex) {
+                if (!row) return;
+                const checkbox = row.querySelector(".columns-option-input");
+                const toggleBtn = row.querySelector("[data-columns-toggle]");
+                const orderIndex = row.querySelector(".columns-order-index");
+                const dragHandle = row.querySelector("[data-columns-drag-handle]");
+                const isSelected = Boolean(checkbox && checkbox.checked);
+                row.setAttribute("data-selected", isSelected ? "true" : "false");
+                row.classList.toggle("is-hidden", !isSelected);
+                row.classList.toggle("columns-row--selected", isSelected);
+                row.classList.toggle("columns-row--available", !isSelected);
+                row.draggable = isSelected;
+                if (toggleBtn) {
+                    const label = isSelected ? "Hide column" : "Show column";
+                    toggleBtn.setAttribute("aria-label", label);
+                    toggleBtn.setAttribute("title", label);
+                }
+                if (orderIndex) {
+                    orderIndex.textContent = isSelected && typeof rowIndex === "number" ? String(rowIndex + 1) : "—";
+                }
+                if (dragHandle) {
+                    dragHandle.disabled = !isSelected;
+                }
+            }
+
+            function syncLibrarySectionVisibility() {
+                if (!columnsLibraryList) return;
+                const wrapper = columnsLibraryList.closest(".columns-section");
+                if (!wrapper) return;
+                wrapper.hidden = columnsLibraryList.children.length === 0;
+            }
+
+            function syncAllColumnRows() {
+                const visibleRows = getVisibleColumnRows();
+                getColumnRows().forEach(function (row) {
+                    const rowIndex = visibleRows.indexOf(row);
+                    syncColumnRow(row, visibleRows, rowIndex >= 0 ? rowIndex : null);
+                });
+                syncColumnsSummary();
+                syncLibrarySectionVisibility();
+            }
+
+            function getDragAfterElement(container, y) {
+                const draggableElements = Array.from(container.querySelectorAll("[data-column-row][data-selected='true']:not(.is-dragging)"));
+                let closest = { offset: Number.NEGATIVE_INFINITY, element: null };
+                draggableElements.forEach(function (element) {
+                    const box = element.getBoundingClientRect();
+                    const offset = y - box.top - box.height / 2;
+                    if (offset < 0 && offset > closest.offset) {
+                        closest = { offset: offset, element: element };
+                    }
+                });
+                return closest.element;
+            }
+
+            if (columnsVisibleList && columnsLibraryList) {
+                document.addEventListener("click", function (event) {
+                    const toggleButton = event.target.closest("[data-columns-toggle]");
+                    if (toggleButton) {
+                        const row = toggleButton.closest("[data-column-row]");
+                        const checkbox = row ? row.querySelector(".columns-option-input") : null;
+                        if (!row || !checkbox) return;
+                        checkbox.checked = !checkbox.checked;
+                        if (checkbox.checked) {
+                            moveRowToVisibleList(row);
+                        } else {
+                            moveRowToLibrary(row);
+                        }
+                        syncAllColumnRows();
+                    }
+                });
+
+                columnsVisibleList.addEventListener("dragstart", function (event) {
+                    const row = event.target.closest("[data-column-row]");
+                    if (!row || row.getAttribute("data-selected") !== "true") return;
+                    draggedColumnRow = row;
+                    row.classList.add("is-dragging");
+                    if (event.dataTransfer) {
+                        event.dataTransfer.effectAllowed = "move";
+                    }
+                });
+
+                columnsVisibleList.addEventListener("dragend", function () {
+                    if (draggedColumnRow) {
+                        draggedColumnRow.classList.remove("is-dragging");
+                    }
+                    draggedColumnRow = null;
+                    syncAllColumnRows();
+                });
+
+                columnsVisibleList.addEventListener("dragover", function (event) {
+                    if (!draggedColumnRow) return;
+                    event.preventDefault();
+                    const afterElement = getDragAfterElement(columnsVisibleList, event.clientY);
+                    if (!afterElement) {
+                        columnsVisibleList.appendChild(draggedColumnRow);
+                        return;
+                    }
+                    if (afterElement !== draggedColumnRow) {
+                        columnsVisibleList.insertBefore(draggedColumnRow, afterElement);
+                    }
+                });
+
+                syncAllColumnRows();
+            }
+
+            const proteinTableShell = document.querySelector(".protein-table-panel .tp-table-shell");
+            const proteinTableScrollNote = document.getElementById("protein-table-scroll-note");
+            const proteinTableTopScroll = document.getElementById("protein-table-top-scroll");
+            const proteinTableTopScrollInner = document.getElementById("protein-table-top-scroll-inner");
+
+            function syncProteinTableScrollNote() {
+                if (!proteinTableShell || !proteinTableScrollNote) return;
+                const scrollHost = proteinTableShell.querySelector(":scope > .tp-table-shell__scroll") || proteinTableShell;
+                if (!scrollHost) return;
+                const table = scrollHost.querySelector("#proteins_table");
+                const contentWidth = Math.max(
+                    scrollHost.clientWidth || 1,
+                    table ? Math.ceil(table.getBoundingClientRect().width) : 0,
+                    table ? table.scrollWidth : 0
+                );
+                const maxScrollLeft = Math.max(0, contentWidth - scrollHost.clientWidth);
+                if (maxScrollLeft <= 0) {
+                    scrollHost.scrollLeft = 0;
+                } else if (scrollHost.scrollLeft > maxScrollLeft) {
+                    scrollHost.scrollLeft = maxScrollLeft;
+                }
+                const hasOverflow = maxScrollLeft > 16;
+                proteinTableScrollNote.hidden = !hasOverflow;
+                if (proteinTableTopScroll && proteinTableTopScrollInner) {
+                    proteinTableTopScroll.hidden = !hasOverflow;
+                    const trackInset = 6;
+                    const trackWidth = Math.max(1, (proteinTableTopScroll.clientWidth || scrollHost.clientWidth || 1) - trackInset);
+                    const proportionalThumb = Math.round((scrollHost.clientWidth / contentWidth) * trackWidth);
+                    const thumbWidth = hasOverflow
+                        ? Math.min(
+                            Math.round(trackWidth * 0.72),
+                            Math.max(88, proportionalThumb)
+                        )
+                        : trackWidth;
+                    const maxThumbOffset = Math.max(0, trackWidth - thumbWidth);
+                    const thumbOffset = hasOverflow
+                        ? Math.round((scrollHost.scrollLeft / maxScrollLeft) * maxThumbOffset)
+                        : 0;
+
+                    proteinTableTopScroll.classList.toggle("is-disabled", !hasOverflow);
+                    proteinTableTopScroll.style.setProperty("--protein-scroll-thumb-size", `${thumbWidth}px`);
+                    proteinTableTopScroll.style.setProperty("--protein-scroll-thumb-offset", `${thumbOffset}px`);
+                    proteinTableTopScrollInner.style.width = contentWidth + "px";
+                }
+            }
+
+            if (proteinTableShell && proteinTableScrollNote) {
+                const scrollHost = proteinTableShell.querySelector(":scope > .tp-table-shell__scroll") || proteinTableShell;
+                if (scrollHost) {
+                    scrollHost.addEventListener("scroll", syncProteinTableScrollNote, { passive: true });
+                    if (proteinTableTopScroll) {
+                        let isDraggingTopScroll = false;
+
+                        const moveTableScrollFromTrack = function (clientX) {
+                            const trackRect = proteinTableTopScroll.getBoundingClientRect();
+                            const trackInset = 6;
+                            const trackWidth = Math.max(1, trackRect.width - trackInset);
+                            const trackLeft = trackRect.left + (trackInset / 2);
+                            const table = scrollHost.querySelector("#proteins_table");
+                            const contentWidth = Math.max(
+                                scrollHost.clientWidth || 1,
+                                table ? Math.ceil(table.getBoundingClientRect().width) : 0,
+                                table ? table.scrollWidth : 0
+                            );
+                            const maxScrollLeft = Math.max(0, contentWidth - scrollHost.clientWidth);
+                            if (maxScrollLeft <= 0) return;
+                            const proportionalThumb = Math.round((scrollHost.clientWidth / contentWidth) * trackWidth);
+                            const thumbWidth = Math.min(
+                                Math.round(trackWidth * 0.72),
+                                Math.max(88, proportionalThumb)
+                            );
+                            const maxThumbOffset = Math.max(0, trackWidth - thumbWidth);
+                            const centeredOffset = Math.min(
+                                Math.max(0, clientX - trackLeft - (thumbWidth / 2)),
+                                maxThumbOffset
+                            );
+                            const centeredRatio = maxThumbOffset > 0 ? (centeredOffset / maxThumbOffset) : 0;
+                            scrollHost.scrollLeft = centeredRatio * maxScrollLeft;
+                        };
+
+                        proteinTableTopScroll.addEventListener("mousedown", function (event) {
+                            if (proteinTableTopScroll.classList.contains("is-disabled")) return;
+                            isDraggingTopScroll = true;
+                            proteinTableTopScroll.classList.add("is-dragging");
+                            moveTableScrollFromTrack(event.clientX);
+                            event.preventDefault();
+                        });
+
+                        window.addEventListener("mousemove", function (event) {
+                            if (!isDraggingTopScroll) return;
+                            moveTableScrollFromTrack(event.clientX);
+                        });
+
+                        window.addEventListener("mouseup", function () {
+                            if (!isDraggingTopScroll) return;
+                            isDraggingTopScroll = false;
+                            proteinTableTopScroll.classList.remove("is-dragging");
+                        });
+                    }
+                }
+                window.addEventListener("resize", syncProteinTableScrollNote);
+                setTimeout(syncProteinTableScrollNote, 0);
+                setTimeout(syncProteinTableScrollNote, 180);
+            }
+
+            document.addEventListener("keydown", function (event) {
+                if (event.key === "Escape") {
+                    setDrawerState(false);
+                    setFormulaState(false);
+                    setColumnsState(false);
+                }
+            });
+
+            document.querySelectorAll(".filter-param-help").forEach(function (help) {
+                const tooltipText = help.getAttribute("data-filter-tooltip") || "";
+                if (!tooltipText) return;
+                const tooltip = document.createElement("span");
+                tooltip.className = "filter-param-tooltip";
+                tooltip.setAttribute("role", "tooltip");
+                tooltip.textContent = tooltipText;
+                document.body.appendChild(tooltip);
+
+                function positionTooltip() {
+                    const pad = 12;
+                    const gap = 10;
+                    const maxWidth = Math.min(340, window.innerWidth - (pad * 2));
+                    const anchor = help.getBoundingClientRect();
+                    tooltip.style.width = maxWidth + "px";
+                    tooltip.classList.remove("is-above");
+
+                    const size = tooltip.getBoundingClientRect();
+                    let left = anchor.left + (anchor.width / 2) - (maxWidth / 2);
+                    left = Math.max(pad, Math.min(left, window.innerWidth - pad - maxWidth));
+
+                    let top = anchor.bottom + gap;
+                    const canFitBelow = top + size.height <= window.innerHeight - pad;
+                    const canFitAbove = anchor.top - size.height - gap >= pad;
+                    if (!canFitBelow && canFitAbove) {
+                        top = anchor.top - size.height - gap;
+                        tooltip.classList.add("is-above");
+                    }
+
+                    const arrowLeft = anchor.left + (anchor.width / 2) - left;
+                    tooltip.style.left = left + "px";
+                    tooltip.style.top = top + "px";
+                    tooltip.style.setProperty("--tooltip-arrow-left", Math.max(12, Math.min(maxWidth - 12, arrowLeft)) + "px");
+                }
+
+                function showTooltip() {
+                    positionTooltip();
+                    tooltip.classList.add("is-visible");
+                }
+
+                function hideTooltip() {
+                    tooltip.classList.remove("is-visible");
+                }
+
+                help.addEventListener("mouseenter", showTooltip);
+                help.addEventListener("mouseleave", hideTooltip);
+                help.addEventListener("focusin", showTooltip);
+                help.addEventListener("focusout", hideTooltip);
+                window.addEventListener("resize", positionTooltip);
+                document.addEventListener("scroll", function () {
+                    if (help.matches(":hover") || help.contains(document.activeElement)) {
+                        positionTooltip();
+                    }
+                }, true);
+            });
+
+            document.querySelectorAll(".filter-numeric-form").forEach(function (form) {
+                const primaryLabel = form.querySelector('[data-numeric-field="primary"] .filter-numeric-field-label');
+                const primaryInput = form.querySelector('[data-numeric-field="primary"] input');
+                const secondaryInput = form.querySelector('[data-numeric-field="secondary"] input');
+                const applyButton = form.querySelector(".filter-numeric-apply");
+                const message = form.querySelector(".filter-numeric-message");
+
+                function parseDecimal(input) {
+                    const raw = (input && input.value ? input.value : "").trim();
+                    if (!raw) return null;
+                    if (!/^[+-]?(?:\d+(?:[.,]\d*)?|[.,]\d+)$/.test(raw)) return NaN;
+                    return Number(raw.replace(",", "."));
+                }
+
+                let validationAttempted = false;
+
+                function setNumericState(isValid, text, showMessage) {
+                    const visibleText = showMessage ? (text || "") : "";
+                    form.classList.toggle("has-numeric-error", Boolean(visibleText));
+                    if (message) message.textContent = visibleText;
+                    if (applyButton) applyButton.disabled = !isValid;
+                }
+
+                function validateNumericFilter(showMessage) {
+                    const selected = form.querySelector('input[name="numeric_operation"]:checked');
+                    const mode = selected ? selected.value : "gte";
+                    const primaryValue = parseDecimal(primaryInput);
+                    const secondaryValue = parseDecimal(secondaryInput);
+
+                    if (mode === "between") {
+                        if (primaryValue === null && secondaryValue === null) {
+                            setNumericState(false, "Enter a lower and upper bound.", showMessage);
+                            return false;
+                        }
+                        if (primaryValue === null || secondaryValue === null) {
+                            setNumericState(false, "Both bounds are required for a range.", showMessage);
+                            return false;
+                        }
+                        if (Number.isNaN(primaryValue) || Number.isNaN(secondaryValue)) {
+                            setNumericState(false, "Use a valid decimal number.", showMessage);
+                            return false;
+                        }
+                        if (primaryValue > secondaryValue) {
+                            setNumericState(false, "Lower bound must be less than or equal to upper bound.", showMessage);
+                            return false;
+                        }
+                        setNumericState(true, "", showMessage);
+                        return true;
+                    }
+
+                    if (primaryValue === null) {
+                        setNumericState(false, "Enter a numeric value.", showMessage);
+                        return false;
+                    }
+                    if (Number.isNaN(primaryValue)) {
+                        setNumericState(false, "Use a valid decimal number.", showMessage);
+                        return false;
+                    }
+                    setNumericState(true, "", showMessage);
+                    return true;
+                }
+
+                function syncNumericMode() {
+                    const selected = form.querySelector('input[name="numeric_operation"]:checked');
+                    const mode = selected ? selected.value : "gte";
+                    form.classList.toggle("is-between", mode === "between");
+                    if (primaryLabel) {
+                        if (mode === "lte") primaryLabel.textContent = "Maximum";
+                        else if (mode === "between") primaryLabel.textContent = "Lower bound";
+                        else primaryLabel.textContent = "Minimum";
+                    }
+                    if (secondaryInput && mode !== "between") {
+                        secondaryInput.value = "";
+                    }
+                    if (validationAttempted) {
+                        validateNumericFilter(true);
+                    } else if (applyButton) {
+                        applyButton.disabled = false;
+                    }
+                }
+
+                form.querySelectorAll('input[name="numeric_operation"]').forEach(function (input) {
+                    input.addEventListener("change", syncNumericMode);
+                });
+                [primaryInput, secondaryInput].forEach(function (input) {
+                    if (!input) return;
+                    input.addEventListener("input", function () {
+                        if (validationAttempted) validateNumericFilter(true);
+                    });
+                    input.addEventListener("blur", function () {
+                        if (validationAttempted) validateNumericFilter(true);
+                    });
+                });
+                form.addEventListener("submit", function (event) {
+                    validationAttempted = true;
+                    if (!validateNumericFilter(true)) {
+                        event.preventDefault();
+                    }
+                });
+                syncNumericMode();
+            });
+
+            // Color-code druggability chips using FPocket thresholds
+            document.querySelectorAll(".js-drugg-cell").forEach(function (el) {
+                var v = parseFloat((el.dataset.score || "").replace(",", "."));
+                if (isNaN(v)) return;
+                if (v >= 0.7) { el.classList.add("tp-chip--drugg-high"); }
+                else if (v >= 0.4) { el.classList.add("tp-chip--drugg-mid"); }
+                else { el.classList.add("tp-chip--drugg-low"); }
+            });
+        }
+
+        if (window.jQuery) {
+            $(document).ready(jsloaded);
+        } else if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", jsloaded);
+        } else {
+            jsloaded();
+        }
     </script>
-{% endblock %}
-
-
-{% block footer %}
 {% endblock %}

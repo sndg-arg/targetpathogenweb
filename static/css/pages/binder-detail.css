@@ -1,0 +1,716 @@
+/* Binder detail page — mirrors protein-detail design language with a denser
+   chemistry-oriented layout (physchem, drug-likeness, provenance, siblings). */
+
+.binder-page {
+    font-family: "Source Sans 3", "Segoe UI", sans-serif;
+    color: var(--tp-ink);
+    margin: 0;
+    display: grid;
+    gap: var(--tp-space-4);
+    --binder-accent: var(--tp-color-brand-800);
+    --binder-accent-ink: var(--tp-color-brand-900);
+    --binder-accent-soft: var(--tp-color-brand-100);
+    --binder-accent-border: var(--tp-color-brand-300);
+    --binder-pass: var(--tp-color-success-ink);
+    --binder-pass-soft: var(--tp-color-success-bg);
+    --binder-pass-border: var(--tp-color-success-border);
+    --binder-fail: var(--tp-color-danger-ink);
+    --binder-fail-soft: var(--tp-color-danger-bg);
+    --binder-fail-border: var(--tp-color-danger-border);
+    --binder-warn: var(--tp-color-warning-ink);
+    --binder-warn-soft: var(--tp-color-warning-bg);
+    --binder-warn-border: var(--tp-color-warning-border);
+}
+
+.binder-page h1,
+.binder-page h2,
+.binder-page h3 {
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    letter-spacing: 0.2px;
+}
+
+.binder-page code {
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 0.92em;
+    background: var(--tp-color-surface-soft);
+    padding: 1px 6px;
+    border-radius: 4px;
+    border: 1px solid var(--tp-color-border-soft);
+    color: var(--tp-color-text-primary);
+}
+
+/* ── Hero ─────────────────────────────────────────────────────────── */
+
+/* Base styles from .tp-page-hero in ui-system.css */
+
+.binder-hero-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 18px;
+    align-items: flex-start;
+    margin-top: 8px;
+}
+
+.binder-hero-content {
+    max-width: none;
+    width: 100%;
+}
+
+.binder-hero-eyebrow {
+    margin: 6px 0 10px;
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-label);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.binder-hero h1 {
+    margin: 0;
+    font-size: var(--tp-heading-lg);
+    line-height: 1.1;
+    color: var(--binder-accent-ink);
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    word-break: break-all;
+}
+
+.binder-description {
+    margin: 10px 0 0;
+    color: var(--tp-color-text-secondary);
+    font-size: 1rem;
+    line-height: 1.42;
+    max-width: 920px;
+}
+
+.binder-context {
+    margin: 10px 0 0;
+    color: var(--tp-color-text-secondary);
+    font-size: 0.95rem;
+}
+
+.binder-context-id {
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    color: var(--binder-accent-ink);
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.binder-context-id:hover,
+.binder-context-id:focus-visible {
+    text-decoration: underline;
+    outline: none;
+}
+
+.binder-context-desc {
+    color: var(--tp-color-text-muted);
+}
+
+.binder-hero .hero-chip-list {
+    margin-top: 12px;
+}
+
+.binder-pdb-chip {
+    text-decoration: none !important;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: background 120ms ease, border-color 120ms ease;
+}
+
+.binder-pdb-chip:hover {
+    border-color: var(--binder-accent-border) !important;
+    background: var(--binder-accent-soft) !important;
+}
+
+.binder-ext-icon {
+    width: 10px;
+    height: 10px;
+    flex-shrink: 0;
+    color: var(--tp-color-text-muted);
+}
+
+.binder-formula-chip {
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 0.8rem !important;
+    letter-spacing: 0.01em;
+}
+
+/* ── Metric pills ─────────────────────────────────────────────────── */
+
+.binder-metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.binder-page .metric-pill {
+    border: 1px solid var(--binder-accent-border);
+    border-radius: 12px;
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-panel) 100%);
+    padding: 10px 14px;
+    min-height: 68px;
+    display: grid;
+    align-content: center;
+    gap: 3px;
+    box-shadow: var(--tp-shadow-xs);
+}
+
+.binder-page .metric-label {
+    font-size: 0.73rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--tp-color-text-muted);
+}
+
+.binder-page .metric-value {
+    color: var(--binder-accent-ink);
+    font-size: 1.15rem;
+    line-height: 1.2;
+    font-weight: 700;
+}
+
+.metric-unit {
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--tp-color-text-muted);
+}
+
+.binder-page .metric-value--text {
+    font-size: 0.96rem;
+    word-break: break-all;
+}
+
+.binder-page .metric-value--ok {
+    color: var(--binder-pass);
+}
+
+.binder-page .metric-value--warn {
+    color: var(--binder-warn);
+}
+
+.binder-page .metric-value a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.binder-page .metric-value a:hover,
+.binder-page .metric-value a:focus-visible {
+    text-decoration: underline;
+    outline: none;
+}
+
+/* ── Quick-nav ────────────────────────────────────────────────────── */
+
+.binder-page .quick-nav {
+    position: sticky;
+    top: -2px;
+    z-index: 25;
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 8px 10px;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 12px;
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+    box-shadow: var(--tp-shadow-xs);
+}
+
+.binder-page .quick-nav::-webkit-scrollbar {
+    height: 6px;
+}
+
+.binder-page .quick-nav::-webkit-scrollbar-thumb {
+    background: var(--tp-color-border-strong);
+    border-radius: 999px;
+}
+
+.binder-page .quick-nav .quick-nav-link {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 36px;
+    padding: 0.32rem 0.85rem;
+    line-height: 1.1;
+    font-weight: 600;
+    border-radius: 999px;
+    border: 1px solid var(--tp-color-border-strong) !important;
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%) !important;
+    color: var(--tp-color-text-secondary) !important;
+    white-space: nowrap;
+    text-decoration: none !important;
+}
+
+.binder-page .quick-nav .quick-nav-link:hover,
+.binder-page .quick-nav .quick-nav-link:focus-visible {
+    color: var(--tp-color-link-hover) !important;
+    border-color: var(--binder-accent-border) !important;
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--binder-accent-soft) 100%) !important;
+}
+
+/* ── Grid + panels ────────────────────────────────────────────────── */
+
+.binder-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.binder-card {
+    border: 1px solid var(--tp-color-border);
+    border-radius: var(--tp-ui-radius-panel);
+    background: var(--tp-color-surface);
+    box-shadow: var(--tp-ui-shadow-panel);
+    padding: 16px;
+    overflow: hidden;
+    scroll-margin-top: 128px;
+}
+
+.binder-card h2 {
+    margin: 0;
+    font-size: var(--tp-heading-sm);
+    font-weight: var(--tp-font-weight-bold);
+    color: var(--binder-accent-ink);
+}
+
+.binder-page .section-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.binder-page .section-subtitle {
+    margin: 4px 0 0;
+    color: var(--tp-color-text-muted);
+    font-size: 0.86rem;
+    line-height: 1.45;
+}
+
+.binder-card--properties,
+.binder-card--druglikeness,
+.binder-card--strings,
+.binder-card--provenance,
+.binder-card--external,
+.binder-card--siblings {
+    grid-column: 1 / -1;
+}
+
+@media (max-width: 880px) {
+    .binder-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+/* ── Structure SVG ────────────────────────────────────────────────── */
+
+.binder-svg-box {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    max-width: 360px;
+    margin: 0 auto;
+    background: var(--tp-color-surface-soft);
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 12px;
+    overflow: hidden;
+    display: grid;
+    place-items: center;
+}
+
+.binder-svg-box svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+/* ── Identifiers / dl rows ────────────────────────────────────────── */
+
+.binder-identifiers {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.binder-id-row {
+    display: grid;
+    grid-template-columns: 160px minmax(0, 1fr);
+    gap: 12px;
+    align-items: baseline;
+}
+
+.binder-id-row dt {
+    color: var(--tp-color-text-muted);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.binder-id-row dd {
+    margin: 0;
+    color: var(--tp-color-text-primary);
+    font-weight: 500;
+    overflow-wrap: anywhere;
+}
+
+@media (max-width: 640px) {
+    .binder-id-row {
+        grid-template-columns: 1fr;
+        gap: 2px;
+    }
+}
+
+/* ── Physicochemical properties grid ──────────────────────────────── */
+
+.property-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px;
+}
+
+.property-cell {
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 10px;
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+    padding: 10px 12px;
+    display: grid;
+    gap: 4px;
+    min-height: 68px;
+    align-content: center;
+}
+
+.property-label {
+    font-size: var(--tp-font-label);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--tp-color-text-muted);
+}
+
+.property-label small {
+    text-transform: none;
+    letter-spacing: 0;
+    font-weight: 500;
+    color: var(--tp-color-text-muted);
+}
+
+.property-value {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--binder-accent-ink);
+    line-height: 1.2;
+}
+
+.property-value--text {
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 0.95rem;
+    word-break: break-all;
+}
+
+.property-unit {
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--tp-color-text-muted);
+}
+
+/* ── Drug-likeness ────────────────────────────────────────────────── */
+
+.druglike-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 14px;
+}
+
+.druglike-block {
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 12px;
+    background: var(--tp-color-surface);
+    padding: 14px 16px;
+}
+
+.druglike-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.druglike-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--binder-accent-ink);
+}
+
+.druglike-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border: 1px solid transparent;
+}
+
+.druglike-badge.is-pass {
+    background: var(--binder-pass-soft);
+    color: var(--binder-pass);
+    border-color: var(--binder-pass-border);
+}
+
+.druglike-badge.is-fail {
+    background: var(--binder-fail-soft);
+    color: var(--binder-fail);
+    border-color: var(--binder-fail-border);
+}
+
+.druglike-badge.is-warn {
+    background: var(--binder-warn-soft);
+    color: var(--binder-warn);
+    border-color: var(--binder-warn-border);
+}
+
+.druglike-badge-count {
+    font-size: var(--tp-font-label);
+    font-weight: 500;
+    opacity: 0.8;
+    text-transform: none;
+    letter-spacing: 0;
+}
+
+.druglike-checks {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.druglike-checks li {
+    display: grid;
+    grid-template-columns: 22px 1fr auto;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: var(--tp-color-surface-soft);
+    border: 1px solid var(--tp-color-border-soft);
+    font-size: 0.9rem;
+}
+
+.druglike-checks li.is-ok .check-icon {
+    color: var(--binder-pass);
+    font-weight: 800;
+}
+
+.druglike-checks li.is-bad .check-icon {
+    color: var(--binder-fail);
+    font-weight: 800;
+}
+
+.check-name {
+    color: var(--tp-color-text-secondary);
+}
+
+.check-value {
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--binder-accent-ink);
+}
+
+.druglike-note {
+    margin: 0;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: var(--tp-color-text-secondary);
+}
+
+.druglike-note code {
+    background: var(--tp-color-surface-soft);
+}
+
+/* ── Chemical strings (SMILES / InChI / InChIKey) ─────────────────── */
+
+.binder-string-block {
+    margin-bottom: 12px;
+}
+
+.binder-string-block:last-child {
+    margin-bottom: 0;
+}
+
+.binder-string-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 6px;
+}
+
+.binder-string-label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--tp-color-text-muted);
+}
+
+.binder-string-value {
+    margin: 0;
+    padding: 10px 12px;
+    background: var(--tp-color-surface-soft);
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 10px;
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: var(--tp-color-text-secondary);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.binder-string-value--short {
+    word-break: break-all;
+}
+
+/* ── External resources ──────────────────────────────────────────── */
+
+.binder-links {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 8px;
+}
+
+.binder-links li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 10px;
+    background: var(--tp-color-surface-soft);
+}
+
+.binder-link-category {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--binder-accent-ink);
+    background: var(--binder-accent-soft);
+    padding: 3px 8px;
+    border-radius: 999px;
+    border: 1px solid var(--binder-accent-border);
+    flex: 0 0 auto;
+    white-space: nowrap;
+}
+
+.binder-links a {
+    color: var(--tp-color-link);
+    font-weight: 600;
+    text-decoration: none;
+    flex: 1;
+}
+
+.binder-links a:hover,
+.binder-links a:focus-visible {
+    color: var(--tp-color-link-hover);
+    text-decoration: underline;
+    outline: none;
+}
+
+/* ── Siblings ────────────────────────────────────────────────────── */
+
+.siblings-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 14px;
+}
+
+.siblings-group {
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 12px;
+    background: var(--tp-color-surface-soft);
+    padding: 12px 14px;
+}
+
+.siblings-group-title {
+    margin: 0 0 8px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--binder-accent-ink);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.siblings-group-count {
+    font-size: var(--tp-font-label);
+    font-weight: 500;
+    color: var(--tp-color-text-muted);
+    background: var(--tp-color-surface);
+    padding: 1px 8px;
+    border-radius: 999px;
+    border: 1px solid var(--tp-color-border-soft);
+}
+
+.siblings-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.siblings-list li a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    text-decoration: none;
+    color: var(--tp-color-text-primary);
+    transition: background 120ms ease;
+}
+
+.siblings-list li a:hover,
+.siblings-list li a:focus-visible {
+    background: var(--binder-accent-soft);
+    outline: none;
+}
+
+.siblings-meta {
+    font-size: 0.78rem;
+    color: var(--tp-color-text-muted);
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+}
+
+.siblings-col-head {
+    display: flex;
+    justify-content: space-between;
+    padding: 0 10px 4px;
+    font-size: var(--tp-font-label);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--tp-color-text-muted);
+    border-bottom: 1px solid var(--tp-color-border-soft);
+    margin-bottom: 4px;
+}

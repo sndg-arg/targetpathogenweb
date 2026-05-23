@@ -1,19 +1,29 @@
-
-
+{% extends '../base/masterpage.html' %}
 {% load i18n %}
+{% load static %}
 
-{% block head_title %}{% translate "Sign Out" %}{% endblock %}
+{% block head %}
+    <link rel="stylesheet" href="{% static 'css/pages/auth.css' %}?v=20260512-1">
+{% endblock %}
 
-{% block inner %}
-<h1>{% translate "Sign Out" %}</h1>
+{% block body %}
+    <div class="auth-page">
+        <div class="auth-card" style="text-align:center">
+            <div class="auth-header">
+                <h1>{% trans "Sign out" %}</h1>
+                <p>{% trans "Are you sure you want to sign out?" %}</p>
+            </div>
 
-<p>{% translate 'Are you sure you want to sign out?' %}</p>
-
-<form method="post" action="{% url 'account_logout' %}">
-  {% csrf_token %}
-  {% if redirect_field_value %}
-  <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}"/>
-  {% endif %}
-  <button class="btn btn-danger" type="submit">{% translate 'Sign Out' %}</button>
-</form>
+            <form method="post" action="{% url 'account_logout' %}">
+                {% csrf_token %}
+                {% if redirect_field_value %}
+                    <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}">
+                {% endif %}
+                <div class="auth-actions">
+                    <a href="{% url 'tpwebapp:index' %}" class="btn tp-btn tp-btn--neutral">{% trans "Cancel" %}</a>
+                    <button class="btn tp-btn tp-btn--primary" type="submit">{% trans "Sign out" %}</button>
+                </div>
+            </form>
+        </div>
+    </div>
 {% endblock %}

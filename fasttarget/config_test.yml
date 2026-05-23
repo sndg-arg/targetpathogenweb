@@ -1,0 +1,81 @@
+# FastTarget Test Configuration
+# 
+# This configuration runs a complete test with a 20-protein dataset
+# to verify that all modules work correctly
+#
+# Test organism: Mycoplasma pneumoniae (20 proteins subset)
+# Expected execution time: ~10-20 minutes (depending on resources)
+#
+# Note: Paths are relative to the directory where the repository is located
+
+# ---- Organism information ----
+organism:
+  name: "test"
+  tax_id: 2104
+  strain_taxid: 272634
+  gbk_file: organism/test/test.gbk
+
+# ---- CPU usage preferences ----
+cpus: 4
+
+# ---- Container Engine ----
+container_engine: singularity
+
+# ---- Metabolism ----
+metabolism-PathwayTools:
+  enabled: True
+  sbml_file: organism/test/test_ptools.sbml
+  chokepoint_file: organism/test/test_chokepoints.txt
+  smarttable_file: organism/test/test_genes_smarttable.tsv
+  curated_ubiquitous_file: organism/test/test_ubiquitous_ptools.tsv
+
+metabolism-SBML:
+  enabled: True
+  sbml_file: organism/test/iEG158_mpn.xml
+  filter_file: organism/test/test_ubiquitous_iEG158.tsv
+
+# ---- Structures ----
+structures: 
+  enabled: True
+  proteome_uniprot: UP000000808
+  pocket_full_mode: True
+
+colabfold:
+  enabled: False
+  amber: False
+  gpu: False
+  colabfold_run_all: False
+
+# ---- Core ----
+core:
+  enabled: True
+  roary: True
+  corecruncher: True
+  min_identity: 95
+  min_core_freq: 99
+
+# ---- Offtarget ----
+offtarget:
+  enabled: True
+  human: True
+  microbiome: True
+  microbiome_identity_filter: 50
+  microbiome_coverage_filter: 70
+  foldseek_human: True
+
+# ---- DEG ----
+deg:
+  enabled: True
+  deg_identity_filter: 50
+  deg_coverage_filter: 70
+
+# ---- Localization ----
+psortb:
+  enabled: True
+  gram_type: n
+
+# ---- Metadata ----
+metadata:
+  enabled: True
+  meta_tables:
+    - organism/test/test_meta_table1.txt

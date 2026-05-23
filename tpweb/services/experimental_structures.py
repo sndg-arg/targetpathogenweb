@@ -1,0 +1,205 @@
+"""
+Fetch and load experimental protein structures from RCSB PDB.
+
+For each protein in a genome that has PDB cross-references stored in
+BioentryDbxref (populated by functional_annotations.py during stage 13),
+this service downloads the best available experimental structure and loads
+it into the database using the load_af_model command with --experiment EX.
+
+"Best" means lowest resolution (highest quality) among X-ray/cryo-EM entries.
+Resolution is pre-ranked during UniProt fetch: rank = int(resolution * 100).
+"""
+
+import logging
+import math
+import os
+import time
+
+import requests
+
+from bioseq.models.Biodatabase import Biodatabase
+from bioseq.models.BioentryDbxref import BioentryDbxref
+from tpweb.models.BioentryStructure import BioentryStructure, ExperimentalStructureXref
+from tpweb.models.pdb import PDB
+
+logger = logging.getLogger(__name__)
+
+RCSB_DOWNLOAD_URL = "https://files.rcsb.org/download/{pdb_id}.pdb"
+REQUEST_TIMEOUT = 30
+RETRY_WAIT = 2
+MAX_RETRIES = 3
+
+
+def _download_pdb(pdb_id, dest_path):
+    """Download a PDB file from RCSB. Returns True on success."""
+    url = RCSB_DOWNLOAD_URL.format(pdb_id=pdb_id.upper())
+    for attempt in range(1, MAX_RETRIES + 1):
+        try:
+            resp = requests.get(url, timeout=REQUEST_TIMEOUT, stream=True)
+            if resp.status_code == 404:
+                logger.warning("PDB %s not found at RCSB (404)", pdb_id)
+                return False
+            resp.raise_for_status()
+            os.makedirs(os.path.dirname(dest_path), exist_ok=True)
+            with open(dest_path, "wb") as fh:
+                for chunk in resp.iter_content(chunk_size=8192):
+                    fh.write(chunk)
+            if os.path.getsize(dest_path) < 100:
+                logger.warning("PDB %s download looks empty (%d bytes)", pdb_id, os.path.getsize(dest_path))
+                os.remove(dest_path)
+                return False
+            return True
+        except requests.RequestException as exc:
+            if attempt < MAX_RETRIES:
+                logger.warning("Download attempt %d/%d failed for PDB %s: %s", attempt, MAX_RETRIES, pdb_id, exc)
+                time.sleep(RETRY_WAIT * attempt)
+            else:
+                logger.error("All download attempts failed for PDB %s: %s", pdb_id, exc)
+    return False
+
+
+def _coverage_span(xref):
+    start = getattr(xref, "uniprot_start", None)
+    end = getattr(xref, "uniprot_end", None)
+    if start is None or end is None:
+        return 0
+    return max(0, end - start + 1)
+
+
+def _best_xrefs_from_metadata(proteome_name):
+    xrefs = (
+        ExperimentalStructureXref.objects
+        .select_related("bioentry")
+        .filter(bioentry__biodatabase__name=proteome_name)
+        .order_by("bioentry_id", "resolution")
+    )
+    best = {}
+    for xref in xrefs:
+        current = best.get(xref.bioentry_id)
+        key = (
+            xref.resolution is None,
+            xref.resolution if xref.resolution is not None else 999,
+            -_coverage_span(xref),
+        )
+        if current is None or key < current[0]:
+            best[xref.bioentry_id] = (key, xref)
+    return {
+        bioentry_id: xref
+        for bioentry_id, (_, xref) in best.items()
+    }
+
+
+def _best_xrefs_from_legacy_dbxrefs(proteome_name):
+    pdb_xrefs = (
+        BioentryDbxref.objects
+        .select_related("bioentry", "dbxref")
+        .filter(bioentry__biodatabase__name=proteome_name, dbxref__dbname="PDB")
+        .order_by("bioentry_id", "rank")
+    )
+    best = {}
+    for xref in pdb_xrefs:
+        if xref.bioentry_id in best:
+            continue
+        best[xref.bioentry_id] = ExperimentalStructureXref(
+            bioentry=xref.bioentry,
+            pdb_id=xref.dbxref.accession,
+            resolution=(xref.rank / 100.0 if xref.rank and xref.rank < 9999 else None),
+        )
+    return best
+
+
+def _update_structure_link(xref, pdb_obj):
+    link, _ = BioentryStructure.objects.get_or_create(
+        bioentry=xref.bioentry,
+        pdb=pdb_obj,
+    )
+    updates = []
+    chain = (xref.chains or "").split(",", 1)[0].strip()
+    for field, value in (
+        ("chain", chain),
+        ("uniprot_start", xref.uniprot_start),
+        ("uniprot_end", xref.uniprot_end),
+        ("resolution", xref.resolution),
+    ):
+        if getattr(link, field) != value:
+            setattr(link, field, value)
+            updates.append(field)
+    if updates:
+        link.save(update_fields=updates)
+    return link
+
+
+def fetch_and_load_experimental_structures(assembly_name, folder_path, working_dir):
+    """Download the best experimental PDB structure for each protein in the genome.
+
+    Reads PDB xrefs from BioentryDbxref (dbname="PDB", rank=resolution*100).
+    Downloads the best (lowest rank) structure per protein from RCSB.
+    Loads each into the database via the load_af_model management command
+    with --experiment EX.
+
+    Returns a dict with keys: downloaded, loaded, skipped, total.
+    """
+    from django.core.management import call_command
+
+    proteome_name = f"{assembly_name}{Biodatabase.PROT_POSTFIX}"
+
+    best_per_protein = _best_xrefs_from_metadata(proteome_name)
+    if not best_per_protein:
+        best_per_protein = _best_xrefs_from_legacy_dbxrefs(proteome_name)
+
+    total = len(best_per_protein)
+    if not total:
+        logger.info("No PDB xrefs found for genome %s — skipping experimental structures", assembly_name)
+        return {"downloaded": 0, "loaded": 0, "skipped": 0, "total": 0}
+
+    logger.info("Fetching experimental structures for %d proteins in %s", total, assembly_name)
+
+    exp_dir = os.path.join(folder_path, "experimental")
+    datadir = os.path.join(working_dir, "data")
+
+    downloaded = 0
+    loaded = 0
+    skipped = 0
+
+    for xref in best_per_protein.values():
+        locus_tag = xref.bioentry.accession
+        pdb_id = xref.pdb_id
+        dest_dir = os.path.join(exp_dir, locus_tag)
+        dest_path = os.path.join(dest_dir, f"{pdb_id}.pdb")
+
+        if os.path.exists(dest_path) and os.path.getsize(dest_path) > 100:
+            logger.debug("PDB %s already on disk for %s", pdb_id, locus_tag)
+        else:
+            logger.info("Downloading PDB %s for %s", pdb_id, locus_tag)
+            if not _download_pdb(pdb_id, dest_path):
+                skipped += 1
+                continue
+            downloaded += 1
+
+        pdb_obj = PDB.objects.filter(code=pdb_id, experiment="EX").first()
+        try:
+            if pdb_obj is None:
+                call_command(
+                    "load_af_model",
+                    pdb_id, dest_path, locus_tag,
+                    experiment="EX",
+                    datadir=datadir,
+                )
+                pdb_obj = PDB.objects.get(code=pdb_id, experiment="EX")
+            _update_structure_link(xref, pdb_obj)
+            loaded += 1
+            logger.info("Loaded/linked PDB %s for %s", pdb_id, locus_tag)
+        except SystemExit as exc:
+            if exc.code == 0:
+                loaded += 1
+                logger.info("Loaded PDB %s for %s (exit 0)", pdb_id, locus_tag)
+            else:
+                logger.error("load_af_model exited %s for PDB %s / %s", exc.code, pdb_id, locus_tag)
+                skipped += 1
+        except Exception as exc:
+            logger.error("load_af_model failed for PDB %s / %s: %s", pdb_id, locus_tag, exc)
+            skipped += 1
+
+    stats = {"downloaded": downloaded, "loaded": loaded, "skipped": skipped, "total": total}
+    logger.info("Experimental structures complete for %s: %s", assembly_name, stats)
+    return stats

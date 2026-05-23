@@ -1,92 +1,351 @@
 {% extends '../base/masterpage.html' %}
 {% load i18n %}
-{% load crispy_forms_tags %}
-{% block body %}
-<script src="https://unpkg.com/htmx.org@1.9.2"></script>
+{% load static %}
 
-{% if request.GET.error_message %}
-    <div class="alert alert-danger">
-        {{ request.GET.error_message }}
-    </div>
-{% endif %}
-<div class="container">
-    <form id="add-parameter-form" method="POST">
-        {% csrf_token %}
-        <div class="col-12">
-            {{ form.new_formula_name|as_crispy_field }}
-        </div>
-        <div class="row">
-            <div class="col-4">
-               {{ form.param|as_crispy_field }}
-            </div>
-            <div class="col-4">
-               {{ form.options|as_crispy_field }}
-            </div>
-            <div class="col-4">
-               {{ form.coefficient|as_crispy_field }}
-            </div>
-        </div>
-        <div class="row">
-        <form>
-            <div class="col">
-                <button type="submit" class="btn btn-primary mr-1 " style="height: 50px;">Add Parameters</button>
-            </div>
-        </form>
-        <form id="finish-process-form" method="POST">
-            {% csrf_token %}
-            <input type="hidden" name="finish_process" value="true">
-            <div class="col-4">
-                <button type="submit" class="btn btn-success" style="height: 50px;">Finish</button>
-            </div>
-        </form>
-        <form id="reset-process-form" method="POST">
-            {% csrf_token %}
-            <input type="hidden" name="reset_process" value="true">
-            <div class="col">
-                <button type="submit" class="btn btn-danger" style="height: 50px;">Reset</button>
-            </div>
-        </form>
-        </div>
-</div>
-
-
-<style>
-    body {
-        font-family: Arial, sans-serif;
-        line-height: 1.6;
-    }
-    .container {
-        max-width: 800px;
-        margin: auto;
-        padding: 20px;
-        border-radius: 10px;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        background-color: #f9f9f9;
-    }
-    h2 {
-        color: #333;
-        font-size: 24px;
-        margin-bottom: 10px;
-    }
-    h3 {
-        color: #666;
-        font-size: 18px;
-        margin-top: 0;
-        text-align: center;
-    }
-</style>
-<div class="container mt-5">
-    <h2>Formula Preview</h2>
-    <h3> {{ parameters }} </h3>
-</div>
-<div>
-    <!-- Displaying content here -->
-    {% autoescape off %}
-    {{ post.content|safe }}
-    {% endautoescape %}
-</div>
-
+{% block head %}
+    <link rel="stylesheet" href="{% static 'css/pages/formula-form.css' %}?v=20260521-score-builder">
 {% endblock %}
 
-{% block footer %}
+{% block body %}
+    <script src="https://unpkg.com/htmx.org@1.9.2"></script>
+
+    <div class="formula-page">
+
+        {# ── Hero ── #}
+        <section class="formula-hero">
+            {% trans "Genomes" as crumb_genomes %}
+            {% trans "Proteins" as crumb_proteins %}
+            {% trans "Custom score" as crumb_custom_score %}
+            {% url 'tpwebapp:index' as index_url %}
+            {% url 'tpwebapp:genomes_list' as genomes_url %}
+            {% url 'tpwebapp:assembly' genome as assembly_url %}
+            {% url 'tpwebapp:protein_list' genome=genome as proteins_url %}
+            {% with genome_label=assembly_label|default:assembly_name %}
+            {% with crumb_genome="Genome: "|add:genome_label %}
+            {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_genome crumb_3_url=assembly_url crumb_4_label=crumb_proteins crumb_4_url=proteins_url crumb_5_label=crumb_custom_score %}
+            {% endwith %}
+            {% endwith %}
+
+            <span class="formula-eyebrow">
+                <span aria-hidden="true">∫</span>
+                {% trans "Custom scoring · Mathematical formula" %}
+            </span>
+            <h1>{% trans "Make my own score" %}</h1>
+            <p class="formula-subtitle">{% trans "Build an optional composite score by combining raw numeric evidence, such as druggability or identity, with binary categorical signals such as essentiality and off-target hits." %}</p>
+            <div class="formula-chip-group tp-chip-group">
+                <span class="tp-chip tp-chip--meta tp-chip--sm">
+                    <strong>{% trans "Genome" %}:</strong>
+                    <span class="formula-chip-id">{{ assembly_label|default:assembly_name }}</span>
+                </span>
+                <span class="tp-chip tp-chip--meta tp-chip--sm">{% trans "Supports" %}: <code>+  −  ×  ÷  ^  sqrt  log  exp  abs  max  min</code></span>
+            </div>
+        </section>
+
+        {# ── Error from GET params ── #}
+        {% if request.GET.error_message %}
+            <section class="formula-alert">
+                <p class="tp-state-note tp-state-note--error mb-0">{{ request.GET.error_message }}</p>
+            </section>
+        {% endif %}
+
+        <form id="formula-form" method="POST" novalidate>
+        {% csrf_token %}
+
+        {# ── Main workbench ── #}
+        <section class="formula-workbench">
+
+            {# ─── Left column: editor ─── #}
+            <div class="formula-editor-col">
+
+                {# Name field #}
+                <div class="formula-card formula-card--name tp-ui-panel">
+                    <div class="tp-ui-field">
+                        <label class="tp-ui-field-label" for="{{ form.formula_name.id_for_label }}">
+                            {% trans "Formula name" %}
+                        </label>
+                        {{ form.formula_name }}
+                        {% if form.formula_name.errors %}
+                            <p class="formula-field-error">{{ form.formula_name.errors|striptags }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {# Expression editor #}
+                <div class="formula-card formula-card--editor tp-ui-panel">
+                    <div class="formula-card-head tp-ui-panel-head">
+                        <div>
+                            <h2>{% trans "Expression" %}</h2>
+                            <p class="formula-card-note">{% trans "Write a composite ranking formula. Use raw numeric variables directly, and use categorical variables as 1/0 indicators." %}</p>
+                        </div>
+                    </div>
+
+                    <div class="tp-ui-field formula-expr-field">
+                        {{ form.expression }}
+                        {% if form.expression.errors %}
+                            <p class="formula-field-error">{{ form.expression.errors|striptags }}</p>
+                        {% endif %}
+                        <div class="formula-validation-row">
+                            <div id="formula-validation-result"
+                                 hx-get="{% url 'tpwebapp:validate_expression' %}"
+                                 hx-trigger="keyup from:#id_expression delay:500ms, change from:#id_expression"
+                                 hx-include="#id_expression"
+                                 hx-swap="innerHTML">
+                                <span class="formula-valid-badge formula-valid-badge--empty">{% trans "Type an expression above" %}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {# KaTeX preview #}
+                    <div class="formula-katex-wrap">
+                        <p class="formula-katex-label">{% trans "Preview" %}</p>
+                        <div id="formula-katex-preview" class="formula-katex-block">
+                            <span class="formula-katex-placeholder">{% trans "Formula will appear here as you type…" %}</span>
+                        </div>
+                    </div>
+
+                    {% if example_formulas %}
+                        <div class="formula-palette formula-palette--examples">
+                            <p class="formula-palette-label">{% trans "Examples" %}</p>
+                            <div class="formula-palette-chips">
+                                {% for example in example_formulas %}
+                                    <button type="button"
+                                            class="formula-example-chip"
+                                            data-example="{{ example.expression }}"
+                                            data-desc="{{ example.desc }}"
+                                            aria-label="{{ example.desc }}">
+                                        <span>{{ example.label }}</span>
+                                        <code>{{ example.expression }}</code>
+                                    </button>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    {# Function palette #}
+                    <div class="formula-palette formula-palette--funcs">
+                        <p class="formula-palette-label">{% trans "Functions" %}</p>
+                        <div class="formula-palette-chips">
+                            {% for fn in safe_functions %}
+                                <button type="button"
+                                        class="formula-fn-chip"
+                                        data-insert="{{ fn.insert }}"
+                                        title="{{ fn.desc }}">{{ fn.label }}</button>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    {# Operator shortcuts #}
+                    <div class="formula-palette formula-palette--ops">
+                        <p class="formula-palette-label">{% trans "Operators" %}</p>
+                        <div class="formula-palette-chips">
+                            <button type="button" class="formula-op-chip" data-insert=" + ">+</button>
+                            <button type="button" class="formula-op-chip" data-insert=" - ">−</button>
+                            <button type="button" class="formula-op-chip" data-insert=" * ">×</button>
+                            <button type="button" class="formula-op-chip" data-insert=" / ">÷</button>
+                            <button type="button" class="formula-op-chip" data-insert=" ** ">^</button>
+                            <button type="button" class="formula-op-chip" data-insert="(">( </button>
+                            <button type="button" class="formula-op-chip" data-insert=")"> )</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            {# ─── Right column: variable palette ─── #}
+            <div class="formula-vars-col">
+                <div class="formula-card formula-card--vars tp-ui-panel">
+                    <div class="formula-card-head tp-ui-panel-head">
+                        <div>
+                            <h2>{% trans "Variables" %}</h2>
+                            <p class="formula-card-note">{% trans "Click any variable to insert it. Numeric variables keep their raw value; categorical variables are 1.0 when true and 0.0 otherwise." %}</p>
+                        </div>
+                    </div>
+
+                    <div class="formula-var-search-wrap">
+                        <input type="text" id="formula-var-search"
+                               class="form-control tp-ui-control formula-var-search"
+                               placeholder="{% trans 'Filter variables…' %}"
+                               autocomplete="off">
+                    </div>
+
+                    <div class="formula-var-groups" id="formula-var-groups">
+                        {% if variable_groups %}
+                            {% for category, vars in variable_groups.items %}
+                                <div class="formula-var-group" data-category="{{ category }}">
+                                    <p class="formula-var-group-label">{{ category }}</p>
+                                    <div class="formula-var-chips">
+                                        {% for v in vars %}
+                                            <button type="button"
+                                                    class="formula-var-chip formula-var-chip--{{ v.kind|default:'categorical' }}"
+                                                    data-var="{{ v.var }}"
+                                                    data-desc="{{ v.desc }}"
+                                                    aria-label="{{ v.desc }}">
+                                                <span class="formula-var-name">{{ v.var }}</span>
+                                                <span class="formula-var-kind">
+                                                    {% if v.kind == "numeric" %}{% trans "numeric" %}{% else %}{% trans "0/1" %}{% endif %}
+                                                </span>
+                                            </button>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <p class="tp-state-note tp-state-note--empty">{% trans "No scoring parameters available." %}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        {# ── Footer ── #}
+        <section class="formula-footer tp-ui-panel">
+            <div class="formula-footer-copy">
+                <p class="formula-footer-title">{% trans "Save and apply" %}</p>
+                <p class="formula-footer-note">{% trans "Saves this formula and takes you to the protein list ranked by your score." %}</p>
+            </div>
+            <div class="formula-footer-actions">
+                <button id="formula-save-btn" type="submit" form="formula-form" name="save_formula" value="1"
+                        class="btn tp-btn tp-btn--primary" disabled>
+                    {% trans "Save scoring formula" %}
+                </button>
+                <button type="submit" form="formula-form" name="reset_process" value="true"
+                        class="btn tp-btn tp-btn--clear tp-btn--clear-caution tp-btn-with-icon">
+                    {% include "components/icons/trash.html" %}
+                    {% trans "Reset" %}
+                </button>
+            </div>
+        </section>
+
+        </form>
+
+    </div>
+
+    <script>
+    (function () {
+        "use strict";
+
+        const textarea = document.getElementById("id_expression");
+        const katexBlock = document.getElementById("formula-katex-preview");
+        const varSearch = document.getElementById("formula-var-search");
+
+        // ── Insert at cursor ──────────────────────────────────────────────
+        function insertAtCursor(text) {
+            if (!textarea) return;
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const val = textarea.value;
+            textarea.value = val.slice(0, start) + text + val.slice(end);
+            const pos = start + text.length;
+            textarea.setSelectionRange(pos, pos);
+            textarea.focus();
+            textarea.dispatchEvent(new Event("input", { bubbles: true }));
+            textarea.dispatchEvent(new Event("keyup", { bubbles: true }));
+        }
+
+        // ── Palette chips ────────────────────────────────────────────────
+        document.querySelectorAll("[data-insert]").forEach(btn => {
+            btn.addEventListener("click", () => {
+                const ins = btn.dataset.insert;
+                // For functions like sqrt(), position cursor inside parens
+                if (ins.endsWith("()")) {
+                    const base = ins.slice(0, -1);
+                    insertAtCursor(base + ")");
+                    const pos = textarea.value.lastIndexOf(base) + base.length;
+                    textarea.setSelectionRange(pos, pos);
+                } else if (ins.endsWith(",)")) {
+                    // pow(,) / max(,) — position cursor between parens
+                    const base = ins.slice(0, -2) + "(";
+                    insertAtCursor(base + ",)");
+                    const pos = textarea.value.lastIndexOf(base) + base.length;
+                    textarea.setSelectionRange(pos, pos);
+                } else {
+                    insertAtCursor(ins);
+                }
+            });
+        });
+
+        document.querySelectorAll("[data-example]").forEach(btn => {
+            btn.addEventListener("click", () => {
+                if (!textarea) return;
+                textarea.value = btn.dataset.example || "";
+                textarea.focus();
+                textarea.dispatchEvent(new Event("input", { bubbles: true }));
+                textarea.dispatchEvent(new Event("keyup", { bubbles: true }));
+            });
+        });
+
+        document.querySelectorAll("[data-var]").forEach(btn => {
+            btn.addEventListener("click", () => insertAtCursor(btn.dataset.var));
+        });
+
+        // ── Variable search ───────────────────────────────────────────────
+        if (varSearch) {
+            varSearch.addEventListener("input", () => {
+                const q = varSearch.value.toLowerCase().trim();
+                document.querySelectorAll(".formula-var-group").forEach(group => {
+                    let anyVisible = false;
+                    group.querySelectorAll(".formula-var-chip").forEach(chip => {
+                        const match = !q || chip.dataset.var.includes(q) || (chip.dataset.desc || "").toLowerCase().includes(q);
+                        chip.style.display = match ? "" : "none";
+                        if (match) anyVisible = true;
+                    });
+                    group.style.display = anyVisible ? "" : "none";
+                });
+            });
+        }
+
+        // ── Pretty-print expression (no external dependencies) ───────────
+        function prettyExpression(expr) {
+            if (!expr.trim()) return null;
+            let s = expr;
+            // functions with nice Unicode
+            const fnMap = {
+                sqrt: "√", log2: "log₂", log10: "log₁₀",
+                log: "ln", exp: "exp", abs: "abs",
+                pow: "pow", max: "max", min: "min",
+                floor: "⌊⌋", ceil: "⌈⌉", round: "round",
+            };
+            for (const [name, sym] of Object.entries(fnMap)) {
+                s = s.replace(new RegExp(`\\b${name}\\b`, "g"), sym);
+            }
+            s = s.replace(/\*\*/g, "^");
+            s = s.replace(/\*/g, " × ");
+            s = s.replace(/\//g, " ÷ ");
+            s = s.replace(/\s{2,}/g, " ");
+            return s.trim();
+        }
+
+        function renderPreview() {
+            if (!katexBlock) return;
+            const expr = textarea ? textarea.value.trim() : "";
+            if (!expr) {
+                katexBlock.innerHTML = '<span class="formula-katex-placeholder">{% trans "Formula will appear here as you type…" %}</span>';
+                return;
+            }
+            const pretty = prettyExpression(expr);
+            katexBlock.textContent = pretty || expr;
+        }
+
+        if (textarea) {
+            textarea.addEventListener("input", renderPreview);
+            textarea.addEventListener("keyup", renderPreview);
+            if (textarea.value) renderPreview();
+        }
+
+        // ── Save button visibility ────────────────────────────────────────
+        const saveBtn = document.getElementById("formula-save-btn");
+        const validationDiv = document.getElementById("formula-validation-result");
+
+        function updateSaveBtn() {
+            if (!saveBtn || !validationDiv) return;
+            const ok = validationDiv.querySelector(".formula-valid-badge--ok");
+            saveBtn.disabled = !ok;
+        }
+
+        if (validationDiv) {
+            validationDiv.addEventListener("htmx:afterSettle", updateSaveBtn);
+        }
+    })();
+    </script>
 {% endblock %}

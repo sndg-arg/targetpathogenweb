@@ -1,0 +1,73 @@
+name: QA
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:14-bullseye
+        env:
+          POSTGRES_DB: tp
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d tp"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DJANGO_DEBUG: "False"
+      DJANGO_SECRET_KEY: "ci-secret-key"
+      DJANGO_ALLOWED_HOSTS: "localhost,127.0.0.1"
+      DJANGO_DATABASE_NAME: "tp"
+      DJANGO_DATABASE_USER: "postgres"
+      DJANGO_DATABASE_PASSWORD: "postgres"
+      DJANGO_DATABASE_HOST: "127.0.0.1"
+      DJANGO_DATABASE_PORT: "5432"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements/base.txt
+          python -m pip install "numpy<2"
+          python -m pip install rdkit-pypi
+          python -m pip install ruff
+
+      - name: Checkout runtime library dependencies
+        run: |
+          mkdir -p /tmp/targetpathogen-deps
+          git clone --depth 1 https://github.com/ezequieljsosa/sndg-bio.git /tmp/targetpathogen-deps/sndg-bio
+          git clone --depth 1 https://github.com/sndg-arg/targetpathogen.git /tmp/targetpathogen-deps/targetpathogen
+          git clone --depth 1 https://github.com/sndg-arg/sndgjobs.git /tmp/targetpathogen-deps/sndgjobs
+          git clone --depth 1 https://github.com/sndg-arg/sndgbiodb.git /tmp/targetpathogen-deps/sndgbiodb
+          ln -s /tmp/targetpathogen-deps/targetpathogen /tmp/targetpathogen-deps/target
+          echo "PYTHONPATH=/tmp/targetpathogen-deps/sndgjobs:/tmp/targetpathogen-deps/sndgbiodb:/tmp/targetpathogen-deps/targetpathogen:/tmp/targetpathogen-deps/sndg-bio:/tmp/targetpathogen-deps/target:${GITHUB_WORKSPACE}" >> "$GITHUB_ENV"
+
+      - name: Django system check
+        run: python manage.py check
+
+      - name: Unit and smoke tests
+        run: python scripts/run_tests.py
+
+      - name: Lint changed core modules
+        run: |
+          python -m ruff check tpweb/services/pipeline_status.py
+          python -m ruff check tpweb/views/HealthView.py tpweb/middleware/observability.py
+          python -m ruff check scripts/run_tests.py tpweb/tests.py

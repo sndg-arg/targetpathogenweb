@@ -1,9 +1,18 @@
 
 from django.shortcuts import render
+from django.http import Http404
 from django.views import View
+from bioseq.models.Biodatabase import Biodatabase
 from tpweb.models.BioentryStructure import BioentryStructure
 from tpweb.models.pdb import PDB, Residue, Property, ResidueSet, PDBResidueSet
 from django.db.models import Q
+from tpweb.services.genome_workspace import user_can_access_genome_name, genome_url_slug
+from tpweb.services.structure_sources import structure_toggle_label as _structure_toggle_label
+
+
+def _chain_selector(chain):
+    chain = (chain or "").strip()
+    return f":{chain}" if chain else "polymer"
 
 
 class StructureView(View):
@@ -15,9 +24,81 @@ class StructureView(View):
         structure = PDB.objects.filter(id=struct_id).get()
 
         dto = {"structure": pdb_structure(structure, [])}
-
+        source_bioentry = self._resolve_source_bioentry(request, structure)
+        if source_bioentry is not None:
+            dto["source_protein_id"] = source_bioentry.bioentry_id
+            dto["source_protein_label"] = source_bioentry.name or "Protein detail"
+            source_assembly_name = self._resolve_source_assembly_name(source_bioentry)
+            dto["source_assembly_name"] = source_assembly_name
+            dto["source_genome"] = genome_url_slug(source_assembly_name)
+            if not user_can_access_genome_name(request.user, source_assembly_name):
+                raise Http404("Structure not found")
+            source_link = BioentryStructure.objects.filter(
+                pdb=structure,
+                bioentry=source_bioentry,
+            ).first()
+            if source_link:
+                dto["viewer_chain"] = source_link.chain or ""
+                dto["viewer_chain_selector"] = _chain_selector(source_link.chain)
+            # Expose alternative structure for toggle (EX ↔ AF/CF)
+            alt = self._find_alt_structure(source_bioentry, structure)
+            if alt:
+                dto["alt_structure_id"] = alt.id
+                dto["alt_structure_label"] = _structure_toggle_label(alt.experiment)
+                dto["primary_structure_label"] = _structure_toggle_label(structure.experiment)
+                dto["alt_structure"] = pdb_structure(alt, [])
+                alt_link = BioentryStructure.objects.filter(
+                    pdb=alt,
+                    bioentry=source_bioentry,
+                ).first()
+                if alt_link:
+                    dto["alt_viewer_chain"] = alt_link.chain or ""
+                    dto["alt_viewer_chain_selector"] = _chain_selector(alt_link.chain)
 
         return render(request, self.template_name, dto)
+
+    @staticmethod
+    def _resolve_source_bioentry(request, structure):
+        requested_protein_id = str(request.GET.get("protein_id") or "").strip()
+        if requested_protein_id.isdigit():
+            link = BioentryStructure.objects.select_related("bioentry__biodatabase").filter(
+                pdb=structure,
+                bioentry_id=int(requested_protein_id)
+            ).first()
+            if link and link.bioentry:
+                return link.bioentry
+
+        first_link = BioentryStructure.objects.select_related("bioentry__biodatabase").filter(pdb=structure).first()
+        if first_link and first_link.bioentry:
+            return first_link.bioentry
+        return None
+
+    @staticmethod
+    def _find_alt_structure(source_bioentry, current_structure):
+        """Return a PDB object that is the counterpart to current_structure (EX↔AF/CF)."""
+        current_exp = (current_structure.experiment or "").upper()
+        all_structures = BioentryStructure.objects.select_related("pdb").filter(
+            bioentry=source_bioentry
+        ).exclude(pdb=current_structure)
+        if current_exp == "EX":
+            preferred = ["AF", "CF"]
+        else:
+            preferred = ["EX"]
+        for exp in preferred:
+            match = all_structures.filter(pdb__experiment=exp).first()
+            if match:
+                return match.pdb
+        return None
+
+    @staticmethod
+    def _resolve_source_assembly_name(source_bioentry):
+        biodb_name = getattr(getattr(source_bioentry, "biodatabase", None), "name", "") or ""
+        prot_postfix = getattr(Biodatabase, "PROT_POSTFIX", "")
+        if prot_postfix and biodb_name.endswith(prot_postfix):
+            return biodb_name[:-len(prot_postfix)]
+        if prot_postfix:
+            return biodb_name.replace(prot_postfix, "")
+        return biodb_name
 
 
 def pdb_structure(pdbobj, graphic_features):
@@ -52,13 +133,17 @@ def pdb_structure(pdbobj, graphic_features):
     # sq = ResidueSetProperty.objects.select_related(pdbresidue_set)\
     #     .filter(property=ds,value__gte=0.2,pdbresidue_set=OuterRef("id"))
 
-    context["pockets"] = PDBResidueSet.objects.prefetch_related("properties__property",
-                                                                "residue_set_residue__residue__atoms").filter(
-        Q(pdb=pdbobj), Q(residue_set=rs), Q(properties__property=ds) & Q(properties__value__gte=0.2)).all()
+    context["pockets"] = list(PDBResidueSet.objects.prefetch_related(
+        "properties__property",
+        "residue_set_residue__residue__atoms",
+    ).filter(
+        Q(pdb=pdbobj), Q(residue_set=rs), Q(properties__property=ds) & Q(properties__value__gte=0.2)
+    ))
 
-    context["p2_pockets"] = PDBResidueSet.objects.prefetch_related("properties__property",
-                                                                "residue_set_residue__residue__atoms").filter(
-        Q(pdb=pdbobj), Q(residue_set=p2_rs)).all()
+    context["p2_pockets"] = list(PDBResidueSet.objects.prefetch_related(
+        "properties__property",
+        "residue_set_residue__residue__atoms",
+    ).filter(Q(pdb=pdbobj), Q(residue_set=p2_rs)))
     for p in context["pockets"]:
         p.druggability = [x.value for x in p.properties.all() if x.property == ds][0]
         p.atoms = []
@@ -82,6 +167,8 @@ def pdb_structure(pdbobj, graphic_features):
         }
         graphic_features.append(gf)
 
+    context["pockets"].sort(key=lambda p: p.druggability or 0, reverse=True)
+
     for p2 in context["p2_pockets"]:
         p2.p2score = [x.value for x in p2.properties.all() if x.property == p2s][0]
         p2.probability = [x.value for x in p2.properties.all() if x.property == p2p][0]
@@ -100,11 +187,13 @@ def pdb_structure(pdbobj, graphic_features):
             "data": data,
             "name": "P2Pocket",
             "className": "test2",
-            "color": generar_color_aleatorio(),
+            "color": p2rank_probability_color(p2.probability),
             "type": "rect",
             "filter": "type2"
         }
         graphic_features.append(gf_p2)
+
+    context["p2_pockets"].sort(key=lambda p: p.probability or 0, reverse=True)
 
     ## Non pocket res
     rss = PDBResidueSet.objects.prefetch_related(
@@ -137,6 +226,24 @@ def pdb_structure(pdbobj, graphic_features):
 
 
 import random
+
+
+def p2rank_probability_color(probability):
+    """Return a hex color based on P2Rank calibrated probability thresholds.
+
+    High (>= 0.5): green — strong binding-site prediction.
+    Medium (>= 0.2): amber — moderate prediction.
+    Low (< 0.2): red — weak prediction.
+    """
+    try:
+        prob = float(probability)
+    except (TypeError, ValueError):
+        return "#F59E0B"  # amber fallback
+    if prob >= 0.5:
+        return "#10B981"  # green
+    if prob >= 0.2:
+        return "#F59E0B"  # amber
+    return "#EF4444"      # red
 
 
 def generar_color_aleatorio():

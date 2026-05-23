@@ -1,29 +1,73 @@
-
-{% load static %}
+{% extends '../base/masterpage.html' %}
 {% load i18n %}
-{% load account socialaccount %}
+{% load static %}
+{% load account %}
 
-
-
-
-{% block inner %}
-
-<h1>TP Login Page</h1>
-
-
-
-<form class="login" method="POST" action="{% url 'account_login' %}">
-  {% csrf_token %}
-  {{ form }}
-  {% if redirect_field_value %}
-  <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
-  {% endif %}
-
-  <button class="primaryAction btn btn-primary" type="submit">Sign In </button>
-</form>
-
-
-    <script src="{% static 'bundle.js' %}"> </script>
+{% block head %}
+    <link rel="stylesheet" href="{% static 'css/pages/auth.css' %}?v=20260512-1">
 {% endblock %}
 
+{% block body %}
+    <div class="auth-page">
+        <div class="auth-card">
+            <div class="auth-header">
+                <h1>{% trans "Sign in" %}</h1>
+                <p>{% trans "Enter your credentials to access the platform." %}</p>
+            </div>
 
+            {% if form.non_field_errors %}
+                <div class="auth-errors">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+
+            <form class="auth-form" method="POST" action="{% url 'account_login' %}">
+                {% csrf_token %}
+
+                <div class="auth-field">
+                    <label for="id_login">{% trans "Username or email" %}</label>
+                    <input type="text"
+                           name="login"
+                           id="id_login"
+                           placeholder="{% trans 'Username or email' %}"
+                           value="{{ form.login.value|default:'' }}"
+                           autocomplete="username"
+                           autofocus
+                           required>
+                    {% if form.login.errors %}
+                        <ul class="errorlist">
+                            {% for error in form.login.errors %}<li>{{ error }}</li>{% endfor %}
+                        </ul>
+                    {% endif %}
+                </div>
+
+                <div class="auth-field">
+                    <label for="id_password">{% trans "Password" %}</label>
+                    <input type="password"
+                           name="password"
+                           id="id_password"
+                           placeholder="{% trans 'Password' %}"
+                           autocomplete="current-password"
+                           required>
+                    {% if form.password.errors %}
+                        <ul class="errorlist">
+                            {% for error in form.password.errors %}<li>{{ error }}</li>{% endfor %}
+                        </ul>
+                    {% endif %}
+                </div>
+
+                {% if redirect_field_value %}
+                    <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}">
+                {% endif %}
+
+                <div class="auth-submit">
+                    <button class="btn tp-btn tp-btn--primary" type="submit">{% trans "Sign in" %}</button>
+                </div>
+            </form>
+
+            <div class="auth-footer">
+                <a href="{% url 'account_reset_password' %}">{% trans "Forgot your password?" %}</a>
+            </div>
+        </div>
+    </div>
+{% endblock %}
