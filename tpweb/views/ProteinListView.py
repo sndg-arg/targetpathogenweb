@@ -1273,7 +1273,10 @@ class ProteinListView(View):
             "column_rows": self._build_column_rows(all_visible_score_params, selected_column_names),
             "selected_column_names": selected_column_names,
             "default_column_names": default_column_names,
-            "fixed_column_labels": self.FIXED_COLUMN_LABELS,
+            "fixed_column_labels": [
+                label for label in self.FIXED_COLUMN_LABELS
+                if label != "Score" or formula is not None
+            ],
             "export_url": self._build_export_url(request),
             "view_export_url": self._build_view_export_url(request),
             "sort_col": effective_sort_col,
