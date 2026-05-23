@@ -17,6 +17,21 @@ ARGENTINA_UPLOAD_TZ = timezone.get_fixed_timezone(-180)
 STALE_RUNNING_GRACE_SECONDS = 600
 
 
+def _process_exists(_pid):
+    """Legacy compatibility shim.
+
+    Process-level checks are intentionally no longer used for reconciliation;
+    PipelineRun rows are the source of truth. Some older tests still patch this
+    symbol, so keep it importable while returning a conservative false value.
+    """
+    return False
+
+
+def _upload_has_matching_process(_job):
+    """Legacy compatibility shim for pre-PipelineRun reconciliation tests."""
+    return False
+
+
 def format_upload_timestamp(value):
     if value is None:
         return ""

@@ -11,7 +11,7 @@ from typing import Mapping
 
 from bioseq.models.Biodatabase import Biodatabase
 from django.conf import settings
-from django.db.utils import DatabaseError
+from django.db.utils import DatabaseError, InterfaceError
 from tpweb.services.genome_workspace import display_genome_name, user_can_access_genome_name
 from tpweb.services.workspace import PUBLIC_WORKSPACE_USERNAME, workspace_slug_for_user
 from tpweb.services.pipeline_runs import latest_active_pipeline_run, latest_pipeline_run
@@ -445,7 +445,7 @@ def get_pipeline_status_dto() -> PipelineStatus:
 def get_pipeline_status() -> dict:
     try:
         return get_pipeline_status_dto().as_dict()
-    except DatabaseError:
+    except (DatabaseError, InterfaceError):
         logger.warning(
             "Falling back to idle pipeline status after database error.",
             exc_info=True,

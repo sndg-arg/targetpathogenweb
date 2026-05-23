@@ -79,6 +79,8 @@ from tpweb.services.workspace import PUBLIC_WORKSPACE_USERNAME
 
 
 class GenomeServiceTests(SimpleTestCase):
+    databases = {"default"}
+
     def test_safe_int_handles_invalid_values(self):
         self.assertEqual(safe_int(None), 0)
         self.assertEqual(safe_int("abc"), 0)
@@ -492,7 +494,7 @@ class StructureAndAnnotationServiceTests(SimpleTestCase):
         self.assertEqual(explorer["annotation_count"], 2)
         self.assertIn("ec:1.2", explorer["chart"]["ids"])
         self.assertIn("1.2 Acting on the aldehyde or oxo group of donors", explorer["chart"]["labels"])
-        self.assertIn("1.2.3.4", explorer["chart"]["hover_labels"])
+        self.assertIn("1.2.3.4 — oxalate oxidase", explorer["chart"]["hover_labels"])
         self.assertEqual(explorer["rows"][0]["protein_count"], 1)
 
     def test_build_annotation_explorer_adds_hover_text_for_known_third_level_ec_prefix(self):
