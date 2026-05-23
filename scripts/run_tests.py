@@ -3,6 +3,14 @@ import sys
 from pathlib import Path
 
 
+class DisableMigrations(dict):
+    def __contains__(self, item):
+        return True
+
+    def __getitem__(self, item):
+        return None
+
+
 def main() -> int:
     project_root = Path(__file__).resolve().parents[1]
     if str(project_root) not in sys.path:
@@ -14,6 +22,7 @@ def main() -> int:
     from django.conf import settings
     from django.test.utils import get_runner
 
+    settings.MIGRATION_MODULES = DisableMigrations()
     django.setup()
     runner_class = get_runner(settings)
     test_runner = runner_class(verbosity=2)
