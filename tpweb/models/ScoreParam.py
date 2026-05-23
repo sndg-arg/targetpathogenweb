@@ -207,7 +207,8 @@ class ScoreParam(models.Model):
         default_expression = "druggability"
         legacy_default_expressions = {"", "3 * druggability", "3*druggability"}
         drugg_description = (
-            "FPocket druggability score for the best predicted pocket (0–1). "
+            "FPocket druggability score for the preferred structure (0–1): "
+            "experimental structure when available, otherwise predicted model. "
             "≥ 0.7 highly druggable · ≥ 0.4 moderately druggable · < 0.4 low druggability."
         )
         users = TPUser.objects.all()

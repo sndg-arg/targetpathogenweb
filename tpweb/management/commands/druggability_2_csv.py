@@ -14,6 +14,7 @@ from tpweb.models.pdb import ResidueSetProperty, PDB, PDBResidueSet, Property
 from tpweb.models.BioentryStructure import BioentryStructure
 from tpweb.models.ScoreParamValue import ScoreParamValue
 from tpweb.models.ScoreParam import ScoreParam
+from tpweb.services.structure_sources import classify_structure_experiment, STRUCTURE_SOURCE_EXPERIMENTAL
 import pandas as pd
 from django.db import IntegrityError
 
@@ -36,7 +37,6 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         accession = options['accession']
         proteins = Bioentry.objects.filter(biodatabase__name=accession + Biodatabase.PROT_POSTFIX)
-        protein_ids = proteins.values_list('bioentry_id', flat=True)
         property_instance = Property.objects.get(name='druggability_score')
         
         df = pd.DataFrame(columns=['gene', 'Druggability'])
@@ -50,18 +50,26 @@ class Command(BaseCommand):
             # Get the bioentry_id for the current protein
             bioentry_id = protein.bioentry_id
             bioentry_name = protein.accession
-            pdb_ids = BioentryStructure.objects.filter(
+            structures = list(BioentryStructure.objects.filter(
                 bioentry_id=bioentry_id
-            ).values_list('pdb_id', flat=True)
-            if not pdb_ids:
+            ).select_related("pdb"))
+            if not structures:
                 continue
 
-            values = ResidueSetProperty.objects.filter(
-                pdbresidue_set__pdb_id__in=pdb_ids,
-                pdbresidue_set__residue_set__name="FPocketPocket",
-                property=property_instance,
-                value__isnull=False,
-            ).values_list('value', flat=True)
+            experimental_pdb_ids = [
+                structure.pdb_id for structure in structures
+                if classify_structure_experiment(structure.pdb.experiment) == STRUCTURE_SOURCE_EXPERIMENTAL
+            ]
+            model_pdb_ids = [
+                structure.pdb_id for structure in structures
+                if structure.pdb_id not in experimental_pdb_ids
+            ]
+
+            # Prefer experimentally determined structures. If none carry FPocket
+            # scores, fall back to predicted models (AlphaFold/ColabFold).
+            values = self._druggability_values(experimental_pdb_ids, property_instance)
+            if not values:
+                values = self._druggability_values(model_pdb_ids, property_instance)
 
             if values:
                 df.loc[index] = [bioentry_name, max(values)]
@@ -75,3 +83,15 @@ class Command(BaseCommand):
         csv_path = os.path.join(db_dir,csv_filename)
         df.to_csv(csv_path, sep='\t', index=False)  # Save the DataFrame to a CSV file without including the index column
         print(f'DataFrame saved to {csv_filename}')
+
+    def _druggability_values(self, pdb_ids, property_instance):
+        if not pdb_ids:
+            return []
+        return list(
+            ResidueSetProperty.objects.filter(
+                pdbresidue_set__pdb_id__in=pdb_ids,
+                pdbresidue_set__residue_set__name="FPocketPocket",
+                property=property_instance,
+                value__isnull=False,
+            ).values_list('value', flat=True)
+        )

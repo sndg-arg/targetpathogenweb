@@ -333,7 +333,7 @@
                                                 {% if val and val != "-" %}
                                                     <span class="tp-chip tp-chip--score js-drugg-cell druggability-tip" data-score="{{ val }}">
                                                         {{ val|floatformat:2 }}
-                                                        <span class="cell-tooltip" role="tooltip">{% trans "FPocket druggability score, 0 to 1. Higher is better: ≥ 0.7 high, ≥ 0.4 medium, < 0.4 low." %}</span>
+                                                        <span class="cell-tooltip" role="tooltip">{% trans "FPocket druggability score for the preferred structure: experimental when available, otherwise predicted model. Scale 0 to 1; higher is better." %}</span>
                                                     </span>
                                                 {% else %}
                                                     <span class="tp-drugg-none druggability-tip">
