@@ -807,6 +807,17 @@ a.filter-pill .filter-pill-remove {
     position: relative;
 }
 
+/* Raise hovered element above sticky header (z-index: 2) and adjacent cells */
+.metric-na:hover,
+.annotation-empty:hover,
+.structure-unavailable:hover,
+.annotation-chip-tip:hover,
+.druggability-tip:hover,
+.druggability-tip:focus-visible,
+.metric-no-structure:hover {
+    z-index: calc(var(--tp-table-sticky-z) + 3);
+}
+
 .metric-na:hover .cell-tooltip,
 .annotation-empty:hover .cell-tooltip,
 .structure-unavailable:hover .cell-tooltip,
@@ -814,6 +825,19 @@ a.filter-pill .filter-pill-remove {
 .druggability-tip:hover .cell-tooltip,
 .druggability-tip:focus-visible .cell-tooltip {
     opacity: 1;
+}
+
+/* First body row: flip tooltip below the cell so it clears the sticky header */
+.protein-table tbody tr:first-child .cell-tooltip {
+    bottom: auto;
+    top: calc(100% + 8px);
+}
+
+.protein-table tbody tr:first-child .cell-tooltip::after {
+    top: auto;
+    bottom: 100%;
+    border-top-color: transparent;
+    border-bottom-color: var(--tp-tooltip-bg);
 }
 
 .metric-no-structure {
