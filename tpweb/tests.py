@@ -1,4 +1,3 @@
-from datetime import datetime, timezone
 import gzip
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -12,9 +11,7 @@ from django.db.utils import InterfaceError
 from django.test import SimpleTestCase, TestCase
 
 from bioseq.models.Bioentry import Bioentry
-from bioseq.models.BioentryDbxref import BioentryDbxref
 from bioseq.models.Biodatabase import Biodatabase
-from tpweb.models.BioentryStructure import BioentryStructure
 from tpweb.models.GenomeUpload import GenomeUpload
 from tpweb.models.PipelineRun import PipelineRun
 from tpweb.models.ScoreFormula import ScoreFormula
@@ -55,7 +52,6 @@ from tpweb.services.protein_serializer import build_protein_table_row
 from tpweb.services.pipeline_status import (
     _status_from_last_run_marker,
     annotate_pipeline_status_for_genome,
-    get_pipeline_status_dto,
     sanitize_pipeline_status_for_user,
 )
 from tpweb.services.structure_files import _candidate_seqstore_dirs
@@ -444,33 +440,34 @@ class StructureAndAnnotationServiceTests(SimpleTestCase):
         self.assertEqual(summary["count"], 1)
 
     def test_build_annotation_explorer_builds_ec_hierarchy(self):
-        dbxref_relation = lambda accession, name="": type(
-            "BioentryDbxref",
-            (),
-            {
-                "dbxref": type(
-                    "Dbxref",
-                    (),
-                    {
-                        "dbname": ANNOTATION_KIND_CONFIG["ec"]["dbnames"][0],
-                        "accession": accession,
-                        "terms": type(
-                            "Terms",
-                            (),
-                            {
-                                "all": lambda self: [
-                                    type(
-                                        "TermRelation",
-                                        (),
-                                        {"term": type("Term", (), {"definition": name})()},
-                                    )()
-                                ]
-                            },
-                        )(),
-                    },
-                )()
-            },
-        )()
+        def dbxref_relation(accession, name=""):
+            return type(
+                "BioentryDbxref",
+                (),
+                {
+                    "dbxref": type(
+                        "Dbxref",
+                        (),
+                        {
+                            "dbname": ANNOTATION_KIND_CONFIG["ec"]["dbnames"][0],
+                            "accession": accession,
+                            "terms": type(
+                                "Terms",
+                                (),
+                                {
+                                    "all": lambda self: [
+                                        type(
+                                            "TermRelation",
+                                            (),
+                                            {"term": type("Term", (), {"definition": name})()},
+                                        )()
+                                    ]
+                                },
+                            )(),
+                        },
+                    )()
+                },
+            )()
 
         protein_a = type(
             "Protein",
@@ -498,21 +495,22 @@ class StructureAndAnnotationServiceTests(SimpleTestCase):
         self.assertEqual(explorer["rows"][0]["protein_count"], 1)
 
     def test_build_annotation_explorer_adds_hover_text_for_known_third_level_ec_prefix(self):
-        dbxref_relation = lambda accession, name="": type(
-            "BioentryDbxref",
-            (),
-            {
-                "dbxref": type(
-                    "Dbxref",
-                    (),
-                    {
-                        "dbname": ANNOTATION_KIND_CONFIG["ec"]["dbnames"][0],
-                        "accession": accession,
-                        "terms": type("Terms", (), {"all": lambda self: []})(),
-                    },
-                )()
-            },
-        )()
+        def dbxref_relation(accession, name=""):
+            return type(
+                "BioentryDbxref",
+                (),
+                {
+                    "dbxref": type(
+                        "Dbxref",
+                        (),
+                        {
+                            "dbname": ANNOTATION_KIND_CONFIG["ec"]["dbnames"][0],
+                            "accession": accession,
+                            "terms": type("Terms", (), {"all": lambda self: []})(),
+                        },
+                    )()
+                },
+            )()
 
         protein = type(
             "Protein",
