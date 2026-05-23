@@ -2815,8 +2815,16 @@
 
         let activeEl = null;
 
+        document.querySelectorAll("[title]").forEach(function (el) {
+            const title = el.getAttribute("title");
+            if (title && !el.getAttribute("data-tp-native-title")) {
+                el.setAttribute("data-tp-native-title", title);
+                el.removeAttribute("title");
+            }
+        });
+
         function getTitle(el) {
-            return el.getAttribute("data-tp-native-title") || el.getAttribute("title") || "";
+            return el.getAttribute("data-tp-native-title") || "";
         }
 
         function positionTooltip(el) {
@@ -2854,20 +2862,12 @@
         }
 
         function showTooltip(el) {
-            const title = el.getAttribute("title");
-            if (title) {
-                el.setAttribute("data-tp-native-title", title);
-                el.removeAttribute("title");
-            }
             if (!getTitle(el).trim()) return;
             activeEl = el;
             positionTooltip(el);
         }
 
         function hideTooltip(el) {
-            if (el && el.getAttribute("data-tp-native-title") && !el.getAttribute("title")) {
-                el.setAttribute("title", el.getAttribute("data-tp-native-title"));
-            }
             if (activeEl === el) {
                 activeEl = null;
                 tooltip.classList.remove("is-visible");
@@ -2876,7 +2876,7 @@
 
         document.addEventListener("pointerover", function (event) {
             if (!(event.target instanceof Element)) return;
-            const el = event.target.closest("[title], [data-tp-native-title]");
+            const el = event.target.closest("[data-tp-native-title]");
             if (el && event.relatedTarget instanceof Node && el.contains(event.relatedTarget)) return;
             if (el) showTooltip(el);
         });
@@ -2890,7 +2890,7 @@
 
         document.addEventListener("focusin", function (event) {
             if (!(event.target instanceof Element)) return;
-            const el = event.target.closest("[title], [data-tp-native-title]");
+            const el = event.target.closest("[data-tp-native-title]");
             if (el) showTooltip(el);
         });
 
