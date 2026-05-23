@@ -1,20 +1,25 @@
 """
 import_external_results — import pre-computed analysis results into TPW.
 
-Currently supports the "gates" format: results TSV produced by the
-Gates-Targets pipeline, optionally paired with a structures directory
-extracted from the companion tar.gz archive.
+Supports the "gates" format: results TSV + optional structures directory
+extracted from the Gates-Targets pipeline tar.gz archive.
 
 Usage
 -----
+# Scores only:
 python manage.py import_external_results <genome_name> \\
-    --results-tsv /path/to/KpATCC43816_results_table.tsv \\
-    [--structures-dir /path/to/KpATCC43816/structures] \\
-    [--datadir ./data] \\
-    [--overwrite] \\
-    [--dry-run]
+    --results-tsv /path/to/results_table.tsv \\
+    [--datadir ./data] [--overwrite] [--dry-run]
+
+# Scores + structures (PDB + fpocket pockets):
+python manage.py import_external_results <genome_name> \\
+    --results-tsv /path/to/results_table.tsv \\
+    --structures-dir /path/to/KpATCC43816/structures \\
+    [--datadir ./data] [--overwrite] [--dry-run]
 """
 
+import gzip
+import json
 import math
 import os
 import shutil
@@ -22,43 +27,26 @@ import sys
 import tempfile
 
 import pandas as pd
-from django.contrib.auth import get_user_model
 from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
-from django.db import transaction
 from tqdm import tqdm
 
 from bioseq.models.Biodatabase import Biodatabase
-from bioseq.models.Bioentry import Bioentry
-from tpweb.models.ScoreParam import ScoreParam
-from tpweb.models.ScoreParamValue import ScoreParamValue
-from tpweb.services.score_params import resolve_score_param_for_import
-from tpweb.services.score_param_types import is_numeric_score_param
 
 
 # ---------------------------------------------------------------------------
-# Column mapping: Gates TSV column name → TPW ScoreParam name
-# Only columns listed here are imported; the rest are silently skipped.
+# Column mapping: Gates TSV column → TPW ScoreParam name
 # ---------------------------------------------------------------------------
 
 GATES_COLUMN_MAP = {
-    # Categorical — exact-match TPW system params
-    "human_offtarget": "human_offtarget",
-
-    # Numeric — TPW system param created by Initialize_druggability()
-    "druggability_score": "Druggability",
-
-    # Categorical — TPW system param created by Initialize_celular_localization()
-    "psortb_localization": "Localization",
-
-    # Numeric custom params (auto-created if absent)
-    "gut_microbiome_offtarget_norm": "gut_microbiome_offtarget_norm",
+    "human_offtarget":              "human_offtarget",
+    "druggability_score":           "Druggability",
+    "psortb_localization":          "Localization",
+    "gut_microbiome_offtarget_norm":"gut_microbiome_offtarget_norm",
     "gut_microbiome_offtarget_counts": "gut_microbiome_offtarget_counts",
-    "colabfold_plddt": "colabfold_plddt",
-
-    # Categorical custom params
-    "core_roary": "core_roary",
-    "core_corecruncher": "core_corecruncher",
+    "colabfold_plddt":              "colabfold_plddt",
+    "core_roary":                   "core_roary",
+    "core_corecruncher":            "core_corecruncher",
 }
 
 SUPPORTED_FORMATS = ("gates",)
@@ -70,155 +58,118 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument(
             "genome_name",
-            help=(
-                "Internal genome name as stored in TPW (e.g. 'public__KpATCC43816'). "
-                "The genome must already be loaded in the database."
-            ),
+            help="Internal genome name in TPW (e.g. 'public__KpATCC43816').",
         )
         parser.add_argument(
-            "--results-tsv",
-            required=True,
-            metavar="PATH",
+            "--results-tsv", required=True, metavar="PATH",
             help="Path to the results TSV (tab-separated, must have a 'gene' column).",
         )
         parser.add_argument(
-            "--structures-dir",
-            default=None,
-            metavar="PATH",
+            "--structures-dir", default=None, metavar="PATH",
             help=(
-                "Path to the extracted structures directory from the companion tar.gz. "
-                "When provided, PDB files are copied into the TPW data directory so "
-                "that structure-based analysis (load_af_model, fpocket, p2rank) can be "
-                "run afterwards. Skipped if not given."
+                "Path to the extracted structures directory from the tar.gz. "
+                "When given, PDB files and fpocket pocket data are loaded into TPW."
             ),
         )
         parser.add_argument(
-            "--datadir",
-            default="./data",
-            metavar="PATH",
+            "--datadir", default="./data", metavar="PATH",
             help="TPW data directory (default: ./data).",
         )
         parser.add_argument(
-            "--format",
-            default="gates",
-            choices=SUPPORTED_FORMATS,
-            help="External pipeline format (default: gates).",
+            "--format", default="gates", choices=SUPPORTED_FORMATS,
         )
         parser.add_argument(
-            "--overwrite",
-            action="store_true",
-            help="Overwrite existing score values for this genome.",
+            "--overwrite", action="store_true",
+            help="Overwrite existing score values.",
         )
         parser.add_argument(
-            "--dry-run",
-            action="store_true",
-            help="Show what would be imported without writing to the database.",
+            "--dry-run", action="store_true",
+            help="Show what would happen without writing anything.",
         )
 
     # ------------------------------------------------------------------
 
     def handle(self, *args, **options):
-        genome_name = options["genome_name"]
-        results_tsv = options["results_tsv"]
-        structures_dir = options["structures_dir"]
-        datadir = options["datadir"]
-        overwrite = options["overwrite"]
-        dry_run = options["dry_run"]
+        genome_name   = options["genome_name"]
+        results_tsv   = options["results_tsv"]
+        structures_dir= options["structures_dir"]
+        datadir       = options["datadir"]
+        overwrite     = options["overwrite"]
+        dry_run       = options["dry_run"]
 
-        # --- Validate genome ---
-        genome_qs = Biodatabase.objects.filter(name=genome_name + Biodatabase.PROT_POSTFIX)
-        if not genome_qs.exists():
+        # Validate genome
+        if not Biodatabase.objects.filter(name=genome_name + Biodatabase.PROT_POSTFIX).exists():
             raise CommandError(
-                f"Genome '{genome_name}' not found in the database. "
-                f"Load the GBK first before importing external results."
+                f"Genome '{genome_name}' not found. Load the GBK first."
             )
-        genome = genome_qs.get()
 
-        # --- Validate input file ---
         if not os.path.isfile(results_tsv):
             raise CommandError(f"Results TSV not found: {results_tsv}")
 
-        self.stdout.write(f"Reading {results_tsv} …")
-        df = pd.read_csv(results_tsv, sep="\t", index_col=False, low_memory=False)
+        # --- Load scores ---
+        self.stdout.write(self.style.HTTP_INFO("Step 1/2 — Loading scores from TSV …"))
+        self._load_scores(genome_name, results_tsv, datadir, overwrite, dry_run,
+                          fmt=options["format"])
 
-        if "gene" not in df.columns:
-            raise CommandError("Results TSV must have a 'gene' column with locus tags.")
-
-        # --- Apply column mapping ---
-        col_map = GATES_COLUMN_MAP if options["format"] == "gates" else {}
-        mapped = {"gene": df["gene"]}
-        for src_col, tpw_col in col_map.items():
-            if src_col in df.columns:
-                mapped[tpw_col] = df[src_col]
-            else:
-                self.stderr.write(
-                    self.style.WARNING(f"  Column '{src_col}' not found in TSV, skipping.")
-                )
-        mapped_df = pd.DataFrame(mapped)
-
-        tpw_cols = [c for c in mapped_df.columns if c != "gene"]
-        self.stdout.write(f"Columns to import: {', '.join(tpw_cols)}")
-
-        if not tpw_cols:
-            raise CommandError("No recognised columns found. Nothing to import.")
-
-        # --- Write temp TSV and delegate to load_score_values logic ---
-        if dry_run:
-            self.stdout.write(
-                self.style.SUCCESS(
-                    f"[dry-run] Would import {len(mapped_df)} rows × "
-                    f"{len(tpw_cols)} score columns into '{genome_name}'."
-                )
-            )
-        else:
-            with tempfile.NamedTemporaryFile(
-                mode="w", suffix=".tsv", delete=False, encoding="utf-8"
-            ) as tmp:
-                mapped_df.to_csv(tmp, sep="\t", index=False)
-                tmp_path = tmp.name
-
-            try:
-                self.stdout.write("Loading scores …")
-                call_command(
-                    "load_score_values",
-                    genome_name,
-                    tmp_path,
-                    datadir=datadir,
-                    overwrite=overwrite,
-                )
-            finally:
-                os.unlink(tmp_path)
-
-        # --- Copy structure files (optional) ---
+        # --- Load structures ---
         if structures_dir:
-            self._copy_structures(
-                genome_name=genome_name,
-                structures_dir=structures_dir,
-                datadir=datadir,
-                dry_run=dry_run,
-            )
+            self.stdout.write(self.style.HTTP_INFO("Step 2/2 — Loading structures …"))
+            self._load_structures(genome_name, structures_dir, datadir, dry_run)
+        else:
+            self.stdout.write("No --structures-dir given, skipping structure loading.")
 
         self.stdout.write(self.style.SUCCESS("Done."))
 
     # ------------------------------------------------------------------
 
-    def _copy_structures(self, genome_name, structures_dir, datadir, dry_run):
-        """
-        Copy ColabFold PDB files from the Gates structures directory into
-        the TPW alphafold directory expected by load_af_model / fpocket.
+    def _load_scores(self, genome_name, results_tsv, datadir, overwrite, dry_run, fmt):
+        df = pd.read_csv(results_tsv, sep="\t", index_col=False, low_memory=False)
+        if "gene" not in df.columns:
+            raise CommandError("Results TSV must have a 'gene' column with locus tags.")
 
-        Gates layout:  {structures_dir}/{locus_tag}/CB_{locus_tag}_relaxed1.pdb
-        TPW layout:    {folder_path}/alphafold/{locus_tag}/{locus_tag}_af.pdb
-        """
-        if not os.path.isdir(structures_dir):
-            self.stderr.write(
-                self.style.WARNING(
-                    f"Structures directory not found: {structures_dir}. Skipping."
-                )
-            )
+        col_map = GATES_COLUMN_MAP if fmt == "gates" else {}
+        mapped = {"gene": df["gene"]}
+        for src, tpw in col_map.items():
+            if src in df.columns:
+                mapped[tpw] = df[src]
+            else:
+                self.stderr.write(self.style.WARNING(f"  Column '{src}' not in TSV, skipping."))
+
+        mapped_df = pd.DataFrame(mapped)
+        tpw_cols = [c for c in mapped_df.columns if c != "gene"]
+        if not tpw_cols:
+            raise CommandError("No recognised columns found in TSV.")
+
+        self.stdout.write(f"  Columns: {', '.join(tpw_cols)}")
+        self.stdout.write(f"  Proteins: {len(mapped_df)}")
+
+        if dry_run:
+            self.stdout.write(self.style.SUCCESS(
+                f"  [dry-run] Would import {len(mapped_df)} × {len(tpw_cols)} values."
+            ))
             return
 
-        folder_path = _compute_folder_path(datadir, genome_name)
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".tsv", delete=False,
+                                         encoding="utf-8") as tmp:
+            mapped_df.to_csv(tmp, sep="\t", index=False)
+            tmp_path = tmp.name
+
+        try:
+            call_command("load_score_values", genome_name, tmp_path,
+                         datadir=datadir, overwrite=overwrite)
+        finally:
+            os.unlink(tmp_path)
+
+    # ------------------------------------------------------------------
+
+    def _load_structures(self, genome_name, structures_dir, datadir, dry_run):
+        if not os.path.isdir(structures_dir):
+            self.stderr.write(self.style.WARNING(
+                f"Structures directory not found: {structures_dir}"
+            ))
+            return
+
+        folder_path   = _compute_folder_path(datadir, genome_name)
         alphafold_dir = os.path.join(folder_path, "alphafold")
 
         locus_tags = sorted(
@@ -226,55 +177,108 @@ class Command(BaseCommand):
             if os.path.isdir(os.path.join(structures_dir, d))
         )
         if not locus_tags:
-            self.stderr.write(
-                self.style.WARNING("No protein subdirectories found in structures-dir.")
-            )
+            self.stderr.write(self.style.WARNING("No subdirectories in structures-dir."))
             return
 
-        self.stdout.write(
-            f"Copying PDB files for {len(locus_tags)} proteins → {alphafold_dir}"
-        )
+        self.stdout.write(f"  Proteins with structure data: {len(locus_tags)}")
 
-        copied = skipped = missing = 0
-        for locus_tag in tqdm(locus_tags, file=sys.stderr):
-            src_pdb = os.path.join(
-                structures_dir, locus_tag, f"CB_{locus_tag}_relaxed1.pdb"
-            )
+        pdb_ok = pdb_skip = pdb_miss = 0
+        af_ok = af_fail = 0
+        pocket_ok = pocket_skip = pocket_fail = 0
+
+        for locus_tag in tqdm(locus_tags, desc="structures", file=sys.stderr):
+            prot_dir   = os.path.join(structures_dir, locus_tag)
+            src_pdb    = os.path.join(prot_dir, f"CB_{locus_tag}_relaxed1.pdb")
+
             if not os.path.isfile(src_pdb):
-                missing += 1
+                pdb_miss += 1
                 continue
 
-            dest_dir = os.path.join(alphafold_dir, locus_tag)
-            dest_pdb = os.path.join(dest_dir, f"{locus_tag}_af.pdb")
-
-            if os.path.exists(dest_pdb) and not dry_run:
-                skipped += 1
-                continue
+            dest_dir   = os.path.join(alphafold_dir, locus_tag)
+            dest_pdb   = os.path.join(dest_dir, f"{locus_tag}_af.pdb")
 
             if dry_run:
-                copied += 1
+                pdb_ok += 1
                 continue
 
             os.makedirs(dest_dir, exist_ok=True)
-            shutil.copy2(src_pdb, dest_pdb)
-            copied += 1
+
+            # Copy PDB
+            if not os.path.exists(dest_pdb):
+                shutil.copy2(src_pdb, dest_pdb)
+                pdb_ok += 1
+            else:
+                pdb_skip += 1
+
+            # load_af_model → creates BioentryStructure record
+            try:
+                call_command("load_af_model", locus_tag, dest_pdb, locus_tag,
+                             overwrite=True, datadir=datadir,
+                             stdout=open(os.devnull, "w"),
+                             stderr=open(os.devnull, "w"))
+                af_ok += 1
+            except Exception as exc:
+                af_fail += 1
+                self.stderr.write(f"  load_af_model failed {locus_tag}: {exc}")
+                continue
+
+            # Fpocket pockets
+            src_fpocket = os.path.join(prot_dir, "pockets",
+                                       f"CB_{locus_tag}_relaxed1_fpocket")
+            pocket_json = os.path.join(dest_dir, "fpocket.json.gz")
+
+            if not os.path.isdir(src_fpocket):
+                continue
+
+            if os.path.exists(pocket_json):
+                pocket_skip += 1
+                continue
+
+            # all_pockets.json already exists in the Gates fpocket output.
+            # Rename the top-level key from "CB_{locus_tag}" to "{locus_tag}"
+            # so load_fpocket can match it to the PDB record.
+            all_pockets_file = os.path.join(src_fpocket, "all_pockets.json")
+            if not os.path.isfile(all_pockets_file):
+                pocket_fail += 1
+                continue
+
+            try:
+                with open(all_pockets_file) as f:
+                    raw = json.load(f)
+
+                # Re-key: {"CB_VK055_0001": {...}} → {"VK055_0001": {...}}
+                rekeyed = {locus_tag: v for v in raw.values()}
+
+                with gzip.open(pocket_json, "wt", encoding="utf-8") as gz:
+                    json.dump(rekeyed, gz)
+
+                call_command("load_fpocket", locus_tag,
+                             pocket_json=pocket_json,
+                             overwrite=True, datadir=datadir,
+                             stdout=open(os.devnull, "w"),
+                             stderr=open(os.devnull, "w"))
+                pocket_ok += 1
+            except Exception as exc:
+                pocket_fail += 1
+                self.stderr.write(f"  load_fpocket failed {locus_tag}: {exc}")
+                if os.path.exists(pocket_json):
+                    os.unlink(pocket_json)
 
         prefix = "[dry-run] " if dry_run else ""
         self.stdout.write(
-            f"{prefix}Structures: {copied} copied, {skipped} already present, {missing} no PDB found."
+            f"\n{prefix}PDB files   : {pdb_ok} copied, {pdb_skip} already present, {pdb_miss} missing"
         )
-        if not dry_run and copied:
-            self.stdout.write(
-                "PDB files are in place. Run load_af_model + fpocket/p2rank for each "
-                "protein, then druggability_2_csv to regenerate the Druggability score.\n"
-                "Or use the --load-structures flag (coming soon) to automate this."
-            )
+        self.stdout.write(
+            f"{prefix}Structures  : {af_ok} loaded, {af_fail} failed"
+        )
+        self.stdout.write(
+            f"{prefix}Pockets     : {pocket_ok} loaded, {pocket_skip} already present, {pocket_fail} failed"
+        )
 
 
 # ---------------------------------------------------------------------------
 
 def _compute_folder_path(datadir, genome_name):
-    """Mirror the path logic from run_pipeline_direct._compute_folder_path."""
     acclen = len(genome_name)
-    folder_name = genome_name[math.floor(acclen / 2 - 1) : math.floor(acclen / 2 + 2)]
-    return os.path.join(datadir, folder_name, genome_name)
+    mid = genome_name[math.floor(acclen / 2 - 1): math.floor(acclen / 2 + 2)]
+    return os.path.join(datadir, mid, genome_name)
