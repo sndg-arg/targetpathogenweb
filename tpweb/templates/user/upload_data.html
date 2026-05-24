@@ -238,6 +238,141 @@
             {% endif %}
         </section>
 
+        {% if user.is_staff %}
+        <section class="genome-upload-history tp-ui-panel" id="curated-external-import-panel">
+            <div class="genome-upload-card-head tp-ui-panel-head">
+                <div>
+                    <h2 class="tp-ui-panel-title">{% trans "Curated external import" %}</h2>
+                    <p class="tp-ui-panel-subtitle">{% trans "Staff-only assisted import for reviewed Gates results already staged on the server." %}</p>
+                </div>
+            </div>
+            <div style="padding: var(--tp-panel-body-py) var(--tp-panel-body-px);">
+                <form method="post" class="genome-upload-form" novalidate>
+                    {% csrf_token %}
+                    <input type="hidden" name="action" id="external-import-action" value="validate_external_import">
+                    <fieldset class="genome-upload-fieldset">
+                        <div class="genome-upload-form-grid">
+                            <div class="genome-upload-field tp-ui-field">
+                                <label class="tp-ui-field-label" for="{{ external_import_form.genome_name.id_for_label }}">{{ external_import_form.genome_name.label }}</label>
+                                {{ external_import_form.genome_name }}
+                                <p class="genome-upload-field-help">{% trans "Use the internal TPW genome name created after the GenBank load, usually workspace plus accession." %}</p>
+                                {% if external_import_form.genome_name.errors %}<p class="genome-upload-field-error">{{ external_import_form.genome_name.errors|striptags }}</p>{% endif %}
+                            </div>
+
+                            <div class="genome-upload-field tp-ui-field">
+                                <label class="tp-ui-field-label" for="{{ external_import_form.datadir.id_for_label }}">{{ external_import_form.datadir.label }}</label>
+                                {{ external_import_form.datadir }}
+                                <p class="genome-upload-field-help">{% trans "Root data directory used by TPW management commands in this deployment." %}</p>
+                                {% if external_import_form.datadir.errors %}<p class="genome-upload-field-error">{{ external_import_form.datadir.errors|striptags }}</p>{% endif %}
+                            </div>
+                        </div>
+
+                        <div class="genome-upload-field tp-ui-field">
+                            <label class="tp-ui-field-label" for="{{ external_import_form.results_tsv.id_for_label }}">{{ external_import_form.results_tsv.label }}</label>
+                            {{ external_import_form.results_tsv }}
+                            <p class="genome-upload-field-help">{% trans "Server-side path to the reviewed TSV. It must include a gene column with locus tags." %}</p>
+                            {% if external_import_form.results_tsv.errors %}<p class="genome-upload-field-error">{{ external_import_form.results_tsv.errors|striptags }}</p>{% endif %}
+                        </div>
+
+                        <div class="genome-upload-field tp-ui-field">
+                            <label class="tp-ui-field-label" for="{{ external_import_form.structures_dir.id_for_label }}">{{ external_import_form.structures_dir.label }}</label>
+                            {{ external_import_form.structures_dir }}
+                            <p class="genome-upload-field-help">{% trans "Optional server-side directory extracted from the structures archive. Leave empty to import scores only." %}</p>
+                            {% if external_import_form.structures_dir.errors %}<p class="genome-upload-field-error">{{ external_import_form.structures_dir.errors|striptags }}</p>{% endif %}
+                        </div>
+
+                        <label class="tp-ui-field-label" style="display: inline-flex; align-items: center; gap: 0.55rem;">
+                            {{ external_import_form.overwrite }}
+                            <span>{{ external_import_form.overwrite.label }}</span>
+                        </label>
+
+                        <div class="genome-upload-submit-row">
+                            <div class="genome-upload-submit-copy">
+                                <p class="genome-upload-submit-title">{% trans "Recommended flow" %}</p>
+                                <p class="genome-upload-submit-note">{% trans "Validate first to confirm the genome, TSV columns, protein matching, and structure directory before writing anything." %}</p>
+                            </div>
+                            <div class="tp-ui-actions genome-upload-actions">
+                                <button type="submit" class="btn tp-btn tp-btn--outline" onclick="document.getElementById('external-import-action').value='validate_external_import';">
+                                    {% trans "Validate import" %}
+                                </button>
+                                <button type="submit" class="btn tp-btn tp-btn--primary" onclick="document.getElementById('external-import-action').value='run_external_import';">
+                                    {% trans "Run import" %}
+                                </button>
+                            </div>
+                        </div>
+                    </fieldset>
+                </form>
+
+                {% if external_import_result %}
+                    <div class="tp-state-note {% if external_import_result.status == 'error' %}tp-state-note--error{% elif external_import_result.status == 'imported' %}tp-state-note--success{% else %}tp-state-note--info{% endif %}" style="margin-top: 1rem;">
+                        {% if external_import_result.message %}
+                            <p class="mb-2">{{ external_import_result.message }}</p>
+                        {% endif %}
+                        {% if external_import_result.summary %}
+                            {% with summary=external_import_result.summary structures=external_import_result.summary.structures %}
+                                <div class="genome-upload-form-grid" style="margin-top: 0.75rem;">
+                                    <div>
+                                        <strong>{% trans "Genome" %}</strong><br>
+                                        <code>{{ summary.genome_name }}</code>
+                                    </div>
+                                    <div>
+                                        <strong>{% trans "Protein database" %}</strong><br>
+                                        <code>{{ summary.protein_database }}</code>
+                                    </div>
+                                    <div>
+                                        <strong>{% trans "Proteins in TPW" %}</strong><br>
+                                        {{ summary.protein_total }}
+                                    </div>
+                                    <div>
+                                        <strong>{% trans "TSV rows" %}</strong><br>
+                                        {{ summary.tsv_rows }}
+                                    </div>
+                                    <div>
+                                        <strong>{% trans "Unique TSV genes" %}</strong><br>
+                                        {{ summary.tsv_unique_genes }}
+                                    </div>
+                                    <div>
+                                        <strong>{% trans "Matched proteins" %}</strong><br>
+                                        {{ summary.matched_proteins }}
+                                    </div>
+                                    <div>
+                                        <strong>{% trans "Unmatched TSV genes" %}</strong><br>
+                                        {{ summary.missing_from_tpw }}
+                                    </div>
+                                    <div>
+                                        <strong>{% trans "Structure PDB files" %}</strong><br>
+                                        {% if structures.provided %}
+                                            {% if structures.exists %}
+                                                {{ structures.pdb_files }} {% trans "files across" %} {{ structures.protein_dirs }} {% trans "protein folders" %}
+                                            {% else %}
+                                                {% trans "Directory not found" %}
+                                            {% endif %}
+                                        {% else %}
+                                            {% trans "Not provided" %}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <p style="margin-top: 0.75rem;"><strong>{% trans "Recognized columns" %}:</strong> {{ summary.tsv_columns|join:", " }}</p>
+                                <p><strong>{% trans "Gene preview" %}:</strong> {{ summary.tsv_preview|join:", " }}</p>
+                            {% endwith %}
+                        {% endif %}
+                        {% if external_import_result.command %}
+                            <p class="tp-ui-field-label" style="margin-top: 0.9rem; margin-bottom: 0.35rem;">{% trans "Equivalent command" %}</p>
+                            <code style="display:block; background: var(--tp-color-surface-muted); padding: 8px 12px; border-radius: 6px; font-size: 0.85rem; word-break: break-all;">{{ external_import_result.command }}</code>
+                        {% endif %}
+                        {% if external_import_result.stdout %}
+                            <p class="tp-ui-field-label" style="margin-top: 0.9rem; margin-bottom: 0.35rem;">{% trans "Command output" %}</p>
+                            <pre style="max-height: 220px; overflow: auto; white-space: pre-wrap; background: var(--tp-color-surface-muted); padding: 10px 12px; border-radius: 6px;">{{ external_import_result.stdout }}</pre>
+                        {% endif %}
+                        {% if external_import_result.stderr %}
+                            <p class="tp-ui-field-label" style="margin-top: 0.9rem; margin-bottom: 0.35rem;">{% trans "Command warnings" %}</p>
+                            <pre style="max-height: 220px; overflow: auto; white-space: pre-wrap; background: var(--tp-color-surface-muted); padding: 10px 12px; border-radius: 6px;">{{ external_import_result.stderr }}</pre>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </section>
+
         <section class="genome-upload-history tp-ui-panel" id="data-file-upload-panel">
             <div class="genome-upload-card-head tp-ui-panel-head">
                 <h2 class="tp-ui-panel-title">{% trans "Upload a data file" %}</h2>
@@ -263,6 +398,7 @@
                 <div id="data-file-upload-error" style="display:none; margin-top: 12px; color: var(--tp-color-danger-600, #b91c1c); font-size: var(--tp-font-label);"></div>
             </div>
         </section>
+        {% endif %}
     </div>
 {% endblock %}
 

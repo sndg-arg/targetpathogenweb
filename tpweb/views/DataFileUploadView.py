@@ -1,7 +1,7 @@
 import os
 
-from django.views import View
 from django.http import JsonResponse
+from django.views import View
 
 UPLOADS_DIR = "/tmp/tpw_uploads"
 ALLOWED_EXTENSIONS = {".tsv", ".csv", ".gz", ".tar", ".txt", ".json"}
@@ -10,6 +10,9 @@ ALLOWED_EXTENSIONS = {".tsv", ".csv", ".gz", ".tar", ".txt", ".json"}
 class DataFileUploadView(View):
 
     def post(self, request, *args, **kwargs):
+        if not request.user.is_staff:
+            return JsonResponse({"error": "Staff access required."}, status=403)
+
         uploaded = request.FILES.get("data_file")
         if not uploaded:
             return JsonResponse({"error": "No file provided."}, status=400)

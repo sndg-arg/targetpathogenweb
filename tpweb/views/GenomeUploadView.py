@@ -1,10 +1,14 @@
+from io import StringIO
+
 from django.contrib import messages
+from django.core.management import CommandError, call_command
 from django.db import transaction
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views import View
 
 from bioseq.models.Biodatabase import Biodatabase
+from tpweb.forms.ExternalImportForm import ExternalImportForm
 from tpweb.forms.GenomeUploadForm import GenomeUploadForm
 from tpweb.models import GenomeUpload
 from tpweb.services.genome_uploads import (
@@ -22,6 +26,10 @@ from tpweb.services.genome_workspace import (
     display_genome_name,
     genome_url_slug,
 )
+from tpweb.services.external_import import (
+    build_external_import_command,
+    validate_external_import,
+)
 from tpweb.services.pipeline_status import get_pipeline_status
 from tpweb.services.pipeline_status import sanitize_pipeline_status_for_user
 from tpweb.services.slurm_messages import classify_slurm_resource_message
@@ -32,6 +40,8 @@ class GenomeUploadView(View):
     template_name = "user/upload_data.html"
     ACTION_CLEAR_HISTORY = "clear_history"
     ACTION_USE_TEST_GENOME = "use_test_genome"
+    ACTION_VALIDATE_EXTERNAL_IMPORT = "validate_external_import"
+    ACTION_RUN_EXTERNAL_IMPORT = "run_external_import"
 
     @staticmethod
     def _job_state(job, pipeline_status, queue_positions, running_job_id=None):
@@ -49,7 +59,7 @@ class GenomeUploadView(View):
             }
         return {"label": job.get_status_display(), "class": job.status}
 
-    def _build_context(self, request, form=None):
+    def _build_context(self, request, form=None, external_import_form=None, external_import_result=None):
         workspace_user = resolve_workspace_user(request.user)
         pipeline_status = sanitize_pipeline_status_for_user(get_pipeline_status(), request.user)
         reconcile_genome_uploads(pipeline_status, owner=workspace_user)
@@ -104,6 +114,8 @@ class GenomeUploadView(View):
         )
         return {
             "form": form or GenomeUploadForm(),
+            "external_import_form": external_import_form or ExternalImportForm(),
+            "external_import_result": external_import_result,
             "jobs": jobs_dto,
             "test_genome_accession": TEST_GENOME_ACCESSION,
             "workspace_label": (
@@ -121,8 +133,108 @@ class GenomeUploadView(View):
         workspace_user = resolve_workspace_user(request.user)
 
         upload_url = reverse("tpwebapp:genome_upload")
+        action = request.POST.get("action")
 
-        if request.POST.get("action") == self.ACTION_CLEAR_HISTORY:
+        if action in {self.ACTION_VALIDATE_EXTERNAL_IMPORT, self.ACTION_RUN_EXTERNAL_IMPORT}:
+            if not request.user.is_staff:
+                messages.error(request, "Staff access is required for curated external imports.")
+                return redirect(upload_url)
+
+            external_form = ExternalImportForm(request.POST)
+            if not external_form.is_valid():
+                return render(
+                    request,
+                    self.template_name,
+                    self._build_context(
+                        request,
+                        external_import_form=external_form,
+                        external_import_result={
+                            "status": "error",
+                            "message": "Review the highlighted fields.",
+                        },
+                    ),
+                )
+
+            cleaned = external_form.cleaned_data
+            command = build_external_import_command(
+                cleaned["genome_name"],
+                cleaned["results_tsv"],
+                structures_dir=cleaned.get("structures_dir") or "",
+                datadir=cleaned["datadir"],
+                overwrite=cleaned["overwrite"],
+            )
+            try:
+                summary = validate_external_import(
+                    cleaned["genome_name"],
+                    cleaned["results_tsv"],
+                    structures_dir=cleaned.get("structures_dir") or "",
+                    datadir=cleaned["datadir"],
+                )
+            except CommandError as exc:
+                return render(
+                    request,
+                    self.template_name,
+                    self._build_context(
+                        request,
+                        external_import_form=external_form,
+                        external_import_result={
+                            "status": "error",
+                            "message": str(exc),
+                            "command": command,
+                        },
+                    ),
+                )
+
+            result = {
+                "status": "ok",
+                "summary": summary,
+                "command": command,
+            }
+
+            if action == self.ACTION_RUN_EXTERNAL_IMPORT:
+                stdout = StringIO()
+                stderr = StringIO()
+                try:
+                    call_command(
+                        "import_external_results",
+                        cleaned["genome_name"],
+                        results_tsv=cleaned["results_tsv"],
+                        structures_dir=cleaned.get("structures_dir") or None,
+                        datadir=cleaned["datadir"],
+                        overwrite=cleaned["overwrite"],
+                        stdout=stdout,
+                        stderr=stderr,
+                    )
+                except Exception as exc:
+                    result.update(
+                        {
+                            "status": "error",
+                            "message": str(exc),
+                            "stdout": stdout.getvalue(),
+                            "stderr": stderr.getvalue(),
+                        }
+                    )
+                else:
+                    result.update(
+                        {
+                            "status": "imported",
+                            "message": "Curated external import completed.",
+                            "stdout": stdout.getvalue(),
+                            "stderr": stderr.getvalue(),
+                        }
+                    )
+
+            return render(
+                request,
+                self.template_name,
+                self._build_context(
+                    request,
+                    external_import_form=external_form,
+                    external_import_result=result,
+                ),
+            )
+
+        if action == self.ACTION_CLEAR_HISTORY:
             if owner_has_active_uploads(workspace_user):
                 messages.error(
                     request,
@@ -137,7 +249,7 @@ class GenomeUploadView(View):
                 messages.info(request, "There was no genome upload history to clear.")
             return redirect(upload_url)
 
-        if request.POST.get("action") == self.ACTION_USE_TEST_GENOME:
+        if action == self.ACTION_USE_TEST_GENOME:
             internal_accession = build_workspace_genome_name(TEST_GENOME_ACCESSION, request.user)
 
             if Biodatabase.objects.filter(name=internal_accession).exists():
