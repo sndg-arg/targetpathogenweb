@@ -202,17 +202,29 @@ def _run_structures_chain(stage, working_dir, folder_path, genome):
 # Main genome pipeline
 # ---------------------------------------------------------------------------
 
-def run_genome(genome, gram, custom, source_genome, is_test, working_dir, cfg_dict, start_stage=1):
+def run_genome(
+    genome,
+    gram,
+    custom,
+    source_genome,
+    is_test,
+    working_dir,
+    cfg_dict,
+    start_stage=1,
+    skip_stages=None,
+):
     """Run the full 23-stage pipeline for one genome. Raises on any failure.
 
     start_stage: skip all stages with number < start_stage (used to resume after a failure).
     Stage 1 (clear_folder) is always skipped when start_stage > 1 to preserve existing data.
+    skip_stages: optional set of stage numbers to skip even when they are >= start_stage.
     """
     folder_path = _compute_folder_path(working_dir, genome)
     source_accession = (source_genome or genome).strip()
+    skip_stages = set(skip_stages or [])
 
     def _skip(stage):
-        return stage < start_stage
+        return stage < start_stage or stage in skip_stages
 
     if not _skip(1):
         _run_python_stage(1, "clear_folder", _clear_folder, folder_path)
@@ -319,10 +331,26 @@ if __name__ == "__main__":
         metavar="N",
         help="Resume from stage N, skipping earlier stages (stage 1 always skipped when N>1 to preserve data)",
     )
+    parser.add_argument(
+        "--skip-stages",
+        default="",
+        metavar="LIST",
+        help="Comma-separated stage numbers to skip in addition to --start-stage.",
+    )
 
     args = parser.parse_args()
     gram = args.gram
     custom = args.custom
+    skip_stages = set()
+    if args.skip_stages.strip():
+        try:
+            skip_stages = {
+                int(part.strip())
+                for part in args.skip_stages.split(",")
+                if part.strip()
+            }
+        except ValueError as exc:
+            parser.error(f"--skip-stages must be a comma-separated list of integers: {exc}")
     run_specs = []
 
     if args.test:
@@ -381,6 +409,7 @@ if __name__ == "__main__":
                 working_dir=working_dir,
                 cfg_dict=cfg,
                 start_stage=args.start_stage,
+                skip_stages=skip_stages,
             )
 
     except Exception as exc:
