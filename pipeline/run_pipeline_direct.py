@@ -45,6 +45,7 @@ from pipeline_commands import (
     run_fpocket_cmd,
     fpocket2json_cmd,
     load_pocket_cmd,
+    run_p2rank_cmd,
     p2rank2json_cmd,
     load_p2pocket_cmd,
     druggability_cmd,
@@ -150,6 +151,7 @@ def _process_single_protein(args):
         _run_stage(stage, "run_fpocket", run_fpocket_cmd(folder_path, protein))
         _run_stage(stage, "fpocket2json", fpocket2json_cmd(folder_path, protein))
         _run_stage(stage, "load_pocket", load_pocket_cmd(folder_path, protein, working_dir))
+        _run_stage(stage, "run_p2rank", run_p2rank_cmd(genome, protein, working_dir))
         _run_stage(stage, "p2rank2json", p2rank2json_cmd(genome, protein, working_dir))
         _run_stage(stage, "load_p2pocket", load_p2pocket_cmd(genome, protein, working_dir))
         return protein

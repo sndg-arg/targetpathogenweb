@@ -202,6 +202,36 @@ def load_pocket_cmd(folder_path, locus_tag, working_dir):
     return f"echo 'No fpocket data for {locus_tag}, skipping'"
 
 
+def run_p2rank_cmd(genome, locus_tag, working_dir, cpus=2):
+    from bioseq.io.SeqStore import SeqStore
+
+    data_dir = _data_dir(working_dir)
+    ss = SeqStore(data_dir)
+    pdb_path = ss.structure_dir(genome, locus_tag) + f"/{locus_tag}_af.pdb"
+    output_dir = ss.p2rank_folder(genome, locus_tag)
+    predictions_csv = ss.p2rank_pdb_predictions(genome, locus_tag)
+    host_data_dir = _host_bind_path(
+        data_dir,
+        env_name="TPW_DATA_DIR",
+        container_base="/app/targetpathogenweb/data",
+    )
+    if os.path.exists(predictions_csv):
+        return f"echo 'P2Rank output already exists for {locus_tag}'"
+    if not os.path.exists(pdb_path):
+        return f"echo 'No structure PDB for {locus_tag}, skipping p2rank'"
+    return (
+        f"mkdir -p {shlex.quote(output_dir)}; "
+        f"if command -v docker >/dev/null 2>&1; then "
+        f"docker run --user $(id -u):$(id -g) --rm -i "
+        f"-v {shlex.quote(host_data_dir)}:{shlex.quote(data_dir)} "
+        f"mcpalumbo/p2rank:latest prank predict "
+        f"-f {shlex.quote(pdb_path)} "
+        f"-o {shlex.quote(output_dir)} "
+        f"-threads {int(cpus)}; "
+        f"else echo 'Docker not available for p2rank on {locus_tag}, skipping'; fi"
+    )
+
+
 def p2rank2json_cmd(genome, locus_tag, working_dir):
     return f"{PYTHON_BIN} {working_dir}/manage.py p2rank_2_json {genome} {locus_tag} --datadir {_data_dir(working_dir)}"
 
