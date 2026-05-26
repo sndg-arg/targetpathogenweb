@@ -90,6 +90,15 @@ def score_metric_display(value, column_name):
 
 
 @register.filter
+def druggability_display(value):
+    try:
+        numeric = float(str(value).replace(",", "."))
+    except (TypeError, ValueError):
+        return value
+    return f"{numeric:.3f}".rstrip("0").rstrip(".")
+
+
+@register.filter
 def score_metric_tone(value, column_name):
     text = str(value if value is not None else "").strip().lower()
     column_key = str(column_name or "").strip().lower()

@@ -44,12 +44,13 @@ def _druggability_label(value):
         v = float(str(value).replace(",", "."))
     except (TypeError, ValueError):
         return None
+    label = f"{v:.3f}".rstrip("0").rstrip(".")
     if v >= 0.7:
-        return (f"{v:.2f}", "high")
+        return (label, "high")
     elif v >= 0.4:
-        return (f"{v:.2f}", "mid")
+        return (label, "mid")
     elif v > 0:
-        return (f"{v:.2f}", "low")
+        return (label, "low")
     return None
 
 

@@ -1,5 +1,6 @@
 {% extends '../base/masterpage.html' %}
 {% load i18n %}
+{% load custom_tags %}
 {% load static %}
 
 {% block head %}
@@ -138,7 +139,7 @@
                                                     <span class="targets-accession">{{ t.accession }}</span>
                                                     <span class="targets-score">
                                                         <span class="targets-score-label">{% trans "Druggability" %}</span>
-                                                        <span class="targets-score-value">{{ t.score|floatformat:2 }}</span>
+                                                        <span class="targets-score-value">{{ t.score|druggability_display }}</span>
                                                     </span>
                                                     {% if t.binder_count %}
                                                         <span class="targets-evidence">

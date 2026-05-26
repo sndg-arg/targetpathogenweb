@@ -332,7 +332,7 @@
                                             {% with val=tdata|dictkey:protein.id|dictkey:col %}
                                                 {% if val and val != "-" %}
                                                     <span class="tp-chip tp-chip--score js-drugg-cell druggability-tip" data-score="{{ val }}">
-                                                        {{ val|floatformat:2 }}
+                                                        {{ val|druggability_display }}
                                                         <span class="cell-tooltip" role="tooltip">{% trans "FPocket druggability score for the preferred structure: experimental when available, otherwise predicted model. Scale 0 to 1; higher is better." %}</span>
                                                     </span>
                                                 {% else %}

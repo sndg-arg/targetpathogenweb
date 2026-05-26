@@ -117,7 +117,7 @@ def _humanize_factor(param_name, value):
     if param_name.lower() == "druggability":
         try:
             v = float(value)
-            fmt = f"{v:.2f}"
+            fmt = f"{v:.3f}".rstrip("0").rstrip(".")
             if v >= 0.7:
                 return (f"Highly druggable · {fmt}", "good")
             elif v >= 0.4:
