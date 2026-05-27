@@ -32,6 +32,12 @@ REMOTE_STAGE_REQUIREMENTS = {
     22: ("TPW_BINDERS_USE_REMOTE", "TPW_BINDERS_REMOTE_COMMAND"),
 }
 
+FASTTARGET_BASE_DIR = "/app/fasttarget/organism"
+FASTTARGET_SCORE_FILES = {
+    "human_offtarget": ["tables_for_TP/human_offtarget.tsv", "offtarget/human_offtarget.tsv"],
+    "essenciality": ["tables_for_TP/essenciality.tsv", "essentiality/essenciality.tsv"],
+}
+
 
 @dataclass
 class CuratedPipelinePlan:
@@ -53,7 +59,10 @@ class CuratedPipelinePlan:
     ligq_binder_count: int = 0
     skip_stages: set[int] = field(default_factory=set)
     required_remote_stages: set[int] = field(default_factory=set)
+    fasttarget_org_dir: str | None = None
+    fasttarget_skip_exec_possible: bool = False
     warnings: list[str] = field(default_factory=list)
+    notes: list[str] = field(default_factory=list)
 
     @property
     def skip_stages_text(self):
@@ -104,6 +113,30 @@ def _read_tsv_columns(results_tsv):
         return []
 
 
+def _find_fasttarget_org_dir(genome_name):
+    """Return the FastTarget organism dir if it exists, checking both the
+    full genome name (e.g. 'public__KpATCC43816') and the bare accession
+    (e.g. 'KpATCC43816' — used when FastTarget was run outside TPW)."""
+    candidates = [genome_name]
+    if "__" in genome_name:
+        candidates.append(genome_name.split("__", 1)[1])
+    for name in candidates:
+        path = os.path.join(FASTTARGET_BASE_DIR, name)
+        if os.path.isdir(path):
+            return path
+    return None
+
+
+def _fasttarget_file_exists(org_dir, score_key):
+    """True if at least one known output file for this score exists."""
+    if not org_dir:
+        return False
+    for rel in FASTTARGET_SCORE_FILES.get(score_key, []):
+        if os.path.exists(os.path.join(org_dir, rel)):
+            return True
+    return False
+
+
 def build_curated_pipeline_plan(
     genome_name,
     *,
@@ -147,6 +180,13 @@ def build_curated_pipeline_plan(
     uniprot_dbnames = ["UnipSp", "UnipTr"]
     annotation_dbname_set = set(annotation_dbnames("go")) | set(annotation_dbnames("ec"))
 
+    fasttarget_org_dir = _find_fasttarget_org_dir(genome_name)
+    human_file_exists = _fasttarget_file_exists(fasttarget_org_dir, "human_offtarget")
+    essenciality_file_exists = _fasttarget_file_exists(fasttarget_org_dir, "essenciality")
+    fasttarget_skip_exec_possible = fasttarget_org_dir is not None and (
+        human_file_exists or essenciality_file_exists
+    )
+
     plan = CuratedPipelinePlan(
         genome_name=genome_name,
         datadir=datadir,
@@ -173,6 +213,8 @@ def build_curated_pipeline_plan(
             locustag__biodatabase=db,
             source=Binders.SOURCE_PROPOSED,
         ).count(),
+        fasttarget_org_dir=fasttarget_org_dir,
+        fasttarget_skip_exec_possible=fasttarget_skip_exec_possible,
     )
 
     if protein_total <= 0:
@@ -187,10 +229,41 @@ def build_curated_pipeline_plan(
         if score_counts.get(score_name, 0) >= protein_total:
             plan.skip_stages.update(stages)
 
-    if all(score_counts.get(name, 0) >= protein_total for name in FASTTARGET_REQUIRED_SCORES):
+    human_in_db = score_counts.get("human_offtarget", 0) >= protein_total
+    deg_in_db = score_counts.get("hit_in_deg", 0) >= protein_total
+
+    if human_in_db and deg_in_db:
         plan.skip_stages.add(4)
+    elif fasttarget_skip_exec_possible:
+        # FastTarget already ran (files exist in container). Run fast_command
+        # with SKIP_EXEC so it only post-processes existing output, no SLURM needed.
+        plan.notes.append(
+            f"FastTarget output found at {fasttarget_org_dir}. "
+            "Stage 4 will run with TPW_FASTTARGET_SKIP_EXEC=1 TPW_FASTTARGET_ALLOW_FALLBACK=1 "
+            "(post-process existing files, no re-computation)."
+        )
+        if not human_file_exists:
+            plan.warnings.append(
+                "human_offtarget.tsv not found in FastTarget organism dir; "
+                "fast_command will generate fallback no_hit values for that score."
+            )
+        if not essenciality_file_exists:
+            plan.warnings.append(
+                "essenciality.tsv not found in FastTarget organism dir; "
+                "fast_command will generate fallback no_hit values for that score."
+            )
     else:
-        plan.required_remote_stages.add(4)
+        if os.environ.get("TPW_FASTTARGET_USE_REMOTE", "").strip() == "1":
+            plan.required_remote_stages.add(4)
+        else:
+            plan.warnings.append(
+                "Stage 4 (FastTarget) needs human_offtarget and hit_in_deg. "
+                "No pre-computed files found at /app/fasttarget/organism/. Options:\n"
+                "  A) Run FastTarget on SLURM: set TPW_FASTTARGET_USE_REMOTE=1 + TPW_FASTTARGET_REMOTE_COMMAND.\n"
+                "  B) Use fallback zeros: add TPW_FASTTARGET_SKIP_EXEC=1 TPW_FASTTARGET_ALLOW_FALLBACK=1 "
+                "to the resume command (scores will be set to no_hit/no_deg for all proteins)."
+            )
+            plan.required_remote_stages.add(4)
 
     min_structures = max(1, math.floor(protein_total * structure_completion_ratio))
     if plan.protein_structures >= min_structures:
@@ -213,8 +286,17 @@ def build_curated_pipeline_plan(
     else:
         plan.required_remote_stages.add(10)
 
+    ligq_remote_configured = os.getenv("TPW_LIGQ_USE_REMOTE", "").strip() == "1"
+
     if plan.binder_count > 0:
         plan.skip_stages.update({22, 23})
+    elif ligq_remote_configured:
+        # LigQ_2 (stage 24) loads binders directly — no need to run get_binders/load_binders.
+        plan.skip_stages.update({22, 23})
+        plan.notes.append(
+            "Stages 22/23 (get_binders/load_binders) are skipped because TPW_LIGQ_USE_REMOTE=1; "
+            "LigQ_2 (stage 24) loads binders directly."
+        )
     else:
         plan.required_remote_stages.add(22)
 

@@ -71,9 +71,23 @@ class Command(BaseCommand):
         self.stdout.write(f"  LigQ/ZINC binder rows: {plan.ligq_binder_count}")
 
         self.stdout.write("")
+        self.stdout.write(self.style.HTTP_INFO("FastTarget status"))
+        if plan.fasttarget_org_dir:
+            self.stdout.write(f"  Pre-computed output found: {plan.fasttarget_org_dir}")
+            self.stdout.write(f"  Skip-exec possible: {plan.fasttarget_skip_exec_possible}")
+        else:
+            self.stdout.write("  No pre-computed FastTarget output found in /app/fasttarget/organism/")
+
+        self.stdout.write("")
         self.stdout.write(self.style.HTTP_INFO("Pipeline decision"))
         self.stdout.write(f"  Skip stages covered by curated/imported data: {plan.skip_stages_text or '-'}")
         self.stdout.write(f"  Heavy stages that still require SLURM: {plan.required_remote_stages_text or '-'}")
+
+        if plan.notes:
+            self.stdout.write("")
+            self.stdout.write(self.style.SUCCESS("Notes"))
+            for note in plan.notes:
+                self.stdout.write(f"  - {note}")
 
         if plan.warnings:
             self.stdout.write("")
@@ -82,26 +96,34 @@ class Command(BaseCommand):
                 self.stdout.write(f"  - {warning}")
 
         skip_arg = f"--skip-stages {plan.skip_stages_text}" if plan.skip_stages_text else ""
+
+        # Build env prefix for the resume command
+        extra_env = ""
+        if plan.fasttarget_skip_exec_possible and 4 not in plan.skip_stages:
+            extra_env = "TPW_FASTTARGET_SKIP_EXEC=1 TPW_FASTTARGET_ALLOW_FALLBACK=1 "
+
         self.stdout.write("")
         self.stdout.write(self.style.HTTP_INFO("Resume command"))
-        self.stdout.write(
-            "  "
-            + " ".join(
-                part
-                for part in [
-                    "/opt/conda/envs/tpv2/bin/python",
-                    "pipeline/run_pipeline_direct.py",
-                    plan.genome_name,
-                    "--genome-name",
-                    plan.genome_name,
-                    "--gram n",
-                    "--start-stage 4",
-                    skip_arg,
-                    "--no-local-heavy",
-                ]
-                if part
-            )
-        )
+        resume_parts = [
+            extra_env,
+            "/opt/conda/envs/tpv2/bin/python",
+            "pipeline/run_pipeline_direct.py",
+            plan.genome_name,
+            "--genome-name",
+            plan.genome_name,
+            "--gram n",
+            "--start-stage 4",
+            skip_arg,
+            "--no-local-heavy",
+        ]
+        self.stdout.write("  " + " ".join(part for part in resume_parts if part))
+
+        if plan.required_remote_stages:
+            self.stdout.write("")
+            self.stdout.write(self.style.WARNING(
+                "  Pipeline will pause at the first SLURM-required stage. "
+                "Ensure the env vars for each remote stage are configured before launching."
+            ))
 
         if os.getenv("TPW_FORBID_LOCAL_HEAVY", "").strip() != "1":
             self.stdout.write(
