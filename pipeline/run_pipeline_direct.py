@@ -56,6 +56,7 @@ from pipeline_commands import (
 from interproscan_remote import run_remote_interproscan
 from colabfold_remote import run_remote_colabfold
 from ligq_remote import run_remote_ligq
+from slurm_remote_command import run_remote_shell_job
 
 
 # ---------------------------------------------------------------------------
@@ -114,6 +115,40 @@ def _assert_heavy_stage_allowed(stage, app_name, allow_local_heavy):
         f"Refusing to run heavy stage {stage} ({HEAVY_LOCAL_STAGES[stage]}) locally "
         f"while handling {app_name}. Configure a SLURM/remote implementation for this "
         "stage, provide curated data and skip it, or pass --allow-local-heavy explicitly."
+    )
+
+
+def _format_remote_command(template, *, genome, working_dir, folder_path):
+    if not template:
+        return ""
+    return template.format(
+        genome=shlex.quote(genome),
+        working_dir=shlex.quote(working_dir),
+        folder_path=shlex.quote(folder_path),
+    )
+
+
+def _run_configured_remote_stage(stage, app_name, env_prefix, cfg_dict, *, genome, working_dir, folder_path):
+    template = os.getenv(f"{env_prefix}_REMOTE_COMMAND", "").strip()
+    if not template:
+        raise RuntimeError(
+            f"{app_name} is configured for SLURM execution but {env_prefix}_REMOTE_COMMAND is not set."
+        )
+    command = _format_remote_command(
+        template,
+        genome=genome,
+        working_dir=working_dir,
+        folder_path=folder_path,
+    )
+    return _run_python_stage(
+        stage,
+        app_name,
+        run_remote_shell_job,
+        cfg_dict,
+        env_prefix=env_prefix,
+        job_name=f"tpw_{app_name}_{genome}",
+        command=command,
+        stage_number=stage,
     )
 
 
@@ -265,8 +300,19 @@ def run_genome(
         _run_stage(3, "load_gbk", load_gbk_cmd(working_dir, folder_path, genome))
         _run_stage(3, "sync_genome_metadata", sync_genome_metadata_cmd(working_dir, folder_path, genome))
     if not _skip(4):
-        _assert_heavy_stage_allowed(4, "fasttarget", allow_local_heavy)
-        _run_stage(4, "fasttarget", fasttarget_cmd(working_dir, genome, folder_path))
+        if os.environ.get("TPW_FASTTARGET_USE_REMOTE", "").strip() == "1":
+            _run_configured_remote_stage(
+                4,
+                "fasttarget_remote",
+                "TPW_FASTTARGET",
+                cfg_dict,
+                genome=genome,
+                working_dir=working_dir,
+                folder_path=folder_path,
+            )
+        else:
+            _assert_heavy_stage_allowed(4, "fasttarget", allow_local_heavy)
+            _run_stage(4, "fasttarget", fasttarget_cmd(working_dir, genome, folder_path))
     if not _skip(5):
         _run_stage(5, "load_score", load_score_cmd(working_dir, genome, "human_offtarget"))
     if not _skip(6):
@@ -304,8 +350,19 @@ def run_genome(
             _assert_heavy_stage_allowed(16, "colabfold_predict", allow_local_heavy)
             _run_stage(16, "colabfold_predict", colabfold_cmd(working_dir, genome))
     if not _skip(17):
-        _assert_heavy_stage_allowed(17, "structures_af", allow_local_heavy)
-        _run_structures_chain(17, working_dir, folder_path, genome)
+        if os.environ.get("TPW_STRUCTURES_USE_REMOTE", "").strip() == "1":
+            _run_configured_remote_stage(
+                17,
+                "structures_remote",
+                "TPW_STRUCTURES",
+                cfg_dict,
+                genome=genome,
+                working_dir=working_dir,
+                folder_path=folder_path,
+            )
+        else:
+            _assert_heavy_stage_allowed(17, "structures_af", allow_local_heavy)
+            _run_structures_chain(17, working_dir, folder_path, genome)
     if not _skip(18):
         _run_stage(18, "druggability_2_csv", druggability_cmd(working_dir, genome))
     if not _skip(19):
@@ -315,8 +372,19 @@ def run_genome(
     if not _skip(21):
         _run_stage(21, "load_score", load_score_cmd(working_dir, genome, "psort"))
     if not _skip(22):
-        _assert_heavy_stage_allowed(22, "get_binders", allow_local_heavy)
-        _run_stage(22, "get_binders", get_binders_cmd(working_dir, genome))
+        if os.environ.get("TPW_BINDERS_USE_REMOTE", "").strip() == "1":
+            _run_configured_remote_stage(
+                22,
+                "binders_remote",
+                "TPW_BINDERS",
+                cfg_dict,
+                genome=genome,
+                working_dir=working_dir,
+                folder_path=folder_path,
+            )
+        else:
+            _assert_heavy_stage_allowed(22, "get_binders", allow_local_heavy)
+            _run_stage(22, "get_binders", get_binders_cmd(working_dir, genome))
     if not _skip(23):
         _run_stage(23, "load_binders", load_binders_cmd(working_dir, genome))
     if not _skip(24):
