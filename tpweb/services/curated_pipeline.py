@@ -28,7 +28,6 @@ FASTTARGET_REQUIRED_SCORES = {
 
 REMOTE_STAGE_REQUIREMENTS = {
     4: ("TPW_FASTTARGET_USE_REMOTE", "TPW_FASTTARGET_REMOTE_COMMAND"),
-    17: ("TPW_STRUCTURES_USE_REMOTE", "TPW_STRUCTURES_REMOTE_COMMAND"),
     22: ("TPW_BINDERS_USE_REMOTE", "TPW_BINDERS_REMOTE_COMMAND"),
 }
 
@@ -334,6 +333,8 @@ def build_curated_pipeline_plan(
         )
     if 16 in plan.required_remote_stages and os.getenv("TPW_COLABFOLD_USE_REMOTE", "").strip() != "1":
         plan.warnings.append("Stage 16 requires SLURM but TPW_COLABFOLD_USE_REMOTE=1 is not configured.")
+    if 17 in plan.required_remote_stages and os.getenv("TPW_STRUCTURES_USE_REMOTE", "").strip() != "1":
+        plan.warnings.append("Stage 17 requires SLURM but TPW_STRUCTURES_USE_REMOTE=1 is not configured.")
     if 24 in plan.required_remote_stages and os.getenv("TPW_LIGQ_USE_REMOTE", "").strip() != "1":
         plan.warnings.append("Stage 24 requires SLURM but TPW_LIGQ_USE_REMOTE=1 is not configured.")
 

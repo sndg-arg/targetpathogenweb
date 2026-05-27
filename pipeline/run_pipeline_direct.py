@@ -58,6 +58,7 @@ from interproscan_remote import run_remote_interproscan
 from colabfold_remote import run_remote_colabfold
 from ligq_remote import run_remote_ligq
 from slurm_remote_command import run_remote_shell_job
+from structures_remote import run_remote_structures
 
 
 # ---------------------------------------------------------------------------
@@ -352,14 +353,14 @@ def run_genome(
             _run_stage(16, "colabfold_predict", colabfold_cmd(working_dir, genome))
     if not _skip(17):
         if os.environ.get("TPW_STRUCTURES_USE_REMOTE", "").strip() == "1":
-            _run_configured_remote_stage(
+            _run_python_stage(
                 17,
                 "structures_remote",
-                "TPW_STRUCTURES",
-                cfg_dict,
+                run_remote_structures,
+                cfg_dict=cfg_dict,
+                folder_path=folder_path,
                 genome=genome,
                 working_dir=working_dir,
-                folder_path=folder_path,
             )
         else:
             _assert_heavy_stage_allowed(17, "structures_af", allow_local_heavy)
