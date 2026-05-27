@@ -50,6 +50,10 @@ GATES_COLUMN_MAP = {
     "core_corecruncher":            "core_corecruncher",
 }
 
+DERIVED_GATES_COLUMNS = {
+    "gut_microbiome_offtarget_counts": "gut_microbiome_offtarget",
+}
+
 SUPPORTED_FORMATS = ("gates",)
 
 
@@ -152,6 +156,14 @@ class Command(BaseCommand):
                 mapped[tpw] = df[src]
             else:
                 self.stderr.write(self.style.WARNING(f"  Column '{src}' not in TSV, skipping."))
+
+        for src, tpw in DERIVED_GATES_COLUMNS.items():
+            if src not in df.columns:
+                continue
+            mapped[tpw] = df[src].apply(_counts_to_hit_no_hit)
+            self.stdout.write(
+                f"  Derived '{tpw}' from '{src}' to avoid recomputing microbiome off-targets."
+            )
 
         mapped_df = pd.DataFrame(mapped)
         tpw_cols = [c for c in mapped_df.columns if c != "gene"]
@@ -333,3 +345,13 @@ def _gates_property_pockets(locus_tag, raw):
             }
         )
     return converted
+
+
+def _counts_to_hit_no_hit(value):
+    if pd.isna(value):
+        return "no_hit"
+    try:
+        return "hit" if float(value) > 0 else "no_hit"
+    except (TypeError, ValueError):
+        normalized = str(value).strip().lower()
+        return "no_hit" if normalized in {"", "0", "none", "nan", "null", "no_hit"} else "hit"
