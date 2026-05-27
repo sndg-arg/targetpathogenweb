@@ -35,7 +35,7 @@ REMOTE_STAGE_REQUIREMENTS = {
 FASTTARGET_BASE_DIR = "/app/fasttarget/organism"
 FASTTARGET_SCORE_FILES = {
     "human_offtarget": ["tables_for_TP/human_offtarget.tsv", "offtarget/human_offtarget.tsv"],
-    "essenciality": ["tables_for_TP/essenciality.tsv", "essentiality/essenciality.tsv"],
+    "hit_in_deg": ["tables_for_TP/hit_in_deg.tsv", "essentiality/hit_in_deg.tsv"],
 }
 
 
@@ -61,6 +61,8 @@ class CuratedPipelinePlan:
     required_remote_stages: set[int] = field(default_factory=set)
     fasttarget_org_dir: str | None = None
     fasttarget_skip_exec_possible: bool = False
+    fasttarget_human_rows: int = 0
+    fasttarget_deg_rows: int = 0
     warnings: list[str] = field(default_factory=list)
     notes: list[str] = field(default_factory=list)
 
@@ -127,14 +129,20 @@ def _find_fasttarget_org_dir(genome_name):
     return None
 
 
-def _fasttarget_file_exists(org_dir, score_key):
-    """True if at least one known output file for this score exists."""
+def _fasttarget_file_info(org_dir, score_key):
+    """Return (path, row_count) for the first known output file for this score."""
     if not org_dir:
-        return False
+        return None, 0
     for rel in FASTTARGET_SCORE_FILES.get(score_key, []):
-        if os.path.exists(os.path.join(org_dir, rel)):
-            return True
-    return False
+        path = os.path.join(org_dir, rel)
+        if not os.path.exists(path):
+            continue
+        try:
+            rows = len(pd.read_csv(path, sep="\t"))
+        except Exception:
+            rows = 0
+        return path, rows
+    return None, 0
 
 
 def build_curated_pipeline_plan(
@@ -181,10 +189,18 @@ def build_curated_pipeline_plan(
     annotation_dbname_set = set(annotation_dbnames("go")) | set(annotation_dbnames("ec"))
 
     fasttarget_org_dir = _find_fasttarget_org_dir(genome_name)
-    human_file_exists = _fasttarget_file_exists(fasttarget_org_dir, "human_offtarget")
-    essenciality_file_exists = _fasttarget_file_exists(fasttarget_org_dir, "essenciality")
-    fasttarget_skip_exec_possible = fasttarget_org_dir is not None and (
-        human_file_exists or essenciality_file_exists
+    human_file_path, human_file_rows = _fasttarget_file_info(
+        fasttarget_org_dir,
+        "human_offtarget",
+    )
+    deg_file_path, deg_file_rows = _fasttarget_file_info(
+        fasttarget_org_dir,
+        "hit_in_deg",
+    )
+    fasttarget_skip_exec_possible = (
+        fasttarget_org_dir is not None
+        and human_file_rows >= protein_total
+        and deg_file_rows >= protein_total
     )
 
     plan = CuratedPipelinePlan(
@@ -215,6 +231,8 @@ def build_curated_pipeline_plan(
         ).count(),
         fasttarget_org_dir=fasttarget_org_dir,
         fasttarget_skip_exec_possible=fasttarget_skip_exec_possible,
+        fasttarget_human_rows=human_file_rows,
+        fasttarget_deg_rows=deg_file_rows,
     )
 
     if protein_total <= 0:
@@ -239,29 +257,25 @@ def build_curated_pipeline_plan(
         # with SKIP_EXEC so it only post-processes existing output, no SLURM needed.
         plan.notes.append(
             f"FastTarget output found at {fasttarget_org_dir}. "
-            "Stage 4 will run with TPW_FASTTARGET_SKIP_EXEC=1 TPW_FASTTARGET_ALLOW_FALLBACK=1 "
+            "Stage 4 will run with TPW_FASTTARGET_SKIP_EXEC=1 "
             "(post-process existing files, no re-computation)."
         )
-        if not human_file_exists:
-            plan.warnings.append(
-                "human_offtarget.tsv not found in FastTarget organism dir; "
-                "fast_command will generate fallback no_hit values for that score."
-            )
-        if not essenciality_file_exists:
-            plan.warnings.append(
-                "essenciality.tsv not found in FastTarget organism dir; "
-                "fast_command will generate fallback no_hit values for that score."
-            )
     else:
+        if human_file_path and human_file_rows < protein_total:
+            plan.warnings.append(
+                f"FastTarget human output is partial: {human_file_rows}/{protein_total} rows at {human_file_path}."
+            )
+        if deg_file_path and deg_file_rows < protein_total:
+            plan.warnings.append(
+                f"FastTarget DEG output is partial: {deg_file_rows}/{protein_total} rows at {deg_file_path}."
+            )
         if os.environ.get("TPW_FASTTARGET_USE_REMOTE", "").strip() == "1":
             plan.required_remote_stages.add(4)
         else:
             plan.warnings.append(
                 "Stage 4 (FastTarget) needs human_offtarget and hit_in_deg. "
-                "No pre-computed files found at /app/fasttarget/organism/. Options:\n"
-                "  A) Run FastTarget on SLURM: set TPW_FASTTARGET_USE_REMOTE=1 + TPW_FASTTARGET_REMOTE_COMMAND.\n"
-                "  B) Use fallback zeros: add TPW_FASTTARGET_SKIP_EXEC=1 TPW_FASTTARGET_ALLOW_FALLBACK=1 "
-                "to the resume command (scores will be set to no_hit/no_deg for all proteins)."
+                "No complete pre-computed FastTarget files were found under /app/fasttarget/organism/. "
+                "Run FastTarget on SLURM or provide complete human_offtarget.tsv and hit_in_deg.tsv outputs."
             )
             plan.required_remote_stages.add(4)
 

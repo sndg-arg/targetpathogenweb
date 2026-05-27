@@ -1,4 +1,5 @@
 import os
+import shlex
 
 from django.core.management.base import BaseCommand, CommandError
 
@@ -74,6 +75,8 @@ class Command(BaseCommand):
         self.stdout.write(self.style.HTTP_INFO("FastTarget status"))
         if plan.fasttarget_org_dir:
             self.stdout.write(f"  Pre-computed output found: {plan.fasttarget_org_dir}")
+            self.stdout.write(f"  human_offtarget rows: {plan.fasttarget_human_rows}/{plan.protein_total}")
+            self.stdout.write(f"  hit_in_deg rows: {plan.fasttarget_deg_rows}/{plan.protein_total}")
             self.stdout.write(f"  Skip-exec possible: {plan.fasttarget_skip_exec_possible}")
         else:
             self.stdout.write("  No pre-computed FastTarget output found in /app/fasttarget/organism/")
@@ -100,7 +103,10 @@ class Command(BaseCommand):
         # Build env prefix for the resume command
         extra_env = ""
         if plan.fasttarget_skip_exec_possible and 4 not in plan.skip_stages:
-            extra_env = "TPW_FASTTARGET_SKIP_EXEC=1 TPW_FASTTARGET_ALLOW_FALLBACK=1 "
+            extra_env = (
+                "TPW_FASTTARGET_SKIP_EXEC=1 "
+                f"TPW_FASTTARGET_ORGANISM_DIR={shlex.quote(plan.fasttarget_org_dir)} "
+            )
 
         self.stdout.write("")
         self.stdout.write(self.style.HTTP_INFO("Resume command"))

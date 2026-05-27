@@ -160,10 +160,6 @@ class Command(BaseCommand):
                     )
 
         command = [sys.executable, "/app/fasttarget/fasttarget.py"]
-        if skip_exec and not allow_fallback:
-            raise CommandError(
-                "TPW_FASTTARGET_SKIP_EXEC=1 requires TPW_FASTTARGET_ALLOW_FALLBACK=1."
-            )
         timeout_raw = os.getenv("FASTTARGET_TIMEOUT_SEC", "0")
         try:
             timeout_sec = int(timeout_raw)
@@ -175,7 +171,7 @@ class Command(BaseCommand):
             results = sp.CompletedProcess(command, 0, stdout="", stderr="")
             self.stderr.write(self.style.WARNING(
                 "Skipping fasttarget.py execution by TPW_FASTTARGET_SKIP_EXEC=1. "
-                "Using fallback score tables when needed."
+                "Only existing FastTarget output files will be post-processed."
             ))
         else:
             try:
@@ -320,7 +316,8 @@ class Command(BaseCommand):
                 return pd.Series([default_value] * len(df), index=df.index)
             return pd.to_numeric(df[column], errors="coerce").fillna(default_value)
 
-        organism_dir = f"/app/fasttarget/organism/{name}"
+        organism_dir_override = os.getenv("TPW_FASTTARGET_ORGANISM_DIR", "").strip()
+        organism_dir = organism_dir_override if skip_exec and organism_dir_override else f"/app/fasttarget/organism/{name}"
         tables_dir = os.path.join(organism_dir, "tables_for_TP")
         offtarget_dir = os.path.join(organism_dir, "offtarget")
         essentiality_dir = os.path.join(organism_dir, "essentiality")
