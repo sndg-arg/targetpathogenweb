@@ -169,7 +169,12 @@ def _build_ligq_config(cfg_dict):
     ssh_host = ssh_options["host"]
     ssh_user = ssh_options["user"]
     ssh_port = ssh_options["port"]
-    ssh_key_filename = ssh_options["key_filename"]
+    env_key_filename = _env_text("SSH_KEY_FILENAME")
+    ssh_key_filename = (
+        os.path.expanduser(env_key_filename)
+        if env_key_filename
+        else ssh_options["key_filename"]
+    )
 
     ssh_password = _env_text("SSH_PASSWORD")
     if ssh_password is None:

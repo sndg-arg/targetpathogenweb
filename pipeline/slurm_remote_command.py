@@ -109,6 +109,12 @@ def _build_config(cfg_dict, prefix):
     ssh_host = ssh_options["host"]
     ssh_user = ssh_options["user"]
     ssh_port = ssh_options["port"]
+    env_key_filename = _env_text("SSH_KEY_FILENAME")
+    ssh_key_filename = (
+        os.path.expanduser(env_key_filename)
+        if env_key_filename
+        else ssh_options["key_filename"]
+    )
 
     missing = []
     if not ssh_rootfolder:
@@ -128,7 +134,7 @@ def _build_config(cfg_dict, prefix):
         ssh_user=ssh_user,
         ssh_port=ssh_port,
         ssh_password=_env_text("SSH_PASSWORD") or _config_text(cfg_dict, "SSH", "Password"),
-        ssh_key_filename=ssh_options["key_filename"],
+        ssh_key_filename=ssh_key_filename,
         ssh_connect_timeout=_env_int(f"{prefix}_SSH_CONNECT_TIMEOUT_SEC", default=10),
         poll_seconds=_env_int(f"{prefix}_REMOTE_POLL_SEC", default=60),
         wait_seconds=_env_int(f"{prefix}_REMOTE_WAIT_SEC", default=172800),
