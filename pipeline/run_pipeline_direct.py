@@ -313,7 +313,14 @@ def run_genome(
                 folder_path=folder_path,
             )
         else:
-            _assert_heavy_stage_allowed(4, "fasttarget", allow_local_heavy)
+            fasttarget_skip_exec = os.environ.get("TPW_FASTTARGET_SKIP_EXEC", "").strip().lower() in {
+                "1",
+                "true",
+                "yes",
+                "on",
+            }
+            if not fasttarget_skip_exec:
+                _assert_heavy_stage_allowed(4, "fasttarget", allow_local_heavy)
             _run_stage(4, "fasttarget", fasttarget_cmd(working_dir, genome, folder_path))
     if not _skip(5):
         _run_stage(5, "load_score", load_score_cmd(working_dir, genome, "human_offtarget"))
