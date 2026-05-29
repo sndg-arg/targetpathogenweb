@@ -156,6 +156,7 @@ class LigqRemoteConfig:
     max_known_per_protein: int
     max_zinc_per_protein: int
     min_tanimoto: float
+    exclude_loci: tuple[str, ...]
 
 
 def _build_ligq_config(cfg_dict):
@@ -218,6 +219,11 @@ def _build_ligq_config(cfg_dict):
         max_known_per_protein=_env_int("TPW_LIGQ_MAX_KNOWN", default=100),
         max_zinc_per_protein=_env_int("TPW_LIGQ_MAX_ZINC", default=50),
         min_tanimoto=_env_float("TPW_LIGQ_MIN_TANIMOTO", default=0.5),
+        exclude_loci=tuple(
+            locus.strip()
+            for locus in _env_text("TPW_LIGQ_EXCLUDE_LOCI", default="").split(",")
+            if locus.strip()
+        ),
     )
 
 
@@ -262,6 +268,30 @@ def _exec_remote(ssh, cmd):
     out = stdout.read().decode("utf-8", errors="replace").strip()
     err = stderr.read().decode("utf-8", errors="replace").strip()
     return exit_code, out, err
+
+
+def _filter_fasta_loci(path, excluded_loci):
+    if not excluded_loci:
+        return 0
+
+    excluded = set(excluded_loci)
+    tmp_path = f"{path}.tmp"
+    skipped = 0
+    keep = True
+
+    with open(path, encoding="utf-8") as src, open(tmp_path, "w", encoding="utf-8") as dst:
+        for line in src:
+            if line.startswith(">"):
+                locus = line[1:].strip().split()[0]
+                keep = locus not in excluded
+                if not keep:
+                    skipped += 1
+                    continue
+            if keep:
+                dst.write(line)
+
+    os.replace(tmp_path, path)
+    return skipped
 
 
 # ---------------------------------------------------------------------------
@@ -324,6 +354,13 @@ def run_remote_ligq(cfg_dict, folder_path, genome):
 
     print(f"LigQ_2 remote: dumping FASTA for {biodb_name} → {local_fasta}")
     call_command("dump_genome_proteins_fasta", biodb_name, output=local_fasta)
+    skipped_loci = _filter_fasta_loci(local_fasta, config.exclude_loci)
+    if skipped_loci:
+        print(
+            "LigQ_2 remote: excluded "
+            f"{skipped_loci} problematic loci from FASTA: "
+            f"{', '.join(config.exclude_loci)}"
+        )
 
     _assert_ssh_reachable(config.ssh_host, config.ssh_port, config.ssh_connect_timeout)
 
