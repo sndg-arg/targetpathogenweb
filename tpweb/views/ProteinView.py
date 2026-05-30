@@ -96,7 +96,10 @@ def serialize_prot(protein: Bioentry):
     protein2 = {"id": protein.bioentry_id,
                 "accession": protein.accession,
                 "description": protein.description,
-                "gene": " ".join(protein.genes()),
+                "gene": " ".join(
+                    g for g in protein.genes()
+                    if not g.startswith(("NP_", "WP_", "XP_", "YP_", "AP_"))
+                ) or " ".join(protein.genes()),
                 "size": protein.seq.length,
                 "assembly_id": bdb.biodatabase_id,
                 "assembly_name":   bdb.name,
@@ -435,9 +438,9 @@ class ProteinView(View):
                 sections.append(
                     {
                         "title": "Sequence features",
-                        "headers": ["Start", "End", "DB", "Family", "Term", "Name"],
+                        "headers": ["Start", "End", "DB", "Term", "Name"],
                         "rows": [
-                            [feature["start"], feature["end"], feature["db"], feature["fam"], feature["term"], feature["name"]]
+                            [feature["start"], feature["end"], feature["db"], feature["term"], feature["name"]]
                             for feature in features
                         ],
                     }
