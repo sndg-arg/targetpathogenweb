@@ -79,6 +79,7 @@
 
         <nav class="quick-nav" aria-label="{% trans "Protein sections" %}">
             <a href="#section-overview" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Overview" %}</a>
+            {% if target_profile %}<a href="#section-target-profile" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Target profile" %}</a>{% endif %}
             <a href="#section-sequence" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Sequence" %}</a>
             <a href="#section-annotations" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Annotations" %}</a>
             <a href="#section-features" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Features" %}</a>
@@ -147,6 +148,25 @@
                     </div>
                 {% endif %}
             </section>
+
+            {% if target_profile %}
+            <section class="protein-card tp-ui-panel" id="section-target-profile">
+                <div class="section-head tp-ui-panel-head">
+                    <div>
+                        <h2>{% trans "Target profile" %}</h2>
+                        <p class="section-subtitle">{% trans "Computed evidence for target prioritization." %}</p>
+                    </div>
+                </div>
+                <dl class="target-profile-grid">
+                    {% for item in target_profile %}
+                    <div class="target-profile-item target-profile-item--{{ item.tone }}">
+                        <dt class="target-profile-label">{{ item.label }}</dt>
+                        <dd class="target-profile-value">{{ item.value }}</dd>
+                    </div>
+                    {% endfor %}
+                </dl>
+            </section>
+            {% endif %}
 
             <section class="protein-card tp-ui-panel" id="section-sequence">
                 <div class="section-head tp-ui-panel-head">

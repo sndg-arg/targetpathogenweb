@@ -2064,3 +2064,51 @@ body.residue-modal-open {
 }
 .metric-pill--drugg-low .metric-value { color: var(--tp-color-danger-ink); }
 .metric-pill--drugg-low .metric-label { color: var(--tp-color-danger-ink); opacity: 0.75; }
+
+/* === Target profile section === */
+.target-profile-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--tp-space-3);
+    margin: 0;
+    padding: var(--tp-space-3) 0 0;
+}
+
+.target-profile-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: var(--tp-space-2) var(--tp-space-3);
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 10px;
+    background: var(--tp-color-surface-alt);
+    min-width: 140px;
+}
+
+.target-profile-label {
+    font-size: var(--tp-font-label);
+    color: var(--tp-color-text-secondary);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.target-profile-value {
+    font-size: var(--tp-font-body);
+    font-weight: 600;
+    color: var(--tp-color-text-primary);
+}
+
+.target-profile-item--good {
+    border-color: var(--tp-color-success-border);
+    background: var(--tp-color-success-bg);
+}
+.target-profile-item--good .target-profile-value { color: var(--tp-color-success-ink); }
+.target-profile-item--good .target-profile-label { color: var(--tp-color-success-ink); opacity: 0.8; }
+
+.target-profile-item--bad {
+    border-color: var(--tp-color-warning-border);
+    background: var(--tp-color-warning-bg);
+}
+.target-profile-item--bad .target-profile-value { color: var(--tp-color-warning-ink); }
+.target-profile-item--bad .target-profile-label { color: var(--tp-color-warning-ink); opacity: 0.8; }

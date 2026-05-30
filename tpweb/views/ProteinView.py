@@ -54,6 +54,36 @@ def _druggability_label(value):
     return None
 
 
+_SCORE_META = [
+    # (score_name, display_label, category, good_values, bad_values)
+    ("human_offtarget",          "Human off-target",           "off_target",    ["no_hit"], ["hit"]),
+    ("human_identity",           "Human identity (%)",         "off_target",    [],         []),
+    ("human_evalue",             "Human E-value",              "off_target",    [],         []),
+    ("gut_microbiome_offtarget", "Gut microbiome off-target",  "off_target",    ["no_hit"], ["hit"]),
+    ("hit_in_deg",               "Essential (DEG)",            "essentiality",  ["Y"],      ["N"]),
+    ("deg_identity",             "DEG identity (%)",           "essentiality",  [],         []),
+    ("deg_evalue",               "DEG E-value",                "essentiality",  [],         []),
+    ("Localization",             "Localization",               "localization",  [], []),
+    ("colabfold_plddt",          "ColabFold pLDDT",            "structure",     [],         []),
+]
+
+def _build_target_profile(raw_scores):
+    items = []
+    for name, label, category, good_vals, bad_vals in _SCORE_META:
+        val = raw_scores.get(name)
+        if not val:
+            continue
+        if val in good_vals:
+            tone = "good"
+        elif val in bad_vals:
+            tone = "bad"
+        else:
+            tone = "neutral"
+        display = val.replace("_", " ").replace("no hit", "No hit").replace("no_hit", "No hit")
+        items.append({"label": label, "value": display, "tone": tone, "category": category})
+    return items
+
+
 def _has_pocket_data(pdb_obj):
     return PDBResidueSet.objects.filter(
         pdb=pdb_obj,
@@ -396,6 +426,14 @@ class ProteinView(View):
             drugg_raw = drugg_spv.numeric_value if drugg_spv.numeric_value is not None else drugg_spv.value or None
         druggability = _druggability_label(drugg_raw)
 
+        raw_scores = {
+            spv.score_param.name: spv.value if spv.value else (
+                str(round(spv.numeric_value, 4)) if spv.numeric_value is not None else ""
+            )
+            for spv in ScoreParamValue.objects.filter(bioentry=protein).select_related("score_param")
+        }
+        target_profile = _build_target_profile(raw_scores)
+
         if request.GET.get("export") == "view_csv":
             sections = [
                 {
@@ -485,6 +523,7 @@ class ProteinView(View):
                "graphic_features": graphic_features,
                "binders": binders,
                "structure_summary": structure_summary,
+               "target_profile": target_profile,
                "ec_badges": ec_badges,
                "go_badges": go_badges,
                "pipeline_status": pipeline_status,
