@@ -184,13 +184,9 @@ scp -r -i /home/dockeradmin/.ssh/id_ed25519_agutson_cluster \
     /data/targetpathogen/data/NC_/public__NC_002516.2/ligq2/
 ```
 
-LigQ_2 `search_backend` writes `predicted_ligands.tsv`; the loader currently expects `zinc_ligands.tsv`. Rename before loading:
-
-```bash
-find /data/targetpathogen/data/NC_/public__NC_002516.2/ligq2/output/search_results/ \
-    -name "predicted_ligands.tsv" \
-    -exec bash -c 'mv "$1" "$(dirname "$1")/zinc_ligands.tsv"' _ {} \;
-```
+LigQ_2 `search_backend` writes `predicted_ligands.tsv`; the loader accepts it as
+the ZINC/proposed-ligand table. Older `zinc_ligands.tsv` outputs are still
+accepted.
 
 ## Load LigQ_2 results into the database
 
@@ -279,4 +275,3 @@ Check:
 2. The genome name uses `_prots`, not `_prot`.
 3. The loader has been rerun after UniProt mapping.
 4. The genome may genuinely have no PDB/ChEMBL direct evidence.
-

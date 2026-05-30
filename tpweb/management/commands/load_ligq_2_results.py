@@ -65,8 +65,8 @@ def _short(value, limit=200):
 class Command(BaseCommand):
     help = (
         "Load ligands predicted by LigQ_2 (known + zinc) into the Binders table. "
-        "Expects the LigQ_2 output layout: <output_dir>/search_results/<qseqid>/{known,zinc}_ligands.tsv. "
-        "Also accepts a flat layout with known_ligands.tsv / zinc_ligands.tsv at the root."
+        "Expects the LigQ_2 output layout: <output_dir>/search_results/<qseqid>/known_ligands.tsv "
+        "plus zinc_ligands.tsv or predicted_ligands.tsv. Also accepts a flat layout at the root."
     )
 
     def add_arguments(self, parser):
@@ -137,7 +137,7 @@ class Command(BaseCommand):
 
         if known_df is None and zinc_df is None:
             raise CommandError(
-                f"No known_ligands.tsv or zinc_ligands.tsv found under {out_dir}. "
+                f"No known_ligands.tsv, zinc_ligands.tsv, or predicted_ligands.tsv found under {out_dir}. "
                 "Expected layout: <output_dir>/search_results/<qseqid>/*.tsv or flat at root."
             )
 
@@ -165,7 +165,7 @@ class Command(BaseCommand):
                 stats=zinc_stats,
             )
         else:
-            self.stdout.write(self.style.WARNING("No zinc_ligands.tsv files found"))
+            self.stdout.write(self.style.WARNING("No zinc_ligands.tsv/predicted_ligands.tsv files found"))
 
         self.stdout.write("")
         self.stdout.write(self.style.SUCCESS("=== LigQ_2 load summary ==="))
@@ -200,6 +200,8 @@ class Command(BaseCommand):
         known_pre_cap = (max_known_per_protein or 100) * 2 if max_known_per_protein else None
         zinc_pre_cap = (max_zinc_per_protein or 50) * 2 if max_zinc_per_protein else None
 
+        zinc_like_names = ("zinc_ligands.tsv", "predicted_ligands.tsv")
+
         search_root = out_dir / "search_results"
         if search_root.is_dir():
             per_protein_dirs = sorted(p for p in search_root.iterdir() if p.is_dir())
@@ -230,8 +232,10 @@ class Command(BaseCommand):
                             df = df.drop(columns=["_pchembl_sort"])
                         df["_locustag"] = qseqid
                         known_frames.append(df)
-                zf = prot_dir / "zinc_ligands.tsv"
-                if zf.exists() and zf.stat().st_size > 0:
+                for zinc_name in zinc_like_names:
+                    zf = prot_dir / zinc_name
+                    if not zf.exists() or zf.stat().st_size <= 0:
+                        continue
                     df = pd.read_csv(zf, sep="\t")
                     if not df.empty:
                         if "tanimoto" in df.columns:
@@ -245,6 +249,7 @@ class Command(BaseCommand):
                         if not df.empty:
                             df["_locustag"] = qseqid
                             zinc_frames.append(df)
+                    break
             self.stdout.write(
                 self.style.NOTICE(
                     f"Walked search_results/: {protein_count} protein dirs, "
@@ -271,8 +276,11 @@ class Command(BaseCommand):
             if not df.empty:
                 known_frames.append(df)
 
-        flat_zinc = out_dir / "zinc_ligands.tsv"
-        if flat_zinc.exists() and flat_zinc.stat().st_size > 0:
+        flat_zinc = next(
+            (out_dir / name for name in zinc_like_names if (out_dir / name).exists() and (out_dir / name).stat().st_size > 0),
+            None,
+        )
+        if flat_zinc is not None:
             df = pd.read_csv(flat_zinc, sep="\t")
             if "qseqid" in df.columns:
                 df["_locustag"] = df["qseqid"].astype(str)
