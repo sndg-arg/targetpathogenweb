@@ -128,6 +128,13 @@ def serialize_prot(protein: Bioentry):
             }
         )
 
+    _TRACK_LABEL_ABBREV = {
+        "SignalP_GRAM_NEGATIVE": "SignalP (GN)",
+        "SignalP_GRAM_POSITIVE": "SignalP (GP)",
+        "SignalP_EUK": "SignalP (Euk)",
+        "MobiDBLite": "MobiDB",
+    }
+
     graphic_features = []
     for key, group in itertools.groupby(
             sorted(protein.features.all(), key=lambda f: f.type_term.ontology.name)
@@ -142,9 +149,10 @@ def serialize_prot(protein: Bioentry):
                          "description": f.type_term.identifier, "id": f.type_term.identifier})
         if not data:
             continue
+        display_name = _TRACK_LABEL_ABBREV.get(key, key)
         gf = {
             "data": data,
-            "name": key,
+            "name": display_name,
             "className": "test6",
             "color": "#81BEAA",
             "type": "rect",
