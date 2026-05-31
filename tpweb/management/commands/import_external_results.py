@@ -6,7 +6,7 @@ extracted from the Gates-Targets pipeline tar.gz archive.
 
 Usage
 -----
-# Scores only:
+# Scores + curated UniProt mapping:
 python manage.py import_external_results <genome_name> \\
     --results-tsv /path/to/results_table.tsv \\
     [--datadir ./data] [--overwrite] [--dry-run]
@@ -123,13 +123,24 @@ class Command(BaseCommand):
             raise CommandError(f"Results TSV not found: {results_tsv}")
 
         # --- Load scores ---
-        self.stdout.write(self.style.HTTP_INFO("Step 1/2 — Loading scores from TSV …"))
+        self.stdout.write(self.style.HTTP_INFO("Step 1/3 — Loading scores from TSV …"))
         self._load_scores(genome_name, results_tsv, datadir, overwrite, dry_run,
                           fmt=options["format"])
 
+        # --- Load curated UniProt mapping ---
+        self.stdout.write(self.style.HTTP_INFO("Step 2/3 — Loading curated UniProt mapping …"))
+        call_command(
+            "import_curated_uniprot",
+            genome_name,
+            results_tsv=results_tsv,
+            datadir=datadir,
+            overwrite=overwrite,
+            dry_run=dry_run,
+        )
+
         # --- Load structures ---
         if structures_dir:
-            self.stdout.write(self.style.HTTP_INFO("Step 2/2 — Loading structures …"))
+            self.stdout.write(self.style.HTTP_INFO("Step 3/3 — Loading structures …"))
             self._load_structures(
                 genome_name,
                 structures_dir,
