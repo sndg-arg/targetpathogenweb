@@ -1,10 +1,19 @@
 import os
 
+from django.conf import settings
 from django.http import JsonResponse
+from django.utils.text import get_valid_filename
 from django.views import View
 
-UPLOADS_DIR = "/tmp/tpw_uploads"
 ALLOWED_EXTENSIONS = {".tsv", ".csv", ".gz", ".tar", ".txt", ".json"}
+
+
+def _uploads_dir():
+    explicit_dir = os.environ.get("TPW_UPLOADS_DIR", "").strip()
+    if explicit_dir:
+        return explicit_dir
+    data_dir = getattr(settings, "SEQS_DATA_DIR", None) or os.path.join(settings.BASE_DIR, "data")
+    return os.path.join(str(data_dir), "uploads")
 
 
 class DataFileUploadView(View):
@@ -24,8 +33,9 @@ class DataFileUploadView(View):
                 status=400,
             )
 
-        os.makedirs(UPLOADS_DIR, exist_ok=True)
-        dest = os.path.join(UPLOADS_DIR, uploaded.name)
+        uploads_dir = _uploads_dir()
+        os.makedirs(uploads_dir, exist_ok=True)
+        dest = os.path.join(uploads_dir, get_valid_filename(os.path.basename(uploaded.name)))
 
         with open(dest, "wb") as f:
             for chunk in uploaded.chunks():
