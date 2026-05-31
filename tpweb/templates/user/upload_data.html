@@ -414,7 +414,7 @@
                     <div class="genome-upload-field tp-ui-field" style="max-width: 480px;">
                         <label class="tp-ui-field-label" for="data_file_input">{% trans "File" %}</label>
                         <input class="tp-ui-field-input" type="file" id="data_file_input" name="data_file"
-                               accept=".tsv,.csv,.gz,.tar,.txt,.json">
+                               accept=".tsv,.csv,.tar.gz,.gz,.tar,.txt,.json">
                         <p class="genome-upload-field-help">{% trans "Accepted: .tsv, .csv, .tar.gz, .json" %}</p>
                     </div>
                     <button class="tp-btn tp-btn--primary" type="submit" id="data-file-upload-btn">
@@ -473,7 +473,23 @@
                     body: formData,
                     headers: {"X-CSRFToken": formData.get("csrfmiddlewaretoken")}
                 })
-                .then(function (r) { return r.json(); })
+                .then(function (r) {
+                    return r.text().then(function (text) {
+                        var data = null;
+                        try {
+                            data = text ? JSON.parse(text) : {};
+                        } catch (e) {
+                            data = {
+                                error: "Upload failed with HTTP " + r.status + ". " +
+                                    (text ? text.slice(0, 240) : "The server returned an empty response.")
+                            };
+                        }
+                        if (!r.ok && !data.error) {
+                            data.error = "Upload failed with HTTP " + r.status + ".";
+                        }
+                        return data;
+                    });
+                })
                 .then(function (data) {
                     btn.disabled = false;
                     btn.textContent = "Upload file";
