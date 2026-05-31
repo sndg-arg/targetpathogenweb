@@ -66,11 +66,18 @@ class Command(BaseCommand):
             raise CommandError(f"GBK file not found: {gbk_path}")
 
         with _open_gbk(gbk_path) as handle:
-            record = SeqIO.read(handle, "genbank")
+            records = list(SeqIO.parse(handle, "genbank"))
 
-        counts = Counter(feature.type for feature in record.features)
+        if not records:
+            raise CommandError(f"No GenBank records found in: {gbk_path}")
+
+        counts = Counter()
+        entry_length = 0
+        for record in records:
+            entry_length += len(record.seq)
+            counts.update(feature.type for feature in record.features)
         values = {
-            "EntryLength": str(len(record.seq)),
+            "EntryLength": str(entry_length),
             "COUNT_gene": str(counts.get("gene", 0)),
             "COUNT_CDS": str(counts.get("CDS", 0)),
             "COUNT_tRNA": str(counts.get("tRNA", 0)),
