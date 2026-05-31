@@ -42,6 +42,7 @@ class GenomeUploadView(View):
     ACTION_USE_TEST_GENOME = "use_test_genome"
     ACTION_VALIDATE_EXTERNAL_IMPORT = "validate_external_import"
     ACTION_RUN_EXTERNAL_IMPORT = "run_external_import"
+    ACTION_RUN_CURATED_FILE_PIPELINE = "run_curated_file_pipeline"
 
     @staticmethod
     def _job_state(job, pipeline_status, queue_positions, running_job_id=None):
@@ -135,7 +136,11 @@ class GenomeUploadView(View):
         upload_url = reverse("tpwebapp:genome_upload")
         action = request.POST.get("action")
 
-        if action in {self.ACTION_VALIDATE_EXTERNAL_IMPORT, self.ACTION_RUN_EXTERNAL_IMPORT}:
+        if action in {
+            self.ACTION_VALIDATE_EXTERNAL_IMPORT,
+            self.ACTION_RUN_EXTERNAL_IMPORT,
+            self.ACTION_RUN_CURATED_FILE_PIPELINE,
+        }:
             if not request.user.is_staff:
                 messages.error(request, "Staff access is required for curated external imports.")
                 return redirect(upload_url)
@@ -162,6 +167,9 @@ class GenomeUploadView(View):
                 structures_dir=cleaned.get("structures_dir") or "",
                 datadir=cleaned["datadir"],
                 overwrite=cleaned["overwrite"],
+                ligq_output_dir=cleaned.get("ligq_output_dir") or "",
+                load_ligq_output=cleaned.get("load_ligq_output") and action == self.ACTION_RUN_CURATED_FILE_PIPELINE,
+                include_plan=action == self.ACTION_RUN_CURATED_FILE_PIPELINE,
             )
             try:
                 summary = validate_external_import(
@@ -169,6 +177,7 @@ class GenomeUploadView(View):
                     cleaned["results_tsv"],
                     structures_dir=cleaned.get("structures_dir") or "",
                     datadir=cleaned["datadir"],
+                    ligq_output_dir=cleaned.get("ligq_output_dir") or "",
                 )
             except CommandError as exc:
                 return render(
@@ -191,7 +200,7 @@ class GenomeUploadView(View):
                 "command": command,
             }
 
-            if action == self.ACTION_RUN_EXTERNAL_IMPORT:
+            if action in {self.ACTION_RUN_EXTERNAL_IMPORT, self.ACTION_RUN_CURATED_FILE_PIPELINE}:
                 stdout = StringIO()
                 stderr = StringIO()
                 try:
@@ -205,6 +214,31 @@ class GenomeUploadView(View):
                         stdout=stdout,
                         stderr=stderr,
                     )
+                    ligq_output_dir = cleaned.get("ligq_output_dir") or ""
+                    should_load_ligq = (
+                        action == self.ACTION_RUN_CURATED_FILE_PIPELINE
+                        and cleaned.get("load_ligq_output")
+                        and ligq_output_dir
+                    )
+                    if should_load_ligq:
+                        ligq_summary = (summary or {}).get("ligq_output") or {}
+                        if not ligq_summary.get("exists"):
+                            raise CommandError(f"LigQ_2 output directory not found: {ligq_output_dir}")
+                        call_command(
+                            "load_ligq_2_results",
+                            ligq_output_dir,
+                            stdout=stdout,
+                            stderr=stderr,
+                        )
+                    if action == self.ACTION_RUN_CURATED_FILE_PIPELINE:
+                        call_command(
+                            "curated_pipeline_plan",
+                            cleaned["genome_name"],
+                            results_tsv=cleaned["results_tsv"],
+                            datadir=cleaned["datadir"],
+                            stdout=stdout,
+                            stderr=stderr,
+                        )
                 except Exception as exc:
                     result.update(
                         {
@@ -215,10 +249,15 @@ class GenomeUploadView(View):
                         }
                     )
                 else:
+                    message = (
+                        "Curated file pipeline completed."
+                        if action == self.ACTION_RUN_CURATED_FILE_PIPELINE
+                        else "Curated external import completed."
+                    )
                     result.update(
                         {
                             "status": "imported",
-                            "message": "Curated external import completed.",
+                            "message": message,
                             "stdout": stdout.getvalue(),
                             "stderr": stderr.getvalue(),
                         }

@@ -61,7 +61,39 @@ def _structure_summary(structures_dir):
     }
 
 
-def validate_external_import(genome_name, results_tsv, structures_dir="", datadir=""):
+def _ligq_output_summary(ligq_output_dir):
+    if not ligq_output_dir:
+        return {
+            "provided": False,
+            "exists": False,
+            "known_files": 0,
+            "predicted_files": 0,
+            "zinc_files": 0,
+            "summary_exists": False,
+        }
+
+    path = Path(ligq_output_dir)
+    if not path.is_dir():
+        return {
+            "provided": True,
+            "exists": False,
+            "known_files": 0,
+            "predicted_files": 0,
+            "zinc_files": 0,
+            "summary_exists": False,
+        }
+
+    return {
+        "provided": True,
+        "exists": True,
+        "known_files": sum(1 for _ in path.rglob("known_ligands.tsv")),
+        "predicted_files": sum(1 for _ in path.rglob("predicted_ligands.tsv")),
+        "zinc_files": sum(1 for _ in path.rglob("zinc_ligands.tsv")),
+        "summary_exists": (path / "search_results_summary.tsv").is_file(),
+    }
+
+
+def validate_external_import(genome_name, results_tsv, structures_dir="", datadir="", ligq_output_dir=""):
     protein_db_name = genome_name + Biodatabase.PROT_POSTFIX
     protein_db = Biodatabase.objects.filter(name=protein_db_name).first()
     if protein_db is None:
@@ -83,6 +115,7 @@ def validate_external_import(genome_name, results_tsv, structures_dir="", datadi
     missing_from_tpw = max(tsv["unique_count"] - matched, 0)
 
     structures = _structure_summary(structures_dir)
+    ligq_output = _ligq_output_summary(ligq_output_dir)
 
     return {
         "genome_name": genome_name,
@@ -96,10 +129,20 @@ def validate_external_import(genome_name, results_tsv, structures_dir="", datadi
         "matched_proteins": matched,
         "missing_from_tpw": missing_from_tpw,
         "structures": structures,
+        "ligq_output": ligq_output,
     }
 
 
-def build_external_import_command(genome_name, results_tsv, structures_dir="", datadir="", overwrite=True):
+def build_external_import_command(
+    genome_name,
+    results_tsv,
+    structures_dir="",
+    datadir="",
+    overwrite=True,
+    ligq_output_dir="",
+    load_ligq_output=False,
+    include_plan=False,
+):
     parts = [
         "python manage.py import_external_results",
         genome_name,
@@ -112,7 +155,17 @@ def build_external_import_command(genome_name, results_tsv, structures_dir="", d
         parts.extend(["--datadir", datadir])
     if overwrite:
         parts.append("--overwrite")
-    return " ".join(parts)
+    command = " ".join(parts)
+    if load_ligq_output and ligq_output_dir:
+        command += f" && python manage.py load_ligq_2_results {ligq_output_dir}"
+    if include_plan:
+        command += (
+            " && python manage.py curated_pipeline_plan "
+            f"{genome_name} --results-tsv {results_tsv}"
+        )
+        if datadir:
+            command += f" --datadir {datadir}"
+    return command
 
 
 def run_external_import(genome_name, results_tsv, structures_dir="", datadir="", overwrite=True):

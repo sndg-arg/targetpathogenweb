@@ -34,6 +34,17 @@ class ExternalImportForm(forms.Form):
             }
         ),
     )
+    ligq_output_dir = forms.CharField(
+        label=_("Existing LigQ_2 output directory"),
+        max_length=1024,
+        required=False,
+        widget=forms.TextInput(
+            attrs={
+                "class": "form-control tp-ui-control",
+                "placeholder": "/app/targetpathogenweb/data/KpA/public__KpATCC43816/ligq2/output",
+            }
+        ),
+    )
     datadir = forms.CharField(
         label=_("TPW data directory"),
         max_length=1024,
@@ -45,10 +56,15 @@ class ExternalImportForm(forms.Form):
         required=False,
         initial=True,
     )
+    load_ligq_output = forms.BooleanField(
+        label=_("Load existing LigQ_2 binders"),
+        required=False,
+        initial=False,
+    )
 
     def clean(self):
         cleaned = super().clean()
-        for field in ("genome_name", "results_tsv", "structures_dir", "datadir"):
+        for field in ("genome_name", "results_tsv", "structures_dir", "ligq_output_dir", "datadir"):
             if field in cleaned and cleaned[field]:
                 cleaned[field] = str(cleaned[field]).strip()
         return cleaned
