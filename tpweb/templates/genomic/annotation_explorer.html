@@ -264,6 +264,7 @@
             const basePalette = ["#d7eef4", "#c7e5ee", "#b1d8e7", "#95cade", "#75b9d2"];
             const activePalette = ["#a7d4e0", "#7ec1d4", "#58afc7", "#2a88a8", "#0b4a61"];
             const mutedColor = "#e6f2f6";
+            const sunburstMaxDepth = annotationKind === "ec" ? 3 : 2;
 
             function ancestorSet(targetId) {
                 const ids = new Set();
@@ -428,18 +429,22 @@
                             labels: buildDisplayLabels(currentEcDisplayRootId),
                             parents: chartData.parents,
                             values: chartData.values,
+                            maxdepth: sunburstMaxDepth,
                             textinfo: "label",
                             branchvalues: "remainder",
                             insidetextorientation: "auto",
+                            textfont: { size: 13 },
                             hovertext: chartData.hover_labels,
                             hovertemplate: "<b>%{hovertext}</b><br>%{value} proteins<extra></extra>",
-                            marker: { colors: buildMarkerColors("") }
+                            marker: { colors: buildMarkerColors("") },
+                            sort: false
                         }],
                         {
                             margin: {t: 0, r: 0, b: 0, l: 0},
                             paper_bgcolor: "rgba(0,0,0,0)",
                             plot_bgcolor: "rgba(0,0,0,0)",
-                            height: 540
+                            height: 540,
+                            uniformtext: { minsize: 11, mode: "hide" }
                         },
                         {displayModeBar: false, responsive: true}
                     );
