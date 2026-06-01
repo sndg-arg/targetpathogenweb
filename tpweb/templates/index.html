@@ -129,6 +129,8 @@
             </div>
         </section>
 
+        {{ pipeline_status|json_script:"home-pipeline-status-initial" }}
+
         <div class="pipeline-info-backdrop" id="pipeline-info-modal" aria-hidden="true">
             <div class="pipeline-info-panel" role="dialog" aria-modal="true" aria-labelledby="pipeline-info-title">
                 <div class="pipeline-info-head">
@@ -177,6 +179,19 @@
             const liveRegion = operationsPanel.querySelector("[data-pipeline-live]");
             const endpoint = operationsPanel.getAttribute("data-pipeline-endpoint");
             if (!refreshButton || !refreshIcon || !chip || !liveRegion || !endpoint) return;
+
+            function readInitialPipelineStatus() {
+                const initialStatusNode = document.getElementById("home-pipeline-status-initial");
+                if (!initialStatusNode) return {};
+                try {
+                    return JSON.parse(initialStatusNode.textContent || "{}");
+                } catch (error) {
+                    console.error("Initial pipeline status parse failed", error);
+                    return {};
+                }
+            }
+
+            const initialPipelineStatus = readInitialPipelineStatus();
 
             const labels = {
                 pipelineInProgressFor: "Pipeline in progress for",
@@ -412,23 +427,24 @@
                 function updateStepHighlights(status) {
                     var completed = status.stages_completed || [];
                     var active = status.stages_active || [];
+                    var currentStage = Number(status.stage_current || 0);
+                    var stageTotal = Number(status.stage_total || 0);
+                    var running = !!status.running;
+                    var finished = String(status.state_class || "") === "finished"
+                        || (!!stageTotal && !running && currentStage >= stageTotal);
                     var completedSet = {};
                     var activeSet = {};
                     completed.forEach(function (n) { completedSet[n] = true; });
                     active.forEach(function (n) { activeSet[n] = true; });
-                    // Fallback for when stage event data isn't available
-                    var useFallback = completed.length === 0 && active.length === 0 && status.stage_current;
 
                     var steps = infoModal.querySelectorAll(".pipeline-info-step");
                     steps.forEach(function (step) {
                         var num = parseInt(step.getAttribute("data-stage"), 10);
-                        if (useFallback) {
-                            step.classList.toggle("is-done", num <= Number(status.stage_current));
-                            step.classList.toggle("is-active", !!(status.running && Number(status.stage_current) === num));
-                        } else {
-                            step.classList.toggle("is-done", !!completedSet[num]);
-                            step.classList.toggle("is-active", !!activeSet[num]);
-                        }
+                        var reachedByCurrentStage = currentStage
+                            && (num < currentStage || (finished && num <= currentStage));
+                        var currentByStage = currentStage && num === currentStage;
+                        step.classList.toggle("is-done", !!completedSet[num] || !!reachedByCurrentStage);
+                        step.classList.toggle("is-active", !!activeSet[num] || !!(running && currentByStage));
                     });
                 }
 
@@ -466,6 +482,7 @@
                     originalRenderStatus(status);
                     updateStepHighlights(status);
                 };
+                updateStepHighlights(initialPipelineStatus);
             }
 
             // Genome list refresh: reload the page to pick up newly processed genomes.
