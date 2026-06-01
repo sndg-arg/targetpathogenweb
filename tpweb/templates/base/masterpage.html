@@ -1459,7 +1459,8 @@
                 display: block;
             }
 
-            body.tp-sidebar-collapsed .tp-side-link:hover::after {
+            body.tp-sidebar-collapsed .tp-side-link:hover::after,
+            body.tp-sidebar-collapsed .tp-side-link:focus-visible::after {
                 content: attr(data-label);
                 position: absolute;
                 left: calc(100% + 10px);
@@ -1832,23 +1833,23 @@
     <nav class="tp-side-nav">
         <div class="tp-side-section">
             <p class="tp-side-section-label">{% trans "Analysis" %}</p>
-            <a class="tp-side-link tp-side-link--primary {% if request.resolver_match.url_name == 'index' %}active{% endif %}" data-short="HM" data-label="Home" title="Home" href="{% url 'tpwebapp:index' %}">
+            <a class="tp-side-link tp-side-link--primary {% if request.resolver_match.url_name == 'index' %}active{% endif %}" data-short="HM" data-label="Home" aria-label="Home" href="{% url 'tpwebapp:index' %}">
                 <span class="tp-side-text">Home</span>
             </a>
-            <a class="tp-side-link tp-side-link--primary {% if request.resolver_match.url_name == 'genomes_list' or request.resolver_match.url_name == 'assembly' or request.resolver_match.url_name == 'protein_list' or request.resolver_match.url_name == 'protein' or request.resolver_match.url_name == 'annotation_explorer' %}active{% endif %}" data-short="GE" data-label="{% trans 'Genomes' %}" title="{% trans 'Genomes' %}" href="{% url 'tpwebapp:genomes_list' %}">
+            <a class="tp-side-link tp-side-link--primary {% if request.resolver_match.url_name == 'genomes_list' or request.resolver_match.url_name == 'assembly' or request.resolver_match.url_name == 'protein_list' or request.resolver_match.url_name == 'protein' or request.resolver_match.url_name == 'annotation_explorer' %}active{% endif %}" data-short="GE" data-label="{% trans 'Genomes' %}" aria-label="{% trans 'Genomes' %}" href="{% url 'tpwebapp:genomes_list' %}">
                 <span class="tp-side-text">{% trans "Genomes" %}</span>
             </a>
-            <a class="tp-side-link tp-side-link--primary {% if request.resolver_match.url_name == 'genome_upload' or request.resolver_match.url_name == 'customparam' %}active{% endif %}" data-short="UP" data-label="{% trans 'Upload' %}" title="{% trans 'Upload' %}" href="{% url 'tpwebapp:genome_upload' %}">
+            <a class="tp-side-link tp-side-link--primary {% if request.resolver_match.url_name == 'genome_upload' or request.resolver_match.url_name == 'customparam' %}active{% endif %}" data-short="UP" data-label="{% trans 'Upload' %}" aria-label="{% trans 'Upload' %}" href="{% url 'tpwebapp:genome_upload' %}">
                 <span class="tp-side-text">{% trans "Upload" %}</span>
             </a>
-            <a class="tp-side-link tp-side-link--primary {% if '/form' in request.path or '/result/' in request.path %}active{% endif %}" data-short="BL" data-label="{% trans 'BLAST' %}" title="{% trans 'BLAST' %}" href="{% url 'tpwebapp:form' %}">
+            <a class="tp-side-link tp-side-link--primary {% if '/form' in request.path or '/result/' in request.path %}active{% endif %}" data-short="BL" data-label="{% trans 'BLAST' %}" aria-label="{% trans 'BLAST' %}" href="{% url 'tpwebapp:form' %}">
                 <span class="tp-side-text">{% trans "BLAST" %}</span>
             </a>
         </div>
         {% if user.is_staff %}
         <div class="tp-side-section">
             <p class="tp-side-section-label">{% trans "Support" %}</p>
-            <a class="tp-side-link {% if '/admin' in request.path %}active{% endif %}" data-short="AD" data-label="{% trans 'Admin' %}" title="{% trans 'Admin' %}" href="{% url 'admin:index' %}">
+            <a class="tp-side-link {% if '/admin' in request.path %}active{% endif %}" data-short="AD" data-label="{% trans 'Admin' %}" aria-label="{% trans 'Admin' %}" href="{% url 'admin:index' %}">
                 <span class="tp-side-text">{% trans "Admin" %}</span>
             </a>
         </div>
