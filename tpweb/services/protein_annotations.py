@@ -179,6 +179,8 @@ def _ec_resolve_name(accession, exact_names):
     ec_labels = _load_ec_hierarchy_labels()
     parts = accession.split(".")
 
+    if "-" in parts:
+        return "partial EC assignment"
     if len(parts) == 1:
         return ec_labels["class_labels"].get(accession, "")
     if len(parts) <= 3:

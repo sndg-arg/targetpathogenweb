@@ -529,6 +529,39 @@ class StructureAndAnnotationServiceTests(SimpleTestCase):
             "2.4.1 — Hexosyltransferases",
         )
 
+    def test_build_annotation_explorer_labels_partial_ec_assignments(self):
+        def dbxref_relation(accession):
+            return type(
+                "BioentryDbxref",
+                (),
+                {
+                    "dbxref": type(
+                        "Dbxref",
+                        (),
+                        {
+                            "dbname": ANNOTATION_KIND_CONFIG["ec"]["dbnames"][0],
+                            "accession": accession,
+                            "terms": type("Terms", (), {"all": lambda self: []})(),
+                        },
+                    )()
+                },
+            )()
+
+        protein = type(
+            "Protein",
+            (),
+            {
+                "bioentry_id": 1,
+                "dbxrefs": type("Manager", (), {"all": lambda self: [dbxref_relation("7.1.1.-")]})(),
+            },
+        )()
+
+        explorer = build_annotation_explorer([protein], "ec")
+        partial_index = explorer["chart"]["ids"].index("ec:7.1.1.-")
+
+        self.assertEqual(explorer["chart"]["labels"][partial_index], "7.1.1.- partial EC assignment")
+        self.assertEqual(explorer["chart"]["hover_labels"][partial_index], "7.1.1.- — partial EC assignment")
+
 
 class WorkspaceIsolationTests(TestCase):
     def setUp(self):
