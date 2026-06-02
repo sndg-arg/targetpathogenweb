@@ -1,4 +1,4 @@
-PIPELINE_STAGE_TOTAL = 23
+PIPELINE_STAGE_TOTAL = 24
 
 STAGE_LABELS = {
     1: "Cleaning previous output",
@@ -24,4 +24,5 @@ STAGE_LABELS = {
     21: "Loading PSORT score",
     22: "Collecting binder candidates",
     23: "Loading binders",
+    24: "Loading LigQ_2 binder evidence",
 }

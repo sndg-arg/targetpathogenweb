@@ -4,7 +4,7 @@ Pipeline orchestrator — direct execution, no Parsl.
 
 Replaces run_pipeline.py with plain subprocess.run() calls.
 Activated via TPW_USE_DIRECT_PIPELINE=1 environment variable.
-The DAG is the same 23-stage, 5-branch pipeline; branches run sequentially
+The DAG is the same 24-stage, 5-branch pipeline; branches run sequentially
 (matching the current Parsl behaviour with MaxWorkers=1).
 """
 import argparse
@@ -274,7 +274,7 @@ def run_genome(
     skip_stages=None,
     allow_local_heavy=True,
 ):
-    """Run the full 23-stage pipeline for one genome. Raises on any failure.
+    """Run the full 24-stage pipeline for one genome. Raises on any failure.
 
     start_stage: skip all stages with number < start_stage (used to resume after a failure).
     Stage 1 (clear_folder) is always skipped when start_stage > 1 to preserve existing data.
