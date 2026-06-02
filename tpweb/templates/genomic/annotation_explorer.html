@@ -290,6 +290,45 @@
                 });
             }
 
+            function buildSunburstValues() {
+                if (!chartData || !chartData.ids) return [];
+                const ids = chartData.ids || [];
+                const parents = chartData.parents || [];
+                const sourceValues = chartData.values || [];
+                const childrenByParent = new Map();
+                ids.forEach(function (id, index) {
+                    const parentId = parents[index] || "";
+                    if (!parentId) return;
+                    if (!childrenByParent.has(parentId)) childrenByParent.set(parentId, []);
+                    childrenByParent.get(parentId).push(id);
+                });
+
+                const sourceById = new Map();
+                ids.forEach(function (id, index) {
+                    sourceById.set(id, Number(sourceValues[index] || 0));
+                });
+
+                const memo = new Map();
+                function subtreeValue(id) {
+                    if (memo.has(id)) return memo.get(id);
+                    const children = childrenByParent.get(id) || [];
+                    if (!children.length) {
+                        const leafValue = sourceById.get(id) || 0;
+                        memo.set(id, leafValue);
+                        return leafValue;
+                    }
+                    const total = children.reduce(function (sum, childId) {
+                        return sum + subtreeValue(childId);
+                    }, 0);
+                    memo.set(id, total);
+                    return total;
+                }
+
+                return ids.map(function (id) { return subtreeValue(id); });
+            }
+
+            const chartSunburstValues = buildSunburstValues();
+
             function nodeAccessionFromId(id) {
                 return String(id || "").split(":").slice(1).join(":");
             }
@@ -427,12 +466,13 @@
                             ids: chartData.ids,
                             labels: buildDisplayLabels(currentEcDisplayRootId),
                             parents: chartData.parents,
-                            values: chartData.values,
+                            values: chartSunburstValues,
                             textinfo: "label",
-                            branchvalues: "remainder",
+                            branchvalues: "total",
                             insidetextorientation: "auto",
                             hovertext: chartData.hover_labels,
-                            hovertemplate: "<b>%{hovertext}</b><br>%{value} proteins<extra></extra>",
+                            customdata: chartData.values,
+                            hovertemplate: "<b>%{hovertext}</b><br>%{customdata} proteins<extra></extra>",
                             marker: { colors: buildMarkerColors("") }
                         }],
                         {
