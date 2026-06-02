@@ -290,44 +290,16 @@
                 });
             }
 
-            function buildSunburstValues() {
-                if (!chartData || !chartData.ids) return [];
-                const ids = chartData.ids || [];
-                const parents = chartData.parents || [];
-                const sourceValues = chartData.values || [];
-                const childrenByParent = new Map();
-                ids.forEach(function (id, index) {
-                    const parentId = parents[index] || "";
-                    if (!parentId) return;
-                    if (!childrenByParent.has(parentId)) childrenByParent.set(parentId, []);
-                    childrenByParent.get(parentId).push(id);
+            function buildRemainderValues() {
+                if (!chartData || !chartData.values) return [];
+                const values = chartData.values.map(function (value) {
+                    return Number(value || 0);
                 });
-
-                const sourceById = new Map();
-                ids.forEach(function (id, index) {
-                    sourceById.set(id, Number(sourceValues[index] || 0));
-                });
-
-                const memo = new Map();
-                function subtreeValue(id) {
-                    if (memo.has(id)) return memo.get(id);
-                    const children = childrenByParent.get(id) || [];
-                    if (!children.length) {
-                        const leafValue = sourceById.get(id) || 0;
-                        memo.set(id, leafValue);
-                        return leafValue;
-                    }
-                    const total = children.reduce(function (sum, childId) {
-                        return sum + subtreeValue(childId);
-                    }, 0);
-                    memo.set(id, total);
-                    return total;
-                }
-
-                return ids.map(function (id) { return subtreeValue(id); });
+                if (values.length) values[0] = 0;
+                return values;
             }
 
-            const chartSunburstValues = buildSunburstValues();
+            const chartRemainderValues = buildRemainderValues();
 
             function nodeAccessionFromId(id) {
                 return String(id || "").split(":").slice(1).join(":");
@@ -466,9 +438,9 @@
                             ids: chartData.ids,
                             labels: buildDisplayLabels(currentEcDisplayRootId),
                             parents: chartData.parents,
-                            values: chartSunburstValues,
+                            values: chartRemainderValues,
                             textinfo: "label",
-                            branchvalues: "total",
+                            branchvalues: "remainder",
                             insidetextorientation: "auto",
                             hovertext: chartData.hover_labels,
                             customdata: chartData.values,
