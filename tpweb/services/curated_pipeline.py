@@ -56,6 +56,8 @@ class CuratedPipelinePlan:
     annotation_proteins: int = 0
     binder_count: int = 0
     ligq_binder_count: int = 0
+    ligq_excluded_loci: list[str] = field(default_factory=list)
+    ligq_exclusion_report: str | None = None
     skip_stages: set[int] = field(default_factory=set)
     required_remote_stages: set[int] = field(default_factory=set)
     fasttarget_org_dir: str | None = None
@@ -144,6 +146,25 @@ def _fasttarget_file_info(org_dir, score_key):
     return None, 0
 
 
+def _read_ligq_excluded_loci(folder_path):
+    report_path = os.path.join(folder_path, "ligq2", "excluded_loci.tsv")
+    if not os.path.exists(report_path):
+        return [], None
+
+    loci = []
+    try:
+        with open(report_path, encoding="utf-8") as handle:
+            for line_number, line in enumerate(handle):
+                if line_number == 0 and line.startswith("locus\t"):
+                    continue
+                locus = line.rstrip("\n").split("\t", 1)[0].strip()
+                if locus:
+                    loci.append(locus)
+    except OSError:
+        return [], report_path
+    return loci, report_path
+
+
 def build_curated_pipeline_plan(
     genome_name,
     *,
@@ -201,6 +222,7 @@ def build_curated_pipeline_plan(
         and human_file_rows >= protein_total
         and deg_file_rows >= protein_total
     )
+    ligq_excluded_loci, ligq_exclusion_report = _read_ligq_excluded_loci(folder_path)
 
     plan = CuratedPipelinePlan(
         genome_name=genome_name,
@@ -228,6 +250,8 @@ def build_curated_pipeline_plan(
             locustag__biodatabase=db,
             source=Binders.SOURCE_PROPOSED,
         ).count(),
+        ligq_excluded_loci=ligq_excluded_loci,
+        ligq_exclusion_report=ligq_exclusion_report,
         fasttarget_org_dir=fasttarget_org_dir,
         fasttarget_skip_exec_possible=fasttarget_skip_exec_possible,
         fasttarget_human_rows=human_file_rows,
@@ -317,6 +341,13 @@ def build_curated_pipeline_plan(
         plan.skip_stages.add(24)
     else:
         plan.required_remote_stages.add(24)
+
+    if plan.ligq_excluded_loci:
+        plan.warnings.append(
+            f"LigQ_2 excluded {len(plan.ligq_excluded_loci)} proteins due to HMMER/Pfam "
+            f"numeric aborts; this only affects LigQ binder evidence for those proteins. "
+            f"Report: {plan.ligq_exclusion_report}."
+        )
 
     for stage in sorted(plan.required_remote_stages):
         if stage in REMOTE_STAGE_REQUIREMENTS and not _remote_stage_ready(stage):

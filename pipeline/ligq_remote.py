@@ -36,6 +36,8 @@ REMOTE_FAILURE_PREFIXES = (
     "NODE_FAIL",
 )
 
+LIGQ_EXCLUDED_LOCI_REPORT = "excluded_loci.tsv"
+
 
 def _env_int(name, default):
     raw = os.getenv(name)
@@ -272,11 +274,11 @@ def _exec_remote(ssh, cmd):
 
 def _filter_fasta_loci(path, excluded_loci):
     if not excluded_loci:
-        return 0
+        return []
 
     excluded = set(excluded_loci)
     tmp_path = f"{path}.tmp"
-    skipped = 0
+    skipped = []
     keep = True
 
     with open(path, encoding="utf-8") as src, open(tmp_path, "w", encoding="utf-8") as dst:
@@ -285,13 +287,28 @@ def _filter_fasta_loci(path, excluded_loci):
                 locus = line[1:].strip().split()[0]
                 keep = locus not in excluded
                 if not keep:
-                    skipped += 1
+                    skipped.append(locus)
                     continue
             if keep:
                 dst.write(line)
 
     os.replace(tmp_path, path)
     return skipped
+
+
+def _write_excluded_loci_report(local_ligq_dir, skipped_loci):
+    if not skipped_loci:
+        return
+
+    report_path = os.path.join(local_ligq_dir, LIGQ_EXCLUDED_LOCI_REPORT)
+    note = (
+        "Excluded from LigQ_2 FASTA only because HMMER/Pfam aborted with a numeric "
+        "error for this protein; the protein remains available in TPW for other evidence."
+    )
+    with open(report_path, "w", encoding="utf-8") as handle:
+        handle.write("locus\treason\tnote\n")
+        for locus in skipped_loci:
+            handle.write(f"{locus}\thmmer_forward_score_nan\t{note}\n")
 
 
 # ---------------------------------------------------------------------------
@@ -356,10 +373,11 @@ def run_remote_ligq(cfg_dict, folder_path, genome):
     call_command("dump_genome_proteins_fasta", biodb_name, output=local_fasta)
     skipped_loci = _filter_fasta_loci(local_fasta, config.exclude_loci)
     if skipped_loci:
+        _write_excluded_loci_report(local_ligq_dir, skipped_loci)
         print(
             "LigQ_2 remote: excluded "
-            f"{skipped_loci} problematic loci from FASTA: "
-            f"{', '.join(config.exclude_loci)}"
+            f"{len(skipped_loci)} problematic loci from FASTA: "
+            f"{', '.join(skipped_loci)}"
         )
 
     _assert_ssh_reachable(config.ssh_host, config.ssh_port, config.ssh_connect_timeout)

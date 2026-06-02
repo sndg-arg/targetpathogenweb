@@ -70,6 +70,9 @@ class Command(BaseCommand):
         self.stdout.write(f"  Proteins with GO/EC annotations: {plan.annotation_proteins}/{plan.protein_total}")
         self.stdout.write(f"  Binder rows: {plan.binder_count}")
         self.stdout.write(f"  LigQ/ZINC binder rows: {plan.ligq_binder_count}")
+        if plan.ligq_excluded_loci:
+            self.stdout.write(f"  LigQ excluded proteins: {len(plan.ligq_excluded_loci)}")
+            self.stdout.write(f"  LigQ exclusion report: {plan.ligq_exclusion_report}")
 
         self.stdout.write("")
         self.stdout.write(self.style.HTTP_INFO("FastTarget status"))
