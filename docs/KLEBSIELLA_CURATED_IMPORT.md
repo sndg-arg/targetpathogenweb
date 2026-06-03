@@ -561,6 +561,119 @@ print('proteins with binders', qs.values('locustag_id').distinct().count())
 "
 ```
 
+## Follow-up: EC Numbers and Other Missing Annotation Values
+
+The curated Klebsiella TSVs did not include EC numbers directly. EC values in
+TPW are expected to come from UniProt annotation fetching (`stage 13` /
+`fetch_uniprot_annotations`) after a valid UniProt mapping exists.
+
+Before backfilling, check exact EC and GO counts separately:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.cluster.yml exec -T web \
+  /opt/conda/envs/tpv2/bin/python manage.py shell -c "
+from bioseq.models.Biodatabase import Biodatabase
+from bioseq.models.BioentryDbxref import BioentryDbxref
+for genome in ['public__KpATCC43816', 'public__KpKP13']:
+    db=Biodatabase.objects.get(name=genome + Biodatabase.PROT_POSTFIX)
+    qs=BioentryDbxref.objects.filter(bioentry__biodatabase=db)
+    print(genome)
+    print('  UniProt mapped proteins', qs.filter(dbxref__dbname__in=['UnipSp','UnipTr']).values('bioentry_id').distinct().count())
+    print('  EC proteins', qs.filter(dbxref__dbname__in=['ec','EC']).values('bioentry_id').distinct().count())
+    print('  GO proteins', qs.filter(dbxref__dbname__in=['go','GO']).values('bioentry_id').distinct().count())
+    print('  PDB xref proteins', qs.filter(dbxref__dbname='PDB').values('bioentry_id').distinct().count())
+"
+```
+
+If EC is missing but the TSV has UniProt accessions, first import curated
+UniProt mappings:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.cluster.yml exec -T queue \
+  /opt/conda/envs/tpv2/bin/python manage.py import_curated_uniprot <GENOME> \
+  --results-tsv <RESULTS_TSV> \
+  --datadir /app/targetpathogenweb/data \
+  --overwrite
+```
+
+Then fetch UniProt annotations:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.cluster.yml exec -T queue \
+  /opt/conda/envs/tpv2/bin/python manage.py fetch_uniprot_annotations <GENOME> \
+  --datadir /app/targetpathogenweb/data
+```
+
+This command can add:
+
+- EC dbxrefs
+- GO dbxrefs
+- PDB cross-references into `ExperimentalStructureXref`
+
+It uses the UniProt REST API, so it is network-bound rather than CPU-heavy. It
+is acceptable to run from the queue container, but it should still be monitored
+and not confused with SLURM-heavy work.
+
+For Kp13 specifically, note that one final audit showed:
+
+```text
+Proteins with UniProt mapping: 0/5842
+Proteins with GO/EC annotations: 3648/5842
+```
+
+That means the DB had functional annotation links but no current `UnipSp` /
+`UnipTr` links. Re-import the curated UniProt mapping before relying on
+direct-vs-homolog classification or UniProt-derived EC/PDB backfills.
+
+## Follow-up: Experimental PDB Structures and Partial Coverage UI
+
+The current code has partial support for experimental PDBs:
+
+- `ExperimentalStructureXref` stores `pdb_id`, `method`, `resolution`, `chains`,
+  `uniprot_start`, and `uniprot_end`.
+- `BioentryStructure` also stores `chain`, `uniprot_start`, `uniprot_end`, and
+  `resolution`.
+- `fetch_uniprot_annotations` can populate all PDB cross-reference metadata
+  from UniProt.
+- `fetch_experimental_structures` currently downloads/loads only the best
+  experimental structure per protein.
+
+The product issue is that experimental structures are often fragments. A PDB
+chain may cover residues `22-286` of a 400 aa protein, not the whole target.
+The UI should not present a crystal structure as if it covered the complete
+protein.
+
+Recommended redesign, similar to UniProt's Structure section:
+
+1. Store/display all experimental PDB cross-references for the protein, not
+   only the best downloaded structure.
+2. Add an "Experimental structures" table on the protein page with:
+   - source (`PDB`)
+   - identifier
+   - method
+   - resolution
+   - chain(s)
+   - positions (`uniprot_start-uniprot_end`)
+   - coverage percentage relative to protein length
+   - external links (`PDBe`, `RCSB-PDB`, `PDBj`, `PDBsum`, source download)
+   - loaded/viewable status
+3. Add a compact coverage track over the protein length, so partial structures
+   are visually obvious.
+4. Make the 3D viewer load the selected experimental structure on demand and
+   label it as a fragment when coverage is partial.
+5. Keep AlphaFold/ColabFold models separate from experimental PDBs. Predicted
+   models can cover most or all residues; experimental structures should be
+   displayed with their true residue range.
+6. Do not mix pocket overlays from one structure onto another. Pocket data must
+   be tied to the exact displayed PDB/model.
+
+Potential data sources for this UI:
+
+- UniProt PDB xrefs already parsed by `fetch_uniprot_annotations`.
+- Curated provider files, if they can supply PDB ID, chain, method, resolution,
+  and residue range directly.
+- RCSB/PDBe APIs as a later enhancement if UniProt metadata is insufficient.
+
 ## Relevant Code Changes
 
 These commits on `file-ingestion` are relevant to this work:
