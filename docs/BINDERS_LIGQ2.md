@@ -2,6 +2,10 @@
 
 This document records how TargetPathogenWeb loads ligand/binder evidence from LigQ_2, how evidence is classified, and how to recover/reload results on Nodo0.
 
+For the curated Klebsiella imports, final counts, the Kp13 LigQ_2/nodo3
+diagnosis, and a reusable curated-file workflow, see
+[`docs/KLEBSIELLA_CURATED_IMPORT.md`](KLEBSIELLA_CURATED_IMPORT.md).
+
 ## Evidence model
 
 Binders are stored in `tpweb.models.Binders`.

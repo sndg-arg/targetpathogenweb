@@ -113,6 +113,7 @@ make status ENV=cluster             # container + volume status
 ```
 
 Binder/LigQ_2 recovery, UniProt mapping, and direct-vs-homolog evidence loading are documented in [`docs/BINDERS_LIGQ2.md`](BINDERS_LIGQ2.md).
+The curated Klebsiella import handoff and reusable curated-file workflow are documented in [`docs/KLEBSIELLA_CURATED_IMPORT.md`](KLEBSIELLA_CURATED_IMPORT.md).
 
 ### Copy large local files to Nodo0
 
