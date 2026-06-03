@@ -1,0 +1,27 @@
+name: fasttarget
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - python=3.12.3
+  - setuptools=80.9.0
+  - requests=2.32.5
+  - pandas=2.3.3
+  - numpy=2.4.1
+  - networkx=2.8
+  - urllib3=2.6.3
+  - tqdm=4.67.1
+  - pyyaml=6.0.3
+  - xmltodict=1.0.2
+  - python-libsbml=5.21.0
+  - biopython=1.86
+  - ncbi-datasets-cli=18.14.0
+  - blast=2.17.0
+  - diamond=2.1.18
+  - pip=25.3
+  - cd-hit=4.8.1  
+  - pip:
+      - sndg-bio==0.1.73
+      - docker==7.1.0
+      - pathlib==1.0.1
+      - beautifulsoup4==4.14.3
