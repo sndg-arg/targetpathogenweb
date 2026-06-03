@@ -8,3 +8,7 @@ scpClient
 configparse
 pythoncyc
 networkx
+ruff
+pre-commit
+pytest
+pytest-django

@@ -4,7 +4,8 @@ from .views.AssemblyView import AssemblyView
 from .views.DownloadView import DownloadView
 from .views.GenomesView import GenomesView
 from .views.IndexView import IndexView
-from .views.ProteinListView import ProteinListView
+from .views.HealthView import HealthLiveView, HealthPipelineView, HealthReadyView
+from .views.ProteinListView import ProteinListView, ProteinSearchSuggestionsView
 from .views.ProteinView import ProteinView
 from .views.StructureExportView import StructureExportView
 from .views.StructureRawView import StructureRawView
@@ -45,6 +46,7 @@ urlpatterns = [
     path("assembly/<str:assembly_id>",view=AssemblyView.as_view(),name="assembly"),
     path("protein/<int:protein_id>",view=ProteinView.as_view(),name="protein"),
     path("assembly/<str:assembly_name>/protein",view=ProteinListView.as_view(),name="protein_list"),
+    path("assembly/<str:assembly_name>/protein/suggestions", view=ProteinSearchSuggestionsView.as_view(), name="protein_search_suggestions"),
     path("download",view=DownloadView.as_view(),name="download"),
     path("genomes",view=GenomesView.as_view(),name="genomes_list"),
     path("molecule",view=MoleculeView.as_view(),name="molecules"),
@@ -59,6 +61,9 @@ urlpatterns = [
     path('reset_filters/<str:assembly_name>', reset_filters, name='reset_filters'),
     path('formula_form/<str:assembly_name>', view= FormulaFormView, name='formula_form'),
     path("customparam/<str:assembly_name>", view= upload_form , name="customparam"),
+    path("health/live", view=HealthLiveView.as_view(), name="health_live"),
+    path("health/ready", view=HealthReadyView.as_view(), name="health_ready"),
+    path("health/pipeline", view=HealthPipelineView.as_view(), name="health_pipeline"),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 #if 1:
 #    urlpatterns = urlpatterns + debug_toolbar_urls()

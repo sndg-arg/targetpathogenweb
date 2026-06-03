@@ -19,6 +19,10 @@ RUN apt-get update && apt-get install -y \
     libssl-dev \
     zlib1g-dev \
     postgresql-client \
+    bioperl \
+    bioperl-run \
+    nodejs \
+    npm \
     && rm -rf /var/lib/apt/lists/*
 
 # Download and install JDK 17
@@ -48,5 +52,5 @@ COPY start.sh .
 
 SHELL ["conda", "run", "-n", "tpv2", "/bin/bash", "-c"]
 
+RUN pip install --no-cache-dir "setuptools==68.2.2"
 RUN pip install -r requirements.txt
-

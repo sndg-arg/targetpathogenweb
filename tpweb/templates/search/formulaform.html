@@ -1,91 +1,241 @@
 {% extends '../base/masterpage.html' %}
 {% load i18n %}
 {% load crispy_forms_tags %}
+
 {% block body %}
-<script src="https://unpkg.com/htmx.org@1.9.2"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.2"></script>
+    <style>
+        .formula-page {
+            display: grid;
+            gap: 14px;
+        }
 
-{% if request.GET.error_message %}
-    <div class="alert alert-danger">
-        {{ request.GET.error_message }}
+        .formula-hero {
+            border: 1px solid var(--tp-border);
+            border-radius: 18px;
+            background:
+                radial-gradient(780px 230px at 0% 0%, #dff4f4 0%, transparent 56%),
+                radial-gradient(760px 220px at 100% 0%, #eaf6e4 0%, transparent 55%),
+                #f9fcfe;
+            padding: 18px;
+        }
+
+        .formula-hero h1 {
+            margin: 0;
+            font-size: clamp(1.9rem, 2.7vw, 2.5rem);
+        }
+
+        .formula-subtitle {
+            margin: 8px 0 0;
+            color: var(--tp-muted);
+            font-size: 1rem;
+        }
+
+        .formula-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .formula-chip {
+            border-radius: 999px;
+            border: 1px solid #d5e4ec;
+            background: #f8fbfd;
+            color: #395969;
+            font-size: 0.88rem;
+            font-weight: 700;
+            padding: 5px 10px;
+        }
+
+        .formula-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 14px;
+        }
+
+        .formula-card {
+            border: 1px solid #dbe7ee;
+            border-radius: 14px;
+            background: #ffffff;
+            box-shadow: 0 8px 20px rgba(19, 43, 62, 0.07);
+            padding: 16px;
+            display: grid;
+            gap: 12px;
+            align-content: start;
+        }
+
+        .formula-card h2 {
+            margin: 0;
+            font-size: 1.2rem;
+        }
+
+        .formula-muted {
+            margin: 0;
+            color: var(--tp-muted);
+        }
+
+        .formula-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .term-table {
+            border: 1px solid #dce8ef;
+            border-radius: 12px;
+            overflow: auto;
+        }
+
+        .term-table table {
+            margin: 0;
+        }
+
+        .term-table thead th {
+            background: #f5f9fc;
+            color: #395a6d;
+            font-size: 0.85rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .term-empty {
+            border: 1px dashed #cfdee7;
+            border-radius: 12px;
+            padding: 14px;
+            background: #f8fcfe;
+            color: #5b6f7b;
+            text-align: center;
+        }
+
+        .expression-block {
+            border: 1px solid #dce8ef;
+            border-radius: 12px;
+            background: #f7fbfd;
+            padding: 12px;
+            color: #2e4b5d;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-size: 0.9rem;
+            line-height: 1.45;
+            overflow-wrap: anywhere;
+        }
+
+        .actions-card {
+            border: 1px solid #dbe7ee;
+            border-radius: 14px;
+            background: #ffffff;
+            box-shadow: 0 8px 20px rgba(19, 43, 62, 0.07);
+            padding: 14px 16px;
+        }
+
+        @media (max-width: 992px) {
+            .formula-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+
+    <div class="formula-page">
+        <section class="formula-hero">
+            <h1>{% trans "Formula Builder" %}</h1>
+            <p class="formula-subtitle">{% trans "Build a scoring formula by selecting a parameter option and assigning its coefficient." %}</p>
+            <div class="formula-chips">
+                <span class="formula-chip">{% trans "Draft" %}: {{ formula_name|default:"Untitled formula" }}</span>
+                <span class="formula-chip">{% trans "Terms" %}: {{ term_count }}</span>
+            </div>
+        </section>
+
+        {% if request.GET.error_message %}
+            <section class="formula-card">
+                <div class="alert alert-danger mb-0">{{ request.GET.error_message }}</div>
+            </section>
+        {% endif %}
+
+        <div class="formula-grid">
+            <section class="formula-card">
+                <h2>{% trans "Add term" %}</h2>
+                <p class="formula-muted">{% trans "Each term adds weight to one option of one parameter." %}</p>
+
+                <form id="add-parameter-form" method="POST">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-12">{{ form.new_formula_name|as_crispy_field }}</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">{{ form.param|as_crispy_field }}</div>
+                        <div class="col-md-4">{{ form.options|as_crispy_field }}</div>
+                        <div class="col-md-4">{{ form.coefficient|as_crispy_field }}</div>
+                    </div>
+                    <div class="formula-actions">
+                        <button type="submit" class="btn btn-primary">{% trans "Add term" %}</button>
+                    </div>
+                </form>
+
+                {% if term_count > 0 %}
+                    <div class="formula-actions">
+                        <form method="POST">
+                            {% csrf_token %}
+                            <input type="hidden" name="remove_last_term" value="true">
+                            <button type="submit" class="btn btn-outline-secondary btn-sm">{% trans "Undo last term" %}</button>
+                        </form>
+                    </div>
+                {% endif %}
+            </section>
+
+            <section class="formula-card">
+                <h2>{% trans "Current formula" %}</h2>
+                {% if preview_terms %}
+                    <div class="term-table">
+                        <table class="table table-sm table-striped mb-0">
+                            <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>{% trans "Parameter" %}</th>
+                                <th>{% trans "Option" %}</th>
+                                <th>{% trans "Coefficient" %}</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for term in preview_terms %}
+                                <tr>
+                                    <td>{{ term.index }}</td>
+                                    <td>{{ term.param_name }}</td>
+                                    <td>{{ term.option_name }}</td>
+                                    <td>{{ term.coefficient }}</td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="term-empty">{% trans "No terms added yet." %}</div>
+                {% endif %}
+
+                <p class="formula-muted mb-0">{% trans "Expression preview" %}</p>
+                <div class="expression-block">{{ parameters }}</div>
+            </section>
+        </div>
+
+        <section class="actions-card">
+            <div class="formula-actions">
+                <form id="finish-process-form" method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="finish_process" value="true">
+                    <button type="submit" class="btn btn-success" {% if term_count == 0 or not formula_name %}disabled{% endif %}>{% trans "Save formula" %}</button>
+                </form>
+                <form id="reset-process-form" method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="reset_process" value="true">
+                    {% trans "Reset draft" as reset_draft_label %}
+                    {% include "components/buttons/clear_action.html" with label=reset_draft_label button_type="submit" classes="btn btn-outline-danger tp-btn-with-icon" %}
+                </form>
+                <a href="{% url 'tpwebapp:protein_list' assembly_name=assembly_name %}" class="btn btn-outline-secondary">
+                    {% trans "Back to proteins" %}
+                </a>
+            </div>
+        </section>
     </div>
-{% endif %}
-<div class="container">
-    <form id="add-parameter-form" method="POST">
-        {% csrf_token %}
-        <div class="col-12">
-            {{ form.new_formula_name|as_crispy_field }}
-        </div>
-        <div class="row">
-            <div class="col-4">
-               {{ form.param|as_crispy_field }}
-            </div>
-            <div class="col-4">
-               {{ form.options|as_crispy_field }}
-            </div>
-            <div class="col-4">
-               {{ form.coefficient|as_crispy_field }}
-            </div>
-        </div>
-        <div class="row">
-        <form>
-            <div class="col">
-                <button type="submit" class="btn btn-primary mr-1 " style="height: 50px;">Add Parameters</button>
-            </div>
-        </form>
-        <form id="finish-process-form" method="POST">
-            {% csrf_token %}
-            <input type="hidden" name="finish_process" value="true">
-            <div class="col-4">
-                <button type="submit" class="btn btn-success" style="height: 50px;">Finish</button>
-            </div>
-        </form>
-        <form id="reset-process-form" method="POST">
-            {% csrf_token %}
-            <input type="hidden" name="reset_process" value="true">
-            <div class="col">
-                <button type="submit" class="btn btn-danger" style="height: 50px;">Reset</button>
-            </div>
-        </form>
-        </div>
-</div>
-
-
-<style>
-    body {
-        font-family: Arial, sans-serif;
-        line-height: 1.6;
-    }
-    .container {
-        max-width: 800px;
-        margin: auto;
-        padding: 20px;
-        border-radius: 10px;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        background-color: #f9f9f9;
-    }
-    h2 {
-        color: #333;
-        font-size: 24px;
-        margin-bottom: 10px;
-    }
-    h3 {
-        color: #666;
-        font-size: 18px;
-        margin-top: 0;
-        text-align: center;
-    }
-</style>
-<div class="container mt-5">
-    <h2>Formula Preview</h2>
-    <h3> {{ parameters }} </h3>
-</div>
-<div>
-    <!-- Displaying content here -->
-    {% autoescape off %}
-    {{ post.content|safe }}
-    {% endautoescape %}
-</div>
-
 {% endblock %}
 
 {% block footer %}

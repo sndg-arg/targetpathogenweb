@@ -1,98 +1,211 @@
 {% extends '../base/masterpage.html' %}
 {% load i18n %}
+
 {% block body %}
+    <style>
+        .assembly-hero {
+            border: 1px solid var(--tp-border);
+            border-radius: 16px;
+            background: linear-gradient(140deg, var(--tp-color-brand-050) 0%, var(--tp-color-success-bg) 100%);
+            padding: 18px;
+            margin-bottom: 14px;
+        }
 
-    <h1>{{ assembly.name }}</h1>
+        .assembly-hero h1 {
+            margin: 0;
+            font-size: clamp(1.8rem, 2.7vw, 2.5rem);
+        }
 
-    <p class="fs-5 col-md-8">
-        {{ assembly.description }}
-    </p>
+        .assembly-description {
+            color: var(--tp-muted);
+            margin: 6px 0 14px;
+            max-width: 980px;
+            font-size: 1.06rem;
+        }
 
-    <div class="input-group">
-        <form action="{% url 'tpwebapp:download' %}" method="get">
-            <select name="format" class="form-select" id="inputFormatSelect"
-                    aria-label="Select download format">
-                <option value="genome">{% trans 'Fasta genoma' %}</option>
-                <option value="genes">{% trans 'Fasta proteinas nt' %}</option>
-                <option value="proteins">{% trans 'Fasta proteinas aa' %}</option>
-                <option value="gff">{% trans 'GFF genoma' %}</option>
-                <option value="gbk">{% trans 'GBK genoma' %}</option>
-            </select>
-            <input type="hidden" name="accession" value="{{ assembly.name }}"/>
-            <input type="hidden" id="download_format" name="format" value="genome"/>
-            <button class="btn btn-primary"  type="submit"
-                    onclick="$('#download_format').val($('#inputFormatSelect').val())"
-                    >{% trans 'Descargar' %}</button>
+        .assembly-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
 
-        </form>
-    </div>
+        .assembly-actions form {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 0;
+        }
 
-    <br/>
+        .assembly-metrics {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
 
+        .assembly-metrics .metric-chip {
+            border-radius: 999px;
+            border: 1px solid var(--tp-color-border);
+            background: rgba(255, 255, 255, 0.86);
+            padding: 6px 11px;
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: var(--tp-color-text-secondary);
+        }
 
-        <a type="button" class="btn btn-danger form-control"
-            href="{% url 'tpwebapp:protein_list' assembly.name %}">
-            {% trans 'Prioritize Targets' %}
-        </a>
+        .assembly-pipeline {
+            margin-top: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
 
+        .assembly-pipeline-note {
+            width: 100%;
+            margin: 0;
+            color: var(--tp-color-text-muted);
+            font-size: 0.84rem;
+            font-weight: 600;
+            line-height: 1.3;
+        }
 
+        .assembly-pipeline-chip {
+            display: inline-flex;
+            align-items: center;
+            border-radius: 999px;
+            border: 1px solid var(--tp-color-border);
+            background: var(--tp-color-surface-muted);
+            color: var(--tp-color-text-secondary);
+            padding: 4px 10px;
+            font-size: 0.84rem;
+            font-weight: 700;
+        }
 
+        .assembly-pipeline-chip.running {
+            color: var(--tp-state-running-ink);
+            background: var(--tp-state-running-bg);
+            border-color: var(--tp-state-running-border);
+        }
 
-    <hr class="col-3 col-md-2 mb-5"/>
+        .assembly-pipeline-chip.finished {
+            color: var(--tp-state-finished-ink);
+            background: var(--tp-state-finished-bg);
+            border-color: var(--tp-state-finished-border);
+        }
 
-    <div class="row g-5">
-        <div class="col-md-6">
-            <h2>{% trans 'Propiedades' %}</h2>
-            <table class="table table-striped">
+        .assembly-pipeline-chip.idle {
+            color: var(--tp-state-idle-ink);
+            background: var(--tp-state-idle-bg);
+            border-color: var(--tp-state-idle-border);
+        }
 
-                <tbody>
-                {% for k,v in assembly.props.items %}
-                    <tr>
-                        <th>{{ k }}</th>
-                        <td>{{ v }}</td>
-                    </tr>
-                {% endfor %}
+        .assembly-sections {
+            display: grid;
+            grid-template-columns: minmax(280px, 1fr);
+            gap: 14px;
+        }
 
-                </tbody>
-            </table>
+        .viewer-shell {
+            border: 1px solid var(--tp-color-border);
+            border-radius: 14px;
+            overflow: hidden;
+            background: var(--tp-color-surface);
+        }
+
+        .viewer-shell iframe {
+            border: 0;
+            width: 100%;
+            min-height: 560px;
+        }
+
+        .browser-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }
+    </style>
+
+    <section class="assembly-hero">
+        <h1>{{ assembly.name }}</h1>
+        <p class="assembly-description">{{ assembly.description }}</p>
+        <div class="assembly-actions">
+            <form action="{% url 'tpwebapp:download' %}" method="get">
+                <select name="format" class="form-control" id="inputFormatSelect" aria-label="Select download format">
+                    <option value="genome">{% trans 'Genome FASTA (fna)' %}</option>
+                    <option value="genes">{% trans 'Genes FASTA (fna)' %}</option>
+                    <option value="proteins">{% trans 'Proteins FASTA (faa)' %}</option>
+                    <option value="gff">{% trans 'Genome GFF' %}</option>
+                    <option value="gbk">{% trans 'Genome GBK' %}</option>
+                </select>
+                <input type="hidden" name="accession" value="{{ assembly.name }}"/>
+                <input type="hidden" id="download_format" name="format" value="genome"/>
+                <button class="btn btn-outline-info" type="submit" onclick="$('#download_format').val($('#inputFormatSelect').val())">
+                    {% trans 'Download' %}
+                </button>
+            </form>
+            <a class="btn btn-danger" href="{% url 'tpwebapp:protein_list' assembly.name %}">
+                {% trans 'Prioritize Targets' %}
+            </a>
         </div>
-
-
-    </div>
-
-
-
-
-    <div style="width: 100%; margin: 0 auto;">
-        <iframe
-                src="{{ jbrowse_url }}"
-                style="border: 1px solid black"
-                width="100%"
-                height="500px"
-        >
-        </iframe>
-    </div>
-
-    {% if assembly.links %}
-
-        <div class="row g-5">
-            <div class="col-md-6">
-                <h2>{% trans 'Relaciones' %}</h2>
-                <p>{% trans 'Datos relacionados con este recurso' %}</p>
-                <ul class="icon-list">
-                    <li>{% trans 'Tax' %}: {{ assembly.tax_id }}</li>
-                    <li>{% trans 'bioproyecto' %}: {{ bioproject.id }}</li>
-                </ul>
+        <div class="assembly-metrics">
+            <span class="metric-chip">{% trans "Assembly" %}: {{ assembly.name }}</span>
+            <span class="metric-chip">{% trans "Properties" %}: {{ assembly.props|length }}</span>
+            <span class="metric-chip">{% trans "Links" %}: {% if assembly.links %}{% trans "Available" %}{% else %}{% trans "None" %}{% endif %}</span>
+        </div>
+        {% if pipeline_status.available %}
+            <div class="assembly-pipeline">
+                {% include "components/pipeline/chip.html" with pipeline_status=pipeline_status mode="genome" chip_class="assembly-pipeline-chip" %}
+                {% include "components/pipeline/note.html" with pipeline_status=pipeline_status mode="genome" note_class="assembly-pipeline-note" %}
             </div>
+        {% endif %}
+    </section>
 
+    <div class="assembly-sections">
+        <section class="tp-card">
+            <h2 class="mb-3">{% trans 'Properties' %}</h2>
+            <div class="tp-table-shell">
+                <table class="table table-striped table-hover mb-0">
+                    <tbody>
+                    {% for k,v in assembly.props.items %}
+                        <tr>
+                            <th>{{ k }}</th>
+                            <td>{{ v }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
 
-        </div>
-    {% else %}
-        <h3>{% trans 'Este dato no esta relacionado con ningún otro' %}</h3>
-    {% endif %}
+        <section class="tp-card">
+            <h2 class="mb-3">{% trans 'Genome Browser' %}</h2>
+            <div class="browser-toolbar">
+                <small class="text-muted">{% trans "Interactive genomic tracks (JBrowse)." %}</small>
+                <a href="{{ jbrowse_url }}" target="_blank" rel="noopener" class="btn btn-outline-secondary btn-sm">{% trans "Open in new tab" %}</a>
+            </div>
+            <div class="viewer-shell">
+                <iframe src="{{ jbrowse_url }}" loading="lazy"></iframe>
+            </div>
+        </section>
 
+        {% if assembly.links %}
+            <section class="tp-card">
+                <h2 class="mb-2">{% trans 'Related Data' %}</h2>
+                <ul class="mb-0">
+                    <li>{% trans 'Taxonomy' %}: {{ assembly.tax_id }}</li>
+                    <li>{% trans 'Bioproject' %}: {{ bioproject.id }}</li>
+                </ul>
+            </section>
+        {% else %}
+            <section class="tp-card">
+                <h2 class="mb-0">{% trans 'No related resources found for this assembly.' %}</h2>
+            </section>
+        {% endif %}
     </div>
-
 {% endblock %}
 
 {% block jsloaded %}

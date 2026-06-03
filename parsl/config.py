@@ -33,6 +33,7 @@ class TargetConfig():
         if self.config.get("GENERAL", "EnvironmentFile", fallback=None):
             with open(self.config.get("GENERAL", "EnvironmentFile"), 'r') as f:
                 env = f.read()
+        monitoring_flag = self.config.getboolean("GENERAL", "Monitoring", fallback=False)
         self.ht_executor = HighThroughputExecutor(
             working_dir=self.config.get("GENERAL", "WorkingDir", fallback=os.getcwd()),
             label="local_executor",
@@ -45,10 +46,10 @@ class TargetConfig():
                                    worker_init=env),
         )
 
-        if self.config.getboolean("GENERAL", "Monitoring", fallback=False):
+        if monitoring_flag:
             monitoring = MonitoringHub(
                 hub_address=address_by_hostname(),
-                monitoring_debug=True,
+                monitoring_debug=False,
                 resource_monitoring_interval=10,
             )
         else:

@@ -1,7 +1,17 @@
 import parsl
 from parsl import python_app, bash_app, join_app
 import time
+import os
 from parsl.data_provider.files import File
+
+
+def _flag_enabled(name, default=False):
+    raw = os.getenv(name)
+    if raw is None:
+        return default
+    return raw.strip().lower() in {"1", "true", "yes", "on"}
+
+
 @python_app(executors=['local_executor'])
 def clear_folder(folder_path, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
     import os, shutil
@@ -38,7 +48,12 @@ def index_genome_db(working_dir, genome, inputs=[], stderr=parsl.AUTO_LOGNAME, s
 
 @bash_app(executors=["local_executor"])
 def index_genome_seq(working_dir, genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
-    return f"python {working_dir}/manage.py index_genome_seq {genome} --datadir {working_dir}/data"
+    # Use cleaned command by default to avoid tabix failures on fuzzy GFF bounds (<,>).
+    # It can be disabled with TPW_USE_INDEX_GENOME_SEQ_CLEAN=0 if needed.
+    command = "index_genome_seq"
+    if _flag_enabled("TPW_USE_INDEX_GENOME_SEQ_CLEAN", default=True):
+        command = "index_genome_seq_clean"
+    return f"python {working_dir}/manage.py {command} {genome} --datadir {working_dir}/data"
 
 
 @python_app(executors=['local_executor'])
@@ -49,12 +64,21 @@ def interproscan(cfg_dict, folder_path, genome, inputs=[], stderr=parsl.AUTO_LOG
     from scp import SCPClient
     from config import TargetConfig
     ssh = paramiko.SSHClient()
-    ssh_rootfolder = cfg_dict.get("SSH",  "WorkingDir")
+    ssh_rootfolder = os.getenv("SSH_WORKDIR") or cfg_dict.get("SSH", "WorkingDir")
+    ssh_host = os.getenv("SSH_HOSTNAME") or cfg_dict.get("SSH", "HostName")
+    ssh_user = os.getenv("SSH_USERNAME") or cfg_dict.get("SSH", "Username")
+    ssh_cores = os.getenv("SSH_CORES") or cfg_dict.get("SSH", "Cores")
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    ssh.connect(cfg_dict.get("SSH", "HostName"),
-                username=cfg_dict.get(
-                    "SSH", "Username", fallback=os.getenv("SSH_USERNAME")),
-                password=cfg_dict.get("SSH", "Password", fallback=os.getenv("SSH_PASSWORD")))
+    pwd = os.getenv("SSH_PASSWORD")
+    if pwd is None:
+        pwd = cfg_dict.get("SSH", "Password", fallback=None)
+    if pwd == "":
+        pwd = None  # allow agent/key auth only
+    ssh.connect(ssh_host,
+                username=ssh_user,
+                password=pwd,
+                allow_agent=True,
+                look_for_keys=True)
     scp = SCPClient(ssh.get_transport())
     scp.put(os.path.join(folder_path, genome + '.faa.gz'), ssh_rootfolder)
     text = ""
@@ -62,14 +86,14 @@ def interproscan(cfg_dict, folder_path, genome, inputs=[], stderr=parsl.AUTO_LOG
     text += f'eval \\\"\$(/home/shared/miniconda3.8/bin/conda shell.bash hook)\\\"\n'
     text += f'conda activate interproscan\n'
     text += f'zcat {genome}.faa.gz | /grupos/public/iprscan/current/interproscan.sh --pathways \
-        --goterms --cpu {cfg_dict.get("SSH", "Cores")} -iprlookup --formats tsv -i - -o {ssh_rootfolder}/{genome}.faa.tsv\n'
+        --goterms --cpu {ssh_cores} -iprlookup --formats tsv -i - -o {ssh_rootfolder}/{genome}.faa.tsv\n'
 
     stdin, stdout, stderr = ssh.exec_command(
         f'touch script.sh && printf \"{text}\" > script.sh')
     exit_status = stdout.channel.recv_exit_status()
 
     stdin, stdout, stderr = ssh.exec_command(
-        f"srun --nodes=1 --ntasks-per-node=1 --cpus-per-task={cfg_dict.get('SSH', 'Cores')} --time=05:00:00 bash ./script.sh", get_pty=True)
+        f"srun --nodes=1 --ntasks-per-node=1 --cpus-per-task={ssh_cores} --time=05:00:00 bash ./script.sh", get_pty=True)
     finished = False
     time_passed = 0
     while not finished and time_passed < 9000:
@@ -104,6 +128,9 @@ def gbk2uniprot_map(working_dir, genome, folder_path, inputs=[], stderr=parsl.AU
     unips_not_mapped = os.path.join(
         folder_path, genome + '_unips_not_mapped.lst')
     unips_mapping = os.path.join(folder_path, genome + '_unips_mapping.csv')
+    # If we already have a mapping, reuse it to avoid hammering UniProt during local/dev runs
+    if _flag_enabled("TPW_REUSE_UNIPROT_MAP", default=False) and os.path.exists(unips_lst) and os.path.getsize(unips_lst) > 0:
+        return f"echo 'gbk2uniprot_map: reusing existing {unips_lst}'"
     return f"python {working_dir}/manage.py gbk2uniprot_map {genome} --mapping_tmp \
         {unips_mapping} --not_mapped {unips_not_mapped} \
         > {unips_lst}" #Entiendo que queria guardar el stdout
@@ -262,7 +289,3 @@ def get_binders(working_dir, genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdou
 def load_binders(working_dir, genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
     import os
     return f"python {working_dir}/manage.py load_binders {genome} --datadir ../data"
-
-
-
-

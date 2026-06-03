@@ -1,516 +1,792 @@
 {% extends '../base/masterpage.html' %}
 {% load i18n %}
-
+{% load static %}
 
 {% block head %}
-
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}">
 {% endblock %}
 
 {% block body %}
 
-    <style>
-      .card-container {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 20px;
-        padding: 20px;
-      }
+    <div class="protein-page">
+        <section class="protein-hero" id="section-overview">
+            <div class="protein-hero-top">
+                <div>
+                    <p class="protein-hero-eyebrow">{% trans "Protein Profile" %}</p>
+                    <h1>{{ protein.accession }}</h1>
+                    <p class="protein-description">{{ protein.description|default:"-" }}</p>
+                    <div class="hero-chip-list">
+                        <span class="hero-chip hero-chip-gene" title="{{ protein.gene|default_if_none:'-' }}">
+                            <strong>{% trans "Gene" %}:</strong>
+                            <span class="gene-value">{{ protein.gene|default:"-" }}</span>
+                        </span>
+                        <span class="hero-chip"><strong>{% trans "Length" %}:</strong> {{ protein.size }} aa</span>
+                        <span class="hero-chip"><strong>{% trans "Status" %}:</strong> <span class="status-pill">{{ protein.status }}</span></span>
+                        {% include "components/pipeline/chip.html" with pipeline_status=pipeline_status mode="genome" chip_class="hero-chip pipeline-chip" %}
+                    </div>
+                    {% include "components/pipeline/note.html" with pipeline_status=pipeline_status mode="genome" note_class="hero-pipeline-note" %}
+                </div>
+                <div>
+                    <a href="{% url 'tpwebapp:protein_list' protein.assembly_name %}" class="hero-back-link">
+                        <span aria-hidden="true">←</span> {% trans "Back to protein list" %}
+                    </a>
+                </div>
+            </div>
 
-      .card {
-        width: 300px; /* Adjust as needed */
-        border-radius: 8px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      }
+            <nav class="quick-nav">
+                <a href="#section-overview">{% trans "Overview" %}</a>
+                <a href="#section-sequence">{% trans "Sequence" %}</a>
+                {% if annotations %}
+                    <a href="#section-annotations">{% trans "GO/EC" %}</a>
+                {% endif %}
+                {% if features %}
+                    <a href="#section-features">{% trans "Features" %}</a>
+                {% endif %}
+                {% if structure %}
+                    <a href="#section-structure">{% trans "3D Structure" %}</a>
+                {% endif %}
+                {% if binders %}
+                    <a href="#section-binders">{% trans "Binders" %}</a>
+                {% endif %}
+            </nav>
 
-      svg {
-        width: 100%;
-        height: 250px;
-      }
+            <div class="protein-metrics">
+                <div class="metric-pill">
+                    <span class="metric-label">{% trans "Amino Acids" %}</span>
+                    <span class="metric-value">{{ protein.size }}</span>
+                </div>
+                <div class="metric-pill">
+                    <span class="metric-label">{% trans "GO/EC" %}</span>
+                    <span class="metric-value">{{ annotations|length }}</span>
+                </div>
+                <div class="metric-pill">
+                    <span class="metric-label">{% trans "Features" %}</span>
+                    <span class="metric-value">{{ features|length }}</span>
+                </div>
+                <div class="metric-pill">
+                    <span class="metric-label">{% trans "3D Model" %}</span>
+                    <span class="metric-value">{% if structure %}{% trans "Available" %}{% else %}{% trans "Missing" %}{% endif %}</span>
+                </div>
+                <div class="metric-pill">
+                    <span class="metric-label">{% trans "Binders" %}</span>
+                    <span class="metric-value">{{ binders|length }}</span>
+                </div>
+            </div>
+        </section>
 
-      .card-body {
-        padding: 15px;
-      }
-    </style>
+        <div class="protein-grid">
+            <section class="protein-card">
+                <div class="section-head">
+                    <div>
+                        <h2>{% trans "Overview" %}</h2>
+                        <p class="section-subtitle">{% trans "Basic metadata for this protein and source assembly." %}</p>
+                    </div>
+                </div>
+                <dl class="overview-grid">
+                    <div class="overview-item">
+                        <dt>{% trans "Accession" %}</dt>
+                        <dd>{{ protein.accession }}</dd>
+                    </div>
+                    <div class="overview-item">
+                        <dt>{% trans "Assembly" %}</dt>
+                        <dd><a href="{% url 'tpwebapp:protein_list' protein.assembly_name %}">{{ protein.assembly_description }}</a></dd>
+                    </div>
+                    <div class="overview-item">
+                        <dt>{% trans "Amino Acids" %}</dt>
+                        <dd>{{ protein.size }}</dd>
+                    </div>
+                    <div class="overview-item">
+                        <dt>{% trans "Status" %}</dt>
+                        <dd><span class="status-pill">{{ protein.status }}</span></dd>
+                    </div>
+                </dl>
+            </section>
 
-    <h1>{{ protein.accession }}</h1>
-    <table class="table table-striped">
+            <section class="protein-card" id="section-sequence">
+                <div class="section-head">
+                    <div>
+                        <h2>{% trans "Sequence" %}</h2>
+                        <p class="section-subtitle">{% trans "Primary amino-acid sequence viewer." %}</p>
+                    </div>
+                    <button
+                        id="copy-sequence-btn"
+                        class="btn btn-outline-secondary btn-sm btn-copy-seq"
+                        type="button"
+                        data-default-label="{% trans "Copy Sequence" %}"
+                        data-copied-label="{% trans "Copied" %}">
+                        {% trans "Copy Sequence" %}
+                    </button>
+                </div>
+                <textarea id="raw-protein-seq" class="d-none">{{ protein.seq }}</textarea>
+                <div class="sequence-shell">
+                    <div id="protein-sequence-viewer"></div>
+                </div>
+            </section>
 
-        <tbody>
-        <tr>
-            <td>{% trans 'Protein' %}</td>
-            <td>{{ protein.description }}</td>
-        </tr>
-        <tr>
-            <td>{% trans 'Gene' %}</td>
-            <td>{{ protein.gene }}</td>
-        </tr>
-        <tr>
-            <td>{% trans 'Amino acids' %}</td>
-            <td>{{ protein.size }}</td>
-        </tr>
-        <tr>
-            <td>{% trans 'Status' %}</td>
-            <td>{{ protein.status }}</td>
-        </tr>
+            {% if annotations %}
+                <section class="protein-card" id="section-annotations">
+                    <div class="section-head">
+                        <div>
+                            <h2>{% trans "Functional Annotations (GO/EC)" %}</h2>
+                            <p class="section-subtitle">{% trans "Ontology and enzyme annotations linked to this protein." %}</p>
+                        </div>
+                        <div class="section-tools">
+                            <p class="table-hint">{{ annotations|length }} {% trans "records" %}</p>
+                        </div>
+                    </div>
+                    <details class="data-details">
+                        <summary>{% trans "Show annotation table" %}</summary>
+                        <div class="table-shell">
+                            <table id="annotations_table" class="table table-striped table-hover">
+                                <thead>
+                                <tr>
+                                    <th scope="col">{% trans "DB" %}</th>
+                                    <th scope="col">{% trans "Family" %}</th>
+                                    <th scope="col">{% trans "Accession" %}</th>
+                                    <th scope="col">{% trans "Name" %}</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for annotation in annotations %}
+                                    <tr>
+                                        <td>{{ annotation.db }}</td>
+                                        <td>{{ annotation.fam }}</td>
+                                        <td>{{ annotation.term }}</td>
+                                        <td>{{ annotation.name }}</td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </details>
+                </section>
+            {% endif %}
 
-        <tr>
-            <td>{% trans 'Assembly' %}</td>
-            <td><a href="{% url 'tpwebapp:protein_list' protein.assembly_name %}">{{ protein.assembly_description }}</a></td>
-        </tr>
-        </tbody>
-    </table>
+            {% if features %}
+                <section class="protein-card" id="section-features">
+                    <div class="section-head">
+                        <div>
+                            <h2>{% trans "Sequence Features" %}</h2>
+                            <p class="section-subtitle">{% trans "Domain/signature hits from InterPro and related databases." %}</p>
+                        </div>
+                        <div class="section-tools">
+                            <p class="table-hint">{{ features|length }} {% trans "records" %}</p>
+                        </div>
+                    </div>
+                    <div class="feature-viewer-shell">
+                        <div id="div2"></div>
+                    </div>
+                    <details class="data-details">
+                        <summary>{% trans "Show feature table" %}</summary>
+                        <div class="table-shell">
+                            <table id="features_table" class="table table-striped table-hover">
+                                <thead>
+                                <tr>
+                                    <th scope="col">{% trans "Start" %}</th>
+                                    <th scope="col">{% trans "End" %}</th>
+                                    <th scope="col">{% trans "DB" %}</th>
+                                    <th scope="col">{% trans "Family" %}</th>
+                                    <th scope="col">{% trans "Term" %}</th>
+                                    <th scope="col">{% trans "Name" %}</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for feature in features %}
+                                    <tr>
+                                        <td>{{ feature.start }}</td>
+                                        <td>{{ feature.end }}</td>
+                                        <td>{{ feature.db }}</td>
+                                        <td>{{ feature.fam }}</td>
+                                        <td>{{ feature.term }}</td>
+                                        <td>{{ feature.name }}</td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </details>
+                </section>
+            {% endif %}
 
-    {% comment %}
-    <div class="input-group">
-        <select class="form-select" id="inputGroupSelect04" aria-label="Example select with button addon">
-            <option selected>{% trans 'choose ...' %}</option>
-            <option value="2">{% trans 'Fasta nt' %}</option>
-            <option value="2">{% trans 'Fasta aa' %}</option>
-            <option value="3">{% trans 'GFF' %}</option>
+            {% if structure %}
+                <section class="protein-card" id="section-structure">
+                    <div class="section-head">
+                        <div>
+                            <h2>{% trans "3D Structure" %}</h2>
+                            <p class="section-subtitle">{% trans "Interactive model with pockets and residue sets." %}</p>
+                        </div>
+                    </div>
 
-        </select>
-        <button class="btn btn-outline-secondary" type="button">{% trans 'Downdload' %}</button>
-    </div>
-    {% endcomment %}
+                    <div class="structure-actions">
+                        <button type="button" onclick="ngl_reset_zoom()" class="btn btn-outline-secondary btn-sm">{% trans "Reset Zoom" %}</button>
+                        <div class="structure-mode-switch" role="group" aria-label="{% trans "3D view mode" %}">
+                            <button type="button"
+                                    class="btn btn-outline-secondary btn-sm js-structure-mode is-active"
+                                    data-mode="cartoon">{% trans "Cartoon" %}</button>
+                            <button type="button"
+                                    class="btn btn-outline-secondary btn-sm js-structure-mode"
+                                    data-mode="density">{% trans "Pocket density" %}</button>
+                        </div>
+                        <a href="{% url 'tpwebapp:structure' structure.id %}" class="btn btn-outline-dark btn-sm" target="_blank" rel="noopener">{% trans "Full Screen" %}</a>
+                        <a href="{% url "tpwebapp:structure_export" structure.id %}" class="btn btn-outline-dark btn-sm">{% trans "Download TCL VMD" %}</a>
+                    </div>
 
-    <hr class="col-3 col-md-2 mb-5"/>
+                    <div id="viewport"></div>
 
-    <h2>{% trans 'Annotations' %}</h2>
-    {% if annotations %}
-        <table id="annotations_table" class="table table-striped">
-            <thead>
-            <tr>
-                <th scope="col"> {% trans 'DB' %}</th>
-                <th scope="col"> {% trans 'Family' %}</th>
-                <th scope="col"> {% trans 'Accession' %}</th>
-                <th scope="col"> {% trans 'Name' %}</th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for annotation in annotations %}
-                <tr>
-                    <td>{{ annotation.db }}</td>
-                    <td>{{ annotation.fam }}</td>
-                    <td>{{ annotation.term }}</td>
-                    <td>{{ annotation.name }}</td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-    {% else %}
+                    {% if structure.pockets %}
+                        <div class="mini-section">
+                            <h3>{% trans "Pockets" %} (FPOCKET)</h3>
+                            <p class="table-hint">{% trans "Druggability is color-coded: high (0.7 or higher), medium (0.4 to 0.69), low (below 0.4)." %}</p>
+                            <div class="table-shell">
+                                <table id="pocketsTable" class="table table-striped table-hover table-sm">
+                                    <thead>
+                                    <tr>
+                                        <th>FPOCKET</th>
+                                        <th>{% trans "Sticks" %}</th>
+                                        <th>{% trans "Spheres" %}</th>
+                                        <th>{% trans "Surfaces" %}</th>
+                                        <th>{% trans "Druggability" %}</th>
+                                        <th>{% trans "Labels" %}</th>
+                                        <th>{% trans "Zoom" %}</th>
+                                        <th>{% trans "Positions" %}</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {% for p in structure.pockets %}
+                                        <tr>
+                                            <td>{{ p.name }}</td>
+                                            <td><input type="checkbox" onchange="toogle_view('{{p.name}}_atm')" /></td>
+                                            <td><input type="checkbox" onchange="toogle_view('{{p.name}}_sph')" /></td>
+                                            <td><input type="checkbox" onchange="toogle_view('{{p.name}}_pol');toogle_view('{{p.name}}_apol')" /></td>
+                                            <td><span class="tp-score-tag js-score-tag" data-score="{{ p.druggability }}">{{ p.druggability }}</span></td>
+                                            <td><input type="checkbox" onchange="toogle_view('{{p.name}}_lbl')" /></td>
+                                            <td><button type="button" class="btn btn-outline-secondary btn-sm" onclick="ngl_zoom_to('{{p.name}}_apol')">{% trans "Zoom" %}</button></td>
+                                            <td><button type="button" class="btn btn-outline-secondary btn-sm" onclick="alert('{{ p.residues | join:" " }}')">{% trans "Show" %}</button></td>
+                                        </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    {% endif %}
 
-        {% trans 'No annotations available' %}
+                    {% if structure.p2_pockets %}
+                        <div class="mini-section">
+                            <details class="data-details">
+                                <summary>{% trans "Show P2RANK pockets" %}</summary>
+                                <p class="table-hint px-3 pt-2">{% trans "Probability is color-coded: high (0.7 or higher), medium (0.4 to 0.69), low (below 0.4)." %}</p>
+                                <div class="table-shell">
+                                    <table id="p2pocketsTable" class="table table-striped table-hover table-sm">
+                                        <thead>
+                                        <tr>
+                                            <th>P2RANK</th>
+                                            <th>{% trans "Sticks" %}</th>
+                                            <th>{% trans "Spheres" %}</th>
+                                            <th>{% trans "Surfaces" %}</th>
+                                            <th>{% trans "Score" %}</th>
+                                            <th>{% trans "Probability" %}</th>
+                                            <th>{% trans "Labels" %}</th>
+                                            <th>{% trans "Zoom" %}</th>
+                                            <th>{% trans "Positions" %}</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        {% for p2 in structure.p2_pockets %}
+                                            <tr>
+                                                <td>{{ p2.name }}</td>
+                                                <td><input type="checkbox" onchange="toogle_view('p2_{{p2.name}}_atm')" /></td>
+                                                <td><input type="checkbox" onchange="toogle_view('p2_{{p2.name}}_sph')" /></td>
+                                                <td><input type="checkbox" onchange="toogle_view('p2_{{p2.name}}_pol');toogle_view('p2_{{p2.name}}_apol')" /></td>
+                                                <td><span class="tp-score-tag js-score-tag" data-score="{{ p2.p2score }}">{{ p2.p2score }}</span></td>
+                                                <td><span class="tp-score-tag js-score-tag" data-score="{{ p2.probability }}">{{ p2.probability }}</span></td>
+                                                <td><input type="checkbox" onchange="toogle_view('p2_{{p2.name}}_lbl')" /></td>
+                                                <td><button type="button" class="btn btn-outline-secondary btn-sm" onclick="ngl_zoom_to('p2_{{p2.name}}_apol')">{% trans "Zoom" %}</button></td>
+                                                <td><button type="button" class="btn btn-outline-secondary btn-sm" onclick="alert('{{ p2.residues | join:" " }}')">{% trans "Show" %}</button></td>
+                                            </tr>
+                                        {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </details>
+                        </div>
+                    {% endif %}
 
-    {% endif %}
+                    {% if structure.residuesets %}
+                        <div class="mini-section">
+                            <details class="data-details">
+                                <summary>{% trans "Show residue sets" %}</summary>
+                                <div class="table-shell">
+                                    <table id="residuesetsTable" class="table table-striped table-hover table-sm">
+                                        <thead>
+                                        <tr>
+                                            <th>{% trans "Type" %}</th>
+                                            <th>{% trans "Name" %}</th>
+                                            <th>{% trans "View" %}</th>
+                                            <th>{% trans "Zoom" %}</th>
+                                            <th>{% trans "Positions" %}</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        {% for rs in structure.residuesets %}
+                                            <tr>
+                                                <td>{{ rs.rs_name }}</td>
+                                                <td><a title="{{ rs.description }}">{{ rs.description }}</a></td>
+                                                <td><input type="checkbox" onchange="toogle_view('{{rs.name}}')" /></td>
+                                                <td><button type="button" class="btn btn-outline-secondary btn-sm" onclick="ngl_zoom_to('{{rs.name}}')">{% trans "Zoom" %}</button></td>
+                                                <td><button type="button" class="btn btn-outline-secondary btn-sm" onclick="alert('{{ rs.residues | join:" " }}')">{% trans "Show" %}</button></td>
+                                            </tr>
+                                        {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </details>
+                        </div>
+                    {% endif %}
+                </section>
+            {% endif %}
 
-    <hr class="col-3 col-md-2 mb-5"/>
-
-    <h2>{% trans 'Sequence Features' %}</h2>
-
-    {% if features or structure%}
-
-        <div id="div2"></div>
-
-        <table id="features_table" class="table table-striped">
-            <thead>
-            <tr>
-                <th scope="col"> {% trans 'Start' %}</th>
-                <th scope="col"> {% trans 'End' %}</th>
-                <th scope="col"> {% trans 'DB' %}</th>
-                <th scope="col"> {% trans 'Family' %}</th>
-                <th scope="col"> {% trans 'Term' %}</th>
-                <th scope="col"> {% trans 'Name' %}</th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for feature in features %}
-                <tr>
-                    <td>{{ feature.start }}</td>
-                    <td>{{ feature.end }}</td>
-                    <td>{{ feature.db }}</td>
-                    <td>{{ feature.fam }}</td>
-                    <td>{{ feature.term }}</td>
-                    <td>{{ feature.name }}</td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-    {% else %}
-
-        {% trans 'No feature detected in the sequence' %}
-
-    {% endif %}
-
-    <div id="protein-sequence-viewer"></div>
-
-    <hr class="col-3 col-md-2 mb-5"/>
-
-
-
-    <div>
-
-        {% if structure.pockets %}
-            <h4>Pockets</h4>
-            <table id="pocketsTable" class="table">
-                <thead><tr><td>FPOCKET</td><td>Atoms</td><td>Spheres</td><td>Druggability</td><td>Labels</td></tr></thead>
-                <tbody>
-                {% for p in structure.pockets %}
-                    <tr>
-                        <td>{{ p.name }}</td>
-                        <td><input type="checkbox" onchange="toogle_view('{{p.name}}_atm')" /></td>
-                        <td><input type="checkbox"  onchange="toogle_view('{{p.name}}_pol');toogle_view('{{p.name}}_apol')"/></td>
-                        <td>{{p.druggability}}</td>
-                        <td><input type="checkbox" onchange="toogle_view('{{p.name}}_lbl')" /></td>
-                        <td><input type="button" onclick="ngl_zoom_to('{{p.name}}')" value="Zoom" /></td>
-                        <td> <input type="button" class="button" value="positions"
-                                    onclick="alert('{{ p.residues | join:" " }}')"
-                        />  </td>
-                    </tr>
-                {% endfor %}
-                </tbody>
-
-                <thead><tr><td>P2RANK</td><td>Atoms</td><td>Score</td><td>Probability</td><td>Labels</td></tr></thead>
-                <tbody>
-                {% for p2 in structure.p2_pockets %}
-                    <tr>
-                        <td>{{ p2.name }}</td>
-                        <td><input type="checkbox" onchange="toogle_view('{{p2.name}}_atm2')" /></td>
-                        <td>{{p2.p2score}}</td>
-                        <td>{{p2.probability}}</td>
-                        <td><input type="checkbox" onchange="toogle_view('{{p2.name}}_lbl2')" /></td>
-                        <td><input type="button" onclick="ngl_zoom_to('{{p2.name}}')" value="Zoom" /></td>
-                        <td> <input type="button" class="button" value="positions"
-                                    onclick="alert('{{ p2.residues | join:" " }}')"
-                        />  </td>
-                    </tr>
-                {% endfor %}
-                </tbody>
-
-            </table>
-        {% endif %}
-
-        {% if structure.residuesets %}
-            <h4>Features</h4>
-            <table id="residuesetsTable" class="table">
-                <thead><tr><td>Type</td><td>Name</td><td>View</td><td>Positions</td><td>Positions</td></tr></thead>
-                <tbody>
-            {% for rs in structure.residuesets %}
-                <tr>
-                    <td>{{ rs.rs_name }}</td>
-                    <td> <a title="{{ rs.description }}">{{rs.description}}</a> </td>
-                    <td><input type="checkbox"  onchange="toogle_view('{{rs.name}}')"></td>
-                    <td><input type="button" onclick="ngl_zoom_to('{{rs.name}}')" value="Zoom" /></td>
-                    <td> <input type="button" class="button" value="positions"
-                                onclick="alert('{{ rs.residues | join:" " }}')"
-                    />  </td>
-                </tr>
-            {% endfor %}
-                </tbody>
-            </table>
-
-        {% endif  %}
-
-    </div>
-
-    {% if structure %}
-    <input type="button" onclick="ngl_reset_zoom()" value="Reset zoom" />
-        <a href="{% url 'tpwebapp:structure' structure.id %}" class="btn btn-secondary" >{% trans 'Full Screen' %}</a>
-        <a href="{% url "tpwebapp:structure_export" structure.id %}" type="button" class="btn btn-secondary" > {% trans "Download TCL VMD" %} </a>
-    <div id="viewport" style="height: 500px;background-color: white"></div>
-
-    {% endif %}
-
-    <div id="msaDiv"></div>
-
-    
-    <h2>{% trans 'Binders' %}</h2>
-
-    <div class="card-container">
-      {% for binder in binders.values %}
-        <div class="card text-center">
-          <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
-            {{ binder.svg|safe }}
-          </svg>
-          <div class="card-body">
-            <h5 class="card-title"> {{ binder.name }} </h5>
-            <a href="https://www.rcsb.org/ligand/{{binder.name}}" class="card-link">PDB Ligand</a>
-            <a href="https://www.rcsb.org/structure/{{binder.pdb}}" class="card-link">PDB Cristal</a>
-          </div>
+            {% if binders %}
+                <section class="protein-card" id="section-binders">
+                    <div class="section-head">
+                        <div>
+                            <h2>{% trans "Binders" %}</h2>
+                            <p class="section-subtitle">{% trans "Ligands associated with this protein from mapped structures." %}</p>
+                        </div>
+                    </div>
+                    <div class="binder-grid">
+                        {% for binder in binders.values %}
+                            <article class="binder-card">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+                                    {{ binder.svg|safe }}
+                                </svg>
+                                <h3 class="binder-name">{{ binder.name }}</h3>
+                                <div class="binder-links">
+                                    <a href="https://www.rcsb.org/ligand/{{ binder.name }}" target="_blank" rel="noopener">RCSB Ligand</a>
+                                    <a href="https://www.rcsb.org/structure/{{ binder.pdb }}" target="_blank" rel="noopener">RCSB Structure {{ binder.pdb }}</a>
+                                </div>
+                            </article>
+                        {% endfor %}
+                    </div>
+                </section>
+            {% endif %}
         </div>
-      {% endfor %}
     </div>
-
 {% endblock %}
 
-
-
 {% block jsloaded %}
-
     {{ graphic_features|json_script:"seqfeatures" }}
 
     <script>
         function jsloaded() {
+            const proteinSequence = "{{ protein.seq }}";
+            const rootStyle = getComputedStyle(document.documentElement);
+            const tpColor = function (tokenName) {
+                const value = (rootStyle.getPropertyValue(tokenName) || "").trim();
+                return value;
+            };
 
-            var seq1 = new SeqView("{{ protein.seq }}");
-
+            var seq1 = new SeqView(proteinSequence);
             seq1.render('#protein-sequence-viewer', {
-                'showLineNumbers': true,
-                'wrapAminoAcids': true,
-                'charsPerLine': 50,
-                'toolbar': false,
-                'search': false,
-                'title': '{{ protein.name }}',
-                'sequenceMaxHeight': "300px",
-                'badge': true
+                showLineNumbers: true,
+                wrapAminoAcids: true,
+                charsPerLine: 50,
+                toolbar: false,
+                search: false,
+                title: '{{ protein.accession }}',
+                sequenceMaxHeight: "320px",
+                badge: true
             });
 
-            //function called by "onclick"
-            /*var onclickFun = function(e) {
-                console.log("Region clicked");
-            }*/
+            const copySequenceBtn = document.getElementById("copy-sequence-btn");
+            if (copySequenceBtn) {
+                const defaultLabel = copySequenceBtn.dataset.defaultLabel || "Copy Sequence";
+                const copiedLabel = copySequenceBtn.dataset.copiedLabel || "Copied";
+                copySequenceBtn.addEventListener("click", async function () {
+                    const seqText = document.getElementById("raw-protein-seq").value || "";
+                    if (!seqText) {
+                        return;
+                    }
+                    try {
+                        await navigator.clipboard.writeText(seqText);
+                        copySequenceBtn.textContent = copiedLabel;
+                        setTimeout(() => { copySequenceBtn.textContent = defaultLabel; }, 1500);
+                    } catch (err) {
+                        const fallbackInput = document.getElementById("raw-protein-seq");
+                        fallbackInput.classList.remove("d-none");
+                        fallbackInput.select();
+                        document.execCommand("copy");
+                        fallbackInput.classList.add("d-none");
+                        copySequenceBtn.textContent = copiedLabel;
+                        setTimeout(() => { copySequenceBtn.textContent = defaultLabel; }, 1500);
+                    }
+                });
+            }
 
-//Coverage list
-            /*
-            var exempleSequenceCoverage = [
-                {start: 0, end: 25, color: "black", underscore: false, bgcolor: "#ffd891"},
-                {start: 25, end: 47, color: "#ff0000", underscore: false, tooltip: "this is a tooltip"},
-                {start: 47, end: 54, color: "#ff0000", underscore: true},
-                {start: 54, end: 55, color: "#ff0000", underscore: false},
-                {start: 55, end: 56, color: "black", underscore: false},
-                {start: 56, end: 89, color: "#69CC33", underscore: false, onclick:onclickFun},
-                {start: 89, end: 90, color: "black", underscore: false},
-                {start: 90, end: 110, color: "#ff0000", underscore: false}
-            ];
+            const featureContainer = document.getElementById("div2");
+            const seqfeaturesElement = document.getElementById("seqfeatures");
+            if (featureContainer && seqfeaturesElement) {
+                var ft2 = new FeatureViewer.createFeature(proteinSequence, "#div2", {
+                    showAxis: true,
+                    showSequence: true,
+                    brushActive: true,
+                    toolbar: true,
+                    bubbleHelp: false,
+                    zoomMax: 10
+                });
+                const seqfeatures = JSON.parse(seqfeaturesElement.textContent);
+                seqfeatures.forEach(f => ft2.addFeature(f));
+                $(".add-variant-btn").parent().remove();
+                function hideFeatureHelpControls() {
+                    Array.from(featureContainer.querySelectorAll("button, a")).forEach(function (el) {
+                        if (/help/i.test((el.textContent || "").trim())) {
+                            el.style.display = "none";
+                        }
+                    });
+                }
+                hideFeatureHelpControls();
+                window.setTimeout(hideFeatureHelpControls, 180);
+            }
 
-
-
-            seq1.coverage(exempleSequenceCoverage);*/
-// for coverage + highlight :
-// seq3.coverage(exempleSequenceCoverage, start, end, highlightColor);
-
-//Define Legend and color codes
-            /*
-            var exempleLegend = [
-                {name: "Mature Protein", color: "#ff0000", underscore: false},
-                {name: "Proteotypic peptide", color: "#69CC33", underscore: false},
-                {name: "Synthetic peptide",color: "#fff",underscore: true}
-            ];
-            seq1.addLegend(exempleLegend);
-    */
-
-
-            //-----------------------------------------------------------------------
-
-            //Create a new Feature Viewer and add some rendering options
-            const seq3 = "{{ protein.seq }}"
-            var ft2 = new FeatureViewer.createFeature(seq3, "#div2", {
-                showAxis: true,
-                showSequence: true,
-                brushActive: true,
-                toolbar: true,
-                bubbleHelp: true,
-                zoomMax: 10
+            document.querySelectorAll(".js-score-tag").forEach(function (tag) {
+                const score = Number.parseFloat(tag.dataset.score || "");
+                if (Number.isNaN(score)) {
+                    tag.classList.add("medium");
+                    return;
+                }
+                if (score >= 0.7) {
+                    tag.classList.add("high");
+                } else if (score >= 0.4) {
+                    tag.classList.add("medium");
+                } else {
+                    tag.classList.add("low");
+                }
             });
-            const seqfeatures = JSON.parse(document.getElementById('seqfeatures').textContent);
-            seqfeatures.forEach(f =>  ft2.addFeature(f));
-            $(".add-variant-btn").parent().remove()
 
-            $('#features_table').dataTable();
-            $('#annotations_table').dataTable();
+            const quickNavLinks = Array.from(document.querySelectorAll(".quick-nav a[href^='#']"));
+            const quickNavSections = quickNavLinks
+                .map(function (link) { return document.querySelector(link.getAttribute("href")); })
+                .filter(Boolean);
+
+            function setActiveQuickNav(targetId) {
+                quickNavLinks.forEach(function (link) {
+                    const isMatch = link.getAttribute("href") === "#" + targetId;
+                    link.classList.toggle("is-active", isMatch);
+                });
+            }
+
+            if (quickNavLinks.length && quickNavSections.length) {
+                setActiveQuickNav(quickNavSections[0].id);
+
+                quickNavLinks.forEach(function (link) {
+                    link.addEventListener("click", function () {
+                        const targetId = (link.getAttribute("href") || "").replace("#", "");
+                        if (targetId) setActiveQuickNav(targetId);
+                    });
+                });
+
+                if ("IntersectionObserver" in window) {
+                    const observer = new IntersectionObserver(function (entries) {
+                        entries.forEach(function (entry) {
+                            if (entry.isIntersecting && entry.target && entry.target.id) {
+                                setActiveQuickNav(entry.target.id);
+                            }
+                        });
+                    }, {
+                        root: null,
+                        rootMargin: "-45% 0px -45% 0px",
+                        threshold: 0
+                    });
+                    quickNavSections.forEach(function (section) { observer.observe(section); });
+                }
+            }
+
+            if ($.fn.dataTable && $('#features_table').length) {
+                $('#features_table').dataTable({
+                    pageLength: 10,
+                    lengthChange: false,
+                    order: [[0, "asc"]]
+                });
+            }
+            if ($.fn.dataTable && $('#annotations_table').length) {
+                $('#annotations_table').dataTable({
+                    pageLength: 10,
+                    lengthChange: false
+                });
+            }
 
             const representations = {};
             const visible = {};
-            window.toogle_view = null;
-            window.ngl_zoom_to = null;
-            window.ngl_reset_zoom = null;
-
-            var stage = new NGL("viewport", {backgroundColor: "grey"});
+            window.toogle_view = function () {};
+            window.ngl_zoom_to = function () {};
+            window.ngl_reset_zoom = function () {};
+            window.ngl_set_mode = function () {};
             window.representations = representations;
+            const structureModeButtons = Array.from(document.querySelectorAll(".js-structure-mode"));
 
             {% if structure %}
+            if (document.getElementById("viewport")) {
+                var stage = new NGL("viewport", {
+                    backgroundColor: tpColor("--tp-color-surface-panel")
+                });
 
-            stage.loadFile("{% url "tpwebapp:structure_raw" structure.id %}",
-                {ext: "pdb", defaultRepresentation: false}).then( function( component ){
-                    window.ngl_reset_zoom = () => {
-                        component.autoView()
+                stage.loadFile("{% url "tpwebapp:structure_raw" structure.id %}", {
+                    ext: "pdb",
+                    defaultRepresentation: false
+                }).then(function (component) {
+                    function setModeButtonState(mode) {
+                        structureModeButtons.forEach(function (button) {
+                            const isActive = button.getAttribute("data-mode") === mode;
+                            button.classList.toggle("is-active", isActive);
+                        });
                     }
-                    toogle_view = (repr) => {
+                    const pocketSurfaceKeys = [];
+                    const priorityPocketSurfaceKeys = [];
+
+                    window.ngl_reset_zoom = function () {
+                        component.autoView();
+                    };
+
+                    window.toogle_view = function (repr) {
+                        if (!(repr in representations)) {
+                            return;
+                        }
                         visible[repr] = !visible[repr];
-                        representations[repr].setVisibility(visible[repr] );
-
-
+                        representations[repr].setVisibility(visible[repr]);
                     };
-                    ngl_zoom_to = (repr) => {
+
+                    window.ngl_zoom_to = function (repr) {
+                        if (!(repr in representations) || !representations[repr].sele) {
+                            return;
+                        }
                         component.autoView(representations[repr].sele);
-
                     };
 
-                component.addRepresentation( "cartoon", {
-                    aspectRatio: 3.0,
-                    scale: 1.5,
-                    sele: "backbone and :A" //,color:"blue"
-                } );
+                    representations.__main_cartoon = component.addRepresentation("cartoon", {
+                        aspectRatio: 3.0,
+                        scale: 1.5,
+                        sele: "backbone and :A"
+                    });
+                    visible.__main_cartoon = true;
+                    representations.__main_cartoon.sele = "backbone and :A";
+
+                    representations.__main_density = component.addRepresentation("surface", {
+                        sele: "polymer and :A",
+                        color: tpColor("--tp-color-structure-density"),
+                        opacity: 0.14
+                    });
+                    visible.__main_density = false;
+                    representations.__main_density.setVisibility(false);
+                    representations.__main_density.sele = "polymer and :A";
+
+                    window.ngl_set_mode = function (mode) {
+                        const normalized = mode === "density" ? "density" : "cartoon";
+                        const isDensity = normalized === "density";
+                        const showCartoon = !isDensity;
+                        visible.__main_cartoon = showCartoon;
+                        visible.__main_density = isDensity;
+                        representations.__main_cartoon.setVisibility(showCartoon);
+                        representations.__main_density.setVisibility(isDensity);
+                        pocketSurfaceKeys.forEach(function (key) {
+                            if (!(key in representations)) return;
+                            const isPriority = priorityPocketSurfaceKeys.indexOf(key) !== -1;
+                            const shouldShow = isDensity && isPriority;
+                            visible[key] = shouldShow;
+                            representations[key].setVisibility(shouldShow);
+                        });
+                        setModeButtonState(normalized);
+                    };
+
                     let sele = null;
+
                     {% for p in structure.pockets %}
-                        sele ="STP AND .APOL AND {{p.name}}";
-                        representations["{{p.name}}_apol"] =  component.addRepresentation( "surface", {
+                        sele = "STP AND .APOL AND {{p.name}}";
+                        representations["{{p.name}}_apol"] = component.addRepresentation("surface", {
                             sele: sele,
                             multipleBond: false,
-                            color:"white"
-
-                        } );
+                            color: tpColor("--tp-color-structure-pocket-apolar"),
+                            opacity: 0.92
+                        });
                         representations["{{p.name}}_apol"].sele = sele;
-                        sele ="STP AND .POL AND {{p.name}}";
-                        representations["{{p.name}}_pol"] = component.addRepresentation( "surface", {
+                        pocketSurfaceKeys.push("{{p.name}}_apol");
+                        {% if forloop.counter <= 4 %}
+                            priorityPocketSurfaceKeys.push("{{p.name}}_apol");
+                        {% endif %}
+
+                        sele = "STP AND .POL AND {{p.name}}";
+                        representations["{{p.name}}_pol"] = component.addRepresentation("surface", {
                             sele: sele,
                             multipleBond: false,
-                            color:"black"
-
-                        } );
+                            color: tpColor("--tp-color-structure-pocket-polar"),
+                            opacity: 0.92
+                        });
                         representations["{{p.name}}_pol"].sele = sele;
+                        pocketSurfaceKeys.push("{{p.name}}_pol");
+                        {% if forloop.counter <= 4 %}
+                            priorityPocketSurfaceKeys.push("{{p.name}}_pol");
+                        {% endif %}
 
                         visible["{{p.name}}_pol"] = false;
                         visible["{{p.name}}_apol"] = false;
                         representations["{{p.name}}_pol"].setVisibility(false);
                         representations["{{p.name}}_apol"].setVisibility(false);
 
-                        representations["{{p.name}}_atm"] =  component.addRepresentation( "ball+stick", {
-                            sele: 'NOT STP AND NOT water AND @{{p.atoms|join:","}}',
-                            color:"purple"
-                        } );
+                        representations["{{p.name}}_atm"] = component.addRepresentation("ball+stick", {
+                            sele: "NOT STP AND NOT water AND @{{p.atoms|join:","}}",
+                            color: "teal"
+                        });
                         visible["{{p.name}}_atm"] = false;
                         representations["{{p.name}}_atm"].setVisibility(false);
+                        representations["{{p.name}}_atm"].sele = "NOT STP AND NOT water AND @{{p.atoms|join:","}}";
 
+                        representations["{{p.name}}_sph"] = component.addRepresentation("spacefill", {
+                            sele: "NOT STP AND NOT water AND @{{p.atoms|join:","}}",
+                            color: "teal",
+                            radiusScale: 0.7
+                        });
+                        visible["{{p.name}}_sph"] = false;
+                        representations["{{p.name}}_sph"].setVisibility(false);
+                        representations["{{p.name}}_sph"].sele = "NOT STP AND NOT water AND @{{p.atoms|join:","}}";
 
-                        representations["{{p.name}}_lbl"] = component.addRepresentation( "label", {
-                            labelType: "atom",
-                            sele: 'NOT STP AND @{{p.atoms|join:","}}',
-                        } );
+                        representations["{{p.name}}_lbl"] = component.addRepresentation("label", {
+                            labelType: "res",
+                            sele: ":A AND .CA AND ({{p.residues|join:" OR "}})"
+                        });
                         visible["{{p.name}}_lbl"] = false;
                         representations["{{p.name}}_lbl"].setVisibility(false);
-
+                        representations["{{p.name}}_lbl"].sele = ":A AND .CA AND ({{p.residues|join:" OR "}})";
                     {% endfor %}
 
                     {% for p2 in structure.p2_pockets %}
-                        sele ="STP AND .APOL AND {{p2.name}}";
-                        representations["{{p2.name}}_apol"] =  component.addRepresentation( "surface", {
+                        sele = "STP AND .APOL AND {{p2.name}}";
+                        representations["p2_{{p2.name}}_apol"] = component.addRepresentation("surface", {
                             sele: sele,
                             multipleBond: false,
-                            color:"white"
+                            color: tpColor("--tp-color-structure-p2-apolar"),
+                            opacity: 0.92
+                        });
+                        representations["p2_{{p2.name}}_apol"].sele = sele;
+                        pocketSurfaceKeys.push("p2_{{p2.name}}_apol");
+                        {% if forloop.counter <= 3 %}
+                            priorityPocketSurfaceKeys.push("p2_{{p2.name}}_apol");
+                        {% endif %}
 
-                        } );
-                        representations["{{p2.name}}_apol"].sele = sele;
-                        sele ="STP AND .POL AND {{p2.name}}";
-                        representations["{{p2.name}}_pol"] = component.addRepresentation( "surface", {
+                        sele = "STP AND .POL AND {{p2.name}}";
+                        representations["p2_{{p2.name}}_pol"] = component.addRepresentation("surface", {
                             sele: sele,
                             multipleBond: false,
-                            color:"black"
+                            color: tpColor("--tp-color-structure-p2-polar"),
+                            opacity: 0.92
+                        });
+                        representations["p2_{{p2.name}}_pol"].sele = sele;
+                        pocketSurfaceKeys.push("p2_{{p2.name}}_pol");
+                        {% if forloop.counter <= 3 %}
+                            priorityPocketSurfaceKeys.push("p2_{{p2.name}}_pol");
+                        {% endif %}
 
-                        } );
-                        representations["{{p2.name}}_pol"].sele = sele;
+                        visible["p2_{{p2.name}}_pol"] = false;
+                        visible["p2_{{p2.name}}_apol"] = false;
+                        representations["p2_{{p2.name}}_pol"].setVisibility(false);
+                        representations["p2_{{p2.name}}_apol"].setVisibility(false);
 
-                        visible["{{p2.name}}_pol"] = false;
-                        visible["{{p2.name}}_apol"] = false;
-                        representations["{{p2.name}}_pol"].setVisibility(false);
-                        representations["{{p2.name}}_apol"].setVisibility(false);
+                        representations["p2_{{p2.name}}_atm"] = component.addRepresentation("ball+stick", {
+                            sele: "NOT STP AND NOT water AND @{{p2.atoms|join:","}}",
+                            color: "orange"
+                        });
+                        visible["p2_{{p2.name}}_atm"] = false;
+                        representations["p2_{{p2.name}}_atm"].setVisibility(false);
+                        representations["p2_{{p2.name}}_atm"].sele = "NOT STP AND NOT water AND @{{p2.atoms|join:","}}";
 
-                        representations["{{p2.name}}_atm2"] =  component.addRepresentation( "ball+stick", {
-                            sele: 'NOT STP AND NOT water AND @{{p2.atoms|join:","}}',
-                            color:"pink"
-                        } );
-                        visible["{{p2.name}}_atm2"] = false;
-                        representations["{{p2.name}}_atm2"].setVisibility(false);
+                        representations["p2_{{p2.name}}_sph"] = component.addRepresentation("spacefill", {
+                            sele: "NOT STP AND NOT water AND @{{p2.atoms|join:","}}",
+                            color: "orange",
+                            radiusScale: 0.7
+                        });
+                        visible["p2_{{p2.name}}_sph"] = false;
+                        representations["p2_{{p2.name}}_sph"].setVisibility(false);
+                        representations["p2_{{p2.name}}_sph"].sele = "NOT STP AND NOT water AND @{{p2.atoms|join:","}}";
 
-
-                        representations["{{p2.name}}_lbl2"] = component.addRepresentation( "label", {
-                            labelType: "atom",
-                            sele: 'NOT STP AND @{{p2.atoms|join:","}}',
-                        } );
-                        visible["{{p2.name}}_lbl2"] = false;
-                        representations["{{p2.name}}_lbl2"].setVisibility(false);
-
+                        representations["p2_{{p2.name}}_lbl"] = component.addRepresentation("label", {
+                            labelType: "res",
+                            sele: ":A AND .CA AND ({{p2.residues|join:" OR "}})"
+                        });
+                        visible["p2_{{p2.name}}_lbl"] = false;
+                        representations["p2_{{p2.name}}_lbl"].setVisibility(false);
+                        representations["p2_{{p2.name}}_lbl"].sele = ":A AND .CA AND ({{p2.residues|join:" OR "}})";
                     {% endfor %}
 
                     {% for rs in structure.residuesets %}
-                        sele = ':A AND ({{rs.residues|join:" OR "}})';
-                        representations["{{rs.name}}"] =  component.addRepresentation( "ball+stick", {
+                        sele = ":A AND ({{rs.residues|join:" OR "}})";
+                        representations["{{rs.name}}"] = component.addRepresentation("ball+stick", {
                             sele: sele
-
-
-                        } );
+                        });
                         visible["{{rs.name}}"] = false;
                         representations["{{rs.name}}"].setVisibility(false);
                         representations["{{rs.name}}"].sele = sele;
                     {% endfor %}
 
+                    structureModeButtons.forEach(function (button) {
+                        button.addEventListener("click", function () {
+                            const mode = button.getAttribute("data-mode") || "cartoon";
+                            window.ngl_set_mode(mode);
+                        });
+                    });
 
+                    document.querySelectorAll("#section-structure input[type='checkbox']").forEach(function (checkbox) {
+                        checkbox.checked = false;
+                    });
 
-                    {% if pockets|length > 5 %}
-                        $('#pocketsTable').DataTable({"searching": false,pageLength:5, paging: true,"lengthChange": false,
-                            "order": [[ 3, "desc" ]] });
-                    {% endif %}
-
-                    {% if  structure.residuesets|length > 5 %}
-                        $('#residuesetsTable').DataTable({"searching": true,pageLength:10, paging: true,"lengthChange": false,
-                            "order": [[ 3, "desc" ]] });
-                    {% endif %}
-
-
-
+                    window.ngl_set_mode("cartoon");
                     component.autoView();
-
+                });
             }
-            );
-
             {% endif %}
 
-            const opts = {};
-            opts.el = '#msaDiv';
-            //opts.importURL = "https://www.ebi.ac.uk/Tools/services/rest/mafft/result/mafft-I20230125-195028-0399-51473931-p1m/aln-fasta";
-            opts.vis = {
+            if ($.fn.dataTable && $('#pocketsTable').length && $('#pocketsTable tbody tr').length > 5) {
+                $('#pocketsTable').DataTable({
+                    searching: false,
+                    pageLength: 5,
+                    paging: true,
+                    lengthChange: false,
+                    order: [[4, "desc"]]
+                });
+            }
 
-                labelId: false,
-                conserv: true,
-                overviewbox: false,
-                seqlogo: true,
-            };
-            opts.zoomer = {
-                boxRectHeight: 1,
-                boxRectWidth: 1,
-                labelNameLength: 230,
-                alignmentHeight: window.innerHeight * 0.8,
-                labelFontsize: 12,
-                labelIdLength: 50,
-                leftOffset: 204
-            };
+            if ($.fn.dataTable && $('#p2pocketsTable').length && $('#p2pocketsTable tbody tr').length > 5) {
+                $('#p2pocketsTable').DataTable({
+                    searching: false,
+                    pageLength: 5,
+                    paging: true,
+                    lengthChange: false,
+                    order: [[5, "desc"]]
+                });
+            }
 
-            /*
-            Fasta.read('https://www.ebi.ac.uk/Tools/services/rest/mafft/result/mafft-I20230218-223104-0796-57722923-p2m/aln-fasta',
-                function (err, seqs) {
+            if ($.fn.dataTable && $('#residuesetsTable').length && $('#residuesetsTable tbody tr').length > 5) {
+                $('#residuesetsTable').DataTable({
+                    searching: true,
+                    pageLength: 10,
+                    paging: true,
+                    lengthChange: false
+                });
+            }
 
-                    //seqs.forEach(seq => {
-                    //    seq.id = seq.name;
-                    //    seq.name = tree_data[seq.id + "__"].organism;
-                    //});
-                    opts.seqs = seqs;
-                    delete Array.prototype.at;
-                    const m = msa(opts);
-                    m.render();
-                    //const m = msa(opts);
-                    //$('#msaDiv').data(m);
-                    //m.seqs.reset(seqs);
-
-                });*/
-
+            document.querySelectorAll(".data-details").forEach(function (details) {
+                details.addEventListener("toggle", function () {
+                    if (!details.open || !$.fn.dataTable) return;
+                    details.querySelectorAll("table").forEach(function (table) {
+                        if ($.fn.dataTable.isDataTable(table)) {
+                            $(table).DataTable().columns.adjust();
+                        }
+                    });
+                });
+            });
         }
 
-        $(document).ready(jsloaded)
-        //document.addEventListener("load", jsloaded);
-
-
+        $(document).ready(jsloaded);
     </script>
-
-
 {% endblock %}
 
 {% block footer %}

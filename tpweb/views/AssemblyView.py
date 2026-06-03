@@ -6,6 +6,10 @@ from bioseq.models.BiodatabaseQualifierValue import BiodatabaseQualifierValue
 from bioseq.models.Bioentry import Bioentry
 
 from django.conf import settings
+from tpweb.services.pipeline_status import (
+    annotate_pipeline_status_for_genome,
+    get_pipeline_status,
+)
 
 
 class AssemblyView(View):
@@ -27,5 +31,15 @@ class AssemblyView(View):
         }
 
         jbrowse_url = f"{settings.JBROWSE_BASE_URL}?config=data/jbrowse/{biodb.name}/config.json&loc={ config_lt}:1..15000&assembly=Ref&tracks=Ref-ReferenceSequenceTrack,Annotation"
-        return render(request, self.template_name,
-                      {"assembly": assembly, "jbrowse_url": jbrowse_url})  # , {'form': form})
+        pipeline_status = annotate_pipeline_status_for_genome(
+            get_pipeline_status(), biodb.name
+        )
+        return render(
+            request,
+            self.template_name,
+            {
+                "assembly": assembly,
+                "jbrowse_url": jbrowse_url,
+                "pipeline_status": pipeline_status,
+            },
+        )  # , {'form': form})

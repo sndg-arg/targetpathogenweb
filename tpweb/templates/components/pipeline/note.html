@@ -1,0 +1,27 @@
+{% if pipeline_status.available %}
+    {% if mode == "global" %}
+        {% if pipeline_status.running %}
+            {% if pipeline_status.activity_label or pipeline_status.stage_label %}
+                <p class="{{ note_class }}">
+                    {% if pipeline_status.activity_label %}
+                        {{ pipeline_status.activity_label }}
+                    {% else %}
+                        {{ pipeline_status.stage_label }}
+                    {% endif %}
+                </p>
+            {% endif %}
+        {% endif %}
+    {% else %}
+        {% if pipeline_status.running_for_current_genome %}
+            {% if pipeline_status.activity_label or pipeline_status.stage_label %}
+                <p class="{{ note_class }}">
+                    {% if pipeline_status.activity_label %}
+                        {{ pipeline_status.activity_label }}
+                    {% else %}
+                        {{ pipeline_status.stage_label }}
+                    {% endif %}
+                </p>
+            {% endif %}
+        {% endif %}
+    {% endif %}
+{% endif %}
