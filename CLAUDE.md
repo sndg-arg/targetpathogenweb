@@ -232,6 +232,62 @@ sudo rm -rf -- "/data/targetpathogen/data/${MID}/${ACC}"
 sudo rm -rf -- "/data/targetpathogen/fasttarget_organism/${ACC}"
 ```
 
+## Importing external analysis results (Gates-Targets pipeline)
+
+Use `import_external_results` to load pre-computed scores + structures into TPW without re-running the full pipeline.
+
+### 1. Load the genome first
+Upload the `.gbk.gz` via the web UI (Genomes → Upload), let it run through stage 3 (load_gbk), then stop the pipeline.
+
+### 2. Transfer files to the server
+
+**glyco cannot write to `/data/targetpathogen/data/` directly** — use `/tmp/` on nodo0 as a staging area instead.
+
+From cranex (after copying files there with scp from your Mac):
+```bash
+# TSV only (small — copy directly to the data volume via docker):
+docker exec target2_nodo0_web bash -c "cat > /tmp/results_table.tsv" < results_table.tsv
+
+# Large files (structures tar ~850MB) — scp to /tmp/ on nodo0, then access from container:
+scp /home/agutson/ATCC43816_structures_only.tar.gz glyco@nodo0:/tmp/ATCC43816_structures_only.tar.gz
+```
+
+The container can read `/tmp/` on the host because nodo0's `/tmp/` is accessible from inside the container at the same path.
+
+### 3. Extract the structures tar inside the container
+```bash
+docker exec target2_nodo0_queue bash -c "tar -xzf /tmp/ATCC43816_structures_only.tar.gz -C /tmp/"
+
+# Verify extraction (check one PDB):
+docker exec target2_nodo0_queue find /tmp -name "*.pdb" -maxdepth 6 | head -3
+```
+
+### 4. Run the import command
+```bash
+docker exec target2_nodo0_web bash -c ". /opt/conda/etc/profile.d/conda.sh && conda activate tpv2 && python manage.py import_external_results public__KpATCC43816 \
+  --results-tsv /tmp/results_table.tsv \
+  --structures-dir /tmp/KpATCC43816/structures \
+  --datadir /app/targetpathogenweb/data \
+  --overwrite"
+```
+
+Replace `public__KpATCC43816` with the actual internal accession (shown in the Genomes page URL or upload history). Adjust `--structures-dir` to match the actual extraction path.
+
+### 5. Run remaining pipeline stages manually (optional)
+After importing, stages that haven't run yet (UniProt mapping, binders, InterProScan) can still be kicked off via the web UI or management commands.
+
+### Gates TSV → TPW column mapping
+| Gates column | TPW ScoreParam |
+|---|---|
+| `human_offtarget` | `human_offtarget` |
+| `druggability_score` | `Druggability` |
+| `psortb_localization` | `Localization` |
+| `gut_microbiome_offtarget_norm` | `gut_microbiome_offtarget_norm` |
+| `gut_microbiome_offtarget_counts` | `gut_microbiome_offtarget_counts` |
+| `colabfold_plddt` | `colabfold_plddt` |
+| `core_roary` | `core_roary` |
+| `core_corecruncher` | `core_corecruncher` |
+
 ## Running tests
 ```bash
 # Inside container (preferred):
