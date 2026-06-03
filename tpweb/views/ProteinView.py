@@ -26,6 +26,7 @@ from tpweb.services.genome_workspace import (
     user_can_access_genome_name,
 )
 from tpweb.services.structure_sources import (
+    PDB_MODEL_EXPERIMENTS,
     summarize_structure_sources,
     sort_structures_by_preference as _sort_structures_by_preference,
     structure_toggle_label as _structure_toggle_label,
@@ -118,6 +119,139 @@ def _annotation_name(dbxref_relation):
     except Exception:
         return ""
     return getattr(getattr(first_term, "term", None), "definition", "") or ""
+
+
+def _format_resolution(value):
+    if value is None:
+        return "-"
+    try:
+        return f"{float(value):.2f} A"
+    except (TypeError, ValueError):
+        return "-"
+
+
+def _external_structure_links(pdb_id):
+    pdb_id = (pdb_id or "").strip()
+    if not pdb_id:
+        return {}
+    upper_id = pdb_id.upper()
+    lower_id = pdb_id.lower()
+    return {
+        "pdbe": f"https://www.ebi.ac.uk/pdbe/entry/pdb/{lower_id}",
+        "rcsb": f"https://www.rcsb.org/structure/{upper_id}",
+        "pdbj": f"https://pdbj.org/mine/summary/{upper_id}",
+        "pdbsum": f"https://www.ebi.ac.uk/thornton-srv/databases/cgi-bin/pdbsum/GetPage.pl?pdbcode={lower_id}",
+        "source": f"https://files.rcsb.org/download/{upper_id}.pdb",
+    }
+
+
+def _coverage_payload(start, end, protein_length):
+    if not start or not end or not protein_length:
+        return {
+            "positions": "-",
+            "coverage_label": "unknown",
+            "coverage_left": "0%",
+            "coverage_width": "0%",
+            "has_positions": False,
+        }
+
+    start = int(start)
+    end = int(end)
+    if end < start:
+        start, end = end, start
+    start = min(max(1, start), int(protein_length))
+    end = min(max(1, end), int(protein_length))
+
+    span = max(0, end - start + 1)
+    coverage = min(100.0, max(0.0, (span / protein_length) * 100.0))
+    left = min(100.0, max(0.0, ((start - 1) / protein_length) * 100.0))
+    width = min(100.0 - left, coverage)
+    return {
+        "positions": f"{start}-{end}",
+        "coverage_label": f"{coverage:.1f}%",
+        "coverage_left": f"{left:.3f}%",
+        "coverage_width": f"{max(width, 1.0):.3f}%",
+        "has_positions": True,
+    }
+
+
+def _experimental_structure_entry(pdb_id, method, resolution, chains, start, end, protein_length, loaded_link=None):
+    coverage = _coverage_payload(start, end, protein_length)
+    return {
+        "pdb_id": (pdb_id or "").upper(),
+        "method": method or "-",
+        "resolution": _format_resolution(resolution),
+        "chains": chains or "-",
+        "links": _external_structure_links(pdb_id),
+        "loaded": loaded_link is not None,
+        "loaded_structure_id": getattr(getattr(loaded_link, "pdb", None), "id", None),
+        **coverage,
+    }
+
+
+def _build_experimental_structures(protein, structures):
+    protein_length = getattr(getattr(protein, "seq", None), "length", None) or 0
+    loaded_by_code = {}
+    fallback_links = []
+    for link in structures:
+        pdb = getattr(link, "pdb", None)
+        code = str(getattr(pdb, "code", "") or "").strip().upper()
+        experiment = str(getattr(pdb, "experiment", "") or "").strip().upper()
+        if not code or experiment in PDB_MODEL_EXPERIMENTS:
+            continue
+        loaded_by_code.setdefault(code, link)
+        fallback_links.append(link)
+
+    entries = []
+    seen_codes = set()
+    for xref in protein.experimental_structure_xrefs.all():
+        pdb_id = str(xref.pdb_id or "").strip().upper()
+        if not pdb_id:
+            continue
+        seen_codes.add(pdb_id)
+        entries.append(_experimental_structure_entry(
+            pdb_id=pdb_id,
+            method=xref.method,
+            resolution=xref.resolution,
+            chains=xref.chains,
+            start=xref.uniprot_start,
+            end=xref.uniprot_end,
+            protein_length=protein_length,
+            loaded_link=loaded_by_code.get(pdb_id),
+        ))
+
+    for link in fallback_links:
+        pdb = link.pdb
+        pdb_id = str(pdb.code or "").strip().upper()
+        if pdb_id in seen_codes:
+            continue
+        method = pdb.experiment or "Experimental"
+        if str(method).strip().upper() == "EX":
+            method = "Experimental"
+        seen_codes.add(pdb_id)
+        entries.append(_experimental_structure_entry(
+            pdb_id=pdb_id,
+            method=method,
+            resolution=link.resolution or pdb.resolution,
+            chains=link.chain,
+            start=link.uniprot_start,
+            end=link.uniprot_end,
+            protein_length=protein_length,
+            loaded_link=link,
+        ))
+
+    def sort_key(entry):
+        try:
+            resolution = float(str(entry["resolution"]).split()[0])
+        except (TypeError, ValueError, IndexError):
+            resolution = 999.0
+        try:
+            coverage = -float(str(entry["coverage_label"]).replace("%", ""))
+        except (TypeError, ValueError):
+            coverage = 0.0
+        return (not entry["loaded"], resolution, coverage, entry["pdb_id"])
+
+    return sorted(entries, key=sort_key)
 
 
 
@@ -400,6 +534,7 @@ class ProteinView(View):
         ).prefetch_related("seq", "biodatabase",
                            "qualifiers__term", "dbxrefs__dbxref__terms__term",
                            "features__type_term__ontology", "features__locations",
+                           "experimental_structure_xrefs",
                            "structures__pdb__residue_sets__properties__property").get()
         assembly_name = protein.biodatabase.name.split(Biodatabase.PROT_POSTFIX)[0]
         if not user_can_access_genome_name(request.user, assembly_name):
@@ -407,6 +542,7 @@ class ProteinView(View):
         proteinDTO, features, annotations, graphic_features = serialize_prot(protein)
         structures = protein.structures.prefetch_related("pdb__residues").all()
         structures = _sort_structures_by_preference(structures)
+        experimental_structures = _build_experimental_structures(protein, structures)
         binders_search_query = request.GET.get("binder_search", "").strip()
         binders = create_binders_dict(protein, search_query=binders_search_query)
         structure_summary = summarize_structure_sources(structures)
@@ -448,6 +584,7 @@ class ProteinView(View):
                         ["Status", proteinDTO["status"]],
                         ["Amino acids", proteinDTO["size"]],
                         ["Structure source", structure_summary.get("label", "-")],
+                        ["Experimental PDB entries", len(experimental_structures)],
                         ["Functional annotations", len(annotations)],
                         ["Sequence features", len(features)],
                         ["Binders", binders["total"]],
@@ -480,6 +617,29 @@ class ProteinView(View):
                         "rows": [
                             [feature["start"], feature["end"], feature["db"], feature["term"], feature["name"]]
                             for feature in features
+                        ],
+                    }
+                )
+
+            if experimental_structures:
+                sections.append(
+                    {
+                        "title": "Experimental structures",
+                        "headers": [
+                            "PDB", "Method", "Resolution", "Chains", "Positions",
+                            "Coverage", "Loaded in TPW",
+                        ],
+                        "rows": [
+                            [
+                                entry["pdb_id"],
+                                entry["method"],
+                                entry["resolution"],
+                                entry["chains"],
+                                entry["positions"],
+                                entry["coverage_label"],
+                                "yes" if entry["loaded"] else "no",
+                            ]
+                            for entry in experimental_structures
                         ],
                     }
                 )
@@ -523,6 +683,7 @@ class ProteinView(View):
                "graphic_features": graphic_features,
                "binders": binders,
                "structure_summary": structure_summary,
+               "experimental_structures": experimental_structures,
                "target_profile": target_profile,
                "ec_badges": ec_badges,
                "go_badges": go_badges,

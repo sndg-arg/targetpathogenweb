@@ -68,6 +68,10 @@ class Command(BaseCommand):
         self.stdout.write(f"  Proteins with sequence features: {plan.feature_proteins}/{plan.protein_total}")
         self.stdout.write(f"  Proteins with UniProt mapping: {plan.uniprot_mapped_proteins}/{plan.protein_total}")
         self.stdout.write(f"  Proteins with GO/EC annotations: {plan.annotation_proteins}/{plan.protein_total}")
+        self.stdout.write(f"  Proteins with EC annotations: {plan.ec_annotation_proteins}/{plan.protein_total}")
+        self.stdout.write(f"  Proteins with GO annotations: {plan.go_annotation_proteins}/{plan.protein_total}")
+        self.stdout.write(f"  Proteins with PDB xrefs: {plan.pdb_xref_proteins}/{plan.protein_total}")
+        self.stdout.write(f"  Experimental structure xrefs: {plan.experimental_structure_xrefs}")
         self.stdout.write(f"  Binder rows: {plan.binder_count}")
         self.stdout.write(f"  LigQ/ZINC binder rows: {plan.ligq_binder_count}")
         if plan.ligq_excluded_loci:

@@ -9,7 +9,7 @@ from bioseq.models.Biodatabase import Biodatabase
 from bioseq.models.Bioentry import Bioentry
 from bioseq.models.BioentryDbxref import BioentryDbxref
 from tpweb.models.Binders import Binders
-from tpweb.models.BioentryStructure import BioentryStructure
+from tpweb.models.BioentryStructure import BioentryStructure, ExperimentalStructureXref
 from tpweb.models.ScoreParamValue import ScoreParamValue
 from tpweb.models.pdb import PDBResidueSet
 from tpweb.services.protein_annotations import annotation_dbnames
@@ -54,6 +54,10 @@ class CuratedPipelinePlan:
     feature_proteins: int = 0
     uniprot_mapped_proteins: int = 0
     annotation_proteins: int = 0
+    ec_annotation_proteins: int = 0
+    go_annotation_proteins: int = 0
+    pdb_xref_proteins: int = 0
+    experimental_structure_xrefs: int = 0
     binder_count: int = 0
     ligq_binder_count: int = 0
     ligq_excluded_loci: list[str] = field(default_factory=list)
@@ -207,6 +211,8 @@ def build_curated_pipeline_plan(
     interpro_output = os.path.join(folder_path, f"{genome_name}.faa.tsv")
     uniprot_dbnames = ["UnipSp", "UnipTr"]
     annotation_dbname_set = set(annotation_dbnames("go")) | set(annotation_dbnames("ec"))
+    ec_dbname_set = set(annotation_dbnames("ec"))
+    go_dbname_set = set(annotation_dbnames("go"))
 
     fasttarget_org_dir = _find_fasttarget_org_dir(genome_name)
     human_file_path, human_file_rows = _fasttarget_file_info(
@@ -245,6 +251,21 @@ def build_curated_pipeline_plan(
             bioentry__biodatabase=db,
             dbxref__dbname__in=annotation_dbname_set,
         ).values("bioentry_id").distinct().count(),
+        ec_annotation_proteins=BioentryDbxref.objects.filter(
+            bioentry__biodatabase=db,
+            dbxref__dbname__in=ec_dbname_set,
+        ).values("bioentry_id").distinct().count(),
+        go_annotation_proteins=BioentryDbxref.objects.filter(
+            bioentry__biodatabase=db,
+            dbxref__dbname__in=go_dbname_set,
+        ).values("bioentry_id").distinct().count(),
+        pdb_xref_proteins=BioentryDbxref.objects.filter(
+            bioentry__biodatabase=db,
+            dbxref__dbname="PDB",
+        ).values("bioentry_id").distinct().count(),
+        experimental_structure_xrefs=ExperimentalStructureXref.objects.filter(
+            bioentry__biodatabase=db,
+        ).count(),
         binder_count=Binders.objects.filter(locustag__biodatabase=db).count(),
         ligq_binder_count=Binders.objects.filter(
             locustag__biodatabase=db,

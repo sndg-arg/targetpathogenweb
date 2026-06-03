@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260520-viewer-canvas">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260603-experimental-structures">
 {% endblock %}
 
 {% block body %}
@@ -83,6 +83,7 @@
             <a href="#section-sequence" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Sequence" %}</a>
             <a href="#section-annotations" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Annotations" %}</a>
             <a href="#section-features" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Features" %}</a>
+            {% if experimental_structures %}<a href="#section-experimental-structures" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "PDB Evidence" %}</a>{% endif %}
             <a href="#section-structure" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "3D Structure" %}</a>
             {% if binders.total %}
                 <a href="#section-binders" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Binders" %}</a>
@@ -298,6 +299,76 @@
                     <p class="tp-state-note tp-state-note--empty">{% trans "No sequence features are currently loaded for this protein." %}</p>
                 {% endif %}
             </section>
+
+            {% if experimental_structures %}
+                <section class="protein-card tp-ui-panel" id="section-experimental-structures">
+                    <div class="section-head tp-ui-panel-head">
+                        <div>
+                            <h2>{% trans "Experimental structures" %}</h2>
+                            <p class="section-subtitle">{% trans "PDB structures mapped to UniProt coordinates. Experimental entries often cover only a fragment of the protein." %}</p>
+                        </div>
+                        <div class="section-tools">
+                            <span class="tp-chip tp-chip--count tp-chip--sm">{{ experimental_structures|length }} {% trans "PDB entries" %}</span>
+                        </div>
+                    </div>
+                    <div class="experimental-structure-note">
+                        {% trans "Coverage is shown against the full protein sequence. Metadata-only rows are known PDB matches that are not currently loaded as local TPW structures." %}
+                    </div>
+                    <div class="table-shell tp-table-shell experimental-structure-shell">
+                        <table class="table table-striped table-hover tp-table tp-table--premium experimental-structure-table">
+                            <thead>
+                            <tr>
+                                <th scope="col">{% trans "Source" %}</th>
+                                <th scope="col">{% trans "Identifier" %}</th>
+                                <th scope="col">{% trans "Method" %}</th>
+                                <th scope="col">{% trans "Resolution" %}</th>
+                                <th scope="col">{% trans "Chain" %}</th>
+                                <th scope="col">{% trans "Positions" %}</th>
+                                <th scope="col">{% trans "Coverage" %}</th>
+                                <th scope="col">{% trans "Links" %}</th>
+                                <th scope="col">{% trans "Status" %}</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for item in experimental_structures %}
+                                <tr>
+                                    <td><span class="experimental-source">PDB</span></td>
+                                    <td class="experimental-pdb-id">{{ item.pdb_id }}</td>
+                                    <td>{{ item.method }}</td>
+                                    <td>{{ item.resolution }}</td>
+                                    <td>{{ item.chains }}</td>
+                                    <td>{{ item.positions }}</td>
+                                    <td class="experimental-coverage-cell">
+                                        <div class="experimental-coverage-track" title="{% trans "Mapped protein coverage" %}: {{ item.coverage_label }}">
+                                            {% if item.has_positions %}
+                                                <span class="experimental-coverage-fill" style="left: {{ item.coverage_left }}; width: {{ item.coverage_width }};"></span>
+                                            {% endif %}
+                                        </div>
+                                        <span class="experimental-coverage-label">{{ item.coverage_label }}</span>
+                                    </td>
+                                    <td>
+                                        <div class="experimental-links">
+                                            <a href="{{ item.links.pdbe }}" target="_blank" rel="noopener noreferrer">PDBe</a>
+                                            <a href="{{ item.links.rcsb }}" target="_blank" rel="noopener noreferrer">RCSB</a>
+                                            <a href="{{ item.links.pdbj }}" target="_blank" rel="noopener noreferrer">PDBj</a>
+                                            <a href="{{ item.links.pdbsum }}" target="_blank" rel="noopener noreferrer">PDBsum</a>
+                                            <a href="{{ item.links.source }}" target="_blank" rel="noopener noreferrer">{% trans "Source" %}</a>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if item.loaded %}
+                                            <span class="experimental-status experimental-status--loaded">{% trans "Loaded" %}</span>
+                                        {% else %}
+                                            <span class="experimental-status experimental-status--metadata">{% trans "Metadata only" %}</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            {% endif %}
 
             {% if structure %}
                 <section class="protein-card tp-ui-panel" id="section-structure">

@@ -585,23 +585,28 @@ for genome in ['public__KpATCC43816', 'public__KpKP13']:
 "
 ```
 
-If EC is missing but the TSV has UniProt accessions, first import curated
-UniProt mappings:
+If EC is missing but the TSV has UniProt accessions, use the combined
+curated backfill command. It imports/reimports the TSV UniProt mappings,
+writes the `{genome}_unips.lst` file, then fetches UniProt EC, GO, and PDB
+cross-reference metadata:
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.cluster.yml exec -T queue \
-  /opt/conda/envs/tpv2/bin/python manage.py import_curated_uniprot <GENOME> \
+  /opt/conda/envs/tpv2/bin/python manage.py backfill_curated_uniprot_annotations <GENOME> \
   --results-tsv <RESULTS_TSV> \
   --datadir /app/targetpathogenweb/data \
-  --overwrite
+  --overwrite-mapping
 ```
 
-Then fetch UniProt annotations:
+Dry-run the mapping part first when using a new TSV:
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.cluster.yml exec -T queue \
-  /opt/conda/envs/tpv2/bin/python manage.py fetch_uniprot_annotations <GENOME> \
-  --datadir /app/targetpathogenweb/data
+  /opt/conda/envs/tpv2/bin/python manage.py backfill_curated_uniprot_annotations <GENOME> \
+  --results-tsv <RESULTS_TSV> \
+  --datadir /app/targetpathogenweb/data \
+  --overwrite-mapping \
+  --dry-run
 ```
 
 This command can add:

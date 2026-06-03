@@ -2112,3 +2112,116 @@ body.residue-modal-open {
 }
 .target-profile-item--bad .target-profile-value { color: var(--tp-color-warning-ink); }
 .target-profile-item--bad .target-profile-label { color: var(--tp-color-warning-ink); opacity: 0.8; }
+
+/* === Experimental structure evidence === */
+.experimental-structure-note {
+    margin: 0 0 var(--tp-space-3);
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-body-sm);
+}
+
+.experimental-structure-shell {
+    overflow-x: auto;
+}
+
+.experimental-structure-table {
+    min-width: 980px;
+}
+
+.experimental-source,
+.experimental-status {
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: var(--tp-font-label);
+    font-weight: 700;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.experimental-source {
+    color: var(--tp-color-brand-800);
+    background: color-mix(in srgb, var(--tp-color-brand-500) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--tp-color-brand-500) 35%, transparent);
+}
+
+.experimental-pdb-id {
+    font-weight: 800;
+    letter-spacing: 0.02em;
+}
+
+.experimental-coverage-cell {
+    min-width: 190px;
+}
+
+.experimental-coverage-track {
+    position: relative;
+    width: 150px;
+    height: 10px;
+    border-radius: 999px;
+    overflow: hidden;
+    background:
+        linear-gradient(90deg, rgba(0, 0, 0, 0.08) 1px, transparent 1px) 0 0 / 25% 100%,
+        color-mix(in srgb, var(--tp-color-brand-500) 9%, var(--tp-color-surface-muted));
+    border: 1px solid var(--tp-color-border-soft);
+}
+
+.experimental-coverage-fill {
+    position: absolute;
+    inset-block: 0;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--tp-color-brand-600), var(--tp-color-brand-800));
+}
+
+.experimental-coverage-label {
+    display: block;
+    margin-top: 4px;
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-label);
+    font-weight: 700;
+}
+
+.experimental-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 10px;
+    min-width: 220px;
+}
+
+.experimental-links a {
+    color: var(--tp-color-link);
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.experimental-links a:hover,
+.experimental-links a:focus-visible {
+    text-decoration: underline;
+}
+
+.experimental-status--loaded {
+    color: var(--tp-color-success-ink);
+    background: var(--tp-color-success-bg);
+    border: 1px solid var(--tp-color-success-border);
+}
+
+.experimental-status--metadata {
+    color: var(--tp-color-text-secondary);
+    background: var(--tp-color-surface-muted);
+    border: 1px solid var(--tp-color-border);
+}
+
+.tp-dark .experimental-source {
+    color: var(--tp-color-text-primary);
+    background: color-mix(in srgb, var(--tp-color-brand-800) 18%, transparent);
+    border-color: color-mix(in srgb, var(--tp-color-brand-600) 45%, transparent);
+}
+
+.tp-dark .experimental-coverage-track {
+    background:
+        linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px) 0 0 / 25% 100%,
+        var(--tp-color-surface-muted);
+    border-color: var(--tp-color-border);
+}
