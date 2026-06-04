@@ -107,7 +107,14 @@ Runs via Docker-in-Docker (`/var/run/docker.sock` mounted). Has fallback to `tpw
 - Cluster (Nodo0, QB FCEN UBA): `make build ENV=cluster && make up ENV=cluster`
 - Cluster access: `ssh agutson@cluster.qb.fcen.uba.ar → sudo su glyco → ssh nodo0 → sudo su dockeradmin`
 - Data lives in `/data/targetpathogen/` on cluster (RAID — never delete volumes)
-- See `docs/CLUSTER_DEPLOY.md` for full deploy guide
+- Nodo0 is a shared orchestration node, not a bioinformatics compute node. Do
+  not run full-proteome BLAST/HMMER, InterProScan, LigQ_2, AlphaFold/ColabFold,
+  FPocket, or P2Rank directly on Nodo0; use SLURM-backed remote stages.
+- Use cached service-scoped cluster builds (`make build ENV=cluster svc=web`;
+  `make up ENV=cluster svc=web`). Avoid `--no-cache` unless fixing a concrete
+  image-cache problem.
+- See `docs/CLUSTER_DEPLOY.md` for the full Nodo0 operating policy, SLURM
+  monitoring commands, and large-file transfer workflow.
 
 ## Debugging on cluster (nodo0)
 
