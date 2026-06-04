@@ -358,6 +358,9 @@
                                     <td>
                                         {% if item.loaded %}
                                             <span class="experimental-status experimental-status--loaded">{% trans "Loaded" %}</span>
+                                            {% if item.loaded_structure_id %}
+                                                <a class="experimental-view-link" href="{% url 'tpwebapp:structure' item.loaded_structure_id %}?protein_id={{ protein.id }}">{% trans "View" %}</a>
+                                            {% endif %}
                                         {% else %}
                                             <span class="experimental-status experimental-status--metadata">{% trans "Metadata only" %}</span>
                                         {% endif %}

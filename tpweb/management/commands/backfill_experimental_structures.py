@@ -50,6 +50,11 @@ class Command(BaseCommand):
             action="store_true",
             help="Skip UniProt PDB xref fetch; use only xrefs already stored in the DB.",
         )
+        parser.add_argument(
+            "--all-xrefs",
+            action="store_true",
+            help="Download/load every UniProt PDB xref instead of only the best PDB per protein.",
+        )
 
     def handle(self, *args, **options):
         datadir = options["datadir"].rstrip("/")
@@ -79,7 +84,12 @@ class Command(BaseCommand):
             folder_path = f"{datadir}/{folder_name}/{assembly_name}"
             working_dir = datadir[: -len("/data")] if datadir.endswith("/data") else datadir
 
-            stats = fetch_and_load_experimental_structures(assembly_name, folder_path, working_dir)
+            stats = fetch_and_load_experimental_structures(
+                assembly_name,
+                folder_path,
+                working_dir,
+                load_all=options["all_xrefs"],
+            )
             self.stdout.write(
                 f"  {stats['loaded']} loaded, {stats['downloaded']} downloaded, "
                 f"{stats['skipped']} skipped / {stats['total']} proteins with PDB xrefs."

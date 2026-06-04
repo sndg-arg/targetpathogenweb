@@ -2213,6 +2213,23 @@ body.residue-modal-open {
     border: 1px solid var(--tp-color-border);
 }
 
+.experimental-view-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+    margin-left: 6px;
+    color: var(--tp-color-link);
+    font-size: var(--tp-font-label);
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.experimental-view-link:hover,
+.experimental-view-link:focus-visible {
+    color: var(--tp-color-link-hover);
+    text-decoration: underline;
+}
+
 .tp-dark .experimental-source {
     color: var(--tp-color-text-primary);
     background: color-mix(in srgb, var(--tp-color-brand-800) 18%, transparent);
