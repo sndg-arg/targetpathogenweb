@@ -16,6 +16,192 @@ All heavy work must run through SLURM compute nodes. Nodo0 is shared and must
 only be used for Docker orchestration, database loading, small file movement,
 and monitoring.
 
+## Current Handoff Summary (2026-06-04)
+
+Both curated Klebsiella genomes are loaded and usable for publication review.
+The current branch is `file-ingestion`; the latest UI/logic changes for this
+handoff were pushed through:
+
+```text
+4819532 Clarify experimental structure viewer UI
+136b1c0 Fix experimental structure filtering
+```
+
+High-level status:
+
+| Genome | Proteins | Curated structures | FPocket sets | P2Rank sets | UniProt mappings | EC proteins | GO proteins | PDB xref proteins | Experimental xrefs | Binders | ZINC/proposed |
+|--------|----------|--------------------|--------------|-------------|------------------|-------------|-------------|-------------------|---------------------|---------|---------------|
+| `public__KpATCC43816` | 5081 | 5080/5081 | 7906 | 15510 | 4805/5081 | 1140/5081 | 4002/5081 | 83/5081 | 201 | 150298 | 112749 |
+| `public__KpKP13` | 5842 | 5840/5842 | 8794 | 16429 | 5368/5842 | 1151/5842 | 4132/5842 | 72/5842 | 258 | 151153 | 113400 |
+
+Pipeline status for both genomes:
+
+```text
+Heavy stages that still require SLURM: -
+```
+
+Important interpretation:
+
+- "Curated structures" are local model/structure files used by the TPW 3D
+  viewer and pocket overlays. For these Klebsiella datasets they are mostly
+  ColabFold/curated predicted structures.
+- "PDB xrefs" / "Experimental xrefs" are UniProt-derived experimental PDB
+  evidence with method, resolution, chains, and residue coverage. These entries
+  do not necessarily cover the whole protein.
+- "Loaded experimental structures" are experimental PDB files that were also
+  downloaded and loaded into TPW so the 3D viewer can render them.
+- Experimental PDB structures and predicted models must be interpreted
+  separately. Predicted models are usually full-length; experimental structures
+  are often fragments.
+
+Loaded experimental PDB status after `fetch_experimental_structures --all-xrefs`:
+
+| Genome | Xref entries | Xref proteins | Loaded experimental links | Loaded experimental proteins | Loaded PDB codes | Missing PDB codes |
+|--------|--------------|---------------|---------------------------|------------------------------|------------------|-------------------|
+| `public__KpATCC43816` | 201 | 83 | 199 | 81 | 193/195 | 2 |
+| `public__KpKP13` | 258 | 72 | 252 | 70 | 247/253 | 6 |
+| `public__NC_002516.2` | 2293 | 707 | 2229 | 701 | 2139/2201 | 62 |
+| `public__NZ_AP023069.1` | 19 | 3 | 19 | 3 | 19/19 | 0 |
+
+Known missing experimental PDB codes for Klebsiella:
+
+```text
+public__KpATCC43816:
+  VK055_4658 8ORR X-RAY 1.68 chains AAA positions 31-392
+  VK055_4699 6UE0 X-RAY 1.89 chains AAA,BBB positions 1-292
+
+public__KpKP13:
+  KP13_00864 8ORR X-RAY 1.68 chains AAA positions 31-392
+  KP13_03824 6UE0 X-RAY 1.89 chains AAA,BBB positions 1-292
+  KP13_06703 8RWR X-RAY 1.03 chain A positions 25-293
+  KP13_06703 9FBT X-RAY 1.07 chain A positions 25-293
+  KP13_06703 8RWP X-RAY 1.19 chain A positions 25-293
+  KP13_06703 8AKM X-RAY 1.25 chain A positions 25-293
+```
+
+These missing rows are still visible as metadata-only evidence if their xrefs
+exist. They were not locally renderable after the automated load, likely due to
+PDB parser/download/chain-format limitations rather than absent evidence.
+
+Direct ligand evidence after recomputing directness from UniProt mappings:
+
+| Genome | PDB direct | ChEMBL direct | PDB homolog | ChEMBL homolog | ZINC/proposed |
+|--------|------------|---------------|-------------|----------------|---------------|
+| `public__KpATCC43816` | 71 | 1 | 17937 | 19540 | 112749 |
+| `public__KpKP13` | 124 | 4 | 18225 | 19400 | 113400 |
+
+Product/UI status:
+
+- Genome list now separates loaded experimental structures from PDB xrefs.
+- Protein table filtering by `Structure: Experimental` was fixed to use an
+  `Exists` subquery, because the previous multi-relation `exclude()` removed
+  proteins that had both experimental PDBs and ColabFold models.
+- Protein table structure labels now show `Experimental + predicted` when both
+  evidence types exist.
+- Protein detail now has an "Experimental structures" table with PDB ID,
+  method, resolution, chain, positions, coverage, links, and loaded/viewer
+  status.
+- The 3D viewer selector now labels loaded experimental entries as
+  `PDB <id> · <coverage> · <resolution>` and marks which PDB row is currently
+  shown below.
+
+## Quick Start for a Future Chat
+
+When resuming this work, start with these checks from Nodo0. They are light
+database/metadata checks and should not run heavy bioinformatics on Nodo0.
+
+```bash
+cd ~/targetpathogenweb
+git branch --show-current
+git log --oneline -5
+git status --short
+```
+
+Confirm the deployed code includes the latest handoff commits:
+
+```bash
+git log --oneline --decorate -10
+```
+
+Expected relevant commits near the top of `file-ingestion`:
+
+```text
+4819532 Clarify experimental structure viewer UI
+136b1c0 Fix experimental structure filtering
+23e5762 Allow loading all experimental PDB xrefs
+8a43305 Show PDB xref evidence separately from loaded structures
+66569ec Add binder directness recompute command
+b12b21c Add curated UniProt backfill and PDB coverage UI
+```
+
+If the code is behind:
+
+```bash
+git pull --ff-only origin file-ingestion
+make build ENV=cluster svc=web
+make up ENV=cluster svc=web
+```
+
+Re-run the curated plans:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.cluster.yml exec -T queue \
+  /opt/conda/envs/tpv2/bin/python manage.py curated_pipeline_plan public__KpATCC43816 \
+  --results-tsv /app/targetpathogenweb/data/imports/Klebsiella/results_table.tsv \
+  --datadir /app/targetpathogenweb/data
+
+docker compose -f docker-compose.yml -f docker-compose.cluster.yml exec -T queue \
+  /opt/conda/envs/tpv2/bin/python manage.py curated_pipeline_plan public__KpKP13 \
+  --results-tsv /app/targetpathogenweb/data/uploads/KpKP13_results_table.tsv \
+  --datadir /app/targetpathogenweb/data
+```
+
+Expected for both:
+
+```text
+Heavy stages that still require SLURM: -
+```
+
+If direct ligand counts look wrong after any reload, recompute directness:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.cluster.yml exec -T queue \
+  /opt/conda/envs/tpv2/bin/python manage.py recompute_binder_directness public__KpATCC43816
+
+docker compose -f docker-compose.yml -f docker-compose.cluster.yml exec -T queue \
+  /opt/conda/envs/tpv2/bin/python manage.py recompute_binder_directness public__KpKP13
+```
+
+If EC/GO/PDB xrefs look missing after a reload, backfill from the curated TSVs:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.cluster.yml exec -T queue \
+  /opt/conda/envs/tpv2/bin/python manage.py backfill_curated_uniprot_annotations public__KpATCC43816 \
+  --results-tsv /app/targetpathogenweb/data/imports/Klebsiella/results_table.tsv \
+  --datadir /app/targetpathogenweb/data \
+  --overwrite-mapping
+
+docker compose -f docker-compose.yml -f docker-compose.cluster.yml exec -T queue \
+  /opt/conda/envs/tpv2/bin/python manage.py backfill_curated_uniprot_annotations public__KpKP13 \
+  --results-tsv /app/targetpathogenweb/data/uploads/KpKP13_results_table.tsv \
+  --datadir /app/targetpathogenweb/data \
+  --overwrite-mapping
+```
+
+If experimental PDBs are metadata-only and need local 3D rendering, run:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.cluster.yml exec -T queue \
+  /opt/conda/envs/tpv2/bin/python manage.py fetch_experimental_structures public__KpATCC43816 \
+  --datadir /app/targetpathogenweb/data \
+  --all-xrefs
+
+docker compose -f docker-compose.yml -f docker-compose.cluster.yml exec -T queue \
+  /opt/conda/envs/tpv2/bin/python manage.py fetch_experimental_structures public__KpKP13 \
+  --datadir /app/targetpathogenweb/data \
+  --all-xrefs
+```
+
 ## Nodo0 Operating Pattern
 
 Use the repo on Nodo0:
@@ -317,7 +503,11 @@ Expected final state:
 - P2Rank pocket sets: `15510`
 - InterPro features: `4850/5081`
 - UniProt mappings: `4805/5081`
-- GO/EC annotations: `3561/5081`
+- GO/EC annotations: `4002/5081`
+- EC annotations: `1140/5081`
+- GO annotations: `4002/5081`
+- PDB xref proteins: `83/5081`
+- Experimental structure xrefs: `201`
 - Binder rows: `150298`
 - LigQ/ZINC binder rows: `112749`
 - Heavy stages still required: `-`
@@ -325,8 +515,8 @@ Expected final state:
 Binder breakdown:
 
 ```text
-chembl:   19541
-pdb:      18008
+chembl:   19541  (1 direct, 19540 via homolog)
+pdb:      18008  (71 direct, 17937 via homolog)
 proposed: 112749
 proteins with binders: 2722
 ```
@@ -376,10 +566,12 @@ Expected final state:
 - P2Rank pocket sets: `16429`
 - InterPro TSV exists: `True`
 - Sequence features: `5289/5842`
-- UniProt mapping in final audit: `0/5842`
-  - Earlier curated UniProt mapping imported `5368/5842`.
-  - Recheck if direct-vs-homolog binder classification matters for this dataset.
-- GO/EC annotations: `3648/5842`
+- UniProt mapping: `5368/5842`
+- GO/EC annotations: `4132/5842`
+- EC annotations: `1151/5842`
+- GO annotations: `4132/5842`
+- PDB xref proteins: `72/5842`
+- Experimental structure xrefs: `258`
 - Binder rows: `151153`
 - LigQ/ZINC binder rows: `113400`
 - Heavy stages still required: `-`
@@ -387,8 +579,8 @@ Expected final state:
 Binder breakdown:
 
 ```text
-chembl:   19404
-pdb:      18349
+chembl:   19404  (4 direct, 19400 via homolog)
+pdb:      18349  (124 direct, 18225 via homolog)
 proposed: 113400
 proteins with binders: 2736
 ```
@@ -561,6 +753,27 @@ print('proteins with binders', qs.values('locustag_id').distinct().count())
 "
 ```
 
+Check direct versus homolog binder classification:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.cluster.yml exec -T web \
+  /opt/conda/envs/tpv2/bin/python manage.py shell -c "
+from django.db.models import Count
+from bioseq.models.Biodatabase import Biodatabase
+from tpweb.models.Binders import Binders
+
+for genome in ['public__KpATCC43816', 'public__KpKP13']:
+    db = Biodatabase.objects.get(name=genome + Biodatabase.PROT_POSTFIX)
+    qs = Binders.objects.filter(locustag__biodatabase=db)
+    print('\\n===', genome, '===')
+    print('total', qs.count())
+    print('by source/direct', list(qs.values('source', 'is_direct').annotate(n=Count('id')).order_by('source', 'is_direct')))
+    print('direct pdb+chembl', qs.filter(source__in=['pdb', 'chembl'], is_direct=True).count())
+    print('via homolog pdb+chembl', qs.filter(source__in=['pdb', 'chembl'], is_direct=False).count())
+    print('zinc proposed', qs.filter(source='proposed').count())
+"
+```
+
 ## Follow-up: EC Numbers and Other Missing Annotation Values
 
 The curated Klebsiella TSVs did not include EC numbers directly. EC values in
@@ -619,71 +832,114 @@ It uses the UniProt REST API, so it is network-bound rather than CPU-heavy. It
 is acceptable to run from the queue container, but it should still be monitored
 and not confused with SLURM-heavy work.
 
-For Kp13 specifically, note that one final audit showed:
+For the final Klebsiella state, both genomes have current `UnipSp` / `UnipTr`
+links and UniProt-derived EC/GO/PDB metadata. If direct-vs-homolog binder
+classification looks wrong after reloading LigQ, run
+`recompute_binder_directness` after confirming UniProt mappings exist.
 
-```text
-Proteins with UniProt mapping: 0/5842
-Proteins with GO/EC annotations: 3648/5842
-```
+## Experimental PDB Structures and Partial Coverage UI
 
-That means the DB had functional annotation links but no current `UnipSp` /
-`UnipTr` links. Re-import the curated UniProt mapping before relying on
-direct-vs-homolog classification or UniProt-derived EC/PDB backfills.
-
-## Follow-up: Experimental PDB Structures and Partial Coverage UI
-
-The current code has partial support for experimental PDBs:
+The current code supports experimental PDB evidence separately from predicted
+models:
 
 - `ExperimentalStructureXref` stores `pdb_id`, `method`, `resolution`, `chains`,
   `uniprot_start`, and `uniprot_end`.
 - `BioentryStructure` also stores `chain`, `uniprot_start`, `uniprot_end`, and
   `resolution`.
-- `fetch_uniprot_annotations` can populate all PDB cross-reference metadata
-  from UniProt.
-- `fetch_experimental_structures` currently downloads/loads only the best
-  experimental structure per protein.
+- `backfill_curated_uniprot_annotations` imports curated UniProt mappings and
+  fetches UniProt-derived EC, GO, and PDB cross-reference metadata.
+- `fetch_experimental_structures --all-xrefs` downloads/loads all PDB xrefs it
+  can parse, not only the best experimental structure per protein.
+- The genome list separates loaded experimental structures from PDB xref
+  metadata.
+- The protein list filter `Structure: Experimental` returns proteins with at
+  least one local experimental PDB structure, even when they also have
+  AlphaFold/ColabFold models.
+- The protein detail page shows an "Experimental structures" table similar in
+  spirit to UniProt's Structure section: source, PDB ID, method, resolution,
+  chain, positions, coverage, external links, and loaded/viewer status.
+- The 3D viewer selector labels experimental choices by PDB ID, coverage, and
+  resolution, for example `PDB 7CZ9 · 99.2% · 1.85 A`.
 
-The product issue is that experimental structures are often fragments. A PDB
-chain may cover residues `22-286` of a 400 aa protein, not the whole target.
-The UI should not present a crystal structure as if it covered the complete
-protein.
+The key interpretation remains:
 
-Recommended redesign, similar to UniProt's Structure section:
+```text
+Experimental PDB structures often cover only part of the protein.
+Do not treat an experimental PDB xref as full-length coverage unless its
+positions/coverage show that.
+```
 
-1. Store/display all experimental PDB cross-references for the protein, not
-   only the best downloaded structure.
-2. Add an "Experimental structures" table on the protein page with:
-   - source (`PDB`)
-   - identifier
-   - method
-   - resolution
-   - chain(s)
-   - positions (`uniprot_start-uniprot_end`)
-   - coverage percentage relative to protein length
-   - external links (`PDBe`, `RCSB-PDB`, `PDBj`, `PDBsum`, source download)
-   - loaded/viewable status
-3. Add a compact coverage track over the protein length, so partial structures
-   are visually obvious.
-4. Make the 3D viewer load the selected experimental structure on demand and
-   label it as a fragment when coverage is partial.
-5. Keep AlphaFold/ColabFold models separate from experimental PDBs. Predicted
-   models can cover most or all residues; experimental structures should be
-   displayed with their true residue range.
-6. Do not mix pocket overlays from one structure onto another. Pocket data must
-   be tied to the exact displayed PDB/model.
+Load all experimental PDB xrefs for a genome:
 
-Potential data sources for this UI:
+```bash
+docker compose -f docker-compose.yml -f docker-compose.cluster.yml exec -T queue \
+  /opt/conda/envs/tpv2/bin/python manage.py fetch_experimental_structures <GENOME> \
+  --datadir /app/targetpathogenweb/data \
+  --all-xrefs
+```
 
-- UniProt PDB xrefs already parsed by `fetch_uniprot_annotations`.
-- Curated provider files, if they can supply PDB ID, chain, method, resolution,
-  and residue range directly.
-- RCSB/PDBe APIs as a later enhancement if UniProt metadata is insufficient.
+This command downloads PDB files over the network and imports them into the
+database. It is not a SLURM-heavy stage, but it can take time and should be run
+from the container, not as a CPU-heavy process on Nodo0.
+
+Audit experimental PDB metadata versus loaded local structures:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.cluster.yml exec -T web \
+  /opt/conda/envs/tpv2/bin/python manage.py shell -c "
+from bioseq.models.Biodatabase import Biodatabase
+from tpweb.models.BioentryStructure import BioentryStructure, ExperimentalStructureXref
+
+for genome in ['public__KpATCC43816', 'public__KpKP13', 'public__NC_002516.2', 'public__NZ_AP023069.1']:
+    db = Biodatabase.objects.get(name=genome + Biodatabase.PROT_POSTFIX)
+    xrefs = ExperimentalStructureXref.objects.filter(bioentry__biodatabase=db)
+    loaded = BioentryStructure.objects.filter(bioentry__biodatabase=db).exclude(pdb__experiment__in=['AF', 'CF'])
+    xref_codes = set(xrefs.values_list('pdb_id', flat=True))
+    loaded_codes = set(loaded.values_list('pdb__code', flat=True))
+    print('\\n===', genome, '===')
+    print('xref entries:', xrefs.count())
+    print('xref proteins:', xrefs.values('bioentry_id').distinct().count())
+    print('loaded experimental links:', loaded.count())
+    print('loaded experimental proteins:', loaded.values('bioentry_id').distinct().count())
+    print('loaded xref PDB codes:', len(xref_codes & loaded_codes), '/', len(xref_codes))
+    print('missing xref PDB codes:', len(xref_codes - loaded_codes))
+    print('extra loaded experimental codes not in xrefs:', len(loaded_codes - xref_codes))
+"
+```
+
+List missing experimental PDB xrefs:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.cluster.yml exec -T web \
+  /opt/conda/envs/tpv2/bin/python manage.py shell -c "
+from bioseq.models.Biodatabase import Biodatabase
+from tpweb.models.BioentryStructure import BioentryStructure, ExperimentalStructureXref
+
+for genome in ['public__KpATCC43816', 'public__KpKP13', 'public__NC_002516.2']:
+    db = Biodatabase.objects.get(name=genome + Biodatabase.PROT_POSTFIX)
+    loaded_codes = set(BioentryStructure.objects.filter(
+        bioentry__biodatabase=db,
+    ).exclude(pdb__experiment__in=['AF', 'CF']).values_list('pdb__code', flat=True))
+    missing = ExperimentalStructureXref.objects.filter(
+        bioentry__biodatabase=db,
+    ).exclude(pdb_id__in=loaded_codes).select_related('bioentry').order_by('bioentry__accession', 'resolution')
+    print('\\n===', genome, 'missing', missing.count(), '===')
+    for x in missing:
+        print(x.bioentry.accession, x.pdb_id, x.method, x.resolution, x.chains, x.uniprot_start, x.uniprot_end)
+"
+```
 
 ## Relevant Code Changes
 
 These commits on `file-ingestion` are relevant to this work:
 
 ```text
+4819532 Clarify experimental structure viewer UI
+136b1c0 Fix experimental structure filtering
+23e5762 Allow loading all experimental PDB xrefs
+8a43305 Show PDB xref evidence separately from loaded structures
+66569ec Add binder directness recompute command
+b12b21c Add curated UniProt backfill and PDB coverage UI
 9159db8 Allow LigQ to exclude problematic loci
 e239d2a Load LigQ predicted ligands as ZINC
 7aeb6b6 Import curated UniProt mappings
