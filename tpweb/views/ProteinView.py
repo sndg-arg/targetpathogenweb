@@ -189,6 +189,49 @@ def _experimental_structure_entry(pdb_id, method, resolution, chains, start, end
     }
 
 
+def _structure_source_name(experiment):
+    experiment = str(experiment or "").strip().upper()
+    if experiment == "EX":
+        return "PDB"
+    return _structure_toggle_label(experiment)
+
+
+def _viewer_structure_payload(link, protein_length):
+    pdb = getattr(link, "pdb", None)
+    experiment = str(getattr(pdb, "experiment", "") or "").strip().upper()
+    source_name = _structure_source_name(experiment)
+    code = str(getattr(pdb, "code", "") or "").strip().upper()
+    coverage = _coverage_payload(
+        getattr(link, "uniprot_start", None),
+        getattr(link, "uniprot_end", None),
+        protein_length,
+    )
+    resolution = _format_resolution(getattr(link, "resolution", None) or getattr(pdb, "resolution", None))
+
+    if source_name == "PDB" and code:
+        short_label = f"PDB {code}"
+    elif code:
+        short_label = f"{source_name} {code}"
+    else:
+        short_label = source_name
+
+    details = []
+    if coverage.get("has_positions"):
+        details.append(coverage["coverage_label"])
+    if resolution != "-":
+        details.append(resolution)
+
+    return {
+        "short_label": short_label,
+        "detail_label": " · ".join(details),
+        "source_name": source_name,
+        "code": code,
+        "positions": coverage["positions"],
+        "coverage_label": coverage["coverage_label"],
+        "resolution": resolution,
+    }
+
+
 def _build_experimental_structures(protein, structures):
     protein_length = getattr(getattr(protein, "seq", None), "length", None) or 0
     loaded_by_code = {}
@@ -691,26 +734,43 @@ class ProteinView(View):
                "druggability": druggability,
                "view_export_url": self._build_view_export_url(request)}
         if structures:
+            protein_length = getattr(getattr(protein, "seq", None), "length", None) or 0
             primary_link = structures[0]
             primary_display = primary_link.pdb  # EX first if available
+            primary_viewer = _viewer_structure_payload(primary_link, protein_length)
             # Pocket overlays must belong to the same structure loaded first in
             # the viewer. If EX has no pockets yet, show the crystal structure
             # without pocket overlays instead of mixing AF/CF pockets onto it.
             dto["structure"] = pdb_structure(primary_display, graphic_features)
             dto["viewer_structure_id"] = primary_display.id
-            dto["primary_structure_label"] = _structure_toggle_label(primary_display.experiment)
+            dto["primary_structure_label"] = primary_viewer["short_label"]
+            dto["primary_structure_detail_label"] = primary_viewer["detail_label"]
+            dto["primary_structure_source_name"] = primary_viewer["source_name"]
             dto["viewer_chain"] = primary_link.chain or ""
             dto["viewer_chain_selector"] = _chain_selector(primary_link.chain)
-            dto["pocket_structure_label"] = _structure_toggle_label(primary_display.experiment)
+            dto["pocket_structure_label"] = primary_viewer["short_label"]
             dto["pocket_structure_has_pockets"] = _has_pocket_data(primary_display)
             if len(structures) > 1:
                 alt_link = structures[1]
+                alt_viewer = _viewer_structure_payload(alt_link, protein_length)
                 dto["alt_structure_id"] = alt_link.pdb.id
-                dto["alt_structure_label"] = _structure_toggle_label(alt_link.pdb.experiment)
+                dto["alt_structure_label"] = alt_viewer["short_label"]
+                dto["alt_structure_detail_label"] = alt_viewer["detail_label"]
+                dto["alt_structure_source_name"] = alt_viewer["source_name"]
                 dto["alt_structure"] = pdb_structure(alt_link.pdb, [])
                 dto["alt_viewer_chain"] = alt_link.chain or ""
                 dto["alt_viewer_chain_selector"] = _chain_selector(alt_link.chain)
                 dto["alt_structure_has_pockets"] = _has_pocket_data(alt_link.pdb)
+
+            visible_structure_ids = {
+                primary_display.id: "primary",
+            }
+            if dto.get("alt_structure_id"):
+                visible_structure_ids[dto["alt_structure_id"]] = "alt"
+            for entry in experimental_structures:
+                loaded_id = entry.get("loaded_structure_id")
+                if loaded_id in visible_structure_ids:
+                    entry["viewer_key"] = visible_structure_ids[loaded_id]
 
 
 
