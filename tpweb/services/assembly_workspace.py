@@ -3,7 +3,7 @@ from django.db.models import Count, Q
 from bioseq.models.Bioentry import Bioentry
 from bioseq.models.Biodatabase import Biodatabase
 from bioseq.models.Ontology import Ontology
-from tpweb.models.BioentryStructure import BioentryStructure
+from tpweb.models.BioentryStructure import BioentryStructure, ExperimentalStructureXref
 from tpweb.models.Binders import Binders
 from tpweb.services.structure_sources import (
     PDB_EXPERIMENT_ALPHAFOLD,
@@ -208,6 +208,11 @@ def build_assembly_workspace_metrics(assembly_name):
         .distinct()
         .count()
     )
+    experimental_structure_xrefs = ExperimentalStructureXref.objects.filter(
+        bioentry__biodatabase__name=proteome_name,
+    )
+    pdb_xref_entries = experimental_structure_xrefs.count()
+    pdb_xref_proteins = experimental_structure_xrefs.values("bioentry_id").distinct().count()
     alphafold_structures = (
         proteins.filter(structures__pdb__experiment=PDB_EXPERIMENT_ALPHAFOLD).distinct().count()
     )
@@ -238,6 +243,8 @@ def build_assembly_workspace_metrics(assembly_name):
         "proteins_with_structure": proteins_with_structure,
         "structure_coverage_pct": _pct(proteins_with_structure, total_proteins),
         "experimental_structures": experimental_structures,
+        "pdb_xref_entries": pdb_xref_entries,
+        "pdb_xref_proteins": pdb_xref_proteins,
         "alphafold_structures": alphafold_structures,
         "colabfold_structures": colabfold_structures,
         "functional_annotated": functional_annotated,

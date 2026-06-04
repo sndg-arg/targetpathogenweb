@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/genomes-list.css' %}?v=20260512-1">
+    <link rel="stylesheet" href="{% static 'css/pages/genomes-list.css' %}?v=20260604-pdb-xrefs">
 {% endblock %}
 
 {% block body %}
@@ -52,7 +52,8 @@
             <div class="genomes-meta" role="list" aria-label="{% trans "Genome summary" %}">
                 <span class="genomes-meta-chip tp-chip tp-chip--meta tp-chip--sm" role="listitem">{{ total_genomes }} {% trans "genomes" %}</span>
                 <span class="genomes-meta-chip tp-chip tp-chip--meta tp-chip--sm" role="listitem">{{ total_proteins }} {% trans "proteins" %}</span>
-                <span class="genomes-meta-chip tp-chip tp-chip--meta tp-chip--sm" role="listitem">{{ total_experimental }} {% trans "experimental structures" %}</span>
+                <span class="genomes-meta-chip tp-chip tp-chip--meta tp-chip--sm" role="listitem">{{ total_experimental }} {% trans "loaded experimental structures" %}</span>
+                <span class="genomes-meta-chip tp-chip tp-chip--meta tp-chip--sm" role="listitem">{{ total_pdb_xrefs }} {% trans "PDB xrefs" %}</span>
                 <span class="genomes-meta-chip tp-chip tp-chip--meta tp-chip--sm" role="listitem">{{ total_ec_annotated }} {% trans "EC-annotated proteins" %}</span>
             </div>
         </section>
