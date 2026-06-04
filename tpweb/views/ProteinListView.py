@@ -1,6 +1,6 @@
 from django.views import View
 from django.shortcuts import render
-from django.db.models import Prefetch
+from django.db.models import Exists, OuterRef, Prefetch
 from django.http import JsonResponse
 from django.http import Http404
 from django.urls import reverse
@@ -11,6 +11,7 @@ from django.db.models import Q
 
 from tpweb.models.ScoreParamValue import ScoreParamValue
 from tpweb.models.ScoreParam import ScoreParamOptions
+from tpweb.models.BioentryStructure import BioentryStructure
 from django.shortcuts import redirect
 from urllib.parse import urlencode, parse_qs
 from tpweb.services.protein_list import (
@@ -881,9 +882,14 @@ class ProteinListView(View):
         if structure_source == "none":
             proteins = proteins.filter(structures__isnull=True)
         elif structure_source == "experimental":
-            proteins = proteins.filter(structures__isnull=False).exclude(
-                structures__pdb__experiment__in=PDB_MODEL_EXPERIMENTS
+            experimental_structures = BioentryStructure.objects.filter(
+                bioentry=OuterRef("pk"),
+            ).exclude(
+                pdb__experiment__in=PDB_MODEL_EXPERIMENTS,
             )
+            proteins = proteins.annotate(
+                has_experimental_structure=Exists(experimental_structures),
+            ).filter(has_experimental_structure=True)
         elif structure_source == "alphafold":
             proteins = proteins.filter(structures__pdb__experiment=PDB_EXPERIMENT_ALPHAFOLD)
         elif structure_source == "colabfold":

@@ -18,7 +18,7 @@ STRUCTURE_SOURCE_LABELS = {
     STRUCTURE_SOURCE_ALPHAFOLD: "AlphaFold",
     STRUCTURE_SOURCE_COLABFOLD: "ColabFold",
     STRUCTURE_SOURCE_MODEL: "Model",
-    STRUCTURE_SOURCE_MIXED: "Experimental + AlphaFold",
+    STRUCTURE_SOURCE_MIXED: "Experimental + predicted",
 }
 
 STRUCTURE_SOURCE_CHOICES = (
@@ -27,7 +27,7 @@ STRUCTURE_SOURCE_CHOICES = (
     (STRUCTURE_SOURCE_ALPHAFOLD, "AlphaFold"),
     (STRUCTURE_SOURCE_COLABFOLD, "ColabFold"),
     (STRUCTURE_SOURCE_MODEL, "Model"),
-    (STRUCTURE_SOURCE_MIXED, "Experimental + AlphaFold"),
+    (STRUCTURE_SOURCE_MIXED, "Experimental + predicted"),
 )
 
 
@@ -80,7 +80,7 @@ def summarize_structure_sources(structures):
         primary_source = STRUCTURE_SOURCE_NONE
     elif len(source_keys) == 1:
         primary_source = next(iter(source_keys))
-    elif source_keys == {STRUCTURE_SOURCE_EXPERIMENTAL, STRUCTURE_SOURCE_ALPHAFOLD}:
+    elif STRUCTURE_SOURCE_EXPERIMENTAL in source_keys:
         primary_source = STRUCTURE_SOURCE_MIXED
     else:
         primary_source = STRUCTURE_SOURCE_MODEL
