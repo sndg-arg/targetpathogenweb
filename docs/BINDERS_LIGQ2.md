@@ -244,6 +244,14 @@ print('zinc:', qs.filter(source='proposed').count())
 
 If `direct` is zero for a well-studied genome like PAO1, check UniProt mapping first. For less-studied genomes, all binders may legitimately be homolog-derived.
 
+If UniProt mappings were imported after `load_ligq_2_results`, recompute the
+direct/homolog flags without reloading LigQ output:
+
+```bash
+docker exec target2_nodo0_web bash -c ". /opt/conda/etc/profile.d/conda.sh && conda activate tpv2 && python manage.py recompute_binder_directness public__NC_002516.2 --dry-run"
+docker exec target2_nodo0_web bash -c ". /opt/conda/etc/profile.d/conda.sh && conda activate tpv2 && python manage.py recompute_binder_directness public__NC_002516.2"
+```
+
 ## UI expectations
 
 Genome overview:
@@ -277,5 +285,5 @@ Check:
 
 1. `UnipSp` / `UnipTr` counts for that genome.
 2. The genome name uses `_prots`, not `_prot`.
-3. The loader has been rerun after UniProt mapping.
+3. `recompute_binder_directness <genome>` has been run after UniProt mapping.
 4. The genome may genuinely have no PDB/ChEMBL direct evidence.
