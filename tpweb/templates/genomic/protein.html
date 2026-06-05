@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260605-premium6">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260605-premium9">
 {% endblock %}
 
 {% block body %}
@@ -349,7 +349,7 @@
                                 disabled>{% trans "Reset Zoom" %}</button>
                         <a href="{% url "tpwebapp:structure_export" structure.id %}"
                            class="btn tp-btn tp-btn--outline tp-btn--md structure-action-btn structure-download-btn"
-                           title="{% trans 'Download a Tcl script to open this structure with pocket representations in VMD (Visual Molecular Dynamics)' %}">{% trans "Export to VMD" %}</a>
+                           title="{% trans 'Download a visualization script for VMD (Visual Molecular Dynamics), free software to view the 3D structure with pocket overlays — vmd.ks.uiuc.edu' %}">{% trans "3D visualization script" %}</a>
                     </div>
                     {% if structure and not pocket_structure_has_pockets %}
                         <p class="table-hint">{% blocktrans with source=pocket_structure_label %}No pockets are loaded yet for the displayed {{ source }} structure. Run experimental pocket backfill to show FPocket/P2Rank overlays on this structure.{% endblocktrans %}</p>
