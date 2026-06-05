@@ -58,9 +58,7 @@
                                   data-loaded-label="{% trans 'Loaded' %}">
                                 {% if item.viewer_key == 'primary' %}{% trans "Viewing" %}{% else %}{% trans "Loaded" %}{% endif %}
                             </span>
-                            {% if item.viewer_key != 'primary' %}
-                                <button type="button" class="experimental-switch-btn" onclick="switchStructureSource('{{ item.slot_key }}')">{% trans "Switch" %}</button>
-                            {% endif %}
+                            <button type="button" class="experimental-switch-btn" onclick="switchStructureSource('{{ item.slot_key }}')">{% trans "Switch" %}</button>
                         {% elif item.loaded %}
                             <span class="experimental-status experimental-status--loaded">{% trans "Loaded" %}</span>
                         {% else %}
@@ -102,9 +100,7 @@
                               data-loaded-label="{% trans 'Loaded' %}">
                             {% if item.viewer_key == 'primary' %}{% trans "Viewing" %}{% else %}{% trans "Loaded" %}{% endif %}
                         </span>
-                        {% if item.viewer_key != 'primary' %}
-                            <button type="button" class="experimental-switch-btn" onclick="switchStructureSource('{{ item.slot_key }}')">{% trans "Switch" %}</button>
-                        {% endif %}
+                        <button type="button" class="experimental-switch-btn" onclick="switchStructureSource('{{ item.slot_key }}')">{% trans "Switch" %}</button>
                     </td>
                 </tr>
             {% endfor %}

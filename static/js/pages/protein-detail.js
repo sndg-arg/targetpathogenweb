@@ -209,26 +209,20 @@
             });
         }
 
-        if ("IntersectionObserver" in window) {
-            var observer = new IntersectionObserver(function (entries) {
-                var activeEntry = entries
-                    .filter(function (entry) { return entry.isIntersecting; })
-                    .sort(function (a, b) { return b.intersectionRatio - a.intersectionRatio; })[0];
-                if (activeEntry && activeEntry.target && activeEntry.target.id) {
-                    setActive(activeEntry.target.id);
+        function updateActive() {
+            var triggerLine = Math.round(window.innerHeight * 0.32);
+            var active = targets[0];
+            for (var i = targets.length - 1; i >= 0; i--) {
+                if (targets[i].section.getBoundingClientRect().top <= triggerLine) {
+                    active = targets[i];
+                    break;
                 }
-            }, {
-                rootMargin: "-22% 0px -64% 0px",
-                threshold: [0, 0.1, 0.35, 0.6]
-            });
-            targets.forEach(function (entry) {
-                observer.observe(entry.section);
-            });
-            setActive(targets[0].section.id);
-            return;
+            }
+            setActive(active.section.id);
         }
 
-        setActive(targets[0].section.id);
+        window.addEventListener("scroll", updateActive, { passive: true });
+        updateActive();
     }
 
     function initPointerButtonBlur(scopeSelector) {
