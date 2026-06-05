@@ -31,8 +31,8 @@
                     <td class="experimental-chain">{{ item.chains }}</td>
                     <td class="experimental-coverage-cell">
                         {% if item.has_positions %}
-                            <div class="experimental-coverage-track" title="{{ item.positions }} · {{ item.coverage_label }}">
-                                <span class="experimental-coverage-fill" style="left: {{ item.coverage_left }}; width: {{ item.coverage_width }};"></span>
+                            <div class="experimental-coverage-track" title="{% trans "Sequence coverage" %}: {{ item.coverage_label }} ({{ item.positions }})">
+                                <span class="experimental-coverage-fill" style="width: {{ item.coverage_width }};"></span>
                             </div>
                             <span class="experimental-coverage-label">{{ item.coverage_label }}</span>
                             <span class="experimental-coverage-range">{{ item.positions }}</span>
@@ -81,8 +81,8 @@
                     <td class="experimental-chain">{{ item.chains }}</td>
                     <td class="experimental-coverage-cell">
                         {% if item.has_positions %}
-                            <div class="experimental-coverage-track" title="{{ item.positions }} · {{ item.coverage_label }}">
-                                <span class="experimental-coverage-fill" style="left: {{ item.coverage_left }}; width: {{ item.coverage_width }};"></span>
+                            <div class="experimental-coverage-track" title="{% trans "Sequence coverage" %}: {{ item.coverage_label }} ({{ item.positions }})">
+                                <span class="experimental-coverage-fill" style="width: {{ item.coverage_width }};"></span>
                             </div>
                             <span class="experimental-coverage-label">{{ item.coverage_label }}</span>
                             <span class="experimental-coverage-range">{{ item.positions }}</span>
