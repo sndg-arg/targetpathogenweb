@@ -21,15 +21,15 @@
             </thead>
             <tbody>
                 {% for xref in xrefs %}
-                <tr class="exp-struct-row{% if xref._is_loaded %} exp-struct-row--loaded{% endif %}">
+                <tr class="exp-struct-row{% if xref.is_loaded %} exp-struct-row--loaded{% endif %}">
                     <td><span class="exp-source-tag">PDB</span></td>
                     <td class="exp-id-cell">
                         <code class="exp-pdb-code">{{ xref.pdb_id }}</code>
-                        {% if xref._is_loaded %}
+                        {% if xref.is_loaded %}
                             <span class="exp-loaded-badge" title="{% trans "Loaded in 3D viewer" %}">3D</span>
                         {% endif %}
                     </td>
-                    <td>{{ xref._method_short }}</td>
+                    <td>{{ xref.method_short }}</td>
                     <td class="exp-resolution">
                         {% if xref.resolution %}{{ xref.resolution|floatformat:2 }} Å{% else %}—{% endif %}
                     </td>
