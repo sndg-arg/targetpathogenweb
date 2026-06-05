@@ -2672,3 +2672,122 @@ body.residue-modal-open {
 .experimental-view-link,
 .experimental-view-button { display: none; }
 .experimental-structure-note { display: none; }
+
+/* ================================================================
+   Premium table overrides — pocket tables, binders, features
+   Same clean look as the structural evidence table.
+   ================================================================ */
+
+/* ── Pocket tables (FPocket / P2Rank / Residue sets) ── */
+
+/* Strip Bootstrap alternating row backgrounds */
+#pocketsTable.table-striped tbody tr:nth-of-type(odd),
+#pocketsTable.table-striped tbody tr:nth-of-type(even),
+#p2pocketsTable.table-striped tbody tr:nth-of-type(odd),
+#p2pocketsTable.table-striped tbody tr:nth-of-type(even),
+#residuesetsTable.table-striped tbody tr:nth-of-type(odd),
+#residuesetsTable.table-striped tbody tr:nth-of-type(even) {
+    background-color: transparent;
+    --bs-table-accent-bg: transparent;
+    --bs-table-striped-bg: transparent;
+}
+
+/* Premium headers */
+#pocketsTable thead th,
+#p2pocketsTable thead th,
+#residuesetsTable thead th {
+    padding: 11px 14px !important;
+    font-size: 0.68rem !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.08em !important;
+    color: var(--tp-color-text-muted) !important;
+    background: var(--tp-color-surface-soft) !important;
+    border-bottom: 1px solid var(--tp-color-border-soft) !important;
+    border-top: none !important;
+}
+
+/* Clean row borders */
+#pocketsTable tbody tr,
+#p2pocketsTable tbody tr,
+#residuesetsTable tbody tr {
+    border-bottom: 1px solid var(--tp-color-border-soft);
+}
+
+#pocketsTable tbody tr:last-child,
+#p2pocketsTable tbody tr:last-child,
+#residuesetsTable tbody tr:last-child {
+    border-bottom: none;
+}
+
+/* Brand-mix hover (overrides old brand-050 rule) */
+#pocketsTable.table-hover tbody tr:hover,
+#p2pocketsTable.table-hover tbody tr:hover,
+#residuesetsTable.table-hover tbody tr:hover {
+    background: color-mix(in srgb, var(--tp-color-brand-500) 5%, var(--tp-color-surface)) !important;
+}
+
+/* ── Binder table ── */
+
+/* Remove alternating stripe */
+.binder-tbl tbody tr:nth-child(even) {
+    background: transparent;
+}
+
+/* Premium header */
+.binder-tbl th {
+    padding: 11px 16px !important;
+    font-size: 0.68rem !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.08em !important;
+    color: var(--tp-color-text-muted) !important;
+}
+
+/* Slightly more vertical room in cells */
+.binder-tbl td {
+    padding: 13px 16px !important;
+}
+
+/* Brand-mix hover */
+.binder-tbl__row:hover {
+    background: color-mix(in srgb, var(--tp-color-brand-500) 5%, var(--tp-color-surface)) !important;
+}
+
+/* ── Features table (#features_table, DataTables) ── */
+
+/* Strip Bootstrap/DataTables alternating backgrounds */
+#features_table.table-striped tbody tr:nth-of-type(odd),
+#features_table.table-striped tbody tr:nth-of-type(even),
+#features_table tbody tr.odd,
+#features_table tbody tr.even {
+    background-color: transparent !important;
+    --bs-table-accent-bg: transparent;
+    --bs-table-striped-bg: transparent;
+}
+
+/* Premium header */
+#features_table thead th {
+    font-size: 0.68rem !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.08em !important;
+    color: var(--tp-color-text-muted) !important;
+}
+
+/* Clean row borders */
+#features_table tbody tr {
+    border-bottom: 1px solid var(--tp-color-border-soft) !important;
+}
+
+#features_table tbody tr:last-child {
+    border-bottom: none !important;
+}
+
+/* ── Dark mode ── */
+.tp-dark #pocketsTable.table-hover tbody tr:hover,
+.tp-dark #p2pocketsTable.table-hover tbody tr:hover,
+.tp-dark #residuesetsTable.table-hover tbody tr:hover,
+.tp-dark .binder-tbl__row:hover {
+    background: color-mix(in srgb, var(--tp-color-brand-500) 8%, var(--tp-color-surface)) !important;
+}
