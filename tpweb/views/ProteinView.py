@@ -237,6 +237,7 @@ def _coverage_payload(start, end, protein_length):
 
 def _experimental_structure_entry(pdb_id, method, resolution, chains, start, end, protein_length, loaded_link=None):
     coverage = _coverage_payload(start, end, protein_length)
+    chain_sel = _chain_selector(getattr(loaded_link, "chain", None)) if loaded_link else ""
     return {
         "pdb_id": (pdb_id or "").upper(),
         "method": method or "-",
@@ -245,6 +246,7 @@ def _experimental_structure_entry(pdb_id, method, resolution, chains, start, end
         "links": _external_structure_links(pdb_id),
         "loaded": loaded_link is not None,
         "loaded_structure_id": getattr(getattr(loaded_link, "pdb", None), "id", None),
+        "chain_selector": chain_sel,
         **coverage,
     }
 
@@ -290,6 +292,52 @@ def _viewer_structure_payload(link, protein_length):
         "coverage_label": coverage["coverage_label"],
         "resolution": resolution,
     }
+
+
+def _build_predicted_structures(links, protein_length, primary_link=None, alt_link=None):
+    primary_pdb_id = getattr(getattr(primary_link, "pdb", None), "id", None) if primary_link else None
+    alt_pdb_id = getattr(getattr(alt_link, "pdb", None), "id", None) if alt_link else None
+    entries = []
+    for link in links:
+        pdb = link.pdb
+        experiment = str(getattr(pdb, "experiment", "") or "").strip().upper()
+        code = str(getattr(pdb, "code", "") or "").strip().upper()
+        if experiment == "CF":
+            source_name = "ColabFold"
+        elif experiment == "AF":
+            source_name = "AlphaFold"
+        else:
+            source_name = _structure_toggle_label(experiment) or "Predicted"
+        is_primary = (pdb.id == primary_pdb_id)
+        is_alt = (pdb.id == alt_pdb_id)
+        if is_primary:
+            slot_key = "primary"
+        elif is_alt:
+            slot_key = "alt"
+        else:
+            slot_key = f"pred-{code.lower()}"
+        coverage = _coverage_payload(
+            getattr(link, "uniprot_start", None),
+            getattr(link, "uniprot_end", None),
+            protein_length,
+        )
+        resolution_raw = getattr(link, "resolution", None) or getattr(pdb, "resolution", None)
+        chain_sel = _chain_selector(getattr(link, "chain", None))
+        entries.append({
+            "pdb_id": code,
+            "source_name": source_name,
+            "method": source_name,
+            "resolution": _format_resolution(resolution_raw),
+            "chains": getattr(link, "chain", "") or "-",
+            "links": {},
+            "loaded": True,
+            "loaded_structure_id": pdb.id,
+            "chain_selector": chain_sel,
+            "slot_key": slot_key,
+            "viewer_key": "primary" if is_primary else ("alt" if is_alt else None),
+            **coverage,
+        })
+    return entries
 
 
 def _build_experimental_structures(protein, structures):
@@ -793,6 +841,7 @@ class ProteinView(View):
             )
 
         dto = {"protein": proteinDTO,
+               "predicted_structures": [],
                "features": features,
                "annotations": annotations,
                "ec_annotations": ec_all,
@@ -865,6 +914,17 @@ class ProteinView(View):
                 loaded_id = entry.get("loaded_structure_id")
                 if loaded_id in visible_structure_ids:
                     entry["viewer_key"] = visible_structure_ids[loaded_id]
+
+            for entry in experimental_structures:
+                if entry.get("viewer_key"):
+                    entry["slot_key"] = entry["viewer_key"]
+                elif entry["loaded"]:
+                    entry["slot_key"] = "ex-" + entry["pdb_id"].lower()
+                else:
+                    entry["slot_key"] = ""
+
+            predicted_structures = _build_predicted_structures(predicted, protein_length, primary_link=primary_link, alt_link=alt_link)
+            dto["predicted_structures"] = predicted_structures
 
 
 

@@ -2516,3 +2516,47 @@ body.residue-modal-open {
         var(--tp-color-surface-muted);
     border-color: var(--tp-color-border);
 }
+
+.experimental-source--predicted {
+    color: var(--tp-color-text-secondary);
+    background: var(--tp-color-surface-muted);
+    border: 1px solid var(--tp-color-border);
+}
+
+.experimental-status-cell {
+    white-space: nowrap;
+}
+
+.experimental-switch-btn {
+    display: inline-flex;
+    align-items: center;
+    height: 24px;
+    margin-left: 7px;
+    padding: 0 9px;
+    border: 1px solid var(--tp-color-border-accent);
+    border-radius: 6px;
+    background: transparent;
+    color: var(--tp-color-brand-800);
+    font-size: var(--tp-font-label);
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.12s, color 0.12s;
+    appearance: none;
+}
+
+.experimental-switch-btn:hover,
+.experimental-switch-btn:focus-visible {
+    background: color-mix(in srgb, var(--tp-color-brand-500) 10%, transparent);
+    color: var(--tp-color-brand-900);
+    outline: none;
+}
+
+.experimental-switch-btn:focus-visible {
+    outline: 2px solid var(--tp-color-border-accent);
+    outline-offset: 2px;
+}
+
+.experimental-structure-table tr.experimental-row--viewer-active > td .experimental-switch-btn {
+    display: none;
+}

@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260605-unified-structure">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260605-inline-switch">
 {% endblock %}
 
 {% block body %}
@@ -306,18 +306,6 @@
                             <h2>{% trans "3D Structure" %}</h2>
                             <p class="section-subtitle">{% trans "Selected loaded structure. Experimental PDB entries may cover only a portion of the sequence; predicted models typically cover the full protein." %}</p>
                         </div>
-                        {% if alt_structure_id %}
-                        <div class="structure-source-toggle" id="structure-source-toggle">
-                            <button type="button" class="structure-source-btn is-active" id="structure-src-primary" onclick="switchStructureSource('primary')">
-                                <span class="structure-source-kind">{{ primary_structure_label }}</span>
-                                {% if primary_structure_detail_label %}<span class="structure-source-meta">{{ primary_structure_detail_label }}</span>{% endif %}
-                            </button>
-                            <button type="button" class="structure-source-btn" id="structure-src-alt" onclick="switchStructureSource('alt')">
-                                <span class="structure-source-kind">{{ alt_structure_label }}</span>
-                                {% if alt_structure_detail_label %}<span class="structure-source-meta">{{ alt_structure_detail_label }}</span>{% endif %}
-                            </button>
-                        </div>
-                        {% endif %}
                     </div>
 
                     <div class="structure-actions tp-ui-toolbar structure-toolbar">
@@ -381,7 +369,7 @@
                         {% include "components/structure/pocket_tables.html" with structure_data=alt_structure structure_key="alt" table_prefix="alt-" hidden=True %}
                     {% endif %}
 
-                    {% include "components/structure/pdb_evidence_table.html" with items=experimental_structures protein=protein %}
+                    {% include "components/structure/pdb_evidence_table.html" with items=experimental_structures predicted_items=predicted_structures protein=protein %}
                 </section>
             {% endif %}
 
@@ -1167,12 +1155,19 @@
                     }, true);
                 }());
 
-                const structureUrls = {
-                    primary: "{% url 'tpwebapp:structure_raw' viewer_structure_id|default:structure.id %}",
-                    {% if alt_structure_id %}alt: "{% url 'tpwebapp:structure_raw' alt_structure_id %}",{% endif %}
-                };
-                const proteinChainSelector = "{{ viewer_chain_selector|default:':A' }}";
-                const altChainSelector = "{{ alt_viewer_chain_selector|default:'' }}";
+                const structureUrls = {};
+                const chainSelectors = {};
+                (function () {
+                    document.querySelectorAll("tr[data-pdb-slot][data-structure-url]").forEach(function (row) {
+                        var slot = row.getAttribute("data-pdb-slot");
+                        var url = row.getAttribute("data-structure-url");
+                        var chain = row.getAttribute("data-chain-selector");
+                        if (slot && url) {
+                            structureUrls[slot] = url;
+                            chainSelectors[slot] = chain || "polymer";
+                        }
+                    });
+                }());
                 let activeStructureKey = "primary";
 
                 function clearRepresentationState() {
@@ -1196,41 +1191,48 @@
 
                 function syncExperimentalStructureStatus(which) {
                     document.querySelectorAll(".js-experimental-viewer-status").forEach(function (status) {
-                        const isActive = status.getAttribute("data-viewer-key") === which;
+                        const isActive = status.getAttribute("data-pdb-slot") === which;
                         status.textContent = isActive
                             ? status.getAttribute("data-active-label")
                             : status.getAttribute("data-loaded-label");
                         status.classList.toggle("experimental-status--active", isActive);
                         status.classList.toggle("experimental-status--loaded", !isActive);
                     });
-                    document.querySelectorAll("tr[data-viewer-key]").forEach(function (row) {
+                    document.querySelectorAll("tr[data-pdb-slot]").forEach(function (row) {
                         row.classList.toggle(
                             "experimental-row--viewer-active",
-                            row.getAttribute("data-viewer-key") === which
+                            row.getAttribute("data-pdb-slot") === which
                         );
                     });
                 }
 
                 function _loadStructureById(urlKey) {
+                    if (!structureUrls[urlKey]) return;
                     activeStructureKey = urlKey;
                     clearRepresentationState();
                     syncStructureAnnotationPanels(urlKey);
                     syncExperimentalStructureStatus(urlKey);
+                    if (structureLoadingNote) {
+                        structureLoadingNote.style.display = "block";
+                        structureLoadingNote.textContent = "{% trans "Loading 3D structure..." %}";
+                    }
                     stage.removeAllComponents();
                     stage.loadFile(structureUrls[urlKey], { ext: "pdb", defaultRepresentation: false })
-                        .then(initStructureComponent);
+                        .then(initStructureComponent)
+                        .catch(function () {
+                            if (structureLoadingNote) {
+                                structureLoadingNote.style.display = "block";
+                                structureLoadingNote.textContent = structureLoadErrorMessage;
+                            }
+                        });
                 }
 
                 window.switchStructureSource = function (which) {
-                    const toggle = document.getElementById("structure-source-toggle");
-                    if (!toggle) return;
-                    toggle.querySelectorAll(".structure-source-btn").forEach(function (b) { b.classList.remove("is-active"); });
-                    document.getElementById("structure-src-" + which).classList.add("is-active");
                     _loadStructureById(which);
                 };
 
                 function initStructureComponent(component) {
-                    const activeChainSelector = (activeStructureKey === "alt" && altChainSelector) ? altChainSelector : proteinChainSelector;
+                    const activeChainSelector = chainSelectors[activeStructureKey] || "polymer";
                     function setModeButtonState(mode) {
                         structureModeButtons.forEach(function (button) {
                             const isActive = button.getAttribute("data-mode") === mode;
@@ -1337,7 +1339,7 @@
                         {% if alt_structure %}
                             {% include "components/structure/ngl_pocket_representations.js" with structure_data=alt_structure %}
                         {% endif %}
-                    } else {
+                    } else if (activeStructureKey === "primary") {
                         {% include "components/structure/ngl_pocket_representations.js" with structure_data=structure %}
                     }
 
@@ -1362,14 +1364,7 @@
                     }
                 }
 
-                activeStructureKey = "primary";
-                stage.loadFile(structureUrls.primary, { ext: "pdb", defaultRepresentation: false })
-                    .then(initStructureComponent)
-                    .catch(function () {
-                        if (structureLoadingNote) {
-                            structureLoadingNote.textContent = structureLoadErrorMessage;
-                        }
-                    });
+                _loadStructureById("primary");
             }
 
             if ("IntersectionObserver" in window && structureSection) {
