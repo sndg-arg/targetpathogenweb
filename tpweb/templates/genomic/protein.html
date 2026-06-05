@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260605-premium3">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260605-premium4">
 {% endblock %}
 
 {% block body %}
@@ -606,7 +606,7 @@
     {{ graphic_features|json_script:"seqfeatures" }}
 
     <script src="https://3dmol.org/build/3Dmol-min.js"></script>
-    <script src="{% static 'js/pages/protein-detail.js' %}?v=20260310-2"></script>
+    <script src="{% static 'js/pages/protein-detail.js' %}?v=20260605-1"></script>
     <script>
         function jsloaded() {
             const proteinSequence = "{{ protein.seq }}";

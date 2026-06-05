@@ -219,7 +219,7 @@
                 }
             }, {
                 rootMargin: "-22% 0px -64% 0px",
-                threshold: [0.1, 0.35, 0.6]
+                threshold: [0, 0.1, 0.35, 0.6]
             });
             targets.forEach(function (entry) {
                 observer.observe(entry.section);

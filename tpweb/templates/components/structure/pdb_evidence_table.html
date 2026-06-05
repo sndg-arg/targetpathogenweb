@@ -22,9 +22,11 @@
             <tbody>
             {% for item in items %}
                 <tr{% if item.slot_key %} data-pdb-slot="{{ item.slot_key }}"{% endif %}{% if item.loaded and item.loaded_structure_id %} data-structure-url="{% url 'tpwebapp:structure_raw' item.loaded_structure_id %}" data-chain-selector="{{ item.chain_selector }}"{% endif %}{% if item.viewer_key == 'primary' %} class="experimental-row--viewer-active"{% endif %}>
-                    <td class="experimental-entry-cell">
-                        <span class="experimental-source">PDB</span>
-                        <span class="experimental-pdb-id">{{ item.pdb_id }}</span>
+                    <td>
+                        <div class="experimental-entry-cell">
+                            <span class="experimental-source">PDB</span>
+                            <span class="experimental-pdb-id">{{ item.pdb_id }}</span>
+                        </div>
                     </td>
                     <td class="experimental-method">{{ item.method }}</td>
                     <td class="experimental-resolution">{{ item.resolution }}</td>
@@ -72,9 +74,11 @@
                     data-structure-url="{% url 'tpwebapp:structure_raw' item.loaded_structure_id %}"
                     data-chain-selector="{{ item.chain_selector }}"
                     {% if item.viewer_key == 'primary' %}class="experimental-row--viewer-active"{% endif %}>
-                    <td class="experimental-entry-cell">
-                        <span class="experimental-source experimental-source--predicted">{{ item.source_name }}</span>
-                        <span class="experimental-pdb-id experimental-pdb-id--predicted">{{ item.pdb_id }}</span>
+                    <td>
+                        <div class="experimental-entry-cell">
+                            <span class="experimental-source experimental-source--predicted">{{ item.source_name }}</span>
+                            <span class="experimental-pdb-id experimental-pdb-id--predicted">{{ item.pdb_id }}</span>
+                        </div>
                     </td>
                     <td class="experimental-method">{{ item.method }}</td>
                     <td class="experimental-resolution">—</td>
