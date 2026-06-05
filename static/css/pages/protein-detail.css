@@ -2334,6 +2334,34 @@ body.residue-modal-open {
 .target-profile-item--bad .target-profile-value { color: var(--tp-color-warning-ink); }
 .target-profile-item--bad .target-profile-label { color: var(--tp-color-warning-ink); opacity: 0.8; }
 
+/* === PDB evidence subsection (inside 3D Structure panel) === */
+.pdb-evidence-subsection {
+    margin-top: 28px;
+    padding-top: 20px;
+    border-top: 1px solid var(--tp-color-border-soft);
+}
+
+.pdb-evidence-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 4px;
+}
+
+.pdb-evidence-title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--tp-color-text);
+    letter-spacing: 0.01em;
+}
+
+.pdb-evidence-note {
+    margin: 0 0 12px;
+    font-size: var(--tp-font-body-sm);
+    color: var(--tp-color-text-muted);
+}
+
 /* === Experimental structure evidence === */
 .experimental-structure-note {
     margin: 0 0 var(--tp-space-3);

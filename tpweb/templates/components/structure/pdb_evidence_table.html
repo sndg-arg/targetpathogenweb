@@ -1,0 +1,77 @@
+{% load i18n %}
+{% if items %}
+<div class="pdb-evidence-subsection">
+    <div class="pdb-evidence-head">
+        <h3 class="pdb-evidence-title">{% trans "PDB evidence" %}</h3>
+        <span class="tp-chip tp-chip--count tp-chip--sm">{{ items|length }}</span>
+    </div>
+    <p class="pdb-evidence-note">{% trans "Experimental structures from the Protein Data Bank, mapped to UniProt coordinates. Coverage is shown relative to the full protein sequence." %}</p>
+    <div class="table-shell tp-table-shell experimental-structure-shell">
+        <table class="tp-table experimental-structure-table">
+            <thead>
+            <tr>
+                <th scope="col">{% trans "Source" %}</th>
+                <th scope="col">{% trans "Identifier" %}</th>
+                <th scope="col">{% trans "Method" %}</th>
+                <th scope="col">{% trans "Resolution" %}</th>
+                <th scope="col">{% trans "Chain" %}</th>
+                <th scope="col">{% trans "Positions" %}</th>
+                <th scope="col">{% trans "Coverage" %}</th>
+                <th scope="col">{% trans "Links" %}</th>
+                <th scope="col">{% trans "Status" %}</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for item in items %}
+                <tr {% if item.viewer_key %}data-viewer-key="{{ item.viewer_key }}"{% if item.viewer_key == 'primary' %} class="experimental-row--viewer-active"{% endif %}{% endif %}>
+                    <td><span class="experimental-source">PDB</span></td>
+                    <td class="experimental-pdb-id">{{ item.pdb_id }}</td>
+                    <td>{{ item.method }}</td>
+                    <td>{{ item.resolution }}</td>
+                    <td>{{ item.chains }}</td>
+                    <td>{{ item.positions }}</td>
+                    <td class="experimental-coverage-cell">
+                        <div class="experimental-coverage-track" title="{% trans "Mapped protein coverage" %}: {{ item.coverage_label }}">
+                            {% if item.has_positions %}
+                                <span class="experimental-coverage-fill" style="left: {{ item.coverage_left }}; width: {{ item.coverage_width }};"></span>
+                            {% endif %}
+                        </div>
+                        <span class="experimental-coverage-label">{{ item.coverage_label }}</span>
+                    </td>
+                    <td>
+                        <div class="experimental-links">
+                            <a href="{{ item.links.pdbe }}" target="_blank" rel="noopener noreferrer">PDBe</a>
+                            <a href="{{ item.links.rcsb }}" target="_blank" rel="noopener noreferrer">RCSB</a>
+                            <a href="{{ item.links.pdbj }}" target="_blank" rel="noopener noreferrer">PDBj</a>
+                            <a href="{{ item.links.pdbsum }}" target="_blank" rel="noopener noreferrer">PDBsum</a>
+                            <a href="{{ item.links.source }}" target="_blank" rel="noopener noreferrer">{% trans "Source" %}</a>
+                        </div>
+                    </td>
+                    <td>
+                        {% if item.loaded %}
+                            {% if item.viewer_key %}
+                                <span class="experimental-status {% if item.viewer_key == 'primary' %}experimental-status--active{% else %}experimental-status--loaded{% endif %} js-experimental-viewer-status"
+                                      data-viewer-key="{{ item.viewer_key }}"
+                                      data-active-label="{% trans 'Shown in viewer' %}"
+                                      data-loaded-label="{% trans 'Loaded' %}">
+                                    {% if item.viewer_key == 'primary' %}{% trans "Shown in viewer" %}{% else %}{% trans "Loaded" %}{% endif %}
+                                </span>
+                            {% else %}
+                                <span class="experimental-status experimental-status--loaded">{% trans "Loaded" %}</span>
+                            {% endif %}
+                            {% if item.viewer_key == "alt" %}
+                                <button type="button" class="experimental-view-link experimental-view-button" onclick="switchStructureSource('alt')">{% trans "Show in viewer" %}</button>
+                            {% elif not item.viewer_key and item.loaded_structure_id %}
+                                <a class="experimental-view-link" href="{% url 'tpwebapp:structure' item.loaded_structure_id %}?protein_id={{ protein.id }}">{% trans "Open viewer" %}</a>
+                            {% endif %}
+                        {% else %}
+                            <span class="experimental-status experimental-status--metadata">{% trans "Metadata only" %}</span>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
