@@ -2415,8 +2415,22 @@ body.residue-modal-open {
 }
 
 .experimental-structure-table tr.experimental-row--viewer-active > td:first-child {
-    border-left: 3px solid var(--tp-color-brand-600);
-    padding-left: calc(20px - 3px);
+    position: relative;
+}
+
+.experimental-structure-table tr.experimental-row--viewer-active > td:first-child::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: -1px;
+    width: 3px;
+    background: var(--tp-color-brand-600);
+    border-radius: 0 2px 2px 0;
+}
+
+.experimental-structure-shell .tp-table-scroll-hint {
+    display: none;
 }
 
 /* Entry cell: source badge + monospace ID */
