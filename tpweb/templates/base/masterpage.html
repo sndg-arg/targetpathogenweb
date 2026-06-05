@@ -2143,13 +2143,12 @@
 
     /* ── Theme toggle ──────────────────────────────── */
     (function () {
-        var MODES = ["auto", "light", "dark"];
+        var MODES = ["light", "dark"];
         var ICONS = {
             light: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="8" cy="8" r="2.75"/><path d="M8 1.5V3M8 13v1.5M1.5 8H3M13 8h1.5M3.4 3.4l1.06 1.06M11.54 11.54l1.06 1.06M12.6 3.4l-1.06 1.06M4.46 11.54l-1.06 1.06"/></svg>',
-            dark:  '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M13.5 10.5A6.5 6.5 0 0 1 5.5 2.5a6.5 6.5 0 1 0 8 8z"/></svg>',
-            auto:  '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1.5" y="2.5" width="13" height="8.5" rx="1.5"/><path d="M5.5 14h5M8 11v3"/></svg>'
+            dark:  '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M13.5 10.5A6.5 6.5 0 0 1 5.5 2.5a6.5 6.5 0 1 0 8 8z"/></svg>'
         };
-        var LABELS = { auto: "Auto", light: "Light", dark: "Dark" };
+        var LABELS = { light: "Light", dark: "Dark" };
 
         function getEffective(mode) {
             if (mode === "dark") return true;
@@ -2175,7 +2174,7 @@
 
         function current() {
             var stored = localStorage.getItem("tp-theme");
-            return MODES.indexOf(stored) !== -1 ? stored : "auto";
+            return MODES.indexOf(stored) !== -1 ? stored : "light";
         }
 
         function cycle() {
