@@ -661,8 +661,8 @@ class ProteinView(View):
             if (getattr(s.pdb, "experiment", "") or "").upper() == "EX"
         }
         for xref in experimental_xrefs:
-            xref._is_loaded = xref.pdb_id.upper() in loaded_ex_codes
-            xref._method_short = _short_method(xref.method)
+            xref.is_loaded = xref.pdb_id.upper() in loaded_ex_codes
+            xref.method_short = _short_method(xref.method)
         ec_all = list(iter_protein_annotations(protein, "ec"))
         go_all = list(iter_protein_annotations(protein, "go"))
         ec_badges = ec_all[:6]
