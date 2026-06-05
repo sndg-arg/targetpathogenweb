@@ -347,7 +347,9 @@
                                 onclick="ngl_reset_zoom()"
                                 class="btn tp-btn tp-btn--outline tp-btn--md structure-action-btn structure-reset-btn"
                                 disabled>{% trans "Reset Zoom" %}</button>
-                        <a href="{% url "tpwebapp:structure_export" structure.id %}" class="btn tp-btn tp-btn--outline tp-btn--md structure-action-btn structure-download-btn">{% trans "Download VMD script" %}</a>
+                        <a href="{% url "tpwebapp:structure_export" structure.id %}"
+                           class="btn tp-btn tp-btn--outline tp-btn--md structure-action-btn structure-download-btn"
+                           title="{% trans 'Download a Tcl script to open this structure with pocket representations in VMD (Visual Molecular Dynamics)' %}">{% trans "Export to VMD" %}</a>
                     </div>
                     {% if structure and not pocket_structure_has_pockets %}
                         <p class="table-hint">{% blocktrans with source=pocket_structure_label %}No pockets are loaded yet for the displayed {{ source }} structure. Run experimental pocket backfill to show FPocket/P2Rank overlays on this structure.{% endblocktrans %}</p>
