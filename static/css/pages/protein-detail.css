@@ -2374,19 +2374,25 @@ body.residue-modal-open {
 }
 
 .experimental-structure-table {
-    min-width: 980px;
+    min-width: 820px;
+    table-layout: auto;
 }
 
 .experimental-structure-table tr.experimental-row--viewer-active > td {
-    background: color-mix(in srgb, var(--tp-color-brand-500) 10%, var(--tp-color-surface));
+    background: color-mix(in srgb, var(--tp-color-brand-500) 9%, var(--tp-color-surface));
+}
+
+.experimental-structure-table tr.experimental-row--viewer-active > td:first-child {
+    border-left: 3px solid var(--tp-color-brand-600);
+    padding-left: calc(var(--tp-space-2, 8px) - 3px);
 }
 
 .experimental-source,
 .experimental-status {
     display: inline-flex;
     align-items: center;
-    min-height: 24px;
-    padding: 2px 8px;
+    min-height: 22px;
+    padding: 1px 7px;
     border-radius: 999px;
     font-size: var(--tp-font-label);
     font-weight: 700;
@@ -2398,15 +2404,52 @@ body.residue-modal-open {
     color: var(--tp-color-brand-800);
     background: color-mix(in srgb, var(--tp-color-brand-500) 12%, transparent);
     border: 1px solid color-mix(in srgb, var(--tp-color-brand-500) 35%, transparent);
+    flex-shrink: 0;
+}
+
+.experimental-entry-cell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
 }
 
 .experimental-pdb-id {
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 0.9rem;
     font-weight: 800;
-    letter-spacing: 0.02em;
+    letter-spacing: 0.03em;
+    color: var(--tp-color-text);
+}
+
+.experimental-pdb-id--predicted {
+    font-size: 0.78rem;
+    letter-spacing: 0.01em;
+    color: var(--tp-color-text-secondary);
+}
+
+.experimental-method {
+    white-space: nowrap;
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-body-sm);
+}
+
+.experimental-resolution {
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.experimental-chain {
+    white-space: nowrap;
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-body-sm);
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .experimental-coverage-cell {
-    min-width: 190px;
+    min-width: 140px;
 }
 
 .experimental-coverage-track {
@@ -2430,27 +2473,51 @@ body.residue-modal-open {
 
 .experimental-coverage-label {
     display: block;
-    margin-top: 4px;
+    margin-top: 3px;
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-label);
     font-weight: 700;
 }
 
+.experimental-coverage-range {
+    display: block;
+    margin-top: 1px;
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-label);
+    font-variant-numeric: tabular-nums;
+}
+
+.experimental-coverage-empty {
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-label);
+}
+
+.experimental-links-cell {
+    white-space: nowrap;
+}
+
 .experimental-links {
     display: flex;
-    flex-wrap: wrap;
-    gap: 4px 10px;
-    min-width: 220px;
+    flex-wrap: nowrap;
+    gap: 0;
 }
 
 .experimental-links a {
-    color: var(--tp-color-link);
-    font-weight: 700;
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-label);
+    font-weight: 600;
     text-decoration: none;
+    padding: 1px 5px;
+    border-right: 1px solid var(--tp-color-border-soft);
+}
+
+.experimental-links a:last-child {
+    border-right: 0;
 }
 
 .experimental-links a:hover,
 .experimental-links a:focus-visible {
+    color: var(--tp-color-link);
     text-decoration: underline;
 }
 

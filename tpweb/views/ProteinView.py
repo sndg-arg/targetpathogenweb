@@ -183,11 +183,14 @@ def _annotation_name(dbxref_relation):
 
 def _format_resolution(value):
     if value is None:
-        return "-"
+        return "—"
     try:
-        return f"{float(value):.2f} A"
+        v = float(value)
+        if v <= 0 or v > 100:
+            return "—"
+        return f"{v:.2f} Å"
     except (TypeError, ValueError):
-        return "-"
+        return "—"
 
 
 def _external_structure_links(pdb_id):
@@ -208,8 +211,8 @@ def _external_structure_links(pdb_id):
 def _coverage_payload(start, end, protein_length):
     if not start or not end or not protein_length:
         return {
-            "positions": "-",
-            "coverage_label": "unknown",
+            "positions": "—",
+            "coverage_label": "—",
             "coverage_left": "0%",
             "coverage_width": "0%",
             "has_positions": False,
@@ -240,7 +243,7 @@ def _experimental_structure_entry(pdb_id, method, resolution, chains, start, end
     chain_sel = _chain_selector(getattr(loaded_link, "chain", None)) if loaded_link else ""
     return {
         "pdb_id": (pdb_id or "").upper(),
-        "method": method or "-",
+        "method": _short_method(method),
         "resolution": _format_resolution(resolution),
         "chains": chains or "-",
         "links": _external_structure_links(pdb_id),
@@ -321,14 +324,13 @@ def _build_predicted_structures(links, protein_length, primary_link=None, alt_li
             getattr(link, "uniprot_end", None),
             protein_length,
         )
-        resolution_raw = getattr(link, "resolution", None) or getattr(pdb, "resolution", None)
         chain_sel = _chain_selector(getattr(link, "chain", None))
         entries.append({
             "pdb_id": code,
             "source_name": source_name,
             "method": source_name,
-            "resolution": _format_resolution(resolution_raw),
-            "chains": getattr(link, "chain", "") or "-",
+            "resolution": "—",
+            "chains": getattr(link, "chain", "") or "—",
             "links": {},
             "loaded": True,
             "loaded_structure_id": pdb.id,
@@ -378,7 +380,7 @@ def _build_experimental_structures(protein, structures):
             continue
         method = pdb.experiment or "Experimental"
         if str(method).strip().upper() == "EX":
-            method = "Experimental"
+            method = "X-ray"
         seen_codes.add(pdb_id)
         entries.append(_experimental_structure_entry(
             pdb_id=pdb_id,

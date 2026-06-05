@@ -5,17 +5,15 @@
         <h3 class="pdb-evidence-title">{% trans "Structural evidence" %}</h3>
         <span class="tp-chip tp-chip--count tp-chip--sm">{{ items|length }}{% if predicted_items %} + {{ predicted_items|length }}{% endif %}</span>
     </div>
-    <p class="pdb-evidence-note">{% trans "Experimental PDB entries and predicted models loaded for this protein. Click Switch to display a different structure in the viewer." %}</p>
+    <p class="pdb-evidence-note">{% trans "Experimental PDB entries and predicted models. Click Switch to display a different structure in the viewer." %}</p>
     <div class="table-shell tp-table-shell experimental-structure-shell">
-        <table class="tp-table experimental-structure-table">
+        <table class="tp-table experimental-structure-table" data-table-export="off">
             <thead>
             <tr>
-                <th scope="col">{% trans "Source" %}</th>
-                <th scope="col">{% trans "Identifier" %}</th>
+                <th scope="col">{% trans "Entry" %}</th>
                 <th scope="col">{% trans "Method" %}</th>
                 <th scope="col">{% trans "Resolution" %}</th>
                 <th scope="col">{% trans "Chain" %}</th>
-                <th scope="col">{% trans "Positions" %}</th>
                 <th scope="col">{% trans "Coverage" %}</th>
                 <th scope="col">{% trans "Links" %}</th>
                 <th scope="col">{% trans "Status" %}</th>
@@ -24,27 +22,30 @@
             <tbody>
             {% for item in items %}
                 <tr{% if item.slot_key %} data-pdb-slot="{{ item.slot_key }}"{% endif %}{% if item.loaded and item.loaded_structure_id %} data-structure-url="{% url 'tpwebapp:structure_raw' item.loaded_structure_id %}" data-chain-selector="{{ item.chain_selector }}"{% endif %}{% if item.viewer_key == 'primary' %} class="experimental-row--viewer-active"{% endif %}>
-                    <td><span class="experimental-source">PDB</span></td>
-                    <td class="experimental-pdb-id">{{ item.pdb_id }}</td>
-                    <td>{{ item.method }}</td>
-                    <td>{{ item.resolution }}</td>
-                    <td>{{ item.chains }}</td>
-                    <td>{{ item.positions }}</td>
-                    <td class="experimental-coverage-cell">
-                        <div class="experimental-coverage-track" title="{% trans "Mapped protein coverage" %}: {{ item.coverage_label }}">
-                            {% if item.has_positions %}
-                                <span class="experimental-coverage-fill" style="left: {{ item.coverage_left }}; width: {{ item.coverage_width }};"></span>
-                            {% endif %}
-                        </div>
-                        <span class="experimental-coverage-label">{{ item.coverage_label }}</span>
+                    <td class="experimental-entry-cell">
+                        <span class="experimental-source">PDB</span>
+                        <span class="experimental-pdb-id">{{ item.pdb_id }}</span>
                     </td>
-                    <td>
+                    <td class="experimental-method">{{ item.method }}</td>
+                    <td class="experimental-resolution">{{ item.resolution }}</td>
+                    <td class="experimental-chain">{{ item.chains }}</td>
+                    <td class="experimental-coverage-cell">
+                        {% if item.has_positions %}
+                            <div class="experimental-coverage-track" title="{{ item.positions }} · {{ item.coverage_label }}">
+                                <span class="experimental-coverage-fill" style="left: {{ item.coverage_left }}; width: {{ item.coverage_width }};"></span>
+                            </div>
+                            <span class="experimental-coverage-label">{{ item.coverage_label }}</span>
+                            <span class="experimental-coverage-range">{{ item.positions }}</span>
+                        {% else %}
+                            <span class="experimental-coverage-empty">—</span>
+                        {% endif %}
+                    </td>
+                    <td class="experimental-links-cell">
                         <div class="experimental-links">
                             <a href="{{ item.links.pdbe }}" target="_blank" rel="noopener noreferrer">PDBe</a>
                             <a href="{{ item.links.rcsb }}" target="_blank" rel="noopener noreferrer">RCSB</a>
                             <a href="{{ item.links.pdbj }}" target="_blank" rel="noopener noreferrer">PDBj</a>
-                            <a href="{{ item.links.pdbsum }}" target="_blank" rel="noopener noreferrer">PDBsum</a>
-                            <a href="{{ item.links.source }}" target="_blank" rel="noopener noreferrer">{% trans "Source" %}</a>
+                            <a href="{{ item.links.source }}" target="_blank" rel="noopener noreferrer">{% trans "File" %}</a>
                         </div>
                     </td>
                     <td class="experimental-status-cell">
@@ -56,7 +57,7 @@
                                 {% if item.viewer_key == 'primary' %}{% trans "Viewing" %}{% else %}{% trans "Loaded" %}{% endif %}
                             </span>
                             {% if item.viewer_key != 'primary' %}
-                                <button type="button" class="experimental-view-button experimental-switch-btn" onclick="switchStructureSource('{{ item.slot_key }}')">{% trans "Switch" %}</button>
+                                <button type="button" class="experimental-switch-btn" onclick="switchStructureSource('{{ item.slot_key }}')">{% trans "Switch" %}</button>
                             {% endif %}
                         {% elif item.loaded %}
                             <span class="experimental-status experimental-status--loaded">{% trans "Loaded" %}</span>
@@ -69,28 +70,37 @@
             {% for item in predicted_items %}
                 <tr data-pdb-slot="{{ item.slot_key }}"
                     data-structure-url="{% url 'tpwebapp:structure_raw' item.loaded_structure_id %}"
-                    data-chain-selector="{{ item.chain_selector }}">
-                    <td><span class="experimental-source experimental-source--predicted">{{ item.source_name }}</span></td>
-                    <td class="experimental-pdb-id">{{ item.pdb_id }}</td>
-                    <td>{{ item.method }}</td>
-                    <td>{{ item.resolution }}</td>
-                    <td>{{ item.chains }}</td>
-                    <td>{{ item.positions }}</td>
-                    <td class="experimental-coverage-cell">
-                        <div class="experimental-coverage-track" title="{% trans "Mapped protein coverage" %}: {{ item.coverage_label }}">
-                            {% if item.has_positions %}
-                                <span class="experimental-coverage-fill" style="left: {{ item.coverage_left }}; width: {{ item.coverage_width }};"></span>
-                            {% endif %}
-                        </div>
-                        <span class="experimental-coverage-label">{{ item.coverage_label }}</span>
+                    data-chain-selector="{{ item.chain_selector }}"
+                    {% if item.viewer_key == 'primary' %}class="experimental-row--viewer-active"{% endif %}>
+                    <td class="experimental-entry-cell">
+                        <span class="experimental-source experimental-source--predicted">{{ item.source_name }}</span>
+                        <span class="experimental-pdb-id experimental-pdb-id--predicted">{{ item.pdb_id }}</span>
                     </td>
-                    <td>—</td>
+                    <td class="experimental-method">{{ item.method }}</td>
+                    <td class="experimental-resolution">—</td>
+                    <td class="experimental-chain">{{ item.chains }}</td>
+                    <td class="experimental-coverage-cell">
+                        {% if item.has_positions %}
+                            <div class="experimental-coverage-track" title="{{ item.positions }} · {{ item.coverage_label }}">
+                                <span class="experimental-coverage-fill" style="left: {{ item.coverage_left }}; width: {{ item.coverage_width }};"></span>
+                            </div>
+                            <span class="experimental-coverage-label">{{ item.coverage_label }}</span>
+                            <span class="experimental-coverage-range">{{ item.positions }}</span>
+                        {% else %}
+                            <span class="experimental-coverage-empty">full sequence</span>
+                        {% endif %}
+                    </td>
+                    <td class="experimental-links-cell">—</td>
                     <td class="experimental-status-cell">
-                        <span class="experimental-status js-experimental-viewer-status experimental-status--loaded"
+                        <span class="experimental-status js-experimental-viewer-status {% if item.viewer_key == 'primary' %}experimental-status--active{% else %}experimental-status--loaded{% endif %}"
                               data-pdb-slot="{{ item.slot_key }}"
                               data-active-label="{% trans 'Viewing' %}"
-                              data-loaded-label="{% trans 'Loaded' %}">{% trans "Loaded" %}</span>
-                        <button type="button" class="experimental-view-button experimental-switch-btn" onclick="switchStructureSource('{{ item.slot_key }}')">{% trans "Switch" %}</button>
+                              data-loaded-label="{% trans 'Loaded' %}">
+                            {% if item.viewer_key == 'primary' %}{% trans "Viewing" %}{% else %}{% trans "Loaded" %}{% endif %}
+                        </span>
+                        {% if item.viewer_key != 'primary' %}
+                            <button type="button" class="experimental-switch-btn" onclick="switchStructureSource('{{ item.slot_key }}')">{% trans "Switch" %}</button>
+                        {% endif %}
                     </td>
                 </tr>
             {% endfor %}
