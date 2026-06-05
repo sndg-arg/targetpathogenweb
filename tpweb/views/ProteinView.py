@@ -12,6 +12,7 @@ from bioseq.models.Biodatabase import Biodatabase
 from bioseq.models.Bioentry import Bioentry
 from tpweb.models.Binders import Binders
 from tpweb.models.pdb import PDBResidueSet
+from tpweb.models.BioentryStructure import ExperimentalStructureXref
 from tpweb.models.ScoreParamValue import ScoreParamValue
 from .StructureView import pdb_structure
 from tpweb.services.protein_annotations import annotation_dbnames, protein_annotation_badges, iter_protein_annotations
@@ -29,11 +30,70 @@ from tpweb.services.structure_sources import (
     summarize_structure_sources,
     sort_structures_by_preference as _sort_structures_by_preference,
     structure_toggle_label as _structure_toggle_label,
+    PDB_MODEL_EXPERIMENTS as _PDB_MODEL_EXPERIMENTS,
 )
 
 KNOWN_BINDER_CAP = 100
 ZINC_BINDER_CAP = 50
 _PAINS_CATALOG = None
+
+
+def _short_method(method_str):
+    """Compact display label for a PDB method string from UniProt."""
+    m = (method_str or "").upper()
+    if "X-RAY" in m or "DIFFRACTION" in m:
+        return "X-ray"
+    if "ELECTRON" in m or "MICROSCOPY" in m or "CRYO" in m:
+        return "EM"
+    if "NMR" in m:
+        return "NMR"
+    return method_str or "—"
+
+
+def _structure_toggle_detail(link, protein_length=None):
+    """Return (label, detail) for a structure source toggle button.
+
+    For experimental PDB: 'PDB XXXX' + '99% · 1.85 Å'.
+    For predicted models: model name + coverage hint.
+    """
+    pdb = link.pdb
+    experiment = (getattr(pdb, "experiment", "") or "").upper()
+    start = getattr(link, "uniprot_start", None)
+    end = getattr(link, "uniprot_end", None)
+
+    def _coverage_pct():
+        if start is not None and end is not None and protein_length:
+            return (end - start + 1) / protein_length * 100
+        return None
+
+    if experiment == "EX":
+        code = (getattr(pdb, "code", "") or "").upper()
+        resolution = getattr(link, "resolution", None)
+        label = f"PDB {code}" if code else "Crystal structure"
+        parts = []
+        pct = _coverage_pct()
+        if pct is not None:
+            parts.append(f"{pct:.0f}%")
+        if resolution is not None:
+            parts.append(f"{resolution:.2f} Å")
+        detail = " · ".join(parts)
+        return label, detail
+
+    if experiment == "CF":
+        label = "ColabFold model"
+    elif experiment == "AF":
+        label = "AlphaFold model"
+    else:
+        label = _structure_toggle_label(experiment)
+
+    pct = _coverage_pct()
+    if pct is not None:
+        detail = f"{pct:.0f}% coverage"
+    elif start is None and end is None:
+        detail = "full sequence"
+    else:
+        detail = ""
+    return label, detail
 
 
 def _druggability_label(value):
@@ -368,6 +428,20 @@ class ProteinView(View):
         binders_search_query = request.GET.get("binder_search", "").strip()
         binders = create_binders_dict(protein, search_query=binders_search_query)
         structure_summary = summarize_structure_sources(structures)
+
+        experimental_xrefs = list(
+            ExperimentalStructureXref.objects
+            .filter(bioentry=protein)
+            .order_by("resolution")
+        )
+        loaded_ex_codes = {
+            s.pdb.code.upper()
+            for s in structures
+            if (getattr(s.pdb, "experiment", "") or "").upper() == "EX"
+        }
+        for xref in experimental_xrefs:
+            xref._is_loaded = xref.pdb_id.upper() in loaded_ex_codes
+            xref._method_short = _short_method(xref.method)
         ec_all = list(iter_protein_annotations(protein, "ec"))
         go_all = list(iter_protein_annotations(protein, "go"))
         ec_badges = ec_all[:6]
@@ -473,32 +547,59 @@ class ProteinView(View):
                "graphic_features": graphic_features,
                "binders": binders,
                "structure_summary": structure_summary,
+               "experimental_xrefs": experimental_xrefs,
                "ec_badges": ec_badges,
                "go_badges": go_badges,
                "pipeline_status": pipeline_status,
                "druggability": druggability,
                "view_export_url": self._build_view_export_url(request)}
         if structures:
-            primary_link = structures[0]
-            primary_display = primary_link.pdb  # EX first if available
-            # Pocket overlays must belong to the same structure loaded first in
-            # the viewer. If EX has no pockets yet, show the crystal structure
-            # without pocket overlays instead of mixing AF/CF pockets onto it.
-            dto["structure"] = pdb_structure(primary_display, graphic_features)
-            dto["viewer_structure_id"] = primary_display.id
-            dto["primary_structure_label"] = _structure_toggle_label(primary_display.experiment)
-            dto["viewer_chain"] = primary_link.chain or ""
-            dto["viewer_chain_selector"] = _chain_selector(primary_link.chain)
-            dto["pocket_structure_label"] = _structure_toggle_label(primary_display.experiment)
-            dto["pocket_structure_has_pockets"] = _has_pocket_data(primary_display)
-            if len(structures) > 1:
-                alt_link = structures[1]
-                dto["alt_structure_id"] = alt_link.pdb.id
-                dto["alt_structure_label"] = _structure_toggle_label(alt_link.pdb.experiment)
-                dto["alt_structure"] = pdb_structure(alt_link.pdb, [])
-                dto["alt_viewer_chain"] = alt_link.chain or ""
-                dto["alt_viewer_chain_selector"] = _chain_selector(alt_link.chain)
-                dto["alt_structure_has_pockets"] = _has_pocket_data(alt_link.pdb)
+            # Opción B: primary = best experimental (EX), alt = best predicted (CF/AF).
+            # This ensures ColabFold is always accessible even when multiple PDB
+            # experimentals are loaded, which is the most useful comparison for
+            # biologists (partial experimental coverage vs. full predicted model).
+            experimental = [
+                s for s in structures
+                if (getattr(s.pdb, "experiment", "") or "").upper() not in _PDB_MODEL_EXPERIMENTS
+            ]
+            predicted = [
+                s for s in structures
+                if (getattr(s.pdb, "experiment", "") or "").upper() in _PDB_MODEL_EXPERIMENTS
+            ]
+
+            if experimental:
+                primary_link = experimental[0]
+                alt_link = predicted[0] if predicted else (
+                    experimental[1] if len(experimental) > 1 else None
+                )
+            else:
+                primary_link = predicted[0] if predicted else None
+                alt_link = predicted[1] if len(predicted) > 1 else None
+
+            if primary_link is not None:
+                primary_display = primary_link.pdb
+                protein_length = proteinDTO.get("size") or 0
+                primary_label, primary_detail = _structure_toggle_detail(primary_link, protein_length)
+                # Pocket overlays must belong to the same structure loaded first in
+                # the viewer. If EX has no pockets yet, show the crystal structure
+                # without pocket overlays instead of mixing AF/CF pockets onto it.
+                dto["structure"] = pdb_structure(primary_display, graphic_features)
+                dto["viewer_structure_id"] = primary_display.id
+                dto["primary_structure_label"] = primary_label
+                dto["primary_structure_detail"] = primary_detail
+                dto["viewer_chain"] = primary_link.chain or ""
+                dto["viewer_chain_selector"] = _chain_selector(primary_link.chain)
+                dto["pocket_structure_label"] = primary_label
+                dto["pocket_structure_has_pockets"] = _has_pocket_data(primary_display)
+                if alt_link is not None:
+                    alt_label, alt_detail = _structure_toggle_detail(alt_link, protein_length)
+                    dto["alt_structure_id"] = alt_link.pdb.id
+                    dto["alt_structure_label"] = alt_label
+                    dto["alt_structure_detail"] = alt_detail
+                    dto["alt_structure"] = pdb_structure(alt_link.pdb, [])
+                    dto["alt_viewer_chain"] = alt_link.chain or ""
+                    dto["alt_viewer_chain_selector"] = _chain_selector(alt_link.chain)
+                    dto["alt_structure_has_pockets"] = _has_pocket_data(alt_link.pdb)
 
 
 

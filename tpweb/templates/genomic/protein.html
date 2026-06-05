@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260520-viewer-canvas">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260605-uniprot-table">
 {% endblock %}
 
 {% block body %}
@@ -286,12 +286,18 @@
                     <div class="section-head tp-ui-panel-head">
                         <div>
                             <h2>{% trans "3D Structure" %}</h2>
-                            <p class="section-subtitle">{% trans "Interactive model with pockets and residue sets." %}</p>
+                            <p class="section-subtitle">{% trans "Selected loaded structure. Experimental PDB entries may cover only a portion of the sequence; predicted models typically cover the full protein." %}</p>
                         </div>
                         {% if alt_structure_id %}
                         <div class="structure-source-toggle" id="structure-source-toggle">
-                            <button type="button" class="structure-source-btn is-active" id="structure-src-primary" onclick="switchStructureSource('primary')">{{ primary_structure_label }}</button>
-                            <button type="button" class="structure-source-btn" id="structure-src-alt" onclick="switchStructureSource('alt')">{{ alt_structure_label }}</button>
+                            <button type="button" class="structure-source-btn is-active" id="structure-src-primary" onclick="switchStructureSource('primary')">
+                                <span class="structure-toggle-name">{{ primary_structure_label }}</span>
+                                {% if primary_structure_detail %}<span class="structure-toggle-detail">{{ primary_structure_detail }}</span>{% endif %}
+                            </button>
+                            <button type="button" class="structure-source-btn" id="structure-src-alt" onclick="switchStructureSource('alt')">
+                                <span class="structure-toggle-name">{{ alt_structure_label }}</span>
+                                {% if alt_structure_detail %}<span class="structure-toggle-detail">{{ alt_structure_detail }}</span>{% endif %}
+                            </button>
                         </div>
                         {% endif %}
                     </div>
@@ -355,6 +361,10 @@
                     {% include "components/structure/pocket_tables.html" with structure_data=structure structure_key="primary" table_prefix="" %}
                     {% if alt_structure %}
                         {% include "components/structure/pocket_tables.html" with structure_data=alt_structure structure_key="alt" table_prefix="alt-" hidden=True %}
+                    {% endif %}
+
+                    {% if experimental_xrefs %}
+                        {% include "components/structure/experimental_table.html" with xrefs=experimental_xrefs protein=protein %}
                     {% endif %}
                 </section>
             {% endif %}
@@ -564,6 +574,9 @@
                             <p class="no-structure-meta">{% trans "Sequence length" %}: <strong>{{ protein.size }} aa</strong></p>
                         </div>
                     </div>
+                    {% if experimental_xrefs %}
+                        {% include "components/structure/experimental_table.html" with xrefs=experimental_xrefs protein=protein %}
+                    {% endif %}
                 </section>
             {% endif %}
         </div>

@@ -544,7 +544,7 @@ class ProteinListView(View):
     @staticmethod
     def _build_structure_source_choices(request, page_size, current_value):
         base_choices = [
-            {"value": "experimental", "label": "Experimental"},
+            {"value": "experimental", "label": "Has experimental PDB"},
             {"value": "alphafold", "label": "AlphaFold"},
             {"value": "colabfold", "label": "ColabFold"},
             {"value": "none", "label": "No structure"},
