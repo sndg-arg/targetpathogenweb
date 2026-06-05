@@ -3,618 +3,517 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20260520-viewer-canvas">
+    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20260605-sv1">
 {% endblock %}
 
 {% block body %}
-    <section class="structure-fs tp-ui-panel" id="structure-fs-root">
-        <header class="structure-fs-head tp-ui-panel-head">
-            <div>
-                {% trans "Genomes" as crumb_genomes %}
-                {% trans "Proteins" as crumb_proteins %}
-                {% trans "Protein details" as crumb_protein_detail %}
-                {% trans "3D Structure" as crumb_structure %}
-                {% url 'tpwebapp:index' as index_url %}
-                {% url 'tpwebapp:genomes_list' as genomes_url %}
+<div class="sv-root" id="sv-root">
+
+    {# ── LEFT: 3D canvas ── #}
+    <div class="sv-canvas" id="sv-canvas">
+
+        {# Floating topbar #}
+        <header class="sv-topbar" id="sv-topbar">
+            <div class="sv-topbar-left">
                 {% if source_protein_id %}
-                    {% url 'tpwebapp:protein' source_protein_id as protein_detail_url %}
-                    {% if source_genome %}
-                        {% url 'tpwebapp:protein_list' source_genome as proteins_url %}
-                        {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_proteins crumb_3_url=proteins_url crumb_4_label=crumb_protein_detail crumb_4_url=protein_detail_url crumb_5_label=crumb_structure %}
-                    {% else %}
-                        {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_protein_detail crumb_3_url=protein_detail_url crumb_4_label=crumb_structure %}
-                    {% endif %}
+                    <a href="{% url 'tpwebapp:protein' source_protein_id %}" class="sv-back-link" title="{{ source_protein_label }}">
+                        <svg class="sv-back-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M10 3L5 8l5 5"/></svg>
+                        {{ source_protein_label|default:_("Protein") }}
+                    </a>
                 {% else %}
-                    {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_structure %}
+                    <a href="{% url 'tpwebapp:index' %}" class="sv-back-link">
+                        <svg class="sv-back-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M10 3L5 8l5 5"/></svg>
+                        {% trans "Home" %}
+                    </a>
                 {% endif %}
-                <p class="structure-fs-eyebrow">{% trans "Interactive model" %}</p>
-                <h1>{% trans "3D Structure" %}</h1>
-                <p class="structure-fs-subtitle">
-                    {% trans "PDB code" %}: <strong>{{ structure.code|upper }}</strong>
-                </p>
             </div>
-            <div class="structure-fs-head-tools">
-                {% if structure.pockets %}
-                    <span class="tp-chip tp-chip--count tp-chip--sm">{{ structure.pockets|length }} FPocket</span>
-                {% endif %}
-                {% if structure.p2_pockets %}
-                    <span class="tp-chip tp-chip--count tp-chip--sm">{{ structure.p2_pockets|length }} P2Rank</span>
-                {% endif %}
+            <div class="sv-topbar-identity">
+                <span class="sv-pdb-code">{{ structure.code|upper }}</span>
+                {% if structure.method %}<span class="sv-meta-pill">{{ structure.method }}</span>{% endif %}
+                {% if structure.resolution %}<span class="sv-meta-pill sv-meta-pill--dim">{{ structure.resolution }} Å</span>{% endif %}
             </div>
         </header>
 
-        <div class="structure-fs-actions tp-ui-toolbar structure-toolbar">
-            <div class="structure-mode-switch" role="group" aria-label="{% trans "3D view mode" %}">
-                <button type="button"
-                        class="btn tp-btn tp-btn--neutral tp-btn--md js-structure-mode is-active"
-                        data-mode="cartoon">{% trans "Cartoon" %}</button>
-                <button type="button"
-                        class="btn tp-btn tp-btn--neutral tp-btn--md js-structure-mode"
-                        data-mode="density">{% trans "Density" %}</button>
-            </div>
-            <div class="structure-zoom-controls" role="group" aria-label="{% trans "3D zoom controls" %}">
-                <button type="button"
-                        onclick="ngl_zoom_step(1)"
-                        class="btn tp-btn tp-btn--outline tp-btn--md structure-icon-btn"
-                        aria-label="{% trans "Zoom in" %}"
-                        title="{% trans "Zoom in" %}">
-                    <svg class="structure-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                        <circle cx="10.5" cy="10.5" r="5.75"></circle>
-                        <path d="M14.8 14.8L20 20"></path>
-                        <path d="M10.5 8.1V12.9"></path>
-                        <path d="M8.1 10.5H12.9"></path>
-                    </svg>
-                </button>
-                <button type="button"
-                        onclick="ngl_zoom_step(-1)"
-                        class="btn tp-btn tp-btn--outline tp-btn--md structure-icon-btn"
-                        aria-label="{% trans "Zoom out" %}"
-                        title="{% trans "Zoom out" %}">
-                    <svg class="structure-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                        <circle cx="10.5" cy="10.5" r="5.75"></circle>
-                        <path d="M14.8 14.8L20 20"></path>
-                        <path d="M8.2 10.5H12.8"></path>
-                    </svg>
-                </button>
-            </div>
-            <button type="button"
-                    id="structure-reset-zoom-btn"
-                    onclick="ngl_reset_zoom()"
-                    class="btn tp-btn tp-btn--outline tp-btn--md structure-action-btn"
-                    disabled>{% trans "Reset Zoom" %}</button>
-            <button type="button"
-                    id="structure-layers-toggle-btn"
-                    class="btn tp-btn tp-btn--outline tp-btn--md structure-action-btn"
-                    aria-controls="structure-layers-panel"
-                    aria-expanded="false">{% trans "Layers" %}</button>
-            <a href="{% url "tpwebapp:structure_export" structure.id %}" class="btn tp-btn tp-btn--outline tp-btn--md structure-action-btn">{% trans "Download TCL VMD" %}</a>
+        {# NGL viewport — fills the canvas div #}
+        <div id="viewport"></div>
+
+        {# Loading indicator #}
+        <p class="sv-loading-note" id="structure-loading-note">{% trans "Loading 3D structure…" %}</p>
+
+        {# Pocket score legend #}
+        <div class="sv-legend" id="sv-legend">
+            <span class="sv-legend-label">{% trans "Pockets" %}</span>
+            <span class="tp-score-tag high">{% trans "High" %}</span>
+            <span class="tp-score-tag medium">{% trans "Medium" %}</span>
+            <span class="tp-score-tag low">{% trans "Low" %}</span>
         </div>
 
-        <div class="structure-fs-canvas-shell" id="structure-fs-canvas-shell">
-            <aside class="structure-fs-layers-panel" id="structure-layers-panel" aria-hidden="true">
-                <div class="layers-panel-head">
-                    <h2>{% trans "Layers" %}</h2>
-                    <button type="button"
-                            id="structure-layers-close-btn"
-                            class="btn tp-btn tp-btn--neutral tp-btn--sm layers-close-btn"
-                            aria-label="{% trans "Close layers panel" %}">&times;</button>
-                </div>
+        {# Floating toolbar #}
+        <nav class="sv-toolbar" id="sv-toolbar" aria-label="{% trans '3D viewer controls' %}">
 
-                {% include "components/structure/pocket_cards.html" with structure_data=structure structure_key="primary" %}
-                {% if alt_structure %}
-                    {% include "components/structure/pocket_cards.html" with structure_data=alt_structure structure_key="alt" hidden=True %}
-                {% endif %}
-            </aside>
+            {# Spin toggle #}
+            <button type="button" class="sv-tb-btn sv-spin-btn sv-tb-active" id="sv-spin-btn"
+                    aria-pressed="true" title="{% trans 'Toggle auto-rotation' %}">
+                <svg class="sv-tb-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
+                    <path d="M13.5 8A5.5 5.5 0 1 1 8 2.5"/>
+                    <path d="M11.5 2l2 1.5-1.5 2"/>
+                </svg>
+                <span class="sv-tb-label">{% trans "Spin" %}</span>
+            </button>
+
+            <div class="sv-tb-sep" aria-hidden="true"></div>
+
+            {# View mode #}
+            <div class="sv-mode-group" role="group" aria-label="{% trans 'View mode' %}">
+                <button type="button" class="sv-mode-btn is-active js-structure-mode" data-mode="cartoon">{% trans "Cartoon" %}</button>
+                <button type="button" class="sv-mode-btn js-structure-mode" data-mode="density">{% trans "Surface" %}</button>
+            </div>
+
+            <div class="sv-tb-sep" aria-hidden="true"></div>
+
+            {# Zoom controls #}
+            <button type="button" class="sv-tb-btn" onclick="ngl_zoom_step(1)" title="{% trans 'Zoom in' %}" aria-label="{% trans 'Zoom in' %}">
+                <svg class="sv-tb-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
+                    <circle cx="7" cy="7" r="4"/><path d="M10.2 10.2L14 14M7 5v4M5 7h4"/>
+                </svg>
+            </button>
+            <button type="button" class="sv-tb-btn" onclick="ngl_zoom_step(-1)" title="{% trans 'Zoom out' %}" aria-label="{% trans 'Zoom out' %}">
+                <svg class="sv-tb-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
+                    <circle cx="7" cy="7" r="4"/><path d="M10.2 10.2L14 14M5 7h4"/>
+                </svg>
+            </button>
+            <button type="button" class="sv-tb-btn" id="structure-reset-zoom-btn" onclick="ngl_reset_zoom()"
+                    title="{% trans 'Reset view' %}" aria-label="{% trans 'Reset view' %}" disabled>
+                <svg class="sv-tb-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
+                    <path d="M13 8A5 5 0 1 1 8 3"/><path d="M12.5 2v3h-3"/>
+                </svg>
+            </button>
 
             {% if alt_structure_id %}
-            <div class="structure-source-toggle" id="structure-source-toggle"
+            <div class="sv-tb-sep" aria-hidden="true"></div>
+            <div class="sv-mode-group sv-source-group" id="structure-source-toggle"
                  data-primary-id="{{ structure.id }}"
                  data-primary-label="{{ primary_structure_label }}"
                  data-alt-id="{{ alt_structure_id }}"
                  data-alt-label="{{ alt_structure_label }}">
-                <button type="button" class="structure-source-btn is-active" id="structure-src-primary" onclick="switchStructureSource('primary')">{{ primary_structure_label }}</button>
-                <button type="button" class="structure-source-btn" id="structure-src-alt" onclick="switchStructureSource('alt')">{{ alt_structure_label }}</button>
+                <button type="button" class="sv-mode-btn is-active" id="structure-src-primary" onclick="switchStructureSource('primary')">{{ primary_structure_label }}</button>
+                <button type="button" class="sv-mode-btn" id="structure-src-alt" onclick="switchStructureSource('alt')">{{ alt_structure_label }}</button>
             </div>
             {% endif %}
-            <div class="structure-fs-viewport-wrap">
-                <div id="viewport"></div>
-                <p class="table-hint structure-loading-note" id="structure-loading-note">{% trans "Loading 3D structure..." %}</p>
-                <div class="structure-score-legend" aria-label="{% trans "Pocket score legend" %}">
-                    <span class="legend-label">{% trans "Legend" %}</span>
-                    <span class="tp-score-tag high">{% trans "High" %}</span>
-                    <span class="tp-score-tag medium">{% trans "Medium" %}</span>
-                    <span class="tp-score-tag low">{% trans "Low" %}</span>
-                </div>
-            </div>
-        </div>
-    </section>
 
-    <div class="residue-modal-backdrop" id="residue-modal" aria-hidden="true">
-        <div class="residue-modal-panel" role="dialog" aria-modal="true" aria-labelledby="residue-modal-title">
-            <div class="residue-modal-head">
-                <h3 id="residue-modal-title">{% trans "Residue positions" %}</h3>
-                <button type="button"
-                        class="btn tp-btn tp-btn--neutral tp-btn--sm residue-modal-close"
-                        id="close-residue-modal"
-                        aria-label="{% trans "Close" %}">&times;</button>
-            </div>
-            <pre class="residue-modal-body" id="residue-modal-content"></pre>
-            <div class="residue-modal-actions">
-                <button type="button"
-                        id="copy-residue-list"
-                        class="btn tp-btn tp-btn--neutral tp-btn--sm"
-                        data-default-label="{% trans "Copy positions" %}"
-                        data-copied-label="{% trans "Copied" %}">{% trans "Copy positions" %}</button>
-            </div>
+            <div class="sv-tb-sep" aria-hidden="true"></div>
+
+            {# VMD download #}
+            <a href="{% url 'tpwebapp:structure_export' structure.id %}" class="sv-tb-btn sv-download-link"
+               title="{% trans 'Download VMD visualization script' %}">
+                <svg class="sv-tb-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
+                    <path d="M8 2v8M5 7l3 3 3-3M2 13h12"/>
+                </svg>
+                <span class="sv-tb-label">VMD</span>
+            </a>
+
+        </nav>
+    </div>
+
+    {# ── RIGHT: sidebar ── #}
+    <aside class="sv-sidebar" id="sv-sidebar">
+        <div class="sv-sidebar-inner">
+
+            <header class="sv-sidebar-head">
+                {% if source_protein_label %}
+                    <p class="sv-sidebar-protein-name">{{ source_protein_label }}</p>
+                {% endif %}
+                <h1 class="sv-sidebar-code">{{ structure.code|upper }}</h1>
+                <div class="sv-sidebar-meta-row">
+                    {% if structure.method %}<span class="sv-sidebar-meta-tag">{{ structure.method }}</span>{% endif %}
+                    {% if structure.resolution %}<span class="sv-sidebar-meta-tag sv-sidebar-meta-tag--dim">{{ structure.resolution }} Å</span>{% endif %}
+                    {% if structure.pockets %}<span class="sv-sidebar-meta-tag sv-sidebar-meta-tag--count">{{ structure.pockets|length }} FPocket</span>{% endif %}
+                    {% if structure.p2_pockets %}<span class="sv-sidebar-meta-tag sv-sidebar-meta-tag--count">{{ structure.p2_pockets|length }} P2Rank</span>{% endif %}
+                </div>
+            </header>
+
+            {% include "components/structure/pocket_cards.html" with structure_data=structure structure_key="primary" %}
+            {% if alt_structure %}
+                {% include "components/structure/pocket_cards.html" with structure_data=alt_structure structure_key="alt" hidden=True %}
+            {% endif %}
+
+            {% if not structure.pockets and not structure.p2_pockets and not structure.residuesets %}
+                <p class="sv-no-pockets">{% trans "No pocket predictions available for this structure." %}</p>
+            {% endif %}
+
+        </div>
+    </aside>
+</div>
+
+{# Residue positions modal #}
+<div class="residue-modal-backdrop" id="residue-modal" aria-hidden="true">
+    <div class="residue-modal-panel" role="dialog" aria-modal="true" aria-labelledby="residue-modal-title">
+        <div class="residue-modal-head">
+            <h3 id="residue-modal-title">{% trans "Residue positions" %}</h3>
+            <button type="button" class="btn tp-btn tp-btn--neutral tp-btn--sm residue-modal-close"
+                    id="close-residue-modal" aria-label="{% trans 'Close' %}">&times;</button>
+        </div>
+        <pre class="residue-modal-body" id="residue-modal-content"></pre>
+        <div class="residue-modal-actions">
+            <button type="button" id="copy-residue-list" class="btn tp-btn tp-btn--neutral tp-btn--sm"
+                    data-default-label="{% trans 'Copy positions' %}"
+                    data-copied-label="{% trans 'Copied' %}">{% trans "Copy positions" %}</button>
         </div>
     </div>
+</div>
 {% endblock %}
 
 {% block jsloaded %}
-    <script>
-        function jsloaded() {
-            const rootStyle = getComputedStyle(document.documentElement);
-            const representations = {};
-            const visible = {};
-            const structureModeButtons = Array.from(document.querySelectorAll(".js-structure-mode"));
-            const resetZoomBtn = document.getElementById("structure-reset-zoom-btn");
-            const layersPanel = document.getElementById("structure-layers-panel");
-            const layersToggleBtn = document.getElementById("structure-layers-toggle-btn");
-            const layersCloseBtn = document.getElementById("structure-layers-close-btn");
-            const loadingNote = document.getElementById("structure-loading-note");
-            const structureRoot = document.getElementById("structure-fs-root");
-            const UI_TEXT = Object.freeze({
-                emptyListValue: "-",
-                copiedLabel: '{% trans "Copied" %}',
-                loadError: '{% trans "Unable to load 3D structure." %}'
-            });
-            const UI_TIMING = Object.freeze({
-                copiedFeedbackMs: 1500
-            });
-            const STRUCTURE_VIEWER_CONFIG = Object.freeze({
-                nglZoomStepIn: 0.2,
-                nglZoomStepOut: -0.2,
-                nglWheelZoomStepIn: 0.055,
-                nglWheelZoomStepOut: -0.055,
-                mainCartoonAspectRatio: 3.0,
-                mainCartoonScale: 1.5,
-                densityShellOpacity: 0.78,
-                surfaceOpacity: 0.96
-            });
+<script>
+function jsloaded() {
+    "use strict";
 
-            window.toogle_view = function () {};
-            window.ngl_zoom_to = function () {};
-            window.ngl_zoom_step = function () {};
-            window.ngl_reset_zoom = function () {};
-            window.ngl_set_mode = function () {};
-            window.representations = representations;
+    var spinBtn        = document.getElementById("sv-spin-btn");
+    var resetZoomBtn   = document.getElementById("structure-reset-zoom-btn");
+    var loadingNote    = document.getElementById("structure-loading-note");
+    var svRoot         = document.getElementById("sv-root");
+    var structureModeButtons = Array.from(document.querySelectorAll(".js-structure-mode"));
 
-            function tpColor(tokenName, fallback) {
-                const value = (rootStyle.getPropertyValue(tokenName) || "").trim();
-                return value || fallback || "";
+    var representations = {};
+    var visible = {};
+    var activeStructureKey = "primary";
+    var isSpinning = true;
+
+    /* ---- Measure nav and set --sv-nav-h ---- */
+    (function () {
+        var nav = document.querySelector("#main_header") || document.querySelector("nav");
+        if (nav) {
+            document.documentElement.style.setProperty("--sv-nav-h", nav.offsetHeight + "px");
+        }
+    })();
+
+    /* ---- Utility ---- */
+    function tpColor(tokenName, fallback) {
+        var val = (getComputedStyle(document.documentElement).getPropertyValue(tokenName) || "").trim();
+        return val || fallback || "";
+    }
+
+    function setResetZoomEnabled(enabled) {
+        if (resetZoomBtn) resetZoomBtn.disabled = !enabled;
+    }
+
+    function setModeButtonState(mode) {
+        structureModeButtons.forEach(function (btn) {
+            btn.classList.toggle("is-active", btn.getAttribute("data-mode") === mode);
+        });
+    }
+
+    function decorateScoreTags() {
+        document.querySelectorAll(".js-score-tag").forEach(function (tag) {
+            var score = Number.parseFloat(tag.dataset.score || "");
+            var scoreType = tag.dataset.scoreType || "";
+            tag.classList.remove("high", "medium", "low");
+            if (Number.isNaN(score)) { tag.classList.add("medium"); return; }
+            if (scoreType === "p2rank-prob") {
+                if (score >= 0.5) tag.classList.add("high");
+                else if (score >= 0.2) tag.classList.add("medium");
+                else tag.classList.add("low");
+            } else {
+                if (score >= 0.7) tag.classList.add("high");
+                else if (score >= 0.4) tag.classList.add("medium");
+                else tag.classList.add("low");
             }
+        });
+    }
 
-            function setResetZoomEnabled(isEnabled) {
-                if (!resetZoomBtn) return;
-                resetZoomBtn.disabled = !isEnabled;
+    /* ---- Spin toggle ---- */
+    function updateSpinButton() {
+        if (!spinBtn) return;
+        spinBtn.setAttribute("aria-pressed", isSpinning ? "true" : "false");
+        spinBtn.classList.toggle("sv-tb-active", isSpinning);
+    }
+
+    if (spinBtn) {
+        spinBtn.addEventListener("click", function () {
+            isSpinning = !isSpinning;
+            if (typeof stage !== "undefined" && stage && typeof stage.setSpin === "function") {
+                stage.setSpin(isSpinning);
             }
+            updateSpinButton();
+        });
+    }
 
-            function setModeButtonState(mode) {
-                structureModeButtons.forEach(function (button) {
-                    const isActive = button.getAttribute("data-mode") === mode;
-                    button.classList.toggle("is-active", isActive);
-                });
-            }
-
-            function bindStructureWheelToViewer(viewerElement) {
-                if (!viewerElement || viewerElement.__tpWheelBound) return;
-                viewerElement.__tpWheelBound = true;
-                let viewerWheelActive = false;
-                viewerElement.addEventListener("click", function () {
-                    viewerWheelActive = true;
-                });
-                document.addEventListener("mousedown", function (event) {
-                    if (!viewerElement.contains(event.target)) {
-                        viewerWheelActive = false;
-                    }
-                }, true);
-                viewerElement.addEventListener("wheel", function (event) {
-                    if (!viewerWheelActive) {
-                        return;
-                    }
-                    event.preventDefault();
-                    event.stopPropagation();
-                    window.ngl_zoom_step(event.deltaY < 0 ? 1 : -1, true);
-                }, { passive: false, capture: true });
-            }
-
-            function syncNglViewportSize(stageInstance) {
-                if (!stageInstance || typeof stageInstance.handleResize !== "function") return;
-                window.requestAnimationFrame(function () {
-                    stageInstance.handleResize();
-                    window.setTimeout(function () {
-                        stageInstance.handleResize();
-                    }, 80);
-                });
-            }
-
-            function setLayersPanelState(isOpen) {
-                if (!layersPanel || !layersToggleBtn || !structureRoot) return;
-                structureRoot.classList.toggle("is-layers-open", isOpen);
-                layersToggleBtn.setAttribute("aria-expanded", isOpen ? "true" : "false");
-                layersPanel.setAttribute("aria-hidden", isOpen ? "false" : "true");
-            }
-
-            function setResidueModal() {
-                const modal = document.getElementById("residue-modal");
-                if (!modal) return;
-
-                const panel = modal.querySelector(".residue-modal-panel");
-                const content = document.getElementById("residue-modal-content");
-                const closeBtn = document.getElementById("close-residue-modal");
-                const copyBtn = document.getElementById("copy-residue-list");
-                let lastTrigger = null;
-
-                function closeModal() {
-                    modal.classList.remove("is-open");
-                    modal.setAttribute("aria-hidden", "true");
-                    document.body.classList.remove("residue-modal-open");
-                    if (lastTrigger && typeof lastTrigger.blur === "function") {
-                        lastTrigger.blur();
-                    }
-                    lastTrigger = null;
-                }
-
-                function openModal(trigger) {
-                    const residuesText = (trigger.getAttribute("data-residues") || "").trim();
-                    content.textContent = residuesText || UI_TEXT.emptyListValue;
-                    modal.classList.add("is-open");
-                    modal.setAttribute("aria-hidden", "false");
-                    document.body.classList.add("residue-modal-open");
-                    lastTrigger = trigger;
-                    if (copyBtn && typeof copyBtn.focus === "function") {
-                        copyBtn.focus();
-                    }
-                }
-
-                function setTemporaryLabel(button, label, durationMs) {
-                    if (!button) return;
-                    const defaultLabel = button.dataset.defaultLabel || button.textContent || "";
-                    button.textContent = label;
-                    window.setTimeout(function () {
-                        button.textContent = defaultLabel;
-                    }, durationMs || UI_TIMING.copiedFeedbackMs);
-                }
-
-                function copyText(text) {
-                    if (!text) return Promise.resolve(false);
-                    if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
-                        return navigator.clipboard.writeText(text).then(function () { return true; });
-                    }
-                    return new Promise(function (resolve, reject) {
-                        const fallback = document.createElement("textarea");
-                        fallback.value = text;
-                        fallback.setAttribute("readonly", "readonly");
-                        fallback.style.position = "fixed";
-                        fallback.style.left = "-10000px";
-                        document.body.appendChild(fallback);
-                        fallback.select();
-                        try {
-                            const ok = document.execCommand("copy");
-                            document.body.removeChild(fallback);
-                            if (ok) {
-                                resolve(true);
-                            } else {
-                                reject(new Error("copy failed"));
-                            }
-                        } catch (err) {
-                            document.body.removeChild(fallback);
-                            reject(err);
-                        }
-                    });
-                }
-
-                document.addEventListener("click", function (event) {
-                    const trigger = event.target.closest(".js-show-residues");
-                    if (trigger) {
-                        openModal(trigger);
-                    }
-                });
-
-                if (copyBtn) {
-                    copyBtn.addEventListener("click", function () {
-                        copyText(content ? content.textContent : "").then(function () {
-                            setTemporaryLabel(copyBtn, copyBtn.dataset.copiedLabel || UI_TEXT.copiedLabel, UI_TIMING.copiedFeedbackMs);
+    /* ---- Repr toggles (for pocket cards) ---- */
+    function setReprToggles() {
+        document.addEventListener("click", function (event) {
+            var btn = event.target.closest(".js-repr-toggle");
+            if (!btn) return;
+            var reprs = (btn.getAttribute("data-repr") || "").trim().split(/\s+/).filter(Boolean);
+            var isPressed = btn.getAttribute("aria-pressed") === "true";
+            var card = btn.closest(".pocket-card");
+            if (card && !btn.getAttribute("data-repr").endsWith("_lbl")) {
+                Array.from(card.querySelectorAll(".js-repr-toggle")).forEach(function (sibling) {
+                    if (sibling === btn || sibling.getAttribute("data-repr").endsWith("_lbl")) return;
+                    if (sibling.getAttribute("aria-pressed") === "true") {
+                        (sibling.getAttribute("data-repr") || "").trim().split(/\s+/).filter(Boolean).forEach(function (r) {
+                            window.toogle_view(r);
                         });
-                    });
-                }
-
-                if (closeBtn) {
-                    closeBtn.addEventListener("click", closeModal);
-                }
-
-                modal.addEventListener("click", function (event) {
-                    if (!panel) return;
-                    if (!panel.contains(event.target)) {
-                        closeModal();
-                    }
-                });
-
-                document.addEventListener("keydown", function (event) {
-                    if (event.key === "Escape" && modal.classList.contains("is-open")) {
-                        closeModal();
+                        sibling.setAttribute("aria-pressed", "false");
                     }
                 });
             }
+            reprs.forEach(function (r) { window.toogle_view(r); });
+            btn.setAttribute("aria-pressed", isPressed ? "false" : "true");
+        });
+    }
 
-            function decorateScoreTags() {
-                document.querySelectorAll(".js-score-tag").forEach(function (tag) {
-                    const score = Number.parseFloat(tag.dataset.score || "");
-                    tag.classList.remove("high", "medium", "low");
-                    if (Number.isNaN(score)) {
-                        tag.classList.add("medium");
-                        return;
-                    }
-                    if (score >= 0.7) {
-                        tag.classList.add("high");
-                    } else if (score >= 0.4) {
-                        tag.classList.add("medium");
-                    } else {
-                        tag.classList.add("low");
-                    }
-                });
-            }
+    /* ---- Residue modal ---- */
+    function setResidueModal() {
+        var modal   = document.getElementById("residue-modal");
+        var panel   = modal ? modal.querySelector(".residue-modal-panel") : null;
+        var content = document.getElementById("residue-modal-content");
+        var closeBtn = document.getElementById("close-residue-modal");
+        var copyBtn  = document.getElementById("copy-residue-list");
+        if (!modal || !panel || !content) return;
 
-            function initDataTableVariant(selector, options) {
-                if (!document.querySelector(selector)) return null;
-                if (typeof window.tpInitDataTable === "function") {
-                    return window.tpInitDataTable(selector, options || {});
-                }
-                if (!window.jQuery || !$.fn.dataTable) return null;
-                return $(selector).DataTable(options || {});
-            }
+        var lastTrigger = null;
 
-            function setReprToggles() {
-                document.addEventListener("click", function (event) {
-                    const btn = event.target.closest(".js-repr-toggle");
-                    if (!btn) return;
-                    const reprs = (btn.getAttribute("data-repr") || "").trim().split(/\s+/).filter(Boolean);
-                    const isPressed = btn.getAttribute("aria-pressed") === "true";
-
-                    // If this is a visualization repr (not Labels), deactivate siblings in the same card
-                    const card = btn.closest(".pocket-card");
-                    if (card && btn.getAttribute("data-repr") && !btn.getAttribute("data-repr").endsWith("_lbl")) {
-                        const vizBtns = Array.from(card.querySelectorAll(".js-repr-toggle")).filter(function (b) {
-                            return !b.getAttribute("data-repr").endsWith("_lbl");
-                        });
-                        vizBtns.forEach(function (sibling) {
-                            if (sibling === btn) return;
-                            if (sibling.getAttribute("aria-pressed") === "true") {
-                                const sibReprs = (sibling.getAttribute("data-repr") || "").trim().split(/\s+/).filter(Boolean);
-                                sibReprs.forEach(function (r) { window.toogle_view(r); });
-                                sibling.setAttribute("aria-pressed", "false");
-                            }
-                        });
-                    }
-
-                    reprs.forEach(function (repr) { window.toogle_view(repr); });
-                    btn.setAttribute("aria-pressed", isPressed ? "false" : "true");
-                });
-            }
-
-            decorateScoreTags();
-            setResidueModal();
-            setReprToggles();
-            setResetZoomEnabled(false);
-            setLayersPanelState(false);
-
-            if (layersToggleBtn) {
-                layersToggleBtn.addEventListener("click", function () {
-                    const willOpen = !structureRoot.classList.contains("is-layers-open");
-                    setLayersPanelState(willOpen);
-                });
-            }
-            if (layersCloseBtn) {
-                layersCloseBtn.addEventListener("click", function () {
-                    setLayersPanelState(false);
-                });
-            }
-            document.addEventListener("keydown", function (event) {
-                if (event.key === "Escape" && structureRoot.classList.contains("is-layers-open")) {
-                    setLayersPanelState(false);
-                }
-            });
-
-            if (typeof NGL === "undefined") {
-                if (loadingNote) {
-                    loadingNote.style.display = "block";
-                    loadingNote.textContent = UI_TEXT.loadError;
-                }
-                return;
-            }
-
-            const stage = new NGL("viewport", {
-                backgroundColor: tpColor("--tp-color-surface-panel", "#f6fbf9")
-            });
-            bindStructureWheelToViewer(document.querySelector(".structure-fs-viewport-wrap"));
-            syncNglViewportSize(stage);
-            window.addEventListener("resize", function () {
-                syncNglViewportSize(stage);
-            });
-
-            const structureUrls = {
-                primary: "{% url 'tpwebapp:structure_raw' structure.id %}",
-                {% if alt_structure_id %}alt: "{% url 'tpwebapp:structure_raw' alt_structure_id %}",{% endif %}
-            };
-            const proteinChainSelector = "{{ viewer_chain_selector|default:':A' }}";
-            const altChainSelector = "{{ alt_viewer_chain_selector|default:'' }}";
-            let activeStructureKey = "primary";
-
-            function clearRepresentationState() {
-                Object.keys(representations).forEach(function (key) { delete representations[key]; });
-                Object.keys(visible).forEach(function (key) { delete visible[key]; });
-            }
-
-            function syncStructureAnnotationPanels(which) {
-                document.querySelectorAll(".js-structure-annotations").forEach(function (panel) {
-                    panel.hidden = panel.getAttribute("data-structure-key") !== which;
-                });
-                document.querySelectorAll(".js-repr-toggle").forEach(function (control) {
-                    control.setAttribute("aria-pressed", "false");
-                });
-            }
-
-            function _loadStructureById(urlKey) {
-                activeStructureKey = urlKey;
-                clearRepresentationState();
-                syncStructureAnnotationPanels(urlKey);
-                stage.removeAllComponents();
-                stage.loadFile(structureUrls[urlKey], { ext: "pdb", defaultRepresentation: false })
-                    .then(initStructureComponent);
-            }
-
-            window.switchStructureSource = function (which) {
-                const toggle = document.getElementById("structure-source-toggle");
-                if (!toggle) return;
-                toggle.querySelectorAll(".structure-source-btn").forEach(b => b.classList.remove("is-active"));
-                document.getElementById("structure-src-" + which).classList.add("is-active");
-                _loadStructureById(which);
-            };
-
-            function initStructureComponent(component) {
-                const activeChainSelector = (activeStructureKey === "alt" && altChainSelector) ? altChainSelector : proteinChainSelector;
-                const pocketSurfaceKeys = [];
-                const priorityPocketSurfaceKeys = [];
-
-                window.ngl_reset_zoom = function () {
-                    component.autoView();
-                    setResetZoomEnabled(false);
-                };
-
-                window.toogle_view = function (repr) {
-                    if (!(repr in representations)) return;
-                    visible[repr] = !visible[repr];
-                    representations[repr].setVisibility(visible[repr]);
-                };
-
-                window.ngl_zoom_to = function (repr) {
-                    if (!(repr in representations) || !representations[repr].sele) return;
-                    component.autoView(representations[repr].sele);
-                    setResetZoomEnabled(true);
-                };
-
-                window.ngl_zoom_step = function (direction, isWheel) {
-                    const step = direction > 0
-                        ? (isWheel ? STRUCTURE_VIEWER_CONFIG.nglWheelZoomStepIn : STRUCTURE_VIEWER_CONFIG.nglZoomStepIn)
-                        : (isWheel ? STRUCTURE_VIEWER_CONFIG.nglWheelZoomStepOut : STRUCTURE_VIEWER_CONFIG.nglZoomStepOut);
-                    if (stage.viewerControls && typeof stage.viewerControls.zoom === "function") {
-                        stage.viewerControls.zoom(step);
-                        setResetZoomEnabled(true);
-                        return;
-                    }
-                    if (stage.animationControls && typeof stage.animationControls.zoomMove === "function") {
-                        stage.animationControls.zoomMove(step, 0);
-                        setResetZoomEnabled(true);
-                    }
-                };
-
-                representations.__main_cartoon = component.addRepresentation("cartoon", {
-                    aspectRatio: STRUCTURE_VIEWER_CONFIG.mainCartoonAspectRatio,
-                    scale: STRUCTURE_VIEWER_CONFIG.mainCartoonScale,
-                    sele: "backbone and " + activeChainSelector
-                });
-                visible.__main_cartoon = true;
-                representations.__main_cartoon.sele = "backbone and " + activeChainSelector;
-
-                representations.__main_density = component.addRepresentation("surface", {
-                    sele: "polymer and " + activeChainSelector,
-                    color: tpColor("--tp-color-structure-density"),
-                    opacity: STRUCTURE_VIEWER_CONFIG.densityShellOpacity,
-                    side: "double",
-                    opaqueBack: true,
-                    surfaceType: "ms"
-                });
-                visible.__main_density = false;
-                representations.__main_density.setVisibility(false);
-                representations.__main_density.sele = "polymer and " + activeChainSelector;
-
-                window.ngl_set_mode = function (mode) {
-                    const normalized = mode === "density" ? "density" : "cartoon";
-                    const isDensity = normalized === "density";
-                    const showCartoon = !isDensity;
-                    const showDensityShell = isDensity;
-                    visible.__main_cartoon = showCartoon;
-                    visible.__main_density = showDensityShell;
-                    representations.__main_cartoon.setVisibility(showCartoon);
-                    if (typeof representations.__main_cartoon.setParameters === "function") {
-                        representations.__main_cartoon.setParameters({
-                            opacity: 1
-                        });
-                    }
-                    representations.__main_density.setVisibility(showDensityShell);
-
-                    pocketSurfaceKeys.forEach(function (key) {
-                        if (!(key in representations)) return;
-                        const shouldShow = !!visible[key];
-                        representations[key].setVisibility(shouldShow);
-                    });
-                    setModeButtonState(normalized);
-                };
-
-                let sele = null;
-                if (activeStructureKey === "alt") {
-                    {% if alt_structure %}
-                        {% include "components/structure/ngl_pocket_representations.js" with structure_data=alt_structure %}
-                    {% endif %}
-                } else {
-                    {% include "components/structure/ngl_pocket_representations.js" with structure_data=structure %}
-                }
-
-                structureModeButtons.forEach(function (button) {
-                    button.addEventListener("click", function () {
-                        const mode = button.getAttribute("data-mode") || "cartoon";
-                        window.ngl_set_mode(mode);
-                    });
-                });
-
-                document.querySelectorAll("#structure-layers-panel input[type='checkbox']").forEach(function (checkbox) {
-                    checkbox.checked = false;
-                });
-
-                window.ngl_set_mode("cartoon");
-                component.autoView();
-                syncNglViewportSize(stage);
-                setResetZoomEnabled(false);
-                if (loadingNote) {
-                    loadingNote.style.display = "none";
-                }
-            }
-
-            activeStructureKey = "primary";
-            stage.loadFile(structureUrls.primary, { ext: "pdb", defaultRepresentation: false })
-                .then(initStructureComponent)
-                .catch(function () {
-                    if (loadingNote) {
-                        loadingNote.textContent = UI_TEXT.loadError;
-                        loadingNote.style.display = "block";
-                    }
-                });
-
-
-            document.querySelectorAll(".data-details").forEach(function (details) {
-                details.addEventListener("toggle", function () {
-                    if (!details.open || !$.fn.dataTable) return;
-                    details.querySelectorAll("table").forEach(function (table) {
-                        if ($.fn.dataTable.isDataTable(table)) {
-                            $(table).DataTable().columns.adjust();
-                        }
-                    });
-                });
-            });
+        function closeModal() {
+            modal.classList.remove("is-open");
+            modal.setAttribute("aria-hidden", "true");
+            document.body.classList.remove("residue-modal-open");
+            if (lastTrigger && typeof lastTrigger.focus === "function") lastTrigger.focus();
+            lastTrigger = null;
+        }
+        function openModal(trigger) {
+            var text = (trigger.getAttribute("data-residues") || "").trim();
+            content.textContent = text || "-";
+            modal.classList.add("is-open");
+            modal.setAttribute("aria-hidden", "false");
+            document.body.classList.add("residue-modal-open");
+            lastTrigger = trigger;
+            if (copyBtn) copyBtn.focus();
         }
 
-        $(document).ready(function () {
-            jsloaded();
+        document.addEventListener("click", function (ev) {
+            var t = ev.target.closest(".js-show-residues");
+            if (t) { ev.preventDefault(); openModal(t); }
         });
-    </script>
+        if (closeBtn) closeBtn.addEventListener("click", closeModal);
+        modal.addEventListener("click", function (ev) { if (!panel.contains(ev.target)) closeModal(); });
+        document.addEventListener("keydown", function (ev) { if (ev.key === "Escape" && modal.classList.contains("is-open")) closeModal(); });
+
+        if (copyBtn) {
+            copyBtn.addEventListener("click", function () {
+                var text = (content.textContent || "").trim();
+                var defaultLabel = copyBtn.dataset.defaultLabel || "Copy positions";
+                var copiedLabel  = copyBtn.dataset.copiedLabel  || "Copied";
+                (navigator.clipboard && typeof navigator.clipboard.writeText === "function"
+                    ? navigator.clipboard.writeText(text)
+                    : Promise.reject()
+                ).then(function () {
+                    copyBtn.textContent = copiedLabel;
+                    window.setTimeout(function () { copyBtn.textContent = defaultLabel; }, 1300);
+                }).catch(function () {});
+            });
+        }
+    }
+
+    decorateScoreTags();
+    setReprToggles();
+    setResidueModal();
+    setResetZoomEnabled(false);
+
+    /* ---- NGL ---- */
+    window.toogle_view    = function () {};
+    window.ngl_zoom_to    = function () {};
+    window.ngl_zoom_step  = function () {};
+    window.ngl_reset_zoom = function () {};
+    window.ngl_set_mode   = function () {};
+    window.representations = representations;
+
+    if (typeof NGL === "undefined") {
+        if (loadingNote) { loadingNote.style.display = "flex"; loadingNote.textContent = "{% trans 'Unable to load 3D structure.' %}"; }
+        return;
+    }
+
+    var stage = new NGL("viewport", {
+        backgroundColor: tpColor("--sv-viewer-canvas-bg", "#0d1519")
+    });
+
+    /* sync NGL canvas size */
+    function syncNglSize() {
+        if (!stage || typeof stage.handleResize !== "function") return;
+        window.requestAnimationFrame(function () {
+            stage.handleResize();
+            window.setTimeout(function () { stage.handleResize(); }, 80);
+        });
+    }
+    syncNglSize();
+    window.addEventListener("resize", syncNglSize);
+
+    /* Wheel-to-zoom */
+    (function () {
+        var viewerEl = document.getElementById("sv-canvas");
+        if (!viewerEl || viewerEl.__tpWheelBound) return;
+        viewerEl.__tpWheelBound = true;
+        var active = false;
+        viewerEl.addEventListener("click", function () { active = true; });
+        document.addEventListener("mousedown", function (ev) {
+            if (!viewerEl.contains(ev.target)) active = false;
+        }, true);
+        viewerEl.addEventListener("wheel", function (ev) {
+            if (!active) return;
+            ev.preventDefault();
+            ev.stopPropagation();
+            window.ngl_zoom_step(ev.deltaY < 0 ? 1 : -1, true);
+        }, { passive: false, capture: true });
+    })();
+
+    /* Structure sources */
+    var structureUrls = {
+        primary: "{% url 'tpwebapp:structure_raw' structure.id %}",
+        {% if alt_structure_id %}alt: "{% url 'tpwebapp:structure_raw' alt_structure_id %}",{% endif %}
+    };
+    var proteinChainSelector = "{{ viewer_chain_selector|default:':A' }}";
+    var altChainSelector     = "{{ alt_viewer_chain_selector|default:'' }}";
+
+    function clearRepresentationState() {
+        Object.keys(representations).forEach(function (k) { delete representations[k]; });
+        Object.keys(visible).forEach(function (k) { delete visible[k]; });
+    }
+
+    function syncAnnotationPanels(which) {
+        document.querySelectorAll(".js-structure-annotations").forEach(function (panel) {
+            panel.hidden = panel.getAttribute("data-structure-key") !== which;
+        });
+        document.querySelectorAll(".js-repr-toggle").forEach(function (ctrl) {
+            ctrl.setAttribute("aria-pressed", "false");
+        });
+    }
+
+    function _loadStructureById(urlKey) {
+        activeStructureKey = urlKey;
+        clearRepresentationState();
+        syncAnnotationPanels(urlKey);
+        stage.removeAllComponents();
+        stage.loadFile(structureUrls[urlKey], { ext: "pdb", defaultRepresentation: false })
+            .then(initStructureComponent);
+    }
+
+    window.switchStructureSource = function (which) {
+        var toggle = document.getElementById("structure-source-toggle");
+        if (!toggle) return;
+        toggle.querySelectorAll(".sv-mode-btn").forEach(function (b) { b.classList.remove("is-active"); });
+        var btn = document.getElementById("structure-src-" + which);
+        if (btn) btn.classList.add("is-active");
+        _loadStructureById(which);
+    };
+
+    function initStructureComponent(component) {
+        var chainSel = (activeStructureKey === "alt" && altChainSelector) ? altChainSelector : proteinChainSelector;
+        var pocketSurfaceKeys = [];
+
+        window.ngl_reset_zoom = function () {
+            component.autoView();
+            setResetZoomEnabled(false);
+        };
+        window.toogle_view = function (repr) {
+            if (!(repr in representations)) return;
+            visible[repr] = !visible[repr];
+            representations[repr].setVisibility(visible[repr]);
+        };
+        window.ngl_zoom_to = function (repr) {
+            if (!(repr in representations) || !representations[repr].sele) return;
+            component.autoView(representations[repr].sele);
+            setResetZoomEnabled(true);
+        };
+        window.ngl_zoom_step = function (dir, isWheel) {
+            var step = dir > 0
+                ? (isWheel ? 0.055 : 0.20)
+                : (isWheel ? -0.055 : -0.20);
+            if (stage.viewerControls && typeof stage.viewerControls.zoom === "function") {
+                stage.viewerControls.zoom(step);
+                setResetZoomEnabled(true);
+                return;
+            }
+            if (stage.animationControls && typeof stage.animationControls.zoomMove === "function") {
+                stage.animationControls.zoomMove(step, 0);
+                setResetZoomEnabled(true);
+            }
+        };
+
+        representations.__main_cartoon = component.addRepresentation("cartoon", {
+            aspectRatio: 3.0,
+            scale: 1.5,
+            sele: "backbone and " + chainSel
+        });
+        visible.__main_cartoon = true;
+        representations.__main_cartoon.sele = "backbone and " + chainSel;
+
+        representations.__main_density = component.addRepresentation("surface", {
+            sele: "polymer and " + chainSel,
+            color: tpColor("--tp-color-structure-density"),
+            opacity: 0.78,
+            side: "double",
+            opaqueBack: true,
+            surfaceType: "ms"
+        });
+        visible.__main_density = false;
+        representations.__main_density.setVisibility(false);
+        representations.__main_density.sele = "polymer and " + chainSel;
+
+        window.ngl_set_mode = function (mode) {
+            var isDensity = mode === "density";
+            visible.__main_cartoon = !isDensity;
+            visible.__main_density = isDensity;
+            representations.__main_cartoon.setVisibility(!isDensity);
+            if (typeof representations.__main_cartoon.setParameters === "function") {
+                representations.__main_cartoon.setParameters({ opacity: 1 });
+            }
+            representations.__main_density.setVisibility(isDensity);
+            pocketSurfaceKeys.forEach(function (k) {
+                if (!(k in representations)) return;
+                representations[k].setVisibility(!!visible[k]);
+            });
+            setModeButtonState(isDensity ? "density" : "cartoon");
+        };
+
+        /* Pocket representations */
+        var sele = null;
+        if (activeStructureKey === "alt") {
+            {% if alt_structure %}{% include "components/structure/ngl_pocket_representations.js" with structure_data=alt_structure %}{% endif %}
+        } else {
+            {% include "components/structure/ngl_pocket_representations.js" with structure_data=structure %}
+        }
+
+        structureModeButtons.forEach(function (btn) {
+            btn.addEventListener("click", function () {
+                window.ngl_set_mode(btn.getAttribute("data-mode") || "cartoon");
+            });
+        });
+
+        document.querySelectorAll("#sv-sidebar input[type='checkbox']").forEach(function (cb) { cb.checked = false; });
+
+        window.ngl_set_mode("cartoon");
+        component.autoView();
+        syncNglSize();
+        setResetZoomEnabled(false);
+
+        /* Auto-spin on load */
+        if (isSpinning && typeof stage.setSpin === "function") {
+            stage.setSpin(true);
+        }
+        updateSpinButton();
+
+        if (loadingNote) loadingNote.style.display = "none";
+    }
+
+    stage.loadFile(structureUrls.primary, { ext: "pdb", defaultRepresentation: false })
+        .then(initStructureComponent)
+        .catch(function () {
+            if (loadingNote) {
+                loadingNote.style.display = "flex";
+                loadingNote.textContent = "{% trans 'Unable to load 3D structure.' %}";
+            }
+        });
+}
+
+$(document).ready(function () { jsloaded(); });
+</script>
 {% endblock %}

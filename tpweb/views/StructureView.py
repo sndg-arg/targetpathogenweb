@@ -222,6 +222,14 @@ def pdb_structure(pdbobj, graphic_features):
     context["pdbid"] = pdbobj.code.lower()
     context["residuesets"] = sorted(context["residuesets"], key=lambda x: x["rs_name"])
 
+    _METHOD_MAP = {"EX": "Crystal structure", "AF": "AlphaFold model", "CF": "ColabFold model"}
+    context["method"] = _METHOD_MAP.get((pdbobj.experiment or "").upper(), "Structure model")
+    try:
+        res_val = float(pdbobj.resolution)
+        context["resolution"] = f"{res_val:.1f}" if 0 < res_val < 15 else None
+    except (TypeError, ValueError):
+        context["resolution"] = None
+
     return {**context}
 
 
