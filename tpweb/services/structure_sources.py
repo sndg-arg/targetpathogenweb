@@ -96,10 +96,13 @@ def summarize_structure_sources(structures):
         if source in source_keys
     ]
 
+    source_labels = [structure_source_label(source) for source in ordered_sources]
+    combined_label = " + ".join(source_labels) if source_labels else structure_source_label(STRUCTURE_SOURCE_NONE)
+
     return {
         "source": primary_source,
-        "label": structure_source_label(primary_source),
-        "labels": [structure_source_label(source) for source in ordered_sources],
+        "label": combined_label,
+        "labels": source_labels,
         "has_structure": bool(source_keys),
         "count": total_structures,
     }

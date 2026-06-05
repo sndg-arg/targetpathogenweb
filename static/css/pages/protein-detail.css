@@ -811,8 +811,6 @@
     border-radius: 10px;
     background: transparent;
     color: var(--tp-color-text-muted);
-    font-size: 0.82rem;
-    font-weight: 500;
     cursor: pointer;
     transition: background 0.15s, color 0.15s;
     line-height: 1.25;
@@ -827,7 +825,6 @@
 .structure-source-btn.is-active {
     background: var(--tp-color-surface-panel);
     color: var(--tp-color-brand-700);
-    font-weight: 600;
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
 }
 
@@ -1736,6 +1733,209 @@
     }
     .binder-table__head { display: none; }
 }
+
+/* ── Experimental structures table (UniProt-style) ── */
+
+.exp-struct-section {
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid var(--tp-color-border-soft);
+}
+
+.exp-struct-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 6px;
+}
+
+.exp-struct-title {
+    margin: 0;
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: var(--protein-accent-ink);
+    letter-spacing: 0.01em;
+}
+
+.exp-struct-caption {
+    margin: 0 0 10px;
+    font-size: 0.83rem;
+    color: var(--tp-color-text-muted);
+    line-height: 1.4;
+}
+
+.exp-struct-shell {
+    overflow-x: auto;
+    overflow-y: auto;
+    max-height: 22rem;
+    border-radius: 10px;
+}
+
+.exp-struct-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+}
+
+.exp-struct-table thead tr {
+    background: var(--tp-color-surface-soft);
+}
+
+.exp-struct-table th {
+    padding: 9px 12px;
+    text-align: left;
+    font-size: var(--tp-font-label);
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--tp-color-text-muted);
+    white-space: nowrap;
+    border-bottom: 1px solid var(--tp-color-border-soft);
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: var(--tp-color-surface-soft);
+}
+
+.exp-struct-row {
+    border-bottom: 1px solid var(--tp-color-border-soft);
+    transition: background 120ms ease;
+}
+
+.exp-struct-row:last-child {
+    border-bottom: none;
+}
+
+.exp-struct-row:hover {
+    background: var(--tp-color-surface-soft);
+}
+
+.exp-struct-row--loaded {
+    background: linear-gradient(90deg, color-mix(in srgb, var(--tp-color-brand-050) 70%, transparent) 0%, transparent 100%);
+}
+
+.exp-struct-row--loaded:hover {
+    background: var(--tp-color-brand-050);
+}
+
+.exp-struct-table td {
+    padding: 8px 12px;
+    color: var(--tp-color-text-primary);
+    vertical-align: middle;
+}
+
+.exp-source-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 7px;
+    border-radius: 5px;
+    border: 1px solid var(--tp-color-border-strong);
+    background: var(--tp-color-surface-soft);
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--tp-color-text-muted);
+}
+
+.exp-id-cell {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    white-space: nowrap;
+}
+
+.exp-pdb-code {
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--protein-accent);
+    background: none;
+    padding: 0;
+}
+
+.exp-loaded-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 1px 6px;
+    border-radius: 5px;
+    background: var(--tp-color-brand-100);
+    border: 1px solid var(--tp-color-brand-300);
+    color: var(--tp-color-brand-800);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+}
+
+.exp-resolution {
+    font-variant-numeric: tabular-nums;
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 0.83rem;
+    color: var(--tp-color-text-secondary);
+    white-space: nowrap;
+}
+
+.exp-chain {
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 0.83rem;
+    color: var(--tp-color-text-muted);
+}
+
+.exp-positions {
+    font-variant-numeric: tabular-nums;
+    font-size: 0.85rem;
+    color: var(--tp-color-text-secondary);
+    white-space: nowrap;
+}
+
+.exp-links {
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.exp-link {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--tp-color-link);
+    text-decoration: none;
+}
+
+.exp-link:hover {
+    text-decoration: underline;
+    color: var(--tp-color-link-hover);
+}
+
+.exp-link-sep {
+    color: var(--tp-color-text-soft);
+    font-size: 0.8rem;
+}
+
+.tp-dark .exp-struct-row--loaded {
+    background: color-mix(in srgb, var(--tp-color-brand-800) 8%, transparent);
+}
+
+.tp-dark .exp-struct-row--loaded:hover {
+    background: color-mix(in srgb, var(--tp-color-brand-800) 14%, transparent);
+}
+
+.tp-dark .exp-source-tag {
+    background: var(--tp-color-surface-muted);
+    border-color: var(--tp-color-border);
+}
+
+.tp-dark .exp-loaded-badge {
+    background: color-mix(in srgb, var(--tp-color-brand-800) 20%, transparent);
+    border-color: var(--tp-color-brand-600);
+    color: var(--tp-color-brand-300);
+}
+
+.tp-dark .exp-struct-table th {
+    background: var(--tp-color-surface-soft);
+}
+
+/* ── Residue modal ── */
 
 .residue-modal-backdrop {
     position: fixed;

@@ -1,0 +1,57 @@
+{% load i18n %}
+{% if xrefs %}
+<div class="exp-struct-section">
+    <div class="exp-struct-head">
+        <h3 class="exp-struct-title">{% trans "PDB evidence" %}</h3>
+        <span class="tp-chip tp-chip--count tp-chip--sm">{{ xrefs|length }}</span>
+    </div>
+    <p class="exp-struct-caption">{% trans "Experimental structures reported in the Protein Data Bank for this protein. Entries marked 3D are loaded in the viewer above." %}</p>
+    <div class="table-shell tp-table-shell exp-struct-shell">
+        <table class="tp-table exp-struct-table">
+            <thead>
+                <tr>
+                    <th scope="col">{% trans "Source" %}</th>
+                    <th scope="col">{% trans "Identifier" %}</th>
+                    <th scope="col">{% trans "Method" %}</th>
+                    <th scope="col">{% trans "Resolution" %}</th>
+                    <th scope="col">{% trans "Chain" %}</th>
+                    <th scope="col">{% trans "Positions" %}</th>
+                    <th scope="col">{% trans "Links" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for xref in xrefs %}
+                <tr class="exp-struct-row{% if xref._is_loaded %} exp-struct-row--loaded{% endif %}">
+                    <td><span class="exp-source-tag">PDB</span></td>
+                    <td class="exp-id-cell">
+                        <code class="exp-pdb-code">{{ xref.pdb_id }}</code>
+                        {% if xref._is_loaded %}
+                            <span class="exp-loaded-badge" title="{% trans "Loaded in 3D viewer" %}">3D</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ xref._method_short }}</td>
+                    <td class="exp-resolution">
+                        {% if xref.resolution %}{{ xref.resolution|floatformat:2 }} Å{% else %}—{% endif %}
+                    </td>
+                    <td class="exp-chain">{{ xref.chains|default:"—" }}</td>
+                    <td class="exp-positions">
+                        {% if xref.uniprot_start and xref.uniprot_end %}
+                            {{ xref.uniprot_start }}–{{ xref.uniprot_end }}
+                        {% else %}—{% endif %}
+                    </td>
+                    <td class="exp-links">
+                        <a href="https://www.rcsb.org/structure/{{ xref.pdb_id }}"
+                           target="_blank" rel="noopener noreferrer"
+                           class="exp-link">RCSB-PDB</a>
+                        <span class="exp-link-sep" aria-hidden="true">·</span>
+                        <a href="https://www.ebi.ac.uk/pdbe/entry/pdb/{{ xref.pdb_id|lower }}"
+                           target="_blank" rel="noopener noreferrer"
+                           class="exp-link">PDBe</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
