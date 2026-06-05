@@ -364,12 +364,12 @@
                         <span class="tp-score-tag low">{% trans "Low" %}</span>
                     </div>
 
+                    {% include "components/structure/pdb_evidence_table.html" with items=experimental_structures predicted_items=predicted_structures protein=protein %}
+
                     {% include "components/structure/pocket_tables.html" with structure_data=structure structure_key="primary" table_prefix="" %}
                     {% if alt_structure %}
                         {% include "components/structure/pocket_tables.html" with structure_data=alt_structure structure_key="alt" table_prefix="alt-" hidden=True %}
                     {% endif %}
-
-                    {% include "components/structure/pdb_evidence_table.html" with items=experimental_structures predicted_items=predicted_structures protein=protein %}
                 </section>
             {% endif %}
 
