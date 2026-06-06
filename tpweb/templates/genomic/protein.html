@@ -1403,47 +1403,58 @@
             }
             {% endif %}
 
-            ["#pocketsTable", "#alt-pocketsTable"].forEach(function (selector) {
-                if (window.jQuery && $.fn.dataTable && $(selector).length && $(selector + " tbody tr").length > 5) {
-                    initDataTableVariant(selector, {
-                        tpVariant: "compact",
-                        searching: false,
-                        pageLength: 5,
-                        paging: true,
-                        lengthChange: false,
-                        ordering: false,
-                        autoWidth: false
+            (function () {
+                function initPocketTableVariants() {
+                    ["#pocketsTable", "#alt-pocketsTable"].forEach(function (selector) {
+                        if (window.jQuery && $.fn.dataTable && $(selector).length && !$.fn.dataTable.isDataTable(selector) && $(selector + " tbody tr").length > 5) {
+                            initDataTableVariant(selector, {
+                                tpVariant: "compact",
+                                searching: false,
+                                pageLength: 5,
+                                paging: true,
+                                lengthChange: false,
+                                ordering: false,
+                                autoWidth: false
+                            });
+                        }
+                    });
+                    ["#p2pocketsTable", "#alt-p2pocketsTable"].forEach(function (selector) {
+                        if (window.jQuery && $.fn.dataTable && $(selector).length && !$.fn.dataTable.isDataTable(selector) && $(selector + " tbody tr").length > 5) {
+                            initDataTableVariant(selector, {
+                                tpVariant: "compact",
+                                searching: false,
+                                pageLength: 5,
+                                paging: true,
+                                lengthChange: false,
+                                ordering: false,
+                                autoWidth: false
+                            });
+                        }
+                    });
+                    ["#residuesetsTable", "#alt-residuesetsTable"].forEach(function (selector) {
+                        if (window.jQuery && $.fn.dataTable && $(selector).length && !$.fn.dataTable.isDataTable(selector) && $(selector + " tbody tr").length > 5) {
+                            initDataTableVariant(selector, {
+                                tpVariant: "compact",
+                                searching: true,
+                                pageLength: 10,
+                                paging: true,
+                                lengthChange: false,
+                                ordering: false,
+                                autoWidth: false
+                            });
+                        }
                     });
                 }
-            });
 
-            ["#p2pocketsTable", "#alt-p2pocketsTable"].forEach(function (selector) {
-                if (window.jQuery && $.fn.dataTable && $(selector).length && $(selector + " tbody tr").length > 5) {
-                    initDataTableVariant(selector, {
-                        tpVariant: "compact",
-                        searching: false,
-                        pageLength: 5,
-                        paging: true,
-                        lengthChange: false,
-                        ordering: false,
-                        autoWidth: false
-                    });
+                var pocketDetails = document.querySelector(".pocket-tables-details");
+                if (pocketDetails) {
+                    pocketDetails.addEventListener("toggle", function () {
+                        if (this.open) { initPocketTableVariants(); }
+                    }, { once: true });
+                } else {
+                    initPocketTableVariants();
                 }
-            });
-
-            ["#residuesetsTable", "#alt-residuesetsTable"].forEach(function (selector) {
-                if (window.jQuery && $.fn.dataTable && $(selector).length && $(selector + " tbody tr").length > 5) {
-                    initDataTableVariant(selector, {
-                        tpVariant: "compact",
-                        searching: true,
-                        pageLength: 10,
-                        paging: true,
-                        lengthChange: false,
-                        ordering: false,
-                        autoWidth: false
-                    });
-                }
-            });
+            }());
 
             if (typeof proteinDetail.adjustDataTablesOnDetailsToggle === "function") {
                 proteinDetail.adjustDataTablesOnDetailsToggle();
