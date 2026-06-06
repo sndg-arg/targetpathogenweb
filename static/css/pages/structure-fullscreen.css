@@ -178,7 +178,7 @@ body:has(.sv-root) .tp-footer { display: none !important; }
     left: 50%;
     transform: translateX(-50%);
     z-index: 20;
-    display: inline-flex;
+    display: flex;
     align-items: center;
     gap: 3px;
     padding: 5px 8px;
@@ -187,8 +187,9 @@ body:has(.sv-root) .tp-footer { display: none !important; }
     -webkit-backdrop-filter: blur(18px) saturate(1.4);
     border: 1px solid var(--sv-toolbar-border);
     border-radius: 14px;
-    box-shadow: 0 4px 28px rgba(0, 0, 0, 0.36);
+    box-shadow: 0 4px 28px rgba(0, 0, 0, 0.22);
     white-space: nowrap;
+    max-width: calc(100% - 32px);
 }
 
 /* Generic toolbar button */
@@ -294,9 +295,9 @@ body:has(.sv-root) .tp-footer { display: none !important; }
 
 /* Structure picker — scrollable pill row for multiple structures */
 .sv-structure-picker {
-    max-width: 320px;
+    flex: 1 1 0;
+    min-width: 80px;
     overflow-x: auto;
-    flex-shrink: 1;
     scrollbar-width: none;
 }
 .sv-structure-picker::-webkit-scrollbar { display: none; }
