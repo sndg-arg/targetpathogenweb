@@ -360,7 +360,7 @@
                             {% trans "Full viewer" %}
                         </a>
                     </div>
-                    {% if structure and not structure.pockets and not structure.p2_pockets %}
+                    {% if structure and not structure.pockets and not structure.p2_pockets and not alt_structure.pockets and not alt_structure.p2_pockets %}
                         <p class="table-hint">{% blocktrans with source=pocket_structure_label %}No pockets are loaded yet for the displayed {{ source }} structure. Run experimental pocket backfill to show FPocket/P2Rank overlays on this structure.{% endblocktrans %}</p>
                     {% endif %}
                     <div class="structure-viewport-wrap">
@@ -377,7 +377,7 @@
 
                     {% include "components/structure/pdb_evidence_table.html" with items=experimental_structures predicted_items=predicted_structures protein=protein %}
 
-                    {% if structure.pockets or structure.p2_pockets %}
+                    {% if structure.pockets or structure.p2_pockets or alt_structure.pockets or alt_structure.p2_pockets %}
                     <details class="data-details pocket-tables-details">
                         <summary class="pocket-tables-summary">
                             {% trans "Pocket details" %}
