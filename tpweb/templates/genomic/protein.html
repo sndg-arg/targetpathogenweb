@@ -377,10 +377,16 @@
 
                     {% include "components/structure/pdb_evidence_table.html" with items=experimental_structures predicted_items=predicted_structures protein=protein %}
 
-                    {% include "components/structure/pocket_tables.html" with structure_data=structure structure_key="primary" table_prefix="" %}
-                    {% if alt_structure %}
-                        {% include "components/structure/pocket_tables.html" with structure_data=alt_structure structure_key="alt" table_prefix="alt-" hidden=True %}
-                    {% endif %}
+                    <details class="data-details pocket-tables-details">
+                        <summary class="pocket-tables-summary">
+                            {% trans "Pocket details" %}
+                            <span class="pocket-tables-summary-hint">{% trans "FPocket · P2Rank — toggle visibility and zoom from here, or" %} <a href="{% url "tpwebapp:structure" structure.id %}?protein_id={{ protein.id }}" class="pocket-tables-summary-link">{% trans "open full viewer" %}</a></span>
+                        </summary>
+                        {% include "components/structure/pocket_tables.html" with structure_data=structure structure_key="primary" table_prefix="" %}
+                        {% if alt_structure %}
+                            {% include "components/structure/pocket_tables.html" with structure_data=alt_structure structure_key="alt" table_prefix="alt-" hidden=True %}
+                        {% endif %}
+                    </details>
                 </section>
             {% endif %}
 

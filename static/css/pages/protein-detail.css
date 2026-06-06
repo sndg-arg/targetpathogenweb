@@ -762,6 +762,18 @@
     box-shadow: none;
 }
 
+.pocket-tables-summary-hint {
+    font-size: 0.80rem;
+    font-weight: 400;
+    color: var(--tp-color-text-muted);
+    margin-left: 6px;
+}
+.pocket-tables-summary-link {
+    color: var(--tp-color-brand-700);
+    text-decoration: none;
+}
+.pocket-tables-summary-link:hover { text-decoration: underline; }
+
 .table-hint {
     margin: 0;
     color: var(--tp-color-text-muted);
