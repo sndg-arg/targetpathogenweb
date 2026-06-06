@@ -7,7 +7,10 @@ from tpweb.models.BioentryStructure import BioentryStructure
 from tpweb.models.pdb import PDB, Residue, Property, ResidueSet, PDBResidueSet
 from django.db.models import Q
 from tpweb.services.genome_workspace import user_can_access_genome_name, genome_url_slug
-from tpweb.services.structure_sources import structure_toggle_label as _structure_toggle_label
+
+
+_METHOD_MAP = {"EX": "Crystal structure", "AF": "AlphaFold model", "CF": "ColabFold model"}
+_SHORT_METHOD = {"EX": "Crystal", "AF": "AlphaFold", "CF": "ColabFold"}
 
 
 def _chain_selector(chain):
@@ -19,11 +22,11 @@ class StructureView(View):
     template_name = 'genomic/structure.html'
 
     def get(self, request, struct_id, *args, **kwargs):
-        # form = self.form_class(initial=self.initial)
-
         structure = PDB.objects.filter(id=struct_id).get()
+        primary_data = pdb_structure(structure, [])
 
-        dto = {"structure": pdb_structure(structure, [])}
+        dto = {"structure": primary_data}
+
         source_bioentry = self._resolve_source_bioentry(request, structure)
         if source_bioentry is not None:
             dto["source_protein_id"] = source_bioentry.bioentry_id
@@ -33,27 +36,73 @@ class StructureView(View):
             dto["source_genome"] = genome_url_slug(source_assembly_name)
             if not user_can_access_genome_name(request.user, source_assembly_name):
                 raise Http404("Structure not found")
-            source_link = BioentryStructure.objects.filter(
-                pdb=structure,
-                bioentry=source_bioentry,
-            ).first()
-            if source_link:
-                dto["viewer_chain"] = source_link.chain or ""
-                dto["viewer_chain_selector"] = _chain_selector(source_link.chain)
-            # Expose alternative structure for toggle (EX ↔ AF/CF)
-            alt = self._find_alt_structure(source_bioentry, structure)
-            if alt:
-                dto["alt_structure_id"] = alt.id
-                dto["alt_structure_label"] = _structure_toggle_label(alt.experiment)
-                dto["primary_structure_label"] = _structure_toggle_label(structure.experiment)
-                dto["alt_structure"] = pdb_structure(alt, [])
-                alt_link = BioentryStructure.objects.filter(
-                    pdb=alt,
-                    bioentry=source_bioentry,
+
+            # Collect ALL structures linked to this protein
+            all_links = (
+                BioentryStructure.objects
+                .select_related("pdb")
+                .filter(bioentry=source_bioentry)
+                .order_by("pdb__experiment", "pdb__code")
+            )
+
+            all_structures = []
+            seen_ids = set()
+            for link in all_links:
+                pdb = link.pdb
+                if pdb.id in seen_ids:
+                    continue
+                seen_ids.add(pdb.id)
+                s_data = primary_data if pdb.id == structure.id else pdb_structure(pdb, [])
+                exp = (pdb.experiment or "").upper()
+                all_structures.append({
+                    "id": pdb.id,
+                    "code": pdb.code,
+                    "experiment": exp,
+                    "method": s_data["method"],
+                    "short_method": _SHORT_METHOD.get(exp, s_data["method"]),
+                    "resolution": s_data.get("resolution"),
+                    "chain_selector": _chain_selector(link.chain),
+                    "structure_data": s_data,
+                    "is_active": pdb.id == structure.id,
+                })
+
+            # Ensure the requested structure is always in the list
+            if not any(s["id"] == structure.id for s in all_structures):
+                primary_link = BioentryStructure.objects.filter(
+                    pdb=structure, bioentry=source_bioentry
                 ).first()
-                if alt_link:
-                    dto["alt_viewer_chain"] = alt_link.chain or ""
-                    dto["alt_viewer_chain_selector"] = _chain_selector(alt_link.chain)
+                chain_sel = _chain_selector(primary_link.chain if primary_link else "")
+                exp = (structure.experiment or "").upper()
+                all_structures.insert(0, {
+                    "id": structure.id,
+                    "code": structure.code,
+                    "experiment": exp,
+                    "method": primary_data["method"],
+                    "short_method": _SHORT_METHOD.get(exp, primary_data["method"]),
+                    "resolution": primary_data.get("resolution"),
+                    "chain_selector": chain_sel,
+                    "structure_data": primary_data,
+                    "is_active": True,
+                })
+
+            dto["all_structures"] = all_structures
+            active = next((s for s in all_structures if s["is_active"]), all_structures[0] if all_structures else None)
+            if active:
+                dto["viewer_chain_selector"] = active["chain_selector"]
+        else:
+            exp = (structure.experiment or "").upper()
+            dto["all_structures"] = [{
+                "id": structure.id,
+                "code": structure.code,
+                "experiment": exp,
+                "method": primary_data["method"],
+                "short_method": _SHORT_METHOD.get(exp, primary_data["method"]),
+                "resolution": primary_data.get("resolution"),
+                "chain_selector": "polymer",
+                "structure_data": primary_data,
+                "is_active": True,
+            }]
+            dto["viewer_chain_selector"] = "polymer"
 
         return render(request, self.template_name, dto)
 
@@ -71,23 +120,6 @@ class StructureView(View):
         first_link = BioentryStructure.objects.select_related("bioentry__biodatabase").filter(pdb=structure).first()
         if first_link and first_link.bioentry:
             return first_link.bioentry
-        return None
-
-    @staticmethod
-    def _find_alt_structure(source_bioentry, current_structure):
-        """Return a PDB object that is the counterpart to current_structure (EX↔AF/CF)."""
-        current_exp = (current_structure.experiment or "").upper()
-        all_structures = BioentryStructure.objects.select_related("pdb").filter(
-            bioentry=source_bioentry
-        ).exclude(pdb=current_structure)
-        if current_exp == "EX":
-            preferred = ["AF", "CF"]
-        else:
-            preferred = ["EX"]
-        for exp in preferred:
-            match = all_structures.filter(pdb__experiment=exp).first()
-            if match:
-                return match.pdb
         return None
 
     @staticmethod
@@ -124,14 +156,12 @@ def pdb_structure(pdbobj, graphic_features):
             context["layers"].append("dna")
             context["dna"] += [x for x in context["chains"] if x["name"] == chain]
             context["chains"] = [x for x in context["chains"] if x["name"] != chain]
-    
+
     ds = Property.objects.get(name="druggability_score")
     p2s = Property.objects.get(name="p2score")
     p2p = Property.objects.get(name="probability")
     rs = ResidueSet.objects.get(name="FPocketPocket")
     p2_rs = ResidueSet.objects.get(name="P2RankPocket")
-    # sq = ResidueSetProperty.objects.select_related(pdbresidue_set)\
-    #     .filter(property=ds,value__gte=0.2,pdbresidue_set=OuterRef("id"))
 
     context["pockets"] = list(PDBResidueSet.objects.prefetch_related(
         "properties__property",
@@ -195,7 +225,6 @@ def pdb_structure(pdbobj, graphic_features):
 
     context["p2_pockets"].sort(key=lambda p: p.probability or 0, reverse=True)
 
-    ## Non pocket res
     rss = PDBResidueSet.objects.prefetch_related(
         "properties__property",
         "residue_set_residue__residue").filter(
@@ -222,7 +251,6 @@ def pdb_structure(pdbobj, graphic_features):
     context["pdbid"] = pdbobj.code.lower()
     context["residuesets"] = sorted(context["residuesets"], key=lambda x: x["rs_name"])
 
-    _METHOD_MAP = {"EX": "Crystal structure", "AF": "AlphaFold model", "CF": "ColabFold model"}
     context["method"] = _METHOD_MAP.get((pdbobj.experiment or "").upper(), "Structure model")
     try:
         res_val = float(pdbobj.resolution)
@@ -237,29 +265,20 @@ import random
 
 
 def p2rank_probability_color(probability):
-    """Return a hex color based on P2Rank calibrated probability thresholds.
-
-    High (>= 0.5): green — strong binding-site prediction.
-    Medium (>= 0.2): amber — moderate prediction.
-    Low (< 0.2): red — weak prediction.
-    """
     try:
         prob = float(probability)
     except (TypeError, ValueError):
-        return "#F59E0B"  # amber fallback
+        return "#F59E0B"
     if prob >= 0.5:
-        return "#10B981"  # green
+        return "#10B981"
     if prob >= 0.2:
-        return "#F59E0B"  # amber
-    return "#EF4444"      # red
+        return "#F59E0B"
+    return "#EF4444"
 
 
 def generar_color_aleatorio():
-    # Generar valores aleatorios para los componentes RGB
     red = random.randint(0, 255)
     green = random.randint(0, 255)
     blue = random.randint(0, 255)
-
-    # Convertir los valores RGB a formato hexadecimal
     color_hex = "#{:02X}{:02X}{:02X}".format(red, green, blue)
     return color_hex

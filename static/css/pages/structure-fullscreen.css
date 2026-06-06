@@ -292,6 +292,16 @@ body:has(.sv-root) .tp-footer { display: none !important; }
     opacity: 1;
 }
 
+/* Structure picker — scrollable pill row for multiple structures */
+.sv-structure-picker {
+    max-width: 320px;
+    overflow-x: auto;
+    flex-shrink: 1;
+    scrollbar-width: none;
+}
+.sv-structure-picker::-webkit-scrollbar { display: none; }
+.sv-structure-picker .sv-mode-btn { flex-shrink: 0; }
+
 /* ── 7. Sidebar (right panel) ── */
 .sv-sidebar {
     width: 320px;

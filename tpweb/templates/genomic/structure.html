@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20260605-sv1">
+    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20260605-sv2">
 {% endblock %}
 
 {% block body %}
@@ -28,9 +28,9 @@
                 {% endif %}
             </div>
             <div class="sv-topbar-identity">
-                <span class="sv-pdb-code">{{ structure.code|upper }}</span>
-                {% if structure.method %}<span class="sv-meta-pill">{{ structure.method }}</span>{% endif %}
-                {% if structure.resolution %}<span class="sv-meta-pill sv-meta-pill--dim">{{ structure.resolution }} Å</span>{% endif %}
+                <span class="sv-pdb-code" id="sv-topbar-code">{{ structure.code|upper }}</span>
+                <span class="sv-meta-pill" id="sv-topbar-method" {% if not structure.method %}hidden{% endif %}>{{ structure.method }}</span>
+                <span class="sv-meta-pill sv-meta-pill--dim" id="sv-topbar-resolution" {% if not structure.resolution %}hidden{% endif %}>{% if structure.resolution %}{{ structure.resolution }} Å{% endif %}</span>
             </div>
         </header>
 
@@ -89,23 +89,29 @@
                 </svg>
             </button>
 
-            {% if alt_structure_id %}
+            {# Structure picker — shown when there are multiple structures for this protein #}
+            {% if all_structures|length > 1 %}
             <div class="sv-tb-sep" aria-hidden="true"></div>
-            <div class="sv-mode-group sv-source-group" id="structure-source-toggle"
-                 data-primary-id="{{ structure.id }}"
-                 data-primary-label="{{ primary_structure_label }}"
-                 data-alt-id="{{ alt_structure_id }}"
-                 data-alt-label="{{ alt_structure_label }}">
-                <button type="button" class="sv-mode-btn is-active" id="structure-src-primary" onclick="switchStructureSource('primary')">{{ primary_structure_label }}</button>
-                <button type="button" class="sv-mode-btn" id="structure-src-alt" onclick="switchStructureSource('alt')">{{ alt_structure_label }}</button>
+            <div class="sv-mode-group sv-structure-picker" id="sv-structure-picker" role="group" aria-label="{% trans 'Select structure' %}">
+                {% for s in all_structures %}
+                <button type="button"
+                        class="sv-mode-btn {% if s.is_active %}is-active{% endif %}"
+                        data-struct-id="{{ s.id }}"
+                        data-code="{{ s.code|upper }}"
+                        data-method="{{ s.method }}"
+                        data-resolution="{{ s.resolution|default:'' }}"
+                        data-vmd-url="{% url 'tpwebapp:structure_export' s.id %}"
+                        title="{{ s.method }}{% if s.resolution %} · {{ s.resolution }} Å{% endif %}"
+                        onclick="switchStructure({{ s.id }})">{{ s.short_method }}{% if s.code %} · {{ s.code|upper }}{% endif %}</button>
+                {% endfor %}
             </div>
             {% endif %}
 
             <div class="sv-tb-sep" aria-hidden="true"></div>
 
-            {# VMD download #}
-            <a href="{% url 'tpwebapp:structure_export' structure.id %}" class="sv-tb-btn sv-download-link"
-               title="{% trans 'Download VMD visualization script' %}">
+            {# VMD download — href updated by JS when switching structures #}
+            <a href="{% url 'tpwebapp:structure_export' structure.id %}" id="sv-vmd-link"
+               class="sv-tb-btn sv-download-link" title="{% trans 'Download VMD visualization script' %}">
                 <svg class="sv-tb-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
                     <path d="M8 2v8M5 7l3 3 3-3M2 13h12"/>
                 </svg>
@@ -123,23 +129,26 @@
                 {% if source_protein_label %}
                     <p class="sv-sidebar-protein-name">{{ source_protein_label }}</p>
                 {% endif %}
-                <h1 class="sv-sidebar-code">{{ structure.code|upper }}</h1>
-                <div class="sv-sidebar-meta-row">
-                    {% if structure.method %}<span class="sv-sidebar-meta-tag">{{ structure.method }}</span>{% endif %}
-                    {% if structure.resolution %}<span class="sv-sidebar-meta-tag sv-sidebar-meta-tag--dim">{{ structure.resolution }} Å</span>{% endif %}
-                    {% if structure.pockets %}<span class="sv-sidebar-meta-tag sv-sidebar-meta-tag--count">{{ structure.pockets|length }} FPocket</span>{% endif %}
-                    {% if structure.p2_pockets %}<span class="sv-sidebar-meta-tag sv-sidebar-meta-tag--count">{{ structure.p2_pockets|length }} P2Rank</span>{% endif %}
+                <h1 class="sv-sidebar-code" id="sv-sidebar-code">{{ structure.code|upper }}</h1>
+                <div class="sv-sidebar-meta-row" id="sv-sidebar-meta">
+                    {% for s in all_structures %}{% if s.is_active %}
+                    <span class="sv-sidebar-meta-tag">{{ s.method }}</span>
+                    {% if s.resolution %}<span class="sv-sidebar-meta-tag sv-sidebar-meta-tag--dim">{{ s.resolution }} Å</span>{% endif %}
+                    {% if s.structure_data.pockets %}<span class="sv-sidebar-meta-tag sv-sidebar-meta-tag--count">{{ s.structure_data.pockets|length }} FPocket</span>{% endif %}
+                    {% if s.structure_data.p2_pockets %}<span class="sv-sidebar-meta-tag sv-sidebar-meta-tag--count">{{ s.structure_data.p2_pockets|length }} P2Rank</span>{% endif %}
+                    {% endif %}{% endfor %}
                 </div>
             </header>
 
-            {% include "components/structure/pocket_cards.html" with structure_data=structure structure_key="primary" %}
-            {% if alt_structure %}
-                {% include "components/structure/pocket_cards.html" with structure_data=alt_structure structure_key="alt" hidden=True %}
-            {% endif %}
-
-            {% if not structure.pockets and not structure.p2_pockets and not structure.residuesets %}
-                <p class="sv-no-pockets">{% trans "No pocket predictions available for this structure." %}</p>
-            {% endif %}
+            {# Pocket cards for each structure — only the active one is shown #}
+            {% for s in all_structures %}
+            <div class="sv-structure-block" data-structure-id="{{ s.id }}" {% if not s.is_active %}hidden{% endif %}>
+                {% include "components/structure/pocket_cards.html" with structure_data=s.structure_data structure_key=s.id|stringformat:"s" %}
+                {% if not s.structure_data.pockets and not s.structure_data.p2_pockets and not s.structure_data.residuesets %}
+                    <p class="sv-no-pockets">{% trans "No pocket predictions available for this structure." %}</p>
+                {% endif %}
+            </div>
+            {% endfor %}
 
         </div>
     </aside>
@@ -168,18 +177,31 @@
 function jsloaded() {
     "use strict";
 
-    var spinBtn        = document.getElementById("sv-spin-btn");
-    var resetZoomBtn   = document.getElementById("structure-reset-zoom-btn");
-    var loadingNote    = document.getElementById("structure-loading-note");
-    var svRoot         = document.getElementById("sv-root");
+    /* ---- Config (mirrors protein.html STRUCTURE_VIEWER_CONFIG) ---- */
+    var STRUCTURE_VIEWER_CONFIG = Object.freeze({
+        nglZoomStepIn: 0.20,
+        nglZoomStepOut: -0.20,
+        nglWheelZoomStepIn: 0.055,
+        nglWheelZoomStepOut: -0.055,
+        mainCartoonAspectRatio: 3.0,
+        mainCartoonScale: 1.5,
+        densityShellOpacity: 0.78,
+        surfaceOpacity: 0.96,
+        densityCartoonOpacity: 0.3
+    });
+
+    var spinBtn       = document.getElementById("sv-spin-btn");
+    var resetZoomBtn  = document.getElementById("structure-reset-zoom-btn");
+    var loadingNote   = document.getElementById("structure-loading-note");
+    var vmdLink       = document.getElementById("sv-vmd-link");
     var structureModeButtons = Array.from(document.querySelectorAll(".js-structure-mode"));
 
     var representations = {};
     var visible = {};
-    var activeStructureKey = "primary";
+    var activeStructureId = "{{ structure.id }}";
     var isSpinning = true;
 
-    /* ---- Measure nav and set --sv-nav-h ---- */
+    /* ---- Measure nav height ---- */
     (function () {
         var nav = document.querySelector("#main_header") || document.querySelector("nav");
         if (nav) {
@@ -187,7 +209,7 @@ function jsloaded() {
         }
     })();
 
-    /* ---- Utility ---- */
+    /* ---- Utilities ---- */
     function tpColor(tokenName, fallback) {
         var val = (getComputedStyle(document.documentElement).getPropertyValue(tokenName) || "").trim();
         return val || fallback || "";
@@ -210,13 +232,9 @@ function jsloaded() {
             tag.classList.remove("high", "medium", "low");
             if (Number.isNaN(score)) { tag.classList.add("medium"); return; }
             if (scoreType === "p2rank-prob") {
-                if (score >= 0.5) tag.classList.add("high");
-                else if (score >= 0.2) tag.classList.add("medium");
-                else tag.classList.add("low");
+                tag.classList.add(score >= 0.5 ? "high" : score >= 0.2 ? "medium" : "low");
             } else {
-                if (score >= 0.7) tag.classList.add("high");
-                else if (score >= 0.4) tag.classList.add("medium");
-                else tag.classList.add("low");
+                tag.classList.add(score >= 0.7 ? "high" : score >= 0.4 ? "medium" : "low");
             }
         });
     }
@@ -238,58 +256,41 @@ function jsloaded() {
         });
     }
 
-    /* ---- Repr toggles (for pocket cards) ---- */
-    function setReprToggles() {
-        document.addEventListener("click", function (event) {
-            var btn = event.target.closest(".js-repr-toggle");
-            if (!btn) return;
-            var reprs = (btn.getAttribute("data-repr") || "").trim().split(/\s+/).filter(Boolean);
-            var isPressed = btn.getAttribute("aria-pressed") === "true";
-            var card = btn.closest(".pocket-card");
-            if (card && !btn.getAttribute("data-repr").endsWith("_lbl")) {
-                Array.from(card.querySelectorAll(".js-repr-toggle")).forEach(function (sibling) {
-                    if (sibling === btn || sibling.getAttribute("data-repr").endsWith("_lbl")) return;
-                    if (sibling.getAttribute("aria-pressed") === "true") {
-                        (sibling.getAttribute("data-repr") || "").trim().split(/\s+/).filter(Boolean).forEach(function (r) {
-                            window.toogle_view(r);
-                        });
-                        sibling.setAttribute("aria-pressed", "false");
-                    }
-                });
-            }
-            reprs.forEach(function (r) { window.toogle_view(r); });
-            btn.setAttribute("aria-pressed", isPressed ? "false" : "true");
-        });
-    }
+    /* ---- Repr toggles ---- */
+    document.addEventListener("click", function (event) {
+        var btn = event.target.closest(".js-repr-toggle");
+        if (!btn) return;
+        var reprs = (btn.getAttribute("data-repr") || "").trim().split(/\s+/).filter(Boolean);
+        var isPressed = btn.getAttribute("aria-pressed") === "true";
+        reprs.forEach(function (r) { window.toogle_view(r); });
+        btn.setAttribute("aria-pressed", isPressed ? "false" : "true");
+    });
 
     /* ---- Residue modal ---- */
-    function setResidueModal() {
-        var modal   = document.getElementById("residue-modal");
-        var panel   = modal ? modal.querySelector(".residue-modal-panel") : null;
-        var content = document.getElementById("residue-modal-content");
+    (function () {
+        var modal    = document.getElementById("residue-modal");
+        var panel    = modal ? modal.querySelector(".residue-modal-panel") : null;
+        var content  = document.getElementById("residue-modal-content");
         var closeBtn = document.getElementById("close-residue-modal");
         var copyBtn  = document.getElementById("copy-residue-list");
         if (!modal || !panel || !content) return;
-
         var lastTrigger = null;
 
         function closeModal() {
             modal.classList.remove("is-open");
             modal.setAttribute("aria-hidden", "true");
             document.body.classList.remove("residue-modal-open");
-            if (lastTrigger && typeof lastTrigger.focus === "function") lastTrigger.focus();
+            if (lastTrigger) lastTrigger.focus();
             lastTrigger = null;
         }
         function openModal(trigger) {
-            var text = (trigger.getAttribute("data-residues") || "").trim();
-            content.textContent = text || "-";
+            content.textContent = (trigger.getAttribute("data-residues") || "").trim() || "-";
             modal.classList.add("is-open");
             modal.setAttribute("aria-hidden", "false");
             document.body.classList.add("residue-modal-open");
             lastTrigger = trigger;
             if (copyBtn) copyBtn.focus();
         }
-
         document.addEventListener("click", function (ev) {
             var t = ev.target.closest(".js-show-residues");
             if (t) { ev.preventDefault(); openModal(t); }
@@ -297,29 +298,24 @@ function jsloaded() {
         if (closeBtn) closeBtn.addEventListener("click", closeModal);
         modal.addEventListener("click", function (ev) { if (!panel.contains(ev.target)) closeModal(); });
         document.addEventListener("keydown", function (ev) { if (ev.key === "Escape" && modal.classList.contains("is-open")) closeModal(); });
-
         if (copyBtn) {
             copyBtn.addEventListener("click", function () {
                 var text = (content.textContent || "").trim();
-                var defaultLabel = copyBtn.dataset.defaultLabel || "Copy positions";
-                var copiedLabel  = copyBtn.dataset.copiedLabel  || "Copied";
-                (navigator.clipboard && typeof navigator.clipboard.writeText === "function"
-                    ? navigator.clipboard.writeText(text)
-                    : Promise.reject()
-                ).then(function () {
-                    copyBtn.textContent = copiedLabel;
-                    window.setTimeout(function () { copyBtn.textContent = defaultLabel; }, 1300);
-                }).catch(function () {});
+                var def = copyBtn.dataset.defaultLabel || "Copy positions";
+                var ok  = copyBtn.dataset.copiedLabel  || "Copied";
+                (navigator.clipboard ? navigator.clipboard.writeText(text) : Promise.reject())
+                    .then(function () {
+                        copyBtn.textContent = ok;
+                        window.setTimeout(function () { copyBtn.textContent = def; }, 1300);
+                    }).catch(function () {});
             });
         }
-    }
+    })();
 
     decorateScoreTags();
-    setReprToggles();
-    setResidueModal();
     setResetZoomEnabled(false);
 
-    /* ---- NGL ---- */
+    /* ---- NGL setup ---- */
     window.toogle_view    = function () {};
     window.ngl_zoom_to    = function () {};
     window.ngl_zoom_step  = function () {};
@@ -336,78 +332,117 @@ function jsloaded() {
         backgroundColor: tpColor("--sv-viewer-canvas-bg", "#0d1519")
     });
 
-    /* sync NGL canvas size */
-    function syncNglSize() {
+    /* Resize NGL canvas to match actual DOM size, then optionally re-center */
+    function syncNglSize(thenCenterComponent) {
         if (!stage || typeof stage.handleResize !== "function") return;
         window.requestAnimationFrame(function () {
             stage.handleResize();
+            if (thenCenterComponent && typeof thenCenterComponent.autoView === "function") {
+                thenCenterComponent.autoView(0);
+            }
             window.setTimeout(function () { stage.handleResize(); }, 80);
         });
     }
+
+    /* Initial resize so NGL knows the canvas is full-viewport */
     syncNglSize();
-    window.addEventListener("resize", syncNglSize);
+    window.addEventListener("resize", function () { syncNglSize(); });
 
     /* Wheel-to-zoom */
     (function () {
-        var viewerEl = document.getElementById("sv-canvas");
-        if (!viewerEl || viewerEl.__tpWheelBound) return;
-        viewerEl.__tpWheelBound = true;
-        var active = false;
-        viewerEl.addEventListener("click", function () { active = true; });
+        var canvasEl = document.getElementById("sv-canvas");
+        if (!canvasEl || canvasEl.__tpWheelBound) return;
+        canvasEl.__tpWheelBound = true;
+        var focused = false;
+        canvasEl.addEventListener("click", function () { focused = true; });
         document.addEventListener("mousedown", function (ev) {
-            if (!viewerEl.contains(ev.target)) active = false;
+            if (!canvasEl.contains(ev.target)) focused = false;
         }, true);
-        viewerEl.addEventListener("wheel", function (ev) {
-            if (!active) return;
+        canvasEl.addEventListener("wheel", function (ev) {
+            if (!focused) return;
             ev.preventDefault();
             ev.stopPropagation();
             window.ngl_zoom_step(ev.deltaY < 0 ? 1 : -1, true);
         }, { passive: false, capture: true });
     })();
 
-    /* Structure sources */
+    /* ---- Structure data (all structures for this protein) ---- */
     var structureUrls = {
-        primary: "{% url 'tpwebapp:structure_raw' structure.id %}",
-        {% if alt_structure_id %}alt: "{% url 'tpwebapp:structure_raw' alt_structure_id %}",{% endif %}
+        {% for s in all_structures %}
+        "{{ s.id }}": "{% url 'tpwebapp:structure_raw' s.id %}",
+        {% endfor %}
     };
-    var proteinChainSelector = "{{ viewer_chain_selector|default:':A' }}";
-    var altChainSelector     = "{{ alt_viewer_chain_selector|default:'' }}";
 
-    function clearRepresentationState() {
-        Object.keys(representations).forEach(function (k) { delete representations[k]; });
-        Object.keys(visible).forEach(function (k) { delete visible[k]; });
+    var structureChainSelectors = {
+        {% for s in all_structures %}
+        "{{ s.id }}": "{{ s.chain_selector }}",
+        {% endfor %}
+    };
+
+    /* ---- Topbar / sidebar update on structure switch ---- */
+    function updateIdentity(structureId) {
+        var btn = document.querySelector("[data-struct-id='" + structureId + "']");
+        if (!btn) return;
+        var code       = btn.getAttribute("data-code") || "";
+        var method     = btn.getAttribute("data-method") || "";
+        var resolution = btn.getAttribute("data-resolution") || "";
+        var vmdUrl     = btn.getAttribute("data-vmd-url") || "";
+
+        var codeEl   = document.getElementById("sv-topbar-code");
+        var methodEl = document.getElementById("sv-topbar-method");
+        var resEl    = document.getElementById("sv-topbar-resolution");
+        var scodeEl  = document.getElementById("sv-sidebar-code");
+
+        if (codeEl)   codeEl.textContent = code;
+        if (scodeEl)  scodeEl.textContent = code;
+        if (methodEl) { methodEl.textContent = method; methodEl.hidden = !method; }
+        if (resEl)    { resEl.textContent = resolution ? resolution + " Å" : ""; resEl.hidden = !resolution; }
+        if (vmdLink && vmdUrl) vmdLink.href = vmdUrl;
     }
 
-    function syncAnnotationPanels(which) {
-        document.querySelectorAll(".js-structure-annotations").forEach(function (panel) {
-            panel.hidden = panel.getAttribute("data-structure-key") !== which;
+    function syncAnnotationPanels(structureId) {
+        structureId = String(structureId);
+        document.querySelectorAll(".sv-structure-block").forEach(function (block) {
+            block.hidden = block.getAttribute("data-structure-id") !== structureId;
         });
         document.querySelectorAll(".js-repr-toggle").forEach(function (ctrl) {
             ctrl.setAttribute("aria-pressed", "false");
         });
     }
 
-    function _loadStructureById(urlKey) {
-        activeStructureKey = urlKey;
-        clearRepresentationState();
-        syncAnnotationPanels(urlKey);
-        stage.removeAllComponents();
-        stage.loadFile(structureUrls[urlKey], { ext: "pdb", defaultRepresentation: false })
-            .then(initStructureComponent);
+    function clearRepresentationState() {
+        Object.keys(representations).forEach(function (k) { delete representations[k]; });
+        Object.keys(visible).forEach(function (k) { delete visible[k]; });
     }
 
-    window.switchStructureSource = function (which) {
-        var toggle = document.getElementById("structure-source-toggle");
-        if (!toggle) return;
-        toggle.querySelectorAll(".sv-mode-btn").forEach(function (b) { b.classList.remove("is-active"); });
-        var btn = document.getElementById("structure-src-" + which);
-        if (btn) btn.classList.add("is-active");
-        _loadStructureById(which);
+    function _loadStructureById(structureId) {
+        structureId = String(structureId);
+        activeStructureId = structureId;
+        clearRepresentationState();
+        syncAnnotationPanels(structureId);
+        updateIdentity(structureId);
+        if (loadingNote) { loadingNote.style.display = "flex"; loadingNote.textContent = "{% trans 'Loading 3D structure…' %}"; }
+        stage.removeAllComponents();
+        stage.loadFile(structureUrls[structureId], { ext: "pdb", defaultRepresentation: false })
+            .then(initStructureComponent)
+            .catch(function () {
+                if (loadingNote) { loadingNote.style.display = "flex"; loadingNote.textContent = "{% trans 'Unable to load 3D structure.' %}"; }
+            });
+    }
+
+    window.switchStructure = function (structureId) {
+        structureId = String(structureId);
+        document.querySelectorAll("#sv-structure-picker .sv-mode-btn").forEach(function (b) {
+            b.classList.toggle("is-active", b.getAttribute("data-struct-id") === structureId);
+        });
+        _loadStructureById(structureId);
     };
 
+    /* ---- Main NGL init per component load ---- */
     function initStructureComponent(component) {
-        var chainSel = (activeStructureKey === "alt" && altChainSelector) ? altChainSelector : proteinChainSelector;
+        var activeChainSelector = structureChainSelectors[activeStructureId] || "polymer";
         var pocketSurfaceKeys = [];
+        var priorityPocketSurfaceKeys = [];
 
         window.ngl_reset_zoom = function () {
             component.autoView();
@@ -425,8 +460,8 @@ function jsloaded() {
         };
         window.ngl_zoom_step = function (dir, isWheel) {
             var step = dir > 0
-                ? (isWheel ? 0.055 : 0.20)
-                : (isWheel ? -0.055 : -0.20);
+                ? (isWheel ? STRUCTURE_VIEWER_CONFIG.nglWheelZoomStepIn  : STRUCTURE_VIEWER_CONFIG.nglZoomStepIn)
+                : (isWheel ? STRUCTURE_VIEWER_CONFIG.nglWheelZoomStepOut : STRUCTURE_VIEWER_CONFIG.nglZoomStepOut);
             if (stage.viewerControls && typeof stage.viewerControls.zoom === "function") {
                 stage.viewerControls.zoom(step);
                 setResetZoomEnabled(true);
@@ -439,24 +474,25 @@ function jsloaded() {
         };
 
         representations.__main_cartoon = component.addRepresentation("cartoon", {
-            aspectRatio: 3.0,
-            scale: 1.5,
-            sele: "backbone and " + chainSel
+            aspectRatio: STRUCTURE_VIEWER_CONFIG.mainCartoonAspectRatio,
+            scale: STRUCTURE_VIEWER_CONFIG.mainCartoonScale,
+            sele: "backbone and " + activeChainSelector,
+            color: tpColor("--tp-color-structure-cartoon") || "#2288a3"
         });
         visible.__main_cartoon = true;
-        representations.__main_cartoon.sele = "backbone and " + chainSel;
+        representations.__main_cartoon.sele = "backbone and " + activeChainSelector;
 
         representations.__main_density = component.addRepresentation("surface", {
-            sele: "polymer and " + chainSel,
+            sele: "polymer and " + activeChainSelector,
             color: tpColor("--tp-color-structure-density"),
-            opacity: 0.78,
+            opacity: STRUCTURE_VIEWER_CONFIG.densityShellOpacity,
             side: "double",
             opaqueBack: true,
             surfaceType: "ms"
         });
         visible.__main_density = false;
         representations.__main_density.setVisibility(false);
-        representations.__main_density.sele = "polymer and " + chainSel;
+        representations.__main_density.sele = "polymer and " + activeChainSelector;
 
         window.ngl_set_mode = function (mode) {
             var isDensity = mode === "density";
@@ -468,19 +504,18 @@ function jsloaded() {
             }
             representations.__main_density.setVisibility(isDensity);
             pocketSurfaceKeys.forEach(function (k) {
-                if (!(k in representations)) return;
-                representations[k].setVisibility(!!visible[k]);
+                if (k in representations) representations[k].setVisibility(!!visible[k]);
             });
             setModeButtonState(isDensity ? "density" : "cartoon");
         };
 
-        /* Pocket representations */
+        /* ---- Pocket representations per structure ---- */
         var sele = null;
-        if (activeStructureKey === "alt") {
-            {% if alt_structure %}{% include "components/structure/ngl_pocket_representations.js" with structure_data=alt_structure %}{% endif %}
-        } else {
-            {% include "components/structure/ngl_pocket_representations.js" with structure_data=structure %}
+        {% for s in all_structures %}
+        if (activeStructureId === "{{ s.id }}") {
+            {% include "components/structure/ngl_pocket_representations.js" with structure_data=s.structure_data %}
         }
+        {% endfor %}
 
         structureModeButtons.forEach(function (btn) {
             btn.addEventListener("click", function () {
@@ -491,27 +526,22 @@ function jsloaded() {
         document.querySelectorAll("#sv-sidebar input[type='checkbox']").forEach(function (cb) { cb.checked = false; });
 
         window.ngl_set_mode("cartoon");
-        component.autoView();
-        syncNglSize();
+
+        /* Center and fill the viewport — handleResize first so NGL knows the real canvas size */
+        syncNglSize(component);
         setResetZoomEnabled(false);
 
-        /* Auto-spin on load */
+        /* Auto-spin */
         if (isSpinning && typeof stage.setSpin === "function") {
-            stage.setSpin(true);
+            window.setTimeout(function () { stage.setSpin(true); }, 150);
         }
         updateSpinButton();
 
         if (loadingNote) loadingNote.style.display = "none";
     }
 
-    stage.loadFile(structureUrls.primary, { ext: "pdb", defaultRepresentation: false })
-        .then(initStructureComponent)
-        .catch(function () {
-            if (loadingNote) {
-                loadingNote.style.display = "flex";
-                loadingNote.textContent = "{% trans 'Unable to load 3D structure.' %}";
-            }
-        });
+    /* Load the initial (active) structure */
+    _loadStructureById(activeStructureId);
 }
 
 $(document).ready(function () { jsloaded(); });
