@@ -2513,6 +2513,10 @@ body.residue-modal-open {
     font-weight: 500;
     letter-spacing: 0.01em;
     color: var(--tp-color-text-secondary);
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 /* Secondary data cells */

@@ -1862,6 +1862,7 @@
     {% block head %}{% endblock %}
 </head>
 <body>
+<script>(function(){var v=localStorage.getItem("tp.sidebar.collapsed");var c=v===null?window.matchMedia("(max-width:1440px)").matches:v==="1";if(c&&window.matchMedia("(min-width:992px)").matches){document.body.classList.add("tp-sidebar-collapsed");}}());</script>
 <aside class="tp-sidebar" aria-label="{% trans "Primary navigation" %}">
     <div class="tp-sidebar-brand">
         <div class="tp-sidebar-brand-row">

@@ -1375,6 +1375,9 @@
 
                     window.ngl_set_mode("cartoon");
                     component.autoView();
+                    if (typeof stage.setSpin === "function") {
+                        window.setTimeout(function () { stage.setSpin(true); }, 200);
+                    }
                     applyStructureTheme();
                     syncNglViewportSize(stage);
                     setStructureResetZoomEnabled(false);
