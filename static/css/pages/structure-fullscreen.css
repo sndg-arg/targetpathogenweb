@@ -455,6 +455,13 @@ body:has(.sv-root) .tp-footer { display: none !important; }
     flex: 1 1 auto;
 }
 
+.pocket-card-p2score {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--tp-color-text-muted);
+    white-space: nowrap;
+}
+
 .pocket-card-reprs {
     display: grid;
     grid-template-columns: 1fr 1fr;

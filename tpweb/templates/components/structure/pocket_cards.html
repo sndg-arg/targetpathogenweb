@@ -36,8 +36,8 @@
                 <div class="pocket-card">
                     <div class="pocket-card-head">
                         <strong class="pocket-card-name">{{ p2.name }}</strong>
-                        <span class="tp-score-tag js-score-tag" data-score="{{ p2.p2score }}">{{ p2.p2score }}</span>
-                        <span class="tp-score-tag js-score-tag" data-score="{{ p2.probability }}" data-score-type="p2rank-prob">{{ p2.probability }}</span>
+                        <span class="pocket-card-p2score" title="{% trans 'P2Rank raw score' %}">{{ p2.p2score }}</span>
+                        <span class="tp-score-tag js-score-tag" data-score="{{ p2.probability }}" data-score-type="p2rank-prob" title="{% trans 'Binding probability' %}">{% trans "prob" %} {{ p2.probability }}</span>
                     </div>
                     <div class="pocket-card-reprs">
                         <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="p2_{{p2.name}}_atm" aria-pressed="false">{% trans "Ball & stick" %}</button>
