@@ -377,7 +377,7 @@
 
                     {% include "components/structure/pdb_evidence_table.html" with items=experimental_structures predicted_items=predicted_structures protein=protein %}
 
-                    {% if structure.pockets or structure.p2_pockets or structure.residuesets or alt_structure and alt_structure.pockets or alt_structure and alt_structure.p2_pockets %}
+                    {% if pocket_structure_has_pockets or alt_structure_has_pockets %}
                     <details class="data-details pocket-tables-details">
                         <summary class="pocket-tables-summary">
                             {% trans "Pocket details" %}
