@@ -763,7 +763,8 @@
 }
 
 .pocket-tables-details .mini-section {
-    padding: 0 20px;
+    padding-right: 20px;
+    padding-left: 20px;
 }
 .pocket-tables-details .mini-section:first-of-type {
     padding-top: 20px;
