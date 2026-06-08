@@ -443,11 +443,11 @@
 
 <script>
 (function () {
-    if (!('IntersectionObserver' in window)) return;
     var chips = document.querySelectorAll('.ds-hero-toc a[href^="#"]');
     if (!chips.length) return;
-    var sectionIds = Array.from(chips).map(function (c) { return c.getAttribute('href').slice(1); });
-    var sections = sectionIds.map(function (id) { return document.getElementById(id); }).filter(Boolean);
+    var sections = Array.from(chips).map(function (c) {
+        return document.getElementById(c.getAttribute('href').slice(1));
+    }).filter(Boolean);
     if (!sections.length) return;
 
     function setActive(id) {
@@ -456,19 +456,26 @@
         });
     }
 
-    var visibleSet = new Set();
-    var observer = new IntersectionObserver(function (entries) {
-        entries.forEach(function (entry) {
-            if (entry.isIntersecting) { visibleSet.add(entry.target.id); }
-            else { visibleSet.delete(entry.target.id); }
-        });
+    function findActive() {
+        var offset = 120;
+        var activeId = sections[0].id;
         for (var i = 0; i < sections.length; i++) {
-            if (visibleSet.has(sections[i].id)) { setActive(sections[i].id); return; }
+            if (sections[i].getBoundingClientRect().top <= offset) {
+                activeId = sections[i].id;
+            }
         }
-    }, { rootMargin: '-8% 0px -58% 0px', threshold: 0 });
+        setActive(activeId);
+    }
 
-    sections.forEach(function (s) { observer.observe(s); });
-    setActive(sections[0].id);
+    var ticking = false;
+    window.addEventListener('scroll', function () {
+        if (!ticking) {
+            window.requestAnimationFrame(function () { findActive(); ticking = false; });
+            ticking = true;
+        }
+    }, { passive: true });
+
+    findActive();
 })();
 </script>
 {% endblock %}
