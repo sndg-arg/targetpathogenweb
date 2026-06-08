@@ -19,7 +19,7 @@ from bioseq.io.SeqStore import SeqStore
 from bioseq.models.Biodatabase import Biodatabase
 from bioseq.models.Bioentry import Bioentry
 from tpweb.models.BioentryStructure import BioentryStructure
-from tpweb.models.ScoreParam import ScoreParam
+from tpweb.models.ScoreParam import ScoreParam, ScoreParamOptions
 from tpweb.models.ScoreParamValue import ScoreParamValue
 from tpweb.services.score_params import resolve_score_param_for_import
 from tpweb.models.pdb import PDB, Residue, Atom, ResidueSet, ResidueSetResidue, PDBResidueSet, Property, \
