@@ -443,9 +443,8 @@ body:has(.sv-root) .tp-footer { display: none !important; }
 
 .pocket-card-head {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 6px;
-    flex-wrap: wrap;
 }
 
 .pocket-card-name {
@@ -682,6 +681,57 @@ body.residue-modal-open { overflow: hidden; }
 /* ── 15. Dark mode sidebar overrides ── */
 .tp-dark .sv-sidebar { background: var(--tp-color-surface-soft); border-left-color: var(--tp-color-border-strong); }
 .tp-dark .pocket-card { background: var(--tp-color-surface); border-color: var(--tp-color-border); }
+
+/* ── 16. Structure select picker (replaces pill buttons) ── */
+.sv-struct-select-wrap {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.sv-struct-select {
+    appearance: none;
+    -webkit-appearance: none;
+    height: 30px;
+    padding: 0 26px 0 10px;
+    border: none;
+    border-radius: 8px;
+    background-color: var(--sv-btn-bg);
+    color: var(--sv-overlay-text);
+    font-size: 0.78rem;
+    font-weight: 600;
+    font-family: inherit;
+    letter-spacing: 0.01em;
+    cursor: pointer;
+    opacity: 0.88;
+    transition: background-color 0.13s, opacity 0.13s;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6' fill='none' stroke='%23888' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1 1l4 4 4-4'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    background-size: 10px;
+    max-width: 220px;
+}
+
+.sv-struct-select:hover { opacity: 1; background-color: var(--sv-btn-hover-bg); }
+.sv-struct-select:focus-visible { opacity: 1; outline: 2px solid var(--sv-btn-active-color); outline-offset: 2px; }
+
+/* ── 17. Pocket card label (Site N + internal ID) ── */
+.pocket-card-label {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.pocket-card-id {
+    font-size: 0.70rem;
+    font-weight: 500;
+    color: var(--tp-color-text-muted);
+    opacity: 0.72;
+    line-height: 1.2;
+}
 .tp-dark .pocket-repr-btn { background: var(--tp-color-surface-soft); border-color: var(--tp-color-border); color: var(--tp-color-text-secondary); }
 .tp-dark .residueset-row { background: var(--tp-color-surface); border-color: var(--tp-color-border); }
 .tp-dark .data-details { background: var(--tp-color-surface); border-color: var(--tp-color-border); }

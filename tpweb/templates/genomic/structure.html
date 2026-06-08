@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20260605-sv3">
+    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20260608-sv4">
 {% endblock %}
 
 {% block body %}
@@ -28,7 +28,6 @@
                 {% endif %}
             </div>
             <div class="sv-topbar-identity">
-                <span class="sv-pdb-code" id="sv-topbar-code">{{ structure.code|upper }}</span>
                 <span class="sv-meta-pill" id="sv-topbar-method" {% if not structure.method %}hidden{% endif %}>{{ structure.method }}</span>
                 <span class="sv-meta-pill sv-meta-pill--dim" id="sv-topbar-resolution" {% if not structure.resolution %}hidden{% endif %}>{% if structure.resolution %}{{ structure.resolution }} Å{% endif %}</span>
             </div>
@@ -92,18 +91,19 @@
             {# Structure picker — shown when there are multiple structures for this protein #}
             {% if all_structures|length > 1 %}
             <div class="sv-tb-sep" aria-hidden="true"></div>
-            <div class="sv-mode-group sv-structure-picker" id="sv-structure-picker" role="group" aria-label="{% trans 'Select structure' %}">
-                {% for s in all_structures %}
-                <button type="button"
-                        class="sv-mode-btn {% if s.is_active %}is-active{% endif %}"
-                        data-struct-id="{{ s.id }}"
-                        data-code="{{ s.code|upper }}"
-                        data-method="{{ s.method }}"
-                        data-resolution="{{ s.resolution|default:'' }}"
-                        data-vmd-url="{% url 'tpwebapp:structure_export' s.id %}"
-                        title="{{ s.method }}{% if s.resolution %} · {{ s.resolution }} Å{% endif %}"
-                        onclick="switchStructure({{ s.id }})">{{ s.short_method }}{% if s.code %} · {{ s.code|upper }}{% endif %}</button>
-                {% endfor %}
+            <div class="sv-struct-select-wrap">
+                <select class="sv-struct-select" id="sv-struct-select"
+                        aria-label="{% trans 'Select structure' %}"
+                        onchange="switchStructure(this.value)">
+                    {% for s in all_structures %}
+                    <option value="{{ s.id }}"
+                            data-code="{{ s.code|upper }}"
+                            data-method="{{ s.method }}"
+                            data-resolution="{{ s.resolution|default:'' }}"
+                            data-vmd-url="{% url 'tpwebapp:structure_export' s.id %}"
+                            {% if s.is_active %}selected{% endif %}>{{ s.short_method }}{% if s.code %} · {{ s.code|upper }}{% endif %}{% if s.resolution %} · {{ s.resolution }} Å{% endif %}</option>
+                    {% endfor %}
+                </select>
             </div>
             {% endif %}
 
@@ -126,9 +126,6 @@
         <div class="sv-sidebar-inner">
 
             <header class="sv-sidebar-head">
-                {% if source_protein_label %}
-                    <p class="sv-sidebar-protein-name">{{ source_protein_label }}</p>
-                {% endif %}
                 <h1 class="sv-sidebar-code" id="sv-sidebar-code">{{ structure.code|upper }}</h1>
                 <div class="sv-sidebar-meta-row" id="sv-sidebar-meta">
                     {% for s in all_structures %}{% if s.is_active %}
@@ -381,19 +378,18 @@ function jsloaded() {
 
     /* ---- Topbar / sidebar update on structure switch ---- */
     function updateIdentity(structureId) {
-        var btn = document.querySelector("[data-struct-id='" + structureId + "']");
-        if (!btn) return;
-        var code       = btn.getAttribute("data-code") || "";
-        var method     = btn.getAttribute("data-method") || "";
-        var resolution = btn.getAttribute("data-resolution") || "";
-        var vmdUrl     = btn.getAttribute("data-vmd-url") || "";
+        var sel = document.getElementById("sv-struct-select");
+        var opt = sel ? sel.querySelector("option[value='" + structureId + "']") : null;
+        if (!opt) return;
+        var code       = opt.getAttribute("data-code") || "";
+        var method     = opt.getAttribute("data-method") || "";
+        var resolution = opt.getAttribute("data-resolution") || "";
+        var vmdUrl     = opt.getAttribute("data-vmd-url") || "";
 
-        var codeEl   = document.getElementById("sv-topbar-code");
         var methodEl = document.getElementById("sv-topbar-method");
         var resEl    = document.getElementById("sv-topbar-resolution");
         var scodeEl  = document.getElementById("sv-sidebar-code");
 
-        if (codeEl)   codeEl.textContent = code;
         if (scodeEl)  scodeEl.textContent = code;
         if (methodEl) { methodEl.textContent = method; methodEl.hidden = !method; }
         if (resEl)    { resEl.textContent = resolution ? resolution + " Å" : ""; resEl.hidden = !resolution; }
@@ -432,9 +428,8 @@ function jsloaded() {
 
     window.switchStructure = function (structureId) {
         structureId = String(structureId);
-        document.querySelectorAll("#sv-structure-picker .sv-mode-btn").forEach(function (b) {
-            b.classList.toggle("is-active", b.getAttribute("data-struct-id") === structureId);
-        });
+        var sel = document.getElementById("sv-struct-select");
+        if (sel) sel.value = structureId;
         _loadStructureById(structureId);
     };
 

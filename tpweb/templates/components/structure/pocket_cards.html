@@ -8,7 +8,10 @@
             {% for p in structure_data.pockets %}
                 <div class="pocket-card">
                     <div class="pocket-card-head">
-                        <strong class="pocket-card-name">{{ p.name }}</strong>
+                        <div class="pocket-card-label">
+                            <strong class="pocket-card-name">{% trans "Site" %} {{ forloop.counter }}</strong>
+                            <span class="pocket-card-id">FPocket #{{ p.name }}</span>
+                        </div>
                         <span class="tp-score-tag js-score-tag" data-score="{{ p.druggability }}">{{ p.druggability }}</span>
                     </div>
                     <div class="pocket-card-reprs">
@@ -35,7 +38,10 @@
             {% for p2 in structure_data.p2_pockets %}
                 <div class="pocket-card">
                     <div class="pocket-card-head">
-                        <strong class="pocket-card-name">{{ p2.name }}</strong>
+                        <div class="pocket-card-label">
+                            <strong class="pocket-card-name">{% trans "Site" %} {{ forloop.counter }}</strong>
+                            <span class="pocket-card-id">P2Rank #{{ p2.name }}</span>
+                        </div>
                         <span class="tp-score-tag js-score-tag" data-score="{{ p2.probability }}" data-score-type="p2rank-prob">{{ p2.probability }}</span>
                     </div>
                     <div class="pocket-card-reprs">
