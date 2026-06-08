@@ -1,4 +1,7 @@
 .proteins-page {
+    font-family: "Source Sans 3", "Segoe UI", sans-serif;
+    color: var(--tp-ink);
+    margin: 0;
     display: grid;
     gap: var(--tp-space-4);
     --view-accent: var(--tp-accent);
@@ -7,6 +10,14 @@
     --view-accent-soft: var(--tp-color-info-bg);
     --view-accent-soft-2: var(--tp-color-brand-050);
     --view-accent-border: var(--tp-color-brand-300);
+}
+
+.proteins-page h1,
+.proteins-page h2,
+.proteins-page h3,
+.proteins-page h4 {
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    letter-spacing: 0.2px;
 }
 
 /* Base styles from .tp-page-hero in ui-system.css */
@@ -22,9 +33,8 @@
 .hero-top h1 {
     margin: 0;
     font-size: var(--tp-heading-lg);
-    letter-spacing: 0.2px;
     color: var(--view-accent-ink);
-    line-height: 1.08;
+    line-height: 1.1;
 }
 
 .hero-subtitle {

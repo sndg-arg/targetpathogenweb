@@ -1,4 +1,7 @@
 .genomes-page {
+    font-family: "Source Sans 3", "Segoe UI", sans-serif;
+    color: var(--tp-ink);
+    margin: 0;
     display: grid;
     gap: var(--tp-space-4);
     --view-accent: var(--tp-accent);
@@ -7,6 +10,14 @@
     --view-accent-soft-2: var(--tp-color-brand-050);
     --view-accent-border: var(--tp-color-brand-300);
     --genomes-border: var(--tp-color-border);
+}
+
+.genomes-page h1,
+.genomes-page h2,
+.genomes-page h3,
+.genomes-page h4 {
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    letter-spacing: 0.2px;
 }
 
 /* Base styles from .tp-page-hero in ui-system.css */
@@ -27,10 +38,9 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    margin: 0 0 8px;
+    margin: 6px 0 10px;
     color: var(--tp-color-text-muted);
-    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
-    font-size: 0.78rem;
+    font-size: var(--tp-font-label);
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -39,13 +49,12 @@
 .genomes-hero h1 {
     margin: 0;
     font-size: var(--tp-heading-lg);
-    letter-spacing: 0.2px;
     color: var(--view-accent-ink, var(--tp-color-brand-900));
-    line-height: 1.08;
+    line-height: 1.1;
 }
 
 .genomes-subtitle {
-    margin: 5px 0 0;
+    margin: 10px 0 0;
     color: var(--tp-color-text-secondary);
     font-size: 0.98rem;
     line-height: 1.4;
