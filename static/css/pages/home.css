@@ -778,14 +778,7 @@ body.pipeline-info-open {
     line-height: 1.62;
 }
 
-.home-about-more-link {
-    font-size: 0.93rem;
-    font-weight: 600;
-    color: var(--tp-color-brand-700);
-    text-decoration: none;
-    white-space: nowrap;
-}
-.home-about-more-link:hover { text-decoration: underline; }
+.home-about-view-btn { flex-shrink: 0; }
 
 .home-about-card-tools {
     display: flex;

@@ -153,10 +153,11 @@
             <div class="tp-ui-panel-head">
                 <div>
                     <p class="tp-ui-field-label">{% trans "Methodology" %}</p>
-                    <h2>{% trans "Data sources and analysis pipeline" %}</h2>
+                    <h2>{% trans "Data sources" %}</h2>
                 </div>
+                <a href="{% url 'tpwebapp:data_sources' %}" class="btn tp-btn tp-btn--outline tp-btn--sm home-about-view-btn">{% trans "Full reference" %}</a>
             </div>
-            <p class="home-about-lead">{% trans "Evidence for each protein is assembled through a 24-stage bioinformatics pipeline, combining external databases, comparative genomics, structural modeling, and machine learning." %} <a href="{% url 'tpwebapp:data_sources' %}" class="home-about-more-link">{% trans "Read the full methodology →" %}</a></p>
+            <p class="home-about-lead">{% trans "Evidence for each protein is assembled through a 24-stage bioinformatics pipeline, combining external databases, comparative genomics, structural modeling, and machine learning." %}</p>
             <div class="home-about-grid">
 
                 <div class="home-about-card">

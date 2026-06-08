@@ -3,248 +3,263 @@
    ============================================================ */
 
 .ds-page {
-    max-width: 960px;
-    margin: 0 auto;
-    padding: 0 0 64px;
     display: grid;
-    gap: 0;
+    gap: var(--tp-space-4);
+    --ds-accent: var(--tp-color-brand-800);
+    --ds-accent-deep: var(--tp-color-brand-900);
+    --ds-accent-soft: var(--tp-color-brand-050);
+    --ds-accent-border: var(--tp-color-brand-200);
 }
 
 /* ── Hero ── */
-.ds-hero {
-    padding: 36px 0 32px;
-    display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 32px;
-    align-items: start;
-    border-bottom: 1px solid var(--tp-color-border-soft);
-    margin-bottom: 0;
-}
-
-.ds-hero-copy h1 {
-    margin: 8px 0 0;
-    font-size: var(--tp-heading-2xl);
-    color: var(--tp-color-brand-900);
-    letter-spacing: -0.04em;
-    line-height: 1.05;
-}
-
-.ds-hero-lead {
-    margin: 14px 0 0;
-    color: var(--tp-color-text-secondary);
-    font-size: 1rem;
-    line-height: 1.65;
-    max-width: 66ch;
-}
-
-/* Table of contents */
-.ds-toc {
-    min-width: 180px;
-    flex-shrink: 0;
-    padding: 14px 16px;
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: 12px;
-    background: var(--tp-color-surface-soft);
-}
-
-.ds-toc-label {
-    margin: 0 0 8px;
-    font-size: 0.72rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.09em;
+.ds-eyebrow {
+    margin: 8px 0 6px;
     color: var(--tp-color-text-muted);
-}
-
-.ds-toc-list {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    display: grid;
-    gap: 1px;
-    counter-reset: toc;
-}
-
-.ds-toc-list li {
-    counter-increment: toc;
-}
-
-.ds-toc-list a {
-    display: block;
-    padding: 5px 6px;
-    font-size: 0.82rem;
-    font-weight: 500;
-    color: var(--tp-color-text-secondary);
-    text-decoration: none;
-    border-radius: 6px;
-    transition: background 0.12s, color 0.12s;
-}
-
-.ds-toc-list a:hover {
-    background: var(--tp-color-surface-alt);
-    color: var(--tp-color-brand-800);
-}
-
-/* ── Section ── */
-.ds-section {
-    padding: 40px 0 8px;
-    border-top: 1px solid var(--tp-color-border-soft);
-    margin-top: 40px;
-}
-
-.ds-section:first-of-type {
-    border-top: none;
-}
-
-.ds-section-head {
-    margin-bottom: 20px;
-}
-
-.ds-section-head h2 {
-    margin: 0 0 4px;
-    font-size: 1.35rem;
-    font-weight: 800;
-    color: var(--tp-color-brand-900);
-    letter-spacing: -0.025em;
-}
-
-.ds-section-sub {
-    margin: 0;
-    font-size: 0.82rem;
-    color: var(--tp-color-text-muted);
-    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
-}
-
-.ds-section > p {
-    margin: 0 0 16px;
-    color: var(--tp-color-text-secondary);
-    font-size: 0.96rem;
-    line-height: 1.65;
-}
-
-/* ── Pipeline areas ── */
-.ds-pipeline-areas {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-}
-
-.ds-area-card {
-    display: flex;
-    gap: 14px;
-    align-items: flex-start;
-    padding: 14px 16px;
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: 10px;
-    background: var(--tp-color-surface);
-}
-
-.ds-area-number {
     font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
     font-size: 0.78rem;
     font-weight: 700;
-    color: var(--tp-color-brand-700);
-    background: var(--tp-color-brand-050);
-    border: 1px solid var(--tp-color-brand-200);
-    border-radius: 6px;
-    padding: 3px 8px;
-    white-space: nowrap;
-    flex-shrink: 0;
-    margin-top: 1px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
 }
 
-.ds-area-card strong {
-    display: block;
-    font-size: 0.9rem;
+.ds-hero-title {
+    margin: 0 0 10px;
+    font-size: var(--tp-heading-2xl);
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    line-height: 1.04;
+    color: var(--ds-accent-deep);
+}
+
+.ds-hero-description {
+    margin: 0 0 16px;
+    color: var(--tp-color-text-secondary);
+    font-size: 0.98rem;
+    line-height: 1.65;
+    max-width: 70ch;
+}
+
+.ds-hero-toc { margin-top: 4px; }
+.ds-hero-toc .tp-chip--meta { text-decoration: none; cursor: pointer; }
+.ds-hero-toc .tp-chip--meta:hover { background: var(--tp-color-brand-100); border-color: var(--tp-color-brand-300); }
+
+/* ── Panel common ── */
+.ds-panel { padding: 20px 22px; }
+
+.ds-panel-title {
+    margin: 2px 0 0;
+    font-size: 1.12rem;
+    font-weight: 800;
+    color: var(--ds-accent-deep);
+    letter-spacing: -0.02em;
+}
+
+.ds-panel-subtitle {
+    margin: 4px 0 0;
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 0.76rem;
+    color: var(--tp-color-text-muted);
+}
+
+.ds-body {
+    margin: 16px 0 0;
+    color: var(--tp-color-text-secondary);
+    font-size: 0.94rem;
+    line-height: 1.65;
+}
+
+.ds-subsection {
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--tp-color-border-soft);
+}
+
+.ds-subsection h3 {
+    margin: 0 0 8px;
+    font-size: 0.88rem;
     font-weight: 700;
     color: var(--tp-color-text-primary);
-    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 
-.ds-area-card p {
-    margin: 0;
-    font-size: 0.875rem;
-    color: var(--tp-color-text-secondary);
-    line-height: 1.55;
-}
-
-/* ── Priority stack (3D structure) ── */
-.ds-priority-stack {
+/* ── Pipeline grid ── */
+.ds-pipeline-grid {
     display: grid;
-    gap: 8px;
-    margin-bottom: 24px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 20px;
 }
 
-.ds-priority-card {
-    display: flex;
-    gap: 14px;
-    align-items: flex-start;
+.ds-pipeline-card {
     padding: 14px 16px;
     border: 1px solid var(--tp-color-border-soft);
     border-radius: 10px;
     background: var(--tp-color-surface);
-    border-left-width: 3px;
+    display: grid;
+    gap: 8px;
+    align-content: start;
 }
 
-.ds-priority-card--1 { border-left-color: var(--tp-color-success-border); }
-.ds-priority-card--2 { border-left-color: var(--tp-color-warning-border); }
-.ds-priority-card--3 { border-left-color: var(--tp-color-border-strong); }
+.ds-pipeline-card-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.ds-pipeline-card-head strong {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--tp-color-text-primary);
+}
+
+.ds-pipeline-card p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--tp-color-text-secondary);
+    line-height: 1.58;
+}
+
+.ds-stage-tag {
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 0.73rem;
+    font-weight: 700;
+    color: var(--ds-accent);
+    background: var(--ds-accent-soft);
+    border: 1px solid var(--ds-accent-border);
+    border-radius: 5px;
+    padding: 2px 7px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+/* ── Field list (protein data) ── */
+.ds-field-list {
+    margin-top: 16px;
+    display: grid;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.ds-field-row {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    gap: 16px;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--tp-color-border-soft);
+    align-items: baseline;
+}
+
+.ds-field-row:last-child { border-bottom: none; }
+.ds-field-row:nth-child(even) { background: var(--tp-color-surface-soft); }
+
+.ds-field-name {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--tp-color-text-primary);
+}
+
+.ds-field-desc {
+    font-size: 0.85rem;
+    color: var(--tp-color-text-secondary);
+    line-height: 1.5;
+}
+
+/* ── Callout ── */
+.ds-callout {
+    margin-top: 16px;
+    padding: 13px 15px;
+    border-radius: 9px;
+    border: 1px solid var(--tp-color-border-soft);
+    background: var(--tp-color-surface-muted);
+    font-size: 0.875rem;
+    color: var(--tp-color-text-secondary);
+    line-height: 1.62;
+}
+
+/* ── Priority stack ── */
+.ds-priority-stack {
+    margin-top: 16px;
+    display: grid;
+    gap: 1px;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.ds-priority-row {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    padding: 16px 18px;
+    background: var(--tp-color-surface);
+    border-bottom: 1px solid var(--tp-color-border-soft);
+}
+
+.ds-priority-row:last-child { border-bottom: none; }
+.ds-priority-row:nth-child(even) { background: var(--tp-color-surface-soft); }
 
 .ds-priority-badge {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 24px;
-    height: 24px;
+    width: 26px;
+    height: 26px;
     border-radius: 50%;
-    font-size: 0.78rem;
+    font-size: 0.8rem;
     font-weight: 800;
     flex-shrink: 0;
-    background: var(--tp-color-surface-muted);
-    color: var(--tp-color-text-muted);
-    border: 1.5px solid var(--tp-color-border);
     margin-top: 1px;
 }
 
-.ds-priority-card strong {
-    display: block;
+.ds-priority-badge--1 {
+    background: var(--tp-color-success-bg);
+    color: var(--tp-color-success-ink);
+    border: 1.5px solid var(--tp-color-success-border);
+}
+
+.ds-priority-badge--2 {
+    background: var(--tp-color-warning-bg);
+    color: var(--tp-color-warning-ink);
+    border: 1.5px solid var(--tp-color-warning-border);
+}
+
+.ds-priority-badge--3 {
+    background: var(--tp-color-surface-muted);
+    color: var(--tp-color-text-muted);
+    border: 1.5px solid var(--tp-color-border);
+}
+
+.ds-priority-body {
+    display: grid;
+    gap: 3px;
+}
+
+.ds-priority-body strong {
     font-size: 0.9rem;
     font-weight: 700;
     color: var(--tp-color-text-primary);
-    margin-bottom: 4px;
 }
 
-.ds-priority-card p {
-    margin: 0;
+.ds-priority-source {
+    font-size: 0.76rem;
+    color: var(--tp-color-text-muted);
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+}
+
+.ds-priority-body p {
+    margin: 4px 0 0;
     font-size: 0.875rem;
     color: var(--tp-color-text-secondary);
-    line-height: 1.55;
-}
-
-/* ── Subsections ── */
-.ds-subsection {
-    margin-top: 24px;
-}
-
-.ds-subsection h3 {
-    margin: 0 0 10px;
-    font-size: 1rem;
-    font-weight: 700;
-    color: var(--tp-color-text-primary);
-}
-
-.ds-subsection > p {
-    margin: 0 0 12px;
-    color: var(--tp-color-text-secondary);
-    font-size: 0.93rem;
-    line-height: 1.65;
+    line-height: 1.58;
 }
 
 /* ── Score table ── */
 .ds-score-table {
     display: grid;
     gap: 4px;
-    margin: 12px 0 0;
+    margin-top: 12px;
 }
 
 .ds-score-row {
@@ -253,37 +268,37 @@
     gap: 12px;
     padding: 6px 10px;
     border-radius: 7px;
-    font-size: 0.86rem;
-    color: var(--tp-color-text-secondary);
+    font-size: 0.84rem;
 }
 
 .ds-score-row--high   { background: var(--tp-color-success-bg); color: var(--tp-color-success-ink); }
 .ds-score-row--medium { background: var(--tp-color-warning-bg); color: var(--tp-color-warning-ink); }
 .ds-score-row--low    { background: var(--tp-color-danger-bg);  color: var(--tp-color-danger-ink); }
-.ds-score-row--none   { background: var(--tp-color-surface-muted); }
+.ds-score-row--none   { background: var(--tp-color-surface-muted); color: var(--tp-color-text-secondary); }
 
 .ds-score-range {
     font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
-    font-size: 0.82rem;
+    font-size: 0.78rem;
     font-weight: 700;
-    min-width: 60px;
+    min-width: 64px;
     flex-shrink: 0;
 }
 
-/* ── Tool grid ── */
-.ds-tool-grid {
+/* ── Tool columns (binding sites) ── */
+.ds-tool-cols {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 12px;
+    gap: 14px;
+    margin-top: 16px;
 }
 
-.ds-tool-card {
+.ds-tool-block {
     padding: 16px;
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: 12px;
+    border-radius: 10px;
     background: var(--tp-color-surface);
     display: grid;
-    gap: 12px;
+    gap: 10px;
     align-content: start;
 }
 
@@ -294,54 +309,49 @@
 }
 
 .ds-tool-name {
-    font-size: 1rem;
+    font-size: 1.05rem;
     font-weight: 800;
-    color: var(--tp-color-brand-900);
+    color: var(--ds-accent-deep);
+    letter-spacing: -0.01em;
 }
 
-.ds-tool-version {
-    font-size: 0.76rem;
-    color: var(--tp-color-text-muted);
+.ds-tool-ver {
     font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
-}
-
-.ds-tool-card > p {
-    margin: 0;
-    font-size: 0.875rem;
-    color: var(--tp-color-text-secondary);
-    line-height: 1.6;
-}
-
-.ds-note {
-    font-size: 0.82rem !important;
-    color: var(--tp-color-text-muted) !important;
-    font-style: italic;
+    font-size: 0.73rem;
+    color: var(--tp-color-text-muted);
 }
 
 /* ── DB grid (InterProScan) ── */
 .ds-db-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 6px;
+    gap: 1px;
     margin-top: 12px;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 10px;
+    overflow: hidden;
 }
 
-.ds-db-item {
+.ds-db-row {
     display: flex;
-    gap: 8px;
+    gap: 10px;
     align-items: baseline;
-    padding: 7px 10px;
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: 8px;
+    padding: 9px 12px;
     background: var(--tp-color-surface);
+    border-bottom: 1px solid var(--tp-color-border-soft);
 }
+
+.ds-db-row:nth-child(odd):last-child,
+.ds-db-row:last-child,
+.ds-db-row:nth-last-child(2):nth-child(odd) { border-bottom: none; }
 
 .ds-db-name {
-    font-size: 0.82rem;
+    font-size: 0.8rem;
     font-weight: 700;
     color: var(--tp-color-text-primary);
     white-space: nowrap;
     flex-shrink: 0;
+    min-width: 110px;
 }
 
 .ds-db-desc {
@@ -350,11 +360,12 @@
     line-height: 1.4;
 }
 
-/* ── Profile grid ── */
+/* ── Target profile grid ── */
 .ds-profile-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 10px;
+    margin-top: 16px;
 }
 
 .ds-profile-card {
@@ -367,29 +378,35 @@
     align-content: start;
 }
 
-.ds-profile-card h3 {
-    margin: 0;
-    font-size: 0.9rem;
+.ds-profile-card-head {
+    display: grid;
+    gap: 2px;
+}
+
+.ds-profile-label {
+    font-size: 0.88rem;
     font-weight: 700;
     color: var(--tp-color-text-primary);
 }
 
+.ds-profile-tool {
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 0.72rem;
+    color: var(--tp-color-text-muted);
+}
+
 .ds-profile-card > p {
     margin: 0;
-    font-size: 0.875rem;
+    font-size: 0.85rem;
     color: var(--tp-color-text-secondary);
     line-height: 1.58;
 }
 
-.ds-interpretation {
+.ds-desirable {
     font-size: 0.82rem !important;
     color: var(--tp-color-text-muted) !important;
-    padding-top: 4px;
+    padding-top: 6px;
     border-top: 1px solid var(--tp-color-border-soft);
-}
-
-.ds-interpretation strong {
-    color: var(--tp-color-text-secondary);
 }
 
 /* ── Ligands table ── */
@@ -397,7 +414,7 @@
     width: 100%;
     border-collapse: collapse;
     font-size: 0.875rem;
-    margin-bottom: 16px;
+    margin-top: 16px;
     border: 1px solid var(--tp-color-border-soft);
     border-radius: 10px;
     overflow: hidden;
@@ -406,7 +423,7 @@
 .ds-table th {
     background: var(--tp-color-surface-muted);
     color: var(--tp-color-text-muted);
-    font-size: 0.75rem;
+    font-size: 0.73rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.07em;
@@ -426,31 +443,71 @@
 .ds-table tr:last-child td { border-bottom: none; }
 .ds-table tr:nth-child(even) td { background: var(--tp-color-surface-soft); }
 
-/* ── Drug-likeness items ── */
-.ds-dl-item {
-    padding: 14px 0;
-    border-bottom: 1px solid var(--tp-color-border-soft);
+/* ── Definitions (pChEMBL, Tanimoto) ── */
+.ds-def-list {
+    margin-top: 14px;
     display: grid;
-    gap: 7px;
+    gap: 1px;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 10px;
+    overflow: hidden;
 }
 
-.ds-dl-item:last-child { border-bottom: none; }
+.ds-def-row {
+    display: grid;
+    grid-template-columns: 100px 1fr;
+    gap: 16px;
+    padding: 10px 14px;
+    background: var(--tp-color-surface);
+    border-bottom: 1px solid var(--tp-color-border-soft);
+    align-items: baseline;
+}
+
+.ds-def-row:last-child { border-bottom: none; }
+.ds-def-row:nth-child(even) { background: var(--tp-color-surface-soft); }
+
+.ds-def-term {
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--ds-accent);
+}
+
+.ds-def-body {
+    font-size: 0.85rem;
+    color: var(--tp-color-text-secondary);
+    line-height: 1.55;
+}
+
+/* ── Drug-likeness list ── */
+.ds-dl-list {
+    margin-top: 8px;
+}
+
+.ds-dl-row {
+    padding: 16px 0;
+    border-bottom: 1px solid var(--tp-color-border-soft);
+    display: grid;
+    gap: 8px;
+}
+
+.ds-dl-row:last-child { border-bottom: none; }
 
 .ds-dl-head {
     display: flex;
-    align-items: baseline;
+    align-items: center;
     gap: 10px;
 }
 
-.ds-dl-label {
+.ds-dl-tag {
     font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
-    font-size: 0.82rem;
+    font-size: 0.76rem;
     font-weight: 800;
-    color: var(--tp-color-brand-700);
-    background: var(--tp-color-brand-050);
-    border: 1px solid var(--tp-color-brand-200);
+    color: var(--ds-accent);
+    background: var(--ds-accent-soft);
+    border: 1px solid var(--ds-accent-border);
     border-radius: 5px;
-    padding: 1px 7px;
+    padding: 2px 8px;
     flex-shrink: 0;
 }
 
@@ -460,36 +517,19 @@
     color: var(--tp-color-text-primary);
 }
 
-.ds-dl-item > p {
+.ds-dl-row > p {
     margin: 0;
     font-size: 0.875rem;
     color: var(--tp-color-text-secondary);
     line-height: 1.62;
 }
 
-/* ── Lists ── */
-.ds-list {
-    padding-left: 1.2rem;
-    margin: 0 0 16px;
-    display: grid;
-    gap: 5px;
-}
-
-.ds-list li {
-    color: var(--tp-color-text-secondary);
-    font-size: 0.93rem;
-    line-height: 1.6;
-}
-
-.ds-list strong { color: var(--tp-color-text-primary); }
-
 /* ── Caveats ── */
 .ds-caveats {
     padding: 0;
-    margin: 0;
+    margin: 16px 0 0;
     list-style: none;
     display: grid;
-    gap: 0;
 }
 
 .ds-caveats li {
@@ -503,59 +543,34 @@
 .ds-caveats li:last-child { border-bottom: none; }
 .ds-caveats strong { color: var(--tp-color-text-primary); }
 
-/* ── Callouts ── */
-.ds-callout {
-    margin: 16px 0 0;
-    padding: 14px 16px;
-    border-radius: 10px;
-    border: 1px solid var(--tp-color-border-soft);
-    background: var(--tp-color-surface-muted);
-    font-size: 0.875rem;
-    color: var(--tp-color-text-secondary);
-    line-height: 1.62;
-}
-
-.ds-callout--info {
-    border-color: var(--tp-color-brand-200);
-    background: var(--tp-color-brand-050);
-    color: var(--tp-color-brand-900);
-}
-
 /* ── Responsive ── */
-@media (max-width: 900px) {
-    .ds-hero { grid-template-columns: 1fr; }
-    .ds-toc { display: none; }
-    .ds-pipeline-areas,
-    .ds-tool-grid,
+@media (max-width: 880px) {
+    .ds-pipeline-grid { grid-template-columns: 1fr 1fr; }
+    .ds-tool-cols,
     .ds-profile-grid,
     .ds-db-grid { grid-template-columns: 1fr; }
 }
 
-@media (max-width: 640px) {
-    .ds-section-head h2 { font-size: 1.15rem; }
-    .ds-hero-copy h1 { font-size: 1.8rem; }
+@media (max-width: 600px) {
+    .ds-pipeline-grid { grid-template-columns: 1fr; }
+    .ds-field-row { grid-template-columns: 1fr; gap: 3px; }
+    .ds-def-row { grid-template-columns: 1fr; gap: 4px; }
+    .ds-hero-title { font-size: 1.8rem; }
 }
 
 /* ── Dark mode ── */
-.tp-dark .ds-tool-card,
-.tp-dark .ds-area-card,
+.tp-dark .ds-pipeline-card,
+.tp-dark .ds-tool-block,
 .tp-dark .ds-profile-card,
-.tp-dark .ds-priority-card,
-.tp-dark .ds-db-item {
+.tp-dark .ds-priority-row,
+.tp-dark .ds-db-row {
     background: var(--tp-color-surface-soft);
-    border-color: var(--tp-color-border-soft);
 }
 
-.tp-dark .ds-toc {
-    background: var(--tp-color-surface-soft);
-    border-color: var(--tp-color-border-soft);
-}
-
-.tp-dark .ds-table th { background: var(--tp-color-surface-muted); }
-.tp-dark .ds-table tr:nth-child(even) td { background: var(--tp-color-surface-muted); }
-
-.tp-dark .ds-callout--info {
-    background: color-mix(in srgb, var(--tp-color-brand-900) 15%, var(--tp-color-surface));
-    border-color: var(--tp-color-brand-700);
-    color: var(--tp-color-brand-300);
+.tp-dark .ds-priority-row:nth-child(even),
+.tp-dark .ds-db-row:nth-child(odd),
+.tp-dark .ds-field-row:nth-child(even),
+.tp-dark .ds-table tr:nth-child(even) td,
+.tp-dark .ds-def-row:nth-child(even) {
+    background: var(--tp-color-surface-muted);
 }
