@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/data-sources.css' %}?v=20260608-3">
+    <link rel="stylesheet" href="{% static 'css/pages/data-sources.css' %}?v=20260608-4">
 {% endblock %}
 
 {% block body %}
@@ -33,6 +33,19 @@
             </div>
         </div>
     </section>
+
+    {# ── Sticky section nav ── #}
+    <nav class="ds-quick-nav" aria-label="{% trans 'Sections' %}">
+        <a class="ds-quick-nav-link" href="#pipeline">{% trans "Pipeline" %}</a>
+        <a class="ds-quick-nav-link" href="#protein-data">{% trans "Protein data" %}</a>
+        <a class="ds-quick-nav-link" href="#structure">{% trans "3D structure" %}</a>
+        <a class="ds-quick-nav-link" href="#binding-sites">{% trans "Binding sites" %}</a>
+        <a class="ds-quick-nav-link" href="#annotation">{% trans "Annotation" %}</a>
+        <a class="ds-quick-nav-link" href="#target-profile">{% trans "Target profile" %}</a>
+        <a class="ds-quick-nav-link" href="#ligands">{% trans "Ligands" %}</a>
+        <a class="ds-quick-nav-link" href="#drug-likeness">{% trans "Drug-likeness" %}</a>
+        <a class="ds-quick-nav-link" href="#interpretation">{% trans "Interpretation" %}</a>
+    </nav>
 
     {# ── 1. Pipeline ── #}
     <section class="ds-panel tp-ui-panel" id="pipeline">
@@ -443,39 +456,32 @@
 
 <script>
 (function () {
-    var chips = document.querySelectorAll('.ds-hero-toc a[href^="#"]');
-    if (!chips.length) return;
-    var sections = Array.from(chips).map(function (c) {
-        return document.getElementById(c.getAttribute('href').slice(1));
+    var nav = document.querySelector('.ds-quick-nav');
+    if (!nav) return;
+    var links = Array.from(nav.querySelectorAll('a[href^="#"]'));
+    if (!links.length) return;
+    var targets = links.map(function (link) {
+        var section = document.getElementById(link.getAttribute('href').slice(1));
+        return section ? { link: link, section: section } : null;
     }).filter(Boolean);
-    if (!sections.length) return;
+    if (!targets.length) return;
 
-    function setActive(id) {
-        chips.forEach(function (c) {
-            c.classList.toggle('is-active', c.getAttribute('href').slice(1) === id);
+    function updateActive() {
+        var triggerLine = Math.round(window.innerHeight * 0.32);
+        var active = targets[0];
+        for (var i = targets.length - 1; i >= 0; i--) {
+            if (targets[i].section.getBoundingClientRect().top <= triggerLine) {
+                active = targets[i];
+                break;
+            }
+        }
+        targets.forEach(function (t) {
+            t.link.classList.toggle('is-active', t === active);
         });
     }
 
-    function findActive() {
-        var offset = 120;
-        var activeId = sections[0].id;
-        for (var i = 0; i < sections.length; i++) {
-            if (sections[i].getBoundingClientRect().top <= offset) {
-                activeId = sections[i].id;
-            }
-        }
-        setActive(activeId);
-    }
-
-    var ticking = false;
-    window.addEventListener('scroll', function () {
-        if (!ticking) {
-            window.requestAnimationFrame(function () { findActive(); ticking = false; });
-            ticking = true;
-        }
-    }, { passive: true });
-
-    findActive();
+    window.addEventListener('scroll', updateActive, { passive: true });
+    updateActive();
 })();
 </script>
 {% endblock %}
