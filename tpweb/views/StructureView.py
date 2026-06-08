@@ -133,7 +133,27 @@ class StructureView(View):
         return biodb_name
 
 
-def pdb_structure(pdbobj, graphic_features):
+def _ranked_pocket_ids(pdbobj, residue_set, property_obj, limit, min_value=None):
+    qs = PDBResidueSet.objects.filter(
+        pdb=pdbobj,
+        residue_set=residue_set,
+        properties__property=property_obj,
+    )
+    if min_value is not None:
+        qs = qs.filter(properties__value__gte=min_value)
+    qs = qs.order_by("-properties__value", "name").values_list("id", flat=True)
+    if limit is not None:
+        qs = qs[:limit]
+    return list(qs)
+
+
+def pdb_structure(
+    pdbobj,
+    graphic_features,
+    pocket_limit=4,
+    p2rank_limit=5,
+    include_pockets_in_graphic_features=False,
+):
     context = {"code": pdbobj.code, "id": pdbobj.id}
 
     context["chains"] = [{"name": x} for x in set([r.chain for r in pdbobj.residues.all() if r.chain.strip()])]
@@ -163,17 +183,18 @@ def pdb_structure(pdbobj, graphic_features):
     rs = ResidueSet.objects.get(name="FPocketPocket")
     p2_rs = ResidueSet.objects.get(name="P2RankPocket")
 
+    pocket_ids = _ranked_pocket_ids(pdbobj, rs, ds, pocket_limit, min_value=0.2)
+    p2_pocket_ids = _ranked_pocket_ids(pdbobj, p2_rs, p2p, p2rank_limit)
+
     context["pockets"] = list(PDBResidueSet.objects.prefetch_related(
         "properties__property",
         "residue_set_residue__residue__atoms",
-    ).filter(
-        Q(pdb=pdbobj), Q(residue_set=rs), Q(properties__property=ds) & Q(properties__value__gte=0.2)
-    ))
+    ).filter(id__in=pocket_ids))
 
     context["p2_pockets"] = list(PDBResidueSet.objects.prefetch_related(
         "properties__property",
         "residue_set_residue__residue__atoms",
-    ).filter(Q(pdb=pdbobj), Q(residue_set=p2_rs)))
+    ).filter(id__in=p2_pocket_ids))
     for p in context["pockets"]:
         p.druggability = [x.value for x in p.properties.all() if x.property == ds][0]
         p.atoms = []
@@ -187,15 +208,16 @@ def pdb_structure(pdbobj, graphic_features):
             p.residues.append(rsr.residue.resid)
             for a in rsr.residue.atoms.all():
                 p.atoms.append(a.serial)
-        gf = {
-            "data": data,
-            "name": "FPocket",
-            "className": "test2",
-            "color": generar_color_aleatorio(),
-            "type": "rect",
-            "filter": "type2"
-        }
-        graphic_features.append(gf)
+        if include_pockets_in_graphic_features:
+            gf = {
+                "data": data,
+                "name": "FPocket",
+                "className": "test2",
+                "color": generar_color_aleatorio(),
+                "type": "rect",
+                "filter": "type2"
+            }
+            graphic_features.append(gf)
 
     context["pockets"].sort(key=lambda p: p.druggability or 0, reverse=True)
 
@@ -213,15 +235,16 @@ def pdb_structure(pdbobj, graphic_features):
             p2.residues.append(rsr.residue.resid)
             for a in rsr.residue.atoms.all():
                 p2.atoms.append(a.serial)
-        gf_p2 = {
-            "data": data,
-            "name": "P2Pocket",
-            "className": "test2",
-            "color": p2rank_probability_color(p2.probability),
-            "type": "rect",
-            "filter": "type2"
-        }
-        graphic_features.append(gf_p2)
+        if include_pockets_in_graphic_features:
+            gf_p2 = {
+                "data": data,
+                "name": "P2Pocket",
+                "className": "test2",
+                "color": p2rank_probability_color(p2.probability),
+                "type": "rect",
+                "filter": "type2"
+            }
+            graphic_features.append(gf_p2)
 
     context["p2_pockets"].sort(key=lambda p: p.probability or 0, reverse=True)
 

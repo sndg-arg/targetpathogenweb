@@ -3,7 +3,7 @@
 {% if structure_data.pockets %}
     <div class="mini-section js-structure-annotations" data-structure-key="{{ structure_key }}" {% if hidden %}hidden{% endif %}>
         <h3>{% trans "Pockets" %} (FPOCKET)</h3>
-        <p class="table-hint">{% trans "Druggability is color-coded: high (0.7 or higher), medium (0.4 to 0.69), low (below 0.4)." %}</p>
+        <p class="table-hint">{% trans "Showing top-ranked FPocket candidates by druggability. Druggability is color-coded: high (0.7 or higher), medium (0.4 to 0.69), low (below 0.4)." %}</p>
         <div class="table-shell tp-table-shell">
             <table id="{{ table_prefix }}pocketsTable" class="table table-striped table-hover table-sm tp-table tp-table--plain tp-table--premium">
                 <thead>
@@ -40,7 +40,7 @@
 {% if structure_data.p2_pockets %}
     <div class="mini-section js-structure-annotations" data-structure-key="{{ structure_key }}" {% if hidden %}hidden{% endif %}>
         <h3>{% trans "Pockets" %} (P2RANK)</h3>
-        <p class="table-hint">{% trans "Probability is color-coded per P2Rank calibration: high (&ge; 0.5), medium (0.2 &ndash; 0.49), low (&lt; 0.2)." %}</p>
+        <p class="table-hint">{% trans "Showing top-ranked P2Rank candidates by probability. Probability is color-coded per P2Rank calibration: high (&ge; 0.5), medium (0.2 &ndash; 0.49), low (&lt; 0.2)." %}</p>
         <div class="table-shell tp-table-shell">
             <table id="{{ table_prefix }}p2pocketsTable" class="table table-striped table-hover table-sm tp-table tp-table--plain tp-table--premium">
                 <thead>
