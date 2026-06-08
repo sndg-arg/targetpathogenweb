@@ -3,6 +3,9 @@
    ============================================================ */
 
 .ds-page {
+    font-family: "Source Sans 3", "Segoe UI", sans-serif;
+    color: var(--tp-ink);
+    margin: 0;
     display: grid;
     gap: var(--tp-space-4);
     --ds-accent: var(--tp-color-brand-800);
@@ -11,38 +14,39 @@
     --ds-accent-border: var(--tp-color-brand-200);
 }
 
+.ds-page h1,
+.ds-page h2,
+.ds-page h3,
+.ds-page h4 {
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    letter-spacing: 0.2px;
+}
+
 /* ── Hero ── */
 .ds-eyebrow {
-    margin: 8px 0 6px;
+    margin: 6px 0 10px;
     color: var(--tp-color-text-muted);
-    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
-    font-size: 0.78rem;
+    font-size: var(--tp-font-label);
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
 }
 
 .ds-hero-title {
-    margin: 0 0 10px;
-    font-size: var(--tp-heading-2xl);
-    font-weight: 800;
-    letter-spacing: -0.04em;
-    line-height: 1.04;
+    margin: 0;
+    font-size: var(--tp-heading-lg);
+    font-weight: 700;
+    line-height: 1.1;
     color: var(--ds-accent-deep);
 }
 
 .ds-hero-description {
-    margin: 0 0 16px;
+    margin: 10px 0 0;
     color: var(--tp-color-text-secondary);
-    font-size: 0.98rem;
-    line-height: 1.65;
-    max-width: 70ch;
+    font-size: 1rem;
+    line-height: 1.42;
+    max-width: 920px;
 }
-
-.ds-hero-toc { margin-top: 4px; }
-.ds-hero-toc .tp-chip--meta { text-decoration: none; cursor: pointer; transition: background 0.15s, border-color 0.15s, color 0.15s; }
-.ds-hero-toc .tp-chip--meta:hover { background: var(--tp-color-brand-100); border-color: var(--tp-color-brand-300); }
-.ds-hero-toc .tp-chip--meta.is-active { background: var(--tp-color-brand-700); border-color: var(--tp-color-brand-800); color: var(--tp-color-text-on-brand); font-weight: 700; }
 
 /* ── Sticky section nav ── */
 .ds-quick-nav {
