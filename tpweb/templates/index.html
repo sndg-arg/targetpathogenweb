@@ -264,21 +264,6 @@
             </div>
         </section>
 
-        <section class="home-panel home-post tp-ui-panel">
-            <div class="tp-ui-panel-head">
-                <div>
-                    <p class="tp-ui-field-label">{% trans "Project notes" %}</p>
-                    <h2>{% trans "Curated notes for this deployment" %}</h2>
-                </div>
-            </div>
-            {% if has_project_notes %}
-                {% autoescape off %}
-                    {{ post.content|safe }}
-                {% endautoescape %}
-            {% else %}
-                <p class="tp-state-note tp-state-note--empty">{% trans "Curated project notes will appear here once they are published." %}</p>
-            {% endif %}
-        </section>
     </div>
 {% endblock %}
 
