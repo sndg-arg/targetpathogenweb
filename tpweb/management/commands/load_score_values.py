@@ -100,7 +100,9 @@ class Command(BaseCommand):
                 invalid_values = {
                     str(raw_value)
                     for raw_value in df[c]
-                    if str(raw_value) not in valid_values
+                    if not pd.isna(raw_value)
+                    and str(raw_value).strip()
+                    and str(raw_value) not in valid_values
                 }
                 if invalid_values:
                     sys.stderr.write(

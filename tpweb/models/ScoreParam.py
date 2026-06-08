@@ -321,7 +321,11 @@ class ScoreParam(models.Model):
             default_value="",
         )[0]
         if numeric_series is None:
-            sp_options = value_series.unique().tolist()
+            sp_options = []
+            for raw_option in value_series.dropna().unique().tolist():
+                option = str(raw_option).strip()
+                if option and option.lower() not in {"nan", "none", "null"} and option not in sp_options:
+                    sp_options.append(option)
             for option in sp_options:
                 ScoreParamOptions.objects.get_or_create(score_param=sp, name=option, description="")
 

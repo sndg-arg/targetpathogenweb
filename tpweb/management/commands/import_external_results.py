@@ -48,6 +48,16 @@ GATES_COLUMN_MAP = {
     "colabfold_plddt":              "colabfold_plddt",
     "core_roary":                   "core_roary",
     "core_corecruncher":            "core_corecruncher",
+    "best_fpocket_structure":       "best_fpocket_structure",
+    "fpocket_pocket":               "fpocket_pocket",
+    "best_p2rank_structure":        "best_p2rank_structure",
+    "p2rank_probability":           "p2rank_probability",
+    "p2rank_pocket":                "p2rank_pocket",
+    "colabfold_druggability_score": "colabfold_druggability_score",
+    "colabfold_fpocket_pocket":     "colabfold_fpocket_pocket",
+    "colabfold_p2rank_probability": "colabfold_p2rank_probability",
+    "colabfold_p2rank_pocket":      "colabfold_p2rank_pocket",
+    "gut_microbiome_genomes_analyzed": "gut_microbiome_genomes_analyzed",
 }
 
 DERIVED_GATES_COLUMNS = {

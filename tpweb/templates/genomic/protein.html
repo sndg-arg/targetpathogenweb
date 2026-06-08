@@ -79,7 +79,7 @@
 
         <nav class="quick-nav" aria-label="{% trans "Protein sections" %}">
             <a href="#section-overview" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Overview" %}</a>
-            {% if target_profile %}<a href="#section-target-profile" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Target profile" %}</a>{% endif %}
+            {% if target_profile or selected_pocket_evidence or conservation_profile or microbiome_context %}<a href="#section-target-profile" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Target profile" %}</a>{% endif %}
             <a href="#section-sequence" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Sequence" %}</a>
             <a href="#section-annotations" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Annotations" %}</a>
             <a href="#section-features" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Features" %}</a>
@@ -149,7 +149,7 @@
                 {% endif %}
             </section>
 
-            {% if target_profile %}
+            {% if target_profile or selected_pocket_evidence or conservation_profile or microbiome_context %}
             <section class="protein-card tp-ui-panel" id="section-target-profile">
                 <div class="section-head tp-ui-panel-head">
                     <div>
@@ -165,6 +165,61 @@
                     </div>
                     {% endfor %}
                 </dl>
+
+                {% if selected_pocket_evidence %}
+                <div class="target-evidence-block target-evidence-block--structure">
+                    <div class="target-evidence-head">
+                        <h3>{% trans "Selected pocket evidence" %}</h3>
+                        {% if selected_pocket_evidence.selected_source_kind %}<span class="tp-chip tp-chip--sm">{{ selected_pocket_evidence.selected_source_kind }}</span>{% endif %}
+                    </div>
+                    <p class="target-evidence-note">{% trans "The main Druggability value follows the curated structure priority for this dataset. It may differ from pockets on the structure currently displayed in the viewer." %}</p>
+                    <div class="target-evidence-grid">
+                        {% if selected_pocket_evidence.fpocket.score or selected_pocket_evidence.fpocket.structure or selected_pocket_evidence.fpocket.pocket %}
+                        <div class="target-evidence-card">
+                            <span class="target-evidence-label">FPocket</span>
+                            {% if selected_pocket_evidence.fpocket.score %}<strong class="target-evidence-value">{{ selected_pocket_evidence.fpocket.score }}</strong>{% endif %}
+                            <span>{% trans "Structure" %}: {{ selected_pocket_evidence.fpocket.structure|default:"-" }}</span>
+                            <span>{% trans "Pocket" %}: {{ selected_pocket_evidence.fpocket.pocket|default:"-" }}</span>
+                        </div>
+                        {% endif %}
+                        {% if selected_pocket_evidence.p2rank.score or selected_pocket_evidence.p2rank.structure or selected_pocket_evidence.p2rank.pocket %}
+                        <div class="target-evidence-card">
+                            <span class="target-evidence-label">P2Rank</span>
+                            {% if selected_pocket_evidence.p2rank.score %}<strong class="target-evidence-value">{{ selected_pocket_evidence.p2rank.score }}</strong>{% endif %}
+                            <span>{% trans "Structure" %}: {{ selected_pocket_evidence.p2rank.structure|default:"-" }}</span>
+                            <span>{% trans "Pocket" %}: {{ selected_pocket_evidence.p2rank.pocket|default:"-" }}</span>
+                        </div>
+                        {% endif %}
+                        {% if selected_pocket_evidence.colabfold.fpocket_score or selected_pocket_evidence.colabfold.p2rank_score %}
+                        <div class="target-evidence-card target-evidence-card--muted">
+                            <span class="target-evidence-label">{% trans "ColabFold-specific" %}</span>
+                            {% if selected_pocket_evidence.colabfold.fpocket_score %}<span>FPocket: <strong>{{ selected_pocket_evidence.colabfold.fpocket_score }}</strong> {% if selected_pocket_evidence.colabfold.fpocket_pocket %}({{ selected_pocket_evidence.colabfold.fpocket_pocket }}){% endif %}</span>{% endif %}
+                            {% if selected_pocket_evidence.colabfold.p2rank_score %}<span>P2Rank: <strong>{{ selected_pocket_evidence.colabfold.p2rank_score }}</strong> {% if selected_pocket_evidence.colabfold.p2rank_pocket %}({{ selected_pocket_evidence.colabfold.p2rank_pocket }}){% endif %}</span>{% endif %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if conservation_profile or microbiome_context %}
+                <div class="target-evidence-grid target-evidence-grid--compact">
+                    {% if conservation_profile %}
+                    <div class="target-evidence-card">
+                        <span class="target-evidence-label">{% trans "Core conservation" %}</span>
+                        {% if conservation_profile.is_core %}<strong class="target-evidence-value target-evidence-value--good">{% trans "Conserved core gene" %}</strong>{% endif %}
+                        <span>Roary: {{ conservation_profile.roary_label }}</span>
+                        <span>CoreCruncher: {{ conservation_profile.corecruncher_label }}</span>
+                    </div>
+                    {% endif %}
+                    {% if microbiome_context %}
+                    <div class="target-evidence-card">
+                        <span class="target-evidence-label">{% trans "Gut microbiome context" %}</span>
+                        {% if microbiome_context.count or microbiome_context.total %}<strong class="target-evidence-value">{{ microbiome_context.count|default:"-" }} / {{ microbiome_context.total|default:"-" }}</strong>{% endif %}
+                        {% if microbiome_context.norm %}<span>{% trans "Normalized" %}: {{ microbiome_context.norm }}</span>{% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
             </section>
             {% endif %}
 

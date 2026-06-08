@@ -145,6 +145,116 @@ def _build_target_profile(raw_scores):
     return items
 
 
+def _raw_score(raw_scores, name):
+    value = raw_scores.get(name)
+    if value is None:
+        return ""
+    value = str(value).strip()
+    if value.lower() in {"", "nan", "none", "null"}:
+        return ""
+    return value
+
+
+def _format_score_value(value):
+    value = _raw_score({"value": value}, "value")
+    if not value:
+        return ""
+    try:
+        return f"{float(value.replace(',', '.')):.3f}".rstrip("0").rstrip(".")
+    except (TypeError, ValueError):
+        return value
+
+
+def _structure_source_kind(identifier):
+    ident = (identifier or "").strip()
+    upper = ident.upper()
+    if not ident:
+        return ""
+    if upper.startswith("CB_"):
+        return "ColabFold / curated model"
+    if upper.startswith("AF_"):
+        return "AlphaFold / UniProt model"
+    if len(ident) == 4 and ident.isalnum():
+        return "PDB experimental structure"
+    if upper.startswith("A0A") or (any(ch.isdigit() for ch in ident) and any(ch.isalpha() for ch in ident)):
+        return "AlphaFold / UniProt model"
+    return "Curated structure"
+
+
+def _build_selected_pocket_evidence(raw_scores):
+    fpocket_score = _format_score_value(_raw_score(raw_scores, "Druggability"))
+    fpocket_structure = _raw_score(raw_scores, "best_fpocket_structure")
+    fpocket_pocket = _raw_score(raw_scores, "fpocket_pocket")
+    p2rank_score = _format_score_value(_raw_score(raw_scores, "p2rank_probability"))
+    p2rank_structure = _raw_score(raw_scores, "best_p2rank_structure")
+    p2rank_pocket = _raw_score(raw_scores, "p2rank_pocket")
+    colabfold_fpocket_score = _format_score_value(_raw_score(raw_scores, "colabfold_druggability_score"))
+    colabfold_fpocket_pocket = _raw_score(raw_scores, "colabfold_fpocket_pocket")
+    colabfold_p2rank_score = _format_score_value(_raw_score(raw_scores, "colabfold_p2rank_probability"))
+    colabfold_p2rank_pocket = _raw_score(raw_scores, "colabfold_p2rank_pocket")
+
+    has_any = any([
+        fpocket_score, fpocket_structure, fpocket_pocket,
+        p2rank_score, p2rank_structure, p2rank_pocket,
+        colabfold_fpocket_score, colabfold_fpocket_pocket,
+        colabfold_p2rank_score, colabfold_p2rank_pocket,
+    ])
+    if not has_any:
+        return None
+
+    selected_source_kind = _structure_source_kind(fpocket_structure or p2rank_structure)
+    return {
+        "selected_source_kind": selected_source_kind,
+        "fpocket": {
+            "score": fpocket_score,
+            "structure": fpocket_structure,
+            "pocket": fpocket_pocket,
+            "source_kind": _structure_source_kind(fpocket_structure),
+        },
+        "p2rank": {
+            "score": p2rank_score,
+            "structure": p2rank_structure,
+            "pocket": p2rank_pocket,
+            "source_kind": _structure_source_kind(p2rank_structure),
+        },
+        "colabfold": {
+            "fpocket_score": colabfold_fpocket_score,
+            "fpocket_pocket": colabfold_fpocket_pocket,
+            "p2rank_score": colabfold_p2rank_score,
+            "p2rank_pocket": colabfold_p2rank_pocket,
+        },
+    }
+
+
+def _truthy_score(value):
+    return str(value or "").strip().lower() in {"true", "t", "yes", "y", "1"}
+
+
+def _build_conservation_profile(raw_scores):
+    roary_raw = _raw_score(raw_scores, "core_roary")
+    corecruncher_raw = _raw_score(raw_scores, "core_corecruncher")
+    if not roary_raw and not corecruncher_raw:
+        return None
+    roary = _truthy_score(roary_raw)
+    corecruncher = _truthy_score(corecruncher_raw)
+    return {
+        "roary": roary,
+        "corecruncher": corecruncher,
+        "is_core": roary and corecruncher,
+        "roary_label": "core" if roary else "accessory",
+        "corecruncher_label": "core" if corecruncher else "accessory",
+    }
+
+
+def _build_microbiome_context(raw_scores):
+    count = _format_score_value(_raw_score(raw_scores, "gut_microbiome_offtarget_counts"))
+    total = _format_score_value(_raw_score(raw_scores, "gut_microbiome_genomes_analyzed"))
+    norm = _format_score_value(_raw_score(raw_scores, "gut_microbiome_offtarget_norm"))
+    if not count and not total and not norm:
+        return None
+    return {"count": count, "total": total, "norm": norm}
+
+
 def _has_pocket_data(pdb_obj):
     return PDBResidueSet.objects.filter(
         pdb=pdb_obj,
@@ -736,6 +846,9 @@ class ProteinView(View):
             for spv in ScoreParamValue.objects.filter(bioentry=protein).select_related("score_param")
         }
         target_profile = _build_target_profile(raw_scores)
+        selected_pocket_evidence = _build_selected_pocket_evidence(raw_scores)
+        conservation_profile = _build_conservation_profile(raw_scores)
+        microbiome_context = _build_microbiome_context(raw_scores)
 
         if request.GET.get("export") == "view_csv":
             sections = [
@@ -853,6 +966,9 @@ class ProteinView(View):
                "structure_summary": structure_summary,
                "experimental_structures": experimental_structures,
                "target_profile": target_profile,
+               "selected_pocket_evidence": selected_pocket_evidence,
+               "conservation_profile": conservation_profile,
+               "microbiome_context": microbiome_context,
                "experimental_xrefs": experimental_xrefs,
                "ec_badges": ec_badges,
                "go_badges": go_badges,
