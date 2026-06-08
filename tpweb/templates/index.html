@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/home.css' %}?v=20260330-1">
+    <link rel="stylesheet" href="{% static 'css/pages/home.css' %}?v=20260608-2">
 {% endblock %}
 
 {% block body %}
@@ -148,6 +148,120 @@
                 </div>
             </div>
         </div>
+
+        <section class="home-panel home-about tp-ui-panel">
+            <div class="tp-ui-panel-head">
+                <div>
+                    <p class="tp-ui-field-label">{% trans "Methodology" %}</p>
+                    <h2>{% trans "Data sources and analysis pipeline" %}</h2>
+                </div>
+            </div>
+            <p class="home-about-lead">{% trans "Evidence for each protein is assembled through a 24-stage bioinformatics pipeline, combining external databases, comparative genomics, structural modeling, and machine learning." %}</p>
+            <div class="home-about-grid">
+
+                <div class="home-about-card">
+                    <div class="home-about-card-head">
+                        <svg class="home-about-icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <circle cx="12" cy="12" r="9"/>
+                            <circle cx="12" cy="12" r="3"/>
+                            <path d="M12 3v3M12 18v3M3 12h3M18 12h3"/>
+                        </svg>
+                        <h3>{% trans "Target profile" %}</h3>
+                    </div>
+                    <p>{% trans "Proteins are assessed for selectivity against the human proteome and gut microbiome, and for essentiality using the Database of Essential Genes. Subcellular localization is predicted by PSORTb to evaluate target accessibility." %}</p>
+                    <div class="home-about-card-tools">
+                        <span class="tp-chip tp-chip--meta tp-chip--sm">FastTarget</span>
+                        <span class="tp-chip tp-chip--meta tp-chip--sm">DIAMOND BLASTP</span>
+                        <span class="tp-chip tp-chip--meta tp-chip--sm">DEG</span>
+                        <span class="tp-chip tp-chip--meta tp-chip--sm">PSORTb v3</span>
+                    </div>
+                </div>
+
+                <div class="home-about-card">
+                    <div class="home-about-card-head">
+                        <svg class="home-about-icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M12 3L2 8v8l10 5 10-5V8L12 3z"/>
+                            <path d="M2 8l10 5 10-5M12 13v8"/>
+                        </svg>
+                        <h3>{% trans "3D Structure" %}</h3>
+                    </div>
+                    <p>{% trans "Structures are assigned by priority: experimental PDB entries first, then AlphaFold Database models, then ColabFold predictions for proteins without other coverage. Per-residue pLDDT scores indicate model confidence." %}</p>
+                    <div class="home-about-card-tools">
+                        <span class="tp-chip tp-chip--meta tp-chip--sm">Protein Data Bank</span>
+                        <span class="tp-chip tp-chip--meta tp-chip--sm">AlphaFold DB</span>
+                        <span class="tp-chip tp-chip--meta tp-chip--sm">ColabFold</span>
+                    </div>
+                </div>
+
+                <div class="home-about-card">
+                    <div class="home-about-card-head">
+                        <svg class="home-about-icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <rect x="3" y="11" width="18" height="11" rx="2"/>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                            <circle cx="12" cy="16" r="1.5" fill="currentColor" stroke="none"/>
+                        </svg>
+                        <h3>{% trans "Binding sites" %}</h3>
+                    </div>
+                    <p>{% trans "FPocket detects surface cavities using Voronoi spheres and reports a druggability score from 0 to 1. P2Rank applies a random forest trained on ~15,000 PDB structures to rank predicted binding site probability." %}</p>
+                    <div class="home-about-card-tools">
+                        <span class="tp-chip tp-chip--meta tp-chip--sm">FPocket v4</span>
+                        <span class="tp-chip tp-chip--meta tp-chip--sm">P2Rank v2</span>
+                    </div>
+                </div>
+
+                <div class="home-about-card">
+                    <div class="home-about-card-head">
+                        <svg class="home-about-icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+                            <circle cx="7" cy="7" r="1.5" fill="currentColor" stroke="none"/>
+                        </svg>
+                        <h3>{% trans "Functional annotation" %}</h3>
+                    </div>
+                    <p>{% trans "InterProScan scans each protein against 20 databases including Pfam, HAMAP, and PANTHER to assign domains, GO terms, and EC numbers. UniProt provides additional curated GO and enzyme data for mapped accessions." %}</p>
+                    <div class="home-about-card-tools">
+                        <span class="tp-chip tp-chip--meta tp-chip--sm">InterProScan v5</span>
+                        <span class="tp-chip tp-chip--meta tp-chip--sm">UniProt</span>
+                        <span class="tp-chip tp-chip--meta tp-chip--sm">Gene Ontology</span>
+                    </div>
+                </div>
+
+                <div class="home-about-card">
+                    <div class="home-about-card-head">
+                        <svg class="home-about-icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M9 2h6v8l4 10H5L9 10V2z"/>
+                            <path d="M9 10h6"/>
+                            <circle cx="9.5" cy="16" r="1" fill="currentColor" stroke="none"/>
+                            <circle cx="14.5" cy="14" r="1" fill="currentColor" stroke="none"/>
+                        </svg>
+                        <h3>{% trans "Ligand evidence" %}</h3>
+                    </div>
+                    <p>{% trans "LigQ_2 retrieves co-crystallized ligands from PDB, bioactive compounds from ChEMBL (ranked by potency), and ZINC candidates by chemical similarity. Direct and homology-transferred evidence are distinguished." %}</p>
+                    <div class="home-about-card-tools">
+                        <span class="tp-chip tp-chip--meta tp-chip--sm">LigQ_2</span>
+                        <span class="tp-chip tp-chip--meta tp-chip--sm">PDB</span>
+                        <span class="tp-chip tp-chip--meta tp-chip--sm">ChEMBL</span>
+                        <span class="tp-chip tp-chip--meta tp-chip--sm">ZINC</span>
+                    </div>
+                </div>
+
+                <div class="home-about-card">
+                    <div class="home-about-card-head">
+                        <svg class="home-about-icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M10.5 2.343a7 7 0 0 1 9.9 9.9l-9.9 9.9a7 7 0 0 1-9.9-9.9l9.9-9.9z"/>
+                            <path d="M7 10l3 3 5-5"/>
+                        </svg>
+                        <h3>{% trans "Drug-likeness" %}</h3>
+                    </div>
+                    <p>{% trans "Physicochemical properties including MW, LogP, and TPSA are computed from SMILES using RDKit. Lipinski Rule of Five compliance and PAINS substructure filters are applied to flag compounds prone to assay interference." %}</p>
+                    <div class="home-about-card-tools">
+                        <span class="tp-chip tp-chip--meta tp-chip--sm">RDKit</span>
+                        <span class="tp-chip tp-chip--meta tp-chip--sm">Lipinski Ro5</span>
+                        <span class="tp-chip tp-chip--meta tp-chip--sm">PAINS</span>
+                    </div>
+                </div>
+
+            </div>
+        </section>
 
         <section class="home-panel home-post tp-ui-panel">
             <div class="tp-ui-panel-head">

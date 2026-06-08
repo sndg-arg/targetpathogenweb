@@ -713,6 +713,95 @@ body.pipeline-info-open {
     }
 }
 
+/* ── About / Data sources section ── */
+.home-about-lead {
+    margin: 0 0 18px;
+    color: var(--tp-color-text-secondary);
+    font-size: 0.96rem;
+    line-height: 1.62;
+    max-width: 76ch;
+}
+
+.home-about-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.home-about-card {
+    padding: 15px 16px 14px;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 12px;
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+    display: grid;
+    gap: 9px;
+    align-content: start;
+    transition: border-color 0.14s, box-shadow 0.14s;
+}
+
+.home-about-card:hover {
+    border-color: var(--tp-color-border);
+    box-shadow: var(--tp-shadow-sm);
+}
+
+.home-about-card-head {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+
+.home-about-icon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    color: var(--tp-color-brand-700);
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.home-about-card-head h3 {
+    margin: 0;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--home-accent-deep);
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+}
+
+.home-about-card p {
+    margin: 0;
+    color: var(--tp-color-text-secondary);
+    font-size: 0.875rem;
+    line-height: 1.62;
+}
+
+.home-about-card-tools {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 2px;
+}
+
+@media (max-width: 1100px) {
+    .home-about-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 640px) {
+    .home-about-grid { grid-template-columns: 1fr; }
+}
+
+.tp-dark .home-about-card {
+    background: var(--tp-color-surface-soft);
+    border-color: var(--tp-color-border-soft);
+}
+
+.tp-dark .home-about-card:hover {
+    border-color: var(--tp-color-border);
+}
+
 /* ── Dark mode overrides — pipeline roadmap panel ── */
 .tp-dark .pipeline-info-panel {
     background: var(--tp-color-surface);
