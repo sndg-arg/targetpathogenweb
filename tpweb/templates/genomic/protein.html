@@ -351,7 +351,7 @@
                                 id="structure-spin-btn"
                                 class="btn tp-btn tp-btn--outline tp-btn--md structure-action-btn structure-spin-btn is-active"
                                 aria-pressed="true"
-                                onclick="toggleStructureSpin()">{% trans "Spin" %}</button>
+                                onclick="toggleStructureSpin()"><span id="structure-spin-label">{% trans "Stop spin" %}</span></button>
                         <a href="{% url "tpwebapp:structure_export" structure.id %}"
                            class="btn tp-btn tp-btn--outline tp-btn--md structure-action-btn structure-download-btn"
                            title="{% trans 'Download a visualization script for VMD (Visual Molecular Dynamics), free software to view the 3D structure with pocket overlays — vmd.ks.uiuc.edu' %}">{% trans "3D visualization script" %}</a>
@@ -1396,6 +1396,8 @@
                         if (btn) {
                             btn.setAttribute("aria-pressed", spinning ? "false" : "true");
                             btn.classList.toggle("is-active", !spinning);
+                            var lbl = document.getElementById("structure-spin-label");
+                            if (lbl) lbl.textContent = spinning ? "{% trans 'Spin' %}" : "{% trans 'Stop spin' %}";
                         }
                     };
                     applyStructureTheme();
