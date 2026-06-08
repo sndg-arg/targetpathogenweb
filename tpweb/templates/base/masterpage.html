@@ -16,7 +16,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="">
     <title>{% trans "Target Pathogen" %}</title>
-    <link rel="icon" href="favicon.ico" type="image/x-icon"/>
+    <link rel="icon" type="image/png" href="{% static 'img/brand/tp-logo-mark-color.png' %}">
+    <link rel="apple-touch-icon" href="{% static 'img/brand/tp-logo-mark-color.png' %}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
@@ -1867,8 +1868,8 @@
     <div class="tp-sidebar-brand">
         <div class="tp-sidebar-brand-row">
             <a href="{% url 'tpwebapp:index' %}" aria-label="{% trans 'Target Pathogen' %}">
-                <img class="tp-brand-full" src="{% static 'img/brand/tp-logo-full-white.png' %}" alt="{% trans 'Target Pathogen' %}" style="display:block;width:auto;max-width:150px;height:42px;object-fit:contain;object-position:left center;">
-                <img class="tp-brand-short" src="{% static 'img/brand/tp-logo-mark-white.png' %}" alt="" aria-hidden="true" style="width:38px;height:38px;object-fit:contain;">
+                <img class="tp-brand-full" src="{% static 'img/brand/tp-logo-full-white.png' %}" alt="{% trans 'Target Pathogen' %}" style="display:block;width:190px;max-width:calc(var(--tp-sidebar-w) - 86px);height:auto;max-height:72px;object-fit:contain;object-position:left center;">
+                <img class="tp-brand-short" src="{% static 'img/brand/tp-logo-mark-white.png' %}" alt="" aria-hidden="true" style="width:44px;height:44px;object-fit:contain;">
             </a>
             <button id="tp-sidebar-toggle" class="tp-sidebar-toggle" type="button" aria-label="{% trans "Collapse navigation" %}" title="{% trans "Collapse navigation" %}" aria-expanded="true">
                 <span class="tp-chevron tp-chevron--left tp-sidebar-toggle-icon" aria-hidden="true"></span>
@@ -1923,7 +1924,7 @@
 
 <nav id="main_header" class="navbar navbar-expand-md navbar-dark fixed-top tp-topbar-mobile">
     <div class="container-fluid">
-        <a class="navbar-brand" href="{% url 'tpwebapp:index' %}" aria-label="{% trans 'Target Pathogen' %}"><img src="{% static 'img/brand/tp-logo-full-white.png' %}" alt="{% trans 'Target Pathogen' %}" style="display:block;width:auto;max-width:160px;height:34px;object-fit:contain;object-position:left center;"></a>
+        <a class="navbar-brand" href="{% url 'tpwebapp:index' %}" aria-label="{% trans 'Target Pathogen' %}"><img class="tp-mobile-brand-img" src="{% static 'img/brand/tp-logo-full-white.png' %}" alt="{% trans 'Target Pathogen' %}" style="display:block;width:min(190px,56vw);height:auto;max-height:42px;object-fit:contain;object-position:left center;"></a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse"
                 aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
