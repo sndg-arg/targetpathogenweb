@@ -96,9 +96,17 @@ class Command(BaseCommand):
                     )
                     continue
             else:
+                if sp.category == "Custom":
+                    for raw_value in df[c]:
+                        if pd.isna(raw_value):
+                            continue
+                        value = str(raw_value).strip()
+                        if value and value.lower() not in {"none", "nan", "null"}:
+                            ScoreParamOptions.objects.get_or_create(score_param=sp, name=value, defaults={"description": ""})
+
                 valid_values = {x.name for x in sp.choices.all()}
                 invalid_values = {
-                    str(raw_value)
+                    str(raw_value).strip()
                     for raw_value in df[c]
                     if not pd.isna(raw_value)
                     and str(raw_value).strip()
@@ -140,6 +148,8 @@ class Command(BaseCommand):
                                 numeric_value = float(raw_value)
                         elif pd.isna(raw_value):
                             raw_value = ""
+                        else:
+                            raw_value = str(raw_value).strip()
                         ScoreParamValue(
                             score_param=sp,
                             bioentry=be.get(),
