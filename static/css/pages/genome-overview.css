@@ -16,6 +16,7 @@
 .genome-page h2,
 .genome-page h3 {
     font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-weight: 700;
     letter-spacing: 0.2px;
 }
 
@@ -51,7 +52,6 @@
     font-size: var(--tp-heading-lg);
     line-height: 1.1;
     color: var(--genome-accent-ink);
-    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
     word-break: break-all;
 }
 

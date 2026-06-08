@@ -19,6 +19,7 @@
 .ds-page h3,
 .ds-page h4 {
     font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-weight: 700;
     letter-spacing: 0.2px;
 }
 
