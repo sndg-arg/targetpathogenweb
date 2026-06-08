@@ -347,12 +347,17 @@
                                 onclick="ngl_reset_zoom()"
                                 class="btn tp-btn tp-btn--outline tp-btn--md structure-action-btn structure-reset-btn"
                                 disabled>{% trans "Reset Zoom" %}</button>
+                        <button type="button"
+                                id="structure-spin-btn"
+                                class="btn tp-btn tp-btn--outline tp-btn--md structure-action-btn structure-spin-btn is-active"
+                                aria-pressed="true"
+                                onclick="toggleStructureSpin()">{% trans "Spin" %}</button>
                         <a href="{% url "tpwebapp:structure_export" structure.id %}"
                            class="btn tp-btn tp-btn--outline tp-btn--md structure-action-btn structure-download-btn"
                            title="{% trans 'Download a visualization script for VMD (Visual Molecular Dynamics), free software to view the 3D structure with pocket overlays — vmd.ks.uiuc.edu' %}">{% trans "3D visualization script" %}</a>
                         <a href="{% url "tpwebapp:structure" structure.id %}?protein_id={{ protein.id }}"
-                           class="btn tp-btn tp-btn--outline tp-btn--md structure-action-btn structure-fullscreen-link"
-                           title="{% trans 'Open the dedicated full-screen 3D viewer' %}">
+                           class="btn tp-btn tp-btn--primary tp-btn--md structure-action-btn structure-fullscreen-link"
+                           title="{% trans 'Open the dedicated full-screen 3D viewer with pocket overlays' %}">
                             <svg class="structure-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" focusable="false">
                                 <path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/>
                                 <path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/>
@@ -1383,6 +1388,16 @@
                     if (typeof stage.setSpin === "function") {
                         window.setTimeout(function () { stage.setSpin(true); }, 200);
                     }
+                    window.toggleStructureSpin = function () {
+                        if (!stage || typeof stage.setSpin !== "function") return;
+                        var btn = document.getElementById("structure-spin-btn");
+                        var spinning = btn && btn.getAttribute("aria-pressed") === "true";
+                        stage.setSpin(!spinning);
+                        if (btn) {
+                            btn.setAttribute("aria-pressed", spinning ? "false" : "true");
+                            btn.classList.toggle("is-active", !spinning);
+                        }
+                    };
                     applyStructureTheme();
                     syncNglViewportSize(stage);
                     setStructureResetZoomEnabled(false);

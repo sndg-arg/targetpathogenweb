@@ -956,6 +956,17 @@
     font-weight: 500;
 }
 
+.structure-actions .structure-spin-btn {
+    min-width: 0;
+    font-weight: 500;
+}
+
+.structure-actions .structure-spin-btn.is-active {
+    color: var(--tp-color-brand-700);
+    border-color: var(--tp-color-brand-300);
+    background: var(--tp-color-brand-050);
+}
+
 .structure-actions .structure-reset-btn:disabled {
     opacity: 0.4;
 }
