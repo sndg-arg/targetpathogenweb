@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/data-sources.css' %}?v=20260608-2">
+    <link rel="stylesheet" href="{% static 'css/pages/data-sources.css' %}?v=20260608-3">
 {% endblock %}
 
 {% block body %}
@@ -21,6 +21,7 @@
                 <p class="ds-hero-description">{% trans "A complete reference for how each evidence signal is generated — which tool, which pipeline stage, which parameters, and what it means for target assessment." %}</p>
                 <div class="ds-hero-toc tp-chip-group" aria-label="{% trans 'Sections' %}">
                     <a class="tp-chip tp-chip--meta tp-chip--sm" href="#pipeline">{% trans "Pipeline" %}</a>
+                    <a class="tp-chip tp-chip--meta tp-chip--sm" href="#protein-data">{% trans "Protein data" %}</a>
                     <a class="tp-chip tp-chip--meta tp-chip--sm" href="#structure">{% trans "3D structure" %}</a>
                     <a class="tp-chip tp-chip--meta tp-chip--sm" href="#binding-sites">{% trans "Binding sites" %}</a>
                     <a class="tp-chip tp-chip--meta tp-chip--sm" href="#annotation">{% trans "Annotation" %}</a>
@@ -39,7 +40,7 @@
             <div>
                 <p class="tp-ui-field-label">{% trans "Overview" %}</p>
                 <h2 class="ds-panel-title">{% trans "Analysis pipeline" %}</h2>
-                <p class="ds-panel-subtitle">{% trans "24 stages run linearly. Compute-heavy stages (★) execute on SLURM cluster nodes via SSH, not on the web server." %}</p>
+                <p class="ds-panel-subtitle">{% trans "24 stages run linearly. Compute-heavy stages (★) run on dedicated compute nodes." %}</p>
             </div>
         </div>
         <div class="ds-pipeline-grid">
@@ -62,7 +63,7 @@
                     <span class="ds-stage-tag">8–11 ★</span>
                     <strong>{% trans "Protein annotation" %}</strong>
                 </div>
-                <p>{% trans "Sequence indexing and InterProScan (SLURM): domain annotation, GO terms, and EC numbers from 20 integrated databases." %}</p>
+                <p>{% trans "Sequence indexing and InterProScan: domain annotation, GO terms, and EC numbers from 20 integrated databases." %}</p>
             </div>
             <div class="ds-pipeline-card">
                 <div class="ds-pipeline-card-head">
@@ -83,7 +84,7 @@
                     <span class="ds-stage-tag">22–24 ★</span>
                     <strong>{% trans "Ligand evidence" %}</strong>
                 </div>
-                <p>{% trans "LigQ_2 runs on SLURM: searches PDB, ChEMBL, and ZINC for binders. Results are transferred back and loaded into the binders table." %}</p>
+                <p>{% trans "LigQ_2 searches PDB, ChEMBL, and ZINC for binders. Results are loaded into the binders table." %}</p>
             </div>
         </div>
     </section>
@@ -179,7 +180,7 @@
             <div>
                 <p class="tp-ui-field-label">{% trans "Stage 17" %}</p>
                 <h2 class="ds-panel-title">{% trans "Binding sites" %}</h2>
-                <p class="ds-panel-subtitle">{% trans "structures_remote — FPocket + P2Rank, run on SLURM" %}</p>
+                <p class="ds-panel-subtitle">{% trans "structures_remote — FPocket + P2Rank" %}</p>
             </div>
         </div>
         <p class="ds-body">{% trans "Two complementary tools detect and rank putative binding pockets on each protein structure. Results are stored as residue sets and visualized in the 3D viewer." %}</p>
@@ -296,7 +297,7 @@
             <div>
                 <p class="tp-ui-field-label">{% trans "Stage 24" %}</p>
                 <h2 class="ds-panel-title">{% trans "Ligand evidence" %}</h2>
-                <p class="ds-panel-subtitle">{% trans "ligq_remote — LigQ_2 on SLURM" %}</p>
+                <p class="ds-panel-subtitle">{% trans "ligq_remote — LigQ_2" %}</p>
             </div>
         </div>
         <p class="ds-body">{% trans "LigQ_2 exports all protein sequences, transfers them to a compute node, and searches multiple databases for known or candidate binders. Non-relevant compounds (amino acids, water, crystallization agents, common ions) are filtered out at load time." %}</p>
@@ -439,4 +440,35 @@
     </section>
 
 </div>
+
+<script>
+(function () {
+    if (!('IntersectionObserver' in window)) return;
+    var chips = document.querySelectorAll('.ds-hero-toc a[href^="#"]');
+    if (!chips.length) return;
+    var sectionIds = Array.from(chips).map(function (c) { return c.getAttribute('href').slice(1); });
+    var sections = sectionIds.map(function (id) { return document.getElementById(id); }).filter(Boolean);
+    if (!sections.length) return;
+
+    function setActive(id) {
+        chips.forEach(function (c) {
+            c.classList.toggle('is-active', c.getAttribute('href').slice(1) === id);
+        });
+    }
+
+    var visibleSet = new Set();
+    var observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+            if (entry.isIntersecting) { visibleSet.add(entry.target.id); }
+            else { visibleSet.delete(entry.target.id); }
+        });
+        for (var i = 0; i < sections.length; i++) {
+            if (visibleSet.has(sections[i].id)) { setActive(sections[i].id); return; }
+        }
+    }, { rootMargin: '-8% 0px -58% 0px', threshold: 0 });
+
+    sections.forEach(function (s) { observer.observe(s); });
+    setActive(sections[0].id);
+})();
+</script>
 {% endblock %}

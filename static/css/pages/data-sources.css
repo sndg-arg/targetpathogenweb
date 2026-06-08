@@ -40,8 +40,9 @@
 }
 
 .ds-hero-toc { margin-top: 4px; }
-.ds-hero-toc .tp-chip--meta { text-decoration: none; cursor: pointer; }
+.ds-hero-toc .tp-chip--meta { text-decoration: none; cursor: pointer; transition: background 0.15s, border-color 0.15s, color 0.15s; }
 .ds-hero-toc .tp-chip--meta:hover { background: var(--tp-color-brand-100); border-color: var(--tp-color-brand-300); }
+.ds-hero-toc .tp-chip--meta.is-active { background: var(--tp-color-brand-700); border-color: var(--tp-color-brand-800); color: var(--tp-color-text-on-brand); font-weight: 700; }
 
 /* ── Panel common ── */
 .ds-panel { padding: 20px 22px; }
