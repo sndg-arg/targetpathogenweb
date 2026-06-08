@@ -16,8 +16,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="">
     <title>{% trans "Target Pathogen" %}</title>
-    <link rel="icon" type="image/png" href="{% static 'img/brand/tp-logo-mark-color.png' %}">
-    <link rel="apple-touch-icon" href="{% static 'img/brand/tp-logo-mark-color.png' %}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'img/brand/favicon-32.png' %}?v=2">
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'img/brand/apple-touch-icon.png' %}?v=2">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
@@ -1451,11 +1451,11 @@
             body.tp-sidebar-collapsed .tp-user-chip,
             body.tp-sidebar-collapsed .tp-side-footer form,
             body.tp-sidebar-collapsed .tp-side-footer > a {
-                display: none;
+                display: none !important;
             }
 
             body.tp-sidebar-collapsed .tp-brand-short {
-                display: inline;
+                display: inline-block !important;
             }
 
             body.tp-sidebar-collapsed .tp-sidebar-kicker,
