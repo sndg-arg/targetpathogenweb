@@ -1067,6 +1067,17 @@
     transform: scale(1.04);
 }
 
+.structure-fullscreen-link {
+    gap: 7px;
+}
+
+.structure-fullscreen-link .structure-icon {
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    flex-shrink: 0;
+}
+
 .structure-mode-switch .btn.is-active {
     background: var(--tp-color-surface);
     border-color: var(--protein-accent-border);

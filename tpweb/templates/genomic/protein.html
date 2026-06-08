@@ -1273,6 +1273,11 @@
 
                     window.ngl_reset_zoom = function () {
                         component.autoView();
+                        window.setTimeout(function () {
+                            if (stage && stage.viewerControls && typeof stage.viewerControls.zoom === "function") {
+                                stage.viewerControls.zoom(0.40);
+                            }
+                        }, 80);
                         setStructureResetZoomEnabled(false);
                     };
 
@@ -1385,6 +1390,11 @@
 
                     window.ngl_set_mode("cartoon");
                     component.autoView();
+                    window.setTimeout(function () {
+                        if (stage && stage.viewerControls && typeof stage.viewerControls.zoom === "function") {
+                            stage.viewerControls.zoom(0.40);
+                        }
+                    }, 80);
                     if (typeof stage.setSpin === "function") {
                         window.setTimeout(function () { stage.setSpin(true); }, 200);
                     }
