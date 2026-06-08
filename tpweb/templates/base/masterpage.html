@@ -1866,9 +1866,9 @@
 <aside class="tp-sidebar" aria-label="{% trans "Primary navigation" %}">
     <div class="tp-sidebar-brand">
         <div class="tp-sidebar-brand-row">
-            <a href="{% url 'tpwebapp:index' %}">
-                <span class="tp-brand-full">{% trans "Target Pathogen" %}</span>
-                <span class="tp-brand-short">TP</span>
+            <a href="{% url 'tpwebapp:index' %}" aria-label="{% trans 'Target Pathogen' %}">
+                <img class="tp-brand-full" src="{% static 'img/brand/tp-logo-full-white.png' %}" alt="{% trans 'Target Pathogen' %}" style="display:block;width:auto;max-width:150px;height:42px;object-fit:contain;object-position:left center;">
+                <img class="tp-brand-short" src="{% static 'img/brand/tp-logo-mark-white.png' %}" alt="" aria-hidden="true" style="width:38px;height:38px;object-fit:contain;">
             </a>
             <button id="tp-sidebar-toggle" class="tp-sidebar-toggle" type="button" aria-label="{% trans "Collapse navigation" %}" title="{% trans "Collapse navigation" %}" aria-expanded="true">
                 <span class="tp-chevron tp-chevron--left tp-sidebar-toggle-icon" aria-hidden="true"></span>
@@ -1890,6 +1890,9 @@
             </a>
             <a class="tp-side-link tp-side-link--primary {% if '/form' in request.path or '/result/' in request.path %}active{% endif %}" data-short="BL" data-label="{% trans 'BLAST' %}" aria-label="{% trans 'BLAST' %}" href="{% url 'tpwebapp:form' %}">
                 <span class="tp-side-text">{% trans "BLAST" %}</span>
+            </a>
+            <a class="tp-side-link tp-side-link--primary {% if request.resolver_match.url_name == 'data_sources' %}active{% endif %}" data-short="MT" data-label="{% trans 'Methodology' %}" aria-label="{% trans 'Methodology' %}" href="{% url 'tpwebapp:data_sources' %}">
+                <span class="tp-side-text">{% trans "Methodology" %}</span>
             </a>
         </div>
         {% if user.is_staff %}
@@ -1920,7 +1923,7 @@
 
 <nav id="main_header" class="navbar navbar-expand-md navbar-dark fixed-top tp-topbar-mobile">
     <div class="container-fluid">
-        <a class="navbar-brand" href="{% url 'tpwebapp:index' %}">{% trans "Target Pathogen" %}</a>
+        <a class="navbar-brand" href="{% url 'tpwebapp:index' %}" aria-label="{% trans 'Target Pathogen' %}"><img src="{% static 'img/brand/tp-logo-full-white.png' %}" alt="{% trans 'Target Pathogen' %}" style="display:block;width:auto;max-width:160px;height:34px;object-fit:contain;object-position:left center;"></a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse"
                 aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
@@ -1938,6 +1941,9 @@
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" aria-current="page" href="{% url 'tpwebapp:form' %}">{% trans "BLAST" %}</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" aria-current="page" href="{% url 'tpwebapp:data_sources' %}">{% trans "Methodology" %}</a>
                 </li>
                 {% if user.is_staff %}
                 <li class="nav-item">

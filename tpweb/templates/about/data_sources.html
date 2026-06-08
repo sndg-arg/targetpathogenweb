@@ -11,7 +11,9 @@
 
     <div class="ds-hero">
         <div class="ds-hero-copy">
-            <p class="tp-ui-field-label">{% trans "Platform methodology" %}</p>
+            {% url 'tpwebapp:index' as index_url %}
+            {% trans "Methodology" as crumb_methodology %}
+            {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_methodology %}
             <h1>{% trans "Data sources &amp; methodology" %}</h1>
             <p class="ds-hero-lead">{% trans "A detailed description of how each piece of evidence is generated: which tool produces it, at what pipeline stage, with what parameters, and what it means biologically." %}</p>
         </div>
