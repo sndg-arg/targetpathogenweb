@@ -1,0 +1,383 @@
+{% extends '../base/masterpage.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block head %}
+    <link rel="stylesheet" href="{% static 'css/pages/data-sources.css' %}?v=20260608-1">
+{% endblock %}
+
+{% block body %}
+<div class="ds-page">
+
+    <div class="ds-hero">
+        <div class="ds-hero-copy">
+            <p class="tp-ui-field-label">{% trans "Platform methodology" %}</p>
+            <h1>{% trans "Data sources &amp; methodology" %}</h1>
+            <p class="ds-hero-lead">{% trans "A detailed description of how each piece of evidence is generated: which tool produces it, at what pipeline stage, with what parameters, and what it means biologically." %}</p>
+        </div>
+        <nav class="ds-toc" aria-label="{% trans 'Table of contents' %}">
+            <p class="ds-toc-label">{% trans "Sections" %}</p>
+            <ol class="ds-toc-list">
+                <li><a href="#pipeline">{% trans "Analysis pipeline" %}</a></li>
+                <li><a href="#protein-data">{% trans "Protein data" %}</a></li>
+                <li><a href="#structure">{% trans "3D structure" %}</a></li>
+                <li><a href="#binding-sites">{% trans "Binding sites" %}</a></li>
+                <li><a href="#annotation">{% trans "Functional annotation" %}</a></li>
+                <li><a href="#target-profile">{% trans "Target profile" %}</a></li>
+                <li><a href="#ligands">{% trans "Ligand evidence" %}</a></li>
+                <li><a href="#drug-likeness">{% trans "Drug-likeness" %}</a></li>
+                <li><a href="#interpretation">{% trans "Interpretation notes" %}</a></li>
+            </ol>
+        </nav>
+    </div>
+
+    {# ── 1. Pipeline ── #}
+    <section class="ds-section" id="pipeline">
+        <div class="ds-section-head">
+            <h2>{% trans "Analysis pipeline" %}</h2>
+            <p class="ds-section-sub">{% trans "24 stages, run linearly. Compute-heavy stages (marked ★) run on SLURM cluster nodes." %}</p>
+        </div>
+        <div class="ds-pipeline-areas">
+            <div class="ds-area-card">
+                <span class="ds-area-number">1–3</span>
+                <div>
+                    <strong>{% trans "Genome import" %}</strong>
+                    <p>{% trans "GenBank download from NCBI (or manual upload), import to database: proteins, sequences, original annotations." %}</p>
+                </div>
+            </div>
+            <div class="ds-area-card">
+                <span class="ds-area-number">4–7 ★</span>
+                <div>
+                    <strong>{% trans "Target scoring" %}</strong>
+                    <p>{% trans "FastTarget runs DIAMOND BLASTP against the human proteome, gut microbiome, and the Database of Essential Genes (DEG) to compute selectivity and essentiality scores." %}</p>
+                </div>
+            </div>
+            <div class="ds-area-card">
+                <span class="ds-area-number">8–11 ★</span>
+                <div>
+                    <strong>{% trans "Protein annotation" %}</strong>
+                    <p>{% trans "Sequence indexing and InterProScan (run in SLURM): domain annotation, GO terms, EC numbers from 20 integrated databases." %}</p>
+                </div>
+            </div>
+            <div class="ds-area-card">
+                <span class="ds-area-number">12–19 ★</span>
+                <div>
+                    <strong>{% trans "Structural evidence" %}</strong>
+                    <p>{% trans "UniProt mapping, experimental PDB retrieval, AlphaFold DB download, ColabFold predictions, FPocket + P2Rank pocket detection, druggability score loading." %}</p>
+                </div>
+            </div>
+            <div class="ds-area-card">
+                <span class="ds-area-number">20–21</span>
+                <div>
+                    <strong>{% trans "Cell localization" %}</strong>
+                    <p>{% trans "PSORTb predicts subcellular localization (cytoplasmic, membrane, periplasmic, outer membrane, extracellular) using an SVM trained on experimentally confirmed bacterial proteins." %}</p>
+                </div>
+            </div>
+            <div class="ds-area-card">
+                <span class="ds-area-number">22–24 ★</span>
+                <div>
+                    <strong>{% trans "Ligand evidence" %}</strong>
+                    <p>{% trans "LigQ_2 runs in SLURM: searches PDB, ChEMBL, and ZINC for known or candidate binders. Results are transferred back and loaded into the binders table." %}</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {# ── 2. Protein data ── #}
+    <section class="ds-section" id="protein-data">
+        <div class="ds-section-head">
+            <h2>{% trans "Protein data" %}</h2>
+            <p class="ds-section-sub">{% trans "Stages 2–3 · download_gbk → load_gbk" %}</p>
+        </div>
+        <p>{% trans "The GenBank file (.gbk) is downloaded from NCBI using the genome accession or uploaded manually. The import stage parses each CDS feature and loads:" %}</p>
+        <ul class="ds-list">
+            <li><strong>{% trans "Accession" %}</strong> — {% trans "the locus_tag qualifier (e.g. PA4406, VK055_0001)." %}</li>
+            <li><strong>{% trans "Description / function" %}</strong> — {% trans "the product qualifier." %}</li>
+            <li><strong>{% trans "Gene name" %}</strong> — {% trans "the gene qualifier (e.g. lpxC, envA)." %}</li>
+            <li><strong>{% trans "Length (amino acids)" %}</strong> — {% trans "derived from the translation qualifier." %}</li>
+            <li><strong>{% trans "Status" %}</strong> — {% trans "annotated or hypothetical, inferred from the description." %}</li>
+        </ul>
+        <div class="ds-callout">
+            {% trans "The quality of functional annotations depends entirely on how the genome was originally annotated (PGAP/NCBI, Prokka, RAST, etc.). Target Pathogen does not modify or validate those annotations." %}
+        </div>
+    </section>
+
+    {# ── 3. 3D Structure ── #}
+    <section class="ds-section" id="structure">
+        <div class="ds-section-head">
+            <h2>{% trans "3D structure" %}</h2>
+            <p class="ds-section-sub">{% trans "Stages 13, 15, 16 · fetch_experimental_structures → alphafold_unips → colabfold_predict" %}</p>
+        </div>
+        <p>{% trans "Each protein is assigned a single preferred structure for analysis, following a strict priority order:" %}</p>
+
+        <div class="ds-priority-stack">
+            <div class="ds-priority-card ds-priority-card--1">
+                <span class="ds-priority-badge">1</span>
+                <div>
+                    <strong>{% trans "Experimental structure (PDB)" %}</strong>
+                    <p>{% trans "Crystallography, cryo-EM, or NMR entries from the Protein Data Bank. Retrieved by searching PDB for all structures linked to the protein's UniProt ID. Multiple chains and structures can be available and switched in the viewer." %}</p>
+                </div>
+            </div>
+            <div class="ds-priority-card ds-priority-card--2">
+                <span class="ds-priority-badge">2</span>
+                <div>
+                    <strong>{% trans "AlphaFold Database model" %}</strong>
+                    <p>{% trans "Computational model downloaded from the AlphaFold Protein Structure Database (EBI/DeepMind) using the UniProt ID. Requires a successful UniProt mapping at stage 12." %}</p>
+                </div>
+            </div>
+            <div class="ds-priority-card ds-priority-card--3">
+                <span class="ds-priority-badge">3</span>
+                <div>
+                    <strong>{% trans "ColabFold prediction" %}</strong>
+                    <p>{% trans "AlphaFold2-based prediction using MMseqs2-accelerated MSA search, generated locally for proteins without other structural coverage. Produced at stage 16, either on CPU (~30–60 min/protein) or GPU via SLURM." %}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="ds-subsection">
+            <h3>{% trans "pLDDT — model confidence" %}</h3>
+            <p>{% trans "The predicted Local Distance Difference Test (pLDDT) is a per-residue confidence score computed by AlphaFold and ColabFold. The platform stores and displays the mean pLDDT across all residues." %}</p>
+            <div class="ds-score-table">
+                <div class="ds-score-row ds-score-row--high"><span class="ds-score-range">≥ 90</span><span>{% trans "Very high confidence" %}</span></div>
+                <div class="ds-score-row ds-score-row--medium"><span class="ds-score-range">70–89</span><span>{% trans "Good confidence" %}</span></div>
+                <div class="ds-score-row ds-score-row--low"><span class="ds-score-range">50–69</span><span>{% trans "Low confidence — possibly disordered region" %}</span></div>
+                <div class="ds-score-row ds-score-row--none"><span class="ds-score-range">&lt; 50</span><span>{% trans "Not reliable — avoid structural interpretation" %}</span></div>
+            </div>
+        </div>
+    </section>
+
+    {# ── 4. Binding sites ── #}
+    <section class="ds-section" id="binding-sites">
+        <div class="ds-section-head">
+            <h2>{% trans "Binding sites" %}</h2>
+            <p class="ds-section-sub">{% trans "Stage 17 · structures_remote" %}</p>
+        </div>
+        <p>{% trans "Two complementary tools detect and rank putative binding pockets on each protein structure. Both are run on SLURM at stage 17 and results are stored as residue sets visualizable in the 3D viewer." %}</p>
+
+        <div class="ds-tool-grid">
+            <div class="ds-tool-card">
+                <div class="ds-tool-head">
+                    <span class="ds-tool-name">FPocket</span>
+                    <span class="ds-tool-version">v4+</span>
+                </div>
+                <p>{% trans "Detects surface cavities using alpha spheres derived from a Voronoi tessellation of the protein surface. For each pocket, computes a druggability score based on pocket volume, hydrophobic residue fraction, solvent accessibility, and dipole moment." %}</p>
+                <div class="ds-score-table">
+                    <div class="ds-score-row ds-score-row--high"><span class="ds-score-range">≥ 0.7</span><span>{% trans "Highly druggable" %}</span></div>
+                    <div class="ds-score-row ds-score-row--medium"><span class="ds-score-range">0.4–0.69</span><span>{% trans "Moderately druggable" %}</span></div>
+                    <div class="ds-score-row ds-score-row--low"><span class="ds-score-range">&lt; 0.4</span><span>{% trans "Low druggability" %}</span></div>
+                </div>
+                <p class="ds-note">{% trans "The druggability score shown per-protein is the maximum score across all detected pockets for that structure." %}</p>
+            </div>
+            <div class="ds-tool-card">
+                <div class="ds-tool-head">
+                    <span class="ds-tool-name">P2Rank</span>
+                    <span class="ds-tool-version">v2.x</span>
+                </div>
+                <p>{% trans "Applies a random forest classifier trained on ~15,000 PDB structures. For each point on the protein surface, it estimates a probability of belonging to a ligand-binding site using local descriptors: solvent accessibility, hydrophobicity, and evolutionary conservation." %}</p>
+                <div class="ds-score-table">
+                    <div class="ds-score-row ds-score-row--high"><span class="ds-score-range">≥ 0.5</span><span>{% trans "High probability binding site" %}</span></div>
+                    <div class="ds-score-row ds-score-row--medium"><span class="ds-score-range">0.2–0.49</span><span>{% trans "Medium probability" %}</span></div>
+                    <div class="ds-score-row ds-score-row--low"><span class="ds-score-range">&lt; 0.2</span><span>{% trans "Low probability" %}</span></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {# ── 5. Functional annotation ── #}
+    <section class="ds-section" id="annotation">
+        <div class="ds-section-head">
+            <h2>{% trans "Functional annotation" %}</h2>
+            <p class="ds-section-sub">{% trans "Stages 10–11, 13 · interproscan → load_interpro → fetch_uniprot_annotations" %}</p>
+        </div>
+
+        <div class="ds-subsection">
+            <h3>{% trans "Domains — InterProScan" %}</h3>
+            <p>{% trans "InterProScan v5 scans each protein sequence against 20 integrated databases and reports domain hits with residue coordinates. The following databases are active:" %}</p>
+            <div class="ds-db-grid">
+                <div class="ds-db-item"><span class="ds-db-name">Pfam</span><span class="ds-db-desc">{% trans "Conserved protein domains (most widely used)" %}</span></div>
+                <div class="ds-db-item"><span class="ds-db-name">HAMAP</span><span class="ds-db-desc">{% trans "Prokaryotic protein families with characterized function" %}</span></div>
+                <div class="ds-db-item"><span class="ds-db-name">NCBIfam</span><span class="ds-db-desc">{% trans "NCBI families, includes legacy TIGRfam HMMs" %}</span></div>
+                <div class="ds-db-item"><span class="ds-db-name">PANTHER</span><span class="ds-db-desc">{% trans "Families and subfamilies with inferred evolutionary function" %}</span></div>
+                <div class="ds-db-item"><span class="ds-db-name">Gene3D</span><span class="ds-db-desc">{% trans "Structural domains based on CATH classification" %}</span></div>
+                <div class="ds-db-item"><span class="ds-db-name">SUPERFAMILY</span><span class="ds-db-desc">{% trans "Domains based on SCOP classification" %}</span></div>
+                <div class="ds-db-item"><span class="ds-db-name">PIRSF</span><span class="ds-db-desc">{% trans "Full-length protein families with specific function" %}</span></div>
+                <div class="ds-db-item"><span class="ds-db-name">SMART</span><span class="ds-db-desc">{% trans "Signaling and regulatory domains" %}</span></div>
+                <div class="ds-db-item"><span class="ds-db-name">CDD</span><span class="ds-db-desc">{% trans "NCBI Conserved Domain Database" %}</span></div>
+                <div class="ds-db-item"><span class="ds-db-name">TMHMM / Phobius</span><span class="ds-db-desc">{% trans "Transmembrane domains and signal peptides" %}</span></div>
+                <div class="ds-db-item"><span class="ds-db-name">SignalP</span><span class="ds-db-desc">{% trans "Signal peptides (Gram-negative, Gram-positive, Eukaryotic)" %}</span></div>
+                <div class="ds-db-item"><span class="ds-db-name">MobiDBLite</span><span class="ds-db-desc">{% trans "Intrinsically disordered regions" %}</span></div>
+            </div>
+        </div>
+
+        <div class="ds-subsection">
+            <h3>{% trans "Gene Ontology (GO)" %}</h3>
+            <p>{% trans "GO terms are collected from two sources and merged:" %}</p>
+            <ul class="ds-list">
+                <li><strong>{% trans "InterProScan (stage 11)" %}</strong> — {% trans "GO terms in column 14 of the TSV output, assigned by Pfam, HAMAP, PANTHER, etc. when a domain or family is recognized." %}</li>
+                <li><strong>{% trans "UniProt (stage 13)" %}</strong> — {% trans "manually curated or imported GO terms retrieved for proteins with a successful UniProt mapping." %}</li>
+            </ul>
+            <p>{% trans "Three GO aspects are covered: molecular function, biological process, and cellular component." %}</p>
+        </div>
+
+        <div class="ds-subsection">
+            <h3>{% trans "EC number (Enzyme Commission)" %}</h3>
+            <p>{% trans "EC numbers follow the same two-source approach. If a protein has no UniProt mapping and InterProScan found no EC hits, EC = 0 is the expected and correct result — it does not necessarily mean the protein is non-enzymatic." %}</p>
+        </div>
+    </section>
+
+    {# ── 6. Target profile ── #}
+    <section class="ds-section" id="target-profile">
+        <div class="ds-section-head">
+            <h2>{% trans "Target profile" %}</h2>
+            <p class="ds-section-sub">{% trans "Stages 4–7, 20–21 · fasttarget → psort" %}</p>
+        </div>
+        <p>{% trans "The target profile consolidates four evidence signals to help prioritize proteins as therapeutic candidates. All are computed computationally — see the interpretation notes below." %}</p>
+
+        <div class="ds-profile-grid">
+            <div class="ds-profile-card">
+                <h3>{% trans "Human off-target" %}</h3>
+                <p>{% trans "DIAMOND BLASTP against the complete human proteome (UniProt/Swiss-Prot + TrEMBL). A hit is reported when e-value ≤ 1×10⁻⁵. The best-alignment identity percentage and e-value are stored." %}</p>
+                <p class="ds-interpretation"><strong>{% trans "Desirable:" %}</strong> {% trans "no hit — reduces the risk of cross-toxicity to the human host." %}</p>
+            </div>
+            <div class="ds-profile-card">
+                <h3>{% trans "Gut microbiome off-target" %}</h3>
+                <p>{% trans "DIAMOND BLASTP against a curated reference set of human gut commensal genomes. A hit requires sequence identity > 40% AND query coverage > 70%." %}</p>
+                <p class="ds-interpretation"><strong>{% trans "Desirable:" %}</strong> {% trans "no hit — a compound inhibiting a microbiome-conserved protein may disrupt beneficial gut flora." %}</p>
+            </div>
+            <div class="ds-profile-card">
+                <h3>{% trans "Essentiality (DEG)" %}</h3>
+                <p>{% trans "DIAMOND BLASTP against the Database of Essential Genes — genes confirmed essential by transposon mutagenesis, deletion, or fitness competition in model organisms." %}</p>
+                <p class="ds-interpretation"><strong>{% trans "Desirable:" %}</strong> {% trans "hit — a protein with DEG homologs is more likely essential to pathogen viability." %}</p>
+            </div>
+            <div class="ds-profile-card">
+                <h3>{% trans "Subcellular localization" %}</h3>
+                <p>{% trans "PSORTb v3 uses an SVM trained on bacterially characterized proteins to classify localization as Cytoplasmic, CytoplasmicMembrane, Periplasmic, OuterMembrane, Extracellular, or Unknown." %}</p>
+                <p class="ds-interpretation"><strong>{% trans "Context:" %}</strong> {% trans "outer membrane, periplasmic, and extracellular proteins are more accessible to large molecules. Cytoplasmic targets require compounds to cross both membranes." %}</p>
+            </div>
+        </div>
+    </section>
+
+    {# ── 7. Ligand evidence ── #}
+    <section class="ds-section" id="ligands">
+        <div class="ds-section-head">
+            <h2>{% trans "Ligand evidence" %}</h2>
+            <p class="ds-section-sub">{% trans "Stage 24 · ligq_remote (SLURM)" %}</p>
+        </div>
+        <p>{% trans "LigQ_2 exports all protein sequences, transfers them to a SLURM compute node, and searches multiple databases for known or candidate ligands. Results are transferred back and loaded into the binders table. Non-relevant compounds (amino acids, water, crystallization agents, ions) are filtered out automatically." %}</p>
+
+        <table class="ds-table">
+            <thead>
+                <tr>
+                    <th>{% trans "Evidence type" %}</th>
+                    <th>{% trans "Source" %}</th>
+                    <th>{% trans "Inclusion criterion" %}</th>
+                    <th>{% trans "Limit" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>{% trans "PDB co-crystal (direct)" %}</td>
+                    <td>PDB</td>
+                    <td>{% trans "UniProt from PDB record matches this protein" %}</td>
+                    <td>{% trans "All" %}</td>
+                </tr>
+                <tr>
+                    <td>{% trans "PDB via homologs" %}</td>
+                    <td>PDB</td>
+                    <td>{% trans "UniProt from PDB record is from a similar protein" %}</td>
+                    <td>{% trans "All" %}</td>
+                </tr>
+                <tr>
+                    <td>{% trans "ChEMBL bioactive (direct)" %}</td>
+                    <td>ChEMBL</td>
+                    <td>{% trans "ChEMBL target UniProt matches this protein" %}</td>
+                    <td>{% trans "Top 100 by pChEMBL" %}</td>
+                </tr>
+                <tr>
+                    <td>{% trans "ChEMBL via homologs" %}</td>
+                    <td>ChEMBL</td>
+                    <td>{% trans "ChEMBL target is a homologous protein" %}</td>
+                    <td>{% trans "Top 100 by pChEMBL" %}</td>
+                </tr>
+                <tr>
+                    <td>{% trans "ZINC proposed" %}</td>
+                    <td>ZINC</td>
+                    <td>{% trans "Tanimoto chemical similarity ≥ 0.5 to known binders" %}</td>
+                    <td>{% trans "Top 50 by Tanimoto" %}</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="ds-callout ds-callout--info">
+            <strong>pChEMBL</strong> {% trans "is the negative log of potency (IC50, Ki, Kd, etc.) in molar units. pChEMBL = 6 corresponds to IC50 = 1 µM. Higher = more potent." %}
+            <br><br>
+            <strong>Tanimoto</strong> {% trans "measures chemical similarity between two molecules using molecular fingerprints. 1.0 = identical; the platform uses 0.5 as the minimum threshold." %}
+        </div>
+    </section>
+
+    {# ── 8. Drug-likeness ── #}
+    <section class="ds-section" id="drug-likeness">
+        <div class="ds-section-head">
+            <h2>{% trans "Drug-likeness" %}</h2>
+            <p class="ds-section-sub">{% trans "Computed from SMILES using RDKit at page load time. Not experimental values." %}</p>
+        </div>
+
+        <div class="ds-tool-grid">
+            <div class="ds-dl-item">
+                <div class="ds-dl-head"><span class="ds-dl-label">MW</span><span class="ds-dl-name">{% trans "Molecular weight (Da)" %}</span></div>
+                <p>{% trans "Average molecular weight accounting for natural isotopic abundances. Lipinski et al. propose ≤ 500 Da for oral permeability — though many approved antibiotics exceed this (beta-lactams, glycopeptides)." %}</p>
+            </div>
+            <div class="ds-dl-item">
+                <div class="ds-dl-head"><span class="ds-dl-label">LogP</span><span class="ds-dl-name">{% trans "Lipophilicity" %}</span></div>
+                <p>{% trans "Crippen's atomic contribution method. Measures octanol/water partitioning. Range 0–3 is generally favorable; > 5 indicates potential toxicity and metabolic issues; < −2 suggests poor membrane permeability." %}</p>
+            </div>
+            <div class="ds-dl-item">
+                <div class="ds-dl-head"><span class="ds-dl-label">TPSA</span><span class="ds-dl-name">{% trans "Topological polar surface area (Å²)" %}</span></div>
+                <p>{% trans "Sum of polar atom surface areas (O, N, and their hydrogens). < 140 Å² satisfies Veber's bioavailability criterion; < 60 Å² improves permeation across bacterial double membranes." %}</p>
+            </div>
+            <div class="ds-dl-item">
+                <div class="ds-dl-head"><span class="ds-dl-label">Ro5</span><span class="ds-dl-name">{% trans "Lipinski Rule of Five" %}</span></div>
+                <p>{% trans "Checks four conditions: MW ≤ 500 Da, LogP ≤ 5, H-bond donors ≤ 5, H-bond acceptors ≤ 10. Violations count: 0 = compliant, 1 = caution, ≥ 2 = likely oral bioavailability issues. Applies primarily to oral drugs — parenteral antibiotics routinely violate Ro5." %}</p>
+            </div>
+            <div class="ds-dl-item">
+                <div class="ds-dl-head"><span class="ds-dl-label">PAINS</span><span class="ds-dl-name">{% trans "Pan-assay interference" %}</span></div>
+                <p>{% trans "RDKit's PAINS filter (Baell & Holloway catalog) flags substructures prone to false positives in HTS via promiscuous reactivity, optical interference, or non-specific binding. A PAINS alert does not disqualify a compound, but requires orthogonal validation." %}</p>
+            </div>
+        </div>
+    </section>
+
+    {# ── 9. Interpretation notes ── #}
+    <section class="ds-section" id="interpretation">
+        <div class="ds-section-head">
+            <h2>{% trans "Interpretation notes" %}</h2>
+        </div>
+        <ul class="ds-caveats">
+            <li>
+                <strong>{% trans "All evidence is computational" %}</strong>
+                {% trans "— except PDB co-crystal binders (experimental co-crystallization) and direct ChEMBL entries (measured in vitro/in vivo bioactivity). Everything else is predicted, not confirmed." %}
+            </li>
+            <li>
+                <strong>{% trans "Absence of a value ≠ absence of the property." %}</strong>
+                {% trans "EC = 0 can mean the protein genuinely has no characterized enzymatic activity, or that the pipeline found insufficient homology, or that the tool was not configured for that organism. Context matters." %}
+            </li>
+            <li>
+                <strong>{% trans "Druggability scores are structural descriptors," %}</strong>
+                {% trans "not predictors of biological activity or toxicity. A high score indicates a well-defined pocket with favorable physicochemical properties — it does not imply that a known drug exists or that the pocket is the active site." %}
+            </li>
+            <li>
+                <strong>{% trans "DEG essentiality is transferred:" %}</strong>
+                {% trans "a protein may be essential in the DEG reference organism but not in the studied pathogen, and vice versa. Genome-specific essentiality screens are the gold standard." %}
+            </li>
+            <li>
+                <strong>{% trans "AlphaFold and ColabFold models have known failure modes" %}</strong>
+                {% trans "in intrinsically disordered regions, membrane proteins, and proteins with few homologs. Do not use model structures for pocket analysis in regions with pLDDT < 50." %}
+            </li>
+            <li>
+                <strong>{% trans "Physicochemical properties (MW, LogP, TPSA, Lipinski)" %}</strong>
+                {% trans "are computed from SMILES and are predicted values, not experimental measurements." %}
+            </li>
+        </ul>
+    </section>
+
+</div>
+{% endblock %}

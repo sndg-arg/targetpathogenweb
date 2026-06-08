@@ -1,0 +1,561 @@
+/* ============================================================
+   Data Sources / Methodology page
+   ============================================================ */
+
+.ds-page {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 0 64px;
+    display: grid;
+    gap: 0;
+}
+
+/* ── Hero ── */
+.ds-hero {
+    padding: 36px 0 32px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 32px;
+    align-items: start;
+    border-bottom: 1px solid var(--tp-color-border-soft);
+    margin-bottom: 0;
+}
+
+.ds-hero-copy h1 {
+    margin: 8px 0 0;
+    font-size: var(--tp-heading-2xl);
+    color: var(--tp-color-brand-900);
+    letter-spacing: -0.04em;
+    line-height: 1.05;
+}
+
+.ds-hero-lead {
+    margin: 14px 0 0;
+    color: var(--tp-color-text-secondary);
+    font-size: 1rem;
+    line-height: 1.65;
+    max-width: 66ch;
+}
+
+/* Table of contents */
+.ds-toc {
+    min-width: 180px;
+    flex-shrink: 0;
+    padding: 14px 16px;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 12px;
+    background: var(--tp-color-surface-soft);
+}
+
+.ds-toc-label {
+    margin: 0 0 8px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    color: var(--tp-color-text-muted);
+}
+
+.ds-toc-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 1px;
+    counter-reset: toc;
+}
+
+.ds-toc-list li {
+    counter-increment: toc;
+}
+
+.ds-toc-list a {
+    display: block;
+    padding: 5px 6px;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--tp-color-text-secondary);
+    text-decoration: none;
+    border-radius: 6px;
+    transition: background 0.12s, color 0.12s;
+}
+
+.ds-toc-list a:hover {
+    background: var(--tp-color-surface-alt);
+    color: var(--tp-color-brand-800);
+}
+
+/* ── Section ── */
+.ds-section {
+    padding: 40px 0 8px;
+    border-top: 1px solid var(--tp-color-border-soft);
+    margin-top: 40px;
+}
+
+.ds-section:first-of-type {
+    border-top: none;
+}
+
+.ds-section-head {
+    margin-bottom: 20px;
+}
+
+.ds-section-head h2 {
+    margin: 0 0 4px;
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: var(--tp-color-brand-900);
+    letter-spacing: -0.025em;
+}
+
+.ds-section-sub {
+    margin: 0;
+    font-size: 0.82rem;
+    color: var(--tp-color-text-muted);
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+}
+
+.ds-section > p {
+    margin: 0 0 16px;
+    color: var(--tp-color-text-secondary);
+    font-size: 0.96rem;
+    line-height: 1.65;
+}
+
+/* ── Pipeline areas ── */
+.ds-pipeline-areas {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.ds-area-card {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    padding: 14px 16px;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 10px;
+    background: var(--tp-color-surface);
+}
+
+.ds-area-number {
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--tp-color-brand-700);
+    background: var(--tp-color-brand-050);
+    border: 1px solid var(--tp-color-brand-200);
+    border-radius: 6px;
+    padding: 3px 8px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+.ds-area-card strong {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--tp-color-text-primary);
+    margin-bottom: 4px;
+}
+
+.ds-area-card p {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--tp-color-text-secondary);
+    line-height: 1.55;
+}
+
+/* ── Priority stack (3D structure) ── */
+.ds-priority-stack {
+    display: grid;
+    gap: 8px;
+    margin-bottom: 24px;
+}
+
+.ds-priority-card {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    padding: 14px 16px;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 10px;
+    background: var(--tp-color-surface);
+    border-left-width: 3px;
+}
+
+.ds-priority-card--1 { border-left-color: var(--tp-color-success-border); }
+.ds-priority-card--2 { border-left-color: var(--tp-color-warning-border); }
+.ds-priority-card--3 { border-left-color: var(--tp-color-border-strong); }
+
+.ds-priority-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    font-size: 0.78rem;
+    font-weight: 800;
+    flex-shrink: 0;
+    background: var(--tp-color-surface-muted);
+    color: var(--tp-color-text-muted);
+    border: 1.5px solid var(--tp-color-border);
+    margin-top: 1px;
+}
+
+.ds-priority-card strong {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--tp-color-text-primary);
+    margin-bottom: 4px;
+}
+
+.ds-priority-card p {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--tp-color-text-secondary);
+    line-height: 1.55;
+}
+
+/* ── Subsections ── */
+.ds-subsection {
+    margin-top: 24px;
+}
+
+.ds-subsection h3 {
+    margin: 0 0 10px;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--tp-color-text-primary);
+}
+
+.ds-subsection > p {
+    margin: 0 0 12px;
+    color: var(--tp-color-text-secondary);
+    font-size: 0.93rem;
+    line-height: 1.65;
+}
+
+/* ── Score table ── */
+.ds-score-table {
+    display: grid;
+    gap: 4px;
+    margin: 12px 0 0;
+}
+
+.ds-score-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 6px 10px;
+    border-radius: 7px;
+    font-size: 0.86rem;
+    color: var(--tp-color-text-secondary);
+}
+
+.ds-score-row--high   { background: var(--tp-color-success-bg); color: var(--tp-color-success-ink); }
+.ds-score-row--medium { background: var(--tp-color-warning-bg); color: var(--tp-color-warning-ink); }
+.ds-score-row--low    { background: var(--tp-color-danger-bg);  color: var(--tp-color-danger-ink); }
+.ds-score-row--none   { background: var(--tp-color-surface-muted); }
+
+.ds-score-range {
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 0.82rem;
+    font-weight: 700;
+    min-width: 60px;
+    flex-shrink: 0;
+}
+
+/* ── Tool grid ── */
+.ds-tool-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.ds-tool-card {
+    padding: 16px;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 12px;
+    background: var(--tp-color-surface);
+    display: grid;
+    gap: 12px;
+    align-content: start;
+}
+
+.ds-tool-head {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.ds-tool-name {
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--tp-color-brand-900);
+}
+
+.ds-tool-version {
+    font-size: 0.76rem;
+    color: var(--tp-color-text-muted);
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+}
+
+.ds-tool-card > p {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--tp-color-text-secondary);
+    line-height: 1.6;
+}
+
+.ds-note {
+    font-size: 0.82rem !important;
+    color: var(--tp-color-text-muted) !important;
+    font-style: italic;
+}
+
+/* ── DB grid (InterProScan) ── */
+.ds-db-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-top: 12px;
+}
+
+.ds-db-item {
+    display: flex;
+    gap: 8px;
+    align-items: baseline;
+    padding: 7px 10px;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 8px;
+    background: var(--tp-color-surface);
+}
+
+.ds-db-name {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--tp-color-text-primary);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.ds-db-desc {
+    font-size: 0.80rem;
+    color: var(--tp-color-text-muted);
+    line-height: 1.4;
+}
+
+/* ── Profile grid ── */
+.ds-profile-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.ds-profile-card {
+    padding: 15px 16px;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 10px;
+    background: var(--tp-color-surface);
+    display: grid;
+    gap: 8px;
+    align-content: start;
+}
+
+.ds-profile-card h3 {
+    margin: 0;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--tp-color-text-primary);
+}
+
+.ds-profile-card > p {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--tp-color-text-secondary);
+    line-height: 1.58;
+}
+
+.ds-interpretation {
+    font-size: 0.82rem !important;
+    color: var(--tp-color-text-muted) !important;
+    padding-top: 4px;
+    border-top: 1px solid var(--tp-color-border-soft);
+}
+
+.ds-interpretation strong {
+    color: var(--tp-color-text-secondary);
+}
+
+/* ── Ligands table ── */
+.ds-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+    margin-bottom: 16px;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.ds-table th {
+    background: var(--tp-color-surface-muted);
+    color: var(--tp-color-text-muted);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    padding: 9px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--tp-color-border-soft);
+}
+
+.ds-table td {
+    padding: 9px 12px;
+    color: var(--tp-color-text-secondary);
+    border-bottom: 1px solid var(--tp-color-border-soft);
+    line-height: 1.45;
+    vertical-align: top;
+}
+
+.ds-table tr:last-child td { border-bottom: none; }
+.ds-table tr:nth-child(even) td { background: var(--tp-color-surface-soft); }
+
+/* ── Drug-likeness items ── */
+.ds-dl-item {
+    padding: 14px 0;
+    border-bottom: 1px solid var(--tp-color-border-soft);
+    display: grid;
+    gap: 7px;
+}
+
+.ds-dl-item:last-child { border-bottom: none; }
+
+.ds-dl-head {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+}
+
+.ds-dl-label {
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 0.82rem;
+    font-weight: 800;
+    color: var(--tp-color-brand-700);
+    background: var(--tp-color-brand-050);
+    border: 1px solid var(--tp-color-brand-200);
+    border-radius: 5px;
+    padding: 1px 7px;
+    flex-shrink: 0;
+}
+
+.ds-dl-name {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--tp-color-text-primary);
+}
+
+.ds-dl-item > p {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--tp-color-text-secondary);
+    line-height: 1.62;
+}
+
+/* ── Lists ── */
+.ds-list {
+    padding-left: 1.2rem;
+    margin: 0 0 16px;
+    display: grid;
+    gap: 5px;
+}
+
+.ds-list li {
+    color: var(--tp-color-text-secondary);
+    font-size: 0.93rem;
+    line-height: 1.6;
+}
+
+.ds-list strong { color: var(--tp-color-text-primary); }
+
+/* ── Caveats ── */
+.ds-caveats {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+    display: grid;
+    gap: 0;
+}
+
+.ds-caveats li {
+    padding: 14px 0;
+    border-bottom: 1px solid var(--tp-color-border-soft);
+    color: var(--tp-color-text-secondary);
+    font-size: 0.93rem;
+    line-height: 1.65;
+}
+
+.ds-caveats li:last-child { border-bottom: none; }
+.ds-caveats strong { color: var(--tp-color-text-primary); }
+
+/* ── Callouts ── */
+.ds-callout {
+    margin: 16px 0 0;
+    padding: 14px 16px;
+    border-radius: 10px;
+    border: 1px solid var(--tp-color-border-soft);
+    background: var(--tp-color-surface-muted);
+    font-size: 0.875rem;
+    color: var(--tp-color-text-secondary);
+    line-height: 1.62;
+}
+
+.ds-callout--info {
+    border-color: var(--tp-color-brand-200);
+    background: var(--tp-color-brand-050);
+    color: var(--tp-color-brand-900);
+}
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+    .ds-hero { grid-template-columns: 1fr; }
+    .ds-toc { display: none; }
+    .ds-pipeline-areas,
+    .ds-tool-grid,
+    .ds-profile-grid,
+    .ds-db-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 640px) {
+    .ds-section-head h2 { font-size: 1.15rem; }
+    .ds-hero-copy h1 { font-size: 1.8rem; }
+}
+
+/* ── Dark mode ── */
+.tp-dark .ds-tool-card,
+.tp-dark .ds-area-card,
+.tp-dark .ds-profile-card,
+.tp-dark .ds-priority-card,
+.tp-dark .ds-db-item {
+    background: var(--tp-color-surface-soft);
+    border-color: var(--tp-color-border-soft);
+}
+
+.tp-dark .ds-toc {
+    background: var(--tp-color-surface-soft);
+    border-color: var(--tp-color-border-soft);
+}
+
+.tp-dark .ds-table th { background: var(--tp-color-surface-muted); }
+.tp-dark .ds-table tr:nth-child(even) td { background: var(--tp-color-surface-muted); }
+
+.tp-dark .ds-callout--info {
+    background: color-mix(in srgb, var(--tp-color-brand-900) 15%, var(--tp-color-surface));
+    border-color: var(--tp-color-brand-700);
+    color: var(--tp-color-brand-300);
+}
