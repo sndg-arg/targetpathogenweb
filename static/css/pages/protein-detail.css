@@ -762,6 +762,16 @@
     box-shadow: none;
 }
 
+.pocket-tables-details .mini-section {
+    padding: 0 20px;
+}
+.pocket-tables-details .mini-section:first-of-type {
+    padding-top: 20px;
+}
+.pocket-tables-details .mini-section:last-of-type {
+    padding-bottom: 20px;
+}
+
 .pocket-tables-summary-hint {
     font-size: 0.80rem;
     font-weight: 400;
