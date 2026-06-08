@@ -57,8 +57,8 @@
 .genomes-subtitle {
     margin: 10px 0 0;
     color: var(--tp-color-text-secondary);
-    font-size: 0.98rem;
-    line-height: 1.4;
+    font-size: 1rem;
+    line-height: 1.42;
 }
 
 .genomes-upload-btn {

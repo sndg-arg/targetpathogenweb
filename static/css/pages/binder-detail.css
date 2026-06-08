@@ -71,7 +71,6 @@
     font-size: var(--tp-heading-lg);
     line-height: 1.1;
     color: var(--binder-accent-ink);
-    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
     word-break: break-all;
 }
 

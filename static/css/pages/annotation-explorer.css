@@ -44,8 +44,8 @@
     margin: 10px 0 0;
     color: var(--tp-color-text-secondary);
     max-width: 980px;
-    font-size: 1.01rem;
-    line-height: 1.52;
+    font-size: 1rem;
+    line-height: 1.42;
 }
 
 .explorer-meta {

@@ -39,17 +39,17 @@
 }
 
 .hero-subtitle {
-    margin: 6px 0 0;
-    color: var(--tp-color-text-muted);
+    margin: 10px 0 0;
+    color: var(--tp-color-text-secondary);
     font-size: 1rem;
-    line-height: 1.4;
+    line-height: 1.42;
 }
 
 .hero-context {
-    margin: 8px 0 0;
-    color: var(--tp-color-text-muted);
+    margin: 10px 0 0;
+    color: var(--tp-color-text-secondary);
     font-size: 1rem;
-    line-height: 1.4;
+    line-height: 1.42;
     overflow-wrap: anywhere;
 }
 
