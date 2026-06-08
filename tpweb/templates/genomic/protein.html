@@ -69,7 +69,7 @@
                     <span class="metric-value">{{ binders.pdb_direct_count|add:binders.pdb_homolog_count }}</span>
                 </div>
                 {% if druggability %}
-                <div class="metric-pill metric-pill--drugg metric-pill--drugg-{{ druggability.1 }}" title="{% trans "FPocket druggability score for the preferred structure: experimental when available, otherwise predicted model. Scale 0–1; ≥ 0.7 highly druggable · ≥ 0.4 moderately druggable · < 0.4 low druggability." %}">
+                <div class="metric-pill metric-pill--drugg metric-pill--drugg-{{ druggability.1 }}" title="{% trans "Loaded Druggability score. For curated imports this is the value supplied in the results table; for standard pipeline runs it is computed from FPocket pockets. Scale 0–1; ≥ 0.7 highly druggable · ≥ 0.4 moderately druggable · < 0.4 low druggability." %}">
                     <span class="metric-label">{% trans "Druggability" %}</span>
                     <span class="metric-value">{{ druggability.0 }}</span>
                 </div>

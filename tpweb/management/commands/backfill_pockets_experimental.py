@@ -1,5 +1,5 @@
 """
-Run FPocket + P2Rank + druggability on crystal (EX) structures that were
+Run FPocket + P2Rank on crystal (EX) structures that were
 loaded by backfill_experimental_structures but have no pocket data yet.
 
 Steps per protein:
@@ -10,7 +10,8 @@ Steps per protein:
   5. P2Rank predictions → JSON (inline, mirrors p2rank_2_json logic)
   6. Load P2Rank pockets (load_fpocket --P2rank_pocket)
 
-After all proteins in a genome: re-run druggability_2_csv.
+By default this command does not re-run druggability_2_csv. Curated imports
+should keep the Druggability score that came from the supplied results TSV.
 """
 
 import gzip
@@ -285,7 +286,7 @@ def _p2rank_to_json(p2rank_dir, pdb_basename):
 
 class Command(BaseCommand):
     help = (
-        "Run FPocket + P2Rank + druggability on crystal (EX) structures "
+        "Run FPocket + P2Rank on crystal (EX) structures "
         "that were loaded by backfill_experimental_structures."
     )
 
@@ -319,7 +320,13 @@ class Command(BaseCommand):
         parser.add_argument(
             "--skip-druggability",
             action="store_true",
-            help="Skip druggability_2_csv step.",
+            help="Deprecated compatibility flag. Druggability is skipped unless --recompute-druggability is set.",
+        )
+
+        parser.add_argument(
+            "--recompute-druggability",
+            action="store_true",
+            help="Re-run druggability_2_csv after loading pockets. Do not use for curated TSV imports unless you intentionally want computed pocket scores to replace curated Druggability values.",
         )
 
     def handle(self, *args, **options):
@@ -328,7 +335,7 @@ class Command(BaseCommand):
         genomes_arg = options["genomes"]
         skip_fpocket = options["skip_fpocket"]
         skip_p2rank = options["skip_p2rank"]
-        skip_druggability = options["skip_druggability"]
+        skip_druggability = options["skip_druggability"] or not options["recompute_druggability"]
 
         qs = Biodatabase.objects.exclude(name__endswith=Biodatabase.PROT_POSTFIX)
         if genomes_arg:
