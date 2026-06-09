@@ -565,8 +565,7 @@
         .tp-btn--outline {
             color: var(--tp-color-text-primary) !important;
             border-color: var(--tp-color-border-strong) !important;
-            background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%) !important;
-            box-shadow: var(--tp-shadow-xs);
+            background: var(--tp-color-surface) !important;
         }
 
         .btn-outline-info:hover,
@@ -580,7 +579,7 @@
         .tp-btn--outline:active {
             color: var(--tp-color-brand-800) !important;
             border-color: var(--tp-color-brand-600) !important;
-            background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-brand-050) 100%) !important;
+            background: var(--tp-color-brand-050) !important;
         }
 
         .btn-secondary,
@@ -606,7 +605,7 @@
         .tp-btn--neutral {
             color: var(--tp-color-text-secondary);
             border-color: var(--tp-color-border-strong);
-            background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+            background: var(--tp-color-surface);
         }
 
         .btn-outline-secondary:hover,
@@ -626,7 +625,7 @@
             gap: 7px;
             border: 1px solid var(--tp-color-brand-300) !important;
             border-radius: 999px !important;
-            background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-brand-050) 100%) !important;
+            background: var(--tp-color-brand-050) !important;
             color: var(--tp-color-brand-800) !important;
             font-size: var(--tp-font-size-sm);
             font-weight: 600;
@@ -635,7 +634,7 @@
         .tp-view-export-link:hover,
         .tp-view-export-link:focus {
             border-color: var(--tp-color-brand-600) !important;
-            background: linear-gradient(180deg, var(--tp-color-brand-050) 0%, var(--tp-color-brand-100) 100%) !important;
+            background: var(--tp-color-brand-100) !important;
             color: var(--tp-color-brand-900) !important;
         }
 
@@ -1595,12 +1594,33 @@
             box-shadow: var(--tp-shadow-xs) !important;
         }
 
+        /* primary button — dark mode: use darker brand for white-text contrast */
+        .tp-dark .btn-primary,
+        .tp-dark .tp-btn--primary {
+            background: var(--tp-color-brand-300) !important;
+            background-color: var(--tp-color-brand-300) !important;
+            border-color: var(--tp-color-brand-200) !important;
+            color: #ffffff !important;
+        }
+
+        .tp-dark .btn-primary:hover,
+        .tp-dark .btn-primary:focus,
+        .tp-dark .btn-primary:active,
+        .tp-dark .tp-btn--primary:hover,
+        .tp-dark .tp-btn--primary:focus,
+        .tp-dark .tp-btn--primary:active {
+            background: var(--tp-color-brand-200) !important;
+            background-color: var(--tp-color-brand-200) !important;
+            border-color: var(--tp-color-brand-200) !important;
+            color: #ffffff !important;
+        }
+
         /* neutral button variant */
         .tp-dark .btn-outline-secondary,
         .tp-dark .tp-btn--neutral {
             color: var(--tp-color-text-primary) !important;
             border-color: var(--tp-color-border-strong) !important;
-            background: linear-gradient(180deg, var(--tp-color-surface-soft) 0%, var(--tp-color-surface-muted) 100%) !important;
+            background: var(--tp-color-surface-soft) !important;
         }
 
         .tp-dark .btn-outline-secondary:hover,
@@ -1619,7 +1639,7 @@
         .tp-dark .tp-btn--dark {
             color: var(--tp-color-text-primary) !important;
             border-color: var(--tp-color-border-strong) !important;
-            background: linear-gradient(180deg, var(--tp-color-surface-soft) 0%, var(--tp-color-surface-muted) 100%) !important;
+            background: var(--tp-color-surface-soft) !important;
         }
 
         .tp-dark .btn-outline-dark:hover,
@@ -1639,7 +1659,7 @@
         .tp-dark .tp-btn--outline {
             color: var(--tp-color-text-primary) !important;
             border-color: var(--tp-color-border-strong) !important;
-            background: linear-gradient(180deg, var(--tp-color-surface-soft) 0%, var(--tp-color-surface-muted) 100%) !important;
+            background: var(--tp-color-surface-soft) !important;
             box-shadow: none !important;
         }
 
