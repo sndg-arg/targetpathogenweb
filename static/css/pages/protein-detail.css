@@ -131,8 +131,8 @@
 
 .annotation-panel {
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: 12px;
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+    border-radius: 10px;
+    background: var(--tp-color-surface);
     overflow: hidden;
 }
 
@@ -149,7 +149,7 @@
 .annotation-panel-head h3 {
     margin: 0;
     font-size: 0.86rem;
-    font-weight: 700;
+    font-weight: 600;
     color: var(--protein-accent-ink);
     letter-spacing: 0.01em;
 }
@@ -164,9 +164,9 @@
     border-radius: 999px;
     font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
     font-size: var(--tp-font-label);
-    font-weight: 700;
+    font-weight: 400;
     color: var(--tp-color-text-muted);
-    background: var(--tp-color-surface);
+    background: var(--tp-color-surface-muted);
     border: 1px solid var(--tp-color-border-soft);
 }
 
@@ -265,20 +265,19 @@
 }
 
 .metric-pill {
-    border: 1px solid var(--protein-accent-border);
-    border-radius: 12px;
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-panel) 100%);
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 10px;
+    background: var(--tp-color-surface-soft);
     padding: 10px 12px;
     min-height: 68px;
     display: grid;
     align-content: center;
     gap: 2px;
-    box-shadow: var(--tp-shadow-xs);
 }
 
 .metric-label {
     font-size: var(--tp-font-label);
-    font-weight: 700;
+    font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     color: var(--tp-color-text-muted);
@@ -531,7 +530,7 @@
     margin: 0;
     font-family: "Space Grotesk", "Segoe UI", sans-serif;
     font-size: 0.94rem;
-    font-weight: 700;
+    font-weight: 600;
     color: var(--tp-color-warning-ink, #8a6914);
 }
 
@@ -1702,8 +1701,7 @@
 .binder-card--link:focus-visible {
     text-decoration: none;
     color: inherit;
-    border-color: var(--tp-color-brand-700);
-    transform: translateY(-2px);
+    border-color: var(--tp-color-brand-300);
     outline: none;
 }
 

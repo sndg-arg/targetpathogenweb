@@ -731,17 +731,16 @@ body.pipeline-info-open {
 .home-about-card {
     padding: 15px 16px 14px;
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: 12px;
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+    border-radius: 10px;
+    background: var(--tp-color-surface);
     display: grid;
     gap: 9px;
     align-content: start;
-    transition: border-color 0.14s, box-shadow 0.14s;
+    transition: border-color 0.14s;
 }
 
 .home-about-card:hover {
-    border-color: var(--tp-color-border);
-    box-shadow: var(--tp-shadow-sm);
+    border-color: var(--tp-color-border-strong);
 }
 
 .home-about-card-head {
@@ -765,7 +764,7 @@ body.pipeline-info-open {
 .home-about-card-head h3 {
     margin: 0;
     font-size: 0.9rem;
-    font-weight: 700;
+    font-weight: 600;
     color: var(--home-accent-deep);
     letter-spacing: -0.01em;
     line-height: 1.2;
