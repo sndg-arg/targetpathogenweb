@@ -1,7 +1,9 @@
 import math
 import os
+import requests
 from collections import defaultdict
 
+from Bio.PDB import MMCIFParser, PDBIO
 from django.conf import settings
 from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
@@ -18,6 +20,7 @@ from tpweb.management.commands.load_af_model import store_structure_file
 
 DEFAULT_DATA_DIR = str(settings.BASE_DIR / "data")
 SOURCE_FIELDS = ("best_fpocket_structure", "best_p2rank_structure")
+RCSB_CIF_URL = "https://files.rcsb.org/download/{pdb_id}.cif"
 
 
 def _clean(value):
@@ -39,6 +42,31 @@ def _folder_path(datadir, genome_name):
     folder_name = genome_name[math.floor(acclen / 2 - 1):math.floor(acclen / 2 + 2)]
     return os.path.join(datadir, folder_name, genome_name)
 
+
+
+def _download_cif_as_pdb(pdb_id, dest_path):
+    """Download an RCSB mmCIF file and convert it to legacy PDB format."""
+    os.makedirs(os.path.dirname(dest_path), exist_ok=True)
+    cif_path = f"{dest_path}.cif"
+    for identifier in (pdb_id.upper(), pdb_id.lower()):
+        url = RCSB_CIF_URL.format(pdb_id=identifier)
+        try:
+            response = requests.get(url, timeout=30)
+            if response.status_code == 404:
+                continue
+            response.raise_for_status()
+            with open(cif_path, "wb") as handle:
+                handle.write(response.content)
+
+            parser = MMCIFParser(QUIET=True)
+            structure = parser.get_structure(pdb_id.upper(), cif_path)
+            writer = PDBIO()
+            writer.set_structure(structure)
+            writer.save(dest_path)
+            return os.path.exists(dest_path) and os.path.getsize(dest_path) > 100
+        except Exception:
+            continue
+    return False
 
 class Command(BaseCommand):
     help = (
@@ -147,7 +175,7 @@ class Command(BaseCommand):
 
             if os.path.exists(dest_path) and os.path.getsize(dest_path) > 100:
                 pass
-            elif _download_pdb(pdb_id, dest_path):
+            elif _download_pdb(pdb_id, dest_path) or _download_cif_as_pdb(pdb_id, dest_path):
                 downloaded += 1
             else:
                 skipped += 1
