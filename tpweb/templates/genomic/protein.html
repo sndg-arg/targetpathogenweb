@@ -159,7 +159,7 @@
                 </div>
                 <dl class="target-profile-grid">
                     {% for item in target_profile %}
-                    <div class="target-profile-item target-profile-item--{{ item.tone }}">
+                    <div class="target-profile-item target-profile-item--{{ item.tone }}"{% if item.tooltip %} title="{{ item.tooltip }}"{% endif %}>
                         <dt class="target-profile-label">{{ item.label }}</dt>
                         <dd class="target-profile-value">{{ item.value }}</dd>
                     </div>
@@ -176,50 +176,50 @@
                     <p class="target-evidence-note">{% trans "Selected Druggability is the FPocket score chosen for ranking using the curated structure priority. The 3D viewer may show a different loaded structure, so its visible pockets can differ." %}</p>
                     <div class="target-evidence-grid">
                         {% if selected_pocket_evidence.fpocket.score or selected_pocket_evidence.fpocket.structure or selected_pocket_evidence.fpocket.pocket %}
-                        <div class="target-evidence-card">
-                            <span class="target-evidence-label">{% trans "Selected FPocket" %}</span>
+                        <div class="target-evidence-card target-evidence-card--fpocket" title="{% trans "FPocket: geometric cavity detection on the selected structure. Druggability 0–1; values ≥0.5 indicate a well-defined druggable pocket." %}">
+                            <span class="target-evidence-label">FPocket</span>
                             {% if selected_pocket_evidence.fpocket.score %}<strong class="target-evidence-value">{{ selected_pocket_evidence.fpocket.score }}</strong>{% endif %}
                             <div class="target-evidence-meta">
                                 <div class="target-evidence-meta-row">
-                                    <span class="target-evidence-meta-key">{% trans "Structure" %}</span>
+                                    <span class="target-evidence-meta-key" title="{% trans "Structure used to compute this FPocket score" %}">{% trans "Structure" %}</span>
                                     <span class="target-evidence-meta-val">{{ selected_pocket_evidence.fpocket.structure|default:"–" }}</span>
                                 </div>
                                 <div class="target-evidence-meta-row">
-                                    <span class="target-evidence-meta-key">{% trans "Pocket" %}</span>
+                                    <span class="target-evidence-meta-key" title="{% trans "Best-ranked pocket identifier from FPocket" %}">{% trans "Pocket" %}</span>
                                     <span class="target-evidence-meta-val">{{ selected_pocket_evidence.fpocket.pocket|default:"–" }}</span>
                                 </div>
                             </div>
                         </div>
                         {% endif %}
                         {% if selected_pocket_evidence.p2rank.score or selected_pocket_evidence.p2rank.structure or selected_pocket_evidence.p2rank.pocket %}
-                        <div class="target-evidence-card">
-                            <span class="target-evidence-label">{% trans "Selected P2Rank" %}</span>
+                        <div class="target-evidence-card target-evidence-card--p2rank" title="{% trans "P2Rank: machine-learning binding site prediction. Probability 0–1; values ≥0.5 indicate a likely druggable binding site." %}">
+                            <span class="target-evidence-label">P2Rank</span>
                             {% if selected_pocket_evidence.p2rank.score %}<strong class="target-evidence-value">{{ selected_pocket_evidence.p2rank.score }}</strong>{% endif %}
                             <div class="target-evidence-meta">
                                 <div class="target-evidence-meta-row">
-                                    <span class="target-evidence-meta-key">{% trans "Structure" %}</span>
+                                    <span class="target-evidence-meta-key" title="{% trans "Structure used to compute this P2Rank score" %}">{% trans "Structure" %}</span>
                                     <span class="target-evidence-meta-val">{{ selected_pocket_evidence.p2rank.structure|default:"–" }}</span>
                                 </div>
                                 <div class="target-evidence-meta-row">
-                                    <span class="target-evidence-meta-key">{% trans "Pocket" %}</span>
+                                    <span class="target-evidence-meta-key" title="{% trans "Best-ranked pocket identifier from P2Rank" %}">{% trans "Pocket" %}</span>
                                     <span class="target-evidence-meta-val">{{ selected_pocket_evidence.p2rank.pocket|default:"–" }}</span>
                                 </div>
                             </div>
                         </div>
                         {% endif %}
                         {% if selected_pocket_evidence.colabfold.fpocket_score or selected_pocket_evidence.colabfold.p2rank_score %}
-                        <div class="target-evidence-card target-evidence-card--secondary">
-                            <span class="target-evidence-label">{% trans "ColabFold model evidence" %}</span>
+                        <div class="target-evidence-card target-evidence-card--secondary" title="{% trans "Pocket scores computed on the ColabFold-predicted model. Compare with the selected scores above to assess consistency across structure sources." %}">
+                            <span class="target-evidence-label">{% trans "ColabFold model" %}</span>
                             <div class="target-evidence-meta target-evidence-meta--top">
                                 {% if selected_pocket_evidence.colabfold.fpocket_score %}
                                 <div class="target-evidence-meta-row">
-                                    <span class="target-evidence-meta-key">FPocket</span>
+                                    <span class="target-evidence-meta-key" title="{% trans "FPocket druggability score on the ColabFold model" %}">FPocket</span>
                                     <span class="target-evidence-meta-val"><strong>{{ selected_pocket_evidence.colabfold.fpocket_score }}</strong>{% if selected_pocket_evidence.colabfold.fpocket_pocket %} &middot; {{ selected_pocket_evidence.colabfold.fpocket_pocket }}{% endif %}</span>
                                 </div>
                                 {% endif %}
                                 {% if selected_pocket_evidence.colabfold.p2rank_score %}
                                 <div class="target-evidence-meta-row">
-                                    <span class="target-evidence-meta-key">P2Rank</span>
+                                    <span class="target-evidence-meta-key" title="{% trans "P2Rank binding site probability on the ColabFold model" %}">P2Rank</span>
                                     <span class="target-evidence-meta-val"><strong>{{ selected_pocket_evidence.colabfold.p2rank_score }}</strong>{% if selected_pocket_evidence.colabfold.p2rank_pocket %} &middot; {{ selected_pocket_evidence.colabfold.p2rank_pocket }}{% endif %}</span>
                                 </div>
                                 {% endif %}
@@ -233,37 +233,39 @@
                 {% if conservation_profile or microbiome_context %}
                 <div class="target-evidence-grid target-evidence-grid--compact">
                     {% if conservation_profile %}
-                    <div class="target-evidence-card">
+                    <div class="target-evidence-card" title="{% trans "Conservation across multiple Klebsiella genomes. A gene is flagged as core only when both Roary and CoreCruncher agree." %}">
                         <span class="target-evidence-label">{% trans "Core conservation" %}</span>
                         {% if conservation_profile.is_core %}
                         <span class="target-evidence-core-badge">
                             <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="2.5 8 6.5 12 13.5 4"/></svg>
                             {% trans "Conserved core gene" %}
                         </span>
+                        {% else %}
+                        <span class="target-evidence-accessory-badge">{% trans "Accessory gene" %}</span>
                         {% endif %}
                         <div class="target-evidence-meta target-evidence-meta--top">
                             <div class="target-evidence-meta-row">
-                                <span class="target-evidence-meta-key">Roary</span>
+                                <span class="target-evidence-meta-key" title="{% trans "Pan-genome analysis by Roary. 'core' = present in ≥99% of analyzed genomes." %}">Roary</span>
                                 <span class="target-evidence-meta-val">{{ conservation_profile.roary_label }}</span>
                             </div>
                             <div class="target-evidence-meta-row">
-                                <span class="target-evidence-meta-key">CoreCruncher</span>
+                                <span class="target-evidence-meta-key" title="{% trans "Stricter core-genome detection by CoreCruncher, adding phylogenetic evidence." %}">CoreCruncher</span>
                                 <span class="target-evidence-meta-val">{{ conservation_profile.corecruncher_label }}</span>
                             </div>
                         </div>
                     </div>
                     {% endif %}
                     {% if microbiome_context %}
-                    <div class="target-evidence-card">
-                        <span class="target-evidence-label">{% trans "Gut microbiome matches" %}</span>
+                    <div class="target-evidence-card" title="{% trans "Sequence similarity to 4744 gut microbiome reference genomes. Lower hit counts reduce the risk of off-target effects on commensal bacteria." %}">
+                        <span class="target-evidence-label">{% trans "Gut microbiome" %}</span>
                         {% if microbiome_context.count or microbiome_context.total %}
                         <strong class="target-evidence-value">{{ microbiome_context.count|default:"0" }}<span class="target-evidence-value-denom"> / {{ microbiome_context.total }}</span></strong>
-                        <span class="target-evidence-subtext">{% trans "genomes" %}</span>
+                        <span class="target-evidence-subtext">{% trans "genomes with a hit" %}</span>
                         {% endif %}
                         {% if microbiome_context.norm %}
                         <div class="target-evidence-meta">
                             <div class="target-evidence-meta-row">
-                                <span class="target-evidence-meta-key">{% trans "Normalized score" %}</span>
+                                <span class="target-evidence-meta-key" title="{% trans "Hit count divided by total genomes analyzed. Lower values mean fewer gut microbiome matches." %}">{% trans "Normalized" %}</span>
                                 <span class="target-evidence-meta-val">{{ microbiome_context.norm }}</span>
                             </div>
                         </div>

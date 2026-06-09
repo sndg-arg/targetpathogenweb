@@ -116,21 +116,30 @@ def _druggability_label(value):
 
 
 _SCORE_META = [
-    # (score_name, display_label, category, good_values, bad_values)
-    ("human_offtarget",          "Human off-target",           "off_target",    ["no_hit"], ["hit"]),
-    ("human_identity",           "Human identity (%)",         "off_target",    [],         []),
-    ("human_evalue",             "Human E-value",              "off_target",    [],         []),
-    ("gut_microbiome_offtarget", "Gut microbiome off-target",  "off_target",    ["no_hit"], ["hit"]),
-    ("hit_in_deg",               "Essential (DEG)",            "essentiality",  ["Y"],      ["N"]),
-    ("deg_identity",             "DEG identity (%)",           "essentiality",  [],         []),
-    ("deg_evalue",               "DEG E-value",                "essentiality",  [],         []),
-    ("Localization",             "Localization",               "localization",  [], []),
-    ("colabfold_plddt",          "ColabFold pLDDT",            "structure",     [],         []),
+    # (score_name, display_label, category, good_values, bad_values, tooltip)
+    ("human_offtarget",          "Human off-target",          "off_target",   ["no_hit"], ["hit"],
+     "Sequence similarity to human proteins (BLAST). 'No hit' is preferred — it means no significant human homolog was found."),
+    ("human_identity",           "Human identity (%)",        "off_target",   [],         [],
+     "% amino acid identity to the top human BLAST hit. Lower values indicate less similarity to human proteins."),
+    ("human_evalue",             "Human E-value",             "off_target",   [],         [],
+     "BLAST E-value for the human off-target hit. Larger (less significant) values indicate weaker similarity to human proteins."),
+    ("gut_microbiome_offtarget", "Gut microbiome off-target", "off_target",   ["no_hit"], ["hit"],
+     "Sequence similarity to gut microbiome reference genomes. 'No hit' preferred to minimise risk of disrupting commensal bacteria."),
+    ("hit_in_deg",               "Essential (DEG)",           "essentiality", ["Y"],      ["N"],
+     "Predicted essential gene based on the Database of Essential Genes (DEG). 'Y' = essential in at least one related organism."),
+    ("deg_identity",             "DEG identity (%)",          "essentiality", [],         [],
+     "% amino acid identity to the top DEG essential-gene hit. Higher values strengthen the essentiality prediction."),
+    ("deg_evalue",               "DEG E-value",               "essentiality", [],         [],
+     "BLAST E-value for the DEG essentiality hit. Smaller values indicate stronger evidence of essentiality."),
+    ("Localization",             "Localization",              "localization", [],         [],
+     "Predicted subcellular localization by PSORTb. Extracellular and outer-membrane proteins are preferred as drug targets."),
+    ("colabfold_plddt",          "ColabFold pLDDT",           "structure",    [],         [],
+     "Per-residue model confidence from ColabFold (0–100). Values >70 indicate reliable regions; >90 indicates high confidence."),
 ]
 
 def _build_target_profile(raw_scores):
     items = []
-    for name, label, category, good_vals, bad_vals in _SCORE_META:
+    for name, label, category, good_vals, bad_vals, tooltip in _SCORE_META:
         val = raw_scores.get(name)
         if not val:
             continue
@@ -141,7 +150,7 @@ def _build_target_profile(raw_scores):
         else:
             tone = "neutral"
         display = val.replace("_", " ").replace("no hit", "No hit").replace("no_hit", "No hit")
-        items.append({"label": label, "value": display, "tone": tone, "category": category})
+        items.append({"label": label, "value": display, "tone": tone, "category": category, "tooltip": tooltip})
     return items
 
 

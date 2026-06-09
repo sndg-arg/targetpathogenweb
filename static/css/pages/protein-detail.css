@@ -2992,6 +2992,23 @@ body.residue-modal-open {
     font-weight: 700;
 }
 
+.target-evidence-card--fpocket {
+    border-left: 3px solid var(--tp-color-brand-400);
+}
+
+.target-evidence-card--p2rank {
+    border-left: 3px solid color-mix(in srgb, var(--tp-color-brand-400) 60%, var(--tp-color-info-border));
+}
+
+.target-evidence-card[title],
+.target-evidence-meta-key[title] {
+    cursor: help;
+}
+
+.target-profile-item[title] {
+    cursor: help;
+}
+
 .target-evidence-core-badge {
     display: inline-flex;
     align-items: center;
@@ -3008,4 +3025,17 @@ body.residue-modal-open {
 
 .target-evidence-core-badge svg {
     flex: 0 0 auto;
+}
+
+.target-evidence-accessory-badge {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    padding: 3px 10px;
+    border: 1px solid var(--tp-color-border);
+    border-radius: 999px;
+    background: var(--tp-color-surface-muted);
+    color: var(--tp-color-text-muted);
+    font-size: 0.76rem;
+    font-weight: 600;
 }
