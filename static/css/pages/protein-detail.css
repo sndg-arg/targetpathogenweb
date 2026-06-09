@@ -3009,3 +3009,4 @@ body.residue-modal-open {
 .target-evidence-core-badge svg {
     flex: 0 0 auto;
 }
+.metric-pill.druggability-tip{position:relative;cursor:help}.metric-pill .cell-tooltip{position:absolute;bottom:calc(100% + 8px);left:50%;z-index:60;width:max-content;max-width:280px;padding:7px 10px;border-radius:8px;background:var(--tp-tooltip-bg);color:var(--tp-tooltip-color);box-shadow:var(--tp-shadow-lg);font-size:var(--tp-font-label);font-weight:500;line-height:1.4;text-align:center;white-space:normal;pointer-events:none;opacity:0;transform:translateX(-50%);transition:opacity 120ms ease}.metric-pill .cell-tooltip::after{content:"";position:absolute;top:100%;left:50%;border:5px solid transparent;border-top-color:var(--tp-tooltip-bg);transform:translateX(-50%)}.metric-pill.druggability-tip:hover .cell-tooltip,.metric-pill.druggability-tip:focus-visible .cell-tooltip{opacity:1}

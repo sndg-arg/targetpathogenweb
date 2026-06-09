@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260608-evidence1">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260608-evidence2">
 {% endblock %}
 
 {% block body %}
@@ -69,9 +69,10 @@
                     <span class="metric-value">{{ binders.pdb_direct_count|add:binders.pdb_homolog_count }}</span>
                 </div>
                 {% if druggability %}
-                <div class="metric-pill metric-pill--drugg metric-pill--drugg-{{ druggability.1 }}" title="{% trans "Loaded Druggability score. For curated imports this is the value supplied in the results table; for standard pipeline runs it is computed from FPocket pockets. Scale 0–1; ≥ 0.7 highly druggable · ≥ 0.4 moderately druggable · < 0.4 low druggability." %}">
+                <div class="metric-pill metric-pill--drugg metric-pill--drugg-{{ druggability.1 }} druggability-tip" tabindex="0">
                     <span class="metric-label">{% trans "Druggability" %}</span>
                     <span class="metric-value">{{ druggability.0 }}</span>
+                    <span class="cell-tooltip" role="tooltip">{% trans "Loaded Druggability score. For curated imports this is the value supplied in the results table; for standard pipeline runs it is computed from FPocket pockets. Scale 0-1; >= 0.7 highly druggable � >= 0.4 moderately druggable � < 0.4 low druggability." %}</span>
                 </div>
                 {% endif %}
             </div>
