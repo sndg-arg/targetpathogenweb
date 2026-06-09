@@ -309,6 +309,22 @@ class ProteinListView(View):
             "display_name": display_value,
         }
 
+    _NUMERIC_FILTER_PLACEHOLDERS = {
+        "human_identity": ("30", "80"),
+        "micro_identity": ("30", "80"),
+        "deg_identity": ("30", "80"),
+        "human_evalue": ("1e-5", "0.01"),
+        "micro_evalue": ("1e-5", "0.01"),
+        "deg_evalue": ("1e-5", "0.01"),
+        "colabfold_plddt": ("70", "100"),
+        "gut_microbiome_offtarget_counts": ("1", "10"),
+        "gut_microbiome_genomes_analyzed": ("100", "200"),
+        "gut_microbiome_offtarget_norm": ("0.1", "0.5"),
+        "colabfold_druggability_score": ("0.7", "1.0"),
+        "colabfold_p2rank_probability": ("0.5", "1.0"),
+        "p2rank_probability": ("0.5", "1.0"),
+    }
+
     @staticmethod
     def _build_filter_groups(score_params, selected_parameters, structure_choices=None, function_data=None):
         selected_option_ids = {
@@ -338,12 +354,17 @@ class ProteinListView(View):
             if not is_categorical:
                 numeric_param_count += 1
                 active_filters = active_numeric_by_param.get(str(score_param.pk), [])
+                ph, ph_max = ProteinListView._NUMERIC_FILTER_PLACEHOLDERS.get(
+                    score_param.name, ("0.70", "1.00")
+                )
                 grouped.setdefault(category, []).append({
                     "id": score_param.pk,
                     "name": score_param.name,
                     "label": param_label,
                     "description": score_param.description or "",
                     "type": "numeric",
+                    "placeholder": ph,
+                    "placeholder_max": ph_max,
                     "active_filters": [
                         {
                             "id": entry.get("id"),
