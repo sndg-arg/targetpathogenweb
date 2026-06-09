@@ -45,6 +45,12 @@
                                 <span>{{ overview.completion_display }}</span>
                             </span>
                         {% endif %}
+                        {% if workspace_metrics.has_curated_data %}
+                            <span class="hero-chip tp-chip tp-chip--meta tp-chip--sm" title="Druggability scores were imported from a curated results table. Structure priority: PDB experimental > ColabFold model > AlphaFold model.">
+                                <strong>{% trans "Analysis" %}:</strong>
+                                <span>{% trans "Curated" %}</span>
+                            </span>
+                        {% endif %}
                     </div>
                     {% if pipeline_status.available %}
                         {% if pipeline_status.running_for_current_genome or pipeline_status.current_genome_status_note %}
@@ -92,10 +98,17 @@
                     <span class="metric-label">{% trans "Annotated" %}</span>
                     <span class="metric-value">{{ workspace_metrics.functional_annotated }}</span>
                 </div>
+                {% if workspace_metrics.proteins_with_druggability %}
+                <div class="metric-pill" title="Proteins with a Druggability pocket score available for ranking.">
+                    <span class="metric-label">{% trans "With pocket score" %}</span>
+                    <span class="metric-value">{{ workspace_metrics.proteins_with_druggability }}</span>
+                </div>
+                {% else %}
                 <div class="metric-pill">
                     <span class="metric-label">{% trans "Direct ligand hits" %}</span>
                     <span class="metric-value">{{ workspace_metrics.binder_direct }}</span>
                 </div>
+                {% endif %}
             </div>
         </section>
 
@@ -125,7 +138,11 @@
                                 <div>
                                     <h2>{% trans "Top drug-target candidates" %}</h2>
                                     <p class="section-subtitle">
-                                        {% trans "Ranked by the loaded Druggability score. For curated imports this is the value supplied in the results table; for standard pipeline runs it is computed from FPocket pockets. Scale 0–1; higher values indicate more druggable pockets." %}
+                                        {% if workspace_metrics.has_curated_data %}
+                                            {% trans "FPocket druggability score (0–1) for the preferred structure: experimental structure when available, otherwise predicted model. ≥ 0.7 highly druggable · ≥ 0.4 moderately druggable · < 0.4 low druggability." %}
+                                        {% else %}
+                                            {% trans "Ranked by the Druggability score computed from FPocket pockets (0–1). Higher values indicate more druggable binding sites." %}
+                                        {% endif %}
                                     </p>
                                 </div>
                             </div>

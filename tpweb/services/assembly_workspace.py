@@ -5,6 +5,7 @@ from bioseq.models.Biodatabase import Biodatabase
 from bioseq.models.Ontology import Ontology
 from tpweb.models.BioentryStructure import BioentryStructure, ExperimentalStructureXref
 from tpweb.models.Binders import Binders
+from tpweb.models.ScoreParamValue import ScoreParamValue
 from tpweb.services.structure_sources import (
     PDB_EXPERIMENT_ALPHAFOLD,
     PDB_EXPERIMENT_COLABFOLD,
@@ -225,6 +226,16 @@ def build_assembly_workspace_metrics(assembly_name):
         Q(dbxrefs__dbxref__dbname__in=EC_DBNAMES) | Q(dbxrefs__dbxref__dbname=Ontology.GO)
     ).distinct().count()
 
+    spv_qs = ScoreParamValue.objects.filter(bioentry__biodatabase__name=proteome_name)
+    proteins_with_druggability = (
+        spv_qs.filter(score_param__name="Druggability")
+        .exclude(value__in=["", "nan", "None", "null"])
+        .values("bioentry_id")
+        .distinct()
+        .count()
+    )
+    has_curated_data = spv_qs.filter(score_param__name="best_fpocket_structure").exists()
+
     binders_qs = Binders.objects.filter(locustag__biodatabase__name=proteome_name)
     binder_total = binders_qs.count()
     binder_pdb_direct = binders_qs.filter(source=Binders.SOURCE_PDB, is_direct=True).count()
@@ -261,6 +272,9 @@ def build_assembly_workspace_metrics(assembly_name):
         "binder_zinc": binder_zinc,
         "binder_direct": binder_direct,
         "binder_homolog": binder_homolog,
+        "proteins_with_druggability": proteins_with_druggability,
+        "druggability_coverage_pct": _pct(proteins_with_druggability, total_proteins),
+        "has_curated_data": has_curated_data,
         # legacy keys kept for backward compat
         "binder_pdb": binder_pdb_direct + binder_pdb_homolog,
         "binder_chembl": binder_chembl_direct + binder_chembl_homolog,
