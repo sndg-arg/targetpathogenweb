@@ -17,6 +17,7 @@ from tpweb.models.pdb import PDB
 
 DEFAULT_DATA_DIR = str(settings.BASE_DIR / "data")
 DEFAULT_TIMEOUT = 60
+AFDB_API_URL = "https://alphafold.ebi.ac.uk/api/prediction/{accession}"
 
 
 def clean(value):
@@ -59,7 +60,30 @@ def structure_code(accession):
     return f"AF_{clean(accession).upper()}"
 
 
-def download_model(url, dest_path, timeout):
+def resolve_afdb_model_url(accession, fallback_url, timeout):
+    api_url = AFDB_API_URL.format(accession=accession)
+    try:
+        response = requests.get(api_url, timeout=timeout)
+        if response.status_code == 404:
+            return "", "unavailable"
+        response.raise_for_status()
+        payload = response.json()
+        if isinstance(payload, list) and payload:
+            pdb_url = clean(payload[0].get("pdbUrl"))
+            if pdb_url:
+                return pdb_url, "api"
+        return "", "unavailable"
+    except Exception as exc:
+        if fallback_url:
+            return fallback_url, f"fallback:{exc}"
+        return "", f"failed:{exc}"
+
+
+def download_model(accession, fallback_url, dest_path, timeout):
+    url, source = resolve_afdb_model_url(accession, fallback_url, timeout)
+    if not url:
+        return source
+
     os.makedirs(os.path.dirname(dest_path), exist_ok=True)
     tmp_path = f"{dest_path}.tmp"
     try:
@@ -75,7 +99,7 @@ def download_model(url, dest_path, timeout):
             return "empty"
         os.replace(tmp_path, dest_path)
         os.chmod(dest_path, 0o644)
-        return "downloaded"
+        return f"downloaded:{source}"
     except Exception as exc:
         if os.path.exists(tmp_path):
             os.unlink(tmp_path)
@@ -228,8 +252,8 @@ class Command(BaseCommand):
                 self.stderr.write(f"missing model URL: {locus} {code}")
                 continue
             else:
-                status = download_model(url, model_path, timeout)
-                if status == "downloaded":
+                status = download_model(accession, url, model_path, timeout)
+                if status.startswith("downloaded"):
                     downloaded += 1
                 elif status == "unavailable":
                     unavailable += 1
