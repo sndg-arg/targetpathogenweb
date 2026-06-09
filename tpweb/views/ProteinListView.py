@@ -380,8 +380,8 @@ class ProteinListView(View):
                 if option_active:
                     any_active = True
                 option_tone = ""
+                normalized_option_name = str(option.name or "").strip().lower()
                 if score_param.name in {"human_offtarget", "gut_microbiome_offtarget"}:
-                    normalized_option_name = str(option.name or "").strip().lower()
                     if normalized_option_name in {"hit", "y", "yes"}:
                         option_tone = "risk"
                     elif normalized_option_name in {"no_hit", "no hit", "n", "no"}:
@@ -391,6 +391,19 @@ class ProteinListView(View):
                         option_tone = "favorable"
                     elif option.name == "Accessory":
                         option_tone = "secondary"
+                elif param_name_lower == "hit_in_deg":
+                    if normalized_option_name == "y":
+                        option_tone = "favorable"
+                    elif normalized_option_name == "n":
+                        option_tone = "secondary"
+                elif param_name_lower == "localization":
+                    if normalized_option_name in {
+                        "extracellular", "outermembrane", "outer membrane",
+                        "cellwall", "periplasmic", "cytoplasmicmembrane", "cytoplasmic membrane",
+                    }:
+                        option_tone = "favorable"
+                    elif normalized_option_name == "cytoplasmic":
+                        option_tone = "risk"
                 options.append({
                     "id": option.pk,
                     "name": option.name,

@@ -122,14 +122,30 @@ def score_metric_tone(value, column_name):
             return "risk"
         if text in {"no_hit", "no hit"}:
             return "favorable"
+        return ""
+
     if column_key in {"core_roary", "core_corecruncher"}:
         try:
             return "favorable" if float(text) >= 0.5 else "secondary"
         except (ValueError, TypeError):
-            text_l = text.lower()
-            if text_l in {"core", "true", "1", "y", "yes"}:
+            if text in {"core", "true", "1", "y", "yes"}:
                 return "favorable"
-            if text_l in {"accessory", "false", "0", "n", "no"}:
+            if text in {"accessory", "false", "0", "n", "no"}:
                 return "secondary"
         return ""
+
+    if column_key == "hit_in_deg":
+        if text == "y":
+            return "favorable"
+        if text == "n":
+            return "secondary"
+        return ""
+
+    if column_key == "localization":
+        if text in {"extracellular", "outer membrane", "cellwall", "periplasmic", "cytoplasmic membrane"}:
+            return "favorable"
+        if text == "cytoplasmic":
+            return "risk"
+        return ""
+
     return ""
