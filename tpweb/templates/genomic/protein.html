@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260608-evidence2">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260608-evidence3">
 {% endblock %}
 
 {% block body %}
@@ -171,7 +171,6 @@
                     <div class="target-evidence-head">
                         <h3>{% trans "Selected Druggability evidence" %}</h3>
                         {% if selected_pocket_evidence.selected_source_kind %}<span class="tp-chip tp-chip--sm">{{ selected_pocket_evidence.selected_source_kind }}</span>{% endif %}
-                        {% if selected_pocket_evidence.selected_source_status_label %}<span class="tp-chip tp-chip--sm tp-chip--{{ selected_pocket_evidence.selected_source_status_tone }}">{{ selected_pocket_evidence.selected_source_status_label }}</span>{% endif %}
                     </div>
                     <p class="target-evidence-note">{% trans "Selected Druggability is the FPocket score chosen for ranking using the curated structure priority. The 3D viewer may show a different loaded structure, so its visible pockets can differ." %}</p>
                     <div class="target-evidence-grid">
@@ -182,7 +181,7 @@
                             <div class="target-evidence-meta">
                                 <div class="target-evidence-meta-row">
                                     <span class="target-evidence-meta-key" title="{% trans "Structure used to compute this FPocket score" %}">{% trans "Structure" %}</span>
-                                    <span class="target-evidence-meta-val">{{ selected_pocket_evidence.fpocket.structure|default:"–" }}</span>
+                                    <span class="target-evidence-meta-val">{{ selected_pocket_evidence.fpocket.structure|default:"–" }}{% if selected_pocket_evidence.selected_source_status_tone == "warning" %}<span class="target-evidence-source-status target-evidence-source-status--warn" title="{% trans "This structure is not currently loaded in the 3D viewer. Pockets shown in the viewer belong to a different structure." %}"><svg viewBox="0 0 16 16" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.5L13.8 12.5H2.2L8 2.5Z"/><line x1="8" y1="6.5" x2="8" y2="9"/><circle cx="8" cy="11" r="0.6" fill="currentColor" stroke="none"/></svg></span>{% elif selected_pocket_evidence.selected_source_status_tone == "meta" %}<span class="target-evidence-source-status target-evidence-source-status--info" title="{% trans "Structure is loaded but not currently shown in the viewer." %}"><svg viewBox="0 0 16 16" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="8" r="6"/><line x1="8" y1="7" x2="8" y2="11"/><circle cx="8" cy="5.2" r="0.6" fill="currentColor" stroke="none"/></svg></span>{% endif %}</span>
                                 </div>
                                 <div class="target-evidence-meta-row">
                                     <span class="target-evidence-meta-key" title="{% trans "Best-ranked pocket identifier from FPocket" %}">{% trans "Pocket" %}</span>
@@ -198,7 +197,7 @@
                             <div class="target-evidence-meta">
                                 <div class="target-evidence-meta-row">
                                     <span class="target-evidence-meta-key" title="{% trans "Structure used to compute this P2Rank score" %}">{% trans "Structure" %}</span>
-                                    <span class="target-evidence-meta-val">{{ selected_pocket_evidence.p2rank.structure|default:"–" }}</span>
+                                    <span class="target-evidence-meta-val">{{ selected_pocket_evidence.p2rank.structure|default:"–" }}{% if selected_pocket_evidence.selected_source_status_tone == "warning" %}<span class="target-evidence-source-status target-evidence-source-status--warn" title="{% trans "This structure is not currently loaded in the 3D viewer. Pockets shown in the viewer belong to a different structure." %}"><svg viewBox="0 0 16 16" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.5L13.8 12.5H2.2L8 2.5Z"/><line x1="8" y1="6.5" x2="8" y2="9"/><circle cx="8" cy="11" r="0.6" fill="currentColor" stroke="none"/></svg></span>{% elif selected_pocket_evidence.selected_source_status_tone == "meta" %}<span class="target-evidence-source-status target-evidence-source-status--info" title="{% trans "Structure is loaded but not currently shown in the viewer." %}"><svg viewBox="0 0 16 16" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="8" r="6"/><line x1="8" y1="7" x2="8" y2="11"/><circle cx="8" cy="5.2" r="0.6" fill="currentColor" stroke="none"/></svg></span>{% endif %}</span>
                                 </div>
                                 <div class="target-evidence-meta-row">
                                     <span class="target-evidence-meta-key" title="{% trans "Best-ranked pocket identifier from P2Rank" %}">{% trans "Pocket" %}</span>

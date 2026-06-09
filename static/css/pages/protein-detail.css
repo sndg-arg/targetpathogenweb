@@ -3039,3 +3039,19 @@ body.residue-modal-open {
     font-size: 0.76rem;
     font-weight: 600;
 }
+
+.target-evidence-source-status {
+    display: inline-flex;
+    align-items: center;
+    margin-left: 5px;
+    vertical-align: middle;
+    cursor: help;
+}
+
+.target-evidence-source-status--warn {
+    color: var(--tp-color-warning-ink);
+}
+
+.target-evidence-source-status--info {
+    color: var(--tp-color-text-muted);
+}
