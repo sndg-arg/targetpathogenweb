@@ -315,7 +315,6 @@
                                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6v3"/><circle cx="8" cy="11.5" r="0.01" stroke-width="2"/><path d="M6.9 2.5l-5 8.5A1.3 1.3 0 0 0 3 13h10a1.3 1.3 0 0 0 1.1-2l-5-8.5a1.3 1.3 0 0 0-2.2 0z"/></svg>
                                                 </span>
                                                 {% trans "No structure" %}
-                                                <span class="metric-tooltip" role="tooltip">{% trans "No 3D structure available — this value cannot be computed without a structural model" %}</span>
                                             </span>
                                         {% elif col == "Score" %}
                                             {% with score_val=tdata|dictkey:protein.id|dictkey:col %}
@@ -324,7 +323,6 @@
                                                 {% else %}
                                                     <span class="metric-zero">
                                                         <span class="metric-zero-value">0.00</span>
-                                                        <span class="metric-tooltip" role="tooltip">{% trans "No weighted parameters contributed to the score" %}</span>
                                                     </span>
                                                 {% endif %}
                                             {% endwith %}
@@ -333,13 +331,9 @@
                                                 {% if val and val != "-" %}
                                                     <span class="tp-chip tp-chip--score js-drugg-cell druggability-tip" data-score="{{ val }}">
                                                         {{ val|druggability_display }}
-                                                        <span class="cell-tooltip" role="tooltip">{% trans "Loaded Druggability score. For curated imports this is the value supplied in the results table; for standard pipeline runs it is computed from FPocket pockets. Scale 0 to 1; higher is better." %}</span>
                                                     </span>
                                                 {% else %}
-                                                    <span class="tp-drugg-none druggability-tip">
-                                                        {% trans "No pocket" %}
-                                                        <span class="cell-tooltip" role="tooltip">{% trans "No predicted pocket score is available for this protein." %}</span>
-                                                    </span>
+                                                    <span class="tp-drugg-none druggability-tip">{% trans "No pocket" %}</span>
                                                 {% endif %}
                                             {% endwith %}
                                         {% else %}
@@ -353,7 +347,7 @@
                                                         {% endif %}
                                                     {% endwith %}
                                                 {% else %}
-                                                    <span class="metric-na">N/A<span class="cell-tooltip" role="tooltip">{% trans "Not available for this protein" %}</span></span>
+                                                    <span class="metric-na">N/A</span>
                                                 {% endif %}
                                             {% endwith %}
                                         {% endif %}
