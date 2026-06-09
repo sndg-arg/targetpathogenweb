@@ -242,17 +242,17 @@
                         </span>
                         <ul class="evidence-breakdown">
                             {% if workspace_metrics.experimental_structures %}
-                                <li><span class="evidence-bd-label">{% trans "Loaded experimental" %}</span><span class="evidence-bd-value">{{ workspace_metrics.experimental_structures }}</span></li>
+                                <li><span class="evidence-bd-label" title="Experimentally determined structures (X-ray, cryo-EM, NMR) that are downloaded and visible in the 3D viewer right now.">{% trans "Loaded experimental" %}</span><span class="evidence-bd-value">{{ workspace_metrics.experimental_structures }}</span></li>
                             {% endif %}
                             {% if workspace_metrics.pdb_xref_entries %}
-                                <li><span class="evidence-bd-label">{% trans "PDB xref proteins" %}</span><span class="evidence-bd-value">{{ workspace_metrics.pdb_xref_proteins }}</span></li>
-                                <li><span class="evidence-bd-label">{% trans "PDB xref entries" %}</span><span class="evidence-bd-value">{{ workspace_metrics.pdb_xref_entries }}</span></li>
+                                <li><span class="evidence-bd-label" title="Proteins that UniProt reports as having at least one PDB entry — but those structures may not be downloaded yet.">{% trans "PDB xref proteins" %}</span><span class="evidence-bd-value">{{ workspace_metrics.pdb_xref_proteins }}</span></li>
+                                <li><span class="evidence-bd-label" title="Individual PDB accession codes from UniProt for this genome. One protein can have several entries (different ligands, conditions, or resolutions).">{% trans "PDB xref entries" %}</span><span class="evidence-bd-value">{{ workspace_metrics.pdb_xref_entries }}</span></li>
                             {% endif %}
                             {% if workspace_metrics.alphafold_structures %}
-                                <li><span class="evidence-bd-label">AlphaFold</span><span class="evidence-bd-value">{{ workspace_metrics.alphafold_structures }}</span></li>
+                                <li><span class="evidence-bd-label" title="Proteins with an AlphaFold predicted structure loaded in TPW. AlphaFold models are used when no experimental structure is available.">AlphaFold</span><span class="evidence-bd-value">{{ workspace_metrics.alphafold_structures }}</span></li>
                             {% endif %}
                             {% if workspace_metrics.colabfold_structures %}
-                                <li><span class="evidence-bd-label">ColabFold</span><span class="evidence-bd-value">{{ workspace_metrics.colabfold_structures }}</span></li>
+                                <li><span class="evidence-bd-label" title="Proteins with a ColabFold model generated specifically for this genome. Used as the default 3D structure when no experimental structure is loaded.">ColabFold</span><span class="evidence-bd-value">{{ workspace_metrics.colabfold_structures }}</span></li>
                             {% endif %}
                         </ul>
                     </div>
