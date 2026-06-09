@@ -96,8 +96,10 @@ def score_metric_display(value, column_name):
         return f"{numeric:.2e}"
     if column_key.endswith("_identity"):
         return f"{numeric:.1f}%"
-    if column_key.endswith("_probability") or column_key.endswith("_score"):
-        return f"{numeric:.3f}".rstrip("0").rstrip(".")
+    if column_key in {"core_roary", "core_corecruncher"}:
+        return "Core" if numeric >= 0.5 else "Accessory"
+    if column_key.endswith("_probability") or column_key.endswith("_score") or column_key.endswith("_norm"):
+        return f"{numeric:.3f}"
     return f"{numeric:g}"
 
 
@@ -120,4 +122,9 @@ def score_metric_tone(value, column_name):
             return "risk"
         if text in {"no_hit", "no hit"}:
             return "favorable"
+    if column_key in {"core_roary", "core_corecruncher"}:
+        try:
+            return "favorable" if float(text) >= 0.5 else ""
+        except (ValueError, TypeError):
+            return "favorable" if text in {"true", "1", "y", "yes"} else ""
     return ""
