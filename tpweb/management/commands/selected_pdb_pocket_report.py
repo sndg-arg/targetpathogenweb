@@ -29,6 +29,10 @@ def _is_pdb_code(value):
     return len(value) == 4 and value.isalnum()
 
 
+def _is_expected_no_pockets(method, pocket):
+    return method == "P2Rank" and _clean(pocket).lower() == "no_pockets"
+
+
 class Command(BaseCommand):
     help = "Report pocket coverage for curated selected PDB structures."
 
@@ -96,8 +100,9 @@ class Command(BaseCommand):
         combined_missing = set()
         combined_pdbs = set()
         for method, source_field, score_field, pocket_field, residue_set_name in SELECTED_FIELDS:
-            total = loaded_count = pocket_count = missing_structure = missing_pocket = 0
+            total = loaded_count = pocket_count = missing_structure = missing_pocket = expected_no_pockets = 0
             examples = []
+            expected_examples = []
             selected_pdbs = set()
 
             for protein_id, accession in protein_accessions.items():
@@ -121,12 +126,17 @@ class Command(BaseCommand):
                 if pdb_db_id in pockets_by_type[residue_set_name]:
                     pocket_count += 1
                 else:
-                    missing_pocket += 1
-                    combined_missing.add((protein_id, pdb_code, method, "pockets"))
-                    if len(examples) < examples_limit:
-                        score = scores.get(protein_id, {}).get(score_field, "-") or "-"
-                        pocket = scores.get(protein_id, {}).get(pocket_field, "-") or "-"
-                        examples.append((accession, pdb_code, f"missing {method} pockets score={score} pocket={pocket}"))
+                    score = scores.get(protein_id, {}).get(score_field, "-") or "-"
+                    pocket = scores.get(protein_id, {}).get(pocket_field, "-") or "-"
+                    if _is_expected_no_pockets(method, pocket):
+                        expected_no_pockets += 1
+                        if len(expected_examples) < examples_limit:
+                            expected_examples.append((accession, pdb_code, f"expected no pockets score={score} pocket={pocket}"))
+                    else:
+                        missing_pocket += 1
+                        combined_missing.add((protein_id, pdb_code, method, "pockets"))
+                        if len(examples) < examples_limit:
+                            examples.append((accession, pdb_code, f"missing {method} pockets score={score} pocket={pocket}"))
 
             self.stdout.write("")
             self.stdout.write(self.style.HTTP_INFO(f"{method} selected PDB sources"))
@@ -134,8 +144,13 @@ class Command(BaseCommand):
             self.stdout.write(f"  unique selected PDB codes: {len(selected_pdbs)} across {total} rows")
             self.stdout.write(f"  loaded as EX: {loaded_count}/{total}")
             self.stdout.write(f"  with {method} pockets: {pocket_count}/{total}")
+            self.stdout.write(f"  expected no-pockets: {expected_no_pockets}")
             self.stdout.write(f"  missing structures: {missing_structure}")
             self.stdout.write(f"  missing {method} pockets: {missing_pocket}")
+            if expected_examples:
+                self.stdout.write("  Expected no-pockets examples:")
+                for accession, pdb_code, reason in expected_examples:
+                    self.stdout.write(f"    {accession} {pdb_code}: {reason}")
             if examples:
                 self.stdout.write("  Examples:")
                 for accession, pdb_code, reason in examples:
