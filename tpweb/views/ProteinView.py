@@ -181,17 +181,28 @@ def _structure_source_kind(identifier):
     return "Curated structure"
 
 
+def _format_pocket_label(value):
+    label = (value or "").strip()
+    if not label:
+        return ""
+    if label == "No_pockets":
+        return "No pockets"
+    if label.lower().startswith("pocket pocket"):
+        suffix = label[len("Pocket pocket"):].strip()
+        return f"Pocket {suffix}" if suffix else "Pocket"
+    return label
+
 def _build_selected_pocket_evidence(raw_scores):
     fpocket_score = _format_score_value(_raw_score(raw_scores, "Druggability"))
     fpocket_structure = _raw_score(raw_scores, "best_fpocket_structure")
-    fpocket_pocket = _raw_score(raw_scores, "fpocket_pocket").replace("Pocket pocket", "Pocket ").replace("No_pockets", "No pockets")
+    fpocket_pocket = _format_pocket_label(_raw_score(raw_scores, "fpocket_pocket"))
     p2rank_score = _format_score_value(_raw_score(raw_scores, "p2rank_probability"))
     p2rank_structure = _raw_score(raw_scores, "best_p2rank_structure")
-    p2rank_pocket = _raw_score(raw_scores, "p2rank_pocket").replace("Pocket pocket", "Pocket ").replace("No_pockets", "No pockets")
+    p2rank_pocket = _format_pocket_label(_raw_score(raw_scores, "p2rank_pocket"))
     colabfold_fpocket_score = _format_score_value(_raw_score(raw_scores, "colabfold_druggability_score"))
-    colabfold_fpocket_pocket = _raw_score(raw_scores, "colabfold_fpocket_pocket").replace("Pocket pocket", "Pocket ").replace("No_pockets", "No pockets")
+    colabfold_fpocket_pocket = _format_pocket_label(_raw_score(raw_scores, "colabfold_fpocket_pocket"))
     colabfold_p2rank_score = _format_score_value(_raw_score(raw_scores, "colabfold_p2rank_probability"))
-    colabfold_p2rank_pocket = _raw_score(raw_scores, "colabfold_p2rank_pocket").replace("Pocket pocket", "Pocket ").replace("No_pockets", "No pockets")
+    colabfold_p2rank_pocket = _format_pocket_label(_raw_score(raw_scores, "colabfold_p2rank_pocket"))
 
     has_any = any([
         fpocket_score, fpocket_structure, fpocket_pocket,
