@@ -1,4 +1,4 @@
-﻿from collections import Counter, defaultdict
+from collections import Counter, defaultdict
 
 from django.core.management.base import BaseCommand, CommandError
 
@@ -31,7 +31,7 @@ def structure_kind(identifier):
         return "PDB"
     if ident.startswith("CB_"):
         return "ColabFold/curated"
-    if ident.startswith("AF_") or ident.startswith("A0A"):
+    if ident.startswith("AF_") or ident.startswith("A0A") or (len(ident) == 6 and ident[0].isalpha() and ident[1].isdigit() and ident[-1].isdigit()):
         return "AlphaFold/UniProt"
     return "Curated/model"
 
