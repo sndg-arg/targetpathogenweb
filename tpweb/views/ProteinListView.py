@@ -501,7 +501,7 @@ class ProteinListView(View):
                     ).lower(),
                 }],
                 "any_active": bool(active_structure),
-                "param_count": 1,
+                "param_count": 1 if active_structure else 0,
             })
 
         for category in sorted(grouped.keys(), key=_category_sort_key):

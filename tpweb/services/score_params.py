@@ -152,26 +152,36 @@ SYSTEM_SCORE_PARAM_DEFINITIONS = {
     "core_roary": {
         "category": "Conservation",
         "description": (
-            "Pan-genome core status from Roary (0–1). "
-            "Values near 1 indicate the gene is conserved across all strains in the pan-genome (core gene); "
-            "values near 0 indicate it is present only in a subset of strains (accessory gene). "
+            "Pan-genome core status from Roary. "
+            "Core genes are conserved across all (or nearly all) strains in the pan-genome; "
+            "accessory genes are present only in a subset of strains. "
             "Available only for genomes analyzed with the curated pipeline."
         ),
-        "type": "N",
-        "default_operation": ">=",
-        "default_value": "0",
+        "type": "C",
+        "default_operation": "=",
+        "default_value": "Core",
+        "options": ("Core", "Accessory"),
+        "option_descriptions": {
+            "Core": "Gene conserved across all (or nearly all) strains in the pan-genome (value ≥ 0.5).",
+            "Accessory": "Gene present only in a subset of strains (value < 0.5).",
+        },
     },
     "core_corecruncher": {
         "category": "Conservation",
         "description": (
-            "Pan-genome core status from CoreCruncher (0–1). "
-            "Values near 1 indicate the gene is conserved across all strains (core gene); "
-            "values near 0 indicate it is present only in a subset of strains (accessory gene). "
+            "Pan-genome core status from CoreCruncher. "
+            "Core genes are conserved across all (or nearly all) strains in the pan-genome; "
+            "accessory genes are present only in a subset of strains. "
             "Available only for genomes analyzed with the curated pipeline."
         ),
-        "type": "N",
-        "default_operation": ">=",
-        "default_value": "0",
+        "type": "C",
+        "default_operation": "=",
+        "default_value": "Core",
+        "options": ("Core", "Accessory"),
+        "option_descriptions": {
+            "Core": "Gene conserved across all (or nearly all) strains in the pan-genome (value ≥ 0.5).",
+            "Accessory": "Gene present only in a subset of strains (value < 0.5).",
+        },
     },
 }
 

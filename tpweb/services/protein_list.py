@@ -7,6 +7,8 @@ from tpweb.services.structure_sources import (
     PDB_MODEL_EXPERIMENTS,
 )
 
+CORE_GENOME_PARAM_NAMES = {"core_roary", "core_corecruncher"}
+
 MIN_PAGE_SIZE = 10
 MAX_PAGE_SIZE = 100
 DEFAULT_PAGE_SIZE = 25
@@ -233,7 +235,23 @@ def selected_parameters_to_filter_map(selected_parameters):
 def apply_selected_parameter_filters(queryset, selected_parameters):
     filtered_queryset = queryset
     parameter_map = selected_parameters_to_filter_map(selected_parameters)
+    param_name_by_id = {}
+    for parameter in selected_parameters:
+        pid = _coerce_score_param_id(parameter.get("score_param_id"))
+        pname = str(parameter.get("score_param_name") or "").strip().lower()
+        if pid is not None and pname:
+            param_name_by_id[pid] = pname
     for param_id, values in parameter_map.items():
+        param_name = param_name_by_id.get(param_id, "")
+        if param_name in CORE_GENOME_PARAM_NAMES:
+            core_q = Q()
+            if "Core" in values:
+                core_q |= Q(score_params__score_param_id=param_id, score_params__numeric_value__gte=0.5)
+            if "Accessory" in values:
+                core_q |= Q(score_params__score_param_id=param_id, score_params__numeric_value__lt=0.5)
+            if core_q:
+                filtered_queryset = filtered_queryset.filter(core_q)
+            continue
         filtered_queryset = filtered_queryset.filter(
             Q(score_params__score_param_id=param_id) & Q(score_params__value__in=values)
         )
