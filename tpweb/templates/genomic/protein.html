@@ -171,6 +171,7 @@
                     <div class="target-evidence-head">
                         <h3>{% trans "Selected Druggability evidence" %}</h3>
                         {% if selected_pocket_evidence.selected_source_kind %}<span class="tp-chip tp-chip--sm">{{ selected_pocket_evidence.selected_source_kind }}</span>{% endif %}
+                        {% if selected_pocket_evidence.selected_source_status_label %}<span class="tp-chip tp-chip--sm tp-chip--{{ selected_pocket_evidence.selected_source_status_tone }}">{{ selected_pocket_evidence.selected_source_status_label }}</span>{% endif %}
                     </div>
                     <p class="target-evidence-note">{% trans "Selected Druggability is the FPocket score chosen for ranking using the curated structure priority. The 3D viewer may show a different loaded structure, so its visible pockets can differ." %}</p>
                     <div class="target-evidence-grid">

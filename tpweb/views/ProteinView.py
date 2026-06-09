@@ -192,6 +192,64 @@ def _format_pocket_label(value):
         return f"Pocket {suffix}" if suffix else "Pocket"
     return label
 
+
+def _structure_identifier_candidates(identifier):
+    ident = (identifier or "").strip().upper()
+    if not ident:
+        return set()
+    candidates = {ident}
+    for prefix in ("AF_", "CB_"):
+        if ident.startswith(prefix):
+            candidates.add(ident[len(prefix):])
+    candidates.add(f"AF_{ident}")
+    candidates.add(f"CB_{ident}")
+    return candidates
+
+
+def _structure_matches_identifier(link, identifier):
+    if link is None:
+        return False
+    pdb = getattr(link, "pdb", link)
+    code = (getattr(pdb, "code", "") or "").strip().upper()
+    return any(
+        code == candidate or code.startswith(f"{candidate}_") or code.startswith(f"{candidate}-")
+        for candidate in _structure_identifier_candidates(identifier)
+    )
+
+
+def _annotate_selected_source_status(evidence, structures, visible_links=None):
+    if not evidence:
+        return
+    selected_identifier = (
+        evidence.get("fpocket", {}).get("structure")
+        or evidence.get("p2rank", {}).get("structure")
+    )
+    if not selected_identifier:
+        return
+
+    visible_links = [link for link in (visible_links or []) if link is not None]
+    visible = any(
+        _structure_matches_identifier(link, selected_identifier)
+        for link in visible_links
+    )
+    loaded = visible or any(
+        _structure_matches_identifier(link, selected_identifier)
+        for link in (structures or [])
+    )
+
+    evidence["selected_source_visible"] = visible
+    evidence["selected_source_loaded"] = loaded
+    if visible:
+        evidence["selected_source_status_label"] = "Source shown in viewer"
+        evidence["selected_source_status_tone"] = "direct"
+    elif loaded:
+        evidence["selected_source_status_label"] = "Source loaded, not currently shown"
+        evidence["selected_source_status_tone"] = "meta"
+    else:
+        evidence["selected_source_status_label"] = "Selected source not loaded in viewer"
+        evidence["selected_source_status_tone"] = "warning"
+
+
 def _build_selected_pocket_evidence(raw_scores):
     fpocket_score = _format_score_value(_raw_score(raw_scores, "Druggability"))
     fpocket_structure = _raw_score(raw_scores, "best_fpocket_structure")
@@ -858,6 +916,7 @@ class ProteinView(View):
         }
         target_profile = _build_target_profile(raw_scores)
         selected_pocket_evidence = _build_selected_pocket_evidence(raw_scores)
+        _annotate_selected_source_status(selected_pocket_evidence, structures)
         conservation_profile = _build_conservation_profile(raw_scores)
         microbiome_context = _build_microbiome_context(raw_scores)
 
@@ -1033,6 +1092,8 @@ class ProteinView(View):
                 dto["alt_viewer_chain"] = alt_link.chain or ""
                 dto["alt_viewer_chain_selector"] = _chain_selector(alt_link.chain)
                 dto["alt_structure_has_pockets"] = _has_pocket_data(alt_link.pdb)
+
+            _annotate_selected_source_status(selected_pocket_evidence, structures, [primary_link, alt_link])
 
             visible_structure_ids = {
                 primary_display.id: "primary",

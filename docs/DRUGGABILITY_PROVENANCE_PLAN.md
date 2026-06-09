@@ -1,4 +1,4 @@
-﻿# Druggability Provenance and Curated Structure Plan
+# Druggability Provenance and Curated Structure Plan
 
 ## Goal
 
@@ -269,12 +269,13 @@ Likely touch points:
 - Protein detail separates the main selected/curated `Druggability` value from the active 3D viewer structure.
 - Protein detail shows selected FPocket, selected P2Rank, and ColabFold-specific pocket values when present.
 - Target profile shows Roary/CoreCruncher, conserved-core status, and gut microbiome count/denominator plus normalized value.
+- Protein detail now labels whether the selected score source is shown in the viewer, loaded but not currently shown, or not loaded in the viewer.
 - Categorical score import now ignores empty/NaN values instead of creating noisy score options.
 
 ### Still Pending
 
 - Dedicated curated-evidence model; this pass stores provenance in `ScoreParamValue`.
-- Selected-structure backfill/loading policy for missing selected source structures.
+- Actual selected-structure backfill commands for missing selected source structures.
 - FoldSeek structural human off-target storage and UI.
 - Normal pipeline parity for non-curated genomes.
 
