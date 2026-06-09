@@ -355,6 +355,9 @@ class ProteinListView(View):
                     "search_text": (param_label + " " + category).lower(),
                 })
                 continue
+            param_name_lower = score_param.name.lower()
+            if param_name_lower.endswith("_structure"):
+                continue
             choices = list(score_param.choices.all())
             if not choices:
                 continue
@@ -362,7 +365,17 @@ class ProteinListView(View):
             search_tokens = [param_label, category]
             any_active = False
             for option in choices:
-                option_label = humanize_identifier(option.name) or option.name
+                if param_name_lower.endswith("_pocket"):
+                    raw = (option.name or "").strip()
+                    if raw == "No_pockets":
+                        option_label = "No pockets"
+                    elif raw.lower().startswith("pocket pocket"):
+                        suffix = raw[len("pocket pocket"):].strip()
+                        option_label = f"Pocket {suffix}" if suffix else "Pocket"
+                    else:
+                        option_label = raw or option.name
+                else:
+                    option_label = humanize_identifier(option.name) or option.name
                 option_active = str(option.pk) in selected_option_ids
                 if option_active:
                     any_active = True
@@ -911,6 +924,22 @@ class ProteinListView(View):
             get_workspace_session_value(request.session, request.user, "selected_parameters", [])
         )
         grouped_parameters = grouped_selected_parameters(selected_parameters, humanize=True)
+        def _display_filter_option_name(parameter):
+            if str(parameter.get("type") or "").lower() in {"numeric", "special"}:
+                return parameter.get("display_name")
+            raw_name = parameter.get("name") or ""
+            param_name = str(parameter.get("score_param_name") or "").lower()
+            if param_name.endswith("_structure"):
+                return raw_name
+            if param_name.endswith("_pocket"):
+                if raw_name == "No_pockets":
+                    return "No pockets"
+                if raw_name.lower().startswith("pocket pocket"):
+                    suffix = raw_name[len("pocket pocket"):].strip()
+                    return f"Pocket {suffix}" if suffix else "Pocket"
+                return raw_name
+            return humanize_identifier(raw_name) or raw_name
+
         display_parameters = [
             {
                 **parameter,
@@ -918,11 +947,7 @@ class ProteinListView(View):
                     humanize_identifier(parameter.get("score_param_name")) or parameter.get("score_param_name")
                 ),
                 "name": parameter.get("name") or parameter.get("display_name") or "",
-                "display_name": (
-                    parameter.get("display_name")
-                    if str(parameter.get("type") or "").lower() in {"numeric", "special"}
-                    else (humanize_identifier(parameter.get("name")) or parameter.get("name"))
-                ),
+                "display_name": _display_filter_option_name(parameter),
             }
             for parameter in selected_parameters
         ]
