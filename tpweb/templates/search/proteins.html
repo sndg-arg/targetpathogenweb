@@ -453,46 +453,41 @@
     <div class="tp-overlay" id="filters-overlay"></div>
     <aside class="filters-drawer" id="filters-drawer" aria-hidden="true">
         <div class="drawer-head">
-            <h2>{% trans "Selection criteria" %}</h2>
+            <h2>{% trans "Filters" %}</h2>
             <button class="btn tp-btn tp-btn--neutral drawer-close-btn" type="button" id="close-filters-btn" aria-label="{% trans 'Close' %}">
                 <span class="drawer-close-glyph" aria-hidden="true">&times;</span>
             </button>
         </div>
         <div class="drawer-body">
-            <div class="drawer-active-summary {% if not display_parameters and not annotation_filter and not structure_filter %}is-empty{% endif %}">
-                <div class="drawer-block-head">
-                    <h3>{% trans "Active criteria" %}</h3>
-                    <span class="drawer-meta tp-chip tp-chip--count tp-chip--sm">{{ selection_criteria_count }}</span>
+            {% if display_parameters or annotation_filter or structure_filter %}
+            <div class="drawer-active-summary">
+                <span class="drawer-active-label">{% trans "Active" %}</span>
+                <div class="active-filters">
+                    {% if structure_filter %}
+                        <a href="{{ clear_structure_url }}" class="filter-pill tp-chip tp-chip--filter">
+                            <span><strong>{% trans "Structure" %}:</strong> {{ structure_filter.label }}</span>
+                            <span class="filter-pill-remove" title="{% trans 'Remove filter' %}" aria-label="{% trans 'Remove filter' %}">&times;</span>
+                        </a>
+                    {% endif %}
+                    {% if annotation_filter %}
+                        <a href="{{ clear_annotation_url }}" class="filter-pill tp-chip tp-chip--filter">
+                            <span><strong>{{ annotation_filter.kind_label }}:</strong> {{ annotation_filter.value }}{% if annotation_filter.name %} · {{ annotation_filter.name }}{% endif %}</span>
+                            <span class="filter-pill-remove" title="{% trans 'Remove filter' %}" aria-label="{% trans 'Remove filter' %}">&times;</span>
+                        </a>
+                    {% endif %}
+                    {% for parameter in display_parameters %}
+                        <form method="POST" action="" class="filter-pill tp-chip tp-chip--filter">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="remove_filter">
+                            <input type="hidden" name="filter_option_id" value="{{ parameter.id }}">
+                            <input type="hidden" name="return_query" value="{{ query_string }}">
+                            <span><strong>{{ parameter.display_score_param_name|default:parameter.score_param_name|humanize_identifier }}:</strong> {{ parameter.display_name|default:parameter.name|humanize_identifier }}</span>
+                            <button type="submit" class="filter-pill-remove tp-focusable" title="{% trans 'Remove filter' %}" aria-label="{% trans 'Remove filter' %}">&times;</button>
+                        </form>
+                    {% endfor %}
                 </div>
-                {% if display_parameters or annotation_filter or structure_filter %}
-                    <div class="active-filters">
-                        {% if structure_filter %}
-                            <a href="{{ clear_structure_url }}" class="filter-pill tp-chip tp-chip--filter">
-                                <span><strong>{% trans "Structure" %}:</strong> {{ structure_filter.label }}</span>
-                                <span class="filter-pill-remove" title="{% trans 'Remove filter' %}" aria-label="{% trans 'Remove filter' %}">&times;</span>
-                            </a>
-                        {% endif %}
-                        {% if annotation_filter %}
-                            <a href="{{ clear_annotation_url }}" class="filter-pill tp-chip tp-chip--filter">
-                                <span><strong>{{ annotation_filter.kind_label }}:</strong> {{ annotation_filter.value }}{% if annotation_filter.name %} · {{ annotation_filter.name }}{% endif %}</span>
-                                <span class="filter-pill-remove" title="{% trans 'Remove filter' %}" aria-label="{% trans 'Remove filter' %}">&times;</span>
-                            </a>
-                        {% endif %}
-                        {% for parameter in display_parameters %}
-                            <form method="POST" action="" class="filter-pill tp-chip tp-chip--filter">
-                                {% csrf_token %}
-                                <input type="hidden" name="action" value="remove_filter">
-                                <input type="hidden" name="filter_option_id" value="{{ parameter.id }}">
-                                <input type="hidden" name="return_query" value="{{ query_string }}">
-                                <span><strong>{{ parameter.display_score_param_name|default:parameter.score_param_name|humanize_identifier }}:</strong> {{ parameter.display_name|default:parameter.name|humanize_identifier }}</span>
-                                <button type="submit" class="filter-pill-remove tp-focusable" title="{% trans 'Remove filter' %}" aria-label="{% trans 'Remove filter' %}">&times;</button>
-                            </form>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    <p class="active-filters-empty tp-state-note tp-state-note--empty">{% trans "No active criteria yet. Pick from the catalogue below." %}</p>
-                {% endif %}
             </div>
+            {% endif %}
 
             <div class="drawer-search">
                 <span class="drawer-search-icon" aria-hidden="true">
