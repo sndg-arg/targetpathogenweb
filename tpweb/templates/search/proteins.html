@@ -290,7 +290,7 @@
                                             {% endif %}
                                         </div>
                                     {% else %}
-                                        <span class="annotation-empty">–<span class="cell-tooltip" role="tooltip">{% trans "No EC annotations" %}</span></span>
+                                        <span class="annotation-empty">–</span>
                                     {% endif %}
                                 </td>
                                 <td data-col="go">
@@ -304,7 +304,7 @@
                                             {% endif %}
                                         </div>
                                     {% else %}
-                                        <span class="annotation-empty">–<span class="cell-tooltip" role="tooltip">{% trans "No GO annotations" %}</span></span>
+                                        <span class="annotation-empty">–</span>
                                     {% endif %}
                                 </td>
                                 {% for col in tcolumns %}
@@ -546,7 +546,6 @@
                                                 {% endif %}
                                                 <button type="submit"
                                                         class="filter-chip {% if cls.active %}filter-chip--active{% endif %}"
-                                                        title="{{ cls.name }}"
                                                         aria-pressed="{% if cls.active %}true{% else %}false{% endif %}">
                                                     {% if cls.active %}<span class="filter-chip-glyph" aria-hidden="true">&times;</span>{% endif %}
                                                     <span class="filter-chip-label">{{ cls.label }}</span>
