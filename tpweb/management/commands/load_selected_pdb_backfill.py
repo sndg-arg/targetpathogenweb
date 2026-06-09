@@ -60,6 +60,7 @@ def _download_cif_as_pdb(pdb_id, dest_path):
 
             parser = MMCIFParser(QUIET=True)
             structure = parser.get_structure(pdb_id.upper(), cif_path)
+            _sanitize_for_pdbio(structure)
             writer = PDBIO()
             writer.set_structure(structure)
             writer.save(dest_path)
@@ -219,3 +220,27 @@ class Command(BaseCommand):
         self.stdout.write(f"Loaded/linked: {linked}")
         self.stdout.write(f"Skipped: {skipped}")
         self.stdout.write(f"Failed: {failed}")
+
+def _sanitize_for_pdbio(structure):
+    chain_ids = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+    for model in structure:
+        used_chain_ids = set()
+        for idx, chain in enumerate(model):
+            chain_id = str(chain.id or "").strip()
+            if len(chain_id) != 1 or chain_id in used_chain_ids:
+                chain_id = chain_ids[idx % len(chain_ids)]
+            chain.id = chain_id
+            used_chain_ids.add(chain_id)
+
+            for residue in chain:
+                hetflag, resseq, icode = residue.id
+                if hetflag in (None, "?", ".") or not isinstance(hetflag, str):
+                    hetflag = " "
+                if icode in (None, "?", ".") or not isinstance(icode, str) or len(icode) != 1:
+                    icode = " "
+                residue.id = (hetflag, resseq, icode)
+
+                for atom in residue:
+                    altloc = atom.altloc
+                    if altloc in (None, "?", ".") or not isinstance(altloc, str) or len(altloc) != 1:
+                        atom.altloc = " "
