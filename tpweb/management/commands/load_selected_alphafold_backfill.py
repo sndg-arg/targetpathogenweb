@@ -2,7 +2,6 @@ import csv
 import math
 import os
 
-
 import requests
 from django.conf import settings
 from django.core.management import call_command
@@ -96,6 +95,14 @@ def link_existing_structure(protein, pdb_obj):
     return created
 
 
+def job_is_linked(job, proteins):
+    return BioentryStructure.objects.filter(
+        bioentry=proteins[job["locus"]],
+        pdb__code=job["code"],
+        pdb__experiment="AF",
+    ).exists()
+
+
 class Command(BaseCommand):
     help = "Download/load selected AlphaFold DB models from curated selected-source manifests."
 
@@ -105,6 +112,11 @@ class Command(BaseCommand):
         parser.add_argument("--manifest", default=None)
         parser.add_argument("--model-dir", default=None)
         parser.add_argument("--dry-run", action="store_true")
+        parser.add_argument(
+            "--include-loaded",
+            action="store_true",
+            help="Process rows already linked in TPW. By default batches are resumable and skip linked jobs before applying --limit.",
+        )
         parser.add_argument("--limit", type=int, default=None)
         parser.add_argument("--timeout", type=int, default=DEFAULT_TIMEOUT)
         parser.add_argument("--redownload", action="store_true")
@@ -116,6 +128,7 @@ class Command(BaseCommand):
         manifest_path = options["manifest"] or default_manifest(datadir, genome_name)
         model_dir = options["model_dir"] or default_model_dir(datadir, genome_name)
         dry_run = options["dry_run"]
+        include_loaded = options["include_loaded"]
         limit = options["limit"]
         timeout = options["timeout"]
         redownload = options["redownload"]
@@ -159,16 +172,21 @@ class Command(BaseCommand):
                 job["need_p2rank"] = True
                 job["selected_by"].add("P2Rank")
 
-        job_list = sorted(jobs.values(), key=lambda item: (item["locus"], item["accession"]))
-        if limit is not None:
-            job_list = job_list[:limit]
+        all_jobs = sorted(jobs.values(), key=lambda item: (item["locus"], item["accession"]))
+        pending_jobs = [
+            job for job in all_jobs
+            if include_loaded or not job_is_linked(job, proteins)
+        ]
+        job_list = pending_jobs[:limit] if limit is not None else pending_jobs
 
         self.stdout.write(self.style.MIGRATE_HEADING(f"Selected AlphaFold model backfill for {genome_name}"))
         self.stdout.write(f"Manifest rows: {len(rows)}")
         self.stdout.write(f"Unique locus/accession jobs: {len(jobs)}")
+        self.stdout.write(f"Pending jobs: {len(pending_jobs)}")
+        self.stdout.write(f"Already linked jobs: {len(all_jobs) - len(pending_jobs)}")
         self.stdout.write(f"Missing loci in DB: {missing_loci}")
         if limit is not None:
-            self.stdout.write(f"Processing limit: {len(job_list)}/{len(jobs)}")
+            self.stdout.write(f"Processing limit: {len(job_list)}/{len(pending_jobs)} pending")
         self.stdout.write(f"Model dir: {model_dir}")
         if dry_run:
             existing_models = existing_links = unavailable = 0
@@ -176,11 +194,7 @@ class Command(BaseCommand):
                 model_path = os.path.join(model_dir, f"{job['code']}.pdb")
                 if os.path.exists(model_path) and os.path.getsize(model_path) > 100:
                     existing_models += 1
-                if BioentryStructure.objects.filter(
-                    bioentry=proteins[job["locus"]],
-                    pdb__code=job["code"],
-                    pdb__experiment="AF",
-                ).exists():
+                if job_is_linked(job, proteins):
                     existing_links += 1
                 if not job.get("url"):
                     unavailable += 1

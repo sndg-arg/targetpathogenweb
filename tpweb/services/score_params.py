@@ -71,6 +71,108 @@ SYSTEM_SCORE_PARAM_DEFINITIONS = {
         "default_operation": "<=",
         "default_value": "1",
     },
+    "colabfold_druggability_score": {
+        "category": "Pocket",
+        "description": (
+            "FPocket druggability score for the best ColabFold predicted structure (0–1). "
+            "≥ 0.7 highly druggable · ≥ 0.4 moderately druggable · < 0.4 low druggability. "
+            "Available only for genomes analyzed with the curated pipeline."
+        ),
+        "type": "N",
+        "default_operation": ">=",
+        "default_value": "0",
+    },
+    "colabfold_p2rank_probability": {
+        "category": "Pocket",
+        "description": (
+            "P2RANK ligandability score for the best pocket in the ColabFold model (0–1). "
+            "Higher values indicate higher predicted ligandability. "
+            "Available only for genomes analyzed with the curated pipeline."
+        ),
+        "type": "N",
+        "default_operation": ">=",
+        "default_value": "0",
+    },
+    "p2rank_probability": {
+        "category": "Pocket",
+        "description": (
+            "P2RANK ligandability score for the best pocket in the experimental structure (0–1). "
+            "Higher values indicate higher predicted ligandability. "
+            "Available only for genomes analyzed with the curated pipeline."
+        ),
+        "type": "N",
+        "default_operation": ">=",
+        "default_value": "0",
+    },
+    "colabfold_plddt": {
+        "category": "Pocket",
+        "description": (
+            "ColabFold model confidence score (pLDDT, 0–100). "
+            "Values ≥ 70 indicate reliable local structure; low values mean the predicted "
+            "structure — and its pocket predictions — may be unreliable. "
+            "Available only for genomes analyzed with the curated pipeline."
+        ),
+        "type": "N",
+        "default_operation": ">=",
+        "default_value": "0",
+    },
+    "gut_microbiome_offtarget_norm": {
+        "category": "Off-target",
+        "description": (
+            "Gut microbiome off-target signal normalized by the number of analyzed genomes (0–1). "
+            "Values near 0 are favorable; higher values indicate broader microbiome cross-reactivity. "
+            "Available only for genomes analyzed with the curated pipeline."
+        ),
+        "type": "N",
+        "default_operation": "<=",
+        "default_value": "0",
+    },
+    "gut_microbiome_offtarget_counts": {
+        "category": "Off-target",
+        "description": (
+            "Number of gut microbiome reference genomes with a homolog above the identity/coverage threshold. "
+            "Lower counts are favorable for microbiome sparing. "
+            "Available only for genomes analyzed with the curated pipeline."
+        ),
+        "type": "N",
+        "default_operation": "<=",
+        "default_value": "0",
+    },
+    "gut_microbiome_genomes_analyzed": {
+        "category": "Off-target",
+        "description": (
+            "Total number of gut microbiome reference genomes screened for off-target homology. "
+            "Use together with off-target counts to interpret the normalized score. "
+            "Available only for genomes analyzed with the curated pipeline."
+        ),
+        "type": "N",
+        "default_operation": ">=",
+        "default_value": "0",
+    },
+    "core_roary": {
+        "category": "Conservation",
+        "description": (
+            "Pan-genome core status from Roary (0–1). "
+            "Values near 1 indicate the gene is conserved across all strains in the pan-genome (core gene); "
+            "values near 0 indicate it is present only in a subset of strains (accessory gene). "
+            "Available only for genomes analyzed with the curated pipeline."
+        ),
+        "type": "N",
+        "default_operation": ">=",
+        "default_value": "0",
+    },
+    "core_corecruncher": {
+        "category": "Conservation",
+        "description": (
+            "Pan-genome core status from CoreCruncher (0–1). "
+            "Values near 1 indicate the gene is conserved across all strains (core gene); "
+            "values near 0 indicate it is present only in a subset of strains (accessory gene). "
+            "Available only for genomes analyzed with the curated pipeline."
+        ),
+        "type": "N",
+        "default_operation": ">=",
+        "default_value": "0",
+    },
 }
 
 

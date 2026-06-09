@@ -410,6 +410,7 @@ class ProteinListView(View):
             "Pocket",
             "Off-target",
             "Essentiality",
+            "Conservation",
             "Localization",
             "Protein",
             "Custom",
