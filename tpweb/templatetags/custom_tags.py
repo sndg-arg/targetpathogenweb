@@ -80,12 +80,23 @@ def score_metric_display(value, column_name):
     try:
         numeric = float(text.replace(",", "."))
     except (TypeError, ValueError):
+        if column_key.endswith("_structure"):
+            return text
+        if column_key.endswith("_pocket"):
+            if text == "No_pockets":
+                return "No pockets"
+            if text.lower().startswith("pocket pocket"):
+                suffix = text[len("Pocket pocket"):].strip()
+                return f"Pocket {suffix}" if suffix else "Pocket"
+            return text
         return humanize_identifier(text) or text
 
     if column_key.endswith("_evalue"):
         return f"{numeric:.2e}"
     if column_key.endswith("_identity"):
         return f"{numeric:.1f}%"
+    if column_key.endswith("_probability") or column_key.endswith("_score"):
+        return f"{numeric:.3f}".rstrip("0").rstrip(".")
     return f"{numeric:g}"
 
 
