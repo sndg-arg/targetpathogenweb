@@ -28,7 +28,7 @@
     margin: 6px 0 10px;
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-label);
-    font-weight: 700;
+    font-weight: 500;
     letter-spacing: 0.08em;
     text-transform: uppercase;
 }
@@ -57,8 +57,7 @@
 .explorer-card {
     border: 1px solid var(--tp-color-border-soft);
     border-radius: var(--tp-ui-radius-panel);
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
-    box-shadow: var(--tp-ui-shadow-panel);
+    background: var(--tp-color-surface);
     padding: 18px;
 }
 
@@ -82,8 +81,8 @@
 }
 
 .explorer-workbench-side {
-    border-left: 1px solid color-mix(in srgb, var(--tp-color-border-soft) 82%, white);
-    background: linear-gradient(180deg, color-mix(in srgb, var(--tp-color-surface) 96%, white) 0%, color-mix(in srgb, var(--tp-color-surface-soft) 92%, white) 100%);
+    border-left: 1px solid var(--tp-color-border-soft);
+    background: var(--tp-color-surface-soft);
     padding: 18px;
     display: grid;
     align-content: start;
@@ -105,7 +104,7 @@
 .explorer-empty-state {
     border: 1px dashed var(--tp-color-border);
     border-radius: 14px;
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+    background: var(--tp-color-surface);
     padding: 18px;
     display: grid;
     gap: 10px;
@@ -147,7 +146,7 @@
 .explorer-fact {
     border: 1px solid var(--tp-color-border-soft);
     border-radius: 12px;
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+    background: var(--tp-color-surface);
     padding: 14px;
     display: grid;
     gap: 4px;
@@ -156,7 +155,7 @@
 .explorer-fact-label {
     color: var(--tp-color-text-muted);
     font-size: 0.78rem;
-    font-weight: 700;
+    font-weight: 500;
     letter-spacing: 0.05em;
     text-transform: uppercase;
 }
@@ -164,7 +163,7 @@
 .explorer-fact-value {
     color: var(--tp-color-brand-900);
     font-size: 1rem;
-    font-weight: 700;
+    font-weight: 600;
     line-height: 1.3;
 }
 
@@ -183,7 +182,7 @@
     padding: 18px;
     border: 1px dashed var(--tp-color-border-soft);
     border-radius: 12px;
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+    background: var(--tp-color-surface-soft);
 }
 
 .explorer-plot-fallback[hidden] {
@@ -230,14 +229,14 @@
 .explorer-selection-card {
     border: 1px solid var(--tp-color-border-soft);
     border-radius: 12px;
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+    background: var(--tp-color-surface);
     padding: 12px;
-    transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+    transition: border-color 160ms ease;
 }
 
 .explorer-selection-card.is-empty {
     border-style: dashed;
-    background: linear-gradient(180deg, color-mix(in srgb, var(--tp-color-surface-soft) 94%, white) 0%, color-mix(in srgb, var(--tp-color-surface) 90%, white) 100%);
+    background: var(--tp-color-surface-soft);
 }
 
 .explorer-selection-card.is-empty .explorer-action-link {
@@ -276,7 +275,7 @@
 .explorer-selection-path-label {
     color: var(--tp-color-text-muted);
     font-size: 0.78rem;
-    font-weight: 700;
+    font-weight: 500;
     letter-spacing: 0.05em;
     text-transform: uppercase;
 }
@@ -292,9 +291,9 @@
     align-items: center;
     min-height: 26px;
     padding: 0 10px;
-    border: 1px solid color-mix(in srgb, var(--tp-color-brand-300) 58%, var(--tp-color-border));
+    border: 1px solid var(--tp-color-border);
     border-radius: 999px;
-    background: linear-gradient(180deg, color-mix(in srgb, var(--tp-color-surface) 90%, white) 0%, color-mix(in srgb, var(--tp-color-surface-soft) 84%, white) 100%);
+    background: var(--tp-color-surface-soft);
     color: var(--tp-color-brand-900);
     font-size: 0.88rem;
     line-height: 1.2;
@@ -326,7 +325,7 @@
     scrollbar-gutter: stable;
     border: 1px solid var(--tp-color-border-soft);
     border-radius: 14px;
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+    background: var(--tp-color-surface);
     overflow: hidden;
 }
 
@@ -349,7 +348,7 @@
     position: sticky;
     top: 0;
     z-index: 2;
-    background: linear-gradient(180deg, color-mix(in srgb, var(--tp-color-surface-soft) 86%, white) 0%, color-mix(in srgb, var(--tp-color-surface-muted) 80%, white) 100%);
+    background: var(--tp-color-surface-soft);
 }
 
 .explorer-table-shell > .tp-table-shell__scroll::-webkit-scrollbar,
@@ -382,7 +381,7 @@
 }
 
 .explorer-annotation-row.is-active {
-    background: linear-gradient(180deg, color-mix(in srgb, var(--tp-color-surface-soft) 78%, white) 0%, color-mix(in srgb, var(--tp-color-surface-muted) 72%, white) 100%);
+    background: var(--tp-color-surface-soft);
 }
 
 .explorer-annotation-row.is-active strong {
@@ -401,11 +400,10 @@
     min-width: 92px;
     padding: 0.52rem 0.95rem;
     border-radius: 10px;
-    border: 1.5px solid color-mix(in srgb, var(--tp-color-brand-700) 74%, var(--tp-color-border)) !important;
-    font-weight: 700;
+    border: 1.5px solid var(--tp-color-border) !important;
+    font-weight: 500;
     color: var(--tp-color-brand-900) !important;
-    background: linear-gradient(180deg, color-mix(in srgb, var(--tp-color-surface) 92%, white) 0%, color-mix(in srgb, var(--tp-color-surface-soft) 86%, white) 100%) !important;
-    box-shadow: 0 1px 2px color-mix(in srgb, var(--tp-color-brand-900) 8%, transparent);
+    background: var(--tp-color-surface-soft) !important;
 }
 
 .explorer-table-shell .explorer-select-btn.is-active,
@@ -453,7 +451,7 @@
 
     .explorer-workbench-side {
         border-left: 0;
-        border-top: 1px solid color-mix(in srgb, var(--tp-color-border-soft) 82%, white);
+        border-top: 1px solid var(--tp-color-border-soft);
     }
 
     .explorer-hero {

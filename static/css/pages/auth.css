@@ -13,8 +13,8 @@
     max-width: 420px;
     border: 1px solid var(--tp-color-border-soft);
     border-radius: var(--tp-ui-radius-panel);
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
-    box-shadow: var(--tp-ui-shadow-panel);
+    background: var(--tp-color-surface);
+    box-shadow: var(--tp-shadow-sm);
     padding: 36px 32px 32px;
     display: grid;
     gap: 22px;
@@ -65,8 +65,8 @@
 
 .auth-field label {
     font-size: 0.8rem;
-    font-weight: 700;
-    color: var(--tp-color-text-secondary);
+    font-weight: 500;
+    color: var(--tp-color-text-muted);
     text-transform: uppercase;
     letter-spacing: 0.05em;
 }
@@ -184,8 +184,8 @@
 
 .auth-card .form-group label {
     font-size: 0.8rem;
-    font-weight: 700;
-    color: var(--tp-color-text-secondary);
+    font-weight: 500;
+    color: var(--tp-color-text-muted);
     text-transform: uppercase;
     letter-spacing: 0.05em;
     margin-bottom: 5px;

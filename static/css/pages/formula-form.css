@@ -27,11 +27,10 @@
 .formula-hero {
     position: relative;
     overflow: hidden;
-    border: 1px solid var(--ff-border);
+    border: 1px solid var(--tp-color-border-soft);
     border-radius: var(--tp-ui-radius-hero);
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+    background: var(--tp-color-surface);
     padding: 22px 22px 18px;
-    box-shadow: var(--tp-ui-shadow-panel);
 }
 
 .formula-hero::before {
@@ -55,7 +54,7 @@
     color: var(--tp-color-text-muted);
     font-family: var(--ff-mono);
     font-size: var(--tp-font-label);
-    font-weight: 700;
+    font-weight: 500;
     letter-spacing: 0.08em;
     text-transform: uppercase;
 }
@@ -91,7 +90,7 @@
 
 .formula-chip-id {
     font-family: var(--ff-mono);
-    font-weight: 700;
+    font-weight: 600;
     color: var(--ff-accent-ink);
 }
 
@@ -100,7 +99,7 @@
 .formula-alert {
     border: 1px solid var(--tp-color-danger-border);
     border-radius: var(--tp-ui-radius-panel);
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-danger-bg) 100%);
+    background: var(--tp-color-danger-bg);
     padding: 14px 16px;
 }
 
@@ -121,10 +120,9 @@
 /* ── Cards ── */
 
 .formula-card {
-    border: 1px solid var(--ff-border);
+    border: 1px solid var(--tp-color-border-soft);
     border-radius: var(--tp-ui-radius-panel);
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
-    box-shadow: var(--tp-ui-shadow-panel);
+    background: var(--tp-color-surface);
     padding: 16px;
     display: grid;
     gap: 14px;
@@ -229,7 +227,7 @@
     margin: 0;
     color: var(--tp-color-text-muted);
     font-size: 0.75rem;
-    font-weight: 700;
+    font-weight: 500;
     letter-spacing: 0.07em;
     text-transform: uppercase;
 }
@@ -237,7 +235,7 @@
 .formula-katex-block {
     border: 1px solid var(--tp-color-border-soft);
     border-radius: 12px;
-    background: linear-gradient(180deg, var(--tp-color-surface-soft) 0%, var(--tp-color-surface-muted) 100%);
+    background: var(--tp-color-surface-soft);
     padding: 14px 16px;
     min-height: 58px;
     display: flex;
@@ -265,7 +263,7 @@
     margin: 0;
     color: var(--tp-color-text-muted);
     font-size: 0.75rem;
-    font-weight: 700;
+    font-weight: 500;
     letter-spacing: 0.07em;
     text-transform: uppercase;
 }
@@ -290,22 +288,15 @@
     font-weight: 600;
     padding: 4px 10px;
     cursor: pointer;
-    transition: background 0.14s, border-color 0.14s, transform 0.1s;
+    transition: background 0.14s, border-color 0.14s;
     line-height: 1.4;
 }
 
 .formula-fn-chip:hover,
 .formula-op-chip:hover,
 .formula-example-chip:hover {
-    background: var(--ff-accent-soft-2);
-    border-color: var(--ff-accent-border);
-    transform: translateY(-1px);
-}
-
-.formula-fn-chip:active,
-.formula-op-chip:active,
-.formula-example-chip:active {
-    transform: translateY(0);
+    background: var(--tp-color-surface-muted);
+    border-color: var(--tp-color-border);
 }
 
 .formula-op-chip {
@@ -327,7 +318,7 @@
 .formula-example-chip span {
     color: var(--ff-accent-ink);
     font-size: 0.82rem;
-    font-weight: 700;
+    font-weight: 600;
 }
 
 .formula-example-chip code {
@@ -381,7 +372,7 @@
     margin: 0;
     color: var(--tp-color-text-muted);
     font-size: 0.75rem;
-    font-weight: 700;
+    font-weight: 500;
     letter-spacing: 0.06em;
     text-transform: uppercase;
     padding-bottom: 2px;
@@ -407,7 +398,7 @@
     font-weight: 500;
     padding: 3px 8px;
     cursor: pointer;
-    transition: background 0.12s, border-color 0.12s, color 0.12s, transform 0.1s;
+    transition: background 0.12s, border-color 0.12s, color 0.12s;
     line-height: 1.4;
     text-align: left;
     max-width: 100%;
@@ -429,7 +420,7 @@
     color: var(--tp-color-text-muted);
     font-family: var(--tp-font-body);
     font-size: 0.64rem;
-    font-weight: 800;
+    font-weight: 500;
     letter-spacing: 0.04em;
     line-height: 1;
     padding: 3px 6px;
@@ -447,14 +438,9 @@
 }
 
 .formula-var-chip:hover {
-    background: var(--ff-accent-soft-2);
-    border-color: var(--ff-accent-border);
+    background: var(--tp-color-surface-muted);
+    border-color: var(--tp-color-border);
     color: var(--ff-accent-ink);
-    transform: translateY(-1px);
-}
-
-.formula-var-chip:active {
-    transform: translateY(0);
 }
 
 /* ── Field error ── */
@@ -473,10 +459,9 @@
     align-items: flex-end;
     gap: 24px;
     justify-content: space-between;
-    border: 1px solid var(--ff-border);
+    border: 1px solid var(--tp-color-border-soft);
     border-radius: var(--tp-ui-radius-panel);
-    background: linear-gradient(180deg, var(--ff-accent-soft-2) 0%, var(--tp-color-surface) 100%);
-    box-shadow: var(--tp-ui-shadow-panel);
+    background: var(--tp-color-surface-soft);
     padding: 18px 22px;
 }
 
@@ -490,7 +475,7 @@
     margin: 0;
     color: var(--ff-accent-ink);
     font-size: 0.96rem;
-    font-weight: 700;
+    font-weight: 600;
 }
 
 .formula-footer-note {

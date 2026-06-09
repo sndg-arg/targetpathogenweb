@@ -22,11 +22,10 @@
 .blast-hero {
     position: relative;
     overflow: hidden;
-    border: 1px solid var(--blast-border);
+    border: 1px solid var(--tp-color-border-soft);
     border-radius: var(--tp-ui-radius-hero);
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+    background: var(--tp-color-surface);
     padding: 22px 22px 18px;
-    box-shadow: var(--tp-ui-shadow-panel);
 }
 
 .blast-hero::before {
@@ -50,7 +49,7 @@
     color: var(--tp-color-text-muted);
     font-family: var(--blast-mono);
     font-size: var(--tp-font-label);
-    font-weight: 700;
+    font-weight: 500;
     letter-spacing: 0.08em;
     text-transform: uppercase;
 }
@@ -95,10 +94,9 @@
 /* ── Cards ── */
 
 .blast-card {
-    border: 1px solid var(--blast-border);
+    border: 1px solid var(--tp-color-border-soft);
     border-radius: var(--tp-ui-radius-panel);
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
-    box-shadow: var(--tp-ui-shadow-panel);
+    background: var(--tp-color-surface);
     padding: 16px;
     display: grid;
     gap: 14px;
