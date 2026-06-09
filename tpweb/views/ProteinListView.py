@@ -356,7 +356,7 @@ class ProteinListView(View):
                 })
                 continue
             param_name_lower = score_param.name.lower()
-            if param_name_lower.endswith("_structure"):
+            if param_name_lower.endswith("_structure") or param_name_lower.endswith("_pocket"):
                 continue
             choices = list(score_param.choices.all())
             if not choices:
