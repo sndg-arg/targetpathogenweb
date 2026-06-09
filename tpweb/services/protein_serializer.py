@@ -16,6 +16,8 @@ def _display_table_value(value, column_name=""):
     col = str(column_name).lower()
     if col.endswith("_structure") or col.endswith("_pocket"):
         return text
+    if col in {"core_roary", "core_corecruncher"}:
+        return text
     return humanize_identifier(text) or text
 
 

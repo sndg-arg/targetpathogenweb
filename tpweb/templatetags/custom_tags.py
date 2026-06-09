@@ -81,6 +81,12 @@ def score_metric_display(value, column_name):
     try:
         numeric = float(text.replace(",", "."))
     except (TypeError, ValueError):
+        if column_key in {"core_roary", "core_corecruncher"}:
+            if text.lower() in {"true", "1", "yes", "y", "core"}:
+                return "Core"
+            if text.lower() in {"false", "0", "no", "n", "accessory"}:
+                return "Accessory"
+            return text
         if column_key.endswith("_structure"):
             return text
         if column_key.endswith("_pocket"):
