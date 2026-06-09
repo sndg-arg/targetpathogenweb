@@ -124,7 +124,12 @@ def score_metric_tone(value, column_name):
             return "favorable"
     if column_key in {"core_roary", "core_corecruncher"}:
         try:
-            return "favorable" if float(text) >= 0.5 else ""
+            return "favorable" if float(text) >= 0.5 else "secondary"
         except (ValueError, TypeError):
-            return "favorable" if text in {"true", "1", "y", "yes"} else ""
+            text_l = text.lower()
+            if text_l in {"core", "true", "1", "y", "yes"}:
+                return "favorable"
+            if text_l in {"accessory", "false", "0", "n", "no"}:
+                return "secondary"
+        return ""
     return ""

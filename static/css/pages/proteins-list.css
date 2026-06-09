@@ -1007,6 +1007,12 @@ a.filter-pill .filter-pill-remove {
     border-color: var(--tp-color-success-border) !important;
 }
 
+.protein-metric-chip--secondary {
+    color: var(--tp-color-text-muted);
+    background: var(--tp-color-surface-muted);
+    border-color: var(--tp-color-border) !important;
+}
+
 .druggability-tip {
     position: relative;
     cursor: default;
@@ -2594,6 +2600,18 @@ a.filter-pill .filter-pill-remove {
 
 .tp-dark .filter-chip--risk {
     color: #f2b8b8;
+}
+
+.filter-chip--secondary {
+    color: var(--tp-color-text-muted);
+    border-color: var(--tp-color-border);
+}
+
+.filter-chip--secondary:hover,
+.filter-chip--secondary.filter-chip--active {
+    background: var(--tp-color-surface-muted);
+    border-color: var(--tp-color-border-strong);
+    color: var(--tp-color-text-secondary);
 }
 
 .tp-dark .filter-chip--risk:hover,

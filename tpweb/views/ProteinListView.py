@@ -386,6 +386,11 @@ class ProteinListView(View):
                         option_tone = "risk"
                     elif normalized_option_name in {"no_hit", "no hit", "n", "no"}:
                         option_tone = "favorable"
+                elif param_name_lower in {"core_roary", "core_corecruncher"}:
+                    if option.name == "Core":
+                        option_tone = "favorable"
+                    elif option.name == "Accessory":
+                        option_tone = "secondary"
                 options.append({
                     "id": option.pk,
                     "name": option.name,
@@ -506,11 +511,12 @@ class ProteinListView(View):
 
         for category in sorted(grouped.keys(), key=_category_sort_key):
             params = sorted(grouped[category], key=lambda entry: _param_sort_key(category, entry))
+            any_active = any(entry["any_active"] for entry in params)
             filter_groups.append({
                 "category": category,
                 "params": params,
-                "any_active": any(entry["any_active"] for entry in params),
-                "param_count": len(params),
+                "any_active": any_active,
+                "param_count": sum(1 for entry in params if entry.get("any_active")),
             })
         return filter_groups, numeric_param_count
 
