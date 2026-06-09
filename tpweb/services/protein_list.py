@@ -20,6 +20,7 @@ ACRONYM_TOKENS = {
     "fpocket": "FPocket",
     "alphafold": "AlphaFold",
     "colabfold": "ColabFold",
+    "plddt": "pLDDT",
     "id": "ID",
 }
 

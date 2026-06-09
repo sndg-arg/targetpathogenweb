@@ -3,7 +3,7 @@ from tpweb.services.protein_list import humanize_identifier
 from tpweb.services.structure_sources import summarize_structure_sources
 
 
-def _display_table_value(value):
+def _display_table_value(value, column_name=""):
     if value is None:
         return "-"
     if isinstance(value, (int, float)):
@@ -12,6 +12,9 @@ def _display_table_value(value):
     if not text or text.lower() in {"none", "nan", "null"}:
         return "-"
     if text.replace(".", "", 1).isdigit():
+        return text
+    col = str(column_name).lower()
+    if col.endswith("_structure") or col.endswith("_pocket"):
         return text
     return humanize_identifier(text) or text
 
@@ -59,7 +62,7 @@ def build_protein_table_row(protein, visible_columns, coefficient_by_param,
                              expression=None, zero_cache=None):
     param_values = score_param_value_map(protein)
     table_data = {
-        name: _display_table_value(value)
+        name: _display_table_value(value, name)
         for name, value in param_values.items()
         if name in visible_columns
     }
