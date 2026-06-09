@@ -169,14 +169,14 @@
                 {% if selected_pocket_evidence %}
                 <div class="target-evidence-block target-evidence-block--structure">
                     <div class="target-evidence-head">
-                        <h3>{% trans "Selected pocket evidence" %}</h3>
+                        <h3>{% trans "Selected score evidence" %}</h3>
                         {% if selected_pocket_evidence.selected_source_kind %}<span class="tp-chip tp-chip--sm">{{ selected_pocket_evidence.selected_source_kind }}</span>{% endif %}
                     </div>
-                    <p class="target-evidence-note">{% trans "The main Druggability value follows the curated structure priority for this dataset. It may differ from pockets on the structure currently displayed in the viewer." %}</p>
+                    <p class="target-evidence-note">{% trans "Curated Druggability is the selected FPocket score used for ranking. Viewer pockets can belong to a different loaded structure." %}</p>
                     <div class="target-evidence-grid">
                         {% if selected_pocket_evidence.fpocket.score or selected_pocket_evidence.fpocket.structure or selected_pocket_evidence.fpocket.pocket %}
                         <div class="target-evidence-card">
-                            <span class="target-evidence-label">FPocket</span>
+                            <span class="target-evidence-label">{% trans "Selected FPocket" %}</span>
                             {% if selected_pocket_evidence.fpocket.score %}<strong class="target-evidence-value">{{ selected_pocket_evidence.fpocket.score }}</strong>{% endif %}
                             <span>{% trans "Structure" %}: {{ selected_pocket_evidence.fpocket.structure|default:"-" }}</span>
                             <span>{% trans "Pocket" %}: {{ selected_pocket_evidence.fpocket.pocket|default:"-" }}</span>
@@ -184,7 +184,7 @@
                         {% endif %}
                         {% if selected_pocket_evidence.p2rank.score or selected_pocket_evidence.p2rank.structure or selected_pocket_evidence.p2rank.pocket %}
                         <div class="target-evidence-card">
-                            <span class="target-evidence-label">P2Rank</span>
+                            <span class="target-evidence-label">{% trans "Selected P2Rank" %}</span>
                             {% if selected_pocket_evidence.p2rank.score %}<strong class="target-evidence-value">{{ selected_pocket_evidence.p2rank.score }}</strong>{% endif %}
                             <span>{% trans "Structure" %}: {{ selected_pocket_evidence.p2rank.structure|default:"-" }}</span>
                             <span>{% trans "Pocket" %}: {{ selected_pocket_evidence.p2rank.pocket|default:"-" }}</span>
@@ -214,8 +214,8 @@
                     {% if microbiome_context %}
                     <div class="target-evidence-card">
                         <span class="target-evidence-label">{% trans "Gut microbiome context" %}</span>
-                        {% if microbiome_context.count or microbiome_context.total %}<strong class="target-evidence-value">{{ microbiome_context.count|default:"-" }} / {{ microbiome_context.total|default:"-" }}</strong>{% endif %}
-                        {% if microbiome_context.norm %}<span>{% trans "Normalized" %}: {{ microbiome_context.norm }}</span>{% endif %}
+                        {% if microbiome_context.count or microbiome_context.total %}<strong class="target-evidence-value">{{ microbiome_context.count|default:"-" }} / {{ microbiome_context.total|default:"-" }} {% trans "genomes" %}</strong>{% endif %}
+                        {% if microbiome_context.norm %}<span>{% trans "Normalized score" %}: {{ microbiome_context.norm }}</span>{% endif %}
                     </div>
                     {% endif %}
                 </div>

@@ -184,14 +184,14 @@ def _structure_source_kind(identifier):
 def _build_selected_pocket_evidence(raw_scores):
     fpocket_score = _format_score_value(_raw_score(raw_scores, "Druggability"))
     fpocket_structure = _raw_score(raw_scores, "best_fpocket_structure")
-    fpocket_pocket = _raw_score(raw_scores, "fpocket_pocket")
+    fpocket_pocket = _raw_score(raw_scores, "fpocket_pocket").replace("Pocket pocket", "Pocket ").replace("No_pockets", "No pockets")
     p2rank_score = _format_score_value(_raw_score(raw_scores, "p2rank_probability"))
     p2rank_structure = _raw_score(raw_scores, "best_p2rank_structure")
-    p2rank_pocket = _raw_score(raw_scores, "p2rank_pocket")
+    p2rank_pocket = _raw_score(raw_scores, "p2rank_pocket").replace("Pocket pocket", "Pocket ").replace("No_pockets", "No pockets")
     colabfold_fpocket_score = _format_score_value(_raw_score(raw_scores, "colabfold_druggability_score"))
-    colabfold_fpocket_pocket = _raw_score(raw_scores, "colabfold_fpocket_pocket")
+    colabfold_fpocket_pocket = _raw_score(raw_scores, "colabfold_fpocket_pocket").replace("Pocket pocket", "Pocket ").replace("No_pockets", "No pockets")
     colabfold_p2rank_score = _format_score_value(_raw_score(raw_scores, "colabfold_p2rank_probability"))
-    colabfold_p2rank_pocket = _raw_score(raw_scores, "colabfold_p2rank_pocket")
+    colabfold_p2rank_pocket = _raw_score(raw_scores, "colabfold_p2rank_pocket").replace("Pocket pocket", "Pocket ").replace("No_pockets", "No pockets")
 
     has_any = any([
         fpocket_score, fpocket_structure, fpocket_pocket,
