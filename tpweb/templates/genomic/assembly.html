@@ -479,5 +479,11 @@
             window.addEventListener("scroll", update, { passive: true });
             update();
         }
+
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", jsloaded);
+        } else {
+            jsloaded();
+        }
     </script>
 {% endblock %}
