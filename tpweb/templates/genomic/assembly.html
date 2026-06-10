@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20260610-3">
+    <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20260610-4">
 {% endblock %}
 
 {% block body %}
@@ -15,9 +15,7 @@
                     {% trans "Genomes" as crumb_genomes %}
                     {% url 'tpwebapp:index' as index_url %}
                     {% url 'tpwebapp:genomes_list' as genomes_url %}
-                    {% with crumb_workspace_label="Genome: "|add:assembly.name %}
-                    {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_workspace_label %}
-                    {% endwith %}
+                    {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=assembly.name %}
                     <p class="genome-hero-eyebrow">{% trans "Bacterial genome" %}</p>
                     <h1>{{ assembly.name }}</h1>
                     {% if workspace_metrics.has_curated_data %}
@@ -26,7 +24,7 @@
                             <span class="genome-curated-callout-note">{% trans "Druggability scores from a reviewed external import." %}</span>
                         </div>
                     {% endif %}
-                    <p class="genome-description">{{ assembly.description|default:"No description available." }}</p>
+                    {% if assembly.description %}<p class="genome-description">{{ assembly.description }}</p>{% endif %}
                     <div class="hero-chip-list tp-chip-group">
                         {% for fact in overview.primary_hero_facts %}
                             {% if fact.label != "Annotated features" %}
@@ -115,7 +113,6 @@
                 <a href="#section-targets" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Top targets" %}</a>
             {% endif %}
             <a href="#section-evidence" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Evidence" %}</a>
-            <a href="#section-composition" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Composition" %}</a>
             {% if jbrowse_embed.enabled %}
                 <a href="#section-browse" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Genome browser" %}</a>
             {% endif %}
@@ -305,44 +302,34 @@
                         </ul>
                     </div>
                 </div>
+                <div class="evidence-composition">
+                    <span class="evidence-composition-item">
+                        <span class="evidence-composition-label">{% trans "CDS" %}</span>
+                        <span class="evidence-composition-value">{{ workspace_metrics.total_proteins }}</span>
+                    </span>
+                    {% if overview.untranslated_cds_display and overview.untranslated_cds_display != "0" and overview.untranslated_cds_display != 0 %}
+                        <span class="evidence-composition-item">
+                            <span class="evidence-composition-label">{% trans "CDS untranslated" %}</span>
+                            <span class="evidence-composition-value">{{ overview.untranslated_cds_display }}</span>
+                        </span>
+                    {% endif %}
+                    {% if overview.rna_total_display %}
+                        <span class="evidence-composition-item">
+                            <span class="evidence-composition-label">{% trans "RNA features" %}</span>
+                            <span class="evidence-composition-value">{{ overview.rna_total_display }}</span>
+                        </span>
+                    {% endif %}
+                    {% if overview.feature_count_display %}
+                        <span class="evidence-composition-item">
+                            <span class="evidence-composition-label">{% trans "Total features" %}</span>
+                            <span class="evidence-composition-value">{{ overview.feature_count_display }}</span>
+                        </span>
+                    {% endif %}
+                </div>
                 <p class="evidence-footnote">
                     <strong>{% trans "Note" %}:</strong>
                     {% trans "PDB and ChEMBL records on this protein are the strongest ligand evidence. Similar-protein records are inferred from related proteins and should be interpreted as transferred evidence. ChEMBL similar-protein records are capped at the top 100 per protein and ZINC at the top 50 candidates." %}
                 </p>
-            </section>
-
-            <!-- Composition -->
-            <section class="genome-card tp-ui-panel genome-card--composition" id="section-composition">
-                <div class="section-head tp-ui-panel-head">
-                    <div>
-                        <h2>{% trans "Genome composition" %}</h2>
-                        <p class="section-subtitle">{% trans "Summary of the annotated record and the subset available for protein analysis." %}</p>
-                    </div>
-                </div>
-                <dl class="composition-list">
-                    <div class="composition-row">
-                        <dt>{% trans "Protein-coding sequences" %}</dt>
-                        <dd>{{ workspace_metrics.total_proteins }}</dd>
-                    </div>
-                    {% if overview.untranslated_cds_display and overview.untranslated_cds_display != "0" and overview.untranslated_cds_display != 0 %}
-                        <div class="composition-row">
-                            <dt>{% trans "CDS without translated protein" %}</dt>
-                            <dd>{{ overview.untranslated_cds_display }}</dd>
-                        </div>
-                    {% endif %}
-                    {% if overview.rna_total_display %}
-                        <div class="composition-row">
-                            <dt>{% trans "RNA features" %}</dt>
-                            <dd>{{ overview.rna_total_display }}</dd>
-                        </div>
-                    {% endif %}
-                    {% if overview.feature_count_display %}
-                        <div class="composition-row">
-                            <dt>{% trans "Annotated features (total)" %}</dt>
-                            <dd>{{ overview.feature_count_display }}</dd>
-                        </div>
-                    {% endif %}
-                </dl>
             </section>
 
             {% if jbrowse_embed.enabled %}

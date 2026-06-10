@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/genomes-list.css' %}?v=20260604-pdb-xrefs">
+    <link rel="stylesheet" href="{% static 'css/pages/genomes-list.css' %}?v=20260610-1">
 {% endblock %}
 
 {% block body %}
@@ -122,6 +122,9 @@
                                                 <span class="genome-status-badge genome-status-badge--failed">{% trans "Failed" %}</span>
                                             {% elif genome.incomplete_for_current_genome %}
                                                 <span class="genome-status-badge genome-status-badge--incomplete">{% trans "Incomplete" %}</span>
+                                            {% endif %}
+                                            {% if genome.has_curated_data %}
+                                                <span class="tp-chip tp-chip--state finished tp-chip--sm">{% trans "Curated" %}</span>
                                             {% endif %}
                                         </div>
                                         {% if genome.current_genome_status_note %}

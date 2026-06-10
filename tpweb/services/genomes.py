@@ -4,6 +4,7 @@ from bioseq.models.Bioentry import Bioentry
 from bioseq.models.Biodatabase import Biodatabase
 from bioseq.models.Ontology import Ontology
 from tpweb.models.BioentryStructure import BioentryStructure, ExperimentalStructureXref
+from tpweb.models.ScoreParamValue import ScoreParamValue
 from tpweb.services.genome_workspace import (
     describe_genome_scope,
     display_genome_name,
@@ -135,6 +136,21 @@ def _ec_counts_by_genome(genome_names):
     return _normalize_counts_by_genome(ec_counts)
 
 
+def _curated_genome_names(genome_names):
+    if not genome_names:
+        return set()
+    proteome_names = [f"{name}{Biodatabase.PROT_POSTFIX}" for name in genome_names]
+    curated_proteome_names = set(
+        ScoreParamValue.objects.filter(
+            bioentry__biodatabase__name__in=proteome_names,
+            score_param__name="best_fpocket_structure",
+        )
+        .values_list("bioentry__biodatabase__name", flat=True)
+        .distinct()
+    )
+    return {name.removesuffix(Biodatabase.PROT_POSTFIX) for name in curated_proteome_names}
+
+
 def build_genome_dto(
     genome,
     user=None,
@@ -143,11 +159,13 @@ def build_genome_dto(
     experimental_counts_by_genome=None,
     pdb_xref_counts_by_genome=None,
     ec_counts_by_genome=None,
+    curated_genome_names=None,
 ):
     protein_counts_by_genome = protein_counts_by_genome or {}
     experimental_counts_by_genome = experimental_counts_by_genome or {}
     pdb_xref_counts_by_genome = pdb_xref_counts_by_genome or {}
     ec_counts_by_genome = ec_counts_by_genome or {}
+    curated_genome_names = curated_genome_names or set()
 
     workspace_scope = describe_genome_scope(user, genome.name)
     genome_dto = {
@@ -157,6 +175,7 @@ def build_genome_dto(
         "description": genome.description,
         "workspace_scope_key": workspace_scope["key"],
         "workspace_scope_label": workspace_scope["label"],
+        "has_curated_data": genome.name in curated_genome_names,
     }
     qualifiers = genome.qualifiers_dict()
     protein_count = safe_int(
@@ -211,6 +230,7 @@ def build_genomes_dto(genomes, user=None, columns=GENOME_TABLE_COLUMNS):
     experimental_counts_by_genome = _experimental_counts_by_genome(genome_names)
     pdb_xref_counts_by_genome = _pdb_xref_counts_by_genome(genome_names)
     ec_counts_by_genome = _ec_counts_by_genome(genome_names)
+    curated_names = _curated_genome_names(genome_names)
 
     return [
         build_genome_dto(
@@ -221,6 +241,7 @@ def build_genomes_dto(genomes, user=None, columns=GENOME_TABLE_COLUMNS):
             experimental_counts_by_genome=experimental_counts_by_genome,
             pdb_xref_counts_by_genome=pdb_xref_counts_by_genome,
             ec_counts_by_genome=ec_counts_by_genome,
+            curated_genome_names=curated_names,
         )
         for genome in genomes
     ]

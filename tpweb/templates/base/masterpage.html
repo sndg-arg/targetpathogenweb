@@ -1030,6 +1030,12 @@
             color: var(--tp-color-on-accent) !important;
         }
 
+        #main_header .nav-link.is-active {
+            background: rgba(255, 255, 255, 0.16);
+            color: var(--tp-color-on-accent) !important;
+            box-shadow: inset 0 -2px 0 rgba(255, 255, 255, 0.6);
+        }
+
         .tp-main {
             flex: 1 0 auto;
             width: 100%;
@@ -1951,27 +1957,29 @@
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarCollapse">
+            {% with url_name=request.resolver_match.url_name %}
             <ul class="navbar-nav mr-auto mb-2 mb-md-0">
                 <li class="nav-item">
-                    <a class="nav-link" aria-current="page" href="{% url 'tpwebapp:index' %}">Home</a>
+                    <a class="nav-link{% if url_name == 'index' %} is-active{% endif %}" {% if url_name == 'index' %}aria-current="page"{% endif %} href="{% url 'tpwebapp:index' %}">Home</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" aria-current="page" href="{% url 'tpwebapp:genomes_list' %}">{% trans "Genomes" %}</a>
+                    <a class="nav-link{% if url_name == 'genomes_list' or url_name == 'assembly' or url_name == 'protein_list' or url_name == 'protein' or url_name == 'annotation_explorer' or url_name == 'formula_form' or url_name == 'customparam' %} is-active{% endif %}" {% if url_name == 'genomes_list' or url_name == 'assembly' or url_name == 'protein_list' or url_name == 'protein' or url_name == 'annotation_explorer' %}aria-current="page"{% endif %} href="{% url 'tpwebapp:genomes_list' %}">{% trans "Genomes" %}</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" aria-current="page" href="{% url 'tpwebapp:genome_upload' %}">{% trans "Upload" %}</a>
+                    <a class="nav-link{% if url_name == 'genome_upload' %} is-active{% endif %}" {% if url_name == 'genome_upload' %}aria-current="page"{% endif %} href="{% url 'tpwebapp:genome_upload' %}">{% trans "Upload" %}</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" aria-current="page" href="{% url 'tpwebapp:form' %}">{% trans "BLAST" %}</a>
+                    <a class="nav-link{% if url_name == 'form' or url_name == 'blast_res' %} is-active{% endif %}" {% if url_name == 'form' or url_name == 'blast_res' %}aria-current="page"{% endif %} href="{% url 'tpwebapp:form' %}">{% trans "BLAST" %}</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" aria-current="page" href="{% url 'tpwebapp:data_sources' %}">{% trans "Methodology" %}</a>
+                    <a class="nav-link{% if url_name == 'data_sources' %} is-active{% endif %}" {% if url_name == 'data_sources' %}aria-current="page"{% endif %} href="{% url 'tpwebapp:data_sources' %}">{% trans "Methodology" %}</a>
                 </li>
                 {% if user.is_staff %}
                 <li class="nav-item">
-                    <a class="nav-link" aria-current="page" href="{% url 'admin:index' %}">{% trans "Admin" %}</a>
+                    <a class="nav-link{% if url_name == 'admin' %} is-active{% endif %}" href="{% url 'admin:index' %}">{% trans "Admin" %}</a>
                 </li>
                 {% endif %}
+            {% endwith %}
                 {% if user.is_authenticated %}
                     <li id="user_dropdown" class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-expanded="false">
