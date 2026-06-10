@@ -11,8 +11,11 @@
 .customparam-page h1,
 .customparam-page h2,
 .customparam-page h3 {
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-weight: 600;
     letter-spacing: -0.01em;
 }
+.customparam-page h1 { font-weight: 700; }
 
 /* ── Hero ── */
 
@@ -231,7 +234,7 @@
     background: var(--cp-accent-soft);
     border: 1px solid var(--cp-accent-border);
     color: var(--cp-accent-ink);
-    font-weight: var(--tp-font-weight-bold);
+    font-weight: 600;
     font-size: 0.92rem;
     flex-shrink: 0;
 }

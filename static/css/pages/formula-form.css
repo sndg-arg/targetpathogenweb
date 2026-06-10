@@ -16,8 +16,11 @@
 .formula-page h1,
 .formula-page h2,
 .formula-page h3 {
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-weight: 600;
     letter-spacing: -0.01em;
 }
+.formula-page h1 { font-weight: 700; }
 
 .formula-page > form {
     display: contents;

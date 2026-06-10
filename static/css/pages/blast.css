@@ -14,8 +14,11 @@
 .blast-page h1,
 .blast-page h2,
 .blast-page h3 {
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-weight: 600;
     letter-spacing: -0.01em;
 }
+.blast-page h1 { font-weight: 700; }
 
 /* ── Hero ── */
 

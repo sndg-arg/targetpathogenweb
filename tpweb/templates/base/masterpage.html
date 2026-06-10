@@ -499,11 +499,10 @@
         .btn-primary,
         .tp-btn--primary {
             font-weight: 600;
-            background: linear-gradient(180deg, var(--tp-color-brand-800) 0%, var(--tp-color-brand-900) 100%);
+            background: var(--tp-color-brand-800);
             background-color: var(--tp-color-brand-800) !important;
             border-color: transparent !important;
             color: var(--tp-color-on-accent) !important;
-            box-shadow: var(--tp-shadow-xs);
         }
 
         .btn-primary:hover,
@@ -520,11 +519,10 @@
 
         .btn-success,
         .tp-btn--success {
-            background: linear-gradient(180deg, var(--tp-color-sage-900) 0%, var(--tp-color-sage-700) 100%);
-            background-color: var(--tp-color-sage-900) !important;
+            background: var(--tp-color-sage-700);
+            background-color: var(--tp-color-sage-700) !important;
             border-color: transparent !important;
             color: var(--tp-color-on-accent) !important;
-            box-shadow: var(--tp-shadow-xs);
         }
 
         .btn-success:hover,
@@ -541,11 +539,10 @@
 
         .btn-info,
         .tp-btn--info {
-            background: linear-gradient(180deg, var(--tp-color-brand-800) 0%, var(--tp-color-brand-900) 100%);
+            background: var(--tp-color-brand-800);
             background-color: var(--tp-color-brand-800) !important;
             border-color: transparent !important;
             color: var(--tp-color-on-accent) !important;
-            box-shadow: var(--tp-shadow-xs);
         }
 
         .btn-info:hover,
@@ -584,10 +581,9 @@
 
         .btn-secondary,
         .tp-btn--secondary {
-            background: linear-gradient(180deg, var(--tp-color-brand-800) 0%, var(--tp-color-brand-900) 100%);
+            background: var(--tp-color-brand-800);
             border-color: transparent !important;
             color: var(--tp-color-on-accent) !important;
-            box-shadow: var(--tp-shadow-xs);
         }
 
         .btn-secondary:hover,
@@ -642,7 +638,7 @@
         .tp-btn--dark {
             color: var(--tp-color-nav-800);
             border-color: var(--tp-color-border-strong);
-            background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+            background: var(--tp-color-surface);
         }
 
         .btn-outline-dark:hover,
@@ -658,10 +654,9 @@
 
         .btn-danger,
         .tp-btn--danger {
-            background: linear-gradient(180deg, var(--tp-color-rose-700) 0%, var(--tp-color-danger-ink) 100%);
+            background: var(--tp-color-rose-700);
             border-color: var(--tp-color-danger-ink);
             color: var(--tp-color-on-accent);
-            box-shadow: var(--tp-shadow-xs);
         }
 
         .btn-danger:hover,
@@ -738,7 +733,7 @@
         .tp-btn--clear {
             color: var(--tp-color-text-muted) !important;
             border-color: var(--tp-color-border-strong) !important;
-            background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%) !important;
+            background: var(--tp-color-surface) !important;
             box-shadow: none !important;
         }
 
@@ -768,7 +763,7 @@
         .tp-btn--clear.tp-btn--clear-caution {
             color: var(--tp-color-text-muted) !important;
             border-color: var(--tp-color-border-strong) !important;
-            background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%) !important;
+            background: var(--tp-color-surface) !important;
             box-shadow: none !important;
         }
 
@@ -819,7 +814,7 @@
         .tp-btn--clear-warn {
             color: var(--tp-color-amber-900) !important;
             border-color: var(--tp-color-amber-200) !important;
-            background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-amber-050) 100%) !important;
+            background: var(--tp-color-amber-050) !important;
             box-shadow: none !important;
         }
 
@@ -872,11 +867,10 @@
         .custom-select {
             border-color: var(--tp-color-border-strong);
             border-radius: var(--tp-ui-radius-control);
-            background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+            background: var(--tp-color-surface);
             color: var(--tp-color-text-secondary);
             font-weight: 600;
             min-height: var(--tp-ui-control-height);
-            box-shadow: var(--tp-shadow-xs);
             transition:
                 border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
                 box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
@@ -907,7 +901,7 @@
         .custom-select:disabled {
             color: var(--tp-color-text-soft);
             border-color: var(--tp-color-border-soft);
-            background: linear-gradient(180deg, var(--tp-color-surface-soft) 0%, var(--tp-color-surface-muted) 100%);
+            background: var(--tp-color-surface-muted);
             box-shadow: none;
         }
 
@@ -917,11 +911,10 @@
             border-radius: 999px;
             padding: 4px 10px;
             font-size: 0.82rem;
-            font-weight: 700;
+            font-weight: 500;
             border: 1px solid var(--tp-color-border-strong);
-            background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+            background: var(--tp-color-surface);
             color: var(--tp-color-text-secondary);
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.84);
         }
 
         .tp-state-chip.running {
@@ -945,8 +938,7 @@
         .tp-card {
             border: 1px solid var(--tp-color-border-soft);
             border-radius: var(--tp-radius-md);
-            background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
-            box-shadow: var(--tp-shadow-sm);
+            background: var(--tp-color-surface);
         }
 
         .tp-toolbar {
@@ -1081,9 +1073,9 @@
 
         .tp-table-shell thead th,
         .tp-table-shell thead td {
-            background: linear-gradient(180deg, var(--tp-color-surface-soft) 0%, var(--tp-color-surface-panel) 100%);
+            background: var(--tp-color-surface-soft);
             font-size: 0.87rem;
-            font-weight: 700;
+            font-weight: 600;
             color: var(--tp-color-text-secondary);
             position: sticky;
             top: 0;
@@ -1326,7 +1318,7 @@
                 align-items: center;
                 justify-content: center;
                 cursor: pointer;
-                font-weight: 700;
+                font-weight: 600;
             }
 
             .tp-sidebar-toggle:hover {
@@ -1354,7 +1346,7 @@
                 margin: 0;
                 color: rgba(231, 244, 249, 0.58);
                 font-size: 0.72rem;
-                font-weight: 700;
+                font-weight: 500;
                 letter-spacing: 0.08em;
                 text-transform: uppercase;
                 padding: 0 4px;
@@ -1385,7 +1377,7 @@
                 border-radius: 8px;
                 text-align: center;
                 font-size: 0.73rem;
-                font-weight: 700;
+                font-weight: 600;
                 background: rgba(255, 255, 255, 0.16);
                 color: var(--tp-color-on-accent);
             }
@@ -1507,7 +1499,7 @@
                 border: 1px solid rgba(255, 255, 255, 0.12);
                 border-radius: 7px;
                 font-size: 0.79rem;
-                font-weight: 700;
+                font-weight: 500;
                 padding: 4px 8px;
                 white-space: nowrap;
                 box-shadow: 0 4px 14px rgba(9, 22, 33, 0.18);
