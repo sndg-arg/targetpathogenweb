@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260608-evidence3">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260610-1">
 {% endblock %}
 
 {% block body %}
@@ -18,10 +18,8 @@
                     {% url 'tpwebapp:genomes_list' as genomes_url %}
                     {% url 'tpwebapp:assembly' protein.genome as assembly_url %}
                     {% url 'tpwebapp:protein_list' protein.genome as proteins_url %}
-                    {% with crumb_genome_overview="Genome: "|add:protein.assembly_label %}
-                    {% with crumb_protein="Protein: "|add:protein.accession|add:" · "|add:protein.description %}
-                    {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_genome_overview crumb_3_url=assembly_url crumb_4_label=crumb_proteins crumb_4_url=proteins_url crumb_5_label=crumb_protein %}
-                    {% endwith %}
+                    {% with crumb_protein=protein.accession|add:" · "|add:protein.description %}
+                    {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=protein.assembly_label crumb_3_url=assembly_url crumb_4_label=crumb_proteins crumb_4_url=proteins_url crumb_5_label=crumb_protein %}
                     {% endwith %}
                     <p class="protein-hero-eyebrow">{% trans "Protein profile" %}</p>
                     <h1>{{ protein.accession }}</h1>

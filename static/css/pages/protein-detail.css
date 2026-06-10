@@ -16,9 +16,10 @@
 .protein-page h3,
 .protein-page h4 {
     font-family: "Space Grotesk", "Segoe UI", sans-serif;
-    font-weight: 700;
+    font-weight: 600;
     letter-spacing: 0.2px;
 }
+.protein-page h1 { font-weight: 700; }
 
 /* Base styles from .tp-page-hero in ui-system.css */
 
@@ -386,7 +387,7 @@
 .protein-card h2 {
     margin: 0;
     font-size: var(--tp-heading-sm);
-    font-weight: var(--tp-font-weight-bold);
+    font-weight: 600;
     color: var(--protein-accent-ink);
 }
 
@@ -554,7 +555,6 @@
     border: 1px solid var(--tp-color-border-soft);
     border-radius: 12px;
     overflow: auto;
-    box-shadow: var(--tp-shadow-xs);
 }
 
 .sequence-shell {
@@ -688,7 +688,6 @@
     border-radius: 12px;
     background: var(--tp-color-surface);
     overflow: hidden;
-    box-shadow: var(--tp-shadow-xs);
 }
 
 .data-details > summary {
@@ -824,7 +823,6 @@
     border: 1px solid var(--tp-color-border-strong);
     border-radius: 14px;
     padding: 4px;
-    box-shadow: var(--tp-shadow-xs);
     flex-shrink: 0;
     max-width: min(560px, 100%);
 }
@@ -852,7 +850,6 @@
 .structure-source-btn.is-active {
     background: var(--tp-color-surface-panel);
     color: var(--tp-color-brand-700);
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
 }
 
 .structure-source-kind {
@@ -1075,7 +1072,6 @@
     border-color: var(--protein-accent-border);
     color: var(--protein-accent-ink);
     font-weight: 600;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), var(--tp-shadow-sm);
 }
 
 .structure-loading-note {
@@ -1175,12 +1171,6 @@
     border-radius: 14px;
     background: var(--tp-color-surface);
     padding: 12px;
-    box-shadow: var(--tp-shadow-sm);
-    transition: box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
-}
-
-.binder-card:hover {
-    box-shadow: var(--tp-shadow-md);
 }
 
 .binder-preview {
