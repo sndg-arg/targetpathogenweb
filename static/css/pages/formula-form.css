@@ -5,11 +5,12 @@
     gap: var(--tp-space-4);
     --ff-accent-ink: var(--tp-color-brand-900);
     --ff-accent-soft: var(--tp-color-info-bg);
-    --ff-accent-soft-2: color-mix(in srgb, var(--tp-color-brand-050) 72%, white);
+    --ff-accent-soft-2: var(--tp-color-brand-050);
     --ff-accent-border: var(--tp-color-brand-300);
     --ff-border: var(--tp-color-border-soft);
     --ff-mono: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
-    --ff-editor-bg: color-mix(in srgb, var(--tp-color-brand-950) 96%, var(--tp-color-brand-800));
+    --ff-editor-bg: var(--tp-color-brand-900);
+    --ff-editor-color: var(--tp-color-brand-100);
 }
 
 .formula-page h1,
@@ -166,8 +167,8 @@
     resize: vertical;
     min-height: 120px;
     background: var(--ff-editor-bg) !important;
-    color: color-mix(in srgb, var(--tp-color-brand-100) 90%, white) !important;
-    border: 1px solid color-mix(in srgb, var(--tp-color-brand-700) 60%, transparent) !important;
+    color: var(--ff-editor-color) !important;
+    border: 1px solid var(--tp-color-brand-700) !important;
     border-radius: 12px !important;
     caret-color: var(--tp-color-brand-300);
     padding: 14px 16px !important;
@@ -554,4 +555,9 @@
     .formula-footer-actions .btn {
         width: 100%;
     }
+}
+
+.tp-dark .formula-page {
+    --ff-editor-bg: var(--tp-color-brand-050);
+    --ff-editor-color: var(--tp-color-brand-900);
 }

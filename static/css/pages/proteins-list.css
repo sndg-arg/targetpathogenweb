@@ -17,8 +17,12 @@
 .proteins-page h3,
 .proteins-page h4 {
     font-family: "Space Grotesk", "Segoe UI", sans-serif;
-    font-weight: 700;
+    font-weight: 600;
     letter-spacing: 0.2px;
+}
+
+.proteins-page h1 {
+    font-weight: 700;
 }
 
 /* Base styles from .tp-page-hero in ui-system.css */
@@ -116,7 +120,7 @@
 .hero-analysis-label {
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-label);
-    font-weight: 700;
+    font-weight: 500;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     line-height: 1.25;
@@ -130,7 +134,7 @@
 }
 
 .hero-analysis-value strong {
-    font-weight: 700;
+    font-weight: 600;
 }
 
 .hero-analysis-sep {
@@ -180,11 +184,10 @@ a.filter-pill .filter-pill-remove {
 .toolbar-card {
     border: 1px solid var(--tp-color-border);
     border-radius: var(--tp-ui-radius-panel);
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+    background: var(--tp-color-surface);
     padding: var(--tp-ui-panel-padding);
     display: grid;
     gap: var(--tp-ui-gap-md);
-    box-shadow: var(--tp-ui-shadow-panel);
 }
 
 .search-form {
@@ -367,7 +370,7 @@ a.filter-pill .filter-pill-remove {
 }
 
 .search-suggestion-accession {
-    font-weight: 700;
+    font-weight: 600;
     font-size: 0.92rem;
 }
 
@@ -390,7 +393,7 @@ a.filter-pill .filter-pill-remove {
 .per-page-label {
     margin: 0;
     font-size: var(--tp-font-label);
-    font-weight: 700;
+    font-weight: 500;
     color: var(--tp-color-text-secondary);
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -401,7 +404,7 @@ a.filter-pill .filter-pill-remove {
     min-width: 152px;
     width: 152px;
     margin-left: 0;
-    font-weight: 700;
+    font-weight: 600;
     text-align: left;
     cursor: pointer;
 }
@@ -413,7 +416,7 @@ a.filter-pill .filter-pill-remove {
 
 .per-page-control .tp-select-trigger {
     border-color: var(--view-accent-border);
-    font-weight: 700;
+    font-weight: 600;
 }
 
 .table-wrap {
@@ -422,7 +425,6 @@ a.filter-pill .filter-pill-remove {
     background: var(--tp-color-surface);
     overflow: auto;
     min-width: 0;
-    box-shadow: var(--tp-shadow-sm);
 }
 
 .table-wrap.tp-table-shell--with-export {
@@ -451,16 +453,15 @@ a.filter-pill .filter-pill-remove {
     justify-content: space-between;
     gap: 12px;
     padding: 10px 14px;
-    border: 1px solid color-mix(in srgb, var(--tp-color-border-strong) 80%, white);
+    border: 1px solid var(--tp-color-border-strong);
     border-radius: 999px;
-    background: color-mix(in srgb, var(--tp-color-surface) 88%, white);
-    box-shadow: var(--tp-shadow-xs);
+    background: var(--tp-color-surface);
     color: var(--tp-color-text-secondary);
 }
 
 .protein-table-scroll-note__label {
     font-size: 0.8rem;
-    font-weight: 700;
+    font-weight: 500;
     letter-spacing: 0.04em;
     text-transform: uppercase;
     color: var(--tp-color-brand-900);
@@ -489,15 +490,8 @@ a.filter-pill .filter-pill-remove {
     position: relative;
     height: 22px;
     border-radius: 999px;
-    background: linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--tp-color-brand-100) 48%, white) 0%,
-        color-mix(in srgb, var(--tp-color-brand-200) 58%, white) 100%
-    );
-    border: 1px solid color-mix(in srgb, var(--tp-color-brand-300) 44%, white);
-    box-shadow:
-        inset 0 1px 2px rgba(0, 0, 0, 0.06),
-        0 1px 0 rgba(255, 255, 255, 0.65);
+    background: var(--tp-color-brand-050);
+    border: 1px solid var(--tp-color-brand-200);
     overflow: hidden;
     --protein-scroll-thumb-size: 96px;
     --protein-scroll-thumb-offset: 0px;
@@ -515,8 +509,8 @@ a.filter-pill .filter-pill-remove {
     inset: 5px 12px 5px auto;
     width: 14px;
     background:
-        linear-gradient(45deg, transparent 35%, color-mix(in srgb, var(--tp-color-brand-700) 42%, white) 36%, color-mix(in srgb, var(--tp-color-brand-700) 42%, white) 54%, transparent 55%) left center / 6px 10px no-repeat,
-        linear-gradient(45deg, transparent 35%, color-mix(in srgb, var(--tp-color-brand-700) 42%, white) 36%, color-mix(in srgb, var(--tp-color-brand-700) 42%, white) 54%, transparent 55%) right center / 6px 10px no-repeat;
+        linear-gradient(45deg, transparent 35%, var(--tp-color-brand-400) 36%, var(--tp-color-brand-400) 54%, transparent 55%) left center / 6px 10px no-repeat,
+        linear-gradient(45deg, transparent 35%, var(--tp-color-brand-400) 36%, var(--tp-color-brand-400) 54%, transparent 55%) right center / 6px 10px no-repeat;
     opacity: 0.52;
     pointer-events: none;
 }
@@ -528,15 +522,8 @@ a.filter-pill .filter-pill-remove {
     width: var(--protein-scroll-thumb-size);
     transform: translateX(var(--protein-scroll-thumb-offset));
     border-radius: 999px;
-    background: linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--tp-color-brand-700) 88%, white) 0%,
-        color-mix(in srgb, var(--tp-color-brand-900) 82%, white) 100%
-    );
-    box-shadow:
-        var(--tp-shadow-sm),
-        inset 0 1px 0 rgba(255, 255, 255, 0.24);
-    border: 1px solid color-mix(in srgb, var(--tp-color-brand-900) 72%, black);
+    background: var(--tp-color-brand-600);
+    border: 1px solid var(--tp-color-brand-900);
     transition: transform 120ms ease, width 120ms ease, opacity 120ms ease;
 }
 
@@ -651,12 +638,12 @@ a.filter-pill .filter-pill-remove {
 .rank-col {
     width: 56px;
     text-align: center;
-    font-weight: 700;
+    font-weight: 600;
     color: var(--tp-color-text-secondary);
 }
 
 .acc-col a {
-    font-weight: 700;
+    font-weight: 600;
     color: var(--view-accent-ink);
     text-decoration: none;
 }
@@ -925,7 +912,7 @@ a.filter-pill .filter-pill-remove {
     align-items: center;
     font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
     font-size: 0.7rem;
-    font-weight: 700;
+    font-weight: 500;
     color: var(--tp-color-text-muted);
     padding: 2px 5px;
     border-radius: 999px;
@@ -992,7 +979,7 @@ a.filter-pill .filter-pill-remove {
 }
 
 .protein-metric-chip {
-    font-weight: 800;
+    font-weight: 600;
 }
 
 .protein-metric-chip--risk {
@@ -1071,7 +1058,7 @@ a.filter-pill .filter-pill-remove {
 
 .pipeline-like-code {
     color: var(--tp-color-rose-700);
-    font-weight: 700;
+    font-weight: 600;
 }
 
 .pagination-row {
@@ -1098,7 +1085,7 @@ a.filter-pill .filter-pill-remove {
     color: var(--tp-color-text-primary);
     font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
     font-size: inherit;
-    font-weight: 700;
+    font-weight: 600;
     text-align: center;
     line-height: 1.4;
     -moz-appearance: textfield;
@@ -1262,8 +1249,7 @@ a.filter-pill .filter-pill-remove {
 .drawer-block {
     border: 1px solid var(--tp-color-border-soft);
     border-radius: 12px;
-    background: linear-gradient(180deg, var(--tp-color-surface-soft) 0%, var(--tp-color-surface-muted) 100%);
-    box-shadow: var(--tp-shadow-xs);
+    background: var(--tp-color-surface-soft);
     padding: 11px;
 }
 
@@ -1305,7 +1291,7 @@ a.filter-pill .filter-pill-remove {
 .drawer-field-label {
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-label);
-    font-weight: 700;
+    font-weight: 500;
     letter-spacing: 0.05em;
     text-transform: uppercase;
 }
@@ -1359,7 +1345,7 @@ a.filter-pill .filter-pill-remove {
     color: var(--view-accent-deep);
     background: var(--tp-color-brand-100);
     cursor: pointer;
-    font-weight: 700;
+    font-weight: 600;
     font-size: 1rem;
     display: inline-flex;
     align-items: center;
@@ -1555,7 +1541,7 @@ a.filter-pill .filter-pill-remove {
 .scoring-formula-row__name {
     color: var(--tp-color-text-primary);
     font-size: 0.98rem;
-    font-weight: 700;
+    font-weight: 600;
     line-height: 1.25;
 }
 
@@ -1565,7 +1551,7 @@ a.filter-pill .filter-pill-remove {
 
 .scoring-formula-row__badge {
     font-size: 0.68rem;
-    font-weight: 700;
+    font-weight: 500;
     letter-spacing: 0.06em;
     text-transform: uppercase;
     color: var(--tp-color-text-muted);
@@ -1613,7 +1599,7 @@ a.filter-pill .filter-pill-remove {
 .scoring-mydata__title {
     margin: 0;
     font-size: 0.78rem;
-    font-weight: 700;
+    font-weight: 500;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--tp-color-text-secondary);
@@ -2144,7 +2130,6 @@ a.filter-pill .filter-pill-remove {
     flex-wrap: wrap;
     align-items: center;
     gap: 12px 16px;
-    box-shadow: var(--tp-shadow-xs);
 }
 
 .filter-tray-head {
@@ -2156,7 +2141,7 @@ a.filter-pill .filter-pill-remove {
 .filter-tray-label {
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-label);
-    font-weight: 700;
+    font-weight: 500;
     letter-spacing: 0.08em;
     text-transform: uppercase;
 }
@@ -2572,7 +2557,7 @@ a.filter-pill .filter-pill-remove {
 }
 
 .filter-chip:active {
-    transform: translateY(1px);
+    background: var(--tp-color-surface-muted);
 }
 
 .filter-chip:focus-visible {
@@ -2875,7 +2860,7 @@ a.filter-pill .filter-pill-remove {
 }
 
 .filter-numeric-apply:active {
-    transform: translateY(1px);
+    background: var(--tp-color-surface-muted);
 }
 
 .filter-numeric-apply:disabled {
@@ -2897,7 +2882,7 @@ a.filter-pill .filter-pill-remove {
     margin: -2px 2px 0;
     color: var(--tp-color-danger-700, #9f2f2f);
     font-size: 0.74rem;
-    font-weight: 700;
+    font-weight: 600;
     line-height: 1.25;
 }
 

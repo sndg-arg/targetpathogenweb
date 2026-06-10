@@ -5,7 +5,7 @@
     gap: var(--tp-space-4);
     --blast-accent-ink: var(--tp-color-brand-900);
     --blast-accent-soft: var(--tp-color-info-bg);
-    --blast-accent-soft-2: color-mix(in srgb, var(--tp-color-brand-050) 72%, white);
+    --blast-accent-soft-2: var(--tp-color-brand-050);
     --blast-accent-border: var(--tp-color-brand-300);
     --blast-border: var(--tp-color-border-soft);
     --blast-mono: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;

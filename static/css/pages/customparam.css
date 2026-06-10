@@ -3,7 +3,7 @@
     gap: var(--tp-space-4);
     --cp-accent-ink: var(--tp-color-brand-900);
     --cp-accent-soft: var(--tp-color-info-bg);
-    --cp-accent-soft-2: color-mix(in srgb, var(--tp-color-brand-050) 72%, white);
+    --cp-accent-soft-2: var(--tp-color-brand-050);
     --cp-accent-border: var(--tp-color-brand-300);
     --cp-border: var(--tp-color-border-soft);
 }
