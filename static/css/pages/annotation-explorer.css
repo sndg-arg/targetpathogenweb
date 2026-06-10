@@ -13,9 +13,10 @@
 .explorer-page h3,
 .explorer-page h4 {
     font-family: "Space Grotesk", "Segoe UI", sans-serif;
-    font-weight: 700;
+    font-weight: 600;
     letter-spacing: 0.2px;
 }
+.explorer-page h1 { font-weight: 700; }
 
 /* ── Hero ── */
 

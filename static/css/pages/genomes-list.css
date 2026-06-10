@@ -17,9 +17,10 @@
 .genomes-page h3,
 .genomes-page h4 {
     font-family: "Space Grotesk", "Segoe UI", sans-serif;
-    font-weight: 700;
+    font-weight: 600;
     letter-spacing: 0.2px;
 }
+.genomes-page h1 { font-weight: 700; }
 
 /* Base styles from .tp-page-hero in ui-system.css */
 
@@ -171,7 +172,6 @@
 .genome-list-card .tp-table-shell {
     border-color: var(--tp-color-border);
     background: var(--tp-color-surface);
-    box-shadow: var(--tp-shadow-sm);
 }
 
 .genome-list-card .table {

@@ -14,7 +14,6 @@
     border: 1px solid var(--tp-color-border-soft);
     border-radius: var(--tp-ui-radius-panel);
     background: var(--tp-color-surface);
-    box-shadow: var(--tp-shadow-sm);
     padding: 36px 32px 32px;
     display: grid;
     gap: 22px;
