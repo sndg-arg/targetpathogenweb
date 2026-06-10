@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20260511-redesign">
+    <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20260610-3">
 {% endblock %}
 
 {% block body %}
@@ -20,10 +20,13 @@
                     {% endwith %}
                     <p class="genome-hero-eyebrow">{% trans "Bacterial genome" %}</p>
                     <h1>{{ assembly.name }}</h1>
+                    {% if workspace_metrics.has_curated_data %}
+                        <div class="genome-curated-callout">
+                            <span class="tp-chip tp-chip--state finished tp-chip--sm">{% trans "Curated analysis" %}</span>
+                            <span class="genome-curated-callout-note">{% trans "Druggability scores from a reviewed external import." %}</span>
+                        </div>
+                    {% endif %}
                     <p class="genome-description">{{ assembly.description|default:"No description available." }}</p>
-                    <p class="genome-mission">
-                        {% blocktrans count proteins=workspace_metrics.total_proteins %}{{ proteins }} protein available for target prioritization.{% plural %}{{ proteins }} proteins available for target prioritization.{% endblocktrans %}
-                    </p>
                     <div class="hero-chip-list tp-chip-group">
                         {% for fact in overview.primary_hero_facts %}
                             {% if fact.label != "Annotated features" %}
@@ -43,12 +46,6 @@
                             <span class="hero-chip tp-chip tp-chip--meta tp-chip--sm">
                                 <strong>{% trans "Completion" %}:</strong>
                                 <span>{{ overview.completion_display }}</span>
-                            </span>
-                        {% endif %}
-                        {% if workspace_metrics.has_curated_data %}
-                            <span class="hero-chip tp-chip tp-chip--meta tp-chip--sm" title="Druggability scores were imported from a curated results table. Structure priority: PDB experimental > ColabFold model > AlphaFold model.">
-                                <strong>{% trans "Analysis" %}:</strong>
-                                <span>{% trans "Curated" %}</span>
                             </span>
                         {% endif %}
                     </div>

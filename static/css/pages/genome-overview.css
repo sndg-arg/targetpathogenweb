@@ -16,9 +16,10 @@
 .genome-page h2,
 .genome-page h3 {
     font-family: "Space Grotesk", "Segoe UI", sans-serif;
-    font-weight: 700;
+    font-weight: 600;
     letter-spacing: 0.2px;
 }
+.genome-page h1 { font-weight: 700; }
 
 /* ── Hero ─────────────────────────────────────────────────────────── */
 
@@ -53,6 +54,19 @@
     line-height: 1.1;
     color: var(--genome-accent-ink);
     word-break: break-all;
+}
+
+.genome-curated-callout {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.genome-curated-callout-note {
+    color: var(--tp-color-text-muted);
+    font-size: 0.88rem;
+    line-height: 1.35;
 }
 
 .genome-description {
