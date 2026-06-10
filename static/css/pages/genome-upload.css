@@ -4,7 +4,7 @@
     --upload-accent: var(--tp-accent);
     --upload-accent-ink: var(--tp-color-brand-900);
     --upload-accent-soft: var(--tp-color-info-bg);
-    --upload-accent-soft-2: color-mix(in srgb, var(--tp-color-brand-050) 72%, white);
+    --upload-accent-soft-2: var(--tp-color-brand-050);
     --upload-accent-border: var(--tp-color-brand-300);
     --upload-border: var(--tp-color-border-soft);
 }
@@ -21,9 +21,8 @@
     overflow: hidden;
     border: 1px solid var(--upload-border);
     border-radius: var(--tp-ui-radius-hero);
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+    background: var(--tp-color-surface);
     padding: 22px 22px 18px;
-    box-shadow: var(--tp-ui-shadow-panel);
 }
 
 .genome-upload-hero::before {
@@ -47,7 +46,7 @@
     color: var(--tp-color-text-muted);
     font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
     font-size: 0.78rem;
-    font-weight: 700;
+    font-weight: 500;
     letter-spacing: 0.08em;
     text-transform: uppercase;
 }
@@ -119,13 +118,12 @@
     border: 1px solid var(--tp-color-border-soft);
     border-radius: 14px;
     background: var(--tp-color-surface);
-    box-shadow: var(--tp-shadow-xs);
 }
 
 .metric-label {
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-label);
-    font-weight: 700;
+    font-weight: 500;
     letter-spacing: 0.08em;
     text-transform: uppercase;
 }
@@ -133,7 +131,7 @@
 .metric-value {
     color: var(--upload-accent-ink);
     font-size: 1.15rem;
-    font-weight: var(--tp-font-weight-bold);
+    font-weight: 600;
     line-height: 1.05;
 }
 
@@ -148,8 +146,7 @@
 .genome-upload-history {
     border: 1px solid var(--upload-border);
     border-radius: var(--tp-ui-radius-panel);
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
-    box-shadow: var(--tp-ui-shadow-panel);
+    background: var(--tp-color-surface);
 }
 
 .genome-upload-card {
@@ -238,7 +235,7 @@
     padding: 14px 16px;
     border: 1px solid var(--tp-color-border-soft);
     border-radius: 18px;
-    background: linear-gradient(180deg, var(--upload-accent-soft-2) 0%, var(--tp-color-surface) 100%);
+    background: var(--tp-color-surface-soft);
 }
 
 .genome-upload-submit-copy {
@@ -249,7 +246,7 @@
     margin: 0;
     color: var(--upload-accent-ink);
     font-size: 0.96rem;
-    font-weight: 700;
+    font-weight: 600;
 }
 
 .genome-upload-submit-note {
@@ -271,7 +268,7 @@
 .genome-upload-card--guide {
     display: grid;
     gap: 8px;
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+    background: var(--tp-color-surface);
 }
 
 .genome-upload-guide {
@@ -325,8 +322,8 @@
     margin-top: 6px;
     padding: 12px 14px;
     border-radius: 14px;
-    background: color-mix(in srgb, var(--tp-color-info-bg) 62%, white);
-    border: 1px solid color-mix(in srgb, var(--tp-color-info-border) 80%, white);
+    background: var(--tp-color-info-bg);
+    border: 1px solid var(--tp-color-info-border);
     color: var(--tp-color-text-secondary);
     font-size: 0.9rem;
     line-height: 1.5;
@@ -414,7 +411,7 @@
 }
 
 .genome-upload-history-name {
-    font-weight: 700;
+    font-weight: 600;
     color: var(--upload-accent-ink);
 }
 
@@ -441,31 +438,31 @@
 .genome-upload-status {
     justify-content: center;
     min-width: 92px;
-    font-weight: 700;
+    font-weight: 500;
 }
 
 .genome-upload-status--queued,
 .genome-upload-status--submitted {
     border-color: var(--tp-color-warning-border);
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-warning-bg) 100%);
+    background: var(--tp-color-warning-bg);
     color: var(--tp-color-warning-ink);
 }
 
 .genome-upload-status--running {
     border-color: var(--tp-color-success-border);
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-success-bg) 100%);
+    background: var(--tp-color-success-bg);
     color: var(--tp-color-success-ink);
 }
 
 .genome-upload-status--finished {
     border-color: var(--tp-color-info-border);
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-info-bg) 100%);
+    background: var(--tp-color-info-bg);
     color: var(--tp-color-info-ink);
 }
 
 .genome-upload-status--failed {
     border-color: var(--tp-color-danger-border);
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-danger-bg) 100%);
+    background: var(--tp-color-danger-bg);
     color: var(--tp-color-danger-ink);
 }
 

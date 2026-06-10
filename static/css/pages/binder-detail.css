@@ -61,7 +61,7 @@
     margin: 6px 0 10px;
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-label);
-    font-weight: 700;
+    font-weight: 500;
     letter-spacing: 0.08em;
     text-transform: uppercase;
 }
@@ -91,7 +91,7 @@
 .binder-context-id {
     font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
     color: var(--binder-accent-ink);
-    font-weight: 700;
+    font-weight: 600;
     text-decoration: none;
 }
 
@@ -147,18 +147,17 @@
 .binder-page .metric-pill {
     border: 1px solid var(--binder-accent-border);
     border-radius: 12px;
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-panel) 100%);
+    background: var(--tp-color-surface);
     padding: 10px 14px;
     min-height: 68px;
     display: grid;
     align-content: center;
     gap: 3px;
-    box-shadow: var(--tp-shadow-xs);
 }
 
 .binder-page .metric-label {
     font-size: 0.73rem;
-    font-weight: 700;
+    font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     color: var(--tp-color-text-muted);
@@ -168,7 +167,7 @@
     color: var(--binder-accent-ink);
     font-size: 1.15rem;
     line-height: 1.2;
-    font-weight: 700;
+    font-weight: 600;
 }
 
 .metric-unit {
@@ -214,8 +213,7 @@
     padding: 8px 10px;
     border: 1px solid var(--tp-color-border-soft);
     border-radius: 12px;
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
-    box-shadow: var(--tp-shadow-xs);
+    background: var(--tp-color-surface-soft);
 }
 
 .binder-page .quick-nav::-webkit-scrollbar {
@@ -235,10 +233,10 @@
     min-height: 36px;
     padding: 0.32rem 0.85rem;
     line-height: 1.1;
-    font-weight: 600;
+    font-weight: 500;
     border-radius: 999px;
-    border: 1px solid var(--tp-color-border-strong) !important;
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%) !important;
+    border: 1px solid var(--tp-color-border) !important;
+    background: var(--tp-color-surface) !important;
     color: var(--tp-color-text-secondary) !important;
     white-space: nowrap;
     text-decoration: none !important;
@@ -246,9 +244,24 @@
 
 .binder-page .quick-nav .quick-nav-link:hover,
 .binder-page .quick-nav .quick-nav-link:focus-visible {
+    color: var(--tp-color-text-primary) !important;
+    border-color: var(--tp-color-border-strong) !important;
+    background: var(--tp-color-surface-muted) !important;
+}
+
+.binder-page .quick-nav .quick-nav-link.is-active,
+.binder-page .quick-nav .quick-nav-link[aria-current="true"] {
     color: var(--tp-color-link-hover) !important;
     border-color: var(--binder-accent-border) !important;
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--binder-accent-soft) 100%) !important;
+    background: var(--tp-color-brand-100) !important;
+    text-decoration: none !important;
+}
+
+.tp-dark .binder-page .quick-nav .quick-nav-link.is-active,
+.tp-dark .binder-page .quick-nav .quick-nav-link[aria-current="true"] {
+    background: var(--tp-color-brand-200) !important;
+    border-color: var(--tp-color-brand-300) !important;
+    color: var(--tp-color-brand-900) !important;
 }
 
 /* ── Grid + panels ────────────────────────────────────────────────── */
@@ -263,7 +276,6 @@
     border: 1px solid var(--tp-color-border);
     border-radius: var(--tp-ui-radius-panel);
     background: var(--tp-color-surface);
-    box-shadow: var(--tp-ui-shadow-panel);
     padding: 16px;
     overflow: hidden;
     scroll-margin-top: 128px;
@@ -346,7 +358,7 @@
 .binder-id-row dt {
     color: var(--tp-color-text-muted);
     font-size: 0.78rem;
-    font-weight: 700;
+    font-weight: 500;
     letter-spacing: 0.06em;
     text-transform: uppercase;
 }
@@ -376,7 +388,7 @@
 .property-cell {
     border: 1px solid var(--tp-color-border-soft);
     border-radius: 10px;
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+    background: var(--tp-color-surface);
     padding: 10px 12px;
     display: grid;
     gap: 4px;
@@ -386,7 +398,7 @@
 
 .property-label {
     font-size: var(--tp-font-label);
-    font-weight: 700;
+    font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     color: var(--tp-color-text-muted);
@@ -401,7 +413,7 @@
 
 .property-value {
     font-size: 1.05rem;
-    font-weight: 700;
+    font-weight: 600;
     color: var(--binder-accent-ink);
     line-height: 1.2;
 }
@@ -443,7 +455,7 @@
 
 .druglike-title {
     font-size: 1rem;
-    font-weight: 700;
+    font-weight: 600;
     color: var(--binder-accent-ink);
 }
 
@@ -454,7 +466,7 @@
     padding: 4px 10px;
     border-radius: 999px;
     font-size: 0.78rem;
-    font-weight: 700;
+    font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     border: 1px solid transparent;
@@ -524,7 +536,7 @@
 .check-value {
     font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
     font-size: 0.85rem;
-    font-weight: 700;
+    font-weight: 600;
     color: var(--binder-accent-ink);
 }
 
@@ -559,7 +571,7 @@
 
 .binder-string-label {
     font-size: 0.78rem;
-    font-weight: 700;
+    font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.06em;
     color: var(--tp-color-text-muted);
@@ -606,7 +618,7 @@
 
 .binder-link-category {
     font-size: 0.7rem;
-    font-weight: 700;
+    font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.06em;
     color: var(--binder-accent-ink);
@@ -650,7 +662,7 @@
 .siblings-group-title {
     margin: 0 0 8px;
     font-size: 0.85rem;
-    font-weight: 700;
+    font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.06em;
     color: var(--binder-accent-ink);

@@ -28,7 +28,7 @@
     margin: 6px 0 10px;
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-label);
-    font-weight: 700;
+    font-weight: 500;
     letter-spacing: 0.08em;
     text-transform: uppercase;
 }
@@ -63,9 +63,7 @@
     padding: 8px 10px;
     border: 1px solid var(--tp-color-border-soft);
     border-radius: 12px;
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
-    box-shadow: var(--tp-shadow-xs);
-    backdrop-filter: blur(3px);
+    background: var(--tp-color-surface-soft);
     scrollbar-width: none;
 }
 .ds-quick-nav::-webkit-scrollbar { display: none; }
@@ -77,26 +75,31 @@
     white-space: nowrap;
     padding: 0.38rem 0.9rem;
     font-size: 0.82rem;
-    font-weight: 600;
+    font-weight: 500;
     border-radius: 999px;
-    border: 1px solid var(--tp-color-border-strong);
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+    border: 1px solid var(--tp-color-border);
+    background: var(--tp-color-surface);
     color: var(--tp-color-text-secondary);
     text-decoration: none;
     transition: color 0.15s, border-color 0.15s, background 0.15s;
 }
 .ds-quick-nav-link:hover {
-    color: var(--ds-accent);
-    border-color: var(--ds-accent-border);
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--ds-accent-soft) 100%);
+    color: var(--tp-color-text-primary);
+    border-color: var(--tp-color-border-strong);
+    background: var(--tp-color-surface-muted);
     text-decoration: none;
 }
 .ds-quick-nav-link.is-active {
-    color: var(--ds-accent);
+    color: var(--tp-color-link-hover);
     border-color: var(--ds-accent-border);
     border-width: 2px;
-    background: linear-gradient(180deg, var(--ds-accent-soft) 0%, var(--tp-color-brand-050) 100%);
+    background: var(--tp-color-brand-100);
     text-decoration: none;
+}
+.tp-dark .ds-quick-nav-link.is-active {
+    background: var(--tp-color-brand-200);
+    border-color: var(--tp-color-brand-300);
+    color: var(--tp-color-brand-900);
 }
 
 /* ── Panel common ── */
@@ -105,7 +108,7 @@
 .ds-panel-title {
     margin: 2px 0 0;
     font-size: 1.12rem;
-    font-weight: 800;
+    font-weight: 600;
     color: var(--ds-accent-deep);
     letter-spacing: -0.02em;
 }
@@ -165,7 +168,7 @@
 
 .ds-pipeline-card-head strong {
     font-size: 0.875rem;
-    font-weight: 700;
+    font-weight: 600;
     color: var(--tp-color-text-primary);
 }
 
@@ -179,7 +182,7 @@
 .ds-stage-tag {
     font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
     font-size: 0.73rem;
-    font-weight: 700;
+    font-weight: 600;
     color: var(--ds-accent);
     background: var(--ds-accent-soft);
     border: 1px solid var(--ds-accent-border);
@@ -212,7 +215,7 @@
 
 .ds-field-name {
     font-size: 0.82rem;
-    font-weight: 700;
+    font-weight: 600;
     color: var(--tp-color-text-primary);
 }
 
@@ -264,7 +267,7 @@
     height: 26px;
     border-radius: 50%;
     font-size: 0.8rem;
-    font-weight: 800;
+    font-weight: 600;
     flex-shrink: 0;
     margin-top: 1px;
 }
@@ -294,7 +297,7 @@
 
 .ds-priority-body strong {
     font-size: 0.9rem;
-    font-weight: 700;
+    font-weight: 600;
     color: var(--tp-color-text-primary);
 }
 
@@ -335,7 +338,7 @@
 .ds-score-range {
     font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
     font-size: 0.78rem;
-    font-weight: 700;
+    font-weight: 600;
     min-width: 64px;
     flex-shrink: 0;
 }
@@ -366,7 +369,7 @@
 
 .ds-tool-name {
     font-size: 1.05rem;
-    font-weight: 800;
+    font-weight: 600;
     color: var(--ds-accent-deep);
     letter-spacing: -0.01em;
 }
@@ -403,7 +406,7 @@
 
 .ds-db-name {
     font-size: 0.8rem;
-    font-weight: 700;
+    font-weight: 600;
     color: var(--tp-color-text-primary);
     white-space: nowrap;
     flex-shrink: 0;
@@ -441,7 +444,7 @@
 
 .ds-profile-label {
     font-size: 0.88rem;
-    font-weight: 700;
+    font-weight: 600;
     color: var(--tp-color-text-primary);
 }
 
@@ -525,7 +528,7 @@
 .ds-def-term {
     font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
     font-size: 0.82rem;
-    font-weight: 700;
+    font-weight: 600;
     color: var(--ds-accent);
 }
 
@@ -558,7 +561,7 @@
 .ds-dl-tag {
     font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
     font-size: 0.76rem;
-    font-weight: 800;
+    font-weight: 600;
     color: var(--ds-accent);
     background: var(--ds-accent-soft);
     border: 1px solid var(--ds-accent-border);
@@ -569,7 +572,7 @@
 
 .ds-dl-name {
     font-size: 0.9rem;
-    font-weight: 700;
+    font-weight: 600;
     color: var(--tp-color-text-primary);
 }
 

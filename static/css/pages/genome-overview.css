@@ -42,7 +42,7 @@
     margin: 6px 0 10px;
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-label);
-    font-weight: 700;
+    font-weight: 500;
     letter-spacing: 0.08em;
     text-transform: uppercase;
 }
@@ -143,7 +143,7 @@
     color: var(--genome-accent-ink);
     font-size: 1.4rem;
     line-height: 1.1;
-    font-weight: 700;
+    font-weight: 600;
     display: flex;
     align-items: baseline;
     gap: 8px;
@@ -206,6 +206,21 @@
     background: var(--tp-color-surface) !important;
 }
 
+.genome-page .quick-nav .quick-nav-link.is-active,
+.genome-page .quick-nav .quick-nav-link[aria-current="true"] {
+    color: var(--tp-color-link-hover) !important;
+    border-color: var(--genome-accent-border) !important;
+    background: var(--tp-color-brand-100) !important;
+    text-decoration: none !important;
+}
+
+.tp-dark .genome-page .quick-nav .quick-nav-link.is-active,
+.tp-dark .genome-page .quick-nav .quick-nav-link[aria-current="true"] {
+    background: var(--tp-color-brand-200) !important;
+    border-color: var(--tp-color-brand-300) !important;
+    color: var(--tp-color-brand-900) !important;
+}
+
 /* ── Grid + panels ────────────────────────────────────────────────── */
 
 .genome-grid {
@@ -218,7 +233,6 @@
     border: 1px solid var(--tp-color-border);
     border-radius: var(--tp-ui-radius-panel);
     background: var(--tp-color-surface);
-    box-shadow: var(--tp-ui-shadow-panel);
     padding: 16px;
     overflow: hidden;
     scroll-margin-top: 128px;
@@ -564,7 +578,7 @@
 .targets-rank {
     font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
     font-size: 0.95rem;
-    font-weight: 700;
+    font-weight: 600;
     color: var(--tp-color-text-muted);
     min-width: 28px;
 }
@@ -572,7 +586,7 @@
 .targets-accession {
     font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
     font-size: 1.1rem;
-    font-weight: 700;
+    font-weight: 600;
     color: var(--genome-accent-ink);
 }
 
@@ -605,14 +619,14 @@
 
 .targets-stat-value {
     font-size: 1.6rem;
-    font-weight: 700;
+    font-weight: 600;
     line-height: 1;
     font-family: "Space Grotesk", "Segoe UI", sans-serif;
 }
 
 .targets-stat-label {
     font-size: 0.78rem;
-    font-weight: 700;
+    font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.06em;
     color: var(--tp-color-text-muted);
@@ -635,7 +649,7 @@
 }
 
 .targets-bd strong {
-    font-weight: 700;
+    font-weight: 600;
 }
 
 .targets-bd--pdb,
@@ -789,7 +803,7 @@
 .evidence-bd-value {
     font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
     color: var(--genome-accent-ink);
-    font-weight: 700;
+    font-weight: 600;
 }
 
 /* ── Composition list ────────────────────────────────────────────── */
@@ -804,7 +818,7 @@
 .composition-row {
     border: 1px solid var(--tp-color-border-soft);
     border-radius: 10px;
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+    background: var(--tp-color-surface);
     padding: 10px 12px;
     display: grid;
     gap: 4px;
@@ -814,7 +828,7 @@
 
 .composition-row dt {
     font-size: var(--tp-font-label);
-    font-weight: 700;
+    font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     color: var(--tp-color-text-muted);
@@ -824,7 +838,7 @@
     margin: 0;
     color: var(--genome-accent-ink);
     font-size: 1.02rem;
-    font-weight: 700;
+    font-weight: 600;
     line-height: 1.2;
 }
 
@@ -862,7 +876,7 @@
 .genome-raw-details summary {
     cursor: pointer;
     color: var(--genome-accent-ink);
-    font-weight: 700;
+    font-weight: 500;
     list-style: none;
     display: inline-flex;
     align-items: center;
@@ -871,7 +885,7 @@
     padding: 0 14px;
     border: 1px solid var(--tp-color-border-strong);
     border-radius: 999px;
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+    background: var(--tp-color-surface);
     transition: border-color 140ms ease, background 140ms ease;
 }
 
@@ -883,13 +897,13 @@
 .genome-raw-details summary:focus-visible {
     outline: none;
     border-color: var(--genome-accent-border);
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--genome-accent-soft) 100%);
+    background: var(--tp-color-surface-soft);
 }
 
 .genome-raw-details[open] summary {
     margin-bottom: 12px;
     border-color: var(--genome-accent-border);
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--genome-accent-soft) 100%);
+    background: var(--tp-color-brand-050);
 }
 
 .genome-raw-table {
@@ -900,7 +914,7 @@
 
 .genome-card--danger {
     border-color: var(--tp-color-danger-border);
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-danger-bg) 100%);
+    background: var(--tp-color-danger-bg);
 }
 
 .genome-card--danger h2 {
@@ -917,10 +931,10 @@
     padding: 0 14px;
     border: 1px solid var(--tp-color-danger-border);
     border-radius: 999px;
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, color-mix(in srgb, var(--tp-color-danger-bg) 70%, var(--tp-color-surface)) 100%);
+    background: var(--tp-color-danger-bg);
     color: var(--tp-color-danger-ink);
     font-size: 0.9rem;
-    font-weight: 700;
+    font-weight: 500;
     transition: border-color 140ms ease, background 140ms ease;
 }
 

@@ -99,7 +99,7 @@ body:has(.sv-root) .tp-footer { display: none !important; }
 
 .sv-pdb-code {
     font-family: "Courier New", Courier, monospace;
-    font-weight: 700;
+    font-weight: 600;
     font-size: 0.88rem;
     color: var(--sv-overlay-text);
     letter-spacing: 0.06em;
@@ -157,7 +157,7 @@ body:has(.sv-root) .tp-footer { display: none !important; }
 
 .sv-legend-label {
     font-size: 0.7rem;
-    font-weight: 700;
+    font-weight: 500;
     color: var(--sv-overlay-text-muted);
     text-transform: uppercase;
     letter-spacing: 0.07em;
@@ -337,7 +337,7 @@ body:has(.sv-root) .tp-footer { display: none !important; }
 .sv-sidebar-protein-name {
     margin: 0 0 4px;
     font-size: 0.75rem;
-    font-weight: 700;
+    font-weight: 500;
     color: var(--tp-color-text-muted);
     text-transform: uppercase;
     letter-spacing: 0.07em;
@@ -349,7 +349,7 @@ body:has(.sv-root) .tp-footer { display: none !important; }
 .sv-sidebar-code {
     margin: 0 0 8px;
     font-size: 1.5rem;
-    font-weight: 800;
+    font-weight: 600;
     font-family: "Courier New", Courier, monospace;
     color: var(--tp-color-text-primary);
     letter-spacing: 0.05em;
@@ -411,7 +411,7 @@ body:has(.sv-root) .tp-footer { display: none !important; }
 .mini-section h3 {
     margin: 0 0 3px;
     font-size: 0.8rem;
-    font-weight: 700;
+    font-weight: 600;
     color: var(--tp-color-text-muted);
     text-transform: uppercase;
     letter-spacing: 0.07em;
@@ -449,7 +449,7 @@ body:has(.sv-root) .tp-footer { display: none !important; }
 
 .pocket-card-name {
     font-size: 0.85rem;
-    font-weight: 700;
+    font-weight: 600;
     color: var(--structure-accent-ink);
     flex: 1 1 auto;
 }
@@ -521,7 +521,7 @@ body:has(.sv-root) .tp-footer { display: none !important; }
 .residueset-row-info { flex: 1 1 0; min-width: 0; display: grid; gap: 1px; }
 .residueset-type {
     font-size: 0.7rem;
-    font-weight: 700;
+    font-weight: 500;
     color: var(--tp-color-text-muted);
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -551,7 +551,7 @@ body:has(.sv-root) .tp-footer { display: none !important; }
     cursor: pointer;
     padding: 9px 12px;
     color: var(--tp-color-text-secondary);
-    font-weight: 700;
+    font-weight: 500;
     font-size: 0.84rem;
     border-bottom: 1px solid transparent;
     transition: background 0.12s, border-color 0.12s;
@@ -584,7 +584,7 @@ body:has(.sv-root) .tp-footer { display: none !important; }
     border-radius: 999px;
     border: 1px solid transparent;
     padding: 2px 9px;
-    font-weight: 700;
+    font-weight: 500;
     font-size: 0.78rem;
 }
 .tp-score-tag.high   { color: var(--tp-color-success-ink);  background: var(--tp-color-success-bg);  border-color: var(--tp-color-success-border); }
@@ -654,7 +654,7 @@ body:has(.sv-root) .tp-footer { display: none !important; }
 .residue-modal-head h3 {
     margin: 0;
     font-size: 1rem;
-    font-weight: 700;
+    font-weight: 600;
     color: var(--tp-color-text-primary);
     flex: 1;
 }

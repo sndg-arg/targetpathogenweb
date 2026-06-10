@@ -348,7 +348,7 @@
 .quick-nav .quick-nav-link[aria-current="true"] {
     color: var(--tp-color-link-hover) !important;
     border-color: var(--protein-accent-border) !important;
-    background: var(--tp-color-brand-050) !important;
+    background: var(--tp-color-brand-100) !important;
     text-decoration: none !important;
 }
 
@@ -3042,4 +3042,12 @@ body.residue-modal-open {
 
 .target-evidence-source-status--info {
     color: var(--tp-color-text-muted);
+}
+
+/* Quick-nav active state — dark mode needs a more visible token */
+.tp-dark .quick-nav .quick-nav-link.is-active,
+.tp-dark .quick-nav .quick-nav-link[aria-current="true"] {
+    background: var(--tp-color-brand-200) !important;
+    border-color: var(--tp-color-brand-300) !important;
+    color: var(--tp-color-brand-900) !important;
 }
