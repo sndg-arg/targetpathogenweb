@@ -458,6 +458,42 @@
 
 {% block jsloaded %}
     <script>
-        function jsloaded() {}
+        function jsloaded() {
+            var nav = document.querySelector(".quick-nav");
+            if (!nav) return;
+
+            var links = Array.from(nav.querySelectorAll(".quick-nav-link[href^='#']"));
+            if (!links.length) return;
+
+            var sections = links
+                .map(function (l) { return document.getElementById(l.getAttribute("href").slice(1)); })
+                .filter(Boolean);
+            if (!sections.length) return;
+
+            function absTop(el) {
+                return el.getBoundingClientRect().top + window.scrollY;
+            }
+
+            function getActive() {
+                var threshold = window.scrollY + nav.offsetHeight + 24;
+                var active = sections[0];
+                for (var i = 0; i < sections.length; i++) {
+                    if (absTop(sections[i]) <= threshold) active = sections[i];
+                }
+                return active;
+            }
+
+            function update() {
+                var activeId = getActive().id;
+                links.forEach(function (link) {
+                    var isActive = link.getAttribute("href") === "#" + activeId;
+                    link.classList.toggle("is-active", isActive);
+                    link.setAttribute("aria-current", isActive ? "true" : "false");
+                });
+            }
+
+            window.addEventListener("scroll", update, { passive: true });
+            update();
+        }
     </script>
 {% endblock %}

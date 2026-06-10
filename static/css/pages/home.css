@@ -13,20 +13,20 @@
 .home-hero {
     position: relative;
     overflow: hidden;
-    display: grid;
-    grid-template-columns: minmax(0, 1.26fr) minmax(320px, 380px);
-    gap: 18px;
-    padding: 24px 26px;
+    padding: 28px 30px 26px;
     border-radius: var(--tp-ui-radius-hero);
     border: 1px solid var(--tp-color-border-soft);
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
-    box-shadow: var(--home-shadow);
+    background: var(--tp-color-surface);
 }
 
 .home-hero-copy {
     display: grid;
-    align-content: center;
-    padding-block: 10px;
+    padding-block: 4px;
+    max-width: 820px;
+}
+
+.home-hero-stats {
+    margin-top: 16px;
 }
 
 .home-hero::before {
@@ -69,16 +69,6 @@
     align-self: start;
 }
 
-.home-hero-side {
-    display: grid;
-    align-content: start;
-    gap: 12px;
-    padding: 14px 0 14px 20px;
-    border-left: 1px solid var(--tp-color-border-soft);
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
-}
-
-.home-hero-side-copy h2,
 .home-panel h2,
 .home-post h2 {
     margin: 4px 0 0;
@@ -87,12 +77,8 @@
     line-height: 1.24;
 }
 
-.home-hero-side-copy p,
-.home-spotlight-copy p,
-.home-workspace-copy p,
 .home-pipeline-copy,
 .home-pipeline-meta,
-.home-flow-copy span,
 .home-post p {
     margin: 0;
     color: var(--tp-color-text-secondary);
@@ -107,7 +93,6 @@
 .home-panel,
 .home-post {
     padding: 16px 18px;
-    box-shadow: var(--tp-shadow-sm);
 }
 
 .home-panel .tp-ui-panel-head,
@@ -135,13 +120,12 @@
     padding: 4px;
     border: 1px solid var(--tp-color-border-soft);
     border-radius: 999px;
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
-    box-shadow: var(--tp-shadow-xs);
+    background: var(--tp-color-surface);
 }
 
 .home-operations.is-failed .home-operations-statusbar {
     border-color: var(--tp-color-danger-border);
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-danger-bg) 100%);
+    background: var(--tp-color-danger-bg);
 }
 
 .home-pipeline-chip {
@@ -275,7 +259,7 @@
 
 .home-operations.is-failed {
     border-color: var(--tp-color-danger-border);
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-danger-bg) 100%);
+    background: var(--tp-color-surface);
 }
 
 .home-pipeline-stack {
@@ -330,15 +314,15 @@
     height: 100%;
     width: 0;
     border-radius: inherit;
-    background: linear-gradient(90deg, var(--home-accent) 0%, var(--tp-color-brand-600) 100%);
+    background: var(--tp-color-brand-700);
 }
 
 .pipeline-fill.is-complete {
-    background: linear-gradient(90deg, var(--tp-color-info-ink) 0%, var(--tp-color-brand-700) 100%);
+    background: var(--tp-color-info-ink);
 }
 
 .pipeline-fill.is-failed {
-    background: linear-gradient(90deg, var(--tp-color-danger-ink) 0%, var(--tp-color-amber-700) 100%);
+    background: var(--tp-color-danger-ink);
 }
 
 .home-post {
@@ -364,7 +348,7 @@
 .pipeline-info-backdrop {
     position: fixed;
     inset: 0;
-    background: color-mix(in srgb, var(--tp-color-brand-950) 50%, transparent);
+    background: color-mix(in srgb, var(--tp-color-brand-900) 60%, transparent);
     backdrop-filter: blur(4px);
     display: none;
     align-items: center;
@@ -443,16 +427,15 @@ body.pipeline-info-open {
     display: grid;
     gap: 10px;
     padding: 16px 16px 14px;
-    border: 1px solid color-mix(in srgb, var(--tp-color-brand-300) 32%, var(--tp-color-border-soft));
+    border: 1px solid var(--tp-color-border-soft);
     border-radius: 14px;
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, color-mix(in srgb, var(--tp-color-brand-100) 26%, var(--tp-color-surface)) 100%);
-    box-shadow: var(--tp-shadow-sm);
+    background: var(--tp-color-surface-soft);
 }
 
 .pipeline-info-overview-kicker {
     margin: 0;
     font-size: var(--tp-font-label);
-    font-weight: 700;
+    font-weight: 500;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--tp-color-brand-700);
@@ -470,7 +453,7 @@ body.pipeline-info-open {
     min-height: 32px;
     padding: 0 12px;
     border-radius: 999px;
-    border: 1px solid color-mix(in srgb, var(--tp-color-brand-300) 36%, var(--tp-color-border-soft));
+    border: 1px solid var(--tp-color-border-soft);
     background: var(--tp-color-surface);
     color: var(--tp-color-text-primary);
     font-size: 0.82rem;
@@ -486,7 +469,7 @@ body.pipeline-info-open {
     margin: 2px 2px 2px;
     padding: 4px 0;
     font-size: var(--tp-font-label);
-    font-weight: 700;
+    font-weight: 500;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--tp-color-brand-600);
@@ -525,14 +508,13 @@ body.pipeline-info-open {
     border-radius: 14px;
     padding: 0;
     overflow: hidden;
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, color-mix(in srgb, var(--tp-color-brand-100) 18%, var(--tp-color-surface)) 100%);
-    box-shadow: var(--tp-shadow-sm);
+    background: var(--tp-color-surface);
 }
 
 .pipeline-info-branch-head {
     padding: 12px 14px 6px;
     font-size: var(--tp-font-label);
-    font-weight: 700;
+    font-weight: 500;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--home-accent-deep, var(--tp-color-brand-900));
@@ -618,7 +600,7 @@ body.pipeline-info-open {
 .pipeline-info-foot {
     padding: 12px 18px 16px;
     border-top: 1px solid var(--tp-color-border-soft);
-    background: color-mix(in srgb, var(--tp-color-surface-soft) 65%, var(--tp-color-surface));
+    background: var(--tp-color-surface-soft);
 }
 
 .pipeline-info-note {
@@ -640,16 +622,6 @@ body.pipeline-info-open {
 @media (max-width: 1180px) {
     .home-page {
         max-width: none;
-    }
-
-    .home-hero {
-        grid-template-columns: 1fr;
-    }
-
-    .home-hero-side {
-        border-left: 0;
-        border-top: 1px solid var(--tp-color-border-soft);
-        padding: 16px 0 0;
     }
 
     .home-operations-head {
@@ -687,11 +659,6 @@ body.pipeline-info-open {
 @media (max-width: 720px) {
     .home-hero {
         padding: 20px;
-    }
-
-    .home-hero-copy {
-        align-content: start;
-        padding-block: 0;
     }
 
     .home-hero-copy h1 {
@@ -840,4 +807,8 @@ body.pipeline-info-open {
     background: color-mix(in srgb, var(--tp-color-brand-800) 22%, transparent);
     border-color: var(--tp-color-brand-600);
     color: var(--tp-color-brand-700);
+}
+
+.tp-dark .pipeline-info-backdrop {
+    background: color-mix(in srgb, var(--tp-color-brand-050) 70%, transparent);
 }

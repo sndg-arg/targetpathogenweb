@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/home.css' %}?v=20260608-2">
+    <link rel="stylesheet" href="{% static 'css/pages/home.css' %}?v=20260610-1">
 {% endblock %}
 
 {% block body %}
@@ -15,6 +15,10 @@
                 <p class="home-lead">
                     {% trans "Target Pathogen integrates genomic annotation, structural evidence, functional annotation, and project-specific scoring to support the identification and prioritization of candidate protein targets." %}
                 </p>
+                <div class="tp-chip-group home-hero-stats" aria-label="{% trans "Platform scope" %}">
+                    <span class="tp-chip tp-chip--count tp-chip--sm">{{ total_genomes }} {% trans "genomes" %}</span>
+                    <span class="tp-chip tp-chip--count tp-chip--sm">{{ total_proteins }} {% trans "proteins" %}</span>
+                </div>
                 <div class="tp-ui-group home-hero-actions">
                     {% url 'tpwebapp:genomes_list' as open_genomes_href %}
                     {% trans "Browse genomes" as open_genomes_label %}
@@ -27,26 +31,6 @@
                     {% include "components/buttons/action.html" with variant="outline" href=run_blast_href label=run_blast_label %}
                 </div>
             </div>
-
-            <aside class="home-hero-side">
-                <div class="home-hero-side-copy">
-                    <p class="tp-ui-field-label">{% trans "Platform scope" %}</p>
-                    <h2>{% trans "Integrated evidence for target assessment" %}</h2>
-                    <p>{% trans "The platform is designed to consolidate protein-level evidence relevant to target selection, including structural coverage, annotation context, and customizable prioritization criteria." %}</p>
-                </div>
-                <p class="tp-state-note tp-state-note--empty home-hero-note">
-                    {% trans "It supports comparative exploration of pathogen proteomes and provides a reproducible environment for evaluating candidate therapeutic targets." %}
-                </p>
-                <div class="tp-chip-group" aria-label="{% trans "Genome counts" %}">
-                    <span class="tp-chip tp-chip--count tp-chip--sm">{{ total_genomes }} {% trans "genomes" %}</span>
-                    <span class="tp-chip tp-chip--count tp-chip--sm">{{ total_proteins }} {% trans "proteins" %}</span>
-                </div>
-                <div class="tp-chip-group" aria-label="{% trans "Capabilities" %}">
-                    <span class="tp-chip tp-chip--meta tp-chip--sm">{% trans "Protein target prioritization" %}</span>
-                    <span class="tp-chip tp-chip--meta tp-chip--sm">{% trans "Structural and functional evidence" %}</span>
-                    <span class="tp-chip tp-chip--meta tp-chip--sm">{% trans "Custom bioinformatic scoring" %}</span>
-                </div>
-            </aside>
         </section>
 
         <section
