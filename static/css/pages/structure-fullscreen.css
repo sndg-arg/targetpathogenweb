@@ -98,7 +98,7 @@ body:has(.sv-root) .tp-footer { display: none !important; }
 }
 
 .sv-pdb-code {
-    font-family: "Courier New", Courier, monospace;
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
     font-weight: 600;
     font-size: 0.88rem;
     color: var(--sv-overlay-text);
@@ -350,7 +350,7 @@ body:has(.sv-root) .tp-footer { display: none !important; }
     margin: 0 0 8px;
     font-size: 1.5rem;
     font-weight: 600;
-    font-family: "Courier New", Courier, monospace;
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
     color: var(--tp-color-text-primary);
     letter-spacing: 0.05em;
     line-height: 1.2;

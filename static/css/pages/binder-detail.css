@@ -26,9 +26,10 @@
 .binder-page h2,
 .binder-page h3 {
     font-family: "Space Grotesk", "Segoe UI", sans-serif;
-    font-weight: 700;
+    font-weight: 600;
     letter-spacing: 0.2px;
 }
+.binder-page h1 { font-weight: 700; }
 
 .binder-page code {
     font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
@@ -284,7 +285,7 @@
 .binder-card h2 {
     margin: 0;
     font-size: var(--tp-heading-sm);
-    font-weight: var(--tp-font-weight-bold);
+    font-weight: 600;
     color: var(--binder-accent-ink);
 }
 
