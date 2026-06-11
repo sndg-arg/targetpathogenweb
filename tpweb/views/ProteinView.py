@@ -122,7 +122,7 @@ _SCORE_META = [
     ("human_identity",           "Human identity (%)",        "off_target",   [],         [],
      "% amino acid identity to the top human BLAST hit. Lower values indicate less similarity to human proteins."),
     ("human_evalue",             "Human E-value",             "off_target",   [],         [],
-     "BLAST E-value for the human off-target hit. Larger (less significant) values indicate weaker similarity to human proteins."),
+     "BLAST E-value for the top human proteome hit. Values below 1e-5 are considered significant. '> 1e-5' means no significant hit was found."),
     ("gut_microbiome_offtarget", "Gut microbiome off-target", "off_target",   ["no_hit"], ["hit"],
      "Sequence similarity to gut microbiome reference genomes. 'No hit' preferred to minimise risk of disrupting commensal bacteria."),
     ("hit_in_deg",               "Essential (DEG)",           "essentiality", ["Y"],      ["N"],
@@ -130,12 +130,17 @@ _SCORE_META = [
     ("deg_identity",             "DEG identity (%)",          "essentiality", [],         [],
      "% amino acid identity to the top DEG essential-gene hit. Higher values strengthen the essentiality prediction."),
     ("deg_evalue",               "DEG E-value",               "essentiality", [],         [],
-     "BLAST E-value for the DEG essentiality hit. Smaller values indicate stronger evidence of essentiality."),
+     "BLAST E-value for the top DEG hit. Values below 1e-5 are considered significant. '> 1e-5' means no essential-gene match was found."),
     ("Localization",             "Localization",              "localization", [],         [],
      "Predicted subcellular localization by PSORTb. Extracellular and outer-membrane proteins are preferred as drug targets."),
     ("colabfold_plddt",          "ColabFold pLDDT",           "structure",    [],         [],
      "Per-residue model confidence from ColabFold (0–100). Values >70 indicate reliable regions; >90 indicates high confidence."),
 ]
+
+_NO_HIT_EVALUE_OVERRIDES = {
+    "human_evalue": ("human_offtarget", "no_hit", "> 1e-5"),
+    "deg_evalue":   ("hit_in_deg",      "n",      "> 1e-5"),
+}
 
 def _build_target_profile(raw_scores):
     items = []
@@ -150,6 +155,11 @@ def _build_target_profile(raw_scores):
         else:
             tone = "neutral"
         display = val.replace("_", " ").replace("no hit", "No hit").replace("no_hit", "No hit")
+        if name in _NO_HIT_EVALUE_OVERRIDES:
+            check_name, no_hit_val, no_hit_label = _NO_HIT_EVALUE_OVERRIDES[name]
+            if str(raw_scores.get(check_name) or "").strip().lower() == no_hit_val:
+                display = no_hit_label
+                tone = "neutral"
         items.append({"label": label, "value": display, "tone": tone, "category": category, "tooltip": tooltip})
     return items
 
