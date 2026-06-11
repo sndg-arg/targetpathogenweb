@@ -68,6 +68,14 @@ def build_protein_table_row(protein, visible_columns, coefficient_by_param,
         for name, value in param_values.items()
         if name in visible_columns
     }
+    _EVALUE_NO_HIT_GUARDS = {
+        "human_evalue": ("human_offtarget", {"no_hit", "no hit"}),
+        "deg_evalue":   ("hit_in_deg",      {"n"}),
+    }
+    for evalue_col, (guard_col, no_hit_vals) in _EVALUE_NO_HIT_GUARDS.items():
+        if evalue_col in table_data:
+            if str(param_values.get(guard_col) or "").strip().lower() in no_hit_vals:
+                table_data[evalue_col] = "-"
     if expression and zero_cache is not None:
         score_value, weights = compute_expression_score(protein, expression, zero_cache)
     else:
