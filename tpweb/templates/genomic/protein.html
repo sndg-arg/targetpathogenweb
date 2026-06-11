@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260610-1">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260610-2">
 {% endblock %}
 
 {% block body %}
@@ -34,6 +34,13 @@
                             <strong>{% trans "Structure source" %}:</strong>
                             <span>{{ structure_summary.label }}</span>
                         </span>
+                        {% for acc in uniprot_accessions %}
+                        <a class="hero-chip tp-chip tp-chip--meta tp-chip--sm tp-chip--link" href="https://www.uniprot.org/uniprotkb/{{ acc }}" target="_blank" rel="noopener" title="{% trans 'View on UniProt' %}">
+                            <strong>UniProt:</strong>
+                            <span>{{ acc }}</span>
+                            <span class="tp-chip-ext-icon" aria-hidden="true">↗</span>
+                        </a>
+                        {% endfor %}
                     </div>
                     {% include "components/pipeline/note.html" with pipeline_status=pipeline_status mode="genome" note_class="hero-pipeline-note" %}
                     {% if pipeline_status.current_genome_status_note %}

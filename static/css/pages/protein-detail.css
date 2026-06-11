@@ -235,6 +235,20 @@
     vertical-align: bottom;
 }
 
+a.hero-chip.tp-chip--link {
+    text-decoration: none;
+    color: var(--tp-color-text-secondary);
+    transition: color 0.15s;
+}
+a.hero-chip.tp-chip--link:hover {
+    color: var(--tp-color-brand-600);
+    text-decoration: underline;
+}
+a.hero-chip.tp-chip--link .tp-chip-ext-icon {
+    font-size: 0.75em;
+    opacity: 0.6;
+}
+
 .status-pill {
     display: inline-flex;
     align-items: center;

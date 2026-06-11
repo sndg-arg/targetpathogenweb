@@ -1043,6 +1043,14 @@ class ProteinView(View):
                 sections,
             )
 
+        uniprot_accessions = [
+            dbx.dbxref.accession
+            for dbx in protein.dbxrefs.all()
+            if getattr(dbx, "dbxref", None) is not None
+            and dbx.dbxref.dbname in {"UnipSp", "UnipTr"}
+            and dbx.dbxref.accession
+        ]
+
         dto = {"protein": proteinDTO,
                "predicted_structures": [],
                "features": features,
@@ -1062,6 +1070,7 @@ class ProteinView(View):
                "go_badges": go_badges,
                "pipeline_status": pipeline_status,
                "druggability": druggability,
+               "uniprot_accessions": uniprot_accessions,
                "view_export_url": self._build_view_export_url(request)}
         if structures:
             # Opción B: primary = best experimental (EX), alt = best predicted (CF/AF).
