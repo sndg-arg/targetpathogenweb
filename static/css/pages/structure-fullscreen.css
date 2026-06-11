@@ -710,7 +710,7 @@ body.residue-modal-open { overflow: hidden; }
     background-repeat: no-repeat;
     background-position: right 8px center;
     background-size: 10px;
-    max-width: 220px;
+    max-width: min(340px, 42vw);
 }
 
 .sv-struct-select:hover { opacity: 1; background-color: var(--sv-btn-hover-bg); }
