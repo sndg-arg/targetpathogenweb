@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/genome-upload.css' %}?v=20260611-1">
+    <link rel="stylesheet" href="{% static 'css/pages/genome-upload.css' %}?v=20260611-2">
 {% endblock %}
 
 {% block body %}
@@ -41,33 +41,11 @@
                 </form>
                 <a href="{% url 'tpwebapp:genomes_list' %}" class="btn tp-btn tp-btn--outline">{% trans "Browse genomes" %}</a>
             </div>
-            <div class="genome-upload-metrics" aria-label="{% trans 'Submission summary' %}">
-                <div class="metric-pill">
-                    <span class="metric-label">{% trans "Recent submissions" %}</span>
-                    <span class="metric-value">{{ jobs|length }}</span>
-                </div>
-                <div class="metric-pill">
-                    <span class="metric-label">{% trans "Pipeline" %}</span>
-                    <span class="metric-value">
-                        {% if pipeline_status.running %}{% trans "Busy" %}{% else %}{% trans "Ready" %}{% endif %}
-                    </span>
-                </div>
-                <div class="metric-pill">
-                    <span class="metric-label">{% trans "Queue state" %}</span>
-                    <span class="metric-value">
-                        {% if has_active_jobs %}{% trans "Tracking jobs" %}{% else %}{% trans "No active jobs" %}{% endif %}
-                    </span>
-                </div>
-            </div>
         </section>
 
         <section class="genome-upload-layout">
             <article class="genome-upload-card genome-upload-card--form tp-ui-panel">
-                <div class="genome-upload-card-head tp-ui-panel-head">
-                    <div>
-                        <h2>{% trans "Submit a genome dataset" %}</h2>
-                    </div>
-                </div>
+                <h2>{% trans "Submit a genome dataset" %}</h2>
                 {% if pipeline_status.running %}
                     <p class="tp-state-note tp-state-note--loading genome-upload-form-state">
                         {% if pipeline_status.running_for_other_workspace %}
@@ -116,11 +94,7 @@
             </article>
 
             <aside class="genome-upload-card genome-upload-card--guide tp-ui-panel">
-                <div class="genome-upload-card-head tp-ui-panel-head">
-                    <div>
-                        <h2>{% trans "Before you submit" %}</h2>
-                    </div>
-                </div>
+                <h2>{% trans "Before you submit" %}</h2>
                 <div class="genome-upload-guide">
                     <div class="genome-upload-guide-item">
                         <span class="genome-upload-guide-step">1</span>
@@ -234,10 +208,10 @@
             <div class="genome-upload-card-head tp-ui-panel-head">
                 <div>
                     <h2 class="tp-ui-panel-title">{% trans "Curated external import" %}</h2>
-                    <p class="tp-ui-panel-subtitle">{% trans "Staff-only assisted import for reviewed Gates results already staged on the server." %}</p>
+                    <p class="genome-upload-card-note">{% trans "Staff-only assisted import for reviewed Gates results already staged on the server." %}</p>
                 </div>
             </div>
-            <div style="padding: var(--tp-panel-body-py) var(--tp-panel-body-px);">
+            <div class="genome-upload-staff-body">
                 <form method="post" class="genome-upload-form" novalidate>
                     {% csrf_token %}
                     <input type="hidden" name="action" id="external-import-action" value="validate_external_import">
@@ -311,13 +285,13 @@
                 </form>
 
                 {% if external_import_result %}
-                    <div class="tp-state-note {% if external_import_result.status == 'error' %}tp-state-note--error{% elif external_import_result.status == 'imported' %}tp-state-note--success{% else %}tp-state-note--info{% endif %}" style="margin-top: 1rem;">
+                    <div class="tp-state-note genome-upload-import-result {% if external_import_result.status == 'error' %}tp-state-note--error{% elif external_import_result.status == 'imported' %}tp-state-note--success{% else %}tp-state-note--info{% endif %}">
                         {% if external_import_result.message %}
-                            <p class="mb-2">{{ external_import_result.message }}</p>
+                            <p class="genome-upload-import-msg">{{ external_import_result.message }}</p>
                         {% endif %}
                         {% if external_import_result.summary %}
                             {% with summary=external_import_result.summary structures=external_import_result.summary.structures %}
-                                <div class="genome-upload-form-grid" style="margin-top: 0.75rem;">
+                                <div class="genome-upload-form-grid genome-upload-import-grid">
                                     <div>
                                         <strong>{% trans "Genome" %}</strong><br>
                                         <code>{{ summary.genome_name }}</code>
@@ -373,21 +347,21 @@
                                         {% endwith %}
                                     </div>
                                 </div>
-                                <p style="margin-top: 0.75rem;"><strong>{% trans "Recognized columns" %}:</strong> {{ summary.tsv_columns|join:", " }}</p>
-                                <p><strong>{% trans "Gene preview" %}:</strong> {{ summary.tsv_preview|join:", " }}</p>
+                                <p class="genome-upload-import-cols"><span class="genome-upload-import-key">{% trans "Recognized columns" %}:</span> {{ summary.tsv_columns|join:", " }}</p>
+                                <p class="genome-upload-import-cols"><span class="genome-upload-import-key">{% trans "Gene preview" %}:</span> {{ summary.tsv_preview|join:", " }}</p>
                             {% endwith %}
                         {% endif %}
                         {% if external_import_result.command %}
-                            <p class="tp-ui-field-label" style="margin-top: 0.9rem; margin-bottom: 0.35rem;">{% trans "Equivalent command" %}</p>
-                            <code style="display:block; background: var(--tp-color-surface-muted); padding: 8px 12px; border-radius: 6px; font-size: 0.85rem; word-break: break-all;">{{ external_import_result.command }}</code>
+                            <p class="genome-upload-import-key">{% trans "Equivalent command" %}</p>
+                            <code class="genome-upload-import-code">{{ external_import_result.command }}</code>
                         {% endif %}
                         {% if external_import_result.stdout %}
-                            <p class="tp-ui-field-label" style="margin-top: 0.9rem; margin-bottom: 0.35rem;">{% trans "Command output" %}</p>
-                            <pre style="max-height: 220px; overflow: auto; white-space: pre-wrap; background: var(--tp-color-surface-muted); padding: 10px 12px; border-radius: 6px;">{{ external_import_result.stdout }}</pre>
+                            <p class="genome-upload-import-key">{% trans "Command output" %}</p>
+                            <pre class="genome-upload-import-pre">{{ external_import_result.stdout }}</pre>
                         {% endif %}
                         {% if external_import_result.stderr %}
-                            <p class="tp-ui-field-label" style="margin-top: 0.9rem; margin-bottom: 0.35rem;">{% trans "Command warnings" %}</p>
-                            <pre style="max-height: 220px; overflow: auto; white-space: pre-wrap; background: var(--tp-color-surface-muted); padding: 10px 12px; border-radius: 6px;">{{ external_import_result.stderr }}</pre>
+                            <p class="genome-upload-import-key">{% trans "Command warnings" %}</p>
+                            <pre class="genome-upload-import-pre">{{ external_import_result.stderr }}</pre>
                         {% endif %}
                     </div>
                 {% endif %}
@@ -396,10 +370,12 @@
 
         <section class="genome-upload-history tp-ui-panel" id="data-file-upload-panel">
             <div class="genome-upload-card-head tp-ui-panel-head">
-                <h2 class="tp-ui-panel-title">{% trans "Upload a data file" %}</h2>
-                <p class="tp-ui-panel-subtitle">{% trans "Upload a results TSV or structure archive to the server so it can be used with management commands." %}</p>
+                <div>
+                    <h2 class="tp-ui-panel-title">{% trans "Upload a data file" %}</h2>
+                    <p class="genome-upload-card-note">{% trans "Upload a results TSV or structure archive to the server so it can be used with management commands." %}</p>
+                </div>
             </div>
-            <div style="padding: var(--tp-panel-body-py) var(--tp-panel-body-px);">
+            <div class="genome-upload-staff-body">
                 <form id="data-file-upload-form" enctype="multipart/form-data">
                     {% csrf_token %}
                     <div class="genome-upload-field tp-ui-field" style="max-width: 480px;">
@@ -412,11 +388,11 @@
                         {% trans "Upload file" %}
                     </button>
                 </form>
-                <div id="data-file-upload-result" style="display:none; margin-top: 16px;">
-                    <p class="tp-ui-field-label" style="margin-bottom: 6px;">{% trans "File saved. Use this path in the management command:" %}</p>
-                    <code id="data-file-upload-path" style="display:block; background: var(--tp-color-surface-muted); padding: 8px 12px; border-radius: 6px; font-size: 0.85rem; word-break: break-all;"></code>
+                <div id="data-file-upload-result" class="genome-upload-import-result genome-upload-import-result--hidden">
+                    <p class="genome-upload-import-key">{% trans "File saved. Use this path in the management command:" %}</p>
+                    <code id="data-file-upload-path" class="genome-upload-import-code"></code>
                 </div>
-                <div id="data-file-upload-error" style="display:none; margin-top: 12px; color: var(--tp-color-danger-600, #b91c1c); font-size: var(--tp-font-label);"></div>
+                <div id="data-file-upload-error" class="genome-upload-import-error genome-upload-import-result--hidden"></div>
             </div>
         </section>
         {% endif %}
@@ -453,8 +429,8 @@
                 var result = document.getElementById("data-file-upload-result");
                 var pathEl = document.getElementById("data-file-upload-path");
                 var errEl = document.getElementById("data-file-upload-error");
-                result.style.display = "none";
-                errEl.style.display = "none";
+                result.classList.add("genome-upload-import-result--hidden");
+                errEl.classList.add("genome-upload-import-result--hidden");
                 btn.disabled = true;
                 btn.textContent = "Uploading…";
 
@@ -486,17 +462,17 @@
                     btn.textContent = "Upload file";
                     if (data.error) {
                         errEl.textContent = data.error;
-                        errEl.style.display = "block";
+                        errEl.classList.remove("genome-upload-import-result--hidden");
                     } else {
                         pathEl.textContent = data.path;
-                        result.style.display = "block";
+                        result.classList.remove("genome-upload-import-result--hidden");
                     }
                 })
                 .catch(function () {
                     btn.disabled = false;
                     btn.textContent = "Upload file";
                     errEl.textContent = "Upload failed. Check the server logs.";
-                    errEl.style.display = "block";
+                    errEl.classList.remove("genome-upload-import-result--hidden");
                 });
             });
         }

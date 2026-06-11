@@ -168,16 +168,17 @@
 
 .genome-upload-card h2,
 .genome-upload-history h2 {
-    margin: 0;
+    margin: 0 0 14px;
     color: var(--upload-accent-ink);
     font-size: 1.22rem;
     line-height: 1.15;
 }
 
 .genome-upload-card-note {
-    margin: 6px 0 0;
+    margin: 0 0 14px;
     max-width: 720px;
-    font-size: 0.95rem;
+    color: var(--tp-color-text-muted);
+    font-size: 0.92rem;
     line-height: 1.45;
 }
 
@@ -536,7 +537,80 @@
         width: 100%;
     }
 
-    .genome-upload-metrics {
-        grid-template-columns: minmax(0, 1fr);
-    }
+}
+
+/* ── Staff section body ── */
+
+.genome-upload-staff-body {
+    padding: 16px;
+    display: grid;
+    gap: 14px;
+}
+
+/* ── Import result / output ── */
+
+.genome-upload-import-result {
+    margin-top: 16px;
+}
+
+.genome-upload-import-result--hidden {
+    display: none;
+}
+
+.genome-upload-import-grid {
+    margin-top: 12px;
+}
+
+.genome-upload-import-msg {
+    margin: 0 0 4px;
+}
+
+.genome-upload-import-cols {
+    margin: 8px 0 0;
+}
+
+.genome-upload-import-key {
+    margin: 12px 0 4px;
+    font-size: var(--tp-font-size-sm);
+    font-weight: 500;
+    color: var(--tp-color-text-muted);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.genome-upload-import-code {
+    display: block;
+    background: var(--tp-color-surface-soft);
+    border: 1px solid var(--tp-color-border-soft);
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 0.82rem;
+    word-break: break-all;
+    color: var(--tp-color-text-primary);
+}
+
+.genome-upload-import-pre {
+    margin: 0;
+    max-height: 220px;
+    overflow: auto;
+    white-space: pre-wrap;
+    background: var(--tp-color-surface-soft);
+    border: 1px solid var(--tp-color-border-soft);
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 0.82rem;
+    color: var(--tp-color-text-primary);
+}
+
+.genome-upload-import-error {
+    font-size: var(--tp-font-size-sm);
+    color: var(--tp-color-danger-ink);
+}
+
+/* Suppress native bold on <strong> labels inside import summary */
+.genome-upload-import-result strong {
+    font-weight: 500;
+    color: var(--tp-color-text-muted);
 }
