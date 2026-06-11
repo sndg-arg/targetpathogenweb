@@ -1,299 +1,268 @@
-# Druggability Provenance and Curated Structure Plan
+# Druggability provenance plan - Klebsiella curated import
 
 ## Goal
 
-Make protein-level target prioritization scientifically traceable when curated result tables provide multiple structure-derived scores.
+Make the Klebsiella target-prioritization data scientifically consistent in TPW.
 
-The immediate driver is the Klebsiella curated import. The same design should later be extended to normal pipeline runs so file-based imports and pipeline-generated genomes expose comparable evidence.
+The main issue was that the curated TSV provides a selected druggability value and selected source structure per protein, but TPW initially did not always have that selected structure/pocket loaded. This produced confusing cases where the main `Druggability` score came from one structure, while the 3D viewer showed another structure or no matching pocket.
 
-## Biological Rule For The Main Table
+The target behavior is:
 
-The main protein table, top-target cards, and default sorting should show the best curated structure-derived druggability score using this priority order, confirmed by the biology team:
+1. Preserve the curated TSV values as the main source of ranking.
+2. Load the structure used by the curated selected evidence when possible.
+3. Load the corresponding FPocket/P2Rank pockets when possible.
+4. Make missing or failed evidence explicit instead of silently showing a mismatched structure.
 
-1. PDB experimental structures.
-2. ColabFold or another curated model provided by the data source.
-3. AlphaFold / UniProt models.
+## Structure priority
 
-If several PDB structures exist for the same protein, use the PDB-derived pocket with the highest druggability.
+For the main table and selected target evidence, the priority agreed with the biology team is:
 
-Important: the main Druggability value is a selected protein-level score. It is not necessarily the best pocket of the structure currently open in the 3D viewer.
+1. Experimental PDB
+2. ColabFold / curated model
+3. AlphaFold / UniProt model
 
-## Current Problem
+If several structures of the same class are available, use the structure selected by the curated TSV, which usually corresponds to the best druggability source.
 
-The TSV contains selected/best structure scores and ColabFold-specific scores.
+The main `Druggability` score must remain the TSV-curated value. Do not overwrite it with `druggability_2_csv`.
 
-Selected/best structure columns:
+## Input datasets
+
+Curated Klebsiella genomes:
+
+- `public__KpATCC43816`
+- `public__KpKP13`
+
+Main curated TSVs:
+
+- `results_table.tsv` for ATCC
+- `KpKP13_results_table.tsv` for KP13
+
+Important TSV columns loaded into TPW include:
 
 - `druggability_score`
 - `best_fpocket_structure`
 - `fpocket_pocket`
-- `p2rank_probability`
 - `best_p2rank_structure`
+- `p2rank_probability`
 - `p2rank_pocket`
-
-ColabFold-specific columns:
-
 - `colabfold_druggability_score`
 - `colabfold_fpocket_pocket`
 - `colabfold_p2rank_probability`
 - `colabfold_p2rank_pocket`
-
-TPW currently shows the imported `Druggability` value, but the 3D viewer may show a different structure.
-
-Example: `VK055_0909` has the main curated score from `A0A0H3GT32`, while the viewer only has the ColabFold model loaded. The visible pocket score can therefore differ from the main Druggability score.
-
-The data are not necessarily wrong. The UI is missing provenance: which structure and pocket produced the main score.
-
-## Source Files For Klebsiella
-
-Local Windows copies:
-
-- `C:\Users\54116\Desktop\Exactas\KpATCC43816_results_table.tsv`
-- `C:\Users\54116\Desktop\Exactas\KpKP13_results_table.tsv`
-
-Nodo0/container paths currently used:
-
-- ATCC: `/app/targetpathogenweb/data/imports/Klebsiella/results_table.tsv`
-- KP13: `/app/targetpathogenweb/data/uploads/KpKP13_results_table.tsv`
-
-## TSV Columns To Preserve
-
-### Main Selected Pocket Evidence
-
-These define the score shown in the main table and top-target cards:
-
-- `druggability_score`
-- `best_fpocket_structure`
-- `fpocket_pocket`
-- `p2rank_probability`
-- `best_p2rank_structure`
-- `p2rank_pocket`
-
-### ColabFold-Specific Evidence
-
-These explain the scores shown when the active structure is the ColabFold model:
-
 - `colabfold_plddt`
-- `colabfold_druggability_score`
-- `colabfold_fpocket_pocket`
-- `colabfold_p2rank_probability`
-- `colabfold_p2rank_pocket`
-
-### Structure Inventory
-
-- `structure`
-
-This field can contain many entries. It should not be blindly loaded in full into TPW as a first implementation step, because some proteins have many PDBs.
-
-### Conservation
-
-Already imported, but needs clearer UI:
-
 - `core_roary`
 - `core_corecruncher`
-
-A protein should be highlighted as conserved/core only when both are true.
-
-### Microbiome Context
-
-Display together:
-
+- `human_offtarget`
 - `gut_microbiome_offtarget_norm`
 - `gut_microbiome_offtarget_counts`
 - `gut_microbiome_genomes_analyzed`
+- `psortb_localization`
+- UniProt mappings
+
+## Completed work
+
+### Curated TSV import
+
+The curated TSV values were imported for both Klebsiella genomes.
+
+Loaded values include:
+
+- main `Druggability`
+- selected FPocket/P2Rank source structure and pocket IDs
+- ColabFold-specific evidence
+- localization
+- Roary/CoreCruncher conservation
+- human off-target
+- gut microbiome off-target
+- pLDDT
+- UniProt mapping
+
+The main `Druggability` value now matches the curated TSV. Example checked:
+
+- `VK055_0909`
+  - TSV `Druggability = 0.336`
+  - TPW `Druggability = 0.336`
+
+### UI provenance
+
+The protein detail UI was updated to show selected druggability evidence more clearly.
+
+It now separates:
+
+- selected FPocket evidence
+- selected P2Rank evidence
+- ColabFold model evidence
+- whether the selected source is loaded in the viewer
+
+This helps explain cases where the main curated score comes from a different structure than the currently displayed viewer structure.
+
+### Experimental PDB selected structures
+
+Selected PDB structures from the curated TSV were backfilled.
+
+Final selected PDB structure status:
+
+- ATCC:
+  - selected PDB links loaded: complete
+- KP13:
+  - selected PDB links loaded: complete
+
+### Experimental PDB pockets
+
+FPocket and P2Rank were run for selected experimental PDB structures via SLURM and imported into TPW.
+
+Final selected PDB pocket status:
+
+- `public__KpATCC43816`
+  - FPocket: `157/157`
+  - P2Rank: `152/157`
+  - expected `No_pockets`: `5`
+  - missing real pockets: `0`
+
+- `public__KpKP13`
+  - FPocket: `153/153`
+  - P2Rank: `147/153`
+  - expected `No_pockets`: `6`
+  - missing real pockets: `0`
+
+### AlphaFold / UniProt selected structures
+
+Selected AlphaFold/UniProt models from the curated TSV were backfilled.
+
+Final selected AlphaFold structure status:
+
+- `public__KpATCC43816`
+  - selected AlphaFold rows: `9290`
+  - missing rows: `0`
+
+- `public__KpKP13`
+  - selected AlphaFold rows: `10384`
+  - missing rows: `0`
+
+### AlphaFold / UniProt pockets
+
+FPocket and P2Rank were run for selected AlphaFold structures via SLURM.
+
+Final deduplicated SLURM result status before TPW import:
+
+- `public__KpATCC43816`
+  - expected rows: `4645`
+  - FPocket: `4645/4645`
+  - P2Rank: `3960/3960`
+  - expected `No_pockets`: `685`
+  - unresolved: `0`
+
+- `public__KpKP13`
+  - expected rows: `5192`
+  - FPocket: `5191/5192`
+  - P2Rank: `4325/4325`
+  - expected `No_pockets`: `867`
+  - unresolved: `1`
+
+Remaining unresolved AlphaFold pocket case:
+
+- `KP13_04817`
+  - structure: `AF_A0A0H3GVM3`
+  - FPocket: failed
+  - P2Rank: OK
+
+The AlphaFold pocket result tarballs were generated and copied back to nodo0:
+
+- `public__KpATCC43816_selected_alphafold_pocket_results.tar.gz`
+- `public__KpKP13_selected_alphafold_pocket_results.tar.gz`
+
+Both tarballs were validated with `tar -tzf`.
+
+## Current status
+
+The AlphaFold pocket results are ready to import into TPW.
+
+Next immediate step:
+
+1. Import ATCC AlphaFold pockets.
+2. Import KP13 AlphaFold pockets.
+3. Validate selected AlphaFold pocket coverage in TPW.
+4. Confirm the only unresolved AlphaFold case remains `KP13_04817 / AF_A0A0H3GVM3` FPocket, if still not loadable.
+
+Do not run:
+
+```bash
+druggability_2_csv
+```
+
+The main Druggability score must stay as the curated TSV value.
+
+## Final validation checklist
+
+After importing AlphaFold pockets, validate for both genomes:
+
+- selected PDB structures loaded
+- selected PDB FPocket/P2Rank pockets loaded
+- selected ColabFold/curated structures loaded
+- selected ColabFold/curated pockets loaded
+- selected AlphaFold/UniProt structures loaded
+- selected AlphaFold/UniProt FPocket pockets loaded when expected
+- selected AlphaFold/UniProt P2Rank pockets loaded when expected
+- P2Rank `No_pockets` counted as expected absence
+- no numeric mismatch between curated TSV `druggability_score` and TPW `Druggability`
+- UI clearly distinguishes selected evidence from currently viewed structure
+
+Do not run `druggability_2_csv` as part of this validation, because it would overwrite the curated main `Druggability` score.
+
+## Pending audit: DEG / essentiality consistency
+
+During Klebsiella validation, the biology team flagged that some proteins expected to have DEG support appear as `N` in TPW.
 
 Example:
 
-`86 / 4744 gut microbiome genomes`, plus the normalized score.
+- `KP13_01905`
+- gene/product: `murG`, undecaprenyl-PP-MurNAc-pentapeptide-UDPGlcNAc GlcNAc transferase
+- TPW currently shows:
+  - `hit_in_deg = N`
+  - `deg_identity = 0`
+  - `deg_evalue = 1`
 
-### Structural Human Off-Target / FoldSeek
+This is biologically suspicious and should not be interpreted as a confirmed negative result yet.
 
-Useful, but second phase:
+Current finding:
 
-- `FS_*`
-- `FS_CB_*`
+- For `public__KpATCC43816`, FastTarget DEG source files were found, including:
+  - `deg_blast.tsv`
+  - `hit_in_deg.tsv`
+- For `public__KpKP13`, no matching DEG/essentiality source files were found under the inspected FastTarget/data paths.
+- Therefore, KP13 DEG values currently look like default/fallback “no hit” values rather than validated DEG BLAST results.
 
-They describe structural similarity to human proteins from different query structures.
+Interpretation:
 
-## Implementation Phases
+- DEG evidence for ATCC is available and can be audited against FastTarget output.
+- DEG evidence for KP13 should be treated as not validated until the source files are recovered or the DEG stage is rerun.
+- Klebsiella target prioritization should not rely on KP13 DEG yet.
 
-### Phase 1: Persist Score Provenance From Curated TSVs
+Next steps for DEG:
 
-Update the curated import path so these fields are saved per protein:
+1. Recover the original KP13 DEG/FastTarget files if they exist outside the current container/data paths.
+2. If they cannot be recovered, rerun the FastTarget essentiality/DEG stage for `public__KpKP13`.
+3. Load real KP13 DEG outputs into TPW:
+   - `hit_in_deg`
+   - `deg_identity`
+   - `deg_evalue`
+4. Validate known control cases, especially:
+   - `KP13_01905` / `murG`
+5. Add a broader evidence audit for both Klebsiella genomes.
 
-- existing main `Druggability` from `druggability_score`
-- `best_fpocket_structure`
-- `fpocket_pocket`
-- `best_p2rank_structure`
-- `p2rank_probability`
-- `p2rank_pocket`
-- `colabfold_druggability_score`
-- `colabfold_fpocket_pocket`
-- `colabfold_p2rank_probability`
-- `colabfold_p2rank_pocket`
-- `gut_microbiome_genomes_analyzed`
+## Broader evidence audit
 
-Preferred first implementation: store these as `ScoreParamValue` rows to avoid a larger schema change.
+After closing pockets, run a consistency audit across both Klebsiella genomes for:
 
-If string provenance fields become awkward, introduce a dedicated curated evidence model later.
+- DEG / essentiality
+- human off-target
+- gut microbiome off-target
+- localization
+- Roary/CoreCruncher conservation
+- GO/EC/InterPro annotations
+- UniProt mappings
+- structures by source type
+- FPocket/P2Rank pocket coverage
+- ligand evidence
 
-Validation examples:
-
-- `VK055_0909`: main score remains `0.336`; source shows `A0A0H3GT32`, `Pocket 2`.
-- `VK055_0891`: PDB-rich protein; main score should point to the selected PDB structure and pocket from the TSV.
-- `VK055_0893`: ColabFold-only example; main and ColabFold source may be the same.
-
-### Phase 2: Protein Detail UI
-
-Separate these concepts:
-
-1. Main selected score.
-   - Label: `Selected Druggability` or `Curated Druggability`.
-   - Show score.
-   - Show source structure.
-   - Show source pocket.
-   - Show source method when inferable: PDB, curated/ColabFold, or AlphaFold/UniProt.
-
-2. Active viewer structure.
-   - Show which structure is currently displayed.
-   - If it differs from `best_fpocket_structure`, show a clear note: visible pockets belong to the active structure and may not match the selected main score.
-
-3. ColabFold pocket summary.
-   - Show ColabFold-specific scores when present.
-   - Do not overwrite the main selected score with the ColabFold score unless the selected structure is ColabFold.
-
-4. P2Rank summary.
-   - Mirror the same provenance for `p2rank_probability`.
-
-### Phase 3: Core Conservation UI
-
-In Target Profile, show:
-
-- `Roary: core` or `Roary: accessory`
-- `CoreCruncher: core` or `CoreCruncher: accessory`
-- emphasized badge only when both are true: `Conserved core gene`
-
-### Phase 4: Gut Microbiome UI
-
-Show raw count and denominator together:
-
-- `gut_microbiome_offtarget_counts / gut_microbiome_genomes_analyzed`
-- normalized value as supporting detail
-
-Example:
-
-`Gut microbiome off-target: hit in 86 / 4744 genomes (normalized 0.018)`.
-
-### Phase 5: Curated Structure Loading Policy
-
-Do not load every entry in the `structure` set by default in the first pass.
-
-Recommended policy:
-
-1. Ensure structures referenced by `best_fpocket_structure` and `best_p2rank_structure` are represented or at least named in the UI.
-2. If the referenced selected structure is missing from TPW, show: `Selected score source not loaded in viewer`.
-3. Add controlled backfill commands for missing selected structures:
-   - PDB code: load/fetch selected PDB only.
-   - UniProt/AlphaFold ID: fetch selected AlphaFold model only.
-   - ColabFold/curated model: use existing local curated model.
-4. Load the full `structure` set only in a separate opt-in backfill, with UI limits and clear runtime expectations.
-
-### Phase 6: FoldSeek Evidence
-
-Add after Phases 1-4 are stable.
-
-Potential storage: new `FoldSeekHit` model with:
-
-- `bioentry`
-- `query_type`
-- `query_structure`
-- `human_structure_hit`
-- `alnlen`
-- `qcov`
-- `tcov`
-- `lddt`
-- `qtmscore`
-- `ttmscore`
-- `alntmscore`
-- `rmsd`
-- `prob`
-- `pident`
-- `evalue`
-
-UI: add a structural human off-target card. If selected and ColabFold queries differ, show both.
-
-### Phase 7: Normal Pipeline Parity
-
-After curated import and UI are correct, update the standard pipeline so non-curated genomes produce comparable values:
-
-- selected best FPocket score and source structure
-- selected FPocket pocket id
-- selected best P2Rank score and source structure
-- selected P2Rank pocket id
-- ColabFold-specific pocket scores when ColabFold exists
-- microbiome denominator
-- FoldSeek structural human off-target output when enabled
-
-Likely touch points:
-
-- `druggability_2_csv` or equivalent output step
-- P2Rank export/parsing
-- microbiome/off-target export
-- FastTarget/FoldSeek export
-- pipeline plan/status docs
-
-## Suggested Execution Order
-
-1. Persist provenance fields from TSV in `import_external_results`.
-2. Backfill these fields for ATCC and KP13 without running heavy stages.
-3. Update protein detail UI for selected score provenance.
-4. Add core conservation and microbiome denominator UI.
-5. Validate with representative proteins and screenshots.
-6. Document the biological rule and interpretation.
-7. Implement selected-structure backfill and FoldSeek.
-8. Extend the normal pipeline.
-
-## Non-Goals For First Pass
-
-- Do not recompute Druggability from loaded pockets for curated Klebsiella unless explicitly requested.
-- Do not run heavy workloads on Nodo0.
-- Do not load every PDB from `structure` automatically.
-- Do not treat viewer pocket scores and main selected Druggability as interchangeable.
-
-
-## Current Implementation Status
-
-### Done In This Branch
-
-- Curated TSV imports preserve selected pocket provenance as per-protein score values.
-- Protein detail separates the main selected/curated `Druggability` value from the active 3D viewer structure.
-- Protein detail shows selected FPocket, selected P2Rank, and ColabFold-specific pocket values when present.
-- Target profile shows Roary/CoreCruncher, conserved-core status, and gut microbiome count/denominator plus normalized value.
-- Protein detail now labels whether the selected score source is shown in the viewer, loaded but not currently shown, or not loaded in the viewer.
-- Categorical score import now ignores empty/NaN values instead of creating noisy score options.
-
-### Still Pending
-
-- Dedicated curated-evidence model; this pass stores provenance in `ScoreParamValue`.
-- Actual selected-structure backfill commands for missing selected source structures.
-- FoldSeek structural human off-target storage and UI.
-- Normal pipeline parity for non-curated genomes.
-
-### Nodo0 Deployment Commands
-
-After pulling this branch on nodo0, re-run `import_external_results` for both Klebsiella genomes. This reloads metadata/scores only; it does not run heavy stages or SLURM jobs.
-
-ATCC:
-
-```bash
-docker compose -f docker-compose.yml -f docker-compose.cluster.yml exec -T queue   /opt/conda/envs/tpv2/bin/python manage.py import_external_results public__KpATCC43816   --results-tsv /app/targetpathogenweb/data/imports/Klebsiella/results_table.tsv   --datadir /app/targetpathogenweb/data   --overwrite
-```
-
-KP13:
-
-```bash
-docker compose -f docker-compose.yml -f docker-compose.cluster.yml exec -T queue   /opt/conda/envs/tpv2/bin/python manage.py import_external_results public__KpKP13   --results-tsv /app/targetpathogenweb/data/uploads/KpKP13_results_table.tsv   --datadir /app/targetpathogenweb/data   --overwrite
-```
-
-Validation example for `VK055_0909`: main `Druggability` should remain `0.336`, with `best_fpocket_structure=A0A0H3GT32` and `fpocket_pocket=Pocket 2`; ColabFold-specific FPocket remains separate.
-
+The goal is to detect cases where TPW shows default values, missing source files, or asymmetric coverage between ATCC and KP13.

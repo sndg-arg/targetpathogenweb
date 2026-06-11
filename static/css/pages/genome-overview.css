@@ -247,7 +247,7 @@
 .genome-card h2 {
     margin: 0;
     font-size: var(--tp-heading-sm);
-    font-weight: var(--tp-font-weight-bold);
+    font-weight: 600;
     color: var(--genome-accent-ink);
 }
 
@@ -330,7 +330,7 @@
     justify-content: flex-start;
     padding-left: 38px;
     flex-wrap: nowrap;
-    overflow: hidden;
+    overflow-x: clip;
 }
 
 .targets-list {
@@ -431,11 +431,21 @@
 }
 
 .targets-bd:has(> .targets-tooltip) strong::after {
-    content: " ⓘ";
+    content: "i";
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 13px;
+    height: 13px;
     margin-left: 4px;
-    font-weight: 400;
-    opacity: 0.55;
-    font-size: 0.92em;
+    border-radius: 50%;
+    border: 1px solid currentColor;
+    font-size: 9px;
+    font-style: italic;
+    font-weight: 500;
+    vertical-align: middle;
+    opacity: 0.5;
+    line-height: 1;
 }
 
 /* Custom tooltip — same look as .cell-tooltip used across the app. */
