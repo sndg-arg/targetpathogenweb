@@ -568,8 +568,9 @@ function jsloaded() {
             var open = !menu.hidden;
             if (!open) {
                 var rect = btn.getBoundingClientRect();
-                menu.style.top   = (rect.bottom + 6) + "px";
-                menu.style.right = (window.innerWidth - rect.right) + "px";
+                menu.style.top    = "";
+                menu.style.bottom = (window.innerHeight - rect.top + 6) + "px";
+                menu.style.right  = (window.innerWidth - rect.right) + "px";
             }
             menu.hidden = open;
             btn.setAttribute("aria-expanded", open ? "false" : "true");
