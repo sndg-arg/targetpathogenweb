@@ -91,19 +91,27 @@
             {# Structure picker — shown when there are multiple structures for this protein #}
             {% if all_structures|length > 1 %}
             <div class="sv-tb-sep" aria-hidden="true"></div>
-            <div class="sv-struct-select-wrap">
-                <select class="sv-struct-select" id="sv-struct-select"
-                        aria-label="{% trans 'Select structure' %}"
-                        onchange="switchStructure(this.value)">
+            <div class="sv-struct-picker" id="sv-struct-picker">
+                <button type="button" class="sv-struct-picker-btn" id="sv-struct-picker-btn"
+                        aria-haspopup="listbox" aria-expanded="false"
+                        title="{% trans 'Switch structure' %}">
+                    <span class="sv-struct-picker-label" id="sv-struct-picker-label">{% for s in all_structures %}{% if s.is_active %}{{ s.short_method }}{% if s.code %} · {{ s.code|upper }}{% endif %}{% endif %}{% endfor %}</span>
+                    <svg class="sv-struct-picker-chevron" viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 1l4 4 4-4"/></svg>
+                </button>
+                <ul class="sv-struct-picker-menu" id="sv-struct-picker-menu" role="listbox" hidden>
                     {% for s in all_structures %}
-                    <option value="{{ s.id }}"
-                            data-code="{{ s.code|upper }}"
-                            data-method="{{ s.method }}"
-                            data-resolution="{{ s.resolution|default:'' }}"
-                            data-vmd-url="{% url 'tpwebapp:structure_export' s.id %}"
-                            {% if s.is_active %}selected{% endif %}>{{ s.short_method }}{% if s.code %} · {{ s.code|upper }}{% endif %}{% if s.resolution %} · {{ s.resolution }} Å{% endif %}</option>
+                    <li class="sv-struct-picker-item{% if s.is_active %} is-active{% endif %}"
+                        role="option" aria-selected="{% if s.is_active %}true{% else %}false{% endif %}"
+                        data-id="{{ s.id }}"
+                        data-code="{{ s.code|upper }}"
+                        data-method="{{ s.method }}"
+                        data-resolution="{{ s.resolution|default:'' }}"
+                        data-vmd-url="{% url 'tpwebapp:structure_export' s.id %}">
+                        <span class="sv-struct-picker-item-label">{{ s.short_method }}{% if s.code %} · {{ s.code|upper }}{% endif %}</span>
+                        {% if s.resolution %}<span class="sv-struct-picker-item-res">{{ s.resolution }} Å</span>{% endif %}
+                    </li>
                     {% endfor %}
-                </select>
+                </ul>
             </div>
             {% endif %}
 
@@ -378,8 +386,8 @@ function jsloaded() {
 
     /* ---- Topbar / sidebar update on structure switch ---- */
     function updateIdentity(structureId) {
-        var sel = document.getElementById("sv-struct-select");
-        var opt = sel ? sel.querySelector("option[value='" + structureId + "']") : null;
+        var picker = document.getElementById("sv-struct-picker");
+        var opt = picker ? picker.querySelector(".sv-struct-picker-item[data-id='" + structureId + "']") : null;
         if (!opt) return;
         var code       = opt.getAttribute("data-code") || "";
         var method     = opt.getAttribute("data-method") || "";
@@ -394,6 +402,19 @@ function jsloaded() {
         if (methodEl) { methodEl.textContent = method; methodEl.hidden = !method; }
         if (resEl)    { resEl.textContent = resolution ? resolution + " Å" : ""; resEl.hidden = !resolution; }
         if (vmdLink && vmdUrl) vmdLink.href = vmdUrl;
+
+        var labelEl = document.getElementById("sv-struct-picker-label");
+        if (labelEl) {
+            var labelSpan = opt.querySelector(".sv-struct-picker-item-label");
+            if (labelSpan) labelEl.textContent = labelSpan.textContent;
+        }
+        if (picker) {
+            picker.querySelectorAll(".sv-struct-picker-item").forEach(function (el) {
+                var on = el.getAttribute("data-id") === structureId;
+                el.classList.toggle("is-active", on);
+                el.setAttribute("aria-selected", on ? "true" : "false");
+            });
+        }
     }
 
     function syncAnnotationPanels(structureId) {
@@ -428,8 +449,10 @@ function jsloaded() {
 
     window.switchStructure = function (structureId) {
         structureId = String(structureId);
-        var sel = document.getElementById("sv-struct-select");
-        if (sel) sel.value = structureId;
+        var pickerBtn  = document.getElementById("sv-struct-picker-btn");
+        var pickerMenu = document.getElementById("sv-struct-picker-menu");
+        if (pickerBtn)  pickerBtn.setAttribute("aria-expanded", "false");
+        if (pickerMenu) pickerMenu.hidden = true;
         _loadStructureById(structureId);
     };
 
@@ -534,6 +557,35 @@ function jsloaded() {
 
         if (loadingNote) loadingNote.style.display = "none";
     }
+
+    /* Struct picker toggle */
+    (function () {
+        var btn  = document.getElementById("sv-struct-picker-btn");
+        var menu = document.getElementById("sv-struct-picker-menu");
+        if (!btn || !menu) return;
+        btn.addEventListener("click", function () {
+            var open = !menu.hidden;
+            menu.hidden = open;
+            btn.setAttribute("aria-expanded", open ? "false" : "true");
+        });
+        menu.addEventListener("click", function (ev) {
+            var item = ev.target.closest(".sv-struct-picker-item");
+            if (item) window.switchStructure(item.getAttribute("data-id"));
+        });
+        document.addEventListener("click", function (ev) {
+            if (!btn.contains(ev.target) && !menu.contains(ev.target)) {
+                menu.hidden = true;
+                btn.setAttribute("aria-expanded", "false");
+            }
+        });
+        document.addEventListener("keydown", function (ev) {
+            if (ev.key === "Escape" && !menu.hidden) {
+                menu.hidden = true;
+                btn.setAttribute("aria-expanded", "false");
+                btn.focus();
+            }
+        });
+    })();
 
     /* Load the initial (active) structure */
     _loadStructureById(activeStructureId);

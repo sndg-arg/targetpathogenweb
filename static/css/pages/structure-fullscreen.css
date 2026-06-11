@@ -682,36 +682,21 @@ body.residue-modal-open { overflow: hidden; }
 .tp-dark .sv-sidebar { background: var(--tp-color-surface-soft); border-left-color: var(--tp-color-border-strong); }
 .tp-dark .pocket-card { background: var(--tp-color-surface); border-color: var(--tp-color-border); }
 
-/* ── 16. Structure select picker (replaces pill buttons) ── */
-.sv-struct-select-wrap {
+/* ── 16. Structure picker (custom dropdown — no native select) ── */
+.sv-struct-picker {
     position: relative;
-    display: inline-flex;
-    align-items: center;
     flex-shrink: 0;
 }
 
-.sv-struct-select-wrap::after {
-    content: "";
-    position: absolute;
-    right: 9px;
-    top: 50%;
-    transform: translateY(-50%);
-    pointer-events: none;
-    border-left: 3.5px solid transparent;
-    border-right: 3.5px solid transparent;
-    border-top: 5px solid var(--sv-overlay-text);
-    opacity: 0.5;
-}
-
-.sv-struct-select {
-    appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
+.sv-struct-picker-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
     height: 30px;
-    padding: 0 26px 0 10px;
+    padding: 0 8px 0 10px;
     border: none;
     border-radius: 8px;
-    background-color: var(--sv-btn-bg);
+    background: var(--sv-btn-bg);
     color: var(--sv-overlay-text);
     font-size: 0.78rem;
     font-weight: 600;
@@ -719,12 +704,101 @@ body.residue-modal-open { overflow: hidden; }
     letter-spacing: 0.01em;
     cursor: pointer;
     opacity: 0.88;
-    transition: background-color 0.13s, opacity 0.13s;
     max-width: min(340px, 42vw);
+    white-space: nowrap;
+    overflow: hidden;
+    transition: background-color 0.13s, opacity 0.13s;
 }
 
-.sv-struct-select:hover { opacity: 1; background-color: var(--sv-btn-hover-bg); }
-.sv-struct-select:focus-visible { opacity: 1; outline: 2px solid var(--sv-btn-active-color); outline-offset: 2px; }
+.sv-struct-picker-btn:hover,
+.sv-struct-picker-btn[aria-expanded="true"] {
+    opacity: 1;
+    background: var(--sv-btn-hover-bg);
+}
+
+.sv-struct-picker-btn:focus-visible {
+    opacity: 1;
+    outline: 2px solid var(--sv-btn-active-color);
+    outline-offset: 2px;
+}
+
+.sv-struct-picker-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+}
+
+.sv-struct-picker-chevron {
+    width: 10px;
+    height: 6px;
+    flex-shrink: 0;
+    opacity: 0.55;
+    transition: transform 0.15s;
+}
+
+.sv-struct-picker-btn[aria-expanded="true"] .sv-struct-picker-chevron {
+    transform: rotate(180deg);
+}
+
+.sv-struct-picker-menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    z-index: 50;
+    list-style: none;
+    margin: 0;
+    padding: 4px;
+    min-width: 240px;
+    max-width: min(420px, 90vw);
+    max-height: 320px;
+    overflow-y: auto;
+    border-radius: 10px;
+    background: var(--sv-overlay-bg);
+    border: 1px solid var(--sv-overlay-border);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    scrollbar-width: thin;
+}
+
+.sv-struct-picker-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px;
+    border-radius: 7px;
+    cursor: pointer;
+    color: var(--sv-overlay-text);
+    font-size: 0.78rem;
+    font-weight: 500;
+    line-height: 1.3;
+    transition: background 0.1s;
+}
+
+.sv-struct-picker-item:hover {
+    background: var(--sv-btn-hover-bg);
+}
+
+.sv-struct-picker-item.is-active {
+    background: var(--sv-btn-active-bg);
+    font-weight: 700;
+}
+
+.sv-struct-picker-item-label {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.sv-struct-picker-item-res {
+    flex-shrink: 0;
+    font-size: 0.72rem;
+    opacity: 0.5;
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+}
 
 /* ── 17. Pocket card label (Site N + internal ID) ── */
 .pocket-card-label {
