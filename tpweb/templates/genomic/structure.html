@@ -565,6 +565,11 @@ function jsloaded() {
         if (!btn || !menu) return;
         btn.addEventListener("click", function () {
             var open = !menu.hidden;
+            if (!open) {
+                var rect = btn.getBoundingClientRect();
+                menu.style.top   = (rect.bottom + 6) + "px";
+                menu.style.right = (window.innerWidth - rect.right) + "px";
+            }
             menu.hidden = open;
             btn.setAttribute("aria-expanded", open ? "false" : "true");
         });
