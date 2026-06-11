@@ -358,6 +358,7 @@ def apply_protein_search(queryset, search_query):
         Q(accession__icontains=cleaned_query)
         | Q(description__icontains=cleaned_query)
         | Q(accession__iexact=cleaned_query)
+        | Q(qualifiers__value__icontains=cleaned_query, qualifiers__term__identifier="gene")
     )
 
 

@@ -100,8 +100,10 @@ class ProteinSearchSuggestionsView(View):
             )
             .filter(
                 Q(accession__icontains=query) |
-                Q(description__icontains=query)
+                Q(description__icontains=query) |
+                Q(qualifiers__value__icontains=query, qualifiers__term__identifier="gene")
             )
+            .distinct()
             .order_by("accession")
             .values("accession", "description")[:limit]
         )
