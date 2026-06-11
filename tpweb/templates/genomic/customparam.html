@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/customparam.css' %}?v=20260511-2">
+    <link rel="stylesheet" href="{% static 'css/pages/customparam.css' %}?v=20260611-1">
 {% endblock %}
 
 {% block body %}
@@ -39,12 +39,7 @@
 
         <section class="customparam-layout">
             <article class="customparam-card customparam-card--form tp-ui-panel">
-                <div class="customparam-card-head tp-ui-panel-head">
-                    <div>
-                        <h2>{% trans "Upload evidence file" %}</h2>
-                        <p class="customparam-card-note">{% trans "Each row pairs a protein accession with the value you want to import. After upload, the parameter becomes available in the scoring formula and protein filter." %}</p>
-                    </div>
-                </div>
+                <h2>{% trans "Upload evidence file" %}</h2>
 
                 {% if file_exists %}
                     <div class="customparam-state-note tp-state-note tp-state-note--error">
@@ -59,38 +54,27 @@
                     <div class="tp-ui-field customparam-field">
                         <label class="tp-ui-field-label" for="{{ form.tsv.id_for_label }}">{% trans "TSV file" %}</label>
                         {{ form.tsv }}
-                        <p class="customparam-field-help">{% trans "Required. Tab-separated, one row per protein, protein accession in the first column." %}</p>
+                        <p class="customparam-field-help">{% trans "Tab-separated · protein accession in first column · one row per protein" %}</p>
                         {% if form.tsv.errors %}
                             <p class="customparam-field-error">{{ form.tsv.errors|striptags }}</p>
                         {% endif %}
                     </div>
 
-                    <div class="customparam-submit-row">
-                        <div class="customparam-submit-copy">
-                            <p class="customparam-submit-title">{% trans "What happens next" %}</p>
-                            <p class="customparam-submit-note">{% trans "Values are indexed immediately and linked to the matching proteins in this genome. The parameter appears as a filter and scoring option." %}</p>
-                        </div>
-                        <div class="tp-ui-actions customparam-actions">
-                            {% if file_exists %}
-                                <button type="button" class="btn tp-btn tp-btn--danger" onclick="confirmOverwrite()">{% trans "Replace existing file" %}</button>
-                            {% else %}
-                                <button type="submit" class="btn tp-btn tp-btn--primary tp-btn-with-icon">
-                                    <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/upload.html" %}</span>
-                                    {% trans "Upload and index" %}
-                                </button>
-                            {% endif %}
-                        </div>
+                    <div class="customparam-actions">
+                        {% if file_exists %}
+                            <button type="button" class="btn tp-btn tp-btn--danger" onclick="confirmOverwrite()">{% trans "Replace existing file" %}</button>
+                        {% else %}
+                            <button type="submit" class="btn tp-btn tp-btn--primary tp-btn-with-icon">
+                                <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/upload.html" %}</span>
+                                {% trans "Upload and index" %}
+                            </button>
+                        {% endif %}
                     </div>
                 </form>
             </article>
 
             <aside class="customparam-card customparam-card--guide tp-ui-panel">
-                <div class="customparam-card-head tp-ui-panel-head">
-                    <div>
-                        <h2>{% trans "File format" %}</h2>
-                        <p class="customparam-card-note">{% trans "Two columns, tab-separated. Accessions must match those already in the protein ranking for this genome." %}</p>
-                    </div>
-                </div>
+                <h2>{% trans "File format" %}</h2>
 
                 <div class="customparam-guide">
                     <div class="customparam-guide-item">

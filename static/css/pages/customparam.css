@@ -113,7 +113,7 @@
 }
 
 .customparam-card h2 {
-    margin: 0;
+    margin: 0 0 14px;
     color: var(--cp-accent-ink);
     font-size: var(--tp-heading-sm);
     line-height: 1.15;
@@ -198,8 +198,8 @@
 }
 
 .customparam-actions {
-    margin-top: 0;
-    flex-shrink: 0;
+    display: flex;
+    margin-top: 4px;
 }
 
 /* ── Guide (aside) ── */
