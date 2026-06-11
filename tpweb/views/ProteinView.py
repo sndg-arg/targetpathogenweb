@@ -156,10 +156,9 @@ def _build_target_profile(raw_scores):
             tone = "neutral"
         display = val.replace("_", " ").replace("no hit", "No hit").replace("no_hit", "No hit")
         if name in _NO_HIT_EVALUE_OVERRIDES:
-            check_name, no_hit_val, no_hit_label = _NO_HIT_EVALUE_OVERRIDES[name]
+            check_name, no_hit_val, _ = _NO_HIT_EVALUE_OVERRIDES[name]
             if str(raw_scores.get(check_name) or "").strip().lower() == no_hit_val:
-                display = no_hit_label
-                tone = "neutral"
+                continue
         items.append({"label": label, "value": display, "tone": tone, "category": category, "tooltip": tooltip})
     return items
 
