@@ -661,7 +661,7 @@
 }
 
 .siblings-group-title {
-    margin: 0 0 8px;
+    margin: 0 0 4px;
     font-size: 0.85rem;
     font-weight: 500;
     text-transform: uppercase;
@@ -670,6 +670,20 @@
     display: flex;
     align-items: center;
     gap: 8px;
+}
+
+.siblings-group-desc {
+    margin: 0 0 8px;
+    font-size: 0.82rem;
+    color: var(--tp-color-text-muted);
+    line-height: 1.4;
+}
+
+.siblings-col-hint {
+    font-weight: 400;
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 0.75em;
+    opacity: 0.8;
 }
 
 .siblings-group-count {

@@ -13,8 +13,11 @@
 .genome-upload-page h2,
 .genome-upload-page h3,
 .genome-upload-page h4 {
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-weight: 600;
     letter-spacing: -0.01em;
 }
+.genome-upload-page h1 { font-weight: 700; }
 
 .genome-upload-hero {
     position: relative;
@@ -300,7 +303,7 @@
     background: var(--upload-accent-soft);
     border: 1px solid var(--upload-accent-border);
     color: var(--upload-accent-ink);
-    font-weight: var(--tp-font-weight-bold);
+    font-weight: 700;
     font-size: 0.92rem;
 }
 

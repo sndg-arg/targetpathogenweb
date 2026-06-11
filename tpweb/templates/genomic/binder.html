@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/binder-detail.css' %}?v=20260511-rich">
+    <link rel="stylesheet" href="{% static 'css/pages/binder-detail.css' %}?v=20260611-bio">
 {% endblock %}
 
 {% block body %}
@@ -394,9 +394,10 @@
                         {% if siblings.pdb %}
                             <div class="siblings-group">
                                 <h3 class="siblings-group-title">PDB <span class="siblings-group-count">{{ siblings.pdb_total }}</span></h3>
+                                <p class="siblings-group-desc">{% trans "Ligands co-crystallized with this protein (structural evidence)." %}</p>
                                 <div class="siblings-col-head">
                                     <span>{% trans "Ligand" %}</span>
-                                    <span>{% trans "Structure" %}</span>
+                                    <span>{% trans "PDB entry" %}</span>
                                 </div>
                                 <ul class="siblings-list siblings-list--two-col">
                                     {% for s in siblings.pdb %}
@@ -408,9 +409,14 @@
                         {% if siblings.chembl %}
                             <div class="siblings-group">
                                 <h3 class="siblings-group-title">ChEMBL <span class="siblings-group-count">{{ siblings.chembl_total }}</span></h3>
-                                <ul class="siblings-list">
+                                <p class="siblings-group-desc">{% trans "Compounds with measured inhibitory activity on this target (higher pchembl = more potent)." %}</p>
+                                <div class="siblings-col-head">
+                                    <span>{% trans "Compound" %}</span>
+                                    <span title="{% trans 'Standardized potency measure: −log10(IC50/Ki/Kd in M). Above 6 is considered active.' %}">{% trans "Potency" %} <span class="siblings-col-hint">(pchembl)</span></span>
+                                </div>
+                                <ul class="siblings-list siblings-list--two-col">
                                     {% for s in siblings.chembl %}
-                                        <li><a href="{% url 'tpwebapp:binder_detail' binder_id=s.id %}"><code>{{ s.name }}</code>{% if s.score is not None %} <span class="siblings-meta">pchembl {{ s.score|stringformat:".2f" }}</span>{% endif %}</a></li>
+                                        <li><a href="{% url 'tpwebapp:binder_detail' binder_id=s.id %}"><code>{{ s.name }}</code>{% if s.score is not None %} <span class="siblings-meta">{{ s.score|stringformat:".2f" }}</span>{% endif %}</a></li>
                                     {% endfor %}
                                 </ul>
                             </div>
@@ -418,9 +424,14 @@
                         {% if siblings.proposed %}
                             <div class="siblings-group">
                                 <h3 class="siblings-group-title">ZINC <span class="siblings-group-count">{{ siblings.proposed_total }}</span></h3>
-                                <ul class="siblings-list">
+                                <p class="siblings-group-desc">{% trans "Virtual screening candidates selected by structural similarity to known actives (Tanimoto ≥ 0.5)." %}</p>
+                                <div class="siblings-col-head">
+                                    <span>{% trans "Compound" %}</span>
+                                    <span title="{% trans 'Tanimoto coefficient — structural similarity to a known active compound. 1.0 = identical structure.' %}">{% trans "Similarity" %} <span class="siblings-col-hint">(Tanimoto)</span></span>
+                                </div>
+                                <ul class="siblings-list siblings-list--two-col">
                                     {% for s in siblings.proposed %}
-                                        <li><a href="{% url 'tpwebapp:binder_detail' binder_id=s.id %}"><code>{{ s.name }}</code>{% if s.score is not None %} <span class="siblings-meta">Tanimoto {{ s.score|stringformat:".2f" }}</span>{% endif %}</a></li>
+                                        <li><a href="{% url 'tpwebapp:binder_detail' binder_id=s.id %}"><code>{{ s.name }}</code>{% if s.score is not None %} <span class="siblings-meta">{{ s.score|stringformat:".2f" }}</span>{% endif %}</a></li>
                                     {% endfor %}
                                 </ul>
                             </div>
@@ -434,6 +445,38 @@
 
 {% block jsloaded %}
     <script>
+        (function () {
+            // Scrollspy for quick-nav
+            var nav = document.querySelector(".quick-nav");
+            if (nav) {
+                var links = Array.from(nav.querySelectorAll("a[href^='#']"));
+                var targets = links.map(function (link) {
+                    var id = (link.getAttribute("href") || "").slice(1);
+                    var section = id ? document.getElementById(id) : null;
+                    return section ? { link: link, section: section } : null;
+                }).filter(Boolean);
+                if (targets.length) {
+                    function setActive(sectionId) {
+                        targets.forEach(function (e) {
+                            var on = e.section.id === sectionId;
+                            e.link.classList.toggle("is-active", on);
+                            e.link.setAttribute("aria-current", on ? "true" : "false");
+                        });
+                    }
+                    function updateActive() {
+                        var line = Math.round(window.innerHeight * 0.32);
+                        var active = targets[0];
+                        for (var i = targets.length - 1; i >= 0; i--) {
+                            if (targets[i].section.getBoundingClientRect().top <= line) { active = targets[i]; break; }
+                        }
+                        setActive(active.section.id);
+                    }
+                    window.addEventListener("scroll", updateActive, { passive: true });
+                    updateActive();
+                }
+            }
+        })();
+
         (function () {
             const buttons = document.querySelectorAll('[data-copy-target]');
             buttons.forEach(function (button) {

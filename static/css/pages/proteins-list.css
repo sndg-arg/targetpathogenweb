@@ -374,6 +374,14 @@ a.filter-pill .filter-pill-remove {
     font-size: 0.92rem;
 }
 
+.search-suggestion-gene {
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 0.79rem;
+    font-weight: 500;
+    color: var(--tp-color-brand-700);
+    line-height: 1.25;
+}
+
 .search-suggestion-description {
     color: var(--tp-color-text-muted);
     font-size: 0.84rem;

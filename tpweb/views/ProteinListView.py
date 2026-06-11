@@ -1,6 +1,7 @@
 from django.views import View
 from django.shortcuts import render
 from django.db.models import Exists, OuterRef, Prefetch
+from bioseq.models.BioentryQualifierValue import BioentryQualifierValue
 from django.http import JsonResponse
 from django.http import Http404
 from django.urls import reverse
@@ -121,7 +122,19 @@ class ProteinSearchSuggestionsView(View):
             results.append({
                 "accession": accession,
                 "description": description,
+                "gene": "",
             })
+
+        if results:
+            gene_map = dict(
+                BioentryQualifierValue.objects.filter(
+                    bioentry__biodatabase__name=assembly_name + Biodatabase.PROT_POSTFIX,
+                    bioentry__accession__in=[r["accession"] for r in results],
+                    term__identifier="gene",
+                ).values_list("bioentry__accession", "value")
+            )
+            for r in results:
+                r["gene"] = gene_map.get(r["accession"], "")
 
         return JsonResponse({"results": results})
 

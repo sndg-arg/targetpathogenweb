@@ -245,7 +245,7 @@
                             {% trans "Conserved core gene" %}
                         </span>
                         {% else %}
-                        <span class="target-evidence-accessory-badge">{% trans "Accessory gene" %}</span>
+                        <span class="target-evidence-accessory-badge" title="{% trans 'Not present in all analyzed genomes. Found only in a subset of strains — may be plasmid-borne, mobile element, or strain-specific acquisition.' %}">{% trans "Accessory gene" %}</span>
                         {% endif %}
                         <div class="target-evidence-meta target-evidence-meta--top">
                             <div class="target-evidence-meta-row">

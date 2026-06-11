@@ -1195,6 +1195,13 @@
                     accession.textContent = item.accession || "";
                     button.appendChild(accession);
 
+                    if (item.gene) {
+                        const gene = document.createElement("span");
+                        gene.className = "search-suggestion-gene";
+                        gene.textContent = item.gene;
+                        button.appendChild(gene);
+                    }
+
                     if (item.description) {
                         const description = document.createElement("span");
                         description.className = "search-suggestion-description";

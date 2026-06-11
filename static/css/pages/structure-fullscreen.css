@@ -690,9 +690,23 @@ body.residue-modal-open { overflow: hidden; }
     flex-shrink: 0;
 }
 
+.sv-struct-select-wrap::after {
+    content: "";
+    position: absolute;
+    right: 9px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    border-left: 3.5px solid transparent;
+    border-right: 3.5px solid transparent;
+    border-top: 5px solid var(--sv-overlay-text);
+    opacity: 0.5;
+}
+
 .sv-struct-select {
     appearance: none;
     -webkit-appearance: none;
+    -moz-appearance: none;
     height: 30px;
     padding: 0 26px 0 10px;
     border: none;
@@ -706,10 +720,6 @@ body.residue-modal-open { overflow: hidden; }
     cursor: pointer;
     opacity: 0.88;
     transition: background-color 0.13s, opacity 0.13s;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6' fill='none' stroke='%23888' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1 1l4 4 4-4'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 8px center;
-    background-size: 10px;
     max-width: min(340px, 42vw);
 }
 
