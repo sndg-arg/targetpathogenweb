@@ -386,8 +386,7 @@ function jsloaded() {
 
     /* ---- Topbar / sidebar update on structure switch ---- */
     function updateIdentity(structureId) {
-        var picker = document.getElementById("sv-struct-picker");
-        var opt = picker ? picker.querySelector(".sv-struct-picker-item[data-id='" + structureId + "']") : null;
+        var opt = document.querySelector(".sv-struct-picker-item[data-id='" + structureId + "']");
         if (!opt) return;
         var code       = opt.getAttribute("data-code") || "";
         var method     = opt.getAttribute("data-method") || "";
@@ -408,8 +407,7 @@ function jsloaded() {
             var labelSpan = opt.querySelector(".sv-struct-picker-item-label");
             if (labelSpan) labelEl.textContent = labelSpan.textContent;
         }
-        if (picker) {
-            picker.querySelectorAll(".sv-struct-picker-item").forEach(function (el) {
+        document.querySelectorAll(".sv-struct-picker-item").forEach(function (el) {
                 var on = el.getAttribute("data-id") === structureId;
                 el.classList.toggle("is-active", on);
                 el.setAttribute("aria-selected", on ? "true" : "false");
