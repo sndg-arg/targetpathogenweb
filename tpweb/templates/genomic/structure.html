@@ -137,8 +137,8 @@
                 <h1 class="sv-sidebar-code" id="sv-sidebar-code">{{ structure.code|upper }}</h1>
                 <div class="sv-sidebar-meta-row" id="sv-sidebar-meta">
                     {% for s in all_structures %}{% if s.is_active %}
-                    <span class="sv-sidebar-meta-tag">{{ s.method }}</span>
-                    {% if s.resolution %}<span class="sv-sidebar-meta-tag sv-sidebar-meta-tag--dim">{{ s.resolution }} Å</span>{% endif %}
+                    <span class="sv-sidebar-meta-tag" id="sv-sidebar-method">{{ s.method }}</span>
+                    {% if s.resolution %}<span class="sv-sidebar-meta-tag sv-sidebar-meta-tag--dim" id="sv-sidebar-resolution">{{ s.resolution }} Å</span>{% endif %}
                     {% if s.structure_data.pockets %}<span class="sv-sidebar-meta-tag sv-sidebar-meta-tag--count">{{ s.structure_data.pockets|length }} FPocket</span>{% endif %}
                     {% if s.structure_data.p2_pockets %}<span class="sv-sidebar-meta-tag sv-sidebar-meta-tag--count">{{ s.structure_data.p2_pockets|length }} P2Rank</span>{% endif %}
                     {% endif %}{% endfor %}
@@ -393,13 +393,17 @@ function jsloaded() {
         var resolution = opt.getAttribute("data-resolution") || "";
         var vmdUrl     = opt.getAttribute("data-vmd-url") || "";
 
-        var methodEl = document.getElementById("sv-topbar-method");
-        var resEl    = document.getElementById("sv-topbar-resolution");
-        var scodeEl  = document.getElementById("sv-sidebar-code");
+        var methodEl        = document.getElementById("sv-topbar-method");
+        var resEl           = document.getElementById("sv-topbar-resolution");
+        var scodeEl         = document.getElementById("sv-sidebar-code");
+        var sidebarMethodEl = document.getElementById("sv-sidebar-method");
+        var sidebarResEl    = document.getElementById("sv-sidebar-resolution");
 
-        if (scodeEl)  scodeEl.textContent = code;
-        if (methodEl) { methodEl.textContent = method; methodEl.hidden = !method; }
-        if (resEl)    { resEl.textContent = resolution ? resolution + " Å" : ""; resEl.hidden = !resolution; }
+        if (scodeEl)         scodeEl.textContent = code;
+        if (methodEl)        { methodEl.textContent = method; methodEl.hidden = !method; }
+        if (resEl)           { resEl.textContent = resolution ? resolution + " Å" : ""; resEl.hidden = !resolution; }
+        if (sidebarMethodEl) { sidebarMethodEl.textContent = method; sidebarMethodEl.hidden = !method; }
+        if (sidebarResEl)    { sidebarResEl.textContent = resolution ? resolution + " Å" : ""; sidebarResEl.hidden = !resolution; }
         if (vmdLink && vmdUrl) vmdLink.href = vmdUrl;
 
         var labelEl = document.getElementById("sv-struct-picker-label");
