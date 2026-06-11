@@ -408,11 +408,10 @@ function jsloaded() {
             if (labelSpan) labelEl.textContent = labelSpan.textContent;
         }
         document.querySelectorAll(".sv-struct-picker-item").forEach(function (el) {
-                var on = el.getAttribute("data-id") === structureId;
-                el.classList.toggle("is-active", on);
-                el.setAttribute("aria-selected", on ? "true" : "false");
-            });
-        }
+            var on = el.getAttribute("data-id") === structureId;
+            el.classList.toggle("is-active", on);
+            el.setAttribute("aria-selected", on ? "true" : "false");
+        });
     }
 
     function syncAnnotationPanels(structureId) {
