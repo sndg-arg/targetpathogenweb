@@ -563,6 +563,7 @@ function jsloaded() {
         var btn  = document.getElementById("sv-struct-picker-btn");
         var menu = document.getElementById("sv-struct-picker-menu");
         if (!btn || !menu) return;
+        document.body.appendChild(menu);
         btn.addEventListener("click", function () {
             var open = !menu.hidden;
             if (!open) {
