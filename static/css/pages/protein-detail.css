@@ -237,16 +237,33 @@
 
 a.hero-chip.tp-chip--link {
     text-decoration: none;
-    color: var(--tp-color-text-secondary);
-    transition: color 0.15s;
+    border-color: var(--tp-color-brand-200);
+    background: var(--tp-color-brand-050);
+    gap: 5px;
+    transition: border-color 0.15s, background 0.15s;
 }
 a.hero-chip.tp-chip--link:hover {
+    border-color: var(--tp-color-brand-300);
+    background: var(--tp-color-brand-100);
+    text-decoration: none;
+}
+a.hero-chip.tp-chip--link .tp-chip-db {
+    font-weight: 500;
     color: var(--tp-color-brand-600);
-    text-decoration: underline;
+    font-size: 0.9em;
+}
+a.hero-chip.tp-chip--link .tp-chip-acc {
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-weight: 500;
+    font-size: 0.85em;
+    color: var(--tp-color-brand-800);
+    letter-spacing: 0.03em;
 }
 a.hero-chip.tp-chip--link .tp-chip-ext-icon {
-    font-size: 0.75em;
-    opacity: 0.6;
+    font-size: 0.72em;
+    opacity: 0.5;
+    color: var(--tp-color-brand-500);
+    margin-left: 1px;
 }
 
 .status-pill {
