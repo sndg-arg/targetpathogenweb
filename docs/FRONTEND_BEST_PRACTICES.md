@@ -330,6 +330,58 @@ Si todo tiene el mismo peso, nada está enfatizado. El peso funciona por contras
 
 Un componente bien construido encapsula todas sus variantes y estados en un solo lugar.
 
+### ¿Qué significa primary, secondary, danger y el resto?
+
+Cuando hay más de un botón en pantalla, no todos tienen el mismo peso. La variante le dice al usuario cuál es la acción más importante, cuál es secundaria, y cuál hay que pensarla dos veces antes de ejecutar.
+
+**Primary** es la acción principal de esa pantalla o formulario. La que el usuario vino a hacer. Suele tener el color de marca, relleno sólido, y es visualmente la más prominente. En cualquier pantalla debería haber **un solo botón primary** visible a la vez — si hay dos compitiendo, el usuario no sabe qué hacer.
+
+```
+Ejemplos: "Guardar", "Confirmar pedido", "Crear proyecto", "Enviar"
+```
+
+**Secondary** es una acción alternativa, válida pero menos importante. Generalmente sin relleno o con relleno suave, borde visible, color más neutro. Existe para dar opciones sin restarle protagonismo al primary.
+
+```
+Ejemplos: "Cancelar", "Volver", "Ver más tarde", "Exportar"
+```
+
+**Danger** (o destructive) es una acción que no se puede deshacer o que tiene consecuencias importantes: eliminar, borrar, revocar acceso. El color rojo no es decoración — es una señal para el usuario de que tiene que prestar atención antes de hacer click. Un danger button casi siempre debería ir acompañado de alguna confirmación.
+
+```
+Ejemplos: "Eliminar cuenta", "Borrar archivo", "Revocar acceso"
+```
+
+**Ghost / outline** es un botón sin relleno, solo con borde. Menos visual que secondary, útil para acciones de baja prioridad o cuando hay muchos botones juntos y se necesita reducir el ruido visual.
+
+```
+Ejemplos: botones en tablas, acciones secundarias en cards, "Ver detalle"
+```
+
+**Link** parece un link de texto pero se comporta como botón. Para acciones que son tan secundarias que no justifican ni el borde del ghost.
+
+```
+Ejemplos: "¿Olvidaste tu contraseña?", "Editar", "Ver todos"
+```
+
+#### La jerarquía en la práctica
+
+El principio es simple: en cualquier grupo de acciones, tiene que quedar claro de un vistazo qué es lo más importante.
+
+```
+✅  [Guardar]  [Cancelar]
+     primary    secondary
+
+✅  [Confirmar eliminación]  [Volver]
+         danger               secondary
+
+❌  [Guardar]  [Cancelar]  [Eliminar]
+     primary    primary      primary
+     — tres botones iguales, ninguna jerarquía clara
+```
+
+---
+
 **Variantes declaradas explícitamente:**
 ```html
 <button class="btn btn--primary">Guardar</button>
