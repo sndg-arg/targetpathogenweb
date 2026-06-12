@@ -34,6 +34,29 @@ class ExternalImportForm(forms.Form):
             }
         ),
     )
+    archive = forms.CharField(
+        label=_("Curated archive path"),
+        max_length=1024,
+        required=False,
+        widget=forms.TextInput(
+            attrs={
+                "class": "form-control tp-ui-control",
+                "placeholder": "/app/targetpathogenweb/imports/Klebsiella/Kp13.tar.gz",
+            }
+        ),
+    )
+    archive_root = forms.CharField(
+        label=_("Archive root"),
+        max_length=255,
+        required=False,
+        widget=forms.TextInput(
+            attrs={
+                "class": "form-control tp-ui-control",
+                "placeholder": "KpKP13",
+            }
+        ),
+    )
+
     ligq_output_dir = forms.CharField(
         label=_("Existing LigQ_2 output directory"),
         max_length=1024,
@@ -64,7 +87,15 @@ class ExternalImportForm(forms.Form):
 
     def clean(self):
         cleaned = super().clean()
-        for field in ("genome_name", "results_tsv", "structures_dir", "ligq_output_dir", "datadir"):
+        for field in (
+            "genome_name",
+            "results_tsv",
+            "structures_dir",
+            "archive",
+            "archive_root",
+            "ligq_output_dir",
+            "datadir",
+        ):
             if field in cleaned and cleaned[field]:
                 cleaned[field] = str(cleaned[field]).strip()
         return cleaned

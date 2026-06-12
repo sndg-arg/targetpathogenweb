@@ -170,6 +170,8 @@ class GenomeUploadView(View):
                 ligq_output_dir=cleaned.get("ligq_output_dir") or "",
                 load_ligq_output=cleaned.get("load_ligq_output") and action == self.ACTION_RUN_CURATED_FILE_PIPELINE,
                 include_plan=action == self.ACTION_RUN_CURATED_FILE_PIPELINE,
+                archive=cleaned.get("archive") or "",
+                archive_root=cleaned.get("archive_root") or "",
             )
             try:
                 summary = validate_external_import(
@@ -178,6 +180,8 @@ class GenomeUploadView(View):
                     structures_dir=cleaned.get("structures_dir") or "",
                     datadir=cleaned["datadir"],
                     ligq_output_dir=cleaned.get("ligq_output_dir") or "",
+                    archive=cleaned.get("archive") or "",
+                    archive_root=cleaned.get("archive_root") or "",
                 )
             except CommandError as exc:
                 return render(
@@ -204,38 +208,31 @@ class GenomeUploadView(View):
                 stdout = StringIO()
                 stderr = StringIO()
                 try:
-                    call_command(
-                        "import_external_results",
-                        cleaned["genome_name"],
-                        results_tsv=cleaned["results_tsv"],
-                        structures_dir=cleaned.get("structures_dir") or None,
-                        datadir=cleaned["datadir"],
-                        overwrite=cleaned["overwrite"],
-                        stdout=stdout,
-                        stderr=stderr,
-                    )
-                    ligq_output_dir = cleaned.get("ligq_output_dir") or ""
-                    should_load_ligq = (
-                        action == self.ACTION_RUN_CURATED_FILE_PIPELINE
-                        and cleaned.get("load_ligq_output")
-                        and ligq_output_dir
-                    )
-                    if should_load_ligq:
-                        ligq_summary = (summary or {}).get("ligq_output") or {}
-                        if not ligq_summary.get("exists"):
-                            raise CommandError(f"LigQ_2 output directory not found: {ligq_output_dir}")
+                    if action == self.ACTION_RUN_CURATED_FILE_PIPELINE:
                         call_command(
-                            "load_ligq_2_results",
-                            ligq_output_dir,
+                            "run_curated_file_import",
+                            genome=cleaned["genome_name"],
+                            results_tsv=cleaned["results_tsv"],
+                            structures_dir=cleaned.get("structures_dir") or None,
+                            archive=cleaned.get("archive") or None,
+                            archive_root=cleaned.get("archive_root") or None,
+                            ligq_output_dir=cleaned.get("ligq_output_dir") or None,
+                            datadir=cleaned["datadir"],
+                            execute=True,
+                            extract=bool(cleaned.get("archive")),
+                            overwrite_scores=cleaned["overwrite"],
+                            skip_ligq=not cleaned.get("load_ligq_output"),
                             stdout=stdout,
                             stderr=stderr,
                         )
-                    if action == self.ACTION_RUN_CURATED_FILE_PIPELINE:
+                    else:
                         call_command(
-                            "curated_pipeline_plan",
+                            "import_external_results",
                             cleaned["genome_name"],
                             results_tsv=cleaned["results_tsv"],
+                            structures_dir=cleaned.get("structures_dir") or None,
                             datadir=cleaned["datadir"],
+                            overwrite=cleaned["overwrite"],
                             stdout=stdout,
                             stderr=stderr,
                         )

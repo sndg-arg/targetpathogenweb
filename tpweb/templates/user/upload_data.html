@@ -246,10 +246,26 @@
                             {% if external_import_form.structures_dir.errors %}<p class="genome-upload-field-error">{{ external_import_form.structures_dir.errors|striptags }}</p>{% endif %}
                         </div>
 
+                        <div class="genome-upload-form-grid">
+                            <div class="genome-upload-field tp-ui-field">
+                                <label class="tp-ui-field-label" for="{{ external_import_form.archive.id_for_label }}">{{ external_import_form.archive.label }}</label>
+                                {{ external_import_form.archive }}
+                                <p class="genome-upload-field-help">{% trans "Optional server-side tar/tar.gz containing genome, structures, off-target, essentiality, or LigQ outputs." %}</p>
+                                {% if external_import_form.archive.errors %}<p class="genome-upload-field-error">{{ external_import_form.archive.errors|striptags }}</p>{% endif %}
+                            </div>
+
+                            <div class="genome-upload-field tp-ui-field">
+                                <label class="tp-ui-field-label" for="{{ external_import_form.archive_root.id_for_label }}">{{ external_import_form.archive_root.label }}</label>
+                                {{ external_import_form.archive_root }}
+                                <p class="genome-upload-field-help">{% trans "Optional top-level folder inside the archive. Leave empty to auto-detect." %}</p>
+                                {% if external_import_form.archive_root.errors %}<p class="genome-upload-field-error">{{ external_import_form.archive_root.errors|striptags }}</p>{% endif %}
+                            </div>
+                        </div>
+
                         <div class="genome-upload-field tp-ui-field">
                             <label class="tp-ui-field-label" for="{{ external_import_form.ligq_output_dir.id_for_label }}">{{ external_import_form.ligq_output_dir.label }}</label>
                             {{ external_import_form.ligq_output_dir }}
-                            <p class="genome-upload-field-help">{% trans "Optional existing LigQ_2 output directory. The loader accepts predicted_ligands.tsv as ZINC/proposed binders." %}</p>
+                            <p class="genome-upload-field-help">{% trans "Optional existing LigQ_2 output directory. Leave empty if it should be detected from the archive." %}</p>
                             {% if external_import_form.ligq_output_dir.errors %}<p class="genome-upload-field-error">{{ external_import_form.ligq_output_dir.errors|striptags }}</p>{% endif %}
                         </div>
 
@@ -267,7 +283,7 @@
                         <div class="genome-upload-submit-row">
                             <div class="genome-upload-submit-copy">
                                 <p class="genome-upload-submit-title">{% trans "Recommended flow" %}</p>
-                                <p class="genome-upload-submit-note">{% trans "Validate first to confirm the genome, TSV columns, protein matching, structure directory, and LigQ output before writing anything." %}</p>
+                                <p class="genome-upload-submit-note">{% trans "Validate first to confirm the genome, TSV columns, archive layout, protein matching, structure directory, and LigQ output before writing anything." %}</p>
                             </div>
                             <div class="tp-ui-actions genome-upload-actions">
                                 <button type="submit" class="btn tp-btn tp-btn--outline" onclick="document.getElementById('external-import-action').value='validate_external_import';">
@@ -277,7 +293,7 @@
                                     {% trans "Run import" %}
                                 </button>
                                 <button type="submit" class="btn tp-btn tp-btn--primary" onclick="document.getElementById('external-import-action').value='run_curated_file_pipeline';">
-                                    {% trans "Run file pipeline" %}
+                                    {% trans "Run curated flow" %}
                                 </button>
                             </div>
                         </div>
@@ -340,6 +356,20 @@
                                                     {{ ligq.known_files }} {% trans "known" %}, {{ ligq.predicted_files }} {% trans "predicted" %}, {{ ligq.zinc_files }} {% trans "zinc" %}
                                                 {% else %}
                                                     {% trans "Directory not found" %}
+                                                {% endif %}
+                                            {% else %}
+                                                {% trans "Not provided" %}
+                                            {% endif %}
+                                        {% endwith %}
+                                    </div>
+                                    <div>
+                                        <strong>{% trans "Curated archive" %}</strong><br>
+                                        {% with archive=external_import_result.summary.archive %}
+                                            {% if archive.provided %}
+                                                {% if archive.exists %}
+                                                    {% trans "root" %}: <code>{{ archive.root|default:"-" }}</code>; {% trans "folders" %}: {{ archive.folders|join:", "|default:"-" }}; GBK {{ archive.gbk_candidates }}; LigQ {{ archive.ligq_like_files }}
+                                                {% else %}
+                                                    {% trans "Archive not found" %}
                                                 {% endif %}
                                             {% else %}
                                                 {% trans "Not provided" %}
