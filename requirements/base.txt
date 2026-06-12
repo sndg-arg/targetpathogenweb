@@ -25,3 +25,4 @@ django-crispy-forms
 crispy-bootstrap4
 matplotlib
 lxml
+rdkit-pypi==2022.9.5
