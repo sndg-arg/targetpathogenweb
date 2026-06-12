@@ -11,12 +11,11 @@ services:
     volumes:
       - ./:/app/targetpathogenweb
       - ./data:/app/targetpathogenweb/data
+      # Point to your local fasttarget checkout:
       - ./fasttarget_mac:/app/fasttarget
-      # Redireccionamos el target original /ssh-agent para que no falle el montaje de Mac
+      # Mac SSH agent socket workaround (Docker Desktop):
       - ./dummy_ssh:/ssh-agent
-      # Montamos el socket real de Mac si Docker Desktop esta configurado (opcional pero util)
       - /run/host-services/ssh-auth.sock:/run/host-services/ssh-auth.sock
     environment:
-      # Configuramos la variable para que el contenedor use el socket magico de Mac
       - SSH_AUTH_SOCK=/run/host-services/ssh-auth.sock
       - PYTHONPATH=/app/sndgjobs:/app/sndgbiodb:/app/targetpathogen:/app/sndg-bio:/app/target
