@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/genome-upload.css' %}?v=20260611-2">
+    <link rel="stylesheet" href="{% static 'css/pages/genome-upload.css' %}?v=20260612-1">
 {% endblock %}
 
 {% block body %}
@@ -270,11 +270,11 @@
                         </div>
 
                         <div class="genome-upload-form-grid">
-                            <label class="tp-ui-field-label" style="display: inline-flex; align-items: center; gap: 0.55rem;">
+                            <label class="tp-ui-field-label genome-upload-checkbox-label">
                                 {{ external_import_form.overwrite }}
                                 <span>{{ external_import_form.overwrite.label }}</span>
                             </label>
-                            <label class="tp-ui-field-label" style="display: inline-flex; align-items: center; gap: 0.55rem;">
+                            <label class="tp-ui-field-label genome-upload-checkbox-label">
                                 {{ external_import_form.load_ligq_output }}
                                 <span>{{ external_import_form.load_ligq_output.label }}</span>
                             </label>
@@ -289,7 +289,7 @@
                                 <button type="submit" class="btn tp-btn tp-btn--outline" onclick="document.getElementById('external-import-action').value='validate_external_import';">
                                     {% trans "Validate import" %}
                                 </button>
-                                <button type="submit" class="btn tp-btn tp-btn--primary" onclick="document.getElementById('external-import-action').value='run_external_import';">
+                                <button type="submit" class="btn tp-btn tp-btn--secondary" onclick="document.getElementById('external-import-action').value='run_external_import';">
                                     {% trans "Run import" %}
                                 </button>
                                 <button type="submit" class="btn tp-btn tp-btn--primary" onclick="document.getElementById('external-import-action').value='run_curated_file_pipeline';">
@@ -474,13 +474,13 @@
             <div class="genome-upload-staff-body">
                 <form id="data-file-upload-form" enctype="multipart/form-data">
                     {% csrf_token %}
-                    <div class="genome-upload-field tp-ui-field" style="max-width: 480px;">
+                    <div class="genome-upload-field tp-ui-field genome-upload-field--narrow">
                         <label class="tp-ui-field-label" for="data_file_input">{% trans "File" %}</label>
                         <input class="tp-ui-field-input" type="file" id="data_file_input" name="data_file"
                                accept=".tsv,.csv,.tar.gz,.gz,.tar,.txt,.json">
                         <p class="genome-upload-field-help">{% trans "Accepted: .tsv, .csv, .tar.gz, .json" %}</p>
                     </div>
-                    <button class="tp-btn tp-btn--primary" type="submit" id="data-file-upload-btn">
+                    <button class="btn tp-btn tp-btn--primary" type="submit" id="data-file-upload-btn">
                         {% trans "Upload file" %}
                     </button>
                 </form>
@@ -488,7 +488,7 @@
                     <p class="genome-upload-import-key">{% trans "File saved. Use this path in the management command:" %}</p>
                     <code id="data-file-upload-path" class="genome-upload-import-code"></code>
                 </div>
-                <div id="data-file-upload-error" class="genome-upload-import-error genome-upload-import-result--hidden"></div>
+                <div id="data-file-upload-error" class="tp-state-note tp-state-note--error genome-upload-import-result--hidden"></div>
             </div>
         </section>
         {% endif %}

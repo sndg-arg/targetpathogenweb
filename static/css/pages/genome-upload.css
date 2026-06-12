@@ -604,9 +604,16 @@
     color: var(--tp-color-text-primary);
 }
 
-.genome-upload-import-error {
-    font-size: var(--tp-font-size-sm);
-    color: var(--tp-color-danger-ink);
+.genome-upload-checkbox-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.genome-upload-field--narrow {
+    max-width: 480px;
 }
 
 /* Suppress native bold on <strong> labels inside import summary */
