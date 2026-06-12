@@ -36,7 +36,30 @@ Fricción es todo lo que pone distancia entre el usuario y lo que quiere hacer. 
 
 ---
 
-### 3. Modales, drawers y páginas nuevas: cuándo usar cada uno
+### 3. Navegación y orientación
+
+El usuario siempre tiene que saber dónde está. Parece obvio, pero es uno de los detalles que más se omiten en fronts de principiantes.
+
+**El problema**: si el usuario llega a una pantalla y no puede responder de un vistazo "¿en qué parte de la app estoy?", la navegación está fallando.
+
+**Las herramientas que resuelven esto:**
+
+**Título de página visible**: cada pantalla tiene un título que describe qué es. No el nombre de la app — el nombre de esa pantalla específica. "Proyectos", "Configuración de cuenta", "Detalle de pedido #1042".
+
+**Ítem activo en el menú**: el ítem de navegación que corresponde a la pantalla actual tiene que estar visualmente marcado como activo. Si el usuario está en "Configuración" y ningún ítem del menú está resaltado, la app se siente desorientadora.
+
+**Breadcrumbs en jerarquías profundas**: cuando hay más de dos niveles de profundidad (ej: Proyectos → Proyecto X → Tarea Y), los breadcrumbs le permiten al usuario saber cómo llegó y volver a cualquier punto sin usar el botón de atrás del navegador.
+
+```
+✅  Inicio > Proyectos > Proyecto Alpha > Tareas
+❌  Una pantalla sin título y sin indicación de dónde está en la app
+```
+
+**El estado activo no es solo visual**: también comunica. Un menú donde nada está resaltado obliga al usuario a leer todos los ítems para orientarse. Un ítem activo claro le permite escanear y seguir.
+
+---
+
+### 4. Modales, drawers y páginas nuevas: cuándo usar cada uno
 
 Esta es una de las decisiones más importantes y más malentendidas del frontend. No es una cuestión de preferencia: cada patrón existe para un caso específico.
 
@@ -113,7 +136,7 @@ Editar o ejecutar directamente sobre el elemento, sin abrir nada.
 
 ---
 
-### 4. Filtros y búsqueda
+### 5. Filtros y búsqueda
 
 Los filtros son el caso donde más fácil es arruinar la usabilidad. El principio general es: **los filtros tienen que estar donde el usuario los busca y aplicarse lo antes posible**.
 
@@ -145,7 +168,82 @@ Los filtros son el caso donde más fácil es arruinar la usabilidad. El principi
 
 ---
 
-### 5. Feedback inmediato
+### 6. Tablas
+
+Las tablas son uno de los patrones más comunes en apps de gestión y tienen sus propias reglas. Una tabla mal construida con mucha información es ilegible; bien construida, es la forma más eficiente de mostrar datos comparables.
+
+#### Alineación de columnas
+
+La alineación no es estética — comunica el tipo de dato:
+
+| Tipo de dato | Alineación |
+|-------------|------------|
+| Texto (nombres, descripciones) | Izquierda |
+| Números, cantidades, precios | Derecha |
+| Estados, badges, íconos | Centro |
+| Acciones (botones, links) | Derecha o centro |
+
+Los números alineados a la derecha permiten comparar magnitudes de un vistazo. Alineados a la izquierda o al centro, el ojo tiene que hacer trabajo extra.
+
+#### Columnas y densidad
+
+Más columnas no es más información — es más ruido. Cada columna que se agrega compite con las demás por la atención del usuario.
+
+- Mostrar solo las columnas que el usuario necesita para tomar decisiones en ese contexto
+- Si hay muchas columnas, considerar permitir que el usuario elija cuáles ver
+- En mobile, una tabla de 8 columnas no cabe: hay que pensar qué columnas son esenciales y cuáles colapsan o desaparecen
+
+#### Acciones por fila
+
+Las acciones que aplican a un elemento específico van en su fila, no en un lugar separado. El usuario no debería tener que seleccionar una fila y luego buscar el botón de acción en otro lugar de la pantalla.
+
+```
+✅  Cada fila tiene sus propios botones "Editar" / "Eliminar" al final
+✅  Un menú de tres puntos (kebab menu) por fila cuando hay muchas acciones
+❌  Botones de acción fuera de la tabla que operan sobre "la fila seleccionada"
+```
+
+#### Estado vacío y carga
+
+Una tabla vacía sin mensaje es confusa. Una tabla que carga sin skeleton o spinner hace que el usuario no sepa si algo está pasando. Estos estados son parte del componente, no un detalle para después.
+
+---
+
+### 7. Íconos y tooltips
+
+Los íconos son útiles para reforzar significado, reducir texto, y hacer la interfaz más rápida de escanear. El problema es que solos, sin contexto, son un acertijo.
+
+#### Cuándo un ícono solo alcanza
+
+Un ícono puede estar sin label únicamente cuando:
+- Es universalmente reconocido (lupa = buscar, X = cerrar, hamburguesa = menú)
+- Aparece en un contexto donde su función es obvia (el ícono de papelera en una fila de tabla de archivos)
+- Tiene un tooltip que aparece al hacer hover
+
+En todos los demás casos, el ícono necesita un label de texto al lado.
+
+```
+✅  🔍  (lupa sola en una barra de búsqueda — obvia por contexto)
+✅  ✏️  Editar  (ícono + label para una acción en un formulario)
+❌  Cinco íconos en una barra de herramientas sin labels ni tooltips
+```
+
+#### Tooltips
+
+Un tooltip es el texto que aparece al hacer hover sobre un elemento. Sirve para:
+- Explicar un ícono que no tiene label
+- Dar más contexto sobre una acción antes de ejecutarla
+- Mostrar información que no entra en el espacio disponible (texto truncado)
+
+**Reglas básicas:**
+- El tooltip aparece sobre el elemento, no debajo (para no quedar tapado por el cursor)
+- Texto corto: una frase, no un párrafo
+- No usar para información crítica que el usuario necesita antes de actuar — eso va visible en pantalla
+- En mobile no existen (no hay hover). Si algo depende de un tooltip para entenderse, en mobile queda roto
+
+---
+
+### 8. Feedback inmediato
 
 El usuario necesita saber que sus acciones tuvieron efecto. La ausencia de feedback genera desconfianza: ¿funcionó? ¿Lo tengo que hacer de nuevo?
 
@@ -175,7 +273,7 @@ El usuario necesita saber que sus acciones tuvieron efecto. La ausencia de feedb
 
 ---
 
-### 6. Formularios
+### 9. Formularios
 
 Los formularios son la parte de la interfaz que más fricción genera. Algunos principios para hacerlos menos dolorosos:
 
@@ -193,7 +291,7 @@ Los formularios son la parte de la interfaz que más fricción genera. Algunos p
 
 ---
 
-### 7. Estados que siempre hay que diseñar
+### 10. Estados que siempre hay que diseñar
 
 Toda pantalla que muestra datos tiene que tener resueltos estos cinco estados. No diseñarlos de antemano significa inventarlos bajo presión cuando aparecen en producción.
 
@@ -209,7 +307,7 @@ El estado vacío y el estado de error son los más olvidados y los que el usuari
 
 ---
 
-### 8. No obligar al usuario a recordar
+### 11. No obligar al usuario a recordar
 
 La memoria del usuario es un recurso escaso. La interfaz no debería depender de él.
 
@@ -230,7 +328,7 @@ La memoria del usuario es un recurso escaso. La interfaz no debería depender de
 
 ---
 
-### 9. Design Tokens
+### 12. Design Tokens
 
 Un design token es una variable con nombre semántico que representa una decisión de diseño. En lugar de escribir valores crudos dispersos por el código, se definen una sola vez y se referencian en todos lados.
 
@@ -263,7 +361,7 @@ Un design token es una variable con nombre semántico que representa una decisi�
 
 ---
 
-### 10. Sistema de color
+### 13. Sistema de color
 
 Una paleta bien construida tiene estructura, no colores sueltos.
 
@@ -295,7 +393,7 @@ Nombrar los colores por su rol, no por su apariencia:
 
 ---
 
-### 11. Tipografía y jerarquía visual
+### 14. Tipografía y jerarquía visual
 
 La tipografía hace el 80% del trabajo visual. Antes de tocar colores o ilustraciones, la jerarquía tipográfica tiene que estar resuelta.
 
@@ -326,11 +424,11 @@ Si todo tiene el mismo peso, nada está enfatizado. El peso funciona por contras
 
 ---
 
-### 12. Componentes y variantes
+### 15. Componentes, variantes y estados
 
-Un componente bien construido encapsula todas sus variantes y estados en un solo lugar.
+Un componente bien construido encapsula todas sus variantes y estados en un solo lugar. No es un conjunto de clases ad-hoc — es una unidad con reglas claras sobre cómo puede verse y comportarse.
 
-### ¿Qué significa primary, secondary, danger y el resto?
+#### Variantes: qué significan primary, secondary, danger y el resto
 
 Cuando hay más de un botón en pantalla, no todos tienen el mismo peso. La variante le dice al usuario cuál es la acción más importante, cuál es secundaria, y cuál hay que pensarla dos veces antes de ejecutar.
 
@@ -366,7 +464,7 @@ Ejemplos: "¿Olvidaste tu contraseña?", "Editar", "Ver todos"
 
 #### La jerarquía en la práctica
 
-El principio es simple: en cualquier grupo de acciones, tiene que quedar claro de un vistazo qué es lo más importante.
+En cualquier grupo de acciones tiene que quedar claro de un vistazo qué es lo más importante:
 
 ```
 ✅  [Guardar]  [Cancelar]
@@ -380,19 +478,16 @@ El principio es simple: en cualquier grupo de acciones, tiene que quedar claro d
      — tres botones iguales, ninguna jerarquía clara
 ```
 
----
+#### Estados
 
-**Variantes declaradas explícitamente:**
-```html
-<button class="btn btn--primary">Guardar</button>
-<button class="btn btn--secondary">Cancelar</button>
-<button class="btn btn--danger">Eliminar</button>
+Todo componente interactivo necesita tener resueltos estos estados desde el principio:
+
+```
+default → hover → focus → active → disabled → loading → error
 ```
 
-**Estados que todo componente interactivo necesita tener resueltos:**
-default → hover → focus → active → disabled → loading → error
+#### Nombres semánticos, no visuales
 
-**Nombres semánticos, no visuales:**
 ```
 ❌  .boton-rojo-grande    →    ✅  .btn--danger
 ❌  .texto-gris-chico     →    ✅  .label--muted
@@ -403,7 +498,7 @@ Cuando el diseño cambia, el nombre semántico sigue teniendo sentido. El nombre
 
 ---
 
-### 13. Espaciado consistente
+### 16. Espaciado consistente
 
 La mayoría de las interfaces que "se ven raro" no tienen problema de color ni de tipografía. Tienen espaciado inconsistente.
 
@@ -418,7 +513,7 @@ La mayoría de las interfaces que "se ven raro" no tienen problema de color ni d
 
 ---
 
-### 14. Accesibilidad
+### 17. Accesibilidad
 
 No es una feature avanzada. Es el piso mínimo.
 
@@ -434,19 +529,28 @@ No es una feature avanzada. Es el piso mínimo.
 
 **HTML semántico**: `<button>` para botones, `<nav>` para navegación, `<label>` para cada campo de formulario. El elemento correcto define comportamiento accesible automáticamente.
 
-**Tamaños de toque en mobile**: mínimo 44×44px para cualquier elemento interactivo.
+**Tamaños de toque en mobile**: mínimo 44×44px para cualquier elemento interactivo. Un ícono de 16px sin padding suficiente es imposible de presionar con precisión en un teléfono.
 
 ---
 
-### 15. Mobile-first
+### 18. Mobile-first
 
-Diseñar desde el viewport más chico y expandir. Un layout simple es más fácil de expandir que uno complejo de achicar.
+Mobile-first no es solo una técnica de CSS — es una forma de pensar el diseño que cambia el resultado.
+
+Cuando se diseña primero para desktop y después se "adapta" a mobile, el proceso es de compresión: sacar cosas, achicar, reorganizar lo que ya existe. El resultado casi siempre son parches. Algo que no entra se oculta, algo que era una barra lateral pasa a ser un menú flotante, las columnas colapsan de formas inesperadas.
+
+Cuando se diseña primero para mobile, el proceso es de expansión: lo que funciona en 375px es la base, y en pantallas más grandes simplemente se aprovecha el espacio extra. Un layout simple es más fácil de expandir que uno complejo de achicar.
+
+Además, diseñar para mobile fuerza a tomar decisiones sobre qué es realmente importante. En una pantalla chica no entra todo — hay que elegir. Esas decisiones casi siempre mejoran el diseño en todos los tamaños.
 
 ```css
-/* Base: mobile */
-.contenedor { display: block; padding: 16px; }
+/* Base: mobile — se define la estructura esencial */
+.contenedor {
+    display: block;
+    padding: 16px;
+}
 
-/* Desktop */
+/* A partir de 768px: se aprovecha el espacio extra */
 @media (min-width: 768px) {
     .contenedor {
         display: grid;
@@ -458,7 +562,7 @@ Diseñar desde el viewport más chico y expandir. Un layout simple es más fáci
 
 ---
 
-### 16. Consistencia como usabilidad
+### 19. Consistencia como usabilidad
 
 La consistencia no es solo estética. Es funcional: cuando algo siempre está en el mismo lugar y se ve igual, el usuario no tiene que pensar. Puede operar la interfaz de forma automática.
 
