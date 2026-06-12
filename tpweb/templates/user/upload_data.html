@@ -14,7 +14,7 @@
             {% url 'tpwebapp:index' as index_url %}
             {% url 'tpwebapp:genomes_list' as genomes_url %}
             {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_upload %}
-            <span class="genome-upload-eyebrow">{% trans "Genome submission · Workspace pipeline" %}</span>
+            <span class="genome-upload-eyebrow">{% trans "Genome submission - Workspace pipeline" %}</span>
             <h1>{% trans "Add your own data" %}</h1>
             <p class="genome-upload-subtitle">{% trans "Upload a compressed GenBank record to create a genome workspace and queue a new target-prioritization run." %}</p>
             <div class="genome-upload-chip-group tp-chip-group">
@@ -305,6 +305,22 @@
                         {% if external_import_result.message %}
                             <p class="genome-upload-import-msg">{{ external_import_result.message }}</p>
                         {% endif %}
+                        {% if external_import_result.job %}
+                            <div class="genome-upload-form-grid genome-upload-import-grid">
+                                <div>
+                                    <strong>{% trans "Curated job" %}</strong><br>
+                                    #{{ external_import_result.job.id }} - {{ external_import_result.job.status_label }}
+                                </div>
+                                <div>
+                                    <strong>{% trans "Phase" %}</strong><br>
+                                    {{ external_import_result.job.phase }}
+                                </div>
+                                <div>
+                                    <strong>{% trans "Report" %}</strong><br>
+                                    {% if external_import_result.job.report_path %}<code>{{ external_import_result.job.report_path }}</code>{% else %}<span class="text-muted">{% trans "Not generated yet" %}</span>{% endif %}
+                                </div>
+                            </div>
+                        {% endif %}
                         {% if external_import_result.summary %}
                             {% with summary=external_import_result.summary structures=external_import_result.summary.structures %}
                                 <div class="genome-upload-form-grid genome-upload-import-grid">
@@ -398,6 +414,56 @@
             </div>
         </section>
 
+        {% if curated_import_jobs %}
+        <section class="genome-upload-history tp-ui-panel" id="curated-import-jobs-panel">
+            <div class="genome-upload-card-head tp-ui-panel-head">
+                <div>
+                    <h2 class="tp-ui-panel-title">{% trans "Recent curated imports" %}</h2>
+                    <p class="genome-upload-card-note">{% trans "Saved validations and curated-flow runs, including report paths and controlled retries." %}</p>
+                </div>
+            </div>
+            <div class="tp-table-shell">
+                <table class="table table-striped table-hover mb-0 tp-table tp-table--plain tp-table--premium">
+                    <thead>
+                    <tr>
+                        <th>{% trans "Genome" %}</th>
+                        <th>{% trans "Created" %}</th>
+                        <th>{% trans "Status" %}</th>
+                        <th>{% trans "Report" %}</th>
+                        <th>{% trans "Action" %}</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for job in curated_import_jobs %}
+                        <tr>
+                            <td><code>{{ job.genome_name }}</code></td>
+                            <td>{{ job.created_at_label }}</td>
+                            <td><span class="genome-upload-status tp-chip tp-chip--sm genome-upload-status--{{ job.status }}">{{ job.status_label }}</span></td>
+                            <td>{% if job.report_path %}<code>{{ job.report_path }}</code>{% else %}<span class="text-muted">{% trans "No report" %}</span>{% endif %}</td>
+                            <td>
+                                {% if job.can_retry %}
+                                    <form method="post" class="genome-upload-history-clear-form">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="retry_curated_import">
+                                        <input type="hidden" name="curated_import_job_id" value="{{ job.id }}">
+                                        <button type="submit" class="btn tp-btn tp-btn--outline btn-sm">{% trans "Retry" %}</button>
+                                    </form>
+                                {% else %}
+                                    <span class="text-muted">{% trans "None" %}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% if job.error_message %}
+                            <tr>
+                                <td colspan="5"><p class="tp-state-note tp-state-note--error mt-2 mb-0">{{ job.error_message }}</p></td>
+                            </tr>
+                        {% endif %}
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        {% endif %}
         <section class="genome-upload-history tp-ui-panel" id="data-file-upload-panel">
             <div class="genome-upload-card-head tp-ui-panel-head">
                 <div>

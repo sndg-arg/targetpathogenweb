@@ -12,7 +12,7 @@ heavy work.
 
 ## Scope
 
-The first implementation is an MVP for staff/admin use.
+The current implementation is a staff/admin flow with CLI orchestration and persistent UI jobs.
 
 It supports:
 
@@ -25,7 +25,8 @@ It supports:
   existing `import_external_results` command;
 - optionally loading existing LigQ_2 binders;
 - running UniProt and experimental PDB backfill through existing commands;
-- printing a final audit and safe resume command.
+- printing a final audit and safe resume command;
+- saving each UI validation/run as a `CuratedImportJob` with status, command, logs, report path, and retry metadata.
 
 It does not yet create a new genome from scratch. In the current UI flow, the
 base genome must already be loaded in TPW before the curated import panel can
@@ -112,6 +113,12 @@ Recommended use:
 
 The UI calls the same orchestration command used by CLI, so the command shown in
 the panel can be copied and rerun from the shell for reproducibility.
+
+## Persistent Job Tracking
+
+The staff UI stores validations and curated-flow executions as `CuratedImportJob` records. Each job keeps the genome name, input paths, equivalent command, validation summary, stdout/stderr, generated report path, report text, status, phase, timestamps, and error message.
+
+A failed curated-flow job can be retried from the same Upload Genome panel. Retry uses the stored parameters and writes a fresh report for the same job. Archive extraction during UI execution is confined to the genome-scoped curated import workspace and allows overwrite only inside that workspace so failed partial extracts can be retried without touching unrelated genome data.
 
 ## Done Criteria
 

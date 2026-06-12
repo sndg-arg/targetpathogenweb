@@ -10,7 +10,7 @@ from django.views import View
 from bioseq.models.Biodatabase import Biodatabase
 from tpweb.forms.ExternalImportForm import ExternalImportForm
 from tpweb.forms.GenomeUploadForm import GenomeUploadForm
-from tpweb.models import GenomeUpload
+from tpweb.models import CuratedImportJob, GenomeUpload
 from tpweb.services.genome_uploads import (
     TEST_GENOME_ACCESSION,
     build_queue_position_map,
@@ -25,6 +25,10 @@ from tpweb.services.genome_workspace import (
     build_workspace_genome_name,
     display_genome_name,
     genome_url_slug,
+)
+from tpweb.services.curated_import_jobs import (
+    create_curated_import_job,
+    run_curated_import_job,
 )
 from tpweb.services.external_import import (
     build_external_import_command,
@@ -43,6 +47,7 @@ class GenomeUploadView(View):
     ACTION_VALIDATE_EXTERNAL_IMPORT = "validate_external_import"
     ACTION_RUN_EXTERNAL_IMPORT = "run_external_import"
     ACTION_RUN_CURATED_FILE_PIPELINE = "run_curated_file_pipeline"
+    ACTION_RETRY_CURATED_IMPORT = "retry_curated_import"
 
     @staticmethod
     def _job_state(job, pipeline_status, queue_positions, running_job_id=None):
@@ -59,6 +64,45 @@ class GenomeUploadView(View):
                 "class": "queued",
             }
         return {"label": job.get_status_display(), "class": job.status}
+
+    @staticmethod
+    def _curated_job_dto(job):
+        return {
+            "id": job.id,
+            "genome_name": job.genome_name,
+            "status": job.status,
+            "status_label": job.get_status_display(),
+            "phase": job.phase,
+            "created_at_label": format_upload_timestamp(job.created_at),
+            "finished_at_label": format_upload_timestamp(job.finished_at) if job.finished_at else "",
+            "command": job.command,
+            "report_path": job.report_path,
+            "error_message": str(job.error_message or "").strip(),
+            "can_retry": job.can_retry,
+        }
+
+    def _curated_import_result(self, job, *, summary=None, command=None):
+        message = {
+            CuratedImportJob.STATUS_VALIDATED: "Curated import validation was saved.",
+            CuratedImportJob.STATUS_RUNNING: "Curated import is running.",
+            CuratedImportJob.STATUS_FINISHED: "Curated file pipeline completed.",
+            CuratedImportJob.STATUS_FAILED: job.error_message or "Curated file pipeline failed.",
+        }.get(job.status, "Curated import job updated.")
+        status = "ok"
+        if job.status == CuratedImportJob.STATUS_FINISHED:
+            status = "imported"
+        elif job.status == CuratedImportJob.STATUS_FAILED:
+            status = "error"
+
+        return {
+            "status": status,
+            "message": message,
+            "summary": summary if summary is not None else job.summary_json,
+            "command": command or job.command,
+            "stdout": job.stdout,
+            "stderr": job.stderr,
+            "job": self._curated_job_dto(job),
+        }
 
     def _build_context(self, request, form=None, external_import_form=None, external_import_result=None):
         workspace_user = resolve_workspace_user(request.user)
@@ -110,6 +154,12 @@ class GenomeUploadView(View):
                 }
             )
 
+        curated_import_jobs = []
+        if request.user.is_staff:
+            curated_import_jobs = [
+                self._curated_job_dto(job)
+                for job in CuratedImportJob.objects.filter(owner=workspace_user)[:8]
+            ]
         running_genome = pipeline_status.get("genome_display_accession") or pipeline_status.get(
             "genome_accession"
         )
@@ -117,6 +167,7 @@ class GenomeUploadView(View):
             "form": form or GenomeUploadForm(),
             "external_import_form": external_import_form or ExternalImportForm(),
             "external_import_result": external_import_result,
+            "curated_import_jobs": curated_import_jobs,
             "jobs": jobs_dto,
             "test_genome_accession": TEST_GENOME_ACCESSION,
             "workspace_label": (
@@ -135,6 +186,30 @@ class GenomeUploadView(View):
 
         upload_url = reverse("tpwebapp:genome_upload")
         action = request.POST.get("action")
+
+        if action == self.ACTION_RETRY_CURATED_IMPORT:
+            if not request.user.is_staff:
+                messages.error(request, "Staff access is required for curated external imports.")
+                return redirect(upload_url)
+
+            job_id = request.POST.get("curated_import_job_id")
+            job = CuratedImportJob.objects.filter(id=job_id, owner=workspace_user).first()
+            if job is None:
+                messages.error(request, "Curated import job was not found.")
+                return redirect(upload_url)
+            if not job.can_retry:
+                messages.info(request, "Only failed curated import jobs can be retried.")
+                return redirect(upload_url)
+
+            job = run_curated_import_job(job)
+            return render(
+                request,
+                self.template_name,
+                self._build_context(
+                    request,
+                    external_import_result=self._curated_import_result(job),
+                ),
+            )
 
         if action in {
             self.ACTION_VALIDATE_EXTERNAL_IMPORT,
@@ -204,38 +279,35 @@ class GenomeUploadView(View):
                 "command": command,
             }
 
-            if action in {self.ACTION_RUN_EXTERNAL_IMPORT, self.ACTION_RUN_CURATED_FILE_PIPELINE}:
+            if action == self.ACTION_VALIDATE_EXTERNAL_IMPORT:
+                job = create_curated_import_job(workspace_user, cleaned, command, summary)
+                result = self._curated_import_result(job, summary=summary, command=command)
+
+            elif action == self.ACTION_RUN_CURATED_FILE_PIPELINE:
+                job = create_curated_import_job(
+                    workspace_user,
+                    cleaned,
+                    command,
+                    summary,
+                    status=CuratedImportJob.STATUS_RUNNING,
+                )
+                job = run_curated_import_job(job)
+                result = self._curated_import_result(job, summary=summary, command=command)
+
+            elif action == self.ACTION_RUN_EXTERNAL_IMPORT:
                 stdout = StringIO()
                 stderr = StringIO()
                 try:
-                    if action == self.ACTION_RUN_CURATED_FILE_PIPELINE:
-                        call_command(
-                            "run_curated_file_import",
-                            genome=cleaned["genome_name"],
-                            results_tsv=cleaned["results_tsv"],
-                            structures_dir=cleaned.get("structures_dir") or None,
-                            archive=cleaned.get("archive") or None,
-                            archive_root=cleaned.get("archive_root") or None,
-                            ligq_output_dir=cleaned.get("ligq_output_dir") or None,
-                            datadir=cleaned["datadir"],
-                            execute=True,
-                            extract=bool(cleaned.get("archive")),
-                            overwrite_scores=cleaned["overwrite"],
-                            skip_ligq=not cleaned.get("load_ligq_output"),
-                            stdout=stdout,
-                            stderr=stderr,
-                        )
-                    else:
-                        call_command(
-                            "import_external_results",
-                            cleaned["genome_name"],
-                            results_tsv=cleaned["results_tsv"],
-                            structures_dir=cleaned.get("structures_dir") or None,
-                            datadir=cleaned["datadir"],
-                            overwrite=cleaned["overwrite"],
-                            stdout=stdout,
-                            stderr=stderr,
-                        )
+                    call_command(
+                        "import_external_results",
+                        cleaned["genome_name"],
+                        results_tsv=cleaned["results_tsv"],
+                        structures_dir=cleaned.get("structures_dir") or None,
+                        datadir=cleaned["datadir"],
+                        overwrite=cleaned["overwrite"],
+                        stdout=stdout,
+                        stderr=stderr,
+                    )
                 except Exception as exc:
                     result.update(
                         {
@@ -246,15 +318,10 @@ class GenomeUploadView(View):
                         }
                     )
                 else:
-                    message = (
-                        "Curated file pipeline completed."
-                        if action == self.ACTION_RUN_CURATED_FILE_PIPELINE
-                        else "Curated external import completed."
-                    )
                     result.update(
                         {
                             "status": "imported",
-                            "message": message,
+                            "message": "Curated external import completed.",
                             "stdout": stdout.getvalue(),
                             "stderr": stderr.getvalue(),
                         }
@@ -269,7 +336,6 @@ class GenomeUploadView(View):
                     external_import_result=result,
                 ),
             )
-
         if action == self.ACTION_CLEAR_HISTORY:
             if owner_has_active_uploads(workspace_user):
                 messages.error(
