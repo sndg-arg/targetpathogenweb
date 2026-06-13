@@ -4,7 +4,7 @@
         <thead>
             <tr>
                 <th scope="col">{% trans "Ligand" %}</th>
-                <th scope="col">{% trans "Source crystal" %}</th>
+                <th scope="col" title="{% trans 'Resolution shown for structures linked to this protein via UniProt. Not available for homolog-sourced crystals.' %}">{% trans "Source crystal" %}</th>
                 {% if show_uniprot %}<th scope="col">{% trans "UniProt (homolog)" %}</th>{% endif %}
                 <th scope="col" class="binder-tbl__props-col">{% trans "MW · LogP · TPSA" %}</th>
                 <th scope="col">{% trans "Lipinski" %}</th>
