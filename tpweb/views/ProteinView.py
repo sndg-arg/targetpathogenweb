@@ -7,6 +7,7 @@ from rdkit.Chem.Draw import rdMolDraw2D
 from rdkit.Chem.FilterCatalog import FilterCatalog, FilterCatalogParams
 
 import itertools
+import re
 
 from bioseq.models.Biodatabase import Biodatabase
 from bioseq.models.Bioentry import Bioentry
@@ -774,22 +775,93 @@ def _binder_table_properties(smiles):
     }
 
 
-def _binder_to_dto(binder):
+def _normalise_pdb_code(value):
+    value = str(value or "").strip().upper()
+    if not value:
+        return ""
+    match = re.search(r"\b([0-9][A-Z0-9]{3})\b", value)
+    if match:
+        return match.group(1)
+    compact = re.sub(r"[^A-Z0-9]", "", value)
+    if len(compact) >= 4 and compact[0].isdigit():
+        return compact[:4]
+    return value[:4] if len(value) >= 4 else value
+
+
+def _loaded_experimental_structure_map(structures):
+    loaded = {}
+    for link in structures or []:
+        pdb = getattr(link, "pdb", None)
+        code = _normalise_pdb_code(getattr(pdb, "code", ""))
+        experiment = str(getattr(pdb, "experiment", "") or "").strip().upper()
+        if code and experiment == "EX":
+            loaded.setdefault(code, link)
+    return loaded
+
+
+def _binder_crystal_payload(binder, loaded_ex_structures=None):
+    pdb_code = _normalise_pdb_code(binder.pdb_id)
+    loaded_link = (loaded_ex_structures or {}).get(pdb_code)
+    loaded_pdb = getattr(loaded_link, "pdb", None) if loaded_link else None
+    loaded_structure_id = getattr(loaded_pdb, "id", None)
+    is_direct = bool(getattr(binder, "is_direct", False))
+
+    if not pdb_code:
+        return {
+            "pdb_code": "",
+            "loaded": False,
+            "structure_id": None,
+            "status_label": "No PDB code",
+            "status_tone": "external",
+            "match_label": "Ligand evidence has no source PDB code.",
+        }
+
+    if loaded_structure_id:
+        status_label = "Loaded crystal" if is_direct else "Loaded PDB"
+        status_tone = "loaded"
+        if is_direct:
+            match_label = "This ligand comes from a PDB crystal already loaded for this protein."
+        else:
+            match_label = (
+                "This source PDB is loaded for this protein, although the ligand was "
+                "transferred from a homologous UniProt record."
+            )
+    elif is_direct:
+        status_label = "External crystal"
+        status_tone = "external"
+        match_label = "Same-protein PDB ligand; the source crystal is available externally."
+    else:
+        status_label = "Homolog crystal"
+        status_tone = "homolog"
+        match_label = "Ligand observed in a homologous protein; use the PDB ID as source evidence."
+
+    return {
+        "pdb_code": pdb_code,
+        "loaded": bool(loaded_structure_id),
+        "structure_id": loaded_structure_id,
+        "status_label": status_label,
+        "status_tone": status_tone,
+        "match_label": match_label,
+    }
+
+
+def _binder_to_dto(binder, loaded_ex_structures=None):
     return {
         "id": binder.id,
         "name": binder.ccd_id or f"Binder {binder.id}",
         "pdb": binder.pdb_id,
+        "pdb_code": _normalise_pdb_code(binder.pdb_id),
         "uniprot": binder.uniprot,
         "smiles": binder.smiles,
         "score": binder.score,
         "notes": binder.notes,
         "source": binder.source,
         "is_direct": binder.is_direct,
+        "crystal": _binder_crystal_payload(binder, loaded_ex_structures),
         "props": _binder_table_properties(binder.smiles),
     }
 
-
-def create_binders_dict(protein, search_query=""):
+def create_binders_dict(protein, search_query="", structures=None):
     """Build a binders payload split into five categories:
 
     - pdb_direct    → PDB ligand, template UniProt matches this protein's own UniProt.
@@ -801,6 +873,7 @@ def create_binders_dict(protein, search_query=""):
     from django.db.models import Q
 
     binders_qs = Binders.objects.filter(locustag=protein).order_by("source", "is_direct", "ccd_id", "id")
+    loaded_ex_structures = _loaded_experimental_structure_map(structures)
     cleaned_query = (search_query or "").strip()
     if cleaned_query:
         binders_qs = binders_qs.filter(
@@ -817,7 +890,7 @@ def create_binders_dict(protein, search_query=""):
     zinc = []
 
     for binder in binders_qs:
-        dto = _binder_to_dto(binder)
+        dto = _binder_to_dto(binder, loaded_ex_structures)
         if binder.source == Binders.SOURCE_PDB:
             if binder.is_direct:
                 pdb_direct.append(dto)
@@ -894,7 +967,7 @@ class ProteinView(View):
         structures = _sort_structures_by_preference(structures)
         experimental_structures = _build_experimental_structures(protein, structures)
         binders_search_query = request.GET.get("binder_search", "").strip()
-        binders = create_binders_dict(protein, search_query=binders_search_query)
+        binders = create_binders_dict(protein, search_query=binders_search_query, structures=structures)
         structure_summary = summarize_structure_sources(structures)
 
         experimental_xrefs = list(

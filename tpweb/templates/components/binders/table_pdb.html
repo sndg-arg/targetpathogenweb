@@ -4,7 +4,7 @@
         <thead>
             <tr>
                 <th scope="col">{% trans "Ligand" %}</th>
-                <th scope="col">{% trans "PDB structure" %}</th>
+                <th scope="col">{% trans "Source crystal" %}</th>
                 {% if show_uniprot %}<th scope="col">{% trans "UniProt (homolog)" %}</th>{% endif %}
                 <th scope="col" class="binder-tbl__props-col">{% trans "MW · LogP · TPSA" %}</th>
                 <th scope="col">{% trans "Lipinski" %}</th>
@@ -20,17 +20,32 @@
                     data-mw="{{ binder.props.mw|default:'' }}"
                     data-score="{{ binder.score|default:'' }}">
                     <td class="binder-tbl__name">{{ binder.name }}</td>
-                    <td class="binder-tbl__pdb">
+                    <td class="binder-tbl__pdb binder-tbl__crystal">
                         {% if binder.pdb %}
-                            <a class="binder-tbl__pdb-link"
-                               href="https://www.rcsb.org/structure/{{ binder.pdb }}"
-                               target="_blank"
-                               rel="noopener noreferrer"
-                               onclick="event.stopPropagation()"
-                               title="{% trans 'View in RCSB PDB' %}">
-                                <span class="binder-tbl__pdb-id">{{ binder.pdb }}</span>
-                                <svg class="binder-tbl__ext-icon" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M7 1h4v4M11 1L6 6M5 2H2a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h7a1 1 0 0 0 1-1V8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                            </a>
+                            <div class="binder-crystal-cell">
+                                <div class="binder-crystal-main">
+                                    <a class="binder-tbl__pdb-link"
+                                       href="https://www.rcsb.org/structure/{{ binder.crystal.pdb_code|default:binder.pdb }}"
+                                       target="_blank"
+                                       rel="noopener noreferrer"
+                                       onclick="event.stopPropagation()"
+                                       title="{% trans 'View source crystal in RCSB PDB' %}">
+                                        <span class="binder-tbl__pdb-id">{{ binder.crystal.pdb_code|default:binder.pdb }}</span>
+                                        <svg class="binder-tbl__ext-icon" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M7 1h4v4M11 1L6 6M5 2H2a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h7a1 1 0 0 0 1-1V8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                    </a>
+                                    <span class="binder-crystal-badge binder-crystal-badge--{{ binder.crystal.status_tone }}" title="{{ binder.crystal.match_label }}">{{ binder.crystal.status_label }}</span>
+                                </div>
+                                {% if binder.crystal.loaded and binder.crystal.structure_id %}
+                                    <a class="binder-crystal-viewer"
+                                       href="{% url 'tpwebapp:structure' binder.crystal.structure_id %}?protein_id={{ protein.id }}"
+                                       onclick="event.stopPropagation()"
+                                       title="{% trans 'Open this loaded source crystal in the TPW structure viewer' %}">
+                                        {% trans "Open crystal" %}
+                                    </a>
+                                {% else %}
+                                    <span class="binder-crystal-note">{{ binder.crystal.match_label }}</span>
+                                {% endif %}
+                            </div>
                         {% else %}—{% endif %}
                     </td>
                     {% if show_uniprot %}<td class="binder-tbl__uniprot">{{ binder.uniprot|default:"—" }}</td>{% endif %}

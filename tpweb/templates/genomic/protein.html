@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260610-3">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260612-1">
 {% endblock %}
 
 {% block body %}
@@ -515,7 +515,7 @@
                     <div class="section-head tp-ui-panel-head">
                         <div>
                             <h2>{% trans "Ligand evidence" %}</h2>
-                            <p class="section-subtitle">{% trans "Ligands grouped by evidence source — prioritize those reported for this exact protein." %}</p>
+                            <p class="section-subtitle">{% trans "Ligands grouped by evidence source. PDB ligands keep the source crystal visible, and loaded crystals can be opened directly in the structure viewer." %}</p>
                         </div>
                         <div class="section-tools">
                             <span class="tp-chip tp-chip--count tp-chip--sm">{{ binders.total }} {% trans "records" %}</span>
@@ -581,7 +581,7 @@
                     {# PDB — this protein #}
                     <div class="binders-panel {% if binders.default_tab != 'pdb_direct' %}is-hidden{% endif %}"
                          data-binders-panel="pdb_direct" role="tabpanel">
-                        <p class="binders-panel-caption">{% trans "Highest-confidence structural evidence: ligands co-crystallized with this exact protein in the Protein Data Bank." %}</p>
+                        <p class="binders-panel-caption">{% trans "Highest-confidence structural evidence: ligands co-crystallized with this exact protein. If the source PDB is loaded in TPW, use Open crystal to inspect it in the structure viewer." %}</p>
                         {% if binders.pdb_direct %}
                             <div class="binder-filter-bar" data-binder-filter-bar>
                                 <span class="binder-filter-label">Show only:</span>
@@ -603,7 +603,7 @@
                     {# PDB — homologs #}
                     <div class="binders-panel {% if binders.default_tab != 'pdb_homolog' %}is-hidden{% endif %}"
                          data-binders-panel="pdb_homolog" role="tabpanel">
-                        <p class="binders-panel-caption">{% trans "Structural evidence inferred from similar proteins. The UniProt column identifies the protein that carried the ligand in PDB." %}</p>
+                        <p class="binders-panel-caption">{% trans "Structural evidence inferred from similar proteins. The source crystal indicates where the ligand was observed; the UniProt column identifies the homologous protein carrying that ligand." %}</p>
                         {% if binders.pdb_homolog %}
                             <div class="binder-filter-bar" data-binder-filter-bar>
                                 <span class="binder-filter-label">Show only:</span>
