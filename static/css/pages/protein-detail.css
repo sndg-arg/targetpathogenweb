@@ -3076,21 +3076,14 @@ body.residue-modal-open {
 
 
 .binder-tbl__crystal {
-    min-width: 220px;
+    min-width: 200px;
 }
 
 .binder-crystal-cell {
     display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 5px;
-}
-
-.binder-crystal-main {
-    display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: 7px;
-    min-width: 0;
+    gap: 6px;
 }
 
 .binder-crystal-badge {
@@ -3110,17 +3103,6 @@ body.residue-modal-open {
     color: var(--tp-color-sage-800);
     background: var(--tp-color-sage-050);
     border-color: color-mix(in srgb, var(--tp-color-sage-800) 20%, var(--tp-color-border-soft));
-}
-
-.binder-crystal-badge--external {
-    color: var(--tp-color-brand-900);
-    background: var(--tp-color-brand-050);
-    border-color: color-mix(in srgb, var(--tp-color-brand-700) 18%, var(--tp-color-border-soft));
-}
-
-.binder-crystal-badge--homolog {
-    color: var(--tp-color-text-secondary);
-    background: var(--tp-color-surface-soft);
 }
 
 .binder-crystal-viewer {
