@@ -1492,20 +1492,16 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 }
 
 .binder-prop {
-    display: inline-block;
+    display: inline;
     font-variant-numeric: tabular-nums;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    font-size: 0.8rem;
+    font-size: 0.88rem;
     color: var(--tp-color-text-secondary);
-    background: var(--tp-color-surface-soft);
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: 5px;
-    padding: 1px 6px;
-    margin-right: 4px;
 }
 
-.binder-prop:last-child {
-    margin-right: 0;
+.binder-prop + .binder-prop::before {
+    content: " · ";
+    color: var(--tp-color-text-soft);
+    font-size: 0.8em;
 }
 
 .binder-tbl__score-empty {
@@ -2825,6 +2821,7 @@ body.residue-modal-open {
     text-transform: uppercase !important;
     letter-spacing: 0.08em !important;
     color: var(--tp-color-text-muted) !important;
+    background: var(--tp-color-surface-soft) !important;
 }
 
 /* Slightly more vertical room in cells */

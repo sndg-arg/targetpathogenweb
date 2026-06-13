@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260612-4">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260612-5">
 {% endblock %}
 
 {% block body %}
@@ -542,7 +542,7 @@
                                 aria-selected="{% if binders.default_tab == 'pdb_direct' %}true{% else %}false{% endif %}"
                                 data-binders-tab="pdb_direct">
                             <span>{% trans "PDB co-crystal" %}</span>
-                            <span class="binders-tab__count">{{ binders.pdb_direct_count }}</span>
+                            {% if binders.pdb_direct_count %}<span class="binders-tab__count">{{ binders.pdb_direct_count }}</span>{% endif %}
                         </button>
                         <button type="button"
                                 class="binders-tab {% if binders.default_tab == 'pdb_homolog' %}is-active{% endif %}"
@@ -550,7 +550,7 @@
                                 aria-selected="{% if binders.default_tab == 'pdb_homolog' %}true{% else %}false{% endif %}"
                                 data-binders-tab="pdb_homolog">
                             <span>{% trans "PDB via homologs" %}</span>
-                            <span class="binders-tab__count">{{ binders.pdb_homolog_count }}</span>
+                            {% if binders.pdb_homolog_count %}<span class="binders-tab__count">{{ binders.pdb_homolog_count }}</span>{% endif %}
                         </button>
                         <button type="button"
                                 class="binders-tab {% if binders.default_tab == 'chembl_direct' %}is-active{% endif %}"
@@ -558,7 +558,7 @@
                                 aria-selected="{% if binders.default_tab == 'chembl_direct' %}true{% else %}false{% endif %}"
                                 data-binders-tab="chembl_direct">
                             <span>{% trans "ChEMBL bioactive" %}</span>
-                            <span class="binders-tab__count">{{ binders.chembl_direct_count }}</span>
+                            {% if binders.chembl_direct_count %}<span class="binders-tab__count">{{ binders.chembl_direct_count }}</span>{% endif %}
                         </button>
                         <button type="button"
                                 class="binders-tab {% if binders.default_tab == 'chembl_homolog' %}is-active{% endif %}"
@@ -566,7 +566,7 @@
                                 aria-selected="{% if binders.default_tab == 'chembl_homolog' %}true{% else %}false{% endif %}"
                                 data-binders-tab="chembl_homolog">
                             <span>{% trans "ChEMBL via homologs" %}</span>
-                            <span class="binders-tab__count">{{ binders.chembl_homolog_count }}{% if binders.chembl_homolog_capped %}+{% endif %}</span>
+                            {% if binders.chembl_homolog_count %}<span class="binders-tab__count">{{ binders.chembl_homolog_count }}{% if binders.chembl_homolog_capped %}+{% endif %}</span>{% endif %}
                         </button>
                         <button type="button"
                                 class="binders-tab {% if binders.default_tab == 'zinc' %}is-active{% endif %}"
@@ -574,7 +574,7 @@
                                 aria-selected="{% if binders.default_tab == 'zinc' %}true{% else %}false{% endif %}"
                                 data-binders-tab="zinc">
                             <span>{% trans "ZINC" %}</span>
-                            <span class="binders-tab__count">{{ binders.zinc_count }}{% if binders.zinc_capped %}+{% endif %}</span>
+                            {% if binders.zinc_count %}<span class="binders-tab__count">{{ binders.zinc_count }}{% if binders.zinc_capped %}+{% endif %}</span>{% endif %}
                         </button>
                     </div>
 
