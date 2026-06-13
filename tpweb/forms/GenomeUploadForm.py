@@ -1,3 +1,5 @@
+import os
+
 from django import forms
 from django.utils.translation import gettext_lazy as _
 import re
@@ -44,4 +46,9 @@ class GenomeUploadForm(forms.Form):
         filename = getattr(gbk_file, "name", "")
         if not filename.endswith(".gbk.gz"):
             raise forms.ValidationError(_("The genome file must end with `.gbk.gz`."))
+        max_size = int(os.environ.get("TPW_GENOME_UPLOAD_MAX_BYTES", str(200 * 1024 * 1024)))
+        if getattr(gbk_file, "size", 0) > max_size:
+            raise forms.ValidationError(
+                f"The genome file is too large. Maximum allowed size is {max_size // (1024 * 1024)} MB."
+            )
         return gbk_file

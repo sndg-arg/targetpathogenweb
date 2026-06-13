@@ -1,6 +1,7 @@
 from io import StringIO
 
 from django.contrib import messages
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.management import CommandError, call_command
 from django.db import transaction
 from django.shortcuts import redirect, render
@@ -40,7 +41,7 @@ from tpweb.services.slurm_messages import classify_slurm_resource_message
 from tpweb.services.workspace import resolve_workspace_user
 
 
-class GenomeUploadView(View):
+class GenomeUploadView(LoginRequiredMixin, View):
     template_name = "user/upload_data.html"
     ACTION_CLEAR_HISTORY = "clear_history"
     ACTION_USE_TEST_GENOME = "use_test_genome"

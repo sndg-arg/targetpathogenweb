@@ -1,3 +1,4 @@
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from django.http import Http404
 from django.urls import reverse
@@ -27,13 +28,14 @@ def index_new_param(custom_param):
         print(f"Failed to execute script: {e}")
 
 
+
+@login_required
 def upload_form(request, genome):
     assembly_name = resolve_genome_from_slug(request.user, genome)
     if not assembly_name:
         raise Http404("Genome not found")
     workspace_user = resolve_workspace_user(request.user)
     if request.method == 'POST':
-        print(f"post {request.POST}")
         #if request.POST.get('overwrite') != 'false':
         form = CustomParamForm(request.POST, request.FILES)
         if form.is_valid():
@@ -72,7 +74,6 @@ def upload_form(request, genome):
                        'assembly_label': display_genome_name(assembly_name)}
             return render(request, 'genomic/customparam.html', context)
     else:
-        print(f"get: {request.POST}")
         form = CustomParamForm()
         context = {'form': form,
                    'assembly_name': assembly_name,
