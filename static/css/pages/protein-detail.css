@@ -3100,8 +3100,8 @@ body.residue-modal-open {
     padding: 2px 7px;
     border-radius: 999px;
     border: 1px solid var(--tp-color-border-soft);
-    font-size: 0.68rem;
-    font-weight: 700;
+    font-size: 0.72rem;
+    font-weight: 600;
     line-height: 1;
     white-space: nowrap;
 }
@@ -3124,29 +3124,8 @@ body.residue-modal-open {
 }
 
 .binder-crystal-viewer {
-    display: inline-flex;
-    align-items: center;
-    min-height: 24px;
-    padding: 3px 9px;
-    border-radius: 6px;
-    border: 1px solid var(--tp-color-border-strong);
-    color: var(--tp-color-link);
-    background: var(--tp-color-surface);
-    font-size: 0.75rem;
-    font-weight: 700;
-    text-decoration: none;
-}
-
-.binder-crystal-viewer:hover {
-    color: var(--tp-color-link-hover);
-    border-color: var(--tp-color-link-hover);
-    background: var(--tp-color-surface-soft);
-}
-
-.binder-crystal-note {
-    max-width: 260px;
-    color: var(--tp-color-text-muted);
-    font-size: 0.72rem;
-    line-height: 1.25;
-    white-space: normal;
+    font-size: 0.78rem !important;
+    padding: 3px 10px !important;
+    min-height: 26px !important;
+    white-space: nowrap;
 }

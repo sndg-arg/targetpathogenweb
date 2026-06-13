@@ -36,14 +36,12 @@
                                     <span class="binder-crystal-badge binder-crystal-badge--{{ binder.crystal.status_tone }}" title="{{ binder.crystal.match_label }}">{{ binder.crystal.status_label }}</span>
                                 </div>
                                 {% if binder.crystal.loaded and binder.crystal.structure_id %}
-                                    <a class="binder-crystal-viewer"
+                                    <a class="btn tp-btn tp-btn--outline binder-crystal-viewer"
                                        href="{% url 'tpwebapp:structure' binder.crystal.structure_id %}?protein_id={{ protein.id }}"
                                        onclick="event.stopPropagation()"
                                        title="{% trans 'Open this loaded source crystal in the TPW structure viewer' %}">
                                         {% trans "Open crystal" %}
                                     </a>
-                                {% else %}
-                                    <span class="binder-crystal-note">{{ binder.crystal.match_label }}</span>
                                 {% endif %}
                             </div>
                         {% else %}—{% endif %}
