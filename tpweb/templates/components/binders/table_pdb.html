@@ -32,8 +32,10 @@
                                     <span class="binder-tbl__pdb-id">{{ binder.crystal.pdb_code|default:binder.pdb }}</span>
                                     <svg class="binder-tbl__ext-icon" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M7 1h4v4M11 1L6 6M5 2H2a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h7a1 1 0 0 0 1-1V8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
                                 </a>
+                                {% if binder.crystal.resolution %}
+                                    <span class="binder-crystal-res">{{ binder.crystal.resolution|floatformat:2 }}&thinsp;Å</span>
+                                {% endif %}
                                 {% if binder.crystal.loaded and binder.crystal.structure_id %}
-                                    <span class="binder-crystal-badge binder-crystal-badge--loaded">{% trans "Loaded" %}</span>
                                     <a class="btn tp-btn tp-btn--outline binder-crystal-viewer"
                                        href="{% url 'tpwebapp:structure' binder.crystal.structure_id %}?protein_id={{ protein.id }}"
                                        onclick="event.stopPropagation()"

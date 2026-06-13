@@ -799,18 +799,20 @@ def _loaded_experimental_structure_map(structures):
     return loaded
 
 
-def _binder_crystal_payload(binder, loaded_ex_structures=None):
+def _binder_crystal_payload(binder, loaded_ex_structures=None, pdb_resolution_map=None):
     pdb_code = _normalise_pdb_code(binder.pdb_id)
     loaded_link = (loaded_ex_structures or {}).get(pdb_code)
     loaded_pdb = getattr(loaded_link, "pdb", None) if loaded_link else None
     loaded_structure_id = getattr(loaded_pdb, "id", None)
     is_direct = bool(getattr(binder, "is_direct", False))
+    resolution = (pdb_resolution_map or {}).get(pdb_code)
 
     if not pdb_code:
         return {
             "pdb_code": "",
             "loaded": False,
             "structure_id": None,
+            "resolution": None,
             "status_label": "No PDB code",
             "status_tone": "external",
             "match_label": "Ligand evidence has no source PDB code.",
@@ -839,13 +841,14 @@ def _binder_crystal_payload(binder, loaded_ex_structures=None):
         "pdb_code": pdb_code,
         "loaded": bool(loaded_structure_id),
         "structure_id": loaded_structure_id,
+        "resolution": resolution,
         "status_label": status_label,
         "status_tone": status_tone,
         "match_label": match_label,
     }
 
 
-def _binder_to_dto(binder, loaded_ex_structures=None):
+def _binder_to_dto(binder, loaded_ex_structures=None, pdb_resolution_map=None):
     return {
         "id": binder.id,
         "name": binder.ccd_id or f"Binder {binder.id}",
@@ -857,7 +860,7 @@ def _binder_to_dto(binder, loaded_ex_structures=None):
         "notes": binder.notes,
         "source": binder.source,
         "is_direct": binder.is_direct,
-        "crystal": _binder_crystal_payload(binder, loaded_ex_structures),
+        "crystal": _binder_crystal_payload(binder, loaded_ex_structures, pdb_resolution_map),
         "props": _binder_table_properties(binder.smiles),
     }
 
@@ -874,6 +877,11 @@ def create_binders_dict(protein, search_query="", structures=None):
 
     binders_qs = Binders.objects.filter(locustag=protein).order_by("source", "is_direct", "ccd_id", "id")
     loaded_ex_structures = _loaded_experimental_structure_map(structures)
+    pdb_resolution_map = {
+        str(xref.pdb_id or "").strip().upper(): xref.resolution
+        for xref in protein.experimental_structure_xrefs.all()
+        if xref.resolution is not None
+    }
     cleaned_query = (search_query or "").strip()
     if cleaned_query:
         binders_qs = binders_qs.filter(
@@ -890,7 +898,7 @@ def create_binders_dict(protein, search_query="", structures=None):
     zinc = []
 
     for binder in binders_qs:
-        dto = _binder_to_dto(binder, loaded_ex_structures)
+        dto = _binder_to_dto(binder, loaded_ex_structures, pdb_resolution_map)
         if binder.source == Binders.SOURCE_PDB:
             if binder.is_direct:
                 pdb_direct.append(dto)

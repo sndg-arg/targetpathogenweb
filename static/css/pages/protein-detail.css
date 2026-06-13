@@ -3083,6 +3083,19 @@ body.residue-modal-open {
     gap: 6px;
 }
 
+.binder-crystal-res {
+    font-size: 0.82rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--tp-color-text-muted);
+    white-space: nowrap;
+}
+
+.binder-crystal-res::before {
+    content: "·";
+    margin: 0 4px;
+    color: var(--tp-color-text-soft);
+}
+
 .binder-crystal-badge {
     display: inline-flex;
     align-items: center;
