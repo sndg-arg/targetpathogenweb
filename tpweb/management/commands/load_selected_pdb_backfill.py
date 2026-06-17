@@ -1,3 +1,5 @@
+import ast
+import csv
 import math
 import os
 import requests
@@ -20,6 +22,7 @@ from tpweb.management.commands.load_af_model import store_structure_file
 
 DEFAULT_DATA_DIR = str(settings.BASE_DIR / "data")
 SOURCE_FIELDS = ("best_fpocket_structure", "best_p2rank_structure")
+DEFAULT_STRUCTURE_COLUMN = "structure"
 RCSB_CIF_URL = "https://files.rcsb.org/download/{pdb_id}.cif"
 
 
@@ -35,6 +38,21 @@ def _clean(value):
 def _is_pdb_code(value):
     value = _clean(value).upper()
     return len(value) == 4 and value.isalnum()
+
+
+def _parse_structure_candidates(value):
+    value = _clean(value)
+    if not value:
+        return []
+    try:
+        parsed = ast.literal_eval(value)
+    except (SyntaxError, ValueError):
+        parsed = value.replace("{", "").replace("}", "").split(",")
+    return [
+        _clean(candidate).strip("'\"").upper()
+        for candidate in parsed
+        if _is_pdb_code(candidate)
+    ]
 
 
 def _folder_path(datadir, genome_name):
@@ -93,13 +111,43 @@ class Command(BaseCommand):
             default=None,
             help="Load at most N missing protein/PDB links.",
         )
+        parser.add_argument(
+            "--results-tsv",
+            default=None,
+            help=(
+                "Optional curated results TSV. Used only with "
+                "--include-structure-column to load PDB candidates listed in "
+                "the TSV structure column."
+            ),
+        )
+        parser.add_argument(
+            "--include-structure-column",
+            action="store_true",
+            help=(
+                "Also backfill PDB candidates from the curated TSV 'structure' "
+                "column. This is opt-in because those PDBs are evidence records, "
+                "not necessarily the selected FPocket/P2Rank source."
+            ),
+        )
+        parser.add_argument(
+            "--structure-column",
+            default=DEFAULT_STRUCTURE_COLUMN,
+            help="Curated TSV column containing structure candidates. Default: %(default)s",
+        )
 
     def handle(self, *args, **options):
         genome_name = options["genome_name"]
         datadir = options["datadir"].rstrip("/\\")
         dry_run = options["dry_run"]
         limit = options["limit"]
+        results_tsv = options["results_tsv"]
+        include_structure_column = options["include_structure_column"]
+        structure_column = options["structure_column"]
 
+        if include_structure_column and not results_tsv:
+            raise CommandError("--include-structure-column requires --results-tsv.")
+        if results_tsv and not os.path.isfile(results_tsv):
+            raise CommandError(f"Results TSV not found: {results_tsv}")
         db_name = genome_name + Biodatabase.PROT_POSTFIX
         try:
             db = Biodatabase.objects.get(name=db_name)
@@ -121,6 +169,29 @@ class Command(BaseCommand):
             source = _clean(spv.value if spv.value else spv.numeric_value).upper()
             if _is_pdb_code(source):
                 selected[(spv.bioentry_id, source)].add(spv.score_param.name)
+
+        missing_tsv_genes = 0
+        if include_structure_column:
+            protein_by_accession = {
+                protein.accession: protein
+                for protein in protein_by_id.values()
+            }
+            with open(results_tsv, newline="", encoding="utf-8") as handle:
+                reader = csv.DictReader(handle, delimiter="\t")
+                if "gene" not in (reader.fieldnames or []):
+                    raise CommandError("Results TSV must have a 'gene' column.")
+                if structure_column not in (reader.fieldnames or []):
+                    raise CommandError(
+                        f"Results TSV does not have structure column '{structure_column}'."
+                    )
+
+                for row in reader:
+                    protein = protein_by_accession.get(_clean(row.get("gene")))
+                    if protein is None:
+                        missing_tsv_genes += 1
+                        continue
+                    for pdb_id in _parse_structure_candidates(row.get(structure_column)):
+                        selected[(protein.bioentry_id, pdb_id)].add(structure_column)
 
         if not selected:
             self.stdout.write(f"No selected PDB sources found for {genome_name}.")
@@ -149,6 +220,14 @@ class Command(BaseCommand):
 
         self.stdout.write(self.style.MIGRATE_HEADING(f"Selected PDB backfill for {genome_name}"))
         self.stdout.write(f"Selected protein/PDB links: {len(selected)}")
+        if include_structure_column:
+            self.stdout.write(f"Included curated TSV column: {structure_column}")
+            if missing_tsv_genes:
+                self.stdout.write(
+                    self.style.WARNING(
+                        f"TSV rows not found in TPW proteins: {missing_tsv_genes}"
+                    )
+                )
         self.stdout.write(f"Already loaded as EX: {len(selected) - len(to_load)}")
         self.stdout.write(f"Missing selected PDB links: {len(to_load)}")
         if limit is not None:
