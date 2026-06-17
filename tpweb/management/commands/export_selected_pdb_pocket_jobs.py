@@ -1,3 +1,5 @@
+import ast
+import csv
 import gzip
 import math
 import os
@@ -18,6 +20,7 @@ from tpweb.services.structure_files import structure_file_path
 
 
 DEFAULT_DATA_DIR = str(settings.BASE_DIR / "data")
+DEFAULT_STRUCTURE_COLUMN = "structure"
 SELECTED_FIELDS = (
     ("fpocket", "best_fpocket_structure", "Druggability", "fpocket_pocket", "FPocketPocket"),
     ("p2rank", "best_p2rank_structure", "p2rank_probability", "p2rank_pocket", "P2RankPocket"),
@@ -39,7 +42,22 @@ def _clean(value):
 
 def _is_pdb_code(value):
     value = _clean(value).upper()
-    return len(value) == 4 and value.isalnum()
+    return len(value) == 4 and value[0].isdigit() and value.isalnum()
+
+
+def _parse_structure_candidates(value):
+    value = _clean(value)
+    if not value:
+        return []
+    try:
+        parsed = ast.literal_eval(value)
+    except (SyntaxError, ValueError):
+        parsed = value.replace("{", "").replace("}", "").split(",")
+    return sorted({
+        _clean(candidate).strip("'\"").upper()
+        for candidate in parsed
+        if _is_pdb_code(candidate)
+    })
 
 
 def _folder_path(datadir, genome_name):
@@ -91,6 +109,29 @@ class Command(BaseCommand):
             action="store_true",
             help="Export selected PDBs even if both selected pocket methods are already loaded.",
         )
+        parser.add_argument(
+            "--results-tsv",
+            default=None,
+            help=(
+                "Optional curated results TSV. Used only with "
+                "--include-structure-column to export PDB candidates listed "
+                "in the TSV structure column."
+            ),
+        )
+        parser.add_argument(
+            "--include-structure-column",
+            action="store_true",
+            help=(
+                "Also export PDB candidates from the curated TSV 'structure' "
+                "column. This is opt-in because those PDBs are structural "
+                "evidence records, not necessarily selected pocket-score sources."
+            ),
+        )
+        parser.add_argument(
+            "--structure-column",
+            default=DEFAULT_STRUCTURE_COLUMN,
+            help="Curated TSV column containing structure candidates. Default: %(default)s",
+        )
 
     def handle(self, *args, **options):
         genome_name = options["genome_name"]
@@ -98,6 +139,14 @@ class Command(BaseCommand):
         folder_path = _folder_path(datadir, genome_name)
         output_dir = options["output_dir"] or os.path.join(folder_path, "selected_pdb_pocket_jobs")
         include_complete = options["include_complete"]
+        results_tsv = options["results_tsv"]
+        include_structure_column = options["include_structure_column"]
+        structure_column = options["structure_column"]
+
+        if include_structure_column and not results_tsv:
+            raise CommandError("--include-structure-column requires --results-tsv.")
+        if results_tsv and not os.path.isfile(results_tsv):
+            raise CommandError(f"Results TSV not found: {results_tsv}")
 
         proteome_name = genome_name + Biodatabase.PROT_POSTFIX
         try:
@@ -107,6 +156,7 @@ class Command(BaseCommand):
 
         proteins = Bioentry.objects.filter(biodatabase=db).only("bioentry_id", "accession")
         protein_accessions = dict(proteins.values_list("bioentry_id", "accession"))
+        protein_by_accession = {accession: protein_id for protein_id, accession in protein_accessions.items()}
         protein_ids = set(protein_accessions)
         if not protein_ids:
             self.stdout.write("No proteins found.")
@@ -179,6 +229,51 @@ class Command(BaseCommand):
                     job["p2rank_pocket"] = row_scores.get(pocket_field, "")
                     job["need_p2rank"] = include_complete or not has_pockets
 
+        missing_tsv_genes = 0
+        if include_structure_column:
+            with open(results_tsv, newline="", encoding="utf-8") as handle:
+                reader = csv.DictReader(handle, delimiter="\t")
+                if "gene" not in (reader.fieldnames or []):
+                    raise CommandError("Results TSV must have a 'gene' column.")
+                if structure_column not in (reader.fieldnames or []):
+                    raise CommandError(
+                        f"Results TSV does not have structure column '{structure_column}'."
+                    )
+
+                for row in reader:
+                    accession = _clean(row.get("gene"))
+                    protein_id = protein_by_accession.get(accession)
+                    if protein_id is None:
+                        missing_tsv_genes += 1
+                        continue
+                    for pdb_code in _parse_structure_candidates(row.get(structure_column)):
+                        link = loaded.get((protein_id, pdb_code))
+                        if link is None:
+                            continue
+                        key = (protein_id, pdb_code)
+                        job = jobs.setdefault(key, {
+                            "genome": genome_name,
+                            "locus": accession,
+                            "pdb_code": pdb_code,
+                            "chain": link.chain or "",
+                            "need_fpocket": False,
+                            "need_p2rank": False,
+                            "fpocket_score": "",
+                            "fpocket_pocket": "",
+                            "p2rank_score": "",
+                            "p2rank_pocket": "",
+                        })
+                        job["need_fpocket"] = (
+                            job["need_fpocket"]
+                            or include_complete
+                            or link.pdb_id not in pockets_by_type["FPocketPocket"]
+                        )
+                        job["need_p2rank"] = (
+                            job["need_p2rank"]
+                            or include_complete
+                            or link.pdb_id not in pockets_by_type["P2RankPocket"]
+                        )
+
         jobs = [job for job in jobs.values() if job["need_fpocket"] or job["need_p2rank"]]
         jobs.sort(key=lambda item: (item["locus"], item["pdb_code"]))
 
@@ -220,6 +315,14 @@ class Command(BaseCommand):
                 tar.add(input_root, arcname="input")
 
         self.stdout.write(self.style.MIGRATE_HEADING(f"Selected PDB pocket export for {genome_name}"))
+        if include_structure_column:
+            self.stdout.write(f"Included curated TSV column: {structure_column}")
+            if missing_tsv_genes:
+                self.stdout.write(
+                    self.style.WARNING(
+                        f"TSV rows not found in TPW proteins: {missing_tsv_genes}"
+                    )
+                )
         self.stdout.write(f"Jobs needing pockets: {len(jobs)}")
         self.stdout.write(f"Exported jobs: {len(jobs) - len(missing_files)}")
         self.stdout.write(f"Missing PDB files: {len(missing_files)}")
