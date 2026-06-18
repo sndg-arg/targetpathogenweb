@@ -1,8 +1,12 @@
 import csv
+import gzip
+import json
 import os
+import re
 import shutil
 import tarfile
 import tempfile
+from collections import defaultdict
 
 from django.conf import settings
 from django.core.management import call_command
@@ -15,7 +19,29 @@ from tpweb.models.pdb import PDB, PDBResidueSet
 DEFAULT_DATA_DIR = str(settings.BASE_DIR / "data")
 FP_RESIDUE_SET = "FPocketPocket"
 P2_RESIDUE_SET = "P2RankPocket"
-
+INFO_TO_TPW_PROPERTY = {
+    "Score": "Score",
+    "Druggability Score": "Druggability Score",
+    "Number of Alpha Spheres": "Number of Alpha Spheres",
+    "Total SASA": "Total SASA",
+    "Polar SASA": "Polar SASA",
+    "Apolar SASA": "Apolar SASA",
+    "Volume": "Volume",
+    "Mean local hydrophobic density": "Mean local hydrophobic density",
+    "Mean alpha sphere radius": "Mean alpha sphere radius",
+    "Mean alp. sph. solvent access": "Mean alp sph solvent access",
+    "Mean alp sph solvent access": "Mean alp sph solvent access",
+    "Apolar alpha sphere proportion": "Apolar alpha sphere proportion",
+    "Hydrophobicity score": "Hydrophobicity score",
+    "Volume score": "Volume score",
+    "Polarity score": "Polarity score",
+    "Charge score": "Charge score",
+    "Proportion of polar atoms": "Proportion of polar atoms",
+    "Alpha sphere density": "Alpha sphere density",
+    "Cent. of mass - Alpha Sphere max dist": "Cent of mass - Alpha Sphere max dist",
+    "Cent of mass - Alpha Sphere max dist": "Cent of mass - Alpha Sphere max dist",
+    "Flexibility": "Flexibility",
+}
 
 def clean(value):
     return str(value or "").strip()
@@ -120,6 +146,139 @@ def has_residue_set(pdb_code, residue_set_name):
     ).exists()
 
 
+def fpocket_json_is_empty(path):
+    try:
+        with gzip.open(path, "rt", encoding="utf-8") as handle:
+            data = json.load(handle)
+    except Exception:
+        return False
+    return data == []
+
+
+def parse_fpocket_info(path):
+    pockets = {}
+    current = None
+    if not os.path.exists(path):
+        return pockets
+
+    with open(path, "rt", encoding="utf-8", errors="replace") as handle:
+        for line in handle:
+            match = re.match(r"Pocket\s+(\d+)\s*:", line)
+            if match:
+                current = int(match.group(1))
+                pockets[current] = {}
+                continue
+            if current is None or ":" not in line:
+                continue
+
+            raw_name, _sep, raw_value = line.partition(":")
+            prop_name = INFO_TO_TPW_PROPERTY.get(raw_name.strip().rstrip("."))
+            if not prop_name:
+                continue
+            try:
+                pockets[current][prop_name] = float(raw_value.strip())
+            except ValueError:
+                continue
+    return pockets
+
+
+def parse_fpocket_alpha_lines(path):
+    pockets = defaultdict(list)
+    if not os.path.exists(path):
+        return pockets
+
+    with open(path, "rt", encoding="utf-8", errors="replace") as handle:
+        for line in handle:
+            if not line.startswith("HETATM") or "STP" not in line:
+                continue
+            try:
+                pocket_number = int(line[22:26])
+            except ValueError:
+                continue
+            pockets[pocket_number].append(line if line.endswith("\n") else line + "\n")
+    return pockets
+
+
+def parse_fpocket_atom_pdb(path):
+    atoms = []
+    residues = []
+    if not os.path.exists(path):
+        return atoms, residues
+
+    with open(path, "rt", encoding="utf-8", errors="replace") as handle:
+        for line in handle:
+            if not (line.startswith("ATOM") or line.startswith("HETATM")):
+                continue
+            serial = line[6:11].strip()
+            if serial:
+                atoms.append(serial)
+
+            chain = line[21:22].strip()
+            resid = line[22:26].strip()
+            insertion = line[26:27].strip()
+            if resid:
+                residues.append(f"{chain}{resid}{insertion}")
+    return atoms, residues
+
+
+def parse_fpocket_atom_files(fpocket_dir):
+    atoms_by_pocket = {}
+    residues_by_pocket = {}
+    pockets_dir = os.path.join(fpocket_dir, "pockets")
+    if not os.path.isdir(pockets_dir):
+        return atoms_by_pocket, residues_by_pocket
+
+    for filename in sorted(os.listdir(pockets_dir)):
+        match = re.match(r"pocket(\d+)_atm\.pdb$", filename)
+        if not match:
+            continue
+        pocket_number = int(match.group(1))
+        atoms, residues = parse_fpocket_atom_pdb(os.path.join(pockets_dir, filename))
+        atoms_by_pocket[pocket_number] = atoms
+        residues_by_pocket[pocket_number] = residues
+    return atoms_by_pocket, residues_by_pocket
+
+
+def fallback_fpocket_to_json(fpocket_dir):
+    basename = os.path.basename(fpocket_dir)
+    stem = basename[:-4] if basename.endswith("_out") else basename
+    out_pdb = os.path.join(fpocket_dir, f"{stem}_out.pdb")
+    info_txt = os.path.join(fpocket_dir, f"{stem}_info.txt")
+
+    properties_by_pocket = parse_fpocket_info(info_txt)
+    alpha_lines_by_pocket = parse_fpocket_alpha_lines(out_pdb)
+    atoms_by_pocket, residues_by_pocket = parse_fpocket_atom_files(fpocket_dir)
+
+    pocket_numbers = sorted(
+        set(properties_by_pocket)
+        | set(alpha_lines_by_pocket)
+        | set(atoms_by_pocket)
+        | set(residues_by_pocket)
+    )
+    if not pocket_numbers:
+        return None
+
+    pocket_json = os.path.join(os.path.dirname(fpocket_dir), f"{basename}.fallback.json.gz")
+    pockets = [
+        {
+            "number": number,
+            "residues": residues_by_pocket.get(number, []),
+            "as_lines": alpha_lines_by_pocket.get(number, []),
+            "atoms": atoms_by_pocket.get(number, []),
+            "properties": properties_by_pocket.get(number, {}),
+        }
+        for number in pocket_numbers
+    ]
+
+    with gzip.open(pocket_json, "wt", encoding="utf-8") as handle:
+        json.dump(pockets, handle)
+    try:
+        os.chmod(pocket_json, 0o666)
+    except OSError:
+        pass
+    return pocket_json
+
+
 class Command(BaseCommand):
     help = "Import FPocket/P2Rank results for selected PDB pocket jobs."
 
@@ -205,6 +364,11 @@ class Command(BaseCommand):
                             self.stderr.write(f"missing FPocket output: {locus} {pdb_code}")
                         else:
                             pocket_json = bpe._fpocket_to_json(fpocket_dir)
+                            if not pocket_json or fpocket_json_is_empty(pocket_json):
+                                fallback_json = fallback_fpocket_to_json(fpocket_dir)
+                                if fallback_json:
+                                    self.stdout.write(f"FPocket fallback JSON used: {locus} {pdb_code}")
+                                    pocket_json = fallback_json
                             if not pocket_json:
                                 fp_failed += 1
                                 self.stderr.write(f"FPocket JSON failed: {locus} {pdb_code}")

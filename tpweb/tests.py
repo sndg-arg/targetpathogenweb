@@ -1,4 +1,5 @@
 import gzip
+import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import MagicMock, patch
@@ -57,6 +58,7 @@ from tpweb.services.pipeline_status import (
 from tpweb.services.structure_files import _candidate_seqstore_dirs
 from tpweb.services.structure_sources import summarize_structure_sources
 from tpweb.management.commands.load_af_model import store_structure_file
+from tpweb.management.commands.import_selected_pdb_pocket_results import fallback_fpocket_to_json
 from tpweb.services.genome_workspace import (
     build_workspace_genome_name,
     describe_genome_scope,
@@ -1209,3 +1211,41 @@ class AssemblyViewTests(TestCase):
         response = self.client.get("/genome/NZ_AP023069.1")
 
         self.assertEqual(response.status_code, 200)
+
+
+class FPocketFallbackConversionTests(SimpleTestCase):
+    def test_fallback_fpocket_to_json_reads_native_fpocket_output(self):
+        with TemporaryDirectory() as tmp:
+            fpocket_dir = Path(tmp) / "6CIA_out"
+            pockets_dir = fpocket_dir / "pockets"
+            pockets_dir.mkdir(parents=True)
+
+            (fpocket_dir / "6CIA_info.txt").write_text(
+                "Pocket 1 :\n"
+                "\tScore :\t0.211\n"
+                "\tDruggability Score :\t0.011\n"
+                "\tNumber of Alpha Spheres :\t49\n",
+                encoding="utf-8",
+            )
+            (fpocket_dir / "6CIA_out.pdb").write_text(
+                "HETATM    1 APOL STP     1       1.000   2.000   3.000  0.00  1.00\n",
+                encoding="utf-8",
+            )
+            (pockets_dir / "pocket1_atm.pdb").write_text(
+                "ATOM    123  CA  GLY A  45      11.111  22.222  33.333  1.00 20.00           C\n",
+                encoding="utf-8",
+            )
+
+            json_path = fallback_fpocket_to_json(str(fpocket_dir))
+
+            self.assertIsNotNone(json_path)
+            with gzip.open(json_path, "rt", encoding="utf-8") as handle:
+                pockets = json.load(handle)
+
+            self.assertEqual(len(pockets), 1)
+            self.assertEqual(pockets[0]["number"], 1)
+            self.assertEqual(pockets[0]["atoms"], ["123"])
+            self.assertEqual(pockets[0]["residues"], ["A45"])
+            self.assertEqual(pockets[0]["properties"]["Score"], 0.211)
+            self.assertEqual(pockets[0]["properties"]["Druggability Score"], 0.011)
+            self.assertTrue(pockets[0]["as_lines"][0].startswith("HETATM"))
