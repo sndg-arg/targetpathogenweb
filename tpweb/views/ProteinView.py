@@ -593,14 +593,14 @@ def _build_experimental_structures(protein, structures):
 
     def sort_key(entry):
         try:
-            resolution = float(str(entry["resolution"]).split()[0])
-        except (TypeError, ValueError, IndexError):
-            resolution = 999.0
-        try:
             coverage = -float(str(entry["coverage_label"]).replace("%", ""))
         except (TypeError, ValueError):
             coverage = 0.0
-        return (not entry["loaded"], resolution, coverage, entry["pdb_id"])
+        try:
+            resolution = float(str(entry["resolution"]).split()[0])
+        except (TypeError, ValueError, IndexError):
+            resolution = 999.0
+        return (not entry["loaded"], coverage, resolution, entry["pdb_id"])
 
     return sorted(entries, key=sort_key)
 

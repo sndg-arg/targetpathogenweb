@@ -43,9 +43,35 @@ def structure_toggle_label(experiment):
     return _STRUCTURE_TOGGLE_LABELS.get((experiment or "").upper(), "Model")
 
 
+def _structure_coverage_span(link):
+    start = getattr(link, "uniprot_start", None)
+    end = getattr(link, "uniprot_end", None)
+    if start is None or end is None:
+        return 0
+    return max(0, end - start + 1)
+
+
+def _structure_resolution_value(link):
+    pdb = getattr(link, "pdb", None)
+    value = getattr(link, "resolution", None) or getattr(pdb, "resolution", None)
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return 999.0
+
+
 def sort_structures_by_preference(structures):
-    return sorted(structures, key=lambda s: _STRUCTURE_PREFERENCE.get(
-        (getattr(s.pdb, "experiment", "") or "").upper(), 9))
+    def key(link):
+        pdb = getattr(link, "pdb", None)
+        experiment = (getattr(pdb, "experiment", "") or "").upper()
+        return (
+            _STRUCTURE_PREFERENCE.get(experiment, 9),
+            -_structure_coverage_span(link),
+            _structure_resolution_value(link),
+            str(getattr(pdb, "code", "") or ""),
+        )
+
+    return sorted(structures, key=key)
 
 
 def _normalize_experiment(experiment):

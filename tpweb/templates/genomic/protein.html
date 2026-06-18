@@ -1299,14 +1299,20 @@
 
                 const structureUrls = {};
                 const chainSelectors = {};
+                const mainSelectors = {};
+                const chainColorModes = {};
                 (function () {
                     document.querySelectorAll("tr[data-pdb-slot][data-structure-url]").forEach(function (row) {
                         var slot = row.getAttribute("data-pdb-slot");
                         var url = row.getAttribute("data-structure-url");
                         var chain = row.getAttribute("data-chain-selector");
+                        var mainSelector = row.getAttribute("data-main-selector");
+                        var chainColor = row.getAttribute("data-chain-color");
                         if (slot && url) {
                             structureUrls[slot] = url;
                             chainSelectors[slot] = chain || "polymer";
+                            mainSelectors[slot] = mainSelector || chain || "polymer";
+                            chainColorModes[slot] = chainColor === "true";
                         }
                     });
                 }());
@@ -1375,6 +1381,10 @@
 
                 function initStructureComponent(component) {
                     const activeChainSelector = chainSelectors[activeStructureKey] || "polymer";
+                    const mainStructureSelector = mainSelectors[activeStructureKey] || activeChainSelector;
+                    const mainStructureColor = chainColorModes[activeStructureKey]
+                        ? "chainname"
+                        : (tpColor("--tp-color-structure-cartoon") || "#2288a3");
                     function setModeButtonState(mode) {
                         structureModeButtons.forEach(function (button) {
                             const isActive = button.getAttribute("data-mode") === mode;
@@ -1440,14 +1450,14 @@
                     representations.__main_cartoon = component.addRepresentation("cartoon", {
                         aspectRatio: STRUCTURE_VIEWER_CONFIG.mainCartoonAspectRatio,
                         scale: STRUCTURE_VIEWER_CONFIG.mainCartoonScale,
-                        sele: "backbone and " + activeChainSelector,
-                        color: tpColor("--tp-color-structure-cartoon") || "#2288a3"
+                        sele: "backbone and " + mainStructureSelector,
+                        color: mainStructureColor
                     });
                     visible.__main_cartoon = true;
-                    representations.__main_cartoon.sele = "backbone and " + activeChainSelector;
+                    representations.__main_cartoon.sele = "backbone and " + mainStructureSelector;
 
                     representations.__main_density = component.addRepresentation("surface", {
-                        sele: "polymer and " + activeChainSelector,
+                        sele: "polymer and " + mainStructureSelector,
                         color: tpColor("--tp-color-structure-density"),
                         opacity: STRUCTURE_VIEWER_CONFIG.densityShellOpacity,
                         side: "double",
@@ -1456,7 +1466,7 @@
                     });
                     visible.__main_density = false;
                     representations.__main_density.setVisibility(false);
-                    representations.__main_density.sele = "polymer and " + activeChainSelector;
+                    representations.__main_density.sele = "polymer and " + mainStructureSelector;
 
                     window.ngl_set_mode = function (mode) {
                         const normalized = mode === "density" ? "density" : "cartoon";
@@ -1508,20 +1518,25 @@
                             stage.viewerControls.zoom(0.40);
                         }
                     }, 80);
+                    function syncStructureSpinButton(isSpinning) {
+                        var btn = document.getElementById("structure-spin-btn");
+                        if (!btn) return;
+                        btn.setAttribute("aria-pressed", isSpinning ? "true" : "false");
+                        btn.classList.toggle("is-active", !!isSpinning);
+                        var lbl = document.getElementById("structure-spin-label");
+                        if (lbl) lbl.textContent = isSpinning ? "{% trans 'Stop spin' %}" : "{% trans 'Spin' %}";
+                    }
                     if (typeof stage.setSpin === "function") {
-                        window.setTimeout(function () { stage.setSpin(true); }, 200);
+                        stage.setSpin(true);
+                        syncStructureSpinButton(true);
                     }
                     window.toggleStructureSpin = function () {
                         if (!stage || typeof stage.setSpin !== "function") return;
                         var btn = document.getElementById("structure-spin-btn");
                         var spinning = btn && btn.getAttribute("aria-pressed") === "true";
-                        stage.setSpin(!spinning);
-                        if (btn) {
-                            btn.setAttribute("aria-pressed", spinning ? "false" : "true");
-                            btn.classList.toggle("is-active", !spinning);
-                            var lbl = document.getElementById("structure-spin-label");
-                            if (lbl) lbl.textContent = spinning ? "{% trans 'Spin' %}" : "{% trans 'Stop spin' %}";
-                        }
+                        var nextSpinning = !spinning;
+                        stage.setSpin(nextSpinning);
+                        syncStructureSpinButton(nextSpinning);
                     };
                     applyStructureTheme();
                     syncNglViewportSize(stage);
