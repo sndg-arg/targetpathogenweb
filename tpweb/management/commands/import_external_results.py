@@ -32,6 +32,9 @@ from django.core.management.base import BaseCommand, CommandError
 from tqdm import tqdm
 
 from bioseq.models.Biodatabase import Biodatabase
+from bioseq.models.Bioentry import Bioentry
+from tpweb.models.BioentryStructure import BioentryStructure
+from tpweb.models.pdb import PDB
 
 
 # ---------------------------------------------------------------------------
@@ -65,6 +68,34 @@ DERIVED_GATES_COLUMNS = {
 }
 
 SUPPORTED_FORMATS = ("gates",)
+
+def _iter_af_db_pdbs(prot_dir):
+    """Yield AlphaFold DB PDB files stored in UniProt subfolders."""
+    ignored_dirs = {"pockets", "colabfold_models"}
+    try:
+        entries = sorted(os.scandir(prot_dir), key=lambda item: item.name)
+    except OSError:
+        return
+
+    for entry in entries:
+        if not entry.is_dir() or entry.name in ignored_dirs:
+            continue
+        try:
+            filenames = sorted(os.listdir(entry.path))
+        except OSError:
+            continue
+        for filename in filenames:
+            lower = filename.lower()
+            if not filename.upper().startswith("AF_"):
+                continue
+            if not (lower.endswith(".pdb") or lower.endswith(".pdb.gz")):
+                continue
+            code = filename
+            if code.lower().endswith(".gz"):
+                code = code[:-3]
+            if code.lower().endswith(".pdb"):
+                code = code[:-4]
+            yield code.upper(), os.path.join(entry.path, filename)
 
 
 class Command(BaseCommand):
@@ -220,7 +251,7 @@ class Command(BaseCommand):
             ))
             return
 
-        folder_path   = _compute_folder_path(datadir, genome_name)
+        folder_path = _compute_folder_path(datadir, genome_name)
         alphafold_dir = os.path.join(folder_path, "alphafold")
 
         locus_tags = sorted(
@@ -235,97 +266,148 @@ class Command(BaseCommand):
 
         pdb_ok = pdb_skip = pdb_miss = 0
         af_ok = af_fail = 0
+        afdb_ok = afdb_skip = afdb_fail = afdb_link = 0
         pocket_ok = pocket_skip = pocket_fail = 0
         pocket_mode_skips = 0
+        proteome_name = genome_name + Biodatabase.PROT_POSTFIX
+        proteome = Biodatabase.objects.filter(name=proteome_name).first()
 
         for locus_tag in tqdm(locus_tags, desc="structures", file=sys.stderr):
-            prot_dir   = os.path.join(structures_dir, locus_tag)
-            src_pdb    = os.path.join(prot_dir, f"CB_{locus_tag}_relaxed1.pdb")
+            prot_dir = os.path.join(structures_dir, locus_tag)
+            src_pdb = os.path.join(prot_dir, f"CB_{locus_tag}_relaxed1.pdb")
 
-            if not os.path.isfile(src_pdb):
-                pdb_miss += 1
-                continue
+            if os.path.isfile(src_pdb):
+                dest_dir = os.path.join(alphafold_dir, locus_tag)
+                dest_pdb = os.path.join(dest_dir, f"{locus_tag}_af.pdb")
 
-            dest_dir   = os.path.join(alphafold_dir, locus_tag)
-            dest_pdb   = os.path.join(dest_dir, f"{locus_tag}_af.pdb")
+                if dry_run:
+                    pdb_ok += 1
+                else:
+                    os.makedirs(dest_dir, exist_ok=True)
 
-            if dry_run:
-                pdb_ok += 1
-                continue
+                    if not os.path.exists(dest_pdb):
+                        shutil.copy2(src_pdb, dest_pdb)
+                        pdb_ok += 1
+                    else:
+                        pdb_skip += 1
 
-            os.makedirs(dest_dir, exist_ok=True)
+                    try:
+                        with open(os.devnull, "w") as devnull:
+                            call_command(
+                                "load_af_model",
+                                locus_tag,
+                                dest_pdb,
+                                locus_tag,
+                                overwrite=True,
+                                datadir=datadir,
+                                stdout=devnull,
+                                stderr=devnull,
+                            )
+                        af_ok += 1
+                    except Exception as exc:
+                        af_fail += 1
+                        self.stderr.write(f"  load_af_model failed {locus_tag}: {exc}")
+                        continue
 
-            # Copy PDB
-            if not os.path.exists(dest_pdb):
-                shutil.copy2(src_pdb, dest_pdb)
-                pdb_ok += 1
+                    src_fpocket = os.path.join(
+                        prot_dir,
+                        "pockets",
+                        f"CB_{locus_tag}_relaxed1_fpocket",
+                    )
+                    pocket_json = os.path.join(dest_dir, "fpocket.json.gz")
+
+                    if os.path.isdir(src_fpocket):
+                        if pockets_mode == "skip":
+                            pocket_mode_skips += 1
+                        elif os.path.exists(pocket_json):
+                            pocket_skip += 1
+                        else:
+                            all_pockets_file = os.path.join(src_fpocket, "all_pockets.json")
+                            if not os.path.isfile(all_pockets_file):
+                                pocket_fail += 1
+                            else:
+                                try:
+                                    with open(all_pockets_file) as f:
+                                        raw = json.load(f)
+
+                                    rekeyed = _gates_property_pockets(locus_tag, raw)
+
+                                    with gzip.open(pocket_json, "wt", encoding="utf-8") as gz:
+                                        json.dump(rekeyed, gz)
+
+                                    with open(os.devnull, "w") as devnull:
+                                        call_command(
+                                            "load_fpocket",
+                                            locus_tag,
+                                            pocket_json=pocket_json,
+                                            overwrite=True,
+                                            datadir=datadir,
+                                            stdout=devnull,
+                                            stderr=devnull,
+                                        )
+                                    pocket_ok += 1
+                                except Exception as exc:
+                                    pocket_fail += 1
+                                    self.stderr.write(f"  load_fpocket failed {locus_tag}: {exc}")
+                                    if os.path.exists(pocket_json):
+                                        os.unlink(pocket_json)
             else:
-                pdb_skip += 1
+                pdb_miss += 1
 
-            # load_af_model → creates BioentryStructure record
-            try:
-                call_command("load_af_model", locus_tag, dest_pdb, locus_tag,
-                             overwrite=True, datadir=datadir,
-                             stdout=open(os.devnull, "w"),
-                             stderr=open(os.devnull, "w"))
-                af_ok += 1
-            except Exception as exc:
-                af_fail += 1
-                self.stderr.write(f"  load_af_model failed {locus_tag}: {exc}")
-                continue
+            bioentry = None
+            if proteome is not None:
+                bioentry = Bioentry.objects.filter(
+                    biodatabase=proteome,
+                    accession=locus_tag,
+                ).first()
 
-            # Fpocket pockets
-            src_fpocket = os.path.join(prot_dir, "pockets",
-                                       f"CB_{locus_tag}_relaxed1_fpocket")
-            pocket_json = os.path.join(dest_dir, "fpocket.json.gz")
+            for af_code, af_pdb in _iter_af_db_pdbs(prot_dir):
+                pdb = PDB.objects.filter(
+                    code__iexact=af_code,
+                    experiment="AF",
+                    deprecated=False,
+                ).first()
+                if pdb is not None:
+                    afdb_skip += 1
+                    if bioentry is not None and not dry_run:
+                        _link, created = BioentryStructure.objects.get_or_create(
+                            bioentry=bioentry,
+                            pdb=pdb,
+                        )
+                        if created:
+                            afdb_link += 1
+                    continue
 
-            if not os.path.isdir(src_fpocket):
-                continue
+                if dry_run:
+                    afdb_ok += 1
+                    continue
 
-            if pockets_mode == "skip":
-                pocket_mode_skips += 1
-                continue
-
-            if os.path.exists(pocket_json):
-                pocket_skip += 1
-                continue
-
-            # Gates all_pockets.json stores pocket-level metrics, but it does not
-            # provide the same alpha-sphere/atom geometry as TPW's fpocket JSON.
-            # This compatibility mode imports those metrics only as an explicit
-            # escape hatch; it is not suitable for visual pocket rendering.
-            all_pockets_file = os.path.join(src_fpocket, "all_pockets.json")
-            if not os.path.isfile(all_pockets_file):
-                pocket_fail += 1
-                continue
-
-            try:
-                with open(all_pockets_file) as f:
-                    raw = json.load(f)
-
-                rekeyed = _gates_property_pockets(locus_tag, raw)
-
-                with gzip.open(pocket_json, "wt", encoding="utf-8") as gz:
-                    json.dump(rekeyed, gz)
-
-                call_command("load_fpocket", locus_tag,
-                             pocket_json=pocket_json,
-                             overwrite=True, datadir=datadir,
-                             stdout=open(os.devnull, "w"),
-                             stderr=open(os.devnull, "w"))
-                pocket_ok += 1
-            except Exception as exc:
-                pocket_fail += 1
-                self.stderr.write(f"  load_fpocket failed {locus_tag}: {exc}")
-                if os.path.exists(pocket_json):
-                    os.unlink(pocket_json)
+                try:
+                    with open(os.devnull, "w") as devnull:
+                        call_command(
+                            "load_af_model",
+                            af_code,
+                            af_pdb,
+                            locus_tag,
+                            experiment="AF",
+                            datadir=datadir,
+                            stdout=devnull,
+                            stderr=devnull,
+                        )
+                    afdb_ok += 1
+                except (Exception, SystemExit) as exc:
+                    afdb_fail += 1
+                    self.stderr.write(f"  load AF DB model failed {locus_tag} {af_code}: {exc}")
 
         prefix = "[dry-run] " if dry_run else ""
         self.stdout.write(
             f"\n{prefix}PDB files   : {pdb_ok} copied, {pdb_skip} already present, {pdb_miss} missing"
         )
         self.stdout.write(
-            f"{prefix}Structures  : {af_ok} loaded, {af_fail} failed"
+            f"{prefix}Structures  : {af_ok} ColabFold loaded, {af_fail} failed"
+        )
+        self.stdout.write(
+            f"{prefix}AF DB models: {afdb_ok} loaded/planned, {afdb_skip} already present, {afdb_link} linked, {afdb_fail} failed"
         )
         self.stdout.write(
             f"{prefix}Pockets     : {pocket_ok} loaded, {pocket_skip} already present, {pocket_fail} failed"

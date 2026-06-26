@@ -32,6 +32,36 @@ It does not yet create a new genome from scratch. In the current UI flow, the
 base genome must already be loaded in TPW before the curated import panel can
 validate protein overlap and run the curated flow.
 
+
+## Curated Source Priority
+
+Curated imports are curator-first. When a reviewed package provides a value or an
+output file, TPW should treat that package as the source of truth and should only
+compute missing data.
+
+Priority order:
+
+1. Reviewed `results_table.tsv` values and reviewed per-stage files shipped in
+   the package.
+2. Precomputed outputs inside the curated archive, including structures,
+   FPocket/P2Rank pocket outputs, off-target tables, conservation tables,
+   localization tables, Foldseek outputs, essentiality outputs, and LigQ outputs
+   when present.
+3. TPW format conversion/import of those reviewed files.
+4. Pipeline or SLURM computation only for data that is absent from the reviewed
+   package, or for an explicit audit/rebuild task.
+
+For structural pockets, use `import_gates_pocket_outputs` to load precomputed
+Gates FPocket/P2Rank outputs from `structures/<gene>/pockets/` instead of
+re-running pocket prediction. Use `--force` only when intentionally replacing
+previously computed TPW pocket sets with the reviewed Gates outputs. If a PDB
+chain file such as `PDB_7CZ9_chain_A.pdb` is present, import pockets against that
+same chain structure rather than against a separately downloaded full PDB.
+
+Do not import ad-hoc SLURM recalculation results for a curated dataset when the
+reviewed package already contains equivalent outputs. Keep recalculation results
+only for audits or for sources absent from the reviewed package.
+
 ## Safety Model
 
 The command is conservative by default.

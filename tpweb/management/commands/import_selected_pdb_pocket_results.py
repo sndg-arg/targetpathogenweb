@@ -241,7 +241,12 @@ def parse_fpocket_atom_files(fpocket_dir):
 
 def fallback_fpocket_to_json(fpocket_dir):
     basename = os.path.basename(fpocket_dir)
-    stem = basename[:-4] if basename.endswith("_out") else basename
+    if basename.endswith("_out"):
+        stem = basename[:-4]
+    elif basename.endswith("_fpocket"):
+        stem = basename[:-8]
+    else:
+        stem = basename
     out_pdb = os.path.join(fpocket_dir, f"{stem}_out.pdb")
     info_txt = os.path.join(fpocket_dir, f"{stem}_info.txt")
 
