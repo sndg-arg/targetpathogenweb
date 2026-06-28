@@ -32,6 +32,14 @@ def is_pdb_code(value):
     return len(value) == 4 and value[0].isdigit() and value.isalnum()
 
 
+def parse_pdb_chain_source(value):
+    value = clean(value).upper()
+    match = re.match(r"^(?:PDB_)?([0-9][A-Z0-9]{3})_CHAIN_(.+)$", value)
+    if not match:
+        return None
+    return match.group(1), match.group(2)
+
+
 def is_no_pocket(value):
     return clean(value).lower() in {"no_pockets", "no pockets", "no-pocket"}
 
@@ -275,10 +283,17 @@ class Command(BaseCommand):
                 "chain": None,
             }
 
-        if is_pdb_code(source):
-            pdb_code = source.upper()
+        pdb_chain_source = parse_pdb_chain_source(source)
+        if is_pdb_code(source) or pdb_chain_source:
+            if pdb_chain_source:
+                pdb_code, requested_chain = pdb_chain_source
+                chains = [requested_chain]
+            else:
+                pdb_code = source.upper()
+                chains = self._linked_chains(bioentry, pdb_code)
+
             candidates = []
-            for chain in self._linked_chains(bioentry, pdb_code):
+            for chain in chains:
                 if chain:
                     candidates.append((chain, os.path.join(
                         pockets_dir,
