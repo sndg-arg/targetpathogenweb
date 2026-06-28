@@ -6,6 +6,7 @@ import gzip
 import tempfile
 
 from Bio.PDB.PDBParser import PDBParser
+from Bio.PDB.MMCIFParser import MMCIFParser
 from Bio.PDB.Polypeptide import is_aa
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
@@ -149,7 +150,8 @@ class Command(BaseCommand):
 
     def load_pdb_file(self, pdb_model, pdb_path):
 
-        p = PDBParser(PERMISSIVE=True, QUIET=True)
+        is_cif = pdb_path.lower().endswith((".cif", ".cif.gz"))
+        parser = MMCIFParser(QUIET=True) if is_cif else PDBParser(PERMISSIVE=True, QUIET=True)
         if pdb_path.endswith(".gz"):
             th = tempfile.NamedTemporaryFile(dir='/tmp', delete=False)
             with gzip.open(pdb_path) as h:
@@ -157,7 +159,7 @@ class Command(BaseCommand):
                 pdb_path = th.name
             th.close()
 
-        chains = list(p.get_structure("X", pdb_path)[0].get_chains())
+        chains = list(parser.get_structure("X", pdb_path)[0].get_chains())
         for chain in tqdm(chains):
             self._process_chain_residues(pdb_model, chain)
             self._process_chain_atoms(pdb_model, chain)

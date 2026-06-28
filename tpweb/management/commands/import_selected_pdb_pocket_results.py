@@ -189,7 +189,7 @@ def parse_fpocket_alpha_lines(path):
 
     with open(path, "rt", encoding="utf-8", errors="replace") as handle:
         for line in handle:
-            if not line.startswith("HETATM") or "STP" not in line:
+            if not (line.startswith("ATOM") or line.startswith("HETATM")) or "STP" not in line:
                 continue
             try:
                 pocket_number = int(line[22:26])
@@ -247,11 +247,20 @@ def fallback_fpocket_to_json(fpocket_dir):
         stem = basename[:-8]
     else:
         stem = basename
-    out_pdb = os.path.join(fpocket_dir, f"{stem}_out.pdb")
     info_txt = os.path.join(fpocket_dir, f"{stem}_info.txt")
+    alpha_candidates = [
+        os.path.join(fpocket_dir, f"{stem}_out.pdb"),
+        os.path.join(fpocket_dir, f"{stem}_out.cif"),
+        os.path.join(fpocket_dir, f"{stem}_pockets.pqr"),
+    ]
 
     properties_by_pocket = parse_fpocket_info(info_txt)
-    alpha_lines_by_pocket = parse_fpocket_alpha_lines(out_pdb)
+    alpha_lines_by_pocket = defaultdict(list)
+    for alpha_path in alpha_candidates:
+        parsed_alpha_lines = parse_fpocket_alpha_lines(alpha_path)
+        if parsed_alpha_lines:
+            alpha_lines_by_pocket = parsed_alpha_lines
+            break
     atoms_by_pocket, residues_by_pocket = parse_fpocket_atom_files(fpocket_dir)
 
     pocket_numbers = sorted(

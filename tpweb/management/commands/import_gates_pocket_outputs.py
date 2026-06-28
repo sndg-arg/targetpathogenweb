@@ -354,6 +354,8 @@ class Command(BaseCommand):
         wanted = {
             f"PDB_{pdb_code}_chain_{chain}.pdb".lower(),
             f"PDB_{pdb_code}_chain_{chain}.pdb.gz".lower(),
+            f"PDB_{pdb_code}_chain_{chain}.cif".lower(),
+            f"PDB_{pdb_code}_chain_{chain}.cif.gz".lower(),
         }
         return self._find_file_under_protein(prot_dir, wanted)
 
