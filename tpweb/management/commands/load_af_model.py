@@ -146,7 +146,18 @@ class Command(BaseCommand):
                                        occupancy=float(atom.occupancy), bfactor=float(atom.bfactor),
                                        element=atom.element)
                             atoms.append(atm)
-            Atom.objects.bulk_create(sorted(atoms, key=lambda x: x.serial))
+            Atom.objects.bulk_create(sorted(
+                atoms,
+                key=lambda x: (
+                    x.serial is None,
+                    x.serial or 0,
+                    x.residue.resid,
+                    x.name,
+                    x.x,
+                    x.y,
+                    x.z,
+                ),
+            ))
 
     def load_pdb_file(self, pdb_model, pdb_path):
 
