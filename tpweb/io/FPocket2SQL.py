@@ -97,7 +97,7 @@ class FPocket2SQL:
 
     def load_pockets(self, p2rank = False):
         rss = []
-        nro_atm = Atom.objects.filter(residue__pdb=self.pdb).aggregate(Max("serial"))["serial__max"]
+        nro_atm = Atom.objects.filter(residue__pdb=self.pdb).aggregate(Max("serial"))["serial__max"] or 0
         with transaction.atomic():
             for pocket in tqdm(self.res_pockets):
                 pocket = Struct(**pocket)
