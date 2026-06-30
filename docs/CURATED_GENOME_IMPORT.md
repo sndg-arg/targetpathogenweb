@@ -253,9 +253,8 @@ Missing TPW structure: 0
 Failed: 0
 ```
 
-A small `Missing original output` count is acceptable only when the files are
-absent from the reviewed package. Record those genes; do not silently
-recalculate them.
+Missing original output is acceptable only when the files are absent from the
+reviewed package. Record those genes; do not silently recalculate them.
 
 Initial replacement import:
 
@@ -372,5 +371,5 @@ Validation command outputs:
 Curator review notes:
 ```
 
-Do not put large per-run count tables in this reusable guide. Counts change over
-time and belong in task notes, logs, or final import reports.
+Do not put per-run quantity tables in this reusable guide. Run-specific numbers
+belong in task notes, logs, or final import reports.

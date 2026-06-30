@@ -45,7 +45,7 @@ El pipeline se ejecuta linealmente. Las etapas pesadas (marcadas con ★) corren
 
 El archivo GenBank (`.gbk` o `.gbk.gz`) se descarga de NCBI usando la accesión del genoma, o se sube manualmente. La etapa `load_gbk` parsea el archivo e importa a la base de datos:
 
-- **Accesión** (`accession`): qualifier `locus_tag` del feature CDS en el GenBank. En algunos genomas es un código del tipo `PA4406` (PAO1) o `VK055_0001` (ATCC43816).
+- **Accesion** (`accession`): qualifier `locus_tag` del feature CDS en el GenBank. En algunos genomas es un codigo del tipo `GENE_0001` o `LOCUS_0001`.
 - **Descripción / función**: qualifier `product` del feature CDS.
 - **Gen**: qualifier `gene` del feature CDS (ej. `lpxC`, `envA`). Si el GenBank tiene `protein_id` (accesión RefSeq tipo `NP_` o `WP_`), también se importa pero se filtra de la vista para evitar mostrar datos redundantes.
 - **Longitud (aminoácidos)**: longitud de la secuencia de aminoácidos del qualifier `translation`.
@@ -144,7 +144,7 @@ Los resultados se almacenan como `PDBResidueSet` con nombre `P2RankPocket`. La t
 1. **InterProScan (etapa 11):** algunas bases de datos de InterPro (especialmente HAMAP, NCBIfam, PIRSF) incluyen números EC en la columna 15 del TSV, en formato `EC:x.x.x.x`. Estos se cargan junto con los dominios.  
 2. **UniProt (etapa 13):** si la proteína tiene UniProt ID, `fetch_uniprot_annotations` descarga los EC asignados en UniProt, que incluyen tanto asignaciones experimentales como inferidas.
 
-**Nota:** si el genoma no tiene mapeo UniProt (porque sus accesiones no son reconocidas por la API de UniProt, como ocurre con locus tags tipo `VK055_xxxx`) y el TSV de InterProScan no incluyó líneas EC para esas proteínas, EC = 0 es el resultado esperado y correcto.
+**Nota:** si el genoma no tiene mapeo UniProt porque sus accesiones no son reconocidas por la API de UniProt y el TSV de InterProScan no incluyo lineas EC para esas proteinas, EC = 0 es el resultado esperado y correcto.
 
 ---
 
@@ -266,7 +266,7 @@ Al cargar los resultados de LigQ_2, se eliminan automáticamente compuestos que 
 ### Directo vs. por homología
 Un binder se marca como **directo** (`is_direct=True`) cuando el identificador UniProt que devuelve LigQ_2 para ese binder coincide exactamente con uno de los crossrefs UniProt (`UnipSp` o `UnipTr`) de la proteína en la base de datos de TPW.
 
-Esto requiere que la proteína haya sido mapeada a UniProt en la etapa 12 (`gbk2uniprot_map`). Si el genoma usa locus tags que UniProt no reconoce (como `VK055_xxxx`), el mapeo falla y toda la evidencia aparece como "via homologs" aunque la proteína sea en realidad el mismo target.
+Esto requiere que la proteina haya sido mapeada a UniProt en la etapa 12 (`gbk2uniprot_map`). Si el genoma usa locus tags que UniProt no reconoce, el mapeo falla y toda la evidencia aparece como "via homologs" aunque la proteina sea en realidad el mismo target.
 
 ---
 

@@ -25,7 +25,7 @@ Allowed on Nodo0:
 - `git pull`, `git status`, and normal repo inspection
 - `make build ENV=cluster svc=<service>` and `make up ENV=cluster svc=<service>`
 - `docker compose exec` into `web` or `queue` for lightweight Django commands
-- database audits, row counts, coverage summaries, and metadata checks
+- small database audits, coverage summaries, and metadata checks
 - loading already-computed TSV/JSON/PDB metadata into the database
 - copying, moving, listing, and extracting files in `/data/targetpathogen/data`
 - monitoring local logs and remote SLURM jobs
@@ -160,11 +160,6 @@ Important interpretation:
 - If a remote job fails repeatedly on one node, compare `NodeList` across
   failures before blaming the input data.
 
-Known operational note:
-
-- LigQ_2/HMMER failed repeatedly on `nodo3` during the Kp13 work but succeeded
-  on other nodes. Prefer `TPW_LIGQ_SLURM_EXCLUDE=nodo3` until `nodo3` is
-  validated or fixed.
 
 ---
 
@@ -289,36 +284,36 @@ Recommended rule:
 If Nodo0 is reachable directly from your workstation:
 
 ```bash
-scp /local/path/Kp13.tar.gz dockeradmin@nodo0:/data/targetpathogen/data/uploads/
+scp /local/path/Example.tar.gz dockeradmin@nodo0:/data/targetpathogen/data/uploads/
 ```
 
 If only the cluster login node is reachable, stage through `cluster.qb.fcen.uba.ar`:
 
 ```bash
 # From your workstation
-scp /local/path/Kp13.tar.gz agutson@cluster.qb.fcen.uba.ar:/home/agutson/Kp13.tar.gz
+scp /local/path/Example.tar.gz agutson@cluster.qb.fcen.uba.ar:/home/agutson/Example.tar.gz
 
 # From cluster.qb.fcen.uba.ar
-scp /home/agutson/Kp13.tar.gz glyco@nodo0:/tmp/Kp13.tar.gz
+scp /home/agutson/Example.tar.gz glyco@nodo0:/tmp/Example.tar.gz
 ```
 
 Then on Nodo0:
 
 ```bash
 sudo mkdir -p /data/targetpathogen/data/uploads
-sudo cp /tmp/Kp13.tar.gz /data/targetpathogen/data/uploads/
-sudo chown dockeradmin:dockeradmin /data/targetpathogen/data/uploads/Kp13.tar.gz
+sudo cp /tmp/Example.tar.gz /data/targetpathogen/data/uploads/
+sudo chown dockeradmin:dockeradmin /data/targetpathogen/data/uploads/Example.tar.gz
 
 cd /home/dockeradmin/targetpathogenweb
 docker compose -f docker-compose.yml -f docker-compose.cluster.yml exec -T queue sh -lc '
-ls -lh /app/targetpathogenweb/data/uploads/Kp13.tar.gz
+ls -lh /app/targetpathogenweb/data/uploads/Example.tar.gz
 '
 ```
 
 Use the container path in management commands or the curated import form:
 
 ```text
-/app/targetpathogenweb/data/uploads/Kp13.tar.gz
+/app/targetpathogenweb/data/uploads/Example.tar.gz
 ```
 
 After copying a large archive, inspect it from inside the `queue` container
