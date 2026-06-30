@@ -2,9 +2,9 @@
 
 This document records how TargetPathogenWeb loads ligand/binder evidence from LigQ_2, how evidence is classified, and how to recover/reload results on Nodo0.
 
-For the curated Klebsiella imports, final counts, the Kp13 LigQ_2/nodo3
-diagnosis, and a reusable curated-file workflow, see
-[`docs/KLEBSIELLA_CURATED_IMPORT.md`](KLEBSIELLA_CURATED_IMPORT.md).
+For the generic curated genome import workflow, including source-priority rules
+and manual Nodo0 loading commands, see
+[`docs/CURATED_GENOME_IMPORT.md`](CURATED_GENOME_IMPORT.md).
 
 ## Evidence model
 

@@ -124,6 +124,28 @@ Useful options:
 - `--overwrite-extract`: replace files only inside the curated extraction
   workspace.
 
+### Manual Gates pocket import policy
+
+For Gates-style packages, the staff flow may load scores/structures while the
+pocket geometry is imported manually with `import_gates_pocket_outputs`. This is
+intentional: the biologists' `structures/<gene>/pockets/` directories are the
+source of truth for FPocket/P2Rank geometry and scores.
+
+Recommended sequence after extracting the reviewed package:
+
+1. Run `import_external_results` for TSV values, UniProt mapping, and structures.
+2. Run `import_gates_pocket_outputs --scope both --force --dry-run`.
+3. Proceed only if `Missing TPW structure: 0` and `Failed: 0`.
+4. Run `import_gates_pocket_outputs --scope both --force` once to replace any
+   previous computed pockets with Gates outputs.
+5. If interrupted, resume without `--force` so existing Gates pockets are
+   skipped and only missing sets are completed.
+6. Run `selected_pdb_pocket_report` and require `missing structure/pocket checks: 0`.
+
+Do not import SLURM recalculation results for sources already present in the
+reviewed package. Recalculation is reserved for explicit supplement requests or
+for genuinely absent source outputs.
+
 ## UI Flow
 
 The upload page has a staff-only **Curated external import** panel.

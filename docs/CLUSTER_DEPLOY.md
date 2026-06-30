@@ -267,7 +267,7 @@ make status ENV=cluster             # container + volume status
 ```
 
 Binder/LigQ_2 recovery, UniProt mapping, and direct-vs-homolog evidence loading are documented in [`docs/BINDERS_LIGQ2.md`](BINDERS_LIGQ2.md).
-The curated Klebsiella import handoff and reusable curated-file workflow are documented in [`docs/KLEBSIELLA_CURATED_IMPORT.md`](KLEBSIELLA_CURATED_IMPORT.md).
+The generic curated genome import workflow is documented in [`docs/CURATED_GENOME_IMPORT.md`](CURATED_GENOME_IMPORT.md).
 
 ### Copy large local files to Nodo0
 
@@ -333,6 +333,21 @@ tar tzf /app/targetpathogenweb/data/uploads/<archive.tar.gz> | head -80
 
 Extract only the directories needed for the import. Avoid expanding unrelated
 multi-GB outputs into the shared volume unless they are required.
+
+After extraction and a quick directory check, remove duplicate archive copies to
+avoid filling `/` or the shared data volume. Only delete disposable archives/logs,
+never extracted `structures/`, TSVs, database volumes, or source folders still
+needed by an import.
+
+```bash
+ls -ld /data/targetpathogen/data/uploads/<archive-root>/structures
+sudo rm -f /tmp/<archive.tar.gz>
+# If the archive was copied to uploads and is now extracted, it can also be
+# removed from uploads after review:
+# sudo rm -f /data/targetpathogen/data/uploads/<archive.tar.gz>
+df -h /
+```
+
 
 ---
 
