@@ -40,6 +40,9 @@ _SAFE_NODES = (
 )
 
 
+FORMULA_PALETTE_MAX_CATEGORICAL_OPTIONS = 25
+
+
 def normalize_var_name(s: str) -> str:
     s = str(s).strip().lower()
     s = re.sub(r"[^a-z0-9]+", "_", s)
@@ -175,8 +178,14 @@ def _is_numeric_option(name: str) -> bool:
         return False
 
 
-def available_variables_grouped(user=None):
-    """Return variables grouped by ScoreParam category for the UI palette."""
+def available_variables_grouped(user=None, max_categorical_options=FORMULA_PALETTE_MAX_CATEGORICAL_OPTIONS):
+    """Return variables grouped by ScoreParam category for the UI palette.
+
+    The evaluator still knows every visible categorical option through
+    build_all_options_zero(). This palette intentionally hides very large
+    categorical fields, such as one option per PDB/AF structure, because those
+    are useful as filters but make the formula builder unusable.
+    """
     from tpweb.models.ScoreParam import ScoreParam
     from django.db.models import Q
     from tpweb.services.score_param_types import is_numeric_score_param
@@ -201,12 +210,18 @@ def available_variables_grouped(user=None):
                 desc = param.description or f"{param.name} raw numeric value"
                 groups.setdefault(cat, []).append({"var": pname, "desc": desc, "kind": "numeric"})
             continue
+        if not pname:
+            continue
+        palette_options = []
         for opt in param.choices.all():
             if _is_numeric_option(opt.name):
                 continue
             vname = normalize_var_name(opt.name)
-            if not vname:
-                continue
+            if vname:
+                palette_options.append((opt, vname))
+        if len(palette_options) > max_categorical_options:
+            continue
+        for opt, vname in palette_options:
             var = f"{pname}_{vname}"
             desc = opt.description or f"{param.name} = {opt.name}"
             groups.setdefault(cat, []).append({"var": var, "desc": desc, "kind": "categorical"})

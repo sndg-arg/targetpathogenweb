@@ -674,6 +674,40 @@ class WorkspaceIsolationTests(TestCase):
         self.assertIn("publiccustom_y", flattened)
         self.assertNotIn("alicecustom_private", flattened)
 
+    def test_formula_palette_hides_large_categorical_params_without_breaking_evaluation(self):
+        high_cardinality_param = self.create_score_param(
+            name="best_fpocket_structure",
+            category="Custom",
+            user=self.public_user,
+        )
+        low_cardinality_param = self.create_score_param(
+            name="core_roary",
+            category="Conservation",
+            user=self.public_user,
+        )
+        for index in range(26):
+            ScoreParamOptions.objects.create(
+                score_param=high_cardinality_param,
+                name=f"CB_VK055_{index:04d}",
+                description="",
+            )
+        ScoreParamOptions.objects.create(score_param=low_cardinality_param, name="core", description="")
+        ScoreParamOptions.objects.create(score_param=low_cardinality_param, name="accessory", description="")
+
+        zero_cache = build_all_options_zero(AnonymousUser())
+        self.assertIn("best_fpocket_structure_cb_vk055_0000", zero_cache)
+
+        grouped = available_variables_grouped(AnonymousUser())
+        flattened = {
+            entry["var"]
+            for entries in grouped.values()
+            for entry in entries
+        }
+        self.assertNotIn("best_fpocket_structure_cb_vk055_0000", flattened)
+        self.assertIn("core_roary_core", flattened)
+        self.assertIn("core_roary_accessory", flattened)
+
+
     def test_expression_variable_helpers_include_numeric_values(self):
         proteome = Biodatabase.objects.create(name="TEST_protein")
         protein = Bioentry.objects.create(
