@@ -55,7 +55,7 @@ from tpweb.services.pipeline_status import (
     annotate_pipeline_status_for_genome,
     sanitize_pipeline_status_for_user,
 )
-from tpweb.services.structure_files import _candidate_seqstore_dirs
+from tpweb.services.structure_files import _candidate_seqstore_dirs, detect_structure_format_from_text
 from tpweb.services.structure_sources import summarize_structure_sources
 from tpweb.management.commands.load_af_model import store_structure_file
 from tpweb.management.commands.import_selected_pdb_pocket_results import fallback_fpocket_to_json
@@ -398,6 +398,12 @@ class StructureAndAnnotationServiceTests(SimpleTestCase):
             ],
         )
 
+    def test_detect_structure_format_from_text_handles_pdb_and_cif(self):
+        self.assertEqual(detect_structure_format_from_text("HEADER test\nATOM test\n"), "pdb")
+        self.assertEqual(
+            detect_structure_format_from_text("data_8ORR\n#\nloop_\n_atom_site.group_PDB\n"),
+            "cif",
+        )
     def test_store_structure_file_writes_world_readable_gzip(self):
         with TemporaryDirectory() as tmpdir:
             source = Path(tmpdir) / "model.pdb"

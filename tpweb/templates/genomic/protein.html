@@ -1298,6 +1298,7 @@
                 }());
 
                 const structureUrls = {};
+                const structureFormats = {};
                 const chainSelectors = {};
                 const mainSelectors = {};
                 const chainColorModes = {};
@@ -1305,11 +1306,13 @@
                     document.querySelectorAll("tr[data-pdb-slot][data-structure-url]").forEach(function (row) {
                         var slot = row.getAttribute("data-pdb-slot");
                         var url = row.getAttribute("data-structure-url");
+                        var format = row.getAttribute("data-structure-format") || "pdb";
                         var chain = row.getAttribute("data-chain-selector");
                         var mainSelector = row.getAttribute("data-main-selector");
                         var chainColor = row.getAttribute("data-chain-color");
                         if (slot && url) {
                             structureUrls[slot] = url;
+                            structureFormats[slot] = format;
                             chainSelectors[slot] = chain || "polymer";
                             mainSelectors[slot] = mainSelector || chain || "polymer";
                             chainColorModes[slot] = chainColor === "true";
@@ -1365,7 +1368,7 @@
                         structureLoadingNote.textContent = "{% trans "Loading 3D structure..." %}";
                     }
                     stage.removeAllComponents();
-                    stage.loadFile(structureUrls[urlKey], { ext: "pdb", defaultRepresentation: false })
+                    stage.loadFile(structureUrls[urlKey], { ext: structureFormats[urlKey] || "pdb", defaultRepresentation: false })
                         .then(initStructureComponent)
                         .catch(function () {
                             if (structureLoadingNote) {

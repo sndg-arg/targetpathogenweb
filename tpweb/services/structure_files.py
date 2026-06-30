@@ -34,3 +34,30 @@ def _candidate_seqstore_dirs():
                 candidates.append(parent_dir)
 
     return candidates
+
+def detect_structure_format(structure_path):
+    """Return the NGL file extension for a stored structure file.
+
+    SeqStore stores every source as gzip under a generic path, so the original
+    .pdb/.cif extension is not reliable. Detect from the first text chunk.
+    """
+    opener = None
+    if str(structure_path).lower().endswith(".gz"):
+        import gzip
+        opener = gzip.open
+    else:
+        opener = open
+    try:
+        with opener(structure_path, "rt", errors="replace") as handle:
+            head = handle.read(8192)
+    except TypeError:
+        with opener(structure_path, "rt") as handle:
+            head = handle.read(8192)
+    return detect_structure_format_from_text(head)
+
+
+def detect_structure_format_from_text(text):
+    head = (text or "").lstrip()
+    if head.startswith("data_") or "_atom_site." in head[:8192]:
+        return "cif"
+    return "pdb"

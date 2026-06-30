@@ -374,13 +374,19 @@ function jsloaded() {
     /* ---- Structure data (all structures for this protein) ---- */
     var structureUrls = {
         {% for s in all_structures %}
-        "{{ s.id }}": "{% url 'tpwebapp:structure_raw' s.id %}",
+        "{{ s.id }}": "{% url 'tpwebapp:structure_raw' s.id %}{% if source_protein_id %}?protein_id={{ source_protein_id }}{% endif %}",
         {% endfor %}
     };
 
     var structureChainSelectors = {
         {% for s in all_structures %}
         "{{ s.id }}": "{{ s.chain_selector }}",
+        {% endfor %}
+    };
+
+    var structureFormats = {
+        {% for s in all_structures %}
+        "{{ s.id }}": "{{ s.file_format|default:'pdb' }}",
         {% endfor %}
     };
 
@@ -441,7 +447,7 @@ function jsloaded() {
         updateIdentity(structureId);
         if (loadingNote) { loadingNote.style.display = "flex"; loadingNote.textContent = "{% trans 'Loading 3D structure…' %}"; }
         stage.removeAllComponents();
-        stage.loadFile(structureUrls[structureId], { ext: "pdb", defaultRepresentation: false })
+        stage.loadFile(structureUrls[structureId], { ext: structureFormats[structureId] || "pdb", defaultRepresentation: false })
             .then(initStructureComponent)
             .catch(function () {
                 if (loadingNote) { loadingNote.style.display = "flex"; loadingNote.textContent = "{% trans 'Unable to load 3D structure.' %}"; }

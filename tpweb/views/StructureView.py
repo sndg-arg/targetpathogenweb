@@ -7,6 +7,7 @@ from tpweb.models.BioentryStructure import BioentryStructure
 from tpweb.models.pdb import PDB, Residue, Property, ResidueSet, PDBResidueSet
 from django.db.models import Q
 from tpweb.services.genome_workspace import user_can_access_genome_name, genome_url_slug
+from tpweb.services.structure_files import detect_structure_format, structure_file_path
 
 
 _METHOD_MAP = {"EX": "Crystal structure", "AF": "AlphaFold model", "CF": "ColabFold model"}
@@ -62,6 +63,7 @@ class StructureView(View):
                     "short_method": _SHORT_METHOD.get(exp, s_data["method"]),
                     "resolution": s_data.get("resolution"),
                     "chain_selector": _chain_selector(link.chain),
+                    "file_format": self._structure_file_format(link.bioentry, pdb),
                     "structure_data": s_data,
                     "is_active": pdb.id == structure.id,
                 })
@@ -81,6 +83,7 @@ class StructureView(View):
                     "short_method": _SHORT_METHOD.get(exp, primary_data["method"]),
                     "resolution": primary_data.get("resolution"),
                     "chain_selector": chain_sel,
+                    "file_format": self._structure_file_format(source_bioentry, structure),
                     "structure_data": primary_data,
                     "is_active": True,
                 })
@@ -99,6 +102,7 @@ class StructureView(View):
                 "short_method": _SHORT_METHOD.get(exp, primary_data["method"]),
                 "resolution": primary_data.get("resolution"),
                 "chain_selector": "polymer",
+                "file_format": self._structure_file_format(None, structure),
                 "structure_data": primary_data,
                 "is_active": True,
             }]
@@ -106,6 +110,21 @@ class StructureView(View):
 
         return render(request, self.template_name, dto)
 
+    @staticmethod
+    def _structure_file_format(source_bioentry, structure):
+        if source_bioentry is None:
+            source_link = BioentryStructure.objects.select_related("bioentry__biodatabase").filter(
+                pdb=structure
+            ).first()
+            source_bioentry = source_link.bioentry if source_link else None
+        if source_bioentry is None:
+            return "pdb"
+        assembly_name = StructureView._resolve_source_assembly_name(source_bioentry)
+        try:
+            path = structure_file_path(assembly_name, source_bioentry.accession, structure.code)
+            return detect_structure_format(path)
+        except (FileNotFoundError, OSError, AttributeError):
+            return "pdb"
     @staticmethod
     def _resolve_source_bioentry(request, structure):
         requested_protein_id = str(request.GET.get("protein_id") or "").strip()

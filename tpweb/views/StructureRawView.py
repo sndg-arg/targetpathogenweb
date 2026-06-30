@@ -1,35 +1,58 @@
-from django.views import View
-from django.http import Http404
+import gzip
 
-from django.http import HttpResponse, HttpResponseNotFound
+from django.http import Http404, HttpResponse, HttpResponseNotFound
+from django.views import View
 
 from bioseq.io.BioIO import BioIO
+from tpweb.models.BioentryStructure import BioentryStructure
 from tpweb.models.pdb import PDB
-
-import gzip
 from tpweb.services.genome_workspace import user_can_access_genome_name
-from tpweb.services.structure_files import structure_file_path
+from tpweb.services.structure_files import detect_structure_format, structure_file_path
+
 
 class StructureRawView(View):
-    template_name = 'genomic/protein.html'
+    template_name = "genomic/protein.html"
 
     def get(self, request, struct_id, *args, **kwargs):
         pdbqs = PDB.objects.filter(id=struct_id)
 
         if pdbqs.exists():
             pdb = pdbqs.get()
-            be = pdb.sequences.all()[0].bioentry
+            be = self._resolve_source_bioentry(request, pdb)
+            if be is None:
+                raise Http404("Structure not found")
             biodb = be.biodatabase.name.replace(BioIO.GENOME_PROT_POSTFIX, "")
             if not user_can_access_genome_name(request.user, biodb):
                 raise Http404("Structure not found")
             try:
                 raw_structure_path = structure_file_path(biodb, be.accession, pdb.code)
+                structure_format = detect_structure_format(raw_structure_path)
                 data = gzip.open(raw_structure_path, "rt").read()
             except (FileNotFoundError, OSError):
                 return HttpResponseNotFound("Structure source file not found.")
-            response = HttpResponse(data,
-                                content_type="text/plain; charset=utf-8")
-            #response['Content-Encoding'] = 'gzip'
+
+            content_type = (
+                "chemical/x-cif; charset=utf-8"
+                if structure_format == "cif"
+                else "chemical/x-pdb; charset=utf-8"
+            )
+            response = HttpResponse(data, content_type=content_type)
+            response["X-Structure-Format"] = structure_format
             return response
-        else:
-            return HttpResponseNotFound()
+        return HttpResponseNotFound()
+
+    @staticmethod
+    def _resolve_source_bioentry(request, structure):
+        requested_protein_id = str(request.GET.get("protein_id") or "").strip()
+        if requested_protein_id.isdigit():
+            link = BioentryStructure.objects.select_related("bioentry__biodatabase").filter(
+                pdb=structure,
+                bioentry_id=int(requested_protein_id)
+            ).first()
+            if link and link.bioentry:
+                return link.bioentry
+
+        first_link = BioentryStructure.objects.select_related("bioentry__biodatabase").filter(pdb=structure).first()
+        if first_link and first_link.bioentry:
+            return first_link.bioentry
+        return None

@@ -9,6 +9,7 @@ from rdkit.Chem.FilterCatalog import FilterCatalog, FilterCatalogParams
 import itertools
 import re
 
+from bioseq.io.BioIO import BioIO
 from bioseq.models.Biodatabase import Biodatabase
 from bioseq.models.Bioentry import Bioentry
 from tpweb.models.Binders import Binders
@@ -27,6 +28,7 @@ from tpweb.services.genome_workspace import (
     genome_url_slug,
     user_can_access_genome_name,
 )
+from tpweb.services.structure_files import detect_structure_format, structure_file_path
 from tpweb.services.structure_sources import (
     PDB_MODEL_EXPERIMENTS,
     summarize_structure_sources,
@@ -448,6 +450,7 @@ def _experimental_structure_entry(pdb_id, method, resolution, chains, start, end
         "loaded": loaded_link is not None,
         "loaded_structure_id": getattr(getattr(loaded_link, "pdb", None), "id", None),
         "chain_selector": chain_sel,
+        "file_format": _structure_file_format_for_link(loaded_link) if loaded_link else "pdb",
         **coverage,
     }
 
@@ -458,6 +461,19 @@ def _structure_source_name(experiment):
         return "PDB"
     return _structure_toggle_label(experiment)
 
+
+def _structure_file_format_for_link(link):
+    pdb = getattr(link, "pdb", None)
+    bioentry = getattr(link, "bioentry", None)
+    if bioentry is None:
+        return "pdb"
+    biodb_name = getattr(getattr(bioentry, "biodatabase", None), "name", "") or ""
+    genome = biodb_name.replace(BioIO.GENOME_PROT_POSTFIX, "")
+    try:
+        path = structure_file_path(genome, bioentry.accession, pdb.code)
+        return detect_structure_format(path)
+    except (FileNotFoundError, OSError, AttributeError):
+        return "pdb"
 
 def _viewer_structure_payload(link, protein_length):
     pdb = getattr(link, "pdb", None)
@@ -533,6 +549,7 @@ def _build_predicted_structures(links, protein_length, primary_link=None, alt_li
             "loaded": True,
             "loaded_structure_id": pdb.id,
             "chain_selector": chain_sel,
+            "file_format": _structure_file_format_for_link(link),
             "slot_key": slot_key,
             "viewer_key": "primary" if is_primary else ("alt" if is_alt else None),
             **coverage,
