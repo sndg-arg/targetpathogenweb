@@ -1,76 +1,59 @@
 # Curated Genome Import
 
-This is the operational guide for loading a genome when curators/biologists
-provide reviewed output files. The rule is **curators first**: if the reviewed
-package contains a value, structure, pocket, binder, or annotation output, TPW
-imports that source and does not recalculate it. Computation is used only for
-missing data or for an explicit audit/rebuild request.
+This is the manual runbook for loading a genome from a reviewed package supplied
+by curators or biologists. The core rule is simple: **the reviewed package is the
+source of truth**. TPW should import and convert reviewed values, structures,
+pockets, binders, and annotations. It should compute only data that is absent
+from the package or explicitly requested as a supplemental rebuild.
 
-This guide is intentionally genome-agnostic. Record organism-specific facts in a
-short task note or ticket, not in this workflow.
+Use this guide for any organism. Keep organism names, exact paths, missing-file
+lists, counts, and final command output in the ticket or task note.
+
+## When To Use This
+
+Use this runbook when you have at least one of:
+
+- reviewed `results_table.tsv`;
+- reviewed genome/proteome files;
+- reviewed structure folders;
+- reviewed FPocket/P2Rank output folders;
+- reviewed off-target, essentiality, localization, conservation, Foldseek, or
+  LigQ output.
+
+Do not use this runbook to launch a full fresh TPW computational pipeline. For a
+fresh computational run, use the normal pipeline and SLURM-backed stages.
 
 ## Source Priority
 
-Use this order for every curated import:
+Use this priority order for every curated import:
 
-1. Reviewed `results_table.tsv` and reviewed per-stage files shipped by the
-   curators.
-2. Precomputed outputs inside the reviewed archive, including structures,
-   FPocket/P2Rank pockets, off-target tables, essentiality, localization,
-   conservation, Foldseek, and LigQ outputs when present.
-3. TPW import/conversion of those reviewed files.
-4. Pipeline or SLURM computation only for files absent from the reviewed package
-   or for a requested supplemental rebuild.
+1. Reviewed TSV values and reviewed per-stage files shipped by the curators.
+2. Precomputed outputs inside the reviewed archive.
+3. TPW conversion/import of those reviewed files.
+4. Remote computation only for files absent from the reviewed package or for an
+   explicit rebuild request.
 
-For Gates-style structural packages, FPocket/P2Rank outputs live under
-`structures/<gene>/pockets/`. Import them with `import_gates_pocket_outputs`.
-Do not import ad-hoc recalculated SLURM pocket results when the reviewed package
-already contains equivalent pocket outputs.
+Never import ad hoc recalculated outputs over equivalent reviewed outputs. Keep
+those recalculations only as audit artifacts unless curators decide they replace
+the original source.
 
-## Nodo0 Rules
+## Stop Conditions
 
-Nodo0 is for orchestration and database loading. It is acceptable to run Django
-management commands that import already-computed files. Do not run full-proteome
-BLAST/HMMER, InterProScan, AlphaFold/ColabFold, FPocket, P2Rank, or LigQ_2
-computation directly on Nodo0.
-
-Use the repo on Nodo0:
-
-```bash
-cd /home/dockeradmin/targetpathogenweb
-```
-
-Deploy code changes with cached service-scoped builds:
-
-```bash
-git pull --ff-only origin file-ingestion
-make build ENV=cluster svc=queue
-make up ENV=cluster svc=queue
-```
-
-Use `svc=web` instead when only web/UI code changed. Use full `make build
-ENV=cluster` only when shared dependencies changed.
-
-## Inputs
-
-Expected reviewed package layout for Gates-style imports:
+Stop and inspect before modifying production if any dry-run reports:
 
 ```text
-<ARCHIVE_ROOT>/results_table.tsv          # sometimes delivered separately
-<ARCHIVE_ROOT>/genome/                    # GBK/GBFF/GFF/FAA/FNA, depending on package
-<ARCHIVE_ROOT>/structures/<gene>/         # ColabFold, AF DB, PDB chain structures
-<ARCHIVE_ROOT>/structures/<gene>/pockets/ # FPocket/P2Rank reviewed outputs
-<ARCHIVE_ROOT>/offtarget/                 # optional reviewed off-target outputs
-<ARCHIVE_ROOT>/essentiality/              # optional reviewed essentiality outputs
-<ARCHIVE_ROOT>/ligq2/ or LigQ_2/          # optional reviewed ligand outputs
+Failed: nonzero
+Missing TPW structure: nonzero
+missing structure/pocket checks: nonzero
 ```
 
-The reviewed TSV must contain the expected locus column, usually `gene`, and its
-locus tags must match an already loaded TPW proteome or the genome being loaded.
+`Missing original output` is different: it means the referenced reviewed file is
+not present in the reviewed package. Record those genes and ask whether they are
+intentionally absent; do not silently recalculate them.
 
 ## Variables
 
-Set these once per genome and reuse them in all commands:
+Set these once per genome. Use real values in the shell session, not in this doc.
 
 ```bash
 GENOME=public__Example
@@ -84,21 +67,56 @@ DATADIR=/app/targetpathogenweb/data
 export GENOME GRAM RESULTS_TSV ARCHIVE ARCHIVE_ROOT EXTRACT_DIR STRUCTURES_DIR DATADIR
 ```
 
-If the archive is already extracted in `uploads`, `EXTRACT_DIR` can be the
-parent directory containing `$ARCHIVE_ROOT`.
+Common paths:
 
-## 1. Copy Large Files to Nodo0
+```text
+Host uploads:      /data/targetpathogen/data/uploads
+Container uploads: /app/targetpathogenweb/data/uploads
+Repo on Nodo0:     /home/dockeradmin/targetpathogenweb
+```
 
-Use the upload page for small TSV/CSV/JSON files. Copy multi-GB archives with
-`scp`; web upload may timeout or hit proxy limits.
+## Reviewed Package Shape
 
-From your workstation to the cluster login node:
+A Gates-style package usually looks like this:
+
+```text
+<ARCHIVE_ROOT>/results_table.tsv
+<ARCHIVE_ROOT>/genome/
+<ARCHIVE_ROOT>/structures/<gene>/
+<ARCHIVE_ROOT>/structures/<gene>/pockets/
+<ARCHIVE_ROOT>/offtarget/
+<ARCHIVE_ROOT>/essentiality/
+<ARCHIVE_ROOT>/ligq2/ or <ARCHIVE_ROOT>/LigQ_2/
+```
+
+The TSV must have the expected locus column, usually `gene`, and those locus tags
+must match the TPW proteome or the genome being loaded.
+
+## 1. Deploy The Import Code
+
+Run this when code changed before the import:
+
+```bash
+cd /home/dockeradmin/targetpathogenweb
+git pull --ff-only origin file-ingestion
+make build ENV=cluster svc=queue
+make up ENV=cluster svc=queue
+```
+
+Use `svc=web` only for web/UI-only changes.
+
+## 2. Copy Large Reviewed Files
+
+Use the web upload page for small TSV/CSV/JSON files. Use `scp` for multi-GB
+archives.
+
+Workstation to cluster login node:
 
 ```bash
 scp /local/path/Example.tar.gz agutson@cluster.qb.fcen.uba.ar:/home/agutson/Example.tar.gz
 ```
 
-Then move it to Nodo0 and into the shared TPW data volume:
+Login node to Nodo0 shared data volume:
 
 ```bash
 ssh agutson@cluster.qb.fcen.uba.ar
@@ -111,7 +129,7 @@ sudo cp /tmp/Example.tar.gz /data/targetpathogen/data/uploads/
 sudo chown dockeradmin:dockeradmin /data/targetpathogen/data/uploads/Example.tar.gz
 ```
 
-Verify from inside the container:
+Verify the container can see the archive:
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.cluster.yml exec -T queue sh -lc '
@@ -120,14 +138,9 @@ tar tzf /app/targetpathogenweb/data/uploads/Example.tar.gz | head -80
 '
 ```
 
-## 2. Extract Reviewed Files
+## 3. Extract Reviewed Files
 
-For Gates-style packages used as source of truth, extracting the whole archive is
-acceptable when the package is the reviewed data bundle and enough disk is
-available. If the archive contains unrelated heavy folders, extract only the
-needed directories.
-
-Whole archive:
+Whole reviewed source bundle:
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.cluster.yml exec -T queue bash -lc '
@@ -137,7 +150,7 @@ ls -ld Example/structures
 '
 ```
 
-Selective extraction:
+Selective extraction when the archive has unrelated heavy folders:
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.cluster.yml exec -T queue bash -lc "
@@ -152,36 +165,36 @@ find '$EXTRACT_DIR/$ARCHIVE_ROOT' -maxdepth 2 -type d | head -80
 "
 ```
 
-After extraction, confirm structures exist before deleting archive copies:
+Do not delete archive copies until the source folders exist and the import has
+finished.
 
-```bash
-ls -ld /data/targetpathogen/data/uploads/<ARCHIVE_ROOT>/structures
-```
+## 4. Preflight Checks
 
-## 3. Inspect Before Importing
-
-Run fast checks only:
+Run only bounded checks. Avoid deep recursive `du` over data volumes.
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.cluster.yml exec -T queue bash -lc "
+set -euo pipefail
 head -3 '$RESULTS_TSV'
-find '$STRUCTURES_DIR' -maxdepth 1 -type d | wc -l
+ls -ld '$STRUCTURES_DIR'
+find '$STRUCTURES_DIR' -maxdepth 1 -type d | head
 find '$STRUCTURES_DIR' -maxdepth 3 -type d -name '*_fpocket' | head
 find '$STRUCTURES_DIR' -maxdepth 3 -type d -name '*_p2rank' | head
 "
 ```
 
-Expected:
+Expected result:
 
-- TSV has the reviewed columns and locus tags.
-- `structures/` contains one folder per reviewed protein.
-- `pockets/` contains FPocket/P2Rank outputs when structural pockets are part of
-  the reviewed package.
+- TSV header is the reviewed file you intended to load.
+- Structure directory exists.
+- Pocket output folders exist if structural pockets are part of the reviewed
+  package.
 
-## 4. Load Genome Records When Needed
+## 5. Load Genome Records If Missing
 
-If the TPW genome/proteome does not exist yet, load genome records only and skip
-heavy stages. Do not compute structures or pockets here.
+Skip this step if the TPW genome/proteome already exists.
+
+When only records are needed, skip heavy stages:
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.cluster.yml exec -T queue bash -lc "
@@ -195,11 +208,9 @@ DJANGO_SETTINGS_MODULE=tpwebconfig.settings \
 "
 ```
 
-If the genome is already loaded, skip this step.
+## 6. Import Reviewed TSV Values And Structures
 
-## 5. Import Reviewed Scores, Mapping, and Structures
-
-Dry-run first:
+Dry-run:
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.cluster.yml exec -T queue \
@@ -211,7 +222,7 @@ docker compose -f docker-compose.yml -f docker-compose.cluster.yml exec -T queue
   --dry-run
 ```
 
-Run for real:
+Execute:
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.cluster.yml exec -T queue \
@@ -222,18 +233,18 @@ docker compose -f docker-compose.yml -f docker-compose.cluster.yml exec -T queue
   --overwrite
 ```
 
-This command loads TSV values, UniProt mapping where available, and reviewed
-structure files. It should not be used as a substitute for reviewed pocket
-geometry when the package has Gates `pockets/` output directories.
+This loads reviewed TSV values, UniProt mapping where available, and reviewed
+structures. It does not replace the Gates pocket import step when reviewed
+`pockets/` folders are present.
 
-## 6. Import Reviewed Gates FPocket/P2Rank Outputs
+## 7. Import Reviewed Gates FPocket/P2Rank Outputs
 
-Use this for packages with `structures/<gene>/pockets/`. It imports reviewed
-FPocket/P2Rank output geometry and properties onto the matching TPW structure.
-For PDB chain outputs, the matching reviewed chain structure is loaded and used,
-so pocket surfaces are aligned to the displayed structure.
+Use this when `structures/<gene>/pockets/` contains reviewed FPocket/P2Rank
+outputs. It imports the reviewed geometry and properties onto the same structure
+used by the reviewed output. For PDB chain outputs, this avoids displaying pocket
+surfaces against the wrong full PDB assembly.
 
-Dry-run first:
+Dry-run:
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.cluster.yml exec -T queue \
@@ -246,17 +257,9 @@ docker compose -f docker-compose.yml -f docker-compose.cluster.yml exec -T queue
   --dry-run
 ```
 
-Proceed only when the dry-run shows:
+Proceed only when the dry-run has no unexpected structure/load failures.
 
-```text
-Missing TPW structure: 0
-Failed: 0
-```
-
-Missing original output is acceptable only when the files are absent from the
-reviewed package. Record those genes; do not silently recalculate them.
-
-Initial replacement import:
+First replacement import:
 
 ```bash
 nohup docker compose -f docker-compose.yml -f docker-compose.cluster.yml exec -T queue \
@@ -269,10 +272,10 @@ nohup docker compose -f docker-compose.yml -f docker-compose.cluster.yml exec -T
   > /tmp/${GENOME}_gates_pockets.log 2>&1 &
 ```
 
-`--force` is used only for the first replacement import, when replacing older
-computed TPW pockets with reviewed Gates outputs.
+Use `--force` only for the intentional first replacement of older computed TPW
+pockets with reviewed outputs.
 
-If interrupted, resume without `--force`:
+Interrupted import resume:
 
 ```bash
 nohup bash -lc 'docker compose -f docker-compose.yml -f docker-compose.cluster.yml exec -T queue \
@@ -285,6 +288,8 @@ nohup bash -lc 'docker compose -f docker-compose.yml -f docker-compose.cluster.y
   > /tmp/${GENOME}_gates_pockets_resume.summary.log 2>&1 &
 ```
 
+Resume without `--force`; existing reviewed pocket sets are skipped.
+
 Monitor:
 
 ```bash
@@ -293,20 +298,21 @@ tail -80 /tmp/${GENOME}_gates_pockets.log 2>/dev/null || true
 tail -80 /tmp/${GENOME}_gates_pockets_resume.summary.log 2>/dev/null || true
 ```
 
-## 7. Import Other Reviewed Outputs
+## 8. Import Other Reviewed Outputs
 
-Use package files instead of recomputing where available:
+Use package files instead of recomputing when available:
 
-- off-target reviewed outputs: transform/load TPW score TSVs from `offtarget/`;
-- essentiality reviewed outputs: transform/load from `essentiality/`;
-- LigQ reviewed outputs: use `load_ligq_2_results` for already-computed output;
-- UniProt/GO/EC/PDB reviewed mappings: use TSV mappings and backfill commands.
+- off-target reviewed outputs from `offtarget/`;
+- essentiality reviewed outputs from `essentiality/`;
+- localization, conservation, Foldseek, GO, EC, and UniProt mappings from the
+  reviewed TSV/files;
+- LigQ reviewed output with `load_ligq_2_results`.
 
-Only run remote SLURM stages for outputs not present in the package.
+Only launch remote computation for absent outputs.
 
-## 8. Validate
+## 9. Validate Closure
 
-Plan should show no unexpected local-heavy work:
+Plan/audit check:
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.cluster.yml exec -T queue \
@@ -315,26 +321,25 @@ docker compose -f docker-compose.yml -f docker-compose.cluster.yml exec -T queue
   --datadir "$DATADIR"
 ```
 
-For Gates-style pocket packages, selected PDB pocket validation must pass:
+Selected PDB pocket check for Gates-style structural imports:
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.cluster.yml exec -T queue \
   /opt/conda/envs/tpv2/bin/python manage.py selected_pdb_pocket_report "$GENOME"
 ```
 
-Required final line:
+Required final status:
 
 ```text
 missing structure/pocket checks: 0
 ```
 
-Expected `No_pockets` rows are acceptable when they come from the reviewed TSV.
+Expected `No_pockets` rows are acceptable only when they come from reviewed TSV
+or reviewed source output.
 
-## 9. Cleanup
+## 10. Cleanup
 
-After extraction and successful import, remove only disposable staging archives
-and logs. Never delete extracted reviewed source directories, TSVs, database
-volumes, or `/data/targetpathogen` wholesale.
+After validation, remove only disposable staging files.
 
 Safe checks:
 
@@ -345,31 +350,30 @@ sudo find /tmp -maxdepth 1 -type f \( -name "*.tar.gz" -o -name "import_gates_*.
 sudo find /data/targetpathogen/data/uploads -maxdepth 1 -type f -size +500M -printf "%s %p\n" 2>/dev/null | sort -n
 ```
 
-Delete only reviewed, duplicate archive copies after confirming extraction:
+Delete only after confirming extraction/import:
 
 ```bash
 sudo rm -f /tmp/<archive.tar.gz>
-# Optional after review, if extracted source is present:
+# Optional after review:
 # sudo rm -f /data/targetpathogen/data/uploads/<archive.tar.gz>
 ```
 
-Avoid deep `du` over `/data/targetpathogen`; it may traverse millions of files
-and appear hung. Prefer `find` scoped to known staging folders and file names.
+Never delete extracted reviewed source folders, TSVs, database volumes, or
+`/data/targetpathogen` wholesale.
 
-## Case Notes Template
+## Task Note Template
 
-For each curated genome, keep a short task note with:
+Keep a short note per genome:
 
 ```text
 Genome:
 Reviewed package:
 Results TSV:
-Extracted structures dir:
-Commands run:
-Missing original outputs intentionally not recalculated:
-Validation command outputs:
+Extracted source directories:
+Import commands run:
+Missing reviewed source outputs intentionally not recalculated:
+Validation outputs:
 Curator review notes:
 ```
 
-Do not put per-run quantity tables in this reusable guide. Run-specific numbers
-belong in task notes, logs, or final import reports.
+Do not add per-run quantity tables to this reusable guide.

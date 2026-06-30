@@ -1,4 +1,9 @@
-# Cluster Deployment Guide — Nodo0 (QB FCEN UBA)
+# Cluster Deployment Guide - Nodo0
+
+This is the operational runbook for TargetPathogenWeb on Nodo0. Nodo0 is the
+orchestration node: it hosts Docker services, Traefik routing, PostgreSQL, file
+staging, and lightweight Django management commands. It is not a bioinformatics
+compute node.
 
 ## Access
 
@@ -7,49 +12,47 @@ ssh agutson@cluster.qb.fcen.uba.ar
 sudo su glyco
 ssh nodo0
 sudo su dockeradmin
+cd /home/dockeradmin/targetpathogenweb
 ```
 
-Files live in `/home/dockeradmin/targetpathogenweb/`.
-Persistent data lives in `/data/targetpathogen/` (RAID, never delete).
+Important paths:
 
----
+```text
+/home/dockeradmin/targetpathogenweb   # repo checkout
+/data/targetpathogen                  # persistent TPW data, never delete wholesale
+/data/targetpathogen/data/uploads     # reviewed upload/staging files
+```
 
-## Nodo0 Operating Rules
-
-Nodo0 is a shared orchestration node. Treat it as the place where Docker,
-Traefik, PostgreSQL, small Django management commands, and file staging happen.
-It is not a bioinformatics compute node.
+## Nodo0 Rules
 
 Allowed on Nodo0:
 
-- `git pull`, `git status`, and normal repo inspection
-- `make build ENV=cluster svc=<service>` and `make up ENV=cluster svc=<service>`
-- `docker compose exec` into `web` or `queue` for lightweight Django commands
-- small database audits, coverage summaries, and metadata checks
-- loading already-computed TSV/JSON/PDB metadata into the database
-- copying, moving, listing, and extracting files in `/data/targetpathogen/data`
-- monitoring local logs and remote SLURM jobs
+- `git pull`, `git status`, and normal repo inspection;
+- service-scoped `make build ENV=cluster svc=<service>` and `make up ENV=cluster svc=<service>`;
+- lightweight Django management commands inside `web` or `queue`;
+- database metadata checks and coverage audits;
+- importing already-computed TSV/JSON/PDB/mmCIF/pocket outputs;
+- copying, moving, listing, and extracting reviewed files;
+- monitoring local logs and remote SLURM jobs.
 
 Do not run on Nodo0:
 
-- BLAST/HMMER searches over full proteomes
-- InterProScan
-- LigQ_2
-- AlphaFold or ColabFold
-- FPocket or P2Rank over full proteomes
-- large custom Python/R scripts that iterate all structures/sequences with
-  heavy CPU, memory, or disk churn
-- ad hoc `docker compose build --no-cache` unless debugging a specific image
-  corruption problem
-- `docker compose down -v`, `rm -rf /data/targetpathogen`, or any command that
-  deletes persistent volumes
+- full-proteome BLAST/HMMER/FastTarget searches;
+- InterProScan;
+- LigQ_2 computation;
+- AlphaFold or ColabFold;
+- full-proteome FPocket or P2Rank;
+- large ad hoc scripts over all structures/sequences;
+- `docker compose down -v`;
+- `rm -rf /data/targetpathogen` or any broad destructive delete.
 
-Use remote SLURM-backed pipeline stages for heavy work. If a command is expected
-to spend minutes to hours doing sequence search, structural prediction, pocket
-prediction, or LigQ analysis, it belongs on a compute node via the TPW remote
-wrappers, not directly on Nodo0.
+Rule of thumb: if a command launches scientific tools over thousands of proteins
+or structures, run it through the TPW remote/SLURM wrapper, not directly on
+Nodo0.
 
-Good default deployment pattern:
+## Deploy Code
+
+Default web deploy:
 
 ```bash
 cd /home/dockeradmin/targetpathogenweb
@@ -58,7 +61,7 @@ make build ENV=cluster svc=web
 make up ENV=cluster svc=web
 ```
 
-For queue-only code changes:
+Queue-only code changes:
 
 ```bash
 cd /home/dockeradmin/targetpathogenweb
@@ -67,57 +70,38 @@ make build ENV=cluster svc=queue
 make up ENV=cluster svc=queue
 ```
 
-Use service-scoped cached builds. Avoid:
+Use cached service-scoped builds. Avoid `--no-cache` unless debugging a concrete
+image-cache problem.
+
+## Lightweight Commands
+
+Use `queue` for import/worker commands and `web` for web-specific checks:
 
 ```bash
-docker compose -f docker-compose.yml -f docker-compose.cluster.yml build --no-cache queue
-```
-
-unless there is a concrete reason to invalidate the image cache.
-
----
-
-## Lightweight vs Heavy Commands
-
-Lightweight commands are OK from `web` or `queue` containers on Nodo0:
-
-```bash
-docker compose -f docker-compose.yml -f docker-compose.cluster.yml exec -T web \
-  /opt/conda/envs/tpv2/bin/python manage.py shell -c "..."
-
 docker compose -f docker-compose.yml -f docker-compose.cluster.yml exec -T queue \
   /opt/conda/envs/tpv2/bin/python manage.py curated_pipeline_plan <GENOME> \
   --results-tsv <TSV> \
   --datadir /app/targetpathogenweb/data
 ```
 
-Examples of lightweight commands:
+Lightweight examples:
 
 - `curated_pipeline_plan`
 - `sync_genome_metadata`
-- `import_external_results` when it loads existing files and is not computing
-  pockets locally
-- `load_ligq_2_results` for already-computed LigQ output
+- `import_external_results` when loading existing reviewed files
+- `import_gates_pocket_outputs` when importing existing reviewed pocket outputs
+- `load_ligq_2_results` for existing LigQ_2 output
 - `recompute_binder_directness`
-- `backfill_curated_uniprot_annotations` (network/API-bound, not CPU-heavy)
-- `fetch_experimental_structures --all-xrefs` (network/import-bound; can take
-  time, but should not be confused with a SLURM-heavy computation)
+- small Django shell audits
 
-Heavy commands must be remote/SLURM-backed:
+Heavy work must be remote/SLURM-backed.
 
-- pipeline stages 10, 16, 17, and 24 when they compute InterProScan,
-  ColabFold, structure pockets, or LigQ
-- any full-proteome BLAST/HMMER/FastTarget job
-- any full-proteome FPocket/P2Rank run
+## Monitor Remote SLURM Work
 
-When in doubt, inspect the command. If it launches external scientific tools
-over thousands of proteins, do not run it directly on Nodo0.
+Run checks through the `queue` container so the configured SSH key and username
+are used consistently.
 
----
-
-## Monitoring Remote SLURM Work
-
-Run SLURM checks through the `queue` container using the configured SSH key:
+Queue for current user:
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.cluster.yml exec -T queue sh -lc '
@@ -126,7 +110,7 @@ ssh -F /dev/null -i "$SSH_KEY_FILENAME" -o IdentitiesOnly=yes \
 '
 ```
 
-Check a specific job:
+Specific job:
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.cluster.yml exec -T queue sh -lc '
@@ -137,7 +121,7 @@ sacct -j <JOBID> --format=JobID,JobName,State,ExitCode,Elapsed,NodeList -P
 '
 ```
 
-Inspect remote logs:
+Remote logs:
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.cluster.yml exec -T queue sh -lc '
@@ -149,151 +133,32 @@ tail -80 <REMOTE_JOB_DIR>/slurm-<JOBID>.err
 '
 ```
 
-Important interpretation:
+Interpretation rules:
 
-- The Django/UI stage banner may say a stage is pending or in progress while the
-  real source of truth is the remote SLURM job.
-- Always check `squeue`/`sacct` and the remote `slurm-*.out`/`slurm-*.err`
-  before deciding a stage is stuck.
-- If a stage reports `PENDING` for a long time, it may simply be waiting for a
-  compute node. Do not restart blindly.
-- If a remote job fails repeatedly on one node, compare `NodeList` across
-  failures before blaming the input data.
+- The UI may lag behind the real SLURM state. Trust `squeue`, `sacct`, and remote
+  logs first.
+- `PENDING` may simply mean the cluster is waiting for a suitable node.
+- Compare `NodeList` across repeated failures before blaming input data.
+- Do not restart jobs blindly while a remote process is still running.
 
+## Copy Large Files To Nodo0
 
----
+Use the web upload panel for small TSV/CSV/JSON files. Use direct file copy for
+large archives; browser uploads can timeout or hit proxy limits.
 
-## Prerequisites
-
-- Traefik running on Nodo0 (`internal-nodo0-web` network)
-- Subdomain assigned by cluster admin (`TPW_DOMAIN`)
-- Ports confirmed free: `18085` (web), `15433` (db), `13001` (jbrowse)
-- SSH key for InterProScan remote jobs in `~/.ssh/`
-
----
-
-## Steps
-
-### 1. Clone the repo
-
-```bash
-cd /home/dockeradmin
-git clone <repo_url> targetpathogenweb
-cd targetpathogenweb
-```
-
-### 2. Environment file
-
-```bash
-cp .env.cluster.example .env
-```
-
-Fill in the required values:
-
-```bash
-# Generate secret key
-python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
-```
-
-Minimum required in `.env`:
-
-| Variable | Description |
-|----------|-------------|
-| `DJANGO_SECRET_KEY` | Generated above |
-| `DJANGO_DATABASE_PASSWORD` | Strong password |
-| `TPW_DB_PASSWORD` | Same as above |
-| `TPW_DOMAIN` | Subdomain assigned by cluster admin |
-| `DJANGO_ALLOWED_HOSTS` | Same domain + localhost |
-| `SSH_HOSTNAME` | `cluster.qb.fcen.uba.ar` |
-| `SSH_USERNAME` | Your cluster username |
-| `SSH_WORKDIR` | Remote working dir for InterProScan |
-
-### 3. Build and launch
-
-```bash
-make build ENV=cluster
-make up ENV=cluster
-```
-
-First time only — check logs before going background:
-
-```bash
-# Terminal A: watch Traefik
-cd /home/dockeradmin/nodo0-server
-docker compose logs --tail=20 -f
-
-# Terminal B: bring up the app
-cd /home/dockeradmin/targetpathogenweb
-make up ENV=cluster
-```
-
-### 4. Create admin user (first time only)
-
-```bash
-docker compose -f docker-compose.yml -f docker-compose.cluster.yml exec web python manage.py createsuperuser
-```
-
-Regular users are created from Django admin (`/admin/` → Users → Add user).
-
-### 5. Verify
-
-```bash
-make status ENV=cluster
-curl -v http://127.0.0.1:18085/health/live
-```
-
----
-
-## What happens automatically on startup
-
-- Database migrations run (`start.sh` calls `migrate`)
-- Static files are collected (cluster mode uses gunicorn + collectstatic)
-- Queue worker picks up genome submissions automatically
-
----
-
-## Day-to-day operations
-
-```bash
-make logs svc=web ENV=cluster       # web logs
-make logs svc=queue ENV=cluster     # pipeline queue logs
-make restart svc=web ENV=cluster    # restart web only
-make status ENV=cluster             # container + volume status
-```
-
-Binder/LigQ_2 recovery, UniProt mapping, and direct-vs-homolog evidence loading are documented in [`docs/BINDERS_LIGQ2.md`](BINDERS_LIGQ2.md).
-The generic curated genome import workflow is documented in [`docs/CURATED_GENOME_IMPORT.md`](CURATED_GENOME_IMPORT.md).
-
-### Copy large local files to Nodo0
-
-Use the web upload panel for small files such as TSV/CSV/JSON. Large archives
-such as structure or LigQ `.tar.gz` files can be rejected by the proxy with
-`502 Bad Gateway` or `413 Request Entity Too Large`; copy them directly to the
-shared data volume instead.
-
-Recommended rule:
-
-- small text files (`.tsv`, `.csv`, `.json`) → upload panel is fine
-- large archives (`.tar.gz`, structure bundles, LigQ outputs, multi-GB files)
-  → `scp` to Nodo0 and place under `/data/targetpathogen/data/uploads/`
-- never store large project data only in container-local `/tmp`; container
-  filesystems are disposable
-- use `/tmp` only as a short-lived host staging area, then copy into
-  `/data/targetpathogen/data/uploads/`
-
-If Nodo0 is reachable directly from your workstation:
+If Nodo0 is reachable directly:
 
 ```bash
 scp /local/path/Example.tar.gz dockeradmin@nodo0:/data/targetpathogen/data/uploads/
 ```
 
-If only the cluster login node is reachable, stage through `cluster.qb.fcen.uba.ar`:
+If only the cluster login node is reachable:
 
 ```bash
-# From your workstation
+# Workstation -> cluster login
 scp /local/path/Example.tar.gz agutson@cluster.qb.fcen.uba.ar:/home/agutson/Example.tar.gz
 
-# From cluster.qb.fcen.uba.ar
+# Login node -> Nodo0 staging
 scp /home/agutson/Example.tar.gz glyco@nodo0:/tmp/Example.tar.gz
 ```
 
@@ -303,63 +168,132 @@ Then on Nodo0:
 sudo mkdir -p /data/targetpathogen/data/uploads
 sudo cp /tmp/Example.tar.gz /data/targetpathogen/data/uploads/
 sudo chown dockeradmin:dockeradmin /data/targetpathogen/data/uploads/Example.tar.gz
+```
 
-cd /home/dockeradmin/targetpathogenweb
+Verify from inside the container:
+
+```bash
 docker compose -f docker-compose.yml -f docker-compose.cluster.yml exec -T queue sh -lc '
 ls -lh /app/targetpathogenweb/data/uploads/Example.tar.gz
+tar tzf /app/targetpathogenweb/data/uploads/Example.tar.gz | head -80
 '
 ```
 
-Use the container path in management commands or the curated import form:
+Use container paths in management commands:
 
 ```text
 /app/targetpathogenweb/data/uploads/Example.tar.gz
 ```
 
-After copying a large archive, inspect it from inside the `queue` container
-before extracting:
+## Extract Reviewed Archives
+
+Prefer extracting only what the import needs. Extract the whole archive only when
+it is the reviewed source bundle and disk space is acceptable.
 
 ```bash
-docker compose -f docker-compose.yml -f docker-compose.cluster.yml exec -T queue sh -lc '
-ls -lh /app/targetpathogenweb/data/uploads/<archive.tar.gz>
-tar tzf /app/targetpathogenweb/data/uploads/<archive.tar.gz> | head -80
+docker compose -f docker-compose.yml -f docker-compose.cluster.yml exec -T queue bash -lc '
+cd /app/targetpathogenweb/data/uploads
+tar xzf Example.tar.gz
+ls -ld Example/structures
 '
 ```
 
-Extract only the directories needed for the import. Avoid expanding unrelated
-multi-GB outputs into the shared volume unless they are required.
-
-After extraction and a quick directory check, remove duplicate archive copies to
-avoid filling `/` or the shared data volume. Only delete disposable archives/logs,
-never extracted `structures/`, TSVs, database volumes, or source folders still
-needed by an import.
+After extraction, confirm source folders exist before cleanup:
 
 ```bash
-ls -ld /data/targetpathogen/data/uploads/<archive-root>/structures
-sudo rm -f /tmp/<archive.tar.gz>
-# If the archive was copied to uploads and is now extracted, it can also be
-# removed from uploads after review:
-# sudo rm -f /data/targetpathogen/data/uploads/<archive.tar.gz>
+ls -ld /data/targetpathogen/data/uploads/<ARCHIVE_ROOT>/structures
+```
+
+## Cleanup Policy
+
+Safe cleanup targets:
+
+- duplicate archive copies in `/tmp`;
+- duplicate archive copies in `uploads/` after extraction is verified;
+- temporary import logs;
+- failed partial staging folders that are known to be disposable.
+
+Never delete:
+
+- extracted reviewed source directories that may be needed for import/audit;
+- TSVs used as source of truth;
+- database volumes;
+- `/data/targetpathogen` as a whole.
+
+Fast checks:
+
+```bash
 df -h /
+ls -ld /data/targetpathogen/data/uploads/<ARCHIVE_ROOT>/structures
+sudo find /tmp -maxdepth 1 -type f \( -name "*.tar.gz" -o -name "import_gates_*.log" -o -name "*_gates_pockets*.log" \) -ls
+sudo find /data/targetpathogen/data/uploads -maxdepth 1 -type f -size +500M -printf "%s %p\n" 2>/dev/null | sort -n
 ```
 
+Avoid broad/deep `du` over `/data/targetpathogen`; it may traverse millions of
+files and appear hung. Prefer scoped `find` commands over known staging paths.
 
----
+## First-Time Cluster Setup
 
-## IMPORTANT: never delete volumes
+Use this only for a fresh Nodo0 install.
 
 ```bash
-# SAFE — stops containers, keeps all data
-make down ENV=cluster
-
-# NEVER run this — deletes the database
-# docker compose down -v
+cd /home/dockeradmin
+git clone <repo_url> targetpathogenweb
+cd targetpathogenweb
+cp .env.cluster.example .env
 ```
 
----
+Required `.env` values:
 
-## Traefik labels
+| Variable | Description |
+|----------|-------------|
+| `DJANGO_SECRET_KEY` | Django secret key |
+| `DJANGO_DATABASE_PASSWORD` | PostgreSQL password |
+| `TPW_DB_PASSWORD` | Same PostgreSQL password |
+| `TPW_DOMAIN` | Assigned cluster subdomain |
+| `DJANGO_ALLOWED_HOSTS` | Domain plus localhost/internal hosts |
+| `SSH_HOSTNAME` | Remote SLURM login host |
+| `SSH_USERNAME` | Remote SLURM user |
+| `SSH_WORKDIR` | Remote work directory |
 
-Domain is configured via `TPW_DOMAIN` in `.env`.
-The Traefik network must be `internal-nodo0-web` (set via `TPW_EDGE_NETWORK`).
-Router name `target2_nodo0` must be unique across all apps on the node.
+Build and launch:
+
+```bash
+make build ENV=cluster
+make up ENV=cluster
+```
+
+Create the first admin user:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.cluster.yml exec web python manage.py createsuperuser
+```
+
+Verify:
+
+```bash
+make status ENV=cluster
+curl -v http://127.0.0.1:18085/health/live
+```
+
+## Daily Commands
+
+```bash
+make logs svc=web ENV=cluster
+make logs svc=queue ENV=cluster
+make restart svc=web ENV=cluster
+make status ENV=cluster
+make down ENV=cluster        # stops containers, keeps data
+```
+
+Never run:
+
+```bash
+docker compose down -v
+```
+
+## Related Docs
+
+- [`CURATED_GENOME_IMPORT.md`](CURATED_GENOME_IMPORT.md): manual curator-first genome import.
+- [`CURATED_FILE_IMPORT_AUTOMATION.md`](CURATED_FILE_IMPORT_AUTOMATION.md): staff/UI curated import flow.
+- [`BINDERS_LIGQ2.md`](BINDERS_LIGQ2.md): LigQ_2 evidence and directness checks.
