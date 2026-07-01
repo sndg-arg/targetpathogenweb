@@ -7,7 +7,7 @@ from tpweb.models.BioentryStructure import BioentryStructure
 from tpweb.models.pdb import PDB, Residue, Property, ResidueSet, PDBResidueSet
 from django.db.models import Q
 from tpweb.services.genome_workspace import user_can_access_genome_name, genome_url_slug
-from tpweb.services.structure_files import detect_structure_format, structure_file_path
+from tpweb.services.structure_files import detect_structure_format, display_code, structure_file_path
 
 
 _METHOD_MAP = {"EX": "Crystal structure", "AF": "AlphaFold model", "CF": "ColabFold model"}
@@ -58,6 +58,7 @@ class StructureView(View):
                 all_structures.append({
                     "id": pdb.id,
                     "code": pdb.code,
+                    "display_code": display_code(pdb.code),
                     "experiment": exp,
                     "method": s_data["method"],
                     "short_method": _SHORT_METHOD.get(exp, s_data["method"]),
@@ -78,6 +79,7 @@ class StructureView(View):
                 all_structures.insert(0, {
                     "id": structure.id,
                     "code": structure.code,
+                    "display_code": display_code(structure.code),
                     "experiment": exp,
                     "method": primary_data["method"],
                     "short_method": _SHORT_METHOD.get(exp, primary_data["method"]),
@@ -97,6 +99,7 @@ class StructureView(View):
             dto["all_structures"] = [{
                 "id": structure.id,
                 "code": structure.code,
+                "display_code": display_code(structure.code),
                 "experiment": exp,
                 "method": primary_data["method"],
                 "short_method": _SHORT_METHOD.get(exp, primary_data["method"]),
@@ -173,7 +176,7 @@ def pdb_structure(
     p2rank_limit=5,
     include_pockets_in_graphic_features=False,
 ):
-    context = {"code": pdbobj.code, "id": pdbobj.id}
+    context = {"code": pdbobj.code, "display_code": display_code(pdbobj.code), "id": pdbobj.id}
 
     context["chains"] = [{"name": x} for x in set([r.chain for r in pdbobj.residues.all() if r.chain.strip()])]
     context["layers"] = []

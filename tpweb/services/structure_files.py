@@ -61,3 +61,9 @@ def detect_structure_format_from_text(text):
     if head.startswith("data_") or "_atom_site." in head[:8192]:
         return "cif"
     return "pdb"
+
+
+def display_code(code):
+    """Strip pipeline suffixes like _chain_A from PDB codes for user-facing display."""
+    import re
+    return re.sub(r'_chain_\w+$', '', str(code or ''), flags=re.IGNORECASE).upper()

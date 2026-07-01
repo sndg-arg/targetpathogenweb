@@ -95,7 +95,7 @@
                 <button type="button" class="sv-struct-picker-btn" id="sv-struct-picker-btn"
                         aria-haspopup="listbox" aria-expanded="false"
                         title="{% trans 'Switch structure' %}">
-                    <span class="sv-struct-picker-label" id="sv-struct-picker-label">{% for s in all_structures %}{% if s.is_active %}{{ s.short_method }}{% if s.code %} · {{ s.code|upper }}{% endif %}{% endif %}{% endfor %}</span>
+                    <span class="sv-struct-picker-label" id="sv-struct-picker-label">{% for s in all_structures %}{% if s.is_active %}{{ s.short_method }}{% if s.display_code %} · {{ s.display_code }}{% endif %}{% endif %}{% endfor %}</span>
                     <svg class="sv-struct-picker-chevron" viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 1l4 4 4-4"/></svg>
                 </button>
                 <ul class="sv-struct-picker-menu" id="sv-struct-picker-menu" role="listbox" hidden>
@@ -107,7 +107,7 @@
                         data-method="{{ s.method }}"
                         data-resolution="{{ s.resolution|default:'' }}"
                         data-vmd-url="{% url 'tpwebapp:structure_export' s.id %}">
-                        <span class="sv-struct-picker-item-label">{{ s.short_method }}{% if s.code %} · {{ s.code|upper }}{% endif %}</span>
+                        <span class="sv-struct-picker-item-label">{{ s.short_method }}{% if s.display_code %} · {{ s.display_code }}{% endif %}</span>
                         {% if s.resolution %}<span class="sv-struct-picker-item-res">{{ s.resolution }} Å</span>{% endif %}
                     </li>
                     {% endfor %}
@@ -134,7 +134,7 @@
         <div class="sv-sidebar-inner">
 
             <header class="sv-sidebar-head">
-                <h1 class="sv-sidebar-code" id="sv-sidebar-code">{{ structure.code|upper }}</h1>
+                <h1 class="sv-sidebar-code" id="sv-sidebar-code">{{ structure.display_code|default:structure.code|upper }}</h1>
                 <div class="sv-sidebar-meta-row" id="sv-sidebar-meta">
                     {% for s in all_structures %}{% if s.is_active %}
                     <span class="sv-sidebar-meta-tag" id="sv-sidebar-method">{{ s.method }}</span>

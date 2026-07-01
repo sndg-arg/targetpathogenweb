@@ -28,7 +28,7 @@ from tpweb.services.genome_workspace import (
     genome_url_slug,
     user_can_access_genome_name,
 )
-from tpweb.services.structure_files import detect_structure_format, structure_file_path
+from tpweb.services.structure_files import detect_structure_format, display_code, structure_file_path
 from tpweb.services.structure_sources import (
     PDB_MODEL_EXPERIMENTS,
     summarize_structure_sources,
@@ -480,6 +480,7 @@ def _viewer_structure_payload(link, protein_length):
     experiment = str(getattr(pdb, "experiment", "") or "").strip().upper()
     source_name = _structure_source_name(experiment)
     code = str(getattr(pdb, "code", "") or "").strip().upper()
+    clean_code = display_code(code)
     coverage = _coverage_payload(
         getattr(link, "uniprot_start", None),
         getattr(link, "uniprot_end", None),
@@ -487,10 +488,10 @@ def _viewer_structure_payload(link, protein_length):
     )
     resolution = _format_resolution(getattr(link, "resolution", None) or getattr(pdb, "resolution", None))
 
-    if source_name == "PDB" and code:
-        short_label = f"PDB {code}"
-    elif code:
-        short_label = f"{source_name} {code}"
+    if source_name == "PDB" and clean_code:
+        short_label = f"PDB {clean_code}"
+    elif clean_code:
+        short_label = f"{source_name} {clean_code}"
     else:
         short_label = source_name
 
