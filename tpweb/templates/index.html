@@ -256,51 +256,9 @@
                     <p class="tp-ui-field-label">{% trans "About us" %}</p>
                     <h2>{% trans "Developed at FCEN-UBA" %}</h2>
                 </div>
+                <a href="{% url 'tpwebapp:about_us' %}" class="btn tp-btn tp-btn--outline tp-btn--sm home-about-view-btn">{% trans "Read more" %}</a>
             </div>
-            <p class="home-about-lead">{% trans "TargetPathogenWeb is developed in the academic environment of the Facultad de Ciencias Exactas y Naturales, Universidad de Buenos Aires. The project is part of a public, tuition-free university ecosystem committed to open education, publicly funded research, and collaboration between biology, bioinformatics, and software development teams." %}</p>
-            <div class="home-about-grid">
-                <div class="home-about-card">
-                    <div class="home-about-card-head">
-                        <svg class="home-about-icon" viewBox="0 0 24 24" aria-hidden="true">
-                            <path d="M3 10l9-6 9 6"/>
-                            <path d="M5 10v9h14v-9"/>
-                            <path d="M9 19v-5h6v5"/>
-                        </svg>
-                        <h3>{% trans "Institution" %}</h3>
-                    </div>
-                    <p>{% trans "Facultad de Ciencias Exactas y Naturales, Universidad de Buenos Aires (UBA)." %}</p>
-                </div>
-                <div class="home-about-card">
-                    <div class="home-about-card-head">
-                        <svg class="home-about-icon" viewBox="0 0 24 24" aria-hidden="true">
-                            <circle cx="8" cy="8" r="3"/>
-                            <circle cx="16" cy="8" r="3"/>
-                            <path d="M3 21a5 5 0 0 1 10 0"/>
-                            <path d="M11 21a5 5 0 0 1 10 0"/>
-                        </svg>
-                        <h3>{% trans "Team" %}</h3>
-                    </div>
-                    <p>
-                        Sol Gamarnik ({% trans "Lic. en Química" %})<br>
-                        Miranda Palumbo ({% trans "Lic. en Ciencias Biológicas" %})<br>
-                        Dario Do Porto ({% trans "Lic. y Dr. en Ciencias Biológicas" %})<br>
-                        Joaquin Messano ({% trans "Lic. en Ciencias Biológicas" %})<br>
-                        Ana Gutson ({% trans "Ing. Informática" %})
-                    </p>
-                </div>
-                <div class="home-about-card">
-                    <div class="home-about-card-head">
-                        <svg class="home-about-icon" viewBox="0 0 24 24" aria-hidden="true">
-                            <path d="M4 12h16"/>
-                            <path d="M12 4v16"/>
-                            <path d="M7 7l10 10"/>
-                            <path d="M17 7L7 17"/>
-                        </svg>
-                        <h3>{% trans "Purpose" %}</h3>
-                    </div>
-                    <p>{% trans "The platform is built to make pathogen target prioritization traceable, reviewable, and useful for interdisciplinary scientific work." %}</p>
-                </div>
-            </div>
+            <p class="home-about-lead">{% trans "Target Pathogen is developed at the Facultad de Ciencias Exactas y Naturales, Universidad de Buenos Aires, within a public and tuition-free university ecosystem. The project brings biology, chemistry, bioinformatics, and software development together to make pathogen target prioritization traceable and reviewable." %}</p>
         </section>
     </div>
 {% endblock %}

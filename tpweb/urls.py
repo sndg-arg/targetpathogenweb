@@ -25,6 +25,7 @@ from .views.GenomeUploadView import GenomeUploadView
 from .views.DataFileUploadView import DataFileUploadView
 from .views.AnnotationExplorerView import AnnotationExplorerView
 from .views.DataSourcesView import DataSourcesView
+from .views.AboutUsView import AboutUsView
 from django.conf.urls.static import static
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
@@ -51,6 +52,7 @@ urlpatterns = [
     #path("",view=login_required(IndexView.as_view()),name="index"),
     path("",view=IndexView.as_view(),name="index"),
     path("about/data-sources", view=DataSourcesView.as_view(), name="data_sources"),
+    path("about/us", view=AboutUsView.as_view(), name="about_us"),
     path("genome/<str:genome>", view=AssemblyView.as_view(), name="assembly"),
     path("genome/<str:genome>/explore/<str:annotation_kind>", view=AnnotationExplorerView.as_view(), name="annotation_explorer"),
     path("protein/<int:protein_id>", view=ProteinView.as_view(), name="protein"),

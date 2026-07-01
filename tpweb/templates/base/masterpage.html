@@ -1914,6 +1914,9 @@
             <a class="tp-side-link tp-side-link--primary {% if request.resolver_match.url_name == 'data_sources' %}active{% endif %}" data-short="MT" data-label="{% trans 'Methodology' %}" aria-label="{% trans 'Methodology' %}" href="{% url 'tpwebapp:data_sources' %}">
                 <span class="tp-side-text">{% trans "Methodology" %}</span>
             </a>
+            <a class="tp-side-link tp-side-link--primary {% if request.resolver_match.url_name == 'about_us' %}active{% endif %}" data-short="AB" data-label="{% trans 'About us' %}" aria-label="{% trans 'About us' %}" href="{% url 'tpwebapp:about_us' %}">
+                <span class="tp-side-text">{% trans "About us" %}</span>
+            </a>
         </div>
         {% if user.is_staff %}
         <div class="tp-side-section">
@@ -1965,6 +1968,9 @@
                 </li>
                 <li class="nav-item">
                     <a class="nav-link{% if url_name == 'data_sources' %} is-active{% endif %}" {% if url_name == 'data_sources' %}aria-current="page"{% endif %} href="{% url 'tpwebapp:data_sources' %}">{% trans "Methodology" %}</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link{% if url_name == 'about_us' %} is-active{% endif %}" {% if url_name == 'about_us' %}aria-current="page"{% endif %} href="{% url 'tpwebapp:about_us' %}">{% trans "About us" %}</a>
                 </li>
                 {% if user.is_staff %}
                 <li class="nav-item">
