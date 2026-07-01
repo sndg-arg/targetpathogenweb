@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/data-sources.css' %}?v=20260608-6">
+    <link rel="stylesheet" href="{% static 'css/pages/data-sources.css' %}?v=20260701-1">
 {% endblock %}
 
 {% block body %}
@@ -17,14 +17,15 @@
                 {% trans "Methodology" as crumb_methodology %}
                 {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_methodology %}
                 <p class="ds-eyebrow">{% trans "Platform methodology" %}</p>
-                <h1 class="ds-hero-title">{% trans "Data sources" %}</h1>
-                <p class="ds-hero-description">{% trans "A complete reference for how each evidence signal is generated — which tool, which pipeline stage, which parameters, and what it means for target assessment." %}</p>
+                <h1 class="ds-hero-title">{% trans "Methodology" %}</h1>
+                <p class="ds-hero-description">{% trans "How TargetPathogenWeb integrates genome annotation, structural evidence, druggability, off-target analysis, essentiality, ligands, and curated datasets to support bacterial target prioritization." %}</p>
             </div>
         </div>
     </section>
 
     {# ── Sticky section nav ── #}
     <nav class="ds-quick-nav" aria-label="{% trans 'Sections' %}">
+        <a class="ds-quick-nav-link" href="#platform-capabilities">{% trans "Platform" %}</a>
         <a class="ds-quick-nav-link" href="#pipeline">{% trans "Pipeline" %}</a>
         <a class="ds-quick-nav-link" href="#protein-data">{% trans "Protein data" %}</a>
         <a class="ds-quick-nav-link" href="#structure">{% trans "3D structure" %}</a>
@@ -34,9 +35,65 @@
         <a class="ds-quick-nav-link" href="#ligands">{% trans "Ligands" %}</a>
         <a class="ds-quick-nav-link" href="#drug-likeness">{% trans "Drug-likeness" %}</a>
         <a class="ds-quick-nav-link" href="#interpretation">{% trans "Interpretation" %}</a>
+        <a class="ds-quick-nav-link" href="#about-us">{% trans "About us" %}</a>
     </nav>
 
-    {# ── 1. Pipeline ── #}
+    {# -- 1. Platform capabilities -- #}
+    <section class="ds-panel tp-ui-panel" id="platform-capabilities">
+        <div class="section-head tp-ui-panel-head">
+            <div>
+                <p class="tp-ui-field-label">{% trans "Integrated functionality" %}</p>
+                <h2 class="ds-panel-title">{% trans "What the platform lets you do" %}</h2>
+                <p class="ds-panel-subtitle">{% trans "A single workspace to move from a bacterial genome to a defensible shortlist of target candidates with traceable evidence." %}</p>
+            </div>
+        </div>
+        <div class="ds-pipeline-grid">
+            <div class="ds-pipeline-card">
+                <div class="ds-pipeline-card-head">
+                    <span class="ds-stage-tag">{% trans "Genome" %}</span>
+                    <strong>{% trans "Explore a complete proteome" %}</strong>
+                </div>
+                <p>{% trans "Load public or manually curated genomes, browse every protein, search by locus or annotation, and move between the genome table, protein detail, and structural viewer without losing context." %}</p>
+            </div>
+            <div class="ds-pipeline-card">
+                <div class="ds-pipeline-card-head">
+                    <span class="ds-stage-tag">{% trans "Filter" %}</span>
+                    <strong>{% trans "Prioritize target candidates" %}</strong>
+                </div>
+                <p>{% trans "Combine essentiality, human and microbiome off-target evidence, localization, functional annotation, structural confidence, druggability, and ligand evidence to focus on proteins worth reviewing." %}</p>
+            </div>
+            <div class="ds-pipeline-card">
+                <div class="ds-pipeline-card-head">
+                    <span class="ds-stage-tag">{% trans "Score" %}</span>
+                    <strong>{% trans "Build custom scores" %}</strong>
+                </div>
+                <p>{% trans "Create weighted scoring formulas from available evidence fields, compare ranked proteins, and reuse score definitions as the prioritization strategy evolves." %}</p>
+            </div>
+            <div class="ds-pipeline-card">
+                <div class="ds-pipeline-card-head">
+                    <span class="ds-stage-tag">{% trans "3D" %}</span>
+                    <strong>{% trans "Inspect structures and pockets" %}</strong>
+                </div>
+                <p>{% trans "Review experimental PDB chains, AlphaFold DB models, ColabFold models, FPocket pockets, P2Rank pockets, residues, labels, pocket scores, and alpha-sphere geometry in the 3D viewer." %}</p>
+            </div>
+            <div class="ds-pipeline-card">
+                <div class="ds-pipeline-card-head">
+                    <span class="ds-stage-tag">{% trans "Ligands" %}</span>
+                    <strong>{% trans "Connect proteins to chemical evidence" %}</strong>
+                </div>
+                <p>{% trans "Surface co-crystallized PDB ligands, ChEMBL bioactivity, ZINC candidates, LigQ binders, and RDKit descriptors so structural evidence can be evaluated alongside compound-level information." %}</p>
+            </div>
+            <div class="ds-pipeline-card">
+                <div class="ds-pipeline-card-head">
+                    <span class="ds-stage-tag">{% trans "Curated" %}</span>
+                    <strong>{% trans "Preserve expert-provided datasets" %}</strong>
+                </div>
+                <p>{% trans "Manual imports are designed to prioritize curator-provided structures, pockets, annotations, and scores, with dry-run checks that report missing files before production data is overwritten." %}</p>
+            </div>
+        </div>
+    </section>
+
+    {# -- 2. Pipeline -- #}
     <section class="ds-panel tp-ui-panel" id="pipeline">
         <div class="section-head tp-ui-panel-head">
             <div>
@@ -441,6 +498,27 @@
         </ul>
     </section>
 
+    {# -- 10. About us -- #}
+    <section class="ds-panel tp-ui-panel" id="about-us">
+        <div class="section-head tp-ui-panel-head">
+            <div>
+                <p class="tp-ui-field-label">{% trans "About us" %}</p>
+                <h2 class="ds-panel-title">{% trans "Developed at FCEN-UBA" %}</h2>
+                <p class="ds-panel-subtitle">{% trans "TargetPathogenWeb is developed in the academic environment of the Facultad de Ciencias Exactas y Naturales, Universidad de Buenos Aires." %}</p>
+            </div>
+        </div>
+        <p class="ds-body">{% trans "The project belongs to a public university ecosystem committed to free, publicly funded education and research. It is built to support collaboration between biology, bioinformatics, and software development teams, keeping every prioritization decision connected to its source evidence." %}</p>
+        <div class="ds-def-list">
+            <div class="ds-def-row">
+                <span class="ds-def-term">{% trans "Institution" %}</span>
+                <span class="ds-def-body">{% trans "Facultad de Ciencias Exactas y Naturales, Universidad de Buenos Aires (UBA)." %}</span>
+            </div>
+            <div class="ds-def-row">
+                <span class="ds-def-term">{% trans "Team" %}</span>
+                <span class="ds-def-body">Sol, Miranda, Dario, Joaco, Ani</span>
+            </div>
+        </div>
+    </section>
 </div>
 
 <script>
