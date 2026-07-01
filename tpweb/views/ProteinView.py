@@ -568,7 +568,9 @@ def _build_experimental_structures(protein, structures):
         experiment = str(getattr(pdb, "experiment", "") or "").strip().upper()
         if not code or experiment in PDB_MODEL_EXPERIMENTS:
             continue
-        loaded_by_code.setdefault(code, link)
+        # Normalize _chain_X suffixes so "3E82_CHAIN_A" matches xref key "3E82"
+        normalized = display_code(code)
+        loaded_by_code.setdefault(normalized, link)
         fallback_links.append(link)
 
     entries = []
@@ -591,7 +593,7 @@ def _build_experimental_structures(protein, structures):
 
     for link in fallback_links:
         pdb = link.pdb
-        pdb_id = str(pdb.code or "").strip().upper()
+        pdb_id = display_code(str(pdb.code or "").strip().upper())
         if pdb_id in seen_codes:
             continue
         method = pdb.experiment or "Experimental"
