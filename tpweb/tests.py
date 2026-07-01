@@ -1,5 +1,6 @@
 import gzip
 import json
+from datetime import datetime, timezone
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import MagicMock, patch
@@ -73,6 +74,7 @@ from tpweb.services.workspace import (
     set_workspace_session_value,
 )
 from tpweb.views.FormulaForm import FormulaForm
+from tpweb.views.IndexView import should_show_home_pipeline_panel
 from tpweb.services.workspace import PUBLIC_WORKSPACE_USERNAME
 
 
@@ -1191,6 +1193,43 @@ class HealthViewTests(SimpleTestCase):
         self.assertFalse(payload["running"])
         self.assertEqual(payload["state_class"], "idle")
 
+
+class HomePipelinePanelVisibilityTests(SimpleTestCase):
+    def test_hides_idle_pipeline_panel(self):
+        self.assertFalse(
+            should_show_home_pipeline_panel({"available": False, "running": False})
+        )
+
+    def test_shows_running_pipeline_panel(self):
+        self.assertTrue(
+            should_show_home_pipeline_panel({"available": True, "running": True})
+        )
+
+    def test_shows_recent_finished_pipeline_panel(self):
+        now = datetime(2026, 7, 1, 12, 0, tzinfo=timezone.utc)
+        self.assertTrue(
+            should_show_home_pipeline_panel(
+                {
+                    "available": True,
+                    "running": False,
+                    "last_updated": "2026-07-01 08:00 (UTC-3)",
+                },
+                now=now,
+            )
+        )
+
+    def test_hides_old_finished_pipeline_panel(self):
+        now = datetime(2026, 7, 1, 12, 0, tzinfo=timezone.utc)
+        self.assertFalse(
+            should_show_home_pipeline_panel(
+                {
+                    "available": True,
+                    "running": False,
+                    "last_updated": "2026-06-29 08:00 (UTC-3)",
+                },
+                now=now,
+            )
+        )
 
 class RouteSmokeTests(SimpleTestCase):
     @patch("tpweb.views.IndexView.TPPost.objects.first")

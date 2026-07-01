@@ -33,6 +33,7 @@
             </div>
         </section>
 
+        {% if show_pipeline_panel %}
         <section
             class="home-panel home-operations tp-ui-panel{% if pipeline_status.state_class == 'failed' %} is-failed{% endif %}"
             data-pipeline-endpoint="{% url 'tpwebapp:health_pipeline' %}"
@@ -132,6 +133,7 @@
                 </div>
             </div>
         </div>
+        {% endif %}
 
         <section class="home-panel home-about tp-ui-panel">
             <div class="tp-ui-panel-head">
