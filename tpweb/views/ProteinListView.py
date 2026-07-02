@@ -155,9 +155,9 @@ class ProteinListView(View):
     )
 
     @staticmethod
-    def _clean_redirect_query(return_query, structure_source="", annotation_kind="", annotation_value=""):
+    def _clean_redirect_query(return_query, structure_source="", annotation_kind="", annotation_value="", applied_preset_id=None):
         params = parse_qs(return_query or "", keep_blank_values=False)
-        for key in ("page", "ec_filter"):
+        for key in ("page", "ec_filter", "applied_preset"):
             params.pop(key, None)
 
         structure_source = (structure_source or "").strip().lower()
@@ -173,6 +173,9 @@ class ProteinListView(View):
         else:
             params.pop("annotation_kind", None)
             params.pop("annotation_value", None)
+
+        if applied_preset_id is not None:
+            params["applied_preset"] = [str(applied_preset_id)]
 
         return urlencode(
             {key: value[0] if len(value) == 1 else value for key, value in params.items()},
@@ -834,6 +837,7 @@ class ProteinListView(View):
         )
 
         action = request.POST.get("action")
+        applied_preset_id = None
         current_structure_source = request.GET.get("structure_source", "").strip().lower()
         target_structure_source = current_structure_source
         target_annotation_kind = normalize_annotation_kind(request.GET.get("annotation_kind", "ec"))
@@ -923,6 +927,7 @@ class ProteinListView(View):
                 target_structure_source = preset.structure_source or ""
                 target_annotation_kind = normalize_annotation_kind(preset.annotation_kind or "ec")
                 target_annotation_value = preset.annotation_value or ""
+                applied_preset_id = preset.pk
 
         elif action == "delete_filter_preset":
             preset_id = request.POST.get("preset_id")
@@ -965,6 +970,7 @@ class ProteinListView(View):
             structure_source=target_structure_source,
             annotation_kind=target_annotation_kind,
             annotation_value=target_annotation_value,
+            applied_preset_id=applied_preset_id,
         )
         redirect_url = request.path
         if redirect_query:
@@ -1021,21 +1027,55 @@ class ProteinListView(View):
             {"file_name": Path(cp.tsv.name).name}
             for cp in custom_data_files
         ]
-        filter_presets = [
-            {
+        last_applied_preset_raw = request.GET.get("applied_preset", "")
+        try:
+            last_applied_preset_id = int(last_applied_preset_raw)
+        except (TypeError, ValueError):
+            last_applied_preset_id = None
+
+        filter_presets = []
+        for preset in FilterPreset.objects.filter(
+            owner=workspace_user,
+            genome_name=assembly_name,
+        ).order_by("name", "id"):
+            selected = normalize_selected_parameters(preset.selected_parameters)
+            criteria_labels = []
+            grouped_categorical = {}
+            for item in selected:
+                item_kind = str(item.get("type") or "categorical").strip().lower()
+                param_name_raw = item.get("score_param_name") or ""
+                if item_kind in ("", "categorical") and param_name_raw:
+                    human_val = humanize_identifier(item.get("name", ""))
+                    grouped_categorical.setdefault(humanize_identifier(param_name_raw), []).append(human_val)
+                elif item_kind == "numeric" and param_name_raw:
+                    human_name = humanize_identifier(param_name_raw)
+                    op = item.get("operation", "")
+                    val = item.get("value")
+                    val_max = item.get("value_max")
+                    if op == "between" and val is not None and val_max is not None:
+                        criteria_labels.append(f"{human_name}: {val:g}–{val_max:g}")
+                    elif val is not None:
+                        criteria_labels.append(f"{human_name} {op} {val:g}")
+            for param_label, values in grouped_categorical.items():
+                criteria_labels.append(f"{param_label}: {', '.join(values)}")
+            if preset.structure_source:
+                criteria_labels.append(f"Structure: {humanize_identifier(preset.structure_source)}")
+            if preset.annotation_value:
+                ann_kind = normalize_annotation_kind(preset.annotation_kind or "ec")
+                ann_label = annotation_kind_label(ann_kind) if ann_kind else "Annotation"
+                criteria_labels.append(f"{ann_label}: {preset.annotation_value}")
+            filter_presets.append({
                 "id": preset.pk,
                 "name": preset.name,
                 "criteria_count": (
-                    len(normalize_selected_parameters(preset.selected_parameters))
+                    len(selected)
                     + (1 if preset.structure_source else 0)
                     + (1 if preset.annotation_value else 0)
                 ),
-            }
-            for preset in FilterPreset.objects.filter(
-                owner=workspace_user,
-                genome_name=assembly_name,
-            ).order_by("name", "id")
-        ]
+                "criteria_labels": criteria_labels[:8],
+                "is_last_applied": preset.pk == last_applied_preset_id,
+            })
+        active_preset_name = next((p["name"] for p in filter_presets if p["is_last_applied"]), "")
 
         all_visible_score_params = list(
             visible_score_params_queryset(request.user).prefetch_related("choices")
@@ -1481,6 +1521,7 @@ class ProteinListView(View):
             "custom_data_for_drawer": custom_data_for_drawer,
             "custom_data_count": len(custom_data_for_drawer),
             "filter_presets": filter_presets,
+            "active_preset_name": active_preset_name,
             "custom_score_url": reverse("tpwebapp:formula_form", kwargs={"genome": genome_url_slug(assembly_name)}),
             "custom_data_url": reverse("tpwebapp:customparam", kwargs={"genome": genome_url_slug(assembly_name)}),
             "current_formula":current_formula,

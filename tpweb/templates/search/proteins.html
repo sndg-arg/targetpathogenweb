@@ -166,6 +166,59 @@
                                         {% endif %}
                                     </span>
                                 </button>
+                                {% if filter_presets %}
+                                <div class="toolbar-presets-wrap" id="toolbar-presets-wrap">
+                                    <button type="button"
+                                            class="btn tp-btn tp-btn--neutral toolbar-action-btn toolbar-action-btn--secondary{% if active_preset_name %} toolbar-action-btn--preset-active{% endif %}"
+                                            id="open-presets-btn"
+                                            aria-haspopup="true"
+                                            aria-expanded="false">
+                                        <span class="toolbar-action-btn__title">{% trans "Presets" %}</span>
+                                        <span class="toolbar-action-btn__meta">
+                                            {% if active_preset_name %}{{ active_preset_name }}{% else %}{% blocktrans count total=filter_presets|length %}{{ total }} saved{% plural %}{{ total }} saved{% endblocktrans %}{% endif %}
+                                        </span>
+                                    </button>
+                                    <div class="toolbar-presets-dropdown" id="toolbar-presets-dropdown" hidden>
+                                        <ul class="tpd-list" role="list">
+                                            {% for preset in filter_presets %}
+                                            <li class="tpd-row{% if preset.is_last_applied %} tpd-row--active{% endif %}">
+                                                <form method="POST" action="" class="tpd-apply-form">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="action" value="apply_filter_preset">
+                                                    <input type="hidden" name="preset_id" value="{{ preset.id }}">
+                                                    <input type="hidden" name="return_query" value="{{ query_string }}">
+                                                    <button type="submit" class="tpd-apply-btn">
+                                                        <span class="tpd-header">
+                                                            <span class="tpd-name">{{ preset.name }}</span>
+                                                            {% if preset.is_last_applied %}
+                                                                <span class="tpd-badge">{% trans "Active" %}</span>
+                                                            {% else %}
+                                                                <span class="tpd-count">{% blocktrans count total=preset.criteria_count %}{{ total }} criterion{% plural %}{{ total }} criteria{% endblocktrans %}</span>
+                                                            {% endif %}
+                                                        </span>
+                                                        {% if preset.criteria_labels %}
+                                                            <span class="tpd-criteria">{% for lbl in preset.criteria_labels %}{{ lbl }}{% if not forloop.last %} · {% endif %}{% endfor %}</span>
+                                                        {% endif %}
+                                                    </button>
+                                                </form>
+                                                <form method="POST" action="" class="tpd-delete-form" onsubmit="return confirm('{% trans "Delete this filter preset?" %}')">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="action" value="delete_filter_preset">
+                                                    <input type="hidden" name="preset_id" value="{{ preset.id }}">
+                                                    <input type="hidden" name="return_query" value="{{ query_string }}">
+                                                    <button type="submit" class="tpd-delete-btn" title="{% trans 'Delete preset' %}" aria-label="{% trans 'Delete preset' %}">
+                                                        {% include "components/icons/trash.html" %}
+                                                    </button>
+                                                </form>
+                                            </li>
+                                            {% endfor %}
+                                        </ul>
+                                        <div class="tpd-foot">
+                                            <button type="button" class="tpd-open-drawer-btn" id="tpd-open-drawer-btn">{% trans "Save a new preset in Filters →" %}</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
                                 {% if formulas %}
                                     <button type="button" class="btn tp-btn tp-btn--neutral toolbar-action-btn toolbar-action-btn--primary{% if not formula_active %} toolbar-action-btn--cta{% endif %}" id="open-formula-btn">
                                         <span class="toolbar-action-btn__title">{% trans "Scoring" %}</span>
@@ -748,57 +801,20 @@
         </div>
         <div class="drawer-foot">
             <section class="filter-presets-footer">
-                <details class="filter-presets-details" {% if filter_presets %}open{% endif %}>
-                    <summary class="filter-presets-summary">
-                        <span class="filter-presets-summary__label">{% trans "Saved selections" %}</span>
-                        <span class="filter-presets-summary__meta">
-                            {% if filter_presets %}
-                                <span class="filter-presets-summary__count">{{ filter_presets|length }}</span>
-                            {% endif %}
-                            <span class="filter-presets-summary__chevron" aria-hidden="true"></span>
-                        </span>
-                    </summary>
-                    <div class="filter-presets-body">
-                        <form method="POST" action="" class="filter-preset-save-form" id="filter-preset-save-form">
-                            {% csrf_token %}
-                            <input type="hidden" name="action" value="save_filter_preset">
-                            <input type="hidden" name="return_query" value="{{ query_string }}">
-                            <input type="hidden" name="filter_actions_json" value="[]">
-                            <input type="hidden" name="pending_structure_source" value="{{ structure_source }}">
-                            <input type="hidden" name="pending_annotation_kind" value="{% if annotation_filter %}{{ annotation_filter.kind }}{% endif %}">
-                            <input type="hidden" name="pending_annotation_value" value="{% if annotation_filter %}{{ annotation_filter.value }}{% endif %}">
-                            <input type="text" name="preset_name" class="filter-preset-name-input" placeholder="{% trans 'Name this selection…' %}" autocomplete="off" required>
-                            <button type="submit" class="btn tp-btn tp-btn--neutral filter-preset-save-btn">{% trans "Save" %}</button>
-                        </form>
-                        {% if filter_presets %}
-                            <div class="filter-preset-list">
-                                {% for preset in filter_presets %}
-                                    <div class="filter-preset-row">
-                                        <form method="POST" action="" class="filter-preset-apply-form">
-                                            {% csrf_token %}
-                                            <input type="hidden" name="action" value="apply_filter_preset">
-                                            <input type="hidden" name="preset_id" value="{{ preset.id }}">
-                                            <input type="hidden" name="return_query" value="{{ query_string }}">
-                                            <button type="submit" class="filter-preset-apply-btn">
-                                                <span class="filter-preset-name">{{ preset.name }}</span>
-                                                <span class="filter-preset-meta">{% blocktrans count total=preset.criteria_count %}{{ total }} criterion{% plural %}{{ total }} criteria{% endblocktrans %}</span>
-                                            </button>
-                                        </form>
-                                        <form method="POST" action="" class="filter-preset-delete-form" onsubmit="return confirm('{% trans "Delete this filter preset?" %}')">
-                                            {% csrf_token %}
-                                            <input type="hidden" name="action" value="delete_filter_preset">
-                                            <input type="hidden" name="preset_id" value="{{ preset.id }}">
-                                            <input type="hidden" name="return_query" value="{{ query_string }}">
-                                            <button type="submit" class="filter-preset-delete-btn" title="{% trans 'Delete preset' %}" aria-label="{% trans 'Delete preset' %}">
-                                                {% include "components/icons/trash.html" %}
-                                            </button>
-                                        </form>
-                                    </div>
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                    </div>
-                </details>
+                <div class="filter-presets-save-panel">
+                    <span class="filter-presets-save-label">{% trans "Save this selection" %}</span>
+                    <form method="POST" action="" class="filter-preset-save-form" id="filter-preset-save-form">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="save_filter_preset">
+                        <input type="hidden" name="return_query" value="{{ query_string }}">
+                        <input type="hidden" name="filter_actions_json" value="[]">
+                        <input type="hidden" name="pending_structure_source" value="{{ structure_source }}">
+                        <input type="hidden" name="pending_annotation_kind" value="{% if annotation_filter %}{{ annotation_filter.kind }}{% endif %}">
+                        <input type="hidden" name="pending_annotation_value" value="{% if annotation_filter %}{{ annotation_filter.value }}{% endif %}">
+                        <input type="text" name="preset_name" class="filter-preset-name-input" placeholder="{% trans 'Name this selection…' %}" autocomplete="off" required>
+                        <button type="submit" class="btn tp-btn tp-btn--neutral filter-preset-save-btn">{% trans "Save" %}</button>
+                    </form>
+                </div>
             </section>
             <div class="drawer-foot-actions">
                 <form method="POST" action="" class="drawer-reset-form">
@@ -1719,6 +1735,44 @@
             if (openFiltersBtn) openFiltersBtn.addEventListener("click", function () { openOnly("filters"); });
             if (closeFiltersBtn) closeFiltersBtn.addEventListener("click", function () { setDrawerState(false); });
             if (filtersOverlay) filtersOverlay.addEventListener("click", function () { setDrawerState(false); });
+
+            // Presets dropdown
+            const presetsWrap = document.getElementById("toolbar-presets-wrap");
+            const openPresetsBtn = document.getElementById("open-presets-btn");
+            const presetsDropdown = document.getElementById("toolbar-presets-dropdown");
+            const tpdOpenDrawerBtn = document.getElementById("tpd-open-drawer-btn");
+
+            function setPresetsDropdownOpen(open) {
+                if (!presetsDropdown || !openPresetsBtn) return;
+                presetsDropdown.hidden = !open;
+                openPresetsBtn.setAttribute("aria-expanded", open ? "true" : "false");
+            }
+
+            if (openPresetsBtn) {
+                openPresetsBtn.addEventListener("click", function (e) {
+                    e.stopPropagation();
+                    setPresetsDropdownOpen(presetsDropdown && presetsDropdown.hidden);
+                });
+            }
+
+            if (tpdOpenDrawerBtn) {
+                tpdOpenDrawerBtn.addEventListener("click", function () {
+                    setPresetsDropdownOpen(false);
+                    openOnly("filters");
+                });
+            }
+
+            document.addEventListener("click", function (e) {
+                if (!presetsWrap || !presetsDropdown || presetsDropdown.hidden) return;
+                if (!presetsWrap.contains(e.target)) setPresetsDropdownOpen(false);
+            });
+
+            document.addEventListener("keydown", function (e) {
+                if (e.key === "Escape" && presetsDropdown && !presetsDropdown.hidden) {
+                    setPresetsDropdownOpen(false);
+                    if (openPresetsBtn) openPresetsBtn.focus();
+                }
+            });
 
             if (openFormulaBtn) openFormulaBtn.addEventListener("click", function () { openOnly("scoring"); });
             if (closeFormulaBtn) closeFormulaBtn.addEventListener("click", function () { setFormulaState(false); });
