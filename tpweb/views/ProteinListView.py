@@ -72,7 +72,9 @@ from tpweb.services.structure_sources import (
 )
 from tpweb.services.workspace import resolve_workspace_user
 from tpweb.models.CustomParamFile import CustomParam
+from tpweb.models.FilterPreset import FilterPreset
 from pathlib import Path
+import json
 import logging
 
 
@@ -151,6 +153,83 @@ class ProteinListView(View):
         "GO",
         "Score",
     )
+
+    @staticmethod
+    def _clean_redirect_query(return_query, structure_source="", annotation_kind="", annotation_value=""):
+        params = parse_qs(return_query or "", keep_blank_values=False)
+        for key in ("page", "ec_filter"):
+            params.pop(key, None)
+
+        structure_source = (structure_source or "").strip().lower()
+        if structure_source:
+            params["structure_source"] = [structure_source]
+        else:
+            params.pop("structure_source", None)
+
+        annotation_value = (annotation_value or "").strip()
+        if annotation_value:
+            params["annotation_kind"] = [normalize_annotation_kind(annotation_kind or "ec")]
+            params["annotation_value"] = [annotation_value]
+        else:
+            params.pop("annotation_kind", None)
+            params.pop("annotation_value", None)
+
+        return urlencode(
+            {key: value[0] if len(value) == 1 else value for key, value in params.items()},
+            doseq=True,
+        )
+
+    @staticmethod
+    def _apply_filter_change(selected_parameters, change):
+        if not isinstance(change, dict):
+            return selected_parameters
+        action = (change.get("action") or "").strip()
+
+        if action == "add_filter":
+            option_id = change.get("filter_option_id")
+            if option_id:
+                try:
+                    option_dict = ScoreParamOptions.objects.get(id=option_id).to_dict()
+                    selected_parameters = add_selected_parameter(selected_parameters, option_dict)
+                except (ScoreParamOptions.DoesNotExist, ValueError, TypeError):
+                    pass
+
+        elif action == "add_special_filter":
+            payload = ProteinListView._build_special_filter_payload(
+                (change.get("special_kind") or "").strip().lower(),
+                (change.get("special_value") or "").strip(),
+            )
+            if payload:
+                selected_parameters = add_selected_parameter(selected_parameters, payload)
+
+        elif action == "add_numeric_filter":
+            payload = ProteinListView._build_numeric_filter_payload(
+                (change.get("score_param_id") or "").strip(),
+                (change.get("value") or "").strip(),
+                (change.get("value_max") or "").strip(),
+                operation=(change.get("numeric_operation") or "").strip(),
+            )
+            if payload:
+                selected_parameters = add_selected_parameter(selected_parameters, payload)
+
+        elif action == "remove_filter":
+            option_id = change.get("filter_option_id")
+            if option_id:
+                selected_parameters = remove_selected_parameter(selected_parameters, option_id)
+
+        return selected_parameters
+
+    @classmethod
+    def _apply_filter_changes_payload(cls, selected_parameters, payload):
+        try:
+            changes = json.loads(payload or "[]")
+        except (TypeError, ValueError):
+            changes = []
+        if not isinstance(changes, list):
+            return selected_parameters
+        for change in changes:
+            selected_parameters = cls._apply_filter_change(selected_parameters, change)
+        return normalize_selected_parameters(selected_parameters)
 
     @staticmethod
     def _build_export_url(request):
@@ -745,53 +824,118 @@ class ProteinListView(View):
         ]
 
     def post(self, request, genome, *args, **kwargs):
+        assembly_name = resolve_genome_from_slug(request.user, genome)
+        if not assembly_name:
+            raise Http404("Genome not found")
+
+        workspace_user = resolve_workspace_user(request.user)
         selected_parameters = normalize_selected_parameters(
             get_workspace_session_value(request.session, request.user, "selected_parameters", [])
         )
 
         action = request.POST.get("action")
+        current_structure_source = request.GET.get("structure_source", "").strip().lower()
+        target_structure_source = current_structure_source
+        target_annotation_kind = normalize_annotation_kind(request.GET.get("annotation_kind", "ec"))
+        target_annotation_value = request.GET.get("annotation_value", "").strip()
+        if request.GET.get("ec_filter", "").strip():
+            target_annotation_kind = "ec"
+            target_annotation_value = request.GET.get("ec_filter", "").strip()
 
         if action == "add_filter":
-            option_id = request.POST.get("filter_option_id")
-            if option_id:
-                try:
-                    option_dict = ScoreParamOptions.objects.get(id=option_id).to_dict()
-                    selected_parameters = add_selected_parameter(
-                        selected_parameters, option_dict
-                    )
-                except (ScoreParamOptions.DoesNotExist, ValueError, TypeError):
-                    pass
+            selected_parameters = self._apply_filter_change(
+                selected_parameters,
+                {"action": action, "filter_option_id": request.POST.get("filter_option_id")},
+            )
 
         elif action == "add_special_filter":
-            kind = (request.POST.get("special_kind") or "").strip().lower()
-            value = (request.POST.get("special_value") or "").strip()
-            payload = self._build_special_filter_payload(kind, value)
-            if payload:
-                selected_parameters = add_selected_parameter(selected_parameters, payload)
+            selected_parameters = self._apply_filter_change(
+                selected_parameters,
+                {
+                    "action": action,
+                    "special_kind": request.POST.get("special_kind"),
+                    "special_value": request.POST.get("special_value"),
+                },
+            )
 
         elif action == "add_numeric_filter":
-            score_param_id = (request.POST.get("score_param_id") or "").strip()
-            numeric_operation = (request.POST.get("numeric_operation") or "").strip()
-            raw_min = (request.POST.get("value") or "").strip()
-            raw_max = (request.POST.get("value_max") or "").strip()
-            payload = self._build_numeric_filter_payload(
-                score_param_id,
-                raw_min,
-                raw_max,
-                operation=numeric_operation,
+            selected_parameters = self._apply_filter_change(
+                selected_parameters,
+                {
+                    "action": action,
+                    "score_param_id": request.POST.get("score_param_id"),
+                    "numeric_operation": request.POST.get("numeric_operation"),
+                    "value": request.POST.get("value"),
+                    "value_max": request.POST.get("value_max"),
+                },
             )
-            if payload:
-                selected_parameters = add_selected_parameter(selected_parameters, payload)
 
         elif action == "remove_filter":
-            option_id = request.POST.get("filter_option_id")
-            if option_id:
-                selected_parameters = remove_selected_parameter(
-                    selected_parameters, option_id
+            selected_parameters = self._apply_filter_change(
+                selected_parameters,
+                {"action": action, "filter_option_id": request.POST.get("filter_option_id")},
+            )
+
+        elif action == "set_structure_filter":
+            requested_structure = (request.POST.get("structure_source") or "").strip().lower()
+            target_structure_source = "" if requested_structure == current_structure_source else requested_structure
+
+        elif action == "apply_filter_changes":
+            selected_parameters = self._apply_filter_changes_payload(
+                selected_parameters,
+                request.POST.get("filter_actions_json"),
+            )
+            target_structure_source = (request.POST.get("pending_structure_source") or "").strip().lower()
+            target_annotation_kind = normalize_annotation_kind(request.POST.get("pending_annotation_kind") or target_annotation_kind)
+            target_annotation_value = (request.POST.get("pending_annotation_value") or "").strip()
+
+        elif action == "save_filter_preset":
+            selected_parameters = self._apply_filter_changes_payload(
+                selected_parameters,
+                request.POST.get("filter_actions_json"),
+            )
+            target_structure_source = (request.POST.get("pending_structure_source") or "").strip().lower()
+            target_annotation_kind = normalize_annotation_kind(request.POST.get("pending_annotation_kind") or target_annotation_kind)
+            target_annotation_value = (request.POST.get("pending_annotation_value") or "").strip()
+            preset_name = (request.POST.get("preset_name") or "").strip()
+            if preset_name:
+                FilterPreset.objects.update_or_create(
+                    owner=workspace_user,
+                    genome_name=assembly_name,
+                    name=preset_name,
+                    defaults={
+                        "selected_parameters": normalize_selected_parameters(selected_parameters),
+                        "structure_source": target_structure_source,
+                        "annotation_kind": target_annotation_kind if target_annotation_value else "",
+                        "annotation_value": target_annotation_value,
+                    },
                 )
+
+        elif action == "apply_filter_preset":
+            preset_id = request.POST.get("preset_id")
+            preset = FilterPreset.objects.filter(
+                id=preset_id,
+                owner=workspace_user,
+                genome_name=assembly_name,
+            ).first()
+            if preset:
+                selected_parameters = normalize_selected_parameters(preset.selected_parameters)
+                target_structure_source = preset.structure_source or ""
+                target_annotation_kind = normalize_annotation_kind(preset.annotation_kind or "ec")
+                target_annotation_value = preset.annotation_value or ""
+
+        elif action == "delete_filter_preset":
+            preset_id = request.POST.get("preset_id")
+            FilterPreset.objects.filter(
+                id=preset_id,
+                owner=workspace_user,
+                genome_name=assembly_name,
+            ).delete()
 
         elif action == "reset_filters":
             selected_parameters = []
+            target_structure_source = ""
+            target_annotation_value = ""
 
         elif action == "update_columns":
             requested_columns = request.POST.getlist("visible_columns")
@@ -816,18 +960,15 @@ class ProteinListView(View):
         )
 
         return_query = request.POST.get("return_query", "").strip()
+        redirect_query = self._clean_redirect_query(
+            return_query,
+            structure_source=target_structure_source,
+            annotation_kind=target_annotation_kind,
+            annotation_value=target_annotation_value,
+        )
         redirect_url = request.path
-        if return_query:
-            params = parse_qs(return_query, keep_blank_values=False)
-            if action == "reset_filters":
-                for key in ("annotation_kind", "annotation_value", "ec_filter", "structure_source"):
-                    params.pop(key, None)
-            cleaned = urlencode(
-                {k: v[0] if len(v) == 1 else v for k, v in params.items()},
-                doseq=True,
-            )
-            if cleaned:
-                redirect_url = f"{redirect_url}?{cleaned}"
+        if redirect_query:
+            redirect_url = f"{redirect_url}?{redirect_query}"
         return redirect(redirect_url)
 
     def get(self, request, genome, *args, **kwargs):
@@ -879,6 +1020,21 @@ class ProteinListView(View):
         custom_data_for_drawer = [
             {"file_name": Path(cp.tsv.name).name}
             for cp in custom_data_files
+        ]
+        filter_presets = [
+            {
+                "id": preset.pk,
+                "name": preset.name,
+                "criteria_count": (
+                    len(normalize_selected_parameters(preset.selected_parameters))
+                    + (1 if preset.structure_source else 0)
+                    + (1 if preset.annotation_value else 0)
+                ),
+            }
+            for preset in FilterPreset.objects.filter(
+                owner=workspace_user,
+                genome_name=assembly_name,
+            ).order_by("name", "id")
         ]
 
         all_visible_score_params = list(
@@ -948,6 +1104,7 @@ class ProteinListView(View):
         proteins = Bioentry.objects.filter(
             biodatabase__name=assembly_name + Biodatabase.PROT_POSTFIX,
         )
+        total_protein_count = proteins.count()
         if structure_source == "none":
             proteins = proteins.filter(structures__isnull=True)
         elif structure_source == "experimental":
@@ -1131,6 +1288,8 @@ class ProteinListView(View):
         else:
             ranked_proteins = sorted(ranked_proteins, key=lambda p: p["accession"],
                                      reverse=(effective_sort_dir == "desc"))
+
+        filtered_protein_count = len(ranked_proteins)
 
         export_mode = request.GET.get("export")
         if export_mode in {"csv", "view_csv"}:
@@ -1321,6 +1480,7 @@ class ProteinListView(View):
             "formulas_for_drawer": formulas_for_drawer,
             "custom_data_for_drawer": custom_data_for_drawer,
             "custom_data_count": len(custom_data_for_drawer),
+            "filter_presets": filter_presets,
             "custom_score_url": reverse("tpwebapp:formula_form", kwargs={"genome": genome_url_slug(assembly_name)}),
             "custom_data_url": reverse("tpwebapp:customparam", kwargs={"genome": genome_url_slug(assembly_name)}),
             "current_formula":current_formula,
@@ -1340,6 +1500,8 @@ class ProteinListView(View):
             "pagination":pagination_info,
             "page_size": page_size,
             "search_query": search_query,
+            "filtered_protein_count": filtered_protein_count,
+            "total_protein_count": total_protein_count,
             "page_numbers": page_numbers,
             "filter_groups": filter_groups,
             "filter_groups_total_options": sum(

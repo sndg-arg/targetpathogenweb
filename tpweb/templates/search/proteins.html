@@ -35,7 +35,7 @@
                 </div>
             </div>
             <div class="hero-chips tp-chip-group">
-                <span class="tp-chip tp-chip--meta">{{ pagination.proteins.paginator.count }} {% trans "proteins" %}</span>
+                <span class="tp-chip tp-chip--meta filter-result-chip"><strong>{{ filtered_protein_count }}</strong> / {{ total_protein_count }} {% trans "proteins" %}</span>
                 {% if formula %}
                     <span class="tp-chip tp-chip--meta">{% trans "Scoring" %}: {{ formula.name }}</span>
                 {% endif %}
@@ -186,6 +186,16 @@
 
                 </div>
             </form>
+        </section>
+
+        <section class="filter-result-banner" aria-label="{% trans 'Filtered protein count' %}">
+            <div class="filter-result-banner__count">
+                <span class="filter-result-banner__number">{{ filtered_protein_count }}</span>
+                <span class="filter-result-banner__text">
+                    {% blocktrans count total=filtered_protein_count %}protein in the current view{% plural %}proteins in the current view{% endblocktrans %}
+                </span>
+            </div>
+            <span class="filter-result-banner__total">{% blocktrans with total=total_protein_count %}of {{ total }} proteins in this genome{% endblocktrans %}</span>
         </section>
 
         {% if display_parameters or annotation_filter or structure_filter %}
@@ -489,6 +499,56 @@
             </div>
             {% endif %}
 
+            <div class="filter-pending-summary" id="filter-pending-summary" hidden>
+                <span class="filter-pending-summary__count" id="filter-pending-count">0</span>
+                <span>{% trans "unapplied filter changes" %}</span>
+            </div>
+
+            <section class="filter-presets-panel" aria-label="{% trans 'Saved filter presets' %}">
+                <div class="filter-presets-panel__head">
+                    <h3>{% trans "Saved selections" %}</h3>
+                    <span class="filter-presets-panel__hint">{% trans "Reuse a filter set for this genome." %}</span>
+                </div>
+                <form method="POST" action="" class="filter-preset-save-form" id="filter-preset-save-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="save_filter_preset">
+                    <input type="hidden" name="return_query" value="{{ query_string }}">
+                    <input type="hidden" name="filter_actions_json" value="[]">
+                    <input type="hidden" name="pending_structure_source" value="{{ structure_source }}">
+                    <input type="hidden" name="pending_annotation_kind" value="{% if annotation_filter %}{{ annotation_filter.kind }}{% endif %}">
+                    <input type="hidden" name="pending_annotation_value" value="{% if annotation_filter %}{{ annotation_filter.value }}{% endif %}">
+                    <input type="text" name="preset_name" class="filter-preset-name-input" placeholder="{% trans 'Preset name' %}" autocomplete="off" required>
+                    <button type="submit" class="btn tp-btn tp-btn--neutral filter-preset-save-btn">{% trans "Save selection" %}</button>
+                </form>
+                {% if filter_presets %}
+                    <div class="filter-preset-list">
+                        {% for preset in filter_presets %}
+                            <div class="filter-preset-row">
+                                <form method="POST" action="" class="filter-preset-apply-form">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="apply_filter_preset">
+                                    <input type="hidden" name="preset_id" value="{{ preset.id }}">
+                                    <input type="hidden" name="return_query" value="{{ query_string }}">
+                                    <button type="submit" class="filter-preset-apply-btn">
+                                        <span class="filter-preset-name">{{ preset.name }}</span>
+                                        <span class="filter-preset-meta">{% blocktrans count total=preset.criteria_count %}{{ total }} criterion{% plural %}{{ total }} criteria{% endblocktrans %}</span>
+                                    </button>
+                                </form>
+                                <form method="POST" action="" class="filter-preset-delete-form" onsubmit="return confirm('{% trans "Delete this filter preset?" %}')">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="delete_filter_preset">
+                                    <input type="hidden" name="preset_id" value="{{ preset.id }}">
+                                    <input type="hidden" name="return_query" value="{{ query_string }}">
+                                    <button type="submit" class="filter-preset-delete-btn" title="{% trans 'Delete preset' %}" aria-label="{% trans 'Delete preset' %}">
+                                        {% include "components/icons/trash.html" %}
+                                    </button>
+                                </form>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </section>
+
             <div class="drawer-search">
                 <span class="drawer-search-icon" aria-hidden="true">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="7" r="5"/><path d="M14 14l-3.6-3.6"/></svg>
@@ -696,13 +756,19 @@
                                             <div class="filter-chip-group">
                                                 {% for option in param.options %}
                                                     {% if option.is_link %}
-                                                        <a href="{{ option.url }}"
-                                                           class="filter-chip {% if option.tone %}filter-chip--{{ option.tone }}{% endif %} {% if option.active %}filter-chip--active{% endif %}"
-                                                           {% if option.description %}title="{{ option.description }}"{% endif %}
-                                                           aria-pressed="{% if option.active %}true{% else %}false{% endif %}">
-                                                            {% if option.active %}<span class="filter-chip-glyph" aria-hidden="true">&times;</span>{% endif %}
-                                                            <span class="filter-chip-label">{{ option.label }}</span>
-                                                        </a>
+                                                        <form method="POST" action="" class="filter-chip-form">
+                                                            {% csrf_token %}
+                                                            <input type="hidden" name="action" value="set_structure_filter">
+                                                            <input type="hidden" name="structure_source" value="{{ option.name }}">
+                                                            <input type="hidden" name="return_query" value="{{ query_string }}">
+                                                            <button type="submit"
+                                                                    class="filter-chip {% if option.tone %}filter-chip--{{ option.tone }}{% endif %} {% if option.active %}filter-chip--active{% endif %}"
+                                                                    {% if option.description %}title="{{ option.description }}"{% endif %}
+                                                                    aria-pressed="{% if option.active %}true{% else %}false{% endif %}">
+                                                                {% if option.active %}<span class="filter-chip-glyph" aria-hidden="true">&times;</span>{% endif %}
+                                                                <span class="filter-chip-label">{{ option.label }}</span>
+                                                            </button>
+                                                        </form>
                                                     {% else %}
                                                         <form method="POST" action="" class="filter-chip-form">
                                                             {% csrf_token %}
@@ -747,7 +813,16 @@
                     {% include "components/buttons/clear_action.html" with label=clear_filters_label button_type="submit" disabled="1" classes="btn tp-btn tp-btn--clear tp-btn--clear-caution tp-btn-with-icon drawer-clear-btn" %}
                 {% endif %}
             </form>
-            <button type="button" class="btn tp-btn tp-btn--primary drawer-done-btn" id="filters-done-btn">{% trans "Done" %}</button>
+            <form method="POST" action="" id="filters-apply-form" class="filters-apply-form">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="apply_filter_changes">
+                <input type="hidden" name="return_query" value="{{ query_string }}">
+                <input type="hidden" name="filter_actions_json" value="[]">
+                <input type="hidden" name="pending_structure_source" value="{{ structure_source }}">
+                <input type="hidden" name="pending_annotation_kind" value="{% if annotation_filter %}{{ annotation_filter.kind }}{% endif %}">
+                <input type="hidden" name="pending_annotation_value" value="{% if annotation_filter %}{{ annotation_filter.value }}{% endif %}">
+            </form>
+            <button type="submit" form="filters-apply-form" class="btn tp-btn tp-btn--primary drawer-done-btn" id="filters-apply-btn" disabled>{% trans "Apply filters" %}</button>
         </div>
     </aside>
 
@@ -1045,7 +1120,11 @@
             const filterCatalogue = document.getElementById("drawer-filter-catalogue");
             const filterExpandAllBtn = document.getElementById("filter-expand-all");
             const filterSearchNoResults = document.getElementById("filter-search-no-results");
-            const filtersDoneBtn = document.getElementById("filters-done-btn");
+            const filtersApplyForm = document.getElementById("filters-apply-form");
+            const filtersApplyBtn = document.getElementById("filters-apply-btn");
+            const filterPresetSaveForm = document.getElementById("filter-preset-save-form");
+            const filterPendingSummary = document.getElementById("filter-pending-summary");
+            const filterPendingCount = document.getElementById("filter-pending-count");
             let suggestionsTimer = null;
             let suggestionRequestId = 0;
             let activeSuggestionIndex = -1;
@@ -1058,6 +1137,111 @@
             const UI_TEXT = Object.freeze({
                 suggestionRequestFailed: autocompleteRoot ? (autocompleteRoot.getAttribute("data-suggest-error") || "") : ""
             });
+            const CURRENT_FILTER_STATE = Object.freeze({
+                structureSource: "{{ structure_source|escapejs }}",
+                annotationKind: "{% if annotation_filter %}{{ annotation_filter.kind|escapejs }}{% endif %}",
+                annotationValue: "{% if annotation_filter %}{{ annotation_filter.value|escapejs }}{% endif %}"
+            });
+            let pendingFilterActions = [];
+            let pendingStructureSource = CURRENT_FILTER_STATE.structureSource;
+            let pendingAnnotationKind = CURRENT_FILTER_STATE.annotationKind;
+            let pendingAnnotationValue = CURRENT_FILTER_STATE.annotationValue;
+
+            function syncPendingFilterForms() {
+                const actionPayload = JSON.stringify(pendingFilterActions);
+                [filtersApplyForm, filterPresetSaveForm].forEach(function (form) {
+                    if (!form) return;
+                    const actionsInput = form.querySelector("input[name='filter_actions_json']");
+                    const structureInput = form.querySelector("input[name='pending_structure_source']");
+                    const annotationKindInput = form.querySelector("input[name='pending_annotation_kind']");
+                    const annotationValueInput = form.querySelector("input[name='pending_annotation_value']");
+                    if (actionsInput) actionsInput.value = actionPayload;
+                    if (structureInput) structureInput.value = pendingStructureSource || "";
+                    if (annotationKindInput) annotationKindInput.value = pendingAnnotationKind || "";
+                    if (annotationValueInput) annotationValueInput.value = pendingAnnotationValue || "";
+                });
+
+                const structureChanged = (pendingStructureSource || "") !== (CURRENT_FILTER_STATE.structureSource || "");
+                const annotationChanged = (pendingAnnotationKind || "") !== (CURRENT_FILTER_STATE.annotationKind || "")
+                    || (pendingAnnotationValue || "") !== (CURRENT_FILTER_STATE.annotationValue || "");
+                const pendingCount = pendingFilterActions.length + (structureChanged ? 1 : 0) + (annotationChanged ? 1 : 0);
+                if (filtersApplyBtn) filtersApplyBtn.disabled = pendingCount === 0;
+                if (filterPendingSummary) filterPendingSummary.hidden = pendingCount === 0;
+                if (filterPendingCount) filterPendingCount.textContent = String(pendingCount);
+            }
+
+            function formDataToObject(form) {
+                const data = new FormData(form);
+                const payload = {};
+                data.forEach(function (value, key) {
+                    if (key === "csrfmiddlewaretoken" || key === "return_query") return;
+                    payload[key] = value;
+                });
+                return payload;
+            }
+
+            function markDeferredFilterControl(form, payload) {
+                const button = form.querySelector("button[type='submit'], .filter-chip, .filter-text-add, .filter-numeric-apply");
+                if (button) {
+                    button.classList.add("filter-chip--pending");
+                    button.setAttribute("data-pending", "true");
+                }
+                if (payload.action === "add_filter" || payload.action === "add_special_filter" || payload.action === "add_numeric_filter") {
+                    if (button && button.classList.contains("filter-chip")) {
+                        button.classList.add("filter-chip--active");
+                        button.setAttribute("aria-pressed", "true");
+                    }
+                    const actionInput = form.querySelector("input[name='action']");
+                    if (actionInput && payload.action === "add_filter") actionInput.value = "remove_filter";
+                    return;
+                }
+                if (payload.action === "remove_filter") {
+                    if (button && button.classList.contains("filter-chip")) {
+                        button.classList.remove("filter-chip--active");
+                        button.setAttribute("aria-pressed", "false");
+                    }
+                    const actionInput = form.querySelector("input[name='action']");
+                    if (actionInput && payload.filter_option_id && !String(payload.filter_option_id).startsWith("special:")) {
+                        actionInput.value = "add_filter";
+                    }
+                }
+            }
+
+            function handleDeferredFilterSubmit(event) {
+                if (event.defaultPrevented) return;
+                const form = event.target;
+                if (!form || !form.closest || !form.closest("#filters-drawer")) return;
+                if (!form.matches(".filter-chip-form, .filter-text-form, .filter-numeric-form")) return;
+                event.preventDefault();
+                const payload = formDataToObject(form);
+                if (!payload.action) return;
+
+                if (payload.action === "set_structure_filter") {
+                    const requestedStructure = payload.structure_source || "";
+                    pendingStructureSource = pendingStructureSource === requestedStructure ? "" : requestedStructure;
+                    document.querySelectorAll("#filters-drawer input[name='action'][value='set_structure_filter']").forEach(function (input) {
+                        const optionForm = input.closest("form");
+                        const optionButton = optionForm ? optionForm.querySelector(".filter-chip") : null;
+                        const optionValue = optionForm ? (optionForm.querySelector("input[name='structure_source']") || {}).value : "";
+                        if (!optionButton) return;
+                        const active = optionValue && optionValue === pendingStructureSource;
+                        optionButton.classList.toggle("filter-chip--active", active);
+                        optionButton.classList.toggle("filter-chip--pending", optionValue === requestedStructure);
+                        optionButton.setAttribute("aria-pressed", active ? "true" : "false");
+                    });
+                    syncPendingFilterForms();
+                    return;
+                }
+
+                pendingFilterActions.push(payload);
+                markDeferredFilterControl(form, payload);
+                if (form.matches(".filter-text-form, .filter-numeric-form")) {
+                    form.reset();
+                    const message = form.querySelector(".filter-numeric-message");
+                    if (message) message.textContent = "{% trans 'Pending until filters are applied.' %}";
+                }
+                syncPendingFilterForms();
+            }
 
             function submitSearchForm() {
                 if (!searchForm) return;
@@ -1378,9 +1562,8 @@
                     setExpandAllState(!isExpanded);
                 });
             }
-            if (filtersDoneBtn) {
-                filtersDoneBtn.addEventListener("click", function () { setDrawerState(false); });
-            }
+            document.addEventListener("submit", handleDeferredFilterSubmit);
+            syncPendingFilterForms();
             applyFilterCatalogueSearch();
 
             function syncApplyFormulaState() {
