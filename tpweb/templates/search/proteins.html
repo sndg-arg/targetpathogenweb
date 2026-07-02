@@ -548,8 +548,8 @@
                                                         class="filter-chip {% if cls.active %}filter-chip--active{% endif %}"
                                                         data-server-active="{{ cls.active|yesno:'true,false' }}"
                                                         aria-pressed="{% if cls.active %}true{% else %}false{% endif %}">
-                                                    {% if cls.active %}<span class="filter-chip-glyph" aria-hidden="true">&times;</span>{% endif %}
                                                     <span class="filter-chip-label">{{ cls.label }}</span>
+                                                    {% if cls.active %}<span class="filter-chip-glyph" aria-hidden="true">&times;</span>{% endif %}
                                                 </button>
                                             </form>
                                         {% endfor %}
@@ -707,8 +707,8 @@
                                                                     data-server-active="{{ option.active|yesno:'true,false' }}"
                                                                     {% if option.description %}title="{{ option.description }}"{% endif %}
                                                                     aria-pressed="{% if option.active %}true{% else %}false{% endif %}">
-                                                                {% if option.active %}<span class="filter-chip-glyph" aria-hidden="true">&times;</span>{% endif %}
                                                                 <span class="filter-chip-label">{{ option.label }}</span>
+                                                                {% if option.active %}<span class="filter-chip-glyph" aria-hidden="true">&times;</span>{% endif %}
                                                             </button>
                                                         </form>
                                                     {% else %}
@@ -722,8 +722,8 @@
                                                                     data-server-active="{{ option.active|yesno:'true,false' }}"
                                                                     {% if option.description %}title="{{ option.description }}"{% endif %}
                                                                     aria-pressed="{% if option.active %}true{% else %}false{% endif %}">
-                                                                {% if option.active %}<span class="filter-chip-glyph" aria-hidden="true">&times;</span>{% endif %}
                                                                 <span class="filter-chip-label">{{ option.label }}</span>
+                                                                {% if option.active %}<span class="filter-chip-glyph" aria-hidden="true">&times;</span>{% endif %}
                                                             </button>
                                                         </form>
                                                     {% endif %}
@@ -1210,7 +1210,7 @@
                     glyph.className = "filter-chip-glyph";
                     glyph.setAttribute("aria-hidden", "true");
                     glyph.textContent = "\xD7";
-                    button.insertBefore(glyph, button.firstChild);
+                    button.appendChild(glyph);
                 } else if (!active && existing) {
                     existing.remove();
                 }

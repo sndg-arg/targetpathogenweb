@@ -2719,19 +2719,38 @@ a.filter-pill .filter-pill-remove {
     outline-offset: 2px;
 }
 
+/* Pending-add state (was inactive, JS added --active + --pending): light teal */
 .filter-chip--active {
     background: var(--tp-color-brand-100);
-    border-color: var(--tp-color-brand-700);
+    border-color: var(--tp-color-brand-600);
     color: var(--tp-color-brand-900);
+    font-weight: 500;
 }
 
-.filter-chip--active:hover {
-    background: var(--tp-color-brand-200);
+/* Server-applied, no pending change: solid brand fill — unambiguously "ON" */
+.filter-chip--active:not(.filter-chip--pending) {
+    background: var(--tp-color-brand-700);
     border-color: var(--tp-color-brand-700);
+    color: var(--tp-color-brand-050);
+    font-weight: 500;
+}
+
+.filter-chip--active:not(.filter-chip--pending):hover {
+    background: var(--tp-color-brand-800);
+    border-color: var(--tp-color-brand-800);
+}
+
+.filter-chip--active:not(.filter-chip--pending) .filter-chip-glyph {
+    color: var(--tp-color-brand-050);
+    opacity: 0.85;
 }
 
 .filter-chip--active:is(a, a:visited) {
     color: var(--tp-color-brand-900);
+}
+
+.filter-chip--active:not(.filter-chip--pending):is(a, a:visited) {
+    color: var(--tp-color-brand-050);
 }
 
 .filter-chip--risk {
@@ -2789,11 +2808,12 @@ a.filter-pill .filter-pill-remove {
 }
 
 .filter-chip-glyph {
-    font-size: 0.95rem;
+    font-size: 0.88rem;
     line-height: 1;
     color: var(--tp-color-brand-700);
-    margin-right: -2px;
-    font-weight: 600;
+    font-weight: 500;
+    opacity: 0.75;
+    margin-left: 1px;
 }
 
 .filter-chip-label {
