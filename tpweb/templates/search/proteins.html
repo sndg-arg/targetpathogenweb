@@ -546,6 +546,7 @@
                                                 {% endif %}
                                                 <button type="submit"
                                                         class="filter-chip {% if cls.active %}filter-chip--active{% endif %}"
+                                                        data-server-active="{{ cls.active|yesno:'true,false' }}"
                                                         aria-pressed="{% if cls.active %}true{% else %}false{% endif %}">
                                                     {% if cls.active %}<span class="filter-chip-glyph" aria-hidden="true">&times;</span>{% endif %}
                                                     <span class="filter-chip-label">{{ cls.label }}</span>
@@ -742,11 +743,9 @@
                 </p>
             </div>
 
-            <section class="filter-presets-panel" aria-label="{% trans 'Saved filter presets' %}">
-                <div class="filter-presets-panel__head">
-                    <span class="filter-presets-panel__title">{% trans "Saved selections" %}</span>
-                    <span class="filter-presets-panel__hint">{% trans "Save the current filter set to reuse it later." %}</span>
-                </div>
+        </div>
+        <div class="drawer-foot">
+            <section class="filter-presets-footer" aria-label="{% trans 'Saved selections' %}">
                 <form method="POST" action="" class="filter-preset-save-form" id="filter-preset-save-form">
                     {% csrf_token %}
                     <input type="hidden" name="action" value="save_filter_preset">
@@ -755,21 +754,22 @@
                     <input type="hidden" name="pending_structure_source" value="{{ structure_source }}">
                     <input type="hidden" name="pending_annotation_kind" value="{% if annotation_filter %}{{ annotation_filter.kind }}{% endif %}">
                     <input type="hidden" name="pending_annotation_value" value="{% if annotation_filter %}{{ annotation_filter.value }}{% endif %}">
+                    <span class="filter-presets-footer__label">{% trans "Saved" %}</span>
                     <input type="text" name="preset_name" class="filter-preset-name-input" placeholder="{% trans 'Name this selection…' %}" autocomplete="off" required>
                     <button type="submit" class="btn tp-btn tp-btn--neutral filter-preset-save-btn">{% trans "Save" %}</button>
                 </form>
                 {% if filter_presets %}
-                    <div class="filter-preset-list">
+                    <div class="filter-preset-chips">
                         {% for preset in filter_presets %}
-                            <div class="filter-preset-row">
+                            <div class="filter-preset-chip-item">
                                 <form method="POST" action="" class="filter-preset-apply-form">
                                     {% csrf_token %}
                                     <input type="hidden" name="action" value="apply_filter_preset">
                                     <input type="hidden" name="preset_id" value="{{ preset.id }}">
                                     <input type="hidden" name="return_query" value="{{ query_string }}">
-                                    <button type="submit" class="filter-preset-apply-btn">
-                                        <span class="filter-preset-name">{{ preset.name }}</span>
-                                        <span class="filter-preset-meta">{% blocktrans count total=preset.criteria_count %}{{ total }} criterion{% plural %}{{ total }} criteria{% endblocktrans %}</span>
+                                    <button type="submit" class="filter-preset-apply-chip" title="{{ preset.name }}">
+                                        <span class="filter-preset-chip-name">{{ preset.name }}</span>
+                                        <span class="filter-preset-chip-count">{{ preset.criteria_count }}</span>
                                     </button>
                                 </form>
                                 <form method="POST" action="" class="filter-preset-delete-form" onsubmit="return confirm('{% trans "Delete this filter preset?" %}')">
@@ -777,43 +777,40 @@
                                     <input type="hidden" name="action" value="delete_filter_preset">
                                     <input type="hidden" name="preset_id" value="{{ preset.id }}">
                                     <input type="hidden" name="return_query" value="{{ query_string }}">
-                                    <button type="submit" class="filter-preset-delete-btn" title="{% trans 'Delete preset' %}" aria-label="{% trans 'Delete preset' %}">
-                                        {% include "components/icons/trash.html" %}
-                                    </button>
+                                    <button type="submit" class="filter-preset-chip-del" aria-label="{% trans 'Delete preset' %}" title="{% trans 'Delete preset' %}">&times;</button>
                                 </form>
                             </div>
                         {% endfor %}
                     </div>
                 {% endif %}
             </section>
-
-        </div>
-        <div class="drawer-foot">
-            <form method="POST" action="" class="drawer-reset-form">
-                {% csrf_token %}
-                <input type="hidden" name="action" value="reset_filters">
-                <input type="hidden" name="return_query" value="{{ query_string }}">
-                {% trans "Clear all criteria" as clear_filters_label %}
-                {% if parameters or annotation_filter or structure_filter %}
-                    {% include "components/buttons/clear_action.html" with label=clear_filters_label button_type="submit" classes="btn tp-btn tp-btn--clear tp-btn--clear-caution tp-btn-with-icon drawer-clear-btn" %}
-                {% else %}
-                    {% include "components/buttons/clear_action.html" with label=clear_filters_label button_type="submit" disabled="1" classes="btn tp-btn tp-btn--clear tp-btn--clear-caution tp-btn-with-icon drawer-clear-btn" %}
-                {% endif %}
-            </form>
-            <form method="POST" action="" id="filters-apply-form" class="filters-apply-form">
-                {% csrf_token %}
-                <input type="hidden" name="action" value="apply_filter_changes">
-                <input type="hidden" name="return_query" value="{{ query_string }}">
-                <input type="hidden" name="filter_actions_json" value="[]">
-                <input type="hidden" name="pending_structure_source" value="{{ structure_source }}">
-                <input type="hidden" name="pending_annotation_kind" value="{% if annotation_filter %}{{ annotation_filter.kind }}{% endif %}">
-                <input type="hidden" name="pending_annotation_value" value="{% if annotation_filter %}{{ annotation_filter.value }}{% endif %}">
-            </form>
-            <div class="filter-pending-summary" id="filter-pending-summary" hidden>
-                <span class="filter-pending-summary__count" id="filter-pending-count">0</span>
-                <span>{% trans "pending changes" %}</span>
+            <div class="drawer-foot-actions">
+                <form method="POST" action="" class="drawer-reset-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="reset_filters">
+                    <input type="hidden" name="return_query" value="{{ query_string }}">
+                    {% trans "Clear all criteria" as clear_filters_label %}
+                    {% if parameters or annotation_filter or structure_filter %}
+                        {% include "components/buttons/clear_action.html" with label=clear_filters_label button_type="submit" classes="btn tp-btn tp-btn--clear tp-btn--clear-caution tp-btn-with-icon drawer-clear-btn" %}
+                    {% else %}
+                        {% include "components/buttons/clear_action.html" with label=clear_filters_label button_type="submit" disabled="1" classes="btn tp-btn tp-btn--clear tp-btn--clear-caution tp-btn-with-icon drawer-clear-btn" %}
+                    {% endif %}
+                </form>
+                <form method="POST" action="" id="filters-apply-form" class="filters-apply-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="apply_filter_changes">
+                    <input type="hidden" name="return_query" value="{{ query_string }}">
+                    <input type="hidden" name="filter_actions_json" value="[]">
+                    <input type="hidden" name="pending_structure_source" value="{{ structure_source }}">
+                    <input type="hidden" name="pending_annotation_kind" value="{% if annotation_filter %}{{ annotation_filter.kind }}{% endif %}">
+                    <input type="hidden" name="pending_annotation_value" value="{% if annotation_filter %}{{ annotation_filter.value }}{% endif %}">
+                </form>
+                <div class="filter-pending-summary" id="filter-pending-summary" hidden>
+                    <span class="filter-pending-summary__count" id="filter-pending-count">0</span>
+                    <span>{% trans "pending changes" %}</span>
+                </div>
+                <button type="submit" form="filters-apply-form" class="btn tp-btn tp-btn--primary drawer-done-btn" id="filters-apply-btn" disabled>{% trans "Apply filters" %}</button>
             </div>
-            <button type="submit" form="filters-apply-form" class="btn tp-btn tp-btn--primary drawer-done-btn" id="filters-apply-btn" disabled>{% trans "Apply filters" %}</button>
         </div>
     </aside>
 
@@ -1247,11 +1244,10 @@
                 });
             }
 
-            function handleToggleChip(form, payload) {
-                var optionId = String(payload.filter_option_id || "");
+            function handleToggleChip(form, payload, keyOverride) {
+                var optionId = keyOverride !== undefined ? keyOverride : String(payload.filter_option_id || "");
                 if (!optionId) return;
                 var button = form.querySelector(".filter-chip");
-                var actionInput = form.querySelector("input[name='action']");
                 var serverActive = button ? button.dataset.serverActive === "true" : false;
 
                 if (pendingToggleMap.has(optionId)) {
@@ -1264,13 +1260,16 @@
                         button.removeAttribute("data-pending");
                         setChipGlyph(button, serverActive);
                     }
-                    if (actionInput) {
-                        actionInput.value = serverActive ? "remove_filter" : "add_filter";
+                    if (!keyOverride) {
+                        var actionInput = form.querySelector("input[name='action']");
+                        if (actionInput) actionInput.value = serverActive ? "remove_filter" : "add_filter";
                     }
                 } else {
                     // First click: add to pending
                     pendingToggleMap.set(optionId, payload);
-                    var willBeActive = payload.action === "add_filter";
+                    // For special-key chips (EC class), willBeActive is the inverse of server state.
+                    // For regular chips, derive it from the action field.
+                    var willBeActive = keyOverride !== undefined ? !serverActive : payload.action === "add_filter";
                     if (button) {
                         button.classList.toggle("filter-chip--active", willBeActive);
                         button.setAttribute("aria-pressed", willBeActive ? "true" : "false");
@@ -1278,8 +1277,9 @@
                         button.setAttribute("data-pending", "true");
                         setChipGlyph(button, willBeActive);
                     }
-                    if (actionInput) {
-                        actionInput.value = willBeActive ? "remove_filter" : "add_filter";
+                    if (!keyOverride) {
+                        var actionInput2 = form.querySelector("input[name='action']");
+                        if (actionInput2) actionInput2.value = willBeActive ? "remove_filter" : "add_filter";
                     }
                 }
             }
@@ -1306,6 +1306,14 @@
                         optionButton.classList.toggle("filter-chip--pending", optionValue === requestedStructure);
                         optionButton.setAttribute("aria-pressed", active ? "true" : "false");
                     });
+                    syncPendingFilterForms();
+                    return;
+                }
+
+                // EC class chips (and similar) send add_special_filter but behave as toggles.
+                if (payload.action === "add_special_filter" && payload.special_kind && payload.special_value && form.querySelector(".filter-chip")) {
+                    var specialKey = "special:" + payload.special_kind + ":" + payload.special_value;
+                    handleToggleChip(form, payload, specialKey);
                     syncPendingFilterForms();
                     return;
                 }

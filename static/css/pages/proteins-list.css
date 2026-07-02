@@ -1218,20 +1218,138 @@ a.filter-pill .filter-pill-remove {
 }
 
 .drawer-foot {
-    padding: 12px 20px;
     border-top: 1px solid var(--tp-color-border-soft);
+    background: var(--tp-color-surface-soft);
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+/* Presets strip — always visible at top of footer */
+.filter-presets-footer {
+    padding: 10px 16px 9px;
+    border-bottom: 1px solid var(--tp-color-border-soft);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.filter-presets-footer .filter-preset-save-form {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 0;
+}
+
+.filter-presets-footer__label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--tp-color-text-muted);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+/* Compact preset chips row */
+.filter-preset-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+}
+
+.filter-preset-chip-item {
+    display: flex;
+    align-items: stretch;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 999px;
+    overflow: hidden;
+    background: var(--tp-color-surface);
+}
+
+.filter-preset-apply-chip {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 8px 4px 10px;
+    background: transparent;
+    border: none;
+    color: var(--tp-color-text-primary);
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.8rem;
+    font-weight: 600;
+    transition: background 120ms ease;
+    white-space: nowrap;
+    max-width: 160px;
+}
+
+.filter-preset-apply-chip:hover,
+.filter-preset-apply-chip:focus-visible {
+    background: var(--tp-color-brand-050);
+    outline: none;
+}
+
+.filter-preset-chip-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.filter-preset-chip-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    border-radius: 999px;
+    background: var(--tp-color-brand-100);
+    color: var(--tp-color-brand-900);
+    font-size: 0.66rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.filter-preset-chip-del {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    border-left: 1px solid var(--tp-color-border-soft);
+    color: var(--tp-color-text-muted);
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+    transition: background 120ms ease, color 120ms ease;
+    flex-shrink: 0;
+}
+
+.filter-preset-chip-del:hover,
+.filter-preset-chip-del:focus-visible {
+    background: var(--tp-color-danger-bg);
+    color: var(--tp-color-danger-ink);
+    outline: none;
+}
+
+/* Clear / Apply actions row */
+.drawer-foot-actions {
+    padding: 10px 16px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: var(--tp-ui-gap-sm);
     flex-wrap: wrap;
-    background: var(--tp-color-surface-soft);
 }
 
 .drawer-reset-form {
     display: flex;
     align-items: center;
-    margin-left: auto;
     flex: 0 0 auto;
 }
 
@@ -3042,8 +3160,20 @@ a.filter-pill .filter-pill-remove {
         width: 100vw;
     }
 
-    .drawer-foot {
-        padding: 10px 12px;
+    .filter-presets-footer {
+        padding: 8px 12px;
+    }
+
+    .filter-presets-footer .filter-preset-save-form {
+        grid-template-columns: minmax(0, 1fr) auto;
+    }
+
+    .filter-presets-footer__label {
+        display: none;
+    }
+
+    .drawer-foot-actions {
+        padding: 8px 12px;
         gap: 6px;
     }
 
@@ -3278,8 +3408,3 @@ a.filter-pill .filter-pill-remove {
     height: 16px;
 }
 
-@media (max-width: 640px) {
-    .filter-preset-save-form {
-        grid-template-columns: 1fr;
-    }
-}
