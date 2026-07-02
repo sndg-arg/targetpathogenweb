@@ -1056,6 +1056,18 @@ class ProteinListView(View):
                         criteria_labels.append(f"{human_name}: {val:g}–{val_max:g}")
                     elif val is not None:
                         criteria_labels.append(f"{human_name} {op} {val:g}")
+                elif item_kind == "special":
+                    display_name = item.get("display_name") or item.get("name", "")
+                    special_key = str(item.get("special_key") or "").strip()
+                    if display_name:
+                        if special_key == "ec_filter":
+                            criteria_labels.append(f"EC class: {humanize_identifier(display_name)}")
+                        elif special_key == "go_filter":
+                            criteria_labels.append(f"GO: {display_name}")
+                        elif special_key == "structure_source":
+                            criteria_labels.append(f"Structure: {humanize_identifier(display_name)}")
+                        else:
+                            criteria_labels.append(humanize_identifier(display_name))
             for param_label, values in grouped_categorical.items():
                 criteria_labels.append(f"{param_label}: {', '.join(values)}")
             if preset.structure_source:

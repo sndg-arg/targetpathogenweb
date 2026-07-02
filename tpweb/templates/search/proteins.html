@@ -156,27 +156,26 @@
                         </div>
                         <div class="toolbar-workbench" aria-label="{% trans 'Protein list controls' %}">
                             <div class="toolbar-workbench__group toolbar-workbench__group--primary" aria-label="{% trans 'Filtering and ranking' %}">
-                                <button type="button" class="btn tp-btn tp-btn--neutral toolbar-action-btn toolbar-action-btn--primary" id="open-filters-btn">
-                                    <span class="toolbar-action-btn__title">{% trans "Filters" %}</span>
-                                    <span class="toolbar-action-btn__meta">
-                                        {% if selection_criteria_count %}
-                                            {% blocktrans count total=selection_criteria_count %}{{ total }} active{% plural %}{{ total }} active{% endblocktrans %}
-                                        {% else %}
-                                            {% trans "No filters" %}
-                                        {% endif %}
-                                    </span>
-                                </button>
                                 {% if filter_presets %}
-                                <div class="toolbar-presets-wrap" id="toolbar-presets-wrap">
+                                <div class="toolbar-filter-split" id="toolbar-presets-wrap">
+                                    <button type="button" class="toolbar-filter-split__main" id="open-filters-btn">
+                                        <span class="toolbar-action-btn__title">{% trans "Filters" %}</span>
+                                        <span class="toolbar-action-btn__meta">
+                                            {% if selection_criteria_count %}
+                                                {% blocktrans count total=selection_criteria_count %}{{ total }} active{% plural %}{{ total }} active{% endblocktrans %}
+                                            {% else %}
+                                                {% trans "No filters" %}
+                                            {% endif %}
+                                        </span>
+                                    </button>
                                     <button type="button"
-                                            class="btn tp-btn tp-btn--neutral toolbar-action-btn toolbar-action-btn--secondary{% if active_preset_name %} toolbar-action-btn--preset-active{% endif %}"
+                                            class="toolbar-filter-split__trigger{% if active_preset_name %} toolbar-filter-split__trigger--active{% endif %}"
                                             id="open-presets-btn"
                                             aria-haspopup="true"
-                                            aria-expanded="false">
-                                        <span class="toolbar-action-btn__title">{% trans "Presets" %}</span>
-                                        <span class="toolbar-action-btn__meta">
-                                            {% if active_preset_name %}{{ active_preset_name }}{% else %}{% blocktrans count total=filter_presets|length %}{{ total }} saved{% plural %}{{ total }} saved{% endblocktrans %}{% endif %}
-                                        </span>
+                                            aria-expanded="false"
+                                            title="{% trans 'Saved presets' %}">
+                                        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 2.5h10a.5.5 0 0 1 .5.5v10.3a.3.3 0 0 1-.47.25L8 10.5l-5.03 3.05A.3.3 0 0 1 2.5 13.3V3a.5.5 0 0 1 .5-.5z"/></svg>
+                                        {% if active_preset_name %}<span class="toolbar-filter-split__dot" aria-hidden="true"></span>{% endif %}
                                     </button>
                                     <div class="toolbar-presets-dropdown" id="toolbar-presets-dropdown" hidden>
                                         <ul class="tpd-list" role="list">
@@ -197,7 +196,9 @@
                                                             {% endif %}
                                                         </span>
                                                         {% if preset.criteria_labels %}
-                                                            <span class="tpd-criteria">{% for lbl in preset.criteria_labels %}{{ lbl }}{% if not forloop.last %} · {% endif %}{% endfor %}</span>
+                                                            <div class="tpd-chips">
+                                                                {% for lbl in preset.criteria_labels %}<span class="tpd-chip">{{ lbl }}</span>{% endfor %}
+                                                            </div>
                                                         {% endif %}
                                                     </button>
                                                 </form>
@@ -218,6 +219,17 @@
                                         </div>
                                     </div>
                                 </div>
+                                {% else %}
+                                <button type="button" class="btn tp-btn tp-btn--neutral toolbar-action-btn toolbar-action-btn--primary" id="open-filters-btn">
+                                    <span class="toolbar-action-btn__title">{% trans "Filters" %}</span>
+                                    <span class="toolbar-action-btn__meta">
+                                        {% if selection_criteria_count %}
+                                            {% blocktrans count total=selection_criteria_count %}{{ total }} active{% plural %}{{ total }} active{% endblocktrans %}
+                                        {% else %}
+                                            {% trans "No filters" %}
+                                        {% endif %}
+                                    </span>
+                                </button>
                                 {% endif %}
                                 {% if formulas %}
                                     <button type="button" class="btn tp-btn tp-btn--neutral toolbar-action-btn toolbar-action-btn--primary{% if not formula_active %} toolbar-action-btn--cta{% endif %}" id="open-formula-btn">

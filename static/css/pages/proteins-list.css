@@ -1246,15 +1246,97 @@ a.filter-pill .filter-pill-remove {
     margin-bottom: 0;
 }
 
-/* ── Toolbar presets dropdown ─────────────────────────── */
+/* ── Toolbar filter split button + presets dropdown ─────── */
 
-.toolbar-presets-wrap {
+.toolbar-filter-split {
     position: relative;
+    display: inline-flex;
+    align-items: stretch;
+    border: 1px solid var(--tp-color-border);
+    border-radius: 10px;
+    overflow: visible;
+    background: var(--tp-color-surface);
+    transition: border-color 140ms ease;
 }
 
-.toolbar-action-btn--preset-active .toolbar-action-btn__meta {
-    color: var(--tp-color-brand-700);
+.toolbar-filter-split:hover {
+    border-color: var(--tp-color-border-accent);
+}
+
+.toolbar-filter-split__main {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    padding: 8px 12px 8px 14px;
+    background: transparent;
+    border: none;
+    border-radius: 9px 0 0 9px;
+    cursor: pointer;
+    color: var(--tp-color-text-primary);
+    transition: background 140ms ease;
+    min-width: 0;
+}
+
+.toolbar-filter-split__main:hover {
+    background: var(--tp-color-surface-soft);
+}
+
+.toolbar-filter-split__main .toolbar-action-btn__title {
+    font-size: 0.88rem;
     font-weight: 600;
+    color: var(--tp-color-text-primary);
+    white-space: nowrap;
+}
+
+.toolbar-filter-split__main .toolbar-action-btn__meta {
+    font-size: 0.76rem;
+    font-weight: 500;
+    color: var(--tp-color-text-muted);
+    white-space: nowrap;
+}
+
+.toolbar-filter-split__trigger {
+    position: relative;
+    width: 34px;
+    flex-shrink: 0;
+    border: none;
+    border-left: 1px solid var(--tp-color-border-soft);
+    border-radius: 0 9px 9px 0;
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--tp-color-text-muted);
+    transition: background 140ms ease, color 140ms ease;
+}
+
+.toolbar-filter-split__trigger:hover,
+.toolbar-filter-split__trigger[aria-expanded="true"] {
+    background: var(--tp-color-brand-050);
+    color: var(--tp-color-brand-700);
+}
+
+.toolbar-filter-split__trigger--active {
+    color: var(--tp-color-brand-600);
+}
+
+.toolbar-filter-split__trigger--active:hover,
+.toolbar-filter-split__trigger--active[aria-expanded="true"] {
+    background: var(--tp-color-brand-100);
+    color: var(--tp-color-brand-800);
+}
+
+.toolbar-filter-split__dot {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--tp-color-brand-600);
+    border: 1.5px solid var(--tp-color-surface);
 }
 
 .toolbar-presets-dropdown {
@@ -1368,15 +1450,28 @@ a.filter-pill .filter-pill-remove {
     padding: 2px 6px;
 }
 
-.tpd-criteria {
-    display: block;
-    font-size: 0.73rem;
-    color: var(--tp-color-text-muted);
-    font-weight: 400;
-    line-height: 1.4;
-    overflow: hidden;
-    text-overflow: ellipsis;
+.tpd-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 3px;
+}
+
+.tpd-chip {
+    font-size: 0.69rem;
+    font-weight: 500;
+    color: var(--tp-color-brand-800);
+    background: var(--tp-color-brand-050);
+    border: 1px solid var(--tp-color-brand-100);
+    border-radius: 4px;
+    padding: 2px 6px;
     white-space: nowrap;
+    line-height: 1.4;
+}
+
+.tpd-row--active .tpd-chip {
+    background: var(--tp-color-brand-100);
+    border-color: var(--tp-color-brand-200);
 }
 
 .tpd-delete-btn {
