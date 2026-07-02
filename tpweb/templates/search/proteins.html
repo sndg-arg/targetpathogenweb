@@ -1179,6 +1179,7 @@
                         badge.remove();
                     }
                 }
+                updateGroupSummaries();
             }
 
             function formDataToObject(form) {
@@ -1202,6 +1203,48 @@
                 } else if (!active && existing) {
                     existing.remove();
                 }
+            }
+
+            function updateGroupSummaries() {
+                if (!filterCatalogue) return;
+                filterCatalogue.querySelectorAll("[data-filter-group]").forEach(function(group) {
+                    var meta = group.querySelector(".filter-group-meta");
+                    if (!meta) return;
+
+                    // Count chips that are currently visually active in this group.
+                    // This includes server-applied filters and pending-add, and
+                    // correctly excludes filters pending removal (chip lost --active).
+                    var activeCount = group.querySelectorAll(".filter-chip.filter-chip--active").length;
+
+                    // Active dot — show/hide without removing (server may have rendered it)
+                    var dot = meta.querySelector(".filter-group-active-dot");
+                    if (activeCount > 0) {
+                        if (!dot) {
+                            dot = document.createElement("span");
+                            dot.className = "filter-group-active-dot";
+                            dot.setAttribute("aria-label", "{% trans 'Has active criteria' %}");
+                            meta.insertBefore(dot, meta.firstChild);
+                        }
+                        dot.hidden = false;
+                    } else if (dot) {
+                        dot.hidden = true;
+                    }
+
+                    // Selected-count badge — teal pill next to the dot
+                    var badge = meta.querySelector(".filter-group-selected-count");
+                    if (activeCount > 0) {
+                        if (!badge) {
+                            badge = document.createElement("span");
+                            badge.className = "filter-group-selected-count";
+                            var insertRef = meta.querySelector(".filter-group-count") || meta.querySelector(".filter-group-chevron");
+                            meta.insertBefore(badge, insertRef);
+                        }
+                        badge.hidden = false;
+                        badge.textContent = String(activeCount);
+                    } else if (badge) {
+                        badge.hidden = true;
+                    }
+                });
             }
 
             function handleToggleChip(form, payload) {

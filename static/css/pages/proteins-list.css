@@ -2413,6 +2413,20 @@ a.filter-pill .filter-pill-remove {
     text-align: center;
 }
 
+/* Selected-criteria count — brand teal pill, shown by JS next to the dot */
+.filter-group-selected-count {
+    font-size: var(--tp-font-label);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--tp-color-brand-900);
+    background: var(--tp-color-brand-100);
+    border: 1px solid var(--tp-color-brand-200);
+    border-radius: 999px;
+    padding: 2px 9px;
+    min-width: 22px;
+    text-align: center;
+}
+
 .filter-group-chevron {
     width: 7px;
     height: 7px;
