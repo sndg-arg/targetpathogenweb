@@ -1164,9 +1164,21 @@
                 const annotationChanged = (pendingAnnotationKind || "") !== (CURRENT_FILTER_STATE.annotationKind || "")
                     || (pendingAnnotationValue || "") !== (CURRENT_FILTER_STATE.annotationValue || "");
                 const pendingCount = getAllPendingActions().length + (structureChanged ? 1 : 0) + (annotationChanged ? 1 : 0);
-                if (filtersApplyBtn) filtersApplyBtn.disabled = pendingCount === 0;
-                if (filterPendingSummary) filterPendingSummary.hidden = pendingCount === 0;
-                if (filterPendingCount) filterPendingCount.textContent = String(pendingCount);
+                if (filtersApplyBtn) {
+                    filtersApplyBtn.disabled = pendingCount === 0;
+                    var badge = filtersApplyBtn.querySelector(".apply-btn-count");
+                    if (pendingCount > 0) {
+                        if (!badge) {
+                            badge = document.createElement("span");
+                            badge.className = "apply-btn-count";
+                            badge.setAttribute("aria-hidden", "true");
+                            filtersApplyBtn.appendChild(badge);
+                        }
+                        badge.textContent = String(pendingCount);
+                    } else if (badge) {
+                        badge.remove();
+                    }
+                }
             }
 
             function formDataToObject(form) {

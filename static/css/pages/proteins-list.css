@@ -2550,7 +2550,7 @@ a.filter-pill .filter-pill-remove {
     align-items: center;
     gap: 6px;
     box-shadow: none;
-    transition: background 140ms ease, border-color 140ms ease, color 140ms ease, transform 100ms ease;
+    transition: background 140ms ease, border-color 140ms ease, color 140ms ease, box-shadow 180ms ease;
 }
 
 .filter-chip:is(a, a:visited) {
@@ -3063,10 +3063,9 @@ a.filter-pill .filter-pill-remove {
     font-weight: 700;
 }
 
-/* Pending state ring on filter chips */
+/* Pending state — brand double-ring that fades in/out smoothly */
 .filter-chip--pending {
-    outline: 2px solid var(--tp-color-warning-border);
-    outline-offset: 2px;
+    box-shadow: 0 0 0 2px var(--tp-color-brand-100), 0 0 0 3.5px var(--tp-color-brand-600);
 }
 
 /* Apply button disabled state */
@@ -3080,31 +3079,31 @@ a.filter-pill .filter-pill-remove {
     display: none;
 }
 
-/* --- Pending summary (footer) ------------------------------------------- */
-
-.filter-pending-summary {
-    display: flex;
-    align-items: center;
-    gap: 7px;
-    color: var(--tp-color-warning-ink);
-    font-size: 0.82rem;
-    font-weight: 500;
-    flex: 0 0 100%;
-    padding-bottom: 6px;
-}
-
-.filter-pending-summary__count {
+/* Count badge inside the Apply button */
+.apply-btn-count {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 20px;
-    height: 20px;
-    padding: 0 6px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
     border-radius: 999px;
-    background: var(--tp-color-warning-ink);
-    color: var(--tp-color-surface);
-    font-size: 0.72rem;
-    font-weight: 600;
+    background: rgba(255, 255, 255, 0.22);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    font-size: 0.7rem;
+    font-weight: 700;
+    margin-left: 7px;
+    font-variant-numeric: tabular-nums;
+    vertical-align: middle;
+}
+
+/* Pending summary is superseded by the button badge — keep in DOM only */
+.filter-pending-summary {
+    display: none;
+}
+
+.filter-pending-summary__count {
+    display: none;
 }
 
 /* --- Presets panel (bottom of drawer body) ------------------------------- */
