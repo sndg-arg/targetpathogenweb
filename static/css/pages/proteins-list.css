@@ -1168,11 +1168,11 @@ a.filter-pill .filter-pill-remove {
 .drawer-head h2 {
     margin: 0;
     font-family: "Space Grotesk", system-ui, sans-serif;
-    font-size: 0.72rem;
+    font-size: 0.82rem;
     font-weight: 600;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: var(--tp-color-text-muted);
+    color: var(--tp-color-text-secondary);
 }
 
 .drawer-close-btn {
@@ -2285,19 +2285,25 @@ a.filter-pill .filter-pill-remove {
    ========================================================================== */
 
 .drawer-active-summary {
-    padding: 12px 20px 10px;
+    padding: 12px 20px 14px;
     border-bottom: 1px solid var(--tp-color-border-soft);
-    background: var(--tp-color-surface-soft);
+    background: var(--tp-color-brand-050);
+    border-left: 3px solid var(--tp-color-brand-600);
+}
+
+.drawer-active-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
 }
 
 .drawer-active-label {
-    display: block;
     font-size: 0.68rem;
-    font-weight: 600;
+    font-weight: 700;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: var(--tp-color-text-muted);
-    margin-bottom: 8px;
+    color: var(--tp-color-brand-700);
 }
 
 /* Active filter pills — brand-teal tint to communicate "applied" state */
@@ -2420,14 +2426,14 @@ a.filter-pill .filter-pill-remove {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 8px 18px 4px;
+    padding: 6px 18px 2px;
     color: var(--tp-color-text-muted);
-    font-size: 0.74rem;
+    font-size: 0.7rem;
     letter-spacing: 0.01em;
 }
 
 .drawer-catalogue-count {
-    font-weight: 500;
+    font-weight: 400;
 }
 
 .drawer-catalogue-toggle {
@@ -2456,10 +2462,10 @@ a.filter-pill .filter-pill-remove {
    ========================================================================== */
 
 .drawer-filter-catalogue {
-    padding: 6px 14px 28px;
+    padding: 8px 14px 32px;
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 6px;
 }
 
 .filter-group {
@@ -2573,10 +2579,10 @@ a.filter-pill .filter-pill-remove {
 }
 
 .filter-group-body {
-    padding: 12px 16px 16px;
+    padding: 14px 16px 20px;
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 18px;
     border-top: 1px solid var(--tp-color-border-soft);
     background: var(--tp-color-surface);
 }
@@ -2593,15 +2599,14 @@ a.filter-pill .filter-pill-remove {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
 }
 
 .filter-param-label {
     color: var(--tp-color-text-muted);
-    font-size: 0.72rem;
-    font-weight: 500;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
+    font-size: 0.76rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
 }
 
 .filter-param-help {
@@ -2674,7 +2679,7 @@ a.filter-pill .filter-pill-remove {
 .filter-chip-group {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
+    gap: 7px;
 }
 
 .filter-chip-form {
@@ -2686,32 +2691,34 @@ a.filter-pill .filter-pill-remove {
     background: var(--tp-color-surface);
     border: 1px solid var(--tp-color-border);
     color: var(--tp-color-text-secondary);
-    padding: 4px 12px;
+    padding: 5px 13px;
     border-radius: 999px;
     font: inherit;
-    font-size: 0.82rem;
+    font-size: 0.83rem;
     font-weight: 400;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
     gap: 6px;
     box-shadow: none;
-    transition: background 140ms ease, border-color 140ms ease, color 140ms ease, box-shadow 180ms ease;
+    transition: background 120ms ease, border-color 120ms ease, color 120ms ease, box-shadow 180ms ease;
 }
 
 .filter-chip:is(a, a:visited) {
     text-decoration: none;
-    color: var(--tp-color-text-primary);
+    color: var(--tp-color-text-secondary);
 }
 
+/* Hover gives a clear teal preview — signals interactivity without commitment */
 .filter-chip:hover {
-    background: var(--tp-color-surface-soft);
-    border-color: var(--tp-color-border-strong);
-    color: var(--tp-color-text-primary);
+    background: var(--tp-color-brand-050);
+    border-color: var(--tp-color-brand-300);
+    color: var(--tp-color-brand-900);
 }
 
 .filter-chip:active {
-    background: var(--tp-color-surface-muted);
+    background: var(--tp-color-brand-100);
+    border-color: var(--tp-color-brand-600);
 }
 
 .filter-chip:focus-visible {
@@ -2754,31 +2761,27 @@ a.filter-pill .filter-pill-remove {
 }
 
 .filter-chip--risk {
-    border-color: color-mix(in srgb, #d75151 34%, var(--tp-color-border));
-    color: #8f2d2d;
+    border-color: var(--tp-color-danger-border);
+    color: var(--tp-color-danger-ink);
 }
 
 .filter-chip--risk:hover,
 .filter-chip--risk.filter-chip--active {
-    background: color-mix(in srgb, #d75151 12%, var(--tp-color-surface));
-    border-color: #d75151;
-    color: #7f2525;
+    background: var(--tp-color-danger-bg);
+    border-color: var(--tp-color-danger-border);
+    color: var(--tp-color-danger-ink);
 }
 
 .filter-chip--favorable {
-    border-color: color-mix(in srgb, #14966f 34%, var(--tp-color-border));
-    color: #0f684f;
+    border-color: var(--tp-color-sage-200);
+    color: var(--tp-color-sage-900);
 }
 
 .filter-chip--favorable:hover,
 .filter-chip--favorable.filter-chip--active {
-    background: color-mix(in srgb, #14966f 12%, var(--tp-color-surface));
-    border-color: #14966f;
-    color: #0d5c47;
-}
-
-.tp-dark .filter-chip--risk {
-    color: #f2b8b8;
+    background: var(--tp-color-sage-050);
+    border-color: var(--tp-color-sage-200);
+    color: var(--tp-color-sage-900);
 }
 
 .filter-chip--secondary {
@@ -2791,20 +2794,6 @@ a.filter-pill .filter-pill-remove {
     background: var(--tp-color-surface-muted);
     border-color: var(--tp-color-border-strong);
     color: var(--tp-color-text-secondary);
-}
-
-.tp-dark .filter-chip--risk:hover,
-.tp-dark .filter-chip--risk.filter-chip--active {
-    color: #ffd2d2;
-}
-
-.tp-dark .filter-chip--favorable {
-    color: #aee8d3;
-}
-
-.tp-dark .filter-chip--favorable:hover,
-.tp-dark .filter-chip--favorable.filter-chip--active {
-    color: #d4f7e9;
 }
 
 .filter-chip-glyph {
@@ -2864,25 +2853,28 @@ a.filter-pill .filter-pill-remove {
 
 .filter-text-add {
     appearance: none;
-    border: 1px solid var(--tp-color-border);
-    background: var(--tp-color-surface);
-    color: var(--tp-color-text-primary);
-    padding: 7px 14px;
+    border: 1px solid var(--tp-color-brand-600);
+    background: var(--tp-color-brand-700);
+    color: var(--tp-color-brand-050);
+    padding: 7px 16px;
     border-radius: 8px;
     font: inherit;
-    font-size: 0.85rem;
+    font-size: 0.83rem;
     font-weight: 600;
     cursor: pointer;
-    transition: border-color 140ms ease, background 140ms ease, color 140ms ease;
+    transition: border-color 120ms ease, background 120ms ease;
     flex: 0 0 auto;
 }
 
 .filter-text-add:hover,
 .filter-text-add:focus-visible {
-    border-color: var(--tp-color-brand-700);
-    background: var(--tp-color-brand-100);
-    color: var(--tp-color-brand-900);
+    background: var(--tp-color-brand-800);
+    border-color: var(--tp-color-brand-800);
     outline: none;
+}
+
+.filter-text-add:active {
+    background: var(--tp-color-brand-900);
 }
 
 .filter-numeric-form {
@@ -3011,30 +3003,29 @@ a.filter-pill .filter-pill-remove {
 
 .filter-numeric-apply {
     appearance: none;
-    border: 1px solid var(--tp-color-border-strong);
+    border: 1px solid var(--tp-color-brand-600);
     border-radius: 8px;
-    background: var(--tp-color-surface);
-    color: var(--tp-color-text-primary);
+    background: var(--tp-color-brand-700);
+    color: var(--tp-color-brand-050);
     cursor: pointer;
     font: inherit;
-    font-size: 0.82rem;
-    font-weight: 500;
-    padding: 7px 14px;
-    transition: background 140ms ease, border-color 140ms ease, color 140ms ease, transform 100ms ease;
+    font-size: 0.83rem;
+    font-weight: 600;
+    padding: 7px 16px;
+    transition: background 120ms ease, border-color 120ms ease;
     white-space: nowrap;
     align-self: end;
 }
 
 .filter-numeric-apply:hover,
 .filter-numeric-apply:focus-visible {
-    background: var(--tp-color-surface-soft);
-    border-color: var(--tp-color-border-accent);
-    color: var(--tp-color-brand-900);
+    background: var(--tp-color-brand-800);
+    border-color: var(--tp-color-brand-800);
     outline: none;
 }
 
 .filter-numeric-apply:active {
-    background: var(--tp-color-surface-muted);
+    background: var(--tp-color-brand-900);
 }
 
 .filter-numeric-apply:disabled {
@@ -3154,7 +3145,9 @@ a.filter-pill .filter-pill-remove {
 }
 
 .drawer-done-btn {
-    min-width: 96px;
+    min-width: 110px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
 }
 
 @media (max-width: 700px) {

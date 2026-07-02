@@ -461,7 +461,9 @@
         <div class="drawer-body">
             {% if display_parameters or annotation_filter or structure_filter %}
             <div class="drawer-active-summary">
-                <span class="drawer-active-label">{% trans "Active" %}</span>
+                <div class="drawer-active-header">
+                    <span class="drawer-active-label">{% trans "Applied" %}</span>
+                </div>
                 <div class="active-filters">
                     {% if structure_filter %}
                         <a href="{{ clear_structure_url }}" class="filter-pill tp-chip tp-chip--filter">
@@ -583,8 +585,8 @@
                                                     <input type="hidden" name="filter_option_id" value="{{ entry.id }}">
                                                     <input type="hidden" name="return_query" value="{{ query_string }}">
                                                     <button type="submit" class="filter-chip filter-chip--active" data-server-active="true">
-                                                        <span class="filter-chip-glyph" aria-hidden="true">&times;</span>
                                                         <span class="filter-chip-label">{{ entry.value }}</span>
+                                                        <span class="filter-chip-glyph" aria-hidden="true">&times;</span>
                                                     </button>
                                                 </form>
                                             {% endfor %}
@@ -618,8 +620,8 @@
                                                     <input type="hidden" name="filter_option_id" value="{{ entry.id }}">
                                                     <input type="hidden" name="return_query" value="{{ query_string }}">
                                                     <button type="submit" class="filter-chip filter-chip--active" data-server-active="true">
-                                                        <span class="filter-chip-glyph" aria-hidden="true">&times;</span>
                                                         <span class="filter-chip-label">{{ entry.value }}</span>
+                                                        <span class="filter-chip-glyph" aria-hidden="true">&times;</span>
                                                     </button>
                                                 </form>
                                             {% endfor %}
@@ -686,8 +688,8 @@
                                                             <input type="hidden" name="filter_option_id" value="{{ entry.id }}">
                                                             <input type="hidden" name="return_query" value="{{ query_string }}">
                                                             <button type="submit" class="filter-chip filter-chip--active" data-server-active="true">
-                                                                <span class="filter-chip-glyph" aria-hidden="true">&times;</span>
                                                                 <span class="filter-chip-label">{{ entry.display_name }}</span>
+                                                                <span class="filter-chip-glyph" aria-hidden="true">&times;</span>
                                                             </button>
                                                         </form>
                                                     {% endfor %}
