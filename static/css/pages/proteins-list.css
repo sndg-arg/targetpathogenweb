@@ -1365,15 +1365,18 @@ a.filter-pill .filter-pill-remove {
 }
 
 .tpd-row {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: 4px;
-    align-items: center;
+    position: relative;
 }
 
 .tpd-apply-form,
 .tpd-delete-form {
     margin: 0;
+}
+
+.tpd-delete-form {
+    position: absolute;
+    top: 7px;
+    right: 7px;
 }
 
 .tpd-apply-btn {
@@ -1382,7 +1385,7 @@ a.filter-pill .filter-pill-remove {
     flex-direction: column;
     align-items: stretch;
     gap: 3px;
-    padding: 8px 11px;
+    padding: 8px 36px 8px 11px;
     border: 1px solid var(--tp-color-border-soft);
     border-radius: 8px;
     background: var(--tp-color-surface);
@@ -1475,18 +1478,24 @@ a.filter-pill .filter-pill-remove {
 }
 
 .tpd-delete-btn {
-    width: 32px;
-    height: 32px;
+    width: 24px;
+    height: 24px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: 8px;
-    background: var(--tp-color-surface);
-    color: var(--tp-color-text-muted);
+    border: 1px solid transparent;
+    border-radius: 6px;
+    background: transparent;
+    color: transparent;
     cursor: pointer;
     transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
-    flex-shrink: 0;
+}
+
+.tpd-row:hover .tpd-delete-btn,
+.tpd-delete-btn:focus-visible {
+    border-color: var(--tp-color-border-soft);
+    background: var(--tp-color-surface-muted);
+    color: var(--tp-color-text-muted);
 }
 
 .tpd-delete-btn:hover,
@@ -1498,8 +1507,8 @@ a.filter-pill .filter-pill-remove {
 }
 
 .tpd-delete-btn svg {
-    width: 14px;
-    height: 14px;
+    width: 13px;
+    height: 13px;
     pointer-events: none;
 }
 
