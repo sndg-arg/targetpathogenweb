@@ -3145,6 +3145,16 @@ a.filter-pill .filter-pill-remove {
     margin-bottom: 10px;
 }
 
+.filter-preset-save-btn.btn {
+    padding: 7px 14px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    min-height: 0;
+    height: auto;
+    border-radius: 8px;
+    align-self: stretch;
+}
+
 .filter-preset-name-input {
     min-width: 0;
     border: 1px solid var(--tp-color-border);

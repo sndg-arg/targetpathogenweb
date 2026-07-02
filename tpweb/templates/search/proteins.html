@@ -581,7 +581,7 @@
                                                     <input type="hidden" name="action" value="remove_filter">
                                                     <input type="hidden" name="filter_option_id" value="{{ entry.id }}">
                                                     <input type="hidden" name="return_query" value="{{ query_string }}">
-                                                    <button type="submit" class="filter-chip filter-chip--active">
+                                                    <button type="submit" class="filter-chip filter-chip--active" data-server-active="true">
                                                         <span class="filter-chip-glyph" aria-hidden="true">&times;</span>
                                                         <span class="filter-chip-label">{{ entry.value }}</span>
                                                     </button>
@@ -616,7 +616,7 @@
                                                     <input type="hidden" name="action" value="remove_filter">
                                                     <input type="hidden" name="filter_option_id" value="{{ entry.id }}">
                                                     <input type="hidden" name="return_query" value="{{ query_string }}">
-                                                    <button type="submit" class="filter-chip filter-chip--active">
+                                                    <button type="submit" class="filter-chip filter-chip--active" data-server-active="true">
                                                         <span class="filter-chip-glyph" aria-hidden="true">&times;</span>
                                                         <span class="filter-chip-label">{{ entry.value }}</span>
                                                     </button>
@@ -684,7 +684,7 @@
                                                             <input type="hidden" name="action" value="remove_filter">
                                                             <input type="hidden" name="filter_option_id" value="{{ entry.id }}">
                                                             <input type="hidden" name="return_query" value="{{ query_string }}">
-                                                            <button type="submit" class="filter-chip filter-chip--active">
+                                                            <button type="submit" class="filter-chip filter-chip--active" data-server-active="true">
                                                                 <span class="filter-chip-glyph" aria-hidden="true">&times;</span>
                                                                 <span class="filter-chip-label">{{ entry.display_name }}</span>
                                                             </button>
@@ -703,6 +703,7 @@
                                                             <input type="hidden" name="return_query" value="{{ query_string }}">
                                                             <button type="submit"
                                                                     class="filter-chip {% if option.tone %}filter-chip--{{ option.tone }}{% endif %} {% if option.active %}filter-chip--active{% endif %}"
+                                                                    data-server-active="{{ option.active|yesno:'true,false' }}"
                                                                     {% if option.description %}title="{{ option.description }}"{% endif %}
                                                                     aria-pressed="{% if option.active %}true{% else %}false{% endif %}">
                                                                 {% if option.active %}<span class="filter-chip-glyph" aria-hidden="true">&times;</span>{% endif %}
@@ -717,6 +718,7 @@
                                                             <input type="hidden" name="return_query" value="{{ query_string }}">
                                                             <button type="submit"
                                                                     class="filter-chip {% if option.tone %}filter-chip--{{ option.tone }}{% endif %} {% if option.active %}filter-chip--active{% endif %}"
+                                                                    data-server-active="{{ option.active|yesno:'true,false' }}"
                                                                     {% if option.description %}title="{{ option.description }}"{% endif %}
                                                                     aria-pressed="{% if option.active %}true{% else %}false{% endif %}">
                                                                 {% if option.active %}<span class="filter-chip-glyph" aria-hidden="true">&times;</span>{% endif %}
@@ -1131,13 +1133,21 @@
                 annotationKind: "{% if annotation_filter %}{{ annotation_filter.kind|escapejs }}{% endif %}",
                 annotationValue: "{% if annotation_filter %}{{ annotation_filter.value|escapejs }}{% endif %}"
             });
-            let pendingFilterActions = [];
+            // pendingToggleMap: keyed by filter_option_id, value = payload.
+            // Clicking the same chip twice cancels the pending action.
+            let pendingToggleMap = new Map();
+            // pendingAppendActions: non-toggleable (numeric, text, special-add).
+            let pendingAppendActions = [];
             let pendingStructureSource = CURRENT_FILTER_STATE.structureSource;
             let pendingAnnotationKind = CURRENT_FILTER_STATE.annotationKind;
             let pendingAnnotationValue = CURRENT_FILTER_STATE.annotationValue;
 
+            function getAllPendingActions() {
+                return pendingAppendActions.concat(Array.from(pendingToggleMap.values()));
+            }
+
             function syncPendingFilterForms() {
-                const actionPayload = JSON.stringify(pendingFilterActions);
+                const actionPayload = JSON.stringify(getAllPendingActions());
                 [filtersApplyForm, filterPresetSaveForm].forEach(function (form) {
                     if (!form) return;
                     const actionsInput = form.querySelector("input[name='filter_actions_json']");
@@ -1153,7 +1163,7 @@
                 const structureChanged = (pendingStructureSource || "") !== (CURRENT_FILTER_STATE.structureSource || "");
                 const annotationChanged = (pendingAnnotationKind || "") !== (CURRENT_FILTER_STATE.annotationKind || "")
                     || (pendingAnnotationValue || "") !== (CURRENT_FILTER_STATE.annotationValue || "");
-                const pendingCount = pendingFilterActions.length + (structureChanged ? 1 : 0) + (annotationChanged ? 1 : 0);
+                const pendingCount = getAllPendingActions().length + (structureChanged ? 1 : 0) + (annotationChanged ? 1 : 0);
                 if (filtersApplyBtn) filtersApplyBtn.disabled = pendingCount === 0;
                 if (filterPendingSummary) filterPendingSummary.hidden = pendingCount === 0;
                 if (filterPendingCount) filterPendingCount.textContent = String(pendingCount);
@@ -1169,29 +1179,52 @@
                 return payload;
             }
 
-            function markDeferredFilterControl(form, payload) {
-                const button = form.querySelector("button[type='submit'], .filter-chip, .filter-text-add, .filter-numeric-apply");
-                if (button) {
-                    button.classList.add("filter-chip--pending");
-                    button.setAttribute("data-pending", "true");
+            function setChipGlyph(button, active) {
+                var existing = button.querySelector(".filter-chip-glyph");
+                if (active && !existing) {
+                    var glyph = document.createElement("span");
+                    glyph.className = "filter-chip-glyph";
+                    glyph.setAttribute("aria-hidden", "true");
+                    glyph.textContent = "\xD7";
+                    button.insertBefore(glyph, button.firstChild);
+                } else if (!active && existing) {
+                    existing.remove();
                 }
-                if (payload.action === "add_filter" || payload.action === "add_special_filter" || payload.action === "add_numeric_filter") {
-                    if (button && button.classList.contains("filter-chip")) {
-                        button.classList.add("filter-chip--active");
-                        button.setAttribute("aria-pressed", "true");
+            }
+
+            function handleToggleChip(form, payload) {
+                var optionId = String(payload.filter_option_id || "");
+                if (!optionId) return;
+                var button = form.querySelector(".filter-chip");
+                var actionInput = form.querySelector("input[name='action']");
+                var serverActive = button ? button.dataset.serverActive === "true" : false;
+
+                if (pendingToggleMap.has(optionId)) {
+                    // Second click: cancel, restore to server state
+                    pendingToggleMap.delete(optionId);
+                    if (button) {
+                        button.classList.toggle("filter-chip--active", serverActive);
+                        button.setAttribute("aria-pressed", serverActive ? "true" : "false");
+                        button.classList.remove("filter-chip--pending");
+                        button.removeAttribute("data-pending");
+                        setChipGlyph(button, serverActive);
                     }
-                    const actionInput = form.querySelector("input[name='action']");
-                    if (actionInput && payload.action === "add_filter") actionInput.value = "remove_filter";
-                    return;
-                }
-                if (payload.action === "remove_filter") {
-                    if (button && button.classList.contains("filter-chip")) {
-                        button.classList.remove("filter-chip--active");
-                        button.setAttribute("aria-pressed", "false");
+                    if (actionInput) {
+                        actionInput.value = serverActive ? "remove_filter" : "add_filter";
                     }
-                    const actionInput = form.querySelector("input[name='action']");
-                    if (actionInput && payload.filter_option_id && !String(payload.filter_option_id).startsWith("special:")) {
-                        actionInput.value = "add_filter";
+                } else {
+                    // First click: add to pending
+                    pendingToggleMap.set(optionId, payload);
+                    var willBeActive = payload.action === "add_filter";
+                    if (button) {
+                        button.classList.toggle("filter-chip--active", willBeActive);
+                        button.setAttribute("aria-pressed", willBeActive ? "true" : "false");
+                        button.classList.add("filter-chip--pending");
+                        button.setAttribute("data-pending", "true");
+                        setChipGlyph(button, willBeActive);
+                    }
+                    if (actionInput) {
+                        actionInput.value = willBeActive ? "remove_filter" : "add_filter";
                     }
                 }
             }
@@ -1222,8 +1255,19 @@
                     return;
                 }
 
-                pendingFilterActions.push(payload);
-                markDeferredFilterControl(form, payload);
+                if (payload.action === "add_filter" || payload.action === "remove_filter") {
+                    handleToggleChip(form, payload);
+                    syncPendingFilterForms();
+                    return;
+                }
+
+                // Numeric, text, special-add: append (non-cancelable individually)
+                pendingAppendActions.push(payload);
+                const button = form.querySelector("button[type='submit'], .filter-text-add, .filter-numeric-apply");
+                if (button) {
+                    button.classList.add("filter-chip--pending");
+                    button.setAttribute("data-pending", "true");
+                }
                 if (form.matches(".filter-text-form, .filter-numeric-form")) {
                     form.reset();
                     const message = form.querySelector(".filter-numeric-message");
