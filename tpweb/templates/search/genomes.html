@@ -115,16 +115,18 @@
                                     data-assembly-url="{% url 'tpwebapp:assembly' genome.slug %}">
                                     <td class="genomes-name">
                                         <div class="genomes-name-stack">
-                                            <a href="{% url 'tpwebapp:assembly' genome.slug %}">{{ genome.name }}</a>
-                                            {% if pipeline_status.running and pipeline_status.genome_accession == genome.internal_name %}
-                                                <span class="genome-processing-badge">{% trans "In progress" %}</span>
-                                            {% elif genome.failed_for_current_genome %}
-                                                <span class="genome-status-badge genome-status-badge--failed">{% trans "Failed" %}</span>
-                                            {% elif genome.incomplete_for_current_genome %}
-                                                <span class="genome-status-badge genome-status-badge--incomplete">{% trans "Incomplete" %}</span>
-                                            {% endif %}
+                                            <div class="genomes-name-main">
+                                                <a href="{% url 'tpwebapp:assembly' genome.slug %}">{{ genome.name }}</a>
+                                                {% if pipeline_status.running and pipeline_status.genome_accession == genome.internal_name %}
+                                                    <span class="genome-processing-badge">{% trans "In progress" %}</span>
+                                                {% elif genome.failed_for_current_genome %}
+                                                    <span class="genome-status-badge genome-status-badge--failed">{% trans "Failed" %}</span>
+                                                {% elif genome.incomplete_for_current_genome %}
+                                                    <span class="genome-status-badge genome-status-badge--incomplete">{% trans "Incomplete" %}</span>
+                                                {% endif %}
+                                            </div>
                                             {% if genome.has_curated_data %}
-                                                <span class="tp-chip tp-chip--state finished tp-chip--sm">{% trans "Curated" %}</span>
+                                                <span class="tp-chip tp-chip--state finished tp-chip--sm genome-curated-badge">{% trans "Curated" %}</span>
                                             {% endif %}
                                         </div>
                                         {% if genome.current_genome_status_note %}

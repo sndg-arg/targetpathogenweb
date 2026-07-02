@@ -233,9 +233,24 @@
 
 .genomes-name-stack {
     display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+}
+
+.genomes-name-main {
+    display: inline-flex;
     align-items: center;
     flex-wrap: wrap;
     gap: 8px;
+}
+
+.genomes-name-main .genome-processing-badge {
+    margin-left: 0;
+}
+
+.genome-curated-badge {
+    align-self: flex-start;
 }
 
 .genomes-name a {
