@@ -1224,7 +1224,7 @@ a.filter-pill .filter-pill-remove {
     align-items: center;
     justify-content: space-between;
     gap: var(--tp-ui-gap-sm);
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     background: var(--tp-color-surface-soft);
 }
 
@@ -3056,96 +3056,86 @@ a.filter-pill .filter-pill-remove {
     }
 }
 
-/* Filter workflow: result count, deferred apply, and presets */
+/* Filter workflow: deferred apply, pending indicator, and presets */
+
+/* Hero chip: count shown as "N / total" */
 .filter-result-chip strong {
-    font-weight: 800;
+    font-weight: 700;
 }
 
-.filter-result-banner {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    margin: 0 0 14px;
-    padding: 12px 16px;
-    border: 1px solid var(--tp-color-border-subtle);
-    border-radius: 8px;
-    background: var(--tp-color-surface);
-    box-shadow: var(--tp-shadow-sm);
+/* Pending state ring on filter chips */
+.filter-chip--pending {
+    outline: 2px solid var(--tp-color-warning-border);
+    outline-offset: 2px;
 }
 
-.filter-result-banner__count {
-    display: flex;
-    align-items: baseline;
-    gap: 8px;
-    min-width: 0;
+/* Apply button disabled state */
+.drawer-done-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
 }
 
-.filter-result-banner__number {
-    font-size: 1.35rem;
-    line-height: 1;
-    font-weight: 800;
-    color: var(--tp-color-accent, #0f766e);
+/* Hidden apply form (data carrier only) */
+.filters-apply-form {
+    display: none;
 }
 
-.filter-result-banner__text,
-.filter-result-banner__total {
-    color: var(--tp-color-text-secondary);
-    font-size: 0.92rem;
-}
+/* --- Pending summary (footer) ------------------------------------------- */
 
 .filter-pending-summary {
     display: flex;
     align-items: center;
-    gap: 8px;
-    margin-bottom: 12px;
-    padding: 10px 12px;
-    border: 1px solid var(--tp-color-warning-border);
-    border-radius: 8px;
-    background: var(--tp-color-warning-bg);
+    gap: 7px;
     color: var(--tp-color-warning-ink);
-    font-size: 0.9rem;
-    font-weight: 650;
+    font-size: 0.82rem;
+    font-weight: 500;
+    flex: 0 0 100%;
+    padding-bottom: 6px;
 }
 
 .filter-pending-summary__count {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 24px;
-    height: 24px;
-    padding: 0 7px;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
     border-radius: 999px;
     background: var(--tp-color-warning-ink);
-    color: var(--tp-color-warning-bg);
-    font-size: 0.82rem;
+    color: var(--tp-color-surface);
+    font-size: 0.72rem;
+    font-weight: 600;
 }
 
+/* --- Presets panel (bottom of drawer body) ------------------------------- */
+
 .filter-presets-panel {
-    margin-bottom: 16px;
+    margin: 6px 14px 20px;
     padding: 12px;
-    border: 1px solid var(--tp-color-border-subtle);
-    border-radius: 8px;
-    background: var(--tp-color-surface-muted);
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 12px;
+    background: var(--tp-color-surface-soft);
 }
 
 .filter-presets-panel__head {
     display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 10px;
+    flex-direction: column;
+    gap: 2px;
     margin-bottom: 10px;
 }
 
-.filter-presets-panel__head h3 {
-    margin: 0;
-    font-size: 0.95rem;
-    font-weight: 750;
+.filter-presets-panel__title {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--tp-color-text-muted);
 }
 
 .filter-presets-panel__hint {
-    color: var(--tp-color-text-secondary);
-    font-size: 0.78rem;
+    color: var(--tp-color-text-muted);
+    font-size: 0.8rem;
+    line-height: 1.4;
 }
 
 .filter-preset-save-form {
@@ -3156,17 +3146,30 @@ a.filter-pill .filter-pill-remove {
 }
 
 .filter-preset-name-input {
-    width: 100%;
-    min-height: 36px;
-    padding: 7px 10px;
+    min-width: 0;
     border: 1px solid var(--tp-color-border);
-    border-radius: 6px;
+    border-radius: 8px;
+    padding: 7px 10px;
     background: var(--tp-color-surface);
     color: var(--tp-color-text-primary);
+    font: inherit;
+    font-size: 0.88rem;
+    transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.filter-preset-name-input::placeholder {
+    color: var(--tp-color-text-soft);
+}
+
+.filter-preset-name-input:focus {
+    outline: none;
+    border-color: var(--tp-color-border-accent);
+    box-shadow: 0 0 0 3px var(--tp-color-brand-100);
 }
 
 .filter-preset-list {
-    display: grid;
+    display: flex;
+    flex-direction: column;
     gap: 6px;
 }
 
@@ -3184,35 +3187,45 @@ a.filter-pill .filter-pill-remove {
 
 .filter-preset-apply-btn {
     width: 100%;
-    min-height: 38px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 10px;
-    padding: 7px 10px;
-    border: 1px solid var(--tp-color-border-subtle);
-    border-radius: 6px;
+    padding: 9px 12px;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 10px;
     background: var(--tp-color-surface);
     color: var(--tp-color-text-primary);
     text-align: left;
+    cursor: pointer;
+    transition: border-color 140ms ease, background 140ms ease;
 }
 
 .filter-preset-apply-btn:hover,
 .filter-preset-apply-btn:focus-visible {
-    border-color: var(--tp-color-accent, #0f766e);
+    border-color: var(--tp-color-brand-700);
+    background: var(--tp-color-surface-soft);
+    outline: none;
+}
+
+.filter-preset-apply-btn:focus-visible {
+    box-shadow: 0 0 0 3px var(--tp-color-brand-100);
 }
 
 .filter-preset-name {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    font-weight: 650;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--tp-color-text-primary);
 }
 
 .filter-preset-meta {
     flex: 0 0 auto;
-    color: var(--tp-color-text-secondary);
+    color: var(--tp-color-text-muted);
     font-size: 0.78rem;
+    font-weight: 500;
 }
 
 .filter-preset-delete-btn {
@@ -3221,10 +3234,20 @@ a.filter-pill .filter-pill-remove {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border: 1px solid var(--tp-color-border-subtle);
-    border-radius: 6px;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 10px;
     background: var(--tp-color-surface);
+    color: var(--tp-color-text-muted);
+    cursor: pointer;
+    transition: background 140ms ease, border-color 140ms ease, color 140ms ease;
+}
+
+.filter-preset-delete-btn:hover,
+.filter-preset-delete-btn:focus-visible {
+    background: var(--tp-color-danger-bg);
+    border-color: var(--tp-color-danger-border);
     color: var(--tp-color-danger-ink);
+    outline: none;
 }
 
 .filter-preset-delete-btn svg {
@@ -3232,26 +3255,7 @@ a.filter-pill .filter-pill-remove {
     height: 16px;
 }
 
-.filters-apply-form {
-    display: none;
-}
-
-.filter-chip--pending {
-    box-shadow: 0 0 0 2px var(--tp-color-warning-border);
-}
-
-.drawer-done-btn:disabled {
-    cursor: not-allowed;
-    opacity: 0.55;
-}
-
 @media (max-width: 640px) {
-    .filter-result-banner,
-    .filter-presets-panel__head {
-        align-items: flex-start;
-        flex-direction: column;
-    }
-
     .filter-preset-save-form {
         grid-template-columns: 1fr;
     }
