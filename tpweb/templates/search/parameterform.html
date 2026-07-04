@@ -109,7 +109,7 @@
                         <div class="col-md-6">{{ form.options|as_crispy_field }}</div>
                     </div>
                     <div class="param-actions">
-                        <button type="submit" class="btn btn-primary">{% trans "Add filter" %}</button>
+                        <button type="submit" class="btn tp-btn tp-btn--primary">{% trans "Add filter" %}</button>
                     </div>
                 </form>
 
@@ -117,13 +117,13 @@
                     <form id="finish-process-form" method="POST">
                         {% csrf_token %}
                         <input type="hidden" name="finish_process" value="true">
-                        <button type="submit" class="btn btn-success">{% trans "Apply filters" %}</button>
+                        <button type="submit" class="btn tp-btn tp-btn--success">{% trans "Apply filters" %}</button>
                     </form>
                     <form id="reset-process-form" method="POST">
                         {% csrf_token %}
                         <input type="hidden" name="reset_process" value="true">
                         {% trans "Clear filters" as clear_filters_label %}
-                        {% include "components/buttons/clear_action.html" with label=clear_filters_label button_type="submit" classes="btn btn-outline-danger tp-btn-with-icon" %}
+                        {% include "components/buttons/clear_action.html" with label=clear_filters_label button_type="submit" classes="btn tp-btn tp-btn--clear tp-btn--clear-caution tp-btn-with-icon" %}
                     </form>
                 </div>
             </section>

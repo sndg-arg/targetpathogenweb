@@ -1789,17 +1789,14 @@ a.filter-pill .filter-pill-remove {
 }
 
 .scoring-formula-delete-btn {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
     width: 32px;
     height: 32px;
-    border-radius: 8px;
-    border: 1px solid transparent;
-    background: transparent;
-    color: var(--tp-color-text-muted);
-    cursor: pointer;
-    transition: background 120ms, border-color 120ms, color 120ms;
+    min-height: 32px !important;
+    padding: 0 !important;
+    border-radius: 8px !important;
     margin-top: 8px;
 }
 
@@ -1812,10 +1809,11 @@ a.filter-pill .filter-pill-remove {
     overflow: visible;
 }
 
-.scoring-formula-delete-btn:hover {
-    background: var(--tp-color-danger-bg);
-    border-color: var(--tp-color-danger-border);
-    color: var(--tp-color-danger-ink);
+.scoring-formula-delete-btn:hover,
+.scoring-formula-delete-btn:focus-visible {
+    background: var(--tp-color-danger-bg) !important;
+    border-color: var(--tp-color-danger-border) !important;
+    color: var(--tp-color-danger-ink) !important;
 }
 
 .scoring-formula-row {
@@ -2343,25 +2341,19 @@ a.filter-pill .filter-pill-remove {
 }
 
 .columns-restore-link {
-    appearance: none;
-    background: transparent;
-    border: none;
     padding: 6px 8px;
-    color: var(--tp-color-text-muted);
-    font: inherit;
     font-size: 0.84rem;
-    font-weight: 500;
-    cursor: pointer;
-    border-radius: 6px;
-    transition: color 140ms ease, background 140ms ease;
+    border-radius: 6px !important;
+    border-color: transparent !important;
 }
 
 .columns-restore-link:hover,
 .columns-restore-link:focus-visible {
-    color: var(--tp-color-text-primary);
-    background: var(--tp-color-surface-soft);
-    outline: none;
+    color: var(--tp-color-text-primary) !important;
+    background: var(--tp-color-surface-soft) !important;
+    border-color: transparent !important;
     text-decoration: underline;
+    outline: none;
 }
 
 .proteins-hero,
@@ -2520,25 +2512,11 @@ a.filter-pill .filter-pill-remove {
 }
 
 .filter-tray-clear-btn {
-    appearance: none;
-    background: transparent;
-    border: 1px solid var(--tp-color-border-strong);
-    color: var(--tp-color-text-secondary);
     padding: 5px 14px;
-    border-radius: 999px;
+    border-radius: 999px !important;
     font-size: 0.82rem;
     font-weight: 600;
     letter-spacing: 0.02em;
-    cursor: pointer;
-    transition: background 140ms ease, color 140ms ease, border-color 140ms ease;
-}
-
-.filter-tray-clear-btn:hover,
-.filter-tray-clear-btn:focus-visible {
-    background: var(--tp-color-rose-050);
-    border-color: var(--tp-color-rose-300);
-    color: var(--tp-color-rose-700);
-    outline: none;
 }
 
 /* ==========================================================================
@@ -2698,23 +2676,19 @@ a.filter-pill .filter-pill-remove {
 }
 
 .drawer-catalogue-toggle {
-    appearance: none;
-    background: transparent;
-    border: none;
-    color: var(--tp-color-link);
-    font: inherit;
     font-size: 0.82rem;
     font-weight: 600;
-    cursor: pointer;
     padding: 4px 6px;
-    border-radius: 6px;
-    transition: background 140ms ease, color 140ms ease;
+    border-radius: 6px !important;
+    color: var(--tp-color-link) !important;
+    border-color: transparent !important;
 }
 
 .drawer-catalogue-toggle:hover,
 .drawer-catalogue-toggle:focus-visible {
-    color: var(--tp-color-link-hover);
-    background: var(--tp-color-brand-100);
+    color: var(--tp-color-link-hover) !important;
+    background: var(--tp-color-brand-100) !important;
+    border-color: transparent !important;
     outline: none;
 }
 
@@ -3113,29 +3087,11 @@ a.filter-pill .filter-pill-remove {
 }
 
 .filter-text-add {
-    appearance: none;
-    border: 1px solid var(--tp-color-brand-600);
-    background: var(--tp-color-brand-700);
-    color: var(--tp-color-brand-050);
     padding: 7px 16px;
-    border-radius: 8px;
-    font: inherit;
+    border-radius: 8px !important;
     font-size: 0.83rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: border-color 120ms ease, background 120ms ease;
+    min-height: 0 !important;
     flex: 0 0 auto;
-}
-
-.filter-text-add:hover,
-.filter-text-add:focus-visible {
-    background: var(--tp-color-brand-800);
-    border-color: var(--tp-color-brand-800);
-    outline: none;
-}
-
-.filter-text-add:active {
-    background: var(--tp-color-brand-900);
 }
 
 .filter-numeric-form {
@@ -3263,44 +3219,25 @@ a.filter-pill .filter-pill-remove {
 }
 
 .filter-numeric-apply {
-    appearance: none;
-    border: 1px solid var(--tp-color-brand-600);
-    border-radius: 8px;
-    background: var(--tp-color-brand-700);
-    color: var(--tp-color-brand-050);
-    cursor: pointer;
-    font: inherit;
+    border-radius: 8px !important;
     font-size: 0.83rem;
-    font-weight: 600;
     padding: 7px 16px;
-    transition: background 120ms ease, border-color 120ms ease;
+    min-height: 0 !important;
     white-space: nowrap;
     align-self: end;
 }
 
-.filter-numeric-apply:hover,
-.filter-numeric-apply:focus-visible {
-    background: var(--tp-color-brand-800);
-    border-color: var(--tp-color-brand-800);
-    outline: none;
-}
-
-.filter-numeric-apply:active {
-    background: var(--tp-color-brand-900);
-}
-
 .filter-numeric-apply:disabled {
-    border-color: var(--tp-color-border);
-    background: var(--tp-color-surface-muted);
-    color: var(--tp-color-text-muted);
+    border-color: var(--tp-color-border) !important;
+    background: var(--tp-color-surface-muted) !important;
+    color: var(--tp-color-text-muted) !important;
     cursor: not-allowed;
-    transform: none;
 }
 
 .filter-numeric-apply:disabled:hover,
 .filter-numeric-apply:disabled:focus-visible {
-    border-color: var(--tp-color-border);
-    background: var(--tp-color-surface-muted);
+    border-color: var(--tp-color-border) !important;
+    background: var(--tp-color-surface-muted) !important;
 }
 
 .filter-numeric-message {

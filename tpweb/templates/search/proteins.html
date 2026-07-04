@@ -302,7 +302,7 @@
                 {% csrf_token %}
                 <input type="hidden" name="action" value="reset_filters">
                 <input type="hidden" name="return_query" value="{{ query_string }}">
-                <button type="submit" class="filter-tray-clear-btn">{% trans "Clear all" %}</button>
+                <button type="submit" class="btn tp-btn tp-btn--clear tp-btn--clear-caution filter-tray-clear-btn">{% trans "Clear all" %}</button>
             </form>
         </section>
         {% endif %}
@@ -617,7 +617,7 @@
                 <span class="drawer-catalogue-count">
                     {% blocktrans count total=filter_groups_total_options %}{{ total }} criterion across {{ filter_groups|length }} categories{% plural %}{{ total }} criteria across {{ filter_groups|length }} categories{% endblocktrans %}
                 </span>
-                <button type="button" class="drawer-catalogue-toggle" id="filter-expand-all" data-expand-all="false">{% trans "Expand all" %}</button>
+                <button type="button" class="btn tp-btn tp-btn--clear drawer-catalogue-toggle" id="filter-expand-all" data-expand-all="false">{% trans "Expand all" %}</button>
             </div>
 
             <div class="drawer-filter-catalogue" id="drawer-filter-catalogue">
@@ -683,7 +683,7 @@
                                                aria-label="{% trans 'EC code (e.g. 1.1.1.1)' %}"
                                                pattern="^[0-9]+(\.[0-9]+){0,3}$"
                                                autocomplete="off">
-                                        <button type="submit" class="filter-text-add">{% trans "Add" %}</button>
+                                        <button type="submit" class="btn tp-btn tp-btn--primary filter-text-add">{% trans "Add" %}</button>
                                     </form>
                                     {% if group.ec_specific_active %}
                                         <div class="filter-chip-group filter-chip-group--active">
@@ -718,7 +718,7 @@
                                                placeholder="GO:0008270"
                                                aria-label="{% trans 'GO term (e.g. GO:0008270)' %}"
                                                autocomplete="off">
-                                        <button type="submit" class="filter-text-add">{% trans "Add" %}</button>
+                                        <button type="submit" class="btn tp-btn tp-btn--primary filter-text-add">{% trans "Add" %}</button>
                                     </form>
                                     {% if group.go_active %}
                                         <div class="filter-chip-group filter-chip-group--active">
@@ -784,7 +784,7 @@
                                                         <span class="filter-numeric-field-label">{% trans "Upper bound" %}</span>
                                                         <input type="text" inputmode="decimal" name="value_max" class="filter-numeric-input" placeholder="{{ param.placeholder_max }}" aria-label="{% trans 'Upper bound' %}">
                                                     </label>
-                                                    <button type="submit" class="filter-numeric-apply">{% trans "Apply" %}</button>
+                                                    <button type="submit" class="btn tp-btn tp-btn--primary filter-numeric-apply">{% trans "Apply" %}</button>
                                                 </div>
                                                 <p class="filter-numeric-message" aria-live="polite"></p>
                                             </form>
@@ -1024,7 +1024,7 @@
                 {% csrf_token %}
                 <input type="hidden" name="action" value="reset_columns">
                 <input type="hidden" name="return_query" value="{{ query_string }}">
-                <button type="submit" class="columns-restore-link">{% trans "Restore defaults" %}</button>
+                <button type="submit" class="btn tp-btn tp-btn--clear columns-restore-link">{% trans "Restore defaults" %}</button>
             </form>
             <button class="btn tp-btn tp-btn--primary drawer-done-btn" type="submit" form="columns-form">{% trans "Apply" %}</button>
         </div>
@@ -1101,7 +1101,7 @@
                                           class="scoring-formula-delete-form"
                                           onsubmit="return confirm('{% trans "Delete this formula?" %}')">
                                         {% csrf_token %}
-                                        <button type="submit" class="scoring-formula-delete-btn" title="{% trans 'Delete formula' %}">
+                                        <button type="submit" class="btn tp-btn tp-btn--clear tp-btn--clear-caution scoring-formula-delete-btn" title="{% trans 'Delete formula' %}">
                                             {% include "components/icons/trash.html" %}
                                         </button>
                                     </form>
