@@ -173,7 +173,9 @@
                                     <button type="button" class="toolbar-filter-split__main" id="open-filters-btn">
                                         <span class="toolbar-action-btn__title">{% trans "Filters" %}</span>
                                         <span class="toolbar-action-btn__meta">
-                                            {% if selection_criteria_count %}
+                                            {% if active_preset_name %}
+                                                {{ active_preset_name }}
+                                            {% elif selection_criteria_count %}
                                                 {% blocktrans count total=selection_criteria_count %}{{ total }} active{% plural %}{{ total }} active{% endblocktrans %}
                                             {% else %}
                                                 {% trans "No filters" %}
