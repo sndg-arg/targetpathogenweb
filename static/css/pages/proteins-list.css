@@ -103,7 +103,6 @@
     border-top: 1px solid var(--tp-color-border-soft);
     display: grid;
     gap: 6px;
-    max-width: 760px;
 }
 
 .hero-analysis-line {
@@ -154,6 +153,7 @@
 
 .hero-analysis-criterion {
     white-space: nowrap;
+    overflow-wrap: normal;
 }
 
 /* Annotation filter chip uses the same .filter-pill styles as parameter criteria */
