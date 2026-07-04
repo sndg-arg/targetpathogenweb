@@ -1528,6 +1528,7 @@ a.filter-pill .filter-pill-remove {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    color: var(--tp-color-text-secondary) !important;
 }
 
 .tpd-delete-btn:hover,
@@ -1539,8 +1540,8 @@ a.filter-pill .filter-pill-remove {
 }
 
 .tpd-delete-btn svg {
-    width: 13px;
-    height: 13px;
+    width: 15px;
+    height: 15px;
     pointer-events: none;
 }
 
