@@ -903,7 +903,7 @@ class ProteinListView(View):
             target_annotation_value = (request.POST.get("pending_annotation_value") or "").strip()
             preset_name = (request.POST.get("preset_name") or "").strip()
             if preset_name:
-                FilterPreset.objects.update_or_create(
+                saved_preset, _ = FilterPreset.objects.update_or_create(
                     owner=workspace_user,
                     genome_name=assembly_name,
                     name=preset_name,
@@ -914,6 +914,7 @@ class ProteinListView(View):
                         "annotation_value": target_annotation_value,
                     },
                 )
+                applied_preset_id = saved_preset.pk
 
         elif action == "apply_filter_preset":
             preset_id = request.POST.get("preset_id")

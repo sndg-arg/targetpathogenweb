@@ -107,6 +107,18 @@
                     <input type="hidden" name="annotation_kind" value="{{ annotation_filter.kind }}">
                     <input type="hidden" name="annotation_value" value="{{ annotation_filter.value }}">
                 {% endif %}
+                {% if structure_source %}
+                    <input type="hidden" name="structure_source" value="{{ structure_source }}">
+                {% endif %}
+                {% if request.GET.sort_col %}
+                    <input type="hidden" name="sort_col" value="{{ request.GET.sort_col }}">
+                {% endif %}
+                {% if request.GET.sort_dir %}
+                    <input type="hidden" name="sort_dir" value="{{ request.GET.sort_dir }}">
+                {% endif %}
+                {% if request.GET.applied_preset %}
+                    <input type="hidden" name="applied_preset" value="{{ request.GET.applied_preset }}">
+                {% endif %}
 
                 <div class="toolbar-search-row tp-ui-search-row tp-ui-toolbar-row tp-ui-toolbar-row--stack-sm">
                     <div id="protein-search-autocomplete"
@@ -1744,7 +1756,7 @@
                 setColumnsState(target === "columns");
             }
 
-            if (openFiltersBtn) openFiltersBtn.addEventListener("click", function () { openOnly("filters"); });
+            if (openFiltersBtn) openFiltersBtn.addEventListener("click", function () { setPresetsDropdownOpen(false); openOnly("filters"); });
             if (closeFiltersBtn) closeFiltersBtn.addEventListener("click", function () { setDrawerState(false); });
             if (filtersOverlay) filtersOverlay.addEventListener("click", function () { setDrawerState(false); });
 
@@ -1766,6 +1778,18 @@
                     setPresetsDropdownOpen(presetsDropdown && presetsDropdown.hidden);
                 });
             }
+
+            document.querySelectorAll(".tpd-apply-form").forEach(function (form) {
+                form.addEventListener("submit", function (e) {
+                    var structureChanged = (pendingStructureSource || "") !== (CURRENT_FILTER_STATE.structureSource || "");
+                    var annotationChanged = (pendingAnnotationKind || "") !== (CURRENT_FILTER_STATE.annotationKind || "")
+                        || (pendingAnnotationValue || "") !== (CURRENT_FILTER_STATE.annotationValue || "");
+                    var hasPending = getAllPendingActions().length > 0 || structureChanged || annotationChanged;
+                    if (hasPending && !confirm("{% trans 'You have unsaved filter changes. Applying this preset will discard them.' %}")) {
+                        e.preventDefault();
+                    }
+                });
+            });
 
             if (tpdOpenDrawerBtn) {
                 tpdOpenDrawerBtn.addEventListener("click", function () {
