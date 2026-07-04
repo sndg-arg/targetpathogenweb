@@ -455,6 +455,47 @@ a.filter-pill .filter-pill-remove {
     margin: 0;
 }
 
+.protein-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 72px 32px;
+    text-align: center;
+    gap: 10px;
+}
+
+.protein-empty-state__icon {
+    color: var(--tp-color-text-soft);
+    opacity: 0.35;
+    margin-bottom: 6px;
+}
+
+.protein-empty-state__title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--tp-color-text-secondary);
+    margin: 0;
+}
+
+.protein-empty-state__hint {
+    font-size: 0.88rem;
+    color: var(--tp-color-text-muted);
+    margin: 0;
+}
+
+.protein-empty-state__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 6px;
+}
+
+.protein-empty-clear-form {
+    margin: 0;
+}
+
 .protein-table-scroll-note {
     display: flex;
     align-items: center;
