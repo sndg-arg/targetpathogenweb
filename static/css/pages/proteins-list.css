@@ -152,6 +152,10 @@
     vertical-align: baseline;
 }
 
+.hero-analysis-criterion {
+    white-space: nowrap;
+}
+
 /* Annotation filter chip uses the same .filter-pill styles as parameter criteria */
 a.filter-pill,
 a.filter-pill:hover,

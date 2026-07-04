@@ -61,17 +61,16 @@
                 <p class="hero-analysis-line">
                     <span class="hero-analysis-label">{% trans "Applied filters" %}</span>
                     <span class="hero-analysis-value">
-                        {% if active_preset_name %}
-                            <span class="hero-analysis-preset">{{ active_preset_name }}</span>
-                        {% elif grouped_parameters or structure_source or annotation_filter %}
+                        {% if active_preset_name %}<span class="hero-analysis-preset">{{ active_preset_name }}</span>{% if grouped_parameters or structure_source or annotation_filter %}<span class="hero-analysis-sep"> · </span>{% endif %}{% endif %}
+                        {% if grouped_parameters or structure_source or annotation_filter %}
                             {% for score_param, values in grouped_parameters.items %}
-                                <span><strong>{{ score_param|humanize_identifier }}:</strong> {{ values|humanize_identifier }}</span>{% if not forloop.last or structure_source or annotation_filter %}<span class="hero-analysis-sep"> · </span>{% endif %}
+                                <span class="hero-analysis-criterion"><strong>{{ score_param|humanize_identifier }}:</strong> {{ values|humanize_identifier }}</span>{% if not forloop.last or structure_source or annotation_filter %}<span class="hero-analysis-sep"> · </span>{% endif %}
                             {% endfor %}
                             {% if structure_source %}
-                                <span><strong>{% trans "Structure" %}:</strong> {{ structure_source|humanize_identifier }}</span>{% if annotation_filter %}<span class="hero-analysis-sep"> · </span>{% endif %}
+                                <span class="hero-analysis-criterion"><strong>{% trans "Structure" %}:</strong> {{ structure_source|humanize_identifier }}</span>{% if annotation_filter %}<span class="hero-analysis-sep"> · </span>{% endif %}
                             {% endif %}
                             {% if annotation_filter %}
-                                <span><strong>{{ annotation_filter.kind_label }}:</strong> {{ annotation_filter.value }}</span>
+                                <span class="hero-analysis-criterion"><strong>{{ annotation_filter.kind_label }}:</strong> {{ annotation_filter.value }}</span>
                             {% endif %}
                         {% else %}
                             {% trans "No active filters" %}
