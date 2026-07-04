@@ -141,6 +141,17 @@
     color: var(--tp-color-text-soft);
 }
 
+.hero-analysis-preset {
+    display: inline-block;
+    padding: 1px 7px;
+    border-radius: 5px;
+    font-size: var(--tp-font-label);
+    font-weight: 600;
+    background: var(--tp-color-brand-100);
+    color: var(--tp-color-brand-800);
+    vertical-align: baseline;
+}
+
 /* Annotation filter chip uses the same .filter-pill styles as parameter criteria */
 a.filter-pill,
 a.filter-pill:hover,
