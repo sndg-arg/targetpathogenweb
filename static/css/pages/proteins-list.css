@@ -1519,31 +1519,22 @@ a.filter-pill .filter-pill-remove {
 }
 
 .tpd-delete-btn {
-    width: 24px;
-    height: 24px;
+    width: 28px;
+    height: 28px;
+    min-height: 28px !important;
+    padding: 0 !important;
+    border-radius: 6px !important;
+    flex-shrink: 0;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border: 1px solid transparent;
-    border-radius: 6px;
-    background: transparent;
-    color: transparent;
-    cursor: pointer;
-    transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
-}
-
-.tpd-row:hover .tpd-delete-btn,
-.tpd-delete-btn:focus-visible {
-    border-color: var(--tp-color-border-soft);
-    background: var(--tp-color-surface-muted);
-    color: var(--tp-color-text-muted);
 }
 
 .tpd-delete-btn:hover,
 .tpd-delete-btn:focus-visible {
-    background: var(--tp-color-danger-bg);
-    border-color: var(--tp-color-danger-border);
-    color: var(--tp-color-danger-ink);
+    background: var(--tp-color-danger-bg) !important;
+    border-color: var(--tp-color-danger-border) !important;
+    color: var(--tp-color-danger-ink) !important;
     outline: none;
 }
 
@@ -1561,23 +1552,7 @@ a.filter-pill .filter-pill-remove {
 
 .tpd-open-drawer-btn {
     width: 100%;
-    padding: 7px 12px;
-    font-size: 0.8rem;
-    font-weight: 500;
-    color: var(--tp-color-brand-700);
-    background: transparent;
-    border: 1px dashed var(--tp-color-brand-200);
-    border-radius: 7px;
-    cursor: pointer;
     text-align: center;
-    transition: background 120ms ease, border-color 120ms ease;
-}
-
-.tpd-open-drawer-btn:hover,
-.tpd-open-drawer-btn:focus-visible {
-    background: var(--tp-color-brand-050);
-    border-color: var(--tp-color-brand-400);
-    outline: none;
 }
 
 /* Clear / Apply actions row */

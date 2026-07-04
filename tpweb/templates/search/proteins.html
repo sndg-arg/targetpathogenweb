@@ -219,7 +219,7 @@
                                                     <input type="hidden" name="action" value="delete_filter_preset">
                                                     <input type="hidden" name="preset_id" value="{{ preset.id }}">
                                                     <input type="hidden" name="return_query" value="{{ query_string }}">
-                                                    <button type="submit" class="tpd-delete-btn" title="{% trans 'Delete preset' %}" aria-label="{% trans 'Delete preset' %}">
+                                                    <button type="submit" class="btn tp-btn tp-btn--clear tpd-delete-btn" title="{% trans 'Delete preset' %}" aria-label="{% trans 'Delete preset' %}">
                                                         {% include "components/icons/trash.html" %}
                                                     </button>
                                                 </form>
@@ -227,7 +227,7 @@
                                             {% endfor %}
                                         </ul>
                                         <div class="tpd-foot">
-                                            <button type="button" class="tpd-open-drawer-btn" id="tpd-open-drawer-btn">{% trans "Save a new preset in Filters →" %}</button>
+                                            <button type="button" class="btn tp-btn tp-btn--neutral tp-btn--sm tpd-open-drawer-btn" id="tpd-open-drawer-btn">{% trans "Save a new preset in Filters →" %}</button>
                                         </div>
                                     </div>
                                 </div>
