@@ -2,14 +2,14 @@
     "use strict";
 
     var CHOKEPOINT_COLORS = {
-        none: "#9aa5ab",
-        producing: "#c9822a",
-        consuming: "#5a7fb0",
-        both: "#b0475a"
+        none: "#8ea0aa",
+        producing: "#f19a2a",
+        consuming: "#3f78c8",
+        both: "#c94b67"
     };
 
     function degreeToSize(degree) {
-        var size = 24 + Math.min(degree, 10) * 4;
+        var size = 28 + Math.min(degree || 0, 10) * 4.5;
         return size;
     }
 
@@ -62,6 +62,27 @@
         return parts.join(" - ");
     }
 
+    function formatRole(role) {
+        if (!role || role === "none") return "None";
+        return role.replace(/_/g, " ");
+    }
+
+    function updateInspector(nodeData) {
+        var inspector = document.getElementById("metabolic-network-inspector");
+        if (!inspector || !nodeData) return;
+        var genes = (nodeData.genes || []).map(function (g) { return g.locus_tag; }).filter(Boolean);
+        var fields = {
+            name: nodeData.label || nodeData.id || "-",
+            ec: nodeData.ecNumbers || "-",
+            genes: genes.length ? genes.join(", ") : "-",
+            role: formatRole(nodeData.chokepointRole)
+        };
+        Object.keys(fields).forEach(function (field) {
+            var el = inspector.querySelector('[data-field="' + field + '"]');
+            if (el) el.textContent = fields[field];
+        });
+    }
+
     function navigateToNeighborGene(nodeData) {
         var genes = nodeData.genes || [];
         var target = genes.find(function (g) { return !g.is_current_protein && g.url; });
@@ -98,6 +119,8 @@
         tooltip.className = "metabolic-network-tooltip";
         tooltip.style.display = "none";
         container.parentElement.appendChild(tooltip);
+        var lastTappedNodeId = null;
+        var lastTappedAt = 0;
 
         fetch(networkUrl, { credentials: "same-origin" })
             .then(function (response) {
@@ -123,12 +146,24 @@
                                 "label": "data(label)",
                                 "width": "data(size)",
                                 "height": "data(size)",
-                                "font-size": 9,
+                                "font-size": 10,
+                                "font-weight": 600,
                                 "text-valign": "bottom",
-                                "text-margin-y": 4,
-                                "color": "#4a5560",
+                                "text-margin-y": 7,
+                                "color": "#26343d",
                                 "text-wrap": "ellipsis",
-                                "text-max-width": "90px"
+                                "text-max-width": "108px",
+                                "text-background-color": "#ffffff",
+                                "text-background-opacity": 0.82,
+                                "text-background-padding": 2,
+                                "text-border-opacity": 0,
+                                "border-width": 2,
+                                "border-color": "#ffffff",
+                                "shadow-blur": 10,
+                                "shadow-color": "#9aa7b0",
+                                "shadow-opacity": 0.32,
+                                "shadow-offset-x": 0,
+                                "shadow-offset-y": 3
                             }
                         },
                         { selector: ".chokepoint-producing", style: { "background-color": CHOKEPOINT_COLORS.producing } },
@@ -137,23 +172,67 @@
                         {
                             selector: ".is-focal",
                             style: {
-                                "border-width": 3,
-                                "border-color": "#1f6f43",
-                                "font-weight": "bold"
+                                "background-color": "#9fb3bc",
+                                "border-width": 5,
+                                "border-color": "#17824f",
+                                "font-weight": "bold",
+                                "width": 58,
+                                "height": 58,
+                                "shadow-blur": 18,
+                                "shadow-color": "#1f7a4f",
+                                "shadow-opacity": 0.38
+                            }
+                        },
+                        {
+                            selector: "node:selected",
+                            style: {
+                                "border-width": 5,
+                                "border-color": "#0f5f92",
+                                "shadow-blur": 18,
+                                "shadow-color": "#0f5f92",
+                                "shadow-opacity": 0.36
                             }
                         },
                         {
                             selector: "edge",
                             style: {
-                                "width": 1.5,
-                                "line-color": "#c7ccd1",
-                                "curve-style": "bezier"
+                                "width": 2,
+                                "line-color": "#b9c4ca",
+                                "curve-style": "bezier",
+                                "opacity": 0.76
                             }
                         }
                     ],
-                    layout: { name: "fcose", animate: false, nodeRepulsion: 8000 },
-                    minZoom: 0.2,
-                    maxZoom: 3
+                    layout: {
+                        name: "fcose",
+                        animate: false,
+                        nodeRepulsion: 13000,
+                        idealEdgeLength: 96,
+                        nodeSeparation: 56,
+                        gravity: 0.22,
+                        padding: 46
+                    },
+                    minZoom: 0.18,
+                    maxZoom: 3.5,
+                    wheelSensitivity: 0.18
+                });
+
+                cy.ready(function () {
+                    var focal = cy.nodes(".is-focal").first();
+                    if (focal.length) {
+                        focal.select();
+                        updateInspector(focal.data());
+                    }
+                    cy.fit(cy.elements(), 46);
+                });
+
+                Array.prototype.forEach.call(document.querySelectorAll("[data-metabolic-action]"), function (button) {
+                    button.addEventListener("click", function () {
+                        var action = button.getAttribute("data-metabolic-action");
+                        if (action === "fit") cy.fit(cy.elements(), 46);
+                        if (action === "zoom-in") cy.zoom({ level: cy.zoom() * 1.18, renderedPosition: { x: container.clientWidth / 2, y: container.clientHeight / 2 } });
+                        if (action === "zoom-out") cy.zoom({ level: cy.zoom() / 1.18, renderedPosition: { x: container.clientWidth / 2, y: container.clientHeight / 2 } });
+                    });
                 });
 
                 cy.on("mouseover", "node", function (evt) {
@@ -170,7 +249,14 @@
                     tooltip.style.display = "none";
                 });
                 cy.on("tap", "node", function (evt) {
-                    navigateToNeighborGene(evt.target.data());
+                    var nodeData = evt.target.data();
+                    var now = Date.now();
+                    updateInspector(nodeData);
+                    if (lastTappedNodeId === nodeData.id && now - lastTappedAt < 900) {
+                        navigateToNeighborGene(nodeData);
+                    }
+                    lastTappedNodeId = nodeData.id;
+                    lastTappedAt = now;
                 });
             })
             .catch(function () {

@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260612-6">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260707-metabolism-map">
 {% endblock %}
 
 {% block body %}
@@ -291,69 +291,91 @@
                     </div>
                 </div>
 
-                <div class="target-evidence-grid target-evidence-grid--compact">
-                    {% if metabolic_context.centrality %}
-                    <div class="target-evidence-card" title="{% trans "Betweenness centrality of this gene's reaction(s) in the reaction-reaction network. Higher values mean more shortest paths pass through it - a proxy for how central/bottleneck-prone it is in the organism's metabolism." %}">
-                        <span class="target-evidence-label">{% trans "Network centrality" %}</span>
-                        <strong class="target-evidence-value">{{ metabolic_context.centrality }}</strong>
-                        {% if metabolic_context.centrality_percentile %}
-                        <span class="target-evidence-subtext">{% blocktrans with pct=metabolic_context.centrality_percentile %}more central than {{ pct }}% of genes in this genome{% endblocktrans %}</span>
+                <div class="metabolic-context-shell">
+                    <aside class="metabolic-context-sidebar" aria-label="{% trans "Metabolic target summary" %}">
+                        <div class="metabolic-score-stack">
+                            {% if metabolic_context.centrality %}
+                            <div class="metabolic-score-card" title="{% trans "Betweenness centrality of this gene's reaction(s) in the reaction-reaction network. Higher values mean more shortest paths pass through it - a proxy for how central/bottleneck-prone it is in the organism's metabolism." %}">
+                                <span class="target-evidence-label">{% trans "Network centrality" %}</span>
+                                <strong class="target-evidence-value">{{ metabolic_context.centrality }}</strong>
+                                {% if metabolic_context.centrality_percentile %}
+                                <span class="target-evidence-subtext">{% blocktrans with pct=metabolic_context.centrality_percentile %}more central than {{ pct }}% of genes in this genome{% endblocktrans %}</span>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                            <div class="metabolic-score-card" title="{% trans "A chokepoint reaction is the sole producer or consumer of a metabolite in the network - inhibiting it is harder for the pathogen to route around, making it an attractive drug target." %}">
+                                <span class="target-evidence-label">{% trans "Chokepoint" %}</span>
+                                {% if metabolic_context.is_chokepoint %}
+                                <span class="target-evidence-core-badge">
+                                    <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="2.5 8 6.5 12 13.5 4"/></svg>
+                                    {% trans "Chokepoint gene" %}
+                                </span>
+                                {% else %}
+                                <span class="target-evidence-accessory-badge">{% trans "Not a chokepoint" %}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        {% if metabolic_context.pathways %}
+                        <div class="metabolic-sidebar-block">
+                            <span class="metabolic-sidebar-title">{% trans "Pathways" %}</span>
+                            <div class="metabolic-pathway-chips">
+                                {% for pathway in metabolic_context.pathways %}
+                                <span class="tp-chip tp-chip--{{ pathway.source|lower }}" title="{{ pathway.source }}:{{ pathway.external_id }}">{{ pathway.name }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
                         {% endif %}
+
+                        <div class="metabolic-sidebar-block">
+                            <span class="metabolic-sidebar-title">{% trans "Catalyzed reactions" %}</span>
+                            <div class="metabolic-reaction-list">
+                                {% for reaction in metabolic_context.reactions %}
+                                <div class="metabolic-reaction-item">
+                                    <div>
+                                        {% if reaction.kegg_url %}
+                                        <a href="{{ reaction.kegg_url }}" target="_blank" rel="noopener noreferrer">{{ reaction.name }}</a>
+                                        {% else %}
+                                        <span>{{ reaction.name }}</span>
+                                        {% endif %}
+                                        <small>EC {{ reaction.ec_numbers|join:", "|default:"-" }} · {% if reaction.reversible %}{% trans "reversible" %}{% else %}{% trans "not reversible" %}{% endif %}</small>
+                                    </div>
+                                    {% if reaction.chokepoint_label %}<span class="target-evidence-accessory-badge">{{ reaction.chokepoint_label }}</span>{% endif %}
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div class="metabolic-inspector" id="metabolic-network-inspector">
+                            <span class="metabolic-sidebar-title">{% trans "Selected reaction" %}</span>
+                            <strong data-field="name">{% trans "Select a node" %}</strong>
+                            <dl>
+                                <dt>{% trans "EC" %}</dt>
+                                <dd data-field="ec">-</dd>
+                                <dt>{% trans "Genes" %}</dt>
+                                <dd data-field="genes">-</dd>
+                                <dt>{% trans "Role" %}</dt>
+                                <dd data-field="role">-</dd>
+                            </dl>
+                        </div>
+                    </aside>
+
+                    <div class="metabolic-network-shell">
+                        <div class="metabolic-map-toolbar">
+                            <div class="metabolic-map-legend" aria-label="{% trans "Network legend" %}">
+                                <span><i class="metabolic-legend-dot metabolic-legend-dot--focal"></i>{% trans "This protein" %}</span>
+                                <span><i class="metabolic-legend-dot metabolic-legend-dot--producing"></i>{% trans "Producing chokepoint" %}</span>
+                                <span><i class="metabolic-legend-dot metabolic-legend-dot--consuming"></i>{% trans "Consuming chokepoint" %}</span>
+                                <span><i class="metabolic-legend-dot metabolic-legend-dot--plain"></i>{% trans "Neighbor reaction" %}</span>
+                            </div>
+                            <div class="metabolic-map-actions" aria-label="{% trans "Network controls" %}">
+                                <button type="button" class="metabolic-map-btn" data-metabolic-action="fit">{% trans "Fit" %}</button>
+                                <button type="button" class="metabolic-map-btn" data-metabolic-action="zoom-in">+</button>
+                                <button type="button" class="metabolic-map-btn" data-metabolic-action="zoom-out">-</button>
+                            </div>
+                        </div>
+                        <div id="metabolic-network-cy" data-network-url="{% url 'tpwebapp:protein_metabolic_network' protein_id=protein.id %}"></div>
                     </div>
-                    {% endif %}
-                    <div class="target-evidence-card" title="{% trans "A chokepoint reaction is the sole producer or consumer of a metabolite in the network - inhibiting it is harder for the pathogen to route around, making it an attractive drug target." %}">
-                        <span class="target-evidence-label">{% trans "Chokepoint" %}</span>
-                        {% if metabolic_context.is_chokepoint %}
-                        <span class="target-evidence-core-badge">
-                            <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="2.5 8 6.5 12 13.5 4"/></svg>
-                            {% trans "Chokepoint gene" %}
-                        </span>
-                        {% else %}
-                        <span class="target-evidence-accessory-badge">{% trans "Not a chokepoint" %}</span>
-                        {% endif %}
-                    </div>
-                </div>
-
-                {% if metabolic_context.pathways %}
-                <div class="metabolic-pathway-chips">
-                    {% for pathway in metabolic_context.pathways %}
-                    <span class="tp-chip tp-chip--{{ pathway.source|lower }}" title="{{ pathway.source }}:{{ pathway.external_id }}">{{ pathway.name }}</span>
-                    {% endfor %}
-                </div>
-                {% endif %}
-
-                <div class="metabolic-reaction-table-shell">
-                    <table class="table table-striped table-hover tp-table metabolic-reaction-table">
-                        <thead>
-                            <tr>
-                                <th>{% trans "Reaction" %}</th>
-                                <th>{% trans "EC" %}</th>
-                                <th>{% trans "Reversible" %}</th>
-                                <th>{% trans "Chokepoint" %}</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for reaction in metabolic_context.reactions %}
-                            <tr>
-                                <td>
-                                    {% if reaction.kegg_url %}
-                                    <a href="{{ reaction.kegg_url }}" target="_blank" rel="noopener noreferrer">{{ reaction.name }}</a>
-                                    {% else %}
-                                    {{ reaction.name }}
-                                    {% endif %}
-                                </td>
-                                <td>{{ reaction.ec_numbers|join:", " }}</td>
-                                <td>{% if reaction.reversible %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}</td>
-                                <td>{% if reaction.chokepoint_label %}<span class="target-evidence-accessory-badge">{{ reaction.chokepoint_label }}</span>{% endif %}</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="metabolic-network-shell">
-                    <div id="metabolic-network-cy" data-network-url="{% url 'tpwebapp:protein_metabolic_network' protein_id=protein.id %}"></div>
-                    <p class="section-subtitle metabolic-network-hint">{% trans "Neighboring reactions in the metabolic network. Click a reaction linked to another protein to navigate there." %}</p>
                 </div>
             </section>
             {% endif %}
@@ -823,7 +845,7 @@
 
     <script src="https://3dmol.org/build/3Dmol-min.js"></script>
     <script src="{% static 'js/pages/protein-detail.js' %}?v=20260605-1"></script>
-    <script src="{% static 'js/pages/metabolic-network.js' %}?v=20260706-1"></script>
+    <script src="{% static 'js/pages/metabolic-network.js' %}?v=20260707-metabolism-map"></script>
     <script>
         function jsloaded() {
             const rawSequenceElement = document.getElementById("raw-protein-seq");
