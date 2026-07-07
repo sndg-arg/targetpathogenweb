@@ -13,7 +13,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='MetabolicPathway',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('source', models.CharField(choices=[('KEGG', 'KEGG'), ('BIOCYC', 'BioCyc')], max_length=16)),
                 ('external_id', models.CharField(max_length=64)),
                 ('name', models.CharField(max_length=255)),
@@ -25,7 +25,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='MetabolicReaction',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('genome_accession', models.CharField(db_index=True, max_length=128)),
                 ('reaction_id', models.CharField(max_length=128)),
                 ('name', models.CharField(blank=True, default='', max_length=255)),
@@ -42,7 +42,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='GeneReactionLink',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('chokepoint_role', models.CharField(
                     choices=[
                         ('none', 'Not a chokepoint'),
@@ -62,7 +62,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='MetabolicReactionEdge',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('genome_accession', models.CharField(db_index=True, max_length=128)),
                 ('reaction_a', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='edges_a', to='tpweb.metabolicreaction')),
                 ('reaction_b', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='edges_b', to='tpweb.metabolicreaction')),
