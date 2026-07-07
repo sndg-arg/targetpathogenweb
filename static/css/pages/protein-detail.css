@@ -593,6 +593,18 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     background: var(--tp-color-surface);
 }
 
+.protein-sequence-fallback {
+    margin: 0;
+    max-height: 320px;
+    overflow: auto;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    color: var(--tp-color-text-secondary);
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 0.82rem;
+    line-height: 1.55;
+}
+
 .feature-viewer-shell {
     padding: 12px;
     margin-bottom: 10px;
@@ -3171,6 +3183,7 @@ body.residue-modal-open {
     position: relative;
 }
 
+.metabolic-network-loading,
 .metabolic-network-empty,
 .metabolic-network-error {
     display: flex;

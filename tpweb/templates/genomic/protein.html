@@ -375,7 +375,9 @@
                 </div>
                 <textarea id="raw-protein-seq" class="d-none">{{ protein.seq }}</textarea>
                 <div class="sequence-shell">
-                    <div id="protein-sequence-viewer"></div>
+                    <div id="protein-sequence-viewer">
+                        <pre class="protein-sequence-fallback">{{ protein.seq }}</pre>
+                    </div>
                 </div>
             </section>
 
@@ -824,7 +826,8 @@
     <script src="{% static 'js/pages/metabolic-network.js' %}?v=20260706-1"></script>
     <script>
         function jsloaded() {
-            const proteinSequence = "{{ protein.seq }}";
+            const rawSequenceElement = document.getElementById("raw-protein-seq");
+            const proteinSequence = ((rawSequenceElement ? rawSequenceElement.value : "") || "{{ protein.seq|escapejs }}").trim();
             const proteinDetail = window.tpProteinDetail || {};
             const structureLoadErrorMessage = '{% trans "Unable to load 3D structure." %}';
             const rootStyle = getComputedStyle(document.documentElement);
@@ -858,23 +861,26 @@
                 densityCartoonOpacity: 0.3
             });
 
-            var seq1 = new SeqView(proteinSequence);
-            seq1.render('#protein-sequence-viewer', {
-                showLineNumbers: true,
-                wrapAminoAcids: true,
-                charsPerLine: FEATURE_VIEWER_CONFIG.charsPerLine,
-                toolbar: false,
-                search: false,
-                title: '{{ protein.accession }}',
-                sequenceMaxHeight: FEATURE_VIEWER_CONFIG.sequenceMaxHeightPx + "px",
-                badge: true
-            });
+            const sequenceViewer = document.getElementById("protein-sequence-viewer");
+            if (sequenceViewer && typeof SeqView === "function" && proteinSequence) {
+                sequenceViewer.innerHTML = "";
+                var seq1 = new SeqView(proteinSequence);
+                seq1.render('#protein-sequence-viewer', {
+                    showLineNumbers: true,
+                    wrapAminoAcids: true,
+                    charsPerLine: FEATURE_VIEWER_CONFIG.charsPerLine,
+                    toolbar: false,
+                    search: false,
+                    title: '{{ protein.accession }}',
+                    sequenceMaxHeight: FEATURE_VIEWER_CONFIG.sequenceMaxHeightPx + "px",
+                    badge: true
+                });
+            }
 
             const copySequenceBtn = document.getElementById("copy-sequence-btn");
             if (copySequenceBtn && typeof proteinDetail.initCopyButton === "function") {
                 proteinDetail.initCopyButton(copySequenceBtn, function () {
-                    const seqInput = document.getElementById("raw-protein-seq");
-                    return seqInput ? (seqInput.value || "") : "";
+                    return rawSequenceElement ? (rawSequenceElement.value || "") : proteinSequence;
                 });
             }
 

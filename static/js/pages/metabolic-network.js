@@ -77,10 +77,22 @@
         }
         container.__tpMetabolicNetworkInitialized = true;
 
+        function setState(className, message) {
+            container.classList.remove("metabolic-network-loading", "metabolic-network-empty", "metabolic-network-error");
+            container.classList.add(className);
+            container.textContent = message || "";
+        }
+
         var networkUrl = container.getAttribute("data-network-url");
-        if (!networkUrl || typeof window.cytoscape !== "function") {
+        if (!networkUrl) {
+            setState("metabolic-network-error", "Metabolic network URL is not available.");
             return;
         }
+        if (typeof window.cytoscape !== "function") {
+            setState("metabolic-network-error", "Metabolic network viewer is not available. Rebuild the static bundle.");
+            return;
+        }
+        setState("metabolic-network-loading", "Loading metabolic network...");
 
         var tooltip = document.createElement("div");
         tooltip.className = "metabolic-network-tooltip";
@@ -94,10 +106,11 @@
             })
             .then(function (payload) {
                 if (!payload.nodes || !payload.nodes.length) {
-                    container.textContent = "";
-                    container.classList.add("metabolic-network-empty");
+                    setState("metabolic-network-empty", "No neighboring metabolic reactions were found.");
                     return;
                 }
+                container.classList.remove("metabolic-network-loading", "metabolic-network-empty", "metabolic-network-error");
+                container.textContent = "";
 
                 var cy = window.cytoscape({
                     container: container,
@@ -161,8 +174,7 @@
                 });
             })
             .catch(function () {
-                container.textContent = "";
-                container.classList.add("metabolic-network-error");
+                setState("metabolic-network-error", "Unable to load the metabolic network.");
             });
     }
 
