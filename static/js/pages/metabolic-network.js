@@ -158,12 +158,7 @@
                                 "text-background-padding": 2,
                                 "text-border-opacity": 0,
                                 "border-width": 2,
-                                "border-color": "#ffffff",
-                                "shadow-blur": 10,
-                                "shadow-color": "#9aa7b0",
-                                "shadow-opacity": 0.32,
-                                "shadow-offset-x": 0,
-                                "shadow-offset-y": 3
+                                "border-color": "#ffffff"
                             }
                         },
                         { selector: ".chokepoint-producing", style: { "background-color": CHOKEPOINT_COLORS.producing } },
@@ -177,20 +172,14 @@
                                 "border-color": "#17824f",
                                 "font-weight": "bold",
                                 "width": 58,
-                                "height": 58,
-                                "shadow-blur": 18,
-                                "shadow-color": "#1f7a4f",
-                                "shadow-opacity": 0.38
+                                "height": 58
                             }
                         },
                         {
                             selector: "node:selected",
                             style: {
                                 "border-width": 5,
-                                "border-color": "#0f5f92",
-                                "shadow-blur": 18,
-                                "shadow-color": "#0f5f92",
-                                "shadow-opacity": 0.36
+                                "border-color": "#0f5f92"
                             }
                         },
                         {
@@ -214,7 +203,8 @@
                     },
                     minZoom: 0.18,
                     maxZoom: 3.5,
-                    wheelSensitivity: 0.18
+                    userZoomingEnabled: false,
+                    boxSelectionEnabled: false
                 });
 
                 cy.ready(function () {
