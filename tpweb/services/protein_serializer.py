@@ -94,6 +94,15 @@ def build_protein_table_row(protein, visible_columns, coefficient_by_param,
     go_summary = protein_annotation_summary(protein, "go", limit=3)
     ec_badges = ec_summary["badges"]
     go_badges = go_summary["badges"]
+    metabolic_reaction_count = int(getattr(protein, "metabolic_reaction_count", 0) or 0)
+    metabolic_chokepoint_count = int(getattr(protein, "metabolic_chokepoint_count", 0) or 0)
+    if metabolic_reaction_count:
+        metabolism_text = (
+            f"{metabolic_reaction_count} reactions"
+            + (f", {metabolic_chokepoint_count} chokepoints" if metabolic_chokepoint_count else "")
+        )
+    else:
+        metabolism_text = "No metabolic model"
 
     row = {
         "id": protein.bioentry_id,
@@ -115,6 +124,11 @@ def build_protein_table_row(protein, visible_columns, coefficient_by_param,
         "go_text": ", ".join(b["accession"] for b in go_badges) or "-",
         "go_total": go_summary["total"],
         "go_remaining": go_summary["remaining"],
+        "metabolic_reaction_count": metabolic_reaction_count,
+        "metabolic_chokepoint_count": metabolic_chokepoint_count,
+        "has_metabolic_context": metabolic_reaction_count > 0,
+        "has_metabolic_chokepoint": metabolic_chokepoint_count > 0,
+        "metabolism_text": metabolism_text,
         "has_structure": structure_summary["has_structure"],
     }
     return row, table_data, weights

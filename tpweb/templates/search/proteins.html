@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20260510-4">
+    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20260707-metabolism-flags">
 {% endblock %}
 
 {% block body %}
@@ -360,6 +360,7 @@
                         <th>{% trans "Structure" %}</th>
                         <th>{% trans "EC" %}</th>
                         <th>{% trans "GO" %}</th>
+                        <th>{% trans "Metabolism" %}</th>
                         {% for col in tcolumns %}
                             {% with col_desc=col_descriptions|dictkey:col %}
                             <th data-col="{{ col|slugify }}"
@@ -413,6 +414,22 @@
                                         </div>
                                     {% else %}
                                         <span class="annotation-empty">–</span>
+                                    {% endif %}
+                                </td>
+                                <td data-col="metabolism">
+                                    {% if protein.has_metabolic_context %}
+                                        <a href="{% url 'tpwebapp:protein' protein.id %}#section-metabolic-context"
+                                           class="tp-chip tp-chip--sm protein-metabolism-chip{% if protein.has_metabolic_chokepoint %} protein-metabolism-chip--chokepoint{% else %} protein-metabolism-chip--mapped{% endif %}"
+                                           title="{{ protein.metabolism_text }}">
+                                            {% if protein.has_metabolic_chokepoint %}
+                                                {% trans "Chokepoint" %}
+                                            {% else %}
+                                                {% trans "Mapped" %}
+                                            {% endif %}
+                                            <span class="protein-metabolism-chip__count">{{ protein.metabolic_reaction_count }}</span>
+                                        </a>
+                                    {% else %}
+                                        <span class="protein-metabolism-empty" title="{% trans "No metabolic reaction was mapped to this protein." %}">{% trans "No map" %}</span>
                                     {% endif %}
                                 </td>
                                 {% for col in tcolumns %}

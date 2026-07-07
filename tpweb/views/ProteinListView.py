@@ -1,6 +1,6 @@
 from django.views import View
 from django.shortcuts import render
-from django.db.models import Exists, OuterRef, Prefetch
+from django.db.models import Count, Exists, OuterRef, Prefetch, Q
 from bioseq.models.BioentryQualifierValue import BioentryQualifierValue
 from django.http import JsonResponse
 from django.http import Http404
@@ -8,7 +8,6 @@ from django.urls import reverse
 from bioseq.models.Biodatabase import Biodatabase
 from bioseq.models.Bioentry import Bioentry
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.db.models import Q
 
 from tpweb.models.ScoreParamValue import ScoreParamValue
 from tpweb.models.ScoreParam import ScoreParamOptions
@@ -151,6 +150,7 @@ class ProteinListView(View):
         "Structure",
         "EC",
         "GO",
+        "Metabolism",
         "Score",
     )
 
@@ -745,6 +745,13 @@ class ProteinListView(View):
         proteins_queryset = Bioentry.objects.filter(
             biodatabase__name=assembly_name + Biodatabase.PROT_POSTFIX,
             bioentry_id__in=protein_ids,
+        ).annotate(
+            metabolic_reaction_count=Count("metabolic_reactions", distinct=True),
+            metabolic_chokepoint_count=Count(
+                "metabolic_reactions",
+                filter=~Q(metabolic_reactions__chokepoint_role="none"),
+                distinct=True,
+            ),
         ).prefetch_related(
             "qualifiers__term",
             "structures__pdb",
@@ -811,7 +818,7 @@ class ProteinListView(View):
             ["Exported proteins", total_count],
         ]
 
-        data_headers = ["Rank", "Protein", "Description", "Gene", "Structure", "EC", "GO"] + list(tcolumns)
+        data_headers = ["Rank", "Protein", "Description", "Gene", "Structure", "EC", "GO", "Metabolism"] + list(tcolumns)
 
         return [
             {
@@ -1356,7 +1363,7 @@ class ProteinListView(View):
                 expression=formula_expression or None,
                 zero_cache=zero_cache,
             )
-            headers = ["Rank", "Protein", "Description", "Gene", "Structure", "EC", "GO"] + tcolumns
+            headers = ["Rank", "Protein", "Description", "Gene", "Structure", "EC", "GO", "Metabolism"] + tcolumns
             rows = []
             for index, protein in enumerate(export_proteins, start=1):
                 metric_values = export_tdatas.get(protein["id"], {})
@@ -1369,6 +1376,7 @@ class ProteinListView(View):
                         protein["structure_source_label"],
                         protein.get("ec_text") or "-",
                         protein.get("go_text") or "-",
+                        protein.get("metabolism_text") or "-",
                         *[metric_values.get(column, "-") for column in tcolumns],
                     ]
                 )

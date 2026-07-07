@@ -196,6 +196,57 @@ a.filter-pill .filter-pill-remove {
     margin-inline: auto;
 }
 
+.protein-table td[data-col="metabolism"] {
+    min-width: 128px;
+    text-align: center;
+}
+
+.protein-metabolism-chip {
+    gap: 6px;
+    white-space: nowrap;
+    border-width: 1px;
+}
+
+.protein-metabolism-chip--mapped {
+    color: #165c48;
+    background: #e7f5ee;
+    border-color: #a9d9c5;
+}
+
+.protein-metabolism-chip--chokepoint {
+    color: #69400b;
+    background: #fff0d8;
+    border-color: #efc073;
+}
+
+.protein-metabolism-chip__count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.72);
+    font-size: 0.68rem;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.protein-metabolism-empty {
+    display: inline-flex;
+    align-items: center;
+    min-height: 22px;
+    padding: 2px 8px;
+    border: 1px dashed var(--tp-color-border);
+    border-radius: 999px;
+    color: var(--tp-color-text-muted);
+    background: var(--tp-color-surface-soft);
+    font-size: 0.72rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
 .toolbar-card {
     border: 1px solid var(--tp-color-border);
     border-radius: var(--tp-ui-radius-panel);
@@ -3673,4 +3724,3 @@ a.filter-pill .filter-pill-remove {
     width: 16px;
     height: 16px;
 }
-
