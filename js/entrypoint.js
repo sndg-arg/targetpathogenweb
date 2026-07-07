@@ -4,7 +4,6 @@ import Popper from "popper.js";
 window.Popper = Popper;
 
 import 'bootstrap/dist/css/bootstrap.css';
-import "msa/css/msa.css";
 
 
 
@@ -86,7 +85,6 @@ export default (name, constructor) => {
 };
 
 * */
-
 
 
 
