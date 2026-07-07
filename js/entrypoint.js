@@ -42,6 +42,11 @@ window.FeatureViewer = FeatureViewer;
 import {Stage as NGL} from 'ngl'
 window.NGL = NGL;
 
+import cytoscape from 'cytoscape';
+import fcose from 'cytoscape-fcose';
+cytoscape.use(fcose);
+window.cytoscape = cytoscape;
+
 import initRDKitModule from "@rdkit/rdkit";
 
 window.initRDKit = (() => {

@@ -657,6 +657,18 @@ a.tp-chip--go:hover {
     filter: brightness(0.97);
 }
 
+.tp-chip--kegg {
+    border-color: var(--tp-color-brand-200);
+    background: var(--tp-color-brand-050);
+    color: var(--tp-color-brand-800, #2d5a3a);
+}
+
+.tp-chip--biocyc {
+    border-color: var(--tp-color-amber-200, #f0dca0);
+    background: var(--tp-color-amber-050);
+    color: var(--tp-color-amber-800, #8a6914);
+}
+
 .tp-chip--count {
     border-color: var(--tp-color-border);
     background: var(--tp-color-surface-muted);

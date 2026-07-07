@@ -143,6 +143,21 @@ class Command(BaseCommand):
             "--dry-run", action="store_true",
             help="Show what would happen without writing anything.",
         )
+        parser.add_argument(
+            "--sbml", default=None, metavar="PATH",
+            help="Path to a MetaFlux SBML metabolic model. Requires --network-sif and "
+                 "--metabolic-results-tsv; loads the metabolic pathway/network data via "
+                 "'load_metabolism'.",
+        )
+        parser.add_argument(
+            "--network-sif", default=None, metavar="PATH",
+            help="Path to the reaction-reaction network.sif for the metabolic model.",
+        )
+        parser.add_argument(
+            "--metabolic-results-tsv", default=None, metavar="PATH",
+            help="Path to the per-gene centrality/chokepoint results TSV "
+                 "(PTOOLS_betweenness_centrality, PTOOLS_*_chokepoints columns).",
+        )
 
     # ------------------------------------------------------------------
 
@@ -164,12 +179,12 @@ class Command(BaseCommand):
             raise CommandError(f"Results TSV not found: {results_tsv}")
 
         # --- Load scores ---
-        self.stdout.write(self.style.HTTP_INFO("Step 1/3 — Loading scores from TSV …"))
+        self.stdout.write(self.style.HTTP_INFO("Step 1/4 — Loading scores from TSV …"))
         self._load_scores(genome_name, results_tsv, datadir, overwrite, dry_run,
                           fmt=options["format"])
 
         # --- Load curated UniProt mapping ---
-        self.stdout.write(self.style.HTTP_INFO("Step 2/3 — Loading curated UniProt mapping …"))
+        self.stdout.write(self.style.HTTP_INFO("Step 2/4 — Loading curated UniProt mapping …"))
         call_command(
             "import_curated_uniprot",
             genome_name,
@@ -181,7 +196,7 @@ class Command(BaseCommand):
 
         # --- Load structures ---
         if structures_dir:
-            self.stdout.write(self.style.HTTP_INFO("Step 3/3 — Loading structures …"))
+            self.stdout.write(self.style.HTTP_INFO("Step 3/4 — Loading structures …"))
             self._load_structures(
                 genome_name,
                 structures_dir,
@@ -191,6 +206,28 @@ class Command(BaseCommand):
             )
         else:
             self.stdout.write("No --structures-dir given, skipping structure loading.")
+
+        # --- Load metabolic network ---
+        sbml = options["sbml"]
+        network_sif = options["network_sif"]
+        metabolic_results_tsv = options["metabolic_results_tsv"]
+        if sbml or network_sif or metabolic_results_tsv:
+            if not (sbml and network_sif and metabolic_results_tsv):
+                raise CommandError(
+                    "--sbml, --network-sif and --metabolic-results-tsv must be given together."
+                )
+            self.stdout.write(self.style.HTTP_INFO("Step 4/4 — Loading metabolic network …"))
+            call_command(
+                "load_metabolism",
+                genome_name,
+                sbml=sbml,
+                network_sif=network_sif,
+                metabolic_results_tsv=metabolic_results_tsv,
+                overwrite=overwrite,
+                dry_run=dry_run,
+            )
+        else:
+            self.stdout.write("No --sbml/--network-sif/--metabolic-results-tsv given, skipping metabolic network.")
 
         self.stdout.write(self.style.SUCCESS("Done."))
 

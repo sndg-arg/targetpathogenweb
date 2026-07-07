@@ -11,6 +11,7 @@ from django.utils import timezone
 
 from bioseq.models.Biodatabase import Biodatabase
 from tpweb.models import GenomeUpload
+from tpweb.models.Metabolism import MetabolicReaction
 from tpweb.services.pipeline_status import clear_pipeline_activity_state
 from tpweb.services.pipeline_runs import cancel_pipeline_run, latest_pipeline_run_for_accession, latest_pipeline_run_for_upload
 
@@ -95,6 +96,9 @@ def _delete_workspace_biodatabases(internal_accession):
     if not biodatabase_names:
         return
     Biodatabase.objects.filter(name__in=biodatabase_names).delete()
+    # MetabolicReaction/MetabolicReactionEdge are scoped by genome_accession (a string, not a
+    # FK to Biodatabase), so they don't cascade-delete with the Biodatabase rows above.
+    MetabolicReaction.objects.filter(genome_accession=internal_accession).delete()
 
 
 def _delete_upload_artifacts(upload):

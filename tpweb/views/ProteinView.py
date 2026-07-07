@@ -16,6 +16,7 @@ from tpweb.models.Binders import Binders
 from tpweb.models.pdb import PDBResidueSet
 from tpweb.models.BioentryStructure import ExperimentalStructureXref
 from tpweb.models.ScoreParamValue import ScoreParamValue
+from tpweb.models.Metabolism import GeneReactionLink
 from .StructureView import pdb_structure
 from tpweb.services.protein_annotations import annotation_dbnames, protein_annotation_badges, iter_protein_annotations
 from tpweb.services.csv_exports import xlsx_sections_response
@@ -343,6 +344,77 @@ def _build_microbiome_context(raw_scores):
     if not count and not total and not norm:
         return None
     return {"count": count, "total": total, "norm": norm}
+
+
+_CHOKEPOINT_LABELS = {
+    GeneReactionLink.CHOKEPOINT_PRODUCING: "Producing chokepoint",
+    GeneReactionLink.CHOKEPOINT_CONSUMING: "Consuming chokepoint",
+    GeneReactionLink.CHOKEPOINT_BOTH: "Producing & consuming chokepoint",
+}
+
+
+def _build_metabolic_context(protein, raw_scores):
+    links = list(
+        GeneReactionLink.objects.filter(bioentry=protein)
+        .select_related("reaction")
+        .prefetch_related("reaction__pathways")
+    )
+    if not links:
+        return None
+
+    reactions = []
+    pathway_chips = {}
+    for link in links:
+        reaction = link.reaction
+        kegg_url = (
+            f"https://www.kegg.jp/entry/{reaction.kegg_reaction_id}"
+            if reaction.kegg_reaction_id else ""
+        )
+        reactions.append({
+            "reaction_id": reaction.reaction_id,
+            "name": reaction.name or reaction.reaction_id,
+            "ec_numbers": [ec for ec in (reaction.ec_numbers or "").split(",") if ec],
+            "kegg_reaction_id": reaction.kegg_reaction_id,
+            "kegg_url": kegg_url,
+            "reversible": reaction.reversible,
+            "chokepoint_role": link.chokepoint_role,
+            "chokepoint_label": _CHOKEPOINT_LABELS.get(link.chokepoint_role),
+        })
+        for pathway in reaction.pathways.all():
+            pathway_chips[(pathway.source, pathway.external_id)] = {
+                "source": pathway.source,
+                "external_id": pathway.external_id,
+                "name": pathway.name,
+            }
+
+    centrality_raw = _raw_score(raw_scores, "PTOOLS_betweenness_centrality")
+    centrality = _format_score_value(centrality_raw)
+    percentile = None
+    if centrality_raw:
+        try:
+            value = float(centrality_raw)
+            genome_values = list(
+                ScoreParamValue.objects
+                .filter(score_param__name="PTOOLS_betweenness_centrality",
+                        bioentry__biodatabase=protein.biodatabase)
+                .values_list("numeric_value", flat=True)
+            )
+            genome_values = [v for v in genome_values if v is not None]
+            if genome_values:
+                below_or_equal = sum(1 for v in genome_values if v <= value)
+                percentile = round(100 * below_or_equal / len(genome_values), 1)
+        except (TypeError, ValueError):
+            percentile = None
+
+    is_chokepoint = any(l.chokepoint_role != GeneReactionLink.CHOKEPOINT_NONE for l in links)
+
+    return {
+        "reactions": reactions,
+        "pathways": sorted(pathway_chips.values(), key=lambda p: (p["source"], p["name"])),
+        "centrality": centrality,
+        "centrality_percentile": percentile,
+        "is_chokepoint": is_chokepoint,
+    }
 
 
 def _has_pocket_data(pdb_obj):
@@ -1038,6 +1110,7 @@ class ProteinView(View):
         _annotate_selected_source_status(selected_pocket_evidence, structures)
         conservation_profile = _build_conservation_profile(raw_scores)
         microbiome_context = _build_microbiome_context(raw_scores)
+        metabolic_context = _build_metabolic_context(protein, raw_scores)
 
         if request.GET.get("export") == "view_csv":
             sections = [
@@ -1166,6 +1239,7 @@ class ProteinView(View):
                "selected_pocket_evidence": selected_pocket_evidence,
                "conservation_profile": conservation_profile,
                "microbiome_context": microbiome_context,
+               "metabolic_context": metabolic_context,
                "experimental_xrefs": experimental_xrefs,
                "ec_badges": ec_badges,
                "go_badges": go_badges,

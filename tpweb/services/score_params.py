@@ -183,6 +183,36 @@ SYSTEM_SCORE_PARAM_DEFINITIONS = {
             "Accessory": "Gene present only in a subset of strains (value < 0.5).",
         },
     },
+    "PTOOLS_betweenness_centrality": {
+        "category": "Metabolism",
+        "description": (
+            "Betweenness centrality of the metabolic reaction(s) this gene catalyzes, within the "
+            "genome-scale metabolic reaction network (BioCyc/Pathway Tools MetaFlux). Higher values "
+            "mean the reaction sits on more shortest paths between other reactions — a proxy for how "
+            "central/bottleneck-prone it is in the organism's metabolism. "
+            "Available only for genomes analyzed with the metabolic network pipeline."
+        ),
+        "type": "N",
+        "default_operation": ">=",
+        "default_value": "0",
+    },
+    "metabolic_chokepoint": {
+        "category": "Metabolism",
+        "description": (
+            "Whether this gene catalyzes a metabolic chokepoint reaction — the sole reaction "
+            "producing or consuming a given metabolite in the network. Chokepoint reactions are "
+            "attractive drug targets because inhibiting them can't easily be bypassed. "
+            "Available only for genomes analyzed with the metabolic network pipeline."
+        ),
+        "type": "C",
+        "default_operation": "=",
+        "default_value": "N",
+        "options": ("Y", "N"),
+        "option_descriptions": {
+            "Y": "Gene catalyzes at least one producing, consuming, or both-sided chokepoint reaction.",
+            "N": "Gene does not catalyze any chokepoint reaction.",
+        },
+    },
 }
 
 

@@ -94,6 +94,48 @@ conda env: `interproscan`. Key fix: `set -u` must come AFTER `conda activate`.
 - **Per-genome workspace**: `<folder_path>/ligq2/proteins.fasta`, `<folder_path>/ligq2/output/` (search_results subtree).
 - **Remote workdir**: `${SSH_WORKDIR}/tpw_ligq/<safe_genome>_<timestamp>/`. Cleaning up after success is optional.
 
+## Metabolic pathway integration
+Incorporates genome-scale metabolic network topology (BioCyc/Pathway Tools MetaFlux) into
+target analysis: which reactions/pathways a protein participates in, how central/bottleneck it
+is (betweenness centrality, chokepoints), and a Reactome-style network diagram on the protein
+detail page.
+- **Not an in-app pipeline stage.** Like the Gates-Targets import, this is a manual/external
+  step today — run `load_metabolism` (or `import_external_results` with the extra flags below)
+  after the genome's GBK is loaded. Wiring it into `run_pipeline_direct.py` as a numbered stage
+  is future work, once this becomes routine per-genome output.
+- **Inputs** (produced by the vendored `fasttarget/ftscripts/pathways.py:run_metabolism_ptools`,
+  outside the Django app, typically on a machine running Pathway Tools):
+  - A MetaFlux SBML export (reactions, EC numbers, KEGG reaction IDs where available,
+    gene-reaction associations).
+  - A per-gene results TSV with `gene`, `PTOOLS_betweenness_centrality`, `PTOOLS_edges`,
+    `PTOOLS_producing_chokepoints`, `PTOOLS_consuming_chokepoints`, `PTOOLS_both_chokepoints`.
+  - `network.sif` — the reaction-reaction adjacency graph used to compute those metrics.
+- **Models**: `tpweb/models/Metabolism.py` — `MetabolicPathway` (KEGG or BioCyc, global
+  reference), `MetabolicReaction` (per-genome, keyed by BioCyc frame id), `GeneReactionLink`
+  (`Bioentry` ↔ `MetabolicReaction`, carries `chokepoint_role`), `MetabolicReactionEdge`
+  (per-genome reaction-reaction adjacency, powers the diagram).
+- **Ingestion**: `python manage.py load_metabolism <genome_name> --sbml PATH
+  --metabolic-results-tsv PATH --network-sif PATH [--overwrite] [--dry-run]`. Also reachable via
+  `import_external_results` with the same three flags as an additional step. Centrality/chokepoint
+  scalars feed the existing `ScoreParam`/`ScoreParamValue` system (`PTOOLS_betweenness_centrality`,
+  `metabolic_chokepoint`) — no separate UI plumbing needed for filtering/CSV export/`ScoreFormula`
+  prioritization weights.
+- **Pathway naming**: KEGG pathway membership is derived from the KEGG reaction IDs already
+  embedded in the SBML annotations, via a bundled static reference file
+  `tpweb/data/kegg_reaction_pathways.json` (fetch/refresh with `python manage.py
+  fetch_kegg_pathway_map`, which needs internet access to `rest.kegg.org` — this is global
+  reference chemistry, not organism-specific, so it's fetched once and committed, not per genome).
+  If that file is missing, reactions still import fine, just without pathway chips. A BioCyc
+  SmartTable source (`MetabolicPathway.source = "BIOCYC"`) is modeled but not yet implemented —
+  needs a real sample export to validate the parser against.
+- **Visualization**: protein detail page, "Metabolic context" section — reaction list, pathway
+  chips, centrality percentile, chokepoint badge, and a Cytoscape.js ego-network diagram (`static/js/pages/metabolic-network.js`,
+  data from `MetabolismNetworkView` at `/protein/<id>/metabolic-network`) colored by chokepoint
+  role, clickable to jump to neighboring targets that share a reaction.
+- **Cleanup**: `genome_uploads._delete_workspace_biodatabases` deletes `MetabolicReaction` rows
+  scoped by `genome_accession` (a string, not a FK to `Biodatabase`) alongside the genome's
+  `Biodatabase` rows.
+
 ## PSORTb
 Runs via Docker-in-Docker (`/var/run/docker.sock` mounted). Has fallback to `tpweb_psort_fallback` management command when Docker is unavailable.
 
