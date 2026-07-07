@@ -2,14 +2,14 @@
     "use strict";
 
     var CHOKEPOINT_COLORS = {
-        none: "#8ea0aa",
-        producing: "#f19a2a",
-        consuming: "#3f78c8",
-        both: "#c94b67"
+        none: "#b8c4ca",
+        producing: "#f3b43f",
+        consuming: "#5f7fd5",
+        both: "#c84d7d"
     };
 
     function degreeToSize(degree) {
-        var size = 28 + Math.min(degree || 0, 10) * 4.5;
+        var size = 18 + Math.min(degree || 0, 10) * 3.2;
         return size;
     }
 
@@ -148,52 +148,75 @@
                                 "label": "data(displayLabel)",
                                 "width": "data(size)",
                                 "height": "data(size)",
-                                "font-size": 9,
+                                "shape": "ellipse",
+                                "font-size": 8,
                                 "font-weight": 700,
                                 "text-valign": "bottom",
-                                "text-margin-y": 8,
-                                "color": "#26343d",
+                                "text-margin-y": 6,
+                                "color": "#1f3550",
                                 "text-wrap": "ellipsis",
-                                "text-max-width": "118px",
-                                "text-background-color": "#ffffff",
-                                "text-background-opacity": 0.9,
-                                "text-background-padding": 3,
+                                "text-max-width": "102px",
+                                "text-background-color": "#fbfaf5",
+                                "text-background-opacity": 0.96,
+                                "text-background-padding": 2,
                                 "text-border-opacity": 0,
                                 "border-width": 2,
                                 "border-color": "#ffffff",
-                                "opacity": 0.92
+                                "opacity": 0.82
                             }
                         },
-                        { selector: ".chokepoint-producing", style: { "background-color": CHOKEPOINT_COLORS.producing } },
-                        { selector: ".chokepoint-consuming", style: { "background-color": CHOKEPOINT_COLORS.consuming } },
-                        { selector: ".chokepoint-both", style: { "background-color": CHOKEPOINT_COLORS.both } },
+                        {
+                            selector: ".chokepoint-producing, .chokepoint-consuming, .chokepoint-both",
+                            style: {
+                                "shape": "round-rectangle",
+                                "width": 84,
+                                "height": 30,
+                                "text-valign": "center",
+                                "text-halign": "center",
+                                "text-margin-y": 0,
+                                "font-size": 7.5,
+                                "text-background-opacity": 0,
+                                "border-width": 2.5,
+                                "border-color": "#ffffff",
+                                "opacity": 1
+                            }
+                        },
+                        { selector: ".chokepoint-producing", style: { "background-color": CHOKEPOINT_COLORS.producing, "color": "#3b2a05" } },
+                        { selector: ".chokepoint-consuming", style: { "background-color": CHOKEPOINT_COLORS.consuming, "color": "#ffffff" } },
+                        { selector: ".chokepoint-both", style: { "background-color": CHOKEPOINT_COLORS.both, "color": "#ffffff" } },
                         {
                             selector: ".is-focal",
                             style: {
-                                "background-color": "#9fb3bc",
-                                "border-width": 5,
-                                "border-color": "#17824f",
+                                "shape": "round-rectangle",
+                                "background-color": "#00a6a6",
+                                "color": "#ffffff",
+                                "border-width": 3.5,
+                                "border-color": "#143b5c",
                                 "font-weight": "bold",
-                                "width": 58,
-                                "height": 58
+                                "width": 96,
+                                "height": 34,
+                                "text-valign": "center",
+                                "text-halign": "center",
+                                "text-background-opacity": 0,
+                                "opacity": 1
                             }
                         },
                         {
                             selector: "node:selected",
                             style: {
                                 "label": "data(label)",
-                                "border-width": 5,
-                                "border-color": "#0f5f92",
+                                "border-width": 4,
+                                "border-color": "#143b5c",
                                 "z-index": 20
                             }
                         },
                         {
                             selector: "edge",
                             style: {
-                                "width": 2,
-                                "line-color": "#b9c4ca",
+                                "width": 1.6,
+                                "line-color": "#9fb2be",
                                 "curve-style": "bezier",
-                                "opacity": 0.76
+                                "opacity": 0.58
                             }
                         }
                     ],

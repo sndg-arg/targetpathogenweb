@@ -3134,6 +3134,30 @@ body.residue-modal-open {
     white-space: nowrap;
 }
 
+.metabolic-browser-card {
+    overflow: hidden;
+    border-color: #c9d4dc;
+    background: #f3f6f8;
+    box-shadow: 0 18px 48px rgba(22, 49, 73, 0.14);
+}
+
+.metabolic-browser-card > .section-head {
+    margin: -1px -1px 14px;
+    padding: 14px 18px;
+    border-bottom: 1px solid #c9d4dc;
+    background: linear-gradient(135deg, #123654 0%, #205d83 100%);
+    color: #ffffff;
+}
+
+.metabolic-browser-card > .section-head h2,
+.metabolic-browser-card > .section-head .section-subtitle {
+    color: #ffffff;
+}
+
+.metabolic-browser-card > .section-head .section-subtitle {
+    opacity: 0.82;
+}
+
 .metabolic-context-shell {
     display: grid;
     grid-template-columns: minmax(320px, 390px) minmax(0, 1fr);
@@ -3157,10 +3181,10 @@ body.residue-modal-open {
 .metabolic-score-card,
 .metabolic-sidebar-block,
 .metabolic-inspector {
-    border: 1px solid var(--tp-color-border-soft);
+    border: 1px solid #cfdae1;
     border-radius: 8px;
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
-    box-shadow: 0 8px 24px rgba(32, 44, 52, 0.06);
+    background: #fbfaf5;
+    box-shadow: 0 10px 28px rgba(22, 49, 73, 0.07);
 }
 
 .metabolic-score-card {
@@ -3191,7 +3215,7 @@ body.residue-modal-open {
 .metabolic-sidebar-title {
     display: block;
     margin-bottom: 9px;
-    color: var(--tp-color-text-muted);
+    color: #3d5b70;
     font-size: 0.68rem;
     font-weight: 800;
     letter-spacing: 0.08em;
@@ -3218,7 +3242,7 @@ body.residue-modal-open {
     justify-content: space-between;
     gap: 10px;
     padding: 9px 0;
-    border-top: 1px solid var(--tp-color-border-soft);
+    border-top: 1px solid #dce4e8;
 }
 
 .metabolic-reaction-item:first-child {
@@ -3243,7 +3267,7 @@ body.residue-modal-open {
 .metabolic-inspector strong {
     display: block;
     margin-bottom: 10px;
-    color: var(--tp-color-text-primary);
+    color: #102f4b;
     font-size: 0.92rem;
     line-height: 1.25;
     word-break: break-word;
@@ -3257,7 +3281,7 @@ body.residue-modal-open {
 }
 
 .metabolic-inspector dt {
-    color: var(--tp-color-text-muted);
+    color: #4e6b7f;
     font-size: 0.72rem;
     font-weight: 800;
     text-transform: uppercase;
@@ -3265,7 +3289,7 @@ body.residue-modal-open {
 
 .metabolic-inspector dd {
     margin: 0;
-    color: var(--tp-color-text-primary);
+    color: #102f4b;
     font-size: 0.78rem;
     line-height: 1.35;
     word-break: break-word;
@@ -3275,13 +3299,13 @@ body.residue-modal-open {
     position: relative;
     min-width: 0;
     overflow: hidden;
-    border: 1px solid var(--tp-color-border);
+    border: 1px solid #9eb2bf;
     border-radius: 8px;
     background:
-        radial-gradient(circle at 22% 18%, rgba(39, 128, 160, 0.13), transparent 25%),
-        radial-gradient(circle at 78% 66%, rgba(51, 135, 92, 0.12), transparent 28%),
-        linear-gradient(180deg, #f9fbfc 0%, #eef3f5 100%);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.76), 0 14px 36px rgba(28, 42, 50, 0.09);
+        linear-gradient(90deg, rgba(62, 126, 162, 0.1), transparent 34%),
+        linear-gradient(180deg, rgba(239, 191, 74, 0.14), transparent 40%),
+        #f7f3e8;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.92), 0 18px 42px rgba(22, 49, 73, 0.13);
 }
 
 .metabolic-map-toolbar {
@@ -3291,8 +3315,8 @@ body.residue-modal-open {
     gap: 12px;
     min-height: 44px;
     padding: 9px 12px;
-    border-bottom: 1px solid rgba(126, 147, 158, 0.28);
-    background: rgba(255, 255, 255, 0.82);
+    border-bottom: 1px solid #0f304c;
+    background: linear-gradient(135deg, #123654 0%, #1c587d 100%);
     backdrop-filter: blur(10px);
 }
 
@@ -3301,7 +3325,7 @@ body.residue-modal-open {
     flex-wrap: wrap;
     align-items: center;
     gap: 8px 14px;
-    color: var(--tp-color-text-muted);
+    color: rgba(255, 255, 255, 0.86);
     font-size: 0.74rem;
     font-weight: 700;
 }
@@ -3317,24 +3341,24 @@ body.residue-modal-open {
     width: 11px;
     height: 11px;
     border-radius: 999px;
-    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.9), 0 0 0 3px rgba(93, 111, 121, 0.16);
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.82);
 }
 
 .metabolic-legend-dot--focal {
-    background: #9fb3bc;
-    border: 2px solid #17824f;
+    background: #00a6a6;
+    border: 2px solid #d5ffff;
 }
 
 .metabolic-legend-dot--producing {
-    background: #f19a2a;
+    background: #f3b43f;
 }
 
 .metabolic-legend-dot--consuming {
-    background: #3f78c8;
+    background: #5f7fd5;
 }
 
 .metabolic-legend-dot--plain {
-    background: #8ea0aa;
+    background: #b8c4ca;
 }
 
 .metabolic-map-actions {
@@ -3351,10 +3375,10 @@ body.residue-modal-open {
     min-width: 34px;
     height: 30px;
     padding: 0 10px;
-    border: 1px solid var(--tp-color-border);
+    border: 1px solid rgba(255, 255, 255, 0.38);
     border-radius: 6px;
-    background: var(--tp-color-surface);
-    color: var(--tp-color-text-primary);
+    background: rgba(255, 255, 255, 0.13);
+    color: #ffffff;
     font-size: 0.76rem;
     font-weight: 800;
     line-height: 1;
@@ -3362,17 +3386,20 @@ body.residue-modal-open {
 }
 
 .metabolic-map-btn:hover {
-    border-color: var(--tp-color-brand-500);
-    color: var(--tp-color-brand-700);
+    border-color: rgba(255, 255, 255, 0.82);
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.22);
 }
 
 #metabolic-network-cy {
     width: 100%;
     height: clamp(460px, 58vh, 680px);
     background-image:
-        linear-gradient(rgba(83, 106, 118, 0.055) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(83, 106, 118, 0.055) 1px, transparent 1px);
-    background-size: 28px 28px;
+        linear-gradient(rgba(31, 68, 96, 0.055) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(31, 68, 96, 0.055) 1px, transparent 1px),
+        radial-gradient(circle at 28% 34%, rgba(0, 166, 166, 0.09), transparent 24%),
+        radial-gradient(circle at 72% 58%, rgba(243, 180, 63, 0.12), transparent 26%);
+    background-size: 28px 28px, 28px 28px, 100% 100%, 100% 100%;
 }
 
 .metabolic-network-tooltip {
