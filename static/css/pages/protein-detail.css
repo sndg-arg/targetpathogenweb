@@ -3136,7 +3136,7 @@ body.residue-modal-open {
 
 .metabolic-context-shell {
     display: grid;
-    grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+    grid-template-columns: minmax(320px, 390px) minmax(0, 1fr);
     gap: 16px;
     margin-top: 12px;
 }
@@ -3164,7 +3164,23 @@ body.residue-modal-open {
 }
 
 .metabolic-score-card {
+    display: grid;
+    align-content: start;
+    gap: 5px;
     padding: 14px 16px;
+}
+
+.metabolic-score-card .target-evidence-value {
+    display: block;
+    font-size: 1.65rem;
+    line-height: 1;
+}
+
+.metabolic-score-card .target-evidence-subtext {
+    display: block;
+    max-width: 100%;
+    margin-top: 2px;
+    line-height: 1.35;
 }
 
 .metabolic-sidebar-block,

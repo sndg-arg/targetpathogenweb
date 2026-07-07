@@ -16,21 +16,23 @@
     function buildElements(payload) {
         var elements = [];
         (payload.nodes || []).forEach(function (node) {
+            var chokepointRole = node.chokepoint_role || "none";
             elements.push({
                 data: {
                     id: node.id,
                     label: node.name,
+                    displayLabel: node.is_focal || chokepointRole !== "none" ? node.name : "",
                     ecNumbers: node.ec_numbers,
                     keggReactionId: node.kegg_reaction_id,
                     reversible: node.reversible,
-                    chokepointRole: node.chokepoint_role,
+                    chokepointRole: chokepointRole,
                     isFocal: node.is_focal,
                     degree: node.degree,
                     genes: node.genes || [],
                     size: degreeToSize(node.degree)
                 },
                 classes: [
-                    "chokepoint-" + (node.chokepoint_role || "none"),
+                    "chokepoint-" + chokepointRole,
                     node.is_focal ? "is-focal" : ""
                 ].join(" ").trim()
             });
@@ -143,22 +145,23 @@
                             selector: "node",
                             style: {
                                 "background-color": CHOKEPOINT_COLORS.none,
-                                "label": "data(label)",
+                                "label": "data(displayLabel)",
                                 "width": "data(size)",
                                 "height": "data(size)",
-                                "font-size": 10,
-                                "font-weight": 600,
+                                "font-size": 9,
+                                "font-weight": 700,
                                 "text-valign": "bottom",
-                                "text-margin-y": 7,
+                                "text-margin-y": 8,
                                 "color": "#26343d",
                                 "text-wrap": "ellipsis",
-                                "text-max-width": "108px",
+                                "text-max-width": "118px",
                                 "text-background-color": "#ffffff",
-                                "text-background-opacity": 0.82,
-                                "text-background-padding": 2,
+                                "text-background-opacity": 0.9,
+                                "text-background-padding": 3,
                                 "text-border-opacity": 0,
                                 "border-width": 2,
-                                "border-color": "#ffffff"
+                                "border-color": "#ffffff",
+                                "opacity": 0.92
                             }
                         },
                         { selector: ".chokepoint-producing", style: { "background-color": CHOKEPOINT_COLORS.producing } },
@@ -178,8 +181,10 @@
                         {
                             selector: "node:selected",
                             style: {
+                                "label": "data(label)",
                                 "border-width": 5,
-                                "border-color": "#0f5f92"
+                                "border-color": "#0f5f92",
+                                "z-index": 20
                             }
                         },
                         {
