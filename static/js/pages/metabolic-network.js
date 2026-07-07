@@ -13,15 +13,27 @@
         return size;
     }
 
+    function compactReactionLabel(label) {
+        label = label || "";
+        if (label.length <= 20) return label;
+        return label.slice(0, 18) + "...";
+    }
+
+    function labelToWidth(label) {
+        return Math.max(104, Math.min(178, (label || "").length * 7.4 + 28));
+    }
+
     function buildElements(payload) {
         var elements = [];
         (payload.nodes || []).forEach(function (node) {
             var chokepointRole = node.chokepoint_role || "none";
+            var isLabeled = node.is_focal || chokepointRole !== "none";
+            var displayLabel = isLabeled ? compactReactionLabel(node.name) : "";
             elements.push({
                 data: {
                     id: node.id,
                     label: node.name,
-                    displayLabel: node.is_focal || chokepointRole !== "none" ? node.name : "",
+                    displayLabel: displayLabel,
                     ecNumbers: node.ec_numbers,
                     keggReactionId: node.kegg_reaction_id,
                     reversible: node.reversible,
@@ -29,7 +41,8 @@
                     isFocal: node.is_focal,
                     degree: node.degree,
                     genes: node.genes || [],
-                    size: degreeToSize(node.degree)
+                    size: degreeToSize(node.degree),
+                    nodeWidth: isLabeled ? labelToWidth(displayLabel) : degreeToSize(node.degree)
                 },
                 classes: [
                     "chokepoint-" + chokepointRole,
@@ -169,12 +182,14 @@
                             selector: ".chokepoint-producing, .chokepoint-consuming, .chokepoint-both",
                             style: {
                                 "shape": "round-rectangle",
-                                "width": 84,
-                                "height": 30,
+                                "width": "data(nodeWidth)",
+                                "height": 36,
                                 "text-valign": "center",
                                 "text-halign": "center",
                                 "text-margin-y": 0,
-                                "font-size": 7.5,
+                                "font-size": 8,
+                                "text-wrap": "none",
+                                "text-max-width": "data(nodeWidth)",
                                 "text-background-opacity": 0,
                                 "border-width": 2.5,
                                 "border-color": "#ffffff",
@@ -193,8 +208,8 @@
                                 "border-width": 3.5,
                                 "border-color": "#143b5c",
                                 "font-weight": "bold",
-                                "width": 96,
-                                "height": 34,
+                                "width": "data(nodeWidth)",
+                                "height": 38,
                                 "text-valign": "center",
                                 "text-halign": "center",
                                 "text-background-opacity": 0,
@@ -204,7 +219,7 @@
                         {
                             selector: "node:selected",
                             style: {
-                                "label": "data(label)",
+                                "label": "data(displayLabel)",
                                 "border-width": 4,
                                 "border-color": "#143b5c",
                                 "z-index": 20
