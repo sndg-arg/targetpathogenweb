@@ -7,8 +7,10 @@ PYTHON ?= python3
 ENV ?= local
 ifeq ($(ENV),cluster)
   COMPOSE = docker compose -f docker-compose.yml -f docker-compose.cluster.yml
+  CONTAINER_PYTHON = /opt/conda/envs/tpv2/bin/python
 else
   COMPOSE = docker compose
+  CONTAINER_PYTHON = python
 endif
 
 .PHONY: build up down stop restart logs status migrate shell \
@@ -38,10 +40,10 @@ status:
 	docker volume ls | grep targetpathogen
 
 migrate:
-	$(COMPOSE) exec web python manage.py migrate
+	$(COMPOSE) exec web $(CONTAINER_PYTHON) manage.py migrate
 
 shell:
-	$(COMPOSE) exec web python manage.py shell
+	$(COMPOSE) exec web $(CONTAINER_PYTHON) manage.py shell
 
 
 
