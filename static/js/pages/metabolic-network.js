@@ -1,39 +1,42 @@
 (function () {
     "use strict";
 
-    var CHOKEPOINT_COLORS = {
-        none: "#b8c4ca",
-        producing: "#f3b43f",
-        consuming: "#5f7fd5",
-        both: "#c84d7d"
-    };
+    function readToken(name) {
+        return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    }
+
+    function readPalette() {
+        return {
+            focal: readToken("--tp-color-brand-700"),
+            chokepoint: readToken("--tp-color-amber-500"),
+            plain: readToken("--tp-color-text-soft"),
+            edge: readToken("--tp-color-border-strong"),
+            ring: readToken("--tp-color-surface"),
+            text: readToken("--tp-color-text-primary")
+        };
+    }
 
     function degreeToSize(degree) {
-        var size = 18 + Math.min(degree || 0, 10) * 3.2;
-        return size;
+        return 16 + Math.min(degree || 0, 10) * 2.4;
     }
 
     function compactReactionLabel(label) {
         label = label || "";
-        if (label.length <= 20) return label;
-        return label.slice(0, 18) + "...";
-    }
-
-    function labelToWidth(label) {
-        return Math.max(104, Math.min(178, (label || "").length * 7.4 + 28));
+        if (label.length <= 22) return label;
+        return label.slice(0, 20) + "…";
     }
 
     function buildElements(payload) {
         var elements = [];
         (payload.nodes || []).forEach(function (node) {
             var chokepointRole = node.chokepoint_role || "none";
-            var isLabeled = node.is_focal || chokepointRole !== "none";
-            var displayLabel = isLabeled ? compactReactionLabel(node.name) : "";
+            var hasChokepoint = chokepointRole !== "none";
+            var isLabeled = node.is_focal || hasChokepoint;
             elements.push({
                 data: {
                     id: node.id,
                     label: node.name,
-                    displayLabel: displayLabel,
+                    displayLabel: isLabeled ? compactReactionLabel(node.name) : "",
                     ecNumbers: node.ec_numbers,
                     keggReactionId: node.kegg_reaction_id,
                     reversible: node.reversible,
@@ -41,11 +44,10 @@
                     isFocal: node.is_focal,
                     degree: node.degree,
                     genes: node.genes || [],
-                    size: degreeToSize(node.degree),
-                    nodeWidth: isLabeled ? labelToWidth(displayLabel) : degreeToSize(node.degree)
+                    size: degreeToSize(node.degree)
                 },
                 classes: [
-                    "chokepoint-" + chokepointRole,
+                    hasChokepoint ? "has-chokepoint" : "",
                     node.is_focal ? "is-focal" : ""
                 ].join(" ").trim()
             });
@@ -74,7 +76,7 @@
         if (genes.length) {
             parts.push("Gene(s): " + genes.join(", "));
         }
-        return parts.join(" - ");
+        return parts.join(" — ");
     }
 
     function formatRole(role) {
@@ -106,6 +108,70 @@
         }
     }
 
+    function nodeStyleRules(palette) {
+        return [
+            {
+                selector: "node",
+                style: {
+                    "background-color": palette.plain,
+                    "shape": "ellipse",
+                    "width": "data(size)",
+                    "height": "data(size)",
+                    "border-width": 2,
+                    "border-color": palette.ring,
+                    "label": "data(displayLabel)",
+                    "color": palette.text,
+                    "font-size": 9,
+                    "font-weight": 500,
+                    "text-valign": "bottom",
+                    "text-margin-y": 5,
+                    "text-wrap": "ellipsis",
+                    "text-max-width": "110px",
+                    "text-outline-color": palette.ring,
+                    "text-outline-width": 2,
+                    "opacity": 0.85
+                }
+            },
+            {
+                selector: ".has-chokepoint",
+                style: {
+                    "background-color": palette.chokepoint,
+                    "font-weight": 700,
+                    "opacity": 1,
+                    "z-index": 10
+                }
+            },
+            {
+                selector: ".is-focal",
+                style: {
+                    "background-color": palette.focal,
+                    "width": 32,
+                    "height": 32,
+                    "font-weight": 700,
+                    "border-width": 3,
+                    "opacity": 1,
+                    "z-index": 20
+                }
+            },
+            {
+                selector: "node:selected",
+                style: {
+                    "border-width": 3,
+                    "border-color": palette.text
+                }
+            },
+            {
+                selector: "edge",
+                style: {
+                    "width": 1.4,
+                    "line-color": palette.edge,
+                    "curve-style": "bezier",
+                    "opacity": 0.55
+                }
+            }
+        ];
+    }
+
     function initMetabolicNetwork() {
         var container = document.getElementById("metabolic-network-cy");
         if (!container || container.__tpMetabolicNetworkInitialized) {
@@ -128,7 +194,7 @@
             setState("metabolic-network-error", "Metabolic network viewer is not available. Rebuild the static bundle.");
             return;
         }
-        setState("metabolic-network-loading", "Loading metabolic network...");
+        setState("metabolic-network-loading", "Loading metabolic network…");
 
         var tooltip = document.createElement("div");
         tooltip.className = "metabolic-network-tooltip";
@@ -153,102 +219,28 @@
                 var cy = window.cytoscape({
                     container: container,
                     elements: buildElements(payload),
-                    style: [
-                        {
-                            selector: "node",
-                            style: {
-                                "background-color": CHOKEPOINT_COLORS.none,
-                                "label": "data(displayLabel)",
-                                "width": "data(size)",
-                                "height": "data(size)",
-                                "shape": "ellipse",
-                                "font-size": 8,
-                                "font-weight": 700,
-                                "text-valign": "bottom",
-                                "text-margin-y": 6,
-                                "color": "#1f3550",
-                                "text-wrap": "ellipsis",
-                                "text-max-width": "102px",
-                                "text-background-color": "#fbfaf5",
-                                "text-background-opacity": 0.96,
-                                "text-background-padding": 2,
-                                "text-border-opacity": 0,
-                                "border-width": 2,
-                                "border-color": "#ffffff",
-                                "opacity": 0.82
-                            }
-                        },
-                        {
-                            selector: ".chokepoint-producing, .chokepoint-consuming, .chokepoint-both",
-                            style: {
-                                "shape": "round-rectangle",
-                                "width": "data(nodeWidth)",
-                                "height": 36,
-                                "text-valign": "center",
-                                "text-halign": "center",
-                                "text-margin-y": 0,
-                                "font-size": 8,
-                                "text-wrap": "none",
-                                "text-max-width": "data(nodeWidth)",
-                                "text-background-opacity": 0,
-                                "border-width": 2.5,
-                                "border-color": "#ffffff",
-                                "opacity": 1
-                            }
-                        },
-                        { selector: ".chokepoint-producing", style: { "background-color": CHOKEPOINT_COLORS.producing, "color": "#3b2a05" } },
-                        { selector: ".chokepoint-consuming", style: { "background-color": CHOKEPOINT_COLORS.consuming, "color": "#ffffff" } },
-                        { selector: ".chokepoint-both", style: { "background-color": CHOKEPOINT_COLORS.both, "color": "#ffffff" } },
-                        {
-                            selector: ".is-focal",
-                            style: {
-                                "shape": "round-rectangle",
-                                "background-color": "#00a6a6",
-                                "color": "#ffffff",
-                                "border-width": 3.5,
-                                "border-color": "#143b5c",
-                                "font-weight": "bold",
-                                "width": "data(nodeWidth)",
-                                "height": 38,
-                                "text-valign": "center",
-                                "text-halign": "center",
-                                "text-background-opacity": 0,
-                                "opacity": 1
-                            }
-                        },
-                        {
-                            selector: "node:selected",
-                            style: {
-                                "label": "data(displayLabel)",
-                                "border-width": 4,
-                                "border-color": "#143b5c",
-                                "z-index": 20
-                            }
-                        },
-                        {
-                            selector: "edge",
-                            style: {
-                                "width": 1.6,
-                                "line-color": "#9fb2be",
-                                "curve-style": "bezier",
-                                "opacity": 0.58
-                            }
-                        }
-                    ],
+                    style: nodeStyleRules(readPalette()),
                     layout: {
                         name: "fcose",
                         animate: false,
-                        nodeRepulsion: 13000,
-                        idealEdgeLength: 96,
-                        nodeSeparation: 56,
-                        gravity: 0.22,
-                        padding: 46
+                        nodeRepulsion: 9000,
+                        idealEdgeLength: 88,
+                        nodeSeparation: 48,
+                        gravity: 0.25,
+                        padding: 40
                     },
-                    minZoom: 0.18,
+                    minZoom: 0.2,
                     maxZoom: 3.5,
                     userZoomingEnabled: false,
                     boxSelectionEnabled: false
                 });
+
+                if ("MutationObserver" in window) {
+                    var themeObserver = new MutationObserver(function () {
+                        cy.style(nodeStyleRules(readPalette())).update();
+                    });
+                    themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+                }
 
                 cy.ready(function () {
                     var focal = cy.nodes(".is-focal").first();
@@ -256,13 +248,13 @@
                         focal.select();
                         updateInspector(focal.data());
                     }
-                    cy.fit(cy.elements(), 46);
+                    cy.fit(cy.elements(), 40);
                 });
 
                 Array.prototype.forEach.call(document.querySelectorAll("[data-metabolic-action]"), function (button) {
                     button.addEventListener("click", function () {
                         var action = button.getAttribute("data-metabolic-action");
-                        if (action === "fit") cy.fit(cy.elements(), 46);
+                        if (action === "fit") cy.fit(cy.elements(), 40);
                         if (action === "zoom-in") cy.zoom({ level: cy.zoom() * 1.18, renderedPosition: { x: container.clientWidth / 2, y: container.clientHeight / 2 } });
                         if (action === "zoom-out") cy.zoom({ level: cy.zoom() / 1.18, renderedPosition: { x: container.clientWidth / 2, y: container.clientHeight / 2 } });
                     });
