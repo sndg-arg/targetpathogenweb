@@ -3357,6 +3357,10 @@ body.residue-modal-open {
     background: #5f7fd5;
 }
 
+.metabolic-legend-dot--both {
+    background: #c84d7d;
+}
+
 .metabolic-legend-dot--plain {
     background: #b8c4ca;
 }
