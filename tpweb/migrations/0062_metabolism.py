@@ -27,7 +27,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('genome_accession', models.CharField(db_index=True, max_length=128)),
-                ('reaction_id', models.CharField(max_length=128)),
+                ('reaction_id', models.CharField(max_length=255)),
                 ('name', models.CharField(blank=True, default='', max_length=255)),
                 ('ec_numbers', models.CharField(blank=True, default='', max_length=255)),
                 ('kegg_reaction_id', models.CharField(blank=True, default='', max_length=32)),

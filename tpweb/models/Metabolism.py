@@ -25,7 +25,7 @@ class MetabolicPathway(models.Model):
 
 class MetabolicReaction(models.Model):
     genome_accession = models.CharField(max_length=128, db_index=True)
-    reaction_id = models.CharField(max_length=128)
+    reaction_id = models.CharField(max_length=255)
     name = models.CharField(max_length=255, blank=True, default="")
     ec_numbers = models.CharField(max_length=255, blank=True, default="")
     kegg_reaction_id = models.CharField(max_length=32, blank=True, default="")
