@@ -10,7 +10,7 @@ Usage
 -----
 python manage.py fetch_kegg_pathway_map [--out tpweb/data/kegg_reaction_pathways.json]
 
-Requires outbound internet access to rest.kegg.org (not available in every environment -
+Requires outbound internet access to rest.kegg.jp (not available in every environment -
 run this from a machine that has it, then commit the resulting JSON file).
 """
 
@@ -20,8 +20,8 @@ import os
 import requests
 from django.core.management.base import BaseCommand, CommandError
 
-KEGG_LINK_URL = "https://rest.kegg.org/link/pathway/reaction"
-KEGG_PATHWAY_LIST_URL = "https://rest.kegg.org/list/pathway"
+KEGG_LINK_URL = "https://rest.kegg.jp/link/pathway/reaction"
+KEGG_PATHWAY_LIST_URL = "https://rest.kegg.jp/list/pathway"
 
 DEFAULT_OUT = os.path.join("tpweb", "data", "kegg_reaction_pathways.json")
 
