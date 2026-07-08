@@ -3,6 +3,49 @@ from collections import defaultdict
 from bioseq.models.Biodatabase import Biodatabase
 from tpweb.models.Metabolism import GeneReactionLink
 from tpweb.models.ScoreParamValue import ScoreParamValue
+from tpweb.services.protein_formula import choose_formula, coefficient_map, resolve_formulas_for_user
+from tpweb.services.protein_serializer import compute_expression_score, compute_score_value, score_param_value_map
+
+
+_CHOKEPOINT_PHRASES = {
+    GeneReactionLink.CHOKEPOINT_PRODUCING: "a producing chokepoint reaction",
+    GeneReactionLink.CHOKEPOINT_CONSUMING: "a consuming chokepoint reaction",
+    GeneReactionLink.CHOKEPOINT_BOTH: "a producing & consuming chokepoint reaction",
+}
+
+
+def build_target_metabolic_sentence(metabolic_context, human_offtarget_no_hit=False):
+    """Deterministic, template-based one-liner synthesizing signals ProteinView already
+    computed (chokepoint role, pathway, centrality percentile, isoenzyme redundancy, human
+    off-target) — the "so what" for a target, not just the raw network. No LLM involved."""
+    chokepoint_reactions = [
+        r for r in metabolic_context["reactions"] if r["chokepoint_role"] != GeneReactionLink.CHOKEPOINT_NONE
+    ]
+    parts = []
+
+    if chokepoint_reactions:
+        reaction = chokepoint_reactions[0]
+        phrase = _CHOKEPOINT_PHRASES.get(reaction["chokepoint_role"], "a chokepoint reaction")
+        pathways = metabolic_context.get("pathways") or []
+        clause = f"catalyzes {phrase}"
+        if pathways:
+            clause += f" in {pathways[0]['name']}"
+        parts.append(clause)
+        if not reaction.get("has_isoenzyme_backup", True):
+            parts.append("no isoenzyme backup detected")
+
+    percentile = metabolic_context.get("centrality_percentile")
+    if percentile is not None:
+        parts.append(f"more central than {percentile}% of genes in this genome")
+
+    if human_offtarget_no_hit:
+        parts.append("no human homolog detected")
+
+    if not parts:
+        return None
+
+    lead = "Attractive metabolic target" if chokepoint_reactions else "Metabolic context"
+    return f"{lead}: " + ", ".join(parts) + "."
 
 
 def _to_float(value, default=0.0):
@@ -31,15 +74,49 @@ def _score_maps(proteome_name):
     return scores
 
 
-def build_genome_metabolism_summary(assembly_name, top_target_limit=5):
+def _resolve_scorer(user, formula_name):
+    """Return a (score_fn, formula) pair. score_fn(protein) -> float, using the same
+    term/expression evaluation ProteinListView uses for genome-wide ranking (bulk-prefetch
+    friendly — no per-protein query), so pathway ranking reflects the user's own formula
+    instead of a fixed heuristic."""
+    formulas = resolve_formulas_for_user(user)
+    formula = choose_formula(formulas, formula_name)
+    if formula is None:
+        return None, None
+
+    formula_expression = (formula.expression or "").strip()
+    if formula_expression:
+        from tpweb.services.formula_evaluator import build_all_options_zero
+        zero_cache = build_all_options_zero(user)
+
+        def score_fn(protein):
+            value, _ = compute_expression_score(protein, formula_expression, zero_cache)
+            return value
+
+        return score_fn, formula
+
+    coefficient_by_param = coefficient_map(list(formula.terms.select_related("score_param")))
+
+    def score_fn(protein):
+        value, _ = compute_score_value(score_param_value_map(protein), coefficient_by_param)
+        return value
+
+    return score_fn, formula
+
+
+def build_genome_metabolism_summary(assembly_name, user=None, formula_name=None, top_target_limit=5):
     proteome_name = assembly_name + Biodatabase.PROT_POSTFIX
     scores_by_protein = _score_maps(proteome_name)
+    score_fn, active_formula = _resolve_scorer(user, formula_name)
 
     links = (
         GeneReactionLink.objects
         .filter(bioentry__biodatabase__name=proteome_name)
         .select_related("bioentry", "reaction")
-        .prefetch_related("reaction__pathways")
+        .prefetch_related(
+            "reaction__pathways",
+            "bioentry__score_params__score_param",
+        )
     )
     pathway_map = {}
     unassigned = {
@@ -76,7 +153,12 @@ def build_genome_metabolism_summary(assembly_name, top_target_limit=5):
             druggability = protein_scores.get("Druggability", 0.0)
             centrality = protein_scores.get("PTOOLS_betweenness_centrality", 0.0)
             is_chokepoint = link.chokepoint_role != GeneReactionLink.CHOKEPOINT_NONE
-            target_score = druggability + (0.15 if is_chokepoint else 0.0) + min(centrality, 1.0) * 0.1
+            if score_fn is not None:
+                target_score = score_fn(protein)
+            else:
+                # No formula selected/available: fall back to a fixed heuristic so the
+                # page still ranks something sensible.
+                target_score = druggability + (0.15 if is_chokepoint else 0.0) + min(centrality, 1.0) * 0.1
 
             bucket["reaction_ids"].add(reaction.id)
             bucket["protein_ids"].add(protein.bioentry_id)
@@ -138,4 +220,5 @@ def build_genome_metabolism_summary(assembly_name, top_target_limit=5):
         "reaction_count": len(total_reactions),
         "protein_count": len(total_proteins),
         "chokepoint_count": len(total_chokepoints),
+        "active_formula_name": active_formula.name if active_formula else None,
     }

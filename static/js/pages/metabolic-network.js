@@ -41,6 +41,7 @@
                     keggReactionId: node.kegg_reaction_id,
                     reversible: node.reversible,
                     chokepointRole: chokepointRole,
+                    isoenzymeCount: node.isoenzyme_count || 0,
                     isFocal: node.is_focal,
                     degree: node.degree,
                     genes: node.genes || [],
@@ -71,6 +72,7 @@
         }
         if (nodeData.chokepointRole && nodeData.chokepointRole !== "none") {
             parts.push("Chokepoint: " + nodeData.chokepointRole);
+            parts.push(nodeData.isoenzymeCount > 1 ? nodeData.isoenzymeCount + " isoenzymes" : "no isoenzyme backup");
         }
         var genes = (nodeData.genes || []).map(function (g) { return g.locus_tag; });
         if (genes.length) {
@@ -92,7 +94,8 @@
             name: nodeData.label || nodeData.id || "-",
             ec: nodeData.ecNumbers || "-",
             genes: genes.length ? genes.join(", ") : "-",
-            role: formatRole(nodeData.chokepointRole)
+            role: formatRole(nodeData.chokepointRole),
+            isoenzymes: nodeData.isoenzymeCount > 1 ? String(nodeData.isoenzymeCount) : "None"
         };
         Object.keys(fields).forEach(function (field) {
             var el = inspector.querySelector('[data-field="' + field + '"]');

@@ -91,6 +91,7 @@ class MetabolismNetworkView(View):
             "kegg_reaction_id": reaction.kegg_reaction_id,
             "reversible": reaction.reversible,
             "chokepoint_role": chokepoint_role,
+            "isoenzyme_count": reaction.isoenzyme_count,
             "is_focal": reaction_id in focal_reaction_ids,
             "degree": sum(1 for a, b in edge_pairs if reaction_id in (a, b)),
             "genes": [

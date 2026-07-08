@@ -887,7 +887,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 
 .structure-source-btn:hover {
     background: var(--tp-color-surface-soft);
-    color: var(--tp-color-text);
+    color: var(--tp-color-text-primary);
 }
 
 .structure-source-btn.is-active {
@@ -1016,7 +1016,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 
 .protein-page .structure-icon-btn.tp-btn--outline:hover,
 .protein-page .structure-reset-btn.tp-btn--outline:hover {
-    color: var(--tp-color-text) !important;
+    color: var(--tp-color-text-primary) !important;
     background: var(--tp-color-surface-soft) !important;
     border-color: var(--tp-color-border-soft) !important;
 }
@@ -2439,7 +2439,7 @@ body.residue-modal-open {
     margin: 0;
     font-size: 0.95rem;
     font-weight: 600;
-    color: var(--tp-color-text);
+    color: var(--tp-color-text-primary);
     letter-spacing: 0.015em;
 }
 
@@ -2484,7 +2484,7 @@ body.residue-modal-open {
     vertical-align: middle;
     border-bottom: 1px solid var(--tp-color-border-soft);
     font-size: 0.875rem;
-    color: var(--tp-color-text);
+    color: var(--tp-color-text-primary);
 }
 
 .experimental-structure-table tbody tr:last-child td {
@@ -2559,7 +2559,7 @@ body.residue-modal-open {
     font-size: 0.88rem;
     font-weight: 600;
     letter-spacing: 0.04em;
-    color: var(--tp-color-text);
+    color: var(--tp-color-text-primary);
 }
 
 .experimental-pdb-id--predicted {
@@ -2604,7 +2604,7 @@ body.residue-modal-open {
     height: 6px;
     border-radius: 999px;
     overflow: hidden;
-    background: color-mix(in srgb, var(--tp-color-text) 10%, var(--tp-color-surface));
+    background: color-mix(in srgb, var(--tp-color-text-primary) 10%, var(--tp-color-surface));
 }
 
 .experimental-coverage-fill {
@@ -2618,7 +2618,7 @@ body.residue-modal-open {
 .experimental-coverage-label {
     display: block;
     margin-top: 5px;
-    color: var(--tp-color-text);
+    color: var(--tp-color-text-primary);
     font-size: 0.8rem;
     font-weight: 600;
     font-variant-numeric: tabular-nums;
@@ -3244,6 +3244,43 @@ body.residue-modal-open {
     font-size: 0.74rem;
 }
 
+.metabolic-reaction-formula {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    margin-top: 6px;
+}
+
+.metabolite-chip {
+    padding: 1px 7px;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 999px;
+    background: var(--tp-color-surface-soft);
+    color: var(--tp-color-text-secondary);
+    font-size: 0.7rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.metabolite-chip.is-currency {
+    border-color: transparent;
+    background: none;
+    color: var(--tp-color-text-soft);
+    font-weight: 400;
+}
+
+.metabolite-plus,
+.metabolite-arrow {
+    color: var(--tp-color-text-soft);
+    font-size: 0.72rem;
+}
+
+.metabolite-arrow {
+    font-weight: 700;
+    margin: 0 2px;
+}
+
 .metabolic-inspector strong {
     display: block;
     margin-bottom: 10px;
@@ -3385,6 +3422,24 @@ body.residue-modal-open {
     justify-content: center;
     color: var(--tp-color-text-muted);
     font-size: 0.85rem;
+}
+
+.metabolic-summary-sentence {
+    margin: 10px 0 0;
+    padding: 10px 14px;
+    border: 1px solid var(--tp-color-brand-200);
+    border-radius: 8px;
+    background: var(--tp-color-brand-050);
+    color: var(--tp-color-text-primary);
+    font-size: 0.88rem;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.metabolic-provenance {
+    margin: 10px 0 0;
+    color: var(--tp-color-text-soft);
+    font-size: 0.72rem;
 }
 
 @media (max-width: 1080px) {

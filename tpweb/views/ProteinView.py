@@ -16,7 +16,8 @@ from tpweb.models.Binders import Binders
 from tpweb.models.pdb import PDBResidueSet
 from tpweb.models.BioentryStructure import ExperimentalStructureXref
 from tpweb.models.ScoreParamValue import ScoreParamValue
-from tpweb.models.Metabolism import GeneReactionLink
+from tpweb.models.Metabolism import GeneReactionLink, MetabolicImportRun, ReactionParticipant
+from tpweb.services.metabolism_summary import build_target_metabolic_sentence
 from .StructureView import pdb_structure
 from tpweb.services.protein_annotations import annotation_dbnames, protein_annotation_badges, iter_protein_annotations
 from tpweb.services.csv_exports import xlsx_sections_response
@@ -353,11 +354,27 @@ _CHOKEPOINT_LABELS = {
 }
 
 
+def _build_reaction_participants(reaction):
+    substrates = []
+    products = []
+    for participant in reaction.participants.all():
+        entry = {
+            "name": participant.species.display_name or participant.species.species_id,
+            "is_currency": participant.species.is_currency,
+            "stoichiometry": participant.stoichiometry,
+        }
+        if participant.role == ReactionParticipant.ROLE_REACTANT:
+            substrates.append(entry)
+        else:
+            products.append(entry)
+    return substrates, products
+
+
 def _build_metabolic_context(protein, raw_scores):
     links = list(
         GeneReactionLink.objects.filter(bioentry=protein)
         .select_related("reaction")
-        .prefetch_related("reaction__pathways")
+        .prefetch_related("reaction__pathways", "reaction__participants__species")
     )
     if not links:
         return None
@@ -370,6 +387,7 @@ def _build_metabolic_context(protein, raw_scores):
             f"https://www.kegg.jp/entry/{reaction.kegg_reaction_id}"
             if reaction.kegg_reaction_id else ""
         )
+        substrates, products = _build_reaction_participants(reaction)
         reactions.append({
             "reaction_id": reaction.reaction_id,
             "name": reaction.name or reaction.reaction_id,
@@ -379,6 +397,11 @@ def _build_metabolic_context(protein, raw_scores):
             "reversible": reaction.reversible,
             "chokepoint_role": link.chokepoint_role,
             "chokepoint_label": _CHOKEPOINT_LABELS.get(link.chokepoint_role),
+            "isoenzyme_count": reaction.isoenzyme_count,
+            "has_isoenzyme_backup": reaction.isoenzyme_count > 1,
+            "substrates": substrates,
+            "products": products,
+            "has_metabolites": bool(substrates or products),
         })
         for pathway in reaction.pathways.all():
             pathway_chips[(pathway.source, pathway.external_id)] = {
@@ -408,13 +431,21 @@ def _build_metabolic_context(protein, raw_scores):
 
     is_chokepoint = any(l.chokepoint_role != GeneReactionLink.CHOKEPOINT_NONE for l in links)
 
-    return {
+    assembly_name = protein.biodatabase.name.split(Biodatabase.PROT_POSTFIX)[0]
+    import_run = MetabolicImportRun.objects.filter(genome_accession=assembly_name).first()
+
+    context = {
         "reactions": reactions,
         "pathways": sorted(pathway_chips.values(), key=lambda p: (p["source"], p["name"])),
         "centrality": centrality,
         "centrality_percentile": percentile,
         "is_chokepoint": is_chokepoint,
+        "import_run": import_run,
     }
+    context["summary_sentence"] = build_target_metabolic_sentence(
+        context, human_offtarget_no_hit=_raw_score(raw_scores, "human_offtarget") == "no_hit",
+    )
+    return context
 
 
 def _has_pocket_data(pdb_obj):

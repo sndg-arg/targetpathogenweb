@@ -21,7 +21,8 @@ class MetabolismPathwayView(View):
             raise Http404("Genome not found") from exc
 
         slug = genome_url_slug(assembly_name)
-        summary = build_genome_metabolism_summary(assembly_name)
+        formula_name = request.GET.get("scoreformula") or None
+        summary = build_genome_metabolism_summary(assembly_name, user=request.user, formula_name=formula_name)
         return render(request, self.template_name, {
             "assembly": {
                 "name": display_genome_name(assembly_name),

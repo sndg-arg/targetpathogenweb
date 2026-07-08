@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20260707-1">
+    <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20260708-tokens1">
 {% endblock %}
 
 {% block body %}
@@ -49,7 +49,13 @@
         <div class="section-head tp-ui-panel-head">
             <div>
                 <h2>{% trans "Pathway target space" %}</h2>
-                <p class="section-subtitle">{% trans "Routes ranked by chokepoint density and best available target evidence. Top proteins link back to the target detail page." %}</p>
+                <p class="section-subtitle">
+                    {% if summary.active_formula_name %}
+                        {% blocktrans with formula=summary.active_formula_name %}Routes ranked by chokepoint density and your "{{ formula }}" scoring formula. Top proteins link back to the target detail page.{% endblocktrans %}
+                    {% else %}
+                        {% trans "Routes ranked by chokepoint density and a default druggability/centrality estimate — set a scoring formula to rank by your own weights. Top proteins link back to the target detail page." %}
+                    {% endif %}
+                </p>
             </div>
         </div>
 

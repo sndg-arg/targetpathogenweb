@@ -12,11 +12,14 @@ Ingests three files produced by the BioCyc/Pathway Tools MetaFlux metabolism pip
                                 PTOOLS_both_chokepoints.
   --network-sif PATH           Reaction-reaction adjacency graph ("A <relation> B" lines).
 
-Populates MetabolicReaction / GeneReactionLink / MetabolicReactionEdge, attaches KEGG
-MetabolicPathway membership (via the bundled tpweb/data/kegg_reaction_pathways.json reference
-file - run `fetch_kegg_pathway_map` first to (re)generate it), and feeds the two scalar
-per-gene metrics into the generic ScoreParam/ScoreParamValue system via `load_score_values`
-("PTOOLS_betweenness_centrality", "metabolic_chokepoint").
+Populates MetabolicReaction / GeneReactionLink / MetabolicReactionEdge / MetabolicSpecies /
+ReactionParticipant, attaches KEGG MetabolicPathway membership (via the bundled
+tpweb/data/kegg_reaction_pathways.json reference file - run `fetch_kegg_pathway_map` first to
+(re)generate it), flags currency/ubiquitous metabolites (tpweb/data/currency_metabolites.json,
+a generic fallback list - pass a real organism-specific one via fasttarget's ubiquitous-compounds
+export when available), and feeds the per-gene scalar metrics into the generic
+ScoreParam/ScoreParamValue system via `load_score_values` ("PTOOLS_betweenness_centrality",
+"PTOOLS_edges", "metabolic_chokepoint").
 
 Usage
 -----
@@ -29,6 +32,7 @@ python manage.py load_metabolism public__KpATCC43816 \\
 
 import json
 import os
+import re
 import sys
 import tempfile
 import xml.etree.ElementTree as ET
@@ -39,13 +43,18 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 from tqdm import tqdm
 
+from django.contrib.auth import get_user_model
+
 from bioseq.models.Biodatabase import Biodatabase
 from bioseq.models.Bioentry import Bioentry
 from tpweb.models.Metabolism import (
     GeneReactionLink,
+    MetabolicImportRun,
     MetabolicPathway,
     MetabolicReaction,
     MetabolicReactionEdge,
+    MetabolicSpecies,
+    ReactionParticipant,
 )
 
 SBML_NS = {
@@ -56,6 +65,7 @@ SBML_NS = {
 }
 
 KEGG_PATHWAY_MAP_PATH = os.path.join("tpweb", "data", "kegg_reaction_pathways.json")
+CURRENCY_METABOLITES_PATH = os.path.join("tpweb", "data", "currency_metabolites.json")
 
 CHOKEPOINT_COLUMNS = {
     "PTOOLS_producing_chokepoints": GeneReactionLink.CHOKEPOINT_PRODUCING,
@@ -88,6 +98,17 @@ def _walk_gpr(elem, gene_products):
     return set(), ""
 
 
+def _count_isoenzymes(root_elem):
+    """Number of independent gene(s)/complex(es) that can catalyze this reaction on their
+    own. A top-level "or" means true isoenzyme redundancy (any branch suffices); a bare
+    gene ref or a top-level "and" (obligate complex) means there's exactly one way in."""
+    if root_elem is None:
+        return 0
+    if _tag(root_elem) == "or":
+        return len(root_elem)
+    return 1
+
+
 def _annotation_resources(elem):
     """Yield identifiers.org resource URIs referenced in a <bqbiol:is> annotation block."""
     for li in elem.findall(f".//{{{SBML_NS['rdf']}}}li"):
@@ -96,8 +117,33 @@ def _annotation_resources(elem):
             yield resource
 
 
+def _decode_sbml_id(raw_id):
+    """BioCyc encodes each non-alphanumeric byte in SBML ids as __<decimal-ascii>__
+    (e.g. 45 -> '-', 95 -> '_'). Species ids/names are used as-is elsewhere (they already
+    match speciesReference@species exactly), this is only needed to recover the plain
+    BioCyc frame id for currency-metabolite matching."""
+    return re.sub(r"__(\d+)__", lambda m: chr(int(m.group(1))), raw_id)
+
+
+def _species_participants(elem):
+    """Return list of (species_id, stoichiometry) from a <listOfReactants>/<listOfProducts>."""
+    participants = []
+    for ref in elem.findall(f"{{{SBML_NS['sbml']}}}speciesReference"):
+        species_id = ref.get("species")
+        if not species_id:
+            continue
+        try:
+            stoichiometry = float(ref.get("stoichiometry") or 1.0)
+        except (TypeError, ValueError):
+            stoichiometry = 1.0
+        participants.append((species_id, stoichiometry))
+    return participants
+
+
 def parse_sbml(sbml_path):
-    """Return {reaction_id: {name, ec_numbers, kegg_reaction_id, reversible, genes, gpr_expression}}."""
+    """Return ({reaction_id: {name, ec_numbers, kegg_reaction_id, reversible, genes,
+    gpr_expression, isoenzyme_count, reactants, products}}, {species_id: {display_name,
+    compartment}})."""
     tree = ET.parse(sbml_path)
     root = tree.getroot()
 
@@ -107,6 +153,16 @@ def parse_sbml(sbml_path):
         label = gp.get(f"{{{SBML_NS['fbc']}}}label") or ""
         if gp_id and label:
             gene_products[gp_id] = {"locus_tag": label, "gene_name": gp.get(f"{{{SBML_NS['fbc']}}}name") or ""}
+
+    species = {}
+    for sp in root.iterfind(f".//{{{SBML_NS['sbml']}}}species"):
+        species_id = sp.get("id")
+        if not species_id:
+            continue
+        species[species_id] = {
+            "display_name": sp.get("name") or species_id,
+            "compartment": sp.get("compartment") or "",
+        }
 
     reactions = {}
     for rxn in root.iterfind(f".//{{{SBML_NS['sbml']}}}reaction"):
@@ -124,9 +180,21 @@ def parse_sbml(sbml_path):
 
         genes = set()
         gpr_expression = ""
+        isoenzyme_count = 0
         gpa = rxn.find(f"{{{SBML_NS['fbc']}}}geneProductAssociation")
         if gpa is not None and len(gpa) > 0:
             genes, gpr_expression = _walk_gpr(gpa[0], gene_products)
+            isoenzyme_count = _count_isoenzymes(gpa[0])
+
+        reactants = []
+        list_of_reactants = rxn.find(f"{{{SBML_NS['sbml']}}}listOfReactants")
+        if list_of_reactants is not None:
+            reactants = _species_participants(list_of_reactants)
+
+        products = []
+        list_of_products = rxn.find(f"{{{SBML_NS['sbml']}}}listOfProducts")
+        if list_of_products is not None:
+            products = _species_participants(list_of_products)
 
         reactions[reaction_id] = {
             "name": reaction_id,
@@ -135,9 +203,12 @@ def parse_sbml(sbml_path):
             "reversible": (rxn.get("reversible") or "false").lower() == "true",
             "genes": genes,
             "gpr_expression": gpr_expression,
+            "isoenzyme_count": isoenzyme_count,
+            "reactants": reactants,
+            "products": products,
         }
 
-    return reactions
+    return reactions, species
 
 
 def parse_network_sif(sif_path):
@@ -161,6 +232,26 @@ def load_kegg_pathway_map():
         return json.load(f)
 
 
+def load_currency_metabolite_set():
+    """Bundled generic fallback (see tpweb/data/currency_metabolites.json). Returns a set of
+    uppercase BioCyc frame ids; empty set (not None) if the file is missing, since this is a
+    soft cosmetic default, not required data."""
+    if not os.path.isfile(CURRENCY_METABOLITES_PATH):
+        return set()
+    with open(CURRENCY_METABOLITES_PATH, encoding="utf-8") as f:
+        payload = json.load(f)
+    return {frame_id.upper() for frame_id in payload.get("currency_frame_ids", [])}
+
+
+def _is_currency_species(species_id, compartment, currency_set):
+    if not currency_set:
+        return False
+    decoded = _decode_sbml_id(species_id)
+    if compartment and decoded.upper().endswith("_" + compartment.upper()):
+        decoded = decoded[: -(len(compartment) + 1)]
+    return decoded.upper() in currency_set
+
+
 def _clean(value):
     if value is None:
         return None
@@ -180,6 +271,7 @@ class Command(BaseCommand):
         parser.add_argument("--network-sif", required=True, metavar="PATH")
         parser.add_argument("--overwrite", action="store_true")
         parser.add_argument("--dry-run", action="store_true")
+        parser.add_argument("--username", default=None, help="Attribute this import to a user (provenance only).")
 
     def handle(self, *args, **options):
         genome_name = options["genome_name"]
@@ -208,17 +300,18 @@ class Command(BaseCommand):
                 if not dry_run:
                     existing.delete()
 
-        self.stdout.write(self.style.HTTP_INFO("Step 1/4 - Parsing SBML ..."))
-        reactions_by_id = parse_sbml(sbml_path)
+        self.stdout.write(self.style.HTTP_INFO("Step 1/5 - Parsing SBML ..."))
+        reactions_by_id, species_by_id = parse_sbml(sbml_path)
         self.stdout.write(f"  {len(reactions_by_id)} reactions, "
-                           f"{sum(1 for r in reactions_by_id.values() if r['genes'])} with gene associations.")
+                           f"{sum(1 for r in reactions_by_id.values() if r['genes'])} with gene associations, "
+                           f"{len(species_by_id)} species.")
 
-        self.stdout.write(self.style.HTTP_INFO("Step 2/4 - Parsing network.sif ..."))
+        self.stdout.write(self.style.HTTP_INFO("Step 2/5 - Parsing network.sif ..."))
         sif_edges = parse_network_sif(sif_path)
         sif_nodes = {node for edge in sif_edges for node in edge}
         self.stdout.write(f"  {len(sif_edges)} edges across {len(sif_nodes)} nodes.")
 
-        self.stdout.write(self.style.HTTP_INFO("Step 3/4 - Parsing results TSV ..."))
+        self.stdout.write(self.style.HTTP_INFO("Step 3/5 - Parsing results TSV ..."))
         results_df = pd.read_csv(results_tsv, sep="\t", index_col=False, low_memory=False)
         if "gene" not in results_df.columns:
             raise CommandError("Results TSV must have a 'gene' column with locus tags.")
@@ -237,15 +330,34 @@ class Command(BaseCommand):
                 "without KEGG pathway names. Run `python manage.py fetch_kegg_pathway_map` "
                 "(requires internet access) to enable pathway membership."
             ))
+        currency_set = load_currency_metabolite_set()
 
-        self.stdout.write(self.style.HTTP_INFO("Step 4/4 - Writing to database ..."))
+        self.stdout.write(self.style.HTTP_INFO("Step 4/5 - Writing reactions/edges/chokepoints ..."))
         with transaction.atomic():
             reaction_objs = self._save_reactions(genome_accession, reactions_by_id, sif_nodes, kegg_map)
             self._save_gene_links(proteome, reaction_objs, reactions_by_id)
             self._save_edges(genome_accession, reaction_objs, sif_edges)
             self._apply_chokepoints(proteome, reaction_objs, results_df)
 
+        self.stdout.write(self.style.HTTP_INFO("Step 5/5 - Writing metabolites/stoichiometry ..."))
+        with transaction.atomic():
+            species_objs = self._save_species(genome_accession, species_by_id, currency_set)
+            self._save_participants(reaction_objs, species_objs, reactions_by_id)
+
         self._load_scalar_scores(genome_name, results_df, overwrite)
+
+        imported_by = None
+        if options["username"]:
+            imported_by = get_user_model().objects.filter(username=options["username"]).first()
+        MetabolicImportRun.objects.update_or_create(
+            genome_accession=genome_accession,
+            defaults={
+                "sbml_filename": os.path.basename(sbml_path),
+                "results_filename": os.path.basename(results_tsv),
+                "sif_filename": os.path.basename(sif_path),
+                "imported_by": imported_by,
+            },
+        )
 
         self.stdout.write(self.style.SUCCESS("Done."))
 
@@ -266,6 +378,7 @@ class Command(BaseCommand):
                     "kegg_reaction_id": data.get("kegg_reaction_id", ""),
                     "reversible": data.get("reversible", False),
                     "gpr_expression": data.get("gpr_expression", ""),
+                    "isoenzyme_count": data.get("isoenzyme_count", 0),
                 },
             )
             reaction_objs[reaction_id] = obj
@@ -324,6 +437,50 @@ class Command(BaseCommand):
 
         MetabolicReactionEdge.objects.bulk_create(edge_objs, ignore_conflicts=True, batch_size=1000)
 
+    def _save_species(self, genome_accession, species_by_id, currency_set):
+        species_objs = {}
+        for species_id, data in tqdm(species_by_id.items(), desc="species", file=sys.stderr):
+            compartment = data.get("compartment", "")
+            obj, _ = MetabolicSpecies.objects.update_or_create(
+                genome_accession=genome_accession,
+                species_id=species_id,
+                defaults={
+                    "display_name": data.get("display_name", species_id),
+                    "compartment": compartment,
+                    "is_currency": _is_currency_species(species_id, compartment, currency_set),
+                },
+            )
+            species_objs[species_id] = obj
+        return species_objs
+
+    def _save_participants(self, reaction_objs, species_objs, reactions_by_id):
+        missing_species = set()
+        participant_objs = []
+        for reaction_id, data in tqdm(reactions_by_id.items(), desc="participants", file=sys.stderr):
+            reaction_obj = reaction_objs.get(reaction_id)
+            if reaction_obj is None:
+                continue
+            for role, participants in (
+                (ReactionParticipant.ROLE_REACTANT, data.get("reactants") or []),
+                (ReactionParticipant.ROLE_PRODUCT, data.get("products") or []),
+            ):
+                for species_id, stoichiometry in participants:
+                    species_obj = species_objs.get(species_id)
+                    if species_obj is None:
+                        missing_species.add(species_id)
+                        continue
+                    participant_objs.append(ReactionParticipant(
+                        reaction=reaction_obj, species=species_obj,
+                        role=role, stoichiometry=stoichiometry,
+                    ))
+
+        ReactionParticipant.objects.bulk_create(participant_objs, ignore_conflicts=True, batch_size=1000)
+        if missing_species:
+            self.stderr.write(self.style.WARNING(
+                f"  {len(missing_species)} species referenced by reactions were not found in "
+                f"<listOfSpecies>, e.g. {sorted(missing_species)[:5]}"
+            ))
+
     def _apply_chokepoints(self, proteome, reaction_objs, results_df):
         for column, role in CHOKEPOINT_COLUMNS.items():
             if column not in results_df.columns:
@@ -358,6 +515,8 @@ class Command(BaseCommand):
             "PTOOLS_betweenness_centrality": results_df["PTOOLS_betweenness_centrality"],
             "metabolic_chokepoint": is_chokepoint.map({True: "Y", False: "N"}),
         })
+        if "PTOOLS_edges" in results_df.columns:
+            scores_df["PTOOLS_edges"] = results_df["PTOOLS_edges"]
 
         with tempfile.NamedTemporaryFile(mode="w", suffix=".tsv", delete=False, encoding="utf-8") as tmp:
             scores_df.to_csv(tmp, sep="\t", index=False)

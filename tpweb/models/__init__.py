@@ -10,7 +10,15 @@ from .CuratedImportJob import CuratedImportJob
 from .GenomeUpload import GenomeUpload
 from .PipelineRun import PipelineRun, PipelineStageEvent
 from .FilterPreset import FilterPreset
-from .Metabolism import MetabolicPathway, MetabolicReaction, GeneReactionLink, MetabolicReactionEdge
+from .Metabolism import (
+    MetabolicPathway,
+    MetabolicReaction,
+    GeneReactionLink,
+    MetabolicReactionEdge,
+    MetabolicImportRun,
+    MetabolicSpecies,
+    ReactionParticipant,
+)
 
 class TPUser(AbstractUser):
     """

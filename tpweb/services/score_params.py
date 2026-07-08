@@ -213,6 +213,18 @@ SYSTEM_SCORE_PARAM_DEFINITIONS = {
             "N": "Gene does not catalyze any chokepoint reaction.",
         },
     },
+    "PTOOLS_edges": {
+        "category": "Metabolism",
+        "description": (
+            "Degree (edge count) of this gene's reaction(s) in the full genome-scale metabolic "
+            "reaction network — how many other reactions it directly shares a metabolite with. "
+            "Higher values indicate a more densely connected reaction, independent of betweenness "
+            "centrality. Available only for genomes analyzed with the metabolic network pipeline."
+        ),
+        "type": "N",
+        "default_operation": ">=",
+        "default_value": "0",
+    },
 }
 
 

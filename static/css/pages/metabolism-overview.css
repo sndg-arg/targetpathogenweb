@@ -78,7 +78,7 @@
 }
 
 .metabolism-metric--hot strong {
-    color: #9a4b09;
+    color: var(--tp-color-amber-700);
 }
 
 .metabolism-panel {
@@ -121,8 +121,8 @@
     min-height: 22px;
     padding: 2px 8px;
     border-radius: 999px;
-    background: #e9f2f7;
-    color: #143b5c;
+    background: var(--tp-color-brand-050);
+    color: var(--tp-color-brand-900);
     font-size: 0.68rem;
     font-weight: 900;
     letter-spacing: 0.04em;
@@ -168,13 +168,13 @@
 }
 
 .metabolism-pathway-stats .is-hot {
-    border-color: #efc073;
-    background: #fff0d8;
-    color: #69400b;
+    border-color: var(--tp-color-amber-200);
+    background: var(--tp-color-amber-050);
+    color: var(--tp-color-amber-700);
 }
 
 .metabolism-pathway-stats .is-hot strong {
-    color: #9a4b09;
+    color: var(--tp-color-amber-700);
 }
 
 .metabolism-target-strip {
@@ -188,22 +188,22 @@
     gap: 2px;
     min-width: 148px;
     padding: 8px 10px;
-    border: 1px solid #c9d4dc;
+    border: 1px solid var(--tp-color-border-strong);
     border-radius: 8px;
-    background: #f8fbfc;
+    background: var(--tp-color-surface-soft);
     color: var(--tp-color-text-primary);
     text-decoration: none;
 }
 
 .metabolism-target-chip:hover {
-    border-color: var(--tp-color-brand-500);
+    border-color: var(--tp-color-brand-300);
     color: var(--tp-color-brand-900);
     text-decoration: none;
 }
 
 .metabolism-target-chip--hot {
-    border-color: #efc073;
-    background: #fff7e8;
+    border-color: var(--tp-color-amber-200);
+    background: var(--tp-color-amber-050);
 }
 
 .metabolism-target-id {
