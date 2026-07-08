@@ -1,88 +1,17 @@
+/* Metabolic pathways overview — hero reuses genome-overview.css as-is (same .genome-page/
+   .genome-hero/.metric-pill classes); this file only covers the pathway ranking list below it. */
+
 .metabolism-page {
-    display: grid;
-    gap: 16px;
-    color: var(--tp-color-text-primary);
     font-variant-numeric: tabular-nums;
 }
 
-.metabolism-page h1,
+.metric-pill--warm .metric-value {
+    color: var(--tp-color-amber-700);
+}
+
 .metabolism-page h2,
 .metabolism-page h3 {
-    font-family: "Space Grotesk", "Segoe UI", sans-serif;
     text-wrap: balance;
-}
-
-.metabolism-eyebrow {
-    margin: 6px 0 8px;
-    color: var(--tp-color-text-muted);
-    font-size: 0.7rem;
-    font-weight: 700;
-    letter-spacing: 0.09em;
-    text-transform: uppercase;
-}
-
-.metabolism-hero h1 {
-    margin: 0;
-    color: var(--tp-color-brand-900);
-    font-size: var(--tp-heading-lg);
-    line-height: 1.08;
-}
-
-.metabolism-subtitle {
-    margin: 6px 0 0;
-    color: var(--tp-color-text-secondary);
-    font-size: 0.95rem;
-    font-weight: 600;
-}
-
-.metabolism-description {
-    max-width: 640px;
-    margin: 3px 0 0;
-    color: var(--tp-color-text-muted);
-    font-size: 0.86rem;
-}
-
-.metabolism-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 16px;
-}
-
-.metabolism-metrics {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 10px;
-    margin-top: 18px;
-}
-
-.metabolism-metric {
-    padding: 12px 14px;
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: 10px;
-    background: var(--tp-color-surface-soft);
-}
-
-.metabolism-metric span {
-    display: block;
-    color: var(--tp-color-text-muted);
-    font-size: 0.68rem;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    margin-bottom: 4px;
-}
-
-.metabolism-metric strong {
-    display: block;
-    color: var(--tp-color-brand-900);
-    font-size: 1.5rem;
-    font-weight: 700;
-    line-height: 1;
-}
-
-.metabolism-metric--hot strong {
-    color: var(--tp-color-amber-700);
 }
 
 .metabolism-panel {
@@ -123,7 +52,7 @@
 .metabolism-pathway-card--top .metabolism-rank {
     border-color: var(--tp-color-brand-800);
     background: var(--tp-color-brand-800);
-    color: var(--tp-color-on-accent, #fff);
+    color: var(--tp-color-on-accent);
 }
 
 .metabolism-pathway-main {
