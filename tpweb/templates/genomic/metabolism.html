@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20260708-tokens2">
+    <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20260708-premium1">
 {% endblock %}
 
 {% block body %}
@@ -62,40 +62,58 @@
         {% if summary.pathways %}
         <div class="metabolism-pathway-list">
             {% for pathway in summary.pathways %}
-            <article class="metabolism-pathway-card">
-                <div class="metabolism-pathway-main">
-                    <div>
-                        <div class="metabolism-pathway-title">
-                            <span class="metabolism-source">{{ pathway.source }}</span>
-                            <h3>{{ pathway.name }}</h3>
+            <article class="metabolism-pathway-card{% if forloop.first %} metabolism-pathway-card--top{% endif %}">
+                <span class="metabolism-rank">{{ forloop.counter }}</span>
+                <div class="metabolism-pathway-body">
+                    <div class="metabolism-pathway-main">
+                        <div>
+                            <div class="metabolism-pathway-title">
+                                <span class="metabolism-source{% if pathway.source == 'MODEL' %} metabolism-source--model{% endif %}">{{ pathway.source }}</span>
+                                <h3>{{ pathway.name }}</h3>
+                            </div>
+                            <p class="metabolism-pathway-id">{{ pathway.external_id }}</p>
+                            <div class="metabolism-stat-row">
+                                <div class="metabolism-stat">
+                                    <span class="metabolism-stat-n">{{ pathway.reaction_count }}</span>
+                                    <span class="metabolism-stat-l">{% trans "Reactions" %}</span>
+                                </div>
+                                <div class="metabolism-stat">
+                                    <span class="metabolism-stat-n">{{ pathway.protein_count }}</span>
+                                    <span class="metabolism-stat-l">{% trans "Proteins" %}</span>
+                                </div>
+                                <div class="metabolism-stat">
+                                    <span class="metabolism-stat-n{% if pathway.chokepoint_count %} is-warm{% endif %}">{{ pathway.chokepoint_count }}</span>
+                                    <span class="metabolism-stat-l">{% trans "Chokepoints" %}</span>
+                                </div>
+                            </div>
                         </div>
-                        <p class="metabolism-pathway-id">{{ pathway.external_id }}</p>
+                        <div class="metabolism-score-block">
+                            <span class="metabolism-score-label">{% trans "Best target signal" %}</span>
+                            <span class="metabolism-score-n">{{ pathway.best_target_score }}</span>
+                            <div class="metabolism-score-track">
+                                <div class="metabolism-score-fill" style="width: {% widthratio pathway.best_target_score summary.max_best_target_score 100 %}%"></div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="metabolism-pathway-stats">
-                        <span><strong>{{ pathway.reaction_count }}</strong> {% trans "reactions" %}</span>
-                        <span><strong>{{ pathway.protein_count }}</strong> {% trans "proteins" %}</span>
-                        <span class="{% if pathway.chokepoint_count %}is-hot{% endif %}"><strong>{{ pathway.chokepoint_count }}</strong> {% trans "chokepoints" %}</span>
-                        <span><strong>{{ pathway.best_target_score }}</strong> {% trans "best target signal" %}</span>
-                    </div>
-                </div>
 
-                {% if pathway.top_targets %}
-                <div class="metabolism-target-strip">
-                    {% for target in pathway.top_targets %}
-                    <a href="{% url 'tpwebapp:protein' protein_id=target.protein_id %}"
-                       class="metabolism-target-chip{% if forloop.first %} metabolism-target-chip--top{% endif %}">
-                        <span class="metabolism-target-id">{{ target.accession }}</span>
-                        <span class="metabolism-target-meta">
-                            {% trans "drug" %} {{ target.druggability|floatformat:2 }}
-                            &middot; {% trans "cent" %} {{ target.centrality|floatformat:3 }}
-                            {% if target.is_chokepoint %} &middot; {% trans "chokepoint" %}{% endif %}
-                        </span>
-                    </a>
-                    {% endfor %}
+                    {% if pathway.top_targets %}
+                    <div class="metabolism-target-strip">
+                        {% for target in pathway.top_targets %}
+                        <a href="{% url 'tpwebapp:protein' protein_id=target.protein_id %}"
+                           class="metabolism-target-chip{% if forloop.first %} metabolism-target-chip--top{% endif %}">
+                            <span class="metabolism-target-id">{{ target.accession }}</span>
+                            <span class="metabolism-target-meta">
+                                {% trans "drug" %} {{ target.druggability|floatformat:2 }}
+                                &middot; {% trans "cent" %} {{ target.centrality|floatformat:3 }}
+                            </span>
+                            {% if target.is_chokepoint %}<span class="metabolism-chokepoint-dot" title="{% trans "Chokepoint" %}"></span>{% endif %}
+                        </a>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="tp-state-note tp-state-note--empty">{% trans "No protein-level target evidence is available for this pathway yet." %}</p>
+                    {% endif %}
                 </div>
-                {% else %}
-                <p class="tp-state-note tp-state-note--empty">{% trans "No protein-level target evidence is available for this pathway yet." %}</p>
-                {% endif %}
             </article>
             {% endfor %}
         </div>

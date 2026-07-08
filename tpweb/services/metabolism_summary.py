@@ -213,6 +213,7 @@ def build_genome_metabolism_summary(assembly_name, user=None, formula_name=None,
         key=lambda p: (p["chokepoint_count"], p["best_target_score"], p["protein_count"], p["reaction_count"]),
         reverse=True,
     )
+    max_best_target_score = max((p["best_target_score"] for p in pathways), default=0.0)
 
     return {
         "pathways": pathways,
@@ -221,4 +222,5 @@ def build_genome_metabolism_summary(assembly_name, user=None, formula_name=None,
         "protein_count": len(total_proteins),
         "chokepoint_count": len(total_chokepoints),
         "active_formula_name": active_formula.name if active_formula else None,
+        "max_best_target_score": max_best_target_score,
     }
