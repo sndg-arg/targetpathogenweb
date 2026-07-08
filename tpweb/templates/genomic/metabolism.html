@@ -4,7 +4,7 @@
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20260610-4">
-    <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20260708-premium3">
+    <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20260708-premium4">
 {% endblock %}
 
 {% block body %}
@@ -45,7 +45,7 @@
         </div>
     </section>
 
-    <section class="metabolism-panel tp-ui-panel">
+    <section class="genome-card metabolism-panel tp-ui-panel">
         <div class="section-head tp-ui-panel-head">
             <div>
                 <h2>{% trans "Pathway target space" %}</h2>
@@ -63,7 +63,7 @@
         <div class="metabolism-pathway-list">
             {% for pathway in summary.pathways %}
             <article class="metabolism-pathway-card{% if forloop.first %} metabolism-pathway-card--top{% endif %}">
-                <span class="metabolism-rank">{{ forloop.counter }}</span>
+                <span class="metabolism-rank">#{{ forloop.counter }}</span>
                 <div class="metabolism-pathway-body">
                     <div class="metabolism-pathway-main">
                         <div>

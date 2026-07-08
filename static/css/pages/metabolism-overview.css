@@ -14,46 +14,39 @@
     text-wrap: balance;
 }
 
-.metabolism-panel {
-    padding: 16px;
-    overflow: hidden;
-}
-
 .metabolism-pathway-list {
-    display: grid;
+    display: flex;
+    flex-direction: column;
     gap: 10px;
     margin-top: 16px;
 }
 
 .metabolism-pathway-card {
     display: grid;
-    grid-template-columns: 30px 1fr;
+    grid-template-columns: 28px 1fr;
     gap: 12px;
     padding: 14px 16px;
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: 14px;
-    background: var(--tp-color-surface-soft);
+    border-radius: 10px;
+    background: var(--tp-color-surface);
+    transition: border-color 140ms ease;
+}
+
+.metabolism-pathway-card:hover {
+    border-color: var(--tp-color-border-strong);
 }
 
 .metabolism-rank {
-    display: flex;
-    align-items: center;
-    justify-content: center;
     align-self: start;
-    width: 30px;
-    height: 30px;
-    border-radius: 999px;
-    border: 1px solid var(--tp-color-border-strong);
-    background: var(--tp-color-surface);
-    color: var(--tp-color-text-secondary);
-    font-size: 0.78rem;
-    font-weight: 700;
+    min-width: 28px;
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--tp-color-text-muted);
 }
 
 .metabolism-pathway-card--top .metabolism-rank {
-    border-color: var(--tp-color-brand-800);
-    background: var(--tp-color-brand-800);
-    color: var(--tp-color-on-accent);
+    color: var(--genome-accent-ink);
 }
 
 .metabolism-pathway-main {
@@ -89,8 +82,9 @@
 
 .metabolism-pathway-title h3 {
     margin: 0;
-    color: var(--tp-color-text-primary);
-    font-size: 1.02rem;
+    color: var(--genome-accent-ink);
+    font-size: var(--tp-heading-sm);
+    font-weight: 600;
     line-height: 1.2;
 }
 
@@ -113,10 +107,10 @@
 
 .metabolism-stat-n {
     display: block;
-    font-size: 0.98rem;
-    font-weight: 700;
+    font-size: 0.9rem;
+    font-weight: 600;
     color: var(--tp-color-text-primary);
-    line-height: 1.1;
+    line-height: 1.2;
 }
 
 .metabolism-stat-n.is-warm {
@@ -126,10 +120,10 @@
 .metabolism-stat-l {
     display: block;
     margin-top: 1px;
-    color: var(--tp-color-text-soft);
-    font-size: 0.66rem;
-    font-weight: 700;
-    letter-spacing: 0.05em;
+    color: var(--tp-color-text-muted);
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
     text-transform: uppercase;
 }
 
@@ -139,24 +133,29 @@
 
 .metabolism-score-label {
     display: block;
-    color: var(--tp-color-text-soft);
-    font-size: 0.66rem;
-    font-weight: 700;
-    letter-spacing: 0.05em;
+    color: var(--tp-color-text-muted);
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
     text-transform: uppercase;
 }
 
 .metabolism-score-n {
-    display: block;
-    margin-top: 3px;
-    color: var(--tp-color-brand-800);
-    font-size: 0.98rem;
-    font-weight: 700;
+    display: inline-block;
+    margin-top: 4px;
+    padding: 5px 10px;
+    border: 1px solid var(--genome-accent-border);
+    border-radius: 8px;
+    background: var(--genome-accent-soft);
+    color: var(--genome-accent-ink);
+    font-size: 0.9rem;
+    font-weight: 600;
+    line-height: 1;
 }
 
 .metabolism-score-track {
-    height: 5px;
-    margin-top: 6px;
+    height: 4px;
+    margin-top: 8px;
     border-radius: 3px;
     background: var(--tp-color-border-soft);
     overflow: hidden;
@@ -165,7 +164,7 @@
 .metabolism-score-fill {
     height: 100%;
     border-radius: 3px;
-    background: linear-gradient(90deg, var(--tp-color-brand-600), var(--tp-color-brand-800));
+    background: var(--genome-accent, var(--tp-color-brand-800));
 }
 
 .metabolism-target-strip {
@@ -228,15 +227,6 @@
 }
 
 @media (max-width: 720px) {
-    .metabolism-pathway-card {
-        grid-template-columns: 26px 1fr;
-    }
-
-    .metabolism-rank {
-        width: 26px;
-        height: 26px;
-    }
-
     .metabolism-stat-row {
         gap: 14px;
     }
