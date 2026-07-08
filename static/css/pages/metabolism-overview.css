@@ -201,9 +201,13 @@
     text-decoration: none;
 }
 
-.metabolism-target-chip--hot {
-    border-color: var(--tp-color-amber-200);
-    background: var(--tp-color-amber-050);
+.metabolism-target-chip--top {
+    border-color: var(--tp-color-brand-300);
+    background: var(--tp-color-brand-050);
+}
+
+.metabolism-target-chip--top .metabolism-target-id {
+    color: var(--tp-color-brand-900);
 }
 
 .metabolism-target-id {

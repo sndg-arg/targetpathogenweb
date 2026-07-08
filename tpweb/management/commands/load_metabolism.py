@@ -67,6 +67,16 @@ SBML_NS = {
 KEGG_PATHWAY_MAP_PATH = os.path.join("tpweb", "data", "kegg_reaction_pathways.json")
 CURRENCY_METABOLITES_PATH = os.path.join("tpweb", "data", "currency_metabolites.json")
 
+# KEGG's own "1.0 Global and overview maps" category (https://www.kegg.jp/kegg/pathway.html) --
+# these are cross-cutting reference charts (nearly every metabolic reaction belongs to
+# "Metabolic pathways" map01100), not specific biological pathways. Attaching them would let
+# them dominate every reaction/protein's pathway list and any ranking by pathway size, drowning
+# out the specific, actionable pathways (e.g. "Lysine biosynthesis") we actually want to surface.
+KEGG_OVERVIEW_MAP_IDS = {
+    "map01100", "map01110", "map01120", "map01200", "map01210", "map01212",
+    "map01230", "map01232", "map01250", "map01240", "map01220",
+}
+
 CHOKEPOINT_COLUMNS = {
     "PTOOLS_producing_chokepoints": GeneReactionLink.CHOKEPOINT_PRODUCING,
     "PTOOLS_consuming_chokepoints": GeneReactionLink.CHOKEPOINT_CONSUMING,
@@ -386,6 +396,8 @@ class Command(BaseCommand):
             kegg_id = data.get("kegg_reaction_id")
             if kegg_id and kegg_map:
                 for pathway_id in kegg_map.get("reaction_pathways", {}).get(kegg_id, []):
+                    if pathway_id in KEGG_OVERVIEW_MAP_IDS:
+                        continue
                     pathway_name = kegg_map.get("pathway_names", {}).get(pathway_id, pathway_id)
                     pathway_obj, _ = MetabolicPathway.objects.get_or_create(
                         source=MetabolicPathway.SOURCE_KEGG,

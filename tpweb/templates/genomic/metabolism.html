@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20260708-tokens1">
+    <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20260708-tokens2">
 {% endblock %}
 
 {% block body %}
@@ -83,7 +83,7 @@
                 <div class="metabolism-target-strip">
                     {% for target in pathway.top_targets %}
                     <a href="{% url 'tpwebapp:protein' protein_id=target.protein_id %}"
-                       class="metabolism-target-chip{% if target.is_chokepoint %} metabolism-target-chip--hot{% endif %}">
+                       class="metabolism-target-chip{% if forloop.first %} metabolism-target-chip--top{% endif %}">
                         <span class="metabolism-target-id">{{ target.accession }}</span>
                         <span class="metabolism-target-meta">
                             {% trans "drug" %} {{ target.druggability|floatformat:2 }}
