@@ -1,0 +1,101 @@
+{% extends '../base/masterpage.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block head %}
+    <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20260707-1">
+{% endblock %}
+
+{% block body %}
+<div class="metabolism-page">
+    <section class="metabolism-hero tp-page-hero">
+        <div class="tp-view-head">
+            <div class="tp-view-head-copy">
+                {% trans "Genomes" as crumb_genomes %}
+                {% url 'tpwebapp:index' as index_url %}
+                {% url 'tpwebapp:genomes_list' as genomes_url %}
+                {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=assembly.name crumb_3_url=assembly_url crumb_4_label="Metabolism" %}
+                <p class="metabolism-eyebrow">{% trans "Genome-wide metabolic prioritization" %}</p>
+                <h1>{% trans "Metabolic pathways" %}</h1>
+                <p class="metabolism-subtitle">{{ assembly.name }}</p>
+                {% if assembly.description %}<p class="metabolism-description">{{ assembly.description }}</p>{% endif %}
+                <div class="metabolism-actions">
+                    <a href="{{ proteins_url }}" class="btn tp-btn tp-btn--primary">{% trans "Protein ranking" %}</a>
+                    <a href="{{ assembly_url }}" class="btn tp-btn tp-btn--outline">{% trans "Genome overview" %}</a>
+                </div>
+            </div>
+        </div>
+        <div class="metabolism-metrics" aria-label="{% trans 'Metabolic summary' %}">
+            <div class="metabolism-metric">
+                <span>{% trans "Pathways" %}</span>
+                <strong>{{ summary.pathway_count }}</strong>
+            </div>
+            <div class="metabolism-metric">
+                <span>{% trans "Reactions" %}</span>
+                <strong>{{ summary.reaction_count }}</strong>
+            </div>
+            <div class="metabolism-metric">
+                <span>{% trans "Mapped proteins" %}</span>
+                <strong>{{ summary.protein_count }}</strong>
+            </div>
+            <div class="metabolism-metric metabolism-metric--hot">
+                <span>{% trans "Chokepoint reactions" %}</span>
+                <strong>{{ summary.chokepoint_count }}</strong>
+            </div>
+        </div>
+    </section>
+
+    <section class="metabolism-panel tp-ui-panel">
+        <div class="section-head tp-ui-panel-head">
+            <div>
+                <h2>{% trans "Pathway target space" %}</h2>
+                <p class="section-subtitle">{% trans "Routes ranked by chokepoint density and best available target evidence. Top proteins link back to the target detail page." %}</p>
+            </div>
+        </div>
+
+        {% if summary.pathways %}
+        <div class="metabolism-pathway-list">
+            {% for pathway in summary.pathways %}
+            <article class="metabolism-pathway-card">
+                <div class="metabolism-pathway-main">
+                    <div>
+                        <div class="metabolism-pathway-title">
+                            <span class="metabolism-source">{{ pathway.source }}</span>
+                            <h3>{{ pathway.name }}</h3>
+                        </div>
+                        <p class="metabolism-pathway-id">{{ pathway.external_id }}</p>
+                    </div>
+                    <div class="metabolism-pathway-stats">
+                        <span><strong>{{ pathway.reaction_count }}</strong> {% trans "reactions" %}</span>
+                        <span><strong>{{ pathway.protein_count }}</strong> {% trans "proteins" %}</span>
+                        <span class="{% if pathway.chokepoint_count %}is-hot{% endif %}"><strong>{{ pathway.chokepoint_count }}</strong> {% trans "chokepoints" %}</span>
+                        <span><strong>{{ pathway.best_target_score }}</strong> {% trans "best target signal" %}</span>
+                    </div>
+                </div>
+
+                {% if pathway.top_targets %}
+                <div class="metabolism-target-strip">
+                    {% for target in pathway.top_targets %}
+                    <a href="{% url 'tpwebapp:protein' protein_id=target.protein_id %}"
+                       class="metabolism-target-chip{% if target.is_chokepoint %} metabolism-target-chip--hot{% endif %}">
+                        <span class="metabolism-target-id">{{ target.accession }}</span>
+                        <span class="metabolism-target-meta">
+                            {% trans "drug" %} {{ target.druggability|floatformat:2 }}
+                            &middot; {% trans "cent" %} {{ target.centrality|floatformat:3 }}
+                            {% if target.is_chokepoint %} &middot; {% trans "chokepoint" %}{% endif %}
+                        </span>
+                    </a>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="tp-state-note tp-state-note--empty">{% trans "No protein-level target evidence is available for this pathway yet." %}</p>
+                {% endif %}
+            </article>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="tp-state-note tp-state-note--empty">{% trans "No metabolic pathway annotations are loaded for this genome." %}</p>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}
