@@ -34,7 +34,10 @@ class MetabolismNetworkView(View):
         genome_accession = assembly_name
         node_ids, edge_pairs = self._expand_neighborhood(genome_accession, focal_reaction_ids)
 
-        reactions = {r.id: r for r in MetabolicReaction.objects.filter(id__in=node_ids)}
+        reactions = {
+            r.id: r
+            for r in MetabolicReaction.objects.filter(id__in=node_ids).prefetch_related("pathways")
+        }
         edge_pairs = {(a, b) for a, b in edge_pairs if a in reactions and b in reactions}
 
         genes_by_reaction = {}
@@ -92,6 +95,10 @@ class MetabolismNetworkView(View):
             "reversible": reaction.reversible,
             "chokepoint_role": chokepoint_role,
             "isoenzyme_count": reaction.isoenzyme_count,
+            "pathways": [
+                {"source": p.source, "external_id": p.external_id, "name": p.name}
+                for p in reaction.pathways.all()
+            ],
             "is_focal": reaction_id in focal_reaction_ids,
             "degree": sum(1 for a, b in edge_pairs if reaction_id in (a, b)),
             "genes": [
