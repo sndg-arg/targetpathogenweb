@@ -3473,4 +3473,8 @@ body.residue-modal-open {
     #metabolic-network-cy {
         height: 430px;
     }
+
+    #viewport {
+        min-height: 360px;
+    }
 }
