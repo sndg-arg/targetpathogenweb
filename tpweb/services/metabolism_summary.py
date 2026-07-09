@@ -57,6 +57,13 @@ def _to_float(value, default=0.0):
         return default
 
 
+def _progress_width(value, min_value, max_value):
+    if max_value <= min_value:
+        return 100 if value > 0 else 0
+    width = 100 * (value - min_value) / (max_value - min_value)
+    return max(0, min(100, round(width, 1)))
+
+
 def _score_maps(proteome_name):
     score_rows = (
         ScoreParamValue.objects
@@ -198,6 +205,9 @@ def build_genome_metabolism_summary(assembly_name, user=None, formula_name=None,
         total_proteins.update(bucket["protein_ids"])
         total_chokepoints.update(bucket["chokepoint_reaction_ids"])
         best_score = top_targets[0]["target_score"] if top_targets else 0.0
+        target_scores = [target["target_score"] for target in bucket["target_rows"].values()]
+        mean_score = sum(target_scores) / len(target_scores) if target_scores else 0.0
+        chokepoint_density = chokepoint_count / reaction_count if reaction_count else 0.0
         pathways.append({
             "source": bucket["source"],
             "external_id": bucket["external_id"],
@@ -205,15 +215,32 @@ def build_genome_metabolism_summary(assembly_name, user=None, formula_name=None,
             "reaction_count": reaction_count,
             "protein_count": protein_count,
             "chokepoint_count": chokepoint_count,
+            "chokepoint_density": round(chokepoint_density, 3),
+            "chokepoint_density_pct": round(100 * chokepoint_density, 1),
             "best_target_score": round(best_score, 3),
+            "mean_target_score": round(mean_score, 3),
             "top_targets": top_targets,
         })
 
     pathways.sort(
-        key=lambda p: (p["chokepoint_count"], p["best_target_score"], p["protein_count"], p["reaction_count"]),
+        key=lambda p: (
+            p["chokepoint_density"],
+            p["best_target_score"],
+            p["chokepoint_count"],
+            p["protein_count"],
+            p["reaction_count"],
+        ),
         reverse=True,
     )
-    max_best_target_score = max((p["best_target_score"] for p in pathways), default=0.0)
+    positive_best_scores = [p["best_target_score"] for p in pathways if p["best_target_score"] > 0]
+    min_positive_score = min(positive_best_scores, default=0.0)
+    max_positive_score = max(positive_best_scores, default=0.0)
+    for pathway in pathways:
+        pathway["best_target_score_width"] = _progress_width(
+            pathway["best_target_score"],
+            min_positive_score,
+            max_positive_score,
+        )
 
     return {
         "pathways": pathways,
@@ -222,5 +249,4 @@ def build_genome_metabolism_summary(assembly_name, user=None, formula_name=None,
         "protein_count": len(total_proteins),
         "chokepoint_count": len(total_chokepoints),
         "active_formula_name": active_formula.name if active_formula else None,
-        "max_best_target_score": max_best_target_score,
     }

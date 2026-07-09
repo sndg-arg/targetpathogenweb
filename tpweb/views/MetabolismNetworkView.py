@@ -32,7 +32,7 @@ class MetabolismNetworkView(View):
             return JsonResponse({"nodes": [], "edges": []})
 
         genome_accession = assembly_name
-        node_ids, edge_pairs = self._expand_neighborhood(genome_accession, focal_reaction_ids)
+        node_ids, edge_pairs, truncated = self._expand_neighborhood(genome_accession, focal_reaction_ids)
 
         reactions = {
             r.id: r
@@ -53,16 +53,26 @@ class MetabolismNetworkView(View):
             {"source": reactions[a].reaction_id, "target": reactions[b].reaction_id}
             for a, b in edge_pairs
         ]
-        return JsonResponse({"nodes": nodes, "edges": edges})
+        return JsonResponse({
+            "nodes": nodes,
+            "edges": edges,
+            "meta": {
+                "max_hops": MAX_HOPS,
+                "max_nodes": MAX_NODES,
+                "is_truncated": truncated,
+            },
+        })
 
     @staticmethod
     def _expand_neighborhood(genome_accession, focal_reaction_ids):
         node_ids = set(focal_reaction_ids)
         frontier = set(focal_reaction_ids)
         edge_pairs = set()
+        truncated = False
 
         for _ in range(MAX_HOPS):
             if not frontier or len(node_ids) >= MAX_NODES:
+                truncated = bool(frontier and len(node_ids) >= MAX_NODES)
                 break
             neighbor_edges = MetabolicReactionEdge.objects.filter(
                 genome_accession=genome_accession,
@@ -77,9 +87,11 @@ class MetabolismNetworkView(View):
                     if node_id not in node_ids and len(node_ids) < MAX_NODES:
                         node_ids.add(node_id)
                         next_frontier.add(node_id)
+                    elif node_id not in node_ids:
+                        truncated = True
             frontier = next_frontier
 
-        return node_ids, edge_pairs
+        return node_ids, edge_pairs, truncated
 
     @staticmethod
     def _serialize_node(reaction_id, reaction, links, edge_pairs, focal_reaction_ids, current_protein_id):

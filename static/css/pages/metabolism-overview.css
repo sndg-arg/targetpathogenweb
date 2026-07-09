@@ -170,6 +170,14 @@
     line-height: 1;
 }
 
+.metabolism-score-sub {
+    display: block;
+    margin-top: 5px;
+    color: var(--tp-color-text-muted);
+    font-size: 0.72rem;
+    font-weight: 600;
+}
+
 .metabolism-score-track {
     height: 4px;
     margin-top: 8px;

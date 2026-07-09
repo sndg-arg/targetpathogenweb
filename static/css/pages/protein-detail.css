@@ -3433,6 +3433,15 @@ body.residue-modal-open {
     pointer-events: none;
 }
 
+.metabolic-network-note {
+    padding: 8px 12px 10px;
+    border-top: 1px solid var(--tp-color-border-soft);
+    color: var(--tp-color-text-muted);
+    background: var(--tp-color-surface);
+    font-size: 0.75rem;
+    line-height: 1.35;
+}
+
 .metabolic-network-loading,
 .metabolic-network-empty,
 .metabolic-network-error {

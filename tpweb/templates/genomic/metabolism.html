@@ -4,7 +4,7 @@
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20260610-4">
-    <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20260709-search1">
+    <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20260709-ranking1">
 {% endblock %}
 
 {% block body %}
@@ -89,13 +89,18 @@
                                     <span class="metabolism-stat-n{% if pathway.chokepoint_count %} is-warm{% endif %}">{{ pathway.chokepoint_count }}</span>
                                     <span class="metabolism-stat-l">{% trans "Chokepoints" %}</span>
                                 </div>
+                                <div class="metabolism-stat">
+                                    <span class="metabolism-stat-n{% if pathway.chokepoint_count %} is-warm{% endif %}">{{ pathway.chokepoint_density_pct }}%</span>
+                                    <span class="metabolism-stat-l">{% trans "Density" %}</span>
+                                </div>
                             </div>
                         </div>
                         <div class="metabolism-score-block">
                             <span class="metabolism-score-label">{% trans "Best target signal" %}</span>
                             <span class="metabolism-score-n">{{ pathway.best_target_score }}</span>
+                            <span class="metabolism-score-sub">{% trans "mean" %} {{ pathway.mean_target_score }}</span>
                             <div class="metabolism-score-track">
-                                <div class="metabolism-score-fill" style="width: {% widthratio pathway.best_target_score summary.max_best_target_score 100 %}%"></div>
+                                <div class="metabolism-score-fill" style="width: {{ pathway.best_target_score_width }}%"></div>
                             </div>
                         </div>
                     </div>

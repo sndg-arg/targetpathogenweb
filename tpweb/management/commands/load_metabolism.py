@@ -27,7 +27,10 @@ python manage.py load_metabolism public__KpATCC43816 \\
     --sbml KpATCC43816.sbml \\
     --metabolic-results-tsv KpATCC43816_results_table.tsv \\
     --network-sif network.sif \\
-    [--overwrite] [--dry-run]
+    [--dry-run]
+
+Every non-dry-run import replaces the existing metabolic rows for the genome. `--overwrite`
+is still accepted for compatibility with older scripts.
 """
 
 import json
@@ -303,13 +306,6 @@ class Command(BaseCommand):
         # Bare accession (no owner/prot suffix) used to scope reaction rows for this genome.
         genome_accession = genome_name
 
-        if overwrite:
-            existing = MetabolicReaction.objects.filter(genome_accession=genome_accession)
-            if existing.exists():
-                self.stdout.write(f"--overwrite: deleting {existing.count()} existing reactions for {genome_accession}")
-                if not dry_run:
-                    existing.delete()
-
         self.stdout.write(self.style.HTTP_INFO("Step 1/5 - Parsing SBML ..."))
         reactions_by_id, species_by_id = parse_sbml(sbml_path)
         self.stdout.write(f"  {len(reactions_by_id)} reactions, "
@@ -342,6 +338,11 @@ class Command(BaseCommand):
             ))
         currency_set = load_currency_metabolite_set()
 
+        if overwrite:
+            self.stdout.write("--overwrite is accepted for compatibility; metabolism imports now replace "
+                              "the existing rows for this genome on every run.")
+        self._clear_existing_metabolism(genome_accession)
+
         self.stdout.write(self.style.HTTP_INFO("Step 4/5 - Writing reactions/edges/chokepoints ..."))
         with transaction.atomic():
             reaction_objs = self._save_reactions(genome_accession, reactions_by_id, sif_nodes, kegg_map)
@@ -354,7 +355,7 @@ class Command(BaseCommand):
             species_objs = self._save_species(genome_accession, species_by_id, currency_set)
             self._save_participants(reaction_objs, species_objs, reactions_by_id)
 
-        self._load_scalar_scores(genome_name, results_df, overwrite)
+        self._load_scalar_scores(genome_name, results_df, overwrite=True)
 
         imported_by = None
         if options["username"]:
@@ -372,6 +373,20 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS("Done."))
 
     # ------------------------------------------------------------------
+
+    def _clear_existing_metabolism(self, genome_accession):
+        existing_reactions = MetabolicReaction.objects.filter(genome_accession=genome_accession)
+        existing_species = MetabolicSpecies.objects.filter(genome_accession=genome_accession)
+        reaction_count = existing_reactions.count()
+        species_count = existing_species.count()
+        if reaction_count or species_count:
+            self.stdout.write(
+                f"Replacing existing metabolic rows for {genome_accession}: "
+                f"{reaction_count} reactions, {species_count} species."
+            )
+            existing_reactions.delete()
+            existing_species.delete()
+        MetabolicImportRun.objects.filter(genome_accession=genome_accession).delete()
 
     def _save_reactions(self, genome_accession, reactions_by_id, sif_nodes, kegg_map):
         reaction_objs = {}

@@ -154,6 +154,23 @@
         });
     }
 
+    function updateNetworkNote(container, payload) {
+        var note = container.parentElement.querySelector(".metabolic-network-note");
+        if (!note) {
+            note = document.createElement("div");
+            note.className = "metabolic-network-note";
+            container.parentElement.appendChild(note);
+        }
+        var meta = payload.meta || {};
+        var baseText = "Two-hop reaction neighborhood around this protein; pathway boxes use one primary KEGG route per reaction when several mappings exist.";
+        if (meta.is_truncated) {
+            note.textContent = baseText + " Display is capped at " + meta.max_nodes + " reactions for readability; use the genome-wide pathway page for route-level ranking.";
+        } else {
+            note.textContent = baseText;
+        }
+        note.hidden = false;
+    }
+
     function navigateToNeighborGene(nodeData) {
         var genes = nodeData.genes || [];
         var target = genes.find(function (g) { return !g.is_current_protein && g.url; });
@@ -313,6 +330,7 @@
                     setState("metabolic-network-empty", "No neighboring metabolic reactions were found.");
                     return;
                 }
+                updateNetworkNote(container, payload);
                 container.classList.remove("metabolic-network-loading", "metabolic-network-empty", "metabolic-network-error");
                 container.textContent = "";
 
