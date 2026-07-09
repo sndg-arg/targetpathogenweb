@@ -4,7 +4,7 @@
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20260610-4">
-    <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20260708-premium4">
+    <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20260709-search1">
 {% endblock %}
 
 {% block body %}
@@ -60,9 +60,13 @@
         </div>
 
         {% if summary.pathways %}
-        <div class="metabolism-pathway-list">
+        <div class="tp-ui-search-row metabolism-pathway-search">
+            <input type="text" id="metabolism-pathway-search-input" class="form-control tp-ui-search-input" placeholder="{% trans "Search by pathway name..." %}" aria-label="{% trans "Search by pathway name" %}">
+        </div>
+        <p id="metabolism-pathway-empty" class="tp-state-note tp-state-note--empty metabolism-pathway-search-empty">{% trans "No pathway matches your search." %}</p>
+        <div class="metabolism-pathway-list" id="metabolism-pathway-list">
             {% for pathway in summary.pathways %}
-            <article class="metabolism-pathway-card{% if forloop.first %} metabolism-pathway-card--top{% endif %}">
+            <article class="metabolism-pathway-card{% if forloop.first %} metabolism-pathway-card--top{% endif %}" data-name="{{ pathway.name|lower }}" data-external-id="{{ pathway.external_id|lower }}">
                 <span class="metabolism-rank">#{{ forloop.counter }}</span>
                 <div class="metabolism-pathway-body">
                     <div class="metabolism-pathway-main">
@@ -122,4 +126,29 @@
         {% endif %}
     </section>
 </div>
+
+<script>
+(function () {
+    var searchInput = document.getElementById("metabolism-pathway-search-input");
+    var list = document.getElementById("metabolism-pathway-list");
+    var emptyState = document.getElementById("metabolism-pathway-empty");
+    if (!searchInput || !list) return;
+    var cards = Array.prototype.slice.call(list.querySelectorAll(".metabolism-pathway-card"));
+
+    function updateEmptyState() {
+        var visibleCount = cards.filter(function (card) { return !card.hidden; }).length;
+        if (emptyState) emptyState.classList.toggle("is-visible", visibleCount === 0);
+    }
+
+    searchInput.addEventListener("input", function () {
+        var query = searchInput.value.trim().toLowerCase();
+        cards.forEach(function (card) {
+            var name = card.getAttribute("data-name") || "";
+            var externalId = card.getAttribute("data-external-id") || "";
+            card.hidden = Boolean(query) && name.indexOf(query) === -1 && externalId.indexOf(query) === -1;
+        });
+        updateEmptyState();
+    });
+})();
+</script>
 {% endblock %}
