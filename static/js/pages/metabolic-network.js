@@ -32,10 +32,11 @@
         return 16 + Math.min(degree || 0, 10) * 2.4;
     }
 
-    function compactReactionLabel(label) {
+    function compactReactionLabel(label, max) {
         label = label || "";
-        if (label.length <= 22) return label;
-        return label.slice(0, 20) + "...";
+        max = max || 22;
+        if (label.length <= max) return label;
+        return label.slice(0, max - 3) + "...";
     }
 
     function escapeHtml(value) {
@@ -98,7 +99,7 @@
                 data: {
                     id: node.id,
                     label: node.name,
-                    displayLabel: isLabeled ? compactReactionLabel(node.name) : "",
+                    displayLabel: compactReactionLabel(node.name, isLabeled ? 22 : 15),
                     ecNumbers: node.ec_numbers,
                     keggReactionId: node.kegg_reaction_id,
                     reversible: node.reversible,
@@ -208,20 +209,20 @@
                     "background-fill": "radial-gradient",
                     "background-gradient-stop-colors": palette.surfaceSoft + " " + palette.ring,
                     "background-gradient-stop-positions": "0 100",
-                    "border-width": 1.6,
+                    "border-width": 1.8,
                     "border-color": palette.plain,
-                    "border-opacity": 0.85,
+                    "border-opacity": 0.9,
                     "label": "data(displayLabel)",
-                    "color": palette.text,
-                    "font-size": 10,
-                    "font-weight": 700,
+                    "color": palette.textFaint,
+                    "font-size": 9.5,
+                    "font-weight": 600,
                     "text-valign": "bottom",
                     "text-margin-y": 5,
                     "text-wrap": "ellipsis",
                     "text-max-width": "110px",
                     "text-outline-color": palette.ring,
                     "text-outline-width": 3,
-                    "opacity": 0.92,
+                    "opacity": 0.95,
                     "transition-property": "opacity, border-width, border-color, width, height, background-color",
                     "transition-duration": "140ms",
                     "transition-timing-function": "ease-out"
@@ -233,9 +234,10 @@
                     "shape": "diamond",
                     "background-gradient-stop-colors": palette.chokepointSoft + " " + palette.ring,
                     "border-color": palette.chokepoint,
-                    "border-width": 1.8,
+                    "border-width": 2,
                     "color": palette.chokepoint,
-                    "font-weight": 700,
+                    "font-size": 10.5,
+                    "font-weight": 800,
                     "opacity": 1,
                     "z-index": 10
                 }
@@ -245,10 +247,11 @@
                 style: {
                     "background-gradient-stop-colors": palette.focalSoft + " " + palette.ring,
                     "border-color": palette.focal,
-                    "width": 32,
-                    "height": 32,
-                    "font-weight": 700,
-                    "border-width": 3,
+                    "width": 34,
+                    "height": 34,
+                    "font-size": 11.5,
+                    "font-weight": 800,
+                    "border-width": 3.2,
                     "color": palette.text,
                     "opacity": 1,
                     "z-index": 20
@@ -280,10 +283,10 @@
             {
                 selector: "edge",
                 style: {
-                    "width": 1.4,
+                    "width": 1.7,
                     "line-color": palette.edge,
                     "curve-style": "bezier",
-                    "opacity": 0.55,
+                    "opacity": 0.7,
                     "line-cap": "round",
                     "transition-property": "opacity, width, line-color",
                     "transition-duration": "140ms"
@@ -318,17 +321,17 @@
                 style: {
                     "shape": "round-rectangle",
                     "background-opacity": 1,
-                    "border-width": 1,
-                    "border-opacity": 0.9,
+                    "border-width": 1.5,
+                    "border-opacity": 1,
                     "padding": "26px",
                     "corner-radius": 12,
                     "label": "data(label)",
                     "text-valign": "top",
                     "text-halign": "left",
                     "text-margin-x": 8,
-                    "text-margin-y": -16,
-                    "font-size": 11,
-                    "font-weight": 700,
+                    "text-margin-y": -18,
+                    "font-size": 12.5,
+                    "font-weight": 800,
                     "text-transform": "uppercase",
                     "text-outline-color": palette.ring,
                     "text-outline-width": 2
@@ -411,16 +414,16 @@
                         animate: true,
                         animationDuration: 800,
                         animationEasing: "ease-out-cubic",
-                        nodeRepulsion: 10500,
-                        idealEdgeLength: 100,
-                        nodeSeparation: 70,
-                        gravity: 0.24,
-                        padding: 44,
-                        componentSpacing: 90
+                        nodeRepulsion: 7200,
+                        idealEdgeLength: 78,
+                        nodeSeparation: 52,
+                        gravity: 0.32,
+                        padding: 30,
+                        componentSpacing: 60
                     },
                     minZoom: 0.3,
                     maxZoom: 3.5,
-                    wheelSensitivity: 0.25,
+                    wheelSensitivity: 1,
                     userZoomingEnabled: true,
                     userPanningEnabled: true,
                     boxSelectionEnabled: false
@@ -440,7 +443,7 @@
                         updateInspector(focal.data());
                     }
                     cy.one("layoutstop", function () {
-                        cy.fit(cy.elements(), 40);
+                        cy.fit(cy.elements(), 26);
                         container.classList.add("is-ready");
                     });
                 });
@@ -448,7 +451,7 @@
                 Array.prototype.forEach.call(document.querySelectorAll("[data-metabolic-action]"), function (button) {
                     button.addEventListener("click", function () {
                         var action = button.getAttribute("data-metabolic-action");
-                        if (action === "fit") cy.fit(cy.elements(), 40);
+                        if (action === "fit") cy.fit(cy.elements(), 26);
                         if (action === "zoom-in") cy.zoom({ level: cy.zoom() * 1.18, renderedPosition: { x: container.clientWidth / 2, y: container.clientHeight / 2 } });
                         if (action === "zoom-out") cy.zoom({ level: cy.zoom() / 1.18, renderedPosition: { x: container.clientWidth / 2, y: container.clientHeight / 2 } });
                     });

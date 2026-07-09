@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260709-ligand-dashboard1">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260709-network-fix1">
 {% endblock %}
 
 {% block body %}
@@ -937,7 +937,7 @@
 
     <script src="https://3dmol.org/build/3Dmol-min.js"></script>
     <script src="{% static 'js/pages/protein-detail.js' %}?v=20260605-1"></script>
-    <script src="{% static 'js/pages/metabolic-network.js' %}?v=20260709-metabolism-polish3"></script>
+    <script src="{% static 'js/pages/metabolic-network.js' %}?v=20260709-network-fix1"></script>
     <script>
         function jsloaded() {
             const rawSequenceElement = document.getElementById("raw-protein-seq");

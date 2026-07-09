@@ -3491,7 +3491,8 @@ body.residue-modal-open {
     flex-direction: column;
     gap: 8px;
     max-height: 210px;
-    overflow: auto;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .metabolic-reaction-item {
@@ -3501,11 +3502,16 @@ body.residue-modal-open {
     gap: 10px;
     padding: 9px 0;
     border-top: 1px solid var(--tp-color-border-soft);
+    min-width: 0;
 }
 
 .metabolic-reaction-item:first-child {
     border-top: 0;
     padding-top: 0;
+}
+
+.metabolic-reaction-item > div {
+    min-width: 0;
 }
 
 .metabolic-reaction-item a,
@@ -3514,6 +3520,7 @@ body.residue-modal-open {
     font-weight: 700;
     line-height: 1.25;
     color: var(--tp-color-text-primary);
+    overflow-wrap: anywhere;
 }
 
 .metabolic-reaction-item .reaction-external-link {
@@ -3626,6 +3633,8 @@ body.residue-modal-open {
 }
 
 .metabolic-network-shell {
+    display: flex;
+    flex-direction: column;
     position: relative;
     min-width: 0;
     overflow: hidden;
@@ -3724,7 +3733,8 @@ body.residue-modal-open {
 
 #metabolic-network-cy {
     width: 100%;
-    height: clamp(460px, 58vh, 680px);
+    flex: 1 1 auto;
+    min-height: clamp(460px, 58vh, 680px);
     opacity: 0;
     transform: translateY(8px);
     transition: opacity 240ms ease, transform 240ms ease;
@@ -3892,7 +3902,7 @@ body.residue-modal-open {
     }
 
     #metabolic-network-cy {
-        height: 430px;
+        min-height: 430px;
     }
 
     #viewport {
