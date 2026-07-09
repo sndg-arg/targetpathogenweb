@@ -212,6 +212,7 @@
             var midY = y + rowH / 2;
             var rowFill = i % 2 ? palette.bg : palette.band;
             var row = makeSvg("g", { class: reaction.is_chokepoint ? "pathway-map-row is-chokepoint" : "pathway-map-row" });
+            row.style.animationDelay = Math.min(i * 22, 480) + "ms";
             addTitle(row, reaction.name || reaction.id);
             svg.appendChild(row);
             row.appendChild(makeSvg("rect", {

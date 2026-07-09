@@ -4,7 +4,7 @@
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20260610-4">
-    <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20260709-pathway-polish4">
+    <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20260709-pathway-premium1">
 {% endblock %}
 
 {% block body %}
@@ -136,5 +136,27 @@
 </div>
 
 {{ diagram_payload|json_script:"metabolic-pathway-diagram-data" }}
-<script src="{% static 'js/pages/metabolic-pathway-diagram.js' %}?v=20260709-pathway-polish4"></script>
+<script src="{% static 'js/pages/metabolic-pathway-diagram.js' %}?v=20260709-pathway-premium1"></script>
+<script>
+(function () {
+    var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var nodes = Array.prototype.slice.call(document.querySelectorAll(".genome-metrics .metric-value"));
+    nodes.forEach(function (el) {
+        var target = parseInt((el.textContent || "").replace(/[^0-9]/g, ""), 10);
+        if (isNaN(target)) return;
+        if (reduceMotion || !target) return;
+        var duration = 650;
+        var start = null;
+        el.textContent = "0";
+        function tick(ts) {
+            if (start === null) start = ts;
+            var progress = Math.min(1, (ts - start) / duration);
+            var eased = 1 - Math.pow(1 - progress, 3);
+            el.textContent = Math.round(eased * target).toString();
+            if (progress < 1) requestAnimationFrame(tick);
+        }
+        requestAnimationFrame(tick);
+    });
+})();
+</script>
 {% endblock %}

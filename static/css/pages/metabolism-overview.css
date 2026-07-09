@@ -281,7 +281,51 @@
 
 .metabolism-pathway-detail-page .metabolism-panel {
     margin-top: 16px;
+    box-shadow: 0 1px 2px rgba(10, 31, 43, 0.04), 0 18px 40px rgba(10, 31, 43, 0.05);
 }
+
+.metabolism-pathway-detail-page .genome-hero-eyebrow,
+.metabolism-pathway-detail-page .genome-hero h1,
+.metabolism-pathway-detail-page .genome-description,
+.metabolism-pathway-detail-page .genome-hero-actions,
+.metabolism-pathway-detail-page .genome-metrics {
+    animation: tp-metabolism-hero-in 460ms ease both;
+}
+
+.metabolism-pathway-detail-page .genome-hero h1 { animation-delay: 40ms; }
+.metabolism-pathway-detail-page .genome-description { animation-delay: 80ms; }
+.metabolism-pathway-detail-page .genome-hero-actions { animation-delay: 120ms; }
+.metabolism-pathway-detail-page .genome-metrics { animation-delay: 160ms; }
+
+.metabolism-pathway-detail-page .genome-metrics .metric-pill {
+    transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+}
+
+.metabolism-pathway-detail-page .genome-metrics .metric-pill:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 22px rgba(10, 31, 43, 0.08);
+    border-color: var(--tp-color-border-strong);
+}
+
+.metabolism-pathway-detail-page .pathway-reaction-row {
+    animation: tp-metabolism-card-in 320ms ease both;
+}
+
+.metabolism-reaction-table .pathway-reaction-row:nth-child(1) { animation-delay: 0ms; }
+.metabolism-reaction-table .pathway-reaction-row:nth-child(2) { animation-delay: 28ms; }
+.metabolism-reaction-table .pathway-reaction-row:nth-child(3) { animation-delay: 56ms; }
+.metabolism-reaction-table .pathway-reaction-row:nth-child(4) { animation-delay: 84ms; }
+.metabolism-reaction-table .pathway-reaction-row:nth-child(5) { animation-delay: 112ms; }
+.metabolism-reaction-table .pathway-reaction-row:nth-child(6) { animation-delay: 140ms; }
+.metabolism-reaction-table .pathway-reaction-row:nth-child(7) { animation-delay: 168ms; }
+.metabolism-reaction-table .pathway-reaction-row:nth-child(8) { animation-delay: 196ms; }
+.metabolism-reaction-table .pathway-reaction-row:nth-child(9) { animation-delay: 224ms; }
+.metabolism-reaction-table .pathway-reaction-row:nth-child(10) { animation-delay: 252ms; }
+.metabolism-reaction-table .pathway-reaction-row:nth-child(11) { animation-delay: 280ms; }
+.metabolism-reaction-table .pathway-reaction-row:nth-child(12) { animation-delay: 308ms; }
+.metabolism-reaction-table .pathway-reaction-row:nth-child(13) { animation-delay: 336ms; }
+.metabolism-reaction-table .pathway-reaction-row:nth-child(14) { animation-delay: 364ms; }
+.metabolism-reaction-table .pathway-reaction-row:nth-child(n+15) { animation-delay: 392ms; }
 
 .metabolism-pathway-map-shell {
     position: relative;
@@ -713,16 +757,44 @@
     }
 }
 
+@keyframes tp-metabolism-hero-in {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes tp-metabolism-row-fade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.pathway-map-row {
+    animation: tp-metabolism-row-fade 300ms ease both;
+}
+
 @media (prefers-reduced-motion: reduce) {
     .metabolism-pathway-card,
-    .metabolic-pathway-diagram svg {
+    .metabolic-pathway-diagram svg,
+    .metabolism-pathway-detail-page .genome-hero-eyebrow,
+    .metabolism-pathway-detail-page .genome-hero h1,
+    .metabolism-pathway-detail-page .genome-description,
+    .metabolism-pathway-detail-page .genome-hero-actions,
+    .metabolism-pathway-detail-page .genome-metrics,
+    .metabolism-pathway-detail-page .pathway-reaction-row,
+    .pathway-map-row {
         animation: none;
     }
 
     .metabolism-pathway-card,
     .metabolism-target-chip,
     .pathway-reaction-row,
-    .metabolite-chip {
+    .metabolite-chip,
+    .metabolism-pathway-detail-page .genome-metrics .metric-pill {
         transition: none;
     }
 }
