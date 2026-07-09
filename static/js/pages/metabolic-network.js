@@ -57,24 +57,34 @@
             var chosen = shared || pathways.slice().sort(function (a, b) { return a.name.localeCompare(b.name); })[0];
             var key = chosen.source + "__" + chosen.external_id;
             if (groupOrder.indexOf(key) === -1) groupOrder.push(key);
-            groupOf[node.id] = { key: key, name: chosen.name };
+            groupOf[node.id] = { key: key, name: chosen.name, source: chosen.source, externalId: chosen.external_id };
         });
         return { groupOf: groupOf, groupOrder: groupOrder };
+    }
+
+    function pathwayUrl(genomeSlug, source, externalId) {
+        if (!genomeSlug || !source || !externalId) return "";
+        return "/genome/" + encodeURIComponent(genomeSlug) + "/metabolism/" +
+            encodeURIComponent(source) + "/" + encodeURIComponent(externalId);
     }
 
     function buildElements(payload) {
         var elements = [];
         var nodes = payload.nodes || [];
+        var genomeSlug = (payload.meta || {}).genome_slug || "";
         var focal = nodes.find(function (n) { return n.is_focal; });
         var focalPathwayIds = (focal && focal.pathways || []).map(function (p) { return p.external_id; });
         var assignment = assignPrimaryPathway(nodes, focalPathwayIds);
 
         assignment.groupOrder.forEach(function (key, i) {
-            var groupName = null;
-            nodes.forEach(function (n) { if (assignment.groupOf[n.id] && assignment.groupOf[n.id].key === key) groupName = assignment.groupOf[n.id].name; });
+            var groupInfo = null;
+            nodes.forEach(function (n) { if (assignment.groupOf[n.id] && assignment.groupOf[n.id].key === key) groupInfo = assignment.groupOf[n.id]; });
             elements.push({
                 group: "nodes",
-                data: { id: "group__" + key, label: groupName, isGroup: true, groupIndex: i % GROUP_COLOR_COUNT },
+                data: {
+                    id: "group__" + key, label: groupInfo ? groupInfo.name : "", isGroup: true, groupIndex: i % GROUP_COLOR_COUNT,
+                    url: groupInfo ? pathwayUrl(genomeSlug, groupInfo.source, groupInfo.externalId) : ""
+                },
                 classes: "pathway-group"
             });
         });
@@ -170,7 +180,7 @@
             container.parentElement.appendChild(note);
         }
         var meta = payload.meta || {};
-        var baseText = "Two-hop reaction neighborhood around this protein; pathway boxes use one primary KEGG route per reaction when several mappings exist.";
+        var baseText = "Two-hop reaction neighborhood around this protein; pathway boxes use one primary KEGG route per reaction when several mappings exist. Click a pathway box to open its full route map.";
         if (meta.is_truncated) {
             note.textContent = baseText + " Display is capped at " + meta.max_nodes + " reactions for readability; use the genome-wide pathway page for route-level ranking.";
         } else {
@@ -461,8 +471,18 @@
                     clearHover(cy);
                     tooltip.style.display = "none";
                 });
+                cy.on("mouseover", "node.pathway-group", function (evt) {
+                    if (evt.target.data("url")) container.style.cursor = "pointer";
+                });
+                cy.on("mouseout", "node.pathway-group", function () {
+                    container.style.cursor = "";
+                });
                 cy.on("tap", "node", function (evt) {
-                    if (evt.target.data("isGroup")) return;
+                    if (evt.target.data("isGroup")) {
+                        var groupUrl = evt.target.data("url");
+                        if (groupUrl) window.location.href = groupUrl;
+                        return;
+                    }
                     var nodeData = evt.target.data();
                     var now = Date.now();
                     updateInspector(nodeData);

@@ -6,7 +6,7 @@ from django.views import View
 from bioseq.models.Bioentry import Bioentry
 from bioseq.models.Biodatabase import Biodatabase
 from tpweb.models.Metabolism import GeneReactionLink, MetabolicReaction, MetabolicReactionEdge
-from tpweb.services.genome_workspace import user_can_access_genome_name
+from tpweb.services.genome_workspace import genome_url_slug, user_can_access_genome_name
 
 MAX_HOPS = 2
 MAX_NODES = 60
@@ -60,6 +60,7 @@ class MetabolismNetworkView(View):
                 "max_hops": MAX_HOPS,
                 "max_nodes": MAX_NODES,
                 "is_truncated": truncated,
+                "genome_slug": genome_url_slug(assembly_name),
             },
         })
 
