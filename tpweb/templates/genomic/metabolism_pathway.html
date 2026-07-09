@@ -4,7 +4,7 @@
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20260610-4">
-    <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20260709-pathway-polish2">
+    <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20260709-pathway-polish4">
 {% endblock %}
 
 {% block body %}
@@ -136,5 +136,5 @@
 </div>
 
 {{ diagram_payload|json_script:"metabolic-pathway-diagram-data" }}
-<script src="{% static 'js/pages/metabolic-pathway-diagram.js' %}?v=20260709-pathway-polish3"></script>
+<script src="{% static 'js/pages/metabolic-pathway-diagram.js' %}?v=20260709-pathway-polish4"></script>
 {% endblock %}

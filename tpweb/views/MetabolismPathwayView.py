@@ -156,7 +156,10 @@ class MetabolismPathwayDetailView(View):
             for participant in reaction.participants.all()
         }
         chokepoint_count = sum(1 for row in reaction_rows if row["is_chokepoint"])
-        diagram_reactions = reaction_rows[:45]
+        # When a pathway has more reactions than the diagram can show, prioritize
+        # chokepoints so the most decision-relevant rows aren't cut by alphabetical luck.
+        diagram_candidates = sorted(reaction_rows, key=lambda r: (not r["is_chokepoint"], r["name"]))
+        diagram_reactions = diagram_candidates[:45]
         omitted_reactions = max(0, len(reaction_rows) - len(diagram_reactions))
         slug = genome_url_slug(assembly_name)
 

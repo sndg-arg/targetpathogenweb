@@ -284,10 +284,73 @@
 }
 
 .metabolism-pathway-map-shell {
+    position: relative;
     overflow: hidden;
     border: 1px solid var(--tp-color-border-soft);
     border-radius: 8px;
     background: var(--tp-color-surface);
+}
+
+.metabolic-pathway-map-tooltip {
+    position: absolute;
+    z-index: 20;
+    max-width: 320px;
+    padding: 11px 12px;
+    border: 1px solid var(--tp-color-border-strong);
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--tp-color-surface) 96%, var(--tp-color-brand-050));
+    color: var(--tp-color-text-primary);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.14);
+    pointer-events: none;
+}
+
+.metabolic-pathway-map-tooltip .metabolic-network-tooltip-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-size: 0.86rem;
+    font-weight: 800;
+}
+
+.metabolic-pathway-map-tooltip .metabolic-network-tooltip-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 6px;
+    border: 1px solid color-mix(in srgb, var(--tp-color-amber-500) 48%, transparent);
+    border-radius: 999px;
+    background: var(--tp-color-amber-050);
+    color: var(--tp-color-amber-700);
+    font-size: 0.68rem;
+}
+
+.metabolic-pathway-map-tooltip dl {
+    display: grid;
+    grid-template-columns: 62px minmax(0, 1fr);
+    gap: 4px 8px;
+    margin: 0;
+}
+
+.metabolic-pathway-map-tooltip dt {
+    color: var(--tp-color-text-muted);
+    font-size: 0.68rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.metabolic-pathway-map-tooltip dd {
+    margin: 0;
+    color: var(--tp-color-text-primary);
+    font-size: 0.76rem;
+    word-break: break-word;
+}
+
+.metabolic-pathway-map-tooltip .metabolic-network-tooltip-hint {
+    margin-top: 9px;
+    padding-top: 8px;
+    border-top: 1px solid var(--tp-color-border-soft);
+    color: var(--tp-color-text-muted);
+    font-size: 0.72rem;
 }
 
 .metabolism-pathway-map-toolbar {
@@ -417,6 +480,36 @@
     fill: var(--tp-color-text-secondary);
     font-size: 10.5px;
     font-weight: 700;
+}
+
+.pathway-map-gene-label.is-muted-label {
+    fill: var(--tp-color-text-muted);
+    font-weight: 600;
+    font-style: italic;
+}
+
+.pathway-map-gene-link {
+    cursor: pointer;
+}
+
+.pathway-map-gene-link .pathway-map-gene-label {
+    text-decoration: underline;
+    text-decoration-color: transparent;
+    transition: fill 140ms ease, text-decoration-color 140ms ease;
+}
+
+.pathway-map-gene-link:hover .pathway-map-gene-label {
+    fill: var(--tp-color-brand-700);
+    text-decoration-color: var(--tp-color-brand-300);
+}
+
+.pathway-map-metabolite-dot {
+    cursor: pointer;
+    transition: r 140ms ease, opacity 140ms ease;
+}
+
+.pathway-map-metabolite-dot:hover {
+    opacity: 1;
 }
 
 .pathway-map-shared-label {
