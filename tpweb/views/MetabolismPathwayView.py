@@ -85,6 +85,7 @@ def _build_reaction_row(reaction):
         "name": reaction.name or reaction.reaction_id,
         "ec_numbers": [ec for ec in (reaction.ec_numbers or "").split(",") if ec],
         "kegg_reaction_id": reaction.kegg_reaction_id,
+        "kegg_url": f"https://www.kegg.jp/entry/{reaction.kegg_reaction_id}" if reaction.kegg_reaction_id else "",
         "reversible": reaction.reversible,
         "isoenzyme_count": reaction.isoenzyme_count,
         "chokepoint_role": chokepoint_role,

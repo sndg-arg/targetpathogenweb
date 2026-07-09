@@ -234,6 +234,17 @@
     text-decoration: none;
 }
 
+.metabolism-target-chip--empty {
+    color: var(--tp-color-text-muted);
+    background: var(--tp-color-surface-muted);
+    border-style: dashed;
+    cursor: default;
+}
+
+.metabolism-target-chip--empty:hover {
+    border-color: var(--tp-color-border-soft);
+}
+
 .metabolism-target-chip--top {
     border-color: var(--tp-color-brand-700);
     background: var(--tp-color-brand-050);
@@ -435,6 +446,29 @@
     font-size: 0.78rem;
 }
 
+.reaction-external-link {
+    color: var(--tp-color-brand-700);
+    font-weight: 800;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+}
+
+.reaction-external-link::after {
+    content: "KEGG";
+    margin-left: 5px;
+    padding: 1px 4px;
+    border: 1px solid var(--tp-color-brand-200);
+    border-radius: 5px;
+    font-size: 0.64em;
+    letter-spacing: 0.04em;
+    text-decoration: none;
+}
+
+.reaction-external-link:hover {
+    color: var(--tp-color-brand-900);
+}
+
 .pathway-reaction-equation {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
@@ -453,6 +487,7 @@
 .metabolite-chip {
     display: inline-flex;
     align-items: center;
+    min-width: 0;
     max-width: 220px;
     padding: 3px 8px;
     border: 1px solid var(--tp-color-border-soft);
@@ -462,6 +497,13 @@
     font-size: 0.74rem;
     font-weight: 650;
     line-height: 1.25;
+    overflow: hidden;
+    vertical-align: middle;
+}
+
+.metabolite-chip-label {
+    display: block;
+    min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;

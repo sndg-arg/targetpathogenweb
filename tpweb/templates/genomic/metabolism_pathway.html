@@ -83,7 +83,14 @@
                         <h3 title="{{ reaction.name }}">{{ reaction.name }}</h3>
                         <p>
                             {% if reaction.ec_numbers %}EC {{ reaction.ec_numbers|join:", " }}{% else %}EC -{% endif %}
-                            {% if reaction.kegg_reaction_id %} &middot; {{ reaction.kegg_reaction_id }}{% endif %}
+                            {% if reaction.kegg_reaction_id %}
+                            &middot;
+                            {% if reaction.kegg_url %}
+                            <a class="reaction-external-link" href="{{ reaction.kegg_url }}" target="_blank" rel="noopener noreferrer" title="{% trans 'Open reaction in KEGG' %}">{{ reaction.kegg_reaction_id }}</a>
+                            {% else %}
+                            {{ reaction.kegg_reaction_id }}
+                            {% endif %}
+                            {% endif %}
                             &middot; {% if reaction.reversible %}{% trans "reversible" %}{% else %}{% trans "not reversible" %}{% endif %}
                         </p>
                     </div>
@@ -94,27 +101,27 @@
                 <div class="pathway-reaction-equation">
                     <div>
                         {% for item in reaction.substrates %}
-                        <span class="metabolite-chip{% if item.is_currency %} is-currency{% endif %}" title="{{ item.name }}">{{ item.name }}</span>
+                        <span class="metabolite-chip{% if item.is_currency %} is-currency{% endif %}" title="{{ item.name }}"><span class="metabolite-chip-label">{{ item.name }}</span></span>
                         {% empty %}
                         <span class="annotation-empty">-</span>
                         {% endfor %}
-                        {% if reaction.substrate_hidden %}<span class="metabolite-chip is-currency">+{{ reaction.substrate_hidden }}</span>{% endif %}
+                        {% if reaction.substrate_hidden %}<span class="metabolite-chip is-currency" title="{{ reaction.substrate_hidden }} additional substrate{{ reaction.substrate_hidden|pluralize }}"><span class="metabolite-chip-label">+{{ reaction.substrate_hidden }}</span></span>{% endif %}
                     </div>
                     <span class="metabolite-arrow">-&gt;</span>
                     <div>
                         {% for item in reaction.products %}
-                        <span class="metabolite-chip{% if item.is_currency %} is-currency{% endif %}" title="{{ item.name }}">{{ item.name }}</span>
+                        <span class="metabolite-chip{% if item.is_currency %} is-currency{% endif %}" title="{{ item.name }}"><span class="metabolite-chip-label">{{ item.name }}</span></span>
                         {% empty %}
                         <span class="annotation-empty">-</span>
                         {% endfor %}
-                        {% if reaction.product_hidden %}<span class="metabolite-chip is-currency">+{{ reaction.product_hidden }}</span>{% endif %}
+                        {% if reaction.product_hidden %}<span class="metabolite-chip is-currency" title="{{ reaction.product_hidden }} additional product{{ reaction.product_hidden|pluralize }}"><span class="metabolite-chip-label">+{{ reaction.product_hidden }}</span></span>{% endif %}
                     </div>
                 </div>
                 <div class="pathway-reaction-genes">
                     {% for gene in reaction.genes %}
                     <a href="{{ gene.url }}" class="metabolism-target-chip">{{ gene.accession }}</a>
                     {% empty %}
-                    <span class="annotation-empty">{% trans "No mapped protein" %}</span>
+                    <span class="metabolism-target-chip metabolism-target-chip--empty">{% trans "No mapped protein" %}</span>
                     {% endfor %}
                 </div>
             </article>
@@ -124,5 +131,5 @@
 </div>
 
 {{ diagram_payload|json_script:"metabolic-pathway-diagram-data" }}
-<script src="{% static 'js/pages/metabolic-pathway-diagram.js' %}?v=20260709-pathway-polish1"></script>
+<script src="{% static 'js/pages/metabolic-pathway-diagram.js' %}?v=20260709-pathway-polish2"></script>
 {% endblock %}

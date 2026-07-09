@@ -3246,6 +3246,28 @@ body.residue-modal-open {
     color: var(--tp-color-text-primary);
 }
 
+.metabolic-reaction-item .reaction-external-link {
+    color: var(--tp-color-brand-700);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+}
+
+.metabolic-reaction-item .reaction-external-link::after {
+    content: "KEGG";
+    margin-left: 6px;
+    padding: 1px 4px;
+    border: 1px solid var(--tp-color-brand-200);
+    border-radius: 5px;
+    font-size: 0.64em;
+    letter-spacing: 0.04em;
+    text-decoration: none;
+}
+
+.metabolic-reaction-item .reaction-external-link:hover {
+    color: var(--tp-color-brand-900);
+}
+
 .metabolic-reaction-item small {
     display: block;
     margin-top: 4px;
@@ -3264,6 +3286,7 @@ body.residue-modal-open {
 .metabolite-chip {
     display: inline-flex;
     align-items: center;
+    min-width: 0;
     max-width: 260px;
     padding: 1px 7px;
     border: 1px solid var(--tp-color-border-soft);
@@ -3272,6 +3295,12 @@ body.residue-modal-open {
     color: var(--tp-color-text-secondary);
     font-size: 0.7rem;
     font-weight: 600;
+    overflow: hidden;
+}
+
+.metabolite-chip-label {
+    display: block;
+    min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;

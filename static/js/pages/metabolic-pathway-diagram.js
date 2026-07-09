@@ -23,6 +23,7 @@
     function addText(svg, value, x, y, className, maxLen) {
         var t = makeSvg("text", { x: x, y: y, class: className || "" });
         t.textContent = text(value, maxLen || 28);
+        addTitle(t, value);
         svg.appendChild(t);
         return t;
     }
