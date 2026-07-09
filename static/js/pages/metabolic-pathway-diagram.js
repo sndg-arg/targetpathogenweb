@@ -27,6 +27,14 @@
         return t;
     }
 
+    function addTitle(el, value) {
+        if (!value) return el;
+        var title = makeSvg("title", {});
+        title.textContent = value;
+        el.appendChild(title);
+        return el;
+    }
+
     function metaboliteKey(item) {
         return (item.species_id || item.name || "").toLowerCase();
     }
@@ -53,15 +61,15 @@
             line: readToken("--tp-color-border-strong", "#b6c8d1")
         };
 
-        var rowH = 116;
+        var rowH = 126;
         var headerH = 52;
         var width = Math.max(980, container.clientWidth || 980);
         var height = headerH + reactions.length * rowH + 40;
         var substrateX = 170;
-        var reactionX = Math.round(width / 2) - 76;
+        var reactionX = Math.round(width / 2) - 95;
         var productX = width - 320;
-        var reactionW = 152;
-        var reactionH = 48;
+        var reactionW = 190;
+        var reactionH = 54;
 
         container.textContent = "";
         var svg = makeSvg("svg", {
@@ -71,6 +79,19 @@
         });
 
         svg.appendChild(makeSvg("rect", { x: 0, y: 0, width: width, height: height, fill: palette.bg }));
+        var defs = makeSvg("defs", {});
+        var marker = makeSvg("marker", {
+            id: "pathway-arrow",
+            markerWidth: 8,
+            markerHeight: 8,
+            refX: 7,
+            refY: 3,
+            orient: "auto",
+            markerUnits: "strokeWidth"
+        });
+        marker.appendChild(makeSvg("path", { d: "M 0 0 L 7 3 L 0 6 z", fill: palette.line }));
+        defs.appendChild(marker);
+        svg.appendChild(defs);
         addText(svg, "Substrates", substrateX, 30, "pathway-map-axis", 20);
         addText(svg, "Reaction", reactionX + 42, 30, "pathway-map-axis", 20);
         addText(svg, "Products", productX, 30, "pathway-map-axis", 20);
@@ -93,21 +114,21 @@
             var rxnStroke = reaction.is_chokepoint ? palette.chokepoint : palette.reaction;
             var rxnFill = reaction.is_chokepoint ? "rgba(201, 134, 26, 0.12)" : palette.reactionSoft;
 
-            var rxn = makeSvg("rect", {
+            var rxn = addTitle(makeSvg("rect", {
                 x: reactionX, y: midY - reactionH / 2, width: reactionW, height: reactionH,
                 rx: 8, ry: 8,
                 fill: rxnFill,
                 stroke: rxnStroke,
                 "stroke-width": reaction.is_chokepoint ? 2.4 : 1.6
-            });
+            }), reaction.name || reaction.id);
             svg.appendChild(rxn);
-            addText(svg, reaction.name || reaction.id, reactionX + 12, midY - 4, "pathway-map-reaction-label", 22);
-            addText(svg, (reaction.genes || []).map(function (g) { return g.accession; }).join(", "), reactionX + 12, midY + 14, "pathway-map-gene-label", 24);
+            addText(svg, reaction.name || reaction.id, reactionX + 12, midY - 5, "pathway-map-reaction-label", 26);
+            addText(svg, (reaction.genes || []).map(function (g) { return g.accession; }).join(", "), reactionX + 12, midY + 15, "pathway-map-gene-label", 30);
 
             substrates.forEach(function (item, j) {
                 var my = midY - ((substrates.length - 1) * 18) / 2 + j * 18;
                 drawMetabolite(svg, item, substrateX, my, palette);
-                drawConnector(svg, substrateX + 112, my, reactionX, midY, palette.line);
+                drawConnector(svg, substrateX + 136, my, reactionX, midY, palette.line);
             });
             products.forEach(function (item, j) {
                 var my = midY - ((products.length - 1) * 18) / 2 + j * 18;
@@ -117,7 +138,7 @@
 
             var shared = sharedMetabolites(reaction, reactions[i + 1]);
             if (shared.length) {
-                addText(svg, text(shared.join(", "), 34), reactionX + reactionW + 26, y + rowH - 14, "pathway-map-shared-label", 36);
+                drawCarryover(svg, reactionX + reactionW + 34, y + rowH - 26, shared.join(", "), palette);
             }
         });
 
@@ -126,12 +147,13 @@
 
     function drawMetabolite(svg, item, x, y, palette) {
         var isCurrency = Boolean(item.is_currency);
-        svg.appendChild(makeSvg("circle", {
+        var dot = addTitle(makeSvg("circle", {
             cx: x, cy: y - 4, r: isCurrency ? 5 : 7,
             fill: isCurrency ? palette.currency : palette.metabolite,
             opacity: isCurrency ? 0.55 : 1
-        }));
-        addText(svg, item.name || item.species_id, x + 14, y, isCurrency ? "pathway-map-metabolite is-currency" : "pathway-map-metabolite", 28);
+        }), item.name || item.species_id);
+        svg.appendChild(dot);
+        addText(svg, item.name || item.species_id, x + 14, y, isCurrency ? "pathway-map-metabolite is-currency" : "pathway-map-metabolite", 34);
     }
 
     function drawConnector(svg, x1, y1, x2, y2, color) {
@@ -141,9 +163,23 @@
             stroke: color,
             "stroke-width": 1.2,
             "stroke-linecap": "round",
+            "marker-end": "url(#pathway-arrow)",
             opacity: 0.86
         });
         svg.appendChild(path);
+    }
+
+    function drawCarryover(svg, x, y, label, palette) {
+        svg.appendChild(makeSvg("path", {
+            d: "M " + x + " " + y + " v 28",
+            fill: "none",
+            stroke: palette.metabolite,
+            "stroke-width": 1.4,
+            "stroke-dasharray": "3 3",
+            "marker-end": "url(#pathway-arrow)",
+            opacity: 0.85
+        }));
+        addText(svg, label, x + 10, y + 17, "pathway-map-shared-label", 40);
     }
 
     function sharedMetabolites(a, b) {

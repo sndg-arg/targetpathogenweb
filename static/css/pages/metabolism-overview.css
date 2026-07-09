@@ -357,20 +357,25 @@
 
 .pathway-map-reaction-label {
     fill: var(--tp-color-text-primary);
-    font-size: 12px;
+    font-size: 12.5px;
     font-weight: 800;
 }
 
-.pathway-map-gene-label,
+.pathway-map-gene-label {
+    fill: var(--tp-color-text-secondary);
+    font-size: 10.5px;
+    font-weight: 700;
+}
+
 .pathway-map-shared-label {
-    fill: var(--tp-color-text-muted);
-    font-size: 10px;
-    font-weight: 600;
+    fill: var(--tp-color-sage-700);
+    font-size: 10.5px;
+    font-weight: 800;
 }
 
 .pathway-map-metabolite {
     fill: var(--tp-color-text-primary);
-    font-size: 11px;
+    font-size: 11.5px;
     font-weight: 650;
 }
 

@@ -3262,6 +3262,9 @@ body.residue-modal-open {
 }
 
 .metabolite-chip {
+    display: inline-flex;
+    align-items: center;
+    max-width: 260px;
     padding: 1px 7px;
     border: 1px solid var(--tp-color-border-soft);
     border-radius: 999px;
@@ -3269,6 +3272,8 @@ body.residue-modal-open {
     color: var(--tp-color-text-secondary);
     font-size: 0.7rem;
     font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
     white-space: nowrap;
 }
 

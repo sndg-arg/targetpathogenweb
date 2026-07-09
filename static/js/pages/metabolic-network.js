@@ -35,7 +35,7 @@
     function compactReactionLabel(label) {
         label = label || "";
         if (label.length <= 22) return label;
-        return label.slice(0, 20) + "…";
+        return label.slice(0, 20) + "...";
     }
 
     function assignPrimaryPathway(nodes, focalPathwayIds) {
@@ -128,7 +128,7 @@
         if (genes.length) {
             parts.push("Gene(s): " + genes.join(", "));
         }
-        return parts.join(" — ");
+        return parts.join(" - ");
     }
 
     function formatRole(role) {
@@ -194,15 +194,15 @@
                     "border-color": palette.plain,
                     "border-opacity": 0.85,
                     "label": "data(displayLabel)",
-                    "color": palette.textFaint,
-                    "font-size": 9,
-                    "font-weight": 500,
+                    "color": palette.text,
+                    "font-size": 10,
+                    "font-weight": 700,
                     "text-valign": "bottom",
                     "text-margin-y": 5,
                     "text-wrap": "ellipsis",
                     "text-max-width": "110px",
                     "text-outline-color": palette.ring,
-                    "text-outline-width": 2,
+                    "text-outline-width": 3,
                     "opacity": 0.92
                 }
             },
@@ -274,9 +274,11 @@
                     "text-halign": "left",
                     "text-margin-x": 8,
                     "text-margin-y": -16,
-                    "font-size": 10.5,
+                    "font-size": 11,
                     "font-weight": 700,
-                    "text-transform": "uppercase"
+                    "text-transform": "uppercase",
+                    "text-outline-color": palette.ring,
+                    "text-outline-width": 2
                 }
             }
         ];
