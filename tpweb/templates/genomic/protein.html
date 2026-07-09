@@ -325,7 +325,7 @@
                             {% if metabolic_context.pathways %}
                             <div class="metabolic-pathway-chips">
                                 {% for pathway in metabolic_context.pathways %}
-                                <span class="tp-chip tp-chip--{{ pathway.source|lower }}" title="{{ pathway.source }}:{{ pathway.external_id }}">{{ pathway.name }}</span>
+                                <a href="{{ pathway.url }}" class="tp-chip tp-chip--{{ pathway.source|lower }}" title="{{ pathway.source }}:{{ pathway.external_id }}">{{ pathway.name }}</a>
                                 {% endfor %}
                             </div>
                             {% else %}

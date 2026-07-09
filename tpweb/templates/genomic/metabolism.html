@@ -73,7 +73,7 @@
                         <div>
                             <div class="metabolism-pathway-title">
                                 <span class="metabolism-source{% if pathway.source == 'MODEL' %} metabolism-source--model{% endif %}">{{ pathway.source }}</span>
-                                <h3>{{ pathway.name }}</h3>
+                                <h3><a href="{% url 'tpwebapp:genome_metabolism_pathway' genome=assembly.slug source=pathway.source external_id=pathway.external_id %}">{{ pathway.name }}</a></h3>
                             </div>
                             <p class="metabolism-pathway-id">{{ pathway.external_id }}</p>
                             <div class="metabolism-stat-row">
@@ -105,6 +105,9 @@
                         </div>
                     </div>
 
+                    <div class="metabolism-card-actions">
+                        <a href="{% url 'tpwebapp:genome_metabolism_pathway' genome=assembly.slug source=pathway.source external_id=pathway.external_id %}" class="btn tp-btn tp-btn--outline tp-btn--sm">{% trans "Open pathway map" %}</a>
+                    </div>
                     {% if pathway.top_targets %}
                     <div class="metabolism-target-strip">
                         {% for target in pathway.top_targets %}

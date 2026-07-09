@@ -1,0 +1,128 @@
+{% extends '../base/masterpage.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block head %}
+    <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20260610-4">
+    <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20260709-pathway-detail1">
+{% endblock %}
+
+{% block body %}
+<div class="genome-page metabolism-page metabolism-pathway-detail-page">
+    <section class="genome-hero metabolism-hero tp-page-hero">
+        <div class="genome-hero-top tp-view-head">
+            <div class="genome-hero-content tp-view-head-copy">
+                {% trans "Genomes" as crumb_genomes %}
+                {% url 'tpwebapp:index' as index_url %}
+                {% url 'tpwebapp:genomes_list' as genomes_url %}
+                {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=assembly.name crumb_3_url=assembly_url crumb_4_label="Metabolism" crumb_4_url=metabolism_url crumb_5_label=pathway.name %}
+                <p class="genome-hero-eyebrow">{{ pathway.source }}:{{ pathway.external_id }}</p>
+                <h1>{{ pathway.name }}</h1>
+                <p class="genome-description">{{ assembly.name }}{% if assembly.description %} - {{ assembly.description }}{% endif %}</p>
+                <div class="genome-hero-actions">
+                    <a href="{{ metabolism_url }}" class="btn tp-btn tp-btn--outline">{% trans "All pathways" %}</a>
+                    <a href="{{ proteins_url }}" class="btn tp-btn tp-btn--primary">{% trans "Protein ranking" %}</a>
+                </div>
+            </div>
+        </div>
+        <div class="genome-metrics" aria-label="{% trans 'Pathway summary' %}">
+            <div class="metric-pill">
+                <span class="metric-label">{% trans "Reactions" %}</span>
+                <span class="metric-value">{{ stats.reaction_count }}</span>
+            </div>
+            <div class="metric-pill">
+                <span class="metric-label">{% trans "Proteins" %}</span>
+                <span class="metric-value">{{ stats.protein_count }}</span>
+            </div>
+            <div class="metric-pill">
+                <span class="metric-label">{% trans "Metabolites" %}</span>
+                <span class="metric-value">{{ stats.metabolite_count }}</span>
+            </div>
+            <div class="metric-pill metric-pill--warm">
+                <span class="metric-label">{% trans "Chokepoints" %}</span>
+                <span class="metric-value">{{ stats.chokepoint_count }}</span>
+            </div>
+        </div>
+    </section>
+
+    <section class="genome-card metabolism-panel tp-ui-panel metabolism-pathway-map-panel">
+        <div class="section-head tp-ui-panel-head">
+            <div>
+                <h2>{% trans "Pathway map" %}</h2>
+                <p class="section-subtitle">{% trans "Reaction-to-metabolite flow reconstructed from the imported SBML participants." %}</p>
+            </div>
+        </div>
+        <div class="metabolism-pathway-map-shell">
+            <div class="metabolism-pathway-map-toolbar">
+                <div class="metabolism-pathway-map-legend">
+                    <span><i class="map-legend-box map-legend-box--reaction"></i>{% trans "Reaction" %}</span>
+                    <span><i class="map-legend-box map-legend-box--chokepoint"></i>{% trans "Chokepoint" %}</span>
+                    <span><i class="map-legend-dot map-legend-dot--metabolite"></i>{% trans "Metabolite" %}</span>
+                    <span><i class="map-legend-dot map-legend-dot--currency"></i>{% trans "Currency metabolite" %}</span>
+                </div>
+            </div>
+            <div id="metabolic-pathway-diagram" class="metabolic-pathway-diagram"></div>
+        </div>
+        {% if diagram_payload.omitted_reactions %}
+        <p class="metabolic-provenance">{% blocktrans with count=diagram_payload.omitted_reactions %}Diagram capped for readability; {{ count }} additional reactions are listed below.{% endblocktrans %}</p>
+        {% endif %}
+    </section>
+
+    <section class="genome-card metabolism-panel tp-ui-panel">
+        <div class="section-head tp-ui-panel-head">
+            <div>
+                <h2>{% trans "Reaction table" %}</h2>
+                <p class="section-subtitle">{% trans "Catalyzed reactions, mapped genes, and SBML substrates/products." %}</p>
+            </div>
+        </div>
+        <div class="metabolism-reaction-table">
+            {% for reaction in reaction_rows %}
+            <article class="pathway-reaction-row{% if reaction.is_chokepoint %} pathway-reaction-row--chokepoint{% endif %}">
+                <div class="pathway-reaction-main">
+                    <div>
+                        <h3>{{ reaction.name }}</h3>
+                        <p>
+                            {% if reaction.ec_numbers %}EC {{ reaction.ec_numbers|join:", " }}{% else %}EC -{% endif %}
+                            {% if reaction.kegg_reaction_id %} &middot; {{ reaction.kegg_reaction_id }}{% endif %}
+                            &middot; {% if reaction.reversible %}{% trans "reversible" %}{% else %}{% trans "not reversible" %}{% endif %}
+                        </p>
+                    </div>
+                    {% if reaction.is_chokepoint %}
+                    <span class="target-evidence-accessory-badge">{{ reaction.chokepoint_role }}</span>
+                    {% endif %}
+                </div>
+                <div class="pathway-reaction-equation">
+                    <div>
+                        {% for item in reaction.substrates %}
+                        <span class="metabolite-chip{% if item.is_currency %} is-currency{% endif %}">{{ item.name }}</span>
+                        {% empty %}
+                        <span class="annotation-empty">-</span>
+                        {% endfor %}
+                        {% if reaction.substrate_hidden %}<span class="metabolite-chip is-currency">+{{ reaction.substrate_hidden }}</span>{% endif %}
+                    </div>
+                    <span class="metabolite-arrow">-&gt;</span>
+                    <div>
+                        {% for item in reaction.products %}
+                        <span class="metabolite-chip{% if item.is_currency %} is-currency{% endif %}">{{ item.name }}</span>
+                        {% empty %}
+                        <span class="annotation-empty">-</span>
+                        {% endfor %}
+                        {% if reaction.product_hidden %}<span class="metabolite-chip is-currency">+{{ reaction.product_hidden }}</span>{% endif %}
+                    </div>
+                </div>
+                <div class="pathway-reaction-genes">
+                    {% for gene in reaction.genes %}
+                    <a href="{{ gene.url }}" class="metabolism-target-chip">{{ gene.accession }}</a>
+                    {% empty %}
+                    <span class="annotation-empty">{% trans "No mapped protein" %}</span>
+                    {% endfor %}
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+    </section>
+</div>
+
+{{ diagram_payload|json_script:"metabolic-pathway-diagram-data" }}
+<script src="{% static 'js/pages/metabolic-pathway-diagram.js' %}?v=20260709-pathway-detail1"></script>
+{% endblock %}

@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from django.http import Http404
+from django.urls import reverse
 from django.views import View
 from rdkit import Chem
 from rdkit.Chem import Crippen, Descriptors, Lipinski
@@ -381,6 +382,8 @@ def _build_metabolic_context(protein, raw_scores):
 
     reactions = []
     pathway_chips = {}
+    assembly_name = protein.biodatabase.name.split(Biodatabase.PROT_POSTFIX)[0]
+    assembly_slug = genome_url_slug(assembly_name)
     for link in links:
         reaction = link.reaction
         kegg_url = (
@@ -408,6 +411,14 @@ def _build_metabolic_context(protein, raw_scores):
                 "source": pathway.source,
                 "external_id": pathway.external_id,
                 "name": pathway.name,
+                "url": reverse(
+                    "tpwebapp:genome_metabolism_pathway",
+                    kwargs={
+                        "genome": assembly_slug,
+                        "source": pathway.source,
+                        "external_id": pathway.external_id,
+                    },
+                ),
             }
 
     centrality_raw = _raw_score(raw_scores, "PTOOLS_betweenness_centrality")
@@ -431,7 +442,6 @@ def _build_metabolic_context(protein, raw_scores):
 
     is_chokepoint = any(l.chokepoint_role != GeneReactionLink.CHOKEPOINT_NONE for l in links)
 
-    assembly_name = protein.biodatabase.name.split(Biodatabase.PROT_POSTFIX)[0]
     import_run = MetabolicImportRun.objects.filter(genome_accession=assembly_name).first()
 
     context = {
