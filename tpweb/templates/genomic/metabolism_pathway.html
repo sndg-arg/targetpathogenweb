@@ -4,7 +4,7 @@
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20260610-4">
-    <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20260709-pathway-polish1">
+    <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20260709-pathway-polish2">
 {% endblock %}
 
 {% block body %}
@@ -59,6 +59,11 @@
                     <span><i class="map-legend-box map-legend-box--chokepoint"></i>{% trans "Chokepoint" %}</span>
                     <span><i class="map-legend-dot map-legend-dot--metabolite"></i>{% trans "Metabolite" %}</span>
                     <span><i class="map-legend-dot map-legend-dot--currency"></i>{% trans "Currency metabolite" %}</span>
+                </div>
+                <div class="metabolism-pathway-map-actions" aria-label="{% trans 'Pathway map controls' %}">
+                    <button type="button" class="metabolic-map-btn" data-pathway-map-action="fit">{% trans "Fit" %}</button>
+                    <button type="button" class="metabolic-map-btn" data-pathway-map-action="zoom-in" aria-label="{% trans 'Zoom in' %}">+</button>
+                    <button type="button" class="metabolic-map-btn" data-pathway-map-action="zoom-out" aria-label="{% trans 'Zoom out' %}">-</button>
                 </div>
             </div>
             <div id="metabolic-pathway-diagram" class="metabolic-pathway-diagram"></div>
@@ -131,5 +136,5 @@
 </div>
 
 {{ diagram_payload|json_script:"metabolic-pathway-diagram-data" }}
-<script src="{% static 'js/pages/metabolic-pathway-diagram.js' %}?v=20260709-pathway-polish2"></script>
+<script src="{% static 'js/pages/metabolic-pathway-diagram.js' %}?v=20260709-pathway-polish3"></script>
 {% endblock %}

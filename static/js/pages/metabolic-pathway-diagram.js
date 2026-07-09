@@ -73,11 +73,13 @@
         var reactionH = 54;
 
         container.textContent = "";
+        var baseViewBox = { x: 0, y: 0, width: width, height: height };
         var svg = makeSvg("svg", {
             viewBox: "0 0 " + width + " " + height,
             role: "img",
             "aria-label": "Metabolic pathway reaction map"
         });
+        container.__pathwayMap = { svg: svg, baseViewBox: baseViewBox, currentViewBox: baseViewBox };
 
         svg.appendChild(makeSvg("rect", { x: 0, y: 0, width: width, height: height, fill: palette.bg }));
         var defs = makeSvg("defs", {});
@@ -101,11 +103,14 @@
             var y = headerH + i * rowH;
             var midY = y + rowH / 2;
             var rowFill = i % 2 ? palette.bg : palette.band;
-            svg.appendChild(makeSvg("rect", {
+            var row = makeSvg("g", { class: reaction.is_chokepoint ? "pathway-map-row is-chokepoint" : "pathway-map-row" });
+            addTitle(row, reaction.name || reaction.id);
+            svg.appendChild(row);
+            row.appendChild(makeSvg("rect", {
                 x: 0, y: y, width: width, height: rowH,
                 fill: rowFill
             }));
-            svg.appendChild(makeSvg("line", {
+            row.appendChild(makeSvg("line", {
                 x1: 0, x2: width, y1: y, y2: y,
                 stroke: palette.grid, "stroke-width": 1
             }));
@@ -122,28 +127,64 @@
                 stroke: rxnStroke,
                 "stroke-width": reaction.is_chokepoint ? 2.4 : 1.6
             }), reaction.name || reaction.id);
-            svg.appendChild(rxn);
-            addText(svg, reaction.name || reaction.id, reactionX + 12, midY - 5, "pathway-map-reaction-label", 26);
-            addText(svg, (reaction.genes || []).map(function (g) { return g.accession; }).join(", "), reactionX + 12, midY + 15, "pathway-map-gene-label", 30);
+            row.appendChild(rxn);
+            addText(row, reaction.name || reaction.id, reactionX + 12, midY - 5, "pathway-map-reaction-label", 26);
+            addText(row, (reaction.genes || []).map(function (g) { return g.accession; }).join(", "), reactionX + 12, midY + 15, "pathway-map-gene-label", 30);
 
             substrates.forEach(function (item, j) {
                 var my = midY - ((substrates.length - 1) * 18) / 2 + j * 18;
-                drawMetabolite(svg, item, substrateX, my, palette);
-                drawConnector(svg, substrateX + 136, my, reactionX, midY, palette.line);
+                drawMetabolite(row, item, substrateX, my, palette);
+                drawConnector(row, substrateX + 136, my, reactionX, midY, palette.line);
             });
             products.forEach(function (item, j) {
                 var my = midY - ((products.length - 1) * 18) / 2 + j * 18;
-                drawConnector(svg, reactionX + reactionW, midY, productX - 18, my, palette.line);
-                drawMetabolite(svg, item, productX, my, palette);
+                drawConnector(row, reactionX + reactionW, midY, productX - 18, my, palette.line);
+                drawMetabolite(row, item, productX, my, palette);
             });
 
             var shared = sharedMetabolites(reaction, reactions[i + 1]);
             if (shared.length) {
-                drawCarryover(svg, reactionX + reactionW + 34, y + rowH - 26, shared.join(", "), palette);
+                drawCarryover(row, reactionX + reactionW + 34, y + rowH - 26, shared.join(", "), palette);
             }
         });
 
         container.appendChild(svg);
+        bindControls(container);
+    }
+
+    function setViewBox(container, next) {
+        var state = container.__pathwayMap;
+        if (!state || !state.svg) return;
+        state.currentViewBox = next;
+        state.svg.setAttribute("viewBox", [next.x, next.y, next.width, next.height].join(" "));
+    }
+
+    function zoom(container, factor) {
+        var state = container.__pathwayMap;
+        if (!state) return;
+        var vb = state.currentViewBox;
+        var nextW = Math.max(240, Math.min(state.baseViewBox.width, vb.width * factor));
+        var nextH = Math.max(180, Math.min(state.baseViewBox.height, vb.height * factor));
+        setViewBox(container, {
+            x: vb.x + (vb.width - nextW) / 2,
+            y: vb.y + (vb.height - nextH) / 2,
+            width: nextW,
+            height: nextH
+        });
+    }
+
+    function bindControls(container) {
+        var shell = container.closest(".metabolism-pathway-map-shell");
+        if (!shell || shell.__pathwayControlsBound) return;
+        shell.__pathwayControlsBound = true;
+        Array.prototype.forEach.call(shell.querySelectorAll("[data-pathway-map-action]"), function (button) {
+            button.addEventListener("click", function () {
+                var action = button.getAttribute("data-pathway-map-action");
+                if (action === "fit") setViewBox(container, container.__pathwayMap.baseViewBox);
+                if (action === "zoom-in") zoom(container, 0.78);
+                if (action === "zoom-out") zoom(container, 1.22);
+            });
+        });
     }
 
     function drawMetabolite(svg, item, x, y, palette) {

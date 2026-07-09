@@ -46,11 +46,15 @@
     border: 1px solid var(--tp-color-border-soft);
     border-radius: 10px;
     background: var(--tp-color-surface);
-    transition: border-color 140ms ease;
+    box-shadow: 0 1px 0 color-mix(in srgb, var(--tp-color-surface) 85%, transparent);
+    transition: border-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
+    animation: tp-metabolism-card-in 260ms ease both;
 }
 
 .metabolism-pathway-card:hover {
     border-color: var(--tp-color-border-strong);
+    box-shadow: 0 12px 30px rgba(10, 31, 43, 0.08);
+    transform: translateY(-1px);
 }
 
 .metabolism-rank {
@@ -227,11 +231,13 @@
     color: var(--tp-color-text-primary);
     font-size: 0.78rem;
     text-decoration: none;
+    transition: border-color 140ms ease, background 140ms ease, color 140ms ease, transform 140ms ease;
 }
 
 .metabolism-target-chip:hover {
     border-color: var(--tp-color-brand-300);
     text-decoration: none;
+    transform: translateY(-1px);
 }
 
 .metabolism-target-chip--empty {
@@ -288,6 +294,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 12px;
     padding: 10px 12px;
     border-bottom: 1px solid var(--tp-color-border-soft);
     background: var(--tp-color-surface-soft);
@@ -306,6 +313,37 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
+}
+
+.metabolism-pathway-map-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex: 0 0 auto;
+}
+
+.metabolism-pathway-map-actions .metabolic-map-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    height: 28px;
+    padding: 0 10px;
+    border: 1px solid var(--tp-color-border-strong);
+    border-radius: 6px;
+    background: var(--tp-color-surface);
+    color: var(--tp-color-text-secondary);
+    font-size: 0.76rem;
+    font-weight: 800;
+    line-height: 1;
+    transition: border-color 140ms ease, background 140ms ease, color 140ms ease, transform 140ms ease;
+}
+
+.metabolism-pathway-map-actions .metabolic-map-btn:hover {
+    border-color: var(--tp-color-brand-300);
+    color: var(--tp-color-text-primary);
+    background: var(--tp-color-surface-soft);
+    transform: translateY(-1px);
 }
 
 .map-legend-box,
@@ -341,12 +379,15 @@
 .metabolic-pathway-diagram {
     min-height: 520px;
     overflow: auto;
+    cursor: default;
 }
 
 .metabolic-pathway-diagram svg {
     display: block;
     min-width: 960px;
     width: 100%;
+    transition: opacity 220ms ease;
+    animation: tp-metabolism-map-in 280ms ease both;
 }
 
 .metabolic-pathway-diagram.is-empty {
@@ -395,6 +436,24 @@
     font-weight: 500;
 }
 
+.pathway-map-row {
+    transition: opacity 140ms ease;
+}
+
+.pathway-map-row rect,
+.pathway-map-row path,
+.pathway-map-row circle {
+    transition: opacity 140ms ease, stroke-width 140ms ease, filter 140ms ease;
+}
+
+.pathway-map-row:hover > rect:first-of-type {
+    filter: brightness(0.985);
+}
+
+.pathway-map-row:hover text {
+    font-weight: 800;
+}
+
 .metabolism-reaction-table {
     display: flex;
     flex-direction: column;
@@ -406,10 +465,17 @@
     border: 1px solid var(--tp-color-border-soft);
     border-radius: 8px;
     background: var(--tp-color-surface);
+    transition: border-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
 }
 
 .pathway-reaction-row--chokepoint {
     border-color: color-mix(in srgb, var(--tp-color-amber-500) 42%, var(--tp-color-border-soft));
+}
+
+.pathway-reaction-row:hover {
+    border-color: var(--tp-color-border-strong);
+    box-shadow: 0 10px 26px rgba(10, 31, 43, 0.07);
+    transform: translateY(-1px);
 }
 
 .pathway-reaction-row .target-evidence-accessory-badge {
@@ -499,6 +565,13 @@
     line-height: 1.25;
     overflow: hidden;
     vertical-align: middle;
+    transition: border-color 140ms ease, background 140ms ease, color 140ms ease, transform 140ms ease;
+}
+
+.metabolite-chip:hover {
+    border-color: var(--tp-color-brand-300);
+    background: var(--tp-color-brand-050);
+    transform: translateY(-1px);
 }
 
 .metabolite-chip-label {
@@ -523,6 +596,42 @@
 
 .pathway-reaction-genes {
     margin-top: 10px;
+}
+
+@keyframes tp-metabolism-card-in {
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes tp-metabolism-map-in {
+    from {
+        opacity: 0;
+        transform: scale(0.992);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .metabolism-pathway-card,
+    .metabolic-pathway-diagram svg {
+        animation: none;
+    }
+
+    .metabolism-pathway-card,
+    .metabolism-target-chip,
+    .pathway-reaction-row,
+    .metabolite-chip {
+        transition: none;
+    }
 }
 
 @media (max-width: 1100px) {

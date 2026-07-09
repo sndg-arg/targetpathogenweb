@@ -3362,6 +3362,7 @@ body.residue-modal-open {
     border: 1px solid var(--tp-color-border-soft);
     border-radius: 8px;
     background: var(--tp-color-surface-soft);
+    box-shadow: inset 0 1px 0 color-mix(in srgb, var(--tp-color-surface) 75%, transparent);
 }
 
 .metabolic-map-toolbar {
@@ -3441,30 +3442,101 @@ body.residue-modal-open {
     font-size: 0.76rem;
     font-weight: 700;
     line-height: 1;
+    transition: border-color 140ms ease, background 140ms ease, color 140ms ease, transform 140ms ease;
 }
 
 .metabolic-map-btn:hover {
     border-color: var(--tp-color-brand-300);
     color: var(--tp-color-text-primary);
     background: var(--tp-color-surface-soft);
+    transform: translateY(-1px);
 }
 
 #metabolic-network-cy {
     width: 100%;
     height: clamp(460px, 58vh, 680px);
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 240ms ease, transform 240ms ease;
+}
+
+#metabolic-network-cy.is-ready {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+#metabolic-network-cy.metabolic-network-loading,
+#metabolic-network-cy.metabolic-network-empty,
+#metabolic-network-cy.metabolic-network-error {
+    opacity: 1;
+    transform: none;
 }
 
 .metabolic-network-tooltip {
     position: absolute;
     z-index: 20;
-    max-width: 300px;
-    padding: 8px 11px;
-    border-radius: 6px;
-    background: var(--tp-color-text-primary);
-    color: var(--tp-color-surface);
+    max-width: 340px;
+    padding: 11px 12px;
+    border: 1px solid var(--tp-color-border-strong);
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--tp-color-surface) 96%, var(--tp-color-brand-050));
+    color: var(--tp-color-text-primary);
+    box-shadow: 0 16px 36px rgba(10, 31, 43, 0.22);
     font-size: 0.78rem;
-    line-height: 1.3;
+    line-height: 1.35;
     pointer-events: none;
+}
+
+.metabolic-network-tooltip-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    color: var(--tp-color-text-primary);
+    font-size: 0.86rem;
+    font-weight: 800;
+}
+
+.metabolic-network-tooltip-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 6px;
+    border: 1px solid color-mix(in srgb, var(--tp-color-amber-500) 48%, transparent);
+    border-radius: 999px;
+    background: var(--tp-color-amber-050);
+    color: var(--tp-color-amber-700);
+    font-size: 0.68rem;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.metabolic-network-tooltip dl {
+    display: grid;
+    grid-template-columns: 62px minmax(0, 1fr);
+    gap: 4px 8px;
+    margin: 0;
+}
+
+.metabolic-network-tooltip dt {
+    color: var(--tp-color-text-muted);
+    font-size: 0.68rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.metabolic-network-tooltip dd {
+    margin: 0;
+    color: var(--tp-color-text-primary);
+    font-size: 0.76rem;
+    word-break: break-word;
+}
+
+.metabolic-network-tooltip-hint {
+    margin-top: 9px;
+    padding-top: 8px;
+    border-top: 1px solid var(--tp-color-border-soft);
+    color: var(--tp-color-text-muted);
+    font-size: 0.72rem;
 }
 
 .metabolic-network-note {
@@ -3484,6 +3556,23 @@ body.residue-modal-open {
     justify-content: center;
     color: var(--tp-color-text-muted);
     font-size: 0.85rem;
+}
+
+.metabolic-network-loading::before {
+    content: "";
+    width: 18px;
+    height: 18px;
+    margin-right: 9px;
+    border: 2px solid var(--tp-color-border-soft);
+    border-top-color: var(--tp-color-brand-700);
+    border-radius: 999px;
+    animation: tp-metabolism-spin 780ms linear infinite;
+}
+
+@keyframes tp-metabolism-spin {
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 .metabolic-summary-sentence {

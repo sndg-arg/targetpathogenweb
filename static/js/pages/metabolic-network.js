@@ -38,6 +38,15 @@
         return label.slice(0, 20) + "...";
     }
 
+    function escapeHtml(value) {
+        return String(value == null ? "" : value)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
     function assignPrimaryPathway(nodes, focalPathwayIds) {
         var groupOrder = [];
         var groupOf = {};
@@ -115,20 +124,19 @@
     }
 
     function buildTooltipText(nodeData) {
-        var parts = [nodeData.label];
-        if (nodeData.ecNumbers) {
-            parts.push("EC " + nodeData.ecNumbers);
-        }
-        parts.push(nodeData.pathwayNames ? nodeData.pathwayNames : "No pathway assigned");
-        if (nodeData.chokepointRole && nodeData.chokepointRole !== "none") {
-            parts.push("Chokepoint: " + nodeData.chokepointRole);
-            parts.push(nodeData.isoenzymeCount > 1 ? nodeData.isoenzymeCount + " isoenzymes" : "no isoenzyme backup");
-        }
         var genes = (nodeData.genes || []).map(function (g) { return g.locus_tag; });
-        if (genes.length) {
-            parts.push("Gene(s): " + genes.join(", "));
-        }
-        return parts.join(" - ");
+        var role = nodeData.chokepointRole && nodeData.chokepointRole !== "none" ? formatRole(nodeData.chokepointRole) : "";
+        var roleBadge = role ? '<span class="metabolic-network-tooltip-badge">' + escapeHtml(role) + '</span>' : "";
+        return [
+            '<div class="metabolic-network-tooltip-title">' + escapeHtml(nodeData.label || nodeData.id) + roleBadge + '</div>',
+            '<dl>',
+            '<dt>EC</dt><dd>' + escapeHtml(nodeData.ecNumbers || "-") + '</dd>',
+            '<dt>Pathway</dt><dd>' + escapeHtml(nodeData.pathwayNames || "No pathway assigned") + '</dd>',
+            '<dt>Genes</dt><dd>' + escapeHtml(genes.length ? genes.join(", ") : "-") + '</dd>',
+            '<dt>Backup</dt><dd>' + escapeHtml(nodeData.isoenzymeCount > 1 ? nodeData.isoenzymeCount + " isoenzymes" : "no isoenzyme backup") + '</dd>',
+            '</dl>',
+            '<div class="metabolic-network-tooltip-hint">Click to inspect; double-click linked neighbor proteins to open them.</div>'
+        ].join("");
     }
 
     function formatRole(role) {
@@ -203,7 +211,10 @@
                     "text-max-width": "110px",
                     "text-outline-color": palette.ring,
                     "text-outline-width": 3,
-                    "opacity": 0.92
+                    "opacity": 0.92,
+                    "transition-property": "opacity, border-width, border-color, width, height, background-color",
+                    "transition-duration": "140ms",
+                    "transition-timing-function": "ease-out"
                 }
             },
             {
@@ -237,7 +248,23 @@
                 selector: "node:selected",
                 style: {
                     "border-width": 3,
-                    "border-color": palette.text
+                    "border-color": palette.text,
+                    "z-index": 40
+                }
+            },
+            {
+                selector: ".is-hovered",
+                style: {
+                    "border-width": 3,
+                    "border-color": palette.text,
+                    "opacity": 1,
+                    "z-index": 45
+                }
+            },
+            {
+                selector: ".is-muted",
+                style: {
+                    "opacity": 0.18
                 }
             },
             {
@@ -247,7 +274,23 @@
                     "line-color": palette.edge,
                     "curve-style": "bezier",
                     "opacity": 0.55,
-                    "line-cap": "round"
+                    "line-cap": "round",
+                    "transition-property": "opacity, width, line-color",
+                    "transition-duration": "140ms"
+                }
+            },
+            {
+                selector: "edge.is-muted",
+                style: {
+                    "opacity": 0.1
+                }
+            },
+            {
+                selector: "edge.is-hovered",
+                style: {
+                    "width": 2.4,
+                    "opacity": 0.95,
+                    "z-index": 30
                 }
             },
             {
@@ -322,6 +365,19 @@
         var lastTappedNodeId = null;
         var lastTappedAt = 0;
 
+        function clearHover(cy) {
+            cy.elements(".is-hovered").removeClass("is-hovered");
+            cy.elements(".is-muted").removeClass("is-muted");
+        }
+
+        function focusNeighborhood(cy, node) {
+            clearHover(cy);
+            var neighborhood = node.closedNeighborhood();
+            cy.elements().not(neighborhood).not(".pathway-group").addClass("is-muted");
+            neighborhood.addClass("is-hovered");
+            node.addClass("is-hovered");
+        }
+
         fetch(networkUrl, { credentials: "same-origin" })
             .then(function (response) {
                 if (!response.ok) throw new Error("network request failed");
@@ -373,7 +429,10 @@
                         focal.select();
                         updateInspector(focal.data());
                     }
-                    cy.one("layoutstop", function () { cy.fit(cy.elements(), 40); });
+                    cy.one("layoutstop", function () {
+                        cy.fit(cy.elements(), 40);
+                        container.classList.add("is-ready");
+                    });
                 });
 
                 Array.prototype.forEach.call(document.querySelectorAll("[data-metabolic-action]"), function (button) {
@@ -388,16 +447,18 @@
                 cy.on("mouseover", "node", function (evt) {
                     if (evt.target.data("isGroup")) return;
                     var node = evt.target;
-                    tooltip.textContent = buildTooltipText(node.data());
+                    focusNeighborhood(cy, node);
+                    tooltip.innerHTML = buildTooltipText(node.data());
                     tooltip.style.display = "block";
                 });
                 cy.on("mousemove", "node", function (evt) {
                     if (evt.target.data("isGroup")) return;
                     var pos = evt.renderedPosition || evt.position;
-                    tooltip.style.left = (pos.x + 12) + "px";
-                    tooltip.style.top = (pos.y + 12) + "px";
+                    tooltip.style.left = (container.offsetLeft + pos.x + 12) + "px";
+                    tooltip.style.top = (container.offsetTop + pos.y + 12) + "px";
                 });
                 cy.on("mouseout", "node", function () {
+                    clearHover(cy);
                     tooltip.style.display = "none";
                 });
                 cy.on("tap", "node", function (evt) {
