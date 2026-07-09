@@ -997,6 +997,125 @@ def _binder_to_dto(binder, loaded_ex_structures=None, pdb_resolution_map=None):
         "props": _binder_table_properties(binder.smiles),
     }
 
+
+def _binder_evidence_rank(item):
+    source = item.get("source")
+    direct = bool(item.get("is_direct"))
+    score = item.get("score")
+    if source == Binders.SOURCE_PDB and direct:
+        tier = 0
+    elif source == Binders.SOURCE_CHEMBL and direct:
+        tier = 1
+    elif source == Binders.SOURCE_PDB:
+        tier = 2
+    elif source == Binders.SOURCE_CHEMBL:
+        tier = 3
+    else:
+        tier = 4
+    return (tier, score is None, -(score or 0), item.get("name") or "")
+
+
+def _binder_source_label(item):
+    source = item.get("source")
+    if source == Binders.SOURCE_PDB:
+        return "PDB co-crystal" if item.get("is_direct") else "PDB via homolog"
+    if source == Binders.SOURCE_CHEMBL:
+        return "ChEMBL direct" if item.get("is_direct") else "ChEMBL via homolog"
+    return "ZINC candidate"
+
+
+def _binder_score_label(item):
+    score = item.get("score")
+    if score is None:
+        return ""
+    if item.get("source") == Binders.SOURCE_PROPOSED:
+        return f"Tanimoto {score:.3f}"
+    if item.get("source") == Binders.SOURCE_CHEMBL:
+        return f"pchembl {score:.2f}"
+    return ""
+
+
+def _build_binder_summary(tab_data):
+    all_items = [
+        item
+        for key in ("pdb_direct", "pdb_homolog", "chembl_direct", "chembl_homolog", "zinc")
+        for item in tab_data[key]
+    ]
+    if not all_items:
+        return None
+
+    direct_count = sum(1 for item in all_items if item.get("is_direct"))
+    homolog_count = len(all_items) - direct_count
+    structural_count = len(tab_data["pdb_direct"]) + len(tab_data["pdb_homolog"])
+    bioactive_count = len(tab_data["chembl_direct"]) + len(tab_data["chembl_homolog"])
+    proposed_count = len(tab_data["zinc"])
+    loaded_crystal_count = sum(
+        1 for item in tab_data["pdb_direct"] + tab_data["pdb_homolog"]
+        if item.get("crystal", {}).get("loaded")
+    )
+    clean_druglike_count = sum(
+        1 for item in all_items
+        if item.get("props", {}).get("lipinski_violations") == 0
+        and not item.get("props", {}).get("pains_alert")
+    )
+    pains_alert_count = sum(1 for item in all_items if item.get("props", {}).get("pains_alert"))
+
+    best = sorted(all_items, key=_binder_evidence_rank)[0]
+    best_svg = make_binder_svg(best.get("smiles")) if best.get("smiles") else ""
+    preview = []
+    seen = set()
+    for item in sorted(all_items, key=_binder_evidence_rank):
+        name = item.get("name")
+        smiles = item.get("smiles")
+        key = (name, smiles)
+        if key in seen:
+            continue
+        seen.add(key)
+        preview.append({
+            "id": item.get("id"),
+            "name": name,
+            "source_label": _binder_source_label(item),
+            "score_label": _binder_score_label(item),
+            "svg": make_binder_svg(smiles) if smiles else "",
+            "props": item.get("props") or {},
+        })
+        if len(preview) >= 4:
+            break
+
+    if structural_count and bioactive_count:
+        summary_text = "Structural and bioactivity evidence are both available for this target."
+    elif structural_count:
+        summary_text = "Structural ligand evidence is available for this target."
+    elif bioactive_count:
+        summary_text = "Bioactivity evidence is available for this target."
+    elif proposed_count:
+        summary_text = "Only proposed virtual-screening candidates are available for this target."
+    else:
+        summary_text = "Ligand evidence is available for this target."
+
+    return {
+        "direct_count": direct_count,
+        "homolog_count": homolog_count,
+        "structural_count": structural_count,
+        "bioactive_count": bioactive_count,
+        "proposed_count": proposed_count,
+        "loaded_crystal_count": loaded_crystal_count,
+        "clean_druglike_count": clean_druglike_count,
+        "pains_alert_count": pains_alert_count,
+        "best": {
+            "id": best.get("id"),
+            "name": best.get("name"),
+            "source_label": _binder_source_label(best),
+            "score_label": _binder_score_label(best),
+            "svg": best_svg,
+            "props": best.get("props") or {},
+            "crystal": best.get("crystal") or {},
+        },
+        "preview": preview,
+        "summary_text": summary_text,
+    }
+
+
 def create_binders_dict(protein, search_query="", structures=None):
     """Build a binders payload split into five categories:
 
@@ -1061,6 +1180,7 @@ def create_binders_dict(protein, search_query="", structures=None):
     default_tab = next((t for t in tab_order if tab_data[t]), "zinc")
 
     total_all = sum(len(v) for v in tab_data.values())
+    summary = _build_binder_summary(tab_data)
 
     return {
         "pdb_direct": pdb_direct,
@@ -1078,6 +1198,7 @@ def create_binders_dict(protein, search_query="", structures=None):
         "zinc_capped": len(zinc) >= ZINC_BINDER_CAP,
         "default_tab": default_tab,
         "search_query": cleaned_query,
+        "summary": summary,
     }
 
 class ProteinView(View):

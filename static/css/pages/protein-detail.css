@@ -1253,6 +1253,249 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 
 /* === Binders v2 — search + tabs + clickable cards + proposed table === */
 
+.binder-intel-panel {
+    display: grid;
+    gap: 14px;
+    margin: 12px 0 18px;
+    padding: 14px;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 10px;
+    background:
+        linear-gradient(135deg, color-mix(in srgb, var(--tp-color-brand-050) 70%, transparent), transparent 42%),
+        var(--tp-color-surface);
+}
+
+.binder-intel-lead {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    padding-bottom: 2px;
+}
+
+.binder-intel-kicker {
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-label);
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.binder-intel-lead p {
+    margin: 0;
+    color: var(--tp-color-text-primary);
+    font-size: 0.92rem;
+    font-weight: 650;
+    line-height: 1.35;
+    text-align: right;
+}
+
+.binder-intel-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.binder-intel-stat {
+    min-width: 0;
+    padding: 12px;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--tp-color-surface) 82%, var(--tp-color-surface-soft));
+}
+
+.binder-intel-label {
+    display: block;
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-label);
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.binder-intel-stat strong {
+    display: block;
+    margin-top: 5px;
+    color: var(--tp-color-brand-900);
+    font-size: 1.45rem;
+    line-height: 1;
+}
+
+.binder-intel-stat span:last-child {
+    display: block;
+    margin-top: 5px;
+    color: var(--tp-color-text-muted);
+    font-size: 0.76rem;
+    font-weight: 600;
+}
+
+.binder-intel-main {
+    display: grid;
+    grid-template-columns: minmax(260px, 0.85fr) minmax(0, 1.15fr);
+    gap: 12px;
+    align-items: stretch;
+}
+
+.binder-best-card,
+.binder-mini-card {
+    color: inherit;
+    text-decoration: none;
+}
+
+.binder-best-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 0;
+    padding: 12px;
+    border: 1px solid var(--tp-color-brand-200);
+    border-radius: 9px;
+    background: var(--tp-color-brand-050);
+    transition: border-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
+}
+
+.binder-best-card:hover,
+.binder-best-card:focus-visible {
+    border-color: var(--tp-color-brand-400);
+    box-shadow: 0 12px 28px rgba(10, 31, 43, 0.1);
+    color: inherit;
+    outline: none;
+    text-decoration: none;
+    transform: translateY(-1px);
+}
+
+.binder-best-body {
+    display: grid;
+    grid-template-columns: 132px minmax(0, 1fr);
+    gap: 12px;
+    align-items: center;
+}
+
+.binder-best-mol {
+    display: grid;
+    place-items: center;
+    width: 132px;
+    height: 116px;
+    border: 1px solid color-mix(in srgb, var(--tp-color-brand-300) 50%, transparent);
+    border-radius: 8px;
+    background: var(--tp-color-surface);
+    overflow: hidden;
+}
+
+.binder-best-mol svg {
+    width: 132px;
+    height: 132px;
+    transform: scale(1.18);
+}
+
+.binder-best-empty {
+    color: var(--tp-color-text-muted);
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+.binder-best-copy {
+    min-width: 0;
+}
+
+.binder-best-copy strong {
+    display: block;
+    color: var(--tp-color-brand-900);
+    font-size: 1.15rem;
+    line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.binder-best-copy span,
+.binder-best-copy em,
+.binder-best-copy small {
+    display: block;
+    margin-top: 5px;
+}
+
+.binder-best-copy span {
+    color: var(--tp-color-text-primary);
+    font-size: 0.86rem;
+    font-weight: 700;
+}
+
+.binder-best-copy em {
+    color: var(--tp-color-brand-800);
+    font-size: 0.82rem;
+    font-style: normal;
+    font-weight: 800;
+}
+
+.binder-best-copy small {
+    color: var(--tp-color-text-muted);
+    font-size: 0.75rem;
+    line-height: 1.35;
+}
+
+.binder-molecule-strip {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.binder-mini-card {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    padding: 8px;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 9px;
+    background: var(--tp-color-surface);
+    transition: border-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
+}
+
+.binder-mini-card:hover,
+.binder-mini-card:focus-visible {
+    border-color: var(--tp-color-brand-300);
+    box-shadow: 0 10px 22px rgba(10, 31, 43, 0.08);
+    color: inherit;
+    outline: none;
+    text-decoration: none;
+    transform: translateY(-1px);
+}
+
+.binder-mini-mol {
+    display: grid;
+    place-items: center;
+    height: 98px;
+    border-radius: 7px;
+    background: var(--tp-color-surface-soft);
+    color: var(--tp-color-text-muted);
+    font-size: 0.78rem;
+    font-weight: 800;
+    overflow: hidden;
+}
+
+.binder-mini-mol svg {
+    width: 116px;
+    height: 116px;
+    transform: scale(1.12);
+}
+
+.binder-mini-name {
+    margin-top: 8px;
+    color: var(--tp-color-text-primary);
+    font-size: 0.82rem;
+    font-weight: 800;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.binder-mini-card small {
+    margin-top: 3px;
+    color: var(--tp-color-text-muted);
+    font-size: 0.68rem;
+    line-height: 1.25;
+}
+
 .binders-search {
     display: flex;
     align-items: center;
@@ -1812,6 +2055,33 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 }
 
 @media (max-width: 720px) {
+    .binder-intel-lead,
+    .binder-intel-main {
+        display: grid;
+        grid-template-columns: 1fr;
+    }
+
+    .binder-intel-lead {
+        gap: 6px;
+    }
+
+    .binder-intel-lead p {
+        text-align: left;
+    }
+
+    .binder-intel-grid,
+    .binder-molecule-strip {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .binder-best-body {
+        grid-template-columns: 112px minmax(0, 1fr);
+    }
+
+    .binder-best-mol {
+        width: 112px;
+    }
+
     .binder-table__head,
     .binder-table__row {
         grid-template-columns: 1fr;
