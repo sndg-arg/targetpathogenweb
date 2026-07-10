@@ -37,56 +37,6 @@ def _evidence_convergence_tier(score):
     return "Limited", "bad"
 
 
-def get_top_targets_by_binders(assembly_name, limit=5):
-    """Top-N proteins of a genome ranked by total binder count.
-
-    This is "most-studied" evidence, NOT a drug-target ranking — proteins with
-    well-studied human homologs (kinases, GPCRs) accumulate many ChEMBL/ZINC
-    hits regardless of whether they are good bacterial targets. Use as a
-    "ligand evidence" view, not a target prioritization.
-    """
-    proteome_name = assembly_name + Biodatabase.PROT_POSTFIX
-    rows = (
-        Binders.objects.filter(locustag__biodatabase__name=proteome_name)
-        .values(
-            "locustag__bioentry_id",
-            "locustag__accession",
-            "locustag__description",
-        )
-        .annotate(
-            binder_count=Count("id"),
-            direct_count=Count("id", filter=Q(source__in=[Binders.SOURCE_PDB, Binders.SOURCE_CHEMBL], is_direct=True)),
-            homolog_count=Count("id", filter=Q(source__in=[Binders.SOURCE_PDB, Binders.SOURCE_CHEMBL], is_direct=False)),
-            pdb_count=Count("id", filter=Q(source=Binders.SOURCE_PDB)),
-            pdb_direct_count=Count("id", filter=Q(source=Binders.SOURCE_PDB, is_direct=True)),
-            pdb_homolog_count=Count("id", filter=Q(source=Binders.SOURCE_PDB, is_direct=False)),
-            chembl_count=Count("id", filter=Q(source=Binders.SOURCE_CHEMBL)),
-            chembl_direct_count=Count("id", filter=Q(source=Binders.SOURCE_CHEMBL, is_direct=True)),
-            chembl_homolog_count=Count("id", filter=Q(source=Binders.SOURCE_CHEMBL, is_direct=False)),
-            zinc_count=Count("id", filter=Q(source=Binders.SOURCE_PROPOSED)),
-        )
-        .order_by("-direct_count", "-binder_count")[:limit]
-    )
-    return [
-        {
-            "bioentry_id": r["locustag__bioentry_id"],
-            "accession": r["locustag__accession"],
-            "description": r["locustag__description"],
-            "binder_count": r["binder_count"],
-            "direct_count": r["direct_count"],
-            "homolog_count": r["homolog_count"],
-            "pdb_count": r["pdb_count"],
-            "pdb_direct_count": r["pdb_direct_count"],
-            "pdb_homolog_count": r["pdb_homolog_count"],
-            "chembl_count": r["chembl_count"],
-            "chembl_direct_count": r["chembl_direct_count"],
-            "chembl_homolog_count": r["chembl_homolog_count"],
-            "zinc_count": r["zinc_count"],
-        }
-        for r in rows
-    ]
-
-
 _FACTOR_LABELS = {
     # Map score_param values → biologist-friendly chip labels.
     # First match wins; covers the canonical pipeline params.
@@ -173,12 +123,12 @@ def _add_signal(signals, label, tone="good"):
         signals.append({"label": label, "tone": tone})
 
 
-def get_top_targets_by_score(assembly_name, user, limit=5):
-    """Top-N proteins ranked by interpretable evidence convergence.
+def _score_proteins(assembly_name):
+    """Compute the evidence-convergence score for every scoreable protein in a genome.
 
-    This is not a saved ScoreFormula. It is a conservative overview heuristic
-    that combines independent evidence streams so the genome page does not
-    over-rank proteins by one raw signal such as FPocket or ligand count.
+    Shared by get_top_targets_by_score (ranked overall) and
+    get_unexplored_targets (ranked among proteins with zero ligand evidence).
+    Returned rows are plain dicts, unsorted.
     """
     from tpweb.services.protein_serializer import score_param_value_map
 
@@ -321,43 +271,72 @@ def get_top_targets_by_score(assembly_name, user, limit=5):
             continue
 
         shown_factors = (signals + cautions)[:6]
-        scored.append((
-            p,
-            score,
-            fpocket or 0.0,
-            direct_count,
-            binder_count,
-            shown_factors,
-            pdb_direct + pdb_homolog,
-            chembl_direct + chembl_homolog,
-            zinc_count,
-        ))
+        scored.append({
+            "protein": p,
+            "score": score,
+            "fpocket": fpocket or 0.0,
+            "direct_count": direct_count,
+            "binder_count": binder_count,
+            "factors": shown_factors,
+            "pdb_count": pdb_direct + pdb_homolog,
+            "chembl_count": chembl_direct + chembl_homolog,
+            "zinc_count": zinc_count,
+        })
 
-    scored.sort(key=lambda row: (row[1], row[2], row[3], row[4]), reverse=True)
-    top = scored[:limit]
+    return scored
 
+
+def _format_score_items(scored_rows):
     items = []
-    for p, score, fpocket, direct_count, binder_count, factors, pdb_c, chembl_c, zinc_c in top:
-        tier_label, tier_tone = _evidence_convergence_tier(score)
+    for row in scored_rows:
+        p = row["protein"]
+        tier_label, tier_tone = _evidence_convergence_tier(row["score"])
         items.append({
             "bioentry_id": p.bioentry_id,
             "accession": p.accession,
             "description": p.description,
-            "score": round(score, 1),
+            "score": round(row["score"], 1),
             "score_max": int(EVIDENCE_CONVERGENCE_MAX_SCORE),
-            "score_percent": round((score / EVIDENCE_CONVERGENCE_MAX_SCORE) * 100),
+            "score_percent": round((row["score"] / EVIDENCE_CONVERGENCE_MAX_SCORE) * 100),
             "tier_label": tier_label,
             "tier_tone": tier_tone,
-            "factors": factors,
-            "binder_count": binder_count,
-            "direct_count": direct_count,
-            "druggability": fpocket,
-            "pdb_count": pdb_c,
-            "chembl_count": chembl_c,
-            "zinc_count": zinc_c,
+            "factors": row["factors"],
+            "binder_count": row["binder_count"],
+            "direct_count": row["direct_count"],
+            "druggability": row["fpocket"],
+            "pdb_count": row["pdb_count"],
+            "chembl_count": row["chembl_count"],
+            "zinc_count": row["zinc_count"],
         })
+    return items
 
-    return {"formula_name": "Evidence convergence", "items": items}
+
+def get_top_targets_by_score(assembly_name, user, limit=5):
+    """Top-N proteins ranked by interpretable evidence convergence.
+
+    This is not a saved ScoreFormula. It is a conservative overview heuristic
+    that combines independent evidence streams so the genome page does not
+    over-rank proteins by one raw signal such as FPocket or ligand count.
+    """
+    scored = _score_proteins(assembly_name)
+    scored.sort(key=lambda r: (r["score"], r["fpocket"], r["direct_count"], r["binder_count"]), reverse=True)
+    return {"formula_name": "Evidence convergence", "items": _format_score_items(scored[:limit])}
+
+
+def get_unexplored_targets(assembly_name, user, limit=5):
+    """Top-N proteins with strong non-chemical evidence but zero ligand records.
+
+    Raw ligand count rewards "well-studied" proteins - a bacterial protein
+    with a well-studied human homolog (kinases, GPCRs) racks up ChEMBL/ZINC
+    hits regardless of whether it's a good bacterial-specific target, and that
+    homology is often the same thing the off-target signal penalizes. This
+    surfaces the inverse: promising, druggable, selective candidates nobody
+    has drugged yet - a target-discovery view instead of a "most-studied" one.
+    """
+    scored = _score_proteins(assembly_name)
+    unexplored = [r for r in scored if r["binder_count"] == 0]
+    unexplored.sort(key=lambda r: (r["score"], r["fpocket"]), reverse=True)
+    return {"formula_name": "Unexplored candidates", "items": _format_score_items(unexplored[:limit])}
 
 
 def build_assembly_workspace_metrics(assembly_name):

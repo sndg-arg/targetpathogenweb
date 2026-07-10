@@ -135,6 +135,11 @@
     justify-content: center;
 }
 
+.genome-hero-actions--secondary {
+    gap: 8px;
+    margin-top: 10px;
+}
+
 /* ── Metric pills ─────────────────────────────────────────────────── */
 
 .genome-metrics {
@@ -406,14 +411,6 @@
     -webkit-line-clamp: 1;
 }
 
-/* Breakdown chips inside targets-main (right card) align left like factor chips */
-.genome-card--ranking .targets-breakdown {
-    justify-content: flex-start;
-    padding-left: 38px;
-    flex-wrap: nowrap;
-    overflow-x: clip;
-}
-
 .targets-list {
     list-style: none;
     margin: 0;
@@ -518,19 +515,6 @@
     color: var(--tp-color-warning-ink);
 }
 
-.targets-direct-count {
-    margin-left: auto;
-    font-size: 0.84rem;
-    font-weight: var(--tp-font-weight-semibold);
-    color: var(--tp-color-sage-900, var(--tp-color-text-primary));
-    line-height: 1;
-    padding: 4px 10px;
-    background: var(--tp-color-sage-050);
-    border: 1px solid var(--tp-color-sage-200);
-    border-radius: 8px;
-    white-space: nowrap;
-}
-
 .targets-evidence {
     font-size: 0.78rem;
     font-weight: 600;
@@ -541,31 +525,6 @@
     border: 1px solid var(--tp-color-border-soft);
     border-radius: 999px;
     position: relative;
-}
-
-/* Chips that contain a .targets-tooltip get the (i) hint + relative anchor. */
-.targets-bd:has(> .targets-tooltip),
-.targets-evidence:has(> .targets-tooltip) {
-    position: relative;
-    cursor: help;
-}
-
-.targets-bd:has(> .targets-tooltip) strong::after {
-    content: "i";
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 13px;
-    height: 13px;
-    margin-left: 4px;
-    border-radius: 50%;
-    border: 1px solid currentColor;
-    font-size: 9px;
-    font-style: italic;
-    font-weight: 500;
-    vertical-align: middle;
-    opacity: 0.5;
-    line-height: 1;
 }
 
 /* Custom tooltip — same look as .cell-tooltip used across the app. */
@@ -602,36 +561,19 @@
     border-top-color: var(--tp-tooltip-bg);
 }
 
-.targets-bd:hover .targets-tooltip,
-.targets-bd:focus-visible .targets-tooltip,
 .targets-evidence:hover .targets-tooltip,
 .targets-evidence:focus-visible .targets-tooltip {
     opacity: 1;
 }
 
-/* Anchor leftmost / rightmost chips so their tooltips don't overflow horizontally.
-   PDB is the leftmost chip in the breakdown row → tooltip extends to the right.
-   ZINC is the rightmost → tooltip extends to the left.
-   .targets-evidence sits on the right edge of the score ranking → same as ZINC.
-   ChEMBL stays centered (default). */
-.targets-bd--pdb .targets-tooltip {
-    left: 0;
-    transform: none;
-}
-
-.targets-bd--pdb .targets-tooltip::after {
-    left: 20px;
-    transform: none;
-}
-
-.targets-bd--zinc .targets-tooltip,
+/* .targets-evidence sits on the right edge of the score ranking, so its
+   tooltip anchors to the right instead of the default centered position. */
 .targets-evidence .targets-tooltip {
     left: auto;
     right: 0;
     transform: none;
 }
 
-.targets-bd--zinc .targets-tooltip::after,
 .targets-evidence .targets-tooltip::after {
     left: auto;
     right: 20px;
@@ -773,61 +715,12 @@
     color: var(--tp-color-text-muted);
 }
 
-.targets-breakdown {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    padding-left: 38px;
-}
-
-.targets-bd {
-    font-size: var(--tp-font-label);
-    font-weight: 600;
-    padding: 3px 8px;
-    border-radius: 999px;
-    border: 1px solid transparent;
-    white-space: nowrap;
-}
-
-.targets-bd strong {
-    font-weight: 600;
-}
-
-.targets-bd--pdb,
-.targets-bd--pdb-direct {
-    background: var(--tp-color-brand-100);
-    color: var(--tp-color-brand-900);
-    border-color: var(--tp-color-brand-300);
-}
-
-.targets-bd--chembl,
-.targets-bd--chembl-direct {
-    background: color-mix(in srgb, var(--tp-color-sage-700) 12%, var(--tp-color-surface));
-    color: var(--tp-color-sage-900, var(--tp-color-text-primary));
-    border-color: color-mix(in srgb, var(--tp-color-sage-700) 28%, var(--tp-color-border-soft));
-}
-
-.targets-bd--homolog {
-    background: var(--tp-color-surface-muted);
-    color: var(--tp-color-text-secondary);
-    border-color: var(--tp-color-border-soft);
-}
-
-.targets-bd--zinc {
-    background: var(--tp-color-info-bg);
-    color: var(--tp-color-text-primary);
-    border-color: var(--tp-color-border-soft);
-}
-
 @media (max-width: 720px) {
     .targets-link {
         grid-template-columns: 1fr;
     }
     .targets-stats {
         align-items: flex-start;
-    }
-    .targets-breakdown {
-        justify-content: flex-start;
     }
     .targets-description {
         padding-left: 0;
