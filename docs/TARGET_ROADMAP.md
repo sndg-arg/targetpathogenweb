@@ -112,6 +112,22 @@ El overview del genoma debe funcionar como tablero macro, no como reflejo de la 
 - Ligandos tratados como evidencia por tipo y no como conteo lineal: el overview muestra si hay evidencia directa/soporte, y el ranking secundario conserva los conteos detallados.
 - Rankings secundarios conservados para senales especificas, como ligand support.
 - Copy aclarando que el score es triage, no una conclusion biologica final.
+- Reemplazo del ranking secundario por cantidad de ligandos (`Strongest ligand support`) por
+  `Worth a fresh look`: mismo score de evidence-convergence, restringido a proteinas con cero
+  registros de ligando. El ranking por conteo premiaba proteinas "muy estudiadas" (homologos
+  humanos de kinasas/GPCRs con muchos hits en ChEMBL/ZINC) independientemente de si eran buenos
+  targets bacterianos — la misma homologia que el off-target penaliza en el mismo score. La
+  nueva vista responde una pregunta real: candidatos druggable/selectivos que nadie exploro
+  quimicamente todavia.
+- Logica de scoring refactorizada en `_score_proteins`/`_format_score_items` (assembly_workspace.py)
+  para que ambos rankings reusen el mismo calculo en vez de duplicarlo.
+- Hero simplificado: 2 acciones primarias (`Proteins`, `Metabolism`) y el resto (Add data,
+  Custom score, EC tree, BLAST) en una fila secundaria menos prominente, en vez de 6 botones
+  con el mismo peso visual.
+- Jerarquia tipografica arreglada en `Evidence available`: conteos de evidencia directa
+  (PDB co-crystal, ChEMBL bioactive) mas grandes/bold/con acento; conteos transferidos
+  (homologos, ZINC) mas chicos y grises. Antes tenian la misma tipografia y el numero mas
+  grande (ej. ZINC propuesto) ganaba la atencion aunque fuera la evidencia mas debil.
 
 **Pendiente para cerrar.**
 
@@ -119,7 +135,8 @@ El overview del genoma debe funcionar como tablero macro, no como reflejo de la 
 - Validar si el maximo teorico de 15 puntos y los cortes Strong >=65%, Moderate 40-65% y Limited <40% son intuitivos para usuarios biologos.
 - Definir si el score compuesto debe convertirse en `ScoreFormula` editable o quedar solo como ranking de overview.
 - Agregar export del ranking compuesto con desglose de contribuciones.
-- Evaluar una comparacion visual entre ranking compuesto, ranking por pocket y ranking por ligandos.
+- Validar con biologas si `Worth a fresh look` (candidatos sin evidencia de ligando) se entiende
+  como "vale la pena explorar" y no como "target debil".
 
 ## To Do prioritario
 
@@ -391,10 +408,25 @@ Pasada sistematica para que TPW se sienta como una unica aplicacion cientifica c
 - Genome overview, Protein detail y Protein list usando el mismo movimiento base.
 - Metabolism overview/pathway y Binder detail incorporados al mismo lenguaje de motion/depth.
 - Cache busting de CSS en las vistas tocadas para que el cluster levante el pase visual.
+- Auditoria y limpieza de colores/sombras hardcodeadas en `ui-system.css`, `proteins-list.css`,
+  `structure-fullscreen.css`, `protein-detail.css`, `metabolism-overview.css` y `genome-overview.css`:
+  fallbacks hex muertos sobre tokens que ya existian, tokens referenciados que directamente no
+  existian (`--tp-color-amber-800`, `--tp-color-danger-500/700`), chips con hex crudo sin `var()`,
+  y sombras `rgba()` sueltas remapeadas a la escala `--tp-shadow-xs/sm/md/lg` ya existente. Se
+  agrego `--tp-color-scrim` (backdrop de modal, theme-aware) y `--sv-shadow` (familia de tokens
+  del structure viewer) donde no habia un token que calzara.
+- Bug sistemico encontrado y arreglado: el keyframe compartido `tp-ui-enter` (y 8 copias
+  page-specific del mismo patron) terminaba en `transform: translateY(0)`/`scale(1)` con
+  `animation-fill-mode: both`, dejando un transform permanente e invisible en `.genome-card` y
+  equivalentes. Cualquier transform persistente en un ancestro de un `<select>` nativo rompe el
+  posicionamiento del dropdown en Chromium — asi se rompio el select de Downloads en genome
+  overview. Corregido en los 9 archivos (afecta tambien BLAST, que tiene su propio `<select>`).
 
 **Pendiente para cerrar.**
 
-- Auditar colores/sombras hardcodeadas por pagina.
+- Auditar colores/sombras hardcodeadas en el resto de paginas no tocadas todavia (home, binder
+  detail, index, y las vistas de auth/blast/customparam/formula-form/genome-upload/genomes-list/
+  annotation-explorer mas alla del fix del keyframe).
 - Definir un checklist visual antes de mergear nuevas vistas.
 - Revisar en modo claro/oscuro con screenshots reales.
 - Extender luego al structure viewer, con validacion visual especifica porque es una superficie interactiva de mayor riesgo.
