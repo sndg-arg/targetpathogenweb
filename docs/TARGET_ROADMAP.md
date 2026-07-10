@@ -191,12 +191,14 @@ El usuario debe poder elegir un pocket puntual y mirarlo en detalle, no solo pre
 - Acciones `Zoom` y `Residues` con tooltip.
 - Card de pocket/residue set marcada visualmente cuando alguna capa esta visible en el viewer.
 - Diferenciacion visual leve entre cards FPocket y P2Rank.
+- Accion `Inspect` para seleccionar un pocket, centrar camara, mostrar superficie, apagar capas visibles de otros pockets y completar un panel persistente de detalle.
+- Panel de pocket seleccionado con metodo, score y residuos.
 
 **Pendiente para cerrar.**
 
-- Implementar seleccion de pocket activo.
-- Agregar modo de inspeccion/foco que oculte o atenue los otros pockets.
-- Mostrar un panel de detalle persistente del pocket seleccionado.
+- Refinar modo de foco para atenuar geometricamente la proteina y otros pockets, no solo apagar capas activas.
+- Agregar `Show only selected pocket` / `Show all pockets`.
+- Agregar propiedades geometricas disponibles del pocket seleccionado, como volumen o coordenadas si estan en el dato importado.
 - Verificar en datos reales que el detalle permite inspeccionar el pocket, no solo la region general.
 
 ### Comparacion FPocket vs P2Rank

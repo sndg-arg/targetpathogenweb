@@ -401,6 +401,95 @@ body:has(.sv-root) .tp-footer { display: none !important; }
     line-height: 1.35;
 }
 
+.sv-pocket-inspector {
+    margin-top: 10px;
+    padding: 10px;
+    border: 1px solid var(--structure-accent-border);
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--structure-accent-soft) 45%, var(--tp-color-surface));
+    box-shadow: var(--tp-shadow-xs);
+}
+
+.sv-pocket-inspector[hidden] {
+    display: none;
+}
+
+.sv-pocket-inspector-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 5px;
+}
+
+.sv-pocket-inspector-kicker {
+    color: var(--tp-color-text-muted);
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.sv-pocket-inspector-clear {
+    appearance: none;
+    border: 1px solid var(--tp-color-border);
+    border-radius: 999px;
+    background: var(--tp-color-surface);
+    color: var(--tp-color-text-secondary);
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.68rem;
+    font-weight: 700;
+    line-height: 1;
+    padding: 4px 8px;
+}
+
+.sv-pocket-inspector-title {
+    display: block;
+    color: var(--structure-accent-ink);
+    font-size: 0.92rem;
+    line-height: 1.2;
+}
+
+.sv-pocket-inspector-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 10px;
+    margin: 8px 0 0;
+}
+
+.sv-pocket-inspector-grid div {
+    min-width: 0;
+}
+
+.sv-pocket-inspector-grid dt {
+    color: var(--tp-color-text-muted);
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.sv-pocket-inspector-grid dd {
+    margin: 1px 0 0;
+    color: var(--tp-color-text-secondary);
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 0.74rem;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.sv-pocket-inspector-wide {
+    grid-column: 1 / -1;
+}
+
+.sv-pocket-inspector-note {
+    margin: 8px 0 0;
+    color: var(--tp-color-text-muted);
+    font-size: 0.74rem;
+    line-height: 1.35;
+}
+
 .sv-no-pockets {
     margin: 24px 0 0;
     font-size: 0.84rem;
@@ -472,6 +561,12 @@ body:has(.sv-root) .tp-footer { display: none !important; }
     border-color: var(--structure-accent-border);
     background: color-mix(in srgb, var(--structure-accent-soft) 38%, var(--tp-color-surface));
     box-shadow: inset 3px 0 0 var(--structure-accent);
+}
+
+.pocket-card.is-selected-pocket {
+    border-color: var(--structure-accent);
+    background: color-mix(in srgb, var(--structure-accent-soft) 52%, var(--tp-color-surface));
+    box-shadow: inset 4px 0 0 var(--structure-accent), var(--tp-shadow-sm);
 }
 
 .pocket-card--fpocket .pocket-card-id::before,
