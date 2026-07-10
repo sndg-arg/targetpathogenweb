@@ -569,7 +569,7 @@ function jsloaded() {
 
         /* Auto-spin */
         if (isSpinning && typeof stage.setSpin === "function") {
-            window.setTimeout(function () { stage.setSpin(true); }, 150);
+            window.setTimeout(function () { stage.setSpin(isSpinning); }, 150);
         }
         updateSpinButton();
 
