@@ -88,6 +88,35 @@ Mejorar la lectura de evidencia quimica y ligandos. La pagina ya tiene un dashbo
 - Dejar preparado soporte futuro para modelos Boltz.
 - Revisar en navegador con datos reales que el modal de molecula, las tablas y los links externos se vean bien en modo claro/oscuro.
 
+### Genome overview 2.0 / ranking compuesto explicable
+
+El overview del genoma debe funcionar como tablero macro, no como reflejo de la ultima feature implementada. La priorizacion inicial no debe depender solo de drogabilidad ni de cantidad cruda de ligandos.
+
+**Implementado.**
+
+- Ranking principal `Top evidence-convergent candidates`.
+- Score heuristico transparente para triage inicial, combinando:
+  - calidad de pocket FPocket;
+  - soporte P2Rank;
+  - ligandos experimentales PDB y bioactividad ChEMBL directa;
+  - evidencia transferida por homologos y compuestos ZINC propuestos, con menor peso;
+  - baja similitud humana;
+  - baja similitud contra microbioma intestinal;
+  - similitud a genes esenciales DEG;
+  - conservacion core por Roary/CoreCruncher;
+  - estructura disponible;
+  - contexto metabolico y chokepoints.
+- Chips por proteina explicando por que aparece arriba.
+- Rankings secundarios conservados para senales especificas, como ligand support.
+- Copy aclarando que el score es triage, no una conclusion biologica final.
+
+**Pendiente para cerrar.**
+
+- Validar pesos con biologas y equipo de bioinformatica.
+- Definir si el score compuesto debe convertirse en `ScoreFormula` editable o quedar solo como ranking de overview.
+- Agregar export del ranking compuesto con desglose de contribuciones.
+- Evaluar una comparacion visual entre ranking compuesto, ranking por pocket y ranking por ligandos.
+
 ## To Do prioritario
 
 ### Visualizacion de Proteina 2.0
@@ -243,6 +272,18 @@ Evaluar fuentes externas para enriquecer estructura y ligandos.
 - Como mostrarla en la UI.
 - Riesgos de licencia, cobertura y mantenimiento.
 
+**AlphaFill — prioridad alta, mejor costo/beneficio evaluado.**
+
+- Base de datos publica (alphafill.eu) que trasplanta ligandos/cofactores de estructuras
+  homologas resueltas experimentalmente sobre un modelo de AlphaFold ya existente.
+- API publica por UniProt ID; encaja directo con las estructuras AlphaFold/ColabFold que ya
+  generamos por pipeline, sin depender de una corrida nueva.
+- Responde "donde probablemente se sienta un ligando en esta estructura predicha", como paso
+  previo/complementario al analisis de drogabilidad ya existente.
+- Patron de referencia (target-human-web, compañero): carga el CIF de AlphaFill via 3Dmol.js
+  con foco/highlight por ligando individual — reusable con el visualizador NGL propio adaptando
+  el formato.
+
 ## Nuevas cards recomendadas
 
 ### Sequence & feature viewer 2.0
@@ -289,21 +330,68 @@ Hacer explicita la procedencia de cada dato usado para priorizar.
 - Log de importaciones relevantes por genoma.
 - Ayuda para reproducibilidad y debugging en cluster.
 
+### Red de señalizacion/regulacion por proteina (KEGG PPI)
+
+Grafo de interacciones proteina-proteina y regulatorias, distinto del grafo de reacciones
+metabolicas ya implementado (ese es de reacciones que comparten metabolito; este seria de
+relaciones biologicas directas entre genes/proteinas). Relevante en patogenos para sistemas de
+dos componentes, cascadas de señalizacion y regulones de virulencia.
+
+**Fuentes.** KEGG KGML (relaciones activation / inhibition / phosphorylation / expression /
+binding entre genes/ortologos). Reusa la infraestructura de fetch de KEGG que ya tenemos
+(`fetch_kegg_pathway_map`).
+
+**Alcance propuesto.**
+
+- Parsear relaciones KGML, descartando nodos aislados y compuestos sin interaccion real.
+- Layout de fuerza dirigida (fcose, ya en uso para el grafo metabolico) con foco/zoom
+  automatico en la proteina en foco.
+- Reusar el patron de tooltip enriquecido + inspector ya construido para el grafo metabolico
+  en vez de reinventarlo.
+- Diferenciar tipo de relacion visualmente (linea solida vs punteada, flecha vs marcador de
+  inhibicion), no solo por color.
+
+**Evaluado en:** research funcional de target-human-web (compañero, target humano) — ahi es
+una implementacion real y funcional (`PathwayGraph`/`parseKGML` en su `bundle.jsx`), no un
+mockup.
+
+### Ideas evaluadas de target-human-web y descartadas por ahora
+
+Auditoria funcional del proyecto de un compañero (target humano, React + prototipo sin backend)
+para ver si habia algo mas para sumar aca. Quedo registrado que fueron evaluadas y por que no se
+priorizan, para no re-investigarlas de cero mas adelante.
+
+- **Retrosynthesis benchmark** (comparacion top-1/top-10 de modelos de retrosintesis). Es un
+  poster estatico: 2 de 6 modelos con `top1: null` desde octubre, sin computo real en ningun
+  lado. No hay nada que migrar salvo el formato de tabla si algun dia publicamos benchmarks
+  propios (docking, drogabilidad).
+- **Matching de rutas de sintesis por patentes** (USPTO-50K + PaRoutes2, ~3.2M reacciones de
+  patentes via RDKit/Tanimoto offline). Complementa bien el trabajo de LigQ_2 (dice *como*
+  sintetizar un hit, no solo *que* hit existe), pero depende de un dataset de patentes enorme
+  que no tenemos disponible. Ademas su indicador de "estado de patente" es codigo muerto, nunca
+  se popula. Dejar en espera hasta tener acceso a un dataset equivalente.
+- **Tissue expression (Bgee) y variantes clinicas (dbSNP/OMIM).** Especificos de humano, no
+  aplican a targets de patogeno.
+- **RDKit-JS cargado pero nunca invocado.** No hay edicion de SMILES ni quimica en vivo en el
+  navegador pese a la dependencia — no hay nada funcional que migrar de ahi.
+
 ## Orden sugerido
 
 1. Revisar en navegador/cluster lo implementado: metabolismo, target summary y ligandos.
-2. Visualizacion de Proteina 2.0.
-3. Visualizacion y control de pockets.
-4. Comparacion FPocket vs P2Rank.
-5. Drogabilidad por fuente y estructura.
-6. Sitios funcionales y anotaciones estructurales.
-7. Priorizacion estructural completa.
-8. Off-target 2.0.
-9. Sequence & feature viewer 2.0.
-10. Cross-references hub.
-11. Pathway-level target prioritization.
-12. Evidence provenance / audit layer.
-13. Constructor de score mejorado.
-14. Columnas custom para analisis.
-15. Agente IA para exploracion de targets.
-16. Auditoria Target viejo e integraciones externas.
+2. Integracion AlphaFill (ligando trasplantado sobre AlphaFold/ColabFold ya existente).
+3. Visualizacion de Proteina 2.0.
+4. Visualizacion y control de pockets.
+5. Comparacion FPocket vs P2Rank.
+6. Drogabilidad por fuente y estructura.
+7. Sitios funcionales y anotaciones estructurales.
+8. Priorizacion estructural completa.
+9. Off-target 2.0.
+10. Sequence & feature viewer 2.0.
+11. Cross-references hub.
+12. Pathway-level target prioritization.
+13. Red de señalizacion/regulacion por proteina (KEGG PPI).
+14. Evidence provenance / audit layer.
+15. Constructor de score mejorado.
+16. Columnas custom para analisis.
+17. Agente IA para exploracion de targets.
+18. Auditoria Target viejo e integraciones externas (Ligysis, CSA Atlas).
