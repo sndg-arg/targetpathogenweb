@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260709-ligand-modal1">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260710-bio-clarity1">
 {% endblock %}
 
 {% block body %}
@@ -21,7 +21,7 @@
                     {% with crumb_protein=protein.accession|add:" · "|add:protein.description %}
                     {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=protein.assembly_label crumb_3_url=assembly_url crumb_4_label=crumb_proteins crumb_4_url=proteins_url crumb_5_label=crumb_protein %}
                     {% endwith %}
-                    <p class="protein-hero-eyebrow">{% trans "Protein profile" %}</p>
+                    <p class="protein-hero-eyebrow">{% trans "Protein target profile" %}</p>
                     <h1>{{ protein.accession }}</h1>
                     <p class="protein-description">{{ protein.description|default:"-" }}</p>
                     <p class="protein-context"><strong>{% trans "Genome" %}:</strong> <span class="protein-context-id">{{ protein.assembly_label|default:protein.assembly_name }}</span></p>
@@ -31,9 +31,15 @@
                             <span class="gene-value">{{ protein.gene|default:"-" }}</span>
                         </span>
                         <span class="hero-chip tp-chip tp-chip--meta tp-chip--sm">
-                            <strong>{% trans "Structure source" %}:</strong>
+                            <strong>{% trans "3D evidence" %}:</strong>
                             <span>{{ structure_summary.label }}</span>
                         </span>
+                        {% if metabolic_context %}
+                        <a class="hero-chip tp-chip tp-chip--sm tp-chip--link" href="#section-metabolic-context" title="{% trans 'Jump to metabolic reactions and pathway context' %}">
+                            <span class="tp-chip-db">{% trans "Metabolism" %}</span>
+                            <span class="tp-chip-acc">{{ metabolic_context.reactions|length }} {% trans "reaction(s)" %}</span>
+                        </a>
+                        {% endif %}
                         {% for acc in uniprot_accessions %}
                         <a class="hero-chip tp-chip tp-chip--sm tp-chip--link" href="https://www.uniprot.org/uniprotkb/{{ acc }}" target="_blank" rel="noopener" title="{% trans 'View on UniProt' %}">
                             <span class="tp-chip-db">UniProt</span>
@@ -58,27 +64,35 @@
             </div>
             <div class="protein-metrics" aria-label="{% trans "Protein summary" %}">
                 <div class="metric-pill">
-                    <span class="metric-label">{% trans "Amino acids" %}</span>
+                    <span class="metric-label" title="{% trans 'Protein sequence length in amino acids.' %}">{% trans "Length" %}</span>
                     <span class="metric-value">{{ protein.size }}</span>
-                </div>
-                <div class="metric-pill">
-                    <span class="metric-label">{% trans "Annotations" %}</span>
-                    <span class="metric-value">{{ annotations|length }}</span>
-                </div>
-                <div class="metric-pill">
-                    <span class="metric-label">{% trans "Features" %}</span>
-                    <span class="metric-value">{{ features|length }}</span>
-                </div>
-                <div class="metric-pill">
-                    <span class="metric-label">{% trans "PDB binders" %}</span>
-                    <span class="metric-value">{{ binders.pdb_direct_count|add:binders.pdb_homolog_count }}</span>
                 </div>
                 {% if druggability %}
                 <div class="metric-pill metric-pill--drugg metric-pill--drugg-{{ druggability.1 }}">
-                    <span class="metric-label">{% trans "Druggability" %}</span>
+                    <span class="metric-label" title="{% trans 'FPocket pocket score on the selected structure. Higher values suggest a more druggable binding pocket.' %}">{% trans "Pocket druggability" %}</span>
                     <span class="metric-value">{{ druggability.0 }}</span>
                 </div>
                 {% endif %}
+                {% if metabolic_context %}
+                <div class="metric-pill {% if metabolic_context.is_chokepoint %}metric-pill--metabolic{% endif %}">
+                    <span class="metric-label" title="{% trans 'Reactions catalyzed by this protein in the imported metabolic model.' %}">{% trans "Metabolic reactions" %}</span>
+                    <span class="metric-value">{{ metabolic_context.reactions|length }}</span>
+                </div>
+                <div class="metric-pill {% if metabolic_context.is_chokepoint %}metric-pill--priority{% endif %}">
+                    <span class="metric-label" title="{% trans 'A chokepoint reaction is the only producer or consumer of a metabolite in the network.' %}">{% trans "Chokepoint" %}</span>
+                    <span class="metric-value">{% if metabolic_context.is_chokepoint %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}</span>
+                </div>
+                {% endif %}
+                {% if binders.total %}
+                <div class="metric-pill">
+                    <span class="metric-label" title="{% trans 'Experimental PDB ligands, measured ChEMBL bioactivity, or ZINC proposed compounds associated with this protein.' %}">{% trans "Ligand records" %}</span>
+                    <span class="metric-value">{{ binders.total }}</span>
+                </div>
+                {% endif %}
+                <div class="metric-pill">
+                    <span class="metric-label" title="{% trans 'Functional annotations currently loaded for this protein.' %}">{% trans "EC / GO" %}</span>
+                    <span class="metric-value">{{ ec_annotations|length }} / {{ go_annotations|length }}</span>
+                </div>
             </div>
         </section>
 
@@ -148,6 +162,28 @@
             {% endif %}
         </nav>
 
+        <details class="protein-interpretation-guide tp-ui-panel">
+            <summary>{% trans "How to read this page" %}</summary>
+            <div class="protein-guide-grid">
+                <p><strong>{% trans "PDB" %}</strong>: {% trans "experimentally determined structures from the Protein Data Bank. These are the strongest structural evidence, but may cover only part of the protein." %}</p>
+                <p><strong>{% trans "AlphaFold DB model" %}</strong>: {% trans "a precomputed predicted structure downloaded from AlphaFold Database/UniProt, not an experiment performed here." %}</p>
+                <p><strong>{% trans "ColabFold model" %}</strong>: {% trans "a predicted structure generated for this workspace; interpret it with coverage and confidence." %}</p>
+                <p><strong>{% trans "pLDDT" %}</strong>: {% trans "confidence score for predicted structures. High values support local geometry; low values mean the region should not drive pocket interpretation." %}</p>
+                <p><strong>{% trans "FPocket / P2Rank" %}</strong>: {% trans "software tools that predict possible ligand-binding pockets on a 3D structure. They are useful screening signals, not experimental validation." %}</p>
+                <p><strong>{% trans "Druggability" %}</strong>: {% trans "a pocket-based estimate of whether a small molecule could bind productively. It does not mean a drug already exists." %}</p>
+                <p><strong>{% trans "PDB ligand" %}</strong>: {% trans "a compound observed in an experimental structure. Direct same-protein records are stronger than homolog-transferred records." %}</p>
+                <p><strong>{% trans "ChEMBL" %}</strong>: {% trans "a public database of measured compound bioactivity. Direct entries are stronger than entries transferred from similar proteins." %}</p>
+                <p><strong>{% trans "ZINC" %}</strong>: {% trans "a purchasable-compound database. Here it marks proposed candidates from chemical similarity, not measured binders." %}</p>
+                <p><strong>{% trans "LigQ / LigQ_2" %}</strong>: {% trans "an internal TPW pipeline step that gathers PDB, ChEMBL, and ZINC ligand evidence for each protein." %}</p>
+                <p><strong>{% trans "Off-target" %}</strong>: {% trans "sequence similarity to proteins we prefer not to hit, such as human proteins or beneficial gut microbiome proteins." %}</p>
+                <p><strong>{% trans "DEG" %}</strong>: {% trans "Database of Essential Genes. A match suggests the protein resembles genes known to be essential in other organisms." %}</p>
+                <p><strong>{% trans "Roary / CoreCruncher" %}</strong>: {% trans "pan-genome tools used to decide whether a gene is core across analyzed strains or accessory/strain-specific." %}</p>
+                <p><strong>{% trans "EC / GO" %}</strong>: {% trans "functional annotations: EC describes enzyme reactions; GO describes biological process, molecular function, or cellular component." %}</p>
+                <p><strong>{% trans "KEGG pathway" %}</strong>: {% trans "a curated metabolic route label used here to group reactions imported from the metabolic model." %}</p>
+                <p><strong>{% trans "Chokepoint" %}</strong>: {% trans "a metabolic reaction that is the only producer or consumer of a metabolite in the imported model." %}</p>
+            </div>
+        </details>
+
         <div class="protein-grid">
             <section class="protein-card tp-ui-panel">
                 <div class="section-head tp-ui-panel-head">
@@ -178,7 +214,7 @@
                         <dd>{{ protein.size }}</dd>
                     </div>
                     <div class="overview-item{% if not structure_summary.has_structure %} overview-item--warning{% endif %}">
-                        <dt>{% trans "Structure source" %}</dt>
+                        <dt title="{% trans 'Best loaded 3D evidence for this protein: experimental PDB first when available, otherwise AlphaFold DB or ColabFold model.' %}">{% trans "3D evidence" %}</dt>
                         <dd>{% if structure_summary.has_structure %}{{ structure_summary.label }}{% else %}{% trans "Unavailable" %}{% endif %}</dd>
                     </div>
                 </dl>
@@ -228,13 +264,13 @@
                 {% if selected_pocket_evidence %}
                 <div class="target-evidence-block">
                     <div class="target-evidence-head">
-                        <h3>{% trans "Selected Druggability evidence" %}</h3>
+                        <h3>{% trans "Selected pocket evidence" %}</h3>
                         {% if selected_pocket_evidence.selected_source_kind %}<span class="tp-chip tp-chip--sm">{{ selected_pocket_evidence.selected_source_kind }}</span>{% endif %}
                     </div>
-                    <p class="target-evidence-note">{% trans "Selected Druggability is the FPocket score chosen for ranking using the curated structure priority. The 3D viewer may show a different loaded structure, so its visible pockets can differ." %}</p>
+                    <p class="target-evidence-note">{% trans "The selected pocket score is the FPocket value used for ranking after applying the curated structure priority. It estimates small-molecule pocket quality; it is not experimental binding evidence. The 3D viewer may show a different loaded structure, so visible pockets can differ." %}</p>
                     <div class="target-evidence-grid">
                         {% if selected_pocket_evidence.fpocket.score or selected_pocket_evidence.fpocket.structure or selected_pocket_evidence.fpocket.pocket %}
-                        <div class="target-evidence-card target-evidence-card--fpocket" title="{% trans "FPocket: geometric cavity detection on the selected structure. Druggability 0–1; values ≥0.5 indicate a well-defined druggable pocket." %}">
+                        <div class="target-evidence-card target-evidence-card--fpocket" title="{% trans "FPocket predicts geometric cavities on a 3D structure. Score 0-1; higher values suggest a better small-molecule pocket but do not prove binding." %}">
                             <span class="target-evidence-label">FPocket</span>
                             {% if selected_pocket_evidence.fpocket.score %}<strong class="target-evidence-value">{{ selected_pocket_evidence.fpocket.score }}</strong>{% endif %}
                             <div class="target-evidence-meta">
@@ -250,7 +286,7 @@
                         </div>
                         {% endif %}
                         {% if selected_pocket_evidence.p2rank.score or selected_pocket_evidence.p2rank.structure or selected_pocket_evidence.p2rank.pocket %}
-                        <div class="target-evidence-card target-evidence-card--p2rank" title="{% trans "P2Rank: machine-learning binding site prediction. Probability 0–1; values ≥0.5 indicate a likely druggable binding site." %}">
+                        <div class="target-evidence-card target-evidence-card--p2rank" title="{% trans "P2Rank is a machine-learning predictor of ligand-binding sites. Probability 0-1; higher values support the pocket hypothesis but do not prove binding." %}">
                             <span class="target-evidence-label">P2Rank</span>
                             {% if selected_pocket_evidence.p2rank.score %}<strong class="target-evidence-value">{{ selected_pocket_evidence.p2rank.score }}</strong>{% endif %}
                             <div class="target-evidence-meta">
@@ -601,7 +637,7 @@
                     <div class="section-head tp-ui-panel-head">
                         <div>
                             <h2>{% trans "3D Structure" %}</h2>
-                            <p class="section-subtitle">{% trans "Selected loaded structure. Experimental PDB entries may cover only a portion of the sequence; predicted models typically cover the full protein." %}</p>
+                            <p class="section-subtitle">{% trans "Selected loaded structure. Experimental PDB entries may cover only a portion of the sequence; AlphaFold DB and ColabFold models typically cover the full protein but remain computational predictions." %}</p>
                         </div>
                     </div>
 
@@ -726,7 +762,7 @@
                             <div class="binder-intel-stat">
                                 <span class="binder-intel-label">{% trans "Bioactive compounds" %}</span>
                                 <strong>{{ binders.summary.bioactive_count }}</strong>
-                                <span>{% blocktrans with count=binders.summary.proposed_count %}{{ count }} ZINC candidates{% endblocktrans %}</span>
+                                <span>{% blocktrans with count=binders.summary.proposed_count %}{{ count }} ZINC proposed compounds{% endblocktrans %}</span>
                             </div>
                             <div class="binder-intel-stat">
                                 <span class="binder-intel-label">{% trans "Drug-like & clean" %}</span>

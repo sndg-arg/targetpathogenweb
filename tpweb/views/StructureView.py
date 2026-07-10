@@ -10,8 +10,8 @@ from tpweb.services.genome_workspace import user_can_access_genome_name, genome_
 from tpweb.services.structure_files import detect_structure_format, display_code, structure_file_path
 
 
-_METHOD_MAP = {"EX": "Crystal structure", "AF": "AlphaFold model", "CF": "ColabFold model"}
-_SHORT_METHOD = {"EX": "Crystal", "AF": "AlphaFold", "CF": "ColabFold"}
+_METHOD_MAP = {"EX": "Crystal structure", "AF": "AlphaFold DB model", "CF": "ColabFold model"}
+_SHORT_METHOD = {"EX": "Crystal", "AF": "AlphaFold DB", "CF": "ColabFold"}
 
 
 def _chain_selector(chain):

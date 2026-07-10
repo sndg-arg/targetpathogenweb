@@ -15,7 +15,7 @@ STAGE_LABELS = {
     12: "Mapping to UniProt",
     13: "Fetching UniProt annotations and experimental structures",
     14: "Collecting UniProt list",
-    15: "Generating AlphaFold models",
+    15: "Downloading AlphaFold DB models",
     16: "Predicting missing structures (ColabFold)",
     17: "Loading structures and pockets",
     18: "Computing druggability table",
@@ -24,5 +24,5 @@ STAGE_LABELS = {
     21: "Loading PSORT score",
     22: "Collecting binder candidates",
     23: "Loading binders",
-    24: "Loading LigQ_2 binder evidence",
+    24: "Loading LigQ_2 ligand evidence",
 }

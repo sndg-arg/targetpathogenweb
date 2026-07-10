@@ -20,7 +20,7 @@ ACRONYM_TOKENS = {
     "rna": "RNA",
     "p2rank": "P2RANK",
     "fpocket": "FPocket",
-    "alphafold": "AlphaFold",
+    "alphafold": "AlphaFold DB",
     "colabfold": "ColabFold",
     "plddt": "pLDDT",
     "id": "ID",

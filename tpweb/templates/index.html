@@ -222,7 +222,7 @@
                         </svg>
                         <h3>{% trans "Ligand evidence" %}</h3>
                     </div>
-                    <p>{% trans "LigQ_2 retrieves co-crystallized ligands from PDB, bioactive compounds from ChEMBL (ranked by potency), and ZINC candidates by chemical similarity. Direct and homology-transferred evidence are distinguished." %}</p>
+                    <p>{% trans "LigQ_2 is the internal ligand-evidence step. It retrieves co-crystallized ligands from PDB, measured bioactive compounds from ChEMBL, and proposed ZINC compounds by chemical similarity. Direct and homology-transferred evidence are distinguished." %}</p>
                     <div class="home-about-card-tools">
                         <span class="tp-chip tp-chip--meta tp-chip--sm">LigQ_2</span>
                         <span class="tp-chip tp-chip--meta tp-chip--sm">PDB</span>
@@ -468,20 +468,20 @@
                             [12, "UniProt mapping"],
                             [13, "UniProt annotations"],
                             [14, "Protein list for structures"],
-                            [15, "AlphaFold models"],
+                            [15, "AlphaFold DB models"],
                             [16, "ColabFold predictions"],
                             [17, "Structure loading"],
-                            [18, "Druggability evidence"],
+                            [18, "Pocket druggability scores"],
                             [19, "Druggability score"],
                         ]},
                         { label: "Cell localization", description: "Prediction of probable subcellular location to support biological interpretation.", steps: [
                             [20, "PSORT prediction"],
                             [21, "PSORT score"],
                         ]},
-                        { label: "Ligand evidence", description: "Known or inferred binder evidence linked to proteins in the imported genome.", steps: [
+                        { label: "Ligand evidence", description: "Experimental, measured, transferred, or proposed compound evidence linked to proteins in the imported genome.", steps: [
                             [22, "Binder candidate search"],
                             [23, "Binder evidence loading"],
-                            [24, "LigQ_2 binder evidence"],
+                            [24, "LigQ_2 ligand evidence"],
                         ]},
                     ],
                 };

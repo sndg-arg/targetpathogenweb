@@ -154,10 +154,10 @@ Rediseñar la seccion de drogabilidad.
 **Alcance propuesto.**
 
 - Separar valores por programa/fuente.
-- Separar valores por tipo de estructura: AlphaFold, PDB, ColabFold u otras.
+- Separar valores por tipo de estructura: PDB experimental, AlphaFold DB, ColabFold u otras.
 - Mostrar a que estructura corresponde cada valor.
 - Definir con el equipo que valor se usa por defecto en la tabla principal.
-- Hacer auditable la decision de prioridad: por ejemplo PDB > AlphaFold si existe buena cobertura.
+- Hacer auditable la decision de prioridad: por ejemplo PDB experimental > AlphaFold DB si existe buena cobertura.
 
 ### Priorizacion estructural completa
 

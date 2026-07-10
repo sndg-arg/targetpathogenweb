@@ -184,8 +184,23 @@ class AssemblyView(View):
                             (
                                 f"{workspace_metrics.get('proteins_with_structure')} total "
                                 f"(Experimental {workspace_metrics.get('experimental_structures')}, "
-                                f"AlphaFold {workspace_metrics.get('alphafold_structures')}, "
+                                f"AlphaFold DB models {workspace_metrics.get('alphafold_structures')}, "
                                 f"ColabFold {workspace_metrics.get('colabfold_structures')})"
+                            ),
+                        ],
+                        [
+                            "Metabolic model",
+                            (
+                                f"{workspace_metrics.get('metabolic_protein_count')} mapped proteins, "
+                                f"{workspace_metrics.get('metabolic_reaction_count')} reactions, "
+                                f"{workspace_metrics.get('metabolic_pathway_count')} pathways"
+                            ),
+                        ],
+                        [
+                            "Metabolic target signal",
+                            (
+                                f"{workspace_metrics.get('metabolic_chokepoint_gene_count')} chokepoint genes; "
+                                f"{workspace_metrics.get('metabolic_druggable_target_count')} chokepoint proteins with FPocket >= 0.4"
                             ),
                         ],
                         [

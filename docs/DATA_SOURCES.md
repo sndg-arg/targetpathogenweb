@@ -69,7 +69,7 @@ Cada proteína tiene una única estructura asignada como preferida para el anál
 ### 2. Modelo AlphaFold (AlphaFold Database)
 **Fuente:** AlphaFold Protein Structure Database (EBI/DeepMind)  
 **Cómo se obtiene:** la etapa 15 descarga el modelo `.pdb` desde `https://alphafold.ebi.ac.uk/` usando el UniProt ID. Requiere que la proteína tenga UniProt ID mapeado. La descarga es en paralelo (4 proteínas simultáneas).  
-**Indicador en la vista:** "AlphaFold".
+**Indicador en la vista:** "AlphaFold DB model".
 
 ### 3. Modelo ColabFold (predicción local o remota)
 **Fuente:** ColabFold (implementación de AlphaFold2 con búsqueda acelerada via MMseqs2)  
@@ -325,5 +325,5 @@ PAINS son subestructuras químicas que tienden a dar resultados falsos positivos
 - **La ausencia de un dato no es ausencia de propiedad**: EC=0 puede significar que esa proteína genuinamente no tiene función enzimática caracterizada, o que el pipeline no encontró homología suficiente, o que la herramienta no fue configurada para ese análisis.
 - **Los scores de druggability son descriptores estructurales**, no predictores de actividad biológica ni de toxicidad.
 - **La esencialidad por DEG es transferida**: la proteína puede ser esencial en el organismo de referencia de DEG pero no necesariamente en el patógeno estudiado, y viceversa.
-- **Los modelos ColabFold y AlphaFold tienen errores sistemáticos** en regiones intrínsecamente desordenadas, proteínas de membrana, y proteínas sin homólogos conocidos. El pLDDT es el indicador de confianza: no usar el modelo para análisis de bolsillos en regiones con pLDDT < 50.
+- **Los modelos ColabFold y AlphaFold DB tienen errores sistemáticos** en regiones intrínsecamente desordenadas, proteínas de membrana, y proteínas sin homólogos conocidos. El pLDDT es el indicador de confianza: no usar el modelo para análisis de bolsillos en regiones con pLDDT < 50.
 - **Las propiedades fisicoquímicas (Lipinski, TPSA, LogP)** se calculan desde SMILES y son valores computados, no experimentales.

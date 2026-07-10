@@ -250,7 +250,7 @@
                             <div class="genome-upload-field tp-ui-field">
                                 <label class="tp-ui-field-label" for="{{ external_import_form.archive.id_for_label }}">{{ external_import_form.archive.label }}</label>
                                 {{ external_import_form.archive }}
-                                <p class="genome-upload-field-help">{% trans "Optional server-side tar/tar.gz containing genome, structures, off-target, essentiality, or LigQ outputs." %}</p>
+                                <p class="genome-upload-field-help">{% trans "Optional server-side tar/tar.gz containing genome files, structure files, off-target tables, essentiality tables, or LigQ_2 ligand-evidence outputs." %}</p>
                                 {% if external_import_form.archive.errors %}<p class="genome-upload-field-error">{{ external_import_form.archive.errors|striptags }}</p>{% endif %}
                             </div>
 
@@ -265,7 +265,7 @@
                         <div class="genome-upload-field tp-ui-field">
                             <label class="tp-ui-field-label" for="{{ external_import_form.ligq_output_dir.id_for_label }}">{{ external_import_form.ligq_output_dir.label }}</label>
                             {{ external_import_form.ligq_output_dir }}
-                            <p class="genome-upload-field-help">{% trans "Optional existing LigQ_2 output directory. Leave empty if it should be detected from the archive." %}</p>
+                            <p class="genome-upload-field-help">{% trans "Optional existing LigQ_2 output directory. LigQ_2 is the internal TPW step that collects PDB, ChEMBL, and ZINC ligand evidence. Leave empty if it should be detected from the archive." %}</p>
                             {% if external_import_form.ligq_output_dir.errors %}<p class="genome-upload-field-error">{{ external_import_form.ligq_output_dir.errors|striptags }}</p>{% endif %}
                         </div>
 
@@ -283,7 +283,7 @@
                         <div class="genome-upload-submit-row">
                             <div class="genome-upload-submit-copy">
                                 <p class="genome-upload-submit-title">{% trans "Recommended flow" %}</p>
-                                <p class="genome-upload-submit-note">{% trans "Validate first to confirm the genome, TSV columns, archive layout, protein matching, structure directory, and LigQ output before writing anything." %}</p>
+                                <p class="genome-upload-submit-note">{% trans "Validate first to confirm the genome, TSV columns, archive layout, protein matching, structure directory, and LigQ_2 ligand-evidence output before writing anything." %}</p>
                             </div>
                             <div class="tp-ui-actions genome-upload-actions">
                                 <button type="submit" class="btn tp-btn tp-btn--outline" onclick="document.getElementById('external-import-action').value='validate_external_import';">
@@ -365,7 +365,7 @@
                                         {% endif %}
                                     </div>
                                     <div>
-                                        <strong>{% trans "LigQ output" %}</strong><br>
+                                        <strong title="{% trans 'Internal TPW ligand-evidence output: PDB, ChEMBL, and ZINC compound records.' %}">{% trans "LigQ_2 ligand evidence" %}</strong><br>
                                         {% with ligq=external_import_result.summary.ligq_output %}
                                             {% if ligq.provided %}
                                                 {% if ligq.exists %}

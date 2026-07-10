@@ -80,7 +80,7 @@
                     <span class="ds-stage-tag">{% trans "Ligands" %}</span>
                     <strong>{% trans "Connect proteins to chemical evidence" %}</strong>
                 </div>
-                <p>{% trans "Surface co-crystallized PDB ligands, ChEMBL bioactivity, ZINC candidates, LigQ binders, and RDKit descriptors so structural evidence can be evaluated alongside compound-level information." %}</p>
+                <p>{% trans "Surface co-crystallized PDB ligands, measured ChEMBL bioactivity, proposed ZINC compounds, LigQ_2 ligand evidence, and RDKit descriptors so structural evidence can be evaluated alongside compound-level information." %}</p>
             </div>
             <div class="ds-pipeline-card">
                 <div class="ds-pipeline-card-head">
@@ -142,7 +142,7 @@
                     <span class="ds-stage-tag">22–24 ★</span>
                     <strong>{% trans "Ligand evidence" %}</strong>
                 </div>
-                <p>{% trans "LigQ_2 searches PDB, ChEMBL, and ZINC for binders. Results are loaded into the binders table." %}</p>
+                <p>{% trans "LigQ_2 is the internal TPW ligand-evidence step: it searches PDB, ChEMBL, and ZINC, then loads experimental, measured, homolog-transferred, and proposed compound records into the binders table." %}</p>
             </div>
         </div>
     </section>
@@ -358,7 +358,7 @@
                 <p class="ds-panel-subtitle">{% trans "ligq_remote — LigQ_2" %}</p>
             </div>
         </div>
-        <p class="ds-body">{% trans "LigQ_2 exports all protein sequences, transfers them to a compute node, and searches multiple databases for known or candidate binders. Non-relevant compounds (amino acids, water, crystallization agents, common ions) are filtered out at load time." %}</p>
+        <p class="ds-body">{% trans "LigQ_2 is an internal Target Pathogen Web pipeline step. It exports all protein sequences, transfers them to a compute node, and searches multiple databases for known or candidate binders. Non-relevant compounds (amino acids, water, crystallization agents, common ions) are filtered out at load time." %}</p>
         <table class="ds-table">
             <thead>
                 <tr>
@@ -372,31 +372,31 @@
                 <tr>
                     <td>{% trans "PDB co-crystal (direct)" %}</td>
                     <td>PDB</td>
-                    <td>{% trans "UniProt from PDB record matches this protein" %}</td>
+                    <td>{% trans "The experimental structure contains a ligand and its UniProt record matches this protein" %}</td>
                     <td>{% trans "All" %}</td>
                 </tr>
                 <tr>
                     <td>{% trans "PDB via homologs" %}</td>
                     <td>PDB</td>
-                    <td>{% trans "UniProt from PDB record is a similar protein" %}</td>
+                    <td>{% trans "The ligand was observed in an experimental structure of a similar protein" %}</td>
                     <td>{% trans "All" %}</td>
                 </tr>
                 <tr>
                     <td>{% trans "ChEMBL bioactive (direct)" %}</td>
                     <td>ChEMBL</td>
-                    <td>{% trans "ChEMBL target UniProt matches this protein" %}</td>
+                    <td>{% trans "Measured ChEMBL bioactivity is annotated to this same protein" %}</td>
                     <td>{% trans "Top 100 by pChEMBL" %}</td>
                 </tr>
                 <tr>
                     <td>{% trans "ChEMBL via homologs" %}</td>
                     <td>ChEMBL</td>
-                    <td>{% trans "ChEMBL target is a homologous protein" %}</td>
+                    <td>{% trans "Measured ChEMBL bioactivity is annotated to a homologous protein" %}</td>
                     <td>{% trans "Top 100 by pChEMBL" %}</td>
                 </tr>
                 <tr>
                     <td>{% trans "ZINC proposed" %}</td>
                     <td>ZINC</td>
-                    <td>{% trans "Tanimoto chemical similarity ≥ 0.5 to known binders" %}</td>
+                    <td>{% trans "Candidate compound selected by chemical similarity to known binders; not measured activity" %}</td>
                     <td>{% trans "Top 50 by Tanimoto" %}</td>
                 </tr>
             </tbody>
@@ -409,6 +409,14 @@
             <div class="ds-def-row">
                 <span class="ds-def-term">Tanimoto</span>
                 <span class="ds-def-body">{% trans "Chemical similarity metric computed from molecular fingerprints. 1.0 = identical; 0.5 is the minimum threshold applied." %}</span>
+            </div>
+            <div class="ds-def-row">
+                <span class="ds-def-term">ZINC</span>
+                <span class="ds-def-body">{% trans "Public catalog of purchasable small molecules. In TPW, ZINC rows are proposed compounds inferred by similarity, not experimentally confirmed binders." %}</span>
+            </div>
+            <div class="ds-def-row">
+                <span class="ds-def-term">Direct vs homolog</span>
+                <span class="ds-def-body">{% trans "Direct means the evidence maps to this protein or its UniProt record. Homolog means the evidence comes from a similar protein and should be treated as weaker." %}</span>
             </div>
         </div>
     </section>

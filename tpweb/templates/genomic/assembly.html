@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20260610-4">
+    <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20260710-bio-clarity1">
 {% endblock %}
 
 {% block body %}
@@ -99,10 +99,16 @@
                     <span class="metric-label">{% trans "With pocket score" %}</span>
                     <span class="metric-value">{{ workspace_metrics.proteins_with_druggability }}</span>
                 </div>
-                {% else %}
+                {% endif %}
+                {% if workspace_metrics.binder_direct %}
                 <div class="metric-pill">
-                    <span class="metric-label">{% trans "Direct ligand hits" %}</span>
+                    <span class="metric-label" title="{% trans 'Direct ligand evidence from experimental PDB complexes or ChEMBL bioactivity records mapped to proteins in this genome.' %}">{% trans "Direct ligand hits" %}</span>
                     <span class="metric-value">{{ workspace_metrics.binder_direct }}</span>
+                </div>
+                {% elif workspace_metrics.binder_total %}
+                <div class="metric-pill">
+                    <span class="metric-label" title="{% trans 'Ligand records linked to proteins in this genome, including homolog-transferred and proposed compounds.' %}">{% trans "Ligand records" %}</span>
+                    <span class="metric-value">{{ workspace_metrics.binder_total }}</span>
                 </div>
                 {% endif %}
             </div>
@@ -116,6 +122,9 @@
             <a href="#section-evidence" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Evidence" %}</a>
             {% if jbrowse_embed.enabled %}
                 <a href="#section-browse" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Genome browser" %}</a>
+            {% endif %}
+            {% if workspace_metrics.metabolic_reaction_count %}
+                <a href="{{ workspace_links.metabolism_url }}" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Metabolism" %}</a>
             {% endif %}
             <a href="#section-downloads" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Downloads" %}</a>
             <a href="#section-details" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Details" %}</a>
@@ -134,7 +143,7 @@
                                     <h2>{% trans "Top drug-target candidates" %}</h2>
                                     <p class="section-subtitle">
                                         {% if workspace_metrics.has_curated_data %}
-                                            {% trans "FPocket druggability score (0–1) for the preferred structure: experimental structure when available, otherwise predicted model. ≥ 0.7 highly druggable · ≥ 0.4 moderately druggable · < 0.4 low druggability." %}
+                                            {% trans "FPocket druggability score (0–1) for the preferred loaded structure: experimental PDB structure when available, otherwise an AlphaFold DB or ColabFold model. ≥ 0.7 highly druggable · ≥ 0.4 moderately druggable · < 0.4 low druggability." %}
                                         {% else %}
                                             {% trans "Ranked by the Druggability score computed from FPocket pockets (0–1). Higher values indicate more druggable binding sites." %}
                                         {% endif %}
@@ -156,7 +165,7 @@
                                                     {% if t.binder_count %}
                                                         <span class="targets-evidence">
                                                             {{ t.binder_count }}{% if t.chembl_count >= 100 or t.zinc_count >= 50 %}+{% endif %} {% trans "binders" %}
-                                                            <span class="targets-tooltip">{% trans "PDB co-crystallized ligands, ChEMBL bioactive compounds (top 100), and ZINC proposals (top 50). Source databases may contain additional records." %}</span>
+                                                            <span class="targets-tooltip">{% trans "Ligand evidence: experimental PDB ligands, measured ChEMBL bioactivity (top 100), and proposed ZINC compounds by chemical similarity (top 50). Source databases may contain additional records." %}</span>
                                                         </span>
                                                     {% endif %}
                                                 </div>
@@ -231,7 +240,7 @@
                                 {% endfor %}
                             </ol>
                             <p class="targets-footnote">
-                                {% trans "PDB co-crystal ligands and ChEMBL bioactivity data reported for this exact protein are ranked first." %}
+                                {% trans "Experimental PDB ligands and measured ChEMBL bioactivity reported for this exact protein are ranked first. Homolog-transferred and ZINC proposal records are weaker supporting evidence." %}
                             </p>
                         </div>
                     {% endif %}
@@ -243,7 +252,7 @@
                 <div class="section-head tp-ui-panel-head">
                     <div>
                         <h2>{% trans "Evidence available" %}</h2>
-                        <p class="section-subtitle">{% trans "Computed analyses available for proteins in this genome." %}</p>
+                        <p class="section-subtitle">{% trans "Structural, functional, ligand, and metabolic evidence available for proteins in this genome." %}</p>
                     </div>
                 </div>
                 <div class="evidence-grid">
@@ -261,10 +270,10 @@
                                 <li><span class="evidence-bd-label" title="Individual PDB accession codes from UniProt for this genome. One protein can have several entries (different ligands, conditions, or resolutions).">{% trans "PDB xref entries" %}</span><span class="evidence-bd-value">{{ workspace_metrics.pdb_xref_entries }}</span></li>
                             {% endif %}
                             {% if workspace_metrics.alphafold_structures %}
-                                <li><span class="evidence-bd-label" title="Proteins with an AlphaFold predicted structure loaded in TPW. AlphaFold models are used when no experimental structure is available.">AlphaFold</span><span class="evidence-bd-value">{{ workspace_metrics.alphafold_structures }}</span></li>
+                                <li><span class="evidence-bd-label" title="{% trans 'Proteins with an AlphaFold Database model loaded in TPW. These are precomputed models from AlphaFold DB, not structures experimentally solved by this project.' %}">{% trans "AlphaFold DB models" %}</span><span class="evidence-bd-value">{{ workspace_metrics.alphafold_structures }}</span></li>
                             {% endif %}
                             {% if workspace_metrics.colabfold_structures %}
-                                <li><span class="evidence-bd-label" title="Proteins with a ColabFold model generated specifically for this genome. Used as the default 3D structure when no experimental structure is loaded.">ColabFold</span><span class="evidence-bd-value">{{ workspace_metrics.colabfold_structures }}</span></li>
+                                <li><span class="evidence-bd-label" title="{% trans 'Proteins with a ColabFold model generated for this workspace. These are computational predictions and should be interpreted by coverage and confidence.' %}">{% trans "ColabFold models" %}</span><span class="evidence-bd-value">{{ workspace_metrics.colabfold_structures }}</span></li>
                             {% endif %}
                         </ul>
                     </div>
@@ -295,13 +304,33 @@
                             </span>
                         </span>
                         <ul class="evidence-breakdown">
-                            <li class="evidence-breakdown-priority"><span class="evidence-bd-label">{% trans "PDB co-crystal" %}</span><span class="evidence-bd-value">{{ workspace_metrics.binder_pdb_direct }}</span></li>
-                            <li><span class="evidence-bd-label">{% trans "PDB via homologs" %}</span><span class="evidence-bd-value">{{ workspace_metrics.binder_pdb_homolog }}</span></li>
-                            <li class="evidence-breakdown-priority"><span class="evidence-bd-label">{% trans "ChEMBL bioactive" %}</span><span class="evidence-bd-value">{{ workspace_metrics.binder_chembl_direct }}</span></li>
-                            <li><span class="evidence-bd-label">{% trans "ChEMBL via homologs" %}</span><span class="evidence-bd-value">{{ workspace_metrics.binder_chembl_homolog }}</span></li>
-                            <li><span class="evidence-bd-label">{% trans "ZINC proposed" %}</span><span class="evidence-bd-value">{{ workspace_metrics.binder_zinc }}</span></li>
+                            <li class="evidence-breakdown-priority"><span class="evidence-bd-label" title="{% trans 'Ligand observed in an experimental Protein Data Bank structure of this protein.' %}">{% trans "PDB co-crystal" %}</span><span class="evidence-bd-value">{{ workspace_metrics.binder_pdb_direct }}</span></li>
+                            <li><span class="evidence-bd-label" title="{% trans 'Ligand observed in an experimental structure of a similar protein; useful but weaker than direct evidence.' %}">{% trans "PDB via homologs" %}</span><span class="evidence-bd-value">{{ workspace_metrics.binder_pdb_homolog }}</span></li>
+                            <li class="evidence-breakdown-priority"><span class="evidence-bd-label" title="{% trans 'Measured bioactivity from ChEMBL mapped to this same protein.' %}">{% trans "ChEMBL bioactive" %}</span><span class="evidence-bd-value">{{ workspace_metrics.binder_chembl_direct }}</span></li>
+                            <li><span class="evidence-bd-label" title="{% trans 'Measured ChEMBL bioactivity transferred from a homologous protein.' %}">{% trans "ChEMBL via homologs" %}</span><span class="evidence-bd-value">{{ workspace_metrics.binder_chembl_homolog }}</span></li>
+                            <li><span class="evidence-bd-label" title="{% trans 'Proposed purchasable compounds from ZINC selected by chemical similarity; not measured activity.' %}">{% trans "ZINC proposed" %}</span><span class="evidence-bd-value">{{ workspace_metrics.binder_zinc }}</span></li>
                         </ul>
                     </div>
+
+                    {% if workspace_metrics.metabolic_reaction_count %}
+                    <div class="evidence-card evidence-card--metabolism">
+                        <span class="evidence-label">{% trans "Metabolic model" %}</span>
+                        <span class="evidence-headline">
+                            {% blocktrans count proteins=workspace_metrics.metabolic_protein_count %}{{ proteins }} mapped protein{% plural %}{{ proteins }} mapped proteins{% endblocktrans %}
+                            <span class="evidence-headline-sub">
+                                {% blocktrans count reactions=workspace_metrics.metabolic_reaction_count %}{{ reactions }} reaction{% plural %}{{ reactions }} reactions{% endblocktrans %}
+                                ·
+                                {% blocktrans count pathways=workspace_metrics.metabolic_pathway_count %}{{ pathways }} pathway{% plural %}{{ pathways }} pathways{% endblocktrans %}
+                            </span>
+                        </span>
+                        <ul class="evidence-breakdown">
+                            <li class="evidence-breakdown-priority"><span class="evidence-bd-label" title="{% trans 'Genes catalyzing reactions that are the only producer or consumer of a metabolite in the imported metabolic network.' %}">{% trans "Chokepoint genes" %}</span><span class="evidence-bd-value">{{ workspace_metrics.metabolic_chokepoint_gene_count }}</span></li>
+                            <li><span class="evidence-bd-label" title="{% trans 'Chokepoint reactions in the imported Pathway Tools/MetaFlux network.' %}">{% trans "Chokepoint reactions" %}</span><span class="evidence-bd-value">{{ workspace_metrics.metabolic_chokepoint_reaction_count }}</span></li>
+                            <li class="evidence-breakdown-priority"><span class="evidence-bd-label" title="{% trans 'Proteins that are both metabolic chokepoints and have FPocket druggability >= 0.4.' %}">{% trans "Chokepoint + pocket" %}</span><span class="evidence-bd-value">{{ workspace_metrics.metabolic_druggable_target_count }}</span></li>
+                        </ul>
+                        <a href="{{ workspace_links.metabolism_url }}" class="btn tp-btn tp-btn--outline tp-btn--sm evidence-card-action">{% trans "Open metabolism" %}</a>
+                    </div>
+                    {% endif %}
                 </div>
                 <div class="evidence-composition">
                     <span class="evidence-composition-item">

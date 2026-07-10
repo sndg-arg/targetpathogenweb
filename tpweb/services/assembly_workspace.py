@@ -5,6 +5,7 @@ from bioseq.models.Biodatabase import Biodatabase
 from bioseq.models.Ontology import Ontology
 from tpweb.models.BioentryStructure import BioentryStructure, ExperimentalStructureXref
 from tpweb.models.Binders import Binders
+from tpweb.models.Metabolism import GeneReactionLink, MetabolicReaction
 from tpweb.models.ScoreParamValue import ScoreParamValue
 from tpweb.services.structure_sources import (
     PDB_EXPERIMENT_ALPHAFOLD,
@@ -249,6 +250,40 @@ def build_assembly_workspace_metrics(assembly_name):
         binders_qs.values("locustag_id").distinct().count() if binder_total else 0
     )
 
+    metabolic_reactions_qs = MetabolicReaction.objects.filter(genome_accession=assembly_name)
+    metabolic_reaction_count = metabolic_reactions_qs.count()
+    metabolic_pathway_count = (
+        metabolic_reactions_qs
+        .filter(pathways__isnull=False)
+        .values("pathways")
+        .distinct()
+        .count()
+        if metabolic_reaction_count else 0
+    )
+    metabolic_links_qs = GeneReactionLink.objects.filter(reaction__genome_accession=assembly_name)
+    metabolic_protein_count = (
+        metabolic_links_qs.values("bioentry_id").distinct().count()
+        if metabolic_reaction_count else 0
+    )
+    chokepoint_links_qs = metabolic_links_qs.exclude(chokepoint_role=GeneReactionLink.CHOKEPOINT_NONE)
+    metabolic_chokepoint_gene_count = (
+        chokepoint_links_qs.values("bioentry_id").distinct().count()
+        if metabolic_reaction_count else 0
+    )
+    metabolic_chokepoint_reaction_count = (
+        chokepoint_links_qs.values("reaction_id").distinct().count()
+        if metabolic_reaction_count else 0
+    )
+    druggable_gene_ids = set(
+        spv_qs
+        .filter(score_param__name="Druggability", numeric_value__gte=0.4)
+        .values_list("bioentry_id", flat=True)
+    )
+    chokepoint_gene_ids = set(
+        chokepoint_links_qs.values_list("bioentry_id", flat=True)
+    )
+    metabolic_druggable_target_count = len(chokepoint_gene_ids & druggable_gene_ids)
+
     return {
         "total_proteins": total_proteins,
         "proteins_with_structure": proteins_with_structure,
@@ -280,4 +315,11 @@ def build_assembly_workspace_metrics(assembly_name):
         "binder_chembl": binder_chembl_direct + binder_chembl_homolog,
         "proteins_with_binders": proteins_with_binders,
         "binder_coverage_pct": _pct(proteins_with_binders, total_proteins),
+        "metabolic_reaction_count": metabolic_reaction_count,
+        "metabolic_pathway_count": metabolic_pathway_count,
+        "metabolic_protein_count": metabolic_protein_count,
+        "metabolic_coverage_pct": _pct(metabolic_protein_count, total_proteins),
+        "metabolic_chokepoint_gene_count": metabolic_chokepoint_gene_count,
+        "metabolic_chokepoint_reaction_count": metabolic_chokepoint_reaction_count,
+        "metabolic_druggable_target_count": metabolic_druggable_target_count,
     }

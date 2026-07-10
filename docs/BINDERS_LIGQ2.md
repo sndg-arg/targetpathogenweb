@@ -1,6 +1,6 @@
 # Binders and LigQ_2 Operations
 
-This document records how TargetPathogenWeb loads ligand/binder evidence from LigQ_2, how evidence is classified, and how to recover/reload results on Nodo0.
+This document records how TargetPathogenWeb loads ligand evidence from LigQ_2, the internal TPW step that gathers PDB, ChEMBL, and ZINC compound records; how evidence is classified; and how to recover/reload results on Nodo0.
 
 For the generic curated genome import workflow, including source-priority rules
 and manual Nodo0 loading commands, see

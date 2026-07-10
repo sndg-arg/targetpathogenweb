@@ -543,6 +543,42 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     border-top-right-radius: 0;
 }
 
+.protein-interpretation-guide {
+    padding: var(--tp-space-3) var(--tp-space-4);
+    border-radius: var(--tp-ui-radius-panel);
+}
+
+.protein-interpretation-guide summary {
+    cursor: pointer;
+    color: var(--protein-accent-ink);
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-size: 0.98rem;
+    font-weight: 600;
+}
+
+.protein-interpretation-guide summary::marker {
+    color: var(--protein-accent);
+}
+
+.protein-guide-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: var(--tp-space-2) var(--tp-space-4);
+    margin-top: var(--tp-space-3);
+}
+
+.protein-guide-grid p {
+    margin: 0;
+    color: var(--tp-color-text-secondary);
+    font-size: 0.9rem;
+    line-height: 1.42;
+}
+
+.protein-guide-grid strong {
+    color: var(--tp-color-text-primary);
+    font-weight: 700;
+}
+
 .protein-page a.btn,
 .protein-page a.btn:hover,
 .protein-page a.btn:active,
@@ -2937,6 +2973,34 @@ body.residue-modal-open {
 }
 .metric-pill--drugg-low .metric-value { color: var(--tp-color-danger-ink); }
 .metric-pill--drugg-low .metric-label { color: var(--tp-color-danger-ink); opacity: 0.75; }
+
+.metric-pill--priority {
+    border-color: var(--tp-color-success-border);
+    background: var(--tp-color-success-bg);
+}
+
+.metric-pill--priority .metric-value,
+.metric-pill--priority .metric-label {
+    color: var(--tp-color-success-ink);
+}
+
+.metric-pill--priority .metric-label {
+    opacity: 0.78;
+}
+
+.metric-pill--metabolic {
+    border-color: var(--tp-color-brand-300);
+    background: var(--tp-color-brand-100);
+}
+
+.metric-pill--metabolic .metric-value,
+.metric-pill--metabolic .metric-label {
+    color: var(--tp-color-brand-900);
+}
+
+.metric-pill--metabolic .metric-label {
+    opacity: 0.78;
+}
 
 /* === Target profile section === */
 .target-profile-grid {

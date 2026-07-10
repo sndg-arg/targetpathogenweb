@@ -617,7 +617,7 @@ class ProteinListView(View):
                 "params": [{
                     "id": "structure_source",
                     "name": "structure_source",
-                    "label": "Structure source",
+                    "label": "3D evidence source",
                     "description": "Limit proteins by the type of structure evidence currently available.",
                     "options": [
                         {
@@ -632,7 +632,7 @@ class ProteinListView(View):
                         for choice in structure_choices
                     ],
                     "any_active": bool(active_structure),
-                    "search_text": "structure source " + " ".join(
+                    "search_text": "3d evidence structure source " + " ".join(
                         choice["label"] for choice in structure_choices
                     ).lower(),
                 }],
@@ -697,8 +697,8 @@ class ProteinListView(View):
     def _build_structure_source_choices(request, page_size, current_value):
         base_choices = [
             {"value": "experimental", "label": "Has experimental PDB"},
-            {"value": "alphafold", "label": "AlphaFold"},
-            {"value": "colabfold", "label": "ColabFold"},
+            {"value": "alphafold", "label": "AlphaFold DB model"},
+            {"value": "colabfold", "label": "ColabFold model"},
             {"value": "none", "label": "No structure"},
         ]
         choices = []

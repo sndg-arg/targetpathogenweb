@@ -5,7 +5,7 @@
         <h3 class="pdb-evidence-title">{% trans "Structural evidence" %}</h3>
         <span class="tp-chip tp-chip--count tp-chip--sm">{{ items|length }}{% if predicted_items %} + {{ predicted_items|length }}{% endif %}</span>
     </div>
-    <p class="pdb-evidence-note">{% trans "Experimental PDB entries and predicted models. Click Switch to display a different structure in the viewer." %}</p>
+    <p class="pdb-evidence-note">{% trans "Experimental PDB entries plus predicted AlphaFold DB or ColabFold models. Click Switch to display a different loaded structure in the viewer." %}</p>
     <div class="table-shell tp-table-shell experimental-structure-shell">
         <table class="tp-table experimental-structure-table" data-table-export="off">
             <thead>

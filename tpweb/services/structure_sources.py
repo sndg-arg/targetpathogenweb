@@ -15,8 +15,8 @@ PDB_MODEL_EXPERIMENTS = (
 STRUCTURE_SOURCE_LABELS = {
     STRUCTURE_SOURCE_NONE: "Unavailable",
     STRUCTURE_SOURCE_EXPERIMENTAL: "Experimental",
-    STRUCTURE_SOURCE_ALPHAFOLD: "AlphaFold",
-    STRUCTURE_SOURCE_COLABFOLD: "ColabFold",
+    STRUCTURE_SOURCE_ALPHAFOLD: "AlphaFold DB model",
+    STRUCTURE_SOURCE_COLABFOLD: "ColabFold model",
     STRUCTURE_SOURCE_MODEL: "Model",
     STRUCTURE_SOURCE_MIXED: "Experimental + predicted",
 }
@@ -24,8 +24,8 @@ STRUCTURE_SOURCE_LABELS = {
 STRUCTURE_SOURCE_CHOICES = (
     (STRUCTURE_SOURCE_NONE, "No structure"),
     (STRUCTURE_SOURCE_EXPERIMENTAL, "Experimental"),
-    (STRUCTURE_SOURCE_ALPHAFOLD, "AlphaFold"),
-    (STRUCTURE_SOURCE_COLABFOLD, "ColabFold"),
+    (STRUCTURE_SOURCE_ALPHAFOLD, "AlphaFold DB model"),
+    (STRUCTURE_SOURCE_COLABFOLD, "ColabFold model"),
     (STRUCTURE_SOURCE_MODEL, "Model"),
     (STRUCTURE_SOURCE_MIXED, "Experimental + predicted"),
 )
@@ -34,7 +34,7 @@ STRUCTURE_SOURCE_CHOICES = (
 _STRUCTURE_PREFERENCE = {"EX": 0, "AF": 1, "CF": 2}
 _STRUCTURE_TOGGLE_LABELS = {
     "EX": "Crystal structure",
-    "AF": "AlphaFold model",
+    "AF": "AlphaFold DB model",
     "CF": "ColabFold model",
 }
 

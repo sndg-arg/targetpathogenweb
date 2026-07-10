@@ -11,7 +11,7 @@ raw command output in tickets or task notes, not in these files.
 | Deploy or operate Nodo0 | [`CLUSTER_DEPLOY.md`](CLUSTER_DEPLOY.md) |
 | Load a reviewed genome package by hand | [`CURATED_GENOME_IMPORT.md`](CURATED_GENOME_IMPORT.md) |
 | Understand the curated import UI/staff flow | [`CURATED_FILE_IMPORT_AUTOMATION.md`](CURATED_FILE_IMPORT_AUTOMATION.md) |
-| Load or repair LigQ_2 binder evidence | [`BINDERS_LIGQ2.md`](BINDERS_LIGQ2.md) |
+| Load or repair LigQ_2 ligand evidence | [`BINDERS_LIGQ2.md`](BINDERS_LIGQ2.md) |
 | Explain where TPW data comes from | [`DATA_SOURCES.md`](DATA_SOURCES.md) |
 | Check production health/logging expectations | [`OBSERVABILITY.md`](OBSERVABILITY.md) |
 | Understand code structure and refactor direction | [`ARCHITECTURE.md`](ARCHITECTURE.md) |
@@ -25,7 +25,7 @@ raw command output in tickets or task notes, not in these files.
   the reviewed file is absent or a rebuild was explicitly requested.
 - **Nodo0 orchestrates; compute nodes compute.** Nodo0 is for Docker, database
   imports, file staging, small audits, and remote job monitoring. Full-proteome
-  BLAST/HMMER, InterProScan, AlphaFold/ColabFold, FPocket, P2Rank, and LigQ_2
+  BLAST/HMMER, InterProScan, AlphaFold DB/ColabFold, FPocket, P2Rank, and LigQ_2 ligand evidence
   belong on SLURM compute nodes.
 - **Dry-run before replacement.** Any import that overwrites scores, structures,
   pockets, or binders must have a dry-run or equivalent inspection first.

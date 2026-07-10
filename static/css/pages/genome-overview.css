@@ -762,6 +762,10 @@
     --evidence-accent: var(--tp-color-brand-600);
 }
 
+.evidence-card--metabolism {
+    --evidence-accent: var(--tp-color-success-ink);
+}
+
 .evidence-label {
     font-size: var(--tp-font-label);
     font-weight: 500;
@@ -825,6 +829,11 @@
     font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
     color: var(--genome-accent-ink);
     font-weight: 600;
+}
+
+.evidence-card-action {
+    align-self: flex-start;
+    margin-top: auto;
 }
 
 /* ── Composition inline (within Evidence section) ────────────────── */

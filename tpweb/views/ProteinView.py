@@ -89,7 +89,7 @@ def _structure_toggle_detail(link, protein_length=None):
     if experiment == "CF":
         label = "ColabFold model"
     elif experiment == "AF":
-        label = "AlphaFold model"
+        label = "AlphaFold DB model"
     else:
         label = _structure_toggle_label(experiment)
 
@@ -197,11 +197,11 @@ def _structure_source_kind(identifier):
     if upper.startswith("CB_"):
         return "ColabFold / curated model"
     if upper.startswith("AF_"):
-        return "AlphaFold / UniProt model"
+        return "AlphaFold DB / UniProt model"
     if len(ident) == 4 and ident.isalnum():
         return "PDB experimental structure"
     if upper.startswith("A0A") or (any(ch.isdigit() for ch in ident) and any(ch.isalpha() for ch in ident)):
-        return "AlphaFold / UniProt model"
+        return "AlphaFold DB / UniProt model"
     return "Curated structure"
 
 
@@ -495,8 +495,8 @@ def _build_target_executive_summary(
         if metabolic_context.get("is_chokepoint"):
             _append_summary_item(
                 strengths,
-                "Metabolic chokepoint",
-                "Participates in at least one chokepoint reaction.",
+                "Metabolic bottleneck",
+                "Catalyzes a reaction that is the only producer or consumer of a metabolite in the imported metabolic model.",
                 "good",
                 "#section-metabolic-context",
             )
@@ -539,8 +539,8 @@ def _build_target_executive_summary(
     if human_offtarget == "no_hit":
         _append_summary_item(
             strengths,
-            "No human BLAST hit",
-            "Lower apparent human off-target risk in the current sequence screen.",
+                "No similar human protein detected",
+                "The current BLAST sequence screen did not find a significant human match, lowering apparent off-target risk.",
             "good",
         )
         signal_score += 1
@@ -554,8 +554,8 @@ def _build_target_executive_summary(
         if gut_offtarget == "no_hit":
             _append_summary_item(
                 strengths,
-                "No gut microbiome hit",
-                "Current microbiome screen did not find a significant match.",
+                "No similar gut-microbiome protein detected",
+                "The current microbiome screen did not find a significant match in the screened reference genomes.",
                 "good",
                 "#section-target-profile",
             )
@@ -570,8 +570,8 @@ def _build_target_executive_summary(
         if conservation_profile.get("is_core"):
             _append_summary_item(
                 strengths,
-                "Core genome signal",
-                "Marked core by both Roary and CoreCruncher.",
+                "Core gene across strains",
+                "Marked as conserved by both pan-genome tools: Roary and CoreCruncher.",
                 "good",
                 "#section-target-profile",
             )
@@ -589,24 +589,24 @@ def _build_target_executive_summary(
     p2rank_score = _score_float(raw_scores, "p2rank_probability")
     if fpocket_score is not None:
         if fpocket_score >= 0.7:
-            _append_summary_item(strengths, "High FPocket druggability", f"Selected pocket score {fpocket_score:.2f}.", "good", "#section-target-profile")
+            _append_summary_item(strengths, "Strong predicted binding pocket", f"FPocket selected-pocket score {fpocket_score:.2f}. This is a computational pocket signal, not binding validation.", "good", "#section-target-profile")
             signal_score += 2
         elif fpocket_score >= 0.4:
-            _append_summary_item(strengths, "Moderate FPocket druggability", f"Selected pocket score {fpocket_score:.2f}.", "neutral", "#section-target-profile")
+            _append_summary_item(strengths, "Moderate predicted binding pocket", f"FPocket selected-pocket score {fpocket_score:.2f}. This supports review but is not experimental validation.", "neutral", "#section-target-profile")
             signal_score += 1
         elif fpocket_score > 0:
-            _append_summary_item(risks, "Weak FPocket pocket signal", f"Selected pocket score {fpocket_score:.2f}.", "watch", "#section-target-profile")
+            _append_summary_item(risks, "Weak predicted binding pocket", f"FPocket selected-pocket score {fpocket_score:.2f}.", "watch", "#section-target-profile")
     else:
-        _append_summary_item(missing, "No FPocket score", "No selected FPocket druggability value is available.", "missing", "#section-target-profile")
+        _append_summary_item(missing, "No FPocket pocket score", "No selected computational pocket-druggability value is available.", "missing", "#section-target-profile")
 
     if p2rank_score is not None:
         if p2rank_score >= 0.5:
-            _append_summary_item(strengths, "P2Rank pocket support", f"Predicted binding-site probability {p2rank_score:.2f}.", "good", "#section-target-profile")
+            _append_summary_item(strengths, "Second pocket predictor agrees", f"P2Rank predicted binding-site probability {p2rank_score:.2f}.", "good", "#section-target-profile")
             signal_score += 1
         elif p2rank_score > 0:
-            _append_summary_item(risks, "Weak P2Rank pocket signal", f"Predicted binding-site probability {p2rank_score:.2f}.", "watch", "#section-target-profile")
+            _append_summary_item(risks, "Weak second pocket-predictor signal", f"P2Rank predicted binding-site probability {p2rank_score:.2f}.", "watch", "#section-target-profile")
     elif not selected_pocket_evidence:
-        _append_summary_item(missing, "No P2Rank score", "No selected P2Rank binding-site probability is available.", "missing", "#section-target-profile")
+        _append_summary_item(missing, "No P2Rank pocket score", "No second computational pocket-prediction value is available.", "missing", "#section-target-profile")
 
     if structure_summary and structure_summary.get("has_structure"):
         _append_summary_item(
@@ -640,9 +640,9 @@ def _build_target_executive_summary(
             _append_summary_item(strengths, "Ligand evidence via structure/bioactivity", detail, "neutral", "#section-binders")
             signal_score += 1
         elif proposed_count:
-            _append_summary_item(risks, "Only proposed ligands", f"{proposed_count} virtual-screening candidates, no stronger ligand evidence.", "watch", "#section-binders")
+            _append_summary_item(risks, "Only proposed compounds", f"{proposed_count} ZINC similarity-based candidates, no stronger ligand evidence.", "watch", "#section-binders")
     else:
-        _append_summary_item(missing, "No ligand evidence", "No PDB, ChEMBL or proposed binder records are available.", "missing", "#section-binders")
+        _append_summary_item(missing, "No ligand evidence", "No experimental PDB ligands, measured ChEMBL bioactivity, or proposed ZINC compound records are available.", "missing", "#section-binders")
 
     if not strengths:
         verdict = "Evidence is still sparse for this target."
@@ -845,7 +845,7 @@ def _build_predicted_structures(links, protein_length, primary_link=None, alt_li
         if experiment == "CF":
             source_name = "ColabFold"
         elif experiment == "AF":
-            source_name = "AlphaFold"
+            source_name = "AlphaFold DB"
         else:
             source_name = _structure_toggle_label(experiment) or "Predicted"
         is_primary = (pdb.id == primary_pdb_id)
@@ -1245,7 +1245,7 @@ def _binder_source_label(item):
         return "PDB co-crystal" if item.get("is_direct") else "PDB via homolog"
     if source == Binders.SOURCE_CHEMBL:
         return "ChEMBL direct" if item.get("is_direct") else "ChEMBL via homolog"
-    return "ZINC candidate"
+    return "ZINC proposed compound"
 
 
 def _binder_score_label(item):
@@ -1524,7 +1524,7 @@ class ProteinView(View):
                         ["Gene", proteinDTO["gene"] or "-"],
                         ["Status", proteinDTO["status"]],
                         ["Amino acids", proteinDTO["size"]],
-                        ["Structure source", structure_summary.get("label", "-")],
+                        ["3D evidence source", structure_summary.get("label", "-")],
                         ["Experimental PDB entries", len(experimental_structures)],
                         ["Functional annotations", len(annotations)],
                         ["Sequence features", len(features)],

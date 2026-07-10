@@ -165,7 +165,7 @@ def _activity_label_for_stage(stage_number, active_app):
     if stage_number == 10 or active_app == "interproscan":
         return "InterProScan: domain annotation"
     if stage_number == 14 or active_app == "alphafold_unips":
-        return "AlphaFold: model generation"
+        return "AlphaFold DB: model download"
     return None
 
 
