@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/data-sources.css' %}?v=20260701-1">
+    <link rel="stylesheet" href="{% static 'css/pages/data-sources.css' %}?v=20260710-principles-removed1">
 {% endblock %}
 
 {% block body %}
@@ -26,7 +26,6 @@
         <a class="ds-quick-nav-link" href="#purpose">{% trans "Purpose" %}</a>
         <a class="ds-quick-nav-link" href="#institution">{% trans "Institution" %}</a>
         <a class="ds-quick-nav-link" href="#team">{% trans "Team" %}</a>
-        <a class="ds-quick-nav-link" href="#principles">{% trans "Principles" %}</a>
     </nav>
 
     <section class="ds-panel tp-ui-panel" id="purpose">
@@ -107,38 +106,6 @@
                     <strong>Ana Gutson</strong>
                 </div>
                 <p>{% trans "Ing. Informática" %} <span class="ds-pipeline-card-faculty">(FIUBA, UBA)</span></p>
-            </div>
-        </div>
-    </section>
-
-    <section class="ds-panel tp-ui-panel" id="principles">
-        <div class="section-head tp-ui-panel-head">
-            <div>
-                <p class="tp-ui-field-label">{% trans "How we work" %}</p>
-                <h2 class="ds-panel-title">{% trans "Design principles" %}</h2>
-            </div>
-        </div>
-        <div class="ds-profile-grid">
-            <div class="ds-profile-card">
-                <div class="ds-profile-card-head">
-                    <span class="ds-profile-icon">1</span>
-                    <h3>{% trans "Traceable evidence" %}</h3>
-                </div>
-                <p>{% trans "Every score, annotation, structure, pocket, and ligand should remain connected to its source so target decisions can be audited and discussed." %}</p>
-            </div>
-            <div class="ds-profile-card">
-                <div class="ds-profile-card-head">
-                    <span class="ds-profile-icon">2</span>
-                    <h3>{% trans "Expert-curated data first" %}</h3>
-                </div>
-                <p>{% trans "When domain experts provide curated structures, pockets, annotations, or score tables, those datasets are treated as the preferred source of truth for the project." %}</p>
-            </div>
-            <div class="ds-profile-card">
-                <div class="ds-profile-card-head">
-                    <span class="ds-profile-icon">3</span>
-                    <h3>{% trans "Useful biological review" %}</h3>
-                </div>
-                <p>{% trans "The interface is designed to help researchers compare candidates, inspect structural evidence, and decide what deserves deeper experimental or computational follow-up." %}</p>
             </div>
         </div>
     </section>
