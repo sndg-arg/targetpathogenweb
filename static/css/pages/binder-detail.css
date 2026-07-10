@@ -41,6 +41,24 @@
     color: var(--tp-color-text-primary);
 }
 
+.binder-hero,
+.binder-page .quick-nav,
+.binder-card {
+    animation: tp-ui-enter 340ms var(--tp-ui-ease-standard) both;
+}
+
+.binder-page .quick-nav {
+    animation-delay: 40ms;
+}
+
+.binder-card {
+    animation-delay: 80ms;
+}
+
+.binder-card:nth-of-type(2) { animation-delay: 110ms; }
+.binder-card:nth-of-type(3) { animation-delay: 140ms; }
+.binder-card:nth-of-type(4) { animation-delay: 170ms; }
+
 /* ── Hero ─────────────────────────────────────────────────────────── */
 
 /* Base styles from .tp-page-hero in ui-system.css */
@@ -316,6 +334,15 @@
 @media (max-width: 880px) {
     .binder-grid {
         grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .binder-hero,
+    .binder-page .quick-nav,
+    .binder-card {
+        animation: none !important;
+        transition: none !important;
     }
 }
 

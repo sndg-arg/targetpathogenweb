@@ -357,14 +357,15 @@ Pasada sistematica para que TPW se sienta como una unica aplicacion cientifica c
 - Utilidades globales de entrada sutil y profundidad en `ui-system.css`.
 - `tp-page-hero` y `tp-ui-panel` con sombra/token y transiciones consistentes.
 - Genome overview, Protein detail y Protein list usando el mismo movimiento base.
-- Cache busting de CSS en esas tres vistas para que el cluster levante el pase visual.
+- Metabolism overview/pathway y Binder detail incorporados al mismo lenguaje de motion/depth.
+- Cache busting de CSS en las vistas tocadas para que el cluster levante el pase visual.
 
 **Pendiente para cerrar.**
 
 - Auditar colores/sombras hardcodeadas por pagina.
 - Definir un checklist visual antes de mergear nuevas vistas.
 - Revisar en modo claro/oscuro con screenshots reales.
-- Extender luego a metabolism, binders y structure viewer.
+- Extender luego al structure viewer, con validacion visual especifica porque es una superficie interactiva de mayor riesgo.
 
 ### Red de señalizacion/regulacion por proteina (KEGG PPI)
 

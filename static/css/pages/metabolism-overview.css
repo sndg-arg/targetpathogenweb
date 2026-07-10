@@ -46,14 +46,17 @@
     border: 1px solid var(--tp-color-border-soft);
     border-radius: 10px;
     background: var(--tp-color-surface);
-    box-shadow: 0 1px 0 color-mix(in srgb, var(--tp-color-surface) 85%, transparent);
-    transition: border-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
-    animation: tp-metabolism-card-in 260ms ease both;
+    box-shadow: var(--tp-shadow-xs);
+    transition:
+        border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+    animation: tp-ui-enter 340ms var(--tp-ui-ease-standard) both;
 }
 
 .metabolism-pathway-card:hover {
     border-color: var(--tp-color-border-strong);
-    box-shadow: var(--tp-shadow-lg);
+    box-shadow: var(--tp-shadow-sm);
     transform: translateY(-1px);
 }
 
@@ -281,7 +284,7 @@
 
 .metabolism-pathway-detail-page .metabolism-panel {
     margin-top: 16px;
-    box-shadow: var(--tp-shadow-xs), var(--tp-shadow-lg);
+    box-shadow: var(--tp-shadow-sm);
 }
 
 .metabolism-pathway-detail-page .genome-hero-eyebrow,
@@ -289,7 +292,7 @@
 .metabolism-pathway-detail-page .genome-description,
 .metabolism-pathway-detail-page .genome-hero-actions,
 .metabolism-pathway-detail-page .genome-metrics {
-    animation: tp-metabolism-hero-in 460ms ease both;
+    animation: tp-ui-enter 340ms var(--tp-ui-ease-standard) both;
 }
 
 .metabolism-pathway-detail-page .genome-hero h1 { animation-delay: 40ms; }
@@ -298,17 +301,20 @@
 .metabolism-pathway-detail-page .genome-metrics { animation-delay: 160ms; }
 
 .metabolism-pathway-detail-page .genome-metrics .metric-pill {
-    transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+    transition:
+        transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
 }
 
 .metabolism-pathway-detail-page .genome-metrics .metric-pill:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--tp-shadow-md);
+    transform: translateY(-1px);
+    box-shadow: var(--tp-shadow-sm);
     border-color: var(--tp-color-border-strong);
 }
 
 .metabolism-pathway-detail-page .pathway-reaction-row {
-    animation: tp-metabolism-card-in 320ms ease both;
+    animation: tp-ui-enter 340ms var(--tp-ui-ease-standard) both;
 }
 
 .metabolism-reaction-table .pathway-reaction-row:nth-child(1) { animation-delay: 0ms; }
@@ -735,17 +741,6 @@
     margin-top: 10px;
 }
 
-@keyframes tp-metabolism-card-in {
-    from {
-        opacity: 0;
-        transform: translateY(5px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
 @keyframes tp-metabolism-map-in {
     from {
         opacity: 0;
@@ -754,17 +749,6 @@
     to {
         opacity: 1;
         transform: scale(1);
-    }
-}
-
-@keyframes tp-metabolism-hero-in {
-    from {
-        opacity: 0;
-        transform: translateY(8px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
     }
 }
 
