@@ -142,7 +142,7 @@
                                 <div>
                                     <h2>{% trans "Top evidence-convergent candidates" %}</h2>
                                     <p class="section-subtitle">
-                                        {% trans "Ranked by a transparent overview heuristic that combines pocket quality, ligand evidence, selectivity/off-target screens, essentiality, conservation, structure, and metabolic context. Chips show why each protein rises." %}
+                                        {% trans "Ranked by an overview evidence score from 0 to 15 points. It combines FPocket druggability, P2Rank pocket support, ligand evidence type, selectivity/off-target screens, essentiality, conservation, structure, and metabolic context. Ligand counts are context, not a linear score multiplier." %}
                                     </p>
                                 </div>
                             </div>
@@ -154,18 +154,19 @@
                                                 <div class="targets-title">
                                                     <span class="targets-rank">#{{ forloop.counter }}</span>
                                                     <span class="targets-accession">{{ t.accession }}</span>
-                                                    <span class="targets-score">
-                                                        <span class="targets-score-label">{% trans "Evidence" %}</span>
-                                                        <span class="targets-score-value">{{ t.score }}</span>
+                                                    <span class="targets-score targets-score--{{ t.tier_tone }}" title="{% blocktrans with score=t.score max=t.score_max percent=t.score_percent %}Evidence convergence score: {{ score }} of {{ max }} points ({{ percent }}%). Strong means several independent evidence types agree; it is still only a first-pass triage score.{% endblocktrans %}">
+                                                        <span class="targets-score-label">{% trans "Convergence" %}</span>
+                                                        <span class="targets-score-value">{{ t.tier_label }}</span>
+                                                        <span class="targets-score-sub">{{ t.score }}/{{ t.score_max }}</span>
                                                     </span>
                                                     {% if t.binder_count %}
                                                         <span class="targets-evidence">
                                                             {% if t.direct_count %}
-                                                                {% blocktrans count n=t.direct_count %}{{ n }} direct ligand{% plural %}{{ n }} direct ligands{% endblocktrans %}
+                                                                {% trans "Direct ligand evidence" %}
                                                             {% else %}
-                                                                {% blocktrans count n=t.binder_count %}{{ n }} supporting ligand record{% plural %}{{ n }} supporting ligand records{% endblocktrans %}
+                                                                {% trans "Supporting ligand evidence" %}
                                                             {% endif %}
-                                                            <span class="targets-tooltip">{% trans "Ligand evidence: experimental PDB ligands, measured ChEMBL bioactivity (top 100), and proposed ZINC compounds by chemical similarity (top 50). Source databases may contain additional records." %}</span>
+                                                            <span class="targets-tooltip">{% trans "The composite score uses ligand evidence type, not raw record count: direct PDB ligand, measured ChEMBL activity, homolog-transferred evidence, and ZINC proposals are capped separately. Use the ligand-support ranking below when the count itself matters." %}</span>
                                                         </span>
                                                     {% endif %}
                                                 </div>
@@ -183,8 +184,8 @@
                                 {% endfor %}
                             </ol>
                             <p class="targets-footnote">
-                                {% trans "This ranking is only a first-pass triage. Review the chips and open each protein before deciding." %}
-                                <a href="{{ workspace_links.custom_scores_url }}">{% trans "Create your own score" %} →</a>
+                                {% trans "Score range: 0-15. Strong is at least 65% of the evidence-weight budget; Moderate is 40-65%; Limited is below 40%. This ranking is only a first-pass triage." %}
+                                <a href="{{ workspace_links.custom_scores_url }}">{% trans "Create your own score" %} &rarr;</a>
                             </p>
                         </div>
                     {% endif %}

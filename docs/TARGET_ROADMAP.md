@@ -107,12 +107,16 @@ El overview del genoma debe funcionar como tablero macro, no como reflejo de la 
   - estructura disponible;
   - contexto metabolico y chokepoints.
 - Chips por proteina explicando por que aparece arriba.
+- Score visible como rango interpretable `0-15`, con tier `Strong/Moderate/Limited` y tooltip de significado.
+- Drogabilidad explicitada como `FPocket druggability` en chips y copy, no solo como "pocket quality".
+- Ligandos tratados como evidencia por tipo y no como conteo lineal: el overview muestra si hay evidencia directa/soporte, y el ranking secundario conserva los conteos detallados.
 - Rankings secundarios conservados para senales especificas, como ligand support.
 - Copy aclarando que el score es triage, no una conclusion biologica final.
 
 **Pendiente para cerrar.**
 
 - Validar pesos con biologas y equipo de bioinformatica.
+- Validar si el maximo teorico de 15 puntos y los cortes Strong >=65%, Moderate 40-65% y Limited <40% son intuitivos para usuarios biologos.
 - Definir si el score compuesto debe convertirse en `ScoreFormula` editable o quedar solo como ranking de overview.
 - Agregar export del ranking compuesto con desglose de contribuciones.
 - Evaluar una comparacion visual entre ranking compuesto, ranking por pocket y ranking por ligandos.

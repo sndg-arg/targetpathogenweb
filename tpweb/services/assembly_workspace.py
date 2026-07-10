@@ -15,12 +15,26 @@ from tpweb.services.structure_sources import (
 
 
 EC_DBNAMES = {str(Ontology.EC or "").strip(), "ec", "EC"}
+EVIDENCE_CONVERGENCE_MAX_SCORE = 15.0
 
 
 def _pct(numerator, denominator):
     if not denominator:
         return 0
     return round(100 * numerator / denominator, 1)
+
+
+def _format_decimal(value):
+    return f"{value:.2f}".rstrip("0").rstrip(".")
+
+
+def _evidence_convergence_tier(score):
+    fraction = score / EVIDENCE_CONVERGENCE_MAX_SCORE
+    if fraction >= 0.65:
+        return "Strong", "good"
+    if fraction >= 0.4:
+        return "Moderate", "neutral"
+    return "Limited", "bad"
 
 
 def get_top_targets_by_binders(assembly_name, limit=5):
@@ -231,13 +245,13 @@ def get_top_targets_by_score(assembly_name, user, limit=5):
         if fpocket is not None:
             if fpocket >= 0.7:
                 score += 2.0
-                _add_signal(signals, "Strong predicted pocket")
+                _add_signal(signals, f"High FPocket druggability {_format_decimal(fpocket)}")
             elif fpocket >= 0.4:
                 score += 1.0
-                _add_signal(signals, "Moderate predicted pocket", "neutral")
+                _add_signal(signals, f"Moderate FPocket druggability {_format_decimal(fpocket)}", "neutral")
             elif fpocket > 0:
                 score -= 0.5
-                _add_signal(cautions, "Weak predicted pocket", "bad")
+                _add_signal(cautions, f"Weak FPocket druggability {_format_decimal(fpocket)}", "bad")
 
         p2rank = _as_float(param_values.get("p2rank_probability"))
         if p2rank is not None and p2rank >= 0.5:
@@ -324,11 +338,16 @@ def get_top_targets_by_score(assembly_name, user, limit=5):
 
     items = []
     for p, score, fpocket, direct_count, binder_count, factors, pdb_c, chembl_c, zinc_c in top:
+        tier_label, tier_tone = _evidence_convergence_tier(score)
         items.append({
             "bioentry_id": p.bioentry_id,
             "accession": p.accession,
             "description": p.description,
             "score": round(score, 1),
+            "score_max": int(EVIDENCE_CONVERGENCE_MAX_SCORE),
+            "score_percent": round((score / EVIDENCE_CONVERGENCE_MAX_SCORE) * 100),
+            "tier_label": tier_label,
+            "tier_tone": tier_tone,
             "factors": factors,
             "binder_count": binder_count,
             "direct_count": direct_count,

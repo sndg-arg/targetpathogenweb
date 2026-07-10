@@ -389,14 +389,16 @@
     margin-left: auto;
     font-weight: var(--tp-font-weight-semibold);
     color: var(--genome-accent-ink);
-    line-height: 1;
-    padding: 5px 10px;
+    line-height: 1.1;
+    padding: 6px 10px;
     background: var(--genome-accent-soft);
     border: 1px solid var(--genome-accent-border);
     border-radius: 8px;
     display: inline-flex;
-    align-items: baseline;
-    gap: 6px;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 3px;
+    min-width: 92px;
 }
 
 .targets-score-label {
@@ -409,7 +411,40 @@
 
 .targets-score-value {
     font-size: 0.9rem;
+}
+
+.targets-score-sub {
+    color: var(--tp-color-text-muted);
+    font-size: 0.76rem;
+    font-weight: var(--tp-font-weight-medium);
     font-variant-numeric: tabular-nums;
+}
+
+.targets-score--good {
+    background: var(--tp-color-success-bg);
+    border-color: var(--tp-color-success-border);
+}
+
+.targets-score--good .targets-score-value {
+    color: var(--tp-color-success-ink);
+}
+
+.targets-score--neutral {
+    background: var(--tp-color-info-bg);
+    border-color: var(--tp-color-info-border);
+}
+
+.targets-score--neutral .targets-score-value {
+    color: var(--tp-color-info-ink);
+}
+
+.targets-score--bad {
+    background: var(--tp-color-warning-bg);
+    border-color: var(--tp-color-warning-border);
+}
+
+.targets-score--bad .targets-score-value {
+    color: var(--tp-color-warning-ink);
 }
 
 .targets-direct-count {
@@ -426,10 +461,9 @@
 }
 
 .targets-evidence {
-    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
     font-size: 0.78rem;
     font-weight: 600;
-    line-height: 1;
+    line-height: 1.1;
     color: var(--tp-color-text-muted);
     padding: 4px 10px;
     background: var(--tp-color-surface-soft);
