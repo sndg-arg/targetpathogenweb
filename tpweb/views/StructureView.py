@@ -12,11 +12,54 @@ from tpweb.services.structure_files import detect_structure_format, display_code
 
 _METHOD_MAP = {"EX": "Crystal structure", "AF": "AlphaFold DB model", "CF": "ColabFold model"}
 _SHORT_METHOD = {"EX": "Crystal", "AF": "AlphaFold DB", "CF": "ColabFold"}
+_FPOCKET_INSPECTOR_PROPERTIES = [
+    ("Volume", "Volume"),
+    ("Score", "FPocket score"),
+    ("Number of Alpha Spheres", "Alpha spheres"),
+    ("Total SASA", "Total SASA"),
+    ("Apolar alpha sphere proportion", "Apolar spheres"),
+    ("Mean local hydrophobic density", "Hydrophobic density"),
+    ("Mean alpha sphere radius", "Mean sphere radius"),
+    ("Flexibility", "Flexibility"),
+]
+_P2RANK_INSPECTOR_PROPERTIES = [
+    ("p2score", "P2Rank score"),
+]
 
 
 def _chain_selector(chain):
     chain = (chain or "").strip()
     return f":{chain}" if chain else "polymer"
+
+
+def _format_float(value):
+    try:
+        num = float(value)
+    except (TypeError, ValueError):
+        return ""
+    if abs(num) >= 100:
+        return f"{num:.0f}"
+    if abs(num) >= 10:
+        return f"{num:.1f}"
+    return f"{num:.2f}".rstrip("0").rstrip(".")
+
+
+def _residue_set_property_map(residue_set):
+    return {
+        prop.property.name: prop.value
+        for prop in residue_set.properties.all()
+        if prop.property_id and prop.value is not None
+    }
+
+
+def _inspector_property_summary(residue_set, wanted_properties):
+    prop_map = _residue_set_property_map(residue_set)
+    items = []
+    for prop_name, label in wanted_properties:
+        value = _format_float(prop_map.get(prop_name))
+        if value:
+            items.append(f"{label}: {value}")
+    return " | ".join(items)
 
 
 class StructureView(View):
@@ -242,6 +285,8 @@ def pdb_structure(
             graphic_features.append(gf)
 
     context["pockets"].sort(key=lambda p: p.druggability or 0, reverse=True)
+    for p in context["pockets"]:
+        p.inspector_properties = _inspector_property_summary(p, _FPOCKET_INSPECTOR_PROPERTIES)
 
     for p2 in context["p2_pockets"]:
         p2.p2score = [x.value for x in p2.properties.all() if x.property == p2s][0]
@@ -269,6 +314,8 @@ def pdb_structure(
             graphic_features.append(gf_p2)
 
     context["p2_pockets"].sort(key=lambda p: p.probability or 0, reverse=True)
+    for p2 in context["p2_pockets"]:
+        p2.inspector_properties = _inspector_property_summary(p2, _P2RANK_INSPECTOR_PROPERTIES)
 
     rss = PDBResidueSet.objects.prefetch_related(
         "properties__property",

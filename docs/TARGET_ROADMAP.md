@@ -193,12 +193,13 @@ El usuario debe poder elegir un pocket puntual y mirarlo en detalle, no solo pre
 - Diferenciacion visual leve entre cards FPocket y P2Rank.
 - Accion `Inspect` para seleccionar un pocket, centrar camara, mostrar superficie, apagar capas visibles de otros pockets y completar un panel persistente de detalle.
 - Panel de pocket seleccionado con metodo, score y residuos.
+- El panel muestra propiedades importadas disponibles: para FPocket, volumen, score, alpha spheres, SASA, hidrofobicidad y flexibilidad; para P2Rank, score/probabilidad.
 
 **Pendiente para cerrar.**
 
 - Refinar modo de foco para atenuar geometricamente la proteina y otros pockets, no solo apagar capas activas.
 - Agregar `Show only selected pocket` / `Show all pockets`.
-- Agregar propiedades geometricas disponibles del pocket seleccionado, como volumen o coordenadas si estan en el dato importado.
+- Agregar propiedades derivadas del pocket seleccionado, como centro geometrico estimado, distancia a ligandos/sitios funcionales y consenso FPocket/P2Rank.
 - Verificar en datos reales que el detalle permite inspeccionar el pocket, no solo la region general.
 
 ### Comparacion FPocket vs P2Rank

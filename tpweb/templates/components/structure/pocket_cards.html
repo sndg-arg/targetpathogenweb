@@ -12,6 +12,7 @@
                      data-pocket-id="FPocket #{{ p.name }}"
                      data-pocket-score="{{ p.druggability }}"
                      data-pocket-residues="{{ p.residues|join:' ' }}"
+                     data-pocket-properties="{{ p.inspector_properties }}"
                      data-pocket-zoom="{{p.name}}_zoom">
                     <div class="pocket-card-head">
                         <div class="pocket-card-label">
@@ -49,6 +50,7 @@
                      data-pocket-id="P2Rank #{{ p2.name }}"
                      data-pocket-score="{{ p2.probability }}"
                      data-pocket-residues="{{ p2.residues|join:' ' }}"
+                     data-pocket-properties="{{ p2.inspector_properties }}"
                      data-pocket-zoom="p2_{{p2.name}}_zoom">
                     <div class="pocket-card-head">
                         <div class="pocket-card-label">

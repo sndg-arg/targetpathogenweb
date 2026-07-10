@@ -165,6 +165,10 @@
                             <dt>{% trans "Residues" %}</dt>
                             <dd data-pocket-field="residues">-</dd>
                         </div>
+                        <div class="sv-pocket-inspector-wide">
+                            <dt>{% trans "Pocket properties" %}</dt>
+                            <dd data-pocket-field="properties">-</dd>
+                        </div>
                     </dl>
                     <p class="sv-pocket-inspector-note">{% trans "Inspect mode shows this pocket surface and hides other active pocket layers so the selected site can be reviewed in detail." %}</p>
                 </section>
@@ -324,6 +328,7 @@ function jsloaded() {
         setPocketInspectorField("method", card.getAttribute("data-pocket-method") || "");
         setPocketInspectorField("score", card.getAttribute("data-pocket-score") || "");
         setPocketInspectorField("residues", card.getAttribute("data-pocket-residues") || "");
+        setPocketInspectorField("properties", card.getAttribute("data-pocket-properties") || "");
         if (pocketInspector) pocketInspector.hidden = false;
     }
 
