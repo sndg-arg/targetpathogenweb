@@ -133,11 +133,38 @@ def _humanize_factor(param_name, value):
     return None
 
 
-def get_top_targets_by_score(assembly_name, user, limit=5):
-    """Top-N proteins of a genome ranked by raw FPocket druggability.
+def _as_float(value):
+    if value is None:
+        return None
+    try:
+        return float(str(value).replace(",", "."))
+    except (TypeError, ValueError):
+        return None
 
-    The genome overview should show an interpretable single-evidence ranking by
-    default. Composite formulas belong in the protein list scoring drawer.
+
+def _is_yes(value):
+    return str(value or "").strip().lower() in {"y", "yes", "true", "1"}
+
+
+def _is_no_hit(value):
+    return str(value or "").strip().lower().replace(" ", "_") in {"no_hit", "nohit"}
+
+
+def _is_core_call(value):
+    return str(value or "").strip().lower() in {"core", "y", "yes", "true", "1"}
+
+
+def _add_signal(signals, label, tone="good"):
+    if label and all(existing["label"] != label for existing in signals):
+        signals.append({"label": label, "tone": tone})
+
+
+def get_top_targets_by_score(assembly_name, user, limit=5):
+    """Top-N proteins ranked by interpretable evidence convergence.
+
+    This is not a saved ScoreFormula. It is a conservative overview heuristic
+    that combines independent evidence streams so the genome page does not
+    over-rank proteins by one raw signal such as FPocket or ligand count.
     """
     from tpweb.services.protein_serializer import score_param_value_map
 
@@ -147,54 +174,171 @@ def get_top_targets_by_score(assembly_name, user, limit=5):
         .prefetch_related("score_params__score_param")
     )
 
-    binder_counts_by_source = {}
+    binder_counts_by_gene = {}
     for row in (
         Binders.objects.filter(locustag__biodatabase__name=proteome_name)
-        .values("locustag__accession", "source")
+        .values("locustag__bioentry_id", "source", "is_direct")
         .annotate(count=Count("id"))
     ):
-        acc = row["locustag__accession"]
-        binder_counts_by_source.setdefault(acc, {})[row["source"]] = row["count"]
+        gene_id = row["locustag__bioentry_id"]
+        source = row["source"]
+        direct_key = "direct" if row["is_direct"] else "homolog"
+        counts = binder_counts_by_gene.setdefault(gene_id, {
+            "pdb_direct": 0,
+            "pdb_homolog": 0,
+            "chembl_direct": 0,
+            "chembl_homolog": 0,
+            "zinc": 0,
+        })
+        if source == Binders.SOURCE_PDB:
+            counts[f"pdb_{direct_key}"] += row["count"]
+        elif source == Binders.SOURCE_CHEMBL:
+            counts[f"chembl_{direct_key}"] += row["count"]
+        elif source == Binders.SOURCE_PROPOSED:
+            counts["zinc"] += row["count"]
+
+    structure_rows = BioentryStructure.objects.filter(
+        bioentry__biodatabase__name=proteome_name,
+    ).values("bioentry_id", "pdb__experiment")
+    proteins_with_structure = set()
+    proteins_with_experimental_structure = set()
+    for row in structure_rows:
+        gene_id = row["bioentry_id"]
+        proteins_with_structure.add(gene_id)
+        if (row["pdb__experiment"] or "") not in PDB_MODEL_EXPERIMENTS:
+            proteins_with_experimental_structure.add(gene_id)
+
+    metabolic_links = GeneReactionLink.objects.filter(
+        reaction__genome_accession=assembly_name,
+    ).values("bioentry_id", "chokepoint_role")
+    metabolic_gene_ids = set()
+    chokepoint_gene_ids = set()
+    for row in metabolic_links:
+        gene_id = row["bioentry_id"]
+        metabolic_gene_ids.add(gene_id)
+        if row["chokepoint_role"] != GeneReactionLink.CHOKEPOINT_NONE:
+            chokepoint_gene_ids.add(gene_id)
 
     scored = []
     for p in proteins:
         param_values = score_param_value_map(p)
-        raw_druggability = param_values.get("Druggability")
-        try:
-            score = float(raw_druggability or 0)
-        except (TypeError, ValueError):
-            score = 0.0
-        counts = binder_counts_by_source.get(p.accession, {})
-        pdb_c = counts.get(Binders.SOURCE_PDB, 0)
-        chembl_c = counts.get(Binders.SOURCE_CHEMBL, 0)
-        zinc_c = counts.get(Binders.SOURCE_PROPOSED, 0)
-        binder_count = pdb_c + chembl_c + zinc_c
-        scored.append((p, score, param_values, binder_count, pdb_c, chembl_c, zinc_c))
+        gene_id = p.bioentry_id
+        signals = []
+        cautions = []
+        score = 0.0
 
-    # Sort by druggability, breaking ties by binder count so well-evidenced proteins surface first.
-    scored.sort(key=lambda row: (row[1], row[3]), reverse=True)
+        fpocket = _as_float(param_values.get("Druggability"))
+        if fpocket is not None:
+            if fpocket >= 0.7:
+                score += 2.0
+                _add_signal(signals, "Strong predicted pocket")
+            elif fpocket >= 0.4:
+                score += 1.0
+                _add_signal(signals, "Moderate predicted pocket", "neutral")
+            elif fpocket > 0:
+                score -= 0.5
+                _add_signal(cautions, "Weak predicted pocket", "bad")
+
+        p2rank = _as_float(param_values.get("p2rank_probability"))
+        if p2rank is not None and p2rank >= 0.5:
+            score += 1.0
+            _add_signal(signals, "P2Rank pocket support")
+
+        binder_counts = binder_counts_by_gene.get(gene_id, {})
+        pdb_direct = binder_counts.get("pdb_direct", 0)
+        chembl_direct = binder_counts.get("chembl_direct", 0)
+        pdb_homolog = binder_counts.get("pdb_homolog", 0)
+        chembl_homolog = binder_counts.get("chembl_homolog", 0)
+        zinc_count = binder_counts.get("zinc", 0)
+        direct_count = pdb_direct + chembl_direct
+        homolog_count = pdb_homolog + chembl_homolog
+        binder_count = direct_count + homolog_count + zinc_count
+
+        if pdb_direct:
+            score += 2.0
+            _add_signal(signals, "Experimental PDB ligand")
+        if chembl_direct:
+            score += 2.0
+            _add_signal(signals, "Measured ChEMBL activity")
+        if homolog_count:
+            score += 0.75
+            _add_signal(signals, "Ligand evidence via homolog", "neutral")
+        if zinc_count:
+            score += 0.25
+            _add_signal(signals, "ZINC proposed compounds", "neutral")
+
+        if _is_no_hit(param_values.get("human_offtarget")):
+            score += 1.5
+            _add_signal(signals, "No similar human protein")
+        elif str(param_values.get("human_offtarget") or "").strip().lower() == "hit":
+            score -= 2.0
+            _add_signal(cautions, "Human similarity", "bad")
+
+        if _is_no_hit(param_values.get("gut_microbiome_offtarget")):
+            score += 1.0
+            _add_signal(signals, "No gut microbiome hit")
+        elif str(param_values.get("gut_microbiome_offtarget") or "").strip().lower() == "hit":
+            score -= 1.0
+            _add_signal(cautions, "Gut microbiome similarity", "bad")
+
+        if _is_yes(param_values.get("hit_in_deg")):
+            score += 1.0
+            _add_signal(signals, "Essential-gene similarity")
+
+        if _is_core_call(param_values.get("core_roary")) and _is_core_call(param_values.get("core_corecruncher")):
+            score += 1.0
+            _add_signal(signals, "Core across strains")
+
+        if gene_id in chokepoint_gene_ids:
+            score += 1.5
+            _add_signal(signals, "Metabolic chokepoint")
+        elif gene_id in metabolic_gene_ids:
+            score += 0.25
+            _add_signal(signals, "Metabolic reaction", "neutral")
+
+        if gene_id in proteins_with_experimental_structure:
+            score += 1.0
+            _add_signal(signals, "Experimental structure")
+        elif gene_id in proteins_with_structure:
+            score += 0.5
+            _add_signal(signals, "Predicted 3D model", "neutral")
+
+        if score <= 0 and not signals:
+            continue
+
+        shown_factors = (signals + cautions)[:6]
+        scored.append((
+            p,
+            score,
+            fpocket or 0.0,
+            direct_count,
+            binder_count,
+            shown_factors,
+            pdb_direct + pdb_homolog,
+            chembl_direct + chembl_homolog,
+            zinc_count,
+        ))
+
+    scored.sort(key=lambda row: (row[1], row[2], row[3], row[4]), reverse=True)
     top = scored[:limit]
 
     items = []
-    for p, score, param_values, binder_count, pdb_c, chembl_c, zinc_c in top:
-        factors = []
-        label_spec = _humanize_factor("Druggability", score)
-        if label_spec:
-            label, tone = label_spec
-            factors.append({"label": label, "tone": tone})
+    for p, score, fpocket, direct_count, binder_count, factors, pdb_c, chembl_c, zinc_c in top:
         items.append({
             "bioentry_id": p.bioentry_id,
             "accession": p.accession,
             "description": p.description,
-            "score": round(score, 2),
+            "score": round(score, 1),
             "factors": factors,
             "binder_count": binder_count,
+            "direct_count": direct_count,
+            "druggability": fpocket,
             "pdb_count": pdb_c,
             "chembl_count": chembl_c,
             "zinc_count": zinc_c,
         })
 
-    return {"formula_name": "Druggability", "items": items}
+    return {"formula_name": "Evidence convergence", "items": items}
 
 
 def build_assembly_workspace_metrics(assembly_name):

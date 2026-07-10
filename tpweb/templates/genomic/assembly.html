@@ -140,13 +140,9 @@
                         <div class="genome-card tp-ui-panel genome-card--ranking">
                             <div class="section-head tp-ui-panel-head">
                                 <div>
-                                    <h2>{% trans "Top drug-target candidates" %}</h2>
+                                    <h2>{% trans "Top evidence-convergent candidates" %}</h2>
                                     <p class="section-subtitle">
-                                        {% if workspace_metrics.has_curated_data %}
-                                            {% trans "FPocket druggability score (0–1) for the preferred loaded structure: experimental PDB structure when available, otherwise an AlphaFold DB or ColabFold model. ≥ 0.7 highly druggable · ≥ 0.4 moderately druggable · < 0.4 low druggability." %}
-                                        {% else %}
-                                            {% trans "Ranked by the Druggability score computed from FPocket pockets (0–1). Higher values indicate more druggable binding sites." %}
-                                        {% endif %}
+                                        {% trans "Ranked by a transparent overview heuristic that combines pocket quality, ligand evidence, selectivity/off-target screens, essentiality, conservation, structure, and metabolic context. Chips show why each protein rises." %}
                                     </p>
                                 </div>
                             </div>
@@ -159,12 +155,16 @@
                                                     <span class="targets-rank">#{{ forloop.counter }}</span>
                                                     <span class="targets-accession">{{ t.accession }}</span>
                                                     <span class="targets-score">
-                                                        <span class="targets-score-label">{% trans "Druggability" %}</span>
-                                                        <span class="targets-score-value">{{ t.score|druggability_display }}</span>
+                                                        <span class="targets-score-label">{% trans "Evidence" %}</span>
+                                                        <span class="targets-score-value">{{ t.score }}</span>
                                                     </span>
                                                     {% if t.binder_count %}
                                                         <span class="targets-evidence">
-                                                            {{ t.binder_count }}{% if t.chembl_count >= 100 or t.zinc_count >= 50 %}+{% endif %} {% trans "binders" %}
+                                                            {% if t.direct_count %}
+                                                                {% blocktrans count n=t.direct_count %}{{ n }} direct ligand{% plural %}{{ n }} direct ligands{% endblocktrans %}
+                                                            {% else %}
+                                                                {% blocktrans count n=t.binder_count %}{{ n }} supporting ligand record{% plural %}{{ n }} supporting ligand records{% endblocktrans %}
+                                                            {% endif %}
                                                             <span class="targets-tooltip">{% trans "Ligand evidence: experimental PDB ligands, measured ChEMBL bioactivity (top 100), and proposed ZINC compounds by chemical similarity (top 50). Source databases may contain additional records." %}</span>
                                                         </span>
                                                     {% endif %}
@@ -183,8 +183,8 @@
                                 {% endfor %}
                             </ol>
                             <p class="targets-footnote">
-                                {% trans "Want to tune the formula?" %}
-                                <a href="{{ workspace_links.custom_scores_url }}">{% trans "Create a custom score" %} →</a>
+                                {% trans "This ranking is only a first-pass triage. Review the chips and open each protein before deciding." %}
+                                <a href="{{ workspace_links.custom_scores_url }}">{% trans "Create your own score" %} →</a>
                             </p>
                         </div>
                     {% endif %}

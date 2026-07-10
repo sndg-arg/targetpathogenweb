@@ -242,6 +242,16 @@
     padding: 16px;
     overflow: hidden;
     scroll-margin-top: 128px;
+    box-shadow: var(--tp-shadow-xs);
+    transition:
+        border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.genome-card:hover {
+    border-color: var(--tp-color-border-strong);
+    box-shadow: var(--tp-shadow-sm);
 }
 
 .genome-card h2 {
@@ -347,11 +357,17 @@
     border: 1px solid var(--tp-color-border-soft);
     border-radius: 10px;
     background: var(--tp-color-surface);
-    transition: border-color 140ms ease;
+    box-shadow: var(--tp-shadow-xs);
+    transition:
+        border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
 }
 
 .targets-item:hover {
     border-color: var(--tp-color-border-strong);
+    box-shadow: var(--tp-shadow-sm);
+    transform: translateY(-1px);
 }
 
 .targets-link {

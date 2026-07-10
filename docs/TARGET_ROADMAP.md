@@ -330,6 +330,31 @@ Hacer explicita la procedencia de cada dato usado para priorizar.
 - Log de importaciones relevantes por genoma.
 - Ayuda para reproducibilidad y debugging en cluster.
 
+### Premium UI consistency pass
+
+Pasada sistematica para que TPW se sienta como una unica aplicacion cientifica cuidada, no como pantallas acumuladas. No busca redisenar todo: busca aplicar con disciplina los patrones visuales ya existentes.
+
+**Principios.**
+
+- Un acento dominante por vista; colores semanticos solo cuando agregan significado.
+- Profundidad consistente usando `--tp-shadow-xs/sm/md/lg`.
+- Movimiento con proposito: entrada sutil, hover-lift y foco claro.
+- Tipografia de datos consistente: mono/tabular para IDs, scores, EC/GO, accesiones y coordenadas.
+- Cero excepciones hardcodeadas de color/sombra/radio cuando exista token del sistema.
+
+**Primer alcance.**
+
+- Genome overview.
+- Protein detail.
+- Protein list / buscador.
+
+**Pendiente para cerrar.**
+
+- Auditar colores/sombras hardcodeadas por pagina.
+- Definir un checklist visual antes de mergear nuevas vistas.
+- Revisar en modo claro/oscuro con screenshots reales.
+- Extender luego a metabolism, binders y structure viewer.
+
 ### Red de señalizacion/regulacion por proteina (KEGG PPI)
 
 Grafo de interacciones proteina-proteina y regulatorias, distinto del grafo de reacciones
@@ -378,20 +403,21 @@ priorizan, para no re-investigarlas de cero mas adelante.
 ## Orden sugerido
 
 1. Revisar en navegador/cluster lo implementado: metabolismo, target summary y ligandos.
-2. Integracion AlphaFill (ligando trasplantado sobre AlphaFold/ColabFold ya existente).
-3. Visualizacion de Proteina 2.0.
-4. Visualizacion y control de pockets.
-5. Comparacion FPocket vs P2Rank.
-6. Drogabilidad por fuente y estructura.
-7. Sitios funcionales y anotaciones estructurales.
-8. Priorizacion estructural completa.
-9. Off-target 2.0.
-10. Sequence & feature viewer 2.0.
-11. Cross-references hub.
-12. Pathway-level target prioritization.
-13. Red de señalizacion/regulacion por proteina (KEGG PPI).
-14. Evidence provenance / audit layer.
-15. Constructor de score mejorado.
-16. Columnas custom para analisis.
-17. Agente IA para exploracion de targets.
-18. Auditoria Target viejo e integraciones externas (Ligysis, CSA Atlas).
+2. Premium UI consistency pass.
+3. Integracion AlphaFill (ligando trasplantado sobre AlphaFold/ColabFold ya existente).
+4. Visualizacion de Proteina 2.0.
+5. Visualizacion y control de pockets.
+6. Comparacion FPocket vs P2Rank.
+7. Drogabilidad por fuente y estructura.
+8. Sitios funcionales y anotaciones estructurales.
+9. Priorizacion estructural completa.
+10. Off-target 2.0.
+11. Sequence & feature viewer 2.0.
+12. Cross-references hub.
+13. Pathway-level target prioritization.
+14. Red de señalizacion/regulacion por proteina (KEGG PPI).
+15. Evidence provenance / audit layer.
+16. Constructor de score mejorado.
+17. Columnas custom para analisis.
+18. Agente IA para exploracion de targets.
+19. Auditoria Target viejo e integraciones externas (Ligysis, CSA Atlas).

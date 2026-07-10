@@ -254,6 +254,15 @@ a.filter-pill .filter-pill-remove {
     padding: var(--tp-ui-panel-padding);
     display: grid;
     gap: var(--tp-ui-gap-md);
+    box-shadow: var(--tp-shadow-xs);
+    transition:
+        border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.toolbar-card:hover {
+    border-color: var(--tp-color-border-strong);
+    box-shadow: var(--tp-shadow-sm);
 }
 
 .search-form {
@@ -346,8 +355,12 @@ a.filter-pill .filter-pill-remove {
     border: 1px solid var(--tp-color-border) !important;
     background: var(--tp-color-surface) !important;
     border-radius: 10px;
-    box-shadow: none !important;
-    transition: border-color 140ms ease, background 140ms ease;
+    box-shadow: var(--tp-shadow-xs) !important;
+    transition:
+        border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
 }
 
 .toolbar-controls-left .toolbar-action-btn:hover,
@@ -355,6 +368,8 @@ a.filter-pill .filter-pill-remove {
     color: var(--tp-color-text-primary) !important;
     border-color: var(--tp-color-border-accent) !important;
     background: var(--tp-color-surface-soft) !important;
+    box-shadow: var(--tp-shadow-sm) !important;
+    transform: translateY(-1px);
     outline: none;
 }
 

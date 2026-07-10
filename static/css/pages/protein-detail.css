@@ -598,6 +598,16 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     background: var(--tp-color-surface);
     padding: 16px;
     overflow: hidden;
+    box-shadow: var(--tp-shadow-xs);
+    transition:
+        border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.protein-card:hover {
+    border-color: var(--tp-color-border-strong);
+    box-shadow: var(--tp-shadow-sm);
 }
 
 .protein-card,
