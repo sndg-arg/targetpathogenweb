@@ -615,16 +615,16 @@
 }
 
 .tp-chip--warning {
-    border-color: var(--tp-color-amber-200, #f0dca0);
+    border-color: var(--tp-color-amber-200);
     background: var(--tp-color-amber-050);
-    color: var(--tp-color-amber-800, #8a6914);
+    color: var(--tp-color-amber-700);
     cursor: help;
 }
 
 .tp-chip--ec {
     border-color: var(--tp-color-brand-200);
     background: var(--tp-color-brand-050);
-    color: var(--tp-color-brand-800, #2d5a3a);
+    color: var(--tp-color-brand-800);
     font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
     font-weight: 500;
     font-size: 0.74rem;
@@ -634,7 +634,7 @@
 .tp-chip--go {
     border-color: var(--tp-color-sage-200);
     background: var(--tp-color-sage-050);
-    color: var(--tp-color-sage-800, #3a5249);
+    color: var(--tp-color-sage-700);
     font-size: 0.74rem;
     text-decoration: none;
     gap: 4px;
@@ -660,13 +660,13 @@ a.tp-chip--go:hover {
 .tp-chip--kegg {
     border-color: var(--tp-color-brand-200);
     background: var(--tp-color-brand-050);
-    color: var(--tp-color-brand-800, #2d5a3a);
+    color: var(--tp-color-brand-800);
 }
 
 .tp-chip--biocyc {
-    border-color: var(--tp-color-amber-200, #f0dca0);
+    border-color: var(--tp-color-amber-200);
     background: var(--tp-color-amber-050);
-    color: var(--tp-color-amber-800, #8a6914);
+    color: var(--tp-color-amber-700);
 }
 
 .tp-chip--count {
