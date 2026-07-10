@@ -53,7 +53,7 @@
 
 .metabolism-pathway-card:hover {
     border-color: var(--tp-color-border-strong);
-    box-shadow: 0 12px 30px rgba(10, 31, 43, 0.08);
+    box-shadow: var(--tp-shadow-lg);
     transform: translateY(-1px);
 }
 
@@ -281,7 +281,7 @@
 
 .metabolism-pathway-detail-page .metabolism-panel {
     margin-top: 16px;
-    box-shadow: 0 1px 2px rgba(10, 31, 43, 0.04), 0 18px 40px rgba(10, 31, 43, 0.05);
+    box-shadow: var(--tp-shadow-xs), var(--tp-shadow-lg);
 }
 
 .metabolism-pathway-detail-page .genome-hero-eyebrow,
@@ -303,7 +303,7 @@
 
 .metabolism-pathway-detail-page .genome-metrics .metric-pill:hover {
     transform: translateY(-2px);
-    box-shadow: 0 10px 22px rgba(10, 31, 43, 0.08);
+    box-shadow: var(--tp-shadow-md);
     border-color: var(--tp-color-border-strong);
 }
 
@@ -344,7 +344,7 @@
     border-radius: 8px;
     background: color-mix(in srgb, var(--tp-color-surface) 96%, var(--tp-color-brand-050));
     color: var(--tp-color-text-primary);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.14);
+    box-shadow: var(--tp-shadow-lg);
     pointer-events: none;
 }
 
@@ -611,7 +611,7 @@
 
 .pathway-reaction-row:hover {
     border-color: var(--tp-color-border-strong);
-    box-shadow: 0 10px 26px rgba(10, 31, 43, 0.07);
+    box-shadow: var(--tp-shadow-lg);
     transform: translateY(-1px);
 }
 

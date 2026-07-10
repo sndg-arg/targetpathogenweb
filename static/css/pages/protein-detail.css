@@ -347,7 +347,7 @@
 }
 
 .annotation-entry:hover {
-    background: var(--tp-color-surface-alt, rgba(0, 0, 0, 0.015));
+    background: var(--tp-color-surface-alt);
 }
 
 .annotation-entry-id {
@@ -702,12 +702,12 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 }
 
 .overview-item--warning {
-    border-color: var(--tp-color-warning-border, #f0dca0);
+    border-color: var(--tp-color-warning-border);
     background: var(--tp-color-surface);
 }
 
 .overview-item--warning dd {
-    color: var(--tp-color-warning-ink, #8a6914);
+    color: var(--tp-color-warning-ink);
     font-weight: 600;
 }
 
@@ -719,7 +719,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     align-items: flex-start;
     padding: 16px;
     margin-top: 10px;
-    border: 1px solid var(--tp-color-warning-border, #f0dca0);
+    border: 1px solid var(--tp-color-warning-border);
     border-radius: 12px;
     background: var(--tp-color-surface);
 }
@@ -728,7 +728,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     flex-shrink: 0;
     width: 28px;
     height: 28px;
-    color: var(--tp-color-warning-ink, #b8860b);
+    color: var(--tp-color-warning-ink);
     margin-top: 1px;
 }
 
@@ -748,7 +748,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     font-family: "Space Grotesk", "Segoe UI", sans-serif;
     font-size: 0.94rem;
     font-weight: 600;
-    color: var(--tp-color-warning-ink, #8a6914);
+    color: var(--tp-color-warning-ink);
 }
 
 .no-structure-reason {
@@ -2610,7 +2610,7 @@ body.binder-mol-modal-open {
 .residue-modal-backdrop {
     position: fixed;
     inset: 0;
-    background: rgba(17, 38, 52, 0.48);
+    background: var(--tp-color-scrim);
     display: none;
     align-items: center;
     justify-content: center;
@@ -2889,7 +2889,7 @@ body.residue-modal-open {
 .tp-dark .structure-mode-switch {
     background: var(--tp-color-surface-muted);
     border-color: var(--tp-color-border);
-    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.25);
+    box-shadow: inset var(--tp-shadow-xs);
 }
 
 .tp-dark .structure-mode-switch .btn:not(.is-active) {
@@ -2908,7 +2908,7 @@ body.residue-modal-open {
     background: linear-gradient(180deg, var(--tp-color-brand-700) 0%, var(--tp-color-brand-800) 100%) !important;
     border-color: var(--tp-color-brand-600) !important;
     color: var(--tp-color-surface) !important;
-    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.35) !important;
+    box-shadow: var(--tp-shadow-sm) !important;
 }
 
 /* Structure toolbar */
@@ -2922,7 +2922,7 @@ body.residue-modal-open {
 .tp-dark .structure-viewport-wrap {
     background: var(--tp-color-surface);
     border-color: color-mix(in srgb, var(--tp-color-brand-800) 25%, var(--tp-color-border));
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+    box-shadow: var(--tp-shadow-lg);
 }
 
 .tp-dark #viewport {
@@ -2945,11 +2945,6 @@ body.residue-modal-open {
 
 .tp-dark .binder-preview {
     background: var(--tp-color-surface-muted);
-}
-
-/* Residue modal backdrop */
-.tp-dark .residue-modal-backdrop {
-    background: rgba(0, 0, 0, 0.6);
 }
 
 /* Druggability metric pill */
@@ -4120,7 +4115,7 @@ body.residue-modal-open {
     border-radius: 8px;
     background: color-mix(in srgb, var(--tp-color-surface) 96%, var(--tp-color-brand-050));
     color: var(--tp-color-text-primary);
-    box-shadow: 0 16px 36px rgba(10, 31, 43, 0.22);
+    box-shadow: var(--tp-shadow-lg);
     font-size: 0.78rem;
     line-height: 1.35;
     pointer-events: none;
