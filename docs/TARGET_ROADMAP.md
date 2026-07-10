@@ -148,6 +148,10 @@ Redisenar la experiencia completa del visualizador 3D. Debe servir para estructu
 
 Mejorar como se muestran y controlan los pockets en el visualizador.
 
+**Objetivo biologico.**
+
+El usuario debe poder elegir un pocket puntual y mirarlo en detalle, no solo prender una capa general del sector de la proteina. La experiencia tiene que responder: "que pocket estoy viendo, de que metodo viene, que residuos lo forman, que score tiene y por que podria importar como sitio de union".
+
 **Alcance propuesto.**
 
 - Paleta consistente en modo claro y oscuro.
@@ -156,6 +160,12 @@ Mejorar como se muestran y controlan los pockets en el visualizador.
 - Transparencia y superficie mas legibles.
 - Mostrar alpha spheres, superficies u otra representacion adecuada segun el dato disponible.
 - Tooltips o panel lateral con score, residues, volumen y metodo.
+- Seleccion explicita de pocket activo desde la card o un boton `Inspect pocket`.
+- Al seleccionar un pocket: centrar camara, resaltar ese pocket, atenuar/esconder otros pockets y mostrar detalle.
+- Toggle `Show only selected pocket` / `Show all pockets`.
+- Accion `Clear selection`.
+- Panel de detalle del pocket seleccionado con metodo, score, residuos, capas visibles y propiedades geometricas disponibles.
+- Preparar la seleccion para comparar luego FPocket vs P2Rank cercano.
 
 **Implementado inicial.**
 
@@ -164,6 +174,13 @@ Mejorar como se muestran y controlan los pockets en el visualizador.
 - Acciones `Zoom` y `Residues` con tooltip.
 - Card de pocket/residue set marcada visualmente cuando alguna capa esta visible en el viewer.
 - Diferenciacion visual leve entre cards FPocket y P2Rank.
+
+**Pendiente para cerrar.**
+
+- Implementar seleccion de pocket activo.
+- Agregar modo de inspeccion/foco que oculte o atenue los otros pockets.
+- Mostrar un panel de detalle persistente del pocket seleccionado.
+- Verificar en datos reales que el detalle permite inspeccionar el pocket, no solo la region general.
 
 ### Comparacion FPocket vs P2Rank
 
