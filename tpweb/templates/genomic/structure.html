@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20260710-token-cleanup">
+    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20260710-premium-viewer1">
 {% endblock %}
 
 {% block body %}
@@ -51,8 +51,8 @@
         <nav class="sv-toolbar" id="sv-toolbar" aria-label="{% trans '3D viewer controls' %}">
 
             {# Spin toggle #}
-            <button type="button" class="sv-tb-btn sv-spin-btn sv-tb-active" id="sv-spin-btn"
-                    aria-pressed="true" title="{% trans 'Toggle auto-rotation' %}">
+            <button type="button" class="sv-tb-btn sv-spin-btn" id="sv-spin-btn"
+                    aria-pressed="false" title="{% trans 'Auto-rotation is off. Click to rotate the structure.' %}">
                 <svg class="sv-tb-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
                     <path d="M13.5 8A5.5 5.5 0 1 1 8 2.5"/>
                     <path d="M11.5 2l2 1.5-1.5 2"/>
@@ -64,8 +64,8 @@
 
             {# View mode #}
             <div class="sv-mode-group" role="group" aria-label="{% trans 'View mode' %}">
-                <button type="button" class="sv-mode-btn is-active js-structure-mode" data-mode="cartoon">{% trans "Cartoon" %}</button>
-                <button type="button" class="sv-mode-btn js-structure-mode" data-mode="density">{% trans "Surface" %}</button>
+                <button type="button" class="sv-mode-btn is-active js-structure-mode" data-mode="cartoon" aria-pressed="true" title="{% trans 'Show the protein backbone as a cartoon representation.' %}">{% trans "Cartoon" %}</button>
+                <button type="button" class="sv-mode-btn js-structure-mode" data-mode="density" aria-pressed="false" title="{% trans 'Show a molecular surface around the protein.' %}">{% trans "Surface" %}</button>
             </div>
 
             <div class="sv-tb-sep" aria-hidden="true"></div>
@@ -143,6 +143,9 @@
                     {% if s.structure_data.p2_pockets %}<span class="sv-sidebar-meta-tag sv-sidebar-meta-tag--count">{{ s.structure_data.p2_pockets|length }} P2Rank</span>{% endif %}
                     {% endif %}{% endfor %}
                 </div>
+                <p class="sv-sidebar-note">
+                    {% trans "Pocket predictions are computational screening signals. FPocket scores geometric cavities; P2Rank predicts likely ligand-binding sites. Use them with structure source, confidence, and ligand evidence." %}
+                </p>
             </header>
 
             {# Pocket cards for each structure — only the active one is shown #}
@@ -204,7 +207,7 @@ function jsloaded() {
     var representations = {};
     var visible = {};
     var activeStructureId = "{{ structure.id }}";
-    var isSpinning = true;
+    var isSpinning = false;
 
     /* ---- Measure nav height ---- */
     (function () {
@@ -226,7 +229,9 @@ function jsloaded() {
 
     function setModeButtonState(mode) {
         structureModeButtons.forEach(function (btn) {
-            btn.classList.toggle("is-active", btn.getAttribute("data-mode") === mode);
+            var isActive = btn.getAttribute("data-mode") === mode;
+            btn.classList.toggle("is-active", isActive);
+            btn.setAttribute("aria-pressed", isActive ? "true" : "false");
         });
     }
 
@@ -249,6 +254,12 @@ function jsloaded() {
         if (!spinBtn) return;
         spinBtn.setAttribute("aria-pressed", isSpinning ? "true" : "false");
         spinBtn.classList.toggle("sv-tb-active", isSpinning);
+        spinBtn.setAttribute(
+            "title",
+            isSpinning
+                ? "{% trans 'Auto-rotation is on. Click to stop rotation.' %}"
+                : "{% trans 'Auto-rotation is off. Click to rotate the structure.' %}"
+        );
     }
 
     if (spinBtn) {

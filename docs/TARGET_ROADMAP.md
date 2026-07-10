@@ -137,6 +137,13 @@ Redisenar la experiencia completa del visualizador 3D. Debe servir para estructu
 - Selector de estructura priorizado por fuente, cobertura y calidad.
 - Evaluar si corresponde crear una vista estructural dedicada cuando haya demasiada informacion.
 
+**Implementado inicial.**
+
+- Auto-rotacion apagada por defecto en el viewer 3D.
+- Estado `aria-pressed` sincronizado para Spin, Cartoon y Surface.
+- Tooltips mas explicitos para modos de vista y auto-rotacion.
+- Nota en sidebar aclarando que FPocket/P2Rank son predicciones computacionales y deben leerse junto con fuente estructural, confianza y ligandos.
+
 ### Visualizacion y control de pockets
 
 Mejorar como se muestran y controlan los pockets en el visualizador.
