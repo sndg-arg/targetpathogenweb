@@ -2698,7 +2698,7 @@ body.residue-modal-open {
 .protein-hero,
 .quick-nav,
 .protein-card {
-    animation: protein-enter 0.34s ease;
+    animation: tp-ui-enter 340ms var(--tp-ui-ease-standard) both;
 }
 
 .quick-nav {
@@ -2823,17 +2823,6 @@ body.residue-modal-open {
     .quick-nav a {
         animation: none !important;
         transition: none !important;
-    }
-}
-
-@keyframes protein-enter {
-    from {
-        opacity: 0;
-        transform: translateY(6px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
     }
 }
 

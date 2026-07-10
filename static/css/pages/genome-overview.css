@@ -21,6 +21,24 @@
 }
 .genome-page h1 { font-weight: 700; }
 
+.genome-hero,
+.genome-page .quick-nav,
+.genome-card {
+    animation: tp-ui-enter 340ms var(--tp-ui-ease-standard) both;
+}
+
+.genome-page .quick-nav {
+    animation-delay: 40ms;
+}
+
+.genome-card {
+    animation-delay: 80ms;
+}
+
+.genome-card:nth-of-type(2) { animation-delay: 110ms; }
+.genome-card:nth-of-type(3) { animation-delay: 140ms; }
+.genome-card:nth-of-type(4) { animation-delay: 170ms; }
+
 /* ── Hero ─────────────────────────────────────────────────────────── */
 
 /* Base styles from .tp-page-hero in ui-system.css */
@@ -1049,5 +1067,14 @@
     .genome-hero-actions .btn,
     .genome-delete-actions .btn {
         width: 100%;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .genome-hero,
+    .genome-page .quick-nav,
+    .genome-card {
+        animation: none !important;
+        transition: none !important;
     }
 }

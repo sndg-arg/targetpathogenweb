@@ -2425,7 +2425,7 @@ a.filter-pill .filter-pill-remove {
 .proteins-hero,
 .toolbar-card,
 .protein-workspace {
-    animation: proteins-enter 0.36s ease;
+    animation: tp-ui-enter 340ms var(--tp-ui-ease-standard) both;
 }
 
 .toolbar-card {
@@ -2434,6 +2434,15 @@ a.filter-pill .filter-pill-remove {
 
 .protein-workspace {
     animation-delay: 0.08s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .proteins-hero,
+    .toolbar-card,
+    .protein-workspace {
+        animation: none !important;
+        transition: none !important;
+    }
 }
 
 @media (max-width: 940px) {
@@ -3469,17 +3478,6 @@ a.filter-pill .filter-pill-remove {
     .scoring-drawer,
     .columns-drawer {
         width: 100vw;
-    }
-}
-
-@keyframes proteins-enter {
-    from {
-        opacity: 0;
-        transform: translateY(6px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
     }
 }
 

@@ -352,6 +352,13 @@ Pasada sistematica para que TPW se sienta como una unica aplicacion cientifica c
 - Protein detail.
 - Protein list / buscador.
 
+**Implementado inicial.**
+
+- Utilidades globales de entrada sutil y profundidad en `ui-system.css`.
+- `tp-page-hero` y `tp-ui-panel` con sombra/token y transiciones consistentes.
+- Genome overview, Protein detail y Protein list usando el mismo movimiento base.
+- Cache busting de CSS en esas tres vistas para que el cluster levante el pase visual.
+
 **Pendiente para cerrar.**
 
 - Auditar colores/sombras hardcodeadas por pagina.

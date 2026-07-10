@@ -42,7 +42,11 @@
     border: 1px solid var(--tp-color-border-soft);
     border-radius: var(--tp-ui-radius-panel);
     background: var(--tp-color-surface);
-    transition: border-color var(--tp-ui-motion-base) var(--tp-ui-ease-standard);
+    box-shadow: var(--tp-shadow-xs);
+    transition:
+        border-color var(--tp-ui-motion-base) var(--tp-ui-ease-standard),
+        box-shadow var(--tp-ui-motion-base) var(--tp-ui-ease-standard),
+        transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
 }
 
 .tp-ui-toolbar {
@@ -57,6 +61,10 @@
     .tp-ui-panel:hover,
     .tp-ui-toolbar:hover {
         border-color: var(--tp-color-brand-200);
+    }
+
+    .tp-ui-panel:hover {
+        box-shadow: var(--tp-shadow-sm);
     }
 }
 
@@ -98,6 +106,10 @@
     padding: 20px;
     position: relative;
     overflow: hidden;
+    box-shadow: var(--tp-shadow-sm);
+    transition:
+        border-color var(--tp-ui-motion-base) var(--tp-ui-ease-standard),
+        box-shadow var(--tp-ui-motion-base) var(--tp-ui-ease-standard);
 }
 
 .tp-page-hero::before {
@@ -111,6 +123,32 @@
 .tp-page-hero > * {
     position: relative;
     z-index: 1;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .tp-page-hero:hover {
+        border-color: var(--tp-color-brand-200);
+        box-shadow: var(--tp-shadow-md);
+    }
+}
+
+.tp-ui-enter {
+    animation: tp-ui-enter 340ms var(--tp-ui-ease-standard) both;
+}
+
+.tp-ui-enter--delay-1 { animation-delay: 40ms; }
+.tp-ui-enter--delay-2 { animation-delay: 80ms; }
+.tp-ui-enter--delay-3 { animation-delay: 120ms; }
+
+@keyframes tp-ui-enter {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .tp-ui-search {
@@ -1627,6 +1665,8 @@ a.tp-chip--go:hover {
 @media (prefers-reduced-motion: reduce) {
     .tp-ui-panel,
     .tp-ui-toolbar,
+    .tp-page-hero,
+    .tp-ui-enter,
     .tp-card,
     .tp-file-input,
     .tp-select-trigger,
