@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260709-target-summary1">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260709-ligand-modal1">
 {% endblock %}
 
 {% block body %}
@@ -83,7 +83,7 @@
         </section>
 
         {% if target_summary %}
-        <section class="target-summary-panel target-summary-panel--{{ target_summary.tone }}" aria-label="{% trans 'Target executive summary' %}">
+        <section class="target-summary-panel target-summary-panel--{{ target_summary.tone }} tp-ui-panel" aria-label="{% trans 'Target executive summary' %}">
             <div class="target-summary-lead">
                 <span class="target-summary-kicker">{% trans "Target summary" %}</span>
                 <h2>{{ target_summary.verdict }}</h2>
@@ -736,12 +736,14 @@
                         </div>
 
                         <div class="binder-intel-main">
-                            <a href="{% url 'tpwebapp:binder_detail' binder_id=binders.summary.best.id %}" class="binder-best-card" title="{% trans 'Open ligand detail' %}">
+                            <div class="binder-best-card">
                                 <span class="binder-intel-kicker">{% trans "Best available ligand signal" %}</span>
                                 <div class="binder-best-body">
-                                    <div class="binder-best-mol">
+                                    <button type="button"
+                                            class="binder-best-mol binder-mol-zoom-trigger"
+                                            {% if binders.summary.best.svg %}data-binder-name="{{ binders.summary.best.name }}" data-binder-source="{{ binders.summary.best.source_label }}{% if binders.summary.best.score_label %} · {{ binders.summary.best.score_label }}{% endif %}" title="{% trans 'Zoom molecule' %}"{% else %}disabled{% endif %}>
                                         {% if binders.summary.best.svg %}{{ binders.summary.best.svg|safe }}{% else %}<span class="binder-best-empty">{% trans "No structure" %}</span>{% endif %}
-                                    </div>
+                                    </button>
                                     <div class="binder-best-copy">
                                         <strong>{{ binders.summary.best.name }}</strong>
                                         <span>{{ binders.summary.best.source_label }}</span>
@@ -749,18 +751,34 @@
                                         {% if binders.summary.best.props.mw %}
                                         <small>{{ binders.summary.best.props.mw }} Da · LogP {{ binders.summary.best.props.logp }} · TPSA {{ binders.summary.best.props.tpsa }}</small>
                                         {% endif %}
+                                        <span class="binder-card-actions">
+                                            <a href="{% url 'tpwebapp:binder_detail' binder_id=binders.summary.best.id %}" class="btn tp-btn tp-btn--outline tp-btn--sm binder-card-action">{% trans "Open detail" %}</a>
+                                            {% if binders.summary.best.external_url %}
+                                            <a href="{{ binders.summary.best.external_url }}" class="btn tp-btn tp-btn--neutral tp-btn--sm binder-card-action binder-card-action--external" target="_blank" rel="noopener noreferrer">{{ binders.summary.best.external_label }}</a>
+                                            {% endif %}
+                                        </span>
                                     </div>
                                 </div>
-                            </a>
+                            </div>
 
                             {% if binders.summary.preview %}
                             <div class="binder-molecule-strip" aria-label="{% trans 'Top ligand molecules' %}">
                                 {% for ligand in binders.summary.preview %}
-                                <a href="{% url 'tpwebapp:binder_detail' binder_id=ligand.id %}" class="binder-mini-card" title="{{ ligand.source_label }}">
-                                    <span class="binder-mini-mol">{% if ligand.svg %}{{ ligand.svg|safe }}{% else %}{{ ligand.name }}{% endif %}</span>
+                                <div class="binder-mini-card" title="{{ ligand.source_label }}">
+                                    <span class="binder-card-actions binder-card-actions--mini">
+                                        <a href="{% url 'tpwebapp:binder_detail' binder_id=ligand.id %}" class="btn tp-btn tp-btn--outline tp-btn--sm binder-card-action">{% trans "Detail" %}</a>
+                                        {% if ligand.external_url %}
+                                        <a href="{{ ligand.external_url }}" class="btn tp-btn tp-btn--neutral tp-btn--sm binder-card-action binder-card-action--external" target="_blank" rel="noopener noreferrer">{{ ligand.external_label }}</a>
+                                        {% endif %}
+                                    </span>
+                                    <button type="button"
+                                            class="binder-mini-mol binder-mol-zoom-trigger"
+                                            {% if ligand.svg %}data-binder-name="{{ ligand.name }}" data-binder-source="{{ ligand.source_label }}{% if ligand.score_label %} · {{ ligand.score_label }}{% endif %}" title="{% trans 'Zoom molecule' %}"{% else %}disabled{% endif %}>
+                                        {% if ligand.svg %}{{ ligand.svg|safe }}{% else %}{{ ligand.name }}{% endif %}
+                                    </button>
                                     <span class="binder-mini-name">{{ ligand.name }}</span>
                                     <small>{{ ligand.source_label }}{% if ligand.score_label %} · {{ ligand.score_label }}{% endif %}</small>
-                                </a>
+                                </div>
                                 {% endfor %}
                             </div>
                             {% endif %}
@@ -980,6 +998,19 @@
                             data-default-label="{% trans "Copy positions" %}"
                             data-copied-label="{% trans "Copied" %}">{% trans "Copy positions" %}</button>
                 </div>
+            </div>
+        </div>
+
+        <div class="binder-mol-modal" id="binder-mol-modal" aria-hidden="true">
+            <div class="binder-mol-modal__panel" role="dialog" aria-modal="true" aria-labelledby="binder-mol-modal-title">
+                <div class="binder-mol-modal__head">
+                    <div>
+                        <h3 id="binder-mol-modal-title">{% trans "Ligand structure" %}</h3>
+                        <p id="binder-mol-modal-meta"></p>
+                    </div>
+                    <button type="button" class="btn tp-btn tp-btn--neutral tp-btn--sm binder-mol-modal__close" id="binder-mol-modal-close" aria-label="{% trans 'Close' %}">&times;</button>
+                </div>
+                <div class="binder-mol-modal__body" id="binder-mol-modal-body"></div>
             </div>
         </div>
     </div>
@@ -1928,6 +1959,51 @@
                 }, 1400);
             });
         }
+
+        (function () {
+            const modal = document.getElementById("binder-mol-modal");
+            const panel = modal ? modal.querySelector(".binder-mol-modal__panel") : null;
+            const title = document.getElementById("binder-mol-modal-title");
+            const meta = document.getElementById("binder-mol-modal-meta");
+            const body = document.getElementById("binder-mol-modal-body");
+            const closeBtn = document.getElementById("binder-mol-modal-close");
+            if (!modal || !panel || !title || !meta || !body) return;
+
+            function closeModal() {
+                modal.classList.remove("is-open");
+                modal.setAttribute("aria-hidden", "true");
+                document.body.classList.remove("binder-mol-modal-open");
+                body.innerHTML = "";
+            }
+
+            function openModal(trigger) {
+                const svg = trigger.querySelector("svg");
+                if (!svg) return;
+                title.textContent = trigger.dataset.binderName || "{% trans 'Ligand structure' %}";
+                meta.textContent = trigger.dataset.binderSource || "";
+                body.innerHTML = "";
+                body.appendChild(svg.cloneNode(true));
+                modal.classList.add("is-open");
+                modal.setAttribute("aria-hidden", "false");
+                document.body.classList.add("binder-mol-modal-open");
+                if (closeBtn) closeBtn.focus();
+            }
+
+            document.addEventListener("click", function (event) {
+                const trigger = event.target.closest(".binder-mol-zoom-trigger");
+                if (!trigger || trigger.disabled) return;
+                event.preventDefault();
+                event.stopPropagation();
+                openModal(trigger);
+            });
+            if (closeBtn) closeBtn.addEventListener("click", closeModal);
+            modal.addEventListener("click", function (event) {
+                if (!panel.contains(event.target)) closeModal();
+            });
+            document.addEventListener("keydown", function (event) {
+                if (event.key === "Escape" && modal.classList.contains("is-open")) closeModal();
+            });
+        })();
 
         (function () {
             function applyFilters(bar) {

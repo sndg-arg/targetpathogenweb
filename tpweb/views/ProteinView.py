@@ -1191,17 +1191,32 @@ def _binder_crystal_payload(binder, loaded_ex_structures=None, pdb_resolution_ma
 
 
 def _binder_to_dto(binder, loaded_ex_structures=None, pdb_resolution_map=None):
+    name = binder.ccd_id or f"Binder {binder.id}"
+    pdb_code = _normalise_pdb_code(binder.pdb_id)
+    external_url = ""
+    external_label = ""
+    if binder.source == Binders.SOURCE_CHEMBL and name:
+        external_url = f"https://www.ebi.ac.uk/chembl/compound_report_card/{name}/"
+        external_label = "ChEMBL"
+    elif binder.source == Binders.SOURCE_PDB and pdb_code:
+        external_url = f"https://www.rcsb.org/structure/{pdb_code}"
+        external_label = "RCSB PDB"
+    elif binder.source == Binders.SOURCE_PROPOSED and name:
+        external_url = f"https://zinc20.docking.org/substances/{name}/"
+        external_label = "ZINC"
     return {
         "id": binder.id,
-        "name": binder.ccd_id or f"Binder {binder.id}",
+        "name": name,
         "pdb": binder.pdb_id,
-        "pdb_code": _normalise_pdb_code(binder.pdb_id),
+        "pdb_code": pdb_code,
         "uniprot": binder.uniprot,
         "smiles": binder.smiles,
         "score": binder.score,
         "notes": binder.notes,
         "source": binder.source,
         "is_direct": binder.is_direct,
+        "external_url": external_url,
+        "external_label": external_label,
         "crystal": _binder_crystal_payload(binder, loaded_ex_structures, pdb_resolution_map),
         "props": _binder_table_properties(binder.smiles),
     }
@@ -1285,6 +1300,8 @@ def _build_binder_summary(tab_data):
             "name": name,
             "source_label": _binder_source_label(item),
             "score_label": _binder_score_label(item),
+            "external_url": item.get("external_url"),
+            "external_label": item.get("external_label"),
             "svg": make_binder_svg(smiles) if smiles else "",
             "props": item.get("props") or {},
         })
@@ -1316,6 +1333,8 @@ def _build_binder_summary(tab_data):
             "name": best.get("name"),
             "source_label": _binder_source_label(best),
             "score_label": _binder_score_label(best),
+            "external_url": best.get("external_url"),
+            "external_label": best.get("external_label"),
             "svg": best_svg,
             "props": best.get("props") or {},
             "crystal": best.get("crystal") or {},

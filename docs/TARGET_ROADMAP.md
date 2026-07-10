@@ -2,7 +2,11 @@
 
 Documento vivo para ordenar tareas de producto e implementacion. La idea es mantener aca el backlog tecnico-funcional que antes estaba en Notion, con estado, alcance y prioridades.
 
-## En progreso
+## Estado actual
+
+### Hecho / en validacion
+
+Estas tareas ya tienen implementacion en la rama actual y necesitan revision visual/funcional en datos reales antes de darlas por cerradas.
 
 ### Informacion metabolica
 
@@ -17,7 +21,7 @@ Documento vivo para ordenar tareas de producto e implementacion. La idea es mant
 
 Reactome no se usa como fuente de datos porque esta orientado principalmente a humano. Se usa como referencia de UX: rutas navegables, contexto visual fuerte, agrupacion por pathway y lectura rapida de relevancia biologica.
 
-**Hecho.**
+**Implementado.**
 
 - Modelo e ingesta por genoma para reacciones, genes, chokepoints, isoenzimas, metabolitos y estequiometria.
 - Mapeo reaccion-ruta de KEGG.
@@ -33,8 +37,9 @@ Reactome no se usa como fuente de datos porque esta orientado principalmente a h
 - Tabla de reacciones con genes clickeables, metabolitos y tooltips.
 - Enlaces entre ranking, mapa de ruta, grafo de vecindario y pagina de proteina.
 - Pulido visual inicial: jerarquia tipografica, animaciones, tooltips y affordances de links.
+- Alineacion visual con el sistema de componentes de la app: paleta via tokens, paneles `tp-ui-panel`, botones `tp-btn` y espaciado `--tp-space-*`.
 
-**Pendiente.**
+**Pendiente para cerrar.**
 
 - Validar con biologas si la interpretacion de chokepoint `producing`, `consuming` y `both` se entiende igual que en el pipeline.
 - Agregar export/import curado para BioCyc SmartTables cuando haya archivo ejemplo.
@@ -43,32 +48,47 @@ Reactome no se usa como fuente de datos porque esta orientado principalmente a h
 - Agregar filtros por ruta en la tabla principal de proteinas.
 - Agregar validaciones automaticas de ingesta para detectar SBML/TSV/SIF inconsistentes.
 
-## To Do prioritario
-
 ### Target executive summary
 
 Agregar un resumen ejecutivo arriba de la pagina de proteina. Debe responder en pocos segundos si el target parece prometedor, por que, que evidencia falta y cuales son los principales riesgos.
 
-**Alcance propuesto.**
+**Implementado.**
 
 - Frase interpretativa unica combinando score, metabolismo, drogabilidad, ligandos, estructura, off-target y conservacion.
 - Bloques `Strengths`, `Risks` y `Missing evidence`.
 - Links internos a las secciones que justifican cada punto.
-- Badges para evidencia fuerte: chokepoint sin isoenzimas, pocket consistente, ligando conocido, baja similitud humana, buena cobertura estructural.
+- Conteo interno de senales positivas para orientar la lectura.
+- Integracion visual con el encabezado y el sistema de paneles de la pagina de proteina.
+
+**Pendiente para cerrar.**
+
+- Validar con biologas si el wording del veredicto es claro y no sobrepromete.
+- Ajustar pesos/umbrales del resumen cuando el equipo defina criterios de priorizacion.
+- Agregar badges mas especificos cuando existan datos completos: pocket consistente FPocket/P2Rank, ligando conocido fuerte, baja similitud humana, buena cobertura estructural.
 
 ### Ligandos, ChEMBL, PDB y quimica del target
 
 Mejorar la lectura de evidencia quimica y ligandos. La pagina ya tiene un dashboard inicial de ligandos; falta conectarlo mas fuerte con estructura, ChEMBL y PDB.
 
-**Alcance propuesto.**
+**Implementado.**
 
-- Links externos a ChEMBL para ligandos directos.
-- Zoom o modal para imagen 2D de moleculas.
+- Dashboard de senal quimica en la pagina de proteina.
+- Separacion de evidencia directa, homologos, PDB, ChEMBL y ZINC.
+- Links externos visibles a ChEMBL, RCSB PDB y ZINC cuando aplica.
+- Zoom inline de la estructura 2D del ligando desde el resumen quimico.
+- Acceso directo al detalle interno de cada ligando.
+- Acciones visuales usando variantes existentes `tp-btn`.
+- Links externos en tablas usando chips del sistema (`tp-chip`).
+
+**Pendiente para cerrar.**
+
 - Mostrar afinidad experimental cuando exista.
-- Separar evidencia directa, homologos y propuestas computacionales.
 - Permitir enfocar ligandos PDB en el visualizador 3D.
 - Evaluar transferencia de ligandos desde homologos con AlphaFill o superposicion estructural.
 - Dejar preparado soporte futuro para modelos Boltz.
+- Revisar en navegador con datos reales que el modal de molecula, las tablas y los links externos se vean bien en modo claro/oscuro.
+
+## To Do prioritario
 
 ### Visualizacion de Proteina 2.0
 
@@ -271,20 +291,19 @@ Hacer explicita la procedencia de cada dato usado para priorizar.
 
 ## Orden sugerido
 
-1. Target executive summary.
-2. Ligandos, ChEMBL, PDB y quimica del target.
-3. Visualizacion de Proteina 2.0.
-4. Visualizacion y control de pockets.
-5. Comparacion FPocket vs P2Rank.
-6. Drogabilidad por fuente y estructura.
-7. Sitios funcionales y anotaciones estructurales.
-8. Priorizacion estructural completa.
-9. Off-target 2.0.
-10. Sequence & feature viewer 2.0.
-11. Cross-references hub.
-12. Pathway-level target prioritization.
-13. Evidence provenance / audit layer.
-14. Constructor de score mejorado.
-15. Columnas custom para analisis.
-16. Agente IA para exploracion de targets.
-17. Auditoria Target viejo e integraciones externas.
+1. Revisar en navegador/cluster lo implementado: metabolismo, target summary y ligandos.
+2. Visualizacion de Proteina 2.0.
+3. Visualizacion y control de pockets.
+4. Comparacion FPocket vs P2Rank.
+5. Drogabilidad por fuente y estructura.
+6. Sitios funcionales y anotaciones estructurales.
+7. Priorizacion estructural completa.
+8. Off-target 2.0.
+9. Sequence & feature viewer 2.0.
+10. Cross-references hub.
+11. Pathway-level target prioritization.
+12. Evidence provenance / audit layer.
+13. Constructor de score mejorado.
+14. Columnas custom para analisis.
+15. Agente IA para exploracion de targets.
+16. Auditoria Target viejo e integraciones externas.

@@ -19,7 +19,12 @@
                     data-pa="{% if binder.props and binder.props.pains_alert %}1{% else %}0{% endif %}"
                     data-mw="{{ binder.props.mw|default:'' }}"
                     data-score="{{ binder.score|default:'' }}">
-                    <td class="binder-tbl__name">{{ binder.name }}</td>
+                    <td class="binder-tbl__name">
+                        <a href="{% url 'tpwebapp:binder_detail' binder_id=binder.id %}" class="binder-tbl__name-main" onclick="event.stopPropagation()">{{ binder.name }}</a>
+                        {% if binder.external_url %}
+                        <a href="{{ binder.external_url }}" class="tp-chip tp-chip--meta tp-chip--sm binder-tbl__source-link" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" title="{% trans 'Open source in RCSB PDB' %}">{{ binder.external_label }}</a>
+                        {% endif %}
+                    </td>
                     <td class="binder-tbl__pdb binder-tbl__crystal">
                         {% if binder.pdb %}
                             <div class="binder-crystal-cell">
