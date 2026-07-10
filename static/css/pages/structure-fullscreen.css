@@ -461,6 +461,36 @@ body:has(.sv-root) .tp-footer { display: none !important; }
     padding: 10px 12px;
     display: grid;
     gap: 8px;
+    transition:
+        border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.pocket-card.is-visible-in-viewer,
+.residueset-row.is-visible-in-viewer {
+    border-color: var(--structure-accent-border);
+    background: color-mix(in srgb, var(--structure-accent-soft) 38%, var(--tp-color-surface));
+    box-shadow: inset 3px 0 0 var(--structure-accent);
+}
+
+.pocket-card--fpocket .pocket-card-id::before,
+.pocket-card--p2rank .pocket-card-id::before {
+    content: "";
+    display: inline-block;
+    width: 0.46rem;
+    height: 0.46rem;
+    border-radius: 999px;
+    margin-right: 5px;
+    vertical-align: 0.02em;
+}
+
+.pocket-card--fpocket .pocket-card-id::before {
+    background: var(--tp-color-brand-500);
+}
+
+.pocket-card--p2rank .pocket-card-id::before {
+    background: var(--tp-color-sage-600);
 }
 
 .pocket-card-head {
@@ -504,7 +534,11 @@ body:has(.sv-root) .tp-footer { display: none !important; }
     font-weight: 600;
     font-family: inherit;
     cursor: pointer;
-    transition: background 0.12s, border-color 0.12s, color 0.12s;
+    transition:
+        background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
     text-align: center;
     line-height: 1.2;
 }
@@ -517,6 +551,7 @@ body:has(.sv-root) .tp-footer { display: none !important; }
     background: color-mix(in srgb, var(--structure-accent) 12%, var(--tp-color-surface));
     border-color: var(--structure-accent-border);
     color: var(--structure-accent-ink);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--structure-accent) 18%, transparent);
 }
 
 .pocket-card-actions {
@@ -539,6 +574,10 @@ body:has(.sv-root) .tp-footer { display: none !important; }
     border: 1px solid var(--tp-color-border-soft);
     border-radius: 8px;
     background: var(--tp-color-surface);
+    transition:
+        border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
 }
 .residueset-row-info { flex: 1 1 0; min-width: 0; display: grid; gap: 1px; }
 .residueset-type {

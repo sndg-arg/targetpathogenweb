@@ -157,6 +157,14 @@ Mejorar como se muestran y controlan los pockets en el visualizador.
 - Mostrar alpha spheres, superficies u otra representacion adecuada segun el dato disponible.
 - Tooltips o panel lateral con score, residues, volumen y metodo.
 
+**Implementado inicial.**
+
+- Controles de pocket renombrados a capas mas claras: `Atoms`, `Spheres`, `Surface`, `Labels`.
+- Tooltips por capa explicando que muestra cada representacion.
+- Acciones `Zoom` y `Residues` con tooltip.
+- Card de pocket/residue set marcada visualmente cuando alguna capa esta visible en el viewer.
+- Diferenciacion visual leve entre cards FPocket y P2Rank.
+
 ### Comparacion FPocket vs P2Rank
 
 Implementar comparacion entre pockets predichos por FPocket y P2Rank.

@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20260710-premium-viewer1">
+    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20260710-premium-viewer2">
 {% endblock %}
 
 {% block body %}
@@ -280,6 +280,11 @@ function jsloaded() {
         var isPressed = btn.getAttribute("aria-pressed") === "true";
         reprs.forEach(function (r) { window.toogle_view(r); });
         btn.setAttribute("aria-pressed", isPressed ? "false" : "true");
+        var card = btn.closest(".pocket-card, .residueset-row");
+        if (card) {
+            var hasVisibleLayer = !!card.querySelector('.js-repr-toggle[aria-pressed="true"]');
+            card.classList.toggle("is-visible-in-viewer", hasVisibleLayer);
+        }
     });
 
     /* ---- Residue modal ---- */
