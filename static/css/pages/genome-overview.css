@@ -325,7 +325,7 @@
 
 .genome-targets-wrap {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
     gap: 14px;
     scroll-margin-top: 128px;
 }
@@ -346,6 +346,59 @@
     display: flex;
     flex-direction: column;
     align-self: stretch;
+}
+
+/* Secondary ranking (ligand support) is a supporting view, not the primary
+   answer - demoted a notch so the eye lands on the score ranking first. */
+.genome-card--ranking-secondary {
+    background: var(--tp-color-surface-soft);
+}
+
+.genome-card--ranking-secondary .section-head h2 {
+    font-size: 1rem;
+}
+
+.targets-eyebrow {
+    display: block;
+    margin-bottom: 2px;
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-label);
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.targets-methodology {
+    margin-top: 6px;
+}
+
+.targets-methodology summary {
+    cursor: pointer;
+    display: inline-block;
+    color: var(--tp-color-text-secondary);
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-decoration: underline;
+    text-decoration-color: var(--tp-color-border-strong);
+    text-underline-offset: 3px;
+    list-style: none;
+}
+
+.targets-methodology summary::-webkit-details-marker {
+    display: none;
+}
+
+.targets-methodology summary:hover,
+.targets-methodology summary:focus-visible {
+    color: var(--genome-accent-ink);
+    text-decoration-color: var(--genome-accent-border);
+}
+
+.targets-methodology p {
+    margin: 6px 0 0;
+    color: var(--tp-color-text-muted);
+    font-size: 0.84rem;
+    line-height: 1.5;
 }
 
 /* Clamp descriptions to 1 line for uniform item height */
@@ -488,7 +541,6 @@
     border: 1px solid var(--tp-color-border-soft);
     border-radius: 999px;
     position: relative;
-    cursor: help;
 }
 
 /* Chips that contain a .targets-tooltip get the (i) hint + relative anchor. */
@@ -888,6 +940,12 @@
     color: var(--tp-color-sage-900);
 }
 
+.evidence-breakdown-priority .evidence-bd-value {
+    color: var(--tp-color-sage-900);
+    font-weight: 700;
+    font-size: 1.05rem;
+}
+
 .evidence-bd-label {
     color: var(--tp-color-text-secondary);
     font-weight: 600;
@@ -895,8 +953,9 @@
 
 .evidence-bd-value {
     font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
-    color: var(--genome-accent-ink);
-    font-weight: 600;
+    color: var(--tp-color-text-muted);
+    font-weight: 500;
+    font-size: 0.86rem;
 }
 
 .evidence-card-action {

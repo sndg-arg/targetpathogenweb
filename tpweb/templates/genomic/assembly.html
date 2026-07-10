@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20260710-premium-system1">
+    <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20260710-evidence-hierarchy1">
 {% endblock %}
 
 {% block body %}
@@ -142,8 +142,14 @@
                                 <div>
                                     <h2>{% trans "Top evidence-convergent candidates" %}</h2>
                                     <p class="section-subtitle">
-                                        {% trans "Ranked by an overview evidence score from 0 to 15 points. It combines FPocket druggability, P2Rank pocket support, ligand evidence type, selectivity/off-target screens, essentiality, conservation, structure, and metabolic context. Ligand counts are context, not a linear score multiplier." %}
+                                        {% trans "Composite score (0-15) combining druggability, ligand evidence, off-target risk, essentiality, conservation, structure, and metabolic context." %}
                                     </p>
+                                    <details class="targets-methodology">
+                                        <summary>{% trans "How is this calculated?" %}</summary>
+                                        <p>
+                                            {% trans "FPocket druggability, P2Rank pocket support, ligand evidence type, selectivity/off-target screens, essentiality, conservation, structure, and metabolic context each contribute independently. Ligand counts are context, not a linear score multiplier - direct PDB ligand, measured ChEMBL activity, homolog-transferred evidence, and ZINC proposals are capped separately. Use the ligand-support ranking alongside this one when the raw count itself matters." %}
+                                        </p>
+                                    </details>
                                 </div>
                             </div>
                             <ol class="targets-list">
@@ -160,13 +166,12 @@
                                                         <span class="targets-score-sub">{{ t.score }}/{{ t.score_max }}</span>
                                                     </span>
                                                     {% if t.binder_count %}
-                                                        <span class="targets-evidence">
+                                                        <span class="targets-evidence targets-evidence--plain">
                                                             {% if t.direct_count %}
                                                                 {% trans "Direct ligand evidence" %}
                                                             {% else %}
                                                                 {% trans "Supporting ligand evidence" %}
                                                             {% endif %}
-                                                            <span class="targets-tooltip">{% trans "The composite score uses ligand evidence type, not raw record count: direct PDB ligand, measured ChEMBL activity, homolog-transferred evidence, and ZINC proposals are capped separately. Use the ligand-support ranking below when the count itself matters." %}</span>
                                                         </span>
                                                     {% endif %}
                                                 </div>
@@ -191,9 +196,10 @@
                     {% endif %}
 
                     {% if top_targets_by_binders %}
-                        <div class="genome-card tp-ui-panel genome-card--ranking">
+                        <div class="genome-card tp-ui-panel genome-card--ranking genome-card--ranking-secondary">
                             <div class="section-head tp-ui-panel-head">
                                 <div>
+                                    <span class="targets-eyebrow">{% trans "Reference view" %}</span>
                                     <h2>{% trans "Strongest ligand support" %}</h2>
                                     <p class="section-subtitle">
                                         {% trans "Proteins with ligands reported for the same protein are ranked first. Ligands inferred from similar proteins and proposed ZINC compounds are shown separately." %}
