@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260709-network-fix1">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260709-target-summary1">
 {% endblock %}
 
 {% block body %}
@@ -81,6 +81,59 @@
                 {% endif %}
             </div>
         </section>
+
+        {% if target_summary %}
+        <section class="target-summary-panel target-summary-panel--{{ target_summary.tone }}" aria-label="{% trans 'Target executive summary' %}">
+            <div class="target-summary-lead">
+                <span class="target-summary-kicker">{% trans "Target summary" %}</span>
+                <h2>{{ target_summary.verdict }}</h2>
+                <span class="target-summary-score" title="{% trans 'Internal count of positive evidence signals used only to summarize this page.' %}">
+                    {% blocktrans with score=target_summary.signal_score %}{{ score }} signals{% endblocktrans %}
+                </span>
+            </div>
+            <div class="target-summary-columns">
+                <div class="target-summary-column target-summary-column--strength">
+                    <h3>{% trans "Strengths" %}</h3>
+                    <div class="target-summary-list">
+                        {% for item in target_summary.strengths %}
+                        <a href="{{ item.anchor }}" class="target-summary-item target-summary-item--{{ item.tone }}">
+                            <strong>{{ item.label }}</strong>
+                            <span>{{ item.detail }}</span>
+                        </a>
+                        {% empty %}
+                        <span class="target-summary-empty">{% trans "No strong positive signals detected yet." %}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="target-summary-column target-summary-column--risk">
+                    <h3>{% trans "Risks / watch" %}</h3>
+                    <div class="target-summary-list">
+                        {% for item in target_summary.risks %}
+                        <a href="{{ item.anchor }}" class="target-summary-item target-summary-item--{{ item.tone }}">
+                            <strong>{{ item.label }}</strong>
+                            <span>{{ item.detail }}</span>
+                        </a>
+                        {% empty %}
+                        <span class="target-summary-empty">{% trans "No major risk signal surfaced in the loaded evidence." %}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="target-summary-column target-summary-column--missing">
+                    <h3>{% trans "Missing evidence" %}</h3>
+                    <div class="target-summary-list">
+                        {% for item in target_summary.missing %}
+                        <a href="{{ item.anchor }}" class="target-summary-item target-summary-item--{{ item.tone }}">
+                            <strong>{{ item.label }}</strong>
+                            <span>{{ item.detail }}</span>
+                        </a>
+                        {% empty %}
+                        <span class="target-summary-empty">{% trans "Core evidence streams are present for this target." %}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </section>
+        {% endif %}
 
         <nav class="quick-nav" aria-label="{% trans "Protein sections" %}">
             <a href="#section-overview" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Overview" %}</a>

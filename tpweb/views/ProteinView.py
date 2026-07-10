@@ -458,6 +458,215 @@ def _build_metabolic_context(protein, raw_scores):
     return context
 
 
+def _score_float(raw_scores, name):
+    value = _raw_score(raw_scores, name)
+    if not value:
+        return None
+    try:
+        return float(value.replace(",", "."))
+    except (TypeError, ValueError):
+        return None
+
+
+def _append_summary_item(items, label, detail, tone="neutral", anchor="#section-target-profile"):
+    items.append({
+        "label": label,
+        "detail": detail,
+        "tone": tone,
+        "anchor": anchor,
+    })
+
+
+def _build_target_executive_summary(
+    raw_scores,
+    structure_summary,
+    selected_pocket_evidence,
+    conservation_profile,
+    microbiome_context,
+    metabolic_context,
+    binders,
+):
+    strengths = []
+    risks = []
+    missing = []
+    signal_score = 0
+
+    if metabolic_context:
+        if metabolic_context.get("is_chokepoint"):
+            _append_summary_item(
+                strengths,
+                "Metabolic chokepoint",
+                "Participates in at least one chokepoint reaction.",
+                "good",
+                "#section-metabolic-context",
+            )
+            signal_score += 2
+        percentile = metabolic_context.get("centrality_percentile")
+        if percentile is not None:
+            try:
+                percentile_value = float(percentile)
+            except (TypeError, ValueError):
+                percentile_value = None
+            if percentile_value is not None and percentile_value >= 80:
+                _append_summary_item(
+                    strengths,
+                    "Central metabolic position",
+                    f"More central than {percentile}% of genes in this genome.",
+                    "good",
+                    "#section-metabolic-context",
+                )
+                signal_score += 1
+        reactions = metabolic_context.get("reactions") or []
+        if reactions and all(not r.get("has_isoenzyme_backup") for r in reactions):
+            _append_summary_item(
+                strengths,
+                "No isoenzyme backup detected",
+                "Imported GPR rules do not show an alternative enzyme for the catalyzed reaction set.",
+                "good",
+                "#section-metabolic-context",
+            )
+            signal_score += 1
+    else:
+        _append_summary_item(
+            missing,
+            "No metabolic context",
+            "No SBML/network-derived reaction evidence is loaded for this protein.",
+            "missing",
+            "#section-metabolic-context",
+        )
+
+    human_offtarget = _raw_score(raw_scores, "human_offtarget").lower()
+    if human_offtarget == "no_hit":
+        _append_summary_item(
+            strengths,
+            "No human BLAST hit",
+            "Lower apparent human off-target risk in the current sequence screen.",
+            "good",
+        )
+        signal_score += 1
+    elif human_offtarget == "hit":
+        identity = _format_score_value(_raw_score(raw_scores, "human_identity"))
+        detail = f"Top human hit identity: {identity}%." if identity else "A significant human homolog was found."
+        _append_summary_item(risks, "Human similarity", detail, "risk")
+
+    if microbiome_context:
+        gut_offtarget = _raw_score(raw_scores, "gut_microbiome_offtarget").lower()
+        if gut_offtarget == "no_hit":
+            _append_summary_item(
+                strengths,
+                "No gut microbiome hit",
+                "Current microbiome screen did not find a significant match.",
+                "good",
+                "#section-target-profile",
+            )
+            signal_score += 1
+        elif gut_offtarget == "hit":
+            count = microbiome_context.get("count")
+            total = microbiome_context.get("total")
+            detail = f"{count} hits across {total} screened genomes." if count and total else "Similarity to gut microbiome references was detected."
+            _append_summary_item(risks, "Microbiome similarity", detail, "risk", "#section-target-profile")
+
+    if conservation_profile:
+        if conservation_profile.get("is_core"):
+            _append_summary_item(
+                strengths,
+                "Core genome signal",
+                "Marked core by both Roary and CoreCruncher.",
+                "good",
+                "#section-target-profile",
+            )
+            signal_score += 1
+        else:
+            _append_summary_item(
+                risks,
+                "Mixed conservation",
+                "Core/accessory calls are not fully concordant.",
+                "watch",
+                "#section-target-profile",
+            )
+
+    fpocket_score = _score_float(raw_scores, "Druggability")
+    p2rank_score = _score_float(raw_scores, "p2rank_probability")
+    if fpocket_score is not None:
+        if fpocket_score >= 0.7:
+            _append_summary_item(strengths, "High FPocket druggability", f"Selected pocket score {fpocket_score:.2f}.", "good", "#section-target-profile")
+            signal_score += 2
+        elif fpocket_score >= 0.4:
+            _append_summary_item(strengths, "Moderate FPocket druggability", f"Selected pocket score {fpocket_score:.2f}.", "neutral", "#section-target-profile")
+            signal_score += 1
+        elif fpocket_score > 0:
+            _append_summary_item(risks, "Weak FPocket pocket signal", f"Selected pocket score {fpocket_score:.2f}.", "watch", "#section-target-profile")
+    else:
+        _append_summary_item(missing, "No FPocket score", "No selected FPocket druggability value is available.", "missing", "#section-target-profile")
+
+    if p2rank_score is not None:
+        if p2rank_score >= 0.5:
+            _append_summary_item(strengths, "P2Rank pocket support", f"Predicted binding-site probability {p2rank_score:.2f}.", "good", "#section-target-profile")
+            signal_score += 1
+        elif p2rank_score > 0:
+            _append_summary_item(risks, "Weak P2Rank pocket signal", f"Predicted binding-site probability {p2rank_score:.2f}.", "watch", "#section-target-profile")
+    elif not selected_pocket_evidence:
+        _append_summary_item(missing, "No P2Rank score", "No selected P2Rank binding-site probability is available.", "missing", "#section-target-profile")
+
+    if structure_summary and structure_summary.get("has_structure"):
+        _append_summary_item(
+            strengths,
+            "Structure available",
+            structure_summary.get("label") or "At least one structure/model is loaded.",
+            "good",
+            "#section-structure",
+        )
+        signal_score += 1
+    else:
+        _append_summary_item(
+            missing,
+            "No structure loaded",
+            "No structure/model is available for visual inspection.",
+            "missing",
+            "#section-structure",
+        )
+
+    binder_summary = (binders or {}).get("summary") or {}
+    if binder_summary:
+        direct_count = binder_summary.get("direct_count") or 0
+        structural_count = binder_summary.get("structural_count") or 0
+        bioactive_count = binder_summary.get("bioactive_count") or 0
+        proposed_count = binder_summary.get("proposed_count") or 0
+        if direct_count:
+            _append_summary_item(strengths, "Direct ligand evidence", f"{direct_count} direct ligand records.", "good", "#section-binders")
+            signal_score += 2
+        elif structural_count or bioactive_count:
+            detail = f"{structural_count} structural and {bioactive_count} bioactivity records."
+            _append_summary_item(strengths, "Ligand evidence via structure/bioactivity", detail, "neutral", "#section-binders")
+            signal_score += 1
+        elif proposed_count:
+            _append_summary_item(risks, "Only proposed ligands", f"{proposed_count} virtual-screening candidates, no stronger ligand evidence.", "watch", "#section-binders")
+    else:
+        _append_summary_item(missing, "No ligand evidence", "No PDB, ChEMBL or proposed binder records are available.", "missing", "#section-binders")
+
+    if not strengths:
+        verdict = "Evidence is still sparse for this target."
+        tone = "sparse"
+    elif signal_score >= 8:
+        verdict = "Strong target candidate with converging metabolic, structural and chemical evidence."
+        tone = "strong"
+    elif signal_score >= 5:
+        verdict = "Promising target candidate with multiple supporting evidence streams."
+        tone = "promising"
+    else:
+        verdict = "Target candidate with partial support; inspect missing evidence before prioritizing."
+        tone = "partial"
+
+    return {
+        "verdict": verdict,
+        "tone": tone,
+        "signal_score": signal_score,
+        "strengths": strengths[:6],
+        "risks": risks[:4],
+        "missing": missing[:4],
+    }
+
+
 def _has_pocket_data(pdb_obj):
     return PDBResidueSet.objects.filter(
         pdb=pdb_obj,
@@ -1273,6 +1482,15 @@ class ProteinView(View):
         conservation_profile = _build_conservation_profile(raw_scores)
         microbiome_context = _build_microbiome_context(raw_scores)
         metabolic_context = _build_metabolic_context(protein, raw_scores)
+        target_summary = _build_target_executive_summary(
+            raw_scores,
+            structure_summary,
+            selected_pocket_evidence,
+            conservation_profile,
+            microbiome_context,
+            metabolic_context,
+            binders,
+        )
 
         if request.GET.get("export") == "view_csv":
             sections = [
@@ -1398,6 +1616,7 @@ class ProteinView(View):
                "structure_summary": structure_summary,
                "experimental_structures": experimental_structures,
                "target_profile": target_profile,
+               "target_summary": target_summary,
                "selected_pocket_evidence": selected_pocket_evidence,
                "conservation_profile": conservation_profile,
                "microbiome_context": microbiome_context,
