@@ -43,14 +43,27 @@
     representations["{{p.name}}_atm"].setVisibility(false);
     representations["{{p.name}}_atm"].sele = fpocketResidueSele;
 
+    {% if p.core_points %}
+    var fpocketCoreShape{{ forloop.counter }} = new NGL.Shape("FPocket {{p.name}} core");
+    var fpocketCoreColor{{ forloop.counter }} = tpColorTriplet("--tp-color-structure-pocket-apolar", "#20c3d6");
+    {% for point in p.core_points %}
+    fpocketCoreShape{{ forloop.parentloop.counter }}.addSphere([{{ point.x }}, {{ point.y }}, {{ point.z }}], fpocketCoreColor{{ forloop.parentloop.counter }}, 0.58);
+    {% endfor %}
+    representations["{{p.name}}_sph"] = stage.addComponentFromObject(fpocketCoreShape{{ forloop.counter }});
+    {% else %}
     representations["{{p.name}}_sph"] = component.addRepresentation("spacefill", {
         sele: fpocketResidueSele,
         color: tpColor("--tp-color-structure-pocket-apolar"),
         radiusScale: 0.7
     });
+    {% endif %}
     visible["{{p.name}}_sph"] = false;
     representations["{{p.name}}_sph"].setVisibility(false);
+    {% if p.core_points %}
+    representations["{{p.name}}_sph"].tpShapeComponent = true;
+    {% else %}
     representations["{{p.name}}_sph"].sele = fpocketResidueSele;
+    {% endif %}
 
     representations["{{p.name}}_lbl"] = component.addRepresentation("label", {
         labelType: "res",
@@ -118,14 +131,27 @@
     representations["p2_{{p2.name}}_atm"].setVisibility(false);
     representations["p2_{{p2.name}}_atm"].sele = p2rankResidueSele;
 
+    {% if p2.core_points %}
+    var p2rankCoreShape{{ forloop.counter }} = new NGL.Shape("P2Rank {{p2.name}} core");
+    var p2rankCoreColor{{ forloop.counter }} = tpColorTriplet("--tp-color-structure-p2-apolar", "#f59e0b");
+    {% for point in p2.core_points %}
+    p2rankCoreShape{{ forloop.parentloop.counter }}.addSphere([{{ point.x }}, {{ point.y }}, {{ point.z }}], p2rankCoreColor{{ forloop.parentloop.counter }}, 0.48);
+    {% endfor %}
+    representations["p2_{{p2.name}}_sph"] = stage.addComponentFromObject(p2rankCoreShape{{ forloop.counter }});
+    {% else %}
     representations["p2_{{p2.name}}_sph"] = component.addRepresentation("spacefill", {
         sele: p2rankResidueSele,
         color: tpColor("--tp-color-structure-p2-apolar"),
         radiusScale: 0.7
     });
+    {% endif %}
     visible["p2_{{p2.name}}_sph"] = false;
     representations["p2_{{p2.name}}_sph"].setVisibility(false);
+    {% if p2.core_points %}
+    representations["p2_{{p2.name}}_sph"].tpShapeComponent = true;
+    {% else %}
     representations["p2_{{p2.name}}_sph"].sele = p2rankResidueSele;
+    {% endif %}
 
     representations["p2_{{p2.name}}_lbl"] = component.addRepresentation("label", {
         labelType: "res",

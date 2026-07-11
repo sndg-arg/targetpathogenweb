@@ -62,6 +62,55 @@ def _inspector_property_summary(residue_set, wanted_properties):
     return " | ".join(items)
 
 
+def _residue_set_core_atoms(residue_set):
+    atoms = []
+    for rsr in residue_set.residue_set_residue.all():
+        for atom_set in rsr.atoms.all():
+            if atom_set.atom_id:
+                atoms.append(atom_set.atom.serial)
+    return atoms
+
+
+def _atom_points(atoms):
+    points = []
+    seen = set()
+    for atom in atoms:
+        if atom.id in seen:
+            continue
+        seen.add(atom.id)
+        points.append({
+            "x": f"{atom.x:.4f}",
+            "y": f"{atom.y:.4f}",
+            "z": f"{atom.z:.4f}",
+        })
+    return points
+
+
+def _residue_set_core_points(residue_set):
+    atoms = []
+    for rsr in residue_set.residue_set_residue.all():
+        for atom_set in rsr.atoms.all():
+            if atom_set.atom_id:
+                atoms.append(atom_set.atom)
+    return _atom_points(atoms)
+
+
+def _fpocket_alpha_points(pdbobj, pocket_name):
+    try:
+        pocket_resid = int(pocket_name)
+    except (TypeError, ValueError):
+        return []
+    alpha_residues = Residue.objects.prefetch_related("atoms").filter(
+        pdb=pdbobj,
+        resname="STP",
+        resid=pocket_resid,
+    )
+    atoms = []
+    for residue in alpha_residues:
+        atoms.extend(residue.atoms.all())
+    return _atom_points(atoms)
+
+
 class StructureView(View):
     template_name = 'genomic/structure.html'
 
@@ -254,15 +303,19 @@ def pdb_structure(
     context["pockets"] = list(PDBResidueSet.objects.prefetch_related(
         "properties__property",
         "residue_set_residue__residue__atoms",
+        "residue_set_residue__atoms__atom",
     ).filter(id__in=pocket_ids))
 
     context["p2_pockets"] = list(PDBResidueSet.objects.prefetch_related(
         "properties__property",
         "residue_set_residue__residue__atoms",
+        "residue_set_residue__atoms__atom",
     ).filter(id__in=p2_pocket_ids))
     for p in context["pockets"]:
         p.druggability = [x.value for x in p.properties.all() if x.property == ds][0]
         p.atoms = []
+        p.core_atoms = _residue_set_core_atoms(p)
+        p.core_points = _fpocket_alpha_points(pdbobj, p.name) or _residue_set_core_points(p)
         p.residues = []
         data = []
 
@@ -292,6 +345,8 @@ def pdb_structure(
         p2.p2score = [x.value for x in p2.properties.all() if x.property == p2s][0]
         p2.probability = [x.value for x in p2.properties.all() if x.property == p2p][0]
         p2.atoms = []
+        p2.core_atoms = _residue_set_core_atoms(p2)
+        p2.core_points = _residue_set_core_points(p2)
         p2.residues = []
         data = []
 

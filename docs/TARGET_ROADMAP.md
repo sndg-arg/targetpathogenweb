@@ -167,7 +167,7 @@ Mejorar como se muestran y controlan los pockets en el visualizador.
 
 **Objetivo biologico.**
 
-El usuario debe poder elegir un pocket puntual y mirarlo en detalle, no solo prender una capa general del sector de la proteina. La experiencia tiene que responder: "que pocket estoy viendo, de que metodo viene, que residuos lo forman, que score tiene y por que podria importar como sitio de union".
+El usuario debe poder elegir un pocket puntual y mirarlo en detalle, sin perder la opcion de ver el sector/entorno de residuos que lo rodea. La experiencia tiene que responder: "que pocket estoy viendo, de que metodo viene, que residuos lo forman, que score tiene y por que podria importar como sitio de union".
 
 **Alcance propuesto.**
 
@@ -176,6 +176,7 @@ El usuario debe poder elegir un pocket puntual y mirarlo en detalle, no solo pre
 - Estado seleccionado claro.
 - Transparencia y superficie mas legibles.
 - Mostrar alpha spheres, superficies u otra representacion adecuada segun el dato disponible.
+- Separar visualmente `Pocket` (cavidad/sitio especifico importado) de `Sector` (superficie o residuos alrededor del pocket).
 - Tooltips o panel lateral con score, residues, volumen y metodo.
 - Seleccion explicita de pocket activo desde la card o un boton `Inspect pocket`.
 - Al seleccionar un pocket: centrar camara, resaltar ese pocket, atenuar/esconder otros pockets y mostrar detalle.
@@ -186,21 +187,22 @@ El usuario debe poder elegir un pocket puntual y mirarlo en detalle, no solo pre
 
 **Implementado inicial.**
 
-- Controles de pocket renombrados a capas mas claras: `Atoms`, `Spheres`, `Surface`, `Labels`.
+- Controles de pocket renombrados a capas mas claras: `Pocket`, `Sector atoms`, `Sector`, `Labels`.
 - Tooltips por capa explicando que muestra cada representacion.
 - Acciones `Zoom` y `Residues` con tooltip.
 - Card de pocket/residue set marcada visualmente cuando alguna capa esta visible en el viewer.
 - Diferenciacion visual leve entre cards FPocket y P2Rank.
-- Accion `Inspect` para seleccionar un pocket, centrar camara, mostrar superficie, apagar capas visibles de otros pockets y completar un panel persistente de detalle.
+- Accion `Inspect` para seleccionar un pocket, centrar camara, mostrar la capa `Pocket`, apagar capas visibles de otros pockets y completar un panel persistente de detalle.
 - Panel de pocket seleccionado con metodo, score y residuos.
 - El panel muestra propiedades importadas disponibles: para FPocket, volumen, score, alpha spheres, SASA, hidrofobicidad y flexibilidad; para P2Rank, score/probabilidad.
+- La capa `Pocket` usa coordenadas importadas del output revisado cuando existen: alpha spheres de FPocket o atomos de superficie de P2Rank. La capa `Sector` conserva la superficie/residuos alrededor para contexto.
 
 **Pendiente para cerrar.**
 
 - Refinar modo de foco para atenuar geometricamente la proteina y otros pockets, no solo apagar capas activas.
 - Agregar `Show only selected pocket` / `Show all pockets`.
 - Agregar propiedades derivadas del pocket seleccionado, como centro geometrico estimado, distancia a ligandos/sitios funcionales y consenso FPocket/P2Rank.
-- Verificar en datos reales que el detalle permite inspeccionar el pocket, no solo la region general.
+- Verificar en datos reales de Klebsiella que `Pocket` muestra la cavidad/sitio especifico y `Sector` muestra el entorno amplio esperado.
 
 ### Comparacion FPocket vs P2Rank
 

@@ -9,9 +9,9 @@
                 <thead>
                 <tr>
                     <th>FPOCKET</th>
-                    <th>{% trans "Sticks" %}</th>
-                    <th>{% trans "Spheres" %}</th>
-                    <th>{% trans "Surfaces" %}</th>
+                    <th>{% trans "Sector atoms" %}</th>
+                    <th>{% trans "Pocket" %}</th>
+                    <th>{% trans "Sector" %}</th>
                     <th>{% trans "Druggability" %}</th>
                     <th>{% trans "Labels" %}</th>
                     <th>{% trans "Zoom" %}</th>
@@ -22,9 +22,9 @@
                 {% for p in structure_data.pockets %}
                     <tr>
                         <td>{{ p.name }}</td>
-                        <td><input type="checkbox" class="structure-toggle" aria-label="Toggle sticks {{ p.name }}" onchange="toogle_view('{{p.name}}_atm')" /></td>
-                        <td><input type="checkbox" class="structure-toggle" aria-label="Toggle spheres {{ p.name }}" onchange="toogle_view('{{p.name}}_sph')" /></td>
-                        <td><input type="checkbox" class="structure-toggle" aria-label="Toggle surfaces {{ p.name }}" onchange="toogle_view('{{p.name}}_pol');toogle_view('{{p.name}}_apol')" /></td>
+                        <td><input type="checkbox" class="structure-toggle" aria-label="Toggle sector atoms {{ p.name }}" onchange="toogle_view('{{p.name}}_atm')" /></td>
+                        <td><input type="checkbox" class="structure-toggle" aria-label="Toggle specific pocket {{ p.name }}" onchange="toogle_view('{{p.name}}_sph')" /></td>
+                        <td><input type="checkbox" class="structure-toggle" aria-label="Toggle pocket sector {{ p.name }}" onchange="toogle_view('{{p.name}}_pol');toogle_view('{{p.name}}_apol')" /></td>
                         <td><span class="tp-score-tag js-score-tag" data-score="{{ p.druggability }}">{{ p.druggability }}</span></td>
                         <td><input type="checkbox" class="structure-toggle" aria-label="Toggle labels {{ p.name }}" onchange="toogle_view('{{p.name}}_lbl')" /></td>
                         <td><button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm structure-table-btn" onclick="ngl_zoom_to('{{p.name}}_zoom')">{% trans "Zoom" %}</button></td>
@@ -46,9 +46,9 @@
                 <thead>
                 <tr>
                     <th>P2RANK</th>
-                    <th>{% trans "Sticks" %}</th>
-                    <th>{% trans "Spheres" %}</th>
-                    <th>{% trans "Surfaces" %}</th>
+                    <th>{% trans "Sector atoms" %}</th>
+                    <th>{% trans "Pocket" %}</th>
+                    <th>{% trans "Sector" %}</th>
                     <th>{% trans "Score" %}</th>
                     <th>{% trans "Probability" %}</th>
                     <th>{% trans "Labels" %}</th>
@@ -60,9 +60,9 @@
                 {% for p2 in structure_data.p2_pockets %}
                     <tr>
                         <td>{{ p2.name }}</td>
-                        <td><input type="checkbox" class="structure-toggle" aria-label="Toggle sticks {{ p2.name }}" onchange="toogle_view('p2_{{p2.name}}_atm')" /></td>
-                        <td><input type="checkbox" class="structure-toggle" aria-label="Toggle spheres {{ p2.name }}" onchange="toogle_view('p2_{{p2.name}}_sph')" /></td>
-                        <td><input type="checkbox" class="structure-toggle" aria-label="Toggle surfaces {{ p2.name }}" onchange="toogle_view('p2_{{p2.name}}_pol');toogle_view('p2_{{p2.name}}_apol')" /></td>
+                        <td><input type="checkbox" class="structure-toggle" aria-label="Toggle sector atoms {{ p2.name }}" onchange="toogle_view('p2_{{p2.name}}_atm')" /></td>
+                        <td><input type="checkbox" class="structure-toggle" aria-label="Toggle specific pocket {{ p2.name }}" onchange="toogle_view('p2_{{p2.name}}_sph')" /></td>
+                        <td><input type="checkbox" class="structure-toggle" aria-label="Toggle pocket sector {{ p2.name }}" onchange="toogle_view('p2_{{p2.name}}_pol');toogle_view('p2_{{p2.name}}_apol')" /></td>
                         <td><span class="tp-score-tag js-score-tag" data-score="{{ p2.p2score }}">{{ p2.p2score }}</span></td>
                         <td><span class="tp-score-tag js-score-tag" data-score="{{ p2.probability }}" data-score-type="p2rank-prob">{{ p2.probability }}</span></td>
                         <td><input type="checkbox" class="structure-toggle" aria-label="Toggle labels {{ p2.name }}" onchange="toogle_view('p2_{{p2.name}}_lbl')" /></td>

@@ -1377,6 +1377,16 @@
                     localVisible[key] = !!visibleByDefault;
                 }
 
+                function registerSpheres(key, points, color, radius, visibleByDefault) {
+                    localRepresentations[key] = {
+                        kind: "spheres",
+                        points: points || [],
+                        color: color,
+                        radius: radius || 0.55
+                    };
+                    localVisible[key] = !!visibleByDefault;
+                }
+
                 function registerSurface(key, selection, styleColor, visibleByDefault, showInDensity) {
                     localRepresentations[key] = {
                         kind: "surface",
@@ -1419,6 +1429,17 @@
                         if (repr.kind === "surface") {
                             addPocketSurface(repr.selection, repr.color);
                             densitySurfaceShown = true;
+                            return;
+                        }
+                        if (repr.kind === "spheres") {
+                            repr.points.forEach(function (point) {
+                                viewer.addSphere({
+                                    center: { x: point.x, y: point.y, z: point.z },
+                                    radius: repr.radius,
+                                    color: repr.color,
+                                    alpha: 0.94
+                                });
+                            });
                             return;
                         }
                         if (repr.kind === "labels") {
@@ -1487,12 +1508,17 @@
                     (function () {
                         var atoms = parseAtomSerials([{% for atom in p.atoms %}"{{ atom|escapejs }}"{% if not forloop.last %},{% endif %}{% endfor %}]);
                         var residues = parseResidues([{% for residue in p.residues %}"{{ residue|escapejs }}"{% if not forloop.last %},{% endif %}{% endfor %}]);
+                        var corePoints = [{% for point in p.core_points %}{ x: {{ point.x }}, y: {{ point.y }}, z: {{ point.z }} }{% if not forloop.last %},{% endif %}{% endfor %}];
                         if (atoms.length) {
                             registerSurface("{{p.name}}_apol", { serial: atoms }, tpColor("--tp-color-structure-pocket-apolar") || "#20c3d6", false, true);
                             registerSurface("{{p.name}}_pol", { serial: atoms }, tpColor("--tp-color-structure-pocket-polar") || "#0b4f6c", false, true);
                             registerStyle("{{p.name}}_atm", { serial: atoms }, { stick: { radius: 0.2, color: tpColor("--tp-color-structure-pocket-polar") || "#0b4f6c" } }, false);
-                            registerStyle("{{p.name}}_sph", { serial: atoms }, { sphere: { scale: 0.7, color: tpColor("--tp-color-structure-pocket-apolar") || "#20c3d6" } }, false);
                             registerZoom("{{p.name}}_zoom", { serial: atoms });
+                        }
+                        if (corePoints.length) {
+                            registerSpheres("{{p.name}}_sph", corePoints, tpColor("--tp-color-structure-pocket-apolar") || "#20c3d6", 0.58, false);
+                        } else if (atoms.length) {
+                            registerStyle("{{p.name}}_sph", { serial: atoms }, { sphere: { scale: 0.7, color: tpColor("--tp-color-structure-pocket-apolar") || "#20c3d6" } }, false);
                         }
                         if (residues.length) {
                             registerLabels("{{p.name}}_lbl", { chain: "A", resi: residues }, false);
@@ -1504,12 +1530,17 @@
                     (function () {
                         var atoms = parseAtomSerials([{% for atom in p2.atoms %}"{{ atom|escapejs }}"{% if not forloop.last %},{% endif %}{% endfor %}]);
                         var residues = parseResidues([{% for residue in p2.residues %}"{{ residue|escapejs }}"{% if not forloop.last %},{% endif %}{% endfor %}]);
+                        var corePoints = [{% for point in p2.core_points %}{ x: {{ point.x }}, y: {{ point.y }}, z: {{ point.z }} }{% if not forloop.last %},{% endif %}{% endfor %}];
                         if (atoms.length) {
                             registerSurface("p2_{{p2.name}}_apol", { serial: atoms }, tpColor("--tp-color-structure-p2-apolar") || "#f59e0b", false, true);
                             registerSurface("p2_{{p2.name}}_pol", { serial: atoms }, tpColor("--tp-color-structure-p2-polar") || "#8b5cf6", false, true);
                             registerStyle("p2_{{p2.name}}_atm", { serial: atoms }, { stick: { radius: 0.2, color: tpColor("--tp-color-structure-p2-polar") || "#8b5cf6" } }, false);
-                            registerStyle("p2_{{p2.name}}_sph", { serial: atoms }, { sphere: { scale: 0.7, color: tpColor("--tp-color-structure-p2-apolar") || "#f59e0b" } }, false);
                             registerZoom("p2_{{p2.name}}_zoom", { serial: atoms });
+                        }
+                        if (corePoints.length) {
+                            registerSpheres("p2_{{p2.name}}_sph", corePoints, tpColor("--tp-color-structure-p2-apolar") || "#f59e0b", 0.48, false);
+                        } else if (atoms.length) {
+                            registerStyle("p2_{{p2.name}}_sph", { serial: atoms }, { sphere: { scale: 0.7, color: tpColor("--tp-color-structure-p2-apolar") || "#f59e0b" } }, false);
                         }
                         if (residues.length) {
                             registerLabels("p2_{{p2.name}}_lbl", { chain: "A", resi: residues }, false);
