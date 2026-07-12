@@ -93,9 +93,15 @@ class Command(BaseCommand):
         try:
             fpocket_rs = ResidueSet.objects.get(name="FPocketPocket")
             druggability_prop = Property.objects.get(name="druggability_score")
-            volume_prop = Property.objects.get(name="Volume")
         except (ResidueSet.DoesNotExist, Property.DoesNotExist) as exc:
             raise CommandError(f"required pocket reference data missing: {exc}")
+
+        volume_prop = Property.objects.filter(name="volume").first()
+        if volume_prop is None:
+            raise CommandError(
+                "the 'volume' Property row doesn't exist in this database -- "
+                "nothing to compute pocket-size outliers from."
+            )
 
         score_param = ensure_system_score_param("pocket_size_outlier")
         if score_param is None:

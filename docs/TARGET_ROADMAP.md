@@ -323,6 +323,17 @@ El usuario debe poder elegir un pocket puntual y mirarlo en detalle, sin perder 
   paridad de UI — no se pudo probar en un navegador real desde este entorno.
 - Evaluar unificar `initStructureComponent`/`registerShapeComponent` entre `structure.html` y
   `protein.html` para que este tipo de bug de duplicacion no vuelva a pasar.
+- Bug encontrado y corregido: el nombre real del `Property` de volumen en la base es `'volume'`
+  (minuscula, snake_case) — se asumio `"Volume"` (con mayuscula) copiando la lista existente
+  `_FPOCKET_INSPECTOR_PROPERTIES` en `StructureView.py`, que en realidad **nunca matcheo nada**
+  (usa claves como `"Volume"`, `"Score"`, `"Number of Alpha Spheres"` contra nombres reales
+  `volume`, `score`, `number_of_alpha_spheres`, etc. — confirmado contra la base real, listando
+  todos los `Property.objects.all()`). Corregido en `StructureView.py` (fase 1) y
+  `index_pocket_size_outlier.py` (fase 2) para usar `'volume'`. La lista
+  `_FPOCKET_INSPECTOR_PROPERTIES` en si sigue rota (bug preexistente, no tocado — el panel
+  "Pocket properties" del inspector probablemente nunca mostro nada); queda para otra sesion.
+  Tambien se hizo mas defensivo el comando: si el `Property` de volumen no existe, corta con un
+  mensaje claro en vez de un traceback de `DoesNotExist`.
 - Verificar en el cluster que el chip "Unusual size" aparece para los pockets grandes/dispersos
   (ej. AF_A0A0H3GWB0) y no para los normales, y que confirma el volumen real por FPocket.
 - Correr `index_pocket_size_outlier` contra un genoma real (con proteinas curadas y no curadas) y

@@ -355,7 +355,7 @@ def pdb_structure(
     # Compare every FPocket pocket's volume against its OWN structure's other
     # pockets (not the top-N shown in the UI, nor a fixed global cutoff) --
     # what counts as "unusually large" varies by protein.
-    volume_prop = Property.objects.filter(name="Volume").first()
+    volume_prop = Property.objects.filter(name="volume").first()
     size_outlier_map = {}
     if volume_prop is not None:
         all_volumes = ResidueSetProperty.objects.filter(
