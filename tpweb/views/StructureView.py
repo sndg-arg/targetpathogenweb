@@ -112,7 +112,7 @@ def _point_float(point, coord):
         return None
 
 
-def _points_are_near_residue_cloud(core_points, residue_points, threshold=8.0):
+def _points_are_near_residue_cloud(core_points, residue_points, threshold=5.0, min_fraction=0.6):
     """Guard against showing imported pocket geometry on the wrong structure."""
     if not core_points or not residue_points:
         return False
@@ -126,19 +126,23 @@ def _points_are_near_residue_cloud(core_points, residue_points, threshold=8.0):
             residue_coords.append((x, y, z))
     if not residue_coords:
         return False
+    checked = 0
+    near = 0
     for point in core_points[:250]:
         x = _point_float(point, "x")
         y = _point_float(point, "y")
         z = _point_float(point, "z")
         if x is None or y is None or z is None:
             continue
+        checked += 1
         for rx, ry, rz in residue_coords:
             dx = x - rx
             dy = y - ry
             dz = z - rz
             if dx * dx + dy * dy + dz * dz <= threshold_sq:
-                return True
-    return False
+                near += 1
+                break
+    return checked > 0 and (near / checked) >= min_fraction
 
 
 def _residue_set_core_points(residue_set):

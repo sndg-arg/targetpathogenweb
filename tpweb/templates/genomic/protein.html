@@ -1765,9 +1765,6 @@
                     var coreBtn = coreRepr ? card.querySelector('.js-repr-toggle[data-repr="' + coreRepr + '"]') : null;
                     setReprButtonPressed(coreBtn || card.querySelector(".js-repr-toggle"), true);
                     setCardVisibilityState(card);
-                    if (typeof window.ngl_set_mode === "function") {
-                        window.ngl_set_mode("density");
-                    }
 
                     var zoomKey = card.getAttribute("data-pocket-zoom");
                     if (zoomKey && typeof window.ngl_zoom_to === "function") {
