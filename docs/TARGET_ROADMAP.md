@@ -353,9 +353,18 @@ El usuario debe poder elegir un pocket puntual y mirarlo en detalle, sin perder 
   "Pocket <N>" -> `PDBResidueSet.name`) funciona correctamente contra datos reales, cerrando dos
   de los pendientes de abajo. Esto tambien confirma que `volume` esta poblado para estructuras
   reales (no solo la proteina de prueba original).
-- Verificar en el cluster que el chip "Unusual size" aparece para los pockets grandes/dispersos
-  (ej. AF_A0A0H3GWB0, VK055_0002) y no para los normales — pendiente confirmar visualmente en
-  navegador, no ejecutable desde este entorno.
+- Confirmado en el navegador (proteina VK055_0002, KpATCC43816): el chip "Unusual size" aparece
+  correctamente en 3 de los 4 pockets FPocket mostrados (#13, #10, #12) y no en el cuarto (#8) —
+  verificado pocket por pocket contra el calculo real de volumen/mediana/MAD (z=6.36, 3.55, 4.77
+  para los marcados, z=0.67 para el no marcado). Coincide 100% con lo que muestra la UI.
+- Confirmado contra el archivo curado ORIGINAL (`KpATCC43816_results_table.tsv`, Google Drive,
+  subido por las biologas): la fila de `VK055_0002` dice literalmente `fpocket_pocket=Pocket 13`,
+  `best_fpocket_structure=CB_VK055_0002`, `druggability_score=0.911` — identico a lo cargado en la
+  base y a lo que muestra la pagina de proteina. Cadena completa validada de punta a punta: archivo
+  curado original -> base de datos -> UI -> calculo de outlier, sin discrepancias. `Pocket 13` es
+  realmente la eleccion de las biologas (no un bug de resolucion curated-first), y es un outlier de
+  volumen genuino (1816.5 vs mediana 411.7 de esa estructura) — exactamente el caso que el feature
+  fue diseñado para capturar. Investigacion cerrada con confianza alta.
 - Confirmar con el equipo de bioinformatica la magnitud del descuento en `_score_proteins` (hoy:
   alta drogabilidad + outlier = mitad de puntos; media drogabilidad + outlier = cero puntos) — es
   ajustable en un solo `if`, no bloquea nada correrlo ya con este valor por default. Con un 30.7%
