@@ -334,18 +334,33 @@ El usuario debe poder elegir un pocket puntual y mirarlo en detalle, sin perder 
   "Pocket properties" del inspector probablemente nunca mostro nada); queda para otra sesion.
   Tambien se hizo mas defensivo el comando: si el `Property` de volumen no existe, corta con un
   mensaje claro en vez de un traceback de `DoesNotExist`.
+- Corrido `index_pocket_size_outlier public__KpATCC43816` en produccion: 1549 de 5071 proteinas
+  (30.7% sobre 5049 con dato curado) quedaron marcadas como outlier. Investigado a fondo si esto
+  era un bug de calibracion (sospecha inicial: MAD degenerado en estructuras con poca variacion de
+  volumen, amplificando diferencias chicas a z-scores enormes) — **descartado con datos reales**:
+  para `VK055_0002` (13 pockets FPocket, mediana de volumen 411.7, MAD 149.0 — spread normal, no
+  degenerado) el pocket curado por las biologas (`Pocket 13`, resuelto correctamente contra la
+  estructura `CB_VK055_0002`) es el mas grande de los 13 (1816.5 vs mediana 411.7, z=6.4,
+  druggability 0.911) — un outlier genuino, no un artefacto del calculo. A nivel genoma, el flag
+  cae casi enteramente sobre proteinas curadas (1549/5049, 30.7%) vs. 0/22 no curadas (muestra muy
+  chica para sacar conclusion de la comparacion en si, pero confirma que el flag no esta pegando
+  parejo por azar). Conclusion: **el 30% es la señal real que el feature se propuso capturar**, no
+  un bug — el pipeline Gates-Targets elige "mejor pocket" por drogabilidad maxima sin penalizar
+  tamaño/difusidad, y una fraccion sustancial de esas elecciones resultan ser geometricamente
+  atipicas dentro de su propia estructura, igual que en el hallazgo original con AF_A0A0H3GWB0.
+  Decision tomada con la usuaria: mantener el umbral z=3.5 (estandar Iglewicz-Hoaglin, sin ajustar
+  arbitrariamente para bajar el % de flags) — confirma que la resolucion curated-first (`fpocket_pocket`
+  "Pocket <N>" -> `PDBResidueSet.name`) funciona correctamente contra datos reales, cerrando dos
+  de los pendientes de abajo. Esto tambien confirma que `volume` esta poblado para estructuras
+  reales (no solo la proteina de prueba original).
 - Verificar en el cluster que el chip "Unusual size" aparece para los pockets grandes/dispersos
-  (ej. AF_A0A0H3GWB0) y no para los normales, y que confirma el volumen real por FPocket.
-- Correr `index_pocket_size_outlier` contra un genoma real (con proteinas curadas y no curadas) y
-  verificar en shell que el flag quedo bien para varias proteinas conocidas — en particular alguna
-  curada, para confirmar que tomo el pocket de las biologas y no el auto-rankeado.
-  Confirmar tambien que `Volume` esta poblado en (casi) todos los `ResidueSetProperty` reales, no
-  solo en la proteina de prueba de esta sesion.
-  Validar el string `"Pocket <N>"` de `fpocket_pocket` contra datos curados reales (se rastreo el
-  formato desde el codigo del pipeline externo, no se verifico contra la base todavia).
+  (ej. AF_A0A0H3GWB0, VK055_0002) y no para los normales — pendiente confirmar visualmente en
+  navegador, no ejecutable desde este entorno.
 - Confirmar con el equipo de bioinformatica la magnitud del descuento en `_score_proteins` (hoy:
   alta drogabilidad + outlier = mitad de puntos; media drogabilidad + outlier = cero puntos) — es
-  ajustable en un solo `if`, no bloquea nada correrlo ya con este valor por default.
+  ajustable en un solo `if`, no bloquea nada correrlo ya con este valor por default. Con un 30.7%
+  de proteinas curadas afectadas, esta decision tiene mas peso practico de lo esperado inicialmente
+  — vale la pena revisarla pronto con el equipo, no dejarla indefinidamente en "pendiente".
 
 ### Comparacion FPocket vs P2Rank
 
@@ -441,7 +456,7 @@ Permitir columnas custom por genoma o analisis.
 
 ### Agente IA para exploracion de targets
 
-Agregar un agente/chat IA que ayude a explorar proteinas, filtros, scores, ligandos, estructuras y evidencia cargada en TPW.
+Agregar un agente/chat IA que ayude a explorar proteinas, filtros, scores, ligandos, estructuras y evidencia cargada en TPW. Requisito explicito: agnostico a que API de LLM se use (Claude u OpenAI intercambiables).
 
 **Alcance propuesto.**
 
@@ -450,6 +465,37 @@ Agregar un agente/chat IA que ayude a explorar proteinas, filtros, scores, ligan
 - Sugerir filtros y comparaciones.
 - Ayudar a interpretar evidencia estructural, metabolica y off-target.
 - Citar las fuentes internas usadas para cada respuesta.
+- Ejecutar acciones reales en la UI a pedido del usuario (ej. aplicar filtros), no solo responder texto.
+
+**Implementado inicial (fundacion, sin UI todavia).**
+
+- `tpweb/services/llm/base.py`: tipos neutrales (`Message`, `ToolDefinition`, `ToolCall`,
+  `ToolResult`, `LLMResponse`) y la interfaz `LLMProvider`, para que el resto del codigo nunca
+  dependa de un SDK de proveedor especifico.
+- `anthropic_provider.py`: adaptador real sobre el SDK `anthropic`.
+- `openai_provider.py`: scaffold documentado (`NotImplementedError`), listo para completar
+  cuando haga falta OpenAI de verdad.
+- `provider_factory.py`: selecciona adaptador via env var `TPW_LLM_PROVIDER` (default
+  `anthropic`), mismo patron que `TPW_COLABFOLD_USE_REMOTE` etc.
+- `agent.py`: loop agentico generico (`Agent.run()`), agnostico al proveedor.
+- `tools/demo.py` + management command `test_llm_agent`: prueba end-to-end minima
+  (`get_current_time`) para validar el loop antes de conectar herramientas reales.
+- Config wireada en `docker-compose.yml`/`docker-compose.cluster.yml`
+  (`TPW_LLM_PROVIDER`, `TPW_LLM_MODEL`, `ANTHROPIC_API_KEY`) y `anthropic` agregado a
+  `requirements/base.txt`.
+
+**Pendiente para avanzar.**
+
+- Probar el "hola mundo" end-to-end con una API key real (no ejecutable desde este entorno).
+- Extraer `ProteinListView._apply_filter_changes_payload` a un servicio reusable
+  (`tpweb/services/protein_list.py`) para que sea la primera herramienta real (`aplicar_filtros`),
+  reusando el mismo payload que ya usa `apply_filter_changes` por POST.
+- Definir de donde sale el contexto que el agente necesita para responder preguntas (que
+  ScoreParams existen por genoma/usuario, que filtros estan aplicados) sin volver a implementar
+  la logica de `visible_score_params_queryset`.
+- Disenar la superficie de UI (chat flotante, panel lateral, etc.) — todavia no definida.
+- Implementar `openai_provider.py` de verdad si se necesita agnosticismo probado, no solo
+  scaffold.
 
 ### Auditoria y migracion de funcionalidades del Target viejo
 
@@ -570,11 +616,24 @@ Pasada sistematica para que TPW se sienta como una unica aplicacion cientifica c
   posicionamiento del dropdown en Chromium — asi se rompio el select de Downloads en genome
   overview. Corregido en los 9 archivos (afecta tambien BLAST, que tiene su propio `<select>`).
 
+- Auditoria de las 9 paginas restantes (home/index, binder-detail, auth, blast, customparam,
+  formula-form, genome-upload, genomes-list, annotation-explorer): sin hex/rgba hardcodeados
+  (mejor estado que las paginas auditadas antes). Se encontraron y corrigieron 2 tokens muertos
+  referenciados pero inexistentes: `--tp-color-brand-400` (el ramp de brand salta de 500 a 300,
+  no tiene 400) en `formula-form.css` y `annotation-explorer.css`, remapeado a `--tp-color-brand-600`
+  siguiendo el uso ya establecido de 600 para estados focus/active/scrollbar-thumb en el resto de
+  la app; y `--tp-font-body` (no existe ningun token de font-family, la convencion es escribir el
+  stack literal) en `formula-form.css`, reemplazado por el stack literal de body ya usado en
+  masterpage.html. Tambien se limpiaron 2 fallbacks muertos sobre `--tp-ui-motion-fast` (con un
+  valor incorrecto, 120ms en vez de los 140ms reales del token) y `--tp-color-surface-soft` en
+  `home.css`.
+- Confirmado que `home.css` y `binder-detail.css` (las unicas 2 de las 9 que no habian pasado por
+  el fix del keyframe `tp-ui-enter`) no tienen el bug: `home.css` solo usa una animacion `infinite`
+  de spin (no entrance/fill-mode), y `binder-detail.css` ya usa el keyframe compartido `tp-ui-enter`
+  que se arreglo en `ui-system.css`.
+
 **Pendiente para cerrar.**
 
-- Auditar colores/sombras hardcodeadas en el resto de paginas no tocadas todavia (home, binder
-  detail, index, y las vistas de auth/blast/customparam/formula-form/genome-upload/genomes-list/
-  annotation-explorer mas alla del fix del keyframe).
 - Definir un checklist visual antes de mergear nuevas vistas.
 - Revisar en modo claro/oscuro con screenshots reales.
 - Extender luego al structure viewer, con validacion visual especifica porque es una superficie interactiva de mayor riesgo.
