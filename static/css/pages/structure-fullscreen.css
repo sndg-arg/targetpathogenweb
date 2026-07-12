@@ -591,8 +591,16 @@ body:has(.sv-root) .tp-footer { display: none !important; }
 .pocket-card-head {
     display: flex;
     align-items: flex-start;
-    flex-wrap: wrap;
     gap: 6px;
+}
+
+.pocket-card-flag {
+    display: flex;
+    margin-top: 6px;
+}
+
+.pocket-card-flag .tp-chip {
+    max-width: 100%;
 }
 
 .pocket-card-name {
