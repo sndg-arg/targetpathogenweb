@@ -177,7 +177,7 @@ El usuario debe poder elegir un pocket puntual y mirarlo en detalle, sin perder 
 - Transparencia y superficie mas legibles.
 - Mostrar alpha spheres, superficies u otra representacion adecuada segun el dato disponible.
 - Separar visualmente `Pocket` (cavidad/sitio especifico importado) de `Sector` (superficie o residuos alrededor del pocket).
-- Jerarquia de UI: accion primaria `Inspect pocket` para la cavidad especifica y capas secundarias para contexto (`Pocket`, `Residues`, `Surface`, `Labels`).
+- Jerarquia de UI: accion primaria `Inspect pocket` para la cavidad especifica y capas secundarias para contexto (`Alpha spheres`/`Pocket`, `Residues`, `Surface`, `Labels`).
 - Tooltips o panel lateral con score, residues, volumen y metodo.
 - Seleccion explicita de pocket activo desde la card o un boton `Inspect pocket`.
 - Al seleccionar un pocket: centrar camara, resaltar ese pocket, atenuar/esconder otros pockets y mostrar detalle.
@@ -188,7 +188,7 @@ El usuario debe poder elegir un pocket puntual y mirarlo en detalle, sin perder 
 
 **Implementado inicial.**
 
-- Controles de pocket renombrados a capas mas claras: `Pocket`, `Residues`, `Surface`, `Labels`.
+- Controles de pocket renombrados a capas mas claras: `Alpha spheres`/`Pocket`, `Residues`, `Surface`, `Labels`.
 - Tooltips por capa explicando que muestra cada representacion.
 - Acciones `Zoom` y `Residues` con tooltip.
 - Card de pocket/residue set marcada visualmente cuando alguna capa esta visible en el viewer.
@@ -197,6 +197,7 @@ El usuario debe poder elegir un pocket puntual y mirarlo en detalle, sin perder 
 - Panel de pocket seleccionado con metodo, score, capa visible, residuos y propiedades.
 - El panel muestra propiedades importadas disponibles: para FPocket, volumen, score, alpha spheres, SASA, hidrofobicidad y flexibilidad; para P2Rank, score/probabilidad.
 - La capa `Pocket` usa coordenadas importadas del output revisado cuando existen: alpha spheres de FPocket o atomos de superficie de P2Rank. La capa `Sector` conserva la superficie/residuos alrededor para contexto.
+- Diferenciacion visual reforzada: alpha spheres/pocket core se renderiza como nube de beads pequenos y la superficie del entorno queda translucida para que no parezcan la misma capa.
 
 **Pendiente para cerrar.**
 

@@ -47,9 +47,10 @@
     var fpocketCoreShape{{ forloop.counter }} = new NGL.Shape("FPocket {{p.name}} core");
     var fpocketCoreColor{{ forloop.counter }} = tpColorTriplet("--tp-color-structure-pocket-apolar", "#20c3d6");
     {% for point in p.core_points %}
-    fpocketCoreShape{{ forloop.parentloop.counter }}.addSphere([{{ point.x }}, {{ point.y }}, {{ point.z }}], fpocketCoreColor{{ forloop.parentloop.counter }}, 0.58);
+    fpocketCoreShape{{ forloop.parentloop.counter }}.addSphere([{{ point.x }}, {{ point.y }}, {{ point.z }}], fpocketCoreColor{{ forloop.parentloop.counter }}, 0.34);
     {% endfor %}
     representations["{{p.name}}_sph"] = stage.addComponentFromObject(fpocketCoreShape{{ forloop.counter }});
+    representations["{{p.name}}_sph"].addRepresentation("buffer", { opacity: 1.0 });
     {% else %}
     representations["{{p.name}}_sph"] = component.addRepresentation("spacefill", {
         sele: fpocketResidueSele,
@@ -135,9 +136,10 @@
     var p2rankCoreShape{{ forloop.counter }} = new NGL.Shape("P2Rank {{p2.name}} core");
     var p2rankCoreColor{{ forloop.counter }} = tpColorTriplet("--tp-color-structure-p2-apolar", "#f59e0b");
     {% for point in p2.core_points %}
-    p2rankCoreShape{{ forloop.parentloop.counter }}.addSphere([{{ point.x }}, {{ point.y }}, {{ point.z }}], p2rankCoreColor{{ forloop.parentloop.counter }}, 0.48);
+    p2rankCoreShape{{ forloop.parentloop.counter }}.addSphere([{{ point.x }}, {{ point.y }}, {{ point.z }}], p2rankCoreColor{{ forloop.parentloop.counter }}, 0.28);
     {% endfor %}
     representations["p2_{{p2.name}}_sph"] = stage.addComponentFromObject(p2rankCoreShape{{ forloop.counter }});
+    representations["p2_{{p2.name}}_sph"].addRepresentation("buffer", { opacity: 1.0 });
     {% else %}
     representations["p2_{{p2.name}}_sph"] = component.addRepresentation("spacefill", {
         sele: p2rankResidueSele,

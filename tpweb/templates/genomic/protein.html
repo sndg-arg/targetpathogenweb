@@ -1092,7 +1092,7 @@
                 mainCartoonScale: 1.5,
                 densityShellOpacity: 0.78,
                 densityFallbackOpacity: 0.45,
-                surfaceOpacity: 0.96,
+                surfaceOpacity: 0.34,
                 densityCartoonOpacity: 0.3
             });
 
@@ -1516,7 +1516,7 @@
                             registerZoom("{{p.name}}_zoom", { serial: atoms });
                         }
                         if (corePoints.length) {
-                            registerSpheres("{{p.name}}_sph", corePoints, tpColor("--tp-color-structure-pocket-apolar") || "#20c3d6", 0.58, false);
+                            registerSpheres("{{p.name}}_sph", corePoints, tpColor("--tp-color-structure-pocket-apolar") || "#20c3d6", 0.34, false);
                         } else if (atoms.length) {
                             registerStyle("{{p.name}}_sph", { serial: atoms }, { sphere: { scale: 0.7, color: tpColor("--tp-color-structure-pocket-apolar") || "#20c3d6" } }, false);
                         }
@@ -1538,7 +1538,7 @@
                             registerZoom("p2_{{p2.name}}_zoom", { serial: atoms });
                         }
                         if (corePoints.length) {
-                            registerSpheres("p2_{{p2.name}}_sph", corePoints, tpColor("--tp-color-structure-p2-apolar") || "#f59e0b", 0.48, false);
+                            registerSpheres("p2_{{p2.name}}_sph", corePoints, tpColor("--tp-color-structure-p2-apolar") || "#f59e0b", 0.28, false);
                         } else if (atoms.length) {
                             registerStyle("p2_{{p2.name}}_sph", { serial: atoms }, { sphere: { scale: 0.7, color: tpColor("--tp-color-structure-p2-apolar") || "#f59e0b" } }, false);
                         }
