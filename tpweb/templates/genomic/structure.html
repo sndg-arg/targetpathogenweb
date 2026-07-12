@@ -350,7 +350,7 @@ function jsloaded() {
         setPocketInspectorField("layer", coreBtn ? (coreBtn.getAttribute("data-layer-label") || coreBtn.textContent || "") : "{% trans 'Pocket core' %}");
         setPocketInspectorField("residues", card.getAttribute("data-pocket-residues") || "");
         setPocketInspectorField("properties", card.getAttribute("data-pocket-properties") || "");
-        if (pocketInspector) pocketInspector.hidden = false;
+        if (pocketInspector) pocketInspector.hidden = true;
     }
 
     /* ---- Spin toggle ---- */

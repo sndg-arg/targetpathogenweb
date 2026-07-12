@@ -78,17 +78,17 @@ _ALPHA_SPHERE_MAX_RADIUS = 6.5
 _ALPHA_SPHERE_FALLBACK_RADIUS = 2.5
 
 
-def _atom_points(atoms):
+def _atom_points(atoms, use_bfactor_radius=False):
     points = []
     seen = set()
     for atom in atoms:
         if atom.id in seen:
             continue
         seen.add(atom.id)
-        if atom.bfactor and atom.bfactor > 0.3:
+        if use_bfactor_radius and atom.bfactor and atom.bfactor > 0.3:
             radius = min(max(atom.bfactor, _ALPHA_SPHERE_MIN_RADIUS), _ALPHA_SPHERE_MAX_RADIUS)
         else:
-            radius = _ALPHA_SPHERE_FALLBACK_RADIUS
+            radius = _ALPHA_SPHERE_FALLBACK_RADIUS if use_bfactor_radius else 1.0
         points.append({
             "x": f"{atom.x:.4f}",
             "y": f"{atom.y:.4f}",
@@ -102,6 +102,42 @@ def _atom_points(atoms):
             "radius": f"{radius:.3f}",
         })
     return points
+
+
+def _point_float(point, coord):
+    try:
+        return float(point.get(coord))
+    except (TypeError, ValueError):
+        return None
+
+
+def _points_are_near_residue_cloud(core_points, residue_points, threshold=8.0):
+    """Guard against showing imported pocket geometry on the wrong structure."""
+    if not core_points or not residue_points:
+        return False
+    threshold_sq = threshold * threshold
+    residue_coords = []
+    for point in residue_points[:600]:
+        x = _point_float(point, "x")
+        y = _point_float(point, "y")
+        z = _point_float(point, "z")
+        if x is not None and y is not None and z is not None:
+            residue_coords.append((x, y, z))
+    if not residue_coords:
+        return False
+    for point in core_points[:250]:
+        x = _point_float(point, "x")
+        y = _point_float(point, "y")
+        z = _point_float(point, "z")
+        if x is None or y is None or z is None:
+            continue
+        for rx, ry, rz in residue_coords:
+            dx = x - rx
+            dy = y - ry
+            dz = z - rz
+            if dx * dx + dy * dy + dz * dz <= threshold_sq:
+                return True
+    return False
 
 
 def _residue_set_core_points(residue_set):
@@ -126,7 +162,7 @@ def _fpocket_alpha_points(pdbobj, pocket_name):
     atoms = []
     for residue in alpha_residues:
         atoms.extend(residue.atoms.all())
-    return _atom_points(atoms)
+    return _atom_points(atoms, use_bfactor_radius=True)
 
 
 class StructureView(View):
@@ -333,7 +369,20 @@ def pdb_structure(
         p.druggability = [x.value for x in p.properties.all() if x.property == ds][0]
         p.atoms = []
         p.core_atoms = _residue_set_core_atoms(p)
-        p.core_points = _fpocket_alpha_points(pdbobj, p.name) or _residue_set_core_points(p)
+        residue_core_points = _residue_set_core_points(p)
+        alpha_core_points = _fpocket_alpha_points(pdbobj, p.name)
+        if alpha_core_points and _points_are_near_residue_cloud(alpha_core_points, residue_core_points):
+            p.core_points = alpha_core_points
+            p.core_geometry = "alpha_spheres"
+            p.core_button_label = "Alpha spheres"
+            p.core_layer_label = "Alpha spheres / pocket core"
+            p.core_note = "Specific FPocket alpha-sphere geometry imported for this structure."
+        else:
+            p.core_points = residue_core_points
+            p.core_geometry = "residue_atoms"
+            p.core_button_label = "Pocket atoms"
+            p.core_layer_label = "Pocket atoms / specific pocket"
+            p.core_note = "Alpha-sphere geometry was unavailable or did not align with this loaded structure; showing pocket atoms instead."
         p.residues = []
         data = []
 
