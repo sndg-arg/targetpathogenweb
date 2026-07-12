@@ -585,7 +585,7 @@ body:has(.sv-root) .tp-footer { display: none !important; }
 }
 
 .pocket-card--p2rank .pocket-card-id::before {
-    background: var(--tp-color-sage-600);
+    background: var(--tp-color-sage-500);
 }
 
 .pocket-card-head {

@@ -228,12 +228,24 @@ El usuario debe poder elegir un pocket puntual y mirarlo en detalle, sin perder 
 - De paso, se llevo `ngl_zoom_to` de `protein.html` a la misma implementacion que `structure.html`
   (le faltaba la rama para zoomear sobre un `tpShapeComponent`, hoy sin uso porque `protein.html`
   no tiene boton Inspect, pero destinada a quedar inconsistente si se agrega mas adelante).
-- Pendiente de decision: `protein.html` usa `pocket_tables.html` (checkboxes en una tabla, sin
-  boton Inspect ni panel "Selected pocket") mientras `structure.html` usa `pocket_cards.html` (la
-  UI nueva con Inspect). Esto es asi por diseño — `protein.html` linkea a "open full viewer" para
-  la experiencia completa — pero si se espera que Inspect tambien funcione en el detalle de
-  proteina, hace falta portar `pocket_cards.html` + `inspectPocket` ahi tambien; no es un bug, es
-  una decision de alcance pendiente.
+- Decidido y resuelto: `protein.html` usaba `pocket_tables.html` (checkboxes en una tabla, sin
+  boton Inspect ni panel "Selected pocket") mientras `structure.html` usaba `pocket_cards.html` (la
+  UI nueva con Inspect) — la razon real de que "Inspect no haga nada" en el detalle de proteina
+  era que ese boton no existia ahi. Se decidio traer paridad completa en vez de mantener dos UIs
+  de pockets: `protein.html` ahora incluye `pocket_cards.html` (cards + Inspect + capas de
+  contexto) en lugar de `pocket_tables.html`, con su propio panel "Selected pocket" (mismos campos
+  que en el viewer fullscreen: Method, Score, Visible layer, Residues, Pocket properties) y el
+  mismo `inspectPocket`/`clearPocketSelection`/`setReprButtonPressed` portado a su `jsloaded()`.
+  `pocket_tables.html` quedo sin uso en ningun lado — se elimino el archivo, junto con el CSS y el
+  JS de `initPocketTableVariants`/DataTables que solo existian para esas tablas.
+- De paso: se agregaron a `protein-detail.css` los estilos de `.pocket-card`/`.pocket-repr-btn`/
+  `.sv-pocket-inspector` (portados de `structure-fullscreen.css`, reusando los tokens
+  `--protein-accent*` que ya existian en vez de introducir uno nuevo), y se corrigieron 9 usos mas
+  de tokens muertos encontrados de paso en `protein-detail.css` (`--tp-color-brand-400` que no
+  existe -> `-500`/`-600` segun si era un estado persistente o de hover/focus, `--tp-color-sage-400`
+  -> `-500`, tres usos de `--tp-color-sage-800` como texto/borde sobre fondo claro -> `-700`, y
+  `var(--tp-font-body)` usado como `font-size` sin que ese token exista -> valor explicito
+  `0.92rem`) mas un `--tp-color-sage-600` inexistente en `structure-fullscreen.css` -> `-500`.
 
 **Pendiente para cerrar.**
 
@@ -241,6 +253,9 @@ El usuario debe poder elegir un pocket puntual y mirarlo en detalle, sin perder 
 - Agregar `Show only selected pocket` / `Show all pockets`.
 - Agregar propiedades derivadas del pocket seleccionado, como centro geometrico estimado, distancia a ligandos/sitios funcionales y consenso FPocket/P2Rank.
 - Verificar en datos reales de Klebsiella que `Pocket` muestra la cavidad/sitio especifico y `Sector` muestra el entorno amplio esperado.
+- Verificar en el cluster con datos reales que zoom, alpha spheres e Inspect efectivamente andan
+  ahora en las dos paginas (protein detail y viewer fullscreen) tras el fix de `NGL.Shape` y la
+  paridad de UI — no se pudo probar en un navegador real desde este entorno.
 - Evaluar unificar `initStructureComponent`/`registerShapeComponent` entre `structure.html` y
   `protein.html` para que este tipo de bug de duplicacion no vuelva a pasar.
 

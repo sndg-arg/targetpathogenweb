@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260710-premium-system1">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260712-pocket-cards1">
 {% endblock %}
 
 {% block body %}
@@ -717,14 +717,44 @@
                     {% include "components/structure/pdb_evidence_table.html" with items=experimental_structures predicted_items=predicted_structures protein=protein %}
 
                     {% if structure.pockets or structure.p2_pockets or alt_structure.pockets or alt_structure.p2_pockets %}
-                    <details class="data-details pocket-tables-details">
-                        <summary class="pocket-tables-summary">
+                    <details class="data-details pocket-panel-details" open>
+                        <summary class="pocket-panel-summary">
                             {% trans "Pocket details" %}
-                            <span class="pocket-tables-summary-hint">{% trans "FPocket · P2Rank — toggle visibility and zoom from here, or" %} <a href="{% url "tpwebapp:structure" structure.id %}?protein_id={{ protein.id }}" class="pocket-tables-summary-link">{% trans "open full viewer" %}</a></span>
+                            <span class="pocket-panel-summary-hint">{% trans "Inspect a specific pocket, or" %} <a href="{% url "tpwebapp:structure" structure.id %}?protein_id={{ protein.id }}" class="pocket-panel-summary-link">{% trans "open the full viewer" %}</a></span>
                         </summary>
-                        {% include "components/structure/pocket_tables.html" with structure_data=structure structure_key="primary" table_prefix="" %}
+                        <section class="sv-pocket-inspector" id="protein-pocket-inspector" hidden aria-live="polite">
+                            <div class="sv-pocket-inspector-head">
+                                <span class="sv-pocket-inspector-kicker">{% trans "Selected pocket" %}</span>
+                                <button type="button" class="sv-pocket-inspector-clear" id="protein-pocket-clear-selection">{% trans "Clear" %}</button>
+                            </div>
+                            <strong class="sv-pocket-inspector-title" data-pocket-field="title">-</strong>
+                            <dl class="sv-pocket-inspector-grid">
+                                <div>
+                                    <dt>{% trans "Method" %}</dt>
+                                    <dd data-pocket-field="method">-</dd>
+                                </div>
+                                <div>
+                                    <dt>{% trans "Score" %}</dt>
+                                    <dd data-pocket-field="score">-</dd>
+                                </div>
+                                <div>
+                                    <dt>{% trans "Visible layer" %}</dt>
+                                    <dd data-pocket-field="layer">-</dd>
+                                </div>
+                                <div class="sv-pocket-inspector-wide">
+                                    <dt>{% trans "Residues" %}</dt>
+                                    <dd data-pocket-field="residues">-</dd>
+                                </div>
+                                <div class="sv-pocket-inspector-wide">
+                                    <dt>{% trans "Pocket properties" %}</dt>
+                                    <dd data-pocket-field="properties">-</dd>
+                                </div>
+                            </dl>
+                            <p class="sv-pocket-inspector-note">{% trans "Inspect mode shows the specific pocket/cavity and hides other active pocket layers. Use Surface when you need the wider residue environment." %}</p>
+                        </section>
+                        {% include "components/structure/pocket_cards.html" with structure_data=structure structure_key="primary" %}
                         {% if alt_structure %}
-                            {% include "components/structure/pocket_tables.html" with structure_data=alt_structure structure_key="alt" table_prefix="alt-" hidden=True %}
+                            {% include "components/structure/pocket_cards.html" with structure_data=alt_structure structure_key="alt" hidden=True %}
                         {% endif %}
                     </details>
                     {% endif %}
@@ -1261,6 +1291,8 @@
             const structureSection = document.getElementById("section-structure");
             const structureLoadingNote = document.getElementById("structure-loading-note");
             const viewportElement = document.getElementById("viewport");
+            const pocketInspector = document.getElementById("protein-pocket-inspector");
+            const pocketClearBtn = document.getElementById("protein-pocket-clear-selection");
             let structureInitialized = false;
             const enable3DmolViewer = STRUCTURE_VIEWER_CONFIG.enable3DmolViewer;
             let nglStageInstance = null;
@@ -1688,6 +1720,84 @@
                             control.setAttribute("aria-pressed", "false");
                         }
                     });
+                    clearPocketSelection();
+                }
+
+                function setCardVisibilityState(card) {
+                    if (!card) return;
+                    var hasVisibleLayer = !!card.querySelector('.js-repr-toggle[aria-pressed="true"]');
+                    card.classList.toggle("is-visible-in-viewer", hasVisibleLayer);
+                }
+
+                function setReprButtonPressed(btn, pressed) {
+                    if (!btn) return;
+                    var isPressed = btn.getAttribute("aria-pressed") === "true";
+                    if (isPressed === pressed) return;
+                    var reprs = (btn.getAttribute("data-repr") || "").trim().split(/\s+/).filter(Boolean);
+                    reprs.forEach(function (r) { window.toogle_view(r); });
+                    btn.setAttribute("aria-pressed", pressed ? "true" : "false");
+                    setCardVisibilityState(btn.closest(".pocket-card, .residueset-row"));
+                }
+
+                function setPocketInspectorField(field, value) {
+                    if (!pocketInspector) return;
+                    var target = pocketInspector.querySelector('[data-pocket-field="' + field + '"]');
+                    if (target) target.textContent = value || "-";
+                }
+
+                function clearPocketSelection() {
+                    document.querySelectorAll(".pocket-card.is-selected-pocket").forEach(function (card) {
+                        card.classList.remove("is-selected-pocket");
+                    });
+                    if (pocketInspector) pocketInspector.hidden = true;
+                }
+
+                function inspectPocket(card) {
+                    if (!card) return;
+                    var activeBlock = card.closest(".sv-structure-block") || document;
+                    activeBlock.querySelectorAll('.pocket-card .js-repr-toggle[aria-pressed="true"], .residueset-row .js-repr-toggle[aria-pressed="true"]').forEach(function (btn) {
+                        if (!card.contains(btn)) setReprButtonPressed(btn, false);
+                    });
+                    clearPocketSelection();
+                    card.classList.add("is-selected-pocket");
+
+                    var coreRepr = card.getAttribute("data-pocket-core-repr") || "";
+                    var coreBtn = coreRepr ? card.querySelector('.js-repr-toggle[data-repr="' + coreRepr + '"]') : null;
+                    setReprButtonPressed(coreBtn || card.querySelector(".js-repr-toggle"), true);
+                    setCardVisibilityState(card);
+
+                    var zoomKey = card.getAttribute("data-pocket-zoom");
+                    if (zoomKey && typeof window.ngl_zoom_to === "function") {
+                        window.ngl_zoom_to(zoomKey);
+                    }
+
+                    setPocketInspectorField("title", card.getAttribute("data-pocket-title") || "");
+                    setPocketInspectorField("method", card.getAttribute("data-pocket-method") || "");
+                    setPocketInspectorField("score", card.getAttribute("data-pocket-score") || "");
+                    setPocketInspectorField("layer", coreBtn ? (coreBtn.getAttribute("data-layer-label") || coreBtn.textContent || "") : "{% trans 'Pocket core' %}");
+                    setPocketInspectorField("residues", card.getAttribute("data-pocket-residues") || "");
+                    setPocketInspectorField("properties", card.getAttribute("data-pocket-properties") || "");
+                    if (pocketInspector) pocketInspector.hidden = false;
+                }
+
+                document.addEventListener("click", function (event) {
+                    var inspectBtn = event.target.closest(".js-inspect-pocket");
+                    if (inspectBtn) {
+                        inspectPocket(inspectBtn.closest(".pocket-card"));
+                        return;
+                    }
+                    var btn = event.target.closest(".js-repr-toggle");
+                    if (!btn) return;
+                    var isPressed = btn.getAttribute("aria-pressed") === "true";
+                    setReprButtonPressed(btn, !isPressed);
+                    var selectedCard = btn.closest(".pocket-card.is-selected-pocket");
+                    if (selectedCard && !isPressed) {
+                        setPocketInspectorField("layer", btn.getAttribute("data-layer-label") || btn.textContent || "");
+                    }
+                });
+
+                if (pocketClearBtn) {
+                    pocketClearBtn.addEventListener("click", clearPocketSelection);
                 }
 
                 function syncExperimentalStructureStatus(which) {
@@ -1985,59 +2095,6 @@
                 initStructureViewer();
             }
             {% endif %}
-
-            (function () {
-                function initPocketTableVariants() {
-                    ["#pocketsTable", "#alt-pocketsTable"].forEach(function (selector) {
-                        if (window.jQuery && $.fn.dataTable && $(selector).length && !$.fn.dataTable.isDataTable(selector) && $(selector + " tbody tr").length > 5) {
-                            initDataTableVariant(selector, {
-                                tpVariant: "compact",
-                                searching: false,
-                                pageLength: 5,
-                                paging: true,
-                                lengthChange: false,
-                                ordering: false,
-                                autoWidth: false
-                            });
-                        }
-                    });
-                    ["#p2pocketsTable", "#alt-p2pocketsTable"].forEach(function (selector) {
-                        if (window.jQuery && $.fn.dataTable && $(selector).length && !$.fn.dataTable.isDataTable(selector) && $(selector + " tbody tr").length > 5) {
-                            initDataTableVariant(selector, {
-                                tpVariant: "compact",
-                                searching: false,
-                                pageLength: 5,
-                                paging: true,
-                                lengthChange: false,
-                                ordering: false,
-                                autoWidth: false
-                            });
-                        }
-                    });
-                    ["#residuesetsTable", "#alt-residuesetsTable"].forEach(function (selector) {
-                        if (window.jQuery && $.fn.dataTable && $(selector).length && !$.fn.dataTable.isDataTable(selector) && $(selector + " tbody tr").length > 5) {
-                            initDataTableVariant(selector, {
-                                tpVariant: "compact",
-                                searching: true,
-                                pageLength: 10,
-                                paging: true,
-                                lengthChange: false,
-                                ordering: false,
-                                autoWidth: false
-                            });
-                        }
-                    });
-                }
-
-                var pocketDetails = document.querySelector(".pocket-tables-details");
-                if (pocketDetails) {
-                    pocketDetails.addEventListener("toggle", function () {
-                        if (this.open) { initPocketTableVariants(); }
-                    }, { once: true });
-                } else {
-                    initPocketTableVariants();
-                }
-            }());
 
             if (typeof proteinDetail.adjustDataTablesOnDetailsToggle === "function") {
                 proteinDetail.adjustDataTablesOnDetailsToggle();

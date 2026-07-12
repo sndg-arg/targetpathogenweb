@@ -94,7 +94,7 @@
 
 .target-summary-panel--strong,
 .target-summary-panel--promising {
-    border-color: color-mix(in srgb, var(--tp-color-brand-400) 42%, var(--tp-color-border-soft));
+    border-color: color-mix(in srgb, var(--tp-color-brand-500) 42%, var(--tp-color-border-soft));
 }
 
 .target-summary-panel--sparse {
@@ -857,72 +857,8 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     box-shadow: none !important;
 }
 
-#pocketsTable.table-hover tbody tr,
-#p2pocketsTable.table-hover tbody tr,
-#residuesetsTable.table-hover tbody tr {
-    transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
-}
-
-#pocketsTable.table-hover tbody tr:hover,
-#p2pocketsTable.table-hover tbody tr:hover,
-#residuesetsTable.table-hover tbody tr:hover {
-    background: var(--tp-color-brand-050);
-}
-
 .table-shell td {
     vertical-align: middle;
-}
-
-#pocketsTable th:first-child,
-#p2pocketsTable th:first-child,
-#pocketsTable td:first-child,
-#p2pocketsTable td:first-child {
-    padding-left: var(--tp-table-cell-first-pl);
-    padding-right: var(--tp-table-cell-px);
-    min-width: 74px;
-}
-
-#pocketsTable th,
-#pocketsTable td,
-#p2pocketsTable th,
-#p2pocketsTable td {
-    vertical-align: middle !important;
-    padding: var(--tp-table-cell-py) var(--tp-table-cell-px);
-}
-
-#pocketsTable th:not(:first-child),
-#p2pocketsTable th:not(:first-child),
-#pocketsTable td:not(:first-child),
-#p2pocketsTable td:not(:first-child) {
-    text-align: center;
-}
-
-#pocketsTable td:first-child,
-#p2pocketsTable td:first-child {
-    text-align: left;
-}
-
-#pocketsTable .structure-toggle,
-#p2pocketsTable .structure-toggle {
-    display: block;
-    margin: 0 auto;
-}
-
-#pocketsTable .structure-table-btn,
-#p2pocketsTable .structure-table-btn,
-#residuesetsTable .structure-table-btn {
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    height: 26px !important;
-    min-height: 26px !important;
-    min-width: 60px;
-    padding: 0 11px !important;
-    border-radius: 6px !important;
-    margin: 0 auto;
-    font-size: 0.75rem !important;
-    font-weight: 600 !important;
-    letter-spacing: 0.01em !important;
 }
 
 .data-details {
@@ -999,28 +935,301 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     box-shadow: none;
 }
 
-.pocket-tables-details .mini-section {
+.pocket-panel-details .mini-section {
     padding-right: 20px;
     padding-left: 20px;
 }
-.pocket-tables-details .mini-section:first-of-type {
+.pocket-panel-details .mini-section:first-of-type {
     padding-top: 20px;
 }
-.pocket-tables-details .mini-section:last-of-type {
+.pocket-panel-details .mini-section:last-of-type {
     padding-bottom: 20px;
 }
+.pocket-panel-details .sv-pocket-inspector {
+    margin: 16px 20px 0;
+}
 
-.pocket-tables-summary-hint {
+.pocket-panel-summary-hint {
     font-size: 0.80rem;
     font-weight: 400;
     color: var(--tp-color-text-muted);
     margin-left: 6px;
 }
-.pocket-tables-summary-link {
+.pocket-panel-summary-link {
     color: var(--tp-color-brand-700);
     text-decoration: none;
 }
-.pocket-tables-summary-link:hover { text-decoration: underline; }
+.pocket-panel-summary-link:hover { text-decoration: underline; }
+
+.sv-pocket-inspector {
+    padding: 10px;
+    border: 1px solid var(--protein-accent-border);
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--protein-accent-soft) 45%, var(--tp-color-surface));
+    box-shadow: var(--tp-shadow-xs);
+}
+
+.sv-pocket-inspector[hidden] {
+    display: none;
+}
+
+.sv-pocket-inspector-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 5px;
+}
+
+.sv-pocket-inspector-kicker {
+    color: var(--tp-color-text-muted);
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.sv-pocket-inspector-clear {
+    appearance: none;
+    border: 1px solid var(--tp-color-border);
+    border-radius: 999px;
+    background: var(--tp-color-surface);
+    color: var(--tp-color-text-secondary);
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.68rem;
+    font-weight: 700;
+    line-height: 1;
+    padding: 4px 8px;
+}
+
+.sv-pocket-inspector-title {
+    display: block;
+    color: var(--protein-accent-ink);
+    font-size: 0.92rem;
+    line-height: 1.2;
+}
+
+.sv-pocket-inspector-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 10px;
+    margin: 8px 0 0;
+}
+
+.sv-pocket-inspector-grid div {
+    min-width: 0;
+}
+
+.sv-pocket-inspector-grid dt {
+    color: var(--tp-color-text-muted);
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.sv-pocket-inspector-grid dd {
+    margin: 1px 0 0;
+    color: var(--tp-color-text-secondary);
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 0.74rem;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.sv-pocket-inspector-wide {
+    grid-column: 1 / -1;
+}
+
+.sv-pocket-inspector-note {
+    margin: 8px 0 0;
+    color: var(--tp-color-text-muted);
+    font-size: 0.74rem;
+    line-height: 1.35;
+}
+
+.pocket-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 7px;
+    margin-top: 8px;
+}
+
+.pocket-card {
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 10px;
+    background: var(--tp-color-surface);
+    padding: 10px 12px;
+    display: grid;
+    gap: 8px;
+    transition:
+        border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.pocket-card.is-visible-in-viewer,
+.residueset-row.is-visible-in-viewer {
+    border-color: var(--protein-accent-border);
+    background: color-mix(in srgb, var(--protein-accent-soft) 38%, var(--tp-color-surface));
+    box-shadow: inset 3px 0 0 var(--protein-accent);
+}
+
+.pocket-card.is-selected-pocket {
+    border-color: var(--protein-accent);
+    background: color-mix(in srgb, var(--protein-accent-soft) 52%, var(--tp-color-surface));
+    box-shadow: inset 4px 0 0 var(--protein-accent), var(--tp-shadow-sm);
+}
+
+.pocket-card--fpocket .pocket-card-id::before,
+.pocket-card--p2rank .pocket-card-id::before {
+    content: "";
+    display: inline-block;
+    width: 0.46rem;
+    height: 0.46rem;
+    border-radius: 999px;
+    margin-right: 5px;
+    vertical-align: 0.02em;
+}
+
+.pocket-card--fpocket .pocket-card-id::before {
+    background: var(--tp-color-brand-500);
+}
+
+.pocket-card--p2rank .pocket-card-id::before {
+    background: var(--tp-color-sage-500);
+}
+
+.pocket-card-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+}
+
+.pocket-card-label {
+    display: grid;
+    gap: 1px;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.pocket-card-name {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--protein-accent-ink);
+}
+
+.pocket-card-id {
+    font-size: 0.7rem;
+    color: var(--tp-color-text-muted);
+}
+
+.pocket-card-reprs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+}
+
+.pocket-card-layer-label {
+    color: var(--tp-color-text-muted);
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    line-height: 1;
+    text-transform: uppercase;
+}
+
+.pocket-repr-btn {
+    appearance: none;
+    -webkit-appearance: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px 6px;
+    border: 1px solid var(--tp-color-border);
+    border-radius: 7px;
+    background: var(--tp-color-surface-soft);
+    color: var(--tp-color-text-secondary);
+    font-size: 0.76rem;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition:
+        background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+    text-align: center;
+    line-height: 1.2;
+}
+.pocket-repr-btn:hover {
+    background: var(--tp-color-surface-alt);
+    border-color: var(--tp-color-border-strong);
+    color: var(--tp-color-text-primary);
+}
+.pocket-repr-btn[aria-pressed="true"] {
+    background: color-mix(in srgb, var(--protein-accent) 12%, var(--tp-color-surface));
+    border-color: var(--protein-accent-border);
+    color: var(--protein-accent-ink);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--protein-accent) 18%, transparent);
+}
+
+.pocket-card-actions {
+    display: flex;
+    gap: 5px;
+}
+.pocket-card-actions .btn { flex: 1; justify-content: center; }
+
+.pocket-card-actions--primary {
+    margin-top: -1px;
+}
+
+.pocket-card-actions--primary .btn {
+    width: 100%;
+    height: 30px !important;
+    min-height: 30px !important;
+    font-weight: 700 !important;
+}
+
+.residueset-list {
+    padding: 8px 0;
+    display: grid;
+    gap: 5px;
+}
+.residueset-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 8px;
+    background: var(--tp-color-surface);
+    transition:
+        border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+.residueset-row-info { flex: 1 1 0; min-width: 0; display: grid; gap: 1px; }
+.residueset-type {
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: var(--tp-color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.residueset-name {
+    font-size: 0.8rem;
+    color: var(--tp-color-text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.residueset-row-actions { display: flex; gap: 4px; flex-shrink: 0; }
+.residueset-row-actions .btn { font-size: 0.76rem; padding: 4px 8px; }
+
+.tp-dark .pocket-card { background: var(--tp-color-surface); border-color: var(--tp-color-border); }
+.tp-dark .pocket-repr-btn { background: var(--tp-color-surface-soft); border-color: var(--tp-color-border); color: var(--tp-color-text-secondary); }
 
 .table-hint {
     margin: 0;
@@ -1239,20 +1448,6 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     background: var(--tp-color-brand-050) !important;
 }
 
-.protein-page .structure-table-btn.tp-btn--outline {
-    color: var(--tp-color-text-muted) !important;
-    border-color: var(--tp-color-border-strong) !important;
-    background: var(--tp-color-surface) !important;
-    box-shadow: none !important;
-}
-
-.protein-page .structure-table-btn.tp-btn--outline:hover,
-.protein-page .structure-table-btn.tp-btn--outline:focus-visible {
-    color: var(--tp-color-brand-800) !important;
-    border-color: var(--tp-color-brand-500) !important;
-    background: color-mix(in srgb, var(--tp-color-brand-500) 8%, var(--tp-color-surface)) !important;
-}
-
 .structure-mode-switch {
     display: inline-flex;
     gap: 6px;
@@ -1358,49 +1553,6 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     font-size: 0.8rem;
     color: var(--tp-color-text-muted);
     line-height: 1.5;
-}
-
-.structure-toggle {
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
-    display: inline-block;
-    width: 2.1rem;
-    height: 1.18rem;
-    border-radius: 999px;
-    border: 1px solid var(--tp-color-border-strong);
-    background: var(--tp-color-surface-muted);
-    position: relative;
-    cursor: pointer;
-    vertical-align: middle;
-    transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard), border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
-}
-
-.structure-toggle::after {
-    content: "";
-    position: absolute;
-    top: 1px;
-    left: 1px;
-    width: 0.94rem;
-    height: 0.94rem;
-    border-radius: 50%;
-    background: var(--tp-color-surface);
-    box-shadow: var(--tp-shadow-xs);
-    transition: transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
-}
-
-.structure-toggle:checked {
-    background: var(--protein-accent);
-    border-color: var(--protein-accent);
-}
-
-.structure-toggle:checked::after {
-    transform: translateX(0.9rem);
-}
-
-.structure-toggle:focus-visible {
-    outline: none;
-    box-shadow: 0 0 0 0.2rem var(--tp-focus-ring);
 }
 
 .binder-grid {
@@ -1556,7 +1708,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 
 .binder-best-card:hover,
 .binder-best-card:focus-visible {
-    border-color: var(--tp-color-brand-400);
+    border-color: var(--tp-color-brand-600);
     box-shadow: var(--tp-shadow-md);
     color: inherit;
     outline: none;
@@ -2135,7 +2287,7 @@ body.binder-mol-modal-open {
 }
 
 .binder-tbl__smiles--copied {
-    color: var(--tp-color-sage-800) !important;
+    color: var(--tp-color-sage-700) !important;
     background: var(--tp-color-sage-050) !important;
     border-radius: 4px;
 }
@@ -2204,13 +2356,13 @@ body.binder-mol-modal-open {
 }
 
 .binder-filter-chip:hover {
-    border-color: var(--tp-color-brand-400);
+    border-color: var(--tp-color-brand-300);
     color: var(--tp-color-brand-900);
 }
 
 .binder-filter-chip.is-active {
     background: var(--tp-color-sage-050);
-    border-color: var(--tp-color-sage-400);
+    border-color: var(--tp-color-sage-500);
     color: var(--tp-color-sage-900);
 }
 
@@ -2259,7 +2411,7 @@ body.binder-mol-modal-open {
 
 .binder-quality--ok {
     background: var(--tp-color-sage-050);
-    color: var(--tp-color-sage-800);
+    color: var(--tp-color-sage-700);
     border: 1px solid var(--tp-color-sage-200);
 }
 
@@ -2859,8 +3011,7 @@ body.residue-modal-open {
 .tp-dark .protein-page .features-reset-btn.tp-btn--outline,
 .tp-dark .protein-page #copy-residue-list.tp-btn--outline,
 .tp-dark .protein-page .structure-icon-btn.tp-btn--outline,
-.tp-dark .protein-page .structure-action-btn.tp-btn--outline,
-.tp-dark .protein-page .structure-table-btn.tp-btn--outline {
+.tp-dark .protein-page .structure-action-btn.tp-btn--outline {
     color: var(--tp-color-text-primary) !important;
     border-color: var(--tp-color-border-strong) !important;
     background: var(--tp-color-surface-soft) !important;
@@ -2876,9 +3027,7 @@ body.residue-modal-open {
 .tp-dark .protein-page .structure-icon-btn.tp-btn--outline:hover,
 .tp-dark .protein-page .structure-icon-btn.tp-btn--outline:focus-visible,
 .tp-dark .protein-page .structure-action-btn.tp-btn--outline:hover,
-.tp-dark .protein-page .structure-action-btn.tp-btn--outline:focus-visible,
-.tp-dark .protein-page .structure-table-btn.tp-btn--outline:hover,
-.tp-dark .protein-page .structure-table-btn.tp-btn--outline:focus-visible {
+.tp-dark .protein-page .structure-action-btn.tp-btn--outline:focus-visible {
     color: var(--tp-color-brand-900) !important;
     border-color: var(--tp-color-brand-600) !important;
     background: color-mix(in srgb, var(--tp-color-brand-600) 14%, var(--tp-color-surface-muted)) !important;
@@ -2927,13 +3076,6 @@ body.residue-modal-open {
 .tp-dark #viewport {
     background: var(--tp-color-structure-bg);
     border-color: var(--tp-color-border);
-}
-
-/* Table hover rows */
-.tp-dark #pocketsTable.table-hover tbody tr:hover,
-.tp-dark #p2pocketsTable.table-hover tbody tr:hover,
-.tp-dark #residuesetsTable.table-hover tbody tr:hover {
-    background: color-mix(in srgb, var(--tp-color-brand-800) 10%, transparent);
 }
 
 /* Binder cards */
@@ -3025,7 +3167,7 @@ body.residue-modal-open {
 }
 
 .target-profile-value {
-    font-size: var(--tp-font-body);
+    font-size: 0.92rem;
     font-weight: 600;
     color: var(--tp-color-text-primary);
 }
@@ -3392,55 +3534,6 @@ body.residue-modal-open {
    Same clean look as the structural evidence table.
    ================================================================ */
 
-/* ── Pocket tables (FPocket / P2Rank / Residue sets) ── */
-
-/* Strip Bootstrap alternating row backgrounds */
-#pocketsTable.table-striped tbody tr:nth-of-type(odd),
-#pocketsTable.table-striped tbody tr:nth-of-type(even),
-#p2pocketsTable.table-striped tbody tr:nth-of-type(odd),
-#p2pocketsTable.table-striped tbody tr:nth-of-type(even),
-#residuesetsTable.table-striped tbody tr:nth-of-type(odd),
-#residuesetsTable.table-striped tbody tr:nth-of-type(even) {
-    background-color: transparent;
-    --bs-table-accent-bg: transparent;
-    --bs-table-striped-bg: transparent;
-}
-
-/* Premium headers */
-#pocketsTable thead th,
-#p2pocketsTable thead th,
-#residuesetsTable thead th {
-    padding: 11px 14px !important;
-    font-size: 0.68rem !important;
-    font-weight: 500 !important;
-    text-transform: uppercase !important;
-    letter-spacing: 0.08em !important;
-    color: var(--tp-color-text-muted) !important;
-    background: var(--tp-color-surface-soft) !important;
-    border-bottom: 1px solid var(--tp-color-border-soft) !important;
-    border-top: none !important;
-}
-
-/* Clean row borders */
-#pocketsTable tbody tr,
-#p2pocketsTable tbody tr,
-#residuesetsTable tbody tr {
-    border-bottom: 1px solid var(--tp-color-border-soft);
-}
-
-#pocketsTable tbody tr:last-child,
-#p2pocketsTable tbody tr:last-child,
-#residuesetsTable tbody tr:last-child {
-    border-bottom: none;
-}
-
-/* Brand-mix hover (overrides old brand-050 rule) */
-#pocketsTable.table-hover tbody tr:hover,
-#p2pocketsTable.table-hover tbody tr:hover,
-#residuesetsTable.table-hover tbody tr:hover {
-    background: color-mix(in srgb, var(--tp-color-brand-500) 5%, var(--tp-color-surface)) !important;
-}
-
 /* ── Binder table ── */
 
 /* Remove alternating stripe */
@@ -3500,9 +3593,6 @@ body.residue-modal-open {
 }
 
 /* ── Dark mode ── */
-.tp-dark #pocketsTable.table-hover tbody tr:hover,
-.tp-dark #p2pocketsTable.table-hover tbody tr:hover,
-.tp-dark #residuesetsTable.table-hover tbody tr:hover,
 .tp-dark .binder-tbl__row:hover {
     background: color-mix(in srgb, var(--tp-color-brand-500) 8%, var(--tp-color-surface)) !important;
 }
@@ -3635,11 +3725,11 @@ body.residue-modal-open {
 }
 
 .target-evidence-card--fpocket {
-    border-left: 3px solid var(--tp-color-brand-400);
+    border-left: 3px solid var(--tp-color-brand-500);
 }
 
 .target-evidence-card--p2rank {
-    border-left: 3px solid color-mix(in srgb, var(--tp-color-brand-400) 60%, var(--tp-color-info-border));
+    border-left: 3px solid color-mix(in srgb, var(--tp-color-brand-500) 60%, var(--tp-color-info-border));
 }
 
 .target-evidence-card[title],
@@ -3745,9 +3835,9 @@ body.residue-modal-open {
 }
 
 .binder-crystal-badge--loaded {
-    color: var(--tp-color-sage-800);
+    color: var(--tp-color-sage-700);
     background: var(--tp-color-sage-050);
-    border-color: color-mix(in srgb, var(--tp-color-sage-800) 20%, var(--tp-color-border-soft));
+    border-color: color-mix(in srgb, var(--tp-color-sage-700) 20%, var(--tp-color-border-soft));
 }
 
 .binder-crystal-viewer {
