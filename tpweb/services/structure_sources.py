@@ -132,3 +132,36 @@ def summarize_structure_sources(structures):
         "has_structure": bool(source_keys),
         "count": total_structures,
     }
+
+
+def structure_identifier_candidates(identifier):
+    """Expand a bare structure identifier into the code variants it may appear as.
+
+    An imported score value like "A0A0H3GWB0" may match a PDB.code of
+    "AF_A0A0H3GWB0" or "CB_A0A0H3GWB0" (or the reverse: a stored "AF_..."
+    identifier should still match the bare accession). Shared by ProteinView's
+    "selected pocket evidence" display and the pocket-size-outlier indexer, so
+    both resolve a curated structure identifier the same way.
+    """
+    ident = (identifier or "").strip().upper()
+    if not ident:
+        return set()
+    candidates = {ident}
+    for prefix in ("AF_", "CB_"):
+        if ident.startswith(prefix):
+            candidates.add(ident[len(prefix):])
+    candidates.add(f"AF_{ident}")
+    candidates.add(f"CB_{ident}")
+    return candidates
+
+
+def structure_matches_identifier(link, identifier):
+    """Does `link` (a BioentryStructure, or a PDB itself) refer to `identifier`?"""
+    if link is None:
+        return False
+    pdb = getattr(link, "pdb", link)
+    code = (getattr(pdb, "code", "") or "").strip().upper()
+    return any(
+        code == candidate or code.startswith(f"{candidate}_") or code.startswith(f"{candidate}-")
+        for candidate in structure_identifier_candidates(identifier)
+    )

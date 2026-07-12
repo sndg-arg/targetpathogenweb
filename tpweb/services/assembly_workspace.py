@@ -192,13 +192,29 @@ def _score_proteins(assembly_name):
         score = 0.0
 
         fpocket = _as_float(param_values.get("Druggability"))
+        pocket_size_outlier = _is_yes(param_values.get("pocket_size_outlier"))
         if fpocket is not None:
             if fpocket >= 0.7:
-                score += 2.0
-                _add_signal(signals, f"High FPocket druggability {_format_decimal(fpocket)}")
+                if pocket_size_outlier:
+                    score += 1.0
+                    _add_signal(
+                        cautions,
+                        f"High FPocket druggability {_format_decimal(fpocket)}, but best pocket geometry is a size outlier for this protein",
+                        "bad",
+                    )
+                else:
+                    score += 2.0
+                    _add_signal(signals, f"High FPocket druggability {_format_decimal(fpocket)}")
             elif fpocket >= 0.4:
-                score += 1.0
-                _add_signal(signals, f"Moderate FPocket druggability {_format_decimal(fpocket)}", "neutral")
+                if pocket_size_outlier:
+                    _add_signal(
+                        cautions,
+                        f"Moderate FPocket druggability {_format_decimal(fpocket)}, but best pocket geometry is a size outlier for this protein",
+                        "bad",
+                    )
+                else:
+                    score += 1.0
+                    _add_signal(signals, f"Moderate FPocket druggability {_format_decimal(fpocket)}", "neutral")
             elif fpocket > 0:
                 score -= 0.5
                 _add_signal(cautions, f"Weak FPocket druggability {_format_decimal(fpocket)}", "bad")

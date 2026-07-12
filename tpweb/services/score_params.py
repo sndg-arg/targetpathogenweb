@@ -116,6 +116,24 @@ SYSTEM_SCORE_PARAM_DEFINITIONS = {
         "default_operation": ">=",
         "default_value": "0",
     },
+    "pocket_size_outlier": {
+        "category": "Pocket",
+        "description": (
+            "Whether this protein's best/representative FPocket pocket has an unusually large or "
+            "diffuse geometry compared to that structure's other pockets (statistical outlier by "
+            "volume). Often reflects a low-confidence or disordered model region that FPocket "
+            "scores as druggable without being a real small-molecule cavity — treat a high "
+            "druggability score with more caution when this is Y."
+        ),
+        "type": "C",
+        "default_operation": "=",
+        "default_value": "N",
+        "options": ("Y", "N"),
+        "option_descriptions": {
+            "Y": "Best pocket's volume is a statistical outlier among this structure's pockets — verify manually before trusting the druggability score.",
+            "N": "Best pocket's volume is within the normal range for this structure's pockets.",
+        },
+    },
     "gut_microbiome_offtarget_norm": {
         "category": "Off-target",
         "description": (

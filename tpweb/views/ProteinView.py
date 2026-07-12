@@ -37,6 +37,7 @@ from tpweb.services.structure_sources import (
     summarize_structure_sources,
     sort_structures_by_preference as _sort_structures_by_preference,
     structure_toggle_label as _structure_toggle_label,
+    structure_matches_identifier,
     PDB_MODEL_EXPERIMENTS as _PDB_MODEL_EXPERIMENTS,
 )
 
@@ -217,30 +218,6 @@ def _format_pocket_label(value):
     return label
 
 
-def _structure_identifier_candidates(identifier):
-    ident = (identifier or "").strip().upper()
-    if not ident:
-        return set()
-    candidates = {ident}
-    for prefix in ("AF_", "CB_"):
-        if ident.startswith(prefix):
-            candidates.add(ident[len(prefix):])
-    candidates.add(f"AF_{ident}")
-    candidates.add(f"CB_{ident}")
-    return candidates
-
-
-def _structure_matches_identifier(link, identifier):
-    if link is None:
-        return False
-    pdb = getattr(link, "pdb", link)
-    code = (getattr(pdb, "code", "") or "").strip().upper()
-    return any(
-        code == candidate or code.startswith(f"{candidate}_") or code.startswith(f"{candidate}-")
-        for candidate in _structure_identifier_candidates(identifier)
-    )
-
-
 def _annotate_selected_source_status(evidence, structures, visible_links=None):
     if not evidence:
         return
@@ -253,11 +230,11 @@ def _annotate_selected_source_status(evidence, structures, visible_links=None):
 
     visible_links = [link for link in (visible_links or []) if link is not None]
     visible = any(
-        _structure_matches_identifier(link, selected_identifier)
+        structure_matches_identifier(link, selected_identifier)
         for link in visible_links
     )
     loaded = visible or any(
-        _structure_matches_identifier(link, selected_identifier)
+        structure_matches_identifier(link, selected_identifier)
         for link in (structures or [])
     )
 
@@ -586,14 +563,22 @@ def _build_target_executive_summary(
             )
 
     fpocket_score = _score_float(raw_scores, "Druggability")
+    pocket_size_outlier = _truthy_score(_raw_score(raw_scores, "pocket_size_outlier"))
     p2rank_score = _score_float(raw_scores, "p2rank_probability")
     if fpocket_score is not None:
         if fpocket_score >= 0.7:
-            _append_summary_item(strengths, "Strong predicted binding pocket", f"FPocket selected-pocket score {fpocket_score:.2f}. This is a computational pocket signal, not binding validation.", "good", "#section-target-profile")
-            signal_score += 2
+            if pocket_size_outlier:
+                _append_summary_item(risks, "Best pocket may be a modeling artifact", f"FPocket selected-pocket score {fpocket_score:.2f}, but this pocket's geometry is unusually large/diffuse compared to this protein's other predicted pockets — may reflect a low-confidence or disordered model region rather than a real cavity.", "watch", "#section-target-profile")
+                signal_score += 1
+            else:
+                _append_summary_item(strengths, "Strong predicted binding pocket", f"FPocket selected-pocket score {fpocket_score:.2f}. This is a computational pocket signal, not binding validation.", "good", "#section-target-profile")
+                signal_score += 2
         elif fpocket_score >= 0.4:
-            _append_summary_item(strengths, "Moderate predicted binding pocket", f"FPocket selected-pocket score {fpocket_score:.2f}. This supports review but is not experimental validation.", "neutral", "#section-target-profile")
-            signal_score += 1
+            if pocket_size_outlier:
+                _append_summary_item(risks, "Best pocket may be a modeling artifact", f"FPocket selected-pocket score {fpocket_score:.2f}, but this pocket's geometry is unusually large/diffuse compared to this protein's other predicted pockets — may reflect a low-confidence or disordered model region rather than a real cavity.", "watch", "#section-target-profile")
+            else:
+                _append_summary_item(strengths, "Moderate predicted binding pocket", f"FPocket selected-pocket score {fpocket_score:.2f}. This supports review but is not experimental validation.", "neutral", "#section-target-profile")
+                signal_score += 1
         elif fpocket_score > 0:
             _append_summary_item(risks, "Weak predicted binding pocket", f"FPocket selected-pocket score {fpocket_score:.2f}.", "watch", "#section-target-profile")
     else:

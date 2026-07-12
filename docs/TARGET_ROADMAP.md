@@ -291,18 +291,26 @@ El usuario debe poder elegir un pocket puntual y mirarlo en detalle, sin perder 
   `.tp-chip--warning` del sistema de diseño) con tooltip explicando el volumen vs. la mediana de la
   estructura. Solo FPocket por ahora — P2Rank no tiene `Volume` guardado ni geometria de alpha
   spheres real, es una decision explicita, no un olvido.
-- Pendiente (fase 2, ya diseñada, no implementada): que un pocket-outlier descuente el sub-score
-  de drogabilidad en el ranking genoma-completo (`assembly_workspace.py`) y aparezca en el bloque
-  "Risks" del resumen ejecutivo de la proteina. Requiere un nuevo comando offline
-  (`index_pocket_size_outlier.py`, siguiendo el patron correcto `ScoreParam.Initialize_druggability`
-  — NO el de `index_druggability.py`, que tiene bugs reales: llama a un `ScoreParam.Initialize2()`
-  inexistente, usa mal `get_or_create`, y asume una sola estructura por proteina). Punto critico:
-  para proteinas curadas (import Gates-Targets), el pocket "representativo" a chequear debe ser el
-  que señala `fpocket_pocket`/`best_fpocket_structure` (lo que eligieron las biologas), no el que
-  el ranking automatico por druggability elegiria — la logica para resolver esto ya esta diseñada
-  (matchear el numero en el string `"Pocket <N>"` contra `PDBResidueSet.name`) pero falta verificar
-  contra datos reales de proteinas curadas antes de confiar en el match. Plan completo en el
-  historial de la sesion; abrir cuando se retome.
+- Implementado (fase 2, impacto en scoring): nuevo comando offline
+  `python manage.py index_pocket_size_outlier <genoma>` — para cada proteina resuelve su pocket
+  "representativo" (curado primero: si existen `best_fpocket_structure`/`fpocket_pocket` los usa,
+  extrayendo el numero del string `"Pocket <N>"` y matcheandolo contra `PDBResidueSet.name`;
+  si no hay dato curado o no matchea, cae al pick automatico por `druggability_score` maximo entre
+  *todas* las estructuras ligadas a la proteina, no solo una), calcula si ese pocket es outlier con
+  el mismo `pocket_geometry.py` de la fase 1, y guarda el resultado como `ScoreParamValue`
+  `pocket_size_outlier` (Y/N). El `ScoreParam` se registra solo agregando una entrada a
+  `SYSTEM_SCORE_PARAM_DEFINITIONS` (`tpweb/services/score_params.py`) — no hizo falta un metodo
+  `Initialize_*` nuevo en `ScoreParam.py`, ese mecanismo ya autocrea el `ScoreParam`/opciones. Las
+  funciones de matching de identificador de estructura (`_structure_identifier_candidates`/
+  `_structure_matches_identifier`) se sacaron de `ProteinView.py` a
+  `tpweb/services/structure_sources.py` para que las comparta el comando nuevo.
+  `assembly_workspace.py`/`_score_proteins`: si el pocket con druggability alta/media es outlier,
+  el sub-score de drogabilidad se descuenta (alta: 2.0 -> 1.0; media: 1.0 -> 0) y aparece como
+  caution en vez de signal. `ProteinView.py`/`_build_target_executive_summary`: mismo caso agrega
+  un item a **Risks** ("Best pocket may be a modeling artifact") en vez de a Strengths.
+  No se copiaron los bugs reales de `index_druggability.py` (llamaba a un
+  `ScoreParam.Initialize2()` inexistente, usaba mal `get_or_create`, asumia una sola estructura
+  por proteina).
 
 **Pendiente para cerrar.**
 
@@ -317,8 +325,16 @@ El usuario debe poder elegir un pocket puntual y mirarlo en detalle, sin perder 
   `protein.html` para que este tipo de bug de duplicacion no vuelva a pasar.
 - Verificar en el cluster que el chip "Unusual size" aparece para los pockets grandes/dispersos
   (ej. AF_A0A0H3GWB0) y no para los normales, y que confirma el volumen real por FPocket.
-- Implementar la fase 2 (impacto en scoring + Risks) cuando se decida la magnitud del descuento
-  con el equipo de bioinformatica, y verificar el matching de pockets curados contra datos reales.
+- Correr `index_pocket_size_outlier` contra un genoma real (con proteinas curadas y no curadas) y
+  verificar en shell que el flag quedo bien para varias proteinas conocidas — en particular alguna
+  curada, para confirmar que tomo el pocket de las biologas y no el auto-rankeado.
+  Confirmar tambien que `Volume` esta poblado en (casi) todos los `ResidueSetProperty` reales, no
+  solo en la proteina de prueba de esta sesion.
+  Validar el string `"Pocket <N>"` de `fpocket_pocket` contra datos curados reales (se rastreo el
+  formato desde el codigo del pipeline externo, no se verifico contra la base todavia).
+- Confirmar con el equipo de bioinformatica la magnitud del descuento en `_score_proteins` (hoy:
+  alta drogabilidad + outlier = mitad de puntos; media drogabilidad + outlier = cero puntos) — es
+  ajustable en un solo `if`, no bloquea nada correrlo ya con este valor por default.
 
 ### Comparacion FPocket vs P2Rank
 
