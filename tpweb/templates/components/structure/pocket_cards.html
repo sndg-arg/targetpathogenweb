@@ -22,14 +22,17 @@
                         </div>
                         <span class="tp-score-tag js-score-tag" data-score="{{ p.druggability }}">{{ p.druggability }}</span>
                     </div>
+                    <div class="pocket-card-actions pocket-card-actions--primary">
+                        <button type="button" class="btn tp-btn tp-btn--primary tp-btn--sm js-inspect-pocket" title="{% trans 'Focus the specific pocket/cavity and update the detail panel.' %}">{% trans "Inspect pocket" %}</button>
+                    </div>
+                    <span class="pocket-card-layer-label">{% trans "Context layers" %}</span>
                     <div class="pocket-card-reprs" aria-label="{% trans 'Pocket visual layers' %}">
-                        <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="{{p.name}}_sph" aria-pressed="false" title="{% trans 'Show the specific FPocket cavity using imported alpha-sphere geometry.' %}">{% trans "Pocket" %}</button>
-                        <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="{{p.name}}_atm" aria-pressed="false" title="{% trans 'Show atoms/residues around this predicted pocket.' %}">{% trans "Sector atoms" %}</button>
-                        <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="{{p.name}}_pol {{p.name}}_apol" aria-pressed="false" title="{% trans 'Show the wider residue surface around this pocket.' %}">{% trans "Sector" %}</button>
-                        <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="{{p.name}}_lbl" aria-pressed="false" title="{% trans 'Show residue labels for this pocket.' %}">{% trans "Labels" %}</button>
+                        <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="{{p.name}}_sph" data-layer-label="{% trans 'Pocket core' %}" aria-pressed="false" title="{% trans 'Show the specific FPocket cavity using imported alpha-sphere geometry.' %}">{% trans "Pocket" %}</button>
+                        <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="{{p.name}}_atm" data-layer-label="{% trans 'Surrounding residues' %}" aria-pressed="false" title="{% trans 'Show atoms/residues around this predicted pocket.' %}">{% trans "Residues" %}</button>
+                        <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="{{p.name}}_pol {{p.name}}_apol" data-layer-label="{% trans 'Surrounding surface' %}" aria-pressed="false" title="{% trans 'Show the wider residue surface around this pocket.' %}">{% trans "Surface" %}</button>
+                        <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="{{p.name}}_lbl" data-layer-label="{% trans 'Residue labels' %}" aria-pressed="false" title="{% trans 'Show residue labels for this pocket.' %}">{% trans "Labels" %}</button>
                     </div>
                     <div class="pocket-card-actions">
-                        <button type="button" class="btn tp-btn tp-btn--primary tp-btn--sm js-inspect-pocket" title="{% trans 'Focus the specific pocket/cavity and update the detail panel.' %}">{% trans "Inspect" %}</button>
                         <button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm" onclick="ngl_zoom_to('{{p.name}}_zoom')" title="{% trans 'Center the 3D view on this pocket.' %}">{% trans "Zoom" %}</button>
                         <button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm js-show-residues" data-residues="{{ p.residues|join:' ' }}" title="{% trans 'List residues assigned to this pocket.' %}">{% trans "Residues" %}</button>
                     </div>
@@ -61,14 +64,17 @@
                         </div>
                         <span class="tp-score-tag js-score-tag" data-score="{{ p2.probability }}" data-score-type="p2rank-prob">{{ p2.probability }}</span>
                     </div>
+                    <div class="pocket-card-actions pocket-card-actions--primary">
+                        <button type="button" class="btn tp-btn tp-btn--primary tp-btn--sm js-inspect-pocket" title="{% trans 'Focus the specific pocket/cavity and update the detail panel.' %}">{% trans "Inspect pocket" %}</button>
+                    </div>
+                    <span class="pocket-card-layer-label">{% trans "Context layers" %}</span>
                     <div class="pocket-card-reprs" aria-label="{% trans 'Pocket visual layers' %}">
-                        <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="p2_{{p2.name}}_sph" aria-pressed="false" title="{% trans 'Show the specific P2Rank predicted binding site using imported surface atoms.' %}">{% trans "Pocket" %}</button>
-                        <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="p2_{{p2.name}}_atm" aria-pressed="false" title="{% trans 'Show atoms/residues around this predicted site.' %}">{% trans "Sector atoms" %}</button>
-                        <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="p2_{{p2.name}}_pol p2_{{p2.name}}_apol" aria-pressed="false" title="{% trans 'Show the wider residue surface around this site.' %}">{% trans "Sector" %}</button>
-                        <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="p2_{{p2.name}}_lbl" aria-pressed="false" title="{% trans 'Show residue labels for this pocket.' %}">{% trans "Labels" %}</button>
+                        <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="p2_{{p2.name}}_sph" data-layer-label="{% trans 'Pocket core' %}" aria-pressed="false" title="{% trans 'Show the specific P2Rank predicted binding site using imported surface atoms.' %}">{% trans "Pocket" %}</button>
+                        <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="p2_{{p2.name}}_atm" data-layer-label="{% trans 'Surrounding residues' %}" aria-pressed="false" title="{% trans 'Show atoms/residues around this predicted site.' %}">{% trans "Residues" %}</button>
+                        <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="p2_{{p2.name}}_pol p2_{{p2.name}}_apol" data-layer-label="{% trans 'Surrounding surface' %}" aria-pressed="false" title="{% trans 'Show the wider residue surface around this site.' %}">{% trans "Surface" %}</button>
+                        <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="p2_{{p2.name}}_lbl" data-layer-label="{% trans 'Residue labels' %}" aria-pressed="false" title="{% trans 'Show residue labels for this pocket.' %}">{% trans "Labels" %}</button>
                     </div>
                     <div class="pocket-card-actions">
-                        <button type="button" class="btn tp-btn tp-btn--primary tp-btn--sm js-inspect-pocket" title="{% trans 'Focus the specific pocket/cavity and update the detail panel.' %}">{% trans "Inspect" %}</button>
                         <button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm" onclick="ngl_zoom_to('p2_{{p2.name}}_zoom')" title="{% trans 'Center the 3D view on this pocket.' %}">{% trans "Zoom" %}</button>
                         <button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm js-show-residues" data-residues="{{ p2.residues|join:' ' }}" title="{% trans 'List residues assigned to this pocket.' %}">{% trans "Residues" %}</button>
                     </div>

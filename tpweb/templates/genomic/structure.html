@@ -161,6 +161,10 @@
                             <dt>{% trans "Score" %}</dt>
                             <dd data-pocket-field="score">-</dd>
                         </div>
+                        <div>
+                            <dt>{% trans "Visible layer" %}</dt>
+                            <dd data-pocket-field="layer">-</dd>
+                        </div>
                         <div class="sv-pocket-inspector-wide">
                             <dt>{% trans "Residues" %}</dt>
                             <dd data-pocket-field="residues">-</dd>
@@ -343,6 +347,7 @@ function jsloaded() {
         setPocketInspectorField("title", card.getAttribute("data-pocket-title") || "");
         setPocketInspectorField("method", card.getAttribute("data-pocket-method") || "");
         setPocketInspectorField("score", card.getAttribute("data-pocket-score") || "");
+        setPocketInspectorField("layer", coreBtn ? (coreBtn.getAttribute("data-layer-label") || coreBtn.textContent || "") : "{% trans 'Pocket core' %}");
         setPocketInspectorField("residues", card.getAttribute("data-pocket-residues") || "");
         setPocketInspectorField("properties", card.getAttribute("data-pocket-properties") || "");
         if (pocketInspector) pocketInspector.hidden = false;
@@ -382,6 +387,10 @@ function jsloaded() {
         if (!btn) return;
         var isPressed = btn.getAttribute("aria-pressed") === "true";
         setReprButtonPressed(btn, !isPressed);
+        var selectedCard = btn.closest(".pocket-card.is-selected-pocket");
+        if (selectedCard && !isPressed) {
+            setPocketInspectorField("layer", btn.getAttribute("data-layer-label") || btn.textContent || "");
+        }
     });
 
     if (pocketClearBtn) {
