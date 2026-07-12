@@ -21,6 +21,9 @@
                             <strong class="pocket-card-name">{% trans "Site" %} {{ forloop.counter }}</strong>
                             <span class="pocket-card-id">FPocket #{{ p.name }}</span>
                         </div>
+                        {% if p.size_outlier %}
+                            <span class="tp-chip tp-chip--warning tp-chip--sm" title="{{ p.size_outlier_note }}">{% trans "Unusual size" %}</span>
+                        {% endif %}
                         <span class="tp-score-tag js-score-tag" data-score="{{ p.druggability }}">{{ p.druggability }}</span>
                     </div>
                     <div class="pocket-card-actions pocket-card-actions--primary">

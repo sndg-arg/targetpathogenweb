@@ -4,10 +4,11 @@ from django.http import Http404
 from django.views import View
 from bioseq.models.Biodatabase import Biodatabase
 from tpweb.models.BioentryStructure import BioentryStructure
-from tpweb.models.pdb import PDB, Residue, Property, ResidueSet, PDBResidueSet
+from tpweb.models.pdb import PDB, Residue, Property, ResidueSet, PDBResidueSet, ResidueSetProperty
 from django.db.models import Q
 from tpweb.services.genome_workspace import user_can_access_genome_name, genome_url_slug
 from tpweb.services.structure_files import detect_structure_format, display_code, structure_file_path
+from tpweb.services.pocket_geometry import volume_outlier_map
 
 
 _METHOD_MAP = {"EX": "Crystal structure", "AF": "AlphaFold DB model", "CF": "ColabFold model"}
@@ -351,6 +352,19 @@ def pdb_structure(
     rs = ResidueSet.objects.get(name="FPocketPocket")
     p2_rs = ResidueSet.objects.get(name="P2RankPocket")
 
+    # Compare every FPocket pocket's volume against its OWN structure's other
+    # pockets (not the top-N shown in the UI, nor a fixed global cutoff) --
+    # what counts as "unusually large" varies by protein.
+    volume_prop = Property.objects.filter(name="Volume").first()
+    size_outlier_map = {}
+    if volume_prop is not None:
+        all_volumes = ResidueSetProperty.objects.filter(
+            pdbresidue_set__pdb=pdbobj,
+            pdbresidue_set__residue_set=rs,
+            property=volume_prop,
+        ).values_list("pdbresidue_set_id", "value")
+        size_outlier_map = volume_outlier_map(all_volumes)
+
     pocket_ids = _ranked_pocket_ids(pdbobj, rs, ds, pocket_limit, min_value=0.2)
     p2_pocket_ids = _ranked_pocket_ids(pdbobj, p2_rs, p2p, p2rank_limit)
 
@@ -383,6 +397,22 @@ def pdb_structure(
             p.core_button_label = "Pocket atoms"
             p.core_layer_label = "Pocket atoms / specific pocket"
             p.core_note = "Alpha-sphere geometry was unavailable or did not align with this loaded structure; showing pocket atoms instead."
+
+        is_outlier, median_volume, _mad = size_outlier_map.get(p.id, (False, None, None))
+        p.size_outlier = is_outlier
+        if is_outlier:
+            pocket_volume = next((x.value for x in p.properties.all() if x.property == volume_prop), None)
+            p.size_outlier_note = (
+                f"This pocket's volume ({pocket_volume:.0f} Å³) is unusually large/diffuse compared to "
+                f"this structure's other pockets (typical volume ~{median_volume:.0f} Å³) — may reflect a "
+                "low-confidence or disordered model region rather than a real small-molecule cavity."
+                if pocket_volume is not None and median_volume is not None
+                else "This pocket's geometry is unusually large/diffuse compared to this structure's other "
+                "pockets — may reflect a low-confidence or disordered model region rather than a real "
+                "small-molecule cavity."
+            )
+        else:
+            p.size_outlier_note = ""
         p.residues = []
         data = []
 

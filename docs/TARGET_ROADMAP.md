@@ -211,6 +211,19 @@ El usuario debe poder elegir un pocket puntual y mirarlo en detalle, sin perder 
   se mantuvo un radio fijo (subido de `0.28` a `1.1`) porque sus `core_points` son atomos de
   residuo reales (via `_residue_set_core_points`), cuyo B-factor es el valor cristalografico/
   predicho real, no un radio — usarlo ahi seria semanticamente incorrecto.
+- Bug encontrado y corregido: `Inspect` dejaba "la proteina borrada". Causa: `inspectPocket`
+  (en `structure.html` y `protein.html`) habia empezado a llamar `window.ngl_set_mode("density")`
+  al inspeccionar un pocket, lo que apaga la representacion `cartoon` de toda la proteina y
+  prende la superficie molecular completa (`__main_density`) en su lugar. Esa superficie ya tenia
+  un bug de contraste independiente: su color en modo claro (`--tp-color-structure-density:
+  #d8e1e9`) es casi identico al fondo del canvas (`--sv-viewer-canvas-bg: #f0f6fa`), asi que al
+  apagarse el cartoon quedaba una superficie practicamente invisible contra el fondo — de ahi
+  "se borra toda la proteina". Fix: se saco el cambio automatico de modo de `inspectPocket` (Inspect
+  ahora solo prende la capa del pocket especifico, sin tocar el modo de vista global) y se corrigio
+  el color de la superficie a `#a3c9d6` para que sea visible si se activa manualmente con el boton
+  `Surface`. De paso se encontro y corrigio otro bug en la misma funcion: `pocketInspector.hidden`
+  quedaba en `true` al final de `inspectPocket` (deberia ser `false` para mostrar el panel recien
+  poblado) — el panel "Selected pocket" nunca llegaba a mostrarse.
 - Bug encontrado y corregido: la logica de inicializacion del viewer NGL (`initStructureComponent`,
   `registerShapeComponent`) esta duplicada entre `structure.html` (viewer fullscreen) y
   `protein.html` (viewer embebido en el detalle de proteina) en vez de compartirse. El fix de
@@ -260,6 +273,37 @@ El usuario debe poder elegir un pocket puntual y mirarlo en detalle, sin perder 
   `var(--tp-font-body)` usado como `font-size` sin que ese token exista -> valor explicito
   `0.92rem`) mas un `--tp-color-sage-600` inexistente en `structure-fullscreen.css` -> `-500`.
 
+- Hallazgo con datos reales (proteina AF_A0A0H3GWB0): las alpha spheres en si estaban bien (radio
+  y posicion correctos, verificado con distancia de centroides contra los atomos de residuo del
+  mismo pocket) — el problema real es que **los 4 pockets que la UI muestra por defecto (top-4 por
+  druggability_score) resultaron ser, para esta proteina, los 4 mas grandes y difusos de sus ~111
+  pockets** (26-53 A de diagonal / hasta 397 alpha spheres, contra 4-20 A / 15-100 en el resto) —
+  probablemente una region de baja confianza del modelo de AlphaFold que FPocket puntua como
+  drogable sin serlo. Por eso se veian como "un bodoque" y no como una cavidad.
+- Implementado (fase 1, badge visual): `tpweb/services/pocket_geometry.py` (nuevo) calcula, por
+  estructura, si el volumen de un pocket de FPocket es un outlier relativo a los *otros pockets de
+  esa misma estructura* (mediana + MAD, z-score modificado de Iglewicz-Hoaglin, umbral 3.5,
+  un solo lado — solo marca pockets mas grandes que la mediana, no mas chicos). Reusa el `Volume`
+  que FPocket ya calcula por pocket (`ResidueSetProperty`), no recalcula geometria nueva.
+  `StructureView.py`/`pdb_structure()` calcula esto para TODOS los pockets de la estructura (no
+  solo el top-4 mostrado) y expone `p.size_outlier`/`p.size_outlier_note` por pocket, sin tocar el
+  orden/ranking por druggability. `pocket_cards.html` muestra un chip "Unusual size" (reusando
+  `.tp-chip--warning` del sistema de diseño) con tooltip explicando el volumen vs. la mediana de la
+  estructura. Solo FPocket por ahora — P2Rank no tiene `Volume` guardado ni geometria de alpha
+  spheres real, es una decision explicita, no un olvido.
+- Pendiente (fase 2, ya diseñada, no implementada): que un pocket-outlier descuente el sub-score
+  de drogabilidad en el ranking genoma-completo (`assembly_workspace.py`) y aparezca en el bloque
+  "Risks" del resumen ejecutivo de la proteina. Requiere un nuevo comando offline
+  (`index_pocket_size_outlier.py`, siguiendo el patron correcto `ScoreParam.Initialize_druggability`
+  — NO el de `index_druggability.py`, que tiene bugs reales: llama a un `ScoreParam.Initialize2()`
+  inexistente, usa mal `get_or_create`, y asume una sola estructura por proteina). Punto critico:
+  para proteinas curadas (import Gates-Targets), el pocket "representativo" a chequear debe ser el
+  que señala `fpocket_pocket`/`best_fpocket_structure` (lo que eligieron las biologas), no el que
+  el ranking automatico por druggability elegiria — la logica para resolver esto ya esta diseñada
+  (matchear el numero en el string `"Pocket <N>"` contra `PDBResidueSet.name`) pero falta verificar
+  contra datos reales de proteinas curadas antes de confiar en el match. Plan completo en el
+  historial de la sesion; abrir cuando se retome.
+
 **Pendiente para cerrar.**
 
 - Refinar modo de foco para atenuar geometricamente la proteina y otros pockets, no solo apagar capas activas.
@@ -271,6 +315,10 @@ El usuario debe poder elegir un pocket puntual y mirarlo en detalle, sin perder 
   paridad de UI — no se pudo probar en un navegador real desde este entorno.
 - Evaluar unificar `initStructureComponent`/`registerShapeComponent` entre `structure.html` y
   `protein.html` para que este tipo de bug de duplicacion no vuelva a pasar.
+- Verificar en el cluster que el chip "Unusual size" aparece para los pockets grandes/dispersos
+  (ej. AF_A0A0H3GWB0) y no para los normales, y que confirma el volumen real por FPocket.
+- Implementar la fase 2 (impacto en scoring + Risks) cuando se decida la magnitud del descuento
+  con el equipo de bioinformatica, y verificar el matching de pockets curados contra datos reales.
 
 ### Comparacion FPocket vs P2Rank
 

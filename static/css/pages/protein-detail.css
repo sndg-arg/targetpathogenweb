@@ -1104,6 +1104,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 .pocket-card-head {
     display: flex;
     align-items: flex-start;
+    flex-wrap: wrap;
     gap: 6px;
 }
 
