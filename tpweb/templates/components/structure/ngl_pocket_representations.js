@@ -49,8 +49,7 @@
     {% for point in p.core_points %}
     fpocketCoreShape{{ forloop.parentloop.counter }}.addSphere([{{ point.x }}, {{ point.y }}, {{ point.z }}], fpocketCoreColor{{ forloop.parentloop.counter }}, 0.34);
     {% endfor %}
-    representations["{{p.name}}_sph"] = stage.addComponentFromObject(fpocketCoreShape{{ forloop.counter }});
-    representations["{{p.name}}_sph"].addRepresentation("buffer", { opacity: 1.0 });
+    registerShapeComponent("{{p.name}}_sph", fpocketCoreShape{{ forloop.counter }});
     {% else %}
     representations["{{p.name}}_sph"] = component.addRepresentation("spacefill", {
         sele: fpocketResidueSele,
@@ -138,8 +137,7 @@
     {% for point in p2.core_points %}
     p2rankCoreShape{{ forloop.parentloop.counter }}.addSphere([{{ point.x }}, {{ point.y }}, {{ point.z }}], p2rankCoreColor{{ forloop.parentloop.counter }}, 0.28);
     {% endfor %}
-    representations["p2_{{p2.name}}_sph"] = stage.addComponentFromObject(p2rankCoreShape{{ forloop.counter }});
-    representations["p2_{{p2.name}}_sph"].addRepresentation("buffer", { opacity: 1.0 });
+    registerShapeComponent("p2_{{p2.name}}_sph", p2rankCoreShape{{ forloop.counter }});
     {% else %}
     representations["p2_{{p2.name}}_sph"] = component.addRepresentation("spacefill", {
         sele: p2rankResidueSele,

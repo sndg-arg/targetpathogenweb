@@ -634,6 +634,44 @@ function jsloaded() {
             }
         };
 
+        function registerShapeComponent(key, shape) {
+            var pendingVisible = false;
+            var shapeComponent = null;
+            representations[key] = {
+                tpShapeComponent: true,
+                setVisibility: function (on) {
+                    pendingVisible = !!on;
+                    if (shapeComponent && typeof shapeComponent.setVisibility === "function") {
+                        shapeComponent.setVisibility(pendingVisible);
+                    }
+                },
+                autoView: function (duration) {
+                    if (shapeComponent && typeof shapeComponent.autoView === "function") {
+                        shapeComponent.autoView(duration || 0);
+                    } else {
+                        component.autoView();
+                    }
+                }
+            };
+            var loaded = stage.addComponentFromObject(shape);
+            var onReady = function (readyComponent) {
+                shapeComponent = readyComponent;
+                if (shapeComponent && typeof shapeComponent.addRepresentation === "function") {
+                    shapeComponent.addRepresentation("buffer", { opacity: 1.0 });
+                }
+                if (shapeComponent && typeof shapeComponent.setVisibility === "function") {
+                    shapeComponent.setVisibility(pendingVisible);
+                }
+            };
+            if (loaded && typeof loaded.then === "function") {
+                loaded.then(onReady).catch(function (err) {
+                    if (window.console && console.warn) console.warn("Unable to render pocket shape", key, err);
+                });
+            } else {
+                onReady(loaded);
+            }
+        }
+
         representations.__main_cartoon = component.addRepresentation("cartoon", {
             aspectRatio: STRUCTURE_VIEWER_CONFIG.mainCartoonAspectRatio,
             scale: STRUCTURE_VIEWER_CONFIG.mainCartoonScale,
