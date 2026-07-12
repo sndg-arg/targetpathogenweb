@@ -199,6 +199,73 @@ def parse_fpocket_alpha_lines(path):
     return pockets
 
 
+def _float_from_field(value, default=0.0):
+    try:
+        return float(str(value).strip())
+    except (TypeError, ValueError):
+        return default
+
+
+def _alpha_line_from_vert_line(line, pocket_number, serial):
+    if not (line.startswith("ATOM") or line.startswith("HETATM")):
+        return ""
+
+    name = (line[12:16].strip() or "APOL") if len(line) >= 16 else "APOL"
+    x = y = z = None
+    radius = None
+    if len(line) >= 54:
+        try:
+            x = float(line[30:38].strip())
+            y = float(line[38:46].strip())
+            z = float(line[46:54].strip())
+            radius = _float_from_field(line[60:66].strip(), None) if len(line) >= 66 else None
+        except ValueError:
+            x = y = z = None
+
+    if x is None or y is None or z is None:
+        parts = line.split()
+        if len(parts) < 8:
+            return ""
+        name = parts[2] if len(parts) > 2 else name
+        try:
+            # PQR files end with x y z charge radius. FPocket's vert files
+            # are the authoritative alpha-sphere geometry for each pocket.
+            x, y, z = (float(v) for v in parts[-5:-2])
+        except (TypeError, ValueError):
+            return ""
+        radius = _float_from_field(parts[-1], None)
+
+    if radius is None or radius <= 0:
+        radius = 1.0
+
+    safe_name = (name or "APOL")[:4]
+    return (
+        f"HETATM{serial:5d} {safe_name:<4} STP A{pocket_number:4d}    "
+        f"{x:8.3f}{y:8.3f}{z:8.3f}{0.00:6.2f}{radius:6.2f}\n"
+    )
+
+
+def parse_fpocket_vert_files(fpocket_dir):
+    pockets = defaultdict(list)
+    pockets_dir = os.path.join(fpocket_dir, "pockets")
+    if not os.path.isdir(pockets_dir):
+        return pockets
+
+    serial = 1
+    for filename in sorted(os.listdir(pockets_dir)):
+        match = re.match(r"pocket(\d+)_vert\.pqr$", filename)
+        if not match:
+            continue
+        pocket_number = int(match.group(1))
+        with open(os.path.join(pockets_dir, filename), "rt", encoding="utf-8", errors="replace") as handle:
+            for line in handle:
+                alpha_line = _alpha_line_from_vert_line(line, pocket_number, serial)
+                if alpha_line:
+                    pockets[pocket_number].append(alpha_line)
+                    serial += 1
+    return pockets
+
+
 def parse_fpocket_atom_pdb(path):
     atoms = []
     residues = []
@@ -255,12 +322,13 @@ def fallback_fpocket_to_json(fpocket_dir):
     ]
 
     properties_by_pocket = parse_fpocket_info(info_txt)
-    alpha_lines_by_pocket = defaultdict(list)
-    for alpha_path in alpha_candidates:
-        parsed_alpha_lines = parse_fpocket_alpha_lines(alpha_path)
-        if parsed_alpha_lines:
-            alpha_lines_by_pocket = parsed_alpha_lines
-            break
+    alpha_lines_by_pocket = parse_fpocket_vert_files(fpocket_dir)
+    if not alpha_lines_by_pocket:
+        for alpha_path in alpha_candidates:
+            parsed_alpha_lines = parse_fpocket_alpha_lines(alpha_path)
+            if parsed_alpha_lines:
+                alpha_lines_by_pocket = parsed_alpha_lines
+                break
     atoms_by_pocket, residues_by_pocket = parse_fpocket_atom_files(fpocket_dir)
 
     pocket_numbers = sorted(

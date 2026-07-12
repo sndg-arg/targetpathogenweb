@@ -1310,6 +1310,10 @@ class FPocketFallbackConversionTests(SimpleTestCase):
                 "HETATM    1 APOL STP     1       1.000   2.000   3.000  0.00  1.00\n",
                 encoding="utf-8",
             )
+            (pockets_dir / "pocket1_vert.pqr").write_text(
+                "ATOM      1 APOL STP     1      4.000   5.000   6.000  0.00  1.50\n",
+                encoding="utf-8",
+            )
             (pockets_dir / "pocket1_atm.pdb").write_text(
                 "ATOM    123  CA  GLY A  45      11.111  22.222  33.333  1.00 20.00           C\n",
                 encoding="utf-8",
@@ -1328,3 +1332,4 @@ class FPocketFallbackConversionTests(SimpleTestCase):
             self.assertEqual(pockets[0]["properties"]["Score"], 0.211)
             self.assertEqual(pockets[0]["properties"]["Druggability Score"], 0.011)
             self.assertTrue(pockets[0]["as_lines"][0].startswith("HETATM"))
+            self.assertIn("   4.000   5.000   6.000", pockets[0]["as_lines"][0])
