@@ -47,7 +47,7 @@
     var fpocketCoreShape{{ forloop.counter }} = new NGL.Shape("FPocket {{p.name}} core");
     var fpocketCoreColor{{ forloop.counter }} = tpColorTriplet("--tp-color-structure-pocket-apolar", "#20c3d6");
     {% for point in p.core_points %}
-    fpocketCoreShape{{ forloop.parentloop.counter }}.addSphere([{{ point.x }}, {{ point.y }}, {{ point.z }}], fpocketCoreColor{{ forloop.parentloop.counter }}, 0.34);
+    fpocketCoreShape{{ forloop.parentloop.counter }}.addSphere([{{ point.x }}, {{ point.y }}, {{ point.z }}], fpocketCoreColor{{ forloop.parentloop.counter }}, {{ point.radius }});
     {% endfor %}
     registerShapeComponent("{{p.name}}_sph", fpocketCoreShape{{ forloop.counter }});
     {% else %}
@@ -135,7 +135,7 @@
     var p2rankCoreShape{{ forloop.counter }} = new NGL.Shape("P2Rank {{p2.name}} core");
     var p2rankCoreColor{{ forloop.counter }} = tpColorTriplet("--tp-color-structure-p2-apolar", "#f59e0b");
     {% for point in p2.core_points %}
-    p2rankCoreShape{{ forloop.parentloop.counter }}.addSphere([{{ point.x }}, {{ point.y }}, {{ point.z }}], p2rankCoreColor{{ forloop.parentloop.counter }}, 0.28);
+    p2rankCoreShape{{ forloop.parentloop.counter }}.addSphere([{{ point.x }}, {{ point.y }}, {{ point.z }}], p2rankCoreColor{{ forloop.parentloop.counter }}, 1.1);
     {% endfor %}
     registerShapeComponent("p2_{{p2.name}}_sph", p2rankCoreShape{{ forloop.counter }});
     {% else %}

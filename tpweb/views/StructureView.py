@@ -71,6 +71,13 @@ def _residue_set_core_atoms(residue_set):
     return atoms
 
 
+# FPocket alpha-sphere radii ordinarily fall in this range; used only as a
+# defensive clamp for bad/missing data, not to model real sphere sizes.
+_ALPHA_SPHERE_MIN_RADIUS = 1.0
+_ALPHA_SPHERE_MAX_RADIUS = 6.5
+_ALPHA_SPHERE_FALLBACK_RADIUS = 2.5
+
+
 def _atom_points(atoms):
     points = []
     seen = set()
@@ -78,10 +85,21 @@ def _atom_points(atoms):
         if atom.id in seen:
             continue
         seen.add(atom.id)
+        if atom.bfactor and atom.bfactor > 0.3:
+            radius = min(max(atom.bfactor, _ALPHA_SPHERE_MIN_RADIUS), _ALPHA_SPHERE_MAX_RADIUS)
+        else:
+            radius = _ALPHA_SPHERE_FALLBACK_RADIUS
         points.append({
             "x": f"{atom.x:.4f}",
             "y": f"{atom.y:.4f}",
             "z": f"{atom.z:.4f}",
+            # FPocket writes each alpha sphere's real radius into the STP
+            # pseudo-atom's B-factor column. Only meaningful for FPocket
+            # alpha-sphere atoms -- callers rendering real residue atoms
+            # (e.g. P2Rank's core_points) must not use this as a radius,
+            # since bfactor there is a genuine crystallographic/predicted
+            # B-factor, not a sphere size.
+            "radius": f"{radius:.3f}",
         })
     return points
 

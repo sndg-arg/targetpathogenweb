@@ -198,6 +198,19 @@ El usuario debe poder elegir un pocket puntual y mirarlo en detalle, sin perder 
 - El panel muestra propiedades importadas disponibles: para FPocket, volumen, score, alpha spheres, SASA, hidrofobicidad y flexibilidad; para P2Rank, score/probabilidad.
 - La capa `Pocket` usa coordenadas importadas del output revisado cuando existen: alpha spheres de FPocket o atomos de superficie de P2Rank. La capa `Sector` conserva la superficie/residuos alrededor para contexto.
 - Diferenciacion visual reforzada: alpha spheres/pocket core se renderiza como nube de beads pequenos y la superficie del entorno queda translucida para que no parezcan la misma capa.
+- Bug encontrado y corregido: las alpha spheres se veian "sueltas" y no delimitaban un pocket
+  reconocible. Causa real: cada esfera se dibujaba con un radio fijo hardcodeado de `0.34` A,
+  ~10 veces mas chico que el radio real de una alpha sphere de FPocket (tipicamente unos pocos
+  A). FPocket escribe el radio real de cada esfera en la columna B-factor de sus pseudo-atomos
+  `STP` (confirmado en `FPocket2SQL.py`, que parsea esa columna PDB estandar a `Atom.bfactor`) —
+  ese dato ya estaba en la base, pero se descartaba al armar los puntos para el viewer. Fix:
+  `_atom_points` (`StructureView.py`) ahora incluye `radius` desde `atom.bfactor`, clampeado
+  defensivamente entre `1.0` y `6.5` A (rango tipico de una alpha sphere real) con fallback de
+  `2.5` A si el valor viene vacio o invalido, y `ngl_pocket_representations.js` usa
+  `{{ point.radius }}` real para las alpha spheres de FPocket en vez del `0.34` fijo. Para P2Rank
+  se mantuvo un radio fijo (subido de `0.28` a `1.1`) porque sus `core_points` son atomos de
+  residuo reales (via `_residue_set_core_points`), cuyo B-factor es el valor cristalografico/
+  predicho real, no un radio — usarlo ahi seria semanticamente incorrecto.
 - Bug encontrado y corregido: la logica de inicializacion del viewer NGL (`initStructureComponent`,
   `registerShapeComponent`) esta duplicada entre `structure.html` (viewer fullscreen) y
   `protein.html` (viewer embebido en el detalle de proteina) en vez de compartirse. El fix de
