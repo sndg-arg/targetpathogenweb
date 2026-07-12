@@ -1787,9 +1787,15 @@
                     };
 
                     window.ngl_zoom_to = function (repr) {
-                        if (!(repr in representations) || !representations[repr].sele) {
+                        if (!(repr in representations)) {
                             return;
                         }
+                        if (representations[repr].tpShapeComponent && typeof representations[repr].autoView === "function") {
+                            representations[repr].autoView(0);
+                            setStructureResetZoomEnabled(true);
+                            return;
+                        }
+                        if (!representations[repr].sele) return;
                         component.autoView(representations[repr].sele);
                         setStructureResetZoomEnabled(true);
                     };

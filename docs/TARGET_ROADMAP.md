@@ -211,6 +211,29 @@ El usuario debe poder elegir un pocket puntual y mirarlo en detalle, sin perder 
 - Riesgo abierto: esta duplicacion entre paginas es fragil — cualquier cambio futuro al init del
   viewer hay que aplicarlo en los dos lugares a mano. Candidato a refactor: extraer
   `initStructureComponent`/`registerShapeComponent` a un `{% include %}` o modulo JS compartido.
+- Bug raiz encontrado y corregido (explica por que zoom/alpha spheres/Inspect seguian sin andar
+  incluso despues del fix anterior): `js/entrypoint.js` solo importaba `Stage` de `'ngl'` con el
+  alias `NGL` (`import {Stage as NGL} from 'ngl'; window.NGL = NGL;`) — nunca importaba `Shape`.
+  `ngl_pocket_representations.js` hace `new NGL.Shape(...)` para las alpha spheres reales (FPocket)
+  y los atomos de superficie reales (P2Rank); como `NGL.Shape` era `undefined`, esa linea tiraba
+  `TypeError` dentro del loop de pockets de `initStructureComponent`, en las dos paginas por igual
+  (comparten el mismo include). El try/catch de `13897ff` lo volvia silencioso (solo
+  `console.error`) en vez de mostrar el banner de error, pero el efecto practico era el mismo: el
+  loop de pockets se abortaba ahi mismo, asi que ningun pocket procesado desde ese punto en
+  adelante (incluyendo P2Rank y residue sets) llegaba a registrar sus representaciones `_zoom`,
+  `_sph`, `_lbl` — de ahi que el zoom no anduviera para la mayoria de los pockets y que Inspect
+  (que depende de esas mismas representaciones) no hiciera nada. Fix: `entrypoint.js` ahora tambien
+  importa `Shape` y lo cuelga de `window.NGL.Shape`; se corrio `npm run build` y se copio
+  `js/bundle.js` a `static/bundle.js`.
+- De paso, se llevo `ngl_zoom_to` de `protein.html` a la misma implementacion que `structure.html`
+  (le faltaba la rama para zoomear sobre un `tpShapeComponent`, hoy sin uso porque `protein.html`
+  no tiene boton Inspect, pero destinada a quedar inconsistente si se agrega mas adelante).
+- Pendiente de decision: `protein.html` usa `pocket_tables.html` (checkboxes en una tabla, sin
+  boton Inspect ni panel "Selected pocket") mientras `structure.html` usa `pocket_cards.html` (la
+  UI nueva con Inspect). Esto es asi por diseño — `protein.html` linkea a "open full viewer" para
+  la experiencia completa — pero si se espera que Inspect tambien funcione en el detalle de
+  proteina, hace falta portar `pocket_cards.html` + `inspectPocket` ahi tambien; no es un bug, es
+  una decision de alcance pendiente.
 
 **Pendiente para cerrar.**
 

@@ -38,8 +38,9 @@ import FeatureViewer from 'feature-viewer';
 
 window.FeatureViewer = FeatureViewer;
 
-import {Stage as NGL} from 'ngl'
+import {Stage as NGL, Shape as NGLShape} from 'ngl'
 window.NGL = NGL;
+window.NGL.Shape = NGLShape;
 
 import cytoscape from 'cytoscape';
 import fcose from 'cytoscape-fcose';
