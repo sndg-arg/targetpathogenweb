@@ -198,6 +198,19 @@ El usuario debe poder elegir un pocket puntual y mirarlo en detalle, sin perder 
 - El panel muestra propiedades importadas disponibles: para FPocket, volumen, score, alpha spheres, SASA, hidrofobicidad y flexibilidad; para P2Rank, score/probabilidad.
 - La capa `Pocket` usa coordenadas importadas del output revisado cuando existen: alpha spheres de FPocket o atomos de superficie de P2Rank. La capa `Sector` conserva la superficie/residuos alrededor para contexto.
 - Diferenciacion visual reforzada: alpha spheres/pocket core se renderiza como nube de beads pequenos y la superficie del entorno queda translucida para que no parezcan la misma capa.
+- Bug encontrado y corregido: la logica de inicializacion del viewer NGL (`initStructureComponent`,
+  `registerShapeComponent`) esta duplicada entre `structure.html` (viewer fullscreen) y
+  `protein.html` (viewer embebido en el detalle de proteina) en vez de compartirse. El fix de
+  `registerShapeComponent` para renderizar alpha spheres como `NGL.Shape` async (y el try/catch
+  que evita que un fallo en el setup opcional de pockets tape el mensaje de carga real) se aplico
+  solo en `structure.html`. `protein.html` seguia sin `registerShapeComponent` definido, asi que
+  cualquier pocket con `core_points` reales tiraba `ReferenceError` dentro de `initStructureComponent`,
+  y como el `.then(initStructureComponent)` de esa pagina no tenia try/catch, el error se propagaba
+  y mostraba "Unable to load 3D structure" encima de una estructura que en realidad ya habia
+  cargado. Portado el mismo `registerShapeComponent` y el mismo try/catch a `protein.html`.
+- Riesgo abierto: esta duplicacion entre paginas es fragil — cualquier cambio futuro al init del
+  viewer hay que aplicarlo en los dos lugares a mano. Candidato a refactor: extraer
+  `initStructureComponent`/`registerShapeComponent` a un `{% include %}` o modulo JS compartido.
 
 **Pendiente para cerrar.**
 
@@ -205,6 +218,8 @@ El usuario debe poder elegir un pocket puntual y mirarlo en detalle, sin perder 
 - Agregar `Show only selected pocket` / `Show all pockets`.
 - Agregar propiedades derivadas del pocket seleccionado, como centro geometrico estimado, distancia a ligandos/sitios funcionales y consenso FPocket/P2Rank.
 - Verificar en datos reales de Klebsiella que `Pocket` muestra la cavidad/sitio especifico y `Sector` muestra el entorno amplio esperado.
+- Evaluar unificar `initStructureComponent`/`registerShapeComponent` entre `structure.html` y
+  `protein.html` para que este tipo de bug de duplicacion no vuelva a pasar.
 
 ### Comparacion FPocket vs P2Rank
 
