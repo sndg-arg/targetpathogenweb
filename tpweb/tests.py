@@ -3,6 +3,7 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import tpweb.services.pipeline_status as pipeline_status_service
@@ -76,6 +77,8 @@ from tpweb.services.workspace import (
 from tpweb.views.FormulaForm import FormulaForm
 from tpweb.views.IndexView import should_show_home_pipeline_panel
 from tpweb.services.workspace import PUBLIC_WORKSPACE_USERNAME
+from tpweb.services.llm.base import Message, ToolCall, ToolDefinition, ToolResult
+from tpweb.services.llm.openai_provider import OpenAIProvider
 
 
 class GenomeServiceTests(SimpleTestCase):
@@ -1333,3 +1336,101 @@ class FPocketFallbackConversionTests(SimpleTestCase):
             self.assertEqual(pockets[0]["properties"]["Druggability Score"], 0.011)
             self.assertTrue(pockets[0]["as_lines"][0].startswith("HETATM"))
             self.assertIn("   4.000   5.000   6.000", pockets[0]["as_lines"][0])
+
+
+class OpenAIProviderTranslationTests(SimpleTestCase):
+    """Exercises the highest-risk part of the OpenAI adapter -- translating
+    the neutral Message/ToolCall/ToolResult shape to and from OpenAI's Chat
+    Completions wire format -- without needing OPENAI_API_KEY or network
+    access. A fake client stands in for openai.OpenAI()."""
+
+    def test_multiple_tool_results_flatten_into_separate_tool_messages(self):
+        message = Message(
+            role="user",
+            tool_results=[
+                ToolResult(tool_call_id="call_1", content="first result"),
+                ToolResult(tool_call_id="call_2", content="second result", is_error=True),
+            ],
+        )
+
+        openai_messages = OpenAIProvider._to_openai_messages(message)
+
+        self.assertEqual(
+            openai_messages,
+            [
+                {"role": "tool", "tool_call_id": "call_1", "content": "first result"},
+                {"role": "tool", "tool_call_id": "call_2", "content": "second result"},
+            ],
+        )
+
+    def test_tool_calls_message_carries_function_arguments_as_json_string(self):
+        message = Message(
+            role="assistant",
+            text=None,
+            tool_calls=[ToolCall(id="call_1", name="get_current_time", input={"tz": "UTC"})],
+        )
+
+        openai_messages = OpenAIProvider._to_openai_messages(message)
+
+        self.assertEqual(len(openai_messages), 1)
+        self.assertEqual(openai_messages[0]["role"], "assistant")
+        tool_call = openai_messages[0]["tool_calls"][0]
+        self.assertEqual(tool_call["id"], "call_1")
+        self.assertEqual(tool_call["function"]["name"], "get_current_time")
+        self.assertEqual(json.loads(tool_call["function"]["arguments"]), {"tz": "UTC"})
+
+    def test_generate_maps_tool_calls_finish_reason_and_parses_arguments(self):
+        fake_tool_call = SimpleNamespace(
+            id="call_9",
+            function=SimpleNamespace(name="apply_filters", arguments='{"changes": []}'),
+        )
+        fake_message = SimpleNamespace(content=None, tool_calls=[fake_tool_call])
+        fake_choice = SimpleNamespace(message=fake_message, finish_reason="tool_calls")
+        fake_response = SimpleNamespace(choices=[fake_choice])
+
+        fake_client = MagicMock()
+        fake_client.chat.completions.create.return_value = fake_response
+
+        provider = OpenAIProvider(model="gpt-4o", client=fake_client)
+        result = provider.generate(
+            messages=[Message(role="user", text="apply high druggability filter")],
+            tools=[ToolDefinition(name="apply_filters", description="...", input_schema={"type": "object"})],
+            system="You are a test agent.",
+        )
+
+        self.assertEqual(result.stop_reason, "tool_use")
+        self.assertEqual(len(result.tool_calls), 1)
+        self.assertEqual(result.tool_calls[0].name, "apply_filters")
+        self.assertEqual(result.tool_calls[0].input, {"changes": []})
+
+    def test_generate_maps_stop_finish_reason_to_end_turn(self):
+        fake_message = SimpleNamespace(content="All done.", tool_calls=None)
+        fake_choice = SimpleNamespace(message=fake_message, finish_reason="stop")
+        fake_response = SimpleNamespace(choices=[fake_choice])
+
+        fake_client = MagicMock()
+        fake_client.chat.completions.create.return_value = fake_response
+
+        provider = OpenAIProvider(client=fake_client)
+        result = provider.generate(messages=[Message(role="user", text="hi")], tools=[])
+
+        self.assertEqual(result.stop_reason, "end_turn")
+        self.assertEqual(result.text, "All done.")
+        self.assertEqual(result.tool_calls, [])
+
+    def test_malformed_tool_call_arguments_do_not_raise(self):
+        fake_tool_call = SimpleNamespace(
+            id="call_bad",
+            function=SimpleNamespace(name="apply_filters", arguments="{not valid json"),
+        )
+        fake_message = SimpleNamespace(content=None, tool_calls=[fake_tool_call])
+        fake_choice = SimpleNamespace(message=fake_message, finish_reason="tool_calls")
+        fake_response = SimpleNamespace(choices=[fake_choice])
+
+        fake_client = MagicMock()
+        fake_client.chat.completions.create.return_value = fake_response
+
+        provider = OpenAIProvider(client=fake_client)
+        result = provider.generate(messages=[], tools=[])
+
+        self.assertEqual(result.tool_calls[0].input, {})

@@ -27,3 +27,5 @@ crispy-bootstrap4
 matplotlib
 lxml
 rdkit-pypi==2022.9.5
+anthropic>=0.40.0
+openai>=1.50.0
