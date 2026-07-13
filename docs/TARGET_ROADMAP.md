@@ -476,35 +476,118 @@ Agregar un agente/chat IA que ayude a explorar proteinas, filtros, scores, ligan
 - Citar las fuentes internas usadas para cada respuesta.
 - Ejecutar acciones reales en la UI a pedido del usuario (ej. aplicar filtros), no solo responder texto.
 
-**Implementado inicial (fundacion, sin UI todavia).**
+**Implementado (fundacion + proveedores + tools + endpoint + UI).**
+
+Decisiones confirmadas con la usuaria antes de implementar: panel lateral flotante (no burbuja
+minimal, no solo backend), soporte OpenAI real y no scaffold (la organizacion paga ChatGPT, no
+Claude, todavia no convencieron de migrar), y alcance amplio de tools desde el arranque (filtros +
+explicacion de score + busqueda + contexto metabolico/off-target), aceptando que podia quedar a
+medio terminar en una sesion.
 
 - `tpweb/services/llm/base.py`: tipos neutrales (`Message`, `ToolDefinition`, `ToolCall`,
   `ToolResult`, `LLMResponse`) y la interfaz `LLMProvider`, para que el resto del codigo nunca
   dependa de un SDK de proveedor especifico.
 - `anthropic_provider.py`: adaptador real sobre el SDK `anthropic`.
-- `openai_provider.py`: scaffold documentado (`NotImplementedError`), listo para completar
-  cuando haga falta OpenAI de verdad.
+- `openai_provider.py`: **adaptador real** (ya no scaffold) sobre el SDK `openai`, Chat Completions
+  con tool-calling. La parte no trivial: un `Message` neutral con varios `ToolResult` (que
+  `agent.py` arma como un solo mensaje) se expande a **varios** mensajes `role="tool"` separados,
+  uno por resultado — OpenAI no tiene forma de agrupar varios resultados en un solo mensaje como
+  si hace Anthropic con bloques `tool_result`. `finish_reason` mapea a los mismos
+  `stop_reason` neutrales (`stop`->`end_turn`, `tool_calls`->`tool_use`, `length`->`max_tokens`).
+  `arguments` de cada tool call viene como string JSON (a diferencia del dict ya parseado de
+  Anthropic) — parseado con guard contra `JSONDecodeError`. Tests unitarios con cliente fake
+  (`OpenAIProviderTranslationTests` en `tpweb/tests.py`) cubren el aplanamiento de tool-results,
+  el mapeo de `finish_reason` y el round-trip de `arguments` — no requieren `OPENAI_API_KEY` ni red.
 - `provider_factory.py`: selecciona adaptador via env var `TPW_LLM_PROVIDER` (default
-  `anthropic`), mismo patron que `TPW_COLABFOLD_USE_REMOTE` etc.
-- `agent.py`: loop agentico generico (`Agent.run()`), agnostico al proveedor.
+  `anthropic`), mismo patron que `TPW_COLABFOLD_USE_REMOTE` etc. Sin cambios necesarios para
+  soportar OpenAI real, la rama `"openai"` ya estaba lista.
+- `agent.py`: loop agentico generico (`Agent.run()`), agnostico al proveedor. Se agrego un
+  parametro opcional `history: list[Message] | None = None` para sembrar la conversacion desde un
+  historial previo (usado por `AgentChatView`) sin romper `test_llm_agent.py` (default `None` =
+  comportamiento identico a antes). Tambien expone `self.last_messages` tras `run()` con la
+  conversacion completa actualizada (historial + este turno, incluyendo intercambios de tools),
+  para que el caller pueda persistirla/devolverla sin cambiar el tipo de retorno de `run()` (sigue
+  siendo `str`).
 - `tools/demo.py` + management command `test_llm_agent`: prueba end-to-end minima
-  (`get_current_time`) para validar el loop antes de conectar herramientas reales.
-- Config wireada en `docker-compose.yml`/`docker-compose.cluster.yml`
-  (`TPW_LLM_PROVIDER`, `TPW_LLM_MODEL`, `ANTHROPIC_API_KEY`) y `anthropic` agregado a
-  `requirements/base.txt`.
+  (`get_current_time`), sigue funcionando sin cambios.
+- **`tools/apply_filters.py`** (nuevo): dos tools —`list_available_filters()` (lista ScoreParams
+  visibles para el usuario via `visible_score_params_queryset`, con los ids concretos que
+  `apply_filters` necesita) y `apply_filters(changes)` (aplica cambios de filtro a
+  `selected_parameters` en sesion, mismo mecanismo que usa `ProteinListView` — un filtro aplicado
+  por el agente ya se ve si el usuario despues abre la lista de proteinas de ese genoma).
+- **`tools/explain_target.py`** (nuevo): `explain_target(accession)` devuelve un resumen en texto
+  plano (no JSON crudo, para que el modelo parafrasee en vez de inventar detalles) con score de
+  evidence-convergence, veredicto, strengths/risks/missing y oracion de contexto metabolico —
+  unifica en una sola tool lo que iban a ser "explicar score" + "contexto metabolico/off-target"
+  por separado, ya que responden la misma pregunta real del usuario ("¿es un buen target?").
+- **`tools/search_proteins.py`** (nuevo): `search_proteins(changes, search_text, limit)` reusa
+  exactamente el mismo esquema `changes` que `apply_filters` (no lo aplica a la sesion, lo aplica a
+  una lista descartable), para que el modelo aprenda un solo lenguaje de filtros en vez de dos.
+- **Extracciones de servicio necesarias para las tools** (mecanicas, sin reescritura de logica):
+  - `tpweb/services/protein_list.py`: `apply_filter_change`/`apply_filter_changes` (portado de
+    `ProteinListView._apply_filter_change`/`_apply_filter_changes_payload`, que ahora delegan);
+    `build_special_filter_payload`/`build_numeric_filter_payload` (portados de los metodos
+    estaticos homonimos de la vista, que se eliminaron por quedar sin uso); `find_top_proteins`
+    (nuevo, compone `apply_selected_parameter_filters`+`apply_protein_search`, sin paginacion).
+  - `tpweb/services/assembly_workspace.py`: `score_single_protein(assembly_name, accession)` —
+    wrapper barato sobre `_score_proteins` (que sigue siendo genome-wide por diseño, no se
+    reescribio para una sola proteina).
+  - **`tpweb/services/protein_summary.py`** (nuevo): todo el bloque de construccion del resumen
+    ejecutivo se movio verbatim desde `tpweb/views/ProteinView.py` (`_build_target_profile`,
+    `_build_selected_pocket_evidence`, `_build_conservation_profile`, `_build_microbiome_context`,
+    `_build_metabolic_context`, `_build_target_executive_summary`, y sus helpers privados),
+    renombrado a nombres publicos sin guion bajo. Motivo: CLAUDE.md es explicito en que las vistas
+    delegan a servicios, no al reves — importar funciones privadas de una vista desde un servicio
+    invertia esa direccion. `ProteinView.py` reimporta con alias (`build_target_profile as
+    _build_target_profile`, etc.) para que los call-sites existentes no cambien ni una linea.
+    Se agrego `build_protein_executive_context(protein)` como entry-point unico para
+    `explain_target`, que replica exactamente lo que hace `ProteinView.get` (mismo query de
+    `raw_scores`, mismos builders). Unica salvedad: `create_binders_dict` sigue viviendo en
+    `ProteinView.py` (no se extrajo, fuera de alcance de este cambio) — `protein_summary.py` lo
+    importa de forma diferida (dentro de la funcion, no a nivel de modulo) para evitar import
+    circular, ya que `ProteinView.py` importa de `protein_summary.py` a nivel de modulo.
+- **`tpweb/views/AgentChatView.py`** (nuevo) + `POST /agent-chat` en `tpweb/urls.py`: endpoint unico
+  y global (no scoped por genoma en la URL, porque el panel esta presente incluso en paginas sin
+  genoma como el home). El scope de genoma/proteina **nunca** se toma del cuerpo del request tal
+  cual lo manda el cliente — se re-deriva server-side con `django.urls.resolve(page_path)` contra
+  las URLs reales de la app (`genome/<genome>`, `protein/<protein_id>`), y se valida con
+  `user_can_access_genome_name` antes de habilitar ninguna tool con alcance de genoma. Si no
+  resuelve o no pasa el check de acceso, el chat sigue funcionando pero sin las tools de
+  filtros/busqueda/explain (con una nota en el system prompt). El historial de conversacion es
+  **stateless**, viaja completo ida y vuelta en el JSON (`history`) — el navegador lo guarda en
+  memoria mientras dura la pestaña; no sobrevive un reload. Es una limitacion v1 aceptada
+  explicitamente, no un olvido — una conversacion persistida necesitaria un modelo
+  `AgentConversation` nuevo.
+- **Panel lateral** (`tpweb/templates/base/masterpage.html` + `static/css/components/agent-drawer.css`
+  + `static/js/global/agent-drawer.js`): boton disparador en `.tp-side-footer` (junto al toggle de
+  tema) y version compacta en la topbar movil; drawer fijo a la derecha con slide-in, usando
+  tokens del sistema de diseño existentes (`--tp-ui-radius-panel`, `--tp-shadow-lg`,
+  `--tp-ui-motion-base`, `--tp-color-scrim`) — sin hex hardcodeado, tema claro/oscuro automatico
+  porque esos tokens ya son theme-aware via la clase `.tp-dark`. CSS/JS cargados globalmente desde
+  `masterpage.html` (excepcion deliberada y documentada a "un CSS por pagina", igual que
+  `ui-system.css`; el JS sigue el patron ya existente de scripts planos por `<script src>` como
+  `protein-detail.js`, no pasa por el bundle de webpack). El JS lee `page_path` con
+  `window.location.pathname` en cada envio, asi que navegar entre paginas durante una conversacion
+  "simplemente funciona" sin plumbing extra.
 
 **Pendiente para avanzar.**
 
-- Probar el "hola mundo" end-to-end con una API key real (no ejecutable desde este entorno).
-- Extraer `ProteinListView._apply_filter_changes_payload` a un servicio reusable
-  (`tpweb/services/protein_list.py`) para que sea la primera herramienta real (`aplicar_filtros`),
-  reusando el mismo payload que ya usa `apply_filter_changes` por POST.
-- Definir de donde sale el contexto que el agente necesita para responder preguntas (que
-  ScoreParams existen por genoma/usuario, que filtros estan aplicados) sin volver a implementar
-  la logica de `visible_score_params_queryset`.
-- Disenar la superficie de UI (chat flotante, panel lateral, etc.) — todavia no definida.
-- Implementar `openai_provider.py` de verdad si se necesita agnosticismo probado, no solo
-  scaffold.
+- Probar en vivo con API key real de Anthropic y de OpenAI (no ejecutable desde este entorno) —
+  correr `python manage.py check`, la suite de tests, y despues un smoke test real por navegador:
+  abrir un genome overview, preguntar por proteinas con alta drogabilidad sin homologo humano
+  (`search_proteins`), pedir aplicar ese filtro y confirmar en la pagina de lista; abrir una
+  proteina puntual y preguntar por que es un buen target (`explain_target`); repetir con
+  `TPW_LLM_PROVIDER=openai` para confirmar paridad entre proveedores.
+- QA visual del panel en claro/oscuro y en mobile — no verificable desde este entorno.
+- Definir de donde sale el contexto que el agente necesita mas alla de lo ya resuelto (que
+  ScoreParams existen ya se resuelve con `visible_score_params_queryset`, que filtros estan
+  aplicados ya se resuelve leyendo la sesion) — pendiente solo si aparecen nuevas necesidades de
+  contexto al usarlo en la practica.
+- Evaluar si conviene persistir historial de conversacion (modelo `AgentConversation`) si el
+  stateless-por-pestaña resulta insuficiente en uso real.
+- Extraer `create_binders_dict` de `ProteinView.py` a un servicio propio para sacar el import
+  diferido de `protein_summary.py` (hoy funciona bien, pero es una direccion de dependencia menos
+  limpia que el resto de la extraccion).
 
 ### Auditoria y migracion de funcionalidades del Target viejo
 
