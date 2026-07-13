@@ -216,6 +216,169 @@ def remove_selected_parameter(selected_parameters, option_id):
     return [item for item in selected_parameters if str(item.get("id")) != option_id]
 
 
+def build_special_filter_payload(kind, value):
+    value = (value or "").strip()
+    if not value:
+        return None
+    if kind == "ec":
+        return {
+            "id": f"special:ec:{value}",
+            "score_param_name": "ec_number",
+            "name": value,
+            "type": "special",
+            "special_key": "ec_filter",
+            "special_value": value,
+            "display_name": value,
+        }
+    if kind == "go":
+        normalized = value.upper() if not value.upper().startswith("GO:") else value.upper()
+        if not normalized.startswith("GO:") and normalized.isdigit():
+            normalized = f"GO:{normalized.zfill(7)}"
+        return {
+            "id": f"special:go:{normalized}",
+            "score_param_name": "go_term",
+            "name": normalized,
+            "type": "special",
+            "special_key": "go_filter",
+            "special_value": normalized,
+            "display_name": normalized,
+        }
+    return None
+
+
+def build_numeric_filter_payload(score_param_id, raw_min, raw_max, operation=None):
+    from tpweb.models.ScoreParam import ScoreParam
+
+    try:
+        param_pk = int(score_param_id)
+    except (TypeError, ValueError):
+        return None
+    try:
+        score_param = ScoreParam.objects.get(pk=param_pk)
+    except ScoreParam.DoesNotExist:
+        return None
+    try:
+        value_min = float(str(raw_min).replace(",", ".")) if raw_min not in ("", None) else None
+    except (TypeError, ValueError):
+        value_min = None
+    try:
+        value_max = float(str(raw_max).replace(",", ".")) if raw_max not in ("", None) else None
+    except (TypeError, ValueError):
+        value_max = None
+
+    requested_operation = str(operation or "").strip().lower()
+    operation_map = {
+        "gte": ">=",
+        ">=": ">=",
+        "min": ">=",
+        "lte": "<=",
+        "<=": "<=",
+        "max": "<=",
+        "between": "between",
+        "range": "between",
+    }
+    requested_operation = operation_map.get(requested_operation)
+
+    if requested_operation == ">=":
+        value_max = None
+    elif requested_operation == "<=":
+        if value_max is None:
+            value_max = value_min
+        value_min = None
+    elif requested_operation == "between":
+        if value_min is None or value_max is None:
+            return None
+
+    if value_min is None and value_max is None:
+        return None
+    if value_min is not None and value_max is not None:
+        if value_min > value_max:
+            value_min, value_max = value_max, value_min
+        operation = "between"
+        display_value = f"between {value_min:g} and {value_max:g}"
+        filter_id = f"numeric:{score_param.pk}:between:{value_min:g}:{value_max:g}"
+        primary_value = value_min
+    elif value_min is not None:
+        operation = ">="
+        display_value = f"≥ {value_min:g}"
+        filter_id = f"numeric:{score_param.pk}:>=:{value_min:g}"
+        primary_value = value_min
+    else:
+        operation = "<="
+        display_value = f"≤ {value_max:g}"
+        filter_id = f"numeric:{score_param.pk}:<=:{value_max:g}"
+        primary_value = value_max
+        value_max = None
+    return {
+        "id": filter_id,
+        "score_param_id": score_param.pk,
+        "score_param_name": score_param.name,
+        "type": "numeric",
+        "operation": operation,
+        "value": primary_value,
+        "value_max": value_max if operation == "between" else None,
+        "display_name": display_value,
+    }
+
+
+def apply_filter_change(selected_parameters, change):
+    """Fold one change-dict ({"action": "add_filter"/"add_numeric_filter"/
+    "add_special_filter"/"remove_filter", ...}) into selected_parameters.
+    Shared by ProteinListView's own filter-change POST handling and the
+    agent's apply_filters/search_proteins tools."""
+    from tpweb.models.ScoreParam import ScoreParamOptions
+
+    if not isinstance(change, dict):
+        return selected_parameters
+    action = (change.get("action") or "").strip()
+
+    if action == "add_filter":
+        option_id = change.get("filter_option_id")
+        if option_id:
+            try:
+                option_dict = ScoreParamOptions.objects.get(id=option_id).to_dict()
+                selected_parameters = add_selected_parameter(selected_parameters, option_dict)
+            except (ScoreParamOptions.DoesNotExist, ValueError, TypeError):
+                pass
+
+    elif action == "add_special_filter":
+        payload = build_special_filter_payload(
+            (change.get("special_kind") or "").strip().lower(),
+            (change.get("special_value") or "").strip(),
+        )
+        if payload:
+            selected_parameters = add_selected_parameter(selected_parameters, payload)
+
+    elif action == "add_numeric_filter":
+        payload = build_numeric_filter_payload(
+            (change.get("score_param_id") or "").strip(),
+            (change.get("value") or "").strip(),
+            (change.get("value_max") or "").strip(),
+            operation=(change.get("numeric_operation") or "").strip(),
+        )
+        if payload:
+            selected_parameters = add_selected_parameter(selected_parameters, payload)
+
+    elif action == "remove_filter":
+        option_id = change.get("filter_option_id")
+        if option_id:
+            selected_parameters = remove_selected_parameter(selected_parameters, option_id)
+
+    return selected_parameters
+
+
+def apply_filter_changes(selected_parameters, changes):
+    """Apply an already-parsed list[dict] of change-dicts (see
+    apply_filter_change) to selected_parameters, normalizing the result.
+    Callers that receive a JSON string (e.g. ProteinListView's own POST
+    handler) must json.loads it before calling this."""
+    if not isinstance(changes, list):
+        return selected_parameters
+    for change in changes:
+        selected_parameters = apply_filter_change(selected_parameters, change)
+    return normalize_selected_parameters(selected_parameters)
+
+
 def selected_parameters_to_filter_map(selected_parameters):
     parameter_map = {}
     for parameter in selected_parameters:
@@ -360,6 +523,40 @@ def apply_protein_search(queryset, search_query):
         | Q(accession__iexact=cleaned_query)
         | Q(qualifiers__value__icontains=cleaned_query, qualifiers__term__identifier="gene")
     )
+
+
+def find_top_proteins(assembly_name, selected_parameters, search_text=None, limit=10):
+    """Filter+search a genome's proteins and return up to `limit` compact
+    dicts ({accession, description, druggability}), with no pagination/HTTP
+    concerns. Used by the search_proteins agent tool. Ordering is by
+    accession (deterministic), not a ranking -- ranking a specific protein's
+    overall target quality is assembly_workspace.score_single_protein's job,
+    not this function's."""
+    from bioseq.models.Biodatabase import Biodatabase
+    from bioseq.models.Bioentry import Bioentry
+    from tpweb.services.protein_serializer import score_param_value_map
+
+    proteins = Bioentry.objects.filter(biodatabase__name=assembly_name + Biodatabase.PROT_POSTFIX)
+    if selected_parameters:
+        proteins = apply_selected_parameter_filters(proteins, selected_parameters)
+    proteins = apply_protein_search(proteins, search_text)
+    proteins = (
+        proteins.prefetch_related("score_params__score_param")
+        .order_by("accession")
+        .distinct()[: max(1, min(int(limit or 10), 25))]
+    )
+
+    results = []
+    for protein in proteins:
+        param_values = score_param_value_map(protein)
+        results.append(
+            {
+                "accession": protein.accession,
+                "description": protein.description or "",
+                "druggability": param_values.get("Druggability"),
+            }
+        )
+    return results
 
 
 def parse_page_size(page_size_raw):

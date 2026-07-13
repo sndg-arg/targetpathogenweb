@@ -10,13 +10,12 @@ from bioseq.models.Bioentry import Bioentry
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 from tpweb.models.ScoreParamValue import ScoreParamValue
-from tpweb.models.ScoreParam import ScoreParamOptions
 from tpweb.models.BioentryStructure import BioentryStructure
 from django.shortcuts import redirect
 from urllib.parse import urlencode, parse_qs
 from tpweb.services.protein_list import (
     DEFAULT_PAGE_SIZE,
-    add_selected_parameter,
+    apply_filter_changes,
     apply_protein_search,
     apply_selected_parameter_filters,
     empty_pagination_payload,
@@ -24,7 +23,6 @@ from tpweb.services.protein_list import (
     humanize_identifier,
     normalize_selected_parameters,
     parse_page_size,
-    remove_selected_parameter,
 )
 from tpweb.services.protein_formula import (
     NO_FORMULA_SENTINEL,
@@ -184,43 +182,12 @@ class ProteinListView(View):
 
     @staticmethod
     def _apply_filter_change(selected_parameters, change):
-        if not isinstance(change, dict):
-            return selected_parameters
-        action = (change.get("action") or "").strip()
+        # Thin delegation to the shared, request-agnostic implementation in
+        # protein_list.py, which the agent's apply_filters/search_proteins
+        # tools also call.
+        from tpweb.services.protein_list import apply_filter_change
 
-        if action == "add_filter":
-            option_id = change.get("filter_option_id")
-            if option_id:
-                try:
-                    option_dict = ScoreParamOptions.objects.get(id=option_id).to_dict()
-                    selected_parameters = add_selected_parameter(selected_parameters, option_dict)
-                except (ScoreParamOptions.DoesNotExist, ValueError, TypeError):
-                    pass
-
-        elif action == "add_special_filter":
-            payload = ProteinListView._build_special_filter_payload(
-                (change.get("special_kind") or "").strip().lower(),
-                (change.get("special_value") or "").strip(),
-            )
-            if payload:
-                selected_parameters = add_selected_parameter(selected_parameters, payload)
-
-        elif action == "add_numeric_filter":
-            payload = ProteinListView._build_numeric_filter_payload(
-                (change.get("score_param_id") or "").strip(),
-                (change.get("value") or "").strip(),
-                (change.get("value_max") or "").strip(),
-                operation=(change.get("numeric_operation") or "").strip(),
-            )
-            if payload:
-                selected_parameters = add_selected_parameter(selected_parameters, payload)
-
-        elif action == "remove_filter":
-            option_id = change.get("filter_option_id")
-            if option_id:
-                selected_parameters = remove_selected_parameter(selected_parameters, option_id)
-
-        return selected_parameters
+        return apply_filter_change(selected_parameters, change)
 
     @classmethod
     def _apply_filter_changes_payload(cls, selected_parameters, payload):
@@ -228,11 +195,7 @@ class ProteinListView(View):
             changes = json.loads(payload or "[]")
         except (TypeError, ValueError):
             changes = []
-        if not isinstance(changes, list):
-            return selected_parameters
-        for change in changes:
-            selected_parameters = cls._apply_filter_change(selected_parameters, change)
-        return normalize_selected_parameters(selected_parameters)
+        return apply_filter_changes(selected_parameters, changes)
 
     @staticmethod
     def _build_export_url(request):
@@ -301,110 +264,6 @@ class ProteinListView(View):
         ("6", "Ligases"),
         ("7", "Translocases"),
     ]
-
-    @staticmethod
-    def _build_special_filter_payload(kind, value):
-        value = (value or "").strip()
-        if not value:
-            return None
-        if kind == "ec":
-            return {
-                "id": f"special:ec:{value}",
-                "score_param_name": "ec_number",
-                "name": value,
-                "type": "special",
-                "special_key": "ec_filter",
-                "special_value": value,
-                "display_name": value,
-            }
-        if kind == "go":
-            normalized = value.upper() if not value.upper().startswith("GO:") else value.upper()
-            if not normalized.startswith("GO:") and normalized.isdigit():
-                normalized = f"GO:{normalized.zfill(7)}"
-            return {
-                "id": f"special:go:{normalized}",
-                "score_param_name": "go_term",
-                "name": normalized,
-                "type": "special",
-                "special_key": "go_filter",
-                "special_value": normalized,
-                "display_name": normalized,
-            }
-        return None
-
-    @staticmethod
-    def _build_numeric_filter_payload(score_param_id, raw_min, raw_max, operation=None):
-        try:
-            param_pk = int(score_param_id)
-        except (TypeError, ValueError):
-            return None
-        from tpweb.models.ScoreParam import ScoreParam as _ScoreParam
-        try:
-            score_param = _ScoreParam.objects.get(pk=param_pk)
-        except _ScoreParam.DoesNotExist:
-            return None
-        try:
-            value_min = float(str(raw_min).replace(",", ".")) if raw_min not in ("", None) else None
-        except (TypeError, ValueError):
-            value_min = None
-        try:
-            value_max = float(str(raw_max).replace(",", ".")) if raw_max not in ("", None) else None
-        except (TypeError, ValueError):
-            value_max = None
-
-        requested_operation = str(operation or "").strip().lower()
-        operation_map = {
-            "gte": ">=",
-            ">=": ">=",
-            "min": ">=",
-            "lte": "<=",
-            "<=": "<=",
-            "max": "<=",
-            "between": "between",
-            "range": "between",
-        }
-        requested_operation = operation_map.get(requested_operation)
-
-        if requested_operation == ">=":
-            value_max = None
-        elif requested_operation == "<=":
-            if value_max is None:
-                value_max = value_min
-            value_min = None
-        elif requested_operation == "between":
-            if value_min is None or value_max is None:
-                return None
-
-        if value_min is None and value_max is None:
-            return None
-        if value_min is not None and value_max is not None:
-            if value_min > value_max:
-                value_min, value_max = value_max, value_min
-            operation = "between"
-            display_value = f"between {value_min:g} and {value_max:g}"
-            filter_id = f"numeric:{score_param.pk}:between:{value_min:g}:{value_max:g}"
-            primary_value = value_min
-        elif value_min is not None:
-            operation = ">="
-            display_value = f"≥ {value_min:g}"
-            filter_id = f"numeric:{score_param.pk}:>=:{value_min:g}"
-            primary_value = value_min
-        else:
-            operation = "<="
-            display_value = f"≤ {value_max:g}"
-            filter_id = f"numeric:{score_param.pk}:<=:{value_max:g}"
-            primary_value = value_max
-            value_max = None
-        return {
-            "id": filter_id,
-            "score_param_id": score_param.pk,
-            "score_param_name": score_param.name,
-            "type": "numeric",
-            "operation": operation,
-            "value": primary_value,
-            "value_max": value_max if operation == "between" else None,
-            "display_name": display_value,
-        }
 
     _NUMERIC_FILTER_PLACEHOLDERS = {
         "human_identity": ("30", "80"),

@@ -24,6 +24,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
     <link rel="stylesheet" href="{% static 'css/components/ui-system.css' %}?v=20260710-select-fix1">
+    <link rel="stylesheet" href="{% static 'css/components/agent-drawer.css' %}?v=20260713-agent1">
     <style>
         :root {
             --tp-color-text-primary: #132f3d;
@@ -1949,6 +1950,17 @@
         {% else %}
             <a class="btn btn-sm btn-outline-light btn-block" href="{% url 'account_login' %}">{% trans "Login" %}</a>
         {% endif %}
+        <button id="tp-agent-drawer-toggle" class="tp-theme-toggle" type="button"
+                aria-label="{% trans 'Open assistant' %}" title="{% trans 'Open assistant' %}"
+                aria-expanded="false" aria-controls="tp-agent-drawer">
+            <span class="tp-theme-toggle-icon" aria-hidden="true">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true">
+                    <path d="M2 3.5h12v7H8.8L5.5 13v-2.5H2v-7Z"/>
+                    <path d="M5 6.5h6M5 8.5h4"/>
+                </svg>
+            </span>
+            <span class="tp-theme-toggle-label">{% trans "Assistant" %}</span>
+        </button>
         <button id="tp-theme-toggle" class="tp-theme-toggle" type="button" aria-label="{% trans 'Toggle theme' %}" title="{% trans 'Toggle theme' %}">
             <span class="tp-theme-toggle-icon" aria-hidden="true"></span>
             <span class="tp-theme-toggle-label"></span>
@@ -1959,6 +1971,14 @@
 <nav id="main_header" class="navbar navbar-expand-lg navbar-dark fixed-top tp-topbar-mobile">
     <div class="container-fluid">
         <a class="navbar-brand" href="{% url 'tpwebapp:index' %}" aria-label="{% trans 'Target Pathogen' %}"><img class="tp-mobile-brand-img" src="{% static 'img/brand/tp-logo-full-white.png' %}" alt="{% trans 'Target Pathogen' %}" style="display:block;width:min(190px,56vw);height:auto;max-height:42px;object-fit:contain;object-position:left center;"></a>
+        <button id="tp-agent-drawer-toggle-mobile" class="tp-agent-drawer-toggle-mobile" type="button"
+                aria-label="{% trans 'Open assistant' %}" title="{% trans 'Open assistant' %}"
+                aria-expanded="false" aria-controls="tp-agent-drawer">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" aria-hidden="true">
+                <path d="M2 3.5h12v7H8.8L5.5 13v-2.5H2v-7Z"/>
+                <path d="M5 6.5h6M5 8.5h4"/>
+            </svg>
+        </button>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse"
                 aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
@@ -2032,7 +2052,25 @@
     {% block footer %}{% endblock %}
 </footer>
 
+<div id="tp-agent-drawer-backdrop" class="tp-agent-drawer-backdrop" hidden></div>
+<aside id="tp-agent-drawer" class="tp-agent-drawer" aria-hidden="true" aria-label="{% trans 'Assistant' %}">
+    <header class="tp-agent-drawer-header">
+        <span class="tp-agent-drawer-title">{% trans "Assistant" %}</span>
+        <button id="tp-agent-drawer-close" class="tp-agent-drawer-close" type="button" aria-label="{% trans 'Close assistant' %}" title="{% trans 'Close assistant' %}">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" width="14" height="14" aria-hidden="true"><path d="M3 3l10 10M13 3L3 13"/></svg>
+        </button>
+    </header>
+    <div id="tp-agent-drawer-messages" class="tp-agent-drawer-messages" role="log" aria-live="polite">
+        <p class="tp-agent-drawer-empty">{% trans "Ask about proteins, filters, scores, or evidence loaded for the genome you're currently viewing." %}</p>
+    </div>
+    <form id="tp-agent-drawer-form" class="tp-agent-drawer-form" data-chat-url="{% url 'tpwebapp:agent_chat' %}">
+        <textarea id="tp-agent-drawer-input" class="tp-agent-drawer-input" rows="2" placeholder="{% trans 'Ask the assistant…' %}" aria-label="{% trans 'Message' %}"></textarea>
+        <button type="submit" class="tp-btn tp-btn--primary tp-agent-drawer-send">{% trans "Send" %}</button>
+    </form>
+</aside>
+
 <script src="{% static 'bundle.js' %}?v=20260709-metabolism3"></script>
+<script src="{% static 'js/global/agent-drawer.js' %}?v=20260713-agent1"></script>
 
 <script>
     function getCookie(name) {

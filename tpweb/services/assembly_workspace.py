@@ -302,6 +302,18 @@ def _score_proteins(assembly_name):
     return scored
 
 
+def score_single_protein(assembly_name, accession):
+    """Evidence-convergence score row for one protein, for the agent's
+    explain_target tool. _score_proteins' binder/structure/metabolic lookups
+    are genome-wide bulk queries by design, so this is a cheap filter over
+    the full result rather than a rewrite of the scoring logic per-protein.
+    Returns None if the accession has no resolvable/scored row."""
+    for row in _score_proteins(assembly_name):
+        if row["protein"].accession == accession:
+            return row
+    return None
+
+
 def _format_score_items(scored_rows):
     items = []
     for row in scored_rows:
