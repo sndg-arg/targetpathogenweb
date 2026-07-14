@@ -28,13 +28,14 @@ from django.views import View
 from bioseq.models.Biodatabase import Biodatabase
 from bioseq.models.Bioentry import Bioentry
 from tpweb.services.genome_workspace import resolve_genome_from_slug, user_can_access_genome_name
-from tpweb.services.workspace import resolve_workspace_user
+from tpweb.services.workspace import resolve_workspace_user, set_workspace_session_value
 from tpweb.services.llm.agent import Agent
 from tpweb.services.llm.base import Message, ToolCall, ToolResult
 from tpweb.services.llm.provider_factory import get_provider, llm_agent_enabled
 from tpweb.services.llm.tools.demo import ENTRY as GET_CURRENT_TIME_ENTRY
 from tpweb.services.llm.tools.apply_filters import (
     build_apply_filters_entry,
+    build_clear_filters_entry,
     build_list_available_filters_entry,
 )
 from tpweb.services.llm.tools.explain_target import build_explain_target_entry
@@ -49,7 +50,9 @@ SYSTEM_PROMPT = (
     "instead of guessing. If the user asks about 'this protein', 'esta proteína', "
     "'esta proteina', 'este target', or asks why the current protein is or is not a "
     "good target, use the current page context and call explain_target without asking "
-    "the user to repeat the accession."
+    "the user to repeat the accession. If the user asks to clear/reset/remove all filters "
+    "or says 'borrar todos los filtros', call clear_filters directly; do not list available "
+    "filters first."
 )
 
 NO_GENOME_SCOPE_NOTE = (
@@ -82,6 +85,52 @@ def _message_from_json(data: dict) -> Message:
     )
 
 
+def _truncate_text(text, limit=2400):
+    if not text:
+        return text
+    text = str(text)
+    if len(text) <= limit:
+        return text
+    return text[:limit] + "\n...[truncated]"
+
+
+def _compact_history(history, max_messages=10):
+    """Keep short recent visible chat context only.
+
+    Tool calls/results can be very large (especially list_available_filters) and
+    do not need to be replayed on every turn. Keeping only user/assistant text
+    prevents TPM spikes while preserving the conversation the user sees.
+    """
+    compact = []
+    for message in history[-max_messages:]:
+        if not message.text:
+            continue
+        compact.append(Message(role=message.role, text=_truncate_text(message.text)))
+    return compact
+
+
+def _looks_like_clear_filters(message):
+    text = str(message or "").strip().lower()
+    if not text:
+        return False
+    has_filter = "filtro" in text or "filter" in text
+    has_clear = any(
+        token in text
+        for token in (
+            "borrar",
+            "borra",
+            "limpiar",
+            "limpia",
+            "sacar",
+            "saca",
+            "reset",
+            "clear",
+            "remove",
+        )
+    )
+    return has_filter and has_clear
+
+
 class AgentChatView(View):
     def post(self, request, *args, **kwargs):
         if not llm_agent_enabled() and not os.environ.get("TPW_LLM_PROVIDER", "").strip():
@@ -108,11 +157,20 @@ class AgentChatView(View):
             history = [_message_from_json(item) for item in payload.get("history") or []]
         except (TypeError, ValueError):
             return JsonResponse({"error": "Invalid history."}, status=400)
+        history = _compact_history(history)
 
         workspace_user = resolve_workspace_user(request.user)
         assembly_name, default_accession = self._resolve_page_scope(
             request.user, str(payload.get("page_path") or "")
         )
+        if assembly_name and _looks_like_clear_filters(message):
+            set_workspace_session_value(request.session, workspace_user, "selected_parameters", [])
+            reply = "Listo, borré todos los filtros de la lista de proteínas para esta sesión."
+            history = _compact_history([*history, Message(role="user", text=message), Message(role="assistant", text=reply)])
+            return JsonResponse({
+                "reply": reply,
+                "history": [_message_to_json(item) for item in history],
+            })
 
         tools = {"get_current_time": GET_CURRENT_TIME_ENTRY}
         system = SYSTEM_PROMPT
@@ -120,6 +178,7 @@ class AgentChatView(View):
             system += self._page_context_prompt(assembly_name, default_accession)
             tools["list_available_filters"] = build_list_available_filters_entry(workspace_user)
             tools["apply_filters"] = build_apply_filters_entry(request, workspace_user)
+            tools["clear_filters"] = build_clear_filters_entry(request, workspace_user)
             tools["search_proteins"] = build_search_proteins_entry(assembly_name)
             tools["explain_target"] = build_explain_target_entry(assembly_name, default_accession)
         else:
@@ -138,7 +197,7 @@ class AgentChatView(View):
 
         return JsonResponse({
             "reply": reply,
-            "history": [_message_to_json(item) for item in agent.last_messages],
+            "history": [_message_to_json(item) for item in _compact_history(agent.last_messages, max_messages=12)],
         })
 
     @staticmethod

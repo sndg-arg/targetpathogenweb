@@ -90,6 +90,16 @@ APPLY_FILTERS = ToolDefinition(
     },
 )
 
+CLEAR_FILTERS = ToolDefinition(
+    name="clear_filters",
+    description=(
+        "Clear every active protein-list filter for the current user's session. "
+        "Use this directly when the user asks to remove, reset, clear, or borrar todos "
+        "los filtros. Do not call list_available_filters first."
+    ),
+    input_schema={"type": "object", "properties": {}, "additionalProperties": False},
+)
+
 
 def build_list_available_filters_entry(user):
     def run(_input):
@@ -97,10 +107,14 @@ def build_list_available_filters_entry(user):
         lines = []
         for score_param in score_params:
             if is_categorical_score_param(score_param):
-                options = ", ".join(
+                option_parts = [
                     f"{option.name} (filter_option_id={option.pk})"
-                    for option in score_param.choices.all()
-                )
+                    for option in score_param.choices.all()[:20]
+                ]
+                extra_count = max(0, score_param.choices.count() - len(option_parts))
+                if extra_count:
+                    option_parts.append(f"... {extra_count} more option(s)")
+                options = ", ".join(option_parts)
                 if not options:
                     continue
                 lines.append(f"- {score_param.name} [{score_param.category}, categorical]: {options}")
@@ -114,6 +128,14 @@ def build_list_available_filters_entry(user):
         return "\n".join(lines)
 
     return ToolEntry(definition=LIST_AVAILABLE_FILTERS, run=run)
+
+
+def build_clear_filters_entry(request, user):
+    def run(_input):
+        set_workspace_session_value(request.session, user, "selected_parameters", [])
+        return "All protein-list filters were cleared for the current session."
+
+    return ToolEntry(definition=CLEAR_FILTERS, run=run)
 
 
 def build_apply_filters_entry(request, user):
