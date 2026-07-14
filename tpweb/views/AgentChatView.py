@@ -15,6 +15,7 @@ doesn't have access to.
 from __future__ import annotations
 
 import json
+import os
 
 from django.http import JsonResponse
 from django.urls import resolve
@@ -27,7 +28,7 @@ from tpweb.services.genome_workspace import resolve_genome_from_slug, user_can_a
 from tpweb.services.workspace import resolve_workspace_user
 from tpweb.services.llm.agent import Agent
 from tpweb.services.llm.base import Message, ToolCall, ToolResult
-from tpweb.services.llm.provider_factory import get_provider
+from tpweb.services.llm.provider_factory import get_provider, llm_agent_enabled
 from tpweb.services.llm.tools.demo import ENTRY as GET_CURRENT_TIME_ENTRY
 from tpweb.services.llm.tools.apply_filters import (
     build_apply_filters_entry,
@@ -77,6 +78,17 @@ def _message_from_json(data: dict) -> Message:
 
 class AgentChatView(View):
     def post(self, request, *args, **kwargs):
+        if not llm_agent_enabled() and not os.environ.get("TPW_LLM_PROVIDER", "").strip():
+            return JsonResponse(
+                {
+                    "error": (
+                        "Assistant is not enabled. Set OPENAI_AGENT_ENABLED=true and "
+                        "OPENAI_API_KEY on the server."
+                    )
+                },
+                status=503,
+            )
+
         try:
             payload = json.loads(request.body or b"{}")
         except (TypeError, ValueError):

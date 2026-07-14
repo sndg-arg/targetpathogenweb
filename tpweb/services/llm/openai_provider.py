@@ -1,38 +1,30 @@
-"""OpenAI implementation of LLMProvider.
+"""OpenAI implementation of LLMProvider using the Responses API.
 
-Translates the neutral types in base.py to and from the OpenAI SDK's Chat
-Completions tool-calling shape. This is the only file in the package that
-imports `openai` -- tpweb/services/llm/agent.py and every tool
-implementation stay provider-neutral.
-
-OpenAI's wire format differs from Claude's in two ways that matter here:
-- Tools are declared as {"type": "function", "function": {name, description,
-  parameters}} (Claude: {"name", "description", "input_schema"}).
-- A single tool-invoking turn is a role="assistant" message with a
-  `tool_calls` list, and each tool's result is its OWN role="tool" message
-  keyed by tool_call_id -- there is no way to bundle multiple tool results
-  into one message like Claude's tool_result content blocks do. A neutral
-  Message(role="user", tool_results=[...]) with N results must therefore
-  expand into N separate OpenAI messages.
+The cluster smoke test validates /v1/responses directly, so this adapter uses
+the same API instead of Chat Completions. It intentionally avoids printing or
+persisting API keys; OPENAI_API_KEY is read from the process environment.
 """
 from __future__ import annotations
 
 import json
 import os
-
-import openai
+import urllib.error
+import urllib.request
+from typing import Any
 
 from .base import LLMProvider, LLMResponse, Message, ToolCall, ToolDefinition
 
-DEFAULT_MODEL = "gpt-4o"
+DEFAULT_MODEL = "gpt-5.4-mini"
+RESPONSES_URL = "https://api.openai.com/v1/responses"
 
 
 class OpenAIProvider(LLMProvider):
-    def __init__(self, model: str | None = None, client: openai.OpenAI | None = None):
-        # OPENAI_API_KEY is read from the environment by the SDK itself --
-        # never hardcode it, same convention as anthropic_provider.py.
-        self.model = model or os.environ.get("TPW_LLM_MODEL", DEFAULT_MODEL)
-        self._client = client or openai.OpenAI()
+    def __init__(self, model: str | None = None, api_key: str | None = None, timeout: int = 60):
+        self.model = model or os.environ.get("TPW_LLM_MODEL") or os.environ.get("OPENAI_MODEL") or DEFAULT_MODEL
+        self.api_key = api_key or os.environ.get("OPENAI_API_KEY", "")
+        self.timeout = timeout
+        if not self.api_key:
+            raise RuntimeError("OPENAI_API_KEY is not configured.")
 
     def generate(
         self,
@@ -40,81 +32,110 @@ class OpenAIProvider(LLMProvider):
         tools: list[ToolDefinition],
         system: str = "",
     ) -> LLMResponse:
-        openai_messages: list[dict] = []
+        payload: dict[str, Any] = {
+            "model": self.model,
+            "input": self._to_response_input(messages),
+            "tools": [self._to_response_tool(tool) for tool in tools],
+            "store": False,
+        }
         if system:
-            openai_messages.append({"role": "system", "content": system})
-        for message in messages:
-            openai_messages.extend(self._to_openai_messages(message))
+            payload["instructions"] = system
 
-        response = self._client.chat.completions.create(
-            model=self.model,
-            messages=openai_messages,
-            tools=[self._to_openai_tool(t) for t in tools],
+        response = self._post(payload)
+        text_parts: list[str] = []
+        tool_calls: list[ToolCall] = []
+
+        for item in response.get("output") or []:
+            item_type = item.get("type")
+            if item_type == "message":
+                for content in item.get("content") or []:
+                    if content.get("type") == "output_text":
+                        text_parts.append(content.get("text") or "")
+            elif item_type == "function_call":
+                try:
+                    tool_input = json.loads(item.get("arguments") or "{}")
+                except json.JSONDecodeError:
+                    tool_input = {}
+                call_id = item.get("call_id") or item.get("id") or ""
+                tool_calls.append(
+                    ToolCall(
+                        id=call_id,
+                        name=item.get("name") or "",
+                        input=tool_input,
+                    )
+                )
+
+        if tool_calls:
+            stop_reason = "tool_use"
+        elif response.get("status") == "incomplete":
+            stop_reason = "max_tokens"
+        elif response.get("status") == "completed":
+            stop_reason = "end_turn"
+        else:
+            stop_reason = "other"
+
+        return LLMResponse(
+            text="".join(text_parts) or None,
+            tool_calls=tool_calls,
+            stop_reason=stop_reason,
+            raw=response,
         )
 
-        choice = response.choices[0]
-        message = choice.message
-
-        text: str | None = message.content
-        tool_calls: list[ToolCall] = []
-        for tc in message.tool_calls or []:
-            try:
-                tool_input = json.loads(tc.function.arguments)
-            except json.JSONDecodeError:
-                tool_input = {}
-            tool_calls.append(ToolCall(id=tc.id, name=tc.function.name, input=tool_input))
-
-        stop_reason = {
-            "stop": "end_turn",
-            "tool_calls": "tool_use",
-            "length": "max_tokens",
-        }.get(choice.finish_reason, "other")
-
-        return LLMResponse(text=text, tool_calls=tool_calls, stop_reason=stop_reason, raw=response)
+    def _post(self, payload: dict[str, Any]) -> dict[str, Any]:
+        request = urllib.request.Request(
+            RESPONSES_URL,
+            data=json.dumps(payload).encode("utf-8"),
+            headers={
+                "Authorization": f"Bearer {self.api_key}",
+                "Content-Type": "application/json",
+            },
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(request, timeout=self.timeout) as response:
+                return json.loads(response.read().decode("utf-8"))
+        except urllib.error.HTTPError as exc:
+            body = exc.read().decode("utf-8", errors="replace")
+            raise RuntimeError(f"OpenAI API error {exc.code}: {body[:1000]}") from exc
 
     @staticmethod
-    def _to_openai_tool(tool: ToolDefinition) -> dict:
+    def _to_response_tool(tool: ToolDefinition) -> dict[str, Any]:
         return {
             "type": "function",
-            "function": {
-                "name": tool.name,
-                "description": tool.description,
-                "parameters": tool.input_schema,
-            },
+            "name": tool.name,
+            "description": tool.description,
+            "parameters": tool.input_schema,
+            "strict": False,
         }
 
-    @staticmethod
-    def _to_openai_messages(message: Message) -> list[dict]:
-        """One neutral Message maps to zero or more OpenAI messages -- tool
-        results in particular must be split into one role="tool" message per
-        result, since OpenAI has no concept of bundling several into one."""
-        if message.tool_results:
-            return [
-                {
-                    "role": "tool",
-                    "tool_call_id": result.tool_call_id,
-                    "content": result.content,
-                }
-                for result in message.tool_results
-            ]
-
-        if message.tool_calls:
-            return [
-                {
-                    "role": "assistant",
-                    "content": message.text,
-                    "tool_calls": [
+    @classmethod
+    def _to_response_input(cls, messages: list[Message]) -> list[dict[str, Any]]:
+        items: list[dict[str, Any]] = []
+        for message in messages:
+            if message.tool_results:
+                for result in message.tool_results:
+                    items.append(
                         {
-                            "id": call.id,
-                            "type": "function",
-                            "function": {
-                                "name": call.name,
-                                "arguments": json.dumps(call.input),
-                            },
+                            "type": "function_call_output",
+                            "call_id": result.tool_call_id,
+                            "output": result.content,
                         }
-                        for call in message.tool_calls
-                    ],
-                }
-            ]
+                    )
+                continue
 
-        return [{"role": message.role, "content": message.text or ""}]
+            if message.tool_calls:
+                if message.text:
+                    items.append({"role": "assistant", "content": message.text})
+                for call in message.tool_calls:
+                    items.append(
+                        {
+                            "type": "function_call",
+                            "call_id": call.id,
+                            "name": call.name,
+                            "arguments": json.dumps(call.input),
+                        }
+                    )
+                continue
+
+            items.append({"role": message.role, "content": message.text or ""})
+        return items
