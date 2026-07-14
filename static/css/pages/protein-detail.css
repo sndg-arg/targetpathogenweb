@@ -3150,7 +3150,7 @@ body.residue-modal-open {
 /* === Target profile section === */
 .target-profile-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
     gap: 1px;
     margin: 0;
     padding: 0;
@@ -3166,6 +3166,7 @@ body.residue-modal-open {
     flex-direction: column;
     gap: 7px;
     padding: 13px 15px 14px;
+    min-width: 0;
     background: var(--tp-color-surface);
     box-shadow: inset 2px 0 0 transparent;
     transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
@@ -3191,6 +3192,7 @@ body.residue-modal-open {
     font-weight: 600;
     letter-spacing: -0.01em;
     color: var(--tp-color-text-primary);
+    overflow-wrap: anywhere;
 }
 
 .target-profile-item--good {
