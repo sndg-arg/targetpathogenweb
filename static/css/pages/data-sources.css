@@ -185,6 +185,13 @@
     margin-top: -4px !important;
 }
 
+.ds-pipeline-card-doctorate {
+    font-style: italic;
+    color: var(--tp-color-text-muted) !important;
+    padding-top: 6px;
+    border-top: 1px solid var(--tp-color-border-soft);
+}
+
 .ds-stage-tag {
     font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
     font-size: 0.73rem;
