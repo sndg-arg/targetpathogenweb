@@ -21,6 +21,7 @@
                 <p class="genome-description">{{ assembly.name }}{% if assembly.description %} — {{ assembly.description }}{% endif %}</p>
                 <div class="genome-hero-actions">
                     <a href="{{ proteins_url }}" class="btn tp-btn tp-btn--primary">{% trans "Protein ranking" %}</a>
+                    <a href="{% url 'tpwebapp:genome_metabolism_network' genome=assembly.slug %}" class="btn tp-btn tp-btn--outline">{% trans "View as network" %}</a>
                     <a href="{{ assembly_url }}" class="btn tp-btn tp-btn--outline">{% trans "Genome overview" %}</a>
                 </div>
             </div>

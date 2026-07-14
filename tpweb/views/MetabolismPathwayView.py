@@ -1,12 +1,13 @@
-from django.http import Http404
+from django.http import Http404, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
 from django.views import View
 
 from bioseq.models.Biodatabase import Biodatabase
-from tpweb.models.Metabolism import GeneReactionLink, MetabolicPathway, MetabolicReaction
+from tpweb.models.Metabolism import GeneReactionLink, MetabolicPathway, MetabolicReaction, MetabolicReactionEdge
 from tpweb.services.genome_workspace import display_genome_name, genome_url_slug, resolve_genome_from_slug
 from tpweb.services.metabolism_summary import build_genome_metabolism_summary
+from tpweb.services.metabolism_network import _primary_pathway_buckets, build_genome_metabolism_network
 
 
 class MetabolismPathwayView(View):
@@ -100,6 +101,35 @@ def _build_reaction_row(reaction):
     }
 
 
+def _reaction_topology_row(reaction):
+    """Like _build_reaction_row, but without the substrate/product participant queries a
+    graph topology node never needs -- calling _build_reaction_row and discarding those
+    fields would still pay for reaction.participants.all() on every reaction for nothing."""
+    links = list(reaction.genes.all())
+    chokepoint_role = next(
+        (link.chokepoint_role for link in links if link.chokepoint_role != GeneReactionLink.CHOKEPOINT_NONE),
+        GeneReactionLink.CHOKEPOINT_NONE,
+    )
+    genes = [
+        {
+            "accession": link.bioentry.accession,
+            "protein_id": link.bioentry.bioentry_id,
+            "url": reverse("tpwebapp:protein", kwargs={"protein_id": link.bioentry.bioentry_id}),
+        }
+        for link in links
+    ]
+    genes.sort(key=lambda g: g["accession"])
+    return {
+        "id": reaction.reaction_id,
+        "name": reaction.name or reaction.reaction_id,
+        "ec_numbers": [ec for ec in (reaction.ec_numbers or "").split(",") if ec],
+        "chokepoint_role": chokepoint_role,
+        "is_chokepoint": chokepoint_role != GeneReactionLink.CHOKEPOINT_NONE,
+        "isoenzyme_count": reaction.isoenzyme_count,
+        "genes": genes,
+    }
+
+
 class MetabolismPathwayDetailView(View):
     template_name = "genomic/metabolism_pathway.html"
 
@@ -187,3 +217,93 @@ class MetabolismPathwayDetailView(View):
             "metabolism_url": reverse("tpwebapp:genome_metabolism", kwargs={"genome": slug}),
             "proteins_url": reverse("tpwebapp:protein_list", kwargs={"genome": slug}),
         })
+
+
+class MetabolismNetworkPageView(View):
+    """Genome-wide unified metabolic network graph (pathway-level nodes, expand-in-place
+    on click) -- an additional way to explore the same data as MetabolismPathwayView's
+    ranking list and MetabolismPathwayDetailView's per-pathway SVG diagram, not a
+    replacement for either."""
+    template_name = "genomic/metabolism_network.html"
+
+    def get(self, request, genome, *args, **kwargs):
+        assembly_name = resolve_genome_from_slug(request.user, genome)
+        if not assembly_name:
+            raise Http404("Genome not found")
+        try:
+            biodb = Biodatabase.objects.get(name=assembly_name)
+        except Biodatabase.DoesNotExist as exc:
+            raise Http404("Genome not found") from exc
+
+        slug = genome_url_slug(assembly_name)
+        # Genome totals only, for the 4 metric pills -- the graph itself is fetched
+        # client-side from MetabolismNetworkGraphView. These are page-level totals, so the
+        # multi-membership-vs-partition distinction between build_genome_metabolism_summary
+        # and build_genome_metabolism_network doesn't apply here.
+        summary = build_genome_metabolism_summary(assembly_name, user=request.user)
+        return render(request, self.template_name, {
+            "assembly": {
+                "name": display_genome_name(assembly_name),
+                "internal_name": assembly_name,
+                "slug": slug,
+                "description": biodb.description,
+            },
+            "summary": summary,
+            "assembly_url": reverse("tpwebapp:assembly", kwargs={"genome": slug}),
+            "metabolism_url": reverse("tpwebapp:genome_metabolism", kwargs={"genome": slug}),
+            "proteins_url": reverse("tpwebapp:protein_list", kwargs={"genome": slug}),
+            "network_data_url": reverse("tpwebapp:genome_metabolism_network_data", kwargs={"genome": slug}),
+            "network_expand_url_template": reverse(
+                "tpwebapp:genome_metabolism_network_expand",
+                kwargs={"genome": slug, "source": "__SOURCE__", "external_id": "__EXTERNAL_ID__"},
+            ),
+        })
+
+
+class MetabolismNetworkGraphView(View):
+    """JSON: the collapsed, genome-wide pathway-level graph (nodes + weighted cross-pathway
+    edges) for MetabolismNetworkPageView's Cytoscape canvas."""
+
+    def get(self, request, genome, *args, **kwargs):
+        assembly_name = resolve_genome_from_slug(request.user, genome)
+        if not assembly_name:
+            raise Http404("Genome not found")
+        formula_name = request.GET.get("scoreformula") or None
+        payload = build_genome_metabolism_network(assembly_name, user=request.user, formula_name=formula_name)
+        return JsonResponse(payload)
+
+
+class MetabolismNetworkExpandView(View):
+    """JSON: one pathway's reactions + internal reaction-reaction edges, fetched when the
+    user clicks a collapsed pathway node to expand it in place. Uses the exact same
+    _primary_pathway_buckets partition as MetabolismNetworkGraphView, so a node's promised
+    reaction_count always matches what expanding it reveals."""
+
+    def get(self, request, genome, source, external_id, *args, **kwargs):
+        assembly_name = resolve_genome_from_slug(request.user, genome)
+        if not assembly_name:
+            raise Http404("Genome not found")
+        source = source.upper()
+
+        buckets = _primary_pathway_buckets(assembly_name)
+        reaction_ids = {rid for rid, key in buckets.items() if key[0] == source and key[1] == external_id}
+        if not reaction_ids:
+            raise Http404("Pathway not found for this genome")
+
+        reactions = MetabolicReaction.objects.filter(id__in=reaction_ids).prefetch_related("genes__bioentry")
+        nodes = [_reaction_topology_row(reaction) for reaction in reactions]
+
+        edge_rows = (
+            MetabolicReactionEdge.objects
+            .filter(
+                genome_accession=assembly_name,
+                reaction_a_id__in=reaction_ids,
+                reaction_b_id__in=reaction_ids,
+            )
+            .select_related("reaction_a", "reaction_b")
+        )
+        edges = [
+            {"source": edge.reaction_a.reaction_id, "target": edge.reaction_b.reaction_id}
+            for edge in edge_rows
+        ]
+        return JsonResponse({"nodes": nodes, "edges": edges})

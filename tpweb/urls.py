@@ -8,7 +8,13 @@ from .views.HealthView import HealthLiveView, HealthPipelineView, HealthReadyVie
 from .views.ProteinListView import ProteinListView, ProteinSearchSuggestionsView
 from .views.ProteinView import ProteinView
 from .views.MetabolismNetworkView import MetabolismNetworkView
-from .views.MetabolismPathwayView import MetabolismPathwayDetailView, MetabolismPathwayView
+from .views.MetabolismPathwayView import (
+    MetabolismNetworkExpandView,
+    MetabolismNetworkGraphView,
+    MetabolismNetworkPageView,
+    MetabolismPathwayDetailView,
+    MetabolismPathwayView,
+)
 from .views.StructureExportView import StructureExportView
 from .views.StructureRawView import StructureRawView
 from .views.StructureView import StructureView
@@ -58,6 +64,24 @@ urlpatterns = [
     path("about/us", view=AboutUsView.as_view(), name="about_us"),
     path("genome/<str:genome>", view=AssemblyView.as_view(), name="assembly"),
     path("genome/<str:genome>/metabolism", view=MetabolismPathwayView.as_view(), name="genome_metabolism"),
+    # Network routes are registered BEFORE genome_metabolism_pathway's generic
+    # <source>/<external_id> pattern below, since that pattern would otherwise greedily
+    # match "network/data" as source="network", external_id="data".
+    path(
+        "genome/<str:genome>/metabolism/network",
+        view=MetabolismNetworkPageView.as_view(),
+        name="genome_metabolism_network",
+    ),
+    path(
+        "genome/<str:genome>/metabolism/network/data",
+        view=MetabolismNetworkGraphView.as_view(),
+        name="genome_metabolism_network_data",
+    ),
+    path(
+        "genome/<str:genome>/metabolism/network/<str:source>/<str:external_id>",
+        view=MetabolismNetworkExpandView.as_view(),
+        name="genome_metabolism_network_expand",
+    ),
     path(
         "genome/<str:genome>/metabolism/<str:source>/<str:external_id>",
         view=MetabolismPathwayDetailView.as_view(),
