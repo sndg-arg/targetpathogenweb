@@ -72,7 +72,6 @@ class FPocket2SQL:
     def _process_pocket_alphas(self, pocket, nro_atm, p2 = False):
         res_alpha = {}
         for stp_line in pocket.as_lines:
-            print(stp_line)
             nro_atm += 1
             resid = int(stp_line[22:26])
             if resid in res_alpha:
@@ -118,11 +117,8 @@ class FPocket2SQL:
 
                 for atom in atoms:
                     AtomResidueSet(atom=atom, pdb_set=rs_dict[atom.residue.id]).save()
+                prop_map = pocket_prop_map if not p2rank else p2pocket_prop_map
                 for k, v in pocket.properties.items():
-                    print(pocket.properties.items())
-                    print(k)
-                    prop_map = pocket_prop_map if not p2rank else p2pocket_prop_map
-                    print(prop_map)
                     prop = prop_map[k]
                     prop_model = self.pocket_props[prop]
                     ResidueSetProperty(pdbresidue_set=rs, property=prop_model, value=v).save()
