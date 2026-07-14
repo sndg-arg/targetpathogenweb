@@ -3195,6 +3195,47 @@ body.residue-modal-open {
 .target-profile-item--bad .target-profile-value { color: var(--tp-color-warning-ink); }
 .target-profile-item--bad .target-profile-label { color: var(--tp-color-warning-ink); opacity: 0.8; }
 
+.target-profile-bar {
+    display: block;
+    margin-top: 5px;
+    width: 100%;
+    min-width: 90px;
+    height: 4px;
+    border-radius: 999px;
+    background: var(--tp-color-border-soft);
+    overflow: hidden;
+}
+
+.target-profile-bar-fill {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--tp-color-brand-500);
+}
+
+.target-profile-item--good .target-profile-bar-fill { background: var(--tp-color-success-ink); }
+.target-profile-item--bad .target-profile-bar-fill { background: var(--tp-color-warning-ink); }
+
+.target-profile-risk-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 2px 9px;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    font-weight: 600;
+}
+
+.target-profile-risk-pill--good {
+    background: color-mix(in srgb, var(--tp-color-success-ink) 14%, transparent);
+    color: var(--tp-color-success-ink);
+}
+
+.target-profile-risk-pill--bad {
+    background: color-mix(in srgb, var(--tp-color-warning-ink) 14%, transparent);
+    color: var(--tp-color-warning-ink);
+}
+
 /* === PDB evidence subsection (inside 3D Structure panel) === */
 .pdb-evidence-subsection {
     margin-top: 32px;

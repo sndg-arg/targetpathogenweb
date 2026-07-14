@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260712-size-outlier2">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260713-offtarget1">
 {% endblock %}
 
 {% block body %}
@@ -256,7 +256,25 @@
                     {% for item in target_profile %}
                     <div class="target-profile-item target-profile-item--{{ item.tone }}"{% if item.tooltip %} title="{{ item.tooltip }}"{% endif %}>
                         <dt class="target-profile-label">{{ item.label }}</dt>
+                        {% if item.label == "Human identity (%)" or item.label == "DEG identity (%)" or item.label == "ColabFold pLDDT" %}
+                        <dd class="target-profile-value">
+                            {{ item.value }}
+                            <span class="target-profile-bar" aria-hidden="true"><span class="target-profile-bar-fill" style="width: {{ item.value }}%;"></span></span>
+                        </dd>
+                        {% elif item.tone == "good" or item.tone == "bad" %}
+                        <dd class="target-profile-value">
+                            <span class="target-profile-risk-pill target-profile-risk-pill--{{ item.tone }}">
+                                {% if item.tone == "good" %}
+                                <svg viewBox="0 0 16 16" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="2.5 8 6.5 12 13.5 4"/></svg>
+                                {% else %}
+                                <svg viewBox="0 0 16 16" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.5L13.8 12.5H2.2L8 2.5Z"/><line x1="8" y1="6.3" x2="8" y2="9"/><circle cx="8" cy="10.6" r="0.6" fill="currentColor" stroke="none"/></svg>
+                                {% endif %}
+                                {{ item.value|capfirst }}
+                            </span>
+                        </dd>
+                        {% else %}
                         <dd class="target-profile-value">{{ item.value }}</dd>
+                        {% endif %}
                     </div>
                     {% endfor %}
                 </dl>
