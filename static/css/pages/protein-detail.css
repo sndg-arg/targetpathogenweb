@@ -3149,58 +3149,65 @@ body.residue-modal-open {
 
 /* === Target profile section === */
 .target-profile-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--tp-space-3);
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+    gap: 1px;
     margin: 0;
-    padding: var(--tp-space-3) 0 0;
+    padding: 0;
+    background: var(--tp-color-border-soft);
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 12px;
+    overflow: hidden;
 }
 
 .target-profile-item {
+    position: relative;
     display: flex;
     flex-direction: column;
-    gap: 2px;
-    padding: var(--tp-space-2) var(--tp-space-3);
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: 10px;
-    background: var(--tp-color-surface-alt);
-    min-width: 140px;
+    gap: 7px;
+    padding: 13px 15px 14px;
+    background: var(--tp-color-surface);
+    box-shadow: inset 2px 0 0 transparent;
+    transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.target-profile-item:hover {
+    background: var(--tp-color-surface-soft);
 }
 
 .target-profile-label {
-    font-size: var(--tp-font-label);
-    color: var(--tp-color-text-secondary);
-    font-weight: 500;
+    font-size: 0.66rem;
+    color: var(--tp-color-text-muted);
+    font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.03em;
+    letter-spacing: 0.07em;
+    line-height: 1.2;
 }
 
 .target-profile-value {
-    font-size: 0.92rem;
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-variant-numeric: tabular-nums;
+    font-size: 1.02rem;
     font-weight: 600;
+    letter-spacing: -0.01em;
     color: var(--tp-color-text-primary);
 }
 
 .target-profile-item--good {
-    border-color: var(--tp-color-success-border);
-    background: var(--tp-color-success-bg);
+    box-shadow: inset 2px 0 0 var(--tp-color-success-ink);
 }
-.target-profile-item--good .target-profile-value { color: var(--tp-color-success-ink); }
-.target-profile-item--good .target-profile-label { color: var(--tp-color-success-ink); opacity: 0.8; }
+.target-profile-item--good .target-profile-label { color: color-mix(in srgb, var(--tp-color-success-ink) 78%, var(--tp-color-text-muted)); }
 
 .target-profile-item--bad {
-    border-color: var(--tp-color-warning-border);
-    background: var(--tp-color-warning-bg);
+    box-shadow: inset 2px 0 0 var(--tp-color-warning-ink);
 }
-.target-profile-item--bad .target-profile-value { color: var(--tp-color-warning-ink); }
-.target-profile-item--bad .target-profile-label { color: var(--tp-color-warning-ink); opacity: 0.8; }
+.target-profile-item--bad .target-profile-label { color: color-mix(in srgb, var(--tp-color-warning-ink) 78%, var(--tp-color-text-muted)); }
 
 .target-profile-bar {
     display: block;
-    margin-top: 5px;
+    margin-top: 1px;
     width: 100%;
-    min-width: 90px;
-    height: 4px;
+    height: 3px;
     border-radius: 999px;
     background: var(--tp-color-border-soft);
     overflow: hidden;
@@ -3210,7 +3217,8 @@ body.residue-modal-open {
     display: block;
     height: 100%;
     border-radius: inherit;
-    background: var(--tp-color-brand-500);
+    background: var(--protein-accent);
+    opacity: 0.85;
 }
 
 .target-profile-item--good .target-profile-bar-fill { background: var(--tp-color-success-ink); }
@@ -3220,19 +3228,22 @@ body.residue-modal-open {
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    padding: 2px 9px;
-    border-radius: 999px;
-    font-size: 0.82rem;
+    padding: 2px 2px 2px 0;
+    font-family: "Source Sans 3", "Segoe UI", sans-serif;
+    font-size: 0.86rem;
     font-weight: 600;
+    letter-spacing: 0;
+}
+
+.target-profile-risk-pill svg {
+    flex-shrink: 0;
 }
 
 .target-profile-risk-pill--good {
-    background: color-mix(in srgb, var(--tp-color-success-ink) 14%, transparent);
     color: var(--tp-color-success-ink);
 }
 
 .target-profile-risk-pill--bad {
-    background: color-mix(in srgb, var(--tp-color-warning-ink) 14%, transparent);
     color: var(--tp-color-warning-ink);
 }
 
