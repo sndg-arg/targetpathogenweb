@@ -179,12 +179,12 @@
 }
 
 .formula-expression-input::placeholder {
-    color: color-mix(in srgb, var(--tp-color-brand-400) 55%, transparent) !important;
+    color: color-mix(in srgb, var(--tp-color-brand-600) 55%, transparent) !important;
 }
 
 .formula-expression-input:focus {
-    border-color: var(--tp-color-brand-400) !important;
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--tp-color-brand-400) 22%, transparent) !important;
+    border-color: var(--tp-color-brand-600) !important;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--tp-color-brand-600) 22%, transparent) !important;
     outline: none !important;
 }
 
@@ -422,7 +422,7 @@
     border-radius: 999px;
     background: var(--tp-color-surface-muted);
     color: var(--tp-color-text-muted);
-    font-family: var(--tp-font-body);
+    font-family: "Source Sans 3", "Segoe UI", sans-serif;
     font-size: 0.64rem;
     font-weight: 500;
     letter-spacing: 0.04em;

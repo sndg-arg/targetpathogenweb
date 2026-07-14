@@ -245,7 +245,7 @@
 }
 
 .explorer-selection-card.is-active {
-    border-color: color-mix(in srgb, var(--tp-color-brand-400) 60%, var(--tp-color-border));
+    border-color: color-mix(in srgb, var(--tp-color-brand-600) 60%, var(--tp-color-border));
     box-shadow: 0 0 0 1px color-mix(in srgb, var(--tp-color-brand-300) 34%, transparent);
 }
 
@@ -365,7 +365,7 @@
 
 .explorer-table-shell > .tp-table-shell__scroll::-webkit-scrollbar-thumb,
 .explorer-table-shell.tp-table-shell--with-export > .tp-table-shell__scroll::-webkit-scrollbar-thumb {
-    background: var(--tp-color-brand-400);
+    background: var(--tp-color-brand-600);
     border-radius: 999px;
     border: 2px solid var(--tp-color-surface-muted);
 }

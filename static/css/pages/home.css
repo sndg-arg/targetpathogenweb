@@ -538,7 +538,7 @@ body.pipeline-info-open {
     border-bottom: 1px solid var(--tp-color-border-soft);
     font-size: 0.82rem;
     color: var(--tp-color-text-secondary);
-    transition: background var(--tp-ui-motion-fast, 120ms) ease;
+    transition: background var(--tp-ui-motion-fast) ease;
 }
 
 .pipeline-info-step:last-child {
@@ -564,8 +564,8 @@ body.pipeline-info-open {
     font-weight: 600;
     border: 1.5px solid var(--tp-color-border);
     color: var(--tp-color-text-muted);
-    background: var(--tp-color-surface-soft, transparent);
-    transition: all var(--tp-ui-motion-fast, 120ms) ease;
+    background: var(--tp-color-surface-soft);
+    transition: all var(--tp-ui-motion-fast) ease;
     flex-shrink: 0;
 }
 
