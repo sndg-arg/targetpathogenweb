@@ -95,8 +95,51 @@
     border-radius: var(--tp-ui-radius-panel);
     font-size: 0.88rem;
     line-height: 1.45;
-    white-space: pre-wrap;
     word-break: break-word;
+}
+
+.tp-agent-drawer-msg p,
+.tp-agent-drawer-msg ul,
+.tp-agent-drawer-msg h3,
+.tp-agent-drawer-msg h4,
+.tp-agent-drawer-msg h5 {
+    margin: 0;
+}
+
+.tp-agent-drawer-msg p + p,
+.tp-agent-drawer-msg p + ul,
+.tp-agent-drawer-msg ul + p,
+.tp-agent-drawer-msg ul + h3,
+.tp-agent-drawer-msg ul + h4,
+.tp-agent-drawer-msg h3 + p,
+.tp-agent-drawer-msg h4 + p {
+    margin-top: var(--tp-space-2);
+}
+
+.tp-agent-drawer-msg ul {
+    padding-left: 1.1rem;
+}
+
+.tp-agent-drawer-msg li + li {
+    margin-top: 0.25rem;
+}
+
+.tp-agent-drawer-msg h3,
+.tp-agent-drawer-msg h4,
+.tp-agent-drawer-msg h5 {
+    color: var(--tp-color-text-primary);
+    font-size: 0.9rem;
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+.tp-agent-drawer-msg code {
+    font-family: var(--tp-font-mono);
+    font-size: 0.82em;
+    background: var(--tp-color-surface);
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: var(--tp-ui-radius-xs);
+    padding: 0.02rem 0.22rem;
 }
 
 .tp-agent-drawer-msg--user {
@@ -104,6 +147,7 @@
     background: var(--tp-color-brand-500);
     color: var(--tp-color-surface);
     border-bottom-right-radius: 6px;
+    white-space: pre-wrap;
 }
 
 .tp-agent-drawer-msg--assistant {
@@ -119,12 +163,14 @@
     background: transparent;
     color: var(--tp-color-danger-ink);
     border: 1px dashed var(--tp-color-border-soft);
+    white-space: pre-wrap;
 }
 
 .tp-agent-drawer-msg--pending {
     align-self: flex-start;
     color: var(--tp-color-text-muted);
     font-style: italic;
+    white-space: pre-wrap;
 }
 
 .tp-agent-drawer-form {

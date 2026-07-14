@@ -16,7 +16,10 @@ from __future__ import annotations
 
 import json
 import os
+import re
+from urllib.parse import urlparse
 
+from django.conf import settings
 from django.http import JsonResponse
 from django.urls import resolve
 from django.urls.exceptions import Resolver404
@@ -43,7 +46,10 @@ SYSTEM_PROMPT = (
     "scores, ligands, and structural/metabolic evidence already loaded in the app. Answer in "
     "the same language the user writes in. Only use the tools available to you; if a tool you "
     "need isn't available (for example, no genome is in scope on this page), say so plainly "
-    "instead of guessing."
+    "instead of guessing. If the user asks about 'this protein', 'esta proteína', "
+    "'esta proteina', 'este target', or asks why the current protein is or is not a "
+    "good target, use the current page context and call explain_target without asking "
+    "the user to repeat the accession."
 )
 
 NO_GENOME_SCOPE_NOTE = (
@@ -111,6 +117,7 @@ class AgentChatView(View):
         tools = {"get_current_time": GET_CURRENT_TIME_ENTRY}
         system = SYSTEM_PROMPT
         if assembly_name:
+            system += self._page_context_prompt(assembly_name, default_accession)
             tools["list_available_filters"] = build_list_available_filters_entry(workspace_user)
             tools["apply_filters"] = build_apply_filters_entry(request, workspace_user)
             tools["search_proteins"] = build_search_proteins_entry(assembly_name)
@@ -139,32 +146,111 @@ class AgentChatView(View):
         """Return (assembly_name, default_accession) for the given
         window.location.pathname, or (None, None) if it doesn't resolve to
         an accessible genome/protein page."""
-        page_path = page_path.strip()
+        candidate_paths = AgentChatView._candidate_paths(page_path)
+        if not candidate_paths:
+            return None, None
+
+        for candidate in candidate_paths:
+            try:
+                match = resolve(candidate)
+            except Resolver404:
+                continue
+
+            protein_id = match.kwargs.get("protein_id")
+            if protein_id is not None:
+                return AgentChatView._scope_from_protein_id(user, protein_id)
+
+            genome_slug = match.kwargs.get("genome")
+            if genome_slug:
+                assembly_name = resolve_genome_from_slug(user, genome_slug)
+                if assembly_name:
+                    return assembly_name, None
+
+        fallback = AgentChatView._fallback_scope_from_path(user, candidate_paths[0])
+        if fallback:
+            return fallback
+
+        return None, None
+
+    @staticmethod
+    def _candidate_paths(page_path):
+        page_path = (page_path or "").strip()
         if not page_path:
-            return None, None
-        try:
-            match = resolve(page_path)
-        except Resolver404:
-            return None, None
+            return []
 
-        protein_id = match.kwargs.get("protein_id")
-        if protein_id is not None:
-            protein = (
-                Bioentry.objects.filter(bioentry_id=protein_id)
-                .select_related("biodatabase")
-                .first()
-            )
-            if protein is None:
-                return None, None
-            assembly_name = protein.biodatabase.name.split(Biodatabase.PROT_POSTFIX)[0]
-            if not user_can_access_genome_name(user, assembly_name):
-                return None, None
-            return assembly_name, protein.accession
+        parsed = urlparse(page_path)
+        path = parsed.path or page_path
+        if not path.startswith("/"):
+            path = "/" + path
 
-        genome_slug = match.kwargs.get("genome")
-        if genome_slug:
-            assembly_name = resolve_genome_from_slug(user, genome_slug)
+        candidates = [path]
+        force_script_name = (
+            os.environ.get("FORCE_SCRIPT_NAME", "").strip()
+            or str(getattr(settings, "FORCE_SCRIPT_NAME", "") or "").strip()
+        )
+        if force_script_name and path.startswith(force_script_name + "/"):
+            candidates.append(path[len(force_script_name):] or "/")
+
+        for marker in ("/protein/", "/genome/"):
+            index = path.find(marker)
+            if index > 0:
+                candidates.append(path[index:])
+
+        seen = set()
+        result = []
+        for candidate in candidates:
+            if candidate not in seen:
+                seen.add(candidate)
+                result.append(candidate)
+        return result
+
+    @staticmethod
+    def _scope_from_protein_id(user, protein_id):
+        protein = (
+            Bioentry.objects.filter(bioentry_id=protein_id)
+            .select_related("biodatabase")
+            .first()
+        )
+        if protein is None:
+            return None, None
+        assembly_name = protein.biodatabase.name.split(Biodatabase.PROT_POSTFIX)[0]
+        if not user_can_access_genome_name(user, assembly_name):
+            return None, None
+        return assembly_name, protein.accession
+
+    @staticmethod
+    def _fallback_scope_from_path(user, page_path):
+        protein_match = re.search(r"/protein/(\d+)(?:/|$)", page_path)
+        if protein_match:
+            return AgentChatView._scope_from_protein_id(user, protein_match.group(1))
+
+        genome_match = re.search(r"/genome/([^/]+)(?:/|$)", page_path)
+        if genome_match:
+            assembly_name = resolve_genome_from_slug(user, genome_match.group(1))
             if assembly_name:
                 return assembly_name, None
 
-        return None, None
+        return None
+
+    @staticmethod
+    def _page_context_prompt(assembly_name, default_accession=None):
+        lines = [
+            "",
+            "Current page context:",
+            f"- Genome in scope: {assembly_name}",
+        ]
+        if default_accession:
+            protein = Bioentry.objects.filter(
+                biodatabase__name=assembly_name + Biodatabase.PROT_POSTFIX,
+                accession=default_accession,
+            ).first()
+            description = protein.description if protein else ""
+            lines.append(f"- Current protein accession: {default_accession}")
+            if description:
+                lines.append(f"- Current protein description: {description}")
+            lines.append(
+                "- When the user asks about this/current protein, call explain_target with no accession."
+            )
+        else:
+            lines.append("- No specific protein is currently selected.")
+        return "\n" + "\n".join(lines)

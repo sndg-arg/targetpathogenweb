@@ -24,6 +24,67 @@
         return cookieValue;
     }
 
+    function escapeHtml(text) {
+        return String(text || "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#39;");
+    }
+
+    function inlineMarkdown(text) {
+        return escapeHtml(text)
+            .replace(/\\_/g, "_")
+            .replace(/`([^`]+)`/g, "<code>$1</code>")
+            .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+    }
+
+    function renderMarkdown(text) {
+        var lines = String(text || "").split(/\r?\n/);
+        var html = [];
+        var listOpen = false;
+
+        function closeList() {
+            if (listOpen) {
+                html.push("</ul>");
+                listOpen = false;
+            }
+        }
+
+        lines.forEach(function (line) {
+            var trimmed = line.trim();
+            if (!trimmed) {
+                closeList();
+                return;
+            }
+
+            var heading = trimmed.match(/^(#{1,3})\s+(.+)$/);
+            if (heading) {
+                closeList();
+                var level = Math.min(heading[1].length + 2, 5);
+                html.push("<h" + level + ">" + inlineMarkdown(heading[2]) + "</h" + level + ">");
+                return;
+            }
+
+            var bullet = trimmed.match(/^[-*]\s+(.+)$/);
+            var numbered = trimmed.match(/^\d+[.)]\s+(.+)$/);
+            if (bullet || numbered) {
+                if (!listOpen) {
+                    html.push("<ul>");
+                    listOpen = true;
+                }
+                html.push("<li>" + inlineMarkdown((bullet || numbered)[1]) + "</li>");
+                return;
+            }
+
+            closeList();
+            html.push("<p>" + inlineMarkdown(trimmed) + "</p>");
+        });
+        closeList();
+        return html.join("");
+    }
+
     document.addEventListener("DOMContentLoaded", function () {
         var drawer = document.getElementById("tp-agent-drawer");
         var backdrop = document.getElementById("tp-agent-drawer-backdrop");
@@ -92,7 +153,11 @@
             }
             var bubble = document.createElement("div");
             bubble.className = "tp-agent-drawer-msg tp-agent-drawer-msg--" + role;
-            bubble.textContent = text;
+            if (role === "assistant") {
+                bubble.innerHTML = renderMarkdown(text);
+            } else {
+                bubble.textContent = text;
+            }
             messagesEl.appendChild(bubble);
             messagesEl.scrollTop = messagesEl.scrollHeight;
             return bubble;
