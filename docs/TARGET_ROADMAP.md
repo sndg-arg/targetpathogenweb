@@ -440,6 +440,38 @@ Revisar y mejorar la seccion de off-target.
 - Explicacion de riesgos.
 - Integracion con estructura, ligandos, drogabilidad y score final.
 
+**Implementado (primer recorte: solo visualizacion, sin tocar filtros ni logica de scoring).**
+
+- Rediseño de la grilla "Target profile" en la pagina de proteina
+  (`tpweb/templates/genomic/protein.html`, `static/css/pages/protein-detail.css`): los flags
+  binarios de riesgo (`human_offtarget`/`gut_microbiome_offtarget` hit/no_hit, `hit_in_deg` Y/N)
+  ahora se ven como una marca de texto+icono con color de tono (check verde / triangulo de alerta
+  ambar) en vez de texto plano; las metricas porcentuales (`human_identity`, `deg_identity`,
+  `colabfold_plddt`) muestran una barra fina de magnitud debajo del numero. Reusa el `tone`
+  (good/bad) que ya calculaba `build_target_profile` — cero cambios de logica/backend.
+- Pasada de pulido visual: grilla tipo "data sheet" academica (divisores en linea fina de 1px en
+  vez de tarjetas con fondo pastel solido, linea de acento sutil en el borde izquierdo por tono,
+  valores en tipografia monoespaciada tabular (`JetBrains Mono`) siguiendo la convencion de la app
+  para datos/ids/scores) — mas restringido en color que la primera version, buscando un look mas
+  "reporte clinico/academico" que "dashboard".
+- Bugs encontrados y corregidos en el mismo pase: `grid-template-columns: repeat(auto-fill, ...)`
+  dejaba una celda vacia gris al final de la fila cuando sobraba ancho — cambiado a `auto-fit`
+  para que las celdas existentes se estiren en vez de reservar una columna fantasma. Valores largos
+  sin espacios (ej. "CytoplasmicMembrane" en Localization) se cortaban contra el
+  `overflow:hidden` del grid (necesario para los bordes redondeados) — agregado
+  `overflow-wrap: anywhere` + `min-width: 0` para que envuelvan dentro de la celda en vez de
+  clipearse.
+
+**Pendiente para avanzar.**
+
+- Filtros por identidad/cobertura/e-value/organismo: ya existen como filtros numericos genericos
+  en la lista de proteinas (`human_identity`, `human_evalue`, etc. via `_NUMERIC_FILTER_PLACEHOLDERS`
+  en `protein_list.py`) — falta evaluar si conviene exponerlos tambien desde la propia seccion
+  off-target de la pagina de proteina, no solo desde el filtro de lista.
+  Explicacion de riesgo mas rica (oracion interpretativa por eje, tipo la que ya existe para
+  metabolismo) y la integracion explicita con estructura/ligandos/drogabilidad/score final siguen
+  sin implementar — quedan como alcance mas amplio para otra sesion.
+
 ### Constructor de score mejorado
 
 Mejorar la pantalla de creacion de formulas de score.
@@ -570,10 +602,24 @@ medio terminar en una sesion.
   `window.location.pathname` en cada envio, asi que navegar entre paginas durante una conversacion
   "simplemente funciona" sin plumbing extra.
 
+**Implementado (fixes post-deploy).**
+
+- `manage.py check` corrido en el cluster: sin errores.
+- Bug encontrado y corregido al probar en un viewport mas chico: `.tp-sidebar` es
+  `position: fixed` con altura de viewport y nunca tuvo scroll propio; agregar el boton
+  "Assistant" al footer hizo que el contenido no entrara y quedara cortado contra el borde
+  inferior sin forma de llegar a el. Fix en dos partes: `overflow-y: auto` en `.tp-sidebar` como
+  red de seguridad, y — a pedido explicito de no depender del scroll — el boton "Assistant" y el
+  toggle de tema se pusieron lado a lado en una fila (`tp-side-footer-row`) en vez de apilados,
+  devolviendo el footer a su altura original de antes de agregar el asistente.
+
 **Pendiente para avanzar.**
 
+- Correr la suite de tests (`OpenAIProviderTranslationTests`) en el cluster — el primer intento
+  fallo porque el comando `test` de Django esta tapado por un management command propio del
+  proyecto (con otro conjunto de argumentos); el workaround (invocar `DiscoverRunner` directo por
+  `python -c`) fue enviado pero la salida todavia no fue confirmada.
 - Probar en vivo con API key real de Anthropic y de OpenAI (no ejecutable desde este entorno) —
-  correr `python manage.py check`, la suite de tests, y despues un smoke test real por navegador:
   abrir un genome overview, preguntar por proteinas con alta drogabilidad sin homologo humano
   (`search_proteins`), pedir aplicar ese filtro y confirmar en la pagina de lista; abrir una
   proteina puntual y preguntar por que es un buen target (`explain_target`); repetir con
