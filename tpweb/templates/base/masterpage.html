@@ -1547,14 +1547,20 @@
         }
 
         /* ── Theme toggle ─────────────────────────────── */
+        .tp-side-footer-row {
+            display: flex;
+            gap: 6px;
+            margin-top: 8px;
+        }
+
         .tp-theme-toggle {
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 6px;
-            width: 100%;
-            padding: 7px 10px;
-            margin-top: 8px;
+            flex: 1 1 0;
+            min-width: 0;
+            padding: 7px 8px;
             border: 1px solid rgba(255, 255, 255, 0.12);
             border-radius: 9px;
             background: rgba(255, 255, 255, 0.06);
@@ -1951,21 +1957,23 @@
         {% else %}
             <a class="btn btn-sm btn-outline-light btn-block" href="{% url 'account_login' %}">{% trans "Login" %}</a>
         {% endif %}
-        <button id="tp-agent-drawer-toggle" class="tp-theme-toggle" type="button"
-                aria-label="{% trans 'Open assistant' %}" title="{% trans 'Open assistant' %}"
-                aria-expanded="false" aria-controls="tp-agent-drawer">
-            <span class="tp-theme-toggle-icon" aria-hidden="true">
-                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true">
-                    <path d="M2 3.5h12v7H8.8L5.5 13v-2.5H2v-7Z"/>
-                    <path d="M5 6.5h6M5 8.5h4"/>
-                </svg>
-            </span>
-            <span class="tp-theme-toggle-label">{% trans "Assistant" %}</span>
-        </button>
-        <button id="tp-theme-toggle" class="tp-theme-toggle" type="button" aria-label="{% trans 'Toggle theme' %}" title="{% trans 'Toggle theme' %}">
-            <span class="tp-theme-toggle-icon" aria-hidden="true"></span>
-            <span class="tp-theme-toggle-label"></span>
-        </button>
+        <div class="tp-side-footer-row">
+            <button id="tp-agent-drawer-toggle" class="tp-theme-toggle" type="button"
+                    aria-label="{% trans 'Open assistant' %}" title="{% trans 'Open assistant' %}"
+                    aria-expanded="false" aria-controls="tp-agent-drawer">
+                <span class="tp-theme-toggle-icon" aria-hidden="true">
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true">
+                        <path d="M2 3.5h12v7H8.8L5.5 13v-2.5H2v-7Z"/>
+                        <path d="M5 6.5h6M5 8.5h4"/>
+                    </svg>
+                </span>
+                <span class="tp-theme-toggle-label">{% trans "Assistant" %}</span>
+            </button>
+            <button id="tp-theme-toggle" class="tp-theme-toggle" type="button" aria-label="{% trans 'Toggle theme' %}" title="{% trans 'Toggle theme' %}">
+                <span class="tp-theme-toggle-icon" aria-hidden="true"></span>
+                <span class="tp-theme-toggle-label"></span>
+            </button>
+        </div>
     </div>
 </aside>
 
