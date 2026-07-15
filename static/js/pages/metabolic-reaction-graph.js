@@ -143,7 +143,6 @@
                     "background-color": palette.plain,
                     "border-width": 1,
                     "border-color": palette.ring,
-                    "label": "data(displayLabel)",
                     "font-family": FONT_STACK,
                     "font-size": 7.5,
                     "font-weight": 500,
@@ -154,6 +153,16 @@
                     "text-outline-color": palette.ring,
                     "text-outline-width": 2
                 }
+            },
+            {
+                // Metabolite labels stay hidden by default -- with a pathway's full
+                // reaction+metabolite graph on screen, labeling every metabolite dot
+                // competes with the (more important) reaction-box labels. Name is still
+                // one hover away via the tooltip, and the label itself reappears on hover
+                // (also revealed for a hovered reaction's connected metabolites, since
+                // is-hovered is applied to the whole closed neighborhood).
+                selector: ".metabolite-node.is-hovered",
+                style: { "label": "data(displayLabel)" }
             },
             {
                 selector: ".metabolite-node.is-currency",

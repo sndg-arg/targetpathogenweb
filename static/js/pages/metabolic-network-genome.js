@@ -97,12 +97,20 @@
         nodes.forEach(function (node) {
             var tier = densityTier(node.chokepoint_density_pct);
             var classes = [tier];
-            if (node.id === bestNodeId && bestScore > 0) classes.push("is-top-target");
+            var isTopTarget = node.id === bestNodeId && bestScore > 0;
+            if (isTopTarget) classes.push("is-top-target");
+            var size = pathwayDegreeToSize(node.reaction_count);
+            // A real genome has dozens of pathway nodes -- labeling every one turns the
+            // overview into an illegible wall of overlapping text. Only the pathways worth
+            // noticing at a glance (large, chokepoint-dense, or the single best target)
+            // get a permanent label; the rest are a bare dot, name still available via the
+            // hover tooltip and revealed on hover through the .is-hovered label rule below.
+            var showLabel = isTopTarget || tier === "density-3" || tier === "density-4" || size >= 50;
             elements.push({
                 data: {
                     id: node.id,
                     label: node.name,
-                    displayLabel: compactLabel(node.name, 20),
+                    displayLabel: showLabel ? compactLabel(node.name, 20) : "",
                     source: node.source,
                     externalId: node.external_id,
                     reactionCount: node.reaction_count,
@@ -112,7 +120,7 @@
                     bestTargetScore: node.best_target_score,
                     meanTargetScore: node.mean_target_score,
                     topTargets: node.top_targets || [],
-                    size: pathwayDegreeToSize(node.reaction_count)
+                    size: size
                 },
                 classes: classes.join(" ")
             });
@@ -249,6 +257,13 @@
             {
                 selector: ".is-hovered",
                 style: { "border-width": 3, "border-color": palette.text, "opacity": 1, "z-index": 45 }
+            },
+            {
+                // Scoped to the density-* classes (only ever set on pathway nodes) rather
+                // than a bare "node.is-hovered", so it can't fight the reaction/metabolite
+                // label rules from the shared reaction-graph module for specificity.
+                selector: ".density-1.is-hovered, .density-2.is-hovered, .density-3.is-hovered, .density-4.is-hovered",
+                style: { "label": "data(label)" }
             },
             { selector: ".is-muted", style: { "opacity": 0.18 } },
             {
