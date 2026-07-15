@@ -5,11 +5,12 @@ PYTHON ?= python3
 # Cluster: make up ENV=cluster
 # Service-scoped deploy: make build ENV=cluster svc=web && make up ENV=cluster svc=web
 ENV ?= local
+COMPOSE_ENV_FILES = $(if $(wildcard .env),--env-file .env) $(if $(wildcard .env.openai),--env-file .env.openai)
 ifeq ($(ENV),cluster)
-  COMPOSE = docker compose $(if $(wildcard .env.openai),--env-file .env.openai) -f docker-compose.yml -f docker-compose.cluster.yml
+  COMPOSE = docker compose $(COMPOSE_ENV_FILES) -f docker-compose.yml -f docker-compose.cluster.yml
   CONTAINER_PYTHON = /opt/conda/envs/tpv2/bin/python
 else
-  COMPOSE = docker compose $(if $(wildcard .env.openai),--env-file .env.openai)
+  COMPOSE = docker compose $(COMPOSE_ENV_FILES)
   CONTAINER_PYTHON = python
 endif
 
