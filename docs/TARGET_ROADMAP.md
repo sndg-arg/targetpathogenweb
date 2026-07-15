@@ -8,6 +8,14 @@ Documento vivo para ordenar tareas de producto e implementacion. La idea es mant
 
 Estas tareas ya tienen implementacion en la rama actual y necesitan revision visual/funcional en datos reales antes de darlas por cerradas.
 
+### Corte actual - 2026-07-15
+
+- Metabolismo: implementado end-to-end para Klebsiella, con ingesta SBML/TSV/SIF, contexto por proteina, ranking por ruta y vistas navegables. Sigue en validacion biologica fina.
+- Protein detail / genome overview: ya tienen resumen ejecutivo, evidencia estructural/quimica/metabolica y lenguaje mas explicativo para biologos. Queda seguir puliendo criterios de ranking y wording.
+- Pockets / estructura: se agrego lectura de pockets especificos y alpha spheres desde outputs originales de GATES, mas controles visuales iniciales. Queda validar que la representacion sea biologicamente clara y no confunda "zona" con "pocket puntual".
+- Agente IA: ya funciona con OpenAI en cluster, tiene drawer global, historial por sesion, tools para filtros, explicacion de targets, auditoria de evidencia y comparacion de candidatos. El foco siguiente es hacerlo mas confiable: mejor contexto de pagina, respuestas mas auditables, control de costos/tokens y set de evaluacion.
+- UX premium: hay sistema visual mas consistente en paginas principales, pero falta una pasada sistematica por las vistas de mayor uso para cerrar inconsistencias de motion, sombras, botones, spacing y jerarquia de datos.
+
 ### Informacion metabolica
 
 **Objetivo.** Incorporar informacion metabolica al analisis de targets desde el pipeline automatico y fuentes curadas. Debe quedar claro en que ruta participa una proteina, que tan central es, si actua como chokepoint y como esa evidencia afecta la priorizacion.
@@ -632,25 +640,34 @@ medio terminar en una sesion.
   red de seguridad, y — a pedido explicito de no depender del scroll — el boton "Assistant" y el
   toggle de tema se pusieron lado a lado en una fila (`tp-side-footer-row`) en vez de apilados,
   devolviendo el footer a su altura original de antes de agregar el asistente.
+- Configuracion de OpenAI persistente en cluster: `.env.openai` queda fuera de git y el Makefile
+  carga `.env` + `.env.openai` antes de levantar compose, asi `make up ENV=cluster` no desactiva
+  el asistente despues de cada restart.
+- Prueba real de OpenAI API desde el host y desde el contenedor `web`: OK con `Responses API`.
+- Fix de `clear_filters`: la accion directa del agente borra filtros de la misma sesion que usa
+  la lista de proteinas y fuerza reload de la pagina para que el resultado sea visible.
 
 **Pendiente para avanzar.**
 
-- Correr la suite de tests (`OpenAIProviderTranslationTests`) en el cluster — el primer intento
-  fallo porque el comando `test` de Django esta tapado por un management command propio del
-  proyecto (con otro conjunto de argumentos); el workaround (invocar `DiscoverRunner` directo por
-  `python -c`) fue enviado pero la salida todavia no fue confirmada.
-- Probar en vivo con API key real de Anthropic y de OpenAI (no ejecutable desde este entorno) —
-  abrir un genome overview, preguntar por proteinas con alta drogabilidad sin homologo humano
-  (`search_proteins`), pedir aplicar ese filtro y confirmar en la pagina de lista; abrir una
-  proteina puntual y preguntar por que es un buen target (`explain_target`); repetir con
-  `TPW_LLM_PROVIDER=openai` para confirmar paridad entre proveedores.
-- QA visual del panel en claro/oscuro y en mobile — no verificable desde este entorno.
-- Definir de donde sale el contexto que el agente necesita mas alla de lo ya resuelto (que
-  ScoreParams existen ya se resuelve con `visible_score_params_queryset`, que filtros estan
-  aplicados ya se resuelve leyendo la sesion) — pendiente solo si aparecen nuevas necesidades de
-  contexto al usarlo en la practica.
-- Evaluar si conviene persistir historial de conversacion (modelo `AgentConversation`) si el
-  stateless-por-pestaña resulta insuficiente en uso real.
+- Armar un set chico de evaluacion con prompts reales y resultado esperado:
+  "por que esta proteina es buen target", "de donde sale esa conclusion", "comparame A vs B",
+  "buscame targets sin off-target humano y con buen pocket", "borrame filtros". Debe chequear
+  que use tools cuando corresponde y que no invente evidencia.
+- Mejorar contexto de pagina: tabla/filtros/sort actuales, genoma activo, proteina activa,
+  pathway activo, estructura/pocket seleccionado y estado del viewer. Hoy entiende mejor la
+  proteina que la pagina completa.
+- Reducir tokens enviados al modelo: no mandar HTML/texto crudo de paginas largas; resumir estado
+  de UI en JSON chico y auditable. Esto evita errores 429 por TPM y baja costo.
+- Agregar control de costos y observabilidad: log de modelo usado, tokens, latencia, tool calls y
+  errores; budget mensual recomendado para demo interna.
+- Mejorar formato de respuesta en el drawer: Markdown renderizado de forma consistente, tablas
+  compactas, listas limpias y mensajes de error accionables.
+- Agregar modo "biologo": explicaciones con glosario corto para terminos como FPocket, P2Rank,
+  ZINC, ChEMBL, AlphaFold DB, ColabFold, off-target, chokepoint, e-value, identidad y cobertura.
+- Definir permisos de acciones: que puede hacer solo leyendo, que puede cambiar en la UI
+  (filtros), y que requiere confirmacion futura (crear score, guardar columnas, exportar).
+- Evaluar persistir historial de conversacion (modelo `AgentConversation`) si el historial por
+  pestaña resulta insuficiente en uso real o si se quiere auditar decisiones.
 - Extraer `create_binders_dict` de `ProteinView.py` a un servicio propio para sacar el import
   diferido de `protein_summary.py` (hoy funciona bien, pero es una direccion de dependencia menos
   limpia que el resto de la extraccion).
@@ -843,22 +860,22 @@ priorizan, para no re-investigarlas de cero mas adelante.
 
 ## Orden sugerido
 
-1. Revisar en navegador/cluster lo implementado: metabolismo, target summary y ligandos.
-2. Premium UI consistency pass.
-3. Integracion AlphaFill (ligando trasplantado sobre AlphaFold/ColabFold ya existente).
+1. Revisar en navegador/cluster lo implementado: metabolismo, target summary, ligandos, pockets y agente.
+2. Agente IA para exploracion de targets: contexto de pagina, evaluaciones, costos, Markdown y modo biologo.
+3. Premium UI consistency pass.
 4. Visualizacion de Proteina 2.0.
 5. Visualizacion y control de pockets.
 6. Comparacion FPocket vs P2Rank.
 7. Drogabilidad por fuente y estructura.
-8. Sitios funcionales y anotaciones estructurales.
-9. Priorizacion estructural completa.
-10. Off-target 2.0.
-11. Sequence & feature viewer 2.0.
-12. Cross-references hub.
-13. Pathway-level target prioritization.
-14. Red de señalizacion/regulacion por proteina (KEGG PPI).
-15. Evidence provenance / audit layer.
-16. Constructor de score mejorado.
-17. Columnas custom para analisis.
-18. Agente IA para exploracion de targets.
+8. Integracion AlphaFill (ligando trasplantado sobre AlphaFold/ColabFold ya existente).
+9. Sitios funcionales y anotaciones estructurales.
+10. Priorizacion estructural completa.
+11. Off-target 2.0.
+12. Sequence & feature viewer 2.0.
+13. Cross-references hub.
+14. Pathway-level target prioritization.
+15. Red de señalizacion/regulacion por proteina (KEGG PPI).
+16. Evidence provenance / audit layer.
+17. Constructor de score mejorado.
+18. Columnas custom para analisis.
 19. Auditoria Target viejo e integraciones externas (Ligysis, CSA Atlas).
