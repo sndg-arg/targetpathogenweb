@@ -52,11 +52,6 @@
         return label.slice(0, max - 3) + "...";
     }
 
-    function formatRole(role) {
-        if (!role || role === "none") return "None";
-        return role.replace(/_/g, " ");
-    }
-
     // Pathway node size by reaction count -- sqrt scaling so a handful of very large
     // pathways (100+ reactions) don't dwarf everything else. Concrete bounds picked from
     // typical bacterial KEGG-pathway reaction-count ranges (roughly 1-100); recalibrate
@@ -143,46 +138,6 @@
         return elements;
     }
 
-    function buildExpansionElements(pathwayId, payload) {
-        var elements = [];
-        var idsInPathway = {};
-        (payload.nodes || []).forEach(function (reaction) {
-            var childId = pathwayId + "::" + reaction.id;
-            idsInPathway[reaction.id] = childId;
-            var hasChokepoint = (reaction.chokepoint_role || "none") !== "none";
-            elements.push({
-                data: {
-                    id: childId,
-                    parent: pathwayId,
-                    label: reaction.name,
-                    displayLabel: compactLabel(reaction.name, hasChokepoint ? 18 : 14),
-                    ecNumbers: reaction.ec_numbers || [],
-                    chokepointRole: reaction.chokepoint_role || "none",
-                    isoenzymeCount: reaction.isoenzyme_count || 0,
-                    genes: reaction.genes || [],
-                    isReaction: true
-                },
-                classes: ["reaction-node", hasChokepoint ? "has-chokepoint" : ""].join(" ").trim()
-            });
-        });
-        (payload.edges || []).forEach(function (edge) {
-            var sourceId = idsInPathway[edge.source];
-            var targetId = idsInPathway[edge.target];
-            if (!sourceId || !targetId) return;
-            elements.push({
-                data: {
-                    id: "rx-edge__" + sourceId + "__" + targetId,
-                    source: sourceId,
-                    target: targetId,
-                    weight: 1,
-                    width: 1.4
-                },
-                classes: "reaction-edge"
-            });
-        });
-        return elements;
-    }
-
     function buildPathwayTooltip(nodeData) {
         var topTarget = (nodeData.topTargets || [])[0] || null;
         var bestLine = topTarget
@@ -197,19 +152,6 @@
             '<dt>Best target</dt><dd>' + bestLine + '</dd>',
             '</dl>',
             '<div class="metabolic-network-tooltip-hint">Click to expand this pathway’s reactions.</div>'
-        ].join("");
-    }
-
-    function buildReactionTooltip(nodeData) {
-        var genes = (nodeData.genes || []).map(function (g) { return g.accession; });
-        var role = nodeData.chokepointRole && nodeData.chokepointRole !== "none" ? formatRole(nodeData.chokepointRole) : "";
-        var roleBadge = role ? '<span class="metabolic-network-tooltip-badge">' + escapeHtml(role) + '</span>' : "";
-        return [
-            '<div class="metabolic-network-tooltip-title">' + escapeHtml(nodeData.label || nodeData.id) + roleBadge + '</div>',
-            '<dl>',
-            '<dt>EC</dt><dd>' + escapeHtml(nodeData.ecNumbers && nodeData.ecNumbers.length ? nodeData.ecNumbers.join(", ") : "-") + '</dd>',
-            '<dt>Genes</dt><dd>' + escapeHtml(genes.length ? genes.join(", ") : "-") + '</dd>',
-            '</dl>'
         ].join("");
     }
 
@@ -342,32 +284,11 @@
                     "overlay-opacity": 0
                 }
             },
-            {
-                selector: ".reaction-node",
-                style: {
-                    "width": 16,
-                    "height": 16,
-                    "font-size": 8,
-                    "text-max-width": "80px",
-                    "border-width": 1.2
-                }
-            },
-            {
-                selector: ".reaction-node.has-chokepoint",
-                style: {
-                    "shape": "diamond",
-                    "background-color": palette.chokepointSoft,
-                    "border-color": palette.chokepoint,
-                    "color": palette.chokepoint,
-                    "font-weight": 800,
-                    "z-index": 10
-                }
-            },
-            {
-                selector: ".reaction-edge",
-                style: { "line-color": palette.plain, "opacity": 0.5 }
-            }
         ];
+        // .reaction-node/.metabolite-node/.flow-in/.flow-out styling for an expanded
+        // pathway's contents comes from the shared metabolic-reaction-graph.js module
+        // (window.TPMetabolicReactionGraph.styleRules), concatenated onto this array by
+        // the caller -- not duplicated here.
         return rules;
     }
 
@@ -449,10 +370,15 @@
                 }
                 setNote("");
 
+                function combinedStyle() {
+                    var palette = readPalette();
+                    return nodeStyleRules(palette).concat(window.TPMetabolicReactionGraph.styleRules(palette));
+                }
+
                 var cy = window.cytoscape({
                     container: container,
                     elements: buildCollapsedElements(payload),
-                    style: nodeStyleRules(readPalette()),
+                    style: combinedStyle(),
                     layout: baseLayout({ animate: true, animationDuration: 900, randomize: true }),
                     minZoom: 0.2,
                     maxZoom: 3.5,
@@ -464,7 +390,7 @@
 
                 if ("MutationObserver" in window) {
                     var themeObserver = new MutationObserver(function () {
-                        cy.style(nodeStyleRules(readPalette())).update();
+                        cy.style(combinedStyle()).update();
                     });
                     themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
                 }
@@ -488,10 +414,15 @@
 
                 cy.on("mouseover", "node", function (evt) {
                     var node = evt.target;
+                    var data = node.data();
                     focusNeighborhood(cy, node);
-                    tooltip.innerHTML = node.data("isReaction")
-                        ? buildReactionTooltip(node.data())
-                        : buildPathwayTooltip(node.data());
+                    if (data.isReaction === true) {
+                        tooltip.innerHTML = window.TPMetabolicReactionGraph.tooltipForReaction(data);
+                    } else if (data.isReaction === false) {
+                        tooltip.innerHTML = window.TPMetabolicReactionGraph.tooltipForMetabolite(data);
+                    } else {
+                        tooltip.innerHTML = buildPathwayTooltip(data);
+                    }
                     tooltip.style.display = "block";
                 });
                 cy.on("mousemove", "node", function (evt) {
@@ -508,8 +439,8 @@
                     var node = evt.target;
                     var nodeData = node.data();
 
-                    if (nodeData.isReaction) {
-                        return; // reaction-level detail is hover-only for now (tooltip above)
+                    if (typeof nodeData.isReaction === "boolean") {
+                        return; // reaction/metabolite detail is hover-only for now (tooltip above)
                     }
 
                     updateInspectorForPathway(nodeData, pathwayUrlTemplate);
@@ -524,12 +455,15 @@
                             return response.json();
                         })
                         .then(function (expandPayload) {
-                            if (!expandPayload.nodes || !expandPayload.nodes.length) return;
+                            if (!expandPayload.reactions || !expandPayload.reactions.length) return;
                             expanded[nodeData.id] = true;
                             node.removeClass("density-1 density-2 density-3 density-4 is-top-target");
                             node.addClass("pathway-group");
                             node.data("isGroup", true);
-                            cy.add(buildExpansionElements(nodeData.id, expandPayload));
+                            cy.add(window.TPMetabolicReactionGraph.buildElements(expandPayload, {
+                                idPrefix: nodeData.id + "::",
+                                parentId: nodeData.id
+                            }));
                             cy.layout(baseLayout({ animate: true, animationDuration: 500, randomize: false, fit: false })).run();
                         })
                         .catch(function () {

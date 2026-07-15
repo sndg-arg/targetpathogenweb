@@ -5,6 +5,7 @@
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20260710-genome-rethink1">
     <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20260710-select-fix1">
+    <link rel="stylesheet" href="{% static 'css/pages/metabolic-network-genome.css' %}?v=20260714-network2">
 {% endblock %}
 
 {% block body %}
@@ -52,24 +53,26 @@
                 <p class="section-subtitle">{% trans "Reaction-to-metabolite flow reconstructed from the imported SBML participants." %}</p>
             </div>
         </div>
-        <div class="metabolism-pathway-map-shell">
-            <div class="metabolism-pathway-map-toolbar">
-                <div class="metabolism-pathway-map-legend">
-                    <span><i class="map-legend-box map-legend-box--reaction"></i>{% trans "Reaction" %}</span>
-                    <span><i class="map-legend-box map-legend-box--chokepoint"></i>{% trans "Chokepoint" %}</span>
-                    <span><i class="map-legend-dot map-legend-dot--metabolite"></i>{% trans "Metabolite" %}</span>
-                    <span><i class="map-legend-dot map-legend-dot--currency"></i>{% trans "Currency metabolite" %}</span>
+        <div class="metabolic-network-genome-shell">
+            <div class="metabolic-network-genome-toolbar">
+                <div class="metabolic-network-genome-legend">
+                    <span><i class="metabolic-network-genome-dot metabolic-network-genome-dot--density-4"></i>{% trans "Chokepoint reaction" %}</span>
+                    <span><i class="metabolic-network-genome-dot metabolic-network-genome-dot--density-1"></i>{% trans "Metabolite" %}</span>
+                    <span>{% trans "Faded nodes are currency metabolites (ATP, water, etc.)" %}</span>
                 </div>
-                <div class="metabolism-pathway-map-actions" aria-label="{% trans 'Pathway map controls' %}">
-                    <button type="button" class="metabolic-map-btn" data-pathway-map-action="fit">{% trans "Fit" %}</button>
-                    <button type="button" class="metabolic-map-btn" data-pathway-map-action="zoom-in" aria-label="{% trans 'Zoom in' %}">+</button>
-                    <button type="button" class="metabolic-map-btn" data-pathway-map-action="zoom-out" aria-label="{% trans 'Zoom out' %}">-</button>
+                <div class="metabolic-network-genome-actions" aria-label="{% trans 'Pathway map controls' %}">
+                    <button type="button" class="metabolic-map-btn" data-pathway-graph-action="fit">{% trans "Fit" %}</button>
+                    <button type="button" class="metabolic-map-btn" data-pathway-graph-action="zoom-in" aria-label="{% trans 'Zoom in' %}">+</button>
+                    <button type="button" class="metabolic-map-btn" data-pathway-graph-action="zoom-out" aria-label="{% trans 'Zoom out' %}">-</button>
                 </div>
             </div>
-            <div id="metabolic-pathway-diagram" class="metabolic-pathway-diagram"></div>
+            <div class="metabolic-network-genome-canvas-wrap">
+                <div class="metabolic-network-genome-glow" aria-hidden="true"></div>
+                <div id="metabolic-pathway-graph-cy"></div>
+            </div>
         </div>
-        {% if diagram_payload.omitted_reactions %}
-        <p class="metabolic-provenance">{% blocktrans with count=diagram_payload.omitted_reactions %}Diagram capped for readability; {{ count }} additional reactions are listed below.{% endblocktrans %}</p>
+        {% if omitted_reactions %}
+        <p class="metabolic-provenance">{% blocktrans with count=omitted_reactions %}Graph capped for readability; {{ count }} additional reactions are listed below.{% endblocktrans %}</p>
         {% endif %}
     </section>
 
@@ -135,8 +138,9 @@
     </section>
 </div>
 
-{{ diagram_payload|json_script:"metabolic-pathway-diagram-data" }}
-<script src="{% static 'js/pages/metabolic-pathway-diagram.js' %}?v=20260709-pathway-premium1"></script>
+{{ graph_payload|json_script:"metabolic-pathway-graph-data" }}
+<script src="{% static 'js/pages/metabolic-reaction-graph.js' %}?v=20260714-network2"></script>
+<script src="{% static 'js/pages/metabolic-pathway-graph.js' %}?v=20260714-network2"></script>
 <script>
 (function () {
     var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;

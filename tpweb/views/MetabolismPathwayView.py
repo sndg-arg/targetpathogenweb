@@ -4,7 +4,7 @@ from django.urls import reverse
 from django.views import View
 
 from bioseq.models.Biodatabase import Biodatabase
-from tpweb.models.Metabolism import GeneReactionLink, MetabolicPathway, MetabolicReaction, MetabolicReactionEdge
+from tpweb.models.Metabolism import GeneReactionLink, MetabolicPathway, MetabolicReaction
 from tpweb.services.genome_workspace import display_genome_name, genome_url_slug, resolve_genome_from_slug
 from tpweb.services.metabolism_summary import build_genome_metabolism_summary
 from tpweb.services.metabolism_network import _primary_pathway_buckets, build_genome_metabolism_network
@@ -186,11 +186,13 @@ class MetabolismPathwayDetailView(View):
             for participant in reaction.participants.all()
         }
         chokepoint_count = sum(1 for row in reaction_rows if row["is_chokepoint"])
-        # When a pathway has more reactions than the diagram can show, prioritize
-        # chokepoints so the most decision-relevant rows aren't cut by alphabetical luck.
+        # When a pathway has more reactions than the graph can show legibly, prioritize
+        # chokepoints so the most decision-relevant nodes aren't cut by alphabetical luck.
         diagram_candidates = sorted(reaction_rows, key=lambda r: (not r["is_chokepoint"], r["name"]))
         diagram_reactions = diagram_candidates[:45]
         omitted_reactions = max(0, len(reaction_rows) - len(diagram_reactions))
+        diagram_reaction_ids = {row["id"] for row in diagram_reactions}
+        diagram_reaction_objects = [r for r in reactions if r.reaction_id in diagram_reaction_ids]
         slug = genome_url_slug(assembly_name)
 
         return render(request, self.template_name, {
@@ -208,11 +210,8 @@ class MetabolismPathwayDetailView(View):
                 "chokepoint_count": chokepoint_count,
             },
             "reaction_rows": reaction_rows,
-            "diagram_payload": {
-                "pathway": pathway,
-                "reactions": diagram_reactions,
-                "omitted_reactions": omitted_reactions,
-            },
+            "graph_payload": _reaction_metabolite_graph(diagram_reaction_objects),
+            "omitted_reactions": omitted_reactions,
             "assembly_url": reverse("tpwebapp:assembly", kwargs={"genome": slug}),
             "metabolism_url": reverse("tpwebapp:genome_metabolism", kwargs={"genome": slug}),
             "proteins_url": reverse("tpwebapp:protein_list", kwargs={"genome": slug}),
@@ -273,9 +272,46 @@ class MetabolismNetworkGraphView(View):
         return JsonResponse(payload)
 
 
+def _reaction_metabolite_graph(reactions):
+    """Reaction+metabolite bipartite graph for one pathway's reactions: every metabolite
+    that appears as a substrate/product of ANY of these reactions becomes one shared node
+    (deduplicated by species_id), so a metabolite produced by one reaction and consumed by
+    another renders as a single connecting node -- this is what makes it a real graph
+    instead of isolated per-reaction chip rows. Used both by the unified network's
+    expand-in-place and by the standalone per-pathway page (which used to render this same
+    data as a hand-drawn SVG row diagram)."""
+    reaction_nodes = []
+    metabolite_by_id = {}
+    participants = []
+
+    for reaction in reactions:
+        reaction_nodes.append(_reaction_topology_row(reaction))
+        for participant in reaction.participants.all():
+            species = participant.species
+            if species.species_id not in metabolite_by_id:
+                metabolite_by_id[species.species_id] = {
+                    "id": species.species_id,
+                    "name": species.display_name or species.species_id,
+                    "compartment": species.compartment or "",
+                    "is_currency": species.is_currency,
+                }
+            participants.append({
+                "reaction_id": reaction.reaction_id,
+                "species_id": species.species_id,
+                "role": participant.role,
+                "stoichiometry": participant.stoichiometry,
+            })
+
+    return {
+        "reactions": reaction_nodes,
+        "metabolites": list(metabolite_by_id.values()),
+        "participants": participants,
+    }
+
+
 class MetabolismNetworkExpandView(View):
-    """JSON: one pathway's reactions + internal reaction-reaction edges, fetched when the
-    user clicks a collapsed pathway node to expand it in place. Uses the exact same
+    """JSON: one pathway's reactions + metabolites + substrate/product links, fetched when
+    the user clicks a collapsed pathway node to expand it in place. Uses the exact same
     _primary_pathway_buckets partition as MetabolismNetworkGraphView, so a node's promised
     reaction_count always matches what expanding it reveals."""
 
@@ -290,20 +326,8 @@ class MetabolismNetworkExpandView(View):
         if not reaction_ids:
             raise Http404("Pathway not found for this genome")
 
-        reactions = MetabolicReaction.objects.filter(id__in=reaction_ids).prefetch_related("genes__bioentry")
-        nodes = [_reaction_topology_row(reaction) for reaction in reactions]
-
-        edge_rows = (
-            MetabolicReactionEdge.objects
-            .filter(
-                genome_accession=assembly_name,
-                reaction_a_id__in=reaction_ids,
-                reaction_b_id__in=reaction_ids,
-            )
-            .select_related("reaction_a", "reaction_b")
+        reactions = MetabolicReaction.objects.filter(id__in=reaction_ids).prefetch_related(
+            "genes__bioentry", "participants__species",
         )
-        edges = [
-            {"source": edge.reaction_a.reaction_id, "target": edge.reaction_b.reaction_id}
-            for edge in edge_rows
-        ]
-        return JsonResponse({"nodes": nodes, "edges": edges})
+        payload = _reaction_metabolite_graph(reactions)
+        return JsonResponse(payload)
