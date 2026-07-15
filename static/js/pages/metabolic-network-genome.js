@@ -1,18 +1,15 @@
-/* Genome-wide unified metabolic network graph: pathway-level nodes, collapsed on load,
- * expand in place (as Cytoscape compound/child nodes) on click. A fork of
- * metabolic-network.js (the per-protein ego-network), not a parametrization of it -- the
- * payload shape (pathway-level aggregate stats) and interaction model (tap-to-expand plus
- * a second fetch and incremental element-add, vs. single fetch-then-render) differ enough
- * that one shared file would need a branchy "mode" through nearly every function.
+/* Genome-wide unified metabolic network graph: pathway-level nodes on load; clicking one
+ * drills into a full-canvas view of just that pathway's reactions/metabolites (Krona-style
+ * zoom, not an in-place compound expansion) so a biologist never has to parse an overview
+ * graph with several already-expanded pathways overlapping each other. A "back" breadcrumb
+ * returns to the collapsed overview. Because each drill-in/out is a full element swap
+ * (cy.elements().remove() + cy.add() + fresh layout), there is no compound-node nesting and
+ * no incremental layout to reason about -- every layout run starts from a clean slate.
  *
- * Two things are unverified against a live browser in this sandbox and should be smoke-
- * tested first on a real genome: (1) that a plain leaf node correctly becomes a Cytoscape
- * compound parent once children referencing its id are cy.add()-ed after the fact --
- * standard, well-supported Cytoscape.js behavior (the same mechanism cytoscape-expand-
- * collapse itself relies on), but not run against a live instance here; (2) that re-running
- * fcose with randomize:false reads as "growing in place" rather than a visible reshuffle --
- * plausible (existing node positions seed the simulation instead of being randomized) but
- * also not confirmed live here.
+ * A fork of metabolic-network.js (the per-protein ego-network), not a parametrization of
+ * it -- the payload shape (pathway-level aggregate stats) and interaction model (drill-in/
+ * drill-out full-graph swap, vs. single fetch-then-render) differ enough that one shared
+ * file would need a branchy "mode" through nearly every function.
  */
 (function () {
     "use strict";
@@ -115,8 +112,7 @@
                     bestTargetScore: node.best_target_score,
                     meanTargetScore: node.mean_target_score,
                     topTargets: node.top_targets || [],
-                    size: pathwayDegreeToSize(node.reaction_count),
-                    isGroup: false
+                    size: pathwayDegreeToSize(node.reaction_count)
                 },
                 classes: classes.join(" ")
             });
@@ -269,41 +265,17 @@
                 }
             },
             { selector: "edge.is-muted", style: { "opacity": 0.08 } },
-            { selector: "edge.is-hovered", style: { "opacity": 0.9, "z-index": 30 } },
-            {
-                selector: ".pathway-group",
-                style: {
-                    "shape": "round-rectangle",
-                    "background-color": palette.surfaceSoft,
-                    "background-opacity": 1,
-                    "border-width": 1.5,
-                    "border-color": palette.plain,
-                    "border-opacity": 1,
-                    "padding": "24px",
-                    "corner-radius": 14,
-                    "label": "data(displayLabel)",
-                    "text-valign": "top",
-                    "text-halign": "left",
-                    "text-margin-x": 8,
-                    "text-margin-y": -20,
-                    "font-family": FONT_STACK,
-                    "font-size": 12,
-                    "font-weight": 800,
-                    "text-transform": "uppercase",
-                    "text-outline-color": palette.ring,
-                    "text-outline-width": 2,
-                    "overlay-opacity": 0
-                }
-            },
+            { selector: "edge.is-hovered", style: { "opacity": 0.9, "z-index": 30 } }
         ];
-        // .reaction-node/.metabolite-node/.flow-in/.flow-out styling for an expanded
+        // .reaction-node/.metabolite-node/.flow-in/.flow-out styling for a drilled-into
         // pathway's contents comes from the shared metabolic-reaction-graph.js module
         // (window.TPMetabolicReactionGraph.styleRules), concatenated onto this array by
         // the caller -- not duplicated here.
         return rules;
     }
 
-    function baseLayout(extra) {
+    // Overview layout: tuned for a handful of large pathway-level nodes.
+    function overviewLayout(extra) {
         var layout = {
             name: "fcose",
             animationEasing: "ease-out-cubic",
@@ -313,11 +285,28 @@
             gravity: 0.28,
             padding: 40,
             componentSpacing: 100,
-            nestingFactor: 0.5,
             nodeDimensionsIncludeLabels: true
         };
         Object.keys(extra || {}).forEach(function (key) { layout[key] = extra[key]; });
         return layout;
+    }
+
+    // Detail layout: tuned for a single pathway's reaction/metabolite subgraph, matching
+    // the standalone per-pathway page's own layout config (metabolic-pathway-graph.js).
+    function detailLayout() {
+        return {
+            name: "fcose",
+            animate: true,
+            animationDuration: 700,
+            animationEasing: "ease-out-cubic",
+            randomize: true,
+            nodeRepulsion: 6500,
+            idealEdgeLength: 60,
+            nodeSeparation: 40,
+            gravity: 0.35,
+            padding: 30,
+            nodeDimensionsIncludeLabels: true
+        };
     }
 
     function initMetabolicNetworkGenome() {
@@ -329,6 +318,12 @@
 
         var note = document.getElementById("metabolic-network-genome-note");
         var hint = document.getElementById("metabolic-network-genome-hint");
+        var breadcrumb = document.getElementById("metabolic-network-genome-breadcrumb");
+        var breadcrumbCurrent = document.getElementById("metabolic-network-genome-breadcrumb-current");
+        var backButton = document.getElementById("metabolic-network-genome-back");
+        var inspector = document.getElementById("metabolic-network-genome-inspector");
+        var inspectorDefaultName = inspector ? (inspector.querySelector('[data-field="name"]') || {}).textContent : "";
+        var openMap = document.getElementById("metabolic-network-genome-open-map");
 
         function setNote(message) {
             if (!note) return;
@@ -340,6 +335,19 @@
             if (!hint) return;
             hint.classList.remove("is-visible");
             hint.classList.add("is-dismissed");
+        }
+
+        function resetInspector() {
+            if (!inspector) return;
+            var title = inspector.querySelector('[data-field="name"]');
+            if (title) title.textContent = inspectorDefaultName;
+            ["reactions", "proteins", "chokepoints", "score"].forEach(function (field) {
+                var el = inspector.querySelector('[data-field="' + field + '"]');
+                if (el) el.textContent = "-";
+            });
+            var scoreBar = inspector.querySelector('[data-field="score-bar"]');
+            if (scoreBar) scoreBar.style.width = "0%";
+            if (openMap) openMap.hidden = true;
         }
 
         var networkUrl = container.getAttribute("data-network-url");
@@ -361,7 +369,7 @@
         tooltip.style.display = "none";
         container.parentElement.appendChild(tooltip);
 
-        var expanded = {};
+        var expandedPayloads = {};
 
         function clearHover(cy) {
             cy.elements(".is-hovered").removeClass("is-hovered");
@@ -371,7 +379,7 @@
         function focusNeighborhood(cy, node) {
             clearHover(cy);
             var neighborhood = node.closedNeighborhood();
-            cy.elements().not(neighborhood).not(".pathway-group").addClass("is-muted");
+            cy.elements().not(neighborhood).addClass("is-muted");
             neighborhood.addClass("is-hovered");
             node.addClass("is-hovered");
         }
@@ -388,6 +396,8 @@
                 }
                 setNote("");
 
+                var collapsedElements = buildCollapsedElements(payload);
+
                 function combinedStyle() {
                     var palette = readPalette();
                     return nodeStyleRules(palette).concat(window.TPMetabolicReactionGraph.styleRules(palette));
@@ -395,9 +405,9 @@
 
                 var cy = window.cytoscape({
                     container: container,
-                    elements: buildCollapsedElements(payload),
+                    elements: collapsedElements,
                     style: combinedStyle(),
-                    layout: baseLayout({ animate: true, animationDuration: 900, randomize: true }),
+                    layout: overviewLayout({ animate: true, animationDuration: 900, randomize: true }),
                     minZoom: 0.2,
                     maxZoom: 3.5,
                     wheelSensitivity: 1,
@@ -413,12 +423,42 @@
                     themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
                 }
 
-                cy.one("layoutstop", function () {
+                var firstLoad = true;
+                cy.on("layoutstop", function () {
                     cy.fit(cy.elements(), 30);
                     container.classList.add("is-ready");
-                    if (hint) hint.classList.add("is-visible");
-                    window.setTimeout(dismissHint, 6000);
+                    if (firstLoad) {
+                        firstLoad = false;
+                        if (hint) hint.classList.add("is-visible");
+                        window.setTimeout(dismissHint, 6000);
+                    }
                 });
+
+                function showOverview() {
+                    container.classList.remove("is-ready");
+                    clearHover(cy);
+                    tooltip.style.display = "none";
+                    cy.elements().remove();
+                    cy.add(collapsedElements);
+                    cy.layout(overviewLayout({ animate: true, animationDuration: 700, randomize: true })).run();
+                    if (breadcrumb) breadcrumb.hidden = true;
+                    resetInspector();
+                }
+
+                function showDetail(nodeData, expandPayload) {
+                    container.classList.remove("is-ready");
+                    clearHover(cy);
+                    tooltip.style.display = "none";
+                    cy.elements().remove();
+                    cy.add(window.TPMetabolicReactionGraph.buildElements(expandPayload));
+                    cy.layout(detailLayout()).run();
+                    if (breadcrumb) breadcrumb.hidden = false;
+                    if (breadcrumbCurrent) breadcrumbCurrent.textContent = nodeData.label || nodeData.id;
+                }
+
+                if (backButton) {
+                    backButton.addEventListener("click", showOverview);
+                }
 
                 Array.prototype.forEach.call(
                     document.querySelectorAll("[data-metabolic-network-genome-action]"),
@@ -442,7 +482,7 @@
                         tooltip.innerHTML = window.TPMetabolicReactionGraph.tooltipForMetabolite(data);
                     } else {
                         tooltip.innerHTML = buildPathwayTooltip(data);
-                        if (!data.isGroup) container.style.cursor = "pointer";
+                        container.style.cursor = "pointer";
                     }
                     tooltip.style.display = "block";
                 });
@@ -468,8 +508,9 @@
                     dismissHint();
                     updateInspectorForPathway(nodeData, pathwayUrlTemplate);
 
-                    if (expanded[nodeData.id]) {
-                        return; // already expanded -- no re-fetch, no collapse-back in v1
+                    if (expandedPayloads[nodeData.id]) {
+                        showDetail(nodeData, expandedPayloads[nodeData.id]);
+                        return;
                     }
 
                     fetch(expandUrl(nodeData.source, nodeData.externalId), { credentials: "same-origin" })
@@ -479,18 +520,11 @@
                         })
                         .then(function (expandPayload) {
                             if (!expandPayload.reactions || !expandPayload.reactions.length) return;
-                            expanded[nodeData.id] = true;
-                            node.removeClass("density-1 density-2 density-3 density-4 is-top-target");
-                            node.addClass("pathway-group");
-                            node.data("isGroup", true);
-                            cy.add(window.TPMetabolicReactionGraph.buildElements(expandPayload, {
-                                idPrefix: nodeData.id + "::",
-                                parentId: nodeData.id
-                            }));
-                            cy.layout(baseLayout({ animate: true, animationDuration: 500, randomize: false, fit: false })).run();
+                            expandedPayloads[nodeData.id] = expandPayload;
+                            showDetail(nodeData, expandPayload);
                         })
                         .catch(function () {
-                            /* leave the node collapsed; hover tooltip still works */
+                            /* leave the overview as-is; hover tooltip still works */
                         });
                 });
             })
