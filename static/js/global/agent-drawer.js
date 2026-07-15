@@ -177,7 +177,7 @@
             inputEl.value = "";
             pending = true;
             inputEl.disabled = true;
-            var pendingBubble = appendMessage("pending", "…");
+            var pendingBubble = appendMessage("pending", "...");
 
             fetch(chatUrl, {
                 method: "POST",
@@ -187,6 +187,7 @@
                 },
                 body: JSON.stringify({
                     page_path: window.location.pathname,
+                    page_url: window.location.pathname + window.location.search,
                     history: history,
                     message: message,
                 }),
@@ -206,6 +207,15 @@
                     }
                     history = result.data.history || history;
                     appendMessage("assistant", result.data.reply || "");
+                    if (result.data.reload) {
+                        window.setTimeout(function () {
+                            if (result.data.redirect_url) {
+                                window.location.href = result.data.redirect_url;
+                            } else {
+                                window.location.reload();
+                            }
+                        }, 650);
+                    }
                 })
                 .catch(function () {
                     if (pendingBubble) {

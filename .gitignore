@@ -170,6 +170,7 @@ celerybeat.pid
 
 # Environments
 .env
+.env.openai
 .venv
 env/
 venv/

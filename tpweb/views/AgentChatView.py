@@ -131,6 +131,14 @@ def _looks_like_clear_filters(message):
     return has_filter and has_clear
 
 
+def _tool_was_called(messages, tool_name):
+    for message in messages:
+        for call in message.tool_calls:
+            if call.name == tool_name:
+                return True
+    return False
+
+
 class AgentChatView(View):
     def post(self, request, *args, **kwargs):
         if not llm_agent_enabled() and not os.environ.get("TPW_LLM_PROVIDER", "").strip():
@@ -160,16 +168,24 @@ class AgentChatView(View):
         history = _compact_history(history)
 
         workspace_user = resolve_workspace_user(request.user)
+        session_user = request.user
         assembly_name, default_accession = self._resolve_page_scope(
             request.user, str(payload.get("page_path") or "")
         )
         if assembly_name and _looks_like_clear_filters(message):
-            set_workspace_session_value(request.session, workspace_user, "selected_parameters", [])
-            reply = "Listo, borré todos los filtros de la lista de proteínas para esta sesión."
+            set_workspace_session_value(request.session, session_user, "selected_parameters", [])
+            reply = (
+                "Listo, borre todos los filtros de la lista de proteinas para esta sesion. "
+                "Recargo la lista para que lo veas aplicado."
+            )
             history = _compact_history([*history, Message(role="user", text=message), Message(role="assistant", text=reply)])
             return JsonResponse({
                 "reply": reply,
                 "history": [_message_to_json(item) for item in history],
+                "reload": True,
+                "redirect_url": self._reload_url_without_query(
+                    str(payload.get("page_url") or payload.get("page_path") or "")
+                ),
             })
 
         tools = {"get_current_time": GET_CURRENT_TIME_ENTRY}
@@ -177,8 +193,8 @@ class AgentChatView(View):
         if assembly_name:
             system += self._page_context_prompt(assembly_name, default_accession)
             tools["list_available_filters"] = build_list_available_filters_entry(workspace_user)
-            tools["apply_filters"] = build_apply_filters_entry(request, workspace_user)
-            tools["clear_filters"] = build_clear_filters_entry(request, workspace_user)
+            tools["apply_filters"] = build_apply_filters_entry(request, session_user)
+            tools["clear_filters"] = build_clear_filters_entry(request, session_user)
             tools["search_proteins"] = build_search_proteins_entry(assembly_name)
             tools["explain_target"] = build_explain_target_entry(assembly_name, default_accession)
         else:
@@ -195,10 +211,16 @@ class AgentChatView(View):
         except Exception as exc:
             return JsonResponse({"error": f"Assistant request failed: {exc}"}, status=502)
 
-        return JsonResponse({
+        response = {
             "reply": reply,
             "history": [_message_to_json(item) for item in _compact_history(agent.last_messages, max_messages=12)],
-        })
+        }
+        if _tool_was_called(agent.last_messages, "clear_filters") or _tool_was_called(agent.last_messages, "apply_filters"):
+            response["reload"] = True
+            response["redirect_url"] = self._reload_url_without_query(
+                str(payload.get("page_url") or payload.get("page_path") or "")
+            )
+        return JsonResponse(response)
 
     @staticmethod
     def _resolve_page_scope(user, page_path):
@@ -262,6 +284,12 @@ class AgentChatView(View):
                 seen.add(candidate)
                 result.append(candidate)
         return result
+
+    @staticmethod
+    def _reload_url_without_query(page_url):
+        parsed = urlparse(page_url or "")
+        path = parsed.path or page_url or ""
+        return path if path.startswith("/") else ""
 
     @staticmethod
     def _scope_from_protein_id(user, protein_id):
