@@ -5,7 +5,7 @@
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20260710-genome-rethink1">
     <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20260710-select-fix1">
-    <link rel="stylesheet" href="{% static 'css/pages/metabolic-network-genome.css' %}?v=20260714-network1">
+    <link rel="stylesheet" href="{% static 'css/pages/metabolic-network-genome.css' %}?v=20260714-network3">
 {% endblock %}
 
 {% block body %}
@@ -67,9 +67,15 @@
                     <span><i class="metabolic-network-genome-line"></i>{% trans "Cross-pathway connection" %}</span>
                 </div>
                 <div class="metabolic-network-genome-actions" aria-label="{% trans "Network controls" %}">
-                    <button type="button" class="metabolic-map-btn" data-metabolic-network-genome-action="fit" title="{% trans "Fit network to view" %}">{% trans "Fit" %}</button>
-                    <button type="button" class="metabolic-map-btn" data-metabolic-network-genome-action="zoom-in" title="{% trans "Zoom in" %}">+</button>
-                    <button type="button" class="metabolic-map-btn" data-metabolic-network-genome-action="zoom-out" title="{% trans "Zoom out" %}">-</button>
+                    <button type="button" class="metabolic-map-btn" data-metabolic-network-genome-action="fit" title="{% trans "Fit network to view" %}" aria-label="{% trans "Fit network to view" %}">
+                        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6V2h4M14 6V2h-4M2 10v4h4M14 10v4h-4"/></svg>
+                    </button>
+                    <button type="button" class="metabolic-map-btn" data-metabolic-network-genome-action="zoom-in" title="{% trans "Zoom in" %}" aria-label="{% trans "Zoom in" %}">
+                        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="7" cy="7" r="4"/><path d="M10.2 10.2L14 14M7 5v4M5 7h4"/></svg>
+                    </button>
+                    <button type="button" class="metabolic-map-btn" data-metabolic-network-genome-action="zoom-out" title="{% trans "Zoom out" %}" aria-label="{% trans "Zoom out" %}">
+                        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="7" cy="7" r="4"/><path d="M10.2 10.2L14 14M5 7h4"/></svg>
+                    </button>
                 </div>
             </div>
             <div class="metabolic-network-genome-body">
@@ -79,6 +85,11 @@
                          data-network-url="{{ network_data_url }}"
                          data-expand-url-template="{{ network_expand_url_template }}"
                          data-pathway-url-template="{% url 'tpwebapp:genome_metabolism_pathway' genome=assembly.slug source='__SOURCE__' external_id='__EXTERNAL_ID__' %}"></div>
+                    <div class="metabolic-network-genome-loading" id="metabolic-network-genome-loading">
+                        <span class="metabolic-network-genome-spinner" aria-hidden="true"></span>
+                        {% trans "Computing layout…" %}
+                    </div>
+                    <p class="metabolic-network-genome-hint" id="metabolic-network-genome-hint">{% trans "Click a pathway to expand its reactions" %}</p>
                     <p class="metabolic-network-genome-note" id="metabolic-network-genome-note" hidden></p>
                 </div>
                 <aside class="metabolic-network-genome-inspector" id="metabolic-network-genome-inspector" aria-label="{% trans "Selected node" %}">
@@ -92,7 +103,10 @@
                         <dt>{% trans "Chokepoints" %}</dt>
                         <dd data-field="chokepoints">-</dd>
                         <dt>{% trans "Best target score" %}</dt>
-                        <dd data-field="score">-</dd>
+                        <dd>
+                            <span data-field="score">-</span>
+                            <span class="metabolic-network-genome-score-bar"><span class="metabolic-network-genome-score-fill" data-field="score-bar"></span></span>
+                        </dd>
                     </dl>
                     <a href="#" class="btn tp-btn tp-btn--outline tp-btn--sm" id="metabolic-network-genome-open-map" hidden>{% trans "Open full pathway map" %} &rarr;</a>
                 </aside>
@@ -102,5 +116,5 @@
 </div>
 
 <script src="{% static 'js/pages/metabolic-reaction-graph.js' %}?v=20260714-network2"></script>
-<script src="{% static 'js/pages/metabolic-network-genome.js' %}?v=20260714-network2"></script>
+<script src="{% static 'js/pages/metabolic-network-genome.js' %}?v=20260714-network3"></script>
 {% endblock %}

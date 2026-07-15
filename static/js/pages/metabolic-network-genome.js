@@ -155,6 +155,15 @@
         ].join("");
     }
 
+    // Best target score isn't bounded to a known max here (formula-dependent), so the bar
+    // clamps against a practical ceiling (1.0 covers the plain druggability+bonus fallback
+    // heuristic in metabolism_network.py; custom ScoreFormula values above that just fill
+    // the bar to 100% rather than overflow it).
+    function scoreToBarPct(score) {
+        var value = Number(score) || 0;
+        return Math.max(0, Math.min(100, value * 100));
+    }
+
     function updateInspectorForPathway(nodeData, pathwayUrlTemplate) {
         var inspector = document.getElementById("metabolic-network-genome-inspector");
         if (!inspector) return;
@@ -170,6 +179,8 @@
             var el = inspector.querySelector('[data-field="' + field + '"]');
             if (el) el.textContent = String(fields[field]);
         });
+        var scoreBar = inspector.querySelector('[data-field="score-bar"]');
+        if (scoreBar) scoreBar.style.width = scoreToBarPct(nodeData.bestTargetScore) + "%";
         var openMap = document.getElementById("metabolic-network-genome-open-map");
         if (openMap && pathwayUrlTemplate) {
             var url = pathwayUrlTemplate
@@ -317,11 +328,18 @@
         container.__tpMetabolicNetworkGenomeInitialized = true;
 
         var note = document.getElementById("metabolic-network-genome-note");
+        var hint = document.getElementById("metabolic-network-genome-hint");
 
         function setNote(message) {
             if (!note) return;
             note.textContent = message || "";
             note.hidden = !message;
+        }
+
+        function dismissHint() {
+            if (!hint) return;
+            hint.classList.remove("is-visible");
+            hint.classList.add("is-dismissed");
         }
 
         var networkUrl = container.getAttribute("data-network-url");
@@ -398,6 +416,8 @@
                 cy.one("layoutstop", function () {
                     cy.fit(cy.elements(), 30);
                     container.classList.add("is-ready");
+                    if (hint) hint.classList.add("is-visible");
+                    window.setTimeout(dismissHint, 6000);
                 });
 
                 Array.prototype.forEach.call(
@@ -422,6 +442,7 @@
                         tooltip.innerHTML = window.TPMetabolicReactionGraph.tooltipForMetabolite(data);
                     } else {
                         tooltip.innerHTML = buildPathwayTooltip(data);
+                        if (!data.isGroup) container.style.cursor = "pointer";
                     }
                     tooltip.style.display = "block";
                 });
@@ -433,6 +454,7 @@
                 cy.on("mouseout", "node", function () {
                     clearHover(cy);
                     tooltip.style.display = "none";
+                    container.style.cursor = "";
                 });
 
                 cy.on("tap", "node", function (evt) {
@@ -443,6 +465,7 @@
                         return; // reaction/metabolite detail is hover-only for now (tooltip above)
                     }
 
+                    dismissHint();
                     updateInspectorForPathway(nodeData, pathwayUrlTemplate);
 
                     if (expanded[nodeData.id]) {
