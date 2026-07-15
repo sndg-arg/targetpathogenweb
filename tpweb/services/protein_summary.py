@@ -597,5 +597,7 @@ def build_protein_executive_context(protein):
         "conservation_profile": conservation_profile,
         "microbiome_context": microbiome_context,
         "metabolic_context": metabolic_context,
+        "structure_summary": structure_summary,
+        "binders": binders,
         "target_summary": target_summary,
     }

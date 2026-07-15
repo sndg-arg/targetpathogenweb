@@ -11,12 +11,14 @@ closure -- the model only ever supplies an accession, never a genome.
 from __future__ import annotations
 
 from bioseq.models.Biodatabase import Biodatabase
-from bioseq.models.Bioentry import Bioentry
 
 from ..agent import ToolEntry
 from ..base import ToolDefinition
-from tpweb.services.assembly_workspace import score_single_protein
-from tpweb.services.protein_summary import build_protein_executive_context
+from tpweb.services.llm.tools.target_evidence import (
+    build_target_evidence_record,
+    format_target_audit,
+    get_protein_for_accession,
+)
 
 EXPLAIN_TARGET = ToolDefinition(
     name="explain_target",
@@ -43,32 +45,14 @@ EXPLAIN_TARGET = ToolDefinition(
 
 
 def _format_context(protein, score_row):
-    context = build_protein_executive_context(protein)
-    summary = context["target_summary"]
-
-    lines = [f"{protein.accession} ({protein.description or 'no description'})"]
-    if score_row is not None:
-        lines.append(
-            f"Evidence-convergence score: {round(score_row['score'], 1)} "
-            f"(FPocket druggability {score_row['fpocket']:.2f})"
-        )
-    lines.append(f"Verdict: {summary['verdict']}")
-
-    if summary["strengths"]:
-        lines.append("Strengths:")
-        lines.extend(f"  - {item['label']}: {item['detail']}" for item in summary["strengths"])
-    if summary["risks"]:
-        lines.append("Risks:")
-        lines.extend(f"  - {item['label']}: {item['detail']}" for item in summary["risks"])
-    if summary["missing"]:
-        lines.append("Missing evidence:")
-        lines.extend(f"  - {item['label']}: {item['detail']}" for item in summary["missing"])
-
-    metabolic_context = context.get("metabolic_context")
-    if metabolic_context and metabolic_context.get("summary_sentence"):
-        lines.append(f"Metabolic context: {metabolic_context['summary_sentence']}")
-
-    return "\n".join(lines)
+    # Kept for backwards compatibility with earlier tests/imports. New code uses
+    # the shared audit formatter so every target-assessment tool cites the same
+    # underlying evidence fields.
+    record = build_target_evidence_record(
+        protein.biodatabase.name.split(Biodatabase.PROT_POSTFIX)[0],
+        protein.accession,
+    )
+    return format_target_audit(record)
 
 
 def build_explain_target_entry(assembly_name, default_accession=None):
@@ -77,14 +61,10 @@ def build_explain_target_entry(assembly_name, default_accession=None):
         if not accession:
             return "No accession was given, and there is no protein currently in view to default to."
 
-        protein = Bioentry.objects.filter(
-            biodatabase__name=assembly_name + Biodatabase.PROT_POSTFIX,
-            accession=accession,
-        ).first()
+        protein = get_protein_for_accession(assembly_name, accession)
         if protein is None:
             return f"No protein with accession '{accession}' was found in this genome."
 
-        score_row = score_single_protein(assembly_name, accession)
-        return _format_context(protein, score_row)
+        return format_target_audit(build_target_evidence_record(assembly_name, accession))
 
     return ToolEntry(definition=EXPLAIN_TARGET, run=run)

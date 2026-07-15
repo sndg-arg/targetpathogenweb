@@ -98,6 +98,7 @@
         var closeBtn = document.getElementById("tp-agent-drawer-close");
         var toggleBtn = document.getElementById("tp-agent-drawer-toggle");
         var toggleBtnMobile = document.getElementById("tp-agent-drawer-toggle-mobile");
+        var suggestionButtons = Array.prototype.slice.call(document.querySelectorAll(".tp-agent-drawer-suggestion"));
         var chatUrl = form.getAttribute("data-chat-url");
 
         var history = [];
@@ -163,12 +164,11 @@
             return bubble;
         }
 
-        form.addEventListener("submit", function (event) {
-            event.preventDefault();
+        function sendMessage(rawMessage) {
             if (pending || !inputEl) {
                 return;
             }
-            var message = inputEl.value.trim();
+            var message = String(rawMessage || "").trim();
             if (!message) {
                 return;
             }
@@ -228,6 +228,18 @@
                     inputEl.disabled = false;
                     inputEl.focus();
                 });
+        }
+
+        form.addEventListener("submit", function (event) {
+            event.preventDefault();
+            sendMessage(inputEl.value);
+        });
+
+        suggestionButtons.forEach(function (button) {
+            button.addEventListener("click", function () {
+                var prompt = button.getAttribute("data-agent-prompt") || button.textContent || "";
+                sendMessage(prompt);
+            });
         });
 
         inputEl.addEventListener("keydown", function (event) {

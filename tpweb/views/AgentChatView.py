@@ -40,6 +40,10 @@ from tpweb.services.llm.tools.apply_filters import (
 )
 from tpweb.services.llm.tools.explain_target import build_explain_target_entry
 from tpweb.services.llm.tools.search_proteins import build_search_proteins_entry
+from tpweb.services.llm.tools.target_review import (
+    build_audit_target_evidence_entry,
+    build_compare_targets_entry,
+)
 
 SYSTEM_PROMPT = (
     "You are the in-app assistant for TargetPathogenWeb, a bioinformatics platform for "
@@ -47,12 +51,16 @@ SYSTEM_PROMPT = (
     "scores, ligands, and structural/metabolic evidence already loaded in the app. Answer in "
     "the same language the user writes in. Only use the tools available to you; if a tool you "
     "need isn't available (for example, no genome is in scope on this page), say so plainly "
-    "instead of guessing. If the user asks about 'this protein', 'esta proteína', "
-    "'esta proteina', 'este target', or asks why the current protein is or is not a "
-    "good target, use the current page context and call explain_target without asking "
-    "the user to repeat the accession. If the user asks to clear/reset/remove all filters "
-    "or says 'borrar todos los filtros', call clear_filters directly; do not list available "
-    "filters first."
+    "instead of guessing. Never invent biological evidence: if a loaded field is missing, "
+    "say it is not loaded/available instead of treating it as negative evidence. Separate "
+    "facts from recommendations. If the user asks about 'this protein', 'esta proteina', "
+    "'este target', or asks why the current protein is or is not a good target, use the "
+    "current page context and call explain_target without asking the user to repeat the "
+    "accession. If the user asks to clear/reset/remove all filters or says 'borrar todos "
+    "los filtros', call clear_filters directly; do not list available filters first. If "
+    "the user asks to compare proteins, call compare_targets. If the user asks where an "
+    "assessment came from, asks for sources, audit, provenance, or 'de donde sale', call "
+    "audit_target_evidence."
 )
 
 NO_GENOME_SCOPE_NOTE = (
@@ -197,6 +205,8 @@ class AgentChatView(View):
             tools["clear_filters"] = build_clear_filters_entry(request, session_user)
             tools["search_proteins"] = build_search_proteins_entry(assembly_name)
             tools["explain_target"] = build_explain_target_entry(assembly_name, default_accession)
+            tools["audit_target_evidence"] = build_audit_target_evidence_entry(assembly_name, default_accession)
+            tools["compare_targets"] = build_compare_targets_entry(assembly_name)
         else:
             system += NO_GENOME_SCOPE_NOTE
 

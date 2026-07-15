@@ -602,6 +602,26 @@ medio terminar en una sesion.
   `window.location.pathname` en cada envio, asi que navegar entre paginas durante una conversacion
   "simplemente funciona" sin plumbing extra.
 
+**Implementado (auditoria/comparacion + UX del drawer).**
+
+- `tools/target_evidence.py`: helper compartido para construir una ficha auditable por proteina
+  desde datos ya cargados: score de evidencia, FPocket/P2Rank, off-target humano, microbioma,
+  DEG, conservacion, metabolismo, reacciones/rutas y ligandos. Marca explicitamente `not loaded`
+  cuando un campo no existe, para que el agente no confunda ausencia de dato con evidencia negativa.
+- `tools/target_review.py`: nuevas tools `audit_target_evidence(accession)` y
+  `compare_targets(accessions)` para responder "de donde sale esto" y comparar candidatos con una
+  tabla corta basada en evidencia real de TPW.
+- `explain_target.py` ahora usa el mismo formatter auditable que las tools nuevas, evitando que
+  cada respuesta arme su propia version de los datos.
+- `AgentChatView.py`: prompt endurecido contra alucinaciones biologicas; obliga a separar hechos
+  cargados de recomendaciones, usar `compare_targets` para comparaciones y
+  `audit_target_evidence` para procedencia/fuentes.
+- `protein_summary.py`: `build_protein_executive_context` ahora expone tambien `structure_summary`
+  y `binders`, para que las tools puedan auditar ligandos sin recalcular ni inventar conteos.
+- Drawer global: chips de prompts sugeridos (`Explain target`, `Audit evidence`,
+  `Find selective targets`, `Clear filters`) que disparan el mismo flujo que escribir manualmente,
+  usando estilos del sistema y sin agregar otro bundle.
+
 **Implementado (fixes post-deploy).**
 
 - `manage.py check` corrido en el cluster: sin errores.
