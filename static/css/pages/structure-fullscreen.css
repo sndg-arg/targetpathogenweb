@@ -1006,6 +1006,50 @@ body.residue-modal-open { overflow: hidden; }
 .tp-dark .sv-sidebar-meta-tag { background: var(--tp-color-surface-muted); border-color: var(--tp-color-border); }
 .tp-dark .sv-sidebar-meta-tag--count { background: var(--tp-color-brand-050); border-color: var(--tp-color-brand-200); }
 
+/* ── 18. Premium load-in motion for the floating HUD chrome ──
+   The viewer's glass panels (topbar, toolbar, legend, sidebar) previously appeared
+   instantly with zero entrance motion, unlike every other "premium" page in the app
+   (see Premium UI consistency pass). A local keyframe set instead of the shared
+   tp-ui-enter utility, for two reasons: (1) .sv-toolbar already carries a permanent
+   translateX(-50%) for horizontal centering that a generic "to: transform none" keyframe
+   would clobber once the animation's fill-mode locks in; (2) this file already keeps its
+   own self-contained design language (--sv-* tokens) distinct from the rest of the app,
+   per the file header. A brief staggered sequence (topbar -> toolbar/legend -> sidebar)
+   reads as one orchestrated reveal rather than four unrelated fades. */
+.sv-topbar { animation: sv-fade-down 360ms var(--tp-ui-ease-standard) both; }
+.sv-toolbar { animation: sv-toolbar-enter 360ms var(--tp-ui-ease-standard) 70ms both; }
+.sv-legend { animation: sv-fade-up 360ms var(--tp-ui-ease-standard) 90ms both; }
+.sv-sidebar { animation: sv-fade-side 380ms var(--tp-ui-ease-standard) 110ms both; }
+
+@keyframes sv-fade-down {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: none; }
+}
+
+@keyframes sv-fade-up {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: none; }
+}
+
+@keyframes sv-fade-side {
+    from { opacity: 0; transform: translateX(14px); }
+    to { opacity: 1; transform: none; }
+}
+
+@keyframes sv-toolbar-enter {
+    from { opacity: 0; transform: translateX(-50%) translateY(14px); }
+    to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .sv-topbar,
+    .sv-toolbar,
+    .sv-legend,
+    .sv-sidebar {
+        animation: none;
+    }
+}
+
 /* ── 16. Responsive (narrow: collapse sidebar) ── */
 @media (max-width: 720px) {
     .sv-sidebar { display: none; }
