@@ -16,7 +16,11 @@ Estas tareas ya tienen implementacion en la rama actual y necesitan revision vis
   ruta). Sigue en validacion biologica fina.
 - Protein detail / genome overview: ya tienen resumen ejecutivo, evidencia estructural/quimica/metabolica y lenguaje mas explicativo para biologos. Queda seguir puliendo criterios de ranking y wording.
 - Pockets / estructura: se agrego lectura de pockets especificos y alpha spheres desde outputs originales de GATES, mas controles visuales iniciales. Queda validar que la representacion sea biologicamente clara y no confunda "zona" con "pocket puntual".
-- Agente IA: ya funciona con OpenAI en cluster, tiene drawer global, historial por sesion, tools para filtros, explicacion de targets, auditoria de evidencia y comparacion de candidatos. El foco siguiente es hacerlo mas confiable: mejor contexto de pagina, respuestas mas auditables, control de costos/tokens y set de evaluacion.
+- Agente IA: ya funciona con OpenAI en cluster, tiene drawer global, historial por sesion, tools
+  para filtros, explicacion de targets, auditoria de evidencia y comparacion de candidatos, ahora
+  con snapshot de estado de UI (filtros/sort/pocket/estructura/filas visibles) y Markdown completo
+  en el drawer (tablas, codigo, listas ordenadas, links). El foco siguiente es control de
+  costos/tokens y un set chico de evaluacion.
 - UX premium: hay sistema visual mas consistente en paginas principales, pero falta una pasada sistematica por las vistas de mayor uso para cerrar inconsistencias de motion, sombras, botones, spacing y jerarquia de datos.
 
 ### Informacion metabolica
@@ -688,21 +692,41 @@ medio terminar en una sesion.
 - Fix de `clear_filters`: la accion directa del agente borra filtros de la misma sesion que usa
   la lista de proteinas y fuerza reload de la pagina para que el resultado sea visible.
 
+**Implementado (contexto de pagina + formato del drawer).**
+
+- Snapshot compacto de UI (`getPageState` en `agent-drawer.js`): titulo, heading/subheading,
+  path/query, filtros activos, sort, tabs/botones activos, pocket seleccionado (con capas
+  visibles), estructura seleccionada y hasta 5 filas visibles de la tabla de proteinas
+  (accession, descripcion, valores de columna). Se manda junto al mensaje como `page_state`.
+- Sanitizado server-side por allowlist explicito de claves (`_sanitize_page_state` en
+  `AgentChatView.py`, profundidad maxima 4, listas cortadas a 8 items, strings truncados) antes
+  de inyectarlo al system prompt (`_page_state_prompt`) — instruye al modelo a usarlo solo para
+  entender que esta viendo el usuario, no como evidencia biologica (eso sigue yendo por tools).
+  El agente ahora entiende la pagina completa, no solo la proteina activa.
+- Render Markdown del drawer: soporte de tablas (header + separador `---` + filas), bloques de
+  codigo con ```` ``` ````, listas ordenadas (`<ol>`, antes todo caia en `<ul>`) y links
+  `[texto](url)`. Encontrado y corregido de paso: `compare_targets` (`target_evidence.py`) ya
+  arma una tabla markdown real con `|`, pero el render viejo no tenia parser de tablas — se veia
+  como texto crudo con pipes y guiones sueltos.
+- Pasada visual premium del drawer: avatar con icono en el header, entrada de mensajes con
+  fade/slide (`tp-ui-enter`), indicador de "pensando" animado (tres puntos) en vez de "..."
+  estatico, hover-lift en los chips de sugerencias, foco del input con el mismo glow de marca
+  que el resto de la app, e icono en el boton de enviar.
+
 **Pendiente para avanzar.**
 
 - Armar un set chico de evaluacion con prompts reales y resultado esperado:
   "por que esta proteina es buen target", "de donde sale esa conclusion", "comparame A vs B",
   "buscame targets sin off-target humano y con buen pocket", "borrame filtros". Debe chequear
   que use tools cuando corresponde y que no invente evidencia.
-- Mejorar contexto de pagina: tabla/filtros/sort actuales, genoma activo, proteina activa,
-  pathway activo, estructura/pocket seleccionado y estado del viewer. Hoy entiende mejor la
-  proteina que la pagina completa.
-- Reducir tokens enviados al modelo: no mandar HTML/texto crudo de paginas largas; resumir estado
-  de UI en JSON chico y auditable. Esto evita errores 429 por TPM y baja costo.
+- Reducir tokens enviados al modelo: el `page_state` ya es compacto/sanitizado, pero el resto del
+  contexto (historial, resultados de tools) todavia puede crecer sin limite claro en
+  conversaciones largas. Esto evita errores 429 por TPM y baja costo.
 - Agregar control de costos y observabilidad: log de modelo usado, tokens, latencia, tool calls y
   errores; budget mensual recomendado para demo interna.
-- Mejorar formato de respuesta en el drawer: Markdown renderizado de forma consistente, tablas
-  compactas, listas limpias y mensajes de error accionables.
+- Mensajes de error mas accionables en el drawer (hoy son genericos: "el asistente no esta
+  disponible" / "no se pudo conectar"), y evaluar si conviene registrar en el snapshot de pagina
+  el estado especifico del structure viewer 3D (spin/coloreo/capas), que hoy no se captura.
 - Agregar modo "biologo": explicaciones con glosario corto para terminos como FPocket, P2Rank,
   ZINC, ChEMBL, AlphaFold DB, ColabFold, off-target, chokepoint, e-value, identidad y cobertura.
 - Definir permisos de acciones: que puede hacer solo leyendo, que puede cambiar en la UI
