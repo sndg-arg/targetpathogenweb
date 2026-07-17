@@ -13,6 +13,7 @@ from django.urls import reverse
 from bioseq.models.Biodatabase import Biodatabase
 from tpweb.models.ScoreParamValue import ScoreParamValue
 from tpweb.models.Metabolism import GeneReactionLink, MetabolicImportRun, ReactionParticipant
+from tpweb.services.binder_summary import create_binders_dict
 from tpweb.services.metabolism_summary import build_target_metabolic_sentence
 from tpweb.services.genome_workspace import genome_url_slug
 from tpweb.services.structure_sources import structure_matches_identifier
@@ -571,12 +572,6 @@ def build_protein_executive_context(protein):
     conservation_profile = build_conservation_profile(raw_scores)
     microbiome_context = build_microbiome_context(raw_scores)
     metabolic_context = build_metabolic_context(protein, raw_scores)
-
-    # create_binders_dict lives on ProteinView.py, not yet extracted to a
-    # service module (out of scope for this change) -- deferred import to
-    # avoid a circular import at module load time (ProteinView.py itself
-    # imports from this module).
-    from tpweb.views.ProteinView import create_binders_dict
 
     binders = create_binders_dict(protein, structures=structures)
 

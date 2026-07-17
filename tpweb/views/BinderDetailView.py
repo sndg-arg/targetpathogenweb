@@ -16,7 +16,7 @@ from tpweb.services.genome_workspace import (
     genome_url_slug,
     user_can_access_genome_name,
 )
-from tpweb.views.ProteinView import make_binder_svg
+from tpweb.services.binder_summary import make_binder_svg
 
 
 SOURCE_LABEL = {
