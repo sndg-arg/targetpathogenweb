@@ -15,8 +15,10 @@ doesn't have access to.
 from __future__ import annotations
 
 import json
+import logging
 import os
 import re
+import time
 from urllib.parse import urlparse
 
 from django.conf import settings
@@ -62,6 +64,8 @@ SYSTEM_PROMPT = (
     "assessment came from, asks for sources, audit, provenance, or 'de donde sale', call "
     "audit_target_evidence."
 )
+
+logger = logging.getLogger("tpweb.agent")
 
 NO_GENOME_SCOPE_NOTE = (
     " No genome is currently in scope for this page, so filter/search/target-explanation "
@@ -275,16 +279,34 @@ class AgentChatView(View):
         else:
             system += NO_GENOME_SCOPE_NOTE
 
+        started_at = time.perf_counter()
         try:
             provider = get_provider()
         except Exception as exc:
+            logger.warning("agent_chat provider_unavailable error=%s", exc)
             return JsonResponse({"error": f"LLM provider unavailable: {exc}"}, status=502)
 
         agent = Agent(provider=provider, tools=tools, system=system)
         try:
             reply = agent.run(message, history=history)
         except Exception as exc:
+            logger.warning(
+                "agent_chat failed model=%s latency_ms=%d error=%s",
+                getattr(provider, "model", "?"),
+                round((time.perf_counter() - started_at) * 1000),
+                exc,
+            )
             return JsonResponse({"error": f"Assistant request failed: {exc}"}, status=502)
+
+        logger.info(
+            "agent_chat ok model=%s input_tokens=%d output_tokens=%d latency_ms=%d turns=%d tool_calls=%s",
+            getattr(provider, "model", "?"),
+            agent.last_usage.input_tokens,
+            agent.last_usage.output_tokens,
+            round((time.perf_counter() - started_at) * 1000),
+            agent.last_turns,
+            ",".join(agent.last_tool_calls) or "-",
+        )
 
         response = {
             "reply": reply,

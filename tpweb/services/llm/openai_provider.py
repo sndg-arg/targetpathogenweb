@@ -12,7 +12,7 @@ import urllib.error
 import urllib.request
 from typing import Any
 
-from .base import LLMProvider, LLMResponse, Message, ToolCall, ToolDefinition
+from .base import LLMProvider, LLMResponse, Message, ToolCall, ToolDefinition, Usage
 
 DEFAULT_MODEL = "gpt-5.4-mini"
 RESPONSES_URL = "https://api.openai.com/v1/responses"
@@ -74,10 +74,17 @@ class OpenAIProvider(LLMProvider):
         else:
             stop_reason = "other"
 
+        usage_payload = response.get("usage") or {}
+        usage = Usage(
+            input_tokens=usage_payload.get("input_tokens") or 0,
+            output_tokens=usage_payload.get("output_tokens") or 0,
+        )
+
         return LLMResponse(
             text="".join(text_parts) or None,
             tool_calls=tool_calls,
             stop_reason=stop_reason,
+            usage=usage,
             raw=response,
         )
 

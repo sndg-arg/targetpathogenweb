@@ -11,7 +11,7 @@ import os
 
 import anthropic
 
-from .base import LLMProvider, LLMResponse, Message, ToolCall, ToolDefinition
+from .base import LLMProvider, LLMResponse, Message, ToolCall, ToolDefinition, Usage
 
 DEFAULT_MODEL = "claude-opus-4-8"
 
@@ -52,7 +52,12 @@ class AnthropicProvider(LLMProvider):
             "max_tokens": "max_tokens",
         }.get(response.stop_reason, "other")
 
-        return LLMResponse(text=text, tool_calls=tool_calls, stop_reason=stop_reason, raw=response)
+        usage = Usage(
+            input_tokens=getattr(response.usage, "input_tokens", 0) or 0,
+            output_tokens=getattr(response.usage, "output_tokens", 0) or 0,
+        )
+
+        return LLMResponse(text=text, tool_calls=tool_calls, stop_reason=stop_reason, usage=usage, raw=response)
 
     @staticmethod
     def _to_anthropic_tool(tool: ToolDefinition) -> dict:

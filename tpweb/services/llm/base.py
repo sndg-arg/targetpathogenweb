@@ -56,12 +56,27 @@ class Message:
 
 
 @dataclass
+class Usage:
+    """Token accounting for one generation call, for cost/observability logging.
+
+    Both providers report at least input/output tokens; anything provider-
+    specific (cache tokens, reasoning tokens, ...) stays out of this neutral
+    type -- inspect LLMResponse.raw directly if that level of detail is
+    ever needed.
+    """
+
+    input_tokens: int = 0
+    output_tokens: int = 0
+
+
+@dataclass
 class LLMResponse:
     """What a provider adapter hands back after one generation call."""
 
     text: str | None
     tool_calls: list[ToolCall]
     stop_reason: Literal["end_turn", "tool_use", "max_tokens", "other"]
+    usage: Usage | None = None
     raw: Any = None  # provider-native response object, for debugging only
 
 
