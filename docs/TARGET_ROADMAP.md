@@ -366,27 +366,27 @@ solo la proteina activa. Corridas de verificacion en cluster (OpenAI real via Re
 agregar el boton Assistant, persistencia de config de OpenAI entre restarts).
 
 Costos/tokens: `LLMResponse` ahora carga `Usage` (input/output tokens, neutral, ambos
-proveedores), acumulado por `Agent.run()` a lo largo de todo el loop de tool-use (no solo la
-ultima llamada). `AgentChatView` loguea por request modelo, tokens, latencia, turnos y tool
-calls (o el error) via el logger `tpweb.agent`. Cada resultado individual de tool queda
-capado a 8000 caracteres antes de volver a entrar a la conversacion, ya que nada lo acotaba
-antes.
+proveedores), acumulado por `Agent.run()` a lo largo de todo el loop de tool-use. `AgentChatView`
+loguea por request modelo, tokens, latencia, turnos y tool calls (o el error) via el logger
+`tpweb.agent`. Cada resultado de tool queda capado a 8000 caracteres, y el total acumulado de
+resultados de tools en una misma conversacion a 32000 — antes solo el primero estaba acotado.
+
+Cierre de pendientes de esta ronda: `page_state` ahora captura spin/modo de vista del visualizador
+3D (las dos paginas, embebida y fullscreen). Errores del drawer ya no filtran detalle tecnico del
+proveedor (el log completo sigue yendo al servidor) y los que son reintentables muestran un boton
+"Retry" que reenvia el mismo mensaje. Nuevo toggle "Biologist mode" en el drawer (persistido en
+localStorage): activo, pide al modelo definir brevemente terminos tecnicos la primera vez que los
+usa. Wiring de tools y de system prompt extraido de `AgentChatView` a `tool_registry.py`/
+`prompts.py` para que el nuevo comando `evaluate_agent` (corre los prompts de evaluacion contra
+el loop real) los reuse en vez de duplicarlos.
 
 **Pendiente para avanzar.**
 
-- Armar un set chico de evaluacion con prompts reales y resultado esperado:
-  "por que esta proteina es buen target", "de donde sale esa conclusion", "comparame A vs B",
-  "buscame targets sin off-target humano y con buen pocket", "borrame filtros". Debe chequear
-  que use tools cuando corresponde y que no invente evidencia.
+- Correr `evaluate_agent` contra un genoma real y revisar las respuestas a mano — el comando ya
+  existe y chequea que se llame la tool esperada, pero juzgar si hay evidencia inventada todavia
+  necesita una lectura humana.
 - Definir budget mensual recomendado para demo interna y donde alertar si se supera (el log de
   tokens/costo ya existe, falta la parte de politica/alerta).
-- El historial que viaja del cliente ya se recorta (`_compact_history`), pero sigue sin haber un
-  limite al tamaño acumulado dentro de una sola conversacion muy larga entre varios turnos.
-- Mensajes de error mas accionables en el drawer (hoy son genericos: "el asistente no esta
-  disponible" / "no se pudo conectar"), y evaluar si conviene registrar en el snapshot de pagina
-  el estado especifico del structure viewer 3D (spin/coloreo/capas), que hoy no se captura.
-- Agregar modo "biologo": explicaciones con glosario corto para terminos como FPocket, P2Rank,
-  ZINC, ChEMBL, AlphaFold DB, ColabFold, off-target, chokepoint, e-value, identidad y cobertura.
 - Definir permisos de acciones: que puede hacer solo leyendo, que puede cambiar en la UI
   (filtros), y que requiere confirmacion futura (crear score, guardar columnas, exportar).
 - Evaluar persistir historial de conversacion (modelo `AgentConversation`) si el historial por
@@ -508,9 +508,11 @@ arreglado en el keyframe compartido `tp-ui-enter`: dejaba un `transform` persist
 (`animation-fill-mode: both` terminando en `translateY(0)` en vez de `none`) que rompia el
 posicionamiento de cualquier `<select>` nativo en un ancestro — afectaba a Genome overview y BLAST.
 
+Checklist de pre-merge documentado en `docs/VISUAL_CHECKLIST.md` (color/tokens, profundidad/motion,
+tipografia de datos, accesibilidad, y el bug del keyframe con transform persistente para no repetirlo).
+
 **Pendiente para cerrar.**
 
-- Definir un checklist visual antes de mergear nuevas vistas.
 - Revisar en modo claro/oscuro con screenshots reales, incluida la nueva motion del structure viewer.
 - Structure viewer: evaluar micro hover-lift en los botones del toolbar flotante (hoy solo
   cambian background/color/opacity) — no se toco en esta pasada para no arriesgar el look
