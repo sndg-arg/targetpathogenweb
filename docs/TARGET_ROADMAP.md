@@ -402,11 +402,6 @@ llamaba `apply_filters` una vez por cada criterio en vez de mandarlos juntos en 
 
 **Pendiente para avanzar.**
 
-- Persistir historial de conversacion (modelo `AgentConversation`): decidido con la usuaria
-  esperar a tener señal de uso real antes de construirlo — es trabajo real (modelo, migracion,
-  UI para listar/reabrir conversaciones) y hoy no hay evidencia de que el historial por pestaña
-  se quede corto. Revisitar si alguien reporta perder contexto al recargar, o si se quiere
-  auditar conversaciones pasadas.
 - Extraer `create_binders_dict` de `ProteinView.py` a un servicio propio para sacar el import
   diferido de `protein_summary.py` (hoy funciona bien, pero es una direccion de dependencia menos
   limpia que el resto de la extraccion).
