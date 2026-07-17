@@ -399,12 +399,12 @@ en el modelo; ahora son tres valores distintos (`yes`/`no`/`not loaded`). Y el c
 targets sin off-target y buen pocket" gasto 17871 tokens de input en 6 turnos porque el modelo
 llamaba `apply_filters` una vez por cada criterio en vez de mandarlos juntos en el array
 `changes` que la tool ya soporta — la descripcion de la tool ahora lo pide explicitamente.
+`create_binders_dict` (y el resto de la logica de ligandos que vivia en `ProteinView.py`) se
+extrajo a `tpweb/services/binder_summary.py`, sacando el ultimo import diferido/circular que
+quedaba de la ronda de extraccion anterior.
 
-**Pendiente para avanzar.**
-
-- Extraer `create_binders_dict` de `ProteinView.py` a un servicio propio para sacar el import
-  diferido de `protein_summary.py` (hoy funciona bien, pero es una direccion de dependencia menos
-  limpia que el resto de la extraccion).
+Con esto, la card de Agente IA queda sin pendientes de codigo — lo que resta es validacion con
+uso real (ver seccion superior "Corte actual").
 
 ### Auditoria y migracion de funcionalidades del Target viejo
 
