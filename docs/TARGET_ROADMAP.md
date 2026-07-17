@@ -8,9 +8,12 @@ Documento vivo para ordenar tareas de producto e implementacion. La idea es mant
 
 Estas tareas ya tienen implementacion en la rama actual y necesitan revision visual/funcional en datos reales antes de darlas por cerradas.
 
-### Corte actual - 2026-07-15
+### Corte actual - 2026-07-17
 
-- Metabolismo: implementado end-to-end para Klebsiella, con ingesta SBML/TSV/SIF, contexto por proteina, ranking por ruta y vistas navegables. Sigue en validacion biologica fina.
+- Metabolismo: implementado end-to-end para Klebsiella, con ingesta SBML/TSV/SIF, contexto por
+  proteina, ranking por ruta, vistas navegables y ahora tambien un grafo unico genome-wide con
+  zoom in/out estilo Krona por pathway (a pedido de las biologas, que no querian navegar ruta por
+  ruta). Sigue en validacion biologica fina.
 - Protein detail / genome overview: ya tienen resumen ejecutivo, evidencia estructural/quimica/metabolica y lenguaje mas explicativo para biologos. Queda seguir puliendo criterios de ranking y wording.
 - Pockets / estructura: se agrego lectura de pockets especificos y alpha spheres desde outputs originales de GATES, mas controles visuales iniciales. Queda validar que la representacion sea biologicamente clara y no confunda "zona" con "pocket puntual".
 - Agente IA: ya funciona con OpenAI en cluster, tiene drawer global, historial por sesion, tools para filtros, explicacion de targets, auditoria de evidencia y comparacion de candidatos. El foco siguiente es hacerlo mas confiable: mejor contexto de pagina, respuestas mas auditables, control de costos/tokens y set de evaluacion.
@@ -46,15 +49,53 @@ Reactome no se usa como fuente de datos porque esta orientado principalmente a h
 - Enlaces entre ranking, mapa de ruta, grafo de vecindario y pagina de proteina.
 - Pulido visual inicial: jerarquia tipografica, animaciones, tooltips y affordances de links.
 - Alineacion visual con el sistema de componentes de la app: paleta via tokens, paneles `tp-ui-panel`, botones `tp-btn` y espaciado `--tp-space-*`.
+- **Vista de red unificada genome-wide** (`/genome/<genoma>/metabolism/network`), a pedido de las
+  biologas ("quieren todo junto, no ver cada reaccion por separado"): un solo grafo Cytoscape con
+  un nodo por pathway en vez de la lista de ranking navegada una ruta a la vez. Requirio una
+  particion estricta reaccion->pathway primario (`_primary_pathway_buckets`,
+  `tpweb/services/metabolism_network.py`) distinta de la logica multi-membership que ya usa
+  `build_genome_metabolism_summary` para el ranking — necesaria para que el tamaño de un nodo y lo
+  que se ve al abrirlo coincidan siempre, y para que una arista pathway-pathway tenga un lado
+  inequivoco de cada extremo. Nodo por pathway con tamaño por cantidad de reacciones, color por
+  densidad de chokepoints (4 tiers discretos) y aristas por reacciones compartidas entre rutas.
+  Verificado con datos reales de KpATCC43816: 79 nodos, 350 aristas, cada una de las 1618
+  reacciones contada una sola vez en total.
+- **Interaccion tipo Krona (zoom in/out) en vez de expandir en el lugar**: clickear un pathway hace
+  zoom completo de pantalla a su subgrafo de reacciones+metabolitos (grafo bipartito real,
+  direccionado reactivo->reaccion->producto, reusando `ReactionParticipant`/`MetabolicSpecies` ya
+  cargados), con un breadcrumb "All pathways" para volver a la vista general. Cambio de diseño
+  pedido explicitamente para que varios pathways abiertos a la vez no queden superpuestos — cada
+  entrada/salida es un swap completo de elementos + layout nuevo, sin nodos compuestos ni
+  crecimiento incremental (`static/js/pages/metabolic-network-genome.js`).
+- Modulo compartido `static/js/pages/metabolic-reaction-graph.js` (`window.TPMetabolicReactionGraph`)
+  para el grafo reaccion+metabolito, reusado tanto en el drill-in del grafo unificado como en la
+  pagina standalone de una ruta (`metabolism_pathway.html`), que reemplazo ahi al diagrama SVG
+  sustrato->reaccion->producto hecho a mano.
+- Pulido visual "premium" del grafo unificado y de la vista por ruta: toolbar con iconos SVG
+  (fit/zoom in/zoom out), spinner de carga durante el layout de fcose, hint bubble dismissible,
+  barra de score en el panel inspector (mismo patron visual que `target-profile-bar`), glow
+  ambient de fondo y paleta/sombras via tokens existentes.
+- Decluttering de labels en el grafo unificado: con ~79 pathways en pantalla, etiquetar todos
+  volvia el grafo ilegible (confirmado con captura real en el cluster). Ahora solo los pathways
+  grandes, con densidad alta de chokepoints o el mejor target quedan con nombre permanente; el
+  resto es un punto simple, con el nombre disponible via tooltip y revelado al pasar el mouse
+  (tambien para los vecinos de un nodo con hover). Igual criterio aplicado a los metabolitos del
+  grafo de detalle: pierden su label por defecto para no competir visualmente con las reacciones.
 
 **Pendiente para cerrar.**
 
 - Validar con biologas si la interpretacion de chokepoint `producing`, `consuming` y `both` se entiende igual que en el pipeline.
 - Agregar export/import curado para BioCyc SmartTables cuando haya archivo ejemplo.
-- Agregar una vista genome-wide tipo overview/fireworks: rutas coloreadas por cantidad/calidad de targets.
 - Mejorar leyendas biologicas: explicar que significa centralidad, isoenzima, chokepoint y pathway sin cargar la UI.
 - Agregar filtros por ruta en la tabla principal de proteinas.
 - Agregar validaciones automaticas de ingesta para detectar SBML/TSV/SIF inconsistentes.
+- Validar visualmente el grafo de red unificado en modo claro (confirmado en oscuro via captura
+  real en el cluster); revisar tambien con un genoma bacteriano mas chico, donde la mayoria de
+  pathways tendria pocas reacciones y casi ningun nodo quedaria con label permanente.
+- Evaluar un modo de colapsar de nuevo un pathway ya abierto sin pasar por "All pathways" (hoy solo
+  existe volver a la vista completa), si en el uso real se pide comparar dos rutas abiertas a la vez.
+- Recalibrar el umbral de "pathway importante" para label permanente (hoy `size>=50px` o tier de
+  chokepoint alto, hardcodeado) contra la distribucion real de mas de un genoma.
 
 ### Target executive summary
 
@@ -733,12 +774,14 @@ Agrupar identificadores externos en una seccion unica y clara.
 
 Extender metabolismo desde target individual hacia decision a nivel ruta.
 
+**Mayormente cubierto por el grafo unificado nuevo** (ver `Informacion metabolica` arriba): tamaño
+por reacciones, color por densidad de chokepoints y score promedio/mejor por ruta ya se ven en el
+grafo genome-wide. Lo que falta especificamente de esta card:
+
 **Alcance propuesto.**
 
-- Ranking de rutas por cantidad de buenos targets.
-- Densidad de chokepoints.
-- Score promedio y mejor score por ruta.
-- Metabolitos clave y cuellos de botella.
+- Ranking de rutas por cantidad de buenos targets (hoy solo existe como grafo, no como lista/tabla ordenable).
+- Metabolitos clave y cuellos de botella a nivel genoma completo (hoy el grafo bipartito de metabolitos es por-pathway, no agregado).
 - Export CSV para discutir con biologas.
 
 ### Evidence provenance / audit layer
