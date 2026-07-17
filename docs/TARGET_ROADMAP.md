@@ -38,53 +38,24 @@ Reactome no se usa como fuente de datos porque esta orientado principalmente a h
 
 **Implementado.**
 
-- Modelo e ingesta por genoma para reacciones, genes, chokepoints, isoenzimas, metabolitos y estequiometria.
-- Mapeo reaccion-ruta de KEGG.
-- Seccion `Metabolic context` en la pagina de proteina.
-- Integracion de evidencia metabolica al sistema de `ScoreFormula`.
-- Oracion interpretativa automatica para explicar el valor del target.
-- Ranking de rutas a nivel genoma completo, con buscador por nombre.
-- Grafo Cytoscape del vecindario de reacciones de una proteina.
-- Agrupacion visual por ruta metabolica.
-- Chokepoints diferenciados por forma y color.
-- Conexiones entre rutas marcadas.
-- Pagina de mapa completo por ruta con diagrama sustrato -> reaccion -> producto.
-- Tabla de reacciones con genes clickeables, metabolitos y tooltips.
-- Enlaces entre ranking, mapa de ruta, grafo de vecindario y pagina de proteina.
-- Pulido visual inicial: jerarquia tipografica, animaciones, tooltips y affordances de links.
-- Alineacion visual con el sistema de componentes de la app: paleta via tokens, paneles `tp-ui-panel`, botones `tp-btn` y espaciado `--tp-space-*`.
-- **Vista de red unificada genome-wide** (`/genome/<genoma>/metabolism/network`), a pedido de las
-  biologas ("quieren todo junto, no ver cada reaccion por separado"): un solo grafo Cytoscape con
-  un nodo por pathway en vez de la lista de ranking navegada una ruta a la vez. Requirio una
-  particion estricta reaccion->pathway primario (`_primary_pathway_buckets`,
-  `tpweb/services/metabolism_network.py`) distinta de la logica multi-membership que ya usa
-  `build_genome_metabolism_summary` para el ranking — necesaria para que el tamaño de un nodo y lo
-  que se ve al abrirlo coincidan siempre, y para que una arista pathway-pathway tenga un lado
-  inequivoco de cada extremo. Nodo por pathway con tamaño por cantidad de reacciones, color por
-  densidad de chokepoints (4 tiers discretos) y aristas por reacciones compartidas entre rutas.
-  Verificado con datos reales de KpATCC43816: 79 nodos, 350 aristas, cada una de las 1618
-  reacciones contada una sola vez en total.
-- **Interaccion tipo Krona (zoom in/out) en vez de expandir en el lugar**: clickear un pathway hace
-  zoom completo de pantalla a su subgrafo de reacciones+metabolitos (grafo bipartito real,
-  direccionado reactivo->reaccion->producto, reusando `ReactionParticipant`/`MetabolicSpecies` ya
-  cargados), con un breadcrumb "All pathways" para volver a la vista general. Cambio de diseño
-  pedido explicitamente para que varios pathways abiertos a la vez no queden superpuestos — cada
-  entrada/salida es un swap completo de elementos + layout nuevo, sin nodos compuestos ni
-  crecimiento incremental (`static/js/pages/metabolic-network-genome.js`).
-- Modulo compartido `static/js/pages/metabolic-reaction-graph.js` (`window.TPMetabolicReactionGraph`)
-  para el grafo reaccion+metabolito, reusado tanto en el drill-in del grafo unificado como en la
-  pagina standalone de una ruta (`metabolism_pathway.html`), que reemplazo ahi al diagrama SVG
-  sustrato->reaccion->producto hecho a mano.
-- Pulido visual "premium" del grafo unificado y de la vista por ruta: toolbar con iconos SVG
-  (fit/zoom in/zoom out), spinner de carga durante el layout de fcose, hint bubble dismissible,
-  barra de score en el panel inspector (mismo patron visual que `target-profile-bar`), glow
-  ambient de fondo y paleta/sombras via tokens existentes.
-- Decluttering de labels en el grafo unificado: con ~79 pathways en pantalla, etiquetar todos
-  volvia el grafo ilegible (confirmado con captura real en el cluster). Ahora solo los pathways
-  grandes, con densidad alta de chokepoints o el mejor target quedan con nombre permanente; el
-  resto es un punto simple, con el nombre disponible via tooltip y revelado al pasar el mouse
-  (tambien para los vecinos de un nodo con hover). Igual criterio aplicado a los metabolitos del
-  grafo de detalle: pierden su label por defecto para no competir visualmente con las reacciones.
+Ingesta completa por genoma (reacciones, genes, chokepoints, isoenzimas, metabolitos,
+estequiometria), mapeo a rutas KEGG, `Metabolic context` en la pagina de proteina,
+integracion con `ScoreFormula`, oracion interpretativa automatica, ranking de rutas a nivel
+genoma, grafo de vecindario por proteina y pagina de mapa por ruta (sustrato->reaccion->producto).
+Alineado visualmente al sistema de componentes de la app (tokens, `tp-ui-panel`, `tp-btn`).
+
+Suma reciente, a pedido de las biologas ("quieren todo junto, no ruta por ruta"): grafo unico
+genome-wide (`/genome/<genoma>/metabolism/network`, `tpweb/services/metabolism_network.py`) con
+un nodo por pathway bajo una particion estricta reaccion->pathway (distinta de la logica
+multi-membership del ranking, necesaria para que nodo y contenido siempre coincidan), tamaño por
+reacciones, color por densidad de chokepoints. Interaccion tipo Krona: click en un pathway hace
+zoom completo a su subgrafo de reacciones+metabolitos (no expande en el lugar, para que varios
+pathways abiertos no se superpongan), con modulo compartido (`metabolic-reaction-graph.js`) reusado
+en la pagina standalone de ruta, que reemplazo ahi el diagrama SVG viejo. Pulido visual (toolbar
+con iconos, spinner, hint dismissible, barra de score) y labels decluttered (solo pathways
+grandes/chokepoint-densos quedan con nombre visible; el resto via hover) porque etiquetar los ~79
+nodos de un genoma real volvia el grafo ilegible. Verificado con KpATCC43816: 79 nodos, 350
+aristas, cada una de las 1618 reacciones contada una sola vez.
 
 **Pendiente para cerrar.**
 
@@ -147,40 +118,18 @@ El overview del genoma debe funcionar como tablero macro, no como reflejo de la 
 
 **Implementado.**
 
-- Ranking principal `Top evidence-convergent candidates`.
-- Score heuristico transparente para triage inicial, combinando:
-  - calidad de pocket FPocket;
-  - soporte P2Rank;
-  - ligandos experimentales PDB y bioactividad ChEMBL directa;
-  - evidencia transferida por homologos y compuestos ZINC propuestos, con menor peso;
-  - baja similitud humana;
-  - baja similitud contra microbioma intestinal;
-  - similitud a genes esenciales DEG;
-  - conservacion core por Roary/CoreCruncher;
-  - estructura disponible;
-  - contexto metabolico y chokepoints.
-- Chips por proteina explicando por que aparece arriba.
-- Score visible como rango interpretable `0-15`, con tier `Strong/Moderate/Limited` y tooltip de significado.
-- Drogabilidad explicitada como `FPocket druggability` en chips y copy, no solo como "pocket quality".
-- Ligandos tratados como evidencia por tipo y no como conteo lineal: el overview muestra si hay evidencia directa/soporte, y el ranking secundario conserva los conteos detallados.
-- Rankings secundarios conservados para senales especificas, como ligand support.
-- Copy aclarando que el score es triage, no una conclusion biologica final.
-- Reemplazo del ranking secundario por cantidad de ligandos (`Strongest ligand support`) por
-  `Worth a fresh look`: mismo score de evidence-convergence, restringido a proteinas con cero
-  registros de ligando. El ranking por conteo premiaba proteinas "muy estudiadas" (homologos
-  humanos de kinasas/GPCRs con muchos hits en ChEMBL/ZINC) independientemente de si eran buenos
-  targets bacterianos — la misma homologia que el off-target penaliza en el mismo score. La
-  nueva vista responde una pregunta real: candidatos druggable/selectivos que nadie exploro
-  quimicamente todavia.
-- Logica de scoring refactorizada en `_score_proteins`/`_format_score_items` (assembly_workspace.py)
-  para que ambos rankings reusen el mismo calculo en vez de duplicarlo.
-- Hero simplificado: 2 acciones primarias (`Proteins`, `Metabolism`) y el resto (Add data,
-  Custom score, EC tree, BLAST) en una fila secundaria menos prominente, en vez de 6 botones
-  con el mismo peso visual.
-- Jerarquia tipografica arreglada en `Evidence available`: conteos de evidencia directa
-  (PDB co-crystal, ChEMBL bioactive) mas grandes/bold/con acento; conteos transferidos
-  (homologos, ZINC) mas chicos y grises. Antes tenian la misma tipografia y el numero mas
-  grande (ej. ZINC propuesto) ganaba la atencion aunque fuera la evidencia mas debil.
+Ranking principal `Top evidence-convergent candidates` con score heuristico transparente
+(0-15, tier `Strong/Moderate/Limited`) que combina pocket FPocket/P2Rank, ligandos directos
+(PDB/ChEMBL) y transferidos (homologos/ZINC, menor peso), off-target humano/microbioma,
+esencialidad DEG, conservacion core, estructura disponible y contexto metabolico/chokepoints.
+Chips por proteina explican por que aparece arriba; copy aclara que es triage, no conclusion
+final. `Worth a fresh look` reemplazo al ranking secundario por conteo de ligandos
+(`Strongest ligand support`), que sesgaba hacia proteinas "muy estudiadas" (homologos humanos
+de kinasas/GPCRs) independientemente de si eran buenos targets bacterianos — ahora muestra
+candidatos druggable/selectivos sin evidencia quimica explorada todavia. Scoring compartido
+entre ambos rankings via `_score_proteins`/`_format_score_items`. Hero simplificado (2 acciones
+primarias, resto en fila secundaria) y jerarquia tipografica en `Evidence available` (evidencia
+directa mas prominente que la transferida).
 
 **Pendiente para cerrar.**
 
@@ -241,188 +190,36 @@ El usuario debe poder elegir un pocket puntual y mirarlo en detalle, sin perder 
 
 **Implementado inicial.**
 
-- Controles de pocket renombrados a capas mas claras: `Alpha spheres`/`Pocket`, `Residues`, `Surface`, `Labels`.
-- Tooltips por capa explicando que muestra cada representacion.
-- Acciones `Zoom` y `Residues` con tooltip.
-- Card de pocket/residue set marcada visualmente cuando alguna capa esta visible en el viewer.
-- Diferenciacion visual leve entre cards FPocket y P2Rank.
-- Accion `Inspect` para seleccionar un pocket, centrar camara, mostrar la capa `Pocket`, apagar capas visibles de otros pockets y completar un panel persistente de detalle.
-- Panel de pocket seleccionado con metodo, score, capa visible, residuos y propiedades.
-- El panel muestra propiedades importadas disponibles: para FPocket, volumen, score, alpha spheres, SASA, hidrofobicidad y flexibilidad; para P2Rank, score/probabilidad.
-- La capa `Pocket` usa coordenadas importadas del output revisado cuando existen: alpha spheres de FPocket o atomos de superficie de P2Rank. La capa `Sector` conserva la superficie/residuos alrededor para contexto.
-- Diferenciacion visual reforzada: alpha spheres/pocket core se renderiza como nube de beads pequenos y la superficie del entorno queda translucida para que no parezcan la misma capa.
-- Bug encontrado y corregido: las alpha spheres se veian "sueltas" y no delimitaban un pocket
-  reconocible. Causa real: cada esfera se dibujaba con un radio fijo hardcodeado de `0.34` A,
-  ~10 veces mas chico que el radio real de una alpha sphere de FPocket (tipicamente unos pocos
-  A). FPocket escribe el radio real de cada esfera en la columna B-factor de sus pseudo-atomos
-  `STP` (confirmado en `FPocket2SQL.py`, que parsea esa columna PDB estandar a `Atom.bfactor`) —
-  ese dato ya estaba en la base, pero se descartaba al armar los puntos para el viewer. Fix:
-  `_atom_points` (`StructureView.py`) ahora incluye `radius` desde `atom.bfactor`, clampeado
-  defensivamente entre `1.0` y `6.5` A (rango tipico de una alpha sphere real) con fallback de
-  `2.5` A si el valor viene vacio o invalido, y `ngl_pocket_representations.js` usa
-  `{{ point.radius }}` real para las alpha spheres de FPocket en vez del `0.34` fijo. Para P2Rank
-  se mantuvo un radio fijo (subido de `0.28` a `1.1`) porque sus `core_points` son atomos de
-  residuo reales (via `_residue_set_core_points`), cuyo B-factor es el valor cristalografico/
-  predicho real, no un radio — usarlo ahi seria semanticamente incorrecto.
-- Bug encontrado y corregido: `Inspect` dejaba "la proteina borrada". Causa: `inspectPocket`
-  (en `structure.html` y `protein.html`) habia empezado a llamar `window.ngl_set_mode("density")`
-  al inspeccionar un pocket, lo que apaga la representacion `cartoon` de toda la proteina y
-  prende la superficie molecular completa (`__main_density`) en su lugar. Esa superficie ya tenia
-  un bug de contraste independiente: su color en modo claro (`--tp-color-structure-density:
-  #d8e1e9`) es casi identico al fondo del canvas (`--sv-viewer-canvas-bg: #f0f6fa`), asi que al
-  apagarse el cartoon quedaba una superficie practicamente invisible contra el fondo — de ahi
-  "se borra toda la proteina". Fix: se saco el cambio automatico de modo de `inspectPocket` (Inspect
-  ahora solo prende la capa del pocket especifico, sin tocar el modo de vista global) y se corrigio
-  el color de la superficie a `#a3c9d6` para que sea visible si se activa manualmente con el boton
-  `Surface`. De paso se encontro y corrigio otro bug en la misma funcion: `pocketInspector.hidden`
-  quedaba en `true` al final de `inspectPocket` (deberia ser `false` para mostrar el panel recien
-  poblado) — el panel "Selected pocket" nunca llegaba a mostrarse.
-- Bug encontrado y corregido: la logica de inicializacion del viewer NGL (`initStructureComponent`,
-  `registerShapeComponent`) esta duplicada entre `structure.html` (viewer fullscreen) y
-  `protein.html` (viewer embebido en el detalle de proteina) en vez de compartirse. El fix de
-  `registerShapeComponent` para renderizar alpha spheres como `NGL.Shape` async (y el try/catch
-  que evita que un fallo en el setup opcional de pockets tape el mensaje de carga real) se aplico
-  solo en `structure.html`. `protein.html` seguia sin `registerShapeComponent` definido, asi que
-  cualquier pocket con `core_points` reales tiraba `ReferenceError` dentro de `initStructureComponent`,
-  y como el `.then(initStructureComponent)` de esa pagina no tenia try/catch, el error se propagaba
-  y mostraba "Unable to load 3D structure" encima de una estructura que en realidad ya habia
-  cargado. Portado el mismo `registerShapeComponent` y el mismo try/catch a `protein.html`.
-- Riesgo abierto: esta duplicacion entre paginas es fragil — cualquier cambio futuro al init del
-  viewer hay que aplicarlo en los dos lugares a mano. Candidato a refactor: extraer
-  `initStructureComponent`/`registerShapeComponent` a un `{% include %}` o modulo JS compartido.
-- Bug raiz encontrado y corregido (explica por que zoom/alpha spheres/Inspect seguian sin andar
-  incluso despues del fix anterior): `js/entrypoint.js` solo importaba `Stage` de `'ngl'` con el
-  alias `NGL` (`import {Stage as NGL} from 'ngl'; window.NGL = NGL;`) — nunca importaba `Shape`.
-  `ngl_pocket_representations.js` hace `new NGL.Shape(...)` para las alpha spheres reales (FPocket)
-  y los atomos de superficie reales (P2Rank); como `NGL.Shape` era `undefined`, esa linea tiraba
-  `TypeError` dentro del loop de pockets de `initStructureComponent`, en las dos paginas por igual
-  (comparten el mismo include). El try/catch de `13897ff` lo volvia silencioso (solo
-  `console.error`) en vez de mostrar el banner de error, pero el efecto practico era el mismo: el
-  loop de pockets se abortaba ahi mismo, asi que ningun pocket procesado desde ese punto en
-  adelante (incluyendo P2Rank y residue sets) llegaba a registrar sus representaciones `_zoom`,
-  `_sph`, `_lbl` — de ahi que el zoom no anduviera para la mayoria de los pockets y que Inspect
-  (que depende de esas mismas representaciones) no hiciera nada. Fix: `entrypoint.js` ahora tambien
-  importa `Shape` y lo cuelga de `window.NGL.Shape`; se corrio `npm run build` y se copio
-  `js/bundle.js` a `static/bundle.js`.
-- De paso, se llevo `ngl_zoom_to` de `protein.html` a la misma implementacion que `structure.html`
-  (le faltaba la rama para zoomear sobre un `tpShapeComponent`, hoy sin uso porque `protein.html`
-  no tiene boton Inspect, pero destinada a quedar inconsistente si se agrega mas adelante).
-- Decidido y resuelto: `protein.html` usaba `pocket_tables.html` (checkboxes en una tabla, sin
-  boton Inspect ni panel "Selected pocket") mientras `structure.html` usaba `pocket_cards.html` (la
-  UI nueva con Inspect) — la razon real de que "Inspect no haga nada" en el detalle de proteina
-  era que ese boton no existia ahi. Se decidio traer paridad completa en vez de mantener dos UIs
-  de pockets: `protein.html` ahora incluye `pocket_cards.html` (cards + Inspect + capas de
-  contexto) en lugar de `pocket_tables.html`, con su propio panel "Selected pocket" (mismos campos
-  que en el viewer fullscreen: Method, Score, Visible layer, Residues, Pocket properties) y el
-  mismo `inspectPocket`/`clearPocketSelection`/`setReprButtonPressed` portado a su `jsloaded()`.
-  `pocket_tables.html` quedo sin uso en ningun lado — se elimino el archivo, junto con el CSS y el
-  JS de `initPocketTableVariants`/DataTables que solo existian para esas tablas.
-- De paso: se agregaron a `protein-detail.css` los estilos de `.pocket-card`/`.pocket-repr-btn`/
-  `.sv-pocket-inspector` (portados de `structure-fullscreen.css`, reusando los tokens
-  `--protein-accent*` que ya existian en vez de introducir uno nuevo), y se corrigieron 9 usos mas
-  de tokens muertos encontrados de paso en `protein-detail.css` (`--tp-color-brand-400` que no
-  existe -> `-500`/`-600` segun si era un estado persistente o de hover/focus, `--tp-color-sage-400`
-  -> `-500`, tres usos de `--tp-color-sage-800` como texto/borde sobre fondo claro -> `-700`, y
-  `var(--tp-font-body)` usado como `font-size` sin que ese token exista -> valor explicito
-  `0.92rem`) mas un `--tp-color-sage-600` inexistente en `structure-fullscreen.css` -> `-500`.
+Capas renombradas y claras (`Alpha spheres`/`Pocket`, `Residues`, `Surface`, `Labels`) con
+tooltips, y accion `Inspect` que selecciona un pocket, centra camara, aisla su capa y muestra un
+panel persistente (metodo, score, capa visible, residuos, propiedades — volumen/SASA/hidrofobicidad
+para FPocket, score/probabilidad para P2Rank). Paridad completa entre `protein.html` y
+`structure.html`: mismo `pocket_cards.html`, mismo flujo de Inspect en ambas paginas (antes
+`protein.html` usaba una tabla vieja sin Inspect). Corregidos varios bugs de raiz que rompian
+zoom/alpha spheres/Inspect: radio de alpha spheres hardcodeado en vez de leer el real desde el
+B-factor de FPocket, `Inspect` apagaba el cartoon completo por error, y `entrypoint.js` no
+importaba `NGL.Shape` (rompia el render de alpha spheres reales en las dos paginas).
 
-- Hallazgo con datos reales (proteina AF_A0A0H3GWB0): las alpha spheres en si estaban bien (radio
-  y posicion correctos, verificado con distancia de centroides contra los atomos de residuo del
-  mismo pocket) — el problema real es que **los 4 pockets que la UI muestra por defecto (top-4 por
-  druggability_score) resultaron ser, para esta proteina, los 4 mas grandes y difusos de sus ~111
-  pockets** (26-53 A de diagonal / hasta 397 alpha spheres, contra 4-20 A / 15-100 en el resto) —
-  probablemente una region de baja confianza del modelo de AlphaFold que FPocket puntua como
-  drogable sin serlo. Por eso se veian como "un bodoque" y no como una cavidad.
-- Implementado (fase 1, badge visual): `tpweb/services/pocket_geometry.py` (nuevo) calcula, por
-  estructura, si el volumen de un pocket de FPocket es un outlier relativo a los *otros pockets de
-  esa misma estructura* (mediana + MAD, z-score modificado de Iglewicz-Hoaglin, umbral 3.5,
-  un solo lado — solo marca pockets mas grandes que la mediana, no mas chicos). Reusa el `Volume`
-  que FPocket ya calcula por pocket (`ResidueSetProperty`), no recalcula geometria nueva.
-  `StructureView.py`/`pdb_structure()` calcula esto para TODOS los pockets de la estructura (no
-  solo el top-4 mostrado) y expone `p.size_outlier`/`p.size_outlier_note` por pocket, sin tocar el
-  orden/ranking por druggability. `pocket_cards.html` muestra un chip "Unusual size" (reusando
-  `.tp-chip--warning` del sistema de diseño) con tooltip explicando el volumen vs. la mediana de la
-  estructura. Solo FPocket por ahora — P2Rank no tiene `Volume` guardado ni geometria de alpha
-  spheres real, es una decision explicita, no un olvido.
-- Implementado (fase 2, impacto en scoring): nuevo comando offline
-  `python manage.py index_pocket_size_outlier <genoma>` — para cada proteina resuelve su pocket
-  "representativo" (curado primero: si existen `best_fpocket_structure`/`fpocket_pocket` los usa,
-  extrayendo el numero del string `"Pocket <N>"` y matcheandolo contra `PDBResidueSet.name`;
-  si no hay dato curado o no matchea, cae al pick automatico por `druggability_score` maximo entre
-  *todas* las estructuras ligadas a la proteina, no solo una), calcula si ese pocket es outlier con
-  el mismo `pocket_geometry.py` de la fase 1, y guarda el resultado como `ScoreParamValue`
-  `pocket_size_outlier` (Y/N). El `ScoreParam` se registra solo agregando una entrada a
-  `SYSTEM_SCORE_PARAM_DEFINITIONS` (`tpweb/services/score_params.py`) — no hizo falta un metodo
-  `Initialize_*` nuevo en `ScoreParam.py`, ese mecanismo ya autocrea el `ScoreParam`/opciones. Las
-  funciones de matching de identificador de estructura (`_structure_identifier_candidates`/
-  `_structure_matches_identifier`) se sacaron de `ProteinView.py` a
-  `tpweb/services/structure_sources.py` para que las comparta el comando nuevo.
-  `assembly_workspace.py`/`_score_proteins`: si el pocket con druggability alta/media es outlier,
-  el sub-score de drogabilidad se descuenta (alta: 2.0 -> 1.0; media: 1.0 -> 0) y aparece como
-  caution en vez de signal. `ProteinView.py`/`_build_target_executive_summary`: mismo caso agrega
-  un item a **Risks** ("Best pocket may be a modeling artifact") en vez de a Strengths.
-  No se copiaron los bugs reales de `index_druggability.py` (llamaba a un
-  `ScoreParam.Initialize2()` inexistente, usaba mal `get_or_create`, asumia una sola estructura
-  por proteina).
+Badge "Unusual size": `tpweb/services/pocket_geometry.py` marca un pocket de FPocket como outlier
+de volumen si se aleja mucho (z-score modificado, umbral 3.5) de la mediana de *esa misma
+estructura*. Corrido en produccion sobre KpATCC43816 y validado de punta a punta contra el archivo
+curado original: 30.7% de proteinas curadas quedan marcadas — confirmado con casos reales (ej.
+`VK055_0002`/Pocket 13) que es señal genuina, no un bug de calibracion. Cuando el pocket
+druggable elegido es outlier, el sub-score de drogabilidad se descuenta en `_score_proteins` y
+aparece como riesgo en el resumen ejecutivo en vez de fortaleza.
 
 **Pendiente para cerrar.**
 
-- Refinar modo de foco para atenuar geometricamente la proteina y otros pockets, no solo apagar capas activas.
-- Agregar `Show only selected pocket` / `Show all pockets`.
-- Agregar propiedades derivadas del pocket seleccionado, como centro geometrico estimado, distancia a ligandos/sitios funcionales y consenso FPocket/P2Rank.
-- Verificar en datos reales de Klebsiella que `Pocket` muestra la cavidad/sitio especifico y `Sector` muestra el entorno amplio esperado.
-- Verificar en el cluster con datos reales que zoom, alpha spheres e Inspect efectivamente andan
-  ahora en las dos paginas (protein detail y viewer fullscreen) tras el fix de `NGL.Shape` y la
-  paridad de UI — no se pudo probar en un navegador real desde este entorno.
-- Evaluar unificar `initStructureComponent`/`registerShapeComponent` entre `structure.html` y
-  `protein.html` para que este tipo de bug de duplicacion no vuelva a pasar.
-- Bug encontrado y corregido: el nombre real del `Property` de volumen en la base es `'volume'`
-  (minuscula, snake_case) — se asumio `"Volume"` (con mayuscula) copiando la lista existente
-  `_FPOCKET_INSPECTOR_PROPERTIES` en `StructureView.py`, que en realidad **nunca matcheo nada**
-  (usa claves como `"Volume"`, `"Score"`, `"Number of Alpha Spheres"` contra nombres reales
-  `volume`, `score`, `number_of_alpha_spheres`, etc. — confirmado contra la base real, listando
-  todos los `Property.objects.all()`). Corregido en `StructureView.py` (fase 1) y
-  `index_pocket_size_outlier.py` (fase 2) para usar `'volume'`. La lista
-  `_FPOCKET_INSPECTOR_PROPERTIES` en si sigue rota (bug preexistente, no tocado — el panel
-  "Pocket properties" del inspector probablemente nunca mostro nada); queda para otra sesion.
-  Tambien se hizo mas defensivo el comando: si el `Property` de volumen no existe, corta con un
-  mensaje claro en vez de un traceback de `DoesNotExist`.
-- Corrido `index_pocket_size_outlier public__KpATCC43816` en produccion: 1549 de 5071 proteinas
-  (30.7% sobre 5049 con dato curado) quedaron marcadas como outlier. Investigado a fondo si esto
-  era un bug de calibracion (sospecha inicial: MAD degenerado en estructuras con poca variacion de
-  volumen, amplificando diferencias chicas a z-scores enormes) — **descartado con datos reales**:
-  para `VK055_0002` (13 pockets FPocket, mediana de volumen 411.7, MAD 149.0 — spread normal, no
-  degenerado) el pocket curado por las biologas (`Pocket 13`, resuelto correctamente contra la
-  estructura `CB_VK055_0002`) es el mas grande de los 13 (1816.5 vs mediana 411.7, z=6.4,
-  druggability 0.911) — un outlier genuino, no un artefacto del calculo. A nivel genoma, el flag
-  cae casi enteramente sobre proteinas curadas (1549/5049, 30.7%) vs. 0/22 no curadas (muestra muy
-  chica para sacar conclusion de la comparacion en si, pero confirma que el flag no esta pegando
-  parejo por azar). Conclusion: **el 30% es la señal real que el feature se propuso capturar**, no
-  un bug — el pipeline Gates-Targets elige "mejor pocket" por drogabilidad maxima sin penalizar
-  tamaño/difusidad, y una fraccion sustancial de esas elecciones resultan ser geometricamente
-  atipicas dentro de su propia estructura, igual que en el hallazgo original con AF_A0A0H3GWB0.
-  Decision tomada con la usuaria: mantener el umbral z=3.5 (estandar Iglewicz-Hoaglin, sin ajustar
-  arbitrariamente para bajar el % de flags) — confirma que la resolucion curated-first (`fpocket_pocket`
-  "Pocket <N>" -> `PDBResidueSet.name`) funciona correctamente contra datos reales, cerrando dos
-  de los pendientes de abajo. Esto tambien confirma que `volume` esta poblado para estructuras
-  reales (no solo la proteina de prueba original).
-- Confirmado en el navegador (proteina VK055_0002, KpATCC43816): el chip "Unusual size" aparece
-  correctamente en 3 de los 4 pockets FPocket mostrados (#13, #10, #12) y no en el cuarto (#8) —
-  verificado pocket por pocket contra el calculo real de volumen/mediana/MAD (z=6.36, 3.55, 4.77
-  para los marcados, z=0.67 para el no marcado). Coincide 100% con lo que muestra la UI.
-- Confirmado contra el archivo curado ORIGINAL (`KpATCC43816_results_table.tsv`, Google Drive,
-  subido por las biologas): la fila de `VK055_0002` dice literalmente `fpocket_pocket=Pocket 13`,
-  `best_fpocket_structure=CB_VK055_0002`, `druggability_score=0.911` — identico a lo cargado en la
-  base y a lo que muestra la pagina de proteina. Cadena completa validada de punta a punta: archivo
-  curado original -> base de datos -> UI -> calculo de outlier, sin discrepancias. `Pocket 13` es
-  realmente la eleccion de las biologas (no un bug de resolucion curated-first), y es un outlier de
-  volumen genuino (1816.5 vs mediana 411.7 de esa estructura) — exactamente el caso que el feature
-  fue diseñado para capturar. Investigacion cerrada con confianza alta.
-- Confirmar con el equipo de bioinformatica la magnitud del descuento en `_score_proteins` (hoy:
-  alta drogabilidad + outlier = mitad de puntos; media drogabilidad + outlier = cero puntos) — es
-  ajustable en un solo `if`, no bloquea nada correrlo ya con este valor por default. Con un 30.7%
-  de proteinas curadas afectadas, esta decision tiene mas peso practico de lo esperado inicialmente
-  — vale la pena revisarla pronto con el equipo, no dejarla indefinidamente en "pendiente".
+- Refinar modo de foco para atenuar geometricamente la proteina y otros pockets (hoy solo apaga capas).
+- Agregar toggle `Show only selected pocket` / `Show all pockets` y propiedades derivadas (centro
+  geometrico, distancia a ligandos/sitios funcionales, consenso FPocket/P2Rank).
+- Verificar en el cluster con navegador real que zoom/alpha spheres/Inspect andan en las dos
+  paginas — no se pudo probar en un navegador real desde este entorno.
+- Unificar `initStructureComponent`/`registerShapeComponent` (duplicado entre `structure.html` y
+  `protein.html`) para que este tipo de bug de duplicacion no vuelva a pasar.
+- Confirmar con el equipo de bioinformatica la magnitud del descuento de scoring por outlier (hoy:
+  alta drogabilidad = mitad de puntos, media = cero) — con 30.7% de proteinas curadas afectadas,
+  pesa mas de lo esperado y conviene revisarla pronto, no dejarla indefinida.
 
 ### Comparacion FPocket vs P2Rank
 
@@ -495,25 +292,11 @@ Revisar y mejorar la seccion de off-target.
 
 **Implementado (primer recorte: solo visualizacion, sin tocar filtros ni logica de scoring).**
 
-- Rediseño de la grilla "Target profile" en la pagina de proteina
-  (`tpweb/templates/genomic/protein.html`, `static/css/pages/protein-detail.css`): los flags
-  binarios de riesgo (`human_offtarget`/`gut_microbiome_offtarget` hit/no_hit, `hit_in_deg` Y/N)
-  ahora se ven como una marca de texto+icono con color de tono (check verde / triangulo de alerta
-  ambar) en vez de texto plano; las metricas porcentuales (`human_identity`, `deg_identity`,
-  `colabfold_plddt`) muestran una barra fina de magnitud debajo del numero. Reusa el `tone`
-  (good/bad) que ya calculaba `build_target_profile` — cero cambios de logica/backend.
-- Pasada de pulido visual: grilla tipo "data sheet" academica (divisores en linea fina de 1px en
-  vez de tarjetas con fondo pastel solido, linea de acento sutil en el borde izquierdo por tono,
-  valores en tipografia monoespaciada tabular (`JetBrains Mono`) siguiendo la convencion de la app
-  para datos/ids/scores) — mas restringido en color que la primera version, buscando un look mas
-  "reporte clinico/academico" que "dashboard".
-- Bugs encontrados y corregidos en el mismo pase: `grid-template-columns: repeat(auto-fill, ...)`
-  dejaba una celda vacia gris al final de la fila cuando sobraba ancho — cambiado a `auto-fit`
-  para que las celdas existentes se estiren en vez de reservar una columna fantasma. Valores largos
-  sin espacios (ej. "CytoplasmicMembrane" en Localization) se cortaban contra el
-  `overflow:hidden` del grid (necesario para los bordes redondeados) — agregado
-  `overflow-wrap: anywhere` + `min-width: 0` para que envuelvan dentro de la celda en vez de
-  clipearse.
+Grilla "Target profile" rediseñada como data sheet academica: flags de riesgo con
+icono+color de tono en vez de texto plano, metricas porcentuales con barra de magnitud,
+tipografia monoespaciada tabular para valores — cero cambios de logica/backend. De paso,
+corregido un grid con celda fantasma al final de fila y valores largos sin espacios que se
+recortaban.
 
 **Pendiente para avanzar.**
 
@@ -561,157 +344,26 @@ Agregar un agente/chat IA que ayude a explorar proteinas, filtros, scores, ligan
 - Citar las fuentes internas usadas para cada respuesta.
 - Ejecutar acciones reales en la UI a pedido del usuario (ej. aplicar filtros), no solo responder texto.
 
-**Implementado (fundacion + proveedores + tools + endpoint + UI).**
+**Implementado.**
 
-Decisiones confirmadas con la usuaria antes de implementar: panel lateral flotante (no burbuja
-minimal, no solo backend), soporte OpenAI real y no scaffold (la organizacion paga ChatGPT, no
-Claude, todavia no convencieron de migrar), y alcance amplio de tools desde el arranque (filtros +
-explicacion de score + busqueda + contexto metabolico/off-target), aceptando que podia quedar a
-medio terminar en una sesion.
+Fundacion agnostica a proveedor (`tpweb/services/llm/`): interfaz `LLMProvider` neutral con
+adaptadores reales para Anthropic y OpenAI (seleccionable via `TPW_LLM_PROVIDER`), loop agentico
+generico (`agent.py`), y tools con alcance de genoma/proteina siempre re-derivado y validado
+server-side a partir de la URL de la pagina (nunca confiado del cliente). Drawer global
+(panel lateral, no burbuja) con historial stateless por pestaña, chips de prompts sugeridos, y
+Markdown completo (tablas, bloques de codigo, listas ordenadas, links) con una pasada visual
+premium (avatar, entrada animada, indicador de "pensando", hover-lift, focus ring de marca).
 
-- `tpweb/services/llm/base.py`: tipos neutrales (`Message`, `ToolDefinition`, `ToolCall`,
-  `ToolResult`, `LLMResponse`) y la interfaz `LLMProvider`, para que el resto del codigo nunca
-  dependa de un SDK de proveedor especifico.
-- `anthropic_provider.py`: adaptador real sobre el SDK `anthropic`.
-- `openai_provider.py`: **adaptador real** (ya no scaffold) sobre el SDK `openai`, Chat Completions
-  con tool-calling. La parte no trivial: un `Message` neutral con varios `ToolResult` (que
-  `agent.py` arma como un solo mensaje) se expande a **varios** mensajes `role="tool"` separados,
-  uno por resultado — OpenAI no tiene forma de agrupar varios resultados en un solo mensaje como
-  si hace Anthropic con bloques `tool_result`. `finish_reason` mapea a los mismos
-  `stop_reason` neutrales (`stop`->`end_turn`, `tool_calls`->`tool_use`, `length`->`max_tokens`).
-  `arguments` de cada tool call viene como string JSON (a diferencia del dict ya parseado de
-  Anthropic) — parseado con guard contra `JSONDecodeError`. Tests unitarios con cliente fake
-  (`OpenAIProviderTranslationTests` en `tpweb/tests.py`) cubren el aplanamiento de tool-results,
-  el mapeo de `finish_reason` y el round-trip de `arguments` — no requieren `OPENAI_API_KEY` ni red.
-- `provider_factory.py`: selecciona adaptador via env var `TPW_LLM_PROVIDER` (default
-  `anthropic`), mismo patron que `TPW_COLABFOLD_USE_REMOTE` etc. Sin cambios necesarios para
-  soportar OpenAI real, la rama `"openai"` ya estaba lista.
-- `agent.py`: loop agentico generico (`Agent.run()`), agnostico al proveedor. Se agrego un
-  parametro opcional `history: list[Message] | None = None` para sembrar la conversacion desde un
-  historial previo (usado por `AgentChatView`) sin romper `test_llm_agent.py` (default `None` =
-  comportamiento identico a antes). Tambien expone `self.last_messages` tras `run()` con la
-  conversacion completa actualizada (historial + este turno, incluyendo intercambios de tools),
-  para que el caller pueda persistirla/devolverla sin cambiar el tipo de retorno de `run()` (sigue
-  siendo `str`).
-- `tools/demo.py` + management command `test_llm_agent`: prueba end-to-end minima
-  (`get_current_time`), sigue funcionando sin cambios.
-- **`tools/apply_filters.py`** (nuevo): dos tools —`list_available_filters()` (lista ScoreParams
-  visibles para el usuario via `visible_score_params_queryset`, con los ids concretos que
-  `apply_filters` necesita) y `apply_filters(changes)` (aplica cambios de filtro a
-  `selected_parameters` en sesion, mismo mecanismo que usa `ProteinListView` — un filtro aplicado
-  por el agente ya se ve si el usuario despues abre la lista de proteinas de ese genoma).
-- **`tools/explain_target.py`** (nuevo): `explain_target(accession)` devuelve un resumen en texto
-  plano (no JSON crudo, para que el modelo parafrasee en vez de inventar detalles) con score de
-  evidence-convergence, veredicto, strengths/risks/missing y oracion de contexto metabolico —
-  unifica en una sola tool lo que iban a ser "explicar score" + "contexto metabolico/off-target"
-  por separado, ya que responden la misma pregunta real del usuario ("¿es un buen target?").
-- **`tools/search_proteins.py`** (nuevo): `search_proteins(changes, search_text, limit)` reusa
-  exactamente el mismo esquema `changes` que `apply_filters` (no lo aplica a la sesion, lo aplica a
-  una lista descartable), para que el modelo aprenda un solo lenguaje de filtros en vez de dos.
-- **Extracciones de servicio necesarias para las tools** (mecanicas, sin reescritura de logica):
-  - `tpweb/services/protein_list.py`: `apply_filter_change`/`apply_filter_changes` (portado de
-    `ProteinListView._apply_filter_change`/`_apply_filter_changes_payload`, que ahora delegan);
-    `build_special_filter_payload`/`build_numeric_filter_payload` (portados de los metodos
-    estaticos homonimos de la vista, que se eliminaron por quedar sin uso); `find_top_proteins`
-    (nuevo, compone `apply_selected_parameter_filters`+`apply_protein_search`, sin paginacion).
-  - `tpweb/services/assembly_workspace.py`: `score_single_protein(assembly_name, accession)` —
-    wrapper barato sobre `_score_proteins` (que sigue siendo genome-wide por diseño, no se
-    reescribio para una sola proteina).
-  - **`tpweb/services/protein_summary.py`** (nuevo): todo el bloque de construccion del resumen
-    ejecutivo se movio verbatim desde `tpweb/views/ProteinView.py` (`_build_target_profile`,
-    `_build_selected_pocket_evidence`, `_build_conservation_profile`, `_build_microbiome_context`,
-    `_build_metabolic_context`, `_build_target_executive_summary`, y sus helpers privados),
-    renombrado a nombres publicos sin guion bajo. Motivo: CLAUDE.md es explicito en que las vistas
-    delegan a servicios, no al reves — importar funciones privadas de una vista desde un servicio
-    invertia esa direccion. `ProteinView.py` reimporta con alias (`build_target_profile as
-    _build_target_profile`, etc.) para que los call-sites existentes no cambien ni una linea.
-    Se agrego `build_protein_executive_context(protein)` como entry-point unico para
-    `explain_target`, que replica exactamente lo que hace `ProteinView.get` (mismo query de
-    `raw_scores`, mismos builders). Unica salvedad: `create_binders_dict` sigue viviendo en
-    `ProteinView.py` (no se extrajo, fuera de alcance de este cambio) — `protein_summary.py` lo
-    importa de forma diferida (dentro de la funcion, no a nivel de modulo) para evitar import
-    circular, ya que `ProteinView.py` importa de `protein_summary.py` a nivel de modulo.
-- **`tpweb/views/AgentChatView.py`** (nuevo) + `POST /agent-chat` en `tpweb/urls.py`: endpoint unico
-  y global (no scoped por genoma en la URL, porque el panel esta presente incluso en paginas sin
-  genoma como el home). El scope de genoma/proteina **nunca** se toma del cuerpo del request tal
-  cual lo manda el cliente — se re-deriva server-side con `django.urls.resolve(page_path)` contra
-  las URLs reales de la app (`genome/<genome>`, `protein/<protein_id>`), y se valida con
-  `user_can_access_genome_name` antes de habilitar ninguna tool con alcance de genoma. Si no
-  resuelve o no pasa el check de acceso, el chat sigue funcionando pero sin las tools de
-  filtros/busqueda/explain (con una nota en el system prompt). El historial de conversacion es
-  **stateless**, viaja completo ida y vuelta en el JSON (`history`) — el navegador lo guarda en
-  memoria mientras dura la pestaña; no sobrevive un reload. Es una limitacion v1 aceptada
-  explicitamente, no un olvido — una conversacion persistida necesitaria un modelo
-  `AgentConversation` nuevo.
-- **Panel lateral** (`tpweb/templates/base/masterpage.html` + `static/css/components/agent-drawer.css`
-  + `static/js/global/agent-drawer.js`): boton disparador en `.tp-side-footer` (junto al toggle de
-  tema) y version compacta en la topbar movil; drawer fijo a la derecha con slide-in, usando
-  tokens del sistema de diseño existentes (`--tp-ui-radius-panel`, `--tp-shadow-lg`,
-  `--tp-ui-motion-base`, `--tp-color-scrim`) — sin hex hardcodeado, tema claro/oscuro automatico
-  porque esos tokens ya son theme-aware via la clase `.tp-dark`. CSS/JS cargados globalmente desde
-  `masterpage.html` (excepcion deliberada y documentada a "un CSS por pagina", igual que
-  `ui-system.css`; el JS sigue el patron ya existente de scripts planos por `<script src>` como
-  `protein-detail.js`, no pasa por el bundle de webpack). El JS lee `page_path` con
-  `window.location.pathname` en cada envio, asi que navegar entre paginas durante una conversacion
-  "simplemente funciona" sin plumbing extra.
-
-**Implementado (auditoria/comparacion + UX del drawer).**
-
-- `tools/target_evidence.py`: helper compartido para construir una ficha auditable por proteina
-  desde datos ya cargados: score de evidencia, FPocket/P2Rank, off-target humano, microbioma,
-  DEG, conservacion, metabolismo, reacciones/rutas y ligandos. Marca explicitamente `not loaded`
-  cuando un campo no existe, para que el agente no confunda ausencia de dato con evidencia negativa.
-- `tools/target_review.py`: nuevas tools `audit_target_evidence(accession)` y
-  `compare_targets(accessions)` para responder "de donde sale esto" y comparar candidatos con una
-  tabla corta basada en evidencia real de TPW.
-- `explain_target.py` ahora usa el mismo formatter auditable que las tools nuevas, evitando que
-  cada respuesta arme su propia version de los datos.
-- `AgentChatView.py`: prompt endurecido contra alucinaciones biologicas; obliga a separar hechos
-  cargados de recomendaciones, usar `compare_targets` para comparaciones y
-  `audit_target_evidence` para procedencia/fuentes.
-- `protein_summary.py`: `build_protein_executive_context` ahora expone tambien `structure_summary`
-  y `binders`, para que las tools puedan auditar ligandos sin recalcular ni inventar conteos.
-- Drawer global: chips de prompts sugeridos (`Explain target`, `Audit evidence`,
-  `Find selective targets`, `Clear filters`) que disparan el mismo flujo que escribir manualmente,
-  usando estilos del sistema y sin agregar otro bundle.
-
-**Implementado (fixes post-deploy).**
-
-- `manage.py check` corrido en el cluster: sin errores.
-- Bug encontrado y corregido al probar en un viewport mas chico: `.tp-sidebar` es
-  `position: fixed` con altura de viewport y nunca tuvo scroll propio; agregar el boton
-  "Assistant" al footer hizo que el contenido no entrara y quedara cortado contra el borde
-  inferior sin forma de llegar a el. Fix en dos partes: `overflow-y: auto` en `.tp-sidebar` como
-  red de seguridad, y — a pedido explicito de no depender del scroll — el boton "Assistant" y el
-  toggle de tema se pusieron lado a lado en una fila (`tp-side-footer-row`) en vez de apilados,
-  devolviendo el footer a su altura original de antes de agregar el asistente.
-- Configuracion de OpenAI persistente en cluster: `.env.openai` queda fuera de git y el Makefile
-  carga `.env` + `.env.openai` antes de levantar compose, asi `make up ENV=cluster` no desactiva
-  el asistente despues de cada restart.
-- Prueba real de OpenAI API desde el host y desde el contenedor `web`: OK con `Responses API`.
-- Fix de `clear_filters`: la accion directa del agente borra filtros de la misma sesion que usa
-  la lista de proteinas y fuerza reload de la pagina para que el resultado sea visible.
-
-**Implementado (contexto de pagina + formato del drawer).**
-
-- Snapshot compacto de UI (`getPageState` en `agent-drawer.js`): titulo, heading/subheading,
-  path/query, filtros activos, sort, tabs/botones activos, pocket seleccionado (con capas
-  visibles), estructura seleccionada y hasta 5 filas visibles de la tabla de proteinas
-  (accession, descripcion, valores de columna). Se manda junto al mensaje como `page_state`.
-- Sanitizado server-side por allowlist explicito de claves (`_sanitize_page_state` en
-  `AgentChatView.py`, profundidad maxima 4, listas cortadas a 8 items, strings truncados) antes
-  de inyectarlo al system prompt (`_page_state_prompt`) — instruye al modelo a usarlo solo para
-  entender que esta viendo el usuario, no como evidencia biologica (eso sigue yendo por tools).
-  El agente ahora entiende la pagina completa, no solo la proteina activa.
-- Render Markdown del drawer: soporte de tablas (header + separador `---` + filas), bloques de
-  codigo con ```` ``` ````, listas ordenadas (`<ol>`, antes todo caia en `<ul>`) y links
-  `[texto](url)`. Encontrado y corregido de paso: `compare_targets` (`target_evidence.py`) ya
-  arma una tabla markdown real con `|`, pero el render viejo no tenia parser de tablas — se veia
-  como texto crudo con pipes y guiones sueltos.
-- Pasada visual premium del drawer: avatar con icono en el header, entrada de mensajes con
-  fade/slide (`tp-ui-enter`), indicador de "pensando" animado (tres puntos) en vez de "..."
-  estatico, hover-lift en los chips de sugerencias, foco del input con el mismo glow de marca
-  que el resto de la app, e icono en el boton de enviar.
+Tools disponibles: `apply_filters`/`clear_filters`/`list_available_filters` (mismo mecanismo de
+sesion que `ProteinListView`), `search_proteins`, `explain_target` y, para auditoria/comparacion,
+`audit_target_evidence`/`compare_targets` (`target_evidence.py`) — devuelven texto/tabla ya
+formateado en vez de JSON crudo, marcando explicitamente evidencia `not loaded` para que el
+modelo no la confunda con evidencia negativa. El agente ahora tambien recibe un snapshot
+compacto y sanitizado del estado de la UI (`page_state`: filtros, sort, pocket/estructura
+seleccionada, filas visibles) junto a cada mensaje, asi que entiende la pagina completa y no
+solo la proteina activa. Corridas de verificacion en cluster (OpenAI real via Responses API,
+`manage.py check`) sin errores; algunos bugs de despliegue ya resueltos (sidebar cortado al
+agregar el boton Assistant, persistencia de config de OpenAI entre restarts).
 
 **Pendiente para avanzar.**
 
@@ -839,46 +491,24 @@ Pasada sistematica para que TPW se sienta como una unica aplicacion cientifica c
 
 **Implementado inicial.**
 
-- Utilidades globales de entrada sutil y profundidad en `ui-system.css`.
-- `tp-page-hero` y `tp-ui-panel` con sombra/token y transiciones consistentes.
-- Genome overview, Protein detail y Protein list usando el mismo movimiento base.
-- Metabolism overview/pathway y Binder detail incorporados al mismo lenguaje de motion/depth.
-- Cache busting de CSS en las vistas tocadas para que el cluster levante el pase visual.
-- Auditoria y limpieza de colores/sombras hardcodeadas en `ui-system.css`, `proteins-list.css`,
-  `structure-fullscreen.css`, `protein-detail.css`, `metabolism-overview.css` y `genome-overview.css`:
-  fallbacks hex muertos sobre tokens que ya existian, tokens referenciados que directamente no
-  existian (`--tp-color-amber-800`, `--tp-color-danger-500/700`), chips con hex crudo sin `var()`,
-  y sombras `rgba()` sueltas remapeadas a la escala `--tp-shadow-xs/sm/md/lg` ya existente. Se
-  agrego `--tp-color-scrim` (backdrop de modal, theme-aware) y `--sv-shadow` (familia de tokens
-  del structure viewer) donde no habia un token que calzara.
-- Bug sistemico encontrado y arreglado: el keyframe compartido `tp-ui-enter` (y 8 copias
-  page-specific del mismo patron) terminaba en `transform: translateY(0)`/`scale(1)` con
-  `animation-fill-mode: both`, dejando un transform permanente e invisible en `.genome-card` y
-  equivalentes. Cualquier transform persistente en un ancestro de un `<select>` nativo rompe el
-  posicionamiento del dropdown en Chromium — asi se rompio el select de Downloads en genome
-  overview. Corregido en los 9 archivos (afecta tambien BLAST, que tiene su propio `<select>`).
-
-- Auditoria de las 9 paginas restantes (home/index, binder-detail, auth, blast, customparam,
-  formula-form, genome-upload, genomes-list, annotation-explorer): sin hex/rgba hardcodeados
-  (mejor estado que las paginas auditadas antes). Se encontraron y corrigieron 2 tokens muertos
-  referenciados pero inexistentes: `--tp-color-brand-400` (el ramp de brand salta de 500 a 300,
-  no tiene 400) en `formula-form.css` y `annotation-explorer.css`, remapeado a `--tp-color-brand-600`
-  siguiendo el uso ya establecido de 600 para estados focus/active/scrollbar-thumb en el resto de
-  la app; y `--tp-font-body` (no existe ningun token de font-family, la convencion es escribir el
-  stack literal) en `formula-form.css`, reemplazado por el stack literal de body ya usado en
-  masterpage.html. Tambien se limpiaron 2 fallbacks muertos sobre `--tp-ui-motion-fast` (con un
-  valor incorrecto, 120ms en vez de los 140ms reales del token) y `--tp-color-surface-soft` en
-  `home.css`.
-- Confirmado que `home.css` y `binder-detail.css` (las unicas 2 de las 9 que no habian pasado por
-  el fix del keyframe `tp-ui-enter`) no tienen el bug: `home.css` solo usa una animacion `infinite`
-  de spin (no entrance/fill-mode), y `binder-detail.css` ya usa el keyframe compartido `tp-ui-enter`
-  que se arreglo en `ui-system.css`.
+Utilidades globales de entrada sutil y profundidad (`ui-system.css`: `tp-page-hero`/`tp-ui-panel`)
+aplicadas a Genome overview, Protein detail, Protein list, Metabolism overview/pathway, Binder
+detail y ahora tambien el structure viewer fullscreen (secuencia de entrada escalonada en su HUD
+flotante, con keyframes propios para no romper el `translateX(-50%)` de centrado del toolbar).
+Auditoria completa de las ~15 paginas de la app: sin hex/rgba hardcodeado en ninguna, tokens
+muertos referenciados corregidos (`--tp-color-brand-400`, `--tp-font-body`, algunos otros),
+sombras sueltas remapeadas a la escala `--tp-shadow-xs/sm/md/lg`. Bug sistemico encontrado y
+arreglado en el keyframe compartido `tp-ui-enter`: dejaba un `transform` persistente
+(`animation-fill-mode: both` terminando en `translateY(0)` en vez de `none`) que rompia el
+posicionamiento de cualquier `<select>` nativo en un ancestro — afectaba a Genome overview y BLAST.
 
 **Pendiente para cerrar.**
 
 - Definir un checklist visual antes de mergear nuevas vistas.
-- Revisar en modo claro/oscuro con screenshots reales.
-- Extender luego al structure viewer, con validacion visual especifica porque es una superficie interactiva de mayor riesgo.
+- Revisar en modo claro/oscuro con screenshots reales, incluida la nueva motion del structure viewer.
+- Structure viewer: evaluar micro hover-lift en los botones del toolbar flotante (hoy solo
+  cambian background/color/opacity) — no se toco en esta pasada para no arriesgar el look
+  "glass" ya establecido sin poder probarlo en un navegador real desde este entorno.
 
 ### Red de señalizacion/regulacion por proteina (KEGG PPI)
 
