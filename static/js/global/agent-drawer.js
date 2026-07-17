@@ -40,10 +40,27 @@
             .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
     }
 
+    function splitTableRow(line) {
+        var trimmed = line.trim();
+        if (trimmed.charAt(0) === "|") trimmed = trimmed.slice(1);
+        if (trimmed.charAt(trimmed.length - 1) === "|") trimmed = trimmed.slice(0, -1);
+        return trimmed.split("|").map(function (cell) { return cell.trim(); });
+    }
+
+    function isTableSeparatorRow(line) {
+        var cells = splitTableRow(line);
+        return cells.length > 0 && cells.every(function (cell) { return /^:?-+:?$/.test(cell); });
+    }
+
+    // Line-index loop (not forEach) because fenced code blocks and tables both need to
+    // look ahead/consume several lines at once -- the tool layer (e.g. compare_targets in
+    // target_evidence.py) emits real pipe-table markdown, which used to render as raw
+    // "Accession | Score | ..." text with no table structure at all.
     function renderMarkdown(text) {
         var lines = String(text || "").split(/\r?\n/);
         var html = [];
         var listOpen = false;
+        var i = 0;
 
         function closeList() {
             if (listOpen) {
@@ -52,11 +69,53 @@
             }
         }
 
-        lines.forEach(function (line) {
+        while (i < lines.length) {
+            var line = lines[i];
             var trimmed = line.trim();
+
             if (!trimmed) {
                 closeList();
-                return;
+                i++;
+                continue;
+            }
+
+            if (trimmed.slice(0, 3) === "```") {
+                closeList();
+                var codeLines = [];
+                i++;
+                while (i < lines.length && lines[i].trim().slice(0, 3) !== "```") {
+                    codeLines.push(lines[i]);
+                    i++;
+                }
+                i++;
+                html.push("<pre><code>" + escapeHtml(codeLines.join("\n")) + "</code></pre>");
+                continue;
+            }
+
+            if (trimmed.indexOf("|") !== -1 && i + 1 < lines.length && isTableSeparatorRow(lines[i + 1])) {
+                closeList();
+                var headerCells = splitTableRow(line);
+                i += 2;
+                var bodyRows = [];
+                while (i < lines.length && lines[i].trim() && lines[i].trim().indexOf("|") !== -1) {
+                    bodyRows.push(splitTableRow(lines[i]));
+                    i++;
+                }
+                var tableHtml = ["<table><thead><tr>"];
+                headerCells.forEach(function (cell) {
+                    tableHtml.push("<th>" + inlineMarkdown(cell) + "</th>");
+                });
+                tableHtml.push("</tr></thead><tbody>");
+                bodyRows.forEach(function (row) {
+                    tableHtml.push("<tr>");
+                    row.forEach(function (cell) {
+                        tableHtml.push("<td>" + inlineMarkdown(cell) + "</td>");
+                    });
+                    tableHtml.push("</tr>");
+                });
+                tableHtml.push("</tbody></table>");
+                html.push('<div class="tp-agent-drawer-table-wrap">' + tableHtml.join("") + "</div>");
+                continue;
             }
 
             var heading = trimmed.match(/^(#{1,3})\s+(.+)$/);
@@ -64,7 +123,8 @@
                 closeList();
                 var level = Math.min(heading[1].length + 2, 5);
                 html.push("<h" + level + ">" + inlineMarkdown(heading[2]) + "</h" + level + ">");
-                return;
+                i++;
+                continue;
             }
 
             var bullet = trimmed.match(/^[-*]\s+(.+)$/);
@@ -75,12 +135,14 @@
                     listOpen = true;
                 }
                 html.push("<li>" + inlineMarkdown((bullet || numbered)[1]) + "</li>");
-                return;
+                i++;
+                continue;
             }
 
             closeList();
             html.push("<p>" + inlineMarkdown(trimmed) + "</p>");
-        });
+            i++;
+        }
         closeList();
         return html.join("");
     }
