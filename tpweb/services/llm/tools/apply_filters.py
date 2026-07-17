@@ -40,10 +40,13 @@ LIST_AVAILABLE_FILTERS = ToolDefinition(
 APPLY_FILTERS = ToolDefinition(
     name="apply_filters",
     description=(
-        "Apply one or more protein-list filter changes for the user's current session. "
-        "Takes effect immediately -- if the user then opens the protein list page for this "
-        "genome, the filters are already applied. Use list_available_filters first to look "
-        "up valid filter_option_id/score_param_id values."
+        "Apply one or more protein-list filter changes for the user's current session in a "
+        "single call. Takes effect immediately -- if the user then opens the protein list "
+        "page for this genome, the filters are already applied. Use list_available_filters "
+        "first to look up valid filter_option_id/score_param_id values, then call this tool "
+        "ONCE with every change the user asked for in the changes array (e.g. three separate "
+        "criteria = one call with three entries in changes), not once per change -- each "
+        "extra call adds a full round-trip of conversation history and cost for no benefit."
     ),
     input_schema={
         "type": "object",

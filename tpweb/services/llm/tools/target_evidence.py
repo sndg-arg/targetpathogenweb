@@ -40,7 +40,8 @@ def build_target_evidence_record(assembly_name, accession):
     raw_scores = context.get("raw_scores") or {}
     summary = context.get("target_summary") or {}
     score_row = score_single_protein(assembly_name, protein.accession)
-    metabolic = context.get("metabolic_context") or {}
+    metabolic_context = context.get("metabolic_context")
+    metabolic = metabolic_context or {}
     microbiome = context.get("microbiome_context") or {}
     conservation = context.get("conservation_profile") or {}
     binders = context.get("binders") or {}
@@ -80,7 +81,16 @@ def build_target_evidence_record(assembly_name, accession):
         "deg_identity": _value(raw_scores, "deg_identity"),
         "core_roary": conservation.get("roary") or _value(raw_scores, "core_roary"),
         "core_corecruncher": conservation.get("corecruncher") or _value(raw_scores, "core_corecruncher"),
-        "is_chokepoint": "yes" if metabolic.get("is_chokepoint") else "no",
+        # build_metabolic_context returns None (not an empty dict) when the protein has no
+        # GeneReactionLink rows at all -- distinguish that "no metabolic data loaded" case
+        # from a real, computed "confirmed not a chokepoint" result. Both used to collapse
+        # to the same "no" string here, which is exactly the missing-vs-negative confusion
+        # the system prompt tells the model never to make -- except the ambiguity was baked
+        # into the tool output itself, not something the model invented.
+        "is_chokepoint": (
+            "not loaded" if metabolic_context is None
+            else ("yes" if metabolic.get("is_chokepoint") else "no")
+        ),
         "centrality": metabolic.get("centrality") or _value(raw_scores, "PTOOLS_betweenness_centrality"),
         "centrality_percentile": metabolic.get("centrality_percentile"),
         "metabolic_sentence": metabolic.get("summary_sentence") or "No metabolic context loaded for this protein.",
@@ -162,7 +172,11 @@ def format_target_comparison(records):
     rows = []
     for record in records:
         risks = "; ".join(item.get("label", "") for item in (record.get("risks") or [])[:3]) or "none flagged"
-        metabolism = "chokepoint" if record["is_chokepoint"] == "yes" else "not chokepoint/no data"
+        metabolism = {
+            "yes": "chokepoint",
+            "no": "not chokepoint",
+            "not loaded": "no metabolic data",
+        }.get(record["is_chokepoint"], "no metabolic data")
         human_identity = record["human_identity"]
         human_label = (
             f"{record['human_offtarget']} ({human_identity}% identity)"
