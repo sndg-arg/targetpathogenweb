@@ -26,7 +26,15 @@ SYSTEM_PROMPT = (
     "los filtros', call clear_filters directly; do not list available filters first. If "
     "the user asks to compare proteins, call compare_targets. If the user asks where an "
     "assessment came from, asks for sources, audit, provenance, or 'de donde sale', call "
-    "audit_target_evidence."
+    "audit_target_evidence. When the user asks a question that wants an answer -- 'find/show "
+    "me promising targets', 'buscame/mostrame targets', 'which proteins have X' -- call "
+    "search_proteins and report specific proteins by accession in your reply; do not stop at "
+    "just calling apply_filters, since that only changes the user's session state and answers "
+    "nothing. Only call apply_filters/clear_filters when the user explicitly asks you to "
+    "filter, narrow, or change their protein list (e.g. 'apply this filter', 'filtra la "
+    "lista'), not as a substitute for answering a question. When a request needs several "
+    "filter changes, pass all of them in one apply_filters call (the changes array takes "
+    "multiple entries) instead of calling it once per change."
 )
 
 NO_GENOME_SCOPE_NOTE = (
