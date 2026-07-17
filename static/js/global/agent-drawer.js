@@ -212,6 +212,25 @@
         };
     }
 
+    function getStructureViewerState() {
+        // Two viewer instances, two id/class schemes: structure.html (fullscreen, sv-*
+        // prefix) and protein.html (embedded, structure-* prefix). Neither is present on
+        // pages without a viewer, so the combined selectors below just find nothing there.
+        var spinBtn = document.querySelector("#sv-spin-btn, #structure-spin-btn");
+        var activeModeBtn = document.querySelector(
+            '.js-structure-mode.is-active, .js-structure-mode[aria-pressed="true"]'
+        );
+        if (!spinBtn && !activeModeBtn) {
+            return null;
+        }
+        return {
+            spin: !!(spinBtn && spinBtn.getAttribute("aria-pressed") === "true"),
+            view_mode: activeModeBtn
+                ? compactText(activeModeBtn.getAttribute("data-mode") || activeModeBtn.textContent, 30)
+                : "",
+        };
+    }
+
     function getVisibleProteinRows() {
         return Array.prototype.slice.call(document.querySelectorAll(".protein-row"), 0, 5)
             .map(function (row) {
@@ -240,6 +259,7 @@
             active_tabs: activeTextFrom(".tp-tab, .nav-link, .btn, .toolbar-action-btn", 90, 8),
             selected_pocket: selectedPocket,
             selected_structure: textFrom(".experimental-row--viewer-active, .structure-source-chip, .structure-toolbar", 160),
+            structure_viewer: getStructureViewerState(),
             visible_proteins: getVisibleProteinRows(),
         };
         Object.keys(state).forEach(function (key) {
@@ -268,10 +288,31 @@
         var toggleBtn = document.getElementById("tp-agent-drawer-toggle");
         var toggleBtnMobile = document.getElementById("tp-agent-drawer-toggle-mobile");
         var suggestionButtons = Array.prototype.slice.call(document.querySelectorAll(".tp-agent-drawer-suggestion"));
+        var biologistToggle = document.getElementById("tp-agent-drawer-biologist-toggle");
         var chatUrl = form.getAttribute("data-chat-url");
 
         var history = [];
         var pending = false;
+
+        var BIOLOGIST_MODE_KEY = "tpAgentBiologistMode";
+        var biologistMode = false;
+        try {
+            biologistMode = window.localStorage.getItem(BIOLOGIST_MODE_KEY) === "1";
+        } catch (e) {
+            /* localStorage unavailable (private mode, disabled storage) -- default off */
+        }
+        if (biologistToggle) {
+            biologistToggle.setAttribute("aria-pressed", biologistMode ? "true" : "false");
+            biologistToggle.addEventListener("click", function () {
+                biologistMode = !biologistMode;
+                biologistToggle.setAttribute("aria-pressed", biologistMode ? "true" : "false");
+                try {
+                    window.localStorage.setItem(BIOLOGIST_MODE_KEY, biologistMode ? "1" : "0");
+                } catch (e) {
+                    /* best effort */
+                }
+            });
+        }
 
         function setOpen(open) {
             drawer.classList.toggle("is-open", open);
@@ -335,17 +376,23 @@
             return bubble;
         }
 
-        function sendMessage(rawMessage) {
-            if (pending || !inputEl) {
-                return;
+        function appendErrorMessage(text, retryMessage) {
+            var bubble = appendMessage("error", text);
+            if (bubble && retryMessage) {
+                var retryBtn = document.createElement("button");
+                retryBtn.type = "button";
+                retryBtn.className = "tp-agent-drawer-retry";
+                retryBtn.textContent = "Retry";
+                retryBtn.addEventListener("click", function () {
+                    bubble.remove();
+                    performRequest(retryMessage);
+                });
+                bubble.appendChild(retryBtn);
             }
-            var message = String(rawMessage || "").trim();
-            if (!message) {
-                return;
-            }
+            return bubble;
+        }
 
-            appendMessage("user", message);
-            inputEl.value = "";
+        function performRequest(message) {
             pending = true;
             inputEl.disabled = true;
             var pendingBubble = appendMessage("pending");
@@ -360,6 +407,7 @@
                     page_path: window.location.pathname,
                     page_url: window.location.pathname + window.location.search,
                     page_state: getPageState(),
+                    biologist_mode: biologistMode,
                     history: history,
                     message: message,
                 }),
@@ -374,7 +422,10 @@
                         pendingBubble.remove();
                     }
                     if (!result.ok || result.data.error) {
-                        appendMessage("error", result.data.error || "The assistant is unavailable right now.");
+                        appendErrorMessage(
+                            result.data.error || "The assistant is unavailable right now.",
+                            result.data.retryable ? message : null
+                        );
                         return;
                     }
                     history = result.data.history || history;
@@ -393,13 +444,27 @@
                     if (pendingBubble) {
                         pendingBubble.remove();
                     }
-                    appendMessage("error", "Could not reach the assistant. Check your connection and try again.");
+                    appendErrorMessage("Could not reach the assistant. Check your connection and try again.", message);
                 })
                 .finally(function () {
                     pending = false;
                     inputEl.disabled = false;
                     inputEl.focus();
                 });
+        }
+
+        function sendMessage(rawMessage) {
+            if (pending || !inputEl) {
+                return;
+            }
+            var message = String(rawMessage || "").trim();
+            if (!message) {
+                return;
+            }
+
+            appendMessage("user", message);
+            inputEl.value = "";
+            performRequest(message);
         }
 
         form.addEventListener("submit", function (event) {

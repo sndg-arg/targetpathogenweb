@@ -45,6 +45,44 @@
     flex-shrink: 0;
 }
 
+.tp-agent-drawer-toolbar {
+    display: flex;
+    justify-content: flex-end;
+    padding: var(--tp-space-2) var(--tp-space-5) 0;
+    flex-shrink: 0;
+}
+
+.tp-agent-drawer-mode-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    appearance: none;
+    border: 1px solid var(--tp-color-border-soft);
+    background: var(--tp-color-surface);
+    color: var(--tp-color-text-muted);
+    border-radius: 999px;
+    padding: 0.28rem 0.65rem;
+    font: inherit;
+    font-size: 0.72rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.tp-agent-drawer-mode-toggle:hover,
+.tp-agent-drawer-mode-toggle:focus-visible {
+    border-color: var(--tp-color-brand-300);
+    color: var(--tp-color-text-primary);
+}
+
+.tp-agent-drawer-mode-toggle[aria-pressed="true"] {
+    background: color-mix(in srgb, var(--tp-color-brand-500) 14%, var(--tp-color-surface));
+    border-color: var(--tp-color-brand-500);
+    color: var(--tp-color-brand-700);
+}
+
 .tp-agent-drawer-heading {
     display: inline-flex;
     align-items: center;
@@ -238,6 +276,29 @@
     color: var(--tp-color-danger-ink);
     border: 1px dashed var(--tp-color-border-soft);
     white-space: pre-wrap;
+}
+
+.tp-agent-drawer-retry {
+    display: block;
+    margin-top: var(--tp-space-2);
+    appearance: none;
+    border: 1px solid currentColor;
+    background: transparent;
+    color: inherit;
+    border-radius: 999px;
+    padding: 0.28rem 0.7rem;
+    font: inherit;
+    font-size: 0.76rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.tp-agent-drawer-retry:hover,
+.tp-agent-drawer-retry:focus-visible {
+    background: color-mix(in srgb, var(--tp-color-danger-ink) 10%, transparent);
+    transform: translateY(-1px);
 }
 
 .tp-agent-drawer-msg--pending {

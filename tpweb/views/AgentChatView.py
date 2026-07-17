@@ -34,43 +34,15 @@ from tpweb.services.workspace import resolve_workspace_user, set_workspace_sessi
 from tpweb.services.llm.agent import Agent
 from tpweb.services.llm.base import Message, ToolCall, ToolResult
 from tpweb.services.llm.provider_factory import get_provider, llm_agent_enabled
-from tpweb.services.llm.tools.demo import ENTRY as GET_CURRENT_TIME_ENTRY
-from tpweb.services.llm.tools.apply_filters import (
-    build_apply_filters_entry,
-    build_clear_filters_entry,
-    build_list_available_filters_entry,
+from tpweb.services.llm.prompts import (
+    BIOLOGIST_MODE_NOTE,
+    NO_GENOME_SCOPE_NOTE,
+    SYSTEM_PROMPT,
+    page_context_prompt,
 )
-from tpweb.services.llm.tools.explain_target import build_explain_target_entry
-from tpweb.services.llm.tools.search_proteins import build_search_proteins_entry
-from tpweb.services.llm.tools.target_review import (
-    build_audit_target_evidence_entry,
-    build_compare_targets_entry,
-)
-
-SYSTEM_PROMPT = (
-    "You are the in-app assistant for TargetPathogenWeb, a bioinformatics platform for "
-    "prioritizing drug targets in pathogen genomes. Help the user explore proteins, filters, "
-    "scores, ligands, and structural/metabolic evidence already loaded in the app. Answer in "
-    "the same language the user writes in. Only use the tools available to you; if a tool you "
-    "need isn't available (for example, no genome is in scope on this page), say so plainly "
-    "instead of guessing. Never invent biological evidence: if a loaded field is missing, "
-    "say it is not loaded/available instead of treating it as negative evidence. Separate "
-    "facts from recommendations. If the user asks about 'this protein', 'esta proteina', "
-    "'este target', or asks why the current protein is or is not a good target, use the "
-    "current page context and call explain_target without asking the user to repeat the "
-    "accession. If the user asks to clear/reset/remove all filters or says 'borrar todos "
-    "los filtros', call clear_filters directly; do not list available filters first. If "
-    "the user asks to compare proteins, call compare_targets. If the user asks where an "
-    "assessment came from, asks for sources, audit, provenance, or 'de donde sale', call "
-    "audit_target_evidence."
-)
+from tpweb.services.llm.tool_registry import build_scoped_tools
 
 logger = logging.getLogger("tpweb.agent")
-
-NO_GENOME_SCOPE_NOTE = (
-    " No genome is currently in scope for this page, so filter/search/target-explanation "
-    "tools are unavailable -- you can still answer general questions about the platform."
-)
 
 
 def _message_to_json(message: Message) -> dict:
@@ -142,6 +114,9 @@ def _sanitize_page_state(value, depth=0):
             "active_tabs",
             "selected_pocket",
             "selected_structure",
+            "structure_viewer",
+            "spin",
+            "view_mode",
             "visible_proteins",
             "accession",
             "description",
@@ -217,11 +192,15 @@ def _tool_was_called(messages, tool_name):
 class AgentChatView(View):
     def post(self, request, *args, **kwargs):
         if not llm_agent_enabled() and not os.environ.get("TPW_LLM_PROVIDER", "").strip():
+            # Detailed enough to action for whoever deploys this (env var names), but this
+            # is a deployment-config state a regular user has no way to fix themselves --
+            # not something to soften into a generic "try again" message.
             return JsonResponse(
                 {
                     "error": (
-                        "Assistant is not enabled. Set OPENAI_AGENT_ENABLED=true and "
-                        "OPENAI_API_KEY on the server."
+                        "The assistant is not enabled on this server. An administrator needs "
+                        "to set OPENAI_AGENT_ENABLED=true and OPENAI_API_KEY (or the "
+                        "equivalent for TPW_LLM_PROVIDER) before it can be used."
                     )
                 },
                 status=503,
@@ -236,6 +215,7 @@ class AgentChatView(View):
         if not message:
             return JsonResponse({"error": "message is required."}, status=400)
         page_state = _sanitize_page_state(payload.get("page_state") or {})
+        biologist_mode = bool(payload.get("biologist_mode"))
 
         try:
             history = [_message_from_json(item) for item in payload.get("history") or []]
@@ -264,27 +244,32 @@ class AgentChatView(View):
                 ),
             })
 
-        tools = {"get_current_time": GET_CURRENT_TIME_ENTRY}
         system = SYSTEM_PROMPT
+        if biologist_mode:
+            system += BIOLOGIST_MODE_NOTE
         if assembly_name:
-            system += self._page_context_prompt(assembly_name, default_accession)
+            system += page_context_prompt(assembly_name, default_accession)
             system += self._page_state_prompt(page_state)
-            tools["list_available_filters"] = build_list_available_filters_entry(workspace_user)
-            tools["apply_filters"] = build_apply_filters_entry(request, session_user)
-            tools["clear_filters"] = build_clear_filters_entry(request, session_user)
-            tools["search_proteins"] = build_search_proteins_entry(assembly_name)
-            tools["explain_target"] = build_explain_target_entry(assembly_name, default_accession)
-            tools["audit_target_evidence"] = build_audit_target_evidence_entry(assembly_name, default_accession)
-            tools["compare_targets"] = build_compare_targets_entry(assembly_name)
         else:
             system += NO_GENOME_SCOPE_NOTE
+        tools = build_scoped_tools(request, assembly_name, default_accession, workspace_user, session_user)
 
         started_at = time.perf_counter()
         try:
             provider = get_provider()
         except Exception as exc:
+            # Full exception (missing API key, bad TPW_LLM_PROVIDER value, ...) goes to the
+            # server log for debugging; the client only gets a generic, retry-safe message.
+            # Provider internals (SDK error text, API error bodies) have no actionable
+            # content for an end user and shouldn't leak into the chat UI.
             logger.warning("agent_chat provider_unavailable error=%s", exc)
-            return JsonResponse({"error": f"LLM provider unavailable: {exc}"}, status=502)
+            return JsonResponse(
+                {
+                    "error": "The assistant is temporarily unavailable. Try again in a moment.",
+                    "retryable": True,
+                },
+                status=502,
+            )
 
         agent = Agent(provider=provider, tools=tools, system=system)
         try:
@@ -296,7 +281,17 @@ class AgentChatView(View):
                 round((time.perf_counter() - started_at) * 1000),
                 exc,
             )
-            return JsonResponse({"error": f"Assistant request failed: {exc}"}, status=502)
+            return JsonResponse(
+                {
+                    "error": (
+                        "The assistant could not complete this request. This is usually "
+                        "temporary (a busy or rate-limited AI provider) -- try again in a "
+                        "moment."
+                    ),
+                    "retryable": True,
+                },
+                status=502,
+            )
 
         logger.info(
             "agent_chat ok model=%s input_tokens=%d output_tokens=%d latency_ms=%d turns=%d tool_calls=%s",
@@ -417,29 +412,6 @@ class AgentChatView(View):
         return None
 
     @staticmethod
-    def _page_context_prompt(assembly_name, default_accession=None):
-        lines = [
-            "",
-            "Current page context:",
-            f"- Genome in scope: {assembly_name}",
-        ]
-        if default_accession:
-            protein = Bioentry.objects.filter(
-                biodatabase__name=assembly_name + Biodatabase.PROT_POSTFIX,
-                accession=default_accession,
-            ).first()
-            description = protein.description if protein else ""
-            lines.append(f"- Current protein accession: {default_accession}")
-            if description:
-                lines.append(f"- Current protein description: {description}")
-            lines.append(
-                "- When the user asks about this/current protein, call explain_target with no accession."
-            )
-        else:
-            lines.append("- No specific protein is currently selected.")
-        return "\n" + "\n".join(lines)
-
-    @staticmethod
     def _page_state_prompt(page_state):
         if not page_state:
             return ""
@@ -449,7 +421,7 @@ class AgentChatView(View):
             "\n\nCurrent browser UI snapshot (sanitized, compact, and user-interface only):\n"
             f"{encoded}\n"
             "Use this snapshot to understand what the user is seeing: active filters, sort, "
-            "visible rows, selected pocket/structure, and current tab. Do not treat this "
-            "snapshot as biological evidence; for claims about proteins, scores, ligands, "
-            "metabolism, or off-targets, call the available tools."
+            "visible rows, selected pocket/structure, 3D viewer state (spin, view mode), and "
+            "current tab. Do not treat this snapshot as biological evidence; for claims about "
+            "proteins, scores, ligands, metabolism, or off-targets, call the available tools."
         )

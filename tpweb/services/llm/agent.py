@@ -24,6 +24,20 @@ ToolFunction = Callable[[dict], str]
 # every tool automatically, unlike capping inside each tool implementation.
 _MAX_TOOL_RESULT_CHARS = 8000
 
+# Ceiling on the *sum* of tool-result content within a single run() call. The
+# per-result cap above bounds one call, but max_turns=8 with several tool
+# calls per turn could otherwise still stack up a very large amount of tool
+# output across a single request's tool-use loop before ever hitting that
+# per-call limit. Roughly 8k tokens' worth of tool output, generous enough
+# for a real multi-tool investigation but not open-ended.
+_MAX_TOTAL_TOOL_RESULT_CHARS = 32000
+
+_TOOL_BUDGET_EXHAUSTED_MESSAGE = (
+    "Tool result omitted: this request already used its tool-output budget for this "
+    "conversation turn. Answer with the evidence already gathered, or ask the user to "
+    "narrow the request."
+)
+
 
 def _cap_tool_result(text: str) -> str:
     if len(text) <= _MAX_TOOL_RESULT_CHARS:
@@ -52,6 +66,7 @@ class Agent:
         self.last_usage = Usage()
         self.last_tool_calls: list[str] = []
         self.last_turns = 0
+        self._tool_result_chars_used = 0
 
     def run(self, user_text: str, history: list[Message] | None = None) -> str:
         """history: prior turns to seed the conversation with (e.g. a chat
@@ -72,6 +87,7 @@ class Agent:
         self.last_usage = Usage()
         self.last_tool_calls = []
         self.last_turns = 0
+        self._tool_result_chars_used = 0
 
         for _ in range(self.max_turns):
             self.last_turns += 1
@@ -99,8 +115,11 @@ class Agent:
         entry = self.tools.get(call.name)
         if entry is None:
             return ToolResult(tool_call_id=call.id, content=f"Unknown tool: {call.name}", is_error=True)
+        if self._tool_result_chars_used >= _MAX_TOTAL_TOOL_RESULT_CHARS:
+            return ToolResult(tool_call_id=call.id, content=_TOOL_BUDGET_EXHAUSTED_MESSAGE, is_error=True)
         try:
             result = _cap_tool_result(str(entry.run(call.input)))
+            self._tool_result_chars_used += len(result)
             return ToolResult(tool_call_id=call.id, content=result)
         except Exception as exc:  # tool failures are reported to the model, not raised
             return ToolResult(tool_call_id=call.id, content=f"Error: {exc}", is_error=True)

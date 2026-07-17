@@ -24,7 +24,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
     <link rel="stylesheet" href="{% static 'css/components/ui-system.css' %}?v=20260710-select-fix1">
-    <link rel="stylesheet" href="{% static 'css/components/agent-drawer.css' %}?v=20260717-agent4">
+    <link rel="stylesheet" href="{% static 'css/components/agent-drawer.css' %}?v=20260717-agent5">
     <style>
         :root {
             --tp-color-text-primary: #132f3d;
@@ -2077,6 +2077,17 @@
             <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" width="14" height="14" aria-hidden="true"><path d="M3 3l10 10M13 3L3 13"/></svg>
         </button>
     </header>
+    <div class="tp-agent-drawer-toolbar">
+        <button type="button" id="tp-agent-drawer-biologist-toggle" class="tp-agent-drawer-mode-toggle"
+                aria-pressed="false"
+                title="{% trans 'When on, the assistant briefly defines technical terms (FPocket, chokepoint, e-value...) the first time it uses them.' %}">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" aria-hidden="true">
+                <path d="M2 3.5c1.6-.7 3.4-.7 5 0v9c-1.6-.7-3.4-.7-5 0v-9Z"/>
+                <path d="M14 3.5c-1.6-.7-3.4-.7-5 0v9c1.6-.7 3.4-.7 5 0v-9Z"/>
+            </svg>
+            {% trans "Biologist mode" %}
+        </button>
+    </div>
     <div id="tp-agent-drawer-messages" class="tp-agent-drawer-messages" role="log" aria-live="polite">
         <p class="tp-agent-drawer-empty">{% trans "Ask about proteins, filters, scores, or evidence loaded for the genome you're currently viewing." %}</p>
     </div>
@@ -2104,7 +2115,7 @@
 </aside>
 
 <script src="{% static 'bundle.js' %}?v=20260709-metabolism3"></script>
-<script src="{% static 'js/global/agent-drawer.js' %}?v=20260717-agent4"></script>
+<script src="{% static 'js/global/agent-drawer.js' %}?v=20260717-agent5"></script>
 
 <script>
     function getCookie(name) {
