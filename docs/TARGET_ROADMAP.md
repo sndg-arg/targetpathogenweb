@@ -373,7 +373,12 @@ resultados de tools en una misma conversacion a 32000 — antes solo el primero 
 Budget mensual: resuelto fuera de la app — tope de $20/mes configurado directamente en la
 plataforma de OpenAI (no en TPW). Si se llega al limite, OpenAI corta las requests y el usuario
 ve el mensaje generico de "assistant unavailable" con boton Retry ya implementado; no hace falta
-logica de budget propia.
+logica de budget propia. Permisos de acciones: decidido con la usuaria mantener aplicar/borrar
+filtros directo, sin pedir confirmacion — es reversible con un click y no toca datos ni afecta a
+otros usuarios, asi que confirmar seria friccion innecesaria. Es la unica accion mutante que
+existe hoy; cuando se agreguen tools que sí mutan datos reales (crear score, guardar columnas,
+exportar) esta misma pregunta hay que volver a hacerla para esas, no asumir que aplica el mismo
+criterio.
 
 Cierre de pendientes de esta ronda: `page_state` ahora captura spin/modo de vista del visualizador
 3D (las dos paginas, embebida y fullscreen). Errores del drawer ya no filtran detalle tecnico del
@@ -389,8 +394,6 @@ el loop real) los reuse en vez de duplicarlos.
 - Correr `evaluate_agent` contra un genoma real y revisar las respuestas a mano — el comando ya
   existe y chequea que se llame la tool esperada, pero juzgar si hay evidencia inventada todavia
   necesita una lectura humana.
-- Definir permisos de acciones: que puede hacer solo leyendo, que puede cambiar en la UI
-  (filtros), y que requiere confirmacion futura (crear score, guardar columnas, exportar).
 - Evaluar persistir historial de conversacion (modelo `AgentConversation`) si el historial por
   pestaña resulta insuficiente en uso real o si se quiere auditar decisiones.
 - Extraer `create_binders_dict` de `ProteinView.py` a un servicio propio para sacar el import
