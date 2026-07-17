@@ -102,6 +102,69 @@ def _truncate_text(text, limit=2400):
     return text[:limit] + "\n...[truncated]"
 
 
+def _compact_value(value, text_limit=180):
+    if value is None:
+        return None
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, (int, float)):
+        return value
+    text = re.sub(r"\s+", " ", str(value)).strip()
+    if not text:
+        return None
+    if len(text) > text_limit:
+        return text[: text_limit - 1].rstrip() + "…"
+    return text
+
+
+def _sanitize_page_state(value, depth=0):
+    """Keep a tiny browser UI snapshot.
+
+    This is intentionally lossy: the agent only needs to know what the user
+    is looking at, not receive page HTML or whole tables. Genome/protein
+    authorization is still resolved server-side from the URL.
+    """
+    if depth > 4:
+        return None
+    if isinstance(value, dict):
+        allowed_keys = {
+            "title",
+            "heading",
+            "subheading",
+            "path",
+            "query",
+            "active_filters",
+            "sort",
+            "active_tabs",
+            "selected_pocket",
+            "selected_structure",
+            "visible_proteins",
+            "accession",
+            "description",
+            "visible_values",
+            "method",
+            "id",
+            "score",
+            "active_layers",
+        }
+        result = {}
+        for key, item in value.items():
+            if key not in allowed_keys:
+                continue
+            compact = _sanitize_page_state(item, depth + 1)
+            if compact not in (None, "", [], {}):
+                result[key] = compact
+        return result
+    if isinstance(value, list):
+        result = []
+        for item in value[:8]:
+            compact = _sanitize_page_state(item, depth + 1)
+            if compact not in (None, "", [], {}):
+                result.append(compact)
+        return result
+    return _compact_value(value)
+
+
 def _compact_history(history, max_messages=10):
     """Keep short recent visible chat context only.
 
@@ -168,6 +231,7 @@ class AgentChatView(View):
         message = str(payload.get("message") or "").strip()
         if not message:
             return JsonResponse({"error": "message is required."}, status=400)
+        page_state = _sanitize_page_state(payload.get("page_state") or {})
 
         try:
             history = [_message_from_json(item) for item in payload.get("history") or []]
@@ -200,6 +264,7 @@ class AgentChatView(View):
         system = SYSTEM_PROMPT
         if assembly_name:
             system += self._page_context_prompt(assembly_name, default_accession)
+            system += self._page_state_prompt(page_state)
             tools["list_available_filters"] = build_list_available_filters_entry(workspace_user)
             tools["apply_filters"] = build_apply_filters_entry(request, session_user)
             tools["clear_filters"] = build_clear_filters_entry(request, session_user)
@@ -351,3 +416,18 @@ class AgentChatView(View):
         else:
             lines.append("- No specific protein is currently selected.")
         return "\n" + "\n".join(lines)
+
+    @staticmethod
+    def _page_state_prompt(page_state):
+        if not page_state:
+            return ""
+        encoded = json.dumps(page_state, ensure_ascii=False, sort_keys=True)
+        encoded = _truncate_text(encoded, limit=1800)
+        return (
+            "\n\nCurrent browser UI snapshot (sanitized, compact, and user-interface only):\n"
+            f"{encoded}\n"
+            "Use this snapshot to understand what the user is seeing: active filters, sort, "
+            "visible rows, selected pocket/structure, and current tab. Do not treat this "
+            "snapshot as biological evidence; for claims about proteins, scores, ligands, "
+            "metabolism, or off-targets, call the available tools."
+        )

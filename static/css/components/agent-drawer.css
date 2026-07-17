@@ -118,6 +118,7 @@
 
 .tp-agent-drawer-msg p,
 .tp-agent-drawer-msg ul,
+.tp-agent-drawer-msg ol,
 .tp-agent-drawer-msg h3,
 .tp-agent-drawer-msg h4,
 .tp-agent-drawer-msg h5 {
@@ -128,12 +129,24 @@
     margin-top: var(--tp-space-2);
 }
 
-.tp-agent-drawer-msg ul {
+.tp-agent-drawer-msg ul,
+.tp-agent-drawer-msg ol {
     padding-left: 1.1rem;
 }
 
 .tp-agent-drawer-msg li + li {
     margin-top: 0.25rem;
+}
+
+.tp-agent-drawer-msg a {
+    color: var(--tp-color-brand-600);
+    font-weight: 650;
+    text-decoration: none;
+}
+
+.tp-agent-drawer-msg a:hover,
+.tp-agent-drawer-msg a:focus-visible {
+    text-decoration: underline;
 }
 
 .tp-agent-drawer-msg h3,

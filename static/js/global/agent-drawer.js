@@ -36,6 +36,7 @@
     function inlineMarkdown(text) {
         return escapeHtml(text)
             .replace(/\\_/g, "_")
+            .replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+|\/[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
             .replace(/`([^`]+)`/g, "<code>$1</code>")
             .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
     }
@@ -59,14 +60,23 @@
     function renderMarkdown(text) {
         var lines = String(text || "").split(/\r?\n/);
         var html = [];
-        var listOpen = false;
+        var listTag = null;
         var i = 0;
 
         function closeList() {
-            if (listOpen) {
-                html.push("</ul>");
-                listOpen = false;
+            if (listTag) {
+                html.push("</" + listTag + ">");
+                listTag = null;
             }
+        }
+
+        function openList(tag) {
+            if (listTag === tag) {
+                return;
+            }
+            closeList();
+            html.push("<" + tag + ">");
+            listTag = tag;
         }
 
         while (i < lines.length) {
@@ -130,10 +140,7 @@
             var bullet = trimmed.match(/^[-*]\s+(.+)$/);
             var numbered = trimmed.match(/^\d+[.)]\s+(.+)$/);
             if (bullet || numbered) {
-                if (!listOpen) {
-                    html.push("<ul>");
-                    listOpen = true;
-                }
+                openList(numbered ? "ol" : "ul");
                 html.push("<li>" + inlineMarkdown((bullet || numbered)[1]) + "</li>");
                 i++;
                 continue;
@@ -145,6 +152,106 @@
         }
         closeList();
         return html.join("");
+    }
+
+    function compactText(value, limit) {
+        var text = String(value || "").replace(/\s+/g, " ").trim();
+        var max = limit || 160;
+        if (text.length <= max) {
+            return text;
+        }
+        return text.slice(0, max - 1).trim() + "…";
+    }
+
+    function textFrom(selector, limit) {
+        var el = document.querySelector(selector);
+        return el ? compactText(el.textContent, limit) : "";
+    }
+
+    function textsFrom(selector, limit, itemLimit) {
+        return Array.prototype.slice.call(document.querySelectorAll(selector), 0, itemLimit || 8)
+            .map(function (el) { return compactText(el.textContent, limit || 120); })
+            .filter(Boolean);
+    }
+
+    function textsFromRoot(root, selector, limit, itemLimit) {
+        if (!root) {
+            return [];
+        }
+        return Array.prototype.slice.call(root.querySelectorAll(selector), 0, itemLimit || 8)
+            .map(function (el) { return compactText(el.textContent, limit || 120); })
+            .filter(Boolean);
+    }
+
+    function activeTextFrom(selector, limit, itemLimit) {
+        return Array.prototype.slice.call(document.querySelectorAll(selector), 0, itemLimit || 8)
+            .filter(function (el) {
+                return el.offsetParent !== null && (
+                    el.classList.contains("active") ||
+                    el.classList.contains("is-active") ||
+                    el.classList.contains("is-selected-pocket") ||
+                    el.getAttribute("aria-pressed") === "true" ||
+                    el.getAttribute("aria-selected") === "true"
+                );
+            })
+            .map(function (el) { return compactText(el.textContent || el.getAttribute("title") || "", limit || 120); })
+            .filter(Boolean);
+    }
+
+    function getSelectedPocketState() {
+        var card = document.querySelector(".pocket-card.is-selected-pocket");
+        if (!card) {
+            return null;
+        }
+        return {
+            title: compactText(card.getAttribute("data-pocket-title") || (card.querySelector(".pocket-card-name") || {}).textContent, 80),
+            method: compactText(card.getAttribute("data-pocket-method"), 40),
+            id: compactText(card.getAttribute("data-pocket-id"), 80),
+            score: compactText(card.getAttribute("data-pocket-score"), 40),
+            active_layers: activeTextFrom(".pocket-card.is-selected-pocket .js-repr-toggle", 80, 6),
+        };
+    }
+
+    function getVisibleProteinRows() {
+        return Array.prototype.slice.call(document.querySelectorAll(".protein-row"), 0, 5)
+            .map(function (row) {
+                var accession = compactText((row.querySelector(".acc-col a") || {}).textContent, 40);
+                var description = compactText((row.querySelector('[data-col="description"], .desc-col') || {}).textContent, 120);
+                var scoreCells = textsFromRoot(row, "td[data-col]", 80, 4);
+                return accession ? {
+                    accession: accession,
+                    description: description,
+                    visible_values: scoreCells,
+                } : null;
+            })
+            .filter(Boolean);
+    }
+
+    function getPageState() {
+        var selectedPocket = getSelectedPocketState();
+        var state = {
+            title: compactText(document.title, 120),
+            heading: textFrom("main h1, h1", 120),
+            subheading: textFrom(".section-subtitle, .hero-context-note, main h1 + p", 180),
+            path: window.location.pathname,
+            query: window.location.search ? compactText(window.location.search, 240) : "",
+            active_filters: textsFrom(".active-filters .filter-pill, .filter-pill, .hero-analysis-criterion", 140, 10),
+            sort: textFrom(".hero-analysis-value", 80),
+            active_tabs: activeTextFrom(".tp-tab, .nav-link, .btn, .toolbar-action-btn", 90, 8),
+            selected_pocket: selectedPocket,
+            selected_structure: textFrom(".experimental-row--viewer-active, .structure-source-chip, .structure-toolbar", 160),
+            visible_proteins: getVisibleProteinRows(),
+        };
+        Object.keys(state).forEach(function (key) {
+            if (
+                state[key] === "" ||
+                state[key] === null ||
+                (Array.isArray(state[key]) && state[key].length === 0)
+            ) {
+                delete state[key];
+            }
+        });
+        return state;
     }
 
     document.addEventListener("DOMContentLoaded", function () {
@@ -252,6 +359,7 @@
                 body: JSON.stringify({
                     page_path: window.location.pathname,
                     page_url: window.location.pathname + window.location.search,
+                    page_state: getPageState(),
                     history: history,
                     message: message,
                 }),
