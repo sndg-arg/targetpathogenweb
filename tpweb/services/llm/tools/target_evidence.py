@@ -91,7 +91,14 @@ def build_target_evidence_record(assembly_name, accession):
             "not loaded" if metabolic_context is None
             else ("yes" if metabolic.get("is_chokepoint") else "no")
         ),
-        "centrality": metabolic.get("centrality") or _value(raw_scores, "PTOOLS_betweenness_centrality"),
+        # Same cross-pipeline ambiguity as is_chokepoint: PTOOLS_betweenness_centrality is a
+        # separate ScoreParamValue that can exist even when this protein has no
+        # GeneReactionLink rows at all, so falling straight through to raw_scores here would
+        # silently paper over "no metabolic data for this protein" with an unrelated number.
+        "centrality": (
+            "not loaded" if metabolic_context is None
+            else (metabolic.get("centrality") or _value(raw_scores, "PTOOLS_betweenness_centrality"))
+        ),
         "centrality_percentile": metabolic.get("centrality_percentile"),
         "metabolic_sentence": metabolic.get("summary_sentence") or "No metabolic context loaded for this protein.",
         "reactions": reaction_names,
