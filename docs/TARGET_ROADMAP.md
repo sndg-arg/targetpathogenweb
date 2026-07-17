@@ -18,9 +18,9 @@ Estas tareas ya tienen implementacion en la rama actual y necesitan revision vis
 - Pockets / estructura: se agrego lectura de pockets especificos y alpha spheres desde outputs originales de GATES, mas controles visuales iniciales. Queda validar que la representacion sea biologicamente clara y no confunda "zona" con "pocket puntual".
 - Agente IA: ya funciona con OpenAI en cluster, tiene drawer global, historial por sesion, tools
   para filtros, explicacion de targets, auditoria de evidencia y comparacion de candidatos, ahora
-  con snapshot de estado de UI (filtros/sort/pocket/estructura/filas visibles) y Markdown completo
-  en el drawer (tablas, codigo, listas ordenadas, links). El foco siguiente es control de
-  costos/tokens y un set chico de evaluacion.
+  con snapshot de estado de UI (filtros/sort/pocket/estructura/filas visibles), Markdown completo
+  en el drawer (tablas, codigo, listas ordenadas, links) y logging de tokens/costo/latencia por
+  request. El foco siguiente es un set chico de evaluacion y definir budget/alertas.
 - UX premium: hay sistema visual mas consistente en paginas principales, pero falta una pasada sistematica por las vistas de mayor uso para cerrar inconsistencias de motion, sombras, botones, spacing y jerarquia de datos.
 
 ### Informacion metabolica
@@ -365,17 +365,23 @@ solo la proteina activa. Corridas de verificacion en cluster (OpenAI real via Re
 `manage.py check`) sin errores; algunos bugs de despliegue ya resueltos (sidebar cortado al
 agregar el boton Assistant, persistencia de config de OpenAI entre restarts).
 
+Costos/tokens: `LLMResponse` ahora carga `Usage` (input/output tokens, neutral, ambos
+proveedores), acumulado por `Agent.run()` a lo largo de todo el loop de tool-use (no solo la
+ultima llamada). `AgentChatView` loguea por request modelo, tokens, latencia, turnos y tool
+calls (o el error) via el logger `tpweb.agent`. Cada resultado individual de tool queda
+capado a 8000 caracteres antes de volver a entrar a la conversacion, ya que nada lo acotaba
+antes.
+
 **Pendiente para avanzar.**
 
 - Armar un set chico de evaluacion con prompts reales y resultado esperado:
   "por que esta proteina es buen target", "de donde sale esa conclusion", "comparame A vs B",
   "buscame targets sin off-target humano y con buen pocket", "borrame filtros". Debe chequear
   que use tools cuando corresponde y que no invente evidencia.
-- Reducir tokens enviados al modelo: el `page_state` ya es compacto/sanitizado, pero el resto del
-  contexto (historial, resultados de tools) todavia puede crecer sin limite claro en
-  conversaciones largas. Esto evita errores 429 por TPM y baja costo.
-- Agregar control de costos y observabilidad: log de modelo usado, tokens, latencia, tool calls y
-  errores; budget mensual recomendado para demo interna.
+- Definir budget mensual recomendado para demo interna y donde alertar si se supera (el log de
+  tokens/costo ya existe, falta la parte de politica/alerta).
+- El historial que viaja del cliente ya se recorta (`_compact_history`), pero sigue sin haber un
+  limite al tamaño acumulado dentro de una sola conversacion muy larga entre varios turnos.
 - Mensajes de error mas accionables en el drawer (hoy son genericos: "el asistente no esta
   disponible" / "no se pudo conectar"), y evaluar si conviene registrar en el snapshot de pagina
   el estado especifico del structure viewer 3D (spin/coloreo/capas), que hoy no se captura.
