@@ -1340,11 +1340,17 @@ class FPocketFallbackConversionTests(SimpleTestCase):
 
 class OpenAIProviderTranslationTests(SimpleTestCase):
     """Exercises the highest-risk part of the OpenAI adapter -- translating
-    the neutral Message/ToolCall/ToolResult shape to and from OpenAI's Chat
-    Completions wire format -- without needing OPENAI_API_KEY or network
-    access. A fake client stands in for openai.OpenAI()."""
+    the neutral Message/ToolCall/ToolResult shape to and from OpenAI's
+    Responses API wire format -- without needing OPENAI_API_KEY or network
+    access. `_post` (the one method that actually calls urllib) is patched
+    with a fake Responses-API-shaped dict instead of a client object, since
+    this adapter talks to the API directly via urllib.request rather than
+    through the `openai` SDK."""
 
-    def test_multiple_tool_results_flatten_into_separate_tool_messages(self):
+    def _provider(self):
+        return OpenAIProvider(model="gpt-4o", api_key="test-key")
+
+    def test_multiple_tool_results_flatten_into_function_call_output_items(self):
         message = Message(
             role="user",
             tool_results=[
@@ -1353,13 +1359,13 @@ class OpenAIProviderTranslationTests(SimpleTestCase):
             ],
         )
 
-        openai_messages = OpenAIProvider._to_openai_messages(message)
+        response_input = OpenAIProvider._to_response_input([message])
 
         self.assertEqual(
-            openai_messages,
+            response_input,
             [
-                {"role": "tool", "tool_call_id": "call_1", "content": "first result"},
-                {"role": "tool", "tool_call_id": "call_2", "content": "second result"},
+                {"type": "function_call_output", "call_id": "call_1", "output": "first result"},
+                {"type": "function_call_output", "call_id": "call_2", "output": "second result"},
             ],
         )
 
@@ -1370,33 +1376,35 @@ class OpenAIProviderTranslationTests(SimpleTestCase):
             tool_calls=[ToolCall(id="call_1", name="get_current_time", input={"tz": "UTC"})],
         )
 
-        openai_messages = OpenAIProvider._to_openai_messages(message)
+        response_input = OpenAIProvider._to_response_input([message])
 
-        self.assertEqual(len(openai_messages), 1)
-        self.assertEqual(openai_messages[0]["role"], "assistant")
-        tool_call = openai_messages[0]["tool_calls"][0]
-        self.assertEqual(tool_call["id"], "call_1")
-        self.assertEqual(tool_call["function"]["name"], "get_current_time")
-        self.assertEqual(json.loads(tool_call["function"]["arguments"]), {"tz": "UTC"})
+        self.assertEqual(len(response_input), 1)
+        function_call = response_input[0]
+        self.assertEqual(function_call["type"], "function_call")
+        self.assertEqual(function_call["call_id"], "call_1")
+        self.assertEqual(function_call["name"], "get_current_time")
+        self.assertEqual(json.loads(function_call["arguments"]), {"tz": "UTC"})
 
     def test_generate_maps_tool_calls_finish_reason_and_parses_arguments(self):
-        fake_tool_call = SimpleNamespace(
-            id="call_9",
-            function=SimpleNamespace(name="apply_filters", arguments='{"changes": []}'),
-        )
-        fake_message = SimpleNamespace(content=None, tool_calls=[fake_tool_call])
-        fake_choice = SimpleNamespace(message=fake_message, finish_reason="tool_calls")
-        fake_response = SimpleNamespace(choices=[fake_choice])
+        fake_response = {
+            "status": "completed",
+            "output": [
+                {
+                    "type": "function_call",
+                    "call_id": "call_9",
+                    "name": "apply_filters",
+                    "arguments": '{"changes": []}',
+                }
+            ],
+        }
 
-        fake_client = MagicMock()
-        fake_client.chat.completions.create.return_value = fake_response
-
-        provider = OpenAIProvider(model="gpt-4o", client=fake_client)
-        result = provider.generate(
-            messages=[Message(role="user", text="apply high druggability filter")],
-            tools=[ToolDefinition(name="apply_filters", description="...", input_schema={"type": "object"})],
-            system="You are a test agent.",
-        )
+        provider = self._provider()
+        with patch.object(provider, "_post", return_value=fake_response):
+            result = provider.generate(
+                messages=[Message(role="user", text="apply high druggability filter")],
+                tools=[ToolDefinition(name="apply_filters", description="...", input_schema={"type": "object"})],
+                system="You are a test agent.",
+            )
 
         self.assertEqual(result.stop_reason, "tool_use")
         self.assertEqual(len(result.tool_calls), 1)
@@ -1404,33 +1412,67 @@ class OpenAIProviderTranslationTests(SimpleTestCase):
         self.assertEqual(result.tool_calls[0].input, {"changes": []})
 
     def test_generate_maps_stop_finish_reason_to_end_turn(self):
-        fake_message = SimpleNamespace(content="All done.", tool_calls=None)
-        fake_choice = SimpleNamespace(message=fake_message, finish_reason="stop")
-        fake_response = SimpleNamespace(choices=[fake_choice])
+        fake_response = {
+            "status": "completed",
+            "output": [
+                {"type": "message", "content": [{"type": "output_text", "text": "All done."}]}
+            ],
+        }
 
-        fake_client = MagicMock()
-        fake_client.chat.completions.create.return_value = fake_response
-
-        provider = OpenAIProvider(client=fake_client)
-        result = provider.generate(messages=[Message(role="user", text="hi")], tools=[])
+        provider = self._provider()
+        with patch.object(provider, "_post", return_value=fake_response):
+            result = provider.generate(messages=[Message(role="user", text="hi")], tools=[])
 
         self.assertEqual(result.stop_reason, "end_turn")
         self.assertEqual(result.text, "All done.")
         self.assertEqual(result.tool_calls, [])
 
     def test_malformed_tool_call_arguments_do_not_raise(self):
-        fake_tool_call = SimpleNamespace(
-            id="call_bad",
-            function=SimpleNamespace(name="apply_filters", arguments="{not valid json"),
-        )
-        fake_message = SimpleNamespace(content=None, tool_calls=[fake_tool_call])
-        fake_choice = SimpleNamespace(message=fake_message, finish_reason="tool_calls")
-        fake_response = SimpleNamespace(choices=[fake_choice])
+        fake_response = {
+            "status": "completed",
+            "output": [
+                {
+                    "type": "function_call",
+                    "call_id": "call_bad",
+                    "name": "apply_filters",
+                    "arguments": "{not valid json",
+                }
+            ],
+        }
 
-        fake_client = MagicMock()
-        fake_client.chat.completions.create.return_value = fake_response
-
-        provider = OpenAIProvider(client=fake_client)
-        result = provider.generate(messages=[], tools=[])
+        provider = self._provider()
+        with patch.object(provider, "_post", return_value=fake_response):
+            result = provider.generate(messages=[], tools=[])
 
         self.assertEqual(result.tool_calls[0].input, {})
+
+    def test_generate_maps_usage_tokens(self):
+        fake_response = {
+            "status": "completed",
+            "output": [
+                {"type": "message", "content": [{"type": "output_text", "text": "hi"}]}
+            ],
+            "usage": {"input_tokens": 120, "output_tokens": 34},
+        }
+
+        provider = self._provider()
+        with patch.object(provider, "_post", return_value=fake_response):
+            result = provider.generate(messages=[Message(role="user", text="hi")], tools=[])
+
+        self.assertEqual(result.usage.input_tokens, 120)
+        self.assertEqual(result.usage.output_tokens, 34)
+
+    def test_generate_defaults_usage_when_missing_from_response(self):
+        fake_response = {
+            "status": "completed",
+            "output": [
+                {"type": "message", "content": [{"type": "output_text", "text": "hi"}]}
+            ],
+        }
+
+        provider = self._provider()
+        with patch.object(provider, "_post", return_value=fake_response):
+            result = provider.generate(messages=[Message(role="user", text="hi")], tools=[])
+
+        self.assertEqual(result.usage.input_tokens, 0)
+        self.assertEqual(result.usage.output_tokens, 0)
