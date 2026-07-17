@@ -370,6 +370,10 @@ proveedores), acumulado por `Agent.run()` a lo largo de todo el loop de tool-use
 loguea por request modelo, tokens, latencia, turnos y tool calls (o el error) via el logger
 `tpweb.agent`. Cada resultado de tool queda capado a 8000 caracteres, y el total acumulado de
 resultados de tools en una misma conversacion a 32000 — antes solo el primero estaba acotado.
+Budget mensual: resuelto fuera de la app — tope de $20/mes configurado directamente en la
+plataforma de OpenAI (no en TPW). Si se llega al limite, OpenAI corta las requests y el usuario
+ve el mensaje generico de "assistant unavailable" con boton Retry ya implementado; no hace falta
+logica de budget propia.
 
 Cierre de pendientes de esta ronda: `page_state` ahora captura spin/modo de vista del visualizador
 3D (las dos paginas, embebida y fullscreen). Errores del drawer ya no filtran detalle tecnico del
@@ -385,8 +389,6 @@ el loop real) los reuse en vez de duplicarlos.
 - Correr `evaluate_agent` contra un genoma real y revisar las respuestas a mano — el comando ya
   existe y chequea que se llame la tool esperada, pero juzgar si hay evidencia inventada todavia
   necesita una lectura humana.
-- Definir budget mensual recomendado para demo interna y donde alertar si se supera (el log de
-  tokens/costo ya existe, falta la parte de politica/alerta).
 - Definir permisos de acciones: que puede hacer solo leyendo, que puede cambiar en la UI
   (filtros), y que requiere confirmacion futura (crear score, guardar columnas, exportar).
 - Evaluar persistir historial de conversacion (modelo `AgentConversation`) si el historial por
