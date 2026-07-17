@@ -403,6 +403,13 @@ llamaba `apply_filters` una vez por cada criterio en vez de mandarlos juntos en 
 extrajo a `tpweb/services/binder_summary.py`, sacando el ultimo import diferido/circular que
 quedaba de la ronda de extraccion anterior.
 
+Corridas 2 y 3 de `evaluate_agent` confirmaron los fixes y encontraron dos cosas mas: la ambiguedad
+falta-vs-negativo tambien afectaba a `centrality` (misma causa raiz que `is_chokepoint` — corregido
+igual), y el system prompt no distinguia "buscame/mostrame targets" (pregunta, debe llamar
+`search_proteins` y nombrar candidatos concretos) de "aplica este filtro" (accion explicita sobre la
+sesion) — el modelo a veces aplicaba filtros sin responder nada. Con la regla explicita agregada,
+la 3ra corrida ya devolvio 10 candidatos nombrados con su druggability en vez de una respuesta vacia.
+
 Con esto, la card de Agente IA queda sin pendientes de codigo — lo que resta es validacion con
 uso real (ver seccion superior "Corte actual").
 
