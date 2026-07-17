@@ -389,11 +389,19 @@ usa. Wiring de tools y de system prompt extraido de `AgentChatView` a `tool_regi
 `prompts.py` para que el nuevo comando `evaluate_agent` (corre los prompts de evaluacion contra
 el loop real) los reuse en vez de duplicarlos.
 
+Corrido `evaluate_agent` contra KpATCC43816 (5/5 tools esperadas llamadas). Lectura manual de las
+respuestas: sin evidencia inventada — los numeros son consistentes entre casos y contra datos ya
+validados en otra sesion (druggability 0.911 de VK055_0002). Encontrados y corregidos dos
+problemas reales: `is_chokepoint` en `target_evidence.py` colapsaba "sin datos metabolicos
+cargados" y "confirmado que no es chokepoint" en el mismo valor `"no"` — exactamente la confusion
+falta-vs-negativo que el system prompt le prohibe al modelo, pero el origen estaba en la tool, no
+en el modelo; ahora son tres valores distintos (`yes`/`no`/`not loaded`). Y el caso "buscame
+targets sin off-target y buen pocket" gasto 17871 tokens de input en 6 turnos porque el modelo
+llamaba `apply_filters` una vez por cada criterio en vez de mandarlos juntos en el array
+`changes` que la tool ya soporta — la descripcion de la tool ahora lo pide explicitamente.
+
 **Pendiente para avanzar.**
 
-- Correr `evaluate_agent` contra un genoma real y revisar las respuestas a mano — el comando ya
-  existe y chequea que se llame la tool esperada, pero juzgar si hay evidencia inventada todavia
-  necesita una lectura humana.
 - Persistir historial de conversacion (modelo `AgentConversation`): decidido con la usuaria
   esperar a tener señal de uso real antes de construirlo — es trabajo real (modelo, migracion,
   UI para listar/reabrir conversaciones) y hoy no hay evidencia de que el historial por pestaña
