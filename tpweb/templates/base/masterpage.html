@@ -24,7 +24,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
     <link rel="stylesheet" href="{% static 'css/components/ui-system.css' %}?v=20260710-select-fix1">
-    <link rel="stylesheet" href="{% static 'css/components/agent-drawer.css' %}?v=20260713-agent1">
+    <link rel="stylesheet" href="{% static 'css/components/agent-drawer.css' %}?v=20260717-agent3">
     <style>
         :root {
             --tp-color-text-primary: #132f3d;
@@ -2064,7 +2064,15 @@
 <div id="tp-agent-drawer-backdrop" class="tp-agent-drawer-backdrop" hidden></div>
 <aside id="tp-agent-drawer" class="tp-agent-drawer" aria-hidden="true" aria-label="{% trans 'Assistant' %}">
     <header class="tp-agent-drawer-header">
-        <span class="tp-agent-drawer-title">{% trans "Assistant" %}</span>
+        <span class="tp-agent-drawer-heading">
+            <span class="tp-agent-drawer-avatar" aria-hidden="true">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" width="15" height="15" aria-hidden="true">
+                    <path d="M8 1.5l1.05 2.6L11.7 5.1l-2.65 1L8 8.7l-1.05-2.6L4.3 5.1l2.65-1L8 1.5Z"/>
+                    <path d="M13 9l.55 1.4L15 11l-1.45.6L13 13l-.55-1.4L11 11l1.45-.6L13 9Z"/>
+                </svg>
+            </span>
+            <span class="tp-agent-drawer-title">{% trans "Assistant" %}</span>
+        </span>
         <button id="tp-agent-drawer-close" class="tp-agent-drawer-close" type="button" aria-label="{% trans 'Close assistant' %}" title="{% trans 'Close assistant' %}">
             <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" width="14" height="14" aria-hidden="true"><path d="M3 3l10 10M13 3L3 13"/></svg>
         </button>
@@ -2088,12 +2096,15 @@
     </div>
     <form id="tp-agent-drawer-form" class="tp-agent-drawer-form" data-chat-url="{% url 'tpwebapp:agent_chat' %}">
         <textarea id="tp-agent-drawer-input" class="tp-agent-drawer-input" rows="2" placeholder="{% trans 'Ask the assistant…' %}" aria-label="{% trans 'Message' %}"></textarea>
-        <button type="submit" class="tp-btn tp-btn--primary tp-agent-drawer-send">{% trans "Send" %}</button>
+        <button type="submit" class="tp-btn tp-btn--primary tp-agent-drawer-send">
+            <span>{% trans "Send" %}</span>
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" aria-hidden="true"><path d="M2 8h11.5M9 3.5L14 8l-5 4.5"/></svg>
+        </button>
     </form>
 </aside>
 
 <script src="{% static 'bundle.js' %}?v=20260709-metabolism3"></script>
-<script src="{% static 'js/global/agent-drawer.js' %}?v=20260714-agent2"></script>
+<script src="{% static 'js/global/agent-drawer.js' %}?v=20260717-agent3"></script>
 
 <script>
     function getCookie(name) {

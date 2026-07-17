@@ -153,8 +153,10 @@
                 empty.remove();
             }
             var bubble = document.createElement("div");
-            bubble.className = "tp-agent-drawer-msg tp-agent-drawer-msg--" + role;
-            if (role === "assistant") {
+            bubble.className = "tp-agent-drawer-msg tp-agent-drawer-msg--" + role + " tp-ui-enter";
+            if (role === "pending") {
+                bubble.innerHTML = '<span class="tp-agent-drawer-typing"><span></span><span></span><span></span></span>';
+            } else if (role === "assistant") {
                 bubble.innerHTML = renderMarkdown(text);
             } else {
                 bubble.textContent = text;
@@ -177,7 +179,7 @@
             inputEl.value = "";
             pending = true;
             inputEl.disabled = true;
-            var pendingBubble = appendMessage("pending", "...");
+            var pendingBubble = appendMessage("pending");
 
             fetch(chatUrl, {
                 method: "POST",
