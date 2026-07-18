@@ -39,7 +39,7 @@
                 <span class="metric-label">{% trans "Mapped proteins" %}</span>
                 <span class="metric-value">{{ summary.protein_count }}</span>
             </div>
-            <div class="metric-pill metric-pill--warm">
+            <div class="metric-pill metric-pill--warm" title="{% trans "A chokepoint reaction is the sole producer or consumer of a metabolite in the network - harder for the pathogen to route around if inhibited." %}">
                 <span class="metric-label">{% trans "Chokepoint reactions" %}</span>
                 <span class="metric-value">{{ summary.chokepoint_count }}</span>
             </div>
@@ -86,11 +86,11 @@
                                     <span class="metabolism-stat-n">{{ pathway.protein_count }}</span>
                                     <span class="metabolism-stat-l">{% trans "Proteins" %}</span>
                                 </div>
-                                <div class="metabolism-stat">
+                                <div class="metabolism-stat" title="{% trans "Reactions that are the sole producer or consumer of a metabolite in this pathway." %}">
                                     <span class="metabolism-stat-n{% if pathway.chokepoint_count %} is-warm{% endif %}">{{ pathway.chokepoint_count }}</span>
                                     <span class="metabolism-stat-l">{% trans "Chokepoints" %}</span>
                                 </div>
-                                <div class="metabolism-stat">
+                                <div class="metabolism-stat" title="{% trans "Share of this pathway's reactions that are chokepoints." %}">
                                     <span class="metabolism-stat-n{% if pathway.chokepoint_count %} is-warm{% endif %}">{{ pathway.chokepoint_density_pct }}%</span>
                                     <span class="metabolism-stat-l">{% trans "Density" %}</span>
                                 </div>
@@ -115,7 +115,7 @@
                         <a href="{% url 'tpwebapp:protein' protein_id=target.protein_id %}"
                            class="metabolism-target-chip{% if forloop.first %} metabolism-target-chip--top{% endif %}">
                             <span class="metabolism-target-id">{{ target.accession }}</span>
-                            <span class="metabolism-target-meta">
+                            <span class="metabolism-target-meta" title="{% trans "drug = FPocket druggability score. cent = betweenness centrality in the reaction network (higher = more of a metabolic bottleneck)." %}">
                                 {% trans "drug" %} {{ target.druggability|floatformat:2 }}
                                 &middot; {% trans "cent" %} {{ target.centrality|floatformat:3 }}
                             </span>

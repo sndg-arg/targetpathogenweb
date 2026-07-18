@@ -41,7 +41,7 @@
                 <span class="metric-label">{% trans "Mapped proteins" %}</span>
                 <span class="metric-value">{{ summary.protein_count }}</span>
             </div>
-            <div class="metric-pill metric-pill--warm">
+            <div class="metric-pill metric-pill--warm" title="{% trans "A chokepoint reaction is the sole producer or consumer of a metabolite in the network - harder for the pathogen to route around if inhibited." %}">
                 <span class="metric-label">{% trans "Chokepoint reactions" %}</span>
                 <span class="metric-value">{{ summary.chokepoint_count }}</span>
             </div>
@@ -62,9 +62,9 @@
         <div class="metabolic-network-genome-shell">
             <div class="metabolic-network-genome-toolbar">
                 <div class="metabolic-network-genome-legend" aria-label="{% trans "Network legend" %}">
-                    <span><i class="metabolic-network-genome-dot metabolic-network-genome-dot--density-1"></i>{% trans "Pathway" %}</span>
-                    <span><i class="metabolic-network-genome-dot metabolic-network-genome-dot--density-4"></i>{% trans "High chokepoint density" %}</span>
-                    <span><i class="metabolic-network-genome-line"></i>{% trans "Cross-pathway connection" %}</span>
+                    <span title="{% trans "One node per metabolic pathway. Click to zoom into its reactions." %}"><i class="metabolic-network-genome-dot metabolic-network-genome-dot--density-1"></i>{% trans "Pathway" %}</span>
+                    <span title="{% trans "A high share of this pathway's reactions are chokepoints - the sole producer or consumer of a metabolite, harder for the pathogen to route around." %}"><i class="metabolic-network-genome-dot metabolic-network-genome-dot--density-4"></i>{% trans "High chokepoint density" %}</span>
+                    <span title="{% trans "These two pathways share at least one reaction." %}"><i class="metabolic-network-genome-line"></i>{% trans "Cross-pathway connection" %}</span>
                 </div>
                 <div class="metabolic-network-genome-actions" aria-label="{% trans "Network controls" %}">
                     <button type="button" class="metabolic-map-btn" data-metabolic-network-genome-action="fit" title="{% trans "Fit network to view" %}" aria-label="{% trans "Fit network to view" %}">
@@ -108,7 +108,7 @@
                         <dd data-field="reactions">-</dd>
                         <dt>{% trans "Proteins" %}</dt>
                         <dd data-field="proteins">-</dd>
-                        <dt>{% trans "Chokepoints" %}</dt>
+                        <dt title="{% trans "Reactions that are the sole producer or consumer of a metabolite - harder for the pathogen to route around if inhibited." %}">{% trans "Chokepoints" %}</dt>
                         <dd data-field="chokepoints">-</dd>
                         <dt>{% trans "Best target score" %}</dt>
                         <dd>

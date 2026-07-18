@@ -454,9 +454,9 @@
                                         <small>
                                             EC {{ reaction.ec_numbers|join:", "|default:"-" }} · {% if reaction.reversible %}{% trans "reversible" %}{% else %}{% trans "not reversible" %}{% endif %}
                                             {% if reaction.isoenzyme_count > 1 %}
-                                                · {% blocktrans with count=reaction.isoenzyme_count %}{{ count }} isoenzymes{% endblocktrans %}
+                                                · <span title="{% trans "Isoenzymes are different genes that catalyze the same reaction. More than one means inhibiting this protein alone may not stop the reaction." %}">{% blocktrans with count=reaction.isoenzyme_count %}{{ count }} isoenzymes{% endblocktrans %}</span>
                                             {% elif reaction.isoenzyme_count == 1 %}
-                                                · {% trans "no isoenzyme backup" %}
+                                                · <span title="{% trans "No other gene in this genome is known to catalyze the same reaction, so this protein cannot be bypassed by an isoenzyme." %}">{% trans "no isoenzyme backup" %}</span>
                                             {% endif %}
                                         </small>
                                         {% if reaction.has_metabolites %}

@@ -213,7 +213,8 @@ body:has(.sv-root) .tp-footer { display: none !important; }
         background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
         color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
         opacity var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
-        box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+        box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
     appearance: none;
     flex-shrink: 0;
     opacity: 0.88;
@@ -225,6 +226,7 @@ body:has(.sv-root) .tp-footer { display: none !important; }
     opacity: 1;
     text-decoration: none;
     outline: none;
+    transform: translateY(-1px);
 }
 .sv-tb-btn:focus-visible { outline: 2px solid var(--sv-btn-active-color); outline-offset: 2px; }
 .sv-tb-btn:disabled { opacity: 0.30; cursor: default; pointer-events: none; }
