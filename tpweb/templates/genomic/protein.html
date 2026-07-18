@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260714-offtarget3">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260718-pockets1">
 {% endblock %}
 
 {% block body %}
@@ -743,7 +743,10 @@
                         <section class="sv-pocket-inspector" id="protein-pocket-inspector" hidden aria-live="polite">
                             <div class="sv-pocket-inspector-head">
                                 <span class="sv-pocket-inspector-kicker">{% trans "Selected pocket" %}</span>
-                                <button type="button" class="sv-pocket-inspector-clear" id="protein-pocket-clear-selection">{% trans "Clear" %}</button>
+                                <div class="sv-pocket-inspector-actions">
+                                    <button type="button" class="sv-pocket-inspector-toggle" id="protein-pocket-show-only-toggle" aria-pressed="false" title="{% trans "When on, other pockets stay hidden even if you click their layer toggles." %}">{% trans "Only this pocket" %}</button>
+                                    <button type="button" class="sv-pocket-inspector-clear" id="protein-pocket-clear-selection">{% trans "Clear" %}</button>
+                                </div>
                             </div>
                             <strong class="sv-pocket-inspector-title" data-pocket-field="title">-</strong>
                             <dl class="sv-pocket-inspector-grid">
@@ -1311,6 +1314,8 @@
             const viewportElement = document.getElementById("viewport");
             const pocketInspector = document.getElementById("protein-pocket-inspector");
             const pocketClearBtn = document.getElementById("protein-pocket-clear-selection");
+            const pocketShowOnlyBtn = document.getElementById("protein-pocket-show-only-toggle");
+            let showOnlySelectedPocket = false;
             let structureInitialized = false;
             const enable3DmolViewer = STRUCTURE_VIEWER_CONFIG.enable3DmolViewer;
             let nglStageInstance = null;
@@ -1763,11 +1768,17 @@
                     if (target) target.textContent = value || "-";
                 }
 
+                function setShowOnlySelectedPocket(on) {
+                    showOnlySelectedPocket = on;
+                    if (pocketShowOnlyBtn) pocketShowOnlyBtn.setAttribute("aria-pressed", on ? "true" : "false");
+                }
+
                 function clearPocketSelection() {
                     document.querySelectorAll(".pocket-card.is-selected-pocket").forEach(function (card) {
                         card.classList.remove("is-selected-pocket");
                     });
                     if (pocketInspector) pocketInspector.hidden = true;
+                    setShowOnlySelectedPocket(false);
                 }
 
                 function inspectPocket(card) {
@@ -1795,7 +1806,7 @@
                     setPocketInspectorField("layer", coreBtn ? (coreBtn.getAttribute("data-layer-label") || coreBtn.textContent || "") : "{% trans 'Pocket core' %}");
                     setPocketInspectorField("residues", card.getAttribute("data-pocket-residues") || "");
                     setPocketInspectorField("properties", card.getAttribute("data-pocket-properties") || "");
-                    if (pocketInspector) pocketInspector.hidden = true;
+                    if (pocketInspector) pocketInspector.hidden = false;
                 }
 
                 document.addEventListener("click", function (event) {
@@ -1806,6 +1817,9 @@
                     }
                     var btn = event.target.closest(".js-repr-toggle");
                     if (!btn) return;
+                    if (showOnlySelectedPocket && !btn.closest(".pocket-card.is-selected-pocket")) {
+                        return; // locked to the selected pocket -- ignore toggles on other pockets/residue sets
+                    }
                     var isPressed = btn.getAttribute("aria-pressed") === "true";
                     setReprButtonPressed(btn, !isPressed);
                     var selectedCard = btn.closest(".pocket-card.is-selected-pocket");
@@ -1813,6 +1827,19 @@
                         setPocketInspectorField("layer", btn.getAttribute("data-layer-label") || btn.textContent || "");
                     }
                 });
+
+                if (pocketShowOnlyBtn) {
+                    pocketShowOnlyBtn.addEventListener("click", function () {
+                        var selectedCard = document.querySelector(".pocket-card.is-selected-pocket");
+                        if (!selectedCard) return;
+                        setShowOnlySelectedPocket(!showOnlySelectedPocket);
+                        if (showOnlySelectedPocket) {
+                            document.querySelectorAll('.pocket-card .js-repr-toggle[aria-pressed="true"], .residueset-row .js-repr-toggle[aria-pressed="true"]').forEach(function (otherBtn) {
+                                if (!selectedCard.contains(otherBtn)) setReprButtonPressed(otherBtn, false);
+                            });
+                        }
+                    });
+                }
 
                 if (pocketClearBtn) {
                     pocketClearBtn.addEventListener("click", clearPocketSelection);

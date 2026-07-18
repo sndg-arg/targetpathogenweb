@@ -989,7 +989,15 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     text-transform: uppercase;
 }
 
-.sv-pocket-inspector-clear {
+.sv-pocket-inspector-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.sv-pocket-inspector-clear,
+.sv-pocket-inspector-toggle {
     appearance: none;
     border: 1px solid var(--tp-color-border);
     border-radius: 999px;
@@ -1001,6 +1009,13 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     font-weight: 700;
     line-height: 1;
     padding: 4px 8px;
+    transition: background 140ms ease, border-color 140ms ease, color 140ms ease;
+}
+
+.sv-pocket-inspector-toggle[aria-pressed="true"] {
+    background: color-mix(in srgb, var(--protein-accent) 14%, var(--tp-color-surface));
+    border-color: var(--protein-accent);
+    color: var(--protein-accent-ink);
 }
 
 .sv-pocket-inspector-title {

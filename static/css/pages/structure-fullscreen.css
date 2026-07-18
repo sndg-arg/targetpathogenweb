@@ -432,7 +432,15 @@ body:has(.sv-root) .tp-footer { display: none !important; }
     text-transform: uppercase;
 }
 
-.sv-pocket-inspector-clear {
+.sv-pocket-inspector-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.sv-pocket-inspector-clear,
+.sv-pocket-inspector-toggle {
     appearance: none;
     border: 1px solid var(--tp-color-border);
     border-radius: 999px;
@@ -444,6 +452,13 @@ body:has(.sv-root) .tp-footer { display: none !important; }
     font-weight: 700;
     line-height: 1;
     padding: 4px 8px;
+    transition: background 140ms ease, border-color 140ms ease, color 140ms ease;
+}
+
+.sv-pocket-inspector-toggle[aria-pressed="true"] {
+    background: color-mix(in srgb, var(--structure-accent) 14%, var(--tp-color-surface));
+    border-color: var(--structure-accent);
+    color: var(--structure-accent-ink);
 }
 
 .sv-pocket-inspector-title {
