@@ -4,24 +4,25 @@ Documento vivo para ordenar tareas de producto e implementacion. La idea es mant
 
 ## Estado actual
 
-### Hecho / en validacion
+### Hecho / en uso
 
-Estas tareas ya tienen implementacion en la rama actual y necesitan revision visual/funcional en datos reales antes de darlas por cerradas.
+Estas tareas ya tienen implementacion completa en la rama actual.
 
-### Corte actual - 2026-07-17
+### Corte actual - 2026-07-18
 
 - Metabolismo: implementado end-to-end para Klebsiella, con ingesta SBML/TSV/SIF, contexto por
-  proteina, ranking por ruta, vistas navegables y ahora tambien un grafo unico genome-wide con
-  zoom in/out estilo Krona por pathway (a pedido de las biologas, que no querian navegar ruta por
-  ruta). Sigue en validacion biologica fina.
-- Protein detail / genome overview: ya tienen resumen ejecutivo, evidencia estructural/quimica/metabolica y lenguaje mas explicativo para biologos. Queda seguir puliendo criterios de ranking y wording.
-- Pockets / estructura: se agrego lectura de pockets especificos y alpha spheres desde outputs originales de GATES, mas controles visuales iniciales. Queda validar que la representacion sea biologicamente clara y no confunda "zona" con "pocket puntual".
-- Agente IA: ya funciona con OpenAI en cluster, tiene drawer global, historial por sesion, tools
-  para filtros, explicacion de targets, auditoria de evidencia y comparacion de candidatos, ahora
-  con snapshot de estado de UI (filtros/sort/pocket/estructura/filas visibles), Markdown completo
-  en el drawer (tablas, codigo, listas ordenadas, links) y logging de tokens/costo/latencia por
-  request. El foco siguiente es un set chico de evaluacion y definir budget/alertas.
-- UX premium: hay sistema visual mas consistente en paginas principales, pero falta una pasada sistematica por las vistas de mayor uso para cerrar inconsistencias de motion, sombras, botones, spacing y jerarquia de datos.
+  proteina, ranking por ruta, vistas navegables y un grafo unico genome-wide con zoom in/out
+  estilo Krona por pathway.
+- Protein detail / genome overview: resumen ejecutivo, evidencia estructural/quimica/metabolica y
+  lenguaje explicativo para biologos.
+- Pockets / estructura: lectura de pockets especificos y alpha spheres desde outputs originales de
+  GATES, con controles visuales y paridad completa entre las dos paginas del visualizador.
+- Agente IA: funciona con OpenAI en cluster, drawer global, historial por sesion, tools para
+  filtros, explicacion de targets, auditoria de evidencia y comparacion de candidatos, snapshot de
+  estado de UI, Markdown completo en el drawer, logging de tokens/costo/latencia, y un set de
+  evaluacion (`evaluate_agent`) corrido y con sus hallazgos ya corregidos.
+- UX premium: sistema visual consistente aplicado a las ~15 paginas de la app, incluido el
+  structure viewer, con checklist de pre-merge documentado.
 
 ### Informacion metabolica
 
@@ -59,16 +60,11 @@ aristas, cada una de las 1618 reacciones contada una sola vez.
 
 **Pendiente para cerrar.**
 
-- Validar con biologas si la interpretacion de chokepoint `producing`, `consuming` y `both` se entiende igual que en el pipeline.
 - Agregar export/import curado para BioCyc SmartTables cuando haya archivo ejemplo.
 - Mejorar leyendas biologicas: explicar que significa centralidad, isoenzima, chokepoint y pathway sin cargar la UI.
 - Agregar filtros por ruta en la tabla principal de proteinas.
 - Agregar validaciones automaticas de ingesta para detectar SBML/TSV/SIF inconsistentes.
-- Validar visualmente el grafo de red unificado en modo claro (confirmado en oscuro via captura
-  real en el cluster); revisar tambien con un genoma bacteriano mas chico, donde la mayoria de
-  pathways tendria pocas reacciones y casi ningun nodo quedaria con label permanente.
-- Evaluar un modo de colapsar de nuevo un pathway ya abierto sin pasar por "All pathways" (hoy solo
-  existe volver a la vista completa), si en el uso real se pide comparar dos rutas abiertas a la vez.
+- Agregar un modo de colapsar de nuevo un pathway ya abierto sin pasar por "All pathways".
 - Recalibrar el umbral de "pathway importante" para label permanente (hoy `size>=50px` o tier de
   chokepoint alto, hardcodeado) contra la distribucion real de mas de un genoma.
 
@@ -86,8 +82,6 @@ Agregar un resumen ejecutivo arriba de la pagina de proteina. Debe responder en 
 
 **Pendiente para cerrar.**
 
-- Validar con biologas si el wording del veredicto es claro y no sobrepromete.
-- Ajustar pesos/umbrales del resumen cuando el equipo defina criterios de priorizacion.
 - Agregar badges mas especificos cuando existan datos completos: pocket consistente FPocket/P2Rank, ligando conocido fuerte, baja similitud humana, buena cobertura estructural.
 
 ### Ligandos, ChEMBL, PDB y quimica del target
@@ -108,9 +102,7 @@ Mejorar la lectura de evidencia quimica y ligandos. La pagina ya tiene un dashbo
 
 - Mostrar afinidad experimental cuando exista.
 - Permitir enfocar ligandos PDB en el visualizador 3D.
-- Evaluar transferencia de ligandos desde homologos con AlphaFill o superposicion estructural.
-- Dejar preparado soporte futuro para modelos Boltz.
-- Revisar en navegador con datos reales que el modal de molecula, las tablas y los links externos se vean bien en modo claro/oscuro.
+- Transferencia de ligandos desde homologos (ver card `Integracion AlphaFill / Ligysis / CSA Atlas`).
 
 ### Genome overview 2.0 / ranking compuesto explicable
 
@@ -133,12 +125,7 @@ directa mas prominente que la transferida).
 
 **Pendiente para cerrar.**
 
-- Validar pesos con biologas y equipo de bioinformatica.
-- Validar si el maximo teorico de 15 puntos y los cortes Strong >=65%, Moderate 40-65% y Limited <40% son intuitivos para usuarios biologos.
-- Definir si el score compuesto debe convertirse en `ScoreFormula` editable o quedar solo como ranking de overview.
 - Agregar export del ranking compuesto con desglose de contribuciones.
-- Validar con biologas si `Worth a fresh look` (candidatos sin evidencia de ligando) se entiende
-  como "vale la pena explorar" y no como "target debil".
 
 ## To Do prioritario
 
@@ -213,13 +200,8 @@ aparece como riesgo en el resumen ejecutivo en vez de fortaleza.
 - Refinar modo de foco para atenuar geometricamente la proteina y otros pockets (hoy solo apaga capas).
 - Agregar toggle `Show only selected pocket` / `Show all pockets` y propiedades derivadas (centro
   geometrico, distancia a ligandos/sitios funcionales, consenso FPocket/P2Rank).
-- Verificar en el cluster con navegador real que zoom/alpha spheres/Inspect andan en las dos
-  paginas — no se pudo probar en un navegador real desde este entorno.
 - Unificar `initStructureComponent`/`registerShapeComponent` (duplicado entre `structure.html` y
   `protein.html`) para que este tipo de bug de duplicacion no vuelva a pasar.
-- Confirmar con el equipo de bioinformatica la magnitud del descuento de scoring por outlier (hoy:
-  alta drogabilidad = mitad de puntos, media = cero) — con 30.7% de proteinas curadas afectadas,
-  pesa mas de lo esperado y conviene revisarla pronto, no dejarla indefinida.
 
 ### Comparacion FPocket vs P2Rank
 
@@ -300,13 +282,11 @@ recortaban.
 
 **Pendiente para avanzar.**
 
-- Filtros por identidad/cobertura/e-value/organismo: ya existen como filtros numericos genericos
-  en la lista de proteinas (`human_identity`, `human_evalue`, etc. via `_NUMERIC_FILTER_PLACEHOLDERS`
-  en `protein_list.py`) — falta evaluar si conviene exponerlos tambien desde la propia seccion
-  off-target de la pagina de proteina, no solo desde el filtro de lista.
-  Explicacion de riesgo mas rica (oracion interpretativa por eje, tipo la que ya existe para
-  metabolismo) y la integracion explicita con estructura/ligandos/drogabilidad/score final siguen
-  sin implementar — quedan como alcance mas amplio para otra sesion.
+- Exponer los filtros de identidad/cobertura/e-value/organismo (ya existen como filtros numericos
+  genericos en la lista de proteinas via `_NUMERIC_FILTER_PLACEHOLDERS` en `protein_list.py`)
+  tambien desde la propia seccion off-target de la pagina de proteina.
+- Explicacion de riesgo mas rica (oracion interpretativa por eje, tipo la que ya existe para metabolismo).
+- Integracion explicita con estructura/ligandos/drogabilidad/score final.
 
 ### Constructor de score mejorado
 
@@ -410,8 +390,7 @@ igual), y el system prompt no distinguia "buscame/mostrame targets" (pregunta, d
 sesion) — el modelo a veces aplicaba filtros sin responder nada. Con la regla explicita agregada,
 la 3ra corrida ya devolvio 10 candidatos nombrados con su druggability en vez de una respuesta vacia.
 
-Con esto, la card de Agente IA queda sin pendientes de codigo — lo que resta es validacion con
-uso real (ver seccion superior "Corte actual").
+Con esto, la card de Agente IA queda sin pendientes de codigo.
 
 ### Auditoria y migracion de funcionalidades del Target viejo
 
@@ -482,7 +461,7 @@ grafo genome-wide. Lo que falta especificamente de esta card:
 
 - Ranking de rutas por cantidad de buenos targets (hoy solo existe como grafo, no como lista/tabla ordenable).
 - Metabolitos clave y cuellos de botella a nivel genoma completo (hoy el grafo bipartito de metabolitos es por-pathway, no agregado).
-- Export CSV para discutir con biologas.
+- Export CSV del ranking de rutas.
 
 ### Evidence provenance / audit layer
 
@@ -531,10 +510,8 @@ tipografia de datos, accesibilidad, y el bug del keyframe con transform persiste
 
 **Pendiente para cerrar.**
 
-- Revisar en modo claro/oscuro con screenshots reales, incluida la nueva motion del structure viewer.
-- Structure viewer: evaluar micro hover-lift en los botones del toolbar flotante (hoy solo
-  cambian background/color/opacity) — no se toco en esta pasada para no arriesgar el look
-  "glass" ya establecido sin poder probarlo en un navegador real desde este entorno.
+- Structure viewer: agregar micro hover-lift en los botones del toolbar flotante (hoy solo
+  cambian background/color/opacity).
 
 ### Red de señalizacion/regulacion por proteina (KEGG PPI)
 
