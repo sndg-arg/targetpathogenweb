@@ -1352,6 +1352,8 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     border: 1px solid var(--tp-color-border-soft);
     background: var(--tp-color-surface-panel);
     overflow: hidden;
+    position: relative;
+    z-index: 1;
 }
 
 #viewport canvas {
@@ -1366,6 +1368,15 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     background: var(--tp-color-surface);
     padding: 8px;
     position: relative;
+    overflow: hidden;
+}
+
+.structure-viewport-glow {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background: radial-gradient(ellipse at 50% 35%, color-mix(in srgb, var(--protein-accent) 8%, transparent), transparent 65%);
 }
 
 .viewport-overlay {
@@ -1380,18 +1391,19 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     pointer-events: none;
 }
 
+.structure-viewport-hint {
+    margin: 8px 0 0;
+    font-size: 0.82rem;
+    color: var(--tp-color-text-soft);
+    text-align: center;
+}
+
 .structure-actions {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
     margin-bottom: 10px;
     align-items: center;
-}
-
-.structure-toolbar {
-    border-color: var(--tp-color-border);
-    border-radius: 14px;
-    background: var(--tp-color-surface-soft);
 }
 
 .structure-actions .btn {
@@ -1403,6 +1415,13 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     justify-content: center;
     line-height: 1.2;
     font-weight: 600;
+    transition: transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.structure-actions .btn:hover,
+.structure-actions .btn:focus-visible {
+    transform: translateY(-1px);
 }
 
 .structure-actions a.btn {
@@ -1417,87 +1436,17 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     white-space: nowrap;
 }
 
-.structure-actions .structure-reset-btn {
-    min-width: 0;
-    color: var(--tp-color-text-muted);
-    font-weight: 500;
-}
-
-.structure-actions .structure-spin-btn {
-    min-width: 0;
-    font-weight: 500;
-}
-
-.structure-actions .structure-spin-btn.is-active {
-    color: var(--tp-color-brand-700);
-    border-color: var(--tp-color-brand-300);
-    background: var(--tp-color-brand-050);
-}
-
-.structure-actions .structure-reset-btn:disabled {
-    opacity: 0.4;
-}
-
-.protein-page .structure-icon-btn.tp-btn--outline,
-.protein-page .structure-reset-btn.tp-btn--outline {
-    color: var(--tp-color-text-muted) !important;
-    background: transparent !important;
-    border-color: transparent !important;
-    box-shadow: none !important;
-    font-weight: 500 !important;
-}
-
-.protein-page .structure-icon-btn.tp-btn--outline:hover,
-.protein-page .structure-reset-btn.tp-btn--outline:hover {
-    color: var(--tp-color-text-primary) !important;
-    background: var(--tp-color-surface-soft) !important;
-    border-color: var(--tp-color-border-soft) !important;
-}
-
-.protein-page .structure-reset-btn:disabled {
-    opacity: 0.35 !important;
-    cursor: default !important;
-}
-
-.protein-page .structure-download-btn.tp-btn--outline {
+.protein-page .structure-download-btn.tp-btn--neutral {
     color: var(--tp-color-text-primary) !important;
     border-color: var(--tp-color-border-strong) !important;
     background: var(--tp-color-surface) !important;
 }
 
-.protein-page .structure-download-btn.tp-btn--outline:hover,
-.protein-page .structure-download-btn.tp-btn--outline:focus-visible {
+.protein-page .structure-download-btn.tp-btn--neutral:hover,
+.protein-page .structure-download-btn.tp-btn--neutral:focus-visible {
     color: var(--tp-color-brand-800) !important;
     border-color: var(--tp-color-brand-600) !important;
     background: var(--tp-color-brand-050) !important;
-}
-
-.structure-mode-switch {
-    display: inline-flex;
-    gap: 6px;
-    padding: 3px;
-    border: 1px solid var(--tp-color-border-strong);
-    border-radius: 12px;
-    background: var(--tp-color-surface-muted);
-}
-
-.structure-mode-switch .btn {
-    min-width: 120px;
-    padding-left: 1rem;
-    padding-right: 1rem;
-}
-
-.structure-zoom-controls {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.structure-icon-btn {
-    width: 54px;
-    min-width: 54px;
-    height: var(--tp-ui-control-height);
-    padding: 0;
 }
 
 .structure-icon {
@@ -1510,12 +1459,6 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     stroke-linecap: round;
     stroke-linejoin: round;
     margin: 0 auto;
-    transition: transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
-}
-
-.structure-icon-btn:hover .structure-icon,
-.structure-icon-btn:focus-visible .structure-icon {
-    transform: scale(1.04);
 }
 
 .structure-fullscreen-link {
@@ -1527,13 +1470,6 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     height: 16px;
     margin: 0;
     flex-shrink: 0;
-}
-
-.structure-mode-switch .btn.is-active {
-    background: var(--tp-color-surface);
-    border-color: var(--protein-accent-border);
-    color: var(--protein-accent-ink);
-    font-weight: 600;
 }
 
 .structure-loading-note {
@@ -2906,10 +2842,6 @@ body.residue-modal-open {
         row-gap: 10px;
     }
 
-    .structure-mode-switch .btn {
-        min-width: 108px;
-    }
-
     .structure-actions .structure-action-btn {
         min-width: 152px;
     }
@@ -2977,17 +2909,6 @@ body.residue-modal-open {
         width: 100%;
     }
 
-    .structure-mode-switch,
-    .structure-zoom-controls {
-        width: 100%;
-    }
-
-    .structure-mode-switch .btn,
-    .structure-zoom-controls .btn {
-        flex: 1;
-        min-width: 0;
-    }
-
     .structure-actions {
         display: grid;
     }
@@ -3042,7 +2963,6 @@ body.residue-modal-open {
 .tp-dark .protein-page .btn-copy-seq.tp-btn--outline,
 .tp-dark .protein-page .features-reset-btn.tp-btn--outline,
 .tp-dark .protein-page #copy-residue-list.tp-btn--outline,
-.tp-dark .protein-page .structure-icon-btn.tp-btn--outline,
 .tp-dark .protein-page .structure-action-btn.tp-btn--outline {
     color: var(--tp-color-text-primary) !important;
     border-color: var(--tp-color-border-strong) !important;
@@ -3056,46 +2976,11 @@ body.residue-modal-open {
 .tp-dark .protein-page .features-reset-btn.tp-btn--outline:focus-visible,
 .tp-dark .protein-page #copy-residue-list.tp-btn--outline:hover,
 .tp-dark .protein-page #copy-residue-list.tp-btn--outline:focus-visible,
-.tp-dark .protein-page .structure-icon-btn.tp-btn--outline:hover,
-.tp-dark .protein-page .structure-icon-btn.tp-btn--outline:focus-visible,
 .tp-dark .protein-page .structure-action-btn.tp-btn--outline:hover,
 .tp-dark .protein-page .structure-action-btn.tp-btn--outline:focus-visible {
     color: var(--tp-color-brand-900) !important;
     border-color: var(--tp-color-brand-600) !important;
     background: color-mix(in srgb, var(--tp-color-brand-600) 14%, var(--tp-color-surface-muted)) !important;
-}
-
-/* Structure mode switch — pill toggle */
-.tp-dark .structure-mode-switch {
-    background: var(--tp-color-surface-muted);
-    border-color: var(--tp-color-border);
-    box-shadow: inset var(--tp-shadow-xs);
-}
-
-.tp-dark .structure-mode-switch .btn:not(.is-active) {
-    color: var(--tp-color-text-muted) !important;
-    background: transparent !important;
-    border-color: transparent !important;
-    box-shadow: none !important;
-}
-
-.tp-dark .structure-mode-switch .btn:not(.is-active):hover {
-    color: var(--tp-color-text-primary) !important;
-    background: color-mix(in srgb, var(--tp-color-brand-800) 10%, transparent) !important;
-}
-
-.tp-dark .structure-mode-switch .btn.is-active {
-    background: linear-gradient(180deg, var(--tp-color-brand-700) 0%, var(--tp-color-brand-800) 100%) !important;
-    border-color: var(--tp-color-brand-600) !important;
-    color: var(--tp-color-surface) !important;
-    box-shadow: var(--tp-shadow-sm) !important;
-}
-
-/* Structure toolbar */
-.tp-dark .structure-toolbar {
-    background: var(--tp-color-surface-soft);
-    border-color: var(--tp-color-border);
-    box-shadow: none;
 }
 
 /* Structure viewport — subtle accent glow */
