@@ -4,7 +4,7 @@
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20260710-genome-rethink1">
-    <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20260710-select-fix1">
+    <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20260718-pathwayfilter1">
     <link rel="stylesheet" href="{% static 'css/pages/metabolic-network-genome.css' %}?v=20260715-network4">
 {% endblock %}
 
@@ -22,7 +22,14 @@
                 <p class="genome-description">{{ assembly.name }}{% if assembly.description %} - {{ assembly.description }}{% endif %}</p>
                 <div class="genome-hero-actions">
                     <a href="{{ metabolism_url }}" class="btn tp-btn tp-btn--outline">{% trans "All pathways" %}</a>
-                    <a href="{{ proteins_url }}" class="btn tp-btn tp-btn--primary">{% trans "Protein ranking" %}</a>
+                    <a href="{{ proteins_url }}" class="btn tp-btn tp-btn--outline">{% trans "Protein ranking" %}</a>
+                    <form method="post" action="{{ proteins_url }}" class="metabolism-pathway-filter-form">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="add_special_filter">
+                        <input type="hidden" name="special_kind" value="pathway">
+                        <input type="hidden" name="special_value" value="{{ pathway.source }}:{{ pathway.external_id }}">
+                        <button type="submit" class="btn tp-btn tp-btn--primary" title="{% trans "Show only proteins with a reaction in this pathway on the protein list." %}">{% trans "Filter protein list by this pathway" %}</button>
+                    </form>
                 </div>
             </div>
         </div>

@@ -243,6 +243,24 @@ def build_special_filter_payload(kind, value):
             "special_value": normalized,
             "display_name": normalized,
         }
+    if kind == "pathway":
+        from tpweb.models.Metabolism import MetabolicPathway
+
+        if ":" not in value:
+            return None
+        source, external_id = value.split(":", 1)
+        pathway = MetabolicPathway.objects.filter(source=source, external_id=external_id).first()
+        if pathway is None:
+            return None
+        return {
+            "id": f"special:pathway:{source}:{external_id}",
+            "score_param_name": "metabolic_pathway",
+            "name": pathway.name,
+            "type": "special",
+            "special_key": "pathway_filter",
+            "special_value": value,
+            "display_name": pathway.name,
+        }
     return None
 
 
@@ -463,6 +481,17 @@ def apply_selected_parameter_filters(queryset, selected_parameters):
                 dbxrefs__dbxref__accession__iexact=go_value,
             )
         filtered_queryset = filtered_queryset.filter(go_query)
+
+    pathway_values = [value for value in special_groups.get("pathway_filter", []) if value and ":" in value]
+    if pathway_values:
+        pathway_query = Q()
+        for pathway_value in pathway_values:
+            source, external_id = pathway_value.split(":", 1)
+            pathway_query |= Q(
+                metabolic_reactions__reaction__pathways__source=source,
+                metabolic_reactions__reaction__pathways__external_id=external_id,
+            )
+        filtered_queryset = filtered_queryset.filter(pathway_query)
 
     for parameter in selected_parameters:
         if _selected_parameter_kind(parameter) != "numeric":
