@@ -217,16 +217,24 @@ un ligando real vs. un aditivo de cristalizacion (sulfato, glicerol, iones) requ
 exclusion curada que no puedo validar sin datos reales de estructuras — mostrar una distancia falsa
 a un ion seria peor que no mostrar nada.
 
+Unificacion parcial de la capa de inspector de pockets: `setReprButtonPressed`, `inspectPocket`,
+`clearPocketSelection`, el toggle `Show only selected pocket` y el listener global de click —
+exactamente el codigo donde vivio la regresion real de `pocketInspector.hidden` — se extrajeron a
+`static/js/pages/pocket-inspector.js` (`window.tpPocketInspector.createPocketInspector(...)`), usado
+ahora por las dos paginas en vez de mantener ~100 lineas duplicadas. Funciona igual con NGL o con el
+fallback 3Dmol.js de `protein.html` porque solo llama a `window.toogle_view`/`window.ngl_zoom_to`,
+que cada pagina/renderer ya expone. **No** se unifico `initStructureComponent`/
+`registerShapeComponent` en si (el init de representaciones NGL, el fallback 3Dmol.js completo, y el
+switching alt/primary basado en atributos de tabla vs. el picker multi-estructura) — alcance real,
+descubierto al leer el codigo completo, mucho mayor al que sugeria esta linea: son dos arquitecturas
+de inicializacion distintas, no una funcion duplicada de ~150 lineas. Fusionarlas es alto riesgo de
+romper el visualizador de las dos paginas a la vez sin poder probar en un navegador real.
+
 **Pendiente para cerrar.**
 
-- Unificar `initStructureComponent`/`registerShapeComponent` (duplicado entre `structure.html` y
-  `protein.html`). Alcance real, descubierto al leer el codigo completo, mayor al que sugeria esta
-  misma linea: `protein.html` tiene ademas un fallback legado a 3Dmol.js que `structure.html` no
-  tiene, y un mecanismo de switching alt/primary basado en atributos de una tabla que tampoco existe
-  en `structure.html` (que en cambio tiene una lista de multiples estructuras con su propio picker).
-  No es una funcion duplicada de ~150 lineas, es una unificacion de dos sistemas con superficies
-  distintas — alto riesgo de romper el visualizador de las dos paginas a la vez sin poder probar en
-  un navegador real. Requiere decidir con la usuaria si vale la pena antes de tocarlo a ciegas.
+- Unificar el resto de `initStructureComponent`/`registerShapeComponent` (init de representaciones
+  NGL, fallback 3Dmol.js, switching alt/primary vs. picker multi-estructura) si se decide que vale
+  la pena el riesgo — requiere verificacion visual en vivo en las dos paginas.
 
 ### Comparacion FPocket vs P2Rank
 
