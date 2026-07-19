@@ -16,7 +16,11 @@ from tpweb.models.Metabolism import GeneReactionLink, MetabolicImportRun, Reacti
 from tpweb.services.binder_summary import create_binders_dict
 from tpweb.services.metabolism_summary import build_target_metabolic_sentence
 from tpweb.services.genome_workspace import genome_url_slug
-from tpweb.services.structure_sources import structure_matches_identifier
+from tpweb.services.structure_sources import (
+    STRUCTURE_SOURCE_EXPERIMENTAL,
+    STRUCTURE_SOURCE_MIXED,
+    structure_matches_identifier,
+)
 
 _SCORE_META = [
     # (score_name, display_label, category, good_values, bad_values, tooltip)
@@ -419,9 +423,18 @@ def build_target_executive_summary(
         )
         signal_score += 1
     elif human_offtarget == "hit":
+        identity_value = _score_float(raw_scores, "human_identity")
         identity = _format_score_value(_raw_score(raw_scores, "human_identity"))
-        detail = f"Top human hit identity: {identity}%." if identity else "A significant human homolog was found."
-        _append_summary_item(risks, "Human similarity", detail, "risk")
+        if identity_value is not None and identity_value < 30:
+            _append_summary_item(
+                risks,
+                "Low human similarity",
+                f"A human hit was flagged, but identity is only {identity}% - a weak match, lower risk than a close homolog.",
+                "watch",
+            )
+        else:
+            detail = f"Top human hit identity: {identity}%." if identity else "A significant human homolog was found."
+            _append_summary_item(risks, "Human similarity", detail, "risk")
 
     if microbiome_context:
         gut_offtarget = _raw_score(raw_scores, "gut_microbiome_offtarget").lower()
@@ -490,6 +503,20 @@ def build_target_executive_summary(
     elif not selected_pocket_evidence:
         _append_summary_item(missing, "No P2Rank pocket score", "No second computational pocket-prediction value is available.", "missing", "#section-target-profile")
 
+    if (
+        fpocket_score is not None and fpocket_score >= 0.7
+        and p2rank_score is not None and p2rank_score >= 0.5
+        and not pocket_size_outlier
+    ):
+        _append_summary_item(
+            strengths,
+            "Pocket consensus: FPocket + P2Rank agree",
+            f"Both independent pocket predictors flag a binding site (FPocket {fpocket_score:.2f}, P2Rank {p2rank_score:.2f}) - more reliable than either signal alone.",
+            "good",
+            "#section-target-profile",
+        )
+        signal_score += 1
+
     if structure_summary and structure_summary.get("has_structure"):
         _append_summary_item(
             strengths,
@@ -499,6 +526,15 @@ def build_target_executive_summary(
             "#section-structure",
         )
         signal_score += 1
+        if structure_summary.get("source") in (STRUCTURE_SOURCE_EXPERIMENTAL, STRUCTURE_SOURCE_MIXED):
+            _append_summary_item(
+                strengths,
+                "Experimental structure available",
+                "At least one PDB experimental structure is loaded, not just a predicted model - stronger structural coverage than AlphaFold/ColabFold alone.",
+                "good",
+                "#section-structure",
+            )
+            signal_score += 1
     else:
         _append_summary_item(
             missing,
@@ -525,6 +561,29 @@ def build_target_executive_summary(
             _append_summary_item(risks, "Only proposed compounds", f"{proposed_count} ZINC similarity-based candidates, no stronger ligand evidence.", "watch", "#section-binders")
     else:
         _append_summary_item(missing, "No ligand evidence", "No experimental PDB ligands, measured ChEMBL bioactivity, or proposed ZINC compound records are available.", "missing", "#section-binders")
+
+    pdb_direct = (binders or {}).get("pdb_direct") or []
+    chembl_direct = (binders or {}).get("chembl_direct") or []
+    strong_chembl = [b for b in chembl_direct if (b.get("score") or 0) >= 7]
+    if pdb_direct:
+        _append_summary_item(
+            strengths,
+            "Strong known ligand: co-crystal structure",
+            f"{len(pdb_direct)} PDB record(s) show a ligand actually co-crystallized with this exact protein - real experimental evidence, not a computational prediction.",
+            "good",
+            "#section-binders",
+        )
+        signal_score += 1
+    elif strong_chembl:
+        top_chembl = max(strong_chembl, key=lambda b: b.get("score") or 0)
+        _append_summary_item(
+            strengths,
+            "Strong known ligand (ChEMBL)",
+            f"Direct bioactivity record with pchembl {top_chembl.get('score'):.2f} (sub-100nM potency range) measured on this exact protein.",
+            "good",
+            "#section-binders",
+        )
+        signal_score += 1
 
     if not strengths:
         verdict = "Evidence is still sparse for this target."
