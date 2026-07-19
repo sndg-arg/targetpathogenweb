@@ -58,13 +58,16 @@ grandes/chokepoint-densos quedan con nombre visible; el resto via hover) porque 
 nodos de un genoma real volvia el grafo ilegible. Verificado con KpATCC43816: 79 nodos, 350
 aristas, cada una de las 1618 reacciones contada una sola vez.
 
+Suma reciente: tooltips explicando centralidad/isoenzima/chokepoint/pathway directamente en la UI
+(metric-pills, leyenda del grafo, inspector), filtro por ruta en la tabla principal de proteinas
+(boton "Filter protein list by this pathway" en las cards de `metabolism.html` y en el hero de
+`metabolism_pathway.html`, reusando el dispatcher existente de filtros especiales) y validaciones
+automaticas en `load_metabolism` (SBML sin reacciones, genes del TSV sin locus tag en el genoma,
+nodos de `network.sif` sin reaccion correspondiente, columna de centralidad ausente).
+
 **Pendiente para cerrar.**
 
 - Agregar export/import curado para BioCyc SmartTables cuando haya archivo ejemplo.
-- Mejorar leyendas biologicas: explicar que significa centralidad, isoenzima, chokepoint y pathway sin cargar la UI.
-- Agregar filtros por ruta en la tabla principal de proteinas.
-- Agregar validaciones automaticas de ingesta para detectar SBML/TSV/SIF inconsistentes.
-- Agregar un modo de colapsar de nuevo un pathway ya abierto sin pasar por "All pathways".
 - Recalibrar el umbral de "pathway importante" para label permanente (hoy `size>=50px` o tier de
   chokepoint alto, hardcodeado) contra la distribucion real de mas de un genoma.
 
@@ -79,10 +82,10 @@ Agregar un resumen ejecutivo arriba de la pagina de proteina. Debe responder en 
 - Links internos a las secciones que justifican cada punto.
 - Conteo interno de senales positivas para orientar la lectura.
 - Integracion visual con el encabezado y el sistema de paneles de la pagina de proteina.
-
-**Pendiente para cerrar.**
-
-- Agregar badges mas especificos cuando existan datos completos: pocket consistente FPocket/P2Rank, ligando conocido fuerte, baja similitud humana, buena cobertura estructural.
+- Badges especificos cuando hay datos completos: pocket consistente FPocket/P2Rank, estructura
+  experimental disponible, baja similitud humana (<30% identidad, distinto tono del riesgo generico
+  de similitud humana), ligando conocido fuerte (co-cristal PDB, o registro directo de ChEMBL con
+  pchembl >= 7).
 
 ### Ligandos, ChEMBL, PDB y quimica del target
 
@@ -97,10 +100,12 @@ Mejorar la lectura de evidencia quimica y ligandos. La pagina ya tiene un dashbo
 - Acceso directo al detalle interno de cada ligando.
 - Acciones visuales usando variantes existentes `tp-btn`.
 - Links externos en tablas usando chips del sistema (`tp-chip`).
+- Afinidad experimental estimada (nM/µM/mM) junto al pchembl crudo, en la tabla ChEMBL, el detalle
+  de ligando y el chip resumen — conversion directa de `pchembl = -log10(concentracion molar)`,
+  dato ya cargado, sin ingesta nueva.
 
 **Pendiente para cerrar.**
 
-- Mostrar afinidad experimental cuando exista.
 - Permitir enfocar ligandos PDB en el visualizador 3D.
 - Transferencia de ligandos desde homologos (ver card `Integracion AlphaFill / Ligysis / CSA Atlas`).
 
@@ -121,11 +126,9 @@ de kinasas/GPCRs) independientemente de si eran buenos targets bacterianos — a
 candidatos druggable/selectivos sin evidencia quimica explorada todavia. Scoring compartido
 entre ambos rankings via `_score_proteins`/`_format_score_items`. Hero simplificado (2 acciones
 primarias, resto en fila secundaria) y jerarquia tipografica en `Evidence available` (evidencia
-directa mas prominente que la transferida).
-
-**Pendiente para cerrar.**
-
-- Agregar export del ranking compuesto con desglose de contribuciones.
+directa mas prominente que la transferida). Export del ranking compuesto en CSV
+(`?export=ranking_csv`) con desglose completo de señales y cautions por proteina (no solo los
+6 factores capados que se muestran en la card).
 
 ## To Do prioritario
 
@@ -195,13 +198,22 @@ curado original: 30.7% de proteinas curadas quedan marcadas — confirmado con c
 druggable elegido es outlier, el sub-score de drogabilidad se descuenta en `_score_proteins` y
 aparece como riesgo en el resumen ejecutivo en vez de fortaleza.
 
+Toggle `Show only selected pocket` agregado en ambas paginas: al activarlo, fuerza a ocultar la
+capa activa de todos los otros pockets y bloquea sus botones de capa hasta desactivarlo. De paso,
+mientras se implementaba se encontro y corrigio una regresion real: `inspectPocket()` terminaba
+poniendo `pocketInspector.hidden = true` (volvia a esconder el panel que acababa de llenar de
+datos), reintroducida por un commit posterior no relacionado que revertia sin querer un fix
+anterior.
+
 **Pendiente para cerrar.**
 
 - Refinar modo de foco para atenuar geometricamente la proteina y otros pockets (hoy solo apaga capas).
-- Agregar toggle `Show only selected pocket` / `Show all pockets` y propiedades derivadas (centro
-  geometrico, distancia a ligandos/sitios funcionales, consenso FPocket/P2Rank).
+- Agregar propiedades derivadas al toggle de foco (centro geometrico, distancia a
+  ligandos/sitios funcionales, consenso FPocket/P2Rank).
 - Unificar `initStructureComponent`/`registerShapeComponent` (duplicado entre `structure.html` y
-  `protein.html`) para que este tipo de bug de duplicacion no vuelva a pasar.
+  `protein.html`) para que este tipo de bug de duplicacion no vuelva a pasar. Riesgo alto para
+  tocar sin poder probar en navegador real (toca internals de NGL en dos paginas grandes) — dejar
+  para una sesion con verificacion visual en vivo.
 
 ### Comparacion FPocket vs P2Rank
 
@@ -507,11 +519,8 @@ posicionamiento de cualquier `<select>` nativo en un ancestro — afectaba a Gen
 
 Checklist de pre-merge documentado en `docs/VISUAL_CHECKLIST.md` (color/tokens, profundidad/motion,
 tipografia de datos, accesibilidad, y el bug del keyframe con transform persistente para no repetirlo).
-
-**Pendiente para cerrar.**
-
-- Structure viewer: agregar micro hover-lift en los botones del toolbar flotante (hoy solo
-  cambian background/color/opacity).
+Structure viewer: micro hover-lift agregado en los botones del toolbar flotante (antes solo
+cambiaban background/color/opacity).
 
 ### Red de señalizacion/regulacion por proteina (KEGG PPI)
 
