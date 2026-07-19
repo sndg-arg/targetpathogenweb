@@ -122,6 +122,11 @@ body:has(.sv-root) .tp-footer { display: none !important; }
     white-space: nowrap;
 }
 .sv-meta-pill--dim { opacity: 0.54; }
+.sv-meta-pill--focus {
+    opacity: 1;
+    color: var(--tp-color-rose-050);
+    background: color-mix(in srgb, var(--tp-color-rose-500) 55%, var(--sv-btn-bg));
+}
 
 /* ── 5. Loading / Legend (overlaid on canvas) ── */
 .sv-loading-note {

@@ -1,4 +1,6 @@
 
+import math
+
 from django.shortcuts import render
 from django.http import Http404
 from django.views import View
@@ -152,6 +154,57 @@ def _residue_set_core_points(residue_set):
             if atom_set.atom_id:
                 atoms.append(atom_set.atom)
     return _atom_points(atoms)
+
+
+# Two pocket-core centers within this range are treated as predicting the same
+# binding site, regardless of method (FPocket alpha-sphere cloud vs P2Rank residue cloud).
+_POCKET_CONSENSUS_DISTANCE = 8.0
+
+
+def _pocket_center(points):
+    coords = []
+    for point in points or []:
+        x = _point_float(point, "x")
+        y = _point_float(point, "y")
+        z = _point_float(point, "z")
+        if x is not None and y is not None and z is not None:
+            coords.append((x, y, z))
+    if not coords:
+        return None
+    n = len(coords)
+    return (
+        sum(c[0] for c in coords) / n,
+        sum(c[1] for c in coords) / n,
+        sum(c[2] for c in coords) / n,
+    )
+
+
+def _center_distance(a, b):
+    if a is None or b is None:
+        return None
+    return math.sqrt(sum((a[i] - b[i]) ** 2 for i in range(3)))
+
+
+def _nearest_named_center(center, named_centers):
+    """named_centers: [(label, center), ...]. Returns (label, distance) for the closest, or None."""
+    best = None
+    for label, other in named_centers:
+        distance = _center_distance(center, other)
+        if distance is None:
+            continue
+        if best is None or distance < best[1]:
+            best = (label, distance)
+    return best
+
+
+def _format_pocket_center(center):
+    if center is None:
+        return ""
+    return f"Center: ({center[0]:.1f}, {center[1]:.1f}, {center[2]:.1f})"
+
+
+def _join_nonempty(parts, sep=" | "):
+    return sep.join(part for part in parts if part)
 
 
 def _fpocket_alpha_points(pdbobj, pocket_name):
@@ -417,6 +470,7 @@ def pdb_structure(
             )
         else:
             p.size_outlier_note = ""
+        p.geometric_center = _pocket_center(p.core_points)
         p.residues = []
         data = []
 
@@ -439,8 +493,6 @@ def pdb_structure(
             graphic_features.append(gf)
 
     context["pockets"].sort(key=lambda p: p.druggability or 0, reverse=True)
-    for p in context["pockets"]:
-        p.inspector_properties = _inspector_property_summary(p, _FPOCKET_INSPECTOR_PROPERTIES)
 
     for p2 in context["p2_pockets"]:
         p2.p2score = [x.value for x in p2.properties.all() if x.property == p2s][0]
@@ -448,6 +500,7 @@ def pdb_structure(
         p2.atoms = []
         p2.core_atoms = _residue_set_core_atoms(p2)
         p2.core_points = _residue_set_core_points(p2)
+        p2.geometric_center = _pocket_center(p2.core_points)
         p2.residues = []
         data = []
 
@@ -470,8 +523,6 @@ def pdb_structure(
             graphic_features.append(gf_p2)
 
     context["p2_pockets"].sort(key=lambda p: p.probability or 0, reverse=True)
-    for p2 in context["p2_pockets"]:
-        p2.inspector_properties = _inspector_property_summary(p2, _P2RANK_INSPECTOR_PROPERTIES)
 
     rss = PDBResidueSet.objects.prefetch_related(
         "properties__property",
@@ -480,15 +531,16 @@ def pdb_structure(
         (~Q(residue_set__name="FPocketPocket")) &
         (~Q(residue_set__name="P2RankPocket")))
     context["residuesets"] = []
-    for rs in rss:
-        context["residuesets"].append({"rs_name": rs.residue_set.name,
-                                       "name": rs.name,
-                                       "description": rs.description,
+    for rs_obj in rss:
+        context["residuesets"].append({"rs_name": rs_obj.residue_set.name,
+                                       "name": rs_obj.name,
+                                       "description": rs_obj.description,
                                        "residues": [x.residue.resid
-                                                    for x in rs.residue_set_residue.all()]})
+                                                    for x in rs_obj.residue_set_residue.all()],
+                                       "center": _pocket_center(_residue_set_core_points(rs_obj))})
         gf = {
             "data": [{"x": x.residue.resid, "y": x.residue.resid}
-                     for x in rs.residue_set_residue.all()],
+                     for x in rs_obj.residue_set_residue.all()],
             "name": "P2Rank",
             "className": "test3",
             "color": generar_color_aleatorio(),
@@ -498,6 +550,46 @@ def pdb_structure(
         graphic_features.append(gf)
     context["pdbid"] = pdbobj.code.lower()
     context["residuesets"] = sorted(context["residuesets"], key=lambda x: x["rs_name"])
+
+    # Derived pocket properties (geometric center, FPocket/P2Rank consensus, nearest
+    # annotated functional site) -- computed here, after every pocket/site geometric
+    # center is known, and appended to the same inspector_properties summary string
+    # the sidebar already renders per pocket.
+    fpocket_centers = [(f"FPocket {p.name}", p.geometric_center) for p in context["pockets"]]
+    p2_centers = [(f"P2Rank {p2.name}", p2.geometric_center) for p2 in context["p2_pockets"]]
+    site_centers = [
+        (rs_dict["rs_name"], rs_dict["center"]) for rs_dict in context["residuesets"] if rs_dict.get("center")
+    ]
+
+    for p in context["pockets"]:
+        consensus = _nearest_named_center(p.geometric_center, p2_centers)
+        consensus_note = (
+            f"Overlaps a P2Rank site (Δ {consensus[1]:.1f} Å)"
+            if consensus and consensus[1] <= _POCKET_CONSENSUS_DISTANCE else ""
+        )
+        nearest_site = _nearest_named_center(p.geometric_center, site_centers)
+        site_note = f"Nearest annotated site: {nearest_site[0]} (Δ {nearest_site[1]:.1f} Å)" if nearest_site else ""
+        p.inspector_properties = _join_nonempty([
+            _inspector_property_summary(p, _FPOCKET_INSPECTOR_PROPERTIES),
+            _format_pocket_center(p.geometric_center),
+            consensus_note,
+            site_note,
+        ])
+
+    for p2 in context["p2_pockets"]:
+        consensus = _nearest_named_center(p2.geometric_center, fpocket_centers)
+        consensus_note = (
+            f"Overlaps an FPocket site (Δ {consensus[1]:.1f} Å)"
+            if consensus and consensus[1] <= _POCKET_CONSENSUS_DISTANCE else ""
+        )
+        nearest_site = _nearest_named_center(p2.geometric_center, site_centers)
+        site_note = f"Nearest annotated site: {nearest_site[0]} (Δ {nearest_site[1]:.1f} Å)" if nearest_site else ""
+        p2.inspector_properties = _join_nonempty([
+            _inspector_property_summary(p2, _P2RANK_INSPECTOR_PROPERTIES),
+            _format_pocket_center(p2.geometric_center),
+            consensus_note,
+            site_note,
+        ])
 
     context["method"] = _METHOD_MAP.get((pdbobj.experiment or "").upper(), "Structure model")
     try:
