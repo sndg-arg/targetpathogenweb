@@ -103,10 +103,12 @@ Mejorar la lectura de evidencia quimica y ligandos. La pagina ya tiene un dashbo
 - Afinidad experimental estimada (nM/µM/mM) junto al pchembl crudo, en la tabla ChEMBL, el detalle
   de ligando y el chip resumen — conversion directa de `pchembl = -log10(concentracion molar)`,
   dato ya cargado, sin ingesta nueva.
+- Enfocar ligandos PDB en el visualizador 3D: el boton "Open crystal" ahora pasa el codigo CCD
+  del ligando como `?focus_ligand=`, y el visor lo selecciona (`resname`), lo resalta y centra
+  la camara apenas carga la estructura.
 
 **Pendiente para cerrar.**
 
-- Permitir enfocar ligandos PDB en el visualizador 3D.
 - Transferencia de ligandos desde homologos (ver card `Integracion AlphaFill / Ligysis / CSA Atlas`).
 
 ### Genome overview 2.0 / ranking compuesto explicable
@@ -205,15 +207,26 @@ poniendo `pocketInspector.hidden = true` (volvia a esconder el panel que acababa
 datos), reintroducida por un commit posterior no relacionado que revertia sin querer un fix
 anterior.
 
+Foco geometrico: al inspeccionar un pocket, el cartoon principal ahora baja su opacidad (antes
+solo se apagaban capas de otros pockets, la proteina en si quedaba igual de opaca). Propiedades
+derivadas agregadas al panel de inspector (mismo campo `Pocket properties` que ya se mostraba):
+centro geometrico de cada pocket, consenso FPocket/P2Rank (centros a menos de ~8 Å se marcan como
+el mismo sitio, sin importar el metodo) y sitio funcional anotado mas cercano, cuando hay
+`residuesets` cargados. No se implemento distancia a ligandos (HETATM): identificar cual HETATM es
+un ligando real vs. un aditivo de cristalizacion (sulfato, glicerol, iones) requiere una lista de
+exclusion curada que no puedo validar sin datos reales de estructuras — mostrar una distancia falsa
+a un ion seria peor que no mostrar nada.
+
 **Pendiente para cerrar.**
 
-- Refinar modo de foco para atenuar geometricamente la proteina y otros pockets (hoy solo apaga capas).
-- Agregar propiedades derivadas al toggle de foco (centro geometrico, distancia a
-  ligandos/sitios funcionales, consenso FPocket/P2Rank).
 - Unificar `initStructureComponent`/`registerShapeComponent` (duplicado entre `structure.html` y
-  `protein.html`) para que este tipo de bug de duplicacion no vuelva a pasar. Riesgo alto para
-  tocar sin poder probar en navegador real (toca internals de NGL en dos paginas grandes) — dejar
-  para una sesion con verificacion visual en vivo.
+  `protein.html`). Alcance real, descubierto al leer el codigo completo, mayor al que sugeria esta
+  misma linea: `protein.html` tiene ademas un fallback legado a 3Dmol.js que `structure.html` no
+  tiene, y un mecanismo de switching alt/primary basado en atributos de una tabla que tampoco existe
+  en `structure.html` (que en cambio tiene una lista de multiples estructuras con su propio picker).
+  No es una funcion duplicada de ~150 lineas, es una unificacion de dos sistemas con superficies
+  distintas — alto riesgo de romper el visualizador de las dos paginas a la vez sin poder probar en
+  un navegador real. Requiere decidir con la usuaria si vale la pena antes de tocarlo a ciegas.
 
 ### Comparacion FPocket vs P2Rank
 
