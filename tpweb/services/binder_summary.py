@@ -188,6 +188,11 @@ def _binder_to_dto(binder, loaded_ex_structures=None, pdb_resolution_map=None):
     elif binder.source == Binders.SOURCE_PROPOSED and name:
         external_url = f"https://zinc20.docking.org/substances/{name}/"
         external_label = "ZINC"
+    potency_estimate = (
+        _potency_from_pchembl(binder.score)
+        if binder.source == Binders.SOURCE_CHEMBL and binder.score is not None
+        else ""
+    )
     return {
         "id": binder.id,
         "name": name,
@@ -196,6 +201,7 @@ def _binder_to_dto(binder, loaded_ex_structures=None, pdb_resolution_map=None):
         "uniprot": binder.uniprot,
         "smiles": binder.smiles,
         "score": binder.score,
+        "potency_estimate": potency_estimate,
         "notes": binder.notes,
         "source": binder.source,
         "is_direct": binder.is_direct,
@@ -232,6 +238,24 @@ def _binder_source_label(item):
     return "ZINC proposed compound"
 
 
+def _potency_from_pchembl(pchembl):
+    """pchembl_value = -log10(activity concentration in molar) is ChEMBL's own
+    normalized experimental potency metric -- real affinity data already in the
+    DB, just in a unit most biologists don't read at a glance. Convert back to
+    a concentration (nM/uM/mM) for display alongside the raw pchembl value."""
+    try:
+        molar = 10 ** (-float(pchembl))
+    except (TypeError, ValueError, OverflowError):
+        return ""
+    nanomolar = molar * 1e9
+    if nanomolar < 1000:
+        return f"~{nanomolar:.1f} nM"
+    micromolar = nanomolar / 1000
+    if micromolar < 1000:
+        return f"~{micromolar:.1f} µM"
+    return f"~{micromolar / 1000:.1f} mM"
+
+
 def _binder_score_label(item):
     score = item.get("score")
     if score is None:
@@ -239,7 +263,8 @@ def _binder_score_label(item):
     if item.get("source") == Binders.SOURCE_PROPOSED:
         return f"Tanimoto {score:.3f}"
     if item.get("source") == Binders.SOURCE_CHEMBL:
-        return f"pchembl {score:.2f}"
+        potency = _potency_from_pchembl(score)
+        return f"pchembl {score:.2f} ({potency})" if potency else f"pchembl {score:.2f}"
     return ""
 
 

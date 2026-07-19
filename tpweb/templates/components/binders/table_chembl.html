@@ -27,7 +27,10 @@
                     </td>
                     {% if show_uniprot %}<td class="binder-tbl__uniprot">{{ binder.uniprot|default:"—" }}</td>{% endif %}
                     <td class="binder-tbl__score">
-                        {% if binder.score is not None %}{{ binder.score|floatformat:2 }}{% else %}<span class="binder-tbl__score-empty">—</span>{% endif %}
+                        {% if binder.score is not None %}
+                            {{ binder.score|floatformat:2 }}
+                            {% if binder.potency_estimate %}<span class="binder-tbl__score-sub" title="{% trans 'Estimated experimental potency, converted from pchembl (-log10 of the molar activity concentration).' %}">{{ binder.potency_estimate }}</span>{% endif %}
+                        {% else %}<span class="binder-tbl__score-empty">—</span>{% endif %}
                     </td>
                     <td class="binder-tbl__props">
                         {% if binder.props.mw %}

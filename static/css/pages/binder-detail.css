@@ -398,6 +398,11 @@
     overflow-wrap: anywhere;
 }
 
+.binder-id-row-sub {
+    color: var(--tp-color-text-muted);
+    font-weight: 400;
+}
+
 @media (max-width: 640px) {
     .binder-id-row {
         grid-template-columns: 1fr;

@@ -2265,6 +2265,14 @@ body.binder-mol-modal-open {
     font-weight: 400;
 }
 
+.binder-tbl__score-sub {
+    display: block;
+    font-variant-numeric: tabular-nums;
+    font-size: 0.76rem;
+    font-weight: 400;
+    color: var(--tp-color-text-soft);
+}
+
 .binder-tbl__smiles-col {
     max-width: 260px;
 }

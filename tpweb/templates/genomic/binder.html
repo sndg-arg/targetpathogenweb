@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/binder-detail.css' %}?v=20260710-premium-system1">
+    <link rel="stylesheet" href="{% static 'css/pages/binder-detail.css' %}?v=20260718-potency1">
 {% endblock %}
 
 {% block body %}
@@ -74,6 +74,7 @@
                             {% else %}{% trans "Score" %}{% endif %}
                         </span>
                         <span class="metric-value">{{ binder.score|stringformat:".2f" }}</span>
+                        {% if binder.potency_estimate %}<span class="metric-unit" title="{% trans 'Estimated experimental potency, converted from pchembl.' %}">{{ binder.potency_estimate }}</span>{% endif %}
                     </div>
                 {% endif %}
                 {% if properties.mw %}
@@ -151,7 +152,7 @@
                                 {% elif binder.source == 'chembl' %}pchembl
                                 {% else %}Tanimoto{% endif %}
                             </dt>
-                            <dd>{{ binder.score|stringformat:".3f" }}</dd>
+                            <dd>{{ binder.score|stringformat:".3f" }}{% if binder.potency_estimate %} <span class="binder-id-row-sub">({{ binder.potency_estimate }})</span>{% endif %}</dd>
                         </div>
                     {% endif %}
                     <div class="binder-id-row">

@@ -16,7 +16,7 @@ from tpweb.services.genome_workspace import (
     genome_url_slug,
     user_can_access_genome_name,
 )
-from tpweb.services.binder_summary import make_binder_svg
+from tpweb.services.binder_summary import make_binder_svg, _potency_from_pchembl
 
 
 SOURCE_LABEL = {
@@ -319,6 +319,11 @@ class BinderDetailView(View):
                 "is_pdb": is_pdb,
                 "is_direct": binder.is_direct,
                 "score": binder.score,
+                "potency_estimate": (
+                    _potency_from_pchembl(binder.score)
+                    if binder.source == Binders.SOURCE_CHEMBL and binder.score is not None
+                    else ""
+                ),
                 "notes": binder.notes,
                 "notes_items": notes_items,
                 "svg": make_binder_svg(binder.smiles) if binder.smiles else "",
