@@ -153,6 +153,10 @@
                                         </p>
                                     </details>
                                 </div>
+                                <a href="?export=ranking_csv" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-btn-with-icon" title="{% trans "Export every scored protein with its full score breakdown, not just the top candidates shown here." %}">
+                                    <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/download.html" %}</span>
+                                    {% trans "Export ranking (CSV)" %}
+                                </a>
                             </div>
                             <ol class="targets-list">
                                 {% for t in top_targets_by_score.items %}

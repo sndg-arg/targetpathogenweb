@@ -294,6 +294,11 @@ def _score_proteins(assembly_name):
             "direct_count": direct_count,
             "binder_count": binder_count,
             "factors": shown_factors,
+            # Full, uncapped breakdown -- "factors" above is capped to 6 for the overview
+            # card UI, but the CSV export (export_composite_ranking_rows) needs every
+            # contribution, not just the ones that fit on a card.
+            "signals": signals,
+            "cautions": cautions,
             "pdb_count": pdb_direct + pdb_homolog,
             "chembl_count": chembl_direct + chembl_homolog,
             "zinc_count": zinc_count,
@@ -365,6 +370,49 @@ def get_unexplored_targets(assembly_name, user, limit=5):
     unexplored = [r for r in scored if r["binder_count"] == 0]
     unexplored.sort(key=lambda r: (r["score"], r["fpocket"]), reverse=True)
     return {"formula_name": "Unexplored candidates", "items": _format_score_items(unexplored[:limit])}
+
+
+def export_composite_ranking_rows(assembly_name):
+    """Full evidence-convergence ranking (every scored protein, not just the
+    top 5 shown on the overview cards) with the complete contribution
+    breakdown, for the CSV export named in the roadmap. Returns
+    (headers, rows) ready for csv_exports.csv_response."""
+    scored = _score_proteins(assembly_name)
+    scored.sort(key=lambda r: (r["score"], r["fpocket"], r["direct_count"], r["binder_count"]), reverse=True)
+
+    headers = [
+        "Accession",
+        "Description",
+        "Score",
+        "Score max",
+        "Tier",
+        "FPocket druggability",
+        "Direct ligand records",
+        "PDB ligand records",
+        "ChEMBL ligand records",
+        "ZINC candidate records",
+        "Positive signals",
+        "Cautions",
+    ]
+    rows = []
+    for row in scored:
+        p = row["protein"]
+        tier_label, _tone = _evidence_convergence_tier(row["score"])
+        rows.append([
+            p.accession,
+            p.description,
+            round(row["score"], 1),
+            int(EVIDENCE_CONVERGENCE_MAX_SCORE),
+            tier_label,
+            row["fpocket"],
+            row["direct_count"],
+            row["pdb_count"],
+            row["chembl_count"],
+            row["zinc_count"],
+            "; ".join(s["label"] for s in row["signals"]),
+            "; ".join(c["label"] for c in row["cautions"]),
+        ])
+    return headers, rows
 
 
 def build_assembly_workspace_metrics(assembly_name):

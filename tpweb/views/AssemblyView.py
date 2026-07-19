@@ -19,6 +19,7 @@ from tpweb.services.pipeline_status import (
 )
 from tpweb.services.assembly_workspace import (
     build_assembly_workspace_metrics,
+    export_composite_ranking_rows,
     get_top_targets_by_score,
     get_unexplored_targets,
 )
@@ -31,7 +32,7 @@ from tpweb.services.genome_workspace import (
     user_can_delete_genome_name,
 )
 from tpweb.services.genome_uploads import delete_genome_workspace, workspace_has_active_upload
-from tpweb.services.csv_exports import xlsx_sections_response
+from tpweb.services.csv_exports import csv_response, xlsx_sections_response
 
 
 class AssemblyView(View):
@@ -153,6 +154,9 @@ class AssemblyView(View):
 
     def get(self, request, *args, **kwargs):
         biodb = self._get_biodatabase(request, kwargs["genome"])
+        if request.GET.get("export") == "ranking_csv":
+            headers, rows = export_composite_ranking_rows(biodb.name)
+            return csv_response(f"{display_genome_name(biodb.name)}-ranking", headers, rows)
         if request.GET.get("export") == "view_csv":
             context = self._build_context(request, biodb)
             assembly = context["assembly"]
