@@ -230,6 +230,15 @@ descubierto al leer el codigo completo, mucho mayor al que sugeria esta linea: s
 de inicializacion distintas, no una funcion duplicada de ~150 lineas. Fusionarlas es alto riesgo de
 romper el visualizador de las dos paginas a la vez sin poder probar en un navegador real.
 
+Bug preexistente encontrado en verificacion en vivo (no introducido esta ronda): `protein.html`
+nunca definia `tpColorTriplet`, solo `structure.html`. Como las dos paginas comparten
+`ngl_pocket_representations.js`, cualquier pocket con alpha spheres reales (`core_points`) tiraba
+un `ReferenceError` silencioso (atrapado por el try/catch de `initStructureComponent`) que abortaba
+todo lo que venia despues en esa funcion: wiring de los botones de modo, spin, y el
+`component.autoView()` final — exactamente los sintomas reportados (cartoon/surface no respondia,
+spin no respondia, vista descentrada y recortada). Corregido agregando la misma funcion a
+`protein.html`.
+
 **Pendiente para cerrar.**
 
 - Unificar el resto de `initStructureComponent`/`registerShapeComponent` (init de representaciones
