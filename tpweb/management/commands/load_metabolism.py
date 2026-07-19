@@ -322,6 +322,8 @@ class Command(BaseCommand):
         if "gene" not in results_df.columns:
             raise CommandError("Results TSV must have a 'gene' column with locus tags.")
 
+        self._validate_inputs(proteome, reactions_by_id, sif_nodes, results_df)
+
         if dry_run:
             self.stdout.write(self.style.SUCCESS(
                 f"[dry-run] Would import {len(reactions_by_id)} reactions, "
@@ -373,6 +375,49 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS("Done."))
 
     # ------------------------------------------------------------------
+
+    def _validate_inputs(self, proteome, reactions_by_id, sif_nodes, results_df):
+        """Cross-file consistency checks the three inputs don't get for free just by
+        parsing successfully -- each file can be individually well-formed and still not
+        actually describe the same genome (wrong file picked, stale export, etc.). Warns
+        (does not block import, since some mismatch is expected/harmless) except for the
+        two cases where importing would be pointless or actively misleading."""
+        if not reactions_by_id:
+            raise CommandError("SBML has zero reactions - wrong file, or an empty MetaFlux export.")
+
+        genome_locus_tags = set(
+            Bioentry.objects.filter(biodatabase=proteome).values_list("accession", flat=True)
+        )
+
+        tsv_genes = {_clean(g) for g in results_df["gene"] if _clean(g)}
+        if tsv_genes:
+            unmatched = tsv_genes - genome_locus_tags
+            if len(unmatched) == len(tsv_genes):
+                raise CommandError(
+                    "None of the results TSV's 'gene' values match a locus tag in this genome's "
+                    f"proteome (checked {len(tsv_genes)} genes) - wrong genome, or wrong TSV file."
+                )
+            if unmatched:
+                self.stderr.write(self.style.WARNING(
+                    f"  Results TSV: {len(unmatched)}/{len(tsv_genes)} genes have no matching locus "
+                    f"tag in this genome, e.g. {sorted(unmatched)[:5]}"
+                ))
+
+        if sif_nodes:
+            sbml_reaction_ids = set(reactions_by_id)
+            orphan_sif_nodes = sif_nodes - sbml_reaction_ids
+            if orphan_sif_nodes:
+                self.stderr.write(self.style.WARNING(
+                    f"  network.sif: {len(orphan_sif_nodes)}/{len(sif_nodes)} nodes have no matching "
+                    f"reaction in the SBML, e.g. {sorted(orphan_sif_nodes)[:5]} - these will still be "
+                    "created as bare MetabolicReaction rows with no SBML data (name/EC/genes/participants)."
+                ))
+
+        if "PTOOLS_betweenness_centrality" not in results_df.columns:
+            self.stderr.write(self.style.WARNING(
+                "  Results TSV has no 'PTOOLS_betweenness_centrality' column - network centrality "
+                "will not be loaded for this genome at all (silently skipped otherwise)."
+            ))
 
     def _clear_existing_metabolism(self, genome_accession):
         existing_reactions = MetabolicReaction.objects.filter(genome_accession=genome_accession)
