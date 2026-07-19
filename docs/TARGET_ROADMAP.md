@@ -239,11 +239,27 @@ todo lo que venia despues en esa funcion: wiring de los botones de modo, spin, y
 spin no respondia, vista descentrada y recortada). Corregido agregando la misma funcion a
 `protein.html`.
 
+A partir de ese bug, se repensó el visualizador embebido de `protein.html`: en vez de mantener el
+mismo toolbar completo que `structure.html` (modo cartoon/density, zoom in/out, reset zoom, spin),
+pasó a ser una vista previa liviana — cartoon + pockets, sin toolbar — con foco en abrir el visor
+fullscreen para interacción real. De paso salió a la luz que
+`STRUCTURE_VIEWER_CONFIG.enable3DmolViewer` estaba hardcodeado en `false`, es decir que el fallback
+completo a 3Dmol.js (~285 lineas: `initStructureViewerWith3Dmol`, el script de 3Dmol.org,
+`molViewerInstance`) era codigo muerto en produccion — se elimino por completo sin riesgo de cambio
+de comportamiento. El arrastre/zoom con el mouse sigue funcionando igual (nativo de NGL, no dependia
+de los botones), y lo que sí es evidencia real (Inspect/toggle de pockets, comparar estructura
+experimental vs. predicha, VMD, abrir el visor completo) sigue intacto. Pulido visual: glow ambiente
+detras del canvas (mismo patron de gradiente radial que el grafo metabolico), hover-lift en las dos
+acciones que quedaron, y una leyenda "Drag to rotate / scroll to zoom" ya que los botones que lo
+insinuaban desaparecieron. Esto reduce bastante la superficie que podria volver a desincronizarse
+entre las dos paginas — la causa raiz de esta regresion y de la de `pocketInspector.hidden`.
+
 **Pendiente para cerrar.**
 
 - Unificar el resto de `initStructureComponent`/`registerShapeComponent` (init de representaciones
-  NGL, fallback 3Dmol.js, switching alt/primary vs. picker multi-estructura) si se decide que vale
-  la pena el riesgo — requiere verificacion visual en vivo en las dos paginas.
+  NGL, switching alt/primary vs. picker multi-estructura) si se decide que vale la pena el riesgo —
+  requiere verificacion visual en vivo en las dos paginas. Alcance mas chico ahora que el fallback
+  3Dmol.js de `protein.html` ya no existe.
 
 ### Comparacion FPocket vs P2Rank
 
