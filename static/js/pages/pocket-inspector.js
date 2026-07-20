@@ -119,6 +119,14 @@
             }
         });
 
+        document.addEventListener("keydown", function (event) {
+            if (event.key !== "Enter" && event.key !== " ") return;
+            var inspectBtn = event.target.closest(".js-inspect-pocket");
+            if (!inspectBtn) return;
+            event.preventDefault();
+            inspectPocket(inspectBtn.closest(".pocket-card"));
+        });
+
         if (pocketClearBtn) {
             pocketClearBtn.addEventListener("click", clearPocketSelection);
         }
