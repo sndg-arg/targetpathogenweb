@@ -87,6 +87,14 @@ Agregar un resumen ejecutivo arriba de la pagina de proteina. Debe responder en 
   de similitud humana), ligando conocido fuerte (co-cristal PDB, o registro directo de ChEMBL con
   pchembl >= 7).
 
+Bug real encontrado con datos en vivo (VK055_4737): la pagina decia "11 signals" pero solo listaba
+6 Strengths — `strengths[:6]` cortaba en silencio, y las 3 badges perdidas eran justo las mas
+especificas agregadas en esta ronda (Direct ligand evidence, Strong known ligand, Experimental
+structure available), que se appendean despues de varias genericas que ya llenaban el limite.
+Se agrego un `priority` opcional a `_append_summary_item`, se marcaron las 5 badges mas
+especificas/valiosas con prioridad alta, y se ordena por esa prioridad (estable) antes de cortar —
+ademas se subio el limite de 6 a 9.
+
 ### Ligandos, ChEMBL, PDB y quimica del target
 
 Mejorar la lectura de evidencia quimica y ligandos. La pagina ya tiene un dashboard inicial de ligandos; falta conectarlo mas fuerte con estructura, ChEMBL y PDB.
