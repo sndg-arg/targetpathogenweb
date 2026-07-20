@@ -346,12 +346,13 @@ def _score_float(raw_scores, name):
         return None
 
 
-def _append_summary_item(items, label, detail, tone="neutral", anchor="#section-target-profile"):
+def _append_summary_item(items, label, detail, tone="neutral", anchor="#section-target-profile", priority=0):
     items.append({
         "label": label,
         "detail": detail,
         "tone": tone,
         "anchor": anchor,
+        "priority": priority,
     })
 
 
@@ -377,6 +378,7 @@ def build_target_executive_summary(
                 "Catalyzes a reaction that is the only producer or consumer of a metabolite in the imported metabolic model.",
                 "good",
                 "#section-metabolic-context",
+                priority=1,
             )
             signal_score += 2
         percentile = metabolic_context.get("centrality_percentile")
@@ -514,6 +516,7 @@ def build_target_executive_summary(
             f"Both independent pocket predictors flag a binding site (FPocket {fpocket_score:.2f}, P2Rank {p2rank_score:.2f}) - more reliable than either signal alone.",
             "good",
             "#section-target-profile",
+            priority=1,
         )
         signal_score += 1
 
@@ -533,6 +536,7 @@ def build_target_executive_summary(
                 "At least one PDB experimental structure is loaded, not just a predicted model - stronger structural coverage than AlphaFold/ColabFold alone.",
                 "good",
                 "#section-structure",
+                priority=1,
             )
             signal_score += 1
     else:
@@ -551,7 +555,7 @@ def build_target_executive_summary(
         bioactive_count = binder_summary.get("bioactive_count") or 0
         proposed_count = binder_summary.get("proposed_count") or 0
         if direct_count:
-            _append_summary_item(strengths, "Direct ligand evidence", f"{direct_count} direct ligand records.", "good", "#section-binders")
+            _append_summary_item(strengths, "Direct ligand evidence", f"{direct_count} direct ligand records.", "good", "#section-binders", priority=1)
             signal_score += 2
         elif structural_count or bioactive_count:
             detail = f"{structural_count} structural and {bioactive_count} bioactivity records."
@@ -572,6 +576,7 @@ def build_target_executive_summary(
             f"{len(pdb_direct)} PDB record(s) show a ligand actually co-crystallized with this exact protein - real experimental evidence, not a computational prediction.",
             "good",
             "#section-binders",
+            priority=1,
         )
         signal_score += 1
     elif strong_chembl:
@@ -582,6 +587,7 @@ def build_target_executive_summary(
             f"Direct bioactivity record with pchembl {top_chembl.get('score'):.2f} (sub-100nM potency range) measured on this exact protein.",
             "good",
             "#section-binders",
+            priority=1,
         )
         signal_score += 1
 
@@ -598,11 +604,18 @@ def build_target_executive_summary(
         verdict = "Target candidate with partial support; inspect missing evidence before prioritizing."
         tone = "partial"
 
+    # Stable sort: higher-priority (more specific, e.g. direct ligand evidence,
+    # experimental structure, pocket consensus) items surface first so they
+    # survive the display cap even when a well-evidenced protein has more than
+    # nine positive strengths; items with equal priority keep their original
+    # (already meaningful) append order.
+    ranked_strengths = sorted(strengths, key=lambda item: -item.get("priority", 0))
+
     return {
         "verdict": verdict,
         "tone": tone,
         "signal_score": signal_score,
-        "strengths": strengths[:6],
+        "strengths": ranked_strengths[:9],
         "risks": risks[:4],
         "missing": missing[:4],
     }
