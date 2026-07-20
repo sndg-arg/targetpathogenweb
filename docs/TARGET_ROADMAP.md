@@ -280,12 +280,13 @@ las dos paginas desde esa fecha. Confirmado con la usuaria que sacar el boton se
 intencional (no un olvido) — el header de la card (nombre + score) pasa a ser el disparador
 (click o teclado, `role="button"`), sin agregar un boton nuevo. De paso, feedback de "no se ve
 premium": las acciones Zoom/lista-de-residuos tenian el mismo peso visual que los toggles de capa,
-y "Residues" aparecia como nombre de toggle Y de accion con significados distintos — la de listar
-residuos se renombro "Residue list" para no confundir, y ambas pasaron de `tp-btn--outline` a
-`tp-btn--clear` (variante ya definida en `masterpage.html`, discreta pero con borde/fondo real) en
-vez de un override ad-hoc con `!important` que las dejaba sin ninguna apariencia de boton. Se
-elimino `.pocket-card-actions--primary` (CSS muerta del boton sacado el 12/07) de las dos hojas
-de estilo.
+y "Residues" aparecia como nombre de toggle Y de accion con significados distintos — ambas pasaron
+de `tp-btn--outline` a `tp-btn--clear` (variante ya definida en `masterpage.html`, discreta pero
+con borde/fondo real) en vez de un override ad-hoc con `!important` que las dejaba sin ninguna
+apariencia de boton. Se elimino `.pocket-card-actions--primary` (CSS muerta del boton sacado el
+12/07) de las dos hojas de estilo. El toggle de capa "Surrounding residues" se renombro a "Nearby"
+(la accion de listar residuos volvio a llamarse "Residues", mas corto — "Residue list" se cortaba
+en dos lineas dentro del ancho fijo de la fila de acciones, visible en una captura en vivo).
 
 **Pendiente para cerrar.**
 
