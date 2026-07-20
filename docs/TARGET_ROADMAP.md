@@ -286,7 +286,10 @@ con borde/fondo real) en vez de un override ad-hoc con `!important` que las deja
 apariencia de boton. Se elimino `.pocket-card-actions--primary` (CSS muerta del boton sacado el
 12/07) de las dos hojas de estilo. El toggle de capa "Surrounding residues" se renombro a "Nearby"
 (la accion de listar residuos volvio a llamarse "Residues", mas corto — "Residue list" se cortaba
-en dos lineas dentro del ancho fijo de la fila de acciones, visible en una captura en vivo).
+en dos lineas dentro del ancho fijo de la fila de acciones, visible en una captura en vivo). El
+campo "Pocket properties" del inspector pasa de un solo string concatenado en fuente monoespaciada
+(se leia como volcado de datos crudo) a chips individuales en fuente normal — sin tocar Python, ya
+que el string ya venia separado por " | "; `pocket-inspector.js` lo divide y arma un chip por hecho.
 
 **Pendiente para cerrar.**
 
