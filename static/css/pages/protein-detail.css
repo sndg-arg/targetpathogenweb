@@ -949,6 +949,12 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     margin: 16px 20px 0;
 }
 
+.structure-evidence-details .pdb-evidence-subsection {
+    margin-top: 0;
+    padding: 20px;
+    border-top: none;
+}
+
 .pocket-panel-summary-hint {
     font-size: 0.80rem;
     font-weight: 400;
@@ -1434,6 +1440,124 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 
 .structure-actions .structure-action-btn {
     white-space: nowrap;
+}
+
+.structure-picker + .structure-download-btn {
+    margin-left: auto;
+}
+
+.structure-picker {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.structure-picker-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    height: var(--tp-ui-control-height);
+    padding: 0 10px 0 12px;
+    border: 1px solid var(--tp-color-border-strong);
+    border-radius: 10px;
+    background: var(--tp-color-surface-muted);
+    color: var(--tp-color-text-primary);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    max-width: min(320px, 60vw);
+    transition: background-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.structure-picker-btn:hover,
+.structure-picker-btn[aria-expanded="true"] {
+    background: var(--tp-color-surface-soft);
+    transform: translateY(-1px);
+}
+
+.structure-picker-btn:focus-visible {
+    outline: 2px solid var(--protein-accent-border);
+    outline-offset: 2px;
+}
+
+.structure-picker-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+}
+
+.structure-picker-detail {
+    flex-shrink: 0;
+    color: var(--tp-color-text-muted);
+    font-weight: 500;
+    font-size: 0.78rem;
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+}
+
+.structure-picker-chevron {
+    width: 10px;
+    height: 6px;
+    flex-shrink: 0;
+    opacity: 0.6;
+    transition: transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.structure-picker-btn[aria-expanded="true"] .structure-picker-chevron {
+    transform: rotate(180deg);
+}
+
+.structure-picker-menu {
+    position: fixed;
+    z-index: 200;
+    list-style: none;
+    margin: 0;
+    padding: 4px;
+    min-width: 220px;
+    max-width: min(360px, 90vw);
+    border-radius: 10px;
+    background: var(--tp-color-surface);
+    border: 1px solid var(--tp-color-border-soft);
+    box-shadow: var(--tp-shadow-lg);
+}
+
+.structure-picker-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px;
+    border-radius: 7px;
+    cursor: pointer;
+    color: var(--tp-color-text-primary);
+    font-size: 0.82rem;
+    font-weight: 500;
+    line-height: 1.3;
+    transition: background-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.structure-picker-item:hover {
+    background: var(--tp-color-surface-soft);
+}
+
+.structure-picker-item.is-active {
+    background: var(--protein-accent-soft);
+    color: var(--protein-accent-ink);
+    font-weight: 700;
+}
+
+.structure-picker-item-label {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.structure-picker-item-detail {
+    flex-shrink: 0;
+    font-size: 0.74rem;
+    color: var(--tp-color-text-muted);
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
 }
 
 .protein-page .structure-download-btn.tp-btn--neutral {

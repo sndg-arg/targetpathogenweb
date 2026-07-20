@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260720-spinner1">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260720-picker1">
 {% endblock %}
 
 {% block body %}
@@ -660,6 +660,27 @@
                     </div>
 
                     <div class="structure-actions">
+                        {% if alt_structure %}
+                        <div class="structure-picker" id="structure-picker">
+                            <button type="button" class="structure-picker-btn" id="structure-picker-btn"
+                                    aria-haspopup="listbox" aria-expanded="false"
+                                    title="{% trans 'Switch structure' %}">
+                                <span class="structure-picker-label" id="structure-picker-label">{{ primary_structure_label }}</span>
+                                {% if primary_structure_detail_label %}<span class="structure-picker-detail" id="structure-picker-detail">{{ primary_structure_detail_label }}</span>{% endif %}
+                                <svg class="structure-picker-chevron" viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 1l4 4 4-4"/></svg>
+                            </button>
+                            <ul class="structure-picker-menu" id="structure-picker-menu" role="listbox" hidden>
+                                <li class="structure-picker-item is-active" role="option" aria-selected="true" data-slot="primary">
+                                    <span class="structure-picker-item-label">{{ primary_structure_label }}</span>
+                                    {% if primary_structure_detail_label %}<span class="structure-picker-item-detail">{{ primary_structure_detail_label }}</span>{% endif %}
+                                </li>
+                                <li class="structure-picker-item" role="option" aria-selected="false" data-slot="alt">
+                                    <span class="structure-picker-item-label">{{ alt_structure_label }}</span>
+                                    {% if alt_structure_detail_label %}<span class="structure-picker-item-detail">{{ alt_structure_detail_label }}</span>{% endif %}
+                                </li>
+                            </ul>
+                        </div>
+                        {% endif %}
                         <a href="{% url "tpwebapp:structure_export" structure.id %}"
                            class="btn tp-btn tp-btn--neutral tp-btn--md structure-action-btn structure-download-btn"
                            title="{% trans 'Download a visualization script for VMD (Visual Molecular Dynamics), free software to view the 3D structure with pocket overlays — vmd.ks.uiuc.edu' %}">{% trans "3D visualization script" %}</a>
@@ -692,8 +713,6 @@
                         <span class="tp-score-tag medium">{% trans "Medium" %}</span>
                         <span class="tp-score-tag low">{% trans "Low" %}</span>
                     </div>
-
-                    {% include "components/structure/pdb_evidence_table.html" with items=experimental_structures predicted_items=predicted_structures protein=protein %}
 
                     {% if structure.pockets or structure.p2_pockets or alt_structure.pockets or alt_structure.p2_pockets %}
                     <details class="data-details pocket-panel-details" open>
@@ -738,6 +757,13 @@
                         {% if alt_structure %}
                             {% include "components/structure/pocket_cards.html" with structure_data=alt_structure structure_key="alt" hidden=True %}
                         {% endif %}
+                    </details>
+                    {% endif %}
+
+                    {% if experimental_structures or predicted_structures %}
+                    <details class="data-details structure-evidence-details">
+                        <summary>{% trans "All structural evidence" %}</summary>
+                        {% include "components/structure/pdb_evidence_table.html" with items=experimental_structures predicted_items=predicted_structures protein=protein %}
                     </details>
                     {% endif %}
                 </section>
@@ -1287,6 +1313,45 @@
                 }
             }
 
+            (function () {
+                const btn = document.getElementById("structure-picker-btn");
+                const menu = document.getElementById("structure-picker-menu");
+                if (!btn || !menu) return;
+                document.body.appendChild(menu);
+                btn.addEventListener("click", function () {
+                    const open = !menu.hidden;
+                    if (!open) {
+                        const rect = btn.getBoundingClientRect();
+                        menu.style.bottom = "";
+                        menu.style.top = (rect.bottom + 6) + "px";
+                        menu.style.left = rect.left + "px";
+                    }
+                    menu.hidden = open;
+                    btn.setAttribute("aria-expanded", open ? "false" : "true");
+                });
+                menu.addEventListener("click", function (ev) {
+                    const item = ev.target.closest(".structure-picker-item");
+                    if (item && typeof window.switchStructureSource === "function") {
+                        window.switchStructureSource(item.getAttribute("data-slot"));
+                    }
+                    menu.hidden = true;
+                    btn.setAttribute("aria-expanded", "false");
+                });
+                document.addEventListener("click", function (ev) {
+                    if (!btn.contains(ev.target) && !menu.contains(ev.target)) {
+                        menu.hidden = true;
+                        btn.setAttribute("aria-expanded", "false");
+                    }
+                });
+                document.addEventListener("keydown", function (ev) {
+                    if (ev.key === "Escape" && !menu.hidden) {
+                        menu.hidden = true;
+                        btn.setAttribute("aria-expanded", "false");
+                        btn.focus();
+                    }
+                });
+            })();
+
             const pocketInspector = document.getElementById("protein-pocket-inspector");
             const pocketClearBtn = document.getElementById("protein-pocket-clear-selection");
             const pocketShowOnlyBtn = document.getElementById("protein-pocket-show-only-toggle");
@@ -1441,12 +1506,29 @@
                     });
                 }
 
+                function syncStructurePicker(which) {
+                    const item = document.querySelector('.structure-picker-item[data-slot="' + which + '"]');
+                    if (!item) return;
+                    document.querySelectorAll(".structure-picker-item").forEach(function (el) {
+                        const isActive = el === item;
+                        el.classList.toggle("is-active", isActive);
+                        el.setAttribute("aria-selected", isActive ? "true" : "false");
+                    });
+                    const labelEl = document.getElementById("structure-picker-label");
+                    const detailEl = document.getElementById("structure-picker-detail");
+                    const itemLabel = item.querySelector(".structure-picker-item-label");
+                    const itemDetail = item.querySelector(".structure-picker-item-detail");
+                    if (labelEl && itemLabel) labelEl.textContent = itemLabel.textContent;
+                    if (detailEl) detailEl.textContent = itemDetail ? itemDetail.textContent : "";
+                }
+
                 function _loadStructureById(urlKey) {
                     if (!structureUrls[urlKey]) return;
                     activeStructureKey = urlKey;
                     clearRepresentationState();
                     syncStructureAnnotationPanels(urlKey);
                     syncExperimentalStructureStatus(urlKey);
+                    syncStructurePicker(urlKey);
                     setStructureLoadingVisible(true, '{% trans "Loading 3D structure..." %}');
                     stage.removeAllComponents();
                     stage.loadFile(structureUrls[urlKey], { ext: structureFormats[urlKey] || "pdb", defaultRepresentation: false })
