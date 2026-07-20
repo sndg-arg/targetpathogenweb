@@ -115,6 +115,15 @@ Mejorar la lectura de evidencia quimica y ligandos. La pagina ya tiene un dashbo
   del ligando como `?focus_ligand=`, y el visor lo selecciona (`resname`), lo resalta y centra
   la camara apenas carga la estructura.
 
+Dos hallazgos reales de una revision completa de capturas de pantalla, verificados contra el
+codigo antes de tocarlos (dos sospechas mas de esa misma revision — el estilo del breadcrumb
+actual, el fondo verde de "Pocket druggability" — resultaron ser diseño intencional ya usado en
+el resto de la app, no se tocaron): el ligando destacado en "Best available ligand signal"
+tambien aparecia duplicado como primer item de la tira de abajo (`_build_binder_summary` armaba
+el preview sin excluir al "best"); y las mini-cards de ligando mostraban los botones Detail/RCSB
+PDB arriba de la imagen de la molecula (orden de DOM realmente al reves, sin ningun truco de CSS
+que lo corrigiera visualmente). Los dos corregidos.
+
 **Pendiente para cerrar.**
 
 - Transferencia de ligandos desde homologos (ver card `Integracion AlphaFill / Ligysis / CSA Atlas`).
@@ -613,7 +622,9 @@ posicionamiento de cualquier `<select>` nativo en un ancestro — afectaba a Gen
 Checklist de pre-merge documentado en `docs/VISUAL_CHECKLIST.md` (color/tokens, profundidad/motion,
 tipografia de datos, accesibilidad, y el bug del keyframe con transform persistente para no repetirlo).
 Structure viewer: micro hover-lift agregado en los botones del toolbar flotante (antes solo
-cambiaban background/color/opacity).
+cambiaban background/color/opacity). Header de `protein.html`: "Genome: X" era una linea de texto
+suelta con estilo propio, duplicando el nombre de genoma que ya esta en el breadcrumb — se unifico
+como un chip mas en la misma fila que Gene/3D evidence/UniProt, y se elimino el CSS que quedo sin uso.
 
 ### Red de señalizacion/regulacion por proteina (KEGG PPI)
 
