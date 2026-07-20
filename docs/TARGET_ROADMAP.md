@@ -310,12 +310,14 @@ que el string ya venia separado por " | "; `pocket-inspector.js` lo divide y arm
 El campo "Residues" del mismo panel dejo de duplicar la lista cruda de numeros (ya disponible via
 el boton "Residues" de la card) y ahora muestra solo el conteo ("19 residues").
 
-**Pendiente para cerrar.**
-
-- Unificar el resto de `initStructureComponent`/`registerShapeComponent` (init de representaciones
-  NGL, switching alt/primary vs. picker multi-estructura) si se decide que vale la pena el riesgo —
-  requiere verificacion visual en vivo en las dos paginas. Alcance mas chico ahora que el fallback
-  3Dmol.js de `protein.html` ya no existe.
+Unificacion de `initStructureComponent`/`registerShapeComponent` cerrada: comparando linea por
+linea las dos paginas, lo unico que seguia siendo codigo identico era `registerShapeComponent`
+(~40 lineas, registro de esferas alpha de FPocket/P2Rank como shape de NGL) — todo lo demas (modo
+density, toolbar de zoom, spin, chain-color para comparar alt/primary) ya es intencionalmente
+distinto desde que `protein.html` paso a ser vista previa liviana. Se extrajo esa unica funcion
+a `static/js/pages/ngl-shape-registry.js` (`window.tpNglShapes.createShapeRegistry(...)`), usada
+por las dos paginas. No hacia falta fusionar el resto: son dos arquitecturas de init distintas
+a proposito, no una duplicacion accidental.
 
 ### Comparacion FPocket vs P2Rank
 
