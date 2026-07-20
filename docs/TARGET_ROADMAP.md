@@ -254,6 +254,22 @@ acciones que quedaron, y una leyenda "Drag to rotate / scroll to zoom" ya que lo
 insinuaban desaparecieron. Esto reduce bastante la superficie que podria volver a desincronizarse
 entre las dos paginas — la causa raiz de esta regresion y de la de `pocketInspector.hidden`.
 
+Dos rondas mas de pulido a partir de feedback en vivo: (1) spinner animado en el estado "Loading 3D
+structure..." de las dos paginas (antes solo texto en italica) — mismo patron de anillo giratorio
+que ya usaban los grafos de metabolismo, con `prefers-reduced-motion` respetado. (2) reordenamiento
+de la seccion en `protein.html`: los pockets ahora aparecen justo despues del canvas/leyenda en vez
+de despues de la tabla de evidencia estructural (que obligaba a scrollear de mas para llegar a lo
+que en general se quiere ver); esa tabla paso a un disclosure cerrado por defecto ("All structural
+evidence") debajo de los pockets, mismos datos y mismos botones "Switch". El "Switch" perdido de
+vista se reemplazo por un selector compacto tipo dropdown, calcado del picker de `structure.html`
+(abre hacia abajo en vez de hacia arriba, porque esta cerca del tope de una seccion scrolleable y no
+al pie de un toolbar fijo) — sin tocar Python: los labels que necesitaba (`primary_structure_label`,
+`alt_structure_label`, etc.) ya estaban calculados en `ProteinView.py` pero nunca se usaban en
+ningun template. El picker deliberadamente solo ofrece los dos slots con datos de pockets reales
+(`primary`/`alt`); cambiar a cualquier otra estructura cargada sigue yendo por el "Switch" de la
+tabla demovida, porque un picker mas lindo que lleve a un pocket vacio para una 3ra estructura seria
+peor que la tabla que reemplaza.
+
 **Pendiente para cerrar.**
 
 - Unificar el resto de `initStructureComponent`/`registerShapeComponent` (init de representaciones
