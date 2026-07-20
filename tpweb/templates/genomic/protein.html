@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260720-picker1">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260720-viewportmeta1">
 {% endblock %}
 
 {% block body %}
@@ -706,12 +706,14 @@
                             <span class="structure-loading-text">{% trans "Loading 3D structure..." %}</span>
                         </p>
                     </div>
-                    <p class="structure-viewport-hint">{% trans "Drag to rotate — click the view, then scroll to zoom." %}</p>
-                    <div class="structure-score-legend" aria-label="{% trans "Pocket score legend" %}">
-                        <span class="legend-label">{% trans "Legend" %}</span>
-                        <span class="tp-score-tag high">{% trans "High" %}</span>
-                        <span class="tp-score-tag medium">{% trans "Medium" %}</span>
-                        <span class="tp-score-tag low">{% trans "Low" %}</span>
+                    <div class="structure-viewport-meta">
+                        <p class="structure-viewport-hint">{% trans "Drag to rotate — click the view, then scroll to zoom." %}</p>
+                        <div class="structure-score-legend" aria-label="{% trans "Pocket score legend" %}">
+                            <span class="legend-label">{% trans "Legend" %}</span>
+                            <span class="tp-score-tag high">{% trans "High" %}</span>
+                            <span class="tp-score-tag medium">{% trans "Medium" %}</span>
+                            <span class="tp-score-tag low">{% trans "Low" %}</span>
+                        </div>
                     </div>
 
                     {% if structure.pockets or structure.p2_pockets or alt_structure.pockets or alt_structure.p2_pockets %}

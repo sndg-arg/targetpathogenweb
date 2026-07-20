@@ -1397,11 +1397,19 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     pointer-events: none;
 }
 
+.structure-viewport-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+}
+
 .structure-viewport-hint {
-    margin: 8px 0 0;
+    margin: 0;
     font-size: 0.82rem;
     color: var(--tp-color-text-soft);
-    text-align: center;
 }
 
 .structure-actions {
@@ -1632,7 +1640,6 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 }
 
 .structure-score-legend {
-    margin-top: 8px;
     display: flex;
     align-items: center;
     flex-wrap: wrap;
