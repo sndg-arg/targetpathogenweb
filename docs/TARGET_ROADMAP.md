@@ -268,7 +268,22 @@ al pie de un toolbar fijo) — sin tocar Python: los labels que necesitaba (`pri
 ningun template. El picker deliberadamente solo ofrece los dos slots con datos de pockets reales
 (`primary`/`alt`); cambiar a cualquier otra estructura cargada sigue yendo por el "Switch" de la
 tabla demovida, porque un picker mas lindo que lleve a un pocket vacio para una 3ra estructura seria
-peor que la tabla que reemplaza.
+peor que la tabla que reemplaza. Ademas se fusiono el hint de arrastre/zoom y la leyenda de scores
+en una sola fila (antes dos lineas apiladas).
+
+Bug real encontrado por una captura de pantalla, no solo cosmetico: el commit `1d44143`
+("Simplify pocket viewer controls", 12/07) saco el boton `.js-inspect-pocket` de las cards pero
+`pocket-inspector.js` sigue escuchando clicks especificamente en esa clase — confirmado con grep
+que la clase no existia en ningun template. Consecuencia: el panel "Selected pocket" completo
+(score, residuos, metodo, y las propiedades derivadas agregadas hoy) era imposible de abrir en
+las dos paginas desde esa fecha. Confirmado con la usuaria que sacar el boton separado fue
+intencional (no un olvido) — el header de la card (nombre + score) pasa a ser el disparador
+(click o teclado, `role="button"`), sin agregar un boton nuevo. De paso, feedback de "no se ve
+premium": las acciones Zoom/lista-de-residuos tenian el mismo peso visual que los toggles de capa,
+y "Residues" aparecia como nombre de toggle Y de accion con significados distintos — las acciones
+ahora son visualmente mas discretas (estilo fantasma) y la de listar residuos se renombro
+"Residue list" para no confundir. Se elimino `.pocket-card-actions--primary` (CSS muerta del boton
+sacado el 12/07) de las dos hojas de estilo.
 
 **Pendiente para cerrar.**
 
