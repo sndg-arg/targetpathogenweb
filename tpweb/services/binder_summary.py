@@ -296,7 +296,9 @@ def _build_binder_summary(tab_data):
     best = sorted(all_items, key=_binder_evidence_rank)[0]
     best_svg = make_binder_svg(best.get("smiles")) if best.get("smiles") else ""
     preview = []
-    seen = set()
+    # Seed with the "best" pick's own key so the strip below shows other
+    # ligands, not a repeat of the one already highlighted above it.
+    seen = {(best.get("name"), best.get("smiles"))}
     for item in sorted(all_items, key=_binder_evidence_rank):
         name = item.get("name")
         smiles = item.get("smiles")

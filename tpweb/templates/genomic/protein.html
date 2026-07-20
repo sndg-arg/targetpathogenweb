@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260720-propchips1">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260720-heropolish1">
 {% endblock %}
 
 {% block body %}
@@ -24,8 +24,11 @@
                     <p class="protein-hero-eyebrow">{% trans "Protein target profile" %}</p>
                     <h1>{{ protein.accession }}</h1>
                     <p class="protein-description">{{ protein.description|default:"-" }}</p>
-                    <p class="protein-context"><strong>{% trans "Genome" %}:</strong> <span class="protein-context-id">{{ protein.assembly_label|default:protein.assembly_name }}</span></p>
                     <div class="hero-chip-list tp-chip-group">
+                        <span class="hero-chip tp-chip tp-chip--meta tp-chip--sm" title="{{ protein.assembly_label|default:protein.assembly_name }}">
+                            <strong>{% trans "Genome" %}:</strong>
+                            <span>{{ protein.assembly_label|default:protein.assembly_name }}</span>
+                        </span>
                         <span class="hero-chip tp-chip tp-chip--meta tp-chip--sm hero-chip-gene" title="{{ protein.gene|default_if_none:'-' }}">
                             <strong>{% trans "Gene" %}:</strong>
                             <span class="gene-value">{{ protein.gene|default:"-" }}</span>
@@ -842,12 +845,6 @@
                             <div class="binder-molecule-strip" aria-label="{% trans 'Top ligand molecules' %}">
                                 {% for ligand in binders.summary.preview %}
                                 <div class="binder-mini-card" title="{{ ligand.source_label }}">
-                                    <span class="binder-card-actions binder-card-actions--mini">
-                                        <a href="{% url 'tpwebapp:binder_detail' binder_id=ligand.id %}" class="btn tp-btn tp-btn--outline tp-btn--sm binder-card-action">{% trans "Detail" %}</a>
-                                        {% if ligand.external_url %}
-                                        <a href="{{ ligand.external_url }}" class="btn tp-btn tp-btn--neutral tp-btn--sm binder-card-action binder-card-action--external" target="_blank" rel="noopener noreferrer">{{ ligand.external_label }}</a>
-                                        {% endif %}
-                                    </span>
                                     <button type="button"
                                             class="binder-mini-mol binder-mol-zoom-trigger"
                                             {% if ligand.svg %}data-binder-name="{{ ligand.name }}" data-binder-source="{{ ligand.source_label }}{% if ligand.score_label %} · {{ ligand.score_label }}{% endif %}" title="{% trans 'Zoom molecule' %}"{% else %}disabled{% endif %}>
@@ -855,6 +852,12 @@
                                     </button>
                                     <span class="binder-mini-name">{{ ligand.name }}</span>
                                     <small>{{ ligand.source_label }}{% if ligand.score_label %} · {{ ligand.score_label }}{% endif %}</small>
+                                    <span class="binder-card-actions binder-card-actions--mini">
+                                        <a href="{% url 'tpwebapp:binder_detail' binder_id=ligand.id %}" class="btn tp-btn tp-btn--outline tp-btn--sm binder-card-action">{% trans "Detail" %}</a>
+                                        {% if ligand.external_url %}
+                                        <a href="{{ ligand.external_url }}" class="btn tp-btn tp-btn--neutral tp-btn--sm binder-card-action binder-card-action--external" target="_blank" rel="noopener noreferrer">{{ ligand.external_label }}</a>
+                                        {% endif %}
+                                    </span>
                                 </div>
                                 {% endfor %}
                             </div>

@@ -64,18 +64,6 @@
     max-width: 920px;
 }
 
-.protein-context {
-    margin: 10px 0 0;
-    color: var(--tp-color-text-secondary);
-    font-size: 0.95rem;
-}
-
-.protein-context-id {
-    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
-    color: var(--protein-accent-ink);
-    font-weight: 600;
-}
-
 .hero-chip-list {
     margin-top: 12px;
 }
@@ -2008,8 +1996,8 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 }
 
 .binder-card-actions--mini {
-    margin-top: 0;
-    margin-bottom: var(--tp-space-2);
+    margin-top: var(--tp-space-2);
+    margin-bottom: 0;
 }
 
 .binder-card-action {
