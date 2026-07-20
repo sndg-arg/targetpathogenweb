@@ -46,6 +46,11 @@
                 renderPropertyChips(target, value);
                 return;
             }
+            if (field === "residues") {
+                var count = (value || "").trim().split(/\s+/).filter(Boolean).length;
+                target.textContent = count ? (count + (count === 1 ? " residue" : " residues")) : "-";
+                return;
+            }
             target.textContent = value || "-";
         }
 
