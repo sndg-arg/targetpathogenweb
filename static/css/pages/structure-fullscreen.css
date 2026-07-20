@@ -731,17 +731,6 @@ body:has(.sv-root) .tp-footer { display: none !important; }
 .pocket-card-actions .btn {
     flex: 1;
     justify-content: center;
-    border-color: transparent !important;
-    background: transparent !important;
-    color: var(--tp-color-text-muted) !important;
-    font-weight: 500 !important;
-    box-shadow: none !important;
-}
-
-.pocket-card-actions .btn:hover,
-.pocket-card-actions .btn:focus-visible {
-    background: var(--tp-color-surface-soft) !important;
-    color: var(--tp-color-text-primary) !important;
 }
 
 /* ── 10. Residue sets ── */
