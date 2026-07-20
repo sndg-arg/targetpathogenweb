@@ -290,6 +290,8 @@ en dos lineas dentro del ancho fijo de la fila de acciones, visible en una captu
 campo "Pocket properties" del inspector pasa de un solo string concatenado en fuente monoespaciada
 (se leia como volcado de datos crudo) a chips individuales en fuente normal — sin tocar Python, ya
 que el string ya venia separado por " | "; `pocket-inspector.js` lo divide y arma un chip por hecho.
+El campo "Residues" del mismo panel dejo de duplicar la lista cruda de numeros (ya disponible via
+el boton "Residues" de la card) y ahora muestra solo el conteo ("19 residues").
 
 **Pendiente para cerrar.**
 
