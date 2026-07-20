@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20260718-ligandfocus1">
+    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20260720-spinner1">
 {% endblock %}
 
 {% block body %}
@@ -38,7 +38,10 @@
         <div id="viewport"></div>
 
         {# Loading indicator #}
-        <p class="sv-loading-note" id="structure-loading-note">{% trans "Loading 3D structure…" %}</p>
+        <p class="sv-loading-note" id="structure-loading-note">
+            <span class="sv-loading-spinner" aria-hidden="true"></span>
+            <span class="sv-loading-text">{% trans "Loading 3D structure…" %}</span>
+        </p>
 
         {# Pocket score legend #}
         <div class="sv-legend" id="sv-legend">
@@ -237,6 +240,15 @@ function jsloaded() {
     var resetZoomBtn  = document.getElementById("structure-reset-zoom-btn");
     var loadingNote   = document.getElementById("structure-loading-note");
     var vmdLink       = document.getElementById("sv-vmd-link");
+
+    function setLoadingNoteVisible(visible, text) {
+        if (!loadingNote) return;
+        loadingNote.style.display = visible ? "flex" : "none";
+        if (text !== undefined) {
+            var textEl = loadingNote.querySelector(".sv-loading-text");
+            if (textEl) textEl.textContent = text;
+        }
+    }
     var pocketInspector = document.getElementById("sv-pocket-inspector");
     var pocketClearBtn = document.getElementById("sv-pocket-clear-selection");
     var pocketShowOnlyBtn = document.getElementById("sv-pocket-show-only-toggle");
@@ -405,7 +417,7 @@ function jsloaded() {
     window.representations = representations;
 
     if (typeof NGL === "undefined") {
-        if (loadingNote) { loadingNote.style.display = "flex"; loadingNote.textContent = "{% trans 'Unable to load 3D structure.' %}"; }
+        setLoadingNoteVisible(true, "{% trans 'Unable to load 3D structure.' %}");
         return;
     }
 
@@ -525,7 +537,7 @@ function jsloaded() {
         clearRepresentationState();
         syncAnnotationPanels(structureId);
         updateIdentity(structureId);
-        if (loadingNote) { loadingNote.style.display = "flex"; loadingNote.textContent = "{% trans 'Loading 3D structure…' %}"; }
+        setLoadingNoteVisible(true, "{% trans 'Loading 3D structure…' %}");
         stage.removeAllComponents();
         stage.loadFile(structureUrls[structureId], { ext: structureFormats[structureId] || "pdb", defaultRepresentation: false })
             .then(function (component) {
@@ -535,11 +547,11 @@ function jsloaded() {
                     if (window.console && console.error) {
                         console.error("Structure loaded, but optional viewer setup failed", err);
                     }
-                    if (loadingNote) loadingNote.style.display = "none";
+                    setLoadingNoteVisible(false);
                 }
             })
             .catch(function () {
-                if (loadingNote) { loadingNote.style.display = "flex"; loadingNote.textContent = "{% trans 'Unable to load 3D structure.' %}"; }
+                setLoadingNoteVisible(true, "{% trans 'Unable to load 3D structure.' %}");
             });
     }
 
@@ -735,7 +747,7 @@ function jsloaded() {
         }
         updateSpinButton();
 
-        if (loadingNote) loadingNote.style.display = "none";
+        setLoadingNoteVisible(false);
     }
 
     /* Struct picker toggle */

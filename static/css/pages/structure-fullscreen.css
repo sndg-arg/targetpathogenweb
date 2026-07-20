@@ -138,10 +138,30 @@ body:has(.sv-root) .tp-footer { display: none !important; }
     display: flex;
     align-items: center;
     justify-content: center;
+    gap: 8px;
     color: var(--sv-overlay-text-muted);
     font-size: 0.9rem;
-    font-style: italic;
     pointer-events: none;
+}
+
+.sv-loading-spinner {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid var(--sv-overlay-border);
+    border-top-color: var(--structure-accent);
+    border-radius: 999px;
+    animation: sv-loading-spin 800ms linear infinite;
+}
+
+@keyframes sv-loading-spin {
+    to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .sv-loading-spinner {
+        animation: none;
+    }
 }
 
 .sv-legend {
