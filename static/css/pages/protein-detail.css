@@ -1063,6 +1063,20 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     grid-column: 1 / -1;
 }
 
+.pocket-property-chip {
+    display: inline-block;
+    margin: 0 4px 4px 0;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: var(--tp-color-surface-muted);
+    border: 1px solid var(--tp-color-border-soft);
+    color: var(--tp-color-text-secondary);
+    font-family: "Source Sans 3", "Segoe UI", sans-serif;
+    font-size: 0.72rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
 .sv-pocket-inspector-note {
     margin: 8px 0 0;
     color: var(--tp-color-text-muted);

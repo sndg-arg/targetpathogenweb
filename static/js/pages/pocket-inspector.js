@@ -41,7 +41,29 @@
         function setPocketInspectorField(field, value) {
             if (!pocketInspector) return;
             var target = pocketInspector.querySelector('[data-pocket-field="' + field + '"]');
-            if (target) target.textContent = value || "-";
+            if (!target) return;
+            if (field === "properties") {
+                renderPropertyChips(target, value);
+                return;
+            }
+            target.textContent = value || "-";
+        }
+
+        function renderPropertyChips(target, value) {
+            target.textContent = "";
+            var parts = (value || "").split(" | ").map(function (part) {
+                return part.trim();
+            }).filter(Boolean);
+            if (!parts.length) {
+                target.textContent = "-";
+                return;
+            }
+            parts.forEach(function (part) {
+                var chip = document.createElement("span");
+                chip.className = "pocket-property-chip";
+                chip.textContent = part;
+                target.appendChild(chip);
+            });
         }
 
         function setShowOnlySelectedPocket(on) {
