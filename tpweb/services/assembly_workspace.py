@@ -1,4 +1,4 @@
-from django.db.models import Count, Q
+from django.db.models import Count, Prefetch, Q
 
 from bioseq.models.Bioentry import Bioentry
 from bioseq.models.Biodatabase import Biodatabase
@@ -12,6 +12,22 @@ from tpweb.services.structure_sources import (
     PDB_EXPERIMENT_COLABFOLD,
     PDB_MODEL_EXPERIMENTS,
 )
+
+
+# The only score_param names _score_proteins actually reads (see its body below).
+# A genome can carry dozens of loaded score params per protein (metabolism, colabfold,
+# custom columns...); prefetching all of them for every protein in the genome just to
+# read these 8 was a large chunk of get_overview_target_rankings' cost on big genomes.
+_SCORE_PROTEINS_PARAM_NAMES = [
+    "Druggability",
+    "pocket_size_outlier",
+    "p2rank_probability",
+    "human_offtarget",
+    "gut_microbiome_offtarget",
+    "hit_in_deg",
+    "core_roary",
+    "core_corecruncher",
+]
 
 
 EC_DBNAMES = {str(Ontology.EC or "").strip(), "ec", "EC"}
@@ -135,7 +151,14 @@ def _score_proteins(assembly_name):
     proteome_name = assembly_name + Biodatabase.PROT_POSTFIX
     proteins = (
         Bioentry.objects.filter(biodatabase__name=proteome_name)
-        .prefetch_related("score_params__score_param")
+        .prefetch_related(
+            Prefetch(
+                "score_params",
+                queryset=ScoreParamValue.objects
+                    .filter(score_param__name__in=_SCORE_PROTEINS_PARAM_NAMES)
+                    .select_related("score_param"),
+            )
+        )
     )
 
     binder_counts_by_gene = {}
