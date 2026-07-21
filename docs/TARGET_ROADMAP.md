@@ -1,109 +1,516 @@
 # TargetPathogen roadmap
 
-Documento vivo para ordenar tareas de producto e implementacion. La idea es mantener aca el backlog tecnico-funcional que antes estaba en Notion, con estado, alcance y prioridades.
+Documento vivo para ordenar tareas de producto e implementacion. La idea es mantener aca el backlog tecnico-funcional que antes estaba en Notion, separado por estado real: hecho, en progreso, pendiente y descartado por ahora.
 
 ## Hecho / en uso
 
 ### Target executive summary
 
-Resumen ejecutivo arriba de la pagina de proteina que responde en pocos segundos si el target es prometedor: frase interpretativa unica combinando score, metabolismo, drogabilidad, ligandos, estructura, off-target y conservacion; bloques Strengths / Risks / Missing evidence con links a las secciones que justifican cada punto; y badges especificos cuando hay datos completos (pocket consistente FPocket+P2Rank, estructura experimental disponible, baja similitud humana, ligando conocido fuerte).
+Resumen ejecutivo arriba de la pagina de proteina para responder rapido si un target parece prometedor.
+
+**Incluye.**
+
+- Frase interpretativa unica combinando score, metabolismo, drogabilidad, ligandos, estructura, off-target y conservacion.
+- Bloques `Strengths`, `Risks` y `Missing evidence`.
+- Links internos a las secciones que justifican cada punto.
+- Badges especificos cuando hay datos completos:
+  - Pocket consistente FPocket + P2Rank.
+  - Estructura experimental disponible.
+  - Baja similitud humana.
+  - Ligando conocido fuerte.
+
+**Estado.**
+
+- Implementado.
+- Requiere validacion de wording con biologas para evitar que el resumen sobreprometa.
 
 ### Ligandos, ChEMBL, PDB y quimica del target
 
-Dashboard de señal quimica en la pagina de proteina: evidencia directa y por homologos separada por PDB/ChEMBL/ZINC, links externos, zoom inline de la estructura 2D, afinidad experimental estimada (nM/µM/mM) junto al pchembl crudo, y foco directo de ligandos PDB en el visualizador 3D desde "Open crystal". Pendiente: transferencia de ligandos desde homologos (ver `Integracion AlphaFill / Ligysis / CSA Atlas`).
+Dashboard de senal quimica en la pagina de proteina.
+
+**Incluye.**
+
+- Evidencia directa y por homologos separada por fuente: PDB, ChEMBL y ZINC.
+- Links externos a ChEMBL, RCSB PDB y ZINC.
+- Zoom inline de la estructura 2D del ligando.
+- Afinidad experimental estimada en nM/uM/mM junto al `pchembl` crudo.
+- Boton `Open crystal` para enfocar ligandos PDB en el visualizador 3D.
+
+**Pendiente relacionado.**
+
+- Transferencia de ligandos desde homologos.
+- Se sigue en la card `Integracion AlphaFill / Ligysis / CSA Atlas`.
 
 ### Genome overview 2.0 / ranking compuesto explicable
 
-Ranking principal "Top evidence-convergent candidates" con score heuristico transparente (0-15, tier Strong/Moderate/Limited) que combina pocket, ligandos directos y transferidos, off-target, esencialidad, conservacion, estructura y metabolismo — con chips por proteina explicando por que aparece arriba. Ranking secundario "Worth a fresh look" para candidatos druggable/selectivos sin evidencia quimica explorada todavia. Export CSV del ranking compuesto con desglose completo de señales.
+El overview del genoma funciona como tablero macro, no como reflejo de una sola feature.
+
+**Implementado.**
+
+- Ranking principal `Top evidence-convergent candidates`.
+- Score heuristico transparente de 0 a 15.
+- Tiers `Strong`, `Moderate` y `Limited`.
+- Factores combinados:
+  - Pocket FPocket/P2Rank.
+  - Ligandos directos.
+  - Ligandos transferidos por homologos o ZINC.
+  - Off-target humano y microbioma.
+  - Esencialidad.
+  - Conservacion.
+  - Estructura disponible.
+  - Contexto metabolico.
+- Chips por proteina explicando por que aparece arriba.
+- Ranking secundario `Worth a fresh look` para candidatos druggable/selectivos sin evidencia quimica explorada.
+- Export CSV del ranking compuesto con desglose completo de senales.
+
+**Estado.**
+
+- Implementado.
+- Requiere validacion de pesos/umbrales con el equipo.
 
 ### Visualizacion y control de pockets
 
-El visualizador permite elegir un pocket puntual e inspeccionarlo en detalle sin perder el contexto del entorno: Inspect centra la camara, aisla la capa y muestra un panel de detalle (metodo, score, residuos, propiedades derivadas — centro geometrico, consenso FPocket/P2Rank, sitio funcional anotado mas cercano), con toggle "Show only selected pocket" y atenuacion geometrica de la proteina al inspeccionar. Paridad completa entre las dos paginas del visualizador; la version embebida en la pagina de proteina es una vista previa liviana (sin toolbar de camara ni fallback legado a 3Dmol.js), con foco en abrir el visor fullscreen para interaccion completa.
+El visualizador permite elegir un pocket puntual e inspeccionarlo en detalle sin perder el contexto del entorno.
+
+**Implementado.**
+
+- Accion `Inspect`.
+- Al inspeccionar:
+  - Centra la camara.
+  - Aisla la capa del pocket.
+  - Atenua la proteina para mejorar foco geometrico.
+  - Muestra panel persistente de detalle.
+- Panel de detalle con:
+  - Metodo.
+  - Score.
+  - Residuos.
+  - Centro geometrico.
+  - Consenso FPocket/P2Rank.
+  - Sitio funcional anotado mas cercano cuando existe.
+- Toggle `Show only selected pocket`.
+- Separacion visual entre:
+  - Pocket especifico / alpha spheres.
+  - Residuos.
+  - Superficie.
+  - Labels.
+- Paridad entre:
+  - Pagina de proteina.
+  - Full viewer.
+
+**Estado.**
+
+- Implementado tecnicamente.
+- Todavia conviene validarlo visualmente con biologas, porque fue una zona con varias iteraciones.
 
 ### Agente IA para exploracion de targets
 
-Chat/agente agnostico a proveedor LLM (Claude u OpenAI intercambiables) en un drawer global: responde preguntas sobre proteinas, filtros, scores, ligandos y estructura cargada; explica por que un target aparece priorizado; y puede ejecutar acciones reales en la UI (aplicar filtros), no solo responder texto. Alcance de genoma/proteina siempre re-derivado server-side, snapshot del estado de la UI en cada mensaje, logging de tokens/costo/latencia, budget resuelto via tope de gasto en la plataforma del proveedor, y un comando `evaluate_agent` para verificar el comportamiento contra un set fijo de prompts. Sin pendientes de codigo.
+Chat/agente en drawer global para explorar proteinas, filtros, scores, ligandos, estructura y evidencia cargada.
+
+**Base tecnica.**
+
+- Agnostico a proveedor LLM: OpenAI o Anthropic intercambiables.
+- Alcance de genoma/proteina re-derivado server-side desde la URL.
+- No confia en el cliente para permisos ni scope biologico.
+- Historial stateless por pestana.
+- Snapshot compacto de UI (`page_state`) en cada mensaje.
+- Logging de:
+  - Tokens.
+  - Costo estimado.
+  - Latencia.
+  - Tool calls.
+  - Errores.
+- Budget resuelto desde la plataforma del proveedor.
+
+**Tools disponibles.**
+
+- `search_proteins`.
+- `explain_target`.
+- `audit_target_evidence`.
+- `compare_targets`.
+- `list_available_filters`.
+- `apply_filters`.
+- `clear_filters`.
+
+**UX.**
+
+- Drawer global.
+- Chips de prompts sugeridos.
+- Markdown renderizado:
+  - Tablas.
+  - Codigo.
+  - Listas ordenadas.
+  - Links.
+- Boton retry para errores reintentables.
+- Toggle `Biologist mode`.
+
+**Evaluacion.**
+
+- Comando `evaluate_agent`.
+- Corrido contra KpATCC43816.
+- Validado que use las tools esperadas.
+- Hallazgos corregidos:
+  - Diferenciar dato faltante vs evidencia negativa.
+  - No confundir "buscame/mostrame" con "aplica filtro".
+  - Reducir tool calls innecesarios para bajar tokens.
+
+**Estado.**
+
+- Sin pendientes criticos de codigo para esta iteracion.
+- Pendiente: validacion con uso real y preguntas de biologas.
 
 ### Premium UI consistency pass
 
-Pasada sistematica de consistencia visual (tokens de color/sombra/tipografia, hover-lift, entrada sutil, cero valores hardcodeados) aplicada a las ~15 paginas de la app, incluido el structure viewer, con checklist de pre-merge documentado en `docs/VISUAL_CHECKLIST.md`.
+Pasada sistematica de consistencia visual en la app.
+
+**Incluye.**
+
+- Tokens de color.
+- Tokens de sombra.
+- Tipografia y jerarquia de datos.
+- Hover-lift.
+- Entradas sutiles.
+- Botones con variantes existentes.
+- Reduccion de valores hardcodeados.
+- Structure viewer incluido en la pasada.
+- Checklist de pre-merge en `docs/VISUAL_CHECKLIST.md`.
+
+**Estado.**
+
+- Implementado como pasada general.
+- Conviene mantenerlo como criterio de revision continua, no como tarea cerrada para siempre.
 
 ## En progreso
 
 ### Informacion metabolica
 
-Incorpora informacion metabolica al analisis de targets (SBML/TSV/SIF de MetaFlux/Pathway Tools + KEGG), para saber en que ruta participa una proteina, que tan central es y si actua como chokepoint. Implementado: ingesta completa por genoma, `Metabolic context` en la pagina de proteina (`/protein/<id>`) integrado al scoring con oracion interpretativa automatica y grafo de vecindario embebido, ranking de rutas a nivel genoma (`/genome/<genoma>/metabolism`), pagina de mapa por ruta individual, y grafo genome-wide estilo Krona (`/genome/<genoma>/metabolism/network`). Revisado con las biologas: el `Metabolic context` de proteina y el ranking de rutas les encantaron. Falta: agregar busqueda por proteina (no solo por nombre de ruta) al ranking de rutas del genoma; un toque mas premium visualmente en `Metabolic context` de la pagina de proteina; y rediseñar los dos grafos (genome-wide y por-ruta individual) — no les gusto la topologia de fuerzas actual, piden un layout ordenado estilo MetaCyc con principio y fin claros, posiblemente sacando metabolito y reaccion como nodos separados y conectando metabolito-a-metabolito con el nombre de la reaccion como label del borde.
+Incorpora informacion metabolica al analisis de targets.
+
+**Fuentes usadas.**
+
+- SBML de MetaFlux/Pathway Tools.
+- TSV de resultados metabolicos.
+- `network.sif`.
+- KEGG para rutas y nombres.
+
+**Implementado.**
+
+- Ingesta completa por genoma.
+- `Metabolic context` en pagina de proteina.
+- Integracion al scoring.
+- Oracion interpretativa automatica.
+- Grafo de vecindario embebido.
+- Ranking de rutas a nivel genoma.
+- Pagina de mapa por ruta individual.
+- Grafo genome-wide estilo Krona.
+
+**Feedback de biologas.**
+
+- Les gusto:
+  - `Metabolic context` en pagina de proteina.
+  - Ranking de rutas.
+- No les termino de convencer:
+  - Topologia de fuerza de los grafos.
+  - Falta de principio/fin claro en la lectura de rutas.
+
+**Pendiente.**
+
+- Agregar busqueda por proteina en el ranking de rutas.
+- Pulir visualmente `Metabolic context` en pagina de proteina.
+- Redisenar grafos con layout mas ordenado, estilo MetaCyc.
+- Evaluar si conviene conectar metabolito-a-metabolito con la reaccion como label de borde, en vez de usar metabolito y reaccion como nodos separados.
 
 ### Visualizacion de Proteina 2.0
 
-Rediseño completo del visualizador 3D: coloreo por cadena y por estructura secundaria, manejo claro de estructuras multimericas, y selector de estructura priorizado por fuente/cobertura/calidad. Hoy solo esta la base: auto-rotacion apagada por defecto, estados de botones sincronizados, y nota aclarando que FPocket/P2Rank son predicciones computacionales.
+Redisenar el visualizador 3D como experiencia completa.
+
+**Ya existe.**
+
+- Spin apagado por defecto.
+- Estados de botones sincronizados.
+- Nota aclarando que FPocket/P2Rank son predicciones computacionales.
+
+**Falta.**
+
+- Coloreo por cadena.
+- Coloreo por estructura secundaria.
+- Manejo claro de estructuras multimericas.
+- Selector de estructura priorizado por fuente, cobertura y calidad.
+- Mejor toolbar de camara y modos.
+- Decidir si la pagina embebida debe ser preview liviana y el full viewer la experiencia principal.
 
 ### Off-target 2.0
 
-Mejorar la visualizacion de similitud contra humano/microbioma/organismos relevantes, con filtros por identidad/cobertura/e-value/organismo e integracion al score final. Hecho hasta ahora (solo visualizacion, sin tocar filtros ni logica de scoring): grilla "Target profile" rediseñada como data sheet academica, con flags de riesgo por color y barras de magnitud. Falta: exponer esos filtros desde la propia seccion off-target de la pagina de proteina, una explicacion de riesgo mas rica por eje, e integracion explicita con estructura/ligandos/drogabilidad/score final.
+Mejorar la lectura de similitud contra humano, microbioma y otros organismos relevantes.
+
+**Hecho hasta ahora.**
+
+- Rediseño visual de `Target profile`.
+- Estilo data sheet academico.
+- Flags de riesgo por color.
+- Barras de magnitud para metricas porcentuales.
+
+**Falta.**
+
+- Exponer filtros desde la seccion off-target de la pagina de proteina.
+- Filtros por:
+  - Identidad.
+  - Cobertura.
+  - E-value.
+  - Organismo.
+- Explicacion de riesgo por eje.
+- Integracion explicita con:
+  - Estructura.
+  - Ligandos.
+  - Drogabilidad.
+  - Score final.
 
 ## To Do
 
 ### Comparacion FPocket vs P2Rank
 
-Comparar pockets predichos por FPocket y P2Rank: distancia entre centros, porcentaje de residuos compartidos, solapamiento espacial, badge de consenso estructural, y un filtro para priorizar proteinas donde ambos metodos coinciden en el pocket principal.
+Comparar predicciones de pockets entre ambos metodos.
+
+**Alcance.**
+
+- Distancia entre centros.
+- Porcentaje de residuos compartidos.
+- Solapamiento espacial.
+- Badge de consenso estructural.
+- Filtro para priorizar proteinas donde ambos metodos coinciden en el pocket principal.
 
 ### Sitios funcionales y anotaciones estructurales
 
-Mostrar residuos cataliticos y sitios funcionales sobre la estructura, distinguiendo tipo de anotacion (catalitico, ligando, PPI, cofactor, mutacion, dominio) con panel de evidencia (fuente y confianza). Fuentes a evaluar: UniProt, CSA Atlas (residuos cataliticos), Ligysis (sitios de union), y funcionalidades del Target viejo.
+Mostrar residuos cataliticos y sitios funcionales sobre la estructura.
+
+**Fuentes a evaluar.**
+
+- UniProt.
+- CSA Atlas.
+- Ligysis.
+- Target viejo.
+
+**Alcance.**
+
+- Distinguir tipos de anotacion:
+  - Catalitico.
+  - Ligando.
+  - PPI.
+  - Cofactor.
+  - Mutacion.
+  - Dominio.
+- Panel de evidencia con fuente y confianza.
 
 ### Drogabilidad por fuente y estructura
 
-Rediseñar la seccion de drogabilidad separando valores por programa/fuente y por tipo de estructura (PDB experimental, AlphaFold DB, ColabFold), mostrando a que estructura corresponde cada valor. Falta definir con el equipo cual valor se usa por defecto en la tabla principal y dejar auditable esa decision de prioridad (ej. PDB experimental > AlphaFold DB si hay buena cobertura).
+Redisenar la seccion de drogabilidad.
+
+**Alcance.**
+
+- Separar valores por programa/fuente.
+- Separar valores por tipo de estructura:
+  - PDB experimental.
+  - AlphaFold DB.
+  - ColabFold.
+- Mostrar a que estructura corresponde cada valor.
+- Definir valor default usado en tabla principal.
+- Dejar auditable la decision de prioridad.
 
 ### Priorizacion estructural completa
 
-Estrategia integral de priorizacion basada en estructura, combinando disponibilidad/calidad/cobertura/tipo de estructura, pockets y su consenso, ligandos directos y homologos, sitios cataliticos, drogabilidad, off-target, y resolucion/metadata PDB.
+Estrategia integral para priorizacion basada en estructura.
+
+**Debe combinar.**
+
+- Disponibilidad de estructura.
+- Calidad.
+- Cobertura.
+- Tipo de estructura.
+- Pockets.
+- Consenso FPocket/P2Rank.
+- Ligandos directos.
+- Ligandos por homologos.
+- Sitios cataliticos.
+- Drogabilidad.
+- Off-target.
+- Resolucion y metadata PDB.
 
 ### Constructor de score mejorado
 
-Mejorar la pantalla de creacion de formulas de score: mostrar funciones y operaciones disponibles cerca de la formula, preview en vivo sobre un subconjunto de proteinas, sugerencias de variables segun filtros activos, y mensajes de error accionables.
+Mejorar la pantalla de formulas de score.
+
+**Alcance.**
+
+- Funciones y operaciones cerca de la formula.
+- Preview en vivo sobre subconjunto de proteinas.
+- Sugerencias de variables segun filtros activos.
+- Validacion segun tipo de dato.
+- Mensajes de error accionables.
 
 ### Columnas custom para analisis
 
-Permitir columnas custom por genoma o analisis (categoricas o cuantitativas), usables para filtrar/ordenar/visualizar/construir scores, con validacion al importar y provenance de quien cargo cada columna.
+Permitir columnas custom por genoma o analisis.
+
+**Alcance.**
+
+- Tipo categorico o cuantitativo.
+- Uso en filtros.
+- Uso en ordenamiento.
+- Uso en visualizaciones.
+- Uso futuro en scores.
+- Validacion al importar.
+- Provenance de quien cargo cada columna.
 
 ### Auditoria y migracion de funcionalidades del Target viejo
 
-Revisar el Target viejo y documentar que funcionalidades conviene migrar o reinterpretar: lista priorizada de features, referencias de flujo, y una decision por feature (migrar, adaptar, descartar o investigar).
+Revisar el Target viejo y documentar que conviene migrar o reinterpretar.
+
+**Salida esperada.**
+
+- Lista priorizada de features.
+- Referencias de flujo.
+- Decision por feature:
+  - Migrar.
+  - Adaptar.
+  - Descartar.
+  - Investigar.
 
 ### Integracion AlphaFill / Ligysis / CSA Atlas
 
-Evaluar fuentes externas para enriquecer estructura y ligandos: que fuente usar para que dato, como importarla y mapearla a proteina/estructura/residuo, y riesgos de licencia/cobertura/mantenimiento. AlphaFill es la prioridad alta (mejor costo/beneficio evaluado): base publica (alphafill.eu) que trasplanta ligandos/cofactores de estructuras homologas resueltas experimentalmente sobre un modelo de AlphaFold ya existente, con API publica por UniProt ID que encaja directo con las estructuras que ya generamos por pipeline.
+Evaluar fuentes externas para enriquecer estructura y ligandos.
+
+**AlphaFill.**
+
+- Prioridad alta.
+- Mejor costo/beneficio evaluado.
+- Base publica `alphafill.eu`.
+- Trasplanta ligandos/cofactores desde estructuras homologas resueltas experimentalmente sobre modelos AlphaFold.
+- API por UniProt ID.
+
+**Ligysis.**
+
+- Potencial fuente para sitios de union e interacciones ligando-proteina.
+- Falta evaluar cobertura/licencia/API.
+
+**CSA Atlas.**
+
+- Potencial fuente para residuos cataliticos.
+- Falta evaluar mapeo a proteina/estructura/residuo.
+
+**Salida esperada.**
+
+- Que fuente usar para cada dato.
+- Como importarla.
+- Como mapearla.
+- Como mostrarla.
+- Riesgos de licencia, cobertura y mantenimiento.
 
 ### Sequence & feature viewer 2.0
 
-Pasar la seccion `Sequence` de texto plano a visualizacion funcional: mapa lineal con dominios/regiones/sitios funcionales, grid de residuos con hover, busqueda por posicion o motivo, y links desde residuos anotados hacia la estructura 3D.
+Pasar `Sequence` de texto plano a visualizacion funcional.
+
+**Alcance.**
+
+- Mapa lineal.
+- Dominios/regiones/sitios funcionales.
+- Grid de residuos con hover.
+- Busqueda por posicion o motivo.
+- Links desde residuos anotados hacia estructura 3D.
 
 ### Cross-references hub
 
-Agrupar identificadores externos (UniProt, KEGG, BioCyc, NCBI, PDB, ChEMBL) en una seccion unica, categorizados (sequence, structure, chemistry, pathways, literature) con estado de evidencia visible.
+Agrupar identificadores externos en una seccion unica.
+
+**Fuentes.**
+
+- UniProt.
+- KEGG.
+- BioCyc.
+- NCBI.
+- PDB.
+- ChEMBL.
+
+**Organizacion.**
+
+- Sequence.
+- Structure.
+- Chemistry.
+- Pathways.
+- Literature.
 
 ### Pathway-level target prioritization
 
-Extender metabolismo desde target individual hacia decision a nivel ruta. Mayormente cubierto por el grafo genome-wide nuevo (tamaño por reacciones, color por densidad de chokepoints, score por ruta). Falta especificamente: ranking de rutas por cantidad de buenos targets como lista/tabla ordenable (hoy solo existe como grafo), metabolitos clave/cuellos de botella a nivel genoma completo, y export CSV del ranking de rutas.
+Extender metabolismo desde target individual hacia decision a nivel ruta.
+
+**Ya cubierto parcialmente.**
+
+- Grafo genome-wide.
+- Tamano por reacciones.
+- Color por densidad de chokepoints.
+- Score por ruta.
+
+**Falta.**
+
+- Ranking de rutas como lista/tabla ordenable.
+- Buenos targets por ruta.
+- Metabolitos clave a nivel genoma completo.
+- Export CSV del ranking de rutas.
 
 ### Evidence provenance / audit layer
 
-Hacer explicita la procedencia de cada dato usado para priorizar: fuente, fecha de importacion, archivo/comando y version; badge o tooltip por seccion; y log de importaciones relevantes por genoma, para reproducibilidad y debugging en cluster.
+Hacer explicita la procedencia de cada dato usado para priorizar.
 
-### Red de señalizacion/regulacion por proteina (KEGG PPI)
+**Alcance.**
 
-Grafo de interacciones proteina-proteina y regulatorias (activation/inhibition/phosphorylation/expression/binding via KEGG KGML), distinto del grafo de reacciones metabolicas ya implementado — relevante en patogenos para sistemas de dos componentes y regulones de virulencia. Reusaria la infraestructura de fetch de KEGG y el patron de layout/tooltip/inspector ya construido para el grafo metabolico. Evaluado como implementacion real (no mockup) en target-human-web, el proyecto compañero de target humano.
+- Fuente.
+- Fecha de importacion.
+- Archivo/comando.
+- Version cuando aplique.
+- Badge o tooltip por seccion.
+- Log de importaciones por genoma.
+- Ayuda para reproducibilidad y debugging en cluster.
+
+### Red de senalizacion/regulacion por proteina (KEGG PPI)
+
+Grafo de interacciones proteina-proteina y regulatorias.
+
+**Diferencia con metabolismo.**
+
+- No es grafo de reacciones.
+- Representa relaciones biologicas directas entre genes/proteinas.
+
+**Relaciones KEGG KGML.**
+
+- Activation.
+- Inhibition.
+- Phosphorylation.
+- Expression.
+- Binding.
+
+**Relevancia.**
+
+- Sistemas de dos componentes.
+- Regulones de virulencia.
+- Cascadas de senalizacion.
 
 ## Ideas evaluadas y descartadas por ahora
 
-Auditoria funcional de target-human-web (compañero, target humano) para ver si habia algo mas para sumar aca. Queda registrado por que no se priorizan, para no re-investigarlas de cero:
+Auditoria funcional de `target-human-web`, el proyecto companero de target humano.
 
-- **Retrosynthesis benchmark**: poster estatico sin computo real (2 de 6 modelos con resultado nulo desde octubre). Nada que migrar salvo el formato de tabla si algun dia publicamos benchmarks propios.
-- **Matching de rutas de sintesis por patentes**: complementa bien a LigQ_2, pero depende de un dataset de patentes enorme que no tenemos. En espera hasta tener acceso a uno equivalente.
-- **Tissue expression (Bgee) y variantes clinicas (dbSNP/OMIM)**: especificos de humano, no aplican a targets de patogeno.
-- **RDKit-JS**: cargado pero nunca invocado, no hay nada funcional que migrar.
+**Descartado o en espera.**
+
+- **Retrosynthesis benchmark**
+  - Poster estatico.
+  - Sin computo real estable.
+  - Nada que migrar por ahora.
+- **Matching de rutas de sintesis por patentes**
+  - Interesante como complemento de LigQ_2.
+  - Bloqueado por falta de dataset de patentes.
+- **Tissue expression y variantes clinicas**
+  - Especifico de humano.
+  - No aplica a targets de patogeno.
+- **RDKit-JS**
+  - Dependencia cargada pero no usada.
+  - No hay funcionalidad real que migrar.
 
 ## Orden sugerido
 
@@ -112,14 +519,14 @@ Auditoria funcional de target-human-web (compañero, target humano) para ver si 
 3. Off-target 2.0.
 4. Comparacion FPocket vs P2Rank.
 5. Drogabilidad por fuente y estructura.
-6. Integracion AlphaFill (ligando trasplantado sobre AlphaFold/ColabFold ya existente).
+6. Integracion AlphaFill.
 7. Sitios funcionales y anotaciones estructurales.
 8. Priorizacion estructural completa.
 9. Sequence & feature viewer 2.0.
 10. Cross-references hub.
 11. Pathway-level target prioritization.
-12. Red de señalizacion/regulacion por proteina (KEGG PPI).
+12. Red de senalizacion/regulacion por proteina.
 13. Evidence provenance / audit layer.
 14. Constructor de score mejorado.
 15. Columnas custom para analisis.
-16. Auditoria Target viejo e integraciones externas (Ligysis, CSA Atlas).
+16. Auditoria Target viejo e integraciones externas.
