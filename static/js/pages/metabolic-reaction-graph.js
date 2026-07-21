@@ -4,6 +4,15 @@
  * another renders as a single connecting node, so the flow through a pathway is actually
  * visible as a graph.
  *
+ * Reaction nodes are deliberately tiny (a labeled junction point, not a text box) so
+ * metabolites -- the thing biologists actually scan for -- read as the main characters and
+ * the diagram approximates a MetaCyc-style pathway chart (compound-to-compound flow, the
+ * enzyme/reaction name as a light label on the step). A literal edge-per-reaction-name
+ * model was considered and rejected: a reaction with 2 reactants and 2 products would need
+ * 4 direct compound-to-compound edges, two of which (e.g. substrate-to-byproduct) don't
+ * represent a real transformation -- keeping a (visually minimal) junction node is the only
+ * way to keep N:M reactions topologically correct.
+ *
  * Used by two independent call sites, which is why this lives in its own small shared
  * file instead of being duplicated or folded into either: (1) metabolic-network-genome.js,
  * embedding this as children under an already-expanded pathway-group node; (2) the
@@ -101,36 +110,63 @@
         return elements;
     }
 
+    // Metabolite nodes with in-degree 0 within this subgraph (never the target of a
+    // flow-out edge, i.e. never produced by any reaction shown) -- the natural "start"
+    // points for a directed/layered layout. A fully cyclic pathway (e.g. TCA cycle) may
+    // have none, in which case the caller's layout falls back to its own root choice.
+    function suggestRoots(elements) {
+        var producedIds = {};
+        elements.forEach(function (el) {
+            if (el.classes && el.classes.indexOf("flow-out") !== -1) {
+                producedIds[el.data.target] = true;
+            }
+        });
+        var roots = [];
+        elements.forEach(function (el) {
+            if (el.classes && el.classes.indexOf("metabolite-node") !== -1 && !producedIds[el.data.id]) {
+                roots.push(el.data.id);
+            }
+        });
+        return roots;
+    }
+
     function styleRules(palette) {
         return [
             {
+                // A small labeled junction, not a text box -- metabolites are the diagram's
+                // main characters; the reaction is what happens on the arrow between them.
                 selector: ".reaction-node",
                 style: {
-                    "shape": "round-rectangle",
-                    "width": "label",
-                    "height": 22,
-                    "padding": "6px",
+                    "shape": "ellipse",
+                    "width": 7,
+                    "height": 7,
                     "background-color": palette.surfaceSoft,
-                    "border-width": 1.4,
+                    "border-width": 1.2,
                     "border-color": palette.plain,
                     "label": "data(displayLabel)",
                     "font-family": FONT_STACK,
-                    "font-size": 9,
-                    "font-weight": 700,
-                    "color": palette.text,
-                    "text-valign": "center",
+                    "font-size": 7,
+                    "font-weight": 600,
+                    "color": palette.textFaint,
+                    "text-valign": "top",
                     "text-halign": "center",
-                    "text-max-width": "130px",
-                    "text-wrap": "ellipsis"
+                    "text-margin-y": -4,
+                    "text-max-width": "110px",
+                    "text-wrap": "ellipsis",
+                    "text-outline-color": palette.ring,
+                    "text-outline-width": 2
                 }
             },
             {
                 selector: ".reaction-node.has-chokepoint",
                 style: {
+                    "width": 10,
+                    "height": 10,
                     "background-color": palette.chokepointSoft,
                     "border-color": palette.chokepoint,
-                    "color": palette.chokepoint,
                     "border-width": 2,
+                    "color": palette.chokepoint,
+                    "font-size": 7.5,
                     "font-weight": 800
                 }
             },
@@ -138,51 +174,50 @@
                 selector: ".metabolite-node",
                 style: {
                     "shape": "ellipse",
-                    "width": 14,
-                    "height": 14,
+                    "width": 17,
+                    "height": 17,
                     "background-color": palette.plain,
                     "border-width": 1,
                     "border-color": palette.ring,
+                    "label": "data(displayLabel)",
                     "font-family": FONT_STACK,
-                    "font-size": 7.5,
-                    "font-weight": 500,
-                    "color": palette.textFaint,
+                    "font-size": 8.5,
+                    "font-weight": 700,
+                    "color": palette.text,
                     "text-valign": "bottom",
-                    "text-margin-y": 3,
-                    "text-max-width": "70px",
+                    "text-margin-y": 4,
+                    "text-max-width": "80px",
+                    "text-wrap": "ellipsis",
                     "text-outline-color": palette.ring,
                     "text-outline-width": 2
                 }
             },
             {
-                // Metabolite labels stay hidden by default -- with a pathway's full
-                // reaction+metabolite graph on screen, labeling every metabolite dot
-                // competes with the (more important) reaction-box labels. Name is still
-                // one hover away via the tooltip, and the label itself reappears on hover
-                // (also revealed for a hovered reaction's connected metabolites, since
-                // is-hovered is applied to the whole closed neighborhood).
-                selector: ".metabolite-node.is-hovered",
-                style: { "label": "data(displayLabel)" }
+                // Currency metabolites (ATP, water, NAD+...) are ubiquitous and would
+                // clutter every step if labeled by default -- kept small and unlabeled,
+                // name still one hover away, matching how MetaCyc de-emphasizes them.
+                selector: ".metabolite-node.is-currency",
+                style: { "width": 8, "height": 8, "opacity": 0.55, "label": "" }
             },
             {
-                selector: ".metabolite-node.is-currency",
-                style: { "width": 8, "height": 8, "opacity": 0.6, "font-size": 6.5 }
+                selector: ".metabolite-node.is-currency.is-hovered",
+                style: { "label": "data(displayLabel)", "font-size": 7 }
             },
             {
                 selector: ".flow-in, .flow-out",
                 style: {
                     "curve-style": "bezier",
-                    "width": 1.3,
+                    "width": 1.5,
                     "line-color": palette.edge,
-                    "opacity": 0.6,
+                    "opacity": 0.75,
                     "target-arrow-shape": "triangle",
                     "target-arrow-color": palette.edge,
-                    "arrow-scale": 0.7
+                    "arrow-scale": 0.75
                 }
             },
             {
                 selector: ".flow-currency",
-                style: { "opacity": 0.22, "width": 1 }
+                style: { "opacity": 0.2, "width": 1 }
             },
             {
                 selector: "node:selected",
@@ -217,6 +252,7 @@
     window.TPMetabolicReactionGraph = {
         FONT_STACK: FONT_STACK,
         buildElements: buildElements,
+        suggestRoots: suggestRoots,
         styleRules: styleRules,
         tooltipForReaction: tooltipForReaction,
         tooltipForMetabolite: tooltipForMetabolite

@@ -59,20 +59,27 @@
         tooltip.style.display = "none";
         container.parentElement.appendChild(tooltip);
 
+        var elements = window.TPMetabolicReactionGraph.buildElements(payload);
+        var roots = window.TPMetabolicReactionGraph.suggestRoots(elements);
+
         var cy = window.cytoscape({
             container: container,
-            elements: window.TPMetabolicReactionGraph.buildElements(payload),
+            elements: elements,
             style: window.TPMetabolicReactionGraph.styleRules(readPalette()),
             layout: {
-                name: "fcose",
+                // Directed/layered instead of force-directed -- biologists reading this as
+                // a MetaCyc-style pathway chart want a clear start-to-end flow, not a
+                // generic network layout. Roots are metabolites never produced within this
+                // subgraph (see suggestRoots); a fully cyclic pathway falls back to
+                // cytoscape's own root choice.
+                name: "breadthfirst",
+                directed: true,
+                roots: roots.length ? roots : undefined,
+                spacingFactor: 1.35,
+                avoidOverlap: true,
                 animate: true,
-                animationDuration: 900,
+                animationDuration: 700,
                 animationEasing: "ease-out-cubic",
-                randomize: true,
-                nodeRepulsion: 6500,
-                idealEdgeLength: 60,
-                nodeSeparation: 40,
-                gravity: 0.35,
                 padding: 30
             },
             minZoom: 0.2,

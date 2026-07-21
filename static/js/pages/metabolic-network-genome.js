@@ -311,19 +311,19 @@
         return layout;
     }
 
-    // Detail layout: tuned for a single pathway's reaction/metabolite subgraph, matching
-    // the standalone per-pathway page's own layout config (metabolic-pathway-graph.js).
-    function detailLayout() {
+    // Detail layout: directed/layered (matching the standalone per-pathway page's own
+    // layout config in metabolic-pathway-graph.js), not force-directed -- a clear
+    // start-to-end flow is what biologists expect from a MetaCyc-style pathway chart.
+    function detailLayout(roots) {
         return {
-            name: "fcose",
+            name: "breadthfirst",
+            directed: true,
+            roots: roots && roots.length ? roots : undefined,
+            spacingFactor: 1.35,
+            avoidOverlap: true,
             animate: true,
             animationDuration: 700,
             animationEasing: "ease-out-cubic",
-            randomize: true,
-            nodeRepulsion: 6500,
-            idealEdgeLength: 60,
-            nodeSeparation: 40,
-            gravity: 0.35,
             padding: 30,
             nodeDimensionsIncludeLabels: true
         };
@@ -485,9 +485,11 @@
                     clearHover(cy);
                     tooltip.style.display = "none";
                     cy.elements().remove();
-                    cy.add(window.TPMetabolicReactionGraph.buildElements(expandPayload));
+                    var detailElements = window.TPMetabolicReactionGraph.buildElements(expandPayload);
+                    var roots = window.TPMetabolicReactionGraph.suggestRoots(detailElements);
+                    cy.add(detailElements);
                     isDetailView = true;
-                    cy.layout(detailLayout()).run();
+                    cy.layout(detailLayout(roots)).run();
                     if (breadcrumb) breadcrumb.hidden = false;
                     if (breadcrumbCurrent) breadcrumbCurrent.textContent = nodeData.label || nodeData.id;
                 }
