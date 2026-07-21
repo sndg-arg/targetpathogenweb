@@ -377,6 +377,32 @@
         container.parentElement.appendChild(tooltip);
         var lastTappedNodeId = null;
         var lastTappedAt = 0;
+        var cy = null;
+
+        function focusReaction(reactionId) {
+            if (!cy || !reactionId) return;
+            var node = cy.getElementById(reactionId);
+            if (!node || node.empty()) return;
+            cy.elements(":selected").unselect();
+            node.select();
+            focusNeighborhood(cy, node);
+            updateInspector(node.data());
+            cy.animate({ center: { eles: node }, zoom: Math.max(cy.zoom(), 1.1) }, { duration: 260 });
+        }
+
+        Array.prototype.forEach.call(
+            document.querySelectorAll(".metabolic-reaction-item[data-reaction-id]"),
+            function (item) {
+                item.addEventListener("click", function () {
+                    focusReaction(item.getAttribute("data-reaction-id"));
+                });
+                item.addEventListener("keydown", function (event) {
+                    if (event.key !== "Enter" && event.key !== " ") return;
+                    event.preventDefault();
+                    focusReaction(item.getAttribute("data-reaction-id"));
+                });
+            }
+        );
 
         function clearHover(cy) {
             cy.elements(".is-hovered").removeClass("is-hovered");
@@ -405,7 +431,7 @@
                 container.classList.remove("metabolic-network-loading", "metabolic-network-empty", "metabolic-network-error");
                 container.textContent = "";
 
-                var cy = window.cytoscape({
+                cy = window.cytoscape({
                     container: container,
                     elements: buildElements(payload),
                     style: nodeStyleRules(readPalette()),
