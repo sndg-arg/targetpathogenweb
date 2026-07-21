@@ -50,19 +50,24 @@
     }
 
     // Pathway node size by reaction count -- sqrt scaling so a handful of very large
-    // pathways (100+ reactions) don't dwarf everything else. Concrete bounds picked from
-    // typical bacterial KEGG-pathway reaction-count ranges (roughly 1-100); recalibrate
-    // against a real genome's actual distribution (e.g. KpATCC43816) once this is deployed.
+    // pathways don't dwarf everything else. Bounds validated against real KpATCC43816 data
+    // (78 real pathways, median 7-8 reactions, p90 ~20, max 69): the floor of 28 is never
+    // hit (no pathway has 0 reactions) and the cap of 90 is only reached by the artificial
+    // "Unassigned metabolic reactions" bucket, which is the desired behavior.
     function pathwayDegreeToSize(reactionCount) {
         var n = reactionCount || 0;
         return Math.max(28, Math.min(90, 28 + Math.sqrt(n) * 7));
     }
 
+    // Cutoffs validated against real KpATCC43816 chokepoint-density-per-pathway data: ~37%
+    // of real pathways sit at 0%, so a "high density" tier starting at 35% was labeling
+    // nearly 40% of all pathways as standouts. Raised to isolate roughly the top decile
+    // (density-4, >=65%) and the next ~13% (density-3, >=45%).
     function densityTier(pct) {
         pct = pct || 0;
-        if (pct >= 60) return "density-4";
-        if (pct >= 35) return "density-3";
-        if (pct >= 15) return "density-2";
+        if (pct >= 65) return "density-4";
+        if (pct >= 45) return "density-3";
+        if (pct >= 20) return "density-2";
         return "density-1";
     }
 
@@ -105,7 +110,7 @@
             // noticing at a glance (large, chokepoint-dense, or the single best target)
             // get a permanent label; the rest are a bare dot, name still available via the
             // hover tooltip and revealed on hover through the .is-hovered label rule below.
-            var showLabel = isTopTarget || tier === "density-3" || tier === "density-4" || size >= 50;
+            var showLabel = isTopTarget || tier === "density-3" || tier === "density-4" || size >= 55;
             elements.push({
                 data: {
                     id: node.id,
