@@ -35,6 +35,7 @@ from .views.AnnotationExplorerView import AnnotationExplorerView
 from .views.DataSourcesView import DataSourcesView
 from .views.AboutUsView import AboutUsView
 from .views.AgentChatView import AgentChatView
+from .views.RobotsView import RobotsView
 from django.conf.urls.static import static
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
@@ -60,6 +61,7 @@ urlpatterns = [
 
     #path("",view=login_required(IndexView.as_view()),name="index"),
     path("",view=IndexView.as_view(),name="index"),
+    path("robots.txt", view=RobotsView.as_view(), name="robots_txt"),
     path("about/data-sources", view=DataSourcesView.as_view(), name="data_sources"),
     path("about/us", view=AboutUsView.as_view(), name="about_us"),
     path("genome/<str:genome>", view=AssemblyView.as_view(), name="assembly"),
