@@ -8,11 +8,10 @@ Documento vivo para ordenar tareas de producto e implementacion. La idea es mant
 
 Incorpora informacion metabolica al analisis de targets (SBML/TSV/SIF de MetaFlux/Pathway Tools + KEGG), para saber en que ruta participa una proteina, que tan central es y si actua como chokepoint. Implementado, ingesta completa por genoma más:
 
-- `Metabolic context` en la pagina de proteina, integrado al scoring, con oracion interpretativa automatica.
-- Ranking de rutas a nivel genoma.
-- Grafo de vecindario por proteina.
-- Pagina de mapa por ruta.
-- Grafo unico genome-wide estilo Krona (un nodo por pathway, un click hace zoom a su subgrafo de reacciones — pedido de las biologas para ver todo junto en vez de ruta por ruta), con los cortes de tamaño/densidad de chokepoints que deciden el label permanente ya recalibrados contra la distribucion real de KpATCC43816 (antes elegidos a ojo).
+- `Metabolic context` en la pagina de proteina (`/protein/<id>`, seccion "Metabolic context"), integrado al scoring, con oracion interpretativa automatica y el grafo de vecindario por proteina embebido ahi mismo.
+- Ranking de rutas a nivel genoma: boton "Metabolism" desde la pagina del genoma (`/genome/<genoma>/metabolism`).
+- Pagina de mapa por ruta individual: clickeando una ruta del ranking anterior (`/genome/<genoma>/metabolism/<source>/<external_id>`).
+- Grafo unico genome-wide estilo Krona: boton separado desde la pagina del genoma (`/genome/<genoma>/metabolism/network`) — un nodo por pathway, un click hace zoom a su subgrafo de reacciones (pedido de las biologas para ver todo junto en vez de ruta por ruta), con los cortes de tamaño/densidad de chokepoints que deciden el label permanente ya recalibrados contra la distribucion real de KpATCC43816 (antes elegidos a ojo).
 
 ### Target executive summary
 
