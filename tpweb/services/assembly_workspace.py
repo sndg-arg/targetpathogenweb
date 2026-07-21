@@ -344,19 +344,20 @@ def _format_score_items(scored_rows):
     return items
 
 
-def get_top_targets_by_score(assembly_name, user, limit=5):
+def get_top_targets_by_score(assembly_name, user, limit=5, scored=None):
     """Top-N proteins ranked by interpretable evidence convergence.
 
     This is not a saved ScoreFormula. It is a conservative overview heuristic
     that combines independent evidence streams so the genome page does not
     over-rank proteins by one raw signal such as FPocket or ligand count.
     """
-    scored = _score_proteins(assembly_name)
-    scored.sort(key=lambda r: (r["score"], r["fpocket"], r["direct_count"], r["binder_count"]), reverse=True)
-    return {"formula_name": "Evidence convergence", "items": _format_score_items(scored[:limit])}
+    if scored is None:
+        scored = _score_proteins(assembly_name)
+    ranked = sorted(scored, key=lambda r: (r["score"], r["fpocket"], r["direct_count"], r["binder_count"]), reverse=True)
+    return {"formula_name": "Evidence convergence", "items": _format_score_items(ranked[:limit])}
 
 
-def get_unexplored_targets(assembly_name, user, limit=5):
+def get_unexplored_targets(assembly_name, user, limit=5, scored=None):
     """Top-N proteins with strong non-chemical evidence but zero ligand records.
 
     Raw ligand count rewards "well-studied" proteins - a bacterial protein
@@ -366,10 +367,24 @@ def get_unexplored_targets(assembly_name, user, limit=5):
     surfaces the inverse: promising, druggable, selective candidates nobody
     has drugged yet - a target-discovery view instead of a "most-studied" one.
     """
-    scored = _score_proteins(assembly_name)
+    if scored is None:
+        scored = _score_proteins(assembly_name)
     unexplored = [r for r in scored if r["binder_count"] == 0]
     unexplored.sort(key=lambda r: (r["score"], r["fpocket"]), reverse=True)
     return {"formula_name": "Unexplored candidates", "items": _format_score_items(unexplored[:limit])}
+
+
+def get_overview_target_rankings(assembly_name, user, limit=5):
+    """(top_targets_by_score, unexplored_targets) computed from a single shared
+    _score_proteins() pass. The genome overview page needs both rankings, and
+    calling get_top_targets_by_score()/get_unexplored_targets() independently
+    each re-ran the full per-genome scoring scan (proteins + binders +
+    structures + metabolic links, scored protein-by-protein in Python) --
+    twice per page load, the dominant cost on large genomes."""
+    scored = _score_proteins(assembly_name)
+    top_targets = get_top_targets_by_score(assembly_name, user, limit=limit, scored=scored)
+    unexplored_targets = get_unexplored_targets(assembly_name, user, limit=limit, scored=scored)
+    return top_targets, unexplored_targets
 
 
 def export_composite_ranking_rows(assembly_name):

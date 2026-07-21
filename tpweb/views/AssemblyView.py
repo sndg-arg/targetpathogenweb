@@ -20,8 +20,7 @@ from tpweb.services.pipeline_status import (
 from tpweb.services.assembly_workspace import (
     build_assembly_workspace_metrics,
     export_composite_ranking_rows,
-    get_top_targets_by_score,
-    get_unexplored_targets,
+    get_overview_target_rankings,
 )
 from tpweb.services.assembly_overview import build_assembly_overview
 from tpweb.services.genome_metadata import build_genome_metadata_rows
@@ -84,8 +83,7 @@ class AssemblyView(View):
             "prop_rows": build_genome_metadata_rows(props),
         }
         workspace_metrics = build_assembly_workspace_metrics(biodb.name)
-        top_targets_by_score = get_top_targets_by_score(biodb.name, request.user, limit=5)
-        unexplored_targets = get_unexplored_targets(biodb.name, request.user, limit=5)
+        top_targets_by_score, unexplored_targets = get_overview_target_rankings(biodb.name, request.user, limit=5)
         overview = build_assembly_overview(
             request.user,
             biodb.name,
