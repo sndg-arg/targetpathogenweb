@@ -4,7 +4,7 @@
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20260710-genome-rethink1">
-    <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20260718-pathwayfilter1">
+    <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20260721-reactiontable1">
     <link rel="stylesheet" href="{% static 'css/pages/metabolic-network-genome.css' %}?v=20260715-network4">
 {% endblock %}
 
@@ -132,7 +132,7 @@
                         {% endfor %}
                         {% if reaction.substrate_hidden %}<span class="metabolite-chip is-currency" title="{{ reaction.substrate_hidden }} additional substrate{{ reaction.substrate_hidden|pluralize }}"><span class="metabolite-chip-label">+{{ reaction.substrate_hidden }}</span></span>{% endif %}
                     </div>
-                    <span class="metabolite-arrow">-&gt;</span>
+                    <span class="metabolite-arrow">&rarr;</span>
                     <div>
                         {% for item in reaction.products %}
                         <span class="metabolite-chip{% if item.is_currency %} is-currency{% endif %}" title="{{ item.name }}"><span class="metabolite-chip-label">{{ item.name }}</span></span>

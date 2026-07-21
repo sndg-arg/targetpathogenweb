@@ -650,8 +650,9 @@
 .pathway-reaction-main h3 {
     margin: 0;
     color: var(--tp-color-text-primary);
-    font-size: 0.98rem;
-    font-weight: 800;
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 0.88rem;
+    font-weight: 700;
 }
 
 .pathway-reaction-main p {
@@ -684,14 +685,25 @@
 }
 
 .pathway-reaction-equation {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-    gap: 10px;
+    /* Content-hugging flex, not a stretched 1fr/auto/1fr grid -- a reaction with one
+       substrate and one product otherwise left a large dead gap between the chip and
+       the arrow, since the grid columns always spanned the full row width regardless
+       of how little content was in them. */
+    display: flex;
+    flex-wrap: wrap;
     align-items: center;
+    gap: 10px;
     margin-top: 10px;
 }
 
-.pathway-reaction-equation > div,
+.pathway-reaction-equation > div {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+}
+
 .pathway-reaction-genes {
     display: flex;
     flex-wrap: wrap;
@@ -809,16 +821,8 @@
         justify-content: flex-start;
     }
 
-    .pathway-reaction-main,
-    .pathway-reaction-equation {
-        grid-template-columns: 1fr;
-    }
-
     .pathway-reaction-main {
         display: grid;
-    }
-
-    .metabolite-arrow {
-        justify-self: start;
+        grid-template-columns: 1fr;
     }
 }
