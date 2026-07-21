@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20260710-premium-system1">
+    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20260721-dropdownfix1">
 {% endblock %}
 
 {% block body %}
@@ -1818,6 +1818,9 @@
             function setPresetsDropdownOpen(open) {
                 if (!presetsDropdown || !openPresetsBtn) return;
                 presetsDropdown.hidden = !open;
+                if (presetsWrap) presetsWrap.classList.toggle("is-presets-open", open);
+                const toolbarCard = presetsWrap ? presetsWrap.closest(".toolbar-card") : null;
+                if (toolbarCard) toolbarCard.classList.toggle("is-presets-open", open);
                 openPresetsBtn.setAttribute("aria-expanded", open ? "true" : "false");
             }
 

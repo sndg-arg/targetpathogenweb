@@ -248,6 +248,8 @@ a.filter-pill .filter-pill-remove {
 }
 
 .toolbar-card {
+    position: relative;
+    z-index: 20;
     border: 1px solid var(--tp-color-border);
     border-radius: var(--tp-ui-radius-panel);
     background: var(--tp-color-surface);
@@ -258,6 +260,11 @@ a.filter-pill .filter-pill-remove {
     transition:
         border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
         box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.toolbar-card:has(.toolbar-presets-dropdown:not([hidden])),
+.toolbar-card.is-presets-open {
+    z-index: 900;
 }
 
 .toolbar-card:hover {
@@ -1372,6 +1379,7 @@ a.filter-pill .filter-pill-remove {
 
 .toolbar-filter-split {
     position: relative;
+    z-index: 1;
     display: inline-flex;
     align-items: stretch;
     border: 1px solid var(--tp-color-border);
@@ -1379,6 +1387,10 @@ a.filter-pill .filter-pill-remove {
     overflow: visible;
     background: var(--tp-color-surface);
     transition: border-color 140ms ease;
+}
+
+.toolbar-filter-split.is-presets-open {
+    z-index: 910;
 }
 
 .toolbar-filter-split:hover {
@@ -1465,7 +1477,7 @@ a.filter-pill .filter-pill-remove {
     position: absolute;
     top: calc(100% + 6px);
     left: 0;
-    z-index: 200;
+    z-index: 920;
     min-width: 290px;
     max-width: 380px;
     background: var(--tp-color-surface);

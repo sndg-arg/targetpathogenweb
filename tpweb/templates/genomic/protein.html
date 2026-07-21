@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260720-heropolish1">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260721-dropdownfix1">
 {% endblock %}
 
 {% block body %}
@@ -1323,15 +1323,8 @@
                 const btn = document.getElementById("structure-picker-btn");
                 const menu = document.getElementById("structure-picker-menu");
                 if (!btn || !menu) return;
-                document.body.appendChild(menu);
                 btn.addEventListener("click", function () {
                     const open = !menu.hidden;
-                    if (!open) {
-                        const rect = btn.getBoundingClientRect();
-                        menu.style.bottom = "";
-                        menu.style.top = (rect.bottom + 6) + "px";
-                        menu.style.left = rect.left + "px";
-                    }
                     menu.hidden = open;
                     btn.setAttribute("aria-expanded", open ? "false" : "true");
                 });
