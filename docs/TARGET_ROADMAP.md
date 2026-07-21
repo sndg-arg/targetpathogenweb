@@ -4,15 +4,6 @@ Documento vivo para ordenar tareas de producto e implementacion. La idea es mant
 
 ## Hecho / en uso
 
-### Informacion metabolica
-
-Incorpora informacion metabolica al analisis de targets (SBML/TSV/SIF de MetaFlux/Pathway Tools + KEGG), para saber en que ruta participa una proteina, que tan central es y si actua como chokepoint. Implementado, ingesta completa por genoma más:
-
-- `Metabolic context` en la pagina de proteina (`/protein/<id>`, seccion "Metabolic context"), integrado al scoring, con oracion interpretativa automatica y el grafo de vecindario por proteina embebido ahi mismo.
-- Ranking de rutas a nivel genoma: boton "Metabolism" desde la pagina del genoma (`/genome/<genoma>/metabolism`).
-- Pagina de mapa por ruta individual: clickeando una ruta del ranking anterior (`/genome/<genoma>/metabolism/<source>/<external_id>`).
-- Grafo unico genome-wide estilo Krona: boton separado desde la pagina del genoma (`/genome/<genoma>/metabolism/network`) — un nodo por pathway, un click hace zoom a su subgrafo de reacciones (pedido de las biologas para ver todo junto en vez de ruta por ruta), con los cortes de tamaño/densidad de chokepoints que deciden el label permanente ya recalibrados contra la distribucion real de KpATCC43816 (antes elegidos a ojo).
-
 ### Target executive summary
 
 Resumen ejecutivo arriba de la pagina de proteina que responde en pocos segundos si el target es prometedor: frase interpretativa unica combinando score, metabolismo, drogabilidad, ligandos, estructura, off-target y conservacion; bloques Strengths / Risks / Missing evidence con links a las secciones que justifican cada punto; y badges especificos cuando hay datos completos (pocket consistente FPocket+P2Rank, estructura experimental disponible, baja similitud humana, ligando conocido fuerte).
@@ -38,6 +29,10 @@ Chat/agente agnostico a proveedor LLM (Claude u OpenAI intercambiables) en un dr
 Pasada sistematica de consistencia visual (tokens de color/sombra/tipografia, hover-lift, entrada sutil, cero valores hardcodeados) aplicada a las ~15 paginas de la app, incluido el structure viewer, con checklist de pre-merge documentado en `docs/VISUAL_CHECKLIST.md`.
 
 ## En progreso
+
+### Informacion metabolica
+
+Incorpora informacion metabolica al analisis de targets (SBML/TSV/SIF de MetaFlux/Pathway Tools + KEGG), para saber en que ruta participa una proteina, que tan central es y si actua como chokepoint. Implementado: ingesta completa por genoma, `Metabolic context` en la pagina de proteina (`/protein/<id>`) integrado al scoring con oracion interpretativa automatica y grafo de vecindario embebido, ranking de rutas a nivel genoma (`/genome/<genoma>/metabolism`), pagina de mapa por ruta individual, y grafo genome-wide estilo Krona (`/genome/<genoma>/metabolism/network`). Revisado con las biologas: el `Metabolic context` de proteina y el ranking de rutas les encantaron. Falta: agregar busqueda por proteina (no solo por nombre de ruta) al ranking de rutas del genoma; un toque mas premium visualmente en `Metabolic context` de la pagina de proteina; y rediseñar los dos grafos (genome-wide y por-ruta individual) — no les gusto la topologia de fuerzas actual, piden un layout ordenado estilo MetaCyc con principio y fin claros, posiblemente sacando metabolito y reaccion como nodos separados y conectando metabolito-a-metabolito con el nombre de la reaccion como label del borde.
 
 ### Visualizacion de Proteina 2.0
 
