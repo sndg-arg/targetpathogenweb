@@ -1,3 +1,4 @@
+from django.core.cache import cache
 from django.db.models import Count, Prefetch, Q
 
 from bioseq.models.Bioentry import Bioentry
@@ -32,6 +33,14 @@ _SCORE_PROTEINS_PARAM_NAMES = [
 
 EC_DBNAMES = {str(Ontology.EC or "").strip(), "ec", "EC"}
 EVIDENCE_CONVERGENCE_MAX_SCORE = 15.0
+
+# Neither the workspace metrics nor the evidence-convergence ranking depend on the
+# requesting user or their scoring formula (it's a fixed per-genome heuristic) -- both
+# are safe to cache by genome name alone. TTL-only for now, no invalidation hook on
+# pipeline completion/score reload yet: a genome's data changes rarely (a deliberate
+# pipeline re-run or import), so a few minutes of staleness right after that is an
+# acceptable trade-off against recomputing on every single page view.
+OVERVIEW_CACHE_TTL_SECONDS = 900
 
 
 def _pct(numerator, denominator):
@@ -403,11 +412,19 @@ def get_overview_target_rankings(assembly_name, user, limit=5):
     calling get_top_targets_by_score()/get_unexplored_targets() independently
     each re-ran the full per-genome scoring scan (proteins + binders +
     structures + metabolic links, scored protein-by-protein in Python) --
-    twice per page load, the dominant cost on large genomes."""
+    twice per page load, the dominant cost on large genomes. Cached by
+    genome name (the heuristic ignores `user`), same TTL policy as
+    build_assembly_workspace_metrics."""
+    cache_key = f"tpw:overview_target_rankings:{assembly_name}:{limit}"
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return cached
     scored = _score_proteins(assembly_name)
     top_targets = get_top_targets_by_score(assembly_name, user, limit=limit, scored=scored)
     unexplored_targets = get_unexplored_targets(assembly_name, user, limit=limit, scored=scored)
-    return top_targets, unexplored_targets
+    result = (top_targets, unexplored_targets)
+    cache.set(cache_key, result, OVERVIEW_CACHE_TTL_SECONDS)
+    return result
 
 
 def export_composite_ranking_rows(assembly_name):
@@ -454,6 +471,16 @@ def export_composite_ranking_rows(assembly_name):
 
 
 def build_assembly_workspace_metrics(assembly_name):
+    cache_key = f"tpw:assembly_workspace_metrics:{assembly_name}"
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return cached
+    metrics = _build_assembly_workspace_metrics(assembly_name)
+    cache.set(cache_key, metrics, OVERVIEW_CACHE_TTL_SECONDS)
+    return metrics
+
+
+def _build_assembly_workspace_metrics(assembly_name):
     proteome_name = assembly_name + Biodatabase.PROT_POSTFIX
     proteins = Bioentry.objects.filter(biodatabase__name=proteome_name)
 
