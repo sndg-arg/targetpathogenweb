@@ -136,7 +136,7 @@
                         <button type="button" class="metabolic-map-btn" data-metabolic-action="zoom-out" title="{% trans "Zoom out" %}">-</button>
                     </div>
                 </div>
-                <div id="metabolic-network-cy" data-network-url="{% url 'tpwebapp:protein_metabolic_network' protein_id=protein.id %}"></div>
+                <div id="metabolic-network-cy" data-network-url="{% url 'tpwebapp:protein_metabolic_network' protein_id=protein.bioentry_id %}"></div>
             </div>
         </div>
 

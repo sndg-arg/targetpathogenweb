@@ -399,7 +399,7 @@
                         <h2>{% trans "Metabolic context" %}</h2>
                         <p class="section-subtitle">{% trans "Reactions catalyzed, pathway membership, and centrality in the genome-scale metabolic network." %}</p>
                     </div>
-                    <a href="{% url 'tpwebapp:protein_metabolic_network_page' protein_id=protein.id %}" class="btn tp-btn tp-btn--primary tp-btn--sm">{% trans "Explore metabolic network" %}</a>
+                    <a href="{% url 'tpwebapp:protein_metabolic_network_page' protein_id=protein.bioentry_id %}" class="btn tp-btn tp-btn--primary tp-btn--sm">{% trans "Explore metabolic network" %}</a>
                 </div>
 
                 {% if metabolic_context.summary_sentence %}
@@ -629,7 +629,7 @@
                         <a href="{% url "tpwebapp:structure_export" structure.id %}"
                            class="btn tp-btn tp-btn--neutral tp-btn--md structure-action-btn structure-download-btn"
                            title="{% trans 'Download a visualization script for VMD (Visual Molecular Dynamics), free software to view the 3D structure with pocket overlays — vmd.ks.uiuc.edu' %}">{% trans "3D visualization script" %}</a>
-                        <a href="{% url "tpwebapp:structure" structure.id %}?protein_id={{ protein.id }}"
+                        <a href="{% url "tpwebapp:structure" structure.id %}?protein_id={{ protein.bioentry_id }}"
                            class="btn tp-btn tp-btn--primary tp-btn--md structure-action-btn structure-fullscreen-link"
                            title="{% trans 'Open the dedicated full-screen 3D viewer with pocket overlays' %}">
                             <svg class="structure-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" focusable="false">
@@ -665,7 +665,7 @@
                     <details class="data-details pocket-panel-details" open>
                         <summary class="pocket-panel-summary">
                             {% trans "Pocket details" %}
-                            <span class="pocket-panel-summary-hint">{% trans "Inspect a specific pocket, or" %} <a href="{% url "tpwebapp:structure" structure.id %}?protein_id={{ protein.id }}" class="pocket-panel-summary-link">{% trans "open the full viewer" %}</a></span>
+                            <span class="pocket-panel-summary-hint">{% trans "Inspect a specific pocket, or" %} <a href="{% url "tpwebapp:structure" structure.id %}?protein_id={{ protein.bioentry_id }}" class="pocket-panel-summary-link">{% trans "open the full viewer" %}</a></span>
                         </summary>
                         <section class="sv-pocket-inspector" id="protein-pocket-inspector" hidden aria-live="polite">
                             <div class="sv-pocket-inspector-head">
