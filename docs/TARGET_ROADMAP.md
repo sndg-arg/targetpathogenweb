@@ -6,7 +6,13 @@ Documento vivo para ordenar tareas de producto e implementacion. La idea es mant
 
 ### Informacion metabolica
 
-Incorpora informacion metabolica al analisis de targets (SBML/TSV/SIF de MetaFlux/Pathway Tools + KEGG), para saber en que ruta participa una proteina, que tan central es y si actua como chokepoint. Implementado: ingesta completa por genoma, `Metabolic context` en la pagina de proteina integrado al scoring con oracion interpretativa automatica, ranking de rutas a nivel genoma, grafo de vecindario por proteina, pagina de mapa por ruta, y un grafo unico genome-wide estilo Krona (un nodo por pathway, un click hace zoom a su subgrafo de reacciones — pedido de las biologas para ver todo junto en vez de ruta por ruta), con los cortes de tamaño/densidad de chokepoints que deciden el label permanente ya recalibrados contra la distribucion real de KpATCC43816 (antes elegidos a ojo).
+Incorpora informacion metabolica al analisis de targets (SBML/TSV/SIF de MetaFlux/Pathway Tools + KEGG), para saber en que ruta participa una proteina, que tan central es y si actua como chokepoint. Implementado, ingesta completa por genoma más:
+
+- `Metabolic context` en la pagina de proteina, integrado al scoring, con oracion interpretativa automatica.
+- Ranking de rutas a nivel genoma.
+- Grafo de vecindario por proteina.
+- Pagina de mapa por ruta.
+- Grafo unico genome-wide estilo Krona (un nodo por pathway, un click hace zoom a su subgrafo de reacciones — pedido de las biologas para ver todo junto en vez de ruta por ruta), con los cortes de tamaño/densidad de chokepoints que deciden el label permanente ya recalibrados contra la distribucion real de KpATCC43816 (antes elegidos a ojo).
 
 ### Target executive summary
 
