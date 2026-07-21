@@ -7,7 +7,7 @@ from .views.IndexView import IndexView
 from .views.HealthView import HealthLiveView, HealthPipelineView, HealthReadyView
 from .views.ProteinListView import ProteinListView, ProteinSearchSuggestionsView
 from .views.ProteinView import ProteinView
-from .views.MetabolismNetworkView import MetabolismNetworkView
+from .views.MetabolismNetworkView import MetabolismNetworkView, ProteinMetabolicNetworkPageView
 from .views.MetabolismPathwayView import (
     MetabolismNetworkExpandView,
     MetabolismNetworkGraphView,
@@ -92,6 +92,7 @@ urlpatterns = [
     path("genome/<str:genome>/explore/<str:annotation_kind>", view=AnnotationExplorerView.as_view(), name="annotation_explorer"),
     path("protein/<int:protein_id>", view=ProteinView.as_view(), name="protein"),
     path("protein/<int:protein_id>/metabolic-network", view=MetabolismNetworkView.as_view(), name="protein_metabolic_network"),
+    path("protein/<int:protein_id>/metabolic-network/view", view=ProteinMetabolicNetworkPageView.as_view(), name="protein_metabolic_network_page"),
     path("genome/<str:genome>/proteins", view=ProteinListView.as_view(), name="protein_list"),
     path("genome/<str:genome>/proteins/suggestions", view=ProteinSearchSuggestionsView.as_view(), name="protein_search_suggestions"),
     path("download", view=DownloadView.as_view(), name="download"),

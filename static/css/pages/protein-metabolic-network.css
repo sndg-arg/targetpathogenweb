@@ -1,0 +1,24 @@
+/* Full-page protein metabolic network (protein_metabolic_network.html) -- reuses the exact
+ * .metabolic-context-shell/.metabolic-context-sidebar/.metabolic-network-shell classes from
+ * protein-detail.css (the embedded preview on the protein page), just with more room since
+ * this page isn't sharing space with a dozen other protein-detail sections. Mirrors the
+ * structure.html vs. embedded-preview split.
+ */
+
+.protein-metabolic-network-summary {
+    margin-top: 0;
+}
+
+.protein-metabolic-network-shell {
+    grid-template-columns: minmax(360px, 460px) minmax(0, 1fr);
+}
+
+.protein-metabolic-network-shell #metabolic-network-cy {
+    min-height: clamp(520px, 70vh, 820px);
+}
+
+@media (max-width: 1080px) {
+    .protein-metabolic-network-shell {
+        grid-template-columns: 1fr;
+    }
+}

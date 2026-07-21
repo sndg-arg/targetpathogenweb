@@ -4000,6 +4000,32 @@ body.residue-modal-open {
     margin-top: 12px;
 }
 
+/* Light preview embedded in the protein page (the reaction list + inspector + graph moved
+   to protein_metabolic_network.html, mirroring the structure.html vs. embedded-preview
+   split) -- just the two score cards, pathway chips, and a reaction count with a CTA. */
+.metabolic-context-preview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-top: 12px;
+}
+
+.metabolic-context-preview .metabolic-score-stack {
+    flex: 1 1 280px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.metabolic-context-preview .metabolic-sidebar-block {
+    flex: 1 1 220px;
+}
+
+.metabolic-reaction-count {
+    margin: 0;
+    color: var(--tp-color-text-secondary);
+    font-size: 0.82rem;
+    line-height: 1.45;
+}
+
 .metabolic-context-sidebar {
     display: flex;
     flex-direction: column;
