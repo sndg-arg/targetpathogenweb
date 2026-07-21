@@ -208,6 +208,13 @@ def build_genome_metabolism_summary(assembly_name, user=None, formula_name=None,
         target_scores = [target["target_score"] for target in bucket["target_rows"].values()]
         mean_score = sum(target_scores) / len(target_scores) if target_scores else 0.0
         chokepoint_density = chokepoint_count / reaction_count if reaction_count else 0.0
+        # Full protein list (not just top_targets, which is capped to top_target_limit) so
+        # client-side search can match any protein in the pathway, not only the handful
+        # shown as chips.
+        protein_search_blob = " ".join(sorted(
+            f"{t['accession']} {t['description']}".lower()
+            for t in bucket["target_rows"].values()
+        ))
         pathways.append({
             "source": bucket["source"],
             "external_id": bucket["external_id"],
@@ -220,6 +227,7 @@ def build_genome_metabolism_summary(assembly_name, user=None, formula_name=None,
             "best_target_score": round(best_score, 3),
             "mean_target_score": round(mean_score, 3),
             "top_targets": top_targets,
+            "protein_search_blob": protein_search_blob,
         })
 
     pathways.sort(

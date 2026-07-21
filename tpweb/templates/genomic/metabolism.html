@@ -62,12 +62,12 @@
 
         {% if summary.pathways %}
         <div class="tp-ui-search-row metabolism-pathway-search">
-            <input type="text" id="metabolism-pathway-search-input" class="form-control tp-ui-search-input" placeholder="{% trans "Search by pathway name..." %}" aria-label="{% trans "Search by pathway name" %}">
+            <input type="text" id="metabolism-pathway-search-input" class="form-control tp-ui-search-input" placeholder="{% trans "Search by pathway name or protein..." %}" aria-label="{% trans "Search by pathway name or protein" %}">
         </div>
-        <p id="metabolism-pathway-empty" class="tp-state-note tp-state-note--empty metabolism-pathway-search-empty">{% trans "No pathway matches your search." %}</p>
+        <p id="metabolism-pathway-empty" class="tp-state-note tp-state-note--empty metabolism-pathway-search-empty">{% trans "No pathway or protein matches your search." %}</p>
         <div class="metabolism-pathway-list" id="metabolism-pathway-list">
             {% for pathway in summary.pathways %}
-            <article class="metabolism-pathway-card{% if forloop.first %} metabolism-pathway-card--top{% endif %}" data-name="{{ pathway.name|lower }}" data-external-id="{{ pathway.external_id|lower }}">
+            <article class="metabolism-pathway-card{% if forloop.first %} metabolism-pathway-card--top{% endif %}" data-name="{{ pathway.name|lower }}" data-external-id="{{ pathway.external_id|lower }}" data-proteins="{{ pathway.protein_search_blob }}">
                 <span class="metabolism-rank">#{{ forloop.counter }}</span>
                 <div class="metabolism-pathway-body">
                     <div class="metabolism-pathway-main">
@@ -161,7 +161,11 @@
         cards.forEach(function (card) {
             var name = card.getAttribute("data-name") || "";
             var externalId = card.getAttribute("data-external-id") || "";
-            card.hidden = Boolean(query) && name.indexOf(query) === -1 && externalId.indexOf(query) === -1;
+            var proteins = card.getAttribute("data-proteins") || "";
+            card.hidden = Boolean(query)
+                && name.indexOf(query) === -1
+                && externalId.indexOf(query) === -1
+                && proteins.indexOf(query) === -1;
         });
         updateEmptyState();
     });
