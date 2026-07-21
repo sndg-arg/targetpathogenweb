@@ -443,9 +443,23 @@
                     themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
                 }
 
+                // A large pathway's reaction+metabolite subgraph (dozens of boxes) fit to a
+                // small container can shrink well below the point where its labels are
+                // legible -- the very information (which reactions are chokepoints) the
+                // drill-in view exists to surface. Floor the zoom after fit so reaction
+                // labels stay readable on entry, at the cost of not showing 100% of a very
+                // large pathway without panning.
+                var MIN_DETAIL_ZOOM = 0.7;
+                var isDetailView = false;
                 var firstLoad = true;
                 cy.on("layoutstop", function () {
                     cy.fit(cy.elements(), 30);
+                    if (isDetailView && cy.zoom() < MIN_DETAIL_ZOOM) {
+                        cy.zoom({
+                            level: MIN_DETAIL_ZOOM,
+                            renderedPosition: { x: container.clientWidth / 2, y: container.clientHeight / 2 }
+                        });
+                    }
                     container.classList.add("is-ready");
                     if (firstLoad) {
                         firstLoad = false;
@@ -458,6 +472,7 @@
                     container.classList.remove("is-ready");
                     clearHover(cy);
                     tooltip.style.display = "none";
+                    isDetailView = false;
                     cy.elements().remove();
                     cy.add(collapsedElements);
                     cy.layout(overviewLayout({ animate: true, animationDuration: 700, randomize: true })).run();
@@ -471,6 +486,7 @@
                     tooltip.style.display = "none";
                     cy.elements().remove();
                     cy.add(window.TPMetabolicReactionGraph.buildElements(expandPayload));
+                    isDetailView = true;
                     cy.layout(detailLayout()).run();
                     if (breadcrumb) breadcrumb.hidden = false;
                     if (breadcrumbCurrent) breadcrumbCurrent.textContent = nodeData.label || nodeData.id;
