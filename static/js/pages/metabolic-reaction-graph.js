@@ -130,6 +130,45 @@
         return roots;
     }
 
+    function supportsDagre() {
+        return Boolean(window.TP_CYTOSCAPE_DAGRE_AVAILABLE);
+    }
+
+    function flowLayout(roots, options) {
+        options = options || {};
+        if (supportsDagre()) {
+            return {
+                // Dagre/Sugiyama puts the pathway into ordered layers and minimizes
+                // edge crossings within each layer. That is much closer to curated
+                // pathway diagrams than a generic force-directed layout.
+                name: "dagre",
+                rankDir: "LR",
+                ranker: "network-simplex",
+                acyclicer: "greedy",
+                nodeSep: options.nodeSep || 46,
+                rankSep: options.rankSep || 92,
+                edgeSep: options.edgeSep || 18,
+                padding: options.padding || 30,
+                animate: options.animate !== false,
+                animationDuration: options.animationDuration || 700,
+                animationEasing: "ease-out-cubic",
+                nodeDimensionsIncludeLabels: true
+            };
+        }
+        return {
+            name: "breadthfirst",
+            directed: true,
+            roots: roots && roots.length ? roots : undefined,
+            spacingFactor: options.spacingFactor || 1.35,
+            avoidOverlap: true,
+            animate: options.animate !== false,
+            animationDuration: options.animationDuration || 700,
+            animationEasing: "ease-out-cubic",
+            padding: options.padding || 30,
+            nodeDimensionsIncludeLabels: true
+        };
+    }
+
     function styleRules(palette) {
         return [
             {
@@ -253,6 +292,7 @@
         FONT_STACK: FONT_STACK,
         buildElements: buildElements,
         suggestRoots: suggestRoots,
+        flowLayout: flowLayout,
         styleRules: styleRules,
         tooltipForReaction: tooltipForReaction,
         tooltipForMetabolite: tooltipForMetabolite

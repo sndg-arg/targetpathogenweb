@@ -311,22 +311,15 @@
         return layout;
     }
 
-    // Detail layout: directed/layered (matching the standalone per-pathway page's own
-    // layout config in metabolic-pathway-graph.js), not force-directed -- a clear
-    // start-to-end flow is what biologists expect from a MetaCyc-style pathway chart.
+    // Detail layout: directed/layered and crossing-aware. The shared helper prefers
+    // Dagre/Sugiyama when available and falls back to Cytoscape breadthfirst for old
+    // bundles, keeping deploys tolerant while giving route maps a clearer flow.
     function detailLayout(roots) {
-        return {
-            name: "breadthfirst",
-            directed: true,
-            roots: roots && roots.length ? roots : undefined,
-            spacingFactor: 1.35,
-            avoidOverlap: true,
-            animate: true,
-            animationDuration: 700,
-            animationEasing: "ease-out-cubic",
-            padding: 30,
-            nodeDimensionsIncludeLabels: true
-        };
+        return window.TPMetabolicReactionGraph.flowLayout(roots, {
+            nodeSep: 54,
+            rankSep: 104,
+            padding: 30
+        });
     }
 
     function initMetabolicNetworkGenome() {

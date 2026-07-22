@@ -66,22 +66,11 @@
             container: container,
             elements: elements,
             style: window.TPMetabolicReactionGraph.styleRules(readPalette()),
-            layout: {
-                // Directed/layered instead of force-directed -- biologists reading this as
-                // a MetaCyc-style pathway chart want a clear start-to-end flow, not a
-                // generic network layout. Roots are metabolites never produced within this
-                // subgraph (see suggestRoots); a fully cyclic pathway falls back to
-                // cytoscape's own root choice.
-                name: "breadthfirst",
-                directed: true,
-                roots: roots.length ? roots : undefined,
-                spacingFactor: 1.35,
-                avoidOverlap: true,
-                animate: true,
-                animationDuration: 700,
-                animationEasing: "ease-out-cubic",
+            layout: window.TPMetabolicReactionGraph.flowLayout(roots, {
+                nodeSep: 54,
+                rankSep: 104,
                 padding: 30
-            },
+            }),
             minZoom: 0.2,
             maxZoom: 3.5,
             wheelSensitivity: 1,

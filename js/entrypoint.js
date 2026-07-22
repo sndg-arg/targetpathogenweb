@@ -43,9 +43,12 @@ window.NGL = NGL;
 window.NGL.Shape = NGLShape;
 
 import cytoscape from 'cytoscape';
+import dagre from 'cytoscape-dagre';
 import fcose from 'cytoscape-fcose';
+cytoscape.use(dagre);
 cytoscape.use(fcose);
 window.cytoscape = cytoscape;
+window.TP_CYTOSCAPE_DAGRE_AVAILABLE = true;
 
 import initRDKitModule from "@rdkit/rdkit";
 
@@ -86,5 +89,4 @@ export default (name, constructor) => {
 };
 
 * */
-
 
