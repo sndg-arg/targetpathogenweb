@@ -144,7 +144,7 @@
                                 <div>
                                     <h2>{% trans "Top evidence-convergent candidates" %}</h2>
                                     <p class="section-subtitle">
-                                        {% trans "Composite score (0-15) combining druggability, ligand evidence, off-target risk, essentiality, conservation, structure, and metabolic context." %}
+                                        {% trans "Composite score (0-100%) combining druggability, ligand evidence, off-target risk, essentiality, conservation, structure, and metabolic context." %}
                                     </p>
                                     <details class="targets-methodology">
                                         <summary>{% trans "How is this calculated?" %}</summary>
@@ -160,12 +160,12 @@
                             </div>
                             <ol class="targets-list">
                                 {% for t in top_targets_by_score.items %}
-                                    {% blocktrans with score=t.score max=t.score_max percent=t.score_percent asvar score_tooltip %}Composite score: {{ score }} of {{ max }} points ({{ percent }}%). Strong means several independent evidence types agree; it is still only a first-pass triage score.{% endblocktrans %}
+                                    {% blocktrans with percent=t.score_percent score=t.score max=t.score_max asvar score_tooltip %}Composite score: {{ percent }}% ({{ score }} of {{ max }} weighted points). Strong means several independent evidence types agree; it is still only a first-pass triage score.{% endblocktrans %}
                                     {% include "components/targets/ranking_item.html" %}
                                 {% endfor %}
                             </ol>
                             <p class="targets-footnote">
-                                {% trans "Score range: 0-15. Strong is at least 65% of the evidence-weight budget; Moderate is 40-65%; Limited is below 40%. This ranking is only a first-pass triage." %}
+                                {% trans "Strong is at least 65% of the maximum weighted evidence; Moderate is 40-65%; Limited is below 40%. This ranking is only a first-pass triage." %}
                                 <a href="{{ workspace_links.custom_scores_url }}">{% trans "Create your own score" %} &rarr;</a>
                             </p>
                         </div>
@@ -184,7 +184,7 @@
                             </div>
                             <ol class="targets-list">
                                 {% for t in unexplored_targets.items %}
-                                    {% blocktrans with score=t.score max=t.score_max percent=t.score_percent asvar score_tooltip %}Composite score: {{ score }} of {{ max }} points ({{ percent }}%), computed without any ligand-evidence signal.{% endblocktrans %}
+                                    {% blocktrans with percent=t.score_percent score=t.score max=t.score_max asvar score_tooltip %}Composite score: {{ percent }}% ({{ score }} of {{ max }} weighted points), computed without any ligand-evidence signal.{% endblocktrans %}
                                     {% include "components/targets/ranking_item.html" %}
                                 {% endfor %}
                             </ol>
