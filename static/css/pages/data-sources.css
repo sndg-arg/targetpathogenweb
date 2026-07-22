@@ -188,6 +188,11 @@
     font-weight: 650;
 }
 
+.ds-pipeline-card-role--engineering {
+    color: var(--tp-color-text-primary) !important;
+    font-weight: 650;
+}
+
 .ds-pipeline-card-faculty {
     font-size: 0.78rem;
     color: var(--tp-color-text-muted);
