@@ -21,7 +21,7 @@
             </thead>
             <tbody>
             {% for item in items %}
-                <tr{% if item.slot_key %} data-pdb-slot="{{ item.slot_key }}"{% endif %}{% if item.loaded and item.loaded_structure_id %} data-structure-url="{% url 'tpwebapp:structure_raw' item.loaded_structure_id %}?protein_id={{ protein.bioentry_id }}" data-structure-format="{{ item.file_format|default:'pdb' }}" data-chain-selector="{{ item.chain_selector }}" data-main-selector="{{ item.chain_selector|default:'polymer' }}" data-chain-color="true"{% endif %}{% if item.viewer_key == 'primary' %} class="experimental-row--viewer-active"{% endif %}>
+                <tr{% if item.slot_key %} data-pdb-slot="{{ item.slot_key }}"{% endif %}{% if item.loaded and item.loaded_structure_id %} data-structure-url="{% url 'tpwebapp:structure_raw' item.loaded_structure_id %}?protein_id={{ protein.id }}" data-structure-format="{{ item.file_format|default:'pdb' }}" data-chain-selector="{{ item.chain_selector }}" data-main-selector="{{ item.chain_selector|default:'polymer' }}" data-chain-color="true"{% endif %}{% if item.viewer_key == 'primary' %} class="experimental-row--viewer-active"{% endif %}>
                     <td>
                         <div class="experimental-entry-cell">
                             <span class="experimental-source">PDB</span>
@@ -69,7 +69,7 @@
             {% endfor %}
             {% for item in predicted_items %}
                 <tr data-pdb-slot="{{ item.slot_key }}"
-                    data-structure-url="{% url 'tpwebapp:structure_raw' item.loaded_structure_id %}?protein_id={{ protein.bioentry_id }}"
+                    data-structure-url="{% url 'tpwebapp:structure_raw' item.loaded_structure_id %}?protein_id={{ protein.id }}"
                     data-structure-format="{{ item.file_format|default:'pdb' }}"
                     data-chain-selector="{{ item.chain_selector }}"
                     data-main-selector="{{ item.chain_selector }}"
