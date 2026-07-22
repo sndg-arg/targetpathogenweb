@@ -585,18 +585,10 @@
     font-weight: 500;
 }
 
-.targets-signal::before {
-    content: "";
-    display: inline-block;
-    width: 5px;
-    height: 5px;
-    margin-right: 6px;
-    border-radius: 50%;
-    background: var(--tp-color-text-soft);
-    vertical-align: middle;
-}
-
-.targets-signal:not(:last-child)::after {
+/* Separator lives on ::before of every item but the first, not ::after of every
+   item but the last -- if it wraps, it travels down with the item it belongs to
+   instead of being orphaned at the end of the previous line. */
+.targets-signal:not(:first-child)::before {
     content: "\00b7";
     margin: 0 8px;
     color: var(--tp-color-text-soft);
@@ -605,10 +597,6 @@
 .targets-signal--bad {
     color: var(--tp-color-danger-ink);
     font-weight: 600;
-}
-
-.targets-signal--bad::before {
-    background: var(--tp-color-danger-ink);
 }
 
 .targets-footnote {
