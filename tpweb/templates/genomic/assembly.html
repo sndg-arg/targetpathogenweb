@@ -160,7 +160,7 @@
                             </div>
                             <ol class="targets-list">
                                 {% for t in top_targets_by_score.items %}
-                                    {% blocktrans with percent=t.score_percent score=t.score max=t.score_max asvar score_tooltip %}Composite score: {{ percent }}% ({{ score }} of {{ max }} weighted points). Strong means several independent evidence types agree; it is still only a first-pass triage score.{% endblocktrans %}
+                                    {% blocktrans with percent=t.score_percent asvar score_tooltip %}Composite score: {{ percent }}% of the maximum weighted evidence. Strong means several independent evidence types agree; it is still only a first-pass triage score.{% endblocktrans %}
                                     {% include "components/targets/ranking_item.html" %}
                                 {% endfor %}
                             </ol>
@@ -184,7 +184,7 @@
                             </div>
                             <ol class="targets-list">
                                 {% for t in unexplored_targets.items %}
-                                    {% blocktrans with percent=t.score_percent score=t.score max=t.score_max asvar score_tooltip %}Composite score: {{ percent }}% ({{ score }} of {{ max }} weighted points), computed without any ligand-evidence signal.{% endblocktrans %}
+                                    {% blocktrans with percent=t.score_percent asvar score_tooltip %}Composite score: {{ percent }}% of the maximum weighted evidence, computed without any ligand-evidence signal.{% endblocktrans %}
                                     {% include "components/targets/ranking_item.html" %}
                                 {% endfor %}
                             </ol>
