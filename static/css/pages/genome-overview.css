@@ -411,11 +411,6 @@
     line-height: 1.5;
 }
 
-/* Clamp descriptions to 1 line for uniform item height */
-.genome-card--ranking .targets-description {
-    -webkit-line-clamp: 1;
-}
-
 .targets-list {
     list-style: none;
     margin: 0;
@@ -444,176 +439,10 @@
 }
 
 .targets-link {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 16px;
-    align-items: center;
+    display: block;
     padding: 14px 16px;
     color: inherit;
     text-decoration: none;
-}
-
-.targets-link--score {
-    grid-template-columns: 1fr;
-    align-items: stretch;
-}
-
-.targets-score {
-    margin-left: auto;
-    font-weight: var(--tp-font-weight-semibold);
-    color: var(--genome-accent-ink);
-    line-height: 1.1;
-    padding: 6px 10px;
-    background: var(--genome-accent-soft);
-    border: 1px solid var(--genome-accent-border);
-    border-radius: 8px;
-    display: inline-flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 3px;
-    min-width: 92px;
-}
-
-.targets-score-label {
-    color: var(--tp-color-text-muted);
-    font-size: 0.68rem;
-    font-weight: 500;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-}
-
-.targets-score-value {
-    font-size: 0.9rem;
-}
-
-.targets-score-sub {
-    color: var(--tp-color-text-muted);
-    font-size: 0.76rem;
-    font-weight: var(--tp-font-weight-medium);
-    font-variant-numeric: tabular-nums;
-}
-
-.targets-score--good {
-    background: var(--tp-color-success-bg);
-    border-color: var(--tp-color-success-border);
-}
-
-.targets-score--good .targets-score-value {
-    color: var(--tp-color-success-ink);
-}
-
-.targets-score--neutral {
-    background: var(--tp-color-info-bg);
-    border-color: var(--tp-color-info-border);
-}
-
-.targets-score--neutral .targets-score-value {
-    color: var(--tp-color-info-ink);
-}
-
-.targets-score--bad {
-    background: var(--tp-color-warning-bg);
-    border-color: var(--tp-color-warning-border);
-}
-
-.targets-score--bad .targets-score-value {
-    color: var(--tp-color-warning-ink);
-}
-
-.targets-evidence {
-    font-size: 0.78rem;
-    font-weight: 600;
-    line-height: 1.1;
-    color: var(--tp-color-text-muted);
-    padding: 4px 10px;
-    background: var(--tp-color-surface-soft);
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: 999px;
-}
-
-.targets-factors {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    padding-left: 38px;
-}
-
-.targets-factor {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    font-size: var(--tp-font-label);
-    font-weight: 600;
-    padding: 3px 9px;
-    border-radius: 999px;
-    border: 1px solid transparent;
-    white-space: nowrap;
-}
-
-/* A color-only difference between good/neutral/bad reads as a wall of same-weight
-   chips at a glance, especially with dark-theme tones that sit close together. A
-   leading dot marker gives every tone its own shape cue, not just a hue. */
-.targets-factor::before {
-    content: "";
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    flex-shrink: 0;
-}
-
-.targets-factor--good {
-    background: var(--tp-color-success-bg);
-    color: var(--tp-color-success-ink);
-    border-color: var(--tp-color-success-border);
-}
-
-.targets-factor--good::before {
-    background: var(--tp-color-success-ink);
-}
-
-.targets-factor--bad {
-    background: var(--tp-color-danger-bg);
-    color: var(--tp-color-danger-ink);
-    border-color: var(--tp-color-danger-border);
-}
-
-.targets-factor--bad::before {
-    background: var(--tp-color-danger-ink);
-}
-
-.targets-factor--neutral {
-    background: var(--tp-color-surface-soft);
-    color: var(--tp-color-text-secondary);
-    border-color: var(--tp-color-border-strong);
-}
-
-.targets-factor--neutral::before {
-    background: var(--tp-color-text-muted);
-}
-
-@media (max-width: 720px) {
-    .targets-factors {
-        padding-left: 0;
-    }
-}
-
-.targets-footnote {
-    margin: 18px 0 0;
-    padding-top: 12px;
-    border-top: 1px dashed var(--tp-color-border-soft);
-    font-size: 0.86rem;
-    color: var(--tp-color-text-muted);
-}
-
-.targets-footnote a {
-    color: var(--tp-color-link);
-    font-weight: 600;
-    text-decoration: none;
-}
-
-.targets-footnote a:hover,
-.targets-footnote a:focus-visible {
-    text-decoration: underline;
 }
 
 .targets-link:hover,
@@ -629,10 +458,18 @@
     gap: 6px;
 }
 
-.targets-title {
+.targets-row-top {
     display: flex;
     align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.targets-identity {
+    display: flex;
+    align-items: baseline;
     gap: 10px;
+    min-width: 0;
 }
 
 .targets-rank {
@@ -662,44 +499,150 @@
     -webkit-box-orient: vertical;
 }
 
-.targets-stats {
+/* Clamp descriptions to 1 line for uniform item height */
+.genome-card--ranking .targets-description {
+    -webkit-line-clamp: 1;
+}
+
+/* ── Score: one clear number, one thin bar, one quiet tier caption -- not a
+   bordered badge fighting the rest of the row for attention. Color is spent
+   once, on the number and the bar; the tier word stays a quiet label so the
+   eye has exactly one bright thing to land on per row. ── */
+.targets-score {
     display: flex;
     flex-direction: column;
     align-items: flex-end;
-    gap: 8px;
-    flex: 0 0 auto;
+    gap: 5px;
+    flex-shrink: 0;
 }
 
-.targets-stat--total {
-    display: flex;
-    align-items: baseline;
-    gap: 6px;
-    color: var(--genome-accent-ink);
-}
-
-.targets-stat-value {
-    font-size: 1.6rem;
-    font-weight: 600;
-    line-height: 1;
+.targets-score-number {
     font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
 }
 
-.targets-stat-label {
-    font-size: 0.78rem;
+.targets-score-max {
+    margin-left: 1px;
+    font-size: 0.8rem;
     font-weight: 500;
+    color: var(--tp-color-text-muted);
+}
+
+.targets-score-bar {
+    width: 72px;
+    height: 3px;
+    border-radius: 2px;
+    background: var(--tp-color-border-soft);
+    overflow: hidden;
+}
+
+.targets-score-fill {
+    display: block;
+    height: 100%;
+    border-radius: 2px;
+    background: currentColor;
+}
+
+.targets-score-tier {
+    font-size: 0.66rem;
+    font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.06em;
     color: var(--tp-color-text-muted);
 }
 
+.targets-score--good .targets-score-number,
+.targets-score--good .targets-score-fill {
+    color: var(--tp-color-success-ink);
+}
+
+.targets-score--neutral .targets-score-number,
+.targets-score--neutral .targets-score-fill {
+    color: var(--tp-color-info-ink);
+}
+
+.targets-score--bad .targets-score-number,
+.targets-score--bad .targets-score-fill {
+    color: var(--tp-color-warning-ink);
+}
+
+/* ── Signals: a quiet, editorial keyword line, not a wall of colored pills.
+   Color is spent only on real cautions, so a risk still stands out; ordinary
+   supporting evidence reads as calm, evenly-weighted text -- the tier badge
+   above already carries the "how strong overall" signal, these are the why. ── */
+.targets-signals {
+    margin: 2px 0 0;
+    padding-left: 38px;
+    color: var(--tp-color-text-secondary);
+    font-size: 0.82rem;
+    line-height: 1.7;
+}
+
+.targets-signal {
+    font-weight: 500;
+}
+
+.targets-signal::before {
+    content: "";
+    display: inline-block;
+    width: 5px;
+    height: 5px;
+    margin-right: 6px;
+    border-radius: 50%;
+    background: var(--tp-color-text-soft);
+    vertical-align: middle;
+}
+
+.targets-signal:not(:last-child)::after {
+    content: "\00b7";
+    margin: 0 8px;
+    color: var(--tp-color-text-soft);
+}
+
+.targets-signal--bad {
+    color: var(--tp-color-danger-ink);
+    font-weight: 600;
+}
+
+.targets-signal--bad::before {
+    background: var(--tp-color-danger-ink);
+}
+
+.targets-footnote {
+    margin: 18px 0 0;
+    padding-top: 12px;
+    border-top: 1px dashed var(--tp-color-border-soft);
+    font-size: 0.86rem;
+    color: var(--tp-color-text-muted);
+}
+
+.targets-footnote a {
+    color: var(--tp-color-link);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.targets-footnote a:hover,
+.targets-footnote a:focus-visible {
+    text-decoration: underline;
+}
+
 @media (max-width: 720px) {
-    .targets-link {
-        grid-template-columns: 1fr;
+    .targets-row-top {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
     }
-    .targets-stats {
+
+    .targets-score {
         align-items: flex-start;
     }
-    .targets-description {
+
+    .targets-description,
+    .targets-signals {
         padding-left: 0;
     }
 }

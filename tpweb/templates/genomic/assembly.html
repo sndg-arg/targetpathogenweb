@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20260722-rankingpremium1">
+    <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20260722-rankingredesign1">
 {% endblock %}
 
 {% block body %}
@@ -160,38 +160,8 @@
                             </div>
                             <ol class="targets-list">
                                 {% for t in top_targets_by_score.items %}
-                                    <li class="targets-item">
-                                        <a class="targets-link targets-link--score" href="{% url 'tpwebapp:protein' protein_id=t.bioentry_id %}">
-                                            <div class="targets-main">
-                                                <div class="targets-title">
-                                                    <span class="targets-rank">#{{ forloop.counter }}</span>
-                                                    <span class="targets-accession">{{ t.accession }}</span>
-                                                    <span class="targets-score targets-score--{{ t.tier_tone }}" title="{% blocktrans with score=t.score max=t.score_max percent=t.score_percent %}Evidence convergence score: {{ score }} of {{ max }} points ({{ percent }}%). Strong means several independent evidence types agree; it is still only a first-pass triage score.{% endblocktrans %}">
-                                                        <span class="targets-score-label">{% trans "Convergence" %}</span>
-                                                        <span class="targets-score-value">{{ t.tier_label }}</span>
-                                                        <span class="targets-score-sub">{{ t.score }}/{{ t.score_max }}</span>
-                                                    </span>
-                                                    {% if t.binder_count %}
-                                                        <span class="targets-evidence targets-evidence--plain" title="{% if t.direct_count %}{% trans 'A ligand is bound directly to this protein (PDB structure or measured ChEMBL activity), not just to a homolog.' %}{% else %}{% trans 'Ligand evidence comes from a homolog or a ZINC-proposed compound, not a direct PDB/ChEMBL record on this protein.' %}{% endif %}">
-                                                            {% if t.direct_count %}
-                                                                {% trans "Direct ligand evidence" %}
-                                                            {% else %}
-                                                                {% trans "Supporting ligand evidence" %}
-                                                            {% endif %}
-                                                        </span>
-                                                    {% endif %}
-                                                </div>
-                                                <p class="targets-description">{{ t.description|default:"-" }}</p>
-                                                {% if t.factors %}
-                                                    <div class="targets-factors">
-                                                        {% for f in t.factors %}
-                                                            <span class="targets-factor targets-factor--{{ f.tone }}">{{ f.label }}</span>
-                                                        {% endfor %}
-                                                    </div>
-                                                {% endif %}
-                                            </div>
-                                        </a>
-                                    </li>
+                                    {% blocktrans with score=t.score max=t.score_max percent=t.score_percent asvar score_tooltip %}Composite score: {{ score }} of {{ max }} points ({{ percent }}%). Strong means several independent evidence types agree; it is still only a first-pass triage score.{% endblocktrans %}
+                                    {% include "components/targets/ranking_item.html" %}
                                 {% endfor %}
                             </ol>
                             <p class="targets-footnote">
@@ -208,35 +178,14 @@
                                     <span class="targets-eyebrow">{% trans "No ligand evidence yet" %}</span>
                                     <h2>{% trans "Worth a fresh look" %}</h2>
                                     <p class="section-subtitle">
-                                        {% trans "Same evidence-convergence score, restricted to proteins with zero ligand records - promising candidates nobody has drugged yet, instead of the ones already best-studied." %}
+                                        {% trans "Same composite score, restricted to proteins with zero ligand records - promising candidates nobody has drugged yet, instead of the ones already best-studied." %}
                                     </p>
                                 </div>
                             </div>
                             <ol class="targets-list">
                                 {% for t in unexplored_targets.items %}
-                                    <li class="targets-item">
-                                        <a class="targets-link targets-link--score" href="{% url 'tpwebapp:protein' protein_id=t.bioentry_id %}">
-                                            <div class="targets-main">
-                                                <div class="targets-title">
-                                                    <span class="targets-rank">#{{ forloop.counter }}</span>
-                                                    <span class="targets-accession">{{ t.accession }}</span>
-                                                    <span class="targets-score targets-score--{{ t.tier_tone }}" title="{% blocktrans with score=t.score max=t.score_max percent=t.score_percent %}Evidence convergence score: {{ score }} of {{ max }} points ({{ percent }}%), computed without any ligand-evidence signal.{% endblocktrans %}">
-                                                        <span class="targets-score-label">{% trans "Convergence" %}</span>
-                                                        <span class="targets-score-value">{{ t.tier_label }}</span>
-                                                        <span class="targets-score-sub">{{ t.score }}/{{ t.score_max }}</span>
-                                                    </span>
-                                                </div>
-                                                <p class="targets-description">{{ t.description|default:"-" }}</p>
-                                                {% if t.factors %}
-                                                    <div class="targets-factors">
-                                                        {% for f in t.factors %}
-                                                            <span class="targets-factor targets-factor--{{ f.tone }}">{{ f.label }}</span>
-                                                        {% endfor %}
-                                                    </div>
-                                                {% endif %}
-                                            </div>
-                                        </a>
-                                    </li>
+                                    {% blocktrans with score=t.score max=t.score_max percent=t.score_percent asvar score_tooltip %}Composite score: {{ score }} of {{ max }} points ({{ percent }}%), computed without any ligand-evidence signal.{% endblocktrans %}
+                                    {% include "components/targets/ranking_item.html" %}
                                 {% endfor %}
                             </ol>
                             <p class="targets-footnote">
