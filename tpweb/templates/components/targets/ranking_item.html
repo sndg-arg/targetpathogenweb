@@ -9,7 +9,7 @@
                 </div>
                 <div class="targets-score targets-score--{{ t.tier_tone }}" title="{{ score_tooltip }}">
                     <span class="targets-score-number">{{ t.score_percent }}<span class="targets-score-max">%</span></span>
-                    <span class="targets-score-bar"><span class="targets-score-fill" style="width: {{ t.score_percent }}%"></span></span>
+                    <span class="targets-score-bar" aria-hidden="true"><span class="targets-score-fill" style="width: {{ t.score_percent }}%"></span></span>
                     <span class="targets-score-tier">{{ t.tier_label }}</span>
                 </div>
             </div>

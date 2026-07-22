@@ -437,7 +437,8 @@
         transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
 }
 
-.targets-item:hover {
+.targets-item:hover,
+.targets-item:focus-within {
     border-color: var(--tp-color-border-strong);
     box-shadow: var(--tp-shadow-sm);
     transform: translateY(-1px);
@@ -454,7 +455,15 @@
 .targets-link:focus-visible {
     text-decoration: none;
     color: inherit;
-    outline: none;
+}
+
+/* :focus-within above already lifts the whole card to match :hover; this adds
+   a crisp ring on the link itself so keyboard users see exactly what's
+   focused, instead of the outline:none-with-no-replacement it had before. */
+.targets-link:focus-visible {
+    outline: 2px solid var(--genome-accent-border);
+    outline-offset: -2px;
+    border-radius: 10px;
 }
 
 .targets-main {
@@ -530,7 +539,6 @@
 }
 
 .targets-score-max {
-    margin-left: 1px;
     font-size: 0.8rem;
     font-weight: 500;
     color: var(--tp-color-text-muted);
