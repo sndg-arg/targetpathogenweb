@@ -140,9 +140,11 @@
             return {
                 // Dagre/Sugiyama puts the pathway into ordered layers and minimizes
                 // edge crossings within each layer. That is much closer to curated
-                // pathway diagrams than a generic force-directed layout.
+                // pathway diagrams than a generic force-directed layout. Top-to-bottom
+                // (not left-to-right) per the biologists' explicit ask: a clear start
+                // node at top flowing down to the end, like a MetaCyc pathway chart.
                 name: "dagre",
-                rankDir: "LR",
+                rankDir: "TB",
                 ranker: "network-simplex",
                 acyclicer: "greedy",
                 nodeSep: options.nodeSep || 46,
