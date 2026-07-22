@@ -185,11 +185,37 @@
     margin-top: -4px !important;
 }
 
-.ds-pipeline-card-doctorate {
+.ds-pipeline-card-previous-degree,
+.ds-pipeline-card-current-training {
+    padding-top: 7px;
+    border-top: 1px solid var(--tp-color-border-soft);
+}
+
+.ds-pipeline-card-previous-degree {
     font-style: italic;
     color: var(--tp-color-text-muted) !important;
-    padding-top: 6px;
-    border-top: 1px solid var(--tp-color-border-soft);
+}
+
+.ds-pipeline-card-current-training {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    color: var(--tp-color-text-secondary) !important;
+}
+
+.ds-pipeline-card-current-training > span:first-child {
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 0.68rem;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: var(--tp-color-brand-700);
+    background: var(--tp-color-brand-050);
+    border: 1px solid var(--tp-color-brand-200);
+    border-radius: 999px;
+    padding: 3px 7px;
 }
 
 .ds-stage-tag {
