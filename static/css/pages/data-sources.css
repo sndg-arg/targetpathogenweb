@@ -188,6 +188,11 @@
     font-weight: 650;
 }
 
+.ds-pipeline-card-role--candidate {
+    color: var(--tp-color-text-primary) !important;
+    font-weight: 610;
+}
+
 .ds-pipeline-card-role--engineering {
     color: var(--tp-color-text-secondary) !important;
     font-weight: 560;
@@ -199,8 +204,7 @@
     margin-top: -4px !important;
 }
 
-.ds-pipeline-card-previous-degree,
-.ds-pipeline-card-current-training {
+.ds-pipeline-card-previous-degree {
     padding-top: 8px;
     border-top: 1px solid var(--tp-color-border-soft);
 }
@@ -209,12 +213,7 @@
     color: var(--tp-color-text-muted) !important;
 }
 
-.ds-pipeline-card-current-training {
-    color: var(--tp-color-text-secondary) !important;
-}
-
-.ds-pipeline-card-previous-degree > span:first-child,
-.ds-pipeline-card-current-training > span:first-child {
+.ds-pipeline-card-previous-degree > span:first-child {
     display: block;
     margin-bottom: 2px;
     font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
@@ -224,10 +223,6 @@
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--tp-color-text-muted);
-}
-
-.ds-pipeline-card-current-training > span:first-child {
-    color: var(--tp-color-brand-700);
 }
 
 .ds-stage-tag {
