@@ -252,9 +252,14 @@
 
 /* ── Grid + panels ────────────────────────────────────────────────── */
 
+/* Every direct child below is a full-width section (targets/evidence/browse/
+   downloads/details/danger) -- a plain single-column stack, not a 2-column
+   grid. (Previously declared as a 2-column grid with every child forcing
+   grid-column:1/-1 to override it back to full-width; that template was
+   never actually used and just made the layout harder to follow.) */
 .genome-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    display: flex;
+    flex-direction: column;
     gap: 14px;
 }
 
@@ -297,15 +302,6 @@
     color: var(--tp-color-text-muted);
     font-size: 0.86rem;
     line-height: 1.45;
-}
-
-.genome-targets-wrap,
-.genome-card--evidence,
-.genome-card--browse,
-.genome-card--downloads,
-.genome-card--details,
-.genome-card--danger {
-    grid-column: 1 / -1;
 }
 
 .genome-card--downloads {
@@ -645,12 +641,6 @@
     .targets-description,
     .targets-signals {
         padding-left: 0;
-    }
-}
-
-@media (max-width: 880px) {
-    .genome-grid {
-        grid-template-columns: minmax(0, 1fr);
     }
 }
 
