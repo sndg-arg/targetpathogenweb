@@ -151,12 +151,12 @@
 }
 
 .ds-pipeline-card {
-    padding: 14px 16px;
+    padding: 16px 17px;
     border: 1px solid var(--tp-color-border-soft);
     border-radius: 10px;
     background: var(--tp-color-surface);
     display: grid;
-    gap: 8px;
+    gap: 9px;
     align-content: start;
 }
 
@@ -167,8 +167,8 @@
 }
 
 .ds-pipeline-card-head strong {
-    font-size: 0.875rem;
-    font-weight: 600;
+    font-size: 0.95rem;
+    font-weight: 700;
     color: var(--tp-color-text-primary);
 }
 
@@ -179,6 +179,15 @@
     line-height: 1.58;
 }
 
+.ds-pipeline-card-role {
+    color: var(--tp-color-text-secondary) !important;
+}
+
+.ds-pipeline-card-role--doctor {
+    color: var(--tp-color-text-primary) !important;
+    font-weight: 650;
+}
+
 .ds-pipeline-card-faculty {
     font-size: 0.78rem;
     color: var(--tp-color-text-muted);
@@ -187,35 +196,33 @@
 
 .ds-pipeline-card-previous-degree,
 .ds-pipeline-card-current-training {
-    padding-top: 7px;
+    padding-top: 8px;
     border-top: 1px solid var(--tp-color-border-soft);
 }
 
 .ds-pipeline-card-previous-degree {
-    font-style: italic;
     color: var(--tp-color-text-muted) !important;
 }
 
 .ds-pipeline-card-current-training {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 6px;
     color: var(--tp-color-text-secondary) !important;
 }
 
+.ds-pipeline-card-previous-degree > span:first-child,
 .ds-pipeline-card-current-training > span:first-child {
+    display: block;
+    margin-bottom: 2px;
     font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
-    font-size: 0.68rem;
+    font-size: 0.66rem;
     font-weight: 700;
     line-height: 1.2;
-    letter-spacing: 0.02em;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
+    color: var(--tp-color-text-muted);
+}
+
+.ds-pipeline-card-current-training > span:first-child {
     color: var(--tp-color-brand-700);
-    background: var(--tp-color-brand-050);
-    border: 1px solid var(--tp-color-brand-200);
-    border-radius: 999px;
-    padding: 3px 7px;
 }
 
 .ds-stage-tag {
