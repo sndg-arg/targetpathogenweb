@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20260710-genome-rethink1">
+    <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20260722-rankingpremium1">
 {% endblock %}
 
 {% block body %}
@@ -153,9 +153,9 @@
                                         </p>
                                     </details>
                                 </div>
-                                <a href="?export=ranking_csv" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-btn-with-icon" title="{% trans "Export every scored protein with its full score breakdown, not just the top candidates shown here." %}">
+                                <a href="?export=ranking_csv" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-btn-with-icon targets-export-btn" title="{% trans "Export every scored protein with its full score breakdown, not just the top candidates shown here." %}">
                                     <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/download.html" %}</span>
-                                    {% trans "Export ranking (CSV)" %}
+                                    {% trans "Export CSV" %}
                                 </a>
                             </div>
                             <ol class="targets-list">
@@ -172,7 +172,7 @@
                                                         <span class="targets-score-sub">{{ t.score }}/{{ t.score_max }}</span>
                                                     </span>
                                                     {% if t.binder_count %}
-                                                        <span class="targets-evidence targets-evidence--plain">
+                                                        <span class="targets-evidence targets-evidence--plain" title="{% if t.direct_count %}{% trans 'A ligand is bound directly to this protein (PDB structure or measured ChEMBL activity), not just to a homolog.' %}{% else %}{% trans 'Ligand evidence comes from a homolog or a ZINC-proposed compound, not a direct PDB/ChEMBL record on this protein.' %}{% endif %}">
                                                             {% if t.direct_count %}
                                                                 {% trans "Direct ligand evidence" %}
                                                             {% else %}
