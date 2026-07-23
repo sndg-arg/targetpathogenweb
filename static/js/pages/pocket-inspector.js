@@ -95,19 +95,16 @@
 
         function inspectPocket(card) {
             if (!card) return;
-            var activeBlock = card.closest(".sv-structure-block") || document;
-            activeBlock.querySelectorAll(
-                '.pocket-card .js-repr-toggle[aria-pressed="true"], .residueset-row .js-repr-toggle[aria-pressed="true"]'
-            ).forEach(function (btn) {
-                if (!card.contains(btn)) setReprButtonPressed(btn, false);
-            });
+            var hasVisibleLayer = !!card.querySelector('.js-repr-toggle[aria-pressed="true"]');
             clearPocketSelection();
             card.classList.add("is-selected-pocket");
             setStructureFocusDim(true);
 
             var coreRepr = card.getAttribute("data-pocket-core-repr") || "";
             var coreBtn = coreRepr ? card.querySelector('.js-repr-toggle[data-repr="' + coreRepr + '"]') : null;
-            setReprButtonPressed(coreBtn || card.querySelector(".js-repr-toggle"), true);
+            if (!hasVisibleLayer) {
+                setReprButtonPressed(coreBtn || card.querySelector(".js-repr-toggle"), true);
+            }
             setCardVisibilityState(card);
 
             var zoomKey = card.getAttribute("data-pocket-zoom");

@@ -112,7 +112,7 @@
                 <div class="target-summary-column target-summary-column--strength">
                     <h3>{% trans "Strengths" %}</h3>
                     <div class="target-summary-list">
-                        {% for item in target_summary.strengths %}
+                        {% for item in target_summary.strengths|slice:":5" %}
                         <a href="{{ item.anchor }}" class="target-summary-item target-summary-item--{{ item.tone }}">
                             <strong>{{ item.label }}</strong>
                             <span>{{ item.detail }}</span>
@@ -120,12 +120,15 @@
                         {% empty %}
                         <span class="target-summary-empty">{% trans "No strong positive signals detected yet." %}</span>
                         {% endfor %}
+                        {% if target_summary.strengths|length > 5 %}
+                        <a href="#section-target-profile" class="target-summary-more">{% trans "Review all positive signals" %}</a>
+                        {% endif %}
                     </div>
                 </div>
                 <div class="target-summary-column target-summary-column--risk">
                     <h3>{% trans "Risks / watch" %}</h3>
                     <div class="target-summary-list">
-                        {% for item in target_summary.risks %}
+                        {% for item in target_summary.risks|slice:":4" %}
                         <a href="{{ item.anchor }}" class="target-summary-item target-summary-item--{{ item.tone }}">
                             <strong>{{ item.label }}</strong>
                             <span>{{ item.detail }}</span>
@@ -138,7 +141,7 @@
                 <div class="target-summary-column target-summary-column--missing">
                     <h3>{% trans "Missing evidence" %}</h3>
                     <div class="target-summary-list">
-                        {% for item in target_summary.missing %}
+                        {% for item in target_summary.missing|slice:":4" %}
                         <a href="{{ item.anchor }}" class="target-summary-item target-summary-item--{{ item.tone }}">
                             <strong>{{ item.label }}</strong>
                             <span>{{ item.detail }}</span>
@@ -166,7 +169,7 @@
         </nav>
 
         <details class="protein-interpretation-guide tp-ui-panel">
-            <summary>{% trans "How to read this page" %}</summary>
+            <summary>{% trans "Glossary for terms on this page" %}</summary>
             <div class="protein-guide-grid">
                 <p><strong>{% trans "PDB" %}</strong>: {% trans "experimentally determined structures from the Protein Data Bank. These are the strongest structural evidence, but may cover only part of the protein." %}</p>
                 <p><strong>{% trans "AlphaFold DB model" %}</strong>: {% trans "a precomputed predicted structure downloaded from AlphaFold Database/UniProt, not an experiment performed here." %}</p>
@@ -263,6 +266,13 @@
                         <dd class="target-profile-value">
                             {{ item.value }}
                             <span class="target-profile-bar" aria-hidden="true"><span class="target-profile-bar-fill" style="width: {{ item.value }}%;"></span></span>
+                            {% if item.label == "Human identity (%)" %}
+                            <span class="target-profile-scale">{% trans "Lower values reduce human off-target concern." %}</span>
+                            {% elif item.label == "DEG identity (%)" %}
+                            <span class="target-profile-scale">{% trans "Higher values support similarity to known essential genes." %}</span>
+                            {% elif item.label == "ColabFold pLDDT" %}
+                            <span class="target-profile-scale">{% trans "0-100 confidence; >70 supports local structural interpretation." %}</span>
+                            {% endif %}
                         </dd>
                         {% elif item.tone == "good" or item.tone == "bad" %}
                         <dd class="target-profile-value">
@@ -276,7 +286,12 @@
                             </span>
                         </dd>
                         {% else %}
-                        <dd class="target-profile-value">{{ item.value }}</dd>
+                        <dd class="target-profile-value">
+                            {{ item.value }}
+                            {% if item.label == "DEG e-value" or item.label == "DEG E-value" %}
+                            <span class="target-profile-scale">{% trans "Smaller values mean stronger essential-gene similarity." %}</span>
+                            {% endif %}
+                        </dd>
                         {% endif %}
                     </div>
                     {% endfor %}
@@ -410,10 +425,13 @@
                     <div class="metabolic-score-stack">
                         {% if metabolic_context.centrality %}
                         <div class="metabolic-score-card" title="{% trans "Betweenness centrality of this gene's reaction(s) in the reaction-reaction network. Higher values mean more shortest paths pass through it - a proxy for how central/bottleneck-prone it is in the organism's metabolism." %}">
+                            {% if metabolic_context.centrality_percentile %}
+                            <span class="target-evidence-label">{% trans "Centrality percentile" %}</span>
+                            <strong class="target-evidence-value">{{ metabolic_context.centrality_percentile }}%</strong>
+                            <span class="target-evidence-subtext">{% blocktrans with score=metabolic_context.centrality %}Raw network centrality: {{ score }}{% endblocktrans %}</span>
+                            {% else %}
                             <span class="target-evidence-label">{% trans "Network centrality" %}</span>
                             <strong class="target-evidence-value">{{ metabolic_context.centrality }}</strong>
-                            {% if metabolic_context.centrality_percentile %}
-                            <span class="target-evidence-subtext">{% blocktrans with pct=metabolic_context.centrality_percentile %}more central than {{ pct }}% of genes in this genome{% endblocktrans %}</span>
                             {% endif %}
                         </div>
                         {% endif %}
@@ -660,6 +678,23 @@
                             <span class="tp-score-tag low">{% trans "Low" %}</span>
                         </div>
                     </div>
+                    <aside class="structure-color-guide" aria-label="{% trans "Structure color guide" %}">
+                        <div class="structure-color-guide-title">{% trans "Color guide" %}</div>
+                        <div class="structure-color-guide-grid">
+                            <div class="structure-color-guide-item">
+                                <span class="structure-color-swatch structure-color-swatch--model" aria-hidden="true"></span>
+                                <span>{% trans "Uniform protein color marks the displayed model as a single molecular object." %}</span>
+                            </div>
+                            <div class="structure-color-guide-item">
+                                <span class="structure-color-swatch structure-color-swatch--chains" aria-hidden="true"></span>
+                                <span>{% trans "Experimental PDB structures may be colored by chain to distinguish subunits or copies present in the file." %}</span>
+                            </div>
+                            <div class="structure-color-guide-item">
+                                <span class="structure-color-swatch structure-color-swatch--pockets" aria-hidden="true"></span>
+                                <span>{% trans "Pocket colors and alpha spheres are evidence overlays for predicted binding cavities; they are not alternative protein chains." %}</span>
+                            </div>
+                        </div>
+                    </aside>
 
                     {% if structure.pockets or structure.p2_pockets or alt_structure.pockets or alt_structure.p2_pockets %}
                     <details class="data-details pocket-panel-details" open>
@@ -671,8 +706,8 @@
                             <div class="sv-pocket-inspector-head">
                                 <span class="sv-pocket-inspector-kicker">{% trans "Selected pocket" %}</span>
                                 <div class="sv-pocket-inspector-actions">
-                                    <button type="button" class="sv-pocket-inspector-toggle" id="protein-pocket-show-only-toggle" aria-pressed="false" title="{% trans "When on, other pockets stay hidden even if you click their layer toggles." %}">{% trans "Only this pocket" %}</button>
-                                    <button type="button" class="sv-pocket-inspector-clear" id="protein-pocket-clear-selection">{% trans "Clear" %}</button>
+                                    <button type="button" class="sv-pocket-inspector-toggle" id="protein-pocket-show-only-toggle" aria-pressed="false" title="{% trans "Hide other active pocket layers and keep the viewer focused on this selected pocket." %}">{% trans "Focus this pocket" %}</button>
+                                    <button type="button" class="sv-pocket-inspector-clear" id="protein-pocket-clear-selection">{% trans "Clear selection" %}</button>
                                 </div>
                             </div>
                             <strong class="sv-pocket-inspector-title" data-pocket-field="title">-</strong>
@@ -698,7 +733,7 @@
                                     <dd data-pocket-field="properties">-</dd>
                                 </div>
                             </dl>
-                            <p class="sv-pocket-inspector-note">{% trans "Inspect mode shows the specific pocket/cavity and hides other active pocket layers. Use Surface when you need the wider residue environment." %}</p>
+                            <p class="sv-pocket-inspector-note">{% trans "Selecting a pocket opens its details and centers the viewer without clearing other active layers. Use Focus this pocket when you want to hide the rest; use Surface for the wider residue environment." %}</p>
                         </section>
                         {% include "components/structure/pocket_cards.html" with structure_data=structure structure_key="primary" %}
                         {% if alt_structure %}

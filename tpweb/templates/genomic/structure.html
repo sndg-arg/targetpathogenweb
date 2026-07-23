@@ -154,8 +154,8 @@
                     <div class="sv-pocket-inspector-head">
                         <span class="sv-pocket-inspector-kicker">{% trans "Selected pocket" %}</span>
                         <div class="sv-pocket-inspector-actions">
-                            <button type="button" class="sv-pocket-inspector-toggle" id="sv-pocket-show-only-toggle" aria-pressed="false" title="{% trans "When on, other pockets stay hidden even if you click their layer toggles." %}">{% trans "Only this pocket" %}</button>
-                            <button type="button" class="sv-pocket-inspector-clear" id="sv-pocket-clear-selection">{% trans "Clear" %}</button>
+                            <button type="button" class="sv-pocket-inspector-toggle" id="sv-pocket-show-only-toggle" aria-pressed="false" title="{% trans "Hide other active pocket layers and keep the viewer focused on this selected pocket." %}">{% trans "Focus this pocket" %}</button>
+                            <button type="button" class="sv-pocket-inspector-clear" id="sv-pocket-clear-selection">{% trans "Clear selection" %}</button>
                         </div>
                     </div>
                     <strong class="sv-pocket-inspector-title" data-pocket-field="title">-</strong>
@@ -181,7 +181,7 @@
                             <dd data-pocket-field="properties">-</dd>
                         </div>
                     </dl>
-                    <p class="sv-pocket-inspector-note">{% trans "Inspect mode shows the specific pocket/cavity and hides other active pocket layers. Use Sector when you need the wider residue environment." %}</p>
+                    <p class="sv-pocket-inspector-note">{% trans "Selecting a pocket opens its details and centers the viewer without clearing other active layers. Use Focus this pocket when you want to hide the rest; use Sector when you need the wider residue environment." %}</p>
                 </section>
             </header>
 

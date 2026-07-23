@@ -16,7 +16,7 @@
                      data-pocket-core-note="{{ p.core_note }}"
                      data-pocket-core-repr="{{p.name}}_sph"
                      data-pocket-zoom="{{p.name}}_sph">
-                    <div class="pocket-card-head js-inspect-pocket" role="button" tabindex="0" title="{% trans 'Inspect this pocket: center the view, show its core layer, and open the detail panel.' %}">
+                    <div class="pocket-card-head js-inspect-pocket" role="button" tabindex="0" title="{% trans 'Select this pocket: center the view, show its core layer if no layer is active, and open the detail panel.' %}">
                         <div class="pocket-card-label">
                             <strong class="pocket-card-name">{% trans "Site" %} {{ forloop.counter }}</strong>
                             <span class="pocket-card-id">FPocket #{{ p.name }}</span>
@@ -60,7 +60,7 @@
                      data-pocket-properties="{{ p2.inspector_properties }}"
                      data-pocket-core-repr="p2_{{p2.name}}_sph"
                      data-pocket-zoom="p2_{{p2.name}}_sph">
-                    <div class="pocket-card-head js-inspect-pocket" role="button" tabindex="0" title="{% trans 'Inspect this pocket: center the view, show its core layer, and open the detail panel.' %}">
+                    <div class="pocket-card-head js-inspect-pocket" role="button" tabindex="0" title="{% trans 'Select this pocket: center the view, show its core layer if no layer is active, and open the detail panel.' %}">
                         <div class="pocket-card-label">
                             <strong class="pocket-card-name">{% trans "Site" %} {{ forloop.counter }}</strong>
                             <span class="pocket-card-id">P2Rank #{{ p2.name }}</span>
