@@ -305,7 +305,7 @@
 .genome-page .section-subtitle {
     margin: 4px 0 0;
     color: var(--tp-color-text-muted);
-    font-size: 0.86rem;
+    font-size: var(--tp-font-size-sm);
     line-height: 1.45;
 }
 
@@ -533,7 +533,9 @@
 
 .targets-score-number {
     font-family: "Space Grotesk", "Segoe UI", sans-serif;
-    font-size: 1.4rem;
+    /* Matches .evidence-headline's size -- same page, same "big highlighted
+       number" role, so they should read as the same visual weight. */
+    font-size: 1.45rem;
     font-weight: 700;
     line-height: 1;
     font-variant-numeric: tabular-nums;
