@@ -2442,10 +2442,15 @@ a.filter-pill .filter-pill-remove {
 }
 
 .columns-foot {
+    /* .drawer-foot sets flex-direction: column as its base layout; override
+       back to a row here since justify-content: space-between below is
+       meant to place "Restore defaults" and "Apply" side by side, not
+       stack them (which is what happened without this). */
+    flex-direction: row;
     justify-content: space-between;
     border-top: 1px solid var(--tp-color-border-soft);
     background: var(--tp-color-surface);
-    padding-top: 12px;
+    padding: 12px 18px;
     gap: 10px;
     align-items: center;
 }
