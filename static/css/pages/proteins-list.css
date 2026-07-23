@@ -2459,19 +2459,24 @@ a.filter-pill .filter-pill-remove {
     margin: 0;
 }
 
+/* Matches .drawer-catalogue-toggle's established compact-clear-button
+   variant (link-colored text, brand-tinted hover fill) instead of the
+   default muted-gray/surface-hover look, which read as washed out next to
+   that sibling pattern used elsewhere in this same drawer. */
 .columns-restore-link {
     padding: 6px 8px;
     font-size: 0.84rem;
+    font-weight: 600;
     border-radius: 6px !important;
+    color: var(--tp-color-link) !important;
     border-color: transparent !important;
 }
 
 .columns-restore-link:hover,
 .columns-restore-link:focus-visible {
-    color: var(--tp-color-text-primary) !important;
-    background: var(--tp-color-surface-soft) !important;
+    color: var(--tp-color-link-hover) !important;
+    background: var(--tp-color-brand-100) !important;
     border-color: transparent !important;
-    text-decoration: underline;
     outline: none;
 }
 
