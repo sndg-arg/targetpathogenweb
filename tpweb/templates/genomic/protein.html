@@ -1254,11 +1254,54 @@
             function setStructureLoadingVisible(visible, text) {
                 if (!structureLoadingNote) return;
                 structureLoadingNote.style.display = visible ? "flex" : "none";
+                if (structureLoadingNote.parentElement) {
+                    structureLoadingNote.parentElement.classList.toggle("is-loading", visible);
+                }
                 if (text !== undefined) {
                     var textEl = structureLoadingNote.querySelector(".structure-loading-text");
                     if (textEl) textEl.textContent = text;
                 }
             }
+
+            function runStructureTaskAfterScrollSettles(callback, options) {
+                options = options || {};
+                var delay = options.delay === undefined ? 120 : options.delay;
+                var stableMs = options.stableMs === undefined ? 160 : options.stableMs;
+                var maxWait = options.maxWait === undefined ? 1400 : options.maxWait;
+                var startedAt = Date.now();
+
+                function runWhenIdle() {
+                    var run = function () {
+                        window.requestAnimationFrame(callback);
+                    };
+                    if (typeof window.requestIdleCallback === "function") {
+                        window.requestIdleCallback(run, { timeout: options.idleTimeout || 900 });
+                    } else {
+                        window.setTimeout(run, 80);
+                    }
+                }
+
+                function waitForStableScroll() {
+                    var y = window.scrollY || window.pageYOffset || 0;
+                    window.setTimeout(function () {
+                        var currentY = window.scrollY || window.pageYOffset || 0;
+                        var isStable = Math.abs(currentY - y) < 2;
+                        if (isStable || Date.now() - startedAt >= maxWait) {
+                            runWhenIdle();
+                        } else {
+                            waitForStableScroll();
+                        }
+                    }, stableMs);
+                }
+
+                window.setTimeout(waitForStableScroll, delay);
+            }
+
+            let pendingStructureSource = null;
+            window.switchStructureSource = function (which) {
+                pendingStructureSource = which || "primary";
+                scheduleStructureViewerLoad();
+            };
 
             (function () {
                 const btn = document.getElementById("structure-picker-btn");
@@ -1296,6 +1339,7 @@
             const pocketClearBtn = document.getElementById("protein-pocket-clear-selection");
             const pocketShowOnlyBtn = document.getElementById("protein-pocket-show-only-toggle");
             let structureInitialized = false;
+            let structureViewerScheduled = false;
             let nglStageInstance = null;
 
             function applyStructureTheme() {
@@ -1473,14 +1517,16 @@
                     stage.removeAllComponents();
                     stage.loadFile(structureUrls[urlKey], { ext: structureFormats[urlKey] || "pdb", defaultRepresentation: false })
                         .then(function (component) {
-                            try {
-                                initStructureComponent(component);
-                            } catch (err) {
-                                if (window.console && console.error) {
-                                    console.error("Structure loaded, but optional viewer setup failed", err);
+                            runStructureTaskAfterScrollSettles(function () {
+                                try {
+                                    initStructureComponent(component);
+                                } catch (err) {
+                                    if (window.console && console.error) {
+                                        console.error("Structure loaded, but optional viewer setup failed", err);
+                                    }
+                                    setStructureLoadingVisible(false);
                                 }
-                                setStructureLoadingVisible(false);
-                            }
+                            }, { delay: 60, maxWait: 900, idleTimeout: 700 });
                         })
                         .catch(function () {
                             setStructureLoadingVisible(true, structureLoadErrorMessage);
@@ -1488,6 +1534,7 @@
                 }
 
                 window.switchStructureSource = function (which) {
+                    pendingStructureSource = which || "primary";
                     _loadStructureById(which);
                 };
 
@@ -1583,25 +1630,36 @@
                     setStructureLoadingVisible(false);
                 }
 
-                _loadStructureById("primary");
+                _loadStructureById(pendingStructureSource || "primary");
+            }
+
+            function scheduleStructureViewerLoad() {
+                if (structureViewerScheduled || structureInitialized || !viewportElement) {
+                    return;
+                }
+                structureViewerScheduled = true;
+                setStructureLoadingVisible(true, '{% trans "Preparing 3D viewer..." %}');
+                runStructureTaskAfterScrollSettles(function () {
+                    initStructureViewer();
+                }, { delay: 180, maxWait: 1600, idleTimeout: 1000 });
             }
 
             if ("IntersectionObserver" in window && structureSection) {
                 const structureObserver = new IntersectionObserver(function (entries) {
                     entries.forEach(function (entry) {
                         if (entry.isIntersecting) {
-                            initStructureViewer();
+                            scheduleStructureViewerLoad();
                             structureObserver.disconnect();
                         }
                     });
                 }, {
                     root: null,
-                    rootMargin: "120px 0px",
+                    rootMargin: "180px 0px",
                     threshold: 0.01
                 });
                 structureObserver.observe(structureSection);
             } else {
-                initStructureViewer();
+                scheduleStructureViewerLoad();
             }
             {% endif %}
 

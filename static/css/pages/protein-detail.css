@@ -1386,6 +1386,12 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     overflow: hidden;
 }
 
+.structure-viewport-wrap.is-loading #viewport {
+    background:
+        radial-gradient(circle at 50% 38%, color-mix(in srgb, var(--protein-accent) 10%, transparent), transparent 38%),
+        linear-gradient(135deg, var(--tp-color-surface-panel), var(--tp-color-surface));
+}
+
 .structure-viewport-glow {
     position: absolute;
     inset: 0;
