@@ -593,6 +593,18 @@
     color: var(--tp-color-text-secondary);
     font-size: 0.82rem;
     line-height: 1.7;
+    /* Clamped to a fixed 2 lines -- proteins qualify for anywhere from ~2 to the
+       6-signal cap, and letting that vary the wrapped line count made every card
+       in the list a different height (reads as unpolished in a ranked list,
+       where a uniform row height is expected). Same technique already used on
+       .targets-description just above it. min-height covers the other
+       direction -- a protein with few enough signals to fit on one line would
+       otherwise make its card shorter than the rest. */
+    min-height: 3.4em;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
 }
 
 .targets-signal {
