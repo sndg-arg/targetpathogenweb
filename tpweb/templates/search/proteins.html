@@ -1550,9 +1550,14 @@
             function applySuggestion(button) {
                 if (!button || !searchInput) return;
                 const selectedValue = button.getAttribute("data-accession") || "";
+                const detailUrl = button.getAttribute("data-url") || "";
                 searchInput.value = selectedValue;
                 searchInput.focus();
                 hideSuggestions();
+                if (detailUrl) {
+                    window.location.assign(detailUrl);
+                    return;
+                }
                 submitSearchForm();
             }
 
@@ -1585,6 +1590,9 @@
                     button.setAttribute("role", "option");
                     button.setAttribute("aria-selected", "false");
                     button.setAttribute("data-accession", item.accession || "");
+                    if (item.url) {
+                        button.setAttribute("data-url", item.url);
+                    }
 
                     const accession = document.createElement("span");
                     accession.className = "search-suggestion-accession";

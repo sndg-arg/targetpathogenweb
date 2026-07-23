@@ -105,7 +105,7 @@ class ProteinSearchSuggestionsView(View):
             )
             .distinct()
             .order_by("accession")
-            .values("accession", "description")[:limit]
+            .values("bioentry_id", "accession", "description")[:limit]
         )
 
         results = []
@@ -122,6 +122,7 @@ class ProteinSearchSuggestionsView(View):
                 "accession": accession,
                 "description": description,
                 "gene": "",
+                "url": reverse("tpwebapp:protein", kwargs={"protein_id": item["bioentry_id"]}),
             })
 
         if results:
