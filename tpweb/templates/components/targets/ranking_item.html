@@ -1,6 +1,6 @@
 {% load i18n %}
 <li class="targets-item">
-    <a class="targets-link" href="{% url 'tpwebapp:protein' protein_id=t.bioentry_id %}">
+    <a class="targets-link" href="{% url 'tpwebapp:protein' protein_id=t.bioentry_id %}" aria-label="{{ t.accession }}">
         <div class="targets-main">
             <div class="targets-heading">
                 <div class="targets-row-top">

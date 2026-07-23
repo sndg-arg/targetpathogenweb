@@ -1949,13 +1949,13 @@
         }
 
         .tp-page-loader-card {
-            width: min(420px, 100%);
+            width: min(380px, 100%);
             border: 1px solid var(--tp-color-border);
             border-radius: 16px;
             background:
                 linear-gradient(180deg, rgba(253, 253, 253, 0.94) 0%, rgba(246, 247, 249, 0.94) 100%);
             box-shadow: var(--tp-shadow-lg);
-            padding: 22px;
+            padding: 20px 22px;
             color: var(--tp-color-text-primary);
         }
 
@@ -1963,41 +1963,29 @@
             display: flex;
             align-items: center;
             gap: 14px;
-            margin-bottom: 18px;
         }
 
+        /* The brand mark is a target/crosshair motif -- concentric broken
+           rings around a center dot -- so a slow rotation of the mark
+           itself reads as an on-brand "scanning" animation instead of a
+           generic spinner glyph. */
         .tp-page-loader-mark {
-            width: 44px;
-            height: 44px;
+            width: 46px;
+            height: 46px;
+            flex-shrink: 0;
             border-radius: 14px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            position: relative;
-            color: var(--tp-color-brand-900);
             background: linear-gradient(135deg, var(--tp-color-brand-050), var(--tp-color-sage-050));
             border: 1px solid var(--tp-color-border-accent);
             box-shadow: var(--tp-shadow-sm);
-            overflow: hidden;
         }
 
-        .tp-page-loader-mark::before {
-            content: "";
-            position: absolute;
-            inset: 9px;
-            border-radius: 50%;
-            border: 2px solid rgba(34, 136, 163, 0.24);
-            border-top-color: var(--tp-color-brand-700);
-            animation: tp-page-loader-spin 780ms linear infinite;
-        }
-
-        .tp-page-loader-mark::after {
-            content: "";
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: var(--tp-color-brand-700);
-            box-shadow: 0 0 0 5px rgba(34, 136, 163, 0.12);
+        .tp-page-loader-mark-img {
+            width: 30px;
+            height: 30px;
+            animation: tp-page-loader-spin 2600ms linear infinite;
         }
 
         .tp-page-loader-title {
@@ -2014,44 +2002,6 @@
             color: var(--tp-color-text-secondary);
             font-size: var(--tp-font-size-sm);
             line-height: 1.35;
-        }
-
-        .tp-page-loader-bars {
-            display: grid;
-            gap: 8px;
-        }
-
-        .tp-page-loader-bar {
-            height: 8px;
-            border-radius: 999px;
-            overflow: hidden;
-            background: var(--tp-color-surface-muted);
-        }
-
-        .tp-page-loader-bar::before {
-            content: "";
-            display: block;
-            width: 42%;
-            height: 100%;
-            border-radius: inherit;
-            background: linear-gradient(90deg, var(--tp-color-brand-700), var(--tp-color-sage-500));
-            animation: tp-page-loader-scan 1150ms var(--tp-ui-ease-standard) infinite;
-        }
-
-        .tp-page-loader-bar:nth-child(2) {
-            width: 82%;
-        }
-
-        .tp-page-loader-bar:nth-child(2)::before {
-            animation-delay: 120ms;
-        }
-
-        .tp-page-loader-bar:nth-child(3) {
-            width: 64%;
-        }
-
-        .tp-page-loader-bar:nth-child(3)::before {
-            animation-delay: 240ms;
         }
 
         html.tp-dark .tp-page-loader {
@@ -2090,20 +2040,10 @@
             }
         }
 
-        @keyframes tp-page-loader-scan {
-            0% {
-                transform: translateX(-110%);
-            }
-            55%, 100% {
-                transform: translateX(250%);
-            }
-        }
-
         @media (prefers-reduced-motion: reduce) {
             .tp-page-loader,
             .tp-page-action-loading::after,
-            .tp-page-loader-mark::before,
-            .tp-page-loader-bar::before {
+            .tp-page-loader-mark-img {
                 animation: none !important;
                 transition: none !important;
             }
@@ -2117,16 +2057,13 @@
 <div id="tp-page-loader" class="tp-page-loader" role="status" aria-live="polite" aria-hidden="true">
     <div class="tp-page-loader-card">
         <div class="tp-page-loader-head">
-            <span class="tp-page-loader-mark" aria-hidden="true"></span>
+            <span class="tp-page-loader-mark" aria-hidden="true">
+                <img src="{% static 'img/brand/tp-logo-mark-color.png' %}" alt="" class="tp-page-loader-mark-img">
+            </span>
             <div>
-                <p class="tp-page-loader-title">{% trans "Loading workspace" %}</p>
-                <p class="tp-page-loader-copy">{% trans "Preparing the next Target Pathogen Web view." %}</p>
+                <p class="tp-page-loader-title">{% trans "Target Pathogen" %}</p>
+                <p class="tp-page-loader-copy" id="tp-page-loader-copy">{% trans "Opening the next view…" %}</p>
             </div>
-        </div>
-        <div class="tp-page-loader-bars" aria-hidden="true">
-            <span class="tp-page-loader-bar"></span>
-            <span class="tp-page-loader-bar"></span>
-            <span class="tp-page-loader-bar"></span>
         </div>
     </div>
 </div>
@@ -2398,9 +2335,44 @@
         ].join(",");
         let showTimer = null;
         let activeAction = null;
+        const LOADER_DEFAULT_COPY = "{% trans 'Opening the next view…' %}";
+        const LOADER_OPENING_PREFIX = "{% trans 'Opening' %}";
+        const LOADER_LABEL_MAX_LENGTH = 42;
 
         function loaderEl() {
             return document.getElementById("tp-page-loader");
+        }
+
+        function loaderCopyEl() {
+            return document.getElementById("tp-page-loader-copy");
+        }
+
+        function setLoaderCopy(label) {
+            const copyEl = loaderCopyEl();
+            if (!copyEl) return;
+            if (!label) {
+                copyEl.textContent = LOADER_DEFAULT_COPY;
+                return;
+            }
+            const trimmed = label.length > LOADER_LABEL_MAX_LENGTH
+                ? label.slice(0, LOADER_LABEL_MAX_LENGTH - 1).trimEnd() + "…"
+                : label;
+            copyEl.textContent = LOADER_OPENING_PREFIX + " " + trimmed + "…";
+        }
+
+        function deriveLoaderLabel(el) {
+            if (!el) return null;
+            const raw = (el.getAttribute("aria-label") || el.getAttribute("title") || el.textContent || "")
+                .replace(/\s+/g, " ")
+                .trim();
+            if (!raw) return null;
+            // A bare textContent fallback on a link/button with several
+            // nested elements (a data row, a card) reads as several labels
+            // jammed together with no separators -- past a plausible
+            // single-control label length, prefer the generic default copy
+            // over a garbled truncation.
+            if (raw.length > 90) return null;
+            return raw;
         }
 
         function setLoaderVisible(visible) {
@@ -2426,6 +2398,7 @@
 
         function show(options) {
             const opts = options || {};
+            setLoaderCopy(opts.label || null);
             window.clearTimeout(showTimer);
             showTimer = window.setTimeout(function () {
                 document.documentElement.classList.add(NAVIGATING_CLASS);
@@ -2438,6 +2411,7 @@
             document.documentElement.classList.remove(LOADING_CLASS, NAVIGATING_CLASS);
             setLoaderVisible(false);
             clearAction();
+            setLoaderCopy(null);
         }
 
         function markAction(el) {
@@ -2494,7 +2468,7 @@
                 const url = linkUrl(link);
                 if (shouldSkipUrl(url)) return;
                 markAction(link);
-                show();
+                show({ label: deriveLoaderLabel(link) });
             });
 
             document.addEventListener("submit", function (event) {
@@ -2507,7 +2481,7 @@
                     if (shouldSkipFormUrl(formUrl(form))) return;
                     const submitter = event.submitter || form.querySelector("button[type='submit'], input[type='submit'], .tp-btn");
                     markAction(submitter);
-                    show();
+                    show({ label: deriveLoaderLabel(submitter) });
                 }, 0);
             });
 
