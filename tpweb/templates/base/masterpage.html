@@ -1979,10 +1979,9 @@
             gap: 14px;
         }
 
-        /* The brand mark is a target/crosshair motif -- concentric broken
-           rings around a center dot -- so a slow rotation of the mark
-           itself reads as an on-brand "scanning" animation instead of a
-           generic spinner glyph. */
+        /* Pure-CSS "target scanner" -- two concentric rings spinning in
+           opposite directions around a center dot, evoking the target/
+           crosshair brand motif without pulling in the raster logo mark. */
         .tp-page-loader-mark {
             width: 46px;
             height: 46px;
@@ -1996,10 +1995,40 @@
             box-shadow: var(--tp-shadow-sm);
         }
 
-        .tp-page-loader-mark-img {
-            width: 30px;
-            height: 30px;
-            animation: tp-page-loader-spin 2600ms linear infinite;
+        .tp-page-loader-target {
+            position: relative;
+            width: 26px;
+            height: 26px;
+        }
+
+        .tp-page-loader-target-ring {
+            position: absolute;
+            border-radius: 50%;
+            border: 2px solid transparent;
+        }
+
+        .tp-page-loader-target-ring:nth-child(1) {
+            inset: 0;
+            border-top-color: var(--tp-color-brand-800);
+            border-right-color: var(--tp-color-brand-800);
+            animation: tp-page-loader-spin 1500ms linear infinite;
+        }
+
+        .tp-page-loader-target-ring:nth-child(2) {
+            inset: 8px;
+            border-top-color: var(--tp-color-brand-500);
+            animation: tp-page-loader-spin-reverse 1150ms linear infinite;
+        }
+
+        .tp-page-loader-target::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            margin: auto;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: var(--tp-color-rose-500);
         }
 
         .tp-page-loader-title {
@@ -2054,10 +2083,16 @@
             }
         }
 
+        @keyframes tp-page-loader-spin-reverse {
+            to {
+                transform: rotate(-360deg);
+            }
+        }
+
         @media (prefers-reduced-motion: reduce) {
             .tp-page-loader,
             .tp-page-action-loading::after,
-            .tp-page-loader-mark-img {
+            .tp-page-loader-target-ring {
                 animation: none !important;
                 transition: none !important;
             }
@@ -2072,7 +2107,10 @@
     <div class="tp-page-loader-card">
         <div class="tp-page-loader-head">
             <span class="tp-page-loader-mark" aria-hidden="true">
-                <img src="{% static 'img/brand/tp-logo-mark-color.png' %}" alt="" class="tp-page-loader-mark-img">
+                <span class="tp-page-loader-target">
+                    <span class="tp-page-loader-target-ring"></span>
+                    <span class="tp-page-loader-target-ring"></span>
+                </span>
             </span>
             <div>
                 <p class="tp-page-loader-title">{% trans "Target Pathogen" %}</p>
