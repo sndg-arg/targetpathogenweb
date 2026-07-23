@@ -24,7 +24,12 @@
 .genome-hero,
 .genome-page .quick-nav,
 .genome-card {
-    animation: tp-ui-enter 340ms var(--tp-ui-ease-standard) both;
+    /* backwards, not both -- see the shared .tp-ui-enter rule in ui-system.css
+       for why: "both" permanently flags the element as animation-active even
+       long after it's visually settled, which is a known trigger for Chrome
+       mispositioning a native <select> popup nested inside it (e.g. the
+       Downloads section's format select). */
+    animation: tp-ui-enter 340ms var(--tp-ui-ease-standard) backwards;
 }
 
 .genome-page .quick-nav {

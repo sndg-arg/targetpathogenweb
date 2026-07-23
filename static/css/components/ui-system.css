@@ -133,7 +133,15 @@
 }
 
 .tp-ui-enter {
-    animation: tp-ui-enter 340ms var(--tp-ui-ease-standard) both;
+    /* backwards, not both: "both" also retains the animation's *finished* state
+       forever, which keeps the element flagged as animation-active even long
+       after it visually settled -- a known trigger for Chrome mispositioning a
+       native <select> popup nested inside it. The resting (non-animated) base
+       styles already equal the "to" keyframe (opacity 1, no transform), so
+       "backwards" (keeps the pre-start "from" state during animation-delay,
+       without permanently retaining the end state) looks identical but lets
+       the element stop being treated as animated once it's done. */
+    animation: tp-ui-enter 340ms var(--tp-ui-ease-standard) backwards;
 }
 
 .tp-ui-enter--delay-1 { animation-delay: 40ms; }
