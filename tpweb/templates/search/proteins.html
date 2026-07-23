@@ -155,12 +155,24 @@
                         {% endif %}
                     </div>
                 </div>
+            </form>
+            <!-- protein-search-form closes here, before toolbar-controls-row -- the presets/
+                 filters/scoring workbench below contains its own independent POST forms
+                 (apply/delete preset, etc.), and a <form> can't legally nest inside another
+                 <form>. Nesting them here used to make the browser silently drop the first
+                 nested <form> start tag it hit (parse error) while still honoring its matching
+                 </form> end tag, which closed THIS outer form early and collapsed the <li>
+                 around it -- only ever visible on the first preset row, since after that one
+                 collapse there was no longer an open form left to conflict with.
+                 pageSizeSelect below is associated back to this form via its form="..."
+                 attribute (HTML5 form-association-by-id), since it's now a DOM sibling instead
+                 of a descendant. -->
 
                 <div class="toolbar-controls-row tp-ui-toolbar-row tp-ui-toolbar-row--between">
                     <div class="toolbar-controls-left tp-ui-group">
                         <div class="per-page-control tp-ui-control" title="{% trans "Proteins per page" %}">
                             <span class="per-page-label">{% trans "Rows" %}</span>
-                            <select id="pageSizeSelect" name="pageSize" class="per-page-select form-control tp-select--sm">
+                            <select id="pageSizeSelect" name="pageSize" form="protein-search-form" class="per-page-select form-control tp-select--sm">
                                 <option value="10" {% if page_size == 10 %}selected{% endif %}>10</option>
                                 <option value="25" {% if page_size == 25 %}selected{% endif %}>25</option>
                                 <option value="50" {% if page_size == 50 %}selected{% endif %}>50</option>
@@ -265,7 +277,6 @@
                     </div>
 
                 </div>
-            </form>
         </section>
 
         {% if display_parameters or annotation_filter or structure_filter %}
