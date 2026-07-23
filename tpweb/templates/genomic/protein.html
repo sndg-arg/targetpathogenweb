@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260721-metabolicpreview1">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260723-premium1">
 {% endblock %}
 
 {% block body %}
@@ -278,9 +278,9 @@
                         <dd class="target-profile-value">
                             <span class="target-profile-risk-pill target-profile-risk-pill--{{ item.tone }}">
                                 {% if item.tone == "good" %}
-                                <svg viewBox="0 0 16 16" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="2.5 8 6.5 12 13.5 4"/></svg>
+                                <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="2.5 8 6.5 12 13.5 4"/></svg>
                                 {% else %}
-                                <svg viewBox="0 0 16 16" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.5L13.8 12.5H2.2L8 2.5Z"/><line x1="8" y1="6.3" x2="8" y2="9"/><circle cx="8" cy="10.6" r="0.6" fill="currentColor" stroke="none"/></svg>
+                                <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.5L13.8 12.5H2.2L8 2.5Z"/><line x1="8" y1="6.3" x2="8" y2="9"/><circle cx="8" cy="10.6" r="0.6" fill="currentColor" stroke="none"/></svg>
                                 {% endif %}
                                 {{ item.value|capfirst }}
                             </span>

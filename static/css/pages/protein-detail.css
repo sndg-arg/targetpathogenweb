@@ -59,7 +59,7 @@
 .protein-description {
     margin: 10px 0 0;
     color: var(--tp-color-text-secondary);
-    font-size: 1rem;
+    font-size: var(--tp-font-size-md);
     line-height: 1.42;
     max-width: 920px;
 }
@@ -123,7 +123,7 @@
     color: var(--protein-accent-ink);
     background: var(--tp-color-brand-050);
     font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
-    font-size: 0.78rem;
+    font-size: var(--tp-font-size-xs);
     font-weight: 700;
     white-space: nowrap;
 }
@@ -132,7 +132,11 @@
     display: grid;
     grid-template-columns: minmax(0, 1.18fr) minmax(0, 0.91fr) minmax(0, 0.91fr);
     gap: var(--tp-space-2);
-    align-items: start;
+    /* stretch, not start -- Strengths regularly has more items than Risks/
+       Missing, and start-aligning let the three columns render as visibly
+       uneven heights (a "staircase" bottom edge) instead of one cohesive
+       3-column card. */
+    align-items: stretch;
 }
 
 .target-summary-column {
@@ -181,14 +185,14 @@
 
 .target-summary-item strong {
     color: var(--tp-color-text-primary);
-    font-size: 0.9rem;
+    font-size: var(--tp-font-size-sm);
     font-weight: 750;
     line-height: 1.2;
 }
 
 .target-summary-item span {
     color: var(--tp-color-text-secondary);
-    font-size: 0.82rem;
+    font-size: var(--tp-font-size-xs);
     line-height: 1.35;
 }
 
@@ -219,7 +223,7 @@
     border: 1px dashed var(--tp-color-border-soft);
     border-radius: 8px;
     color: var(--tp-color-text-muted);
-    font-size: 0.84rem;
+    font-size: var(--tp-font-size-sm);
     line-height: 1.35;
 }
 
@@ -249,7 +253,7 @@
     padding: 0 6px;
     border-radius: 6px;
     font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
-    font-size: 0.7rem;
+    font-size: var(--tp-font-label);
     font-weight: 500;
     letter-spacing: 0.04em;
     text-transform: uppercase;
@@ -292,7 +296,7 @@
 
 .annotation-panel-head h3 {
     margin: 0;
-    font-size: 0.86rem;
+    font-size: var(--tp-font-size-sm);
     font-weight: 600;
     color: var(--protein-accent-ink);
     letter-spacing: 0.01em;
@@ -327,7 +331,7 @@
     align-items: baseline;
     padding: 8px 14px;
     border-bottom: 1px solid var(--tp-color-border-soft);
-    font-size: 0.9rem;
+    font-size: var(--tp-font-size-sm);
     line-height: 1.45;
 }
 
@@ -341,7 +345,7 @@
 
 .annotation-entry-id {
     font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
-    font-size: 0.82rem;
+    font-size: var(--tp-font-size-xs);
     font-weight: 600;
     color: var(--protein-accent);
     text-decoration: none;
@@ -354,7 +358,7 @@
 
 .annotation-entry-name {
     color: var(--tp-color-text-secondary);
-    font-size: 0.88rem;
+    font-size: var(--tp-font-size-sm);
 }
 
 .hero-chip-list .hero-chip {
@@ -417,7 +421,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     border: 1px solid var(--tp-color-success-border);
     background: var(--tp-color-success-bg);
     color: var(--tp-color-success-ink);
-    font-size: 0.78rem;
+    font-size: var(--tp-font-size-xs);
     font-weight: 500;
     min-height: 32px;
     padding: 0 14px;
@@ -427,7 +431,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 .hero-pipeline-note {
     margin: 8px 0 0;
     color: var(--tp-color-text-muted);
-    font-size: 0.86rem;
+    font-size: var(--tp-font-size-sm);
     line-height: 1.4;
 }
 
@@ -459,7 +463,10 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 
 .metric-value {
     color: var(--protein-accent-ink);
-    font-size: 1.08rem;
+    /* Matches the "big number" role already established for hero metrics
+       elsewhere (genome-overview's .metric-value, .evidence-headline,
+       .binder-intel-stat strong) -- this was the odd one out at 1.08rem. */
+    font-size: 1.45rem;
     line-height: 1.2;
     font-weight: 600;
 }
@@ -541,7 +548,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     cursor: pointer;
     color: var(--protein-accent-ink);
     font-family: "Space Grotesk", "Segoe UI", sans-serif;
-    font-size: 0.98rem;
+    font-size: var(--tp-font-size-md);
     font-weight: 600;
 }
 
@@ -554,9 +561,9 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
     gap: var(--tp-space-2) var(--tp-space-4);
     margin-top: var(--tp-space-3);
-    max-height: min(44vh, 360px);
-    overflow: auto;
-    padding-right: 4px;
+    /* No internal scroll box -- every other <details> on this page expands
+       naturally with the page; this one was the only exception, forcing a
+       small scroll window over genuinely useful reference content. */
 }
 
 .protein-guide-grid p {
@@ -566,7 +573,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     border-radius: 10px;
     background: var(--tp-color-surface-soft);
     color: var(--tp-color-text-secondary);
-    font-size: 0.82rem;
+    font-size: var(--tp-font-size-xs);
     line-height: 1.42;
 }
 
@@ -664,7 +671,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 .section-subtitle {
     margin: 5px 0 0;
     color: var(--tp-color-text-muted);
-    font-size: 0.92rem;
+    font-size: var(--tp-font-size-sm);
     line-height: 1.4;
 }
 
@@ -703,7 +710,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 .overview-item dd {
     margin: 4px 0 0;
     color: var(--tp-color-text-secondary);
-    font-size: 0.98rem;
+    font-size: var(--tp-font-size-md);
     line-height: 1.4;
 }
 
@@ -752,7 +759,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 .no-structure-title {
     margin: 0;
     font-family: "Space Grotesk", "Segoe UI", sans-serif;
-    font-size: 0.94rem;
+    font-size: var(--tp-font-size-md);
     font-weight: 600;
     color: var(--tp-color-warning-ink);
 }
@@ -760,19 +767,19 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 .no-structure-reason {
     margin: 0;
     color: var(--tp-color-text-secondary);
-    font-size: 0.88rem;
+    font-size: var(--tp-font-size-sm);
     line-height: 1.55;
 }
 
 .no-structure-meta {
     margin: 4px 0 0;
-    font-size: 0.84rem;
+    font-size: var(--tp-font-size-sm);
     color: var(--tp-color-text-muted);
 }
 
 .no-structure-meta strong {
     font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
-    font-size: 0.82rem;
+    font-size: var(--tp-font-size-xs);
     color: var(--tp-color-text-secondary);
 }
 
@@ -797,7 +804,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     overflow-wrap: anywhere;
     color: var(--tp-color-text-secondary);
     font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
-    font-size: 0.82rem;
+    font-size: var(--tp-font-size-xs);
     line-height: 1.55;
 }
 
@@ -874,7 +881,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     padding: 10px 14px;
     color: var(--tp-color-text-secondary);
     font-weight: 600;
-    font-size: 0.88rem;
+    font-size: var(--tp-font-size-sm);
     letter-spacing: 0.01em;
     border-bottom: 1px solid transparent;
     background: var(--tp-color-surface);
@@ -952,7 +959,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 }
 
 .pocket-panel-summary-hint {
-    font-size: 0.80rem;
+    font-size: var(--tp-font-size-xs);
     font-weight: 400;
     color: var(--tp-color-text-muted);
     margin-left: 6px;
@@ -1017,14 +1024,14 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 .sv-pocket-inspector-toggle[aria-pressed="true"] {
     background: var(--protein-accent);
     border-color: var(--protein-accent);
-    color: #f8fdff;
+    color: var(--tp-color-on-accent);
     box-shadow: var(--tp-shadow-xs);
 }
 
 .sv-pocket-inspector-title {
     display: block;
     color: var(--protein-accent-ink);
-    font-size: 0.92rem;
+    font-size: var(--tp-font-size-sm);
     line-height: 1.2;
 }
 
@@ -1051,7 +1058,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     margin: 1px 0 0;
     color: var(--tp-color-text-secondary);
     font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
-    font-size: 0.74rem;
+    font-size: var(--tp-font-label);
     font-weight: 600;
     overflow-wrap: anywhere;
 }
@@ -1069,7 +1076,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     border: 1px solid var(--tp-color-border-soft);
     color: var(--tp-color-text-secondary);
     font-family: "Source Sans 3", "Segoe UI", sans-serif;
-    font-size: 0.72rem;
+    font-size: var(--tp-font-label);
     font-weight: 600;
     white-space: nowrap;
 }
@@ -1077,7 +1084,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 .sv-pocket-inspector-note {
     margin: 8px 0 0;
     color: var(--tp-color-text-muted);
-    font-size: 0.74rem;
+    font-size: var(--tp-font-label);
     line-height: 1.35;
 }
 
@@ -1170,13 +1177,13 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 }
 
 .pocket-card-name {
-    font-size: 0.85rem;
+    font-size: var(--tp-font-size-sm);
     font-weight: 600;
     color: var(--protein-accent-ink);
 }
 
 .pocket-card-id {
-    font-size: 0.7rem;
+    font-size: var(--tp-font-label);
     color: var(--tp-color-text-muted);
 }
 
@@ -1195,6 +1202,11 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     text-transform: uppercase;
 }
 
+/* Border only appears on hover/pressed, not at rest -- these are quiet
+   "toggle a viewer layer" chips, kept visually lighter than the real
+   Zoom/Residues action buttons below them (which keep their normal
+   .tp-btn--clear border at all times) so the two rows read as distinct
+   priorities instead of competing for the same attention. */
 .pocket-repr-btn {
     appearance: none;
     -webkit-appearance: none;
@@ -1202,11 +1214,11 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     align-items: center;
     justify-content: center;
     padding: 5px 6px;
-    border: 1px solid var(--tp-color-border);
+    border: 1px solid transparent;
     border-radius: 7px;
     background: var(--tp-color-surface-soft);
     color: var(--tp-color-text-secondary);
-    font-size: 0.76rem;
+    font-size: var(--tp-font-label);
     font-weight: 600;
     font-family: inherit;
     cursor: pointer;
@@ -1226,8 +1238,8 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 .pocket-repr-btn[aria-pressed="true"] {
     background: var(--protein-accent);
     border-color: var(--protein-accent);
-    color: #f8fdff;
-    box-shadow: inset 0 0 0 1px color-mix(in srgb, #fff 20%, transparent), var(--tp-shadow-xs);
+    color: var(--tp-color-on-accent);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tp-color-on-accent) 20%, transparent), var(--tp-shadow-xs);
 }
 
 .pocket-card-actions {
@@ -1260,36 +1272,36 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 }
 .residueset-row-info { flex: 1 1 0; min-width: 0; display: grid; gap: 1px; }
 .residueset-type {
-    font-size: 0.7rem;
+    font-size: var(--tp-font-label);
     font-weight: 500;
     color: var(--tp-color-text-muted);
     text-transform: uppercase;
     letter-spacing: 0.05em;
 }
 .residueset-name {
-    font-size: 0.8rem;
+    font-size: var(--tp-font-size-xs);
     color: var(--tp-color-text-secondary);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 .residueset-row-actions { display: flex; gap: 4px; flex-shrink: 0; }
-.residueset-row-actions .btn { font-size: 0.76rem; padding: 4px 8px; }
+.residueset-row-actions .btn { font-size: var(--tp-font-label); padding: 4px 8px; }
 
 .tp-dark .pocket-card { background: var(--tp-color-surface); border-color: var(--tp-color-border); }
-.tp-dark .pocket-repr-btn { background: var(--tp-color-surface-soft); border-color: var(--tp-color-border); color: var(--tp-color-text-secondary); }
+.tp-dark .pocket-repr-btn { background: var(--tp-color-surface-soft); border-color: transparent; color: var(--tp-color-text-secondary); }
 .tp-dark .pocket-repr-btn[aria-pressed="true"],
 .tp-dark .sv-pocket-inspector-toggle[aria-pressed="true"] {
     background: color-mix(in srgb, var(--protein-accent) 84%, var(--tp-color-surface));
-    border-color: color-mix(in srgb, var(--protein-accent) 72%, #fff);
-    color: #f8fdff;
+    border-color: color-mix(in srgb, var(--protein-accent) 72%, var(--tp-color-on-accent));
+    color: var(--tp-color-on-accent);
     box-shadow: 0 0 0 1px color-mix(in srgb, var(--protein-accent) 45%, transparent), var(--tp-shadow-sm);
 }
 
 .table-hint {
     margin: 0;
     color: var(--tp-color-text-muted);
-    font-size: 0.86rem;
+    font-size: var(--tp-font-size-sm);
 }
 
 .tp-score-tag {
@@ -1301,7 +1313,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     border: 1px solid transparent;
     padding: 2px 10px;
     font-weight: 500;
-    font-size: 0.82rem;
+    font-size: var(--tp-font-size-xs);
 }
 
 .target-summary-more {
@@ -1314,7 +1326,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     border-radius: 999px;
     color: var(--protein-accent-ink);
     background: var(--tp-color-surface-soft);
-    font-size: 0.78rem;
+    font-size: var(--tp-font-size-xs);
     font-weight: 700;
     text-decoration: none;
 }
@@ -1382,7 +1394,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 }
 
 .structure-source-kind {
-    font-size: 0.86rem;
+    font-size: var(--tp-font-size-sm);
     font-weight: 500;
     white-space: nowrap;
 }
@@ -1462,7 +1474,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 
 .structure-viewport-hint {
     margin: 0;
-    font-size: 0.82rem;
+    font-size: var(--tp-font-size-xs);
     color: var(--tp-color-text-soft);
 }
 
@@ -1481,7 +1493,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 }
 
 .structure-color-guide-title {
-    font-size: 0.72rem;
+    font-size: var(--tp-font-label);
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -1500,7 +1512,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     align-items: flex-start;
     gap: 8px;
     min-width: 0;
-    font-size: 0.78rem;
+    font-size: var(--tp-font-size-xs);
     line-height: 1.45;
 }
 
@@ -1591,7 +1603,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     border-radius: 10px;
     background: var(--tp-color-surface-muted);
     color: var(--tp-color-text-primary);
-    font-size: 0.85rem;
+    font-size: var(--tp-font-size-sm);
     font-weight: 600;
     cursor: pointer;
     max-width: min(320px, 60vw);
@@ -1621,7 +1633,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     flex-shrink: 0;
     color: var(--tp-color-text-muted);
     font-weight: 500;
-    font-size: 0.78rem;
+    font-size: var(--tp-font-size-xs);
     font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
 }
 
@@ -1661,7 +1673,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     border-radius: 7px;
     cursor: pointer;
     color: var(--tp-color-text-primary);
-    font-size: 0.82rem;
+    font-size: var(--tp-font-size-xs);
     font-weight: 500;
     line-height: 1.3;
     transition: background-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
@@ -1687,7 +1699,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 
 .structure-picker-item-detail {
     flex-shrink: 0;
-    font-size: 0.74rem;
+    font-size: var(--tp-font-label);
     color: var(--tp-color-text-muted);
     font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
 }
@@ -1738,7 +1750,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     justify-content: center;
     gap: 8px;
     color: var(--tp-color-text-muted);
-    font-size: 0.86rem;
+    font-size: var(--tp-font-size-sm);
     font-weight: 500;
     pointer-events: none;
 }
@@ -1771,7 +1783,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 }
 
 .legend-label {
-    font-size: 0.82rem;
+    font-size: var(--tp-font-size-xs);
     color: var(--tp-color-text-muted);
     font-weight: 500;
     text-transform: uppercase;
@@ -1786,7 +1798,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 
 .mini-section h3 {
     margin: 0 0 3px;
-    font-size: 0.9rem;
+    font-size: var(--tp-font-size-sm);
     font-weight: 600;
     color: var(--tp-color-text-secondary);
     letter-spacing: 0.01em;
@@ -1794,7 +1806,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 
 .mini-section .table-hint {
     margin: 0 0 12px;
-    font-size: 0.8rem;
+    font-size: var(--tp-font-size-xs);
     color: var(--tp-color-text-muted);
     line-height: 1.5;
 }
@@ -1832,7 +1844,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 .binder-name {
     margin: 10px 0 6px;
     font-weight: 600;
-    font-size: 1.03rem;
+    font-size: var(--tp-font-size-md);
     color: var(--protein-accent-ink);
 }
 
@@ -1843,7 +1855,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 }
 
 .binder-links a {
-    font-size: 0.87rem;
+    font-size: var(--tp-font-size-sm);
     font-weight: 600;
 }
 
@@ -1880,7 +1892,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 .binder-intel-lead p {
     margin: 0;
     color: var(--tp-color-text-primary);
-    font-size: 0.92rem;
+    font-size: var(--tp-font-size-sm);
     font-weight: 650;
     line-height: 1.35;
     text-align: right;
@@ -1921,7 +1933,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     display: block;
     margin-top: 5px;
     color: var(--tp-color-text-muted);
-    font-size: 0.76rem;
+    font-size: var(--tp-font-label);
     font-weight: 600;
 }
 
@@ -1988,7 +2000,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 
 .binder-best-empty {
     color: var(--tp-color-text-muted);
-    font-size: 0.78rem;
+    font-size: var(--tp-font-size-xs);
     font-weight: 700;
 }
 
@@ -1999,7 +2011,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 .binder-best-copy strong {
     display: block;
     color: var(--tp-color-brand-900);
-    font-size: 1.15rem;
+    font-size: var(--tp-font-size-lg);
     line-height: 1.2;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -2015,20 +2027,20 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 
 .binder-best-copy span {
     color: var(--tp-color-text-primary);
-    font-size: 0.86rem;
+    font-size: var(--tp-font-size-sm);
     font-weight: 700;
 }
 
 .binder-best-copy em {
     color: var(--tp-color-brand-800);
-    font-size: 0.82rem;
+    font-size: var(--tp-font-size-xs);
     font-style: normal;
     font-weight: 800;
 }
 
 .binder-best-copy small {
     color: var(--tp-color-text-muted);
-    font-size: 0.75rem;
+    font-size: var(--tp-font-label);
     line-height: 1.35;
 }
 
@@ -2068,7 +2080,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     border-radius: 8px;
     background: var(--tp-color-surface-soft);
     color: var(--tp-color-text-muted);
-    font-size: 0.78rem;
+    font-size: var(--tp-font-size-xs);
     font-weight: 800;
     overflow: hidden;
     cursor: zoom-in;
@@ -2084,7 +2096,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 .binder-mini-name {
     margin-top: 8px;
     color: var(--tp-color-text-primary);
-    font-size: 0.82rem;
+    font-size: var(--tp-font-size-xs);
     font-weight: 800;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -2116,7 +2128,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 }
 
 .binder-card-action {
-    font-size: 0.72rem;
+    font-size: var(--tp-font-label);
     min-height: 24px;
     padding-inline: var(--tp-space-2);
 }
@@ -2124,7 +2136,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 .binder-card-action--external::after {
     content: "↗";
     margin-left: 4px;
-    font-size: 0.7rem;
+    font-size: var(--tp-font-label);
 }
 
 .binder-tbl__name-main {
@@ -2185,13 +2197,13 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 .binder-mol-modal__head h3 {
     margin: 0;
     color: var(--protein-accent-ink);
-    font-size: 1rem;
+    font-size: var(--tp-font-size-md);
 }
 
 .binder-mol-modal__head p {
     margin: 4px 0 0;
     color: var(--tp-color-text-muted);
-    font-size: 0.82rem;
+    font-size: var(--tp-font-size-xs);
     font-weight: 650;
 }
 
@@ -2233,7 +2245,7 @@ body.binder-mol-modal-open {
     background: var(--tp-color-surface);
     color: var(--tp-color-text-primary);
     font: inherit;
-    font-size: 0.92rem;
+    font-size: var(--tp-font-size-sm);
     transition: border-color 140ms ease, box-shadow 140ms ease;
 }
 
@@ -2257,7 +2269,7 @@ body.binder-mol-modal-open {
     background: var(--tp-color-surface-soft);
     color: var(--tp-color-text-muted);
     text-decoration: none;
-    font-size: 1.1rem;
+    font-size: var(--tp-font-size-lg);
     line-height: 1;
     transition: background 140ms ease, color 140ms ease;
 }
@@ -2287,7 +2299,7 @@ body.binder-mol-modal-open {
     padding: 9px 14px;
     color: var(--tp-color-text-muted);
     font: inherit;
-    font-size: 0.92rem;
+    font-size: var(--tp-font-size-sm);
     font-weight: 600;
     cursor: pointer;
     border-bottom: 2px solid transparent;
@@ -2340,7 +2352,7 @@ body.binder-mol-modal-open {
     background: var(--tp-color-surface-soft);
     border-left: 3px solid var(--tp-color-brand-700);
     border-radius: 6px;
-    font-size: 0.85rem;
+    font-size: var(--tp-font-size-sm);
     line-height: 1.45;
     color: var(--tp-color-text-secondary);
 }
@@ -2349,7 +2361,7 @@ body.binder-mol-modal-open {
     margin: 18px 0 0;
     padding-top: 14px;
     border-top: 1px dashed var(--tp-color-border-soft);
-    font-size: 0.78rem;
+    font-size: var(--tp-font-size-xs);
     line-height: 1.5;
     color: var(--tp-color-text-muted);
     font-style: italic;
@@ -2376,7 +2388,7 @@ body.binder-mol-modal-open {
 .binder-tbl {
     width: 100%;
     border-collapse: collapse;
-    font-size: 0.91rem;
+    font-size: var(--tp-font-size-sm);
 }
 
 .binder-tbl thead tr {
@@ -2435,7 +2447,7 @@ body.binder-mol-modal-open {
 
 .binder-tbl__pdb,
 .binder-tbl__uniprot {
-    font-size: 0.88rem;
+    font-size: var(--tp-font-size-sm);
     color: var(--tp-color-text-secondary);
     white-space: nowrap;
 }
@@ -2443,7 +2455,7 @@ body.binder-mol-modal-open {
 .binder-tbl__pdb-id {
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     font-weight: 600;
-    font-size: 0.83rem;
+    font-size: var(--tp-font-size-xs);
     background: var(--tp-color-surface-muted);
     padding: 2px 8px;
     border-radius: 6px;
@@ -2470,7 +2482,7 @@ body.binder-mol-modal-open {
 .binder-prop {
     display: inline;
     font-variant-numeric: tabular-nums;
-    font-size: 0.88rem;
+    font-size: var(--tp-font-size-sm);
     color: var(--tp-color-text-secondary);
 }
 
@@ -2488,7 +2500,7 @@ body.binder-mol-modal-open {
 .binder-tbl__score-sub {
     display: block;
     font-variant-numeric: tabular-nums;
-    font-size: 0.76rem;
+    font-size: var(--tp-font-label);
     font-weight: 400;
     color: var(--tp-color-text-soft);
 }
@@ -2499,7 +2511,7 @@ body.binder-mol-modal-open {
 
 .binder-tbl__smiles {
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    font-size: 0.78rem;
+    font-size: var(--tp-font-size-xs);
     color: var(--tp-color-text-muted);
     max-width: 260px;
     display: flex;
@@ -2594,7 +2606,7 @@ body.binder-mol-modal-open {
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    font-size: 0.78rem;
+    font-size: var(--tp-font-size-xs);
     font-weight: 600;
     color: var(--tp-color-text-secondary);
     background: var(--tp-color-surface);
@@ -2627,14 +2639,14 @@ body.binder-mol-modal-open {
 }
 
 .binder-filter-count {
-    font-size: 0.8rem;
+    font-size: var(--tp-font-size-xs);
     font-weight: 600;
     color: var(--tp-color-text-muted);
     font-variant-numeric: tabular-nums;
 }
 
 .binder-filter-clear {
-    font-size: 0.78rem;
+    font-size: var(--tp-font-size-xs);
     font-weight: 600;
     color: var(--tp-color-text-muted);
     background: none;
@@ -2701,7 +2713,7 @@ body.binder-mol-modal-open {
 .binder-card-meta {
     display: inline-block;
     margin-top: 2px;
-    font-size: 0.78rem;
+    font-size: var(--tp-font-size-xs);
     font-weight: 600;
     letter-spacing: 0.04em;
     color: var(--tp-color-text-muted);
@@ -2760,7 +2772,7 @@ body.binder-mol-modal-open {
 
 .binder-table__name {
     font-weight: 600;
-    font-size: 0.95rem;
+    font-size: var(--tp-font-size-md);
 }
 
 .binder-table__score {
@@ -2776,7 +2788,7 @@ body.binder-mol-modal-open {
 
 .binder-table__smiles {
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    font-size: 0.82rem;
+    font-size: var(--tp-font-size-xs);
     color: var(--tp-color-text-muted);
     white-space: nowrap;
     overflow: hidden;
@@ -2835,7 +2847,7 @@ body.binder-mol-modal-open {
 
 .exp-struct-title {
     margin: 0;
-    font-size: 0.92rem;
+    font-size: var(--tp-font-size-sm);
     font-weight: 600;
     color: var(--protein-accent-ink);
     letter-spacing: 0.01em;
@@ -2843,7 +2855,7 @@ body.binder-mol-modal-open {
 
 .exp-struct-caption {
     margin: 0 0 10px;
-    font-size: 0.83rem;
+    font-size: var(--tp-font-size-xs);
     color: var(--tp-color-text-muted);
     line-height: 1.4;
 }
@@ -2858,7 +2870,7 @@ body.binder-mol-modal-open {
 .exp-struct-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 0.875rem;
+    font-size: var(--tp-font-size-sm);
 }
 
 .exp-struct-table thead tr {
@@ -2916,7 +2928,7 @@ body.binder-mol-modal-open {
     border: 1px solid var(--tp-color-border-strong);
     background: var(--tp-color-surface-soft);
     font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
-    font-size: 0.72rem;
+    font-size: var(--tp-font-label);
     font-weight: 500;
     letter-spacing: 0.04em;
     color: var(--tp-color-text-muted);
@@ -2931,7 +2943,7 @@ body.binder-mol-modal-open {
 
 .exp-pdb-code {
     font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
-    font-size: 0.88rem;
+    font-size: var(--tp-font-size-sm);
     font-weight: 600;
     color: var(--protein-accent);
     background: none;
@@ -2954,20 +2966,20 @@ body.binder-mol-modal-open {
 .exp-resolution {
     font-variant-numeric: tabular-nums;
     font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
-    font-size: 0.83rem;
+    font-size: var(--tp-font-size-xs);
     color: var(--tp-color-text-secondary);
     white-space: nowrap;
 }
 
 .exp-chain {
     font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
-    font-size: 0.83rem;
+    font-size: var(--tp-font-size-xs);
     color: var(--tp-color-text-muted);
 }
 
 .exp-positions {
     font-variant-numeric: tabular-nums;
-    font-size: 0.85rem;
+    font-size: var(--tp-font-size-sm);
     color: var(--tp-color-text-secondary);
     white-space: nowrap;
 }
@@ -2980,7 +2992,7 @@ body.binder-mol-modal-open {
 }
 
 .exp-link {
-    font-size: 0.82rem;
+    font-size: var(--tp-font-size-xs);
     font-weight: 600;
     color: var(--tp-color-link);
     text-decoration: none;
@@ -2993,7 +3005,7 @@ body.binder-mol-modal-open {
 
 .exp-link-sep {
     color: var(--tp-color-text-soft);
-    font-size: 0.8rem;
+    font-size: var(--tp-font-size-xs);
 }
 
 .tp-dark .exp-struct-row--loaded {
@@ -3055,7 +3067,7 @@ body.binder-mol-modal-open {
 
 .residue-modal-head h3 {
     margin: 0;
-    font-size: 1.04rem;
+    font-size: var(--tp-font-size-md);
     color: var(--protein-accent-ink);
 }
 
@@ -3072,7 +3084,7 @@ body.binder-mol-modal-open {
     background: var(--tp-color-surface-panel);
     color: var(--tp-color-text-secondary);
     font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
-    font-size: 0.84rem;
+    font-size: var(--tp-font-size-sm);
     line-height: 1.45;
     padding: 10px;
     max-height: 240px;
@@ -3388,7 +3400,7 @@ body.residue-modal-open {
 .target-profile-value {
     font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
     font-variant-numeric: tabular-nums;
-    font-size: 1.02rem;
+    font-size: var(--tp-font-size-md);
     font-weight: 600;
     letter-spacing: -0.01em;
     color: var(--tp-color-text-primary);
@@ -3443,8 +3455,11 @@ body.residue-modal-open {
     gap: 5px;
     padding: 2px 2px 2px 0;
     font-family: "Source Sans 3", "Segoe UI", sans-serif;
-    font-size: 0.86rem;
-    font-weight: 600;
+    /* md, not sm -- this is the actual verdict (off-target hit/no-hit), it
+       shouldn't render smaller than the plain supporting numbers next to it
+       in the same grid. */
+    font-size: var(--tp-font-size-md);
+    font-weight: 700;
     letter-spacing: 0;
 }
 
@@ -3476,7 +3491,7 @@ body.residue-modal-open {
 
 .pdb-evidence-title {
     margin: 0;
-    font-size: 0.95rem;
+    font-size: var(--tp-font-size-md);
     font-weight: 600;
     color: var(--tp-color-text-primary);
     letter-spacing: 0.015em;
@@ -3484,7 +3499,7 @@ body.residue-modal-open {
 
 .pdb-evidence-note {
     margin: 0 0 16px;
-    font-size: 0.82rem;
+    font-size: var(--tp-font-size-xs);
     color: var(--tp-color-text-muted);
     line-height: 1.5;
 }
@@ -3506,7 +3521,7 @@ body.residue-modal-open {
 /* Headers: small-caps, muted, spaced */
 .experimental-structure-table thead th {
     padding: 11px 20px;
-    font-size: 0.7rem;
+    font-size: var(--tp-font-label);
     font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.08em;
@@ -3522,7 +3537,7 @@ body.residue-modal-open {
     padding: 15px 20px;
     vertical-align: middle;
     border-bottom: 1px solid var(--tp-color-border-soft);
-    font-size: 0.875rem;
+    font-size: var(--tp-font-size-sm);
     color: var(--tp-color-text-primary);
 }
 
@@ -3589,20 +3604,20 @@ body.residue-modal-open {
     border: 1px solid var(--tp-color-border);
     letter-spacing: 0.02em;
     text-transform: none;
-    font-size: 0.72rem;
+    font-size: var(--tp-font-label);
     font-weight: 500;
 }
 
 .experimental-pdb-id {
     font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
-    font-size: 0.88rem;
+    font-size: var(--tp-font-size-sm);
     font-weight: 600;
     letter-spacing: 0.04em;
     color: var(--tp-color-text-primary);
 }
 
 .experimental-pdb-id--predicted {
-    font-size: 0.78rem;
+    font-size: var(--tp-font-size-xs);
     font-weight: 500;
     letter-spacing: 0.01em;
     color: var(--tp-color-text-secondary);
@@ -3616,14 +3631,14 @@ body.residue-modal-open {
 .experimental-method,
 .experimental-chain {
     color: var(--tp-color-text-secondary);
-    font-size: 0.82rem;
+    font-size: var(--tp-font-size-xs);
     white-space: nowrap;
 }
 
 .experimental-resolution {
     white-space: nowrap;
     font-variant-numeric: tabular-nums;
-    font-size: 0.875rem;
+    font-size: var(--tp-font-size-sm);
 }
 
 .experimental-chain {
@@ -3658,7 +3673,7 @@ body.residue-modal-open {
     display: block;
     margin-top: 5px;
     color: var(--tp-color-text-primary);
-    font-size: 0.8rem;
+    font-size: var(--tp-font-size-xs);
     font-weight: 600;
     font-variant-numeric: tabular-nums;
 }
@@ -3667,13 +3682,13 @@ body.residue-modal-open {
     display: block;
     margin-top: 1px;
     color: var(--tp-color-text-muted);
-    font-size: 0.72rem;
+    font-size: var(--tp-font-label);
     font-variant-numeric: tabular-nums;
 }
 
 .experimental-coverage-empty {
     color: var(--tp-color-text-muted);
-    font-size: 0.8rem;
+    font-size: var(--tp-font-size-xs);
     font-style: italic;
 }
 
@@ -3693,7 +3708,7 @@ body.residue-modal-open {
     padding: 3px 7px;
     border-radius: 5px;
     color: var(--tp-color-text-muted);
-    font-size: 0.72rem;
+    font-size: var(--tp-font-label);
     font-weight: 600;
     text-decoration: none;
     transition: background 0.1s, color 0.1s;
@@ -3717,7 +3732,7 @@ body.residue-modal-open {
     align-items: center;
     padding: 3px 9px;
     border-radius: 999px;
-    font-size: 0.72rem;
+    font-size: var(--tp-font-label);
     font-weight: 500;
     letter-spacing: 0.02em;
     white-space: nowrap;
@@ -3753,7 +3768,7 @@ body.residue-modal-open {
     border-radius: 6px;
     background: var(--tp-color-surface);
     color: var(--tp-color-text-secondary);
-    font-size: 0.75rem;
+    font-size: var(--tp-font-label);
     font-weight: 600;
     font-family: inherit;
     letter-spacing: 0.01em;
@@ -3890,7 +3905,7 @@ body.residue-modal-open {
 .target-evidence-head h3 {
     margin: 0;
     font-family: "Space Grotesk", "Segoe UI", sans-serif;
-    font-size: 0.78rem;
+    font-size: var(--tp-font-size-xs);
     font-weight: 500;
     color: var(--tp-color-text-muted);
     text-transform: uppercase;
@@ -3900,7 +3915,7 @@ body.residue-modal-open {
 .target-evidence-note {
     margin: 0 0 1rem;
     color: var(--tp-color-text-muted);
-    font-size: 0.8rem;
+    font-size: var(--tp-font-size-xs);
     font-style: italic;
     line-height: 1.45;
 }
@@ -3931,7 +3946,7 @@ body.residue-modal-open {
 }
 
 .target-evidence-label {
-    font-size: 0.72rem;
+    font-size: var(--tp-font-label);
     font-weight: 500;
     color: var(--tp-color-text-muted);
     text-transform: uppercase;
@@ -3947,14 +3962,14 @@ body.residue-modal-open {
 }
 
 .target-evidence-value-denom {
-    font-size: 1rem;
+    font-size: var(--tp-font-size-md);
     font-weight: 500;
     color: var(--tp-color-text-secondary);
 }
 
 .target-evidence-subtext {
     color: var(--tp-color-text-muted);
-    font-size: 0.78rem;
+    font-size: var(--tp-font-size-xs);
     margin-top: -2px;
 }
 
@@ -3983,13 +3998,13 @@ body.residue-modal-open {
     flex: 0 0 auto;
     min-width: 72px;
     color: var(--tp-color-text-muted);
-    font-size: 0.76rem;
+    font-size: var(--tp-font-label);
     font-weight: 600;
 }
 
 .target-evidence-meta-val {
     color: var(--tp-color-text-secondary);
-    font-size: 0.8rem;
+    font-size: var(--tp-font-size-xs);
     line-height: 1.35;
 }
 
@@ -4025,7 +4040,7 @@ body.residue-modal-open {
     border-radius: 999px;
     background: var(--tp-color-success-bg);
     color: var(--tp-color-success-ink);
-    font-size: 0.76rem;
+    font-size: var(--tp-font-label);
     font-weight: 500;
 }
 
@@ -4042,7 +4057,7 @@ body.residue-modal-open {
     border-radius: 999px;
     background: var(--tp-color-surface-muted);
     color: var(--tp-color-text-muted);
-    font-size: 0.76rem;
+    font-size: var(--tp-font-label);
     font-weight: 600;
 }
 
@@ -4083,7 +4098,7 @@ body.residue-modal-open {
 }
 
 .binder-crystal-res {
-    font-size: 0.82rem;
+    font-size: var(--tp-font-size-xs);
     font-variant-numeric: tabular-nums;
     color: var(--tp-color-text-muted);
     white-space: nowrap;
@@ -4102,7 +4117,7 @@ body.residue-modal-open {
     padding: 2px 7px;
     border-radius: 999px;
     border: 1px solid var(--tp-color-border-soft);
-    font-size: 0.72rem;
+    font-size: var(--tp-font-label);
     font-weight: 600;
     line-height: 1;
     white-space: nowrap;
@@ -4115,7 +4130,7 @@ body.residue-modal-open {
 }
 
 .binder-crystal-viewer {
-    font-size: 0.78rem !important;
+    font-size: var(--tp-font-size-xs) !important;
     padding: 3px 10px !important;
     min-height: 26px !important;
     white-space: nowrap;
@@ -4154,7 +4169,7 @@ body.residue-modal-open {
 .metabolic-reaction-count {
     margin: 0;
     color: var(--tp-color-text-secondary);
-    font-size: 0.82rem;
+    font-size: var(--tp-font-size-xs);
     line-height: 1.45;
 }
 
@@ -4225,7 +4240,7 @@ body.residue-modal-open {
     padding: 8px 10px;
     border-left: 2px solid var(--tp-color-border-strong);
     color: var(--tp-color-text-soft);
-    font-size: 0.78rem;
+    font-size: var(--tp-font-size-xs);
     line-height: 1.45;
 }
 
@@ -4273,7 +4288,7 @@ body.residue-modal-open {
 
 .metabolic-reaction-item a,
 .metabolic-reaction-item span {
-    font-size: 0.82rem;
+    font-size: var(--tp-font-size-xs);
     font-weight: 700;
     line-height: 1.25;
     color: var(--tp-color-text-primary);
@@ -4306,7 +4321,7 @@ body.residue-modal-open {
     display: block;
     margin-top: 4px;
     color: var(--tp-color-text-muted);
-    font-size: 0.74rem;
+    font-size: var(--tp-font-label);
 }
 
 .metabolic-reaction-formula {
@@ -4327,7 +4342,7 @@ body.residue-modal-open {
     border-radius: 999px;
     background: var(--tp-color-surface-soft);
     color: var(--tp-color-text-secondary);
-    font-size: 0.7rem;
+    font-size: var(--tp-font-label);
     font-weight: 600;
     overflow: hidden;
 }
@@ -4350,7 +4365,7 @@ body.residue-modal-open {
 .metabolite-plus,
 .metabolite-arrow {
     color: var(--tp-color-text-soft);
-    font-size: 0.72rem;
+    font-size: var(--tp-font-label);
 }
 
 .metabolite-arrow {
@@ -4362,7 +4377,7 @@ body.residue-modal-open {
     display: block;
     margin-bottom: 10px;
     color: var(--tp-color-text-primary);
-    font-size: 0.92rem;
+    font-size: var(--tp-font-size-sm);
     line-height: 1.25;
     word-break: break-word;
 }
@@ -4376,7 +4391,7 @@ body.residue-modal-open {
 
 .metabolic-inspector dt {
     color: var(--tp-color-text-muted);
-    font-size: 0.72rem;
+    font-size: var(--tp-font-label);
     font-weight: 700;
     text-transform: uppercase;
 }
@@ -4384,7 +4399,7 @@ body.residue-modal-open {
 .metabolic-inspector dd {
     margin: 0;
     color: var(--tp-color-text-primary);
-    font-size: 0.78rem;
+    font-size: var(--tp-font-size-xs);
     line-height: 1.35;
     word-break: break-word;
 }
@@ -4418,7 +4433,7 @@ body.residue-modal-open {
     align-items: center;
     gap: 8px 14px;
     color: var(--tp-color-text-secondary);
-    font-size: 0.74rem;
+    font-size: var(--tp-font-label);
     font-weight: 600;
 }
 
@@ -4475,7 +4490,7 @@ body.residue-modal-open {
     border-radius: 6px;
     background: var(--tp-color-surface);
     color: var(--tp-color-text-secondary);
-    font-size: 0.76rem;
+    font-size: var(--tp-font-label);
     font-weight: 700;
     line-height: 1;
     transition: border-color 140ms ease, background 140ms ease, color 140ms ease, transform 140ms ease;
@@ -4519,7 +4534,7 @@ body.residue-modal-open {
     background: color-mix(in srgb, var(--tp-color-surface) 96%, var(--tp-color-brand-050));
     color: var(--tp-color-text-primary);
     box-shadow: var(--tp-shadow-lg);
-    font-size: 0.78rem;
+    font-size: var(--tp-font-size-xs);
     line-height: 1.35;
     pointer-events: none;
 }
@@ -4530,7 +4545,7 @@ body.residue-modal-open {
     gap: 8px;
     margin-bottom: 8px;
     color: var(--tp-color-text-primary);
-    font-size: 0.86rem;
+    font-size: var(--tp-font-size-sm);
     font-weight: 800;
 }
 
@@ -4564,7 +4579,7 @@ body.residue-modal-open {
 .metabolic-network-tooltip dd {
     margin: 0;
     color: var(--tp-color-text-primary);
-    font-size: 0.76rem;
+    font-size: var(--tp-font-label);
     word-break: break-word;
 }
 
@@ -4573,7 +4588,7 @@ body.residue-modal-open {
     padding-top: 8px;
     border-top: 1px solid var(--tp-color-border-soft);
     color: var(--tp-color-text-muted);
-    font-size: 0.72rem;
+    font-size: var(--tp-font-label);
 }
 
 .metabolic-network-note {
@@ -4581,7 +4596,7 @@ body.residue-modal-open {
     border-top: 1px solid var(--tp-color-border-soft);
     color: var(--tp-color-text-muted);
     background: var(--tp-color-surface);
-    font-size: 0.75rem;
+    font-size: var(--tp-font-label);
     line-height: 1.35;
 }
 
@@ -4592,7 +4607,7 @@ body.residue-modal-open {
     align-items: center;
     justify-content: center;
     color: var(--tp-color-text-muted);
-    font-size: 0.85rem;
+    font-size: var(--tp-font-size-sm);
 }
 
 .metabolic-network-loading::before {
@@ -4619,7 +4634,7 @@ body.residue-modal-open {
     border-radius: 8px;
     background: var(--tp-color-brand-050);
     color: var(--tp-color-text-primary);
-    font-size: 0.88rem;
+    font-size: var(--tp-font-size-sm);
     font-weight: 600;
     line-height: 1.4;
 }
@@ -4627,7 +4642,7 @@ body.residue-modal-open {
 .metabolic-provenance {
     margin: 10px 0 0;
     color: var(--tp-color-text-soft);
-    font-size: 0.72rem;
+    font-size: var(--tp-font-label);
 }
 
 @media (max-width: 1080px) {
