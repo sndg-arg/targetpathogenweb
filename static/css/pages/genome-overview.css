@@ -474,6 +474,17 @@
     gap: 6px;
 }
 
+/* Row-top + description share one explicit height floor so this block renders
+   pixel-identical across every item in both rankings, regardless of exactly
+   how long a given tier label or description happens to be -- rather than
+   relying on each item's own content to coincidentally line up. */
+.targets-heading {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-height: 4.75rem;
+}
+
 .targets-row-top {
     display: flex;
     align-items: center;
