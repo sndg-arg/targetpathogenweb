@@ -2001,23 +2001,42 @@
             height: 26px;
         }
 
+        /* Ring "thickness" comes from a mask cutting the center out of a
+           circle, filled with a conic-gradient that fades from transparent
+           to full color -- a smooth comet-tail sweep instead of a flat
+           two-tone border arc. */
         .tp-page-loader-target-ring {
             position: absolute;
             border-radius: 50%;
-            border: 2px solid transparent;
+            -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 2px));
+            mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 2px));
         }
 
         .tp-page-loader-target-ring:nth-child(1) {
             inset: 0;
-            border-top-color: var(--tp-color-brand-800);
-            border-right-color: var(--tp-color-brand-800);
+            background: conic-gradient(from 0deg, transparent 0%, var(--tp-color-brand-800) 92%, var(--tp-color-brand-800) 100%);
             animation: tp-page-loader-spin 1500ms linear infinite;
         }
 
         .tp-page-loader-target-ring:nth-child(2) {
             inset: 8px;
-            border-top-color: var(--tp-color-brand-500);
+            background: conic-gradient(from 0deg, transparent 0%, var(--tp-color-brand-500) 88%, var(--tp-color-brand-500) 100%);
             animation: tp-page-loader-spin-reverse 1150ms linear infinite;
+        }
+
+        /* Radar-ping pulse expanding from the center dot, behind it in
+           paint order -- reinforces a "scanning for a target" read. */
+        .tp-page-loader-target::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            margin: auto;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: var(--tp-color-rose-500);
+            opacity: 0.55;
+            animation: tp-page-loader-ping 1800ms cubic-bezier(0, 0, 0.2, 1) infinite;
         }
 
         .tp-page-loader-target::after {
@@ -2029,6 +2048,7 @@
             height: 4px;
             border-radius: 50%;
             background: var(--tp-color-rose-500);
+            box-shadow: 0 0 4px 0 color-mix(in srgb, var(--tp-color-rose-500) 65%, transparent);
         }
 
         .tp-page-loader-title {
@@ -2089,12 +2109,28 @@
             }
         }
 
+        @keyframes tp-page-loader-ping {
+            0% {
+                transform: scale(1);
+                opacity: 0.55;
+            }
+            100% {
+                transform: scale(5);
+                opacity: 0;
+            }
+        }
+
         @media (prefers-reduced-motion: reduce) {
             .tp-page-loader,
             .tp-page-action-loading::after,
-            .tp-page-loader-target-ring {
+            .tp-page-loader-target-ring,
+            .tp-page-loader-target::before {
                 animation: none !important;
                 transition: none !important;
+            }
+
+            .tp-page-loader-target::before {
+                opacity: 0 !important;
             }
         }
     </style>
