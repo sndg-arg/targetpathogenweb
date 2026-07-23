@@ -25,11 +25,11 @@
                     <h1>{{ protein.accession }}</h1>
                     <p class="protein-description">{{ protein.description|default:"-" }}</p>
                     <div class="hero-chip-list tp-chip-group">
-                        <span class="hero-chip tp-chip tp-chip--meta tp-chip--sm" title="{{ protein.assembly_label|default:protein.assembly_name }}">
+                        <span class="hero-chip tp-chip tp-chip--meta tp-chip--sm" title="{% trans 'Source genome' %}: {{ protein.assembly_label|default:protein.assembly_name }}">
                             <strong>{% trans "Genome" %}:</strong>
                             <span>{{ protein.assembly_label|default:protein.assembly_name }}</span>
                         </span>
-                        <span class="hero-chip tp-chip tp-chip--meta tp-chip--sm hero-chip-gene" title="{{ protein.gene|default_if_none:'-' }}">
+                        <span class="hero-chip tp-chip tp-chip--meta tp-chip--sm hero-chip-gene" title="{% trans 'Gene name or locus tag reported for this protein' %}: {{ protein.gene|default_if_none:'-' }}">
                             <strong>{% trans "Gene" %}:</strong>
                             <span class="gene-value">{{ protein.gene|default:"-" }}</span>
                         </span>
@@ -228,7 +228,7 @@
                                 <span class="hero-annotation-label">EC</span>
                                 <div class="tp-chip-group">
                                     {% for ec in ec_badges %}
-                                        <a href="{% url 'tpwebapp:protein_list' genome=protein.genome %}?annotation_kind=ec&annotation_value={{ ec.accession }}" class="tp-chip tp-chip--ec tp-chip--sm" title="{{ ec.name|default:ec.accession }}">{{ ec.accession }}</a>
+                                        <a href="{% url 'tpwebapp:protein_list' genome=protein.genome %}?annotation_kind=ec&annotation_value={{ ec.accession }}" class="tp-chip tp-chip--ec tp-chip--sm" title="{% if ec.name %}{{ ec.name }}{% else %}{% trans 'Filter proteins by EC annotation' %}: {{ ec.accession }}{% endif %}">{{ ec.accession }}</a>
                                     {% endfor %}
                                 </div>
                             </div>
@@ -238,7 +238,7 @@
                                 <span class="hero-annotation-label">GO</span>
                                 <div class="tp-chip-group">
                                     {% for go in go_badges %}
-                                        <a href="{% url 'tpwebapp:protein_list' genome=protein.genome %}?annotation_kind=go&annotation_value={{ go.accession }}" class="tp-chip tp-chip--go tp-chip--sm" title="{{ go.name|default:go.accession }}">{{ go.accession }}{% if go.name %} <span class="tp-chip-name">{{ go.name }}</span>{% endif %}</a>
+                                        <a href="{% url 'tpwebapp:protein_list' genome=protein.genome %}?annotation_kind=go&annotation_value={{ go.accession }}" class="tp-chip tp-chip--go tp-chip--sm" title="{% if go.name %}{% trans 'Filter proteins by GO annotation' %}: {{ go.accession }}{% else %}{% trans 'Filter proteins by GO annotation' %}: {{ go.accession }}{% endif %}">{{ go.accession }}{% if go.name %} <span class="tp-chip-name">{{ go.name }}</span>{% endif %}</a>
                                     {% endfor %}
                                 </div>
                             </div>
@@ -786,7 +786,7 @@
                             {% if binders.summary.preview %}
                             <div class="binder-molecule-strip" aria-label="{% trans 'Top ligand molecules' %}">
                                 {% for ligand in binders.summary.preview %}
-                                <div class="binder-mini-card" title="{{ ligand.source_label }}">
+                                <div class="binder-mini-card" title="{% trans 'Ligand evidence source' %}: {{ ligand.source_label }}">
                                     <button type="button"
                                             class="binder-mini-mol binder-mol-zoom-trigger"
                                             {% if ligand.svg %}data-binder-name="{{ ligand.name }}" data-binder-source="{{ ligand.source_label }}{% if ligand.score_label %} · {{ ligand.score_label }}{% endif %}" title="{% trans 'Zoom molecule' %}"{% else %}disabled{% endif %}>

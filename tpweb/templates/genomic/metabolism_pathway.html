@@ -105,7 +105,7 @@
             <article class="pathway-reaction-row{% if reaction.is_chokepoint %} pathway-reaction-row--chokepoint{% endif %}">
                 <div class="pathway-reaction-main">
                     <div>
-                        <h3 title="{{ reaction.name }}">{{ reaction.name }}</h3>
+                        <h3 title="{% trans 'Reaction' %}: {{ reaction.name }}">{{ reaction.name }}</h3>
                         <p>
                             {% if reaction.ec_numbers %}EC {{ reaction.ec_numbers|join:", " }}{% else %}EC -{% endif %}
                             {% if reaction.kegg_reaction_id %}
@@ -126,7 +126,7 @@
                 <div class="pathway-reaction-equation">
                     <div>
                         {% for item in reaction.substrates %}
-                        <span class="metabolite-chip{% if item.is_currency %} is-currency{% endif %}" title="{{ item.name }}"><span class="metabolite-chip-label">{{ item.name }}</span></span>
+                        <span class="metabolite-chip{% if item.is_currency %} is-currency{% endif %}" title="{% trans 'Substrate metabolite' %}: {{ item.name }}"><span class="metabolite-chip-label">{{ item.name }}</span></span>
                         {% empty %}
                         <span class="annotation-empty">-</span>
                         {% endfor %}
@@ -135,7 +135,7 @@
                     <span class="metabolite-arrow">&rarr;</span>
                     <div>
                         {% for item in reaction.products %}
-                        <span class="metabolite-chip{% if item.is_currency %} is-currency{% endif %}" title="{{ item.name }}"><span class="metabolite-chip-label">{{ item.name }}</span></span>
+                        <span class="metabolite-chip{% if item.is_currency %} is-currency{% endif %}" title="{% trans 'Product metabolite' %}: {{ item.name }}"><span class="metabolite-chip-label">{{ item.name }}</span></span>
                         {% empty %}
                         <span class="annotation-empty">-</span>
                         {% endfor %}

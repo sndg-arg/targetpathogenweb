@@ -16,7 +16,7 @@
         <header class="sv-topbar" id="sv-topbar">
             <div class="sv-topbar-left">
                 {% if source_protein_id %}
-                    <a href="{% url 'tpwebapp:protein' source_protein_id %}" class="sv-back-link" title="{{ source_protein_label }}">
+                    <a href="{% url 'tpwebapp:protein' source_protein_id %}" class="sv-back-link" title="{% trans 'Return to protein profile' %}: {{ source_protein_label }}">
                         <svg class="sv-back-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M10 3L5 8l5 5"/></svg>
                         {{ source_protein_label|default:_("Protein") }}
                     </a>

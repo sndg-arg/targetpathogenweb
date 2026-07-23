@@ -92,9 +92,9 @@
                                 </small>
                                 {% if reaction.has_metabolites %}
                                 <div class="metabolic-reaction-formula">
-                                    {% for s in reaction.substrates %}<span class="metabolite-chip{% if s.is_currency %} is-currency{% endif %}" title="{{ s.name }}"><span class="metabolite-chip-label">{% if s.stoichiometry != 1.0 %}{{ s.stoichiometry|floatformat:0 }} {% endif %}{{ s.name }}</span></span>{% if not forloop.last %}<span class="metabolite-plus">+</span>{% endif %}{% endfor %}
+                                    {% for s in reaction.substrates %}<span class="metabolite-chip{% if s.is_currency %} is-currency{% endif %}" title="{% trans 'Substrate metabolite' %}: {{ s.name }}"><span class="metabolite-chip-label">{% if s.stoichiometry != 1.0 %}{{ s.stoichiometry|floatformat:0 }} {% endif %}{{ s.name }}</span></span>{% if not forloop.last %}<span class="metabolite-plus">+</span>{% endif %}{% endfor %}
                                     <span class="metabolite-arrow">&rarr;</span>
-                                    {% for p in reaction.products %}<span class="metabolite-chip{% if p.is_currency %} is-currency{% endif %}" title="{{ p.name }}"><span class="metabolite-chip-label">{% if p.stoichiometry != 1.0 %}{{ p.stoichiometry|floatformat:0 }} {% endif %}{{ p.name }}</span></span>{% if not forloop.last %}<span class="metabolite-plus">+</span>{% endif %}{% endfor %}
+                                    {% for p in reaction.products %}<span class="metabolite-chip{% if p.is_currency %} is-currency{% endif %}" title="{% trans 'Product metabolite' %}: {{ p.name }}"><span class="metabolite-chip-label">{% if p.stoichiometry != 1.0 %}{{ p.stoichiometry|floatformat:0 }} {% endif %}{{ p.name }}</span></span>{% if not forloop.last %}<span class="metabolite-plus">+</span>{% endif %}{% endfor %}
                                 </div>
                                 {% endif %}
                             </div>

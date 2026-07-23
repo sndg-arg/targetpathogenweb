@@ -81,7 +81,7 @@
                     <span class="hero-analysis-label">{% trans "Search query" %}</span>
                     <span class="hero-analysis-value">
                         {% if search_query %}
-                            <span title="{{ search_query }}">{{ search_query }}</span>
+                            <span title="{% trans 'Full search query' %}: {{ search_query }}">{{ search_query }}</span>
                         {% else %}
                             {% trans "No active search" %}
                         {% endif %}
