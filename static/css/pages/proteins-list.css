@@ -1499,18 +1499,23 @@ a.filter-pill .filter-pill-remove {
 }
 
 .tpd-row {
-    position: relative;
+    display: flex;
+    align-items: stretch;
+    gap: 6px;
 }
 
-.tpd-apply-form,
-.tpd-delete-form {
+.tpd-apply-form {
+    flex: 1 1 auto;
+    min-width: 0;
     margin: 0;
 }
 
 .tpd-delete-form {
-    position: absolute;
-    top: 7px;
-    right: 7px;
+    flex: 0 0 auto;
+    display: flex;
+    align-items: flex-start;
+    padding-top: 8px;
+    margin: 0;
 }
 
 .tpd-apply-btn {
@@ -1519,7 +1524,7 @@ a.filter-pill .filter-pill-remove {
     flex-direction: column;
     align-items: stretch;
     gap: 3px;
-    padding: 8px 36px 8px 11px;
+    padding: 8px 11px;
     border: 1px solid var(--tp-color-border-soft);
     border-radius: 8px;
     background: var(--tp-color-surface);
@@ -1611,6 +1616,9 @@ a.filter-pill .filter-pill-remove {
     border-color: var(--tp-color-brand-200);
 }
 
+/* Quiet ghost icon by default -- borderless and blended into the row, not a
+   second bordered box stacked on the apply button. Only picks up a border/
+   fill on hover, when the destructive action is actually in reach. */
 .tpd-delete-btn {
     width: 28px;
     height: 28px;
@@ -1621,7 +1629,9 @@ a.filter-pill .filter-pill-remove {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    color: var(--tp-color-text-secondary) !important;
+    color: var(--tp-color-text-muted) !important;
+    background: transparent !important;
+    border-color: transparent !important;
 }
 
 .tpd-delete-btn:hover,
