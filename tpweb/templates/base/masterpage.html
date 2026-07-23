@@ -1456,6 +1456,7 @@
 
             body.tp-sidebar-collapsed .tp-sidebar {
                 width: var(--tp-sidebar-w-collapsed);
+                overflow-x: hidden;
             }
 
             body.tp-sidebar-collapsed .tp-brand-full,
@@ -1494,34 +1495,44 @@
                 display: flex;
                 align-items: center;
                 justify-content: center;
+                box-sizing: border-box;
                 padding: 9px 6px;
+                max-width: 100%;
             }
 
             body.tp-sidebar-collapsed .tp-side-link::before {
                 display: block;
             }
 
-            body.tp-sidebar-collapsed .tp-side-link:hover::after,
-            body.tp-sidebar-collapsed .tp-side-link:focus-visible::after {
-                content: attr(data-label);
-                position: absolute;
-                left: calc(100% + 10px);
-                top: 50%;
-                transform: translateY(-50%);
-                background: #1a3040;
-                color: #e2e8f0;
-                border: 1px solid rgba(255, 255, 255, 0.12);
-                border-radius: 7px;
-                font-size: 0.79rem;
-                font-weight: 500;
-                padding: 4px 8px;
-                white-space: nowrap;
-                box-shadow: 0 4px 14px rgba(9, 22, 33, 0.18);
-            }
-
             body.tp-sidebar-collapsed .tp-side-footer {
                 padding: 8px;
             }
+        }
+
+        .tp-sidebar-floating-label {
+            position: fixed;
+            left: calc(var(--tp-sidebar-w-collapsed) + 10px);
+            top: 0;
+            transform: translateY(-50%);
+            z-index: 1090;
+            max-width: min(260px, calc(100vw - var(--tp-sidebar-w-collapsed) - 24px));
+            padding: 5px 8px;
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 7px;
+            background: #1a3040;
+            color: #e2e8f0;
+            box-shadow: var(--tp-shadow-md);
+            font-size: 0.79rem;
+            font-weight: 600;
+            line-height: 1.25;
+            opacity: 0;
+            pointer-events: none;
+            white-space: nowrap;
+            transition: opacity var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+        }
+
+        .tp-sidebar-floating-label.is-visible {
+            opacity: 1;
         }
 
         @keyframes tp-shell-enter {
@@ -1976,6 +1987,7 @@
         </div>
     </div>
 </aside>
+<div id="tp-sidebar-floating-label" class="tp-sidebar-floating-label" role="tooltip" aria-hidden="true"></div>
 
 <nav id="main_header" class="navbar navbar-expand-lg navbar-dark fixed-top tp-topbar-mobile">
     <div class="container-fluid">
@@ -2244,6 +2256,8 @@
 
     (function () {
         const STORAGE_KEY = "tp.sidebar.collapsed";
+        let sidebarTooltip = null;
+        let activeTooltipTrigger = null;
 
         function isDesktop() {
             return window.matchMedia("(min-width: 992px)").matches;
@@ -2256,9 +2270,13 @@
         function applySidebarState(collapsed) {
             if (!isDesktop()) {
                 document.body.classList.remove("tp-sidebar-collapsed");
+                hideSidebarTooltip();
                 return;
             }
             document.body.classList.toggle("tp-sidebar-collapsed", collapsed);
+            if (!collapsed) {
+                hideSidebarTooltip();
+            }
             const button = document.getElementById("tp-sidebar-toggle");
             if (button) {
                 button.setAttribute("aria-expanded", collapsed ? "false" : "true");
@@ -2270,6 +2288,57 @@
                 button.title = collapsed ? "Expand navigation" : "Collapse navigation";
                 button.setAttribute("aria-label", collapsed ? "Expand navigation" : "Collapse navigation");
             }
+        }
+
+        function hideSidebarTooltip() {
+            activeTooltipTrigger = null;
+            if (!sidebarTooltip) return;
+            sidebarTooltip.classList.remove("is-visible");
+            sidebarTooltip.setAttribute("aria-hidden", "true");
+        }
+
+        function showSidebarTooltip(trigger) {
+            if (!document.body.classList.contains("tp-sidebar-collapsed")) {
+                hideSidebarTooltip();
+                return;
+            }
+            sidebarTooltip = sidebarTooltip || document.getElementById("tp-sidebar-floating-label");
+            if (!sidebarTooltip) return;
+            const label = trigger.getAttribute("data-label") || trigger.getAttribute("aria-label") || "";
+            if (!label) {
+                hideSidebarTooltip();
+                return;
+            }
+            activeTooltipTrigger = trigger;
+            const rect = trigger.getBoundingClientRect();
+            sidebarTooltip.textContent = label;
+            sidebarTooltip.style.top = `${rect.top + rect.height / 2}px`;
+            sidebarTooltip.classList.add("is-visible");
+            sidebarTooltip.setAttribute("aria-hidden", "false");
+        }
+
+        function updateSidebarTooltipPosition() {
+            if (activeTooltipTrigger) {
+                showSidebarTooltip(activeTooltipTrigger);
+            }
+        }
+
+        function initSidebarTooltips() {
+            sidebarTooltip = document.getElementById("tp-sidebar-floating-label");
+            if (!sidebarTooltip) return;
+
+            document.querySelectorAll(".tp-side-link[data-label]").forEach(function (link) {
+                link.addEventListener("mouseenter", function () {
+                    showSidebarTooltip(link);
+                });
+                link.addEventListener("focus", function () {
+                    showSidebarTooltip(link);
+                });
+                link.addEventListener("mouseleave", hideSidebarTooltip);
+                link.addEventListener("blur", hideSidebarTooltip);
+            });
+
+            window.addEventListener("scroll", updateSidebarTooltipPosition, { passive: true });
         }
 
         function initSidebarToggle() {
@@ -2292,6 +2361,7 @@
             window.addEventListener("resize", function () {
                 if (!isDesktop()) {
                     document.body.classList.remove("tp-sidebar-collapsed");
+                    hideSidebarTooltip();
                 } else {
                     const current = localStorage.getItem(STORAGE_KEY);
                     if (current === null) {
@@ -2303,10 +2373,15 @@
             });
         }
 
-        if (document.readyState === "loading") {
-            document.addEventListener("DOMContentLoaded", initSidebarToggle);
-        } else {
+        function initSidebar() {
             initSidebarToggle();
+            initSidebarTooltips();
+        }
+
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", initSidebar);
+        } else {
+            initSidebar();
         }
     })();
 
