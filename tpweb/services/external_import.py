@@ -176,7 +176,7 @@ def validate_external_import(
     protein_db_name = genome_name + Biodatabase.PROT_POSTFIX
     protein_db = Biodatabase.objects.filter(name=protein_db_name).first()
     if protein_db is None:
-        raise CommandError(f"Genome '{genome_name}' is not loaded in TPW.")
+        raise CommandError(f"Genome '{genome_name}' is not loaded in Target.")
 
     if not os.path.isfile(results_tsv):
         raise CommandError(f"Results TSV not found: {results_tsv}")

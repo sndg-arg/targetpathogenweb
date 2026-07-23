@@ -2,7 +2,7 @@
 
 This is the manual runbook for loading a genome from a reviewed package supplied
 by curators or biologists. The core rule is simple: **the reviewed package is the
-source of truth**. TPW should import and convert reviewed values, structures,
+source of truth**. Target should import and convert reviewed values, structures,
 pockets, binders, and annotations. It should compute only data that is absent
 from the package or explicitly requested as a supplemental rebuild.
 
@@ -20,7 +20,7 @@ Use this runbook when you have at least one of:
 - reviewed off-target, essentiality, localization, conservation, Foldseek, or
   LigQ output.
 
-Do not use this runbook to launch a full fresh TPW computational pipeline. For a
+Do not use this runbook to launch a full fresh Target computational pipeline. For a
 fresh computational run, use the normal pipeline and SLURM-backed stages.
 
 ## Source Priority
@@ -29,7 +29,7 @@ Use this priority order for every curated import:
 
 1. Reviewed TSV values and reviewed per-stage files shipped by the curators.
 2. Precomputed outputs inside the reviewed archive.
-3. TPW conversion/import of those reviewed files.
+3. Target conversion/import of those reviewed files.
 4. Remote computation only for files absent from the reviewed package or for an
    explicit rebuild request.
 
@@ -43,7 +43,7 @@ Stop and inspect before modifying production if any dry-run reports:
 
 ```text
 Failed: nonzero
-Missing TPW structure: nonzero
+Missing Target structure: nonzero
 missing structure/pocket checks: nonzero
 ```
 
@@ -90,7 +90,7 @@ A Gates-style package usually looks like this:
 ```
 
 The TSV must have the expected locus column, usually `gene`, and those locus tags
-must match the TPW proteome or the genome being loaded.
+must match the Target proteome or the genome being loaded.
 
 ## 1. Deploy The Import Code
 
@@ -192,7 +192,7 @@ Expected result:
 
 ## 5. Load Genome Records If Missing
 
-Skip this step if the TPW genome/proteome already exists.
+Skip this step if the Target genome/proteome already exists.
 
 When only records are needed, skip heavy stages:
 
@@ -272,7 +272,7 @@ nohup docker compose -f docker-compose.yml -f docker-compose.cluster.yml exec -T
   > /tmp/${GENOME}_gates_pockets.log 2>&1 &
 ```
 
-Use `--force` only for the intentional first replacement of older computed TPW
+Use `--force` only for the intentional first replacement of older computed Target
 pockets with reviewed outputs.
 
 Interrupted import resume:
@@ -284,7 +284,7 @@ nohup bash -lc 'docker compose -f docker-compose.yml -f docker-compose.cluster.y
   --structures-dir "$STRUCTURES_DIR" \
   --datadir "$DATADIR" \
   --scope both 2>&1 \
-  | grep --line-buffered -E "Gates pocket|Loaded pocket sets|Loaded missing structures|Skipped no-source|Skipped existing|Missing original output|Missing TPW structure|Failed|Examples|missing output|load failed|structure load failed|conversion failed|done loading pockets for:"' \
+  | grep --line-buffered -E "Gates pocket|Loaded pocket sets|Loaded missing structures|Skipped no-source|Skipped existing|Missing original output|Missing Target structure|Failed|Examples|missing output|load failed|structure load failed|conversion failed|done loading pockets for:"' \
   > /tmp/${GENOME}_gates_pockets_resume.summary.log 2>&1 &
 ```
 

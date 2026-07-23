@@ -1,4 +1,4 @@
-﻿import contextlib
+import contextlib
 import io
 import math
 import os
@@ -44,7 +44,7 @@ class Command(BaseCommand):
     )
 
     def add_arguments(self, parser):
-        parser.add_argument("--genome", required=True, help="Internal TPW genome name, e.g. public__KpKP13.")
+        parser.add_argument("--genome", required=True, help="Internal Target genome name, e.g. public__KpKP13.")
         parser.add_argument("--display-name", default=None, help="Human-readable name used only in reports.")
         parser.add_argument("--gram", default="n", choices=("n", "p"), help="Gram stain flag for generated pipeline commands.")
         parser.add_argument("--results-tsv", required=True, help="Curated results_table.tsv.")
@@ -52,7 +52,7 @@ class Command(BaseCommand):
         parser.add_argument("--structures-dir", default=None, help="Optional already-extracted structures directory.")
         parser.add_argument("--ligq-output-dir", default=None, help="Optional already-existing LigQ_2 output directory.")
         parser.add_argument("--archive-root", default=None, help="Expected top-level archive directory. Auto-detected if omitted.")
-        parser.add_argument("--datadir", default="./data", help="TPW data directory.")
+        parser.add_argument("--datadir", default="./data", help="Target data directory.")
         parser.add_argument(
             "--workdir",
             default=None,
@@ -143,7 +143,7 @@ class Command(BaseCommand):
         db = Biodatabase.objects.filter(name=genome + Biodatabase.PROT_POSTFIX).first()
         if db is None:
             self._line(report_lines, "")
-            self._line(report_lines, "Genome is not loaded in TPW yet.")
+            self._line(report_lines, "Genome is not loaded in Target yet.")
             gbk_hint = self._first_gbk_path(layout, extract_root) if layout else None
             if gbk_hint:
                 self._line(report_lines, "Detected GBK/GBFF candidate:")
@@ -345,7 +345,7 @@ class Command(BaseCommand):
         self._line(report_lines, f"  TSV genes missing in DB: {missing_in_db}")
         self._line(report_lines, f"  DB proteins missing in TSV: {missing_in_tsv}")
         if overlap == 0:
-            raise CommandError("No overlap between TSV gene values and loaded TPW protein accessions.")
+            raise CommandError("No overlap between TSV gene values and loaded Target protein accessions.")
         if overlap < min(len(db_genes), len(tsv_genes)) * 0.8:
             raise CommandError("Low TSV/DB locus overlap. Refusing to continue; check genome name and TSV.")
 

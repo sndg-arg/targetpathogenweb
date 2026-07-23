@@ -199,7 +199,7 @@ def format_target_comparison(records):
         )
 
     lines = [
-        "Comparison table from loaded TPW evidence:",
+        "Comparison table from loaded Target evidence:",
         header,
         sep,
         *rows,

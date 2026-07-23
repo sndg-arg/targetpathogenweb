@@ -52,7 +52,7 @@ class Command(BaseCommand):
                 "from": "RefSeq_Protein",
                 "to": "UniProtKB",
             },
-            headers={"User-Agent": "TargetPathogenWeb/1.0"},
+            headers={"User-Agent": "Target-Pathogen-Web/1.0"},
             timeout=60,
         )
         resp.raise_for_status()
@@ -66,7 +66,7 @@ class Command(BaseCommand):
         resp = session.get(
             f"https://rest.uniprot.org/idmapping/uniprotkb/results/stream/{job_id}",
             params={"format": "tsv"},
-            headers={"User-Agent": "TargetPathogenWeb/1.0"},
+            headers={"User-Agent": "Target-Pathogen-Web/1.0"},
             timeout=120,
         )
         resp.raise_for_status()
@@ -77,7 +77,7 @@ class Command(BaseCommand):
         for _ in range(90):
             resp = session.get(
                 f"https://rest.uniprot.org/idmapping/status/{job_id}",
-                headers={"User-Agent": "TargetPathogenWeb/1.0"},
+                headers={"User-Agent": "Target-Pathogen-Web/1.0"},
                 timeout=60,
             )
             resp.raise_for_status()
@@ -107,7 +107,7 @@ class Command(BaseCommand):
                 "fields": "accession,id,reviewed,protein_name,gene_names,organism_name,length,xref_refseq",
                 "size": 500,
             },
-            headers={"User-Agent": "TargetPathogenWeb/1.0"},
+            headers={"User-Agent": "Target-Pathogen-Web/1.0"},
             timeout=120,
         )
         resp.raise_for_status()

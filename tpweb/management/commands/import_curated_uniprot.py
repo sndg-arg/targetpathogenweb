@@ -26,7 +26,7 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument("genome_name")
         parser.add_argument("--results-tsv", required=True, help="Curated results TSV.")
-        parser.add_argument("--datadir", default="./data", help="TPW data directory.")
+        parser.add_argument("--datadir", default="./data", help="Target data directory.")
         parser.add_argument(
             "--dbname",
             default="UnipTr",

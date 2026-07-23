@@ -139,7 +139,7 @@ class Command(BaseCommand):
         parser.add_argument(
             "--include-loaded",
             action="store_true",
-            help="Process rows already linked in TPW. By default batches are resumable and skip linked jobs before applying --limit.",
+            help="Process rows already linked in Target. By default batches are resumable and skip linked jobs before applying --limit.",
         )
         parser.add_argument("--limit", type=int, default=None)
         parser.add_argument("--timeout", type=int, default=DEFAULT_TIMEOUT)

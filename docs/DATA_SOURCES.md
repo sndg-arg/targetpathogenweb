@@ -1,4 +1,4 @@
-# Origen de los datos en TargetPathogenWeb
+# Origen de los datos en Target Pathogen Web
 
 Este documento describe de dónde proviene cada dato que la plataforma muestra: qué herramienta lo genera, en qué paso del pipeline ocurre, con qué parámetros, y qué significa biológicamente. Está escrito para biólogos que quieren entender la trazabilidad completa de los resultados.
 
@@ -51,7 +51,7 @@ El archivo GenBank (`.gbk` o `.gbk.gz`) se descarga de NCBI usando la accesión 
 - **Longitud (aminoácidos)**: longitud de la secuencia de aminoácidos del qualifier `translation`.
 - **Estado** (`annotated` / `hypothetical`): derivado de la descripción; si contiene "hypothetical" o está vacía, se considera no anotada.
 
-**Importante:** la calidad de la anotación funcional en el campo "descripción" depende 100% de quién y cómo anotó el genoma originalmente (PGAP de NCBI, Prokka, RAST, etc.). TPW no modifica ni valida esa anotación.
+**Importante:** la calidad de la anotación funcional en el campo "descripción" depende 100% de quién y cómo anotó el genoma originalmente (PGAP de NCBI, Prokka, RAST, etc.). Target no modifica ni valida esa anotación.
 
 ---
 
@@ -232,7 +232,7 @@ Ver sección Estructura 3D.
 
 ### Flujo de LigQ_2
 
-1. TPW exporta un archivo FASTA con todas las proteínas del genoma.
+1. Target exporta un archivo FASTA con todas las proteínas del genoma.
 2. El FASTA se transfiere por SCP al nodo del cluster.
 3. LigQ_2 corre BLAST/HMMER contra sus bases de datos internas para cada proteína.
 4. LigQ_2 busca en PDB y ChEMBL proteínas similares y recupera sus ligandos.
@@ -264,7 +264,7 @@ Al cargar los resultados de LigQ_2, se eliminan automáticamente compuestos que 
 - Sales (SO4, PO4, NO3, CO3, etc.)
 
 ### Directo vs. por homología
-Un binder se marca como **directo** (`is_direct=True`) cuando el identificador UniProt que devuelve LigQ_2 para ese binder coincide exactamente con uno de los crossrefs UniProt (`UnipSp` o `UnipTr`) de la proteína en la base de datos de TPW.
+Un binder se marca como **directo** (`is_direct=True`) cuando el identificador UniProt que devuelve LigQ_2 para ese binder coincide exactamente con uno de los crossrefs UniProt (`UnipSp` o `UnipTr`) de la proteína en la base de datos de Target.
 
 Esto requiere que la proteina haya sido mapeada a UniProt en la etapa 12 (`gbk2uniprot_map`). Si el genoma usa locus tags que UniProt no reconoce, el mapeo falla y toda la evidencia aparece como "via homologs" aunque la proteina sea en realidad el mismo target.
 
@@ -293,7 +293,7 @@ Suma de las áreas de la superficie molecular ocupadas por átomos polares (oxí
 - < 60 Å²: mejor penetración de membrana bacteriana de doble capa
 
 ### Lipinski Ro5 (Rule of Five)
-**Cálculo:** TPW verifica estas 4 condiciones con RDKit:
+**Cálculo:** Target verifica estas 4 condiciones con RDKit:
 1. Peso molecular ≤ 500 Da
 2. LogP ≤ 5
 3. Donadores de puente hidrógeno (NH + OH) ≤ 5 — `RDKit.Chem.Lipinski.NumHDonors(mol)`

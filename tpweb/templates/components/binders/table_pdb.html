@@ -44,7 +44,7 @@
                                     <a class="btn tp-btn tp-btn--outline binder-crystal-viewer"
                                        href="{% url 'tpwebapp:structure' binder.crystal.structure_id %}?protein_id={{ protein.id }}&focus_ligand={{ binder.name|urlencode }}"
                                        onclick="event.stopPropagation()"
-                                       title="{% trans 'Open this loaded source crystal in the TPW structure viewer, focused on this ligand' %}">
+                                       title="{% trans 'Open this loaded source crystal in the Target structure viewer, focused on this ligand' %}">
                                         {% trans "Open crystal" %}
                                     </a>
                                 {% endif %}

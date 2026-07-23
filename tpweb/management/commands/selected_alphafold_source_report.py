@@ -89,7 +89,7 @@ class Command(BaseCommand):
         parser.add_argument(
             "--include-loaded",
             action="store_true",
-            help="Include selected AlphaFold/UniProt sources already loaded in TPW.",
+            help="Include selected AlphaFold/UniProt sources already loaded in Target.",
         )
         parser.add_argument("--examples", type=int, default=20)
 

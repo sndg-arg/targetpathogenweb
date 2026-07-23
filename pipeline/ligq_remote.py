@@ -303,7 +303,7 @@ def _write_excluded_loci_report(local_ligq_dir, skipped_loci):
     report_path = os.path.join(local_ligq_dir, LIGQ_EXCLUDED_LOCI_REPORT)
     note = (
         "Excluded from LigQ_2 FASTA only because HMMER/Pfam aborted with a numeric "
-        "error for this protein; the protein remains available in TPW for other evidence."
+        "error for this protein; the protein remains available in Target for other evidence."
     )
     with open(report_path, "w", encoding="utf-8") as handle:
         handle.write("locus\treason\tnote\n")

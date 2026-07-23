@@ -1,5 +1,5 @@
 """Trivial demo tool used to validate the provider-agnostic agent loop
-end-to-end, before wiring in real TPW actions (e.g. applying protein
+end-to-end, before wiring in real Target actions (e.g. applying protein
 filters via ProteinListView's apply_filter_changes).
 """
 from __future__ import annotations

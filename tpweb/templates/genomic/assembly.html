@@ -234,7 +234,7 @@
                                 <li><span class="evidence-bd-label" title="Individual PDB accession codes from UniProt for this genome. One protein can have several entries (different ligands, conditions, or resolutions).">{% trans "PDB xref entries" %}</span><span class="evidence-bd-value">{{ workspace_metrics.pdb_xref_entries }}</span></li>
                             {% endif %}
                             {% if workspace_metrics.alphafold_structures %}
-                                <li><span class="evidence-bd-label" title="{% trans 'Proteins with an AlphaFold Database model loaded in TPW. These are precomputed models from AlphaFold DB, not structures experimentally solved by this project.' %}">{% trans "AlphaFold DB models" %}</span><span class="evidence-bd-value">{{ workspace_metrics.alphafold_structures }}</span></li>
+                                <li><span class="evidence-bd-label" title="{% trans 'Proteins with an AlphaFold Database model loaded in Target. These are precomputed models from AlphaFold DB, not structures experimentally solved by this project.' %}">{% trans "AlphaFold DB models" %}</span><span class="evidence-bd-value">{{ workspace_metrics.alphafold_structures }}</span></li>
                             {% endif %}
                             {% if workspace_metrics.colabfold_structures %}
                                 <li><span class="evidence-bd-label" title="{% trans 'Proteins with a ColabFold model generated for this workspace. These are computational predictions and should be interpreted by coverage and confidence.' %}">{% trans "ColabFold models" %}</span><span class="evidence-bd-value">{{ workspace_metrics.colabfold_structures }}</span></li>

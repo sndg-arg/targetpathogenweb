@@ -1,8 +1,8 @@
-# Color System (TPWeb)
+# Color System (Target)
 
 ## Objetivo
 
-Definir un sistema de color consistente, semántico y mantenible para toda la UI de TPWeb.
+Definir un sistema de color consistente, semántico y mantenible para toda la UI de Target.
 
 ## Regla principal
 

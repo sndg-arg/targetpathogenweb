@@ -11,7 +11,7 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument(
             "genome_name",
-            help="Internal genome name in TPW, e.g. public__KpATCC43816.",
+            help="Internal genome name in Target, e.g. public__KpATCC43816.",
         )
         parser.add_argument(
             "--kind",
@@ -29,7 +29,7 @@ class Command(BaseCommand):
         genome_name = options["genome_name"]
         proteome_name = genome_name + Biodatabase.PROT_POSTFIX
         if not Biodatabase.objects.filter(name=proteome_name).exists():
-            raise CommandError(f"Genome '{genome_name}' is not loaded in TPW.")
+            raise CommandError(f"Genome '{genome_name}' is not loaded in Target.")
 
         pdb_ids = list(
             BioentryStructure.objects.filter(

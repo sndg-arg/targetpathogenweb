@@ -220,14 +220,14 @@
                             <div class="genome-upload-field tp-ui-field">
                                 <label class="tp-ui-field-label" for="{{ external_import_form.genome_name.id_for_label }}">{{ external_import_form.genome_name.label }}</label>
                                 {{ external_import_form.genome_name }}
-                                <p class="genome-upload-field-help">{% trans "Use the internal TPW genome name created after the GenBank load, usually workspace plus accession." %}</p>
+                                <p class="genome-upload-field-help">{% trans "Use the internal Target genome name created after the GenBank load, usually workspace plus accession." %}</p>
                                 {% if external_import_form.genome_name.errors %}<p class="genome-upload-field-error">{{ external_import_form.genome_name.errors|striptags }}</p>{% endif %}
                             </div>
 
                             <div class="genome-upload-field tp-ui-field">
                                 <label class="tp-ui-field-label" for="{{ external_import_form.datadir.id_for_label }}">{{ external_import_form.datadir.label }}</label>
                                 {{ external_import_form.datadir }}
-                                <p class="genome-upload-field-help">{% trans "Root data directory used by TPW management commands in this deployment." %}</p>
+                                <p class="genome-upload-field-help">{% trans "Root data directory used by Target management commands in this deployment." %}</p>
                                 {% if external_import_form.datadir.errors %}<p class="genome-upload-field-error">{{ external_import_form.datadir.errors|striptags }}</p>{% endif %}
                             </div>
                         </div>
@@ -265,7 +265,7 @@
                         <div class="genome-upload-field tp-ui-field">
                             <label class="tp-ui-field-label" for="{{ external_import_form.ligq_output_dir.id_for_label }}">{{ external_import_form.ligq_output_dir.label }}</label>
                             {{ external_import_form.ligq_output_dir }}
-                            <p class="genome-upload-field-help">{% trans "Optional existing LigQ_2 output directory. LigQ_2 is the internal TPW step that collects PDB, ChEMBL, and ZINC ligand evidence. Leave empty if it should be detected from the archive." %}</p>
+                            <p class="genome-upload-field-help">{% trans "Optional existing LigQ_2 output directory. LigQ_2 is the internal Target step that collects PDB, ChEMBL, and ZINC ligand evidence. Leave empty if it should be detected from the archive." %}</p>
                             {% if external_import_form.ligq_output_dir.errors %}<p class="genome-upload-field-error">{{ external_import_form.ligq_output_dir.errors|striptags }}</p>{% endif %}
                         </div>
 
@@ -333,7 +333,7 @@
                                         <code>{{ summary.protein_database }}</code>
                                     </div>
                                     <div>
-                                        <strong>{% trans "Proteins in TPW" %}</strong><br>
+                                        <strong>{% trans "Proteins in Target" %}</strong><br>
                                         {{ summary.protein_total }}
                                     </div>
                                     <div>
@@ -365,7 +365,7 @@
                                         {% endif %}
                                     </div>
                                     <div>
-                                        <strong title="{% trans 'Internal TPW ligand-evidence output: PDB, ChEMBL, and ZINC compound records.' %}">{% trans "LigQ_2 ligand evidence" %}</strong><br>
+                                        <strong title="{% trans 'Internal Target ligand-evidence output: PDB, ChEMBL, and ZINC compound records.' %}">{% trans "LigQ_2 ligand evidence" %}</strong><br>
                                         {% with ligq=external_import_result.summary.ligq_output %}
                                             {% if ligq.provided %}
                                                 {% if ligq.exists %}

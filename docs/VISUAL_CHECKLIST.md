@@ -2,7 +2,7 @@
 
 Checklist corto para pasar antes de dar por cerrada una vista nueva o rediseñada. No reemplaza
 `COLOR_SYSTEM.md`/`FRONTEND_BEST_PRACTICES.md` — es el resumen accionable de 2 minutos que se
-corre al final, referenciando los patrones concretos que ya usa el resto de TPW.
+corre al final, referenciando los patrones concretos que ya usa el resto de Target.
 
 ## Color y tokens
 
@@ -51,5 +51,5 @@ corre al final, referenciando los patrones concretos que ya usa el resto de TPW.
       compila.
 - [ ] Si la vista es una superficie interactiva de mayor riesgo (visualizador 3D, canvas,
       cualquier cosa con su propio ciclo de vida JS), probado en un navegador real, no solo
-      revisado en código — varios bugs de este tipo en TPW (NGL, Cytoscape) no eran visibles
+      revisado en código — varios bugs de este tipo en Target (NGL, Cytoscape) no eran visibles
       leyendo el diff.

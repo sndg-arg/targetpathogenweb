@@ -177,7 +177,7 @@
                 <p><strong>{% trans "PDB ligand" %}</strong>: {% trans "a compound observed in an experimental structure. Direct same-protein records are stronger than homolog-transferred records." %}</p>
                 <p><strong>{% trans "ChEMBL" %}</strong>: {% trans "a public database of measured compound bioactivity. Direct entries are stronger than entries transferred from similar proteins." %}</p>
                 <p><strong>{% trans "ZINC" %}</strong>: {% trans "a purchasable-compound database. Here it marks proposed candidates from chemical similarity, not measured binders." %}</p>
-                <p><strong>{% trans "LigQ / LigQ_2" %}</strong>: {% trans "an internal TPW pipeline step that gathers PDB, ChEMBL, and ZINC ligand evidence for each protein." %}</p>
+                <p><strong>{% trans "LigQ / LigQ_2" %}</strong>: {% trans "an internal Target pipeline step that gathers PDB, ChEMBL, and ZINC ligand evidence for each protein." %}</p>
                 <p><strong>{% trans "Off-target" %}</strong>: {% trans "sequence similarity to proteins we prefer not to hit, such as human proteins or beneficial gut microbiome proteins." %}</p>
                 <p><strong>{% trans "DEG" %}</strong>: {% trans "Database of Essential Genes. A match suggests the protein resembles genes known to be essential in other organisms." %}</p>
                 <p><strong>{% trans "Roary / CoreCruncher" %}</strong>: {% trans "pan-genome tools used to decide whether a gene is core across analyzed strains or accessory/strain-specific." %}</p>
@@ -867,7 +867,7 @@
                     {# PDB — this protein #}
                     <div class="binders-panel {% if binders.default_tab != 'pdb_direct' %}is-hidden{% endif %}"
                          data-binders-panel="pdb_direct" role="tabpanel">
-                        <p class="binders-panel-caption">{% trans "Highest-confidence structural evidence: ligands co-crystallized with this exact protein. If the source PDB is loaded in TPW, use Open crystal to inspect it in the structure viewer." %}</p>
+                        <p class="binders-panel-caption">{% trans "Highest-confidence structural evidence: ligands co-crystallized with this exact protein. If the source PDB is loaded in Target, use Open crystal to inspect it in the structure viewer." %}</p>
                         {% if binders.pdb_direct %}
                             <div class="binder-filter-bar" data-binder-filter-bar>
                                 <span class="binder-filter-label">Show only:</span>

@@ -415,7 +415,7 @@ def get_overview_target_rankings(assembly_name, user, limit=5):
     twice per page load, the dominant cost on large genomes. Cached by
     genome name (the heuristic ignores `user`), same TTL policy as
     build_assembly_workspace_metrics."""
-    cache_key = f"tpw:overview_target_rankings:{assembly_name}:{limit}"
+    cache_key = f"Target:overview_target_rankings:{assembly_name}:{limit}"
     cached = cache.get(cache_key)
     if cached is not None:
         return cached
@@ -471,7 +471,7 @@ def export_composite_ranking_rows(assembly_name):
 
 
 def build_assembly_workspace_metrics(assembly_name):
-    cache_key = f"tpw:assembly_workspace_metrics:{assembly_name}"
+    cache_key = f"Target:assembly_workspace_metrics:{assembly_name}"
     cached = cache.get(cache_key)
     if cached is not None:
         return cached

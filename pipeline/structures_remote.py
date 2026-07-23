@@ -1,11 +1,11 @@
 """
 Run structure pocket prediction on a remote SLURM CPU node via SSH.
 
-Stage 17 is different from generic remote shell stages because the TPW database
+Stage 17 is different from generic remote shell stages because the Target database
 lives in the web stack, while FPocket/P2Rank must run on compute nodes. This
 wrapper stages curated/local PDB files to the cluster, runs FPocket and P2Rank
 inside one SLURM job, pulls only the generated outputs back, and then performs
-the TPW JSON conversion/import locally.
+the Target JSON conversion/import locally.
 """
 
 from __future__ import annotations

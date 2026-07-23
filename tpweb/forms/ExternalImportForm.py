@@ -4,7 +4,7 @@ from django.utils.translation import gettext_lazy as _
 
 class ExternalImportForm(forms.Form):
     genome_name = forms.CharField(
-        label=_("TPW genome name"),
+        label=_("Target genome name"),
         max_length=255,
         widget=forms.TextInput(
             attrs={
@@ -69,7 +69,7 @@ class ExternalImportForm(forms.Form):
         ),
     )
     datadir = forms.CharField(
-        label=_("TPW data directory"),
+        label=_("Target data directory"),
         max_length=1024,
         initial="/app/targetpathogenweb/data",
         widget=forms.TextInput(attrs={"class": "form-control tp-ui-control"}),

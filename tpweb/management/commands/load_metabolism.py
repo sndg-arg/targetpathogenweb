@@ -1,5 +1,5 @@
 """
-load_metabolism - import a genome-scale metabolic network into TPW.
+load_metabolism - import a genome-scale metabolic network into Target.
 
 Ingests three files produced by the BioCyc/Pathway Tools MetaFlux metabolism pipeline
 (`fasttarget/ftscripts/pathways.py:run_metabolism_ptools`) for a single genome:
@@ -275,10 +275,10 @@ def _clean(value):
 
 
 class Command(BaseCommand):
-    help = "Import a genome-scale metabolic network (SBML + centrality/chokepoint TSV + network.sif) into TPW."
+    help = "Import a genome-scale metabolic network (SBML + centrality/chokepoint TSV + network.sif) into Target."
 
     def add_arguments(self, parser):
-        parser.add_argument("genome_name", help="Internal genome name in TPW (e.g. 'public__KpATCC43816').")
+        parser.add_argument("genome_name", help="Internal genome name in Target (e.g. 'public__KpATCC43816').")
         parser.add_argument("--sbml", required=True, metavar="PATH")
         parser.add_argument("--metabolic-results-tsv", required=True, metavar="PATH")
         parser.add_argument("--network-sif", required=True, metavar="PATH")

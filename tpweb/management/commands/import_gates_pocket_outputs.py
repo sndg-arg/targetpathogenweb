@@ -199,7 +199,7 @@ class Command(BaseCommand):
                 if pdb is None:
                     missing_structure += 1
                     if len(examples) < 20:
-                        examples.append(f"missing TPW structure: {locus} {method} {struct_code}")
+                        examples.append(f"missing Target structure: {locus} {method} {struct_code}")
                     continue
 
                 if not dry_run:
@@ -255,7 +255,7 @@ class Command(BaseCommand):
         self.stdout.write(f"Skipped no-source/no-pocket: {skipped}")
         self.stdout.write(f"Skipped existing: {skipped_existing}")
         self.stdout.write(f"Missing original output: {missing_output}")
-        self.stdout.write(f"Missing TPW structure: {missing_structure}")
+        self.stdout.write(f"Missing Target structure: {missing_structure}")
         self.stdout.write(f"Failed: {failed}")
         if examples:
             self.stdout.write("Examples:")

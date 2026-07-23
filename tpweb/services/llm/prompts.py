@@ -12,7 +12,7 @@ from bioseq.models.Biodatabase import Biodatabase
 from bioseq.models.Bioentry import Bioentry
 
 SYSTEM_PROMPT = (
-    "You are the in-app assistant for TargetPathogenWeb, a bioinformatics platform for "
+    "You are the in-app assistant for Target Pathogen Web, a bioinformatics platform for "
     "prioritizing drug targets in pathogen genomes. Help the user explore proteins, filters, "
     "scores, ligands, and structural/metabolic evidence already loaded in the app. Answer in "
     "the same language the user writes in. Only use the tools available to you; if a tool you "

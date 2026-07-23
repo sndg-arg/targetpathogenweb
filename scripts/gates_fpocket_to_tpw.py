@@ -1,5 +1,5 @@
 """
-Convert Gates-Targets fpocket output to TPW fpocket.json.gz format.
+Convert Gates-Targets fpocket output to Target fpocket.json.gz format.
 
 Reads ATCC43816-001.tar.gz in streaming mode (no full extraction),
 produces a new tar: fpocket_converted.tar.gz
@@ -19,8 +19,8 @@ import sys
 import tarfile
 from collections import defaultdict
 
-# Map from _info.txt property name → TPW long name
-# (TPW long names must match fpocket_properties_map values in FPocket2SQL.py)
+# Map from _info.txt property name → Target long name
+# (Target long names must match fpocket_properties_map values in FPocket2SQL.py)
 INFO_TO_TPW = {
     "Score":                               "Score",
     "Druggability Score":                  "Druggability Score",

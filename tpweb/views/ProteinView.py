@@ -636,7 +636,7 @@ class ProteinView(View):
                         "title": "Experimental structures",
                         "headers": [
                             "PDB", "Method", "Resolution", "Chains", "Positions",
-                            "Coverage", "Loaded in TPW",
+                            "Coverage", "Loaded in Target",
                         ],
                         "rows": [
                             [

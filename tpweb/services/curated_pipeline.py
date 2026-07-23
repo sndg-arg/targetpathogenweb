@@ -123,7 +123,7 @@ def _read_tsv_columns(results_tsv):
 def _find_fasttarget_org_dir(genome_name):
     """Return the FastTarget organism dir if it exists, checking both the
     full genome name (e.g. 'public__KpATCC43816') and the bare accession
-    (e.g. 'KpATCC43816' — used when FastTarget was run outside TPW)."""
+    (e.g. 'KpATCC43816' — used when FastTarget was run outside Target)."""
     candidates = [genome_name]
     if "__" in genome_name:
         candidates.append(genome_name.split("__", 1)[1])
@@ -280,7 +280,7 @@ def build_curated_pipeline_plan(
     )
 
     if protein_total <= 0:
-        plan.warnings.append("No proteins found in TPW for this genome.")
+        plan.warnings.append("No proteins found in Target for this genome.")
         return plan
 
     for score_name, stages in CURATED_SCORE_STAGE_SKIPS.items():

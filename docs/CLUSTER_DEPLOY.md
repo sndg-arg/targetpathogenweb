@@ -1,6 +1,6 @@
 # Cluster Deployment Guide - Nodo0
 
-This is the operational runbook for TargetPathogenWeb on Nodo0. Nodo0 is the
+This is the operational runbook for Target Pathogen Web on Nodo0. Nodo0 is the
 orchestration node: it hosts Docker services, Traefik routing, PostgreSQL, file
 staging, and lightweight Django management commands. It is not a bioinformatics
 compute node.
@@ -19,7 +19,7 @@ Important paths:
 
 ```text
 /home/dockeradmin/targetpathogenweb   # repo checkout
-/data/targetpathogen                  # persistent TPW data, never delete wholesale
+/data/targetpathogen                  # persistent Target data, never delete wholesale
 /data/targetpathogen/data/uploads     # reviewed upload/staging files
 ```
 
@@ -47,7 +47,7 @@ Do not run on Nodo0:
 - `rm -rf /data/targetpathogen` or any broad destructive delete.
 
 Rule of thumb: if a command launches scientific tools over thousands of proteins
-or structures, run it through the TPW remote/SLURM wrapper, not directly on
+or structures, run it through the Target remote/SLURM wrapper, not directly on
 Nodo0.
 
 ## Deploy Code

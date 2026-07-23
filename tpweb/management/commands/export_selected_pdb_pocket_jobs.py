@@ -320,7 +320,7 @@ class Command(BaseCommand):
             if missing_tsv_genes:
                 self.stdout.write(
                     self.style.WARNING(
-                        f"TSV rows not found in TPW proteins: {missing_tsv_genes}"
+                        f"TSV rows not found in Target proteins: {missing_tsv_genes}"
                     )
                 )
         self.stdout.write(f"Jobs needing pockets: {len(jobs)}")

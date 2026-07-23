@@ -66,7 +66,7 @@ def format_percent(part, total):
 
 
 class Command(BaseCommand):
-    help = "Report whether curated selected FPocket/P2Rank score sources are loaded as TPW structures."
+    help = "Report whether curated selected FPocket/P2Rank score sources are loaded as Target structures."
 
     def add_arguments(self, parser):
         parser.add_argument("genome_name")
@@ -168,7 +168,7 @@ class Command(BaseCommand):
             self.stdout.write("")
             self.stdout.write(self.style.HTTP_INFO(f"{method} selected source"))
             self.stdout.write(f"  with selected source: {total}")
-            self.stdout.write(f"  loaded in TPW: {loaded}/{total} ({format_percent(loaded, total)})")
+            self.stdout.write(f"  loaded in Target: {loaded}/{total} ({format_percent(loaded, total)})")
             self.stdout.write(f"  missing from loaded structures: {missing}/{total} ({format_percent(missing, total)})")
             if xref_only:
                 self.stdout.write(f"  missing but present as experimental xref: {xref_only}")

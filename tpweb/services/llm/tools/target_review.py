@@ -31,7 +31,7 @@ AUDIT_TARGET_EVIDENCE = ToolDefinition(
 COMPARE_TARGETS = ToolDefinition(
     name="compare_targets",
     description=(
-        "Compare two to five protein targets in the current genome using loaded TPW evidence: "
+        "Compare two to five protein targets in the current genome using loaded Target evidence: "
         "evidence-convergence score, pocket evidence, off-target/selectivity, essentiality, "
         "metabolic context, ligand support, and explicit risks. Use this whenever the user "
         "asks to compare proteins or decide which candidate is better."

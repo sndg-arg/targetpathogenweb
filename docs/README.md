@@ -1,6 +1,6 @@
-# TargetPathogenWeb Documentation
+# Target Pathogen Web Documentation
 
-Start here when you need to operate, import, debug, or explain TPW. The docs are
+Start here when you need to operate, import, debug, or explain Target. The docs are
 written as reusable runbooks: keep organism-specific paths, job ids, counts, and
 raw command output in tickets or task notes, not in these files.
 
@@ -12,7 +12,7 @@ raw command output in tickets or task notes, not in these files.
 | Load a reviewed genome package by hand | [`CURATED_GENOME_IMPORT.md`](CURATED_GENOME_IMPORT.md) |
 | Understand the curated import UI/staff flow | [`CURATED_FILE_IMPORT_AUTOMATION.md`](CURATED_FILE_IMPORT_AUTOMATION.md) |
 | Load or repair LigQ_2 ligand evidence | [`BINDERS_LIGQ2.md`](BINDERS_LIGQ2.md) |
-| Explain where TPW data comes from | [`DATA_SOURCES.md`](DATA_SOURCES.md) |
+| Explain where Target data comes from | [`DATA_SOURCES.md`](DATA_SOURCES.md) |
 | Check production health/logging expectations | [`OBSERVABILITY.md`](OBSERVABILITY.md) |
 | Understand code structure and refactor direction | [`ARCHITECTURE.md`](ARCHITECTURE.md) |
 | Apply engineering/test quality rules | [`ENGINEERING_QUALITY.md`](ENGINEERING_QUALITY.md) |

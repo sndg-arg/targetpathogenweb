@@ -23,7 +23,7 @@ class Command(BaseCommand):
         parser.add_argument(
             "--datadir",
             default="./data",
-            help="TPW data directory.",
+            help="Target data directory.",
         )
         parser.add_argument(
             "--structure-completion-ratio",
@@ -49,7 +49,7 @@ class Command(BaseCommand):
 
         self.stdout.write(self.style.MIGRATE_HEADING(f"Curated pipeline plan for {plan.genome_name}"))
         self.stdout.write(f"Data folder: {plan.folder_path}")
-        self.stdout.write(f"Proteins in TPW: {plan.protein_total}")
+        self.stdout.write(f"Proteins in Target: {plan.protein_total}")
         if plan.tsv_columns:
             self.stdout.write(f"TSV columns: {', '.join(plan.tsv_columns)}")
 

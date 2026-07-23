@@ -1,4 +1,4 @@
-# TargetPathogenWeb — Claude Context
+# Target Pathogen Web — Claude Context
 
 ## What this is
 Django 4 web platform for genome-level protein exploration and bioinformatics target prioritization.
@@ -283,7 +283,7 @@ sudo rm -rf -- "/data/targetpathogen/fasttarget_organism/${ACC}"
 
 ## Importing external analysis results (Gates-Targets pipeline)
 
-Use `import_external_results` to load pre-computed scores + structures into TPW without re-running the full pipeline.
+Use `import_external_results` to load pre-computed scores + structures into Target without re-running the full pipeline.
 
 ### 1. Load the genome first
 Upload the `.gbk.gz` via the web UI (Genomes → Upload), let it run through stage 3 (load_gbk), then stop the pipeline.
@@ -325,8 +325,8 @@ Replace `public__KpATCC43816` with the actual internal accession (shown in the G
 ### 5. Run remaining pipeline stages manually (optional)
 After importing, stages that haven't run yet (UniProt mapping, binders, InterProScan) can still be kicked off via the web UI or management commands.
 
-### Gates TSV → TPW column mapping
-| Gates column | TPW ScoreParam |
+### Gates TSV → Target column mapping
+| Gates column | Target ScoreParam |
 |---|---|
 | `human_offtarget` | `human_offtarget` |
 | `druggability_score` | `Druggability` |

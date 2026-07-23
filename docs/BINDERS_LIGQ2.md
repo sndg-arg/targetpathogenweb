@@ -1,6 +1,6 @@
 # Binders and LigQ_2 Operations
 
-This document records how TargetPathogenWeb loads ligand evidence from LigQ_2, the internal TPW step that gathers PDB, ChEMBL, and ZINC compound records; how evidence is classified; and how to recover/reload results on Nodo0.
+This document records how Target Pathogen Web loads ligand evidence from LigQ_2, the internal Target step that gathers PDB, ChEMBL, and ZINC compound records; how evidence is classified; and how to recover/reload results on Nodo0.
 
 For the generic curated genome import workflow, including source-priority rules
 and manual Nodo0 loading commands, see
@@ -66,7 +66,7 @@ Run before loading binders for a genome:
 docker exec target2_nodo0_web bash -c ". /opt/conda/etc/profile.d/conda.sh && conda activate tpv2 && python manage.py gbk2uniprot_map <GENOME> --batch_size 300 --datadir /app/targetpathogenweb/data"
 ```
 
-The command first tries UniProt's async idmapping API. If that backend returns an error, TargetPathogenWeb falls back to UniProtKB search by RefSeq xref, e.g.:
+The command first tries UniProt's async idmapping API. If that backend returns an error, Target Pathogen Web falls back to UniProtKB search by RefSeq xref, e.g.:
 
 ```text
 xref:RefSeq-NP_064721.1

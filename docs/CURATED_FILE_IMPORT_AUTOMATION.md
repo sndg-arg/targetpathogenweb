@@ -5,7 +5,7 @@ reviewed external result files, such as a `results_table.tsv`, a curated archive
 with genome/structures/offtarget/essentiality folders, and optional LigQ_2
 outputs.
 
-The goal is not to replace the full TPW pipeline. The goal is to make curated
+The goal is not to replace the full Target pipeline. The goal is to make curated
 imports reproducible, safer, and easier to audit: load evidence that already
 exists, preserve curated values, and generate an explicit plan for any remaining
 heavy work.
@@ -17,7 +17,7 @@ The current implementation is a staff/admin flow with CLI orchestration and pers
 It supports:
 
 - validating a reviewed TSV with a required `gene` column;
-- checking compatibility between TSV locus tags and the loaded TPW genome;
+- checking compatibility between TSV locus tags and the loaded Target genome;
 - inspecting a server-side `.tar`, `.tar.gz`, or compatible tar archive;
 - detecting common archive folders such as `genome`, `structures`, `offtarget`,
   `essentiality`, `ligq2`, `LigQ_2`, and `ligq_2`;
@@ -29,14 +29,14 @@ It supports:
 - saving each UI validation/run as a `CuratedImportJob` with status, command, logs, report path, and retry metadata.
 
 It does not yet create a new genome from scratch. In the current UI flow, the
-base genome must already be loaded in TPW before the curated import panel can
+base genome must already be loaded in Target before the curated import panel can
 validate protein overlap and run the curated flow.
 
 
 ## Curated Source Priority
 
 Curated imports are curator-first. When a reviewed package provides a value or an
-output file, TPW should treat that package as the source of truth and should only
+output file, Target should treat that package as the source of truth and should only
 compute missing data.
 
 Priority order:
@@ -47,14 +47,14 @@ Priority order:
    FPocket/P2Rank pocket outputs, off-target tables, conservation tables,
    localization tables, Foldseek outputs, essentiality outputs, and LigQ outputs
    when present.
-3. TPW format conversion/import of those reviewed files.
+3. Target format conversion/import of those reviewed files.
 4. Pipeline or SLURM computation only for data that is absent from the reviewed
    package, or for an explicit audit/rebuild task.
 
 For structural pockets, use `import_gates_pocket_outputs` to load precomputed
 Gates FPocket/P2Rank outputs from `structures/<gene>/pockets/` instead of
 re-running pocket prediction. Use `--force` only when intentionally replacing
-previously computed TPW pocket sets with the reviewed Gates outputs. If a PDB
+previously computed Target pocket sets with the reviewed Gates outputs. If a PDB
 chain file such as `PDB_7CZ9_chain_A.pdb` is present, import pockets against that
 same chain structure rather than against a separately downloaded full PDB.
 
@@ -142,9 +142,9 @@ Recommended use:
 
 1. Upload TSV/archive through the **Upload a data file** panel.
 2. Copy the returned server paths into **Curated external import**.
-3. Fill in the TPW genome name, reviewed TSV path, optional extracted structures
+3. Fill in the Target genome name, reviewed TSV path, optional extracted structures
    directory, optional archive path/root, optional LigQ_2 output directory, and
-   TPW data directory.
+   Target data directory.
 4. Click **Validate import** first.
 5. Review TSV rows/columns, matched proteins, unmatched TSV genes, structures
    status, archive root/folders/GBK candidates/LigQ-like files, and LigQ output
@@ -164,7 +164,7 @@ A failed curated-flow job can be retried from the same Upload Genome panel. Retr
 
 A curated import is considered closed when the final report shows:
 
-- the expected proteins are present in TPW;
+- the expected proteins are present in Target;
 - curated scores were imported;
 - curated structure sources are loaded or explicitly absent;
 - UniProt/GO/EC/PDB evidence was backfilled or intentionally skipped;
