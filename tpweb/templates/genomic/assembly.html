@@ -142,6 +142,12 @@
                         <div class="genome-card tp-ui-panel genome-card--ranking">
                             <div class="section-head tp-ui-panel-head">
                                 <div>
+                                    <!-- Invisible spacer matching the secondary ranking's "No ligand evidence
+                                         yet" eyebrow -- without it, that card's header is one line taller and
+                                         the two lists start at different heights. Same technique as the
+                                         invisible "How is this calculated?" spacer below, mirrored the other
+                                         direction. -->
+                                    <span class="targets-eyebrow" style="visibility: hidden;" aria-hidden="true">{% trans "No ligand evidence yet" %}</span>
                                     <h2>{% trans "Top-ranked candidates" %}</h2>
                                     <p class="section-subtitle">
                                         {% trans "Composite score (0-100%) weighing druggability, ligand evidence, and five other independent signals." %}
