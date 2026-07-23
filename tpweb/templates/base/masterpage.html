@@ -25,7 +25,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
     <link rel="stylesheet" href="{% static 'css/components/ui-system.css' %}?v=20260722-animfillmode1">
-    <link rel="stylesheet" href="{% static 'css/components/agent-drawer.css' %}?v=20260723-specfix1">
+    <link rel="stylesheet" href="{% static 'css/components/agent-drawer.css' %}?v=20260723-redesign1">
     <style>
         :root {
             --tp-color-text-primary: #132f3d;
@@ -1597,6 +1597,20 @@
             border-color: rgba(255, 255, 255, 0.2);
         }
 
+        /* Featured brand tint so the Assistant entry point reads as the
+           bigger, purpose-built feature it is, not an equal-weight utility
+           toggle sitting next to the theme switch. */
+        #tp-agent-drawer-toggle {
+            border-color: rgba(94, 182, 202, 0.35);
+            background: rgba(94, 182, 202, 0.12);
+            color: rgba(220, 241, 246, 0.95);
+        }
+
+        #tp-agent-drawer-toggle:hover {
+            border-color: rgba(94, 182, 202, 0.55);
+            background: rgba(94, 182, 202, 0.2);
+        }
+
         .tp-theme-toggle-icon {
             display: inline-flex;
             width: 15px;
@@ -2250,11 +2264,16 @@
                 <path d="M2 3.5c1.6-.7 3.4-.7 5 0v9c-1.6-.7-3.4-.7-5 0v-9Z"/>
                 <path d="M14 3.5c-1.6-.7-3.4-.7-5 0v9c1.6-.7 3.4-.7 5 0v-9Z"/>
             </svg>
-            {% trans "Biologist mode" %}
+            {% trans "Explain jargon" %}
         </button>
     </div>
     <div id="tp-agent-drawer-messages" class="tp-agent-drawer-messages" role="log" aria-live="polite">
-        <p class="tp-agent-drawer-empty">{% trans "Ask about proteins, filters, scores, or evidence loaded for the genome you're currently viewing." %}</p>
+        <p class="tp-agent-drawer-empty">
+            <span class="tp-agent-drawer-empty-icon" aria-hidden="true">
+                <img src="{% static 'img/brand/tp-logo-mark-color.png' %}" alt="">
+            </span>
+            {% trans "Ask about proteins, filters, scores, or evidence loaded for the genome you're currently viewing." %}
+        </p>
     </div>
     <div class="tp-agent-drawer-suggestions" aria-label="{% trans 'Suggested assistant prompts' %}">
         <button type="button" class="tp-agent-drawer-suggestion" data-agent-prompt="{% trans 'Explain this target using only loaded evidence.' %}">
@@ -2272,9 +2291,9 @@
     </div>
     <form id="tp-agent-drawer-form" class="tp-agent-drawer-form" data-chat-url="{% url 'tpwebapp:agent_chat' %}" data-tp-loader="off">
         <textarea id="tp-agent-drawer-input" class="tp-agent-drawer-input" rows="2" placeholder="{% trans 'Ask the assistant…' %}" aria-label="{% trans 'Message' %}"></textarea>
-        <button type="submit" class="tp-btn tp-btn--primary tp-agent-drawer-send">
-            <span>{% trans "Send" %}</span>
-            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" aria-hidden="true"><path d="M2 8h11.5M9 3.5L14 8l-5 4.5"/></svg>
+        <button type="submit" class="tp-btn tp-btn--primary tp-agent-drawer-send" aria-label="{% trans 'Send' %}" title="{% trans 'Send' %}">
+            <span class="sr-only">{% trans "Send" %}</span>
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><path d="M2 8h11.5M9 3.5L14 8l-5 4.5"/></svg>
         </button>
     </form>
 </aside>

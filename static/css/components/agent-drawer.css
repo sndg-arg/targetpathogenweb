@@ -93,17 +93,20 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 26px;
-    height: 26px;
+    width: 30px;
+    height: 30px;
     flex-shrink: 0;
-    border-radius: 999px;
-    background: color-mix(in srgb, var(--tp-color-brand-500) 14%, var(--tp-color-surface));
-    color: var(--tp-color-brand-600);
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--tp-color-brand-050), var(--tp-color-sage-050));
+    border: 1px solid var(--tp-color-border-accent);
+    box-shadow: var(--tp-shadow-sm);
+    color: var(--tp-color-brand-700);
 }
 
 .tp-agent-drawer-title {
-    font-weight: 600;
-    font-size: 0.95rem;
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-weight: 700;
+    font-size: 0.98rem;
     color: var(--tp-color-text-primary);
 }
 
@@ -139,10 +142,34 @@
 }
 
 .tp-agent-drawer-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin: auto 0;
+    padding: var(--tp-space-5) var(--tp-space-4);
+    text-align: center;
     color: var(--tp-color-text-muted);
     font-size: 0.86rem;
     line-height: 1.5;
-    margin: 0;
+}
+
+.tp-agent-drawer-empty-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--tp-color-brand-050), var(--tp-color-sage-050));
+    border: 1px solid var(--tp-color-border-accent);
+    box-shadow: var(--tp-shadow-sm);
+}
+
+.tp-agent-drawer-empty-icon img {
+    width: 22px;
+    height: 22px;
 }
 
 .tp-agent-drawer-msg {
@@ -377,6 +404,7 @@
 
 .tp-agent-drawer-form {
     display: flex;
+    align-items: flex-end;
     gap: var(--tp-space-2);
     padding: var(--tp-space-4);
     border-top: 1px solid var(--tp-color-border-soft);
@@ -387,26 +415,44 @@
     flex: 1 1 auto;
     resize: none;
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: var(--tp-ui-radius-panel);
-    padding: var(--tp-space-2) var(--tp-space-3);
+    border-radius: 20px;
+    padding: 10px 16px;
     font-size: 0.88rem;
     font-family: inherit;
     color: var(--tp-color-text-primary);
-    background: var(--tp-color-surface);
+    background: var(--tp-color-surface-soft);
+    transition: border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
 }
 
 .tp-agent-drawer-input:focus-visible {
     outline: none;
     border-color: var(--tp-color-brand-300);
+    background: var(--tp-color-surface);
     box-shadow: 0 0 0 3px var(--tp-color-brand-100);
 }
 
+/* Icon-only round send button -- the "Send" label stays in the DOM for
+   screen readers (.sr-only) but isn't shown, matching the compact
+   pill-input + circular-action pattern instead of a rectangular labeled
+   button. Sizing/shape use !important because the base .tp-btn geometry
+   rule (min-height/padding) isn't itself !important, so this alone is
+   enough to win -- no specificity workaround needed here. */
 .tp-agent-drawer-send {
     flex-shrink: 0;
-    align-self: flex-end;
+    width: 40px !important;
+    height: 40px !important;
+    min-height: 40px !important;
+    padding: 0 !important;
+    border-radius: 999px !important;
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    justify-content: center;
+}
+
+.tp-agent-drawer-send svg {
+    width: 16px;
+    height: 16px;
 }
 
 .tp-agent-drawer-toggle-mobile {
