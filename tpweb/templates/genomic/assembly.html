@@ -180,6 +180,15 @@
                                     <p class="section-subtitle">
                                         {% trans "Same composite score, restricted to proteins with zero ligand records - promising candidates nobody has drugged yet, instead of the ones already best-studied." %}
                                     </p>
+                                    <!-- Invisible spacer matching the primary ranking's "How is this calculated?"
+                                         details/summary line -- that card's header is one line taller, so without
+                                         this the two lists start at different heights even though the outer
+                                         cards are the same overall height. visibility:hidden removes it from the
+                                         tab order and the accessibility tree, unlike display:none it still holds
+                                         its layout space. -->
+                                    <details class="targets-methodology" style="visibility: hidden;" aria-hidden="true">
+                                        <summary>{% trans "How is this calculated?" %}</summary>
+                                    </details>
                                 </div>
                             </div>
                             <ol class="targets-list">
