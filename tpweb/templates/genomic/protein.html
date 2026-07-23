@@ -1641,6 +1641,7 @@
             document.addEventListener("click", function (e) {
                 const row = e.target.closest(".binder-tbl__row[data-href]");
                 if (!row) return;
+                if (window.TPPageLoader) window.TPPageLoader.show();
                 window.location.href = row.getAttribute("data-href");
             });
         })();

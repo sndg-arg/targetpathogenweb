@@ -194,6 +194,7 @@
         var genes = nodeData.genes || [];
         var target = genes.find(function (g) { return !g.is_current_protein && g.url; });
         if (target) {
+            if (window.TPPageLoader) window.TPPageLoader.show();
             window.location.href = target.url;
         }
     }
@@ -511,7 +512,10 @@
                 cy.on("tap", "node", function (evt) {
                     if (evt.target.data("isGroup")) {
                         var groupUrl = evt.target.data("url");
-                        if (groupUrl) window.location.href = groupUrl;
+                        if (groupUrl) {
+                            if (window.TPPageLoader) window.TPPageLoader.show();
+                            window.location.href = groupUrl;
+                        }
                         return;
                     }
                     var nodeData = evt.target.data();

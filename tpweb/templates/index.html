@@ -589,6 +589,7 @@
                     const icon = genomesRefreshButton.querySelector(".home-pipeline-refresh-icon");
                     if (icon) icon.classList.add("is-spinning");
                     genomesRefreshButton.disabled = true;
+                    if (window.TPPageLoader) window.TPPageLoader.show();
                     window.location.reload();
                 });
             }

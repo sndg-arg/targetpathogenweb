@@ -472,7 +472,7 @@
                 </div>
             </div>
             <div class="genome-upload-staff-body">
-                <form id="data-file-upload-form" enctype="multipart/form-data">
+                <form id="data-file-upload-form" enctype="multipart/form-data" data-tp-loader="off">
                     {% csrf_token %}
                     <div class="genome-upload-field tp-ui-field genome-upload-field--narrow">
                         <label class="tp-ui-field-label" for="data_file_input">{% trans "File" %}</label>
@@ -504,6 +504,7 @@
                 var icon = btn.querySelector(".genome-upload-refresh-icon");
                 if (icon) icon.classList.add("is-spinning");
                 btn.disabled = true;
+                if (window.TPPageLoader) window.TPPageLoader.show();
                 window.location.assign(window.location.pathname);
             });
         }

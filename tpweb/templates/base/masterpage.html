@@ -5,6 +5,7 @@
 <script>
     // Apply theme before first paint to avoid FOUC
     (function() {
+        document.documentElement.classList.add("tp-page-is-loading");
         var pref = localStorage.getItem("tp-theme");
         if (pref === "dark" || (pref !== "light" && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
             document.documentElement.classList.add("tp-dark");
@@ -1908,12 +1909,219 @@
             border-top-color: transparent;
             border-bottom-color: var(--tp-tooltip-bg);
         }
+
+        .tp-page-loader {
+            position: fixed;
+            inset: 0;
+            z-index: 5000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            background:
+                radial-gradient(560px 260px at 22% 14%, rgba(57, 166, 190, 0.20), transparent 62%),
+                radial-gradient(520px 280px at 82% 82%, rgba(47, 127, 103, 0.16), transparent 65%),
+                rgba(238, 240, 243, 0.88);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition:
+                opacity var(--tp-ui-motion-base) var(--tp-ui-ease-standard),
+                visibility 0s linear var(--tp-ui-motion-base);
+        }
+
+        html.tp-page-is-loading .tp-page-loader,
+        html.tp-page-is-navigating .tp-page-loader {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+            transition-delay: 0s;
+        }
+
+        .tp-page-loader-card {
+            width: min(420px, 100%);
+            border: 1px solid var(--tp-color-border);
+            border-radius: 16px;
+            background:
+                linear-gradient(180deg, rgba(253, 253, 253, 0.94) 0%, rgba(246, 247, 249, 0.94) 100%);
+            box-shadow: var(--tp-shadow-lg);
+            padding: 22px;
+            color: var(--tp-color-text-primary);
+        }
+
+        .tp-page-loader-head {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 18px;
+        }
+
+        .tp-page-loader-mark {
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            color: var(--tp-color-brand-900);
+            background: linear-gradient(135deg, var(--tp-color-brand-050), var(--tp-color-sage-050));
+            border: 1px solid var(--tp-color-border-accent);
+            box-shadow: var(--tp-shadow-sm);
+            overflow: hidden;
+        }
+
+        .tp-page-loader-mark::before {
+            content: "";
+            position: absolute;
+            inset: 9px;
+            border-radius: 50%;
+            border: 2px solid rgba(34, 136, 163, 0.24);
+            border-top-color: var(--tp-color-brand-700);
+            animation: tp-page-loader-spin 780ms linear infinite;
+        }
+
+        .tp-page-loader-mark::after {
+            content: "";
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--tp-color-brand-700);
+            box-shadow: 0 0 0 5px rgba(34, 136, 163, 0.12);
+        }
+
+        .tp-page-loader-title {
+            margin: 0;
+            font-family: "Space Grotesk", "Segoe UI", sans-serif;
+            font-size: var(--tp-font-size-lg);
+            font-weight: 700;
+            letter-spacing: 0;
+            color: var(--tp-color-text-primary);
+        }
+
+        .tp-page-loader-copy {
+            margin: 2px 0 0;
+            color: var(--tp-color-text-secondary);
+            font-size: var(--tp-font-size-sm);
+            line-height: 1.35;
+        }
+
+        .tp-page-loader-bars {
+            display: grid;
+            gap: 8px;
+        }
+
+        .tp-page-loader-bar {
+            height: 8px;
+            border-radius: 999px;
+            overflow: hidden;
+            background: var(--tp-color-surface-muted);
+        }
+
+        .tp-page-loader-bar::before {
+            content: "";
+            display: block;
+            width: 42%;
+            height: 100%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, var(--tp-color-brand-700), var(--tp-color-sage-500));
+            animation: tp-page-loader-scan 1150ms var(--tp-ui-ease-standard) infinite;
+        }
+
+        .tp-page-loader-bar:nth-child(2) {
+            width: 82%;
+        }
+
+        .tp-page-loader-bar:nth-child(2)::before {
+            animation-delay: 120ms;
+        }
+
+        .tp-page-loader-bar:nth-child(3) {
+            width: 64%;
+        }
+
+        .tp-page-loader-bar:nth-child(3)::before {
+            animation-delay: 240ms;
+        }
+
+        html.tp-dark .tp-page-loader {
+            background:
+                radial-gradient(560px 260px at 22% 14%, rgba(57, 166, 190, 0.18), transparent 62%),
+                radial-gradient(520px 280px at 82% 82%, rgba(47, 127, 103, 0.15), transparent 65%),
+                rgba(8, 22, 30, 0.72);
+        }
+
+        html.tp-dark .tp-page-loader-card {
+            background:
+                linear-gradient(180deg, rgba(18, 37, 47, 0.96) 0%, rgba(14, 30, 39, 0.94) 100%);
+        }
+
+        .tp-page-action-loading {
+            position: relative;
+            pointer-events: none;
+        }
+
+        .tp-page-action-loading::after {
+            content: "";
+            width: 0.9em;
+            height: 0.9em;
+            margin-left: 0.55em;
+            border: 2px solid currentColor;
+            border-right-color: transparent;
+            border-radius: 50%;
+            display: inline-block;
+            vertical-align: -0.12em;
+            animation: tp-page-loader-spin 780ms linear infinite;
+        }
+
+        @keyframes tp-page-loader-spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes tp-page-loader-scan {
+            0% {
+                transform: translateX(-110%);
+            }
+            55%, 100% {
+                transform: translateX(250%);
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .tp-page-loader,
+            .tp-page-action-loading::after,
+            .tp-page-loader-mark::before,
+            .tp-page-loader-bar::before {
+                animation: none !important;
+                transition: none !important;
+            }
+        }
     </style>
 
     {% block head %}{% endblock %}
 </head>
 <body>
 <script>(function(){var v=localStorage.getItem("tp.sidebar.collapsed");var c=v===null?window.matchMedia("(max-width:1440px)").matches:v==="1";if(c&&window.matchMedia("(min-width:992px)").matches){document.body.classList.add("tp-sidebar-collapsed");}}());</script>
+<div id="tp-page-loader" class="tp-page-loader" role="status" aria-live="polite" aria-hidden="true">
+    <div class="tp-page-loader-card">
+        <div class="tp-page-loader-head">
+            <span class="tp-page-loader-mark" aria-hidden="true"></span>
+            <div>
+                <p class="tp-page-loader-title">{% trans "Loading workspace" %}</p>
+                <p class="tp-page-loader-copy">{% trans "Preparing the next TargetPathogenWeb view." %}</p>
+            </div>
+        </div>
+        <div class="tp-page-loader-bars" aria-hidden="true">
+            <span class="tp-page-loader-bar"></span>
+            <span class="tp-page-loader-bar"></span>
+            <span class="tp-page-loader-bar"></span>
+        </div>
+    </div>
+</div>
 <aside class="tp-sidebar" aria-label="{% trans "Primary navigation" %}">
     <div class="tp-sidebar-brand">
         <div class="tp-sidebar-brand-row">
@@ -2117,7 +2325,7 @@
             {% trans "Clear filters" %}
         </button>
     </div>
-    <form id="tp-agent-drawer-form" class="tp-agent-drawer-form" data-chat-url="{% url 'tpwebapp:agent_chat' %}">
+    <form id="tp-agent-drawer-form" class="tp-agent-drawer-form" data-chat-url="{% url 'tpwebapp:agent_chat' %}" data-tp-loader="off">
         <textarea id="tp-agent-drawer-input" class="tp-agent-drawer-input" rows="2" placeholder="{% trans 'Ask the assistant…' %}" aria-label="{% trans 'Message' %}"></textarea>
         <button type="submit" class="tp-btn tp-btn--primary tp-agent-drawer-send">
             <span>{% trans "Send" %}</span>
@@ -2127,7 +2335,7 @@
 </aside>
 
 <script src="{% static 'bundle.js' %}?v=20260722-dagre1"></script>
-<script src="{% static 'js/global/agent-drawer.js' %}?v=20260717-agent5"></script>
+<script src="{% static 'js/global/agent-drawer.js' %}?v=20260722-loader1"></script>
 
 <script>
     function getCookie(name) {
@@ -2160,6 +2368,171 @@
             }
         });
     }
+
+    (function () {
+        const LOADING_CLASS = "tp-page-is-loading";
+        const NAVIGATING_CLASS = "tp-page-is-navigating";
+        const ACTION_LOADING_CLASS = "tp-page-action-loading";
+        const EXCLUDED_LINK_SELECTOR = [
+            "[data-tp-loader='off']",
+            "[data-no-page-loader]",
+            "[download]",
+            "[target='_blank']",
+            "[data-toggle]",
+            "[data-bs-toggle]",
+            ".dropdown-toggle",
+            ".tp-agent-drawer-suggestion"
+        ].join(",");
+        const EXCLUDED_FORM_SELECTOR = [
+            "[data-tp-loader='off']",
+            "[data-no-page-loader]",
+            "#tp-agent-drawer-form"
+        ].join(",");
+        let showTimer = null;
+        let activeAction = null;
+
+        function loaderEl() {
+            return document.getElementById("tp-page-loader");
+        }
+
+        function setLoaderVisible(visible) {
+            const loader = loaderEl();
+            if (loader) {
+                loader.setAttribute("aria-hidden", visible ? "false" : "true");
+            }
+            if (document.body) {
+                if (visible) {
+                    document.body.setAttribute("aria-busy", "true");
+                } else {
+                    document.body.removeAttribute("aria-busy");
+                }
+            }
+        }
+
+        function clearAction() {
+            if (!activeAction) return;
+            activeAction.classList.remove(ACTION_LOADING_CLASS);
+            activeAction.removeAttribute("aria-busy");
+            activeAction = null;
+        }
+
+        function show(options) {
+            const opts = options || {};
+            window.clearTimeout(showTimer);
+            showTimer = window.setTimeout(function () {
+                document.documentElement.classList.add(NAVIGATING_CLASS);
+                setLoaderVisible(true);
+            }, Number.isFinite(opts.delay) ? opts.delay : 90);
+        }
+
+        function hide() {
+            window.clearTimeout(showTimer);
+            document.documentElement.classList.remove(LOADING_CLASS, NAVIGATING_CLASS);
+            setLoaderVisible(false);
+            clearAction();
+        }
+
+        function markAction(el) {
+            clearAction();
+            if (!el || !el.classList) return;
+            activeAction = el;
+            activeAction.classList.add(ACTION_LOADING_CLASS);
+            activeAction.setAttribute("aria-busy", "true");
+        }
+
+        function isModifiedClick(event) {
+            return event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey;
+        }
+
+        function shouldSkipUrl(url) {
+            if (!url) return true;
+            if (url.protocol && !["http:", "https:"].includes(url.protocol)) return true;
+            if (url.origin !== window.location.origin) return true;
+            if (url.pathname === window.location.pathname && url.search === window.location.search && url.hash) return true;
+            if (url.pathname === window.location.pathname && url.search === window.location.search && !url.hash) return true;
+            return /\/download\/?|\/export\/?|csv|xlsx|fasta|\.fna|\.faa|\.gbk?|\.zip|\.pdb$/i.test(url.pathname);
+        }
+
+        function shouldSkipFormUrl(url) {
+            if (!url) return true;
+            if (url.protocol && !["http:", "https:"].includes(url.protocol)) return true;
+            if (url.origin !== window.location.origin) return true;
+            return /\/download\/?|\/export\/?|csv|xlsx|fasta|\.fna|\.faa|\.gbk?|\.zip|\.pdb$/i.test(url.pathname);
+        }
+
+        function linkUrl(link) {
+            try {
+                return new URL(link.getAttribute("href"), window.location.href);
+            } catch (error) {
+                return null;
+            }
+        }
+
+        function formUrl(form) {
+            try {
+                return new URL(form.getAttribute("action") || window.location.href, window.location.href);
+            } catch (error) {
+                return null;
+            }
+        }
+
+        function initNavigationLoading() {
+            window.setTimeout(hide, 180);
+
+            document.addEventListener("click", function (event) {
+                if (isModifiedClick(event)) return;
+                const link = event.target.closest ? event.target.closest("a[href]") : null;
+                if (!link || link.matches(EXCLUDED_LINK_SELECTOR)) return;
+                const url = linkUrl(link);
+                if (shouldSkipUrl(url)) return;
+                markAction(link);
+                show();
+            });
+
+            document.addEventListener("submit", function (event) {
+                window.setTimeout(function () {
+                    if (event.defaultPrevented) return;
+                    const form = event.target;
+                    if (!form || !form.matches || form.matches(EXCLUDED_FORM_SELECTOR)) return;
+                    const target = (form.getAttribute("target") || "").toLowerCase();
+                    if (target && target !== "_self") return;
+                    if (shouldSkipFormUrl(formUrl(form))) return;
+                    const submitter = event.submitter || form.querySelector("button[type='submit'], input[type='submit'], .tp-btn");
+                    markAction(submitter);
+                    show();
+                }, 0);
+            });
+
+            window.addEventListener("pageshow", hide);
+            window.addEventListener("load", hide);
+            window.addEventListener("pagehide", function () {
+                setLoaderVisible(true);
+            });
+        }
+
+        window.TPPageLoader = {
+            show: show,
+            hide: hide,
+            markAction: markAction,
+            withLoading: function (promiseOrFactory, options) {
+                show(options);
+                let result;
+                try {
+                    result = typeof promiseOrFactory === "function" ? promiseOrFactory() : promiseOrFactory;
+                } catch (error) {
+                    hide();
+                    throw error;
+                }
+                return Promise.resolve(result).finally(hide);
+            }
+        };
+
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", initNavigationLoading, { once: true });
+        } else {
+            initNavigationLoading();
+        }
+    })();
 
     if (window.jQuery && $.fn && $.fn.dataTable) {
         const TP_DT_VARIANTS = Object.freeze({

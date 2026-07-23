@@ -432,6 +432,7 @@
                     appendMessage("assistant", result.data.reply || "");
                     if (result.data.reload) {
                         window.setTimeout(function () {
+                            if (window.TPPageLoader) window.TPPageLoader.show();
                             if (result.data.redirect_url) {
                                 window.location.href = result.data.redirect_url;
                             } else {
