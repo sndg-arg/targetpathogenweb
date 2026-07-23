@@ -132,38 +132,46 @@
     max-width: min(100%, 560px);
 }
 
-.home-pipeline-refresh {
+/* border/background need !important + a doubled selector -- .tp-dark
+   .tp-btn--neutral (0,2,0, !important) otherwise wins in dark mode and
+   this ghost icon button gets an unwanted box (same specificity bug fixed
+   on .tpd-delete-btn earlier this session). */
+.home-pipeline-refresh.home-pipeline-refresh {
     min-width: 32px;
     width: 32px;
     height: 32px;
     padding: 0 !important;
     justify-content: center;
-    border: 0;
+    border: 0 !important;
     border-radius: 999px !important;
-    background: transparent;
+    background: transparent !important;
     box-shadow: none !important;
     transform: none !important;
     transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
 }
 
-.home-pipeline-refresh:hover,
-.home-pipeline-refresh:focus-visible {
-    background: color-mix(in srgb, var(--tp-color-brand-800) var(--_refresh-hover-mix, 8%), transparent);
+/* !important here too -- .tp-btn--neutral:hover already uses !important on
+   background even in light mode, so without it the intended subtle
+   brand-tinted hover never actually rendered; masterpage's flat hover fill
+   silently won instead. */
+.home-pipeline-refresh.home-pipeline-refresh:hover,
+.home-pipeline-refresh.home-pipeline-refresh:focus-visible {
+    background: color-mix(in srgb, var(--tp-color-brand-800) var(--_refresh-hover-mix, 8%), transparent) !important;
     box-shadow: none !important;
 }
 
-.home-pipeline-refresh:active {
+.home-pipeline-refresh.home-pipeline-refresh:active {
     background: color-mix(in srgb, var(--tp-color-brand-800) var(--_refresh-active-mix, 16%), transparent) !important;
     box-shadow: none !important;
     transform: none !important;
 }
 
-.home-operations.is-failed .home-pipeline-refresh:hover,
-.home-operations.is-failed .home-pipeline-refresh:focus-visible {
-    background: color-mix(in srgb, var(--tp-color-danger-ink) var(--_refresh-hover-mix, 8%), transparent);
+.home-operations.is-failed .home-pipeline-refresh.home-pipeline-refresh:hover,
+.home-operations.is-failed .home-pipeline-refresh.home-pipeline-refresh:focus-visible {
+    background: color-mix(in srgb, var(--tp-color-danger-ink) var(--_refresh-hover-mix, 8%), transparent) !important;
 }
 
-.home-operations.is-failed .home-pipeline-refresh:active {
+.home-operations.is-failed .home-pipeline-refresh.home-pipeline-refresh:active {
     background: color-mix(in srgb, var(--tp-color-danger-ink) var(--_refresh-active-mix, 16%), transparent) !important;
 }
 
@@ -207,27 +215,28 @@
     animation: home-pipeline-refresh-spin 0.8s linear infinite;
 }
 
-.home-pipeline-info-btn {
+/* Same specificity fix as .home-pipeline-refresh above -- see its comment. */
+.home-pipeline-info-btn.home-pipeline-info-btn {
     min-width: 32px;
     width: 32px;
     height: 32px;
     padding: 0 !important;
     justify-content: center;
-    border: 0;
+    border: 0 !important;
     border-radius: 999px !important;
-    background: transparent;
+    background: transparent !important;
     box-shadow: none !important;
     transform: none !important;
     transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
 }
 
-.home-pipeline-info-btn:hover,
-.home-pipeline-info-btn:focus-visible {
-    background: color-mix(in srgb, var(--tp-color-brand-800) var(--_refresh-hover-mix, 8%), transparent);
+.home-pipeline-info-btn.home-pipeline-info-btn:hover,
+.home-pipeline-info-btn.home-pipeline-info-btn:focus-visible {
+    background: color-mix(in srgb, var(--tp-color-brand-800) var(--_refresh-hover-mix, 8%), transparent) !important;
     box-shadow: none !important;
 }
 
-.home-pipeline-info-btn:active {
+.home-pipeline-info-btn.home-pipeline-info-btn:active {
     background: color-mix(in srgb, var(--tp-color-brand-800) var(--_refresh-active-mix, 16%), transparent) !important;
     box-shadow: none !important;
     transform: none !important;

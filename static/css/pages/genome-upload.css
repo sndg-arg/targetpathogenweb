@@ -341,27 +341,32 @@
     flex-wrap: wrap;
 }
 
-.genome-upload-refresh-btn {
+/* Selector doubled + !important throughout -- .tp-btn--neutral (and its
+   .tp-dark counterpart) otherwise beats a plain single-class override here
+   at rest, hover, and in dark mode specifically (same specificity bug
+   fixed on .tpd-delete-btn earlier this session; identical fix applied to
+   .home-pipeline-refresh/.home-pipeline-info-btn). */
+.genome-upload-refresh-btn.genome-upload-refresh-btn {
     min-width: 32px;
     width: 32px;
     height: 32px;
     padding: 0 !important;
     justify-content: center;
-    border: 0;
+    border: 0 !important;
     border-radius: 999px !important;
-    background: transparent;
+    background: transparent !important;
     box-shadow: none !important;
     transform: none !important;
     transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
 }
 
-.genome-upload-refresh-btn:hover,
-.genome-upload-refresh-btn:focus-visible {
-    background: color-mix(in srgb, var(--tp-color-brand-800) 8%, transparent);
+.genome-upload-refresh-btn.genome-upload-refresh-btn:hover,
+.genome-upload-refresh-btn.genome-upload-refresh-btn:focus-visible {
+    background: color-mix(in srgb, var(--tp-color-brand-800) 8%, transparent) !important;
     box-shadow: none !important;
 }
 
-.genome-upload-refresh-btn:active {
+.genome-upload-refresh-btn.genome-upload-refresh-btn:active {
     background: color-mix(in srgb, var(--tp-color-brand-800) 16%, transparent) !important;
     box-shadow: none !important;
     transform: none !important;

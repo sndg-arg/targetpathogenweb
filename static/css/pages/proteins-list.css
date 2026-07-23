@@ -1304,7 +1304,13 @@ a.filter-pill .filter-pill-remove {
     color: var(--tp-color-text-secondary);
 }
 
-.drawer-close-btn {
+/* Selector repeats the class -- .tp-dark .tp-btn--neutral (0,2,0, !important)
+   otherwise beats a plain single-class override here in dark mode, even
+   though this already uses !important (same specificity bug found and
+   fixed on .tpd-delete-btn earlier this session: page CSS loads after
+   masterpage.html's inline <style>, so a tie is enough to win -- a deficit
+   isn't). */
+.drawer-close-btn.drawer-close-btn {
     width: 30px !important;
     min-width: 30px !important;
     height: 30px !important;
@@ -1319,8 +1325,8 @@ a.filter-pill .filter-pill-remove {
     box-shadow: none !important;
 }
 
-.drawer-close-btn:hover,
-.drawer-close-btn:focus-visible {
+.drawer-close-btn.drawer-close-btn:hover,
+.drawer-close-btn.drawer-close-btn:focus-visible {
     border-color: var(--tp-color-border-strong) !important;
     background: var(--tp-color-surface-muted) !important;
     color: var(--tp-color-text-secondary) !important;
@@ -2462,8 +2468,14 @@ a.filter-pill .filter-pill-remove {
 /* Matches .drawer-catalogue-toggle's established compact-clear-button
    variant (link-colored text, brand-tinted hover fill) instead of the
    default muted-gray/surface-hover look, which read as washed out next to
-   that sibling pattern used elsewhere in this same drawer. */
-.columns-restore-link {
+   that sibling pattern used elsewhere in this same drawer.
+   Selector repeats the class -- .btn.tp-btn--clear (0,2,0) / :hover (0,3,0)
+   otherwise beats a single-class border-color override here, so the
+   intended borderless look was silently losing to the default clear-button
+   border in both light and dark mode. Same fix applied to
+   .drawer-catalogue-toggle just below, which had the identical bug
+   already, pre-existing. */
+.columns-restore-link.columns-restore-link {
     padding: 6px 8px;
     font-size: 0.84rem;
     font-weight: 600;
@@ -2472,8 +2484,8 @@ a.filter-pill .filter-pill-remove {
     border-color: transparent !important;
 }
 
-.columns-restore-link:hover,
-.columns-restore-link:focus-visible {
+.columns-restore-link.columns-restore-link:hover,
+.columns-restore-link.columns-restore-link:focus-visible {
     color: var(--tp-color-link-hover) !important;
     background: var(--tp-color-brand-100) !important;
     border-color: transparent !important;
@@ -2808,7 +2820,10 @@ a.filter-pill .filter-pill-remove {
     font-weight: 400;
 }
 
-.drawer-catalogue-toggle {
+/* Selector repeats the class -- see the matching comment on
+   .columns-restore-link for why (same pre-existing bug, this is the
+   original instance it was modeled after). */
+.drawer-catalogue-toggle.drawer-catalogue-toggle {
     font-size: 0.82rem;
     font-weight: 600;
     padding: 4px 6px;
@@ -2817,8 +2832,8 @@ a.filter-pill .filter-pill-remove {
     border-color: transparent !important;
 }
 
-.drawer-catalogue-toggle:hover,
-.drawer-catalogue-toggle:focus-visible {
+.drawer-catalogue-toggle.drawer-catalogue-toggle:hover,
+.drawer-catalogue-toggle.drawer-catalogue-toggle:focus-visible {
     color: var(--tp-color-link-hover) !important;
     background: var(--tp-color-brand-100) !important;
     border-color: transparent !important;

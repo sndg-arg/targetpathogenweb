@@ -413,7 +413,7 @@
     appearance: none;
     border: none;
     background: transparent;
-    color: #fff;
+    color: var(--tp-color-on-accent);
     display: inline-flex;
     align-items: center;
     justify-content: center;
