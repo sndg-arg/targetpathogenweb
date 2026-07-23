@@ -1498,10 +1498,34 @@ a.filter-pill .filter-pill-remove {
     overflow-y: auto;
 }
 
+/* One unified card per preset -- apply action and delete action share a
+   single border/rounded shape (like a settings-list row with a trailing
+   icon action), instead of two separately-chromed elements floating next
+   to each other with a gap between them. */
 .tpd-row {
     display: flex;
     align-items: stretch;
-    gap: 6px;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 8px;
+    background: var(--tp-color-surface);
+    overflow: hidden;
+    transition: border-color 120ms ease, background 120ms ease;
+}
+
+.tpd-row:hover,
+.tpd-row:focus-within {
+    border-color: var(--tp-color-brand-600);
+}
+
+.tpd-row--active {
+    border-color: var(--tp-color-brand-300);
+    background: var(--tp-color-brand-050);
+}
+
+.tpd-row--active:hover,
+.tpd-row--active:focus-within {
+    border-color: var(--tp-color-brand-600);
+    background: var(--tp-color-brand-100);
 }
 
 .tpd-apply-form {
@@ -1513,9 +1537,13 @@ a.filter-pill .filter-pill-remove {
 .tpd-delete-form {
     flex: 0 0 auto;
     display: flex;
-    align-items: flex-start;
-    padding-top: 8px;
+    align-items: stretch;
     margin: 0;
+    border-left: 1px solid var(--tp-color-border-soft);
+}
+
+.tpd-row--active .tpd-delete-form {
+    border-left-color: var(--tp-color-brand-200);
 }
 
 .tpd-apply-btn {
@@ -1525,35 +1553,27 @@ a.filter-pill .filter-pill-remove {
     align-items: stretch;
     gap: 3px;
     padding: 8px 11px;
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: 8px;
-    background: var(--tp-color-surface);
+    border: none;
+    background: transparent;
     color: var(--tp-color-text-primary);
     text-align: left;
     cursor: pointer;
-    transition: border-color 120ms ease, background 120ms ease;
+    transition: background 120ms ease;
 }
 
 .tpd-apply-btn:hover,
 .tpd-apply-btn:focus-visible {
-    border-color: var(--tp-color-brand-600);
     background: var(--tp-color-surface-soft);
     outline: none;
 }
 
-.tpd-apply-btn:focus-visible {
-    box-shadow: 0 0 0 2px var(--tp-color-brand-100);
-}
-
-.tpd-row--active .tpd-apply-btn {
-    border-color: var(--tp-color-brand-300);
-    background: var(--tp-color-brand-050);
-}
-
 .tpd-row--active .tpd-apply-btn:hover,
 .tpd-row--active .tpd-apply-btn:focus-visible {
-    border-color: var(--tp-color-brand-600);
     background: var(--tp-color-brand-100);
+}
+
+.tpd-apply-btn:focus-visible {
+    box-shadow: inset 0 0 0 2px var(--tp-color-brand-100);
 }
 
 .tpd-header {
@@ -1616,28 +1636,34 @@ a.filter-pill .filter-pill-remove {
     border-color: var(--tp-color-brand-200);
 }
 
-/* Quiet ghost icon by default -- borderless and blended into the row, not a
-   second bordered box stacked on the apply button. Only picks up a border/
-   fill on hover, when the destructive action is actually in reach. */
-.tpd-delete-btn {
-    width: 28px;
-    height: 28px;
-    min-height: 28px !important;
+/* Full-height trailing action strip, flush with the card it's attached to --
+   not a separate floating chip. Transparent/borderless at rest so it reads
+   as part of the row; only picks up the danger tint on hover, when the
+   destructive action is actually in reach.
+   Selector repeats .tpd-delete-btn to out-specificity masterpage.html's
+   .btn.tp-btn--clear rule (two classes) -- a single-class override there
+   was silently losing that specificity fight despite both using
+   !important, which is why this used to render as a solid boxed button
+   even at rest. */
+.tpd-row .tpd-delete-btn.tpd-delete-btn {
+    width: 36px;
+    height: 100%;
+    min-height: 0 !important;
     padding: 0 !important;
-    border-radius: 6px !important;
+    border: none !important;
+    border-radius: 0 !important;
     flex-shrink: 0;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     color: var(--tp-color-text-muted) !important;
     background: transparent !important;
-    border-color: transparent !important;
+    transition: background 120ms ease, color 120ms ease;
 }
 
-.tpd-delete-btn:hover,
-.tpd-delete-btn:focus-visible {
+.tpd-row .tpd-delete-btn.tpd-delete-btn:hover,
+.tpd-row .tpd-delete-btn.tpd-delete-btn:focus-visible {
     background: var(--tp-color-danger-bg) !important;
-    border-color: var(--tp-color-danger-border) !important;
     color: var(--tp-color-danger-ink) !important;
     outline: none;
 }
