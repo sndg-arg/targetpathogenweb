@@ -112,7 +112,7 @@
                 <span class="target-summary-kicker">{% trans "Target summary" %}</span>
                 <h2>{{ target_summary.verdict }}</h2>
                 <span class="target-summary-score" title="{% trans 'Internal count of positive evidence signals used only to summarize this page.' %}">
-                    {% blocktrans with score=target_summary.signal_score %}{{ score }} signals{% endblocktrans %}
+                    {% blocktrans with score=target_summary.signal_score %}{{ score }} evidence signals{% endblocktrans %}
                 </span>
             </div>
             <div class="target-summary-columns">
@@ -162,19 +162,36 @@
         </section>
         {% endif %}
 
-        <nav class="quick-nav" aria-label="{% trans "Protein sections" %}">
-            <a href="#section-overview" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Overview" %}</a>
-            {% if target_profile or selected_pocket_evidence or conservation_profile or microbiome_context %}<a href="#section-target-profile" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Target profile" %}</a>{% endif %}
-            {% if metabolic_context %}<a href="#section-metabolic-context" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Metabolic context" %}</a>{% endif %}
-            <a href="#section-sequence" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Sequence" %}</a>
-            <a href="#section-annotations" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Annotations" %}</a>
-            <a href="#section-features" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Features" %}</a>
-            <a href="#section-structure" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "3D Structure" %}</a>
-            {% if binders.total %}
-                <a href="#section-binders" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Binders" %}</a>
-            {% endif %}
-        </nav>
+        <div class="protein-layout">
+            <aside class="protein-sidebar" aria-label="{% trans 'Protein page navigation' %}">
+                {% if target_summary %}
+                <section class="protein-at-glance tp-ui-panel" aria-label="{% trans 'Target at a glance' %}">
+                    <span class="protein-at-glance-kicker">{% trans "At a glance" %}</span>
+                    <strong>{{ target_summary.verdict }}</strong>
+                    <span class="protein-at-glance-score">{% blocktrans with score=target_summary.signal_score %}{{ score }} evidence signals{% endblocktrans %}</span>
+                    <div class="protein-at-glance-dots" aria-label="{% trans 'Loaded evidence streams' %}">
+                        <span class="protein-at-glance-dot{% if structure_summary.has_structure %} is-present{% endif %}" title="{% trans '3D structure evidence loaded' %}"></span>
+                        <span class="protein-at-glance-dot{% if target_profile or selected_pocket_evidence or conservation_profile or microbiome_context %} is-present{% endif %}" title="{% trans 'Target-prioritization evidence loaded' %}"></span>
+                        <span class="protein-at-glance-dot{% if metabolic_context %} is-present{% endif %}" title="{% trans 'Metabolic evidence loaded' %}"></span>
+                        <span class="protein-at-glance-dot{% if binders.total %} is-present{% endif %}" title="{% trans 'Ligand evidence loaded' %}"></span>
+                    </div>
+                </section>
+                {% endif %}
+                <nav class="quick-nav" aria-label="{% trans "Protein sections" %}">
+                    <a href="#section-overview" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Overview" %}</a>
+                    {% if target_profile or selected_pocket_evidence or conservation_profile or microbiome_context %}<a href="#section-target-profile" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Target profile" %}</a>{% endif %}
+                    {% if metabolic_context %}<a href="#section-metabolic-context" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Metabolic context" %}</a>{% endif %}
+                    <a href="#section-sequence" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Sequence" %}</a>
+                    <a href="#section-annotations" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Annotations" %}</a>
+                    <a href="#section-features" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Features" %}</a>
+                    <a href="#section-structure" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "3D Structure" %}</a>
+                    {% if binders.total %}
+                        <a href="#section-binders" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Binders" %}</a>
+                    {% endif %}
+                </nav>
+            </aside>
 
+            <main class="protein-main" aria-label="{% trans 'Protein evidence sections' %}">
         <details class="protein-interpretation-guide tp-ui-panel">
             <summary>{% trans "Glossary for terms on this page" %}</summary>
             <div class="protein-guide-grid">
@@ -993,7 +1010,8 @@
                     </p>
                 </section>
             {% endif %}
-
+        </div>
+            </main>
         </div>
 
         <div class="residue-modal-backdrop" id="residue-modal" aria-hidden="true">
@@ -1289,6 +1307,10 @@
                 const btn = document.getElementById("structure-picker-btn");
                 const menu = document.getElementById("structure-picker-menu");
                 if (!btn || !menu) return;
+                function closeMenu() {
+                    menu.hidden = true;
+                    btn.setAttribute("aria-expanded", "false");
+                }
                 btn.addEventListener("click", function () {
                     const open = !menu.hidden;
                     menu.hidden = open;
@@ -1299,22 +1321,20 @@
                     if (item && typeof window.switchStructureSource === "function") {
                         window.switchStructureSource(item.getAttribute("data-slot"));
                     }
-                    menu.hidden = true;
-                    btn.setAttribute("aria-expanded", "false");
+                    closeMenu();
                 });
                 document.addEventListener("click", function (ev) {
                     if (!btn.contains(ev.target) && !menu.contains(ev.target)) {
-                        menu.hidden = true;
-                        btn.setAttribute("aria-expanded", "false");
+                        closeMenu();
                     }
                 });
                 document.addEventListener("keydown", function (ev) {
                     if (ev.key === "Escape" && !menu.hidden) {
-                        menu.hidden = true;
-                        btn.setAttribute("aria-expanded", "false");
+                        closeMenu();
                         btn.focus();
                     }
                 });
+                window.addEventListener("scroll", closeMenu, { passive: true });
             })();
 
             const pocketInspector = document.getElementById("protein-pocket-inspector");

@@ -575,6 +575,26 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     border-top-right-radius: 0;
 }
 
+.protein-layout {
+    display: grid;
+    gap: var(--tp-space-4);
+    min-width: 0;
+}
+
+.protein-sidebar {
+    min-width: 0;
+}
+
+.protein-main {
+    display: grid;
+    gap: 14px;
+    min-width: 0;
+}
+
+.protein-at-glance {
+    display: none;
+}
+
 .protein-interpretation-guide {
     padding: var(--tp-space-3) var(--tp-space-4);
     border-radius: var(--tp-ui-radius-panel);
@@ -584,8 +604,9 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     cursor: pointer;
     color: var(--protein-accent-ink);
     font-family: "Space Grotesk", "Segoe UI", sans-serif;
-    font-size: var(--tp-font-size-md);
+    font-size: var(--tp-font-size-sm);
     font-weight: 600;
+    line-height: 1.2;
 }
 
 .protein-interpretation-guide summary::marker {
@@ -594,8 +615,8 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 
 .protein-guide-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: var(--tp-space-2) var(--tp-space-4);
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: var(--tp-space-2);
     margin-top: var(--tp-space-3);
     /* No internal scroll box -- every other <details> on this page expands
        naturally with the page; this one was the only exception, forcing a
@@ -604,13 +625,13 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 
 .protein-guide-grid p {
     margin: 0;
-    padding: 8px 10px;
+    padding: 7px 9px;
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: 10px;
+    border-radius: 8px;
     background: var(--tp-color-surface-soft);
     color: var(--tp-color-text-secondary);
-    font-size: var(--tp-font-size-xs);
-    line-height: 1.42;
+    font-size: var(--tp-font-label);
+    line-height: 1.38;
 }
 
 .protein-guide-grid strong {
@@ -629,6 +650,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     gap: 14px;
+    min-width: 0;
 }
 
 .protein-grid-group-label {
@@ -991,10 +1013,10 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 .pocket-panel-summary-link:hover { text-decoration: underline; }
 
 .sv-pocket-inspector {
-    padding: 10px;
+    padding: var(--tp-space-3);
     border: 1px solid var(--protein-accent-border);
     border-radius: 10px;
-    background: color-mix(in srgb, var(--protein-accent-soft) 45%, var(--tp-color-surface));
+    background: color-mix(in srgb, var(--protein-accent-soft) 30%, var(--tp-color-surface));
     box-shadow: var(--tp-shadow-xs);
 }
 
@@ -1057,13 +1079,17 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 
 .sv-pocket-inspector-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 6px 10px;
-    margin: 8px 0 0;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: var(--tp-space-2);
+    margin: var(--tp-space-2) 0 0;
 }
 
 .sv-pocket-inspector-grid div {
     min-width: 0;
+    padding: 7px 9px;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 8px;
+    background: var(--tp-color-surface);
 }
 
 .sv-pocket-inspector-grid dt {
@@ -1084,7 +1110,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 }
 
 .sv-pocket-inspector-wide {
-    grid-column: 1 / -1;
+    grid-column: auto;
 }
 
 .pocket-property-chip {
@@ -1121,7 +1147,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     background: var(--tp-color-surface);
     padding: 10px 12px;
     display: grid;
-    gap: 8px;
+    gap: 9px;
     transition:
         border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
         background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
@@ -1213,6 +1239,21 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     gap: 4px;
 }
 
+.pocket-card-repr-group {
+    grid-column: 1 / -1;
+    margin-top: 2px;
+    color: var(--tp-color-text-muted);
+    font-size: 0.64rem;
+    font-weight: 800;
+    letter-spacing: 0.07em;
+    line-height: 1.1;
+    text-transform: uppercase;
+}
+
+.pocket-card-repr-group:first-child {
+    margin-top: 0;
+}
+
 .pocket-card-layer-label {
     color: var(--tp-color-text-muted);
     font-size: 0.66rem;
@@ -1259,6 +1300,8 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     background: var(--protein-accent);
     border-color: var(--protein-accent);
     color: var(--tp-color-on-accent);
+    outline: 2px solid color-mix(in srgb, var(--protein-accent-border) 46%, transparent);
+    outline-offset: 1px;
     box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tp-color-on-accent) 20%, transparent), var(--tp-shadow-xs);
 }
 
@@ -1432,7 +1475,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 
 #viewport {
     width: 100%;
-    height: clamp(360px, 56vh, 500px);
+    height: clamp(340px, 48vh, 460px);
     min-height: 0;
     border-radius: 13px;
     border: 1px solid var(--tp-color-border-soft);
@@ -1501,10 +1544,10 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 .structure-color-guide {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
-    gap: 10px 14px;
+    gap: 8px 12px;
     align-items: start;
-    margin-top: 10px;
-    padding: 10px 12px;
+    margin-top: 8px;
+    padding: 8px 10px;
     border: 1px solid var(--tp-color-border-soft);
     border-radius: 12px;
     background: color-mix(in srgb, var(--tp-color-surface-panel) 72%, transparent);
@@ -1524,7 +1567,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 .structure-color-guide-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 10px;
+    gap: 8px;
 }
 
 .structure-color-guide-item {
@@ -1532,8 +1575,8 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     align-items: flex-start;
     gap: var(--tp-space-2);
     min-width: 0;
-    font-size: var(--tp-font-size-xs);
-    line-height: 1.45;
+    font-size: var(--tp-font-label);
+    line-height: 1.35;
 }
 
 .structure-color-swatch {
@@ -1735,6 +1778,116 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     color: var(--tp-color-brand-800) !important;
     border-color: var(--tp-color-brand-600) !important;
     background: var(--tp-color-brand-050) !important;
+}
+
+@media (min-width: 1200px) {
+    .protein-layout {
+        grid-template-columns: 240px minmax(0, 1fr);
+        align-items: start;
+        gap: var(--tp-space-4);
+    }
+
+    .protein-sidebar {
+        position: sticky;
+        top: 16px;
+        z-index: 18;
+        display: grid;
+        gap: var(--tp-space-3);
+        max-height: calc(100vh - 32px);
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        padding-right: 2px;
+    }
+
+    .protein-sidebar::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .protein-sidebar::-webkit-scrollbar-thumb {
+        background: var(--tp-color-border-strong);
+        border-radius: 999px;
+    }
+
+    .protein-at-glance {
+        display: grid;
+        gap: var(--tp-space-2);
+        padding: var(--tp-space-3);
+        border-radius: var(--tp-ui-radius-panel);
+        background: var(--tp-color-surface);
+        box-shadow: var(--tp-shadow-xs);
+    }
+
+    .protein-at-glance-kicker {
+        color: var(--tp-color-text-muted);
+        font-size: var(--tp-font-label);
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        line-height: 1.1;
+        text-transform: uppercase;
+    }
+
+    .protein-at-glance strong {
+        color: var(--tp-color-text-primary);
+        font-family: "Space Grotesk", "Segoe UI", sans-serif;
+        font-size: var(--tp-font-size-sm);
+        font-weight: 650;
+        line-height: 1.25;
+    }
+
+    .protein-at-glance-score {
+        color: var(--tp-color-text-secondary);
+        font-size: var(--tp-font-size-xs);
+        line-height: 1.3;
+    }
+
+    .protein-at-glance-dots {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .protein-at-glance-dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 999px;
+        border: 1px solid var(--tp-color-border-strong);
+        background: var(--tp-color-surface-muted);
+    }
+
+    .protein-at-glance-dot.is-present {
+        border-color: color-mix(in srgb, var(--tp-color-success-ink) 48%, var(--tp-color-border-strong));
+        background: var(--tp-color-success-ink);
+    }
+
+    .quick-nav {
+        position: static;
+        display: grid;
+        gap: 6px;
+        overflow: visible;
+        padding: var(--tp-space-2);
+        border-radius: var(--tp-ui-radius-panel);
+        background: var(--tp-color-surface);
+        box-shadow: var(--tp-shadow-xs);
+        backdrop-filter: none;
+    }
+
+    .quick-nav.is-sticky {
+        border-radius: var(--tp-ui-radius-panel);
+    }
+
+    .quick-nav .quick-nav-link {
+        width: 100%;
+        justify-content: flex-start;
+        min-height: 36px;
+        padding: 0.38rem 0.72rem;
+        border-radius: 8px;
+        text-align: left;
+    }
+
+    .quick-nav .quick-nav-link.is-active,
+    .quick-nav .quick-nav-link[aria-current="true"] {
+        box-shadow: inset 3px 0 0 var(--protein-accent);
+    }
 }
 
 .structure-icon {
@@ -3134,7 +3287,7 @@ body.residue-modal-open {
 .protein-hero,
 .quick-nav,
 .protein-card {
-    animation: tp-ui-enter 340ms var(--tp-ui-ease-standard) both;
+    animation: tp-ui-enter 340ms var(--tp-ui-ease-standard) backwards;
 }
 
 .quick-nav {
@@ -3393,41 +3546,51 @@ body.residue-modal-open {
 /* === Target profile section === */
 .target-profile-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
-    gap: 1px;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: var(--tp-space-2);
     margin: 0;
     padding: 0;
-    background: var(--tp-color-border-soft);
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: 12px;
-    overflow: hidden;
+    background: transparent;
 }
 
 .target-profile-group-label {
     grid-column: 1 / -1;
-    padding: 7px 15px;
-    background: var(--tp-color-surface-soft);
+    padding: var(--tp-space-2) 0 0;
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-label);
-    font-weight: 700;
+    font-weight: 800;
     letter-spacing: 0.08em;
     text-transform: uppercase;
+    border-top: 1px solid var(--tp-color-border-soft);
+}
+
+.target-profile-group-label:first-child {
+    padding-top: 0;
+    border-top: 0;
 }
 
 .target-profile-item {
     position: relative;
-    display: flex;
-    flex-direction: column;
-    gap: 7px;
-    padding: 13px 15px 14px;
+    display: grid;
+    gap: var(--tp-space-1);
+    align-content: start;
+    min-height: 92px;
+    padding: var(--tp-space-3);
     min-width: 0;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 10px;
     background: var(--tp-color-surface);
-    box-shadow: inset 2px 0 0 transparent;
-    transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+    box-shadow: inset 3px 0 0 transparent;
+    transition:
+        background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
 }
 
 .target-profile-item:hover {
     background: var(--tp-color-surface-soft);
+    border-color: var(--tp-color-border);
+    box-shadow: inset 3px 0 0 var(--tp-color-border-strong), var(--tp-shadow-xs);
 }
 
 .target-profile-label {
@@ -3442,20 +3605,22 @@ body.residue-modal-open {
 .target-profile-value {
     font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
     font-variant-numeric: tabular-nums;
-    font-size: var(--tp-font-size-md);
+    font-size: var(--tp-font-size-sm);
     font-weight: 600;
-    letter-spacing: -0.01em;
+    letter-spacing: 0;
     color: var(--tp-color-text-primary);
     overflow-wrap: anywhere;
 }
 
 .target-profile-item--good {
-    box-shadow: inset 2px 0 0 var(--tp-color-success-ink);
+    box-shadow: inset 3px 0 0 var(--tp-color-success-border);
+    background: color-mix(in srgb, var(--tp-color-success-bg) 24%, var(--tp-color-surface));
 }
 .target-profile-item--good .target-profile-label { color: color-mix(in srgb, var(--tp-color-success-ink) 78%, var(--tp-color-text-muted)); }
 
 .target-profile-item--bad {
-    box-shadow: inset 2px 0 0 var(--tp-color-warning-ink);
+    box-shadow: inset 3px 0 0 var(--tp-color-warning-border);
+    background: color-mix(in srgb, var(--tp-color-warning-bg) 22%, var(--tp-color-surface));
 }
 .target-profile-item--bad .target-profile-label { color: color-mix(in srgb, var(--tp-color-warning-ink) 78%, var(--tp-color-text-muted)); }
 
@@ -3482,7 +3647,7 @@ body.residue-modal-open {
 
 .target-profile-scale {
     display: block;
-    margin-top: 4px;
+    margin-top: 3px;
     color: var(--tp-color-text-muted);
     font-family: var(--tp-font-body, "Inter", "Segoe UI", sans-serif);
     font-size: 0.68rem;
@@ -3495,7 +3660,11 @@ body.residue-modal-open {
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    padding: 2px 2px 2px 0;
+    width: fit-content;
+    min-height: 24px;
+    padding: 2px 8px;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 999px;
     font-family: "Source Sans 3", "Segoe UI", sans-serif;
     /* md, not sm -- this is the actual verdict (off-target hit/no-hit), it
        shouldn't render smaller than the plain supporting numbers next to it
@@ -3510,10 +3679,14 @@ body.residue-modal-open {
 }
 
 .target-profile-risk-pill--good {
+    border-color: var(--tp-color-success-border);
+    background: var(--tp-color-success-bg);
     color: var(--tp-color-success-ink);
 }
 
 .target-profile-risk-pill--bad {
+    border-color: var(--tp-color-warning-border);
+    background: var(--tp-color-warning-bg);
     color: var(--tp-color-warning-ink);
 }
 
@@ -3991,7 +4164,8 @@ body.residue-modal-open {
    display-font numbers the base card was built for. */
 .target-evidence-card--compact {
     gap: 4px;
-    padding: 11px 13px;
+    min-height: 74px;
+    padding: 10px 12px;
     background: var(--tp-color-surface-soft);
 }
 
@@ -4018,7 +4192,7 @@ body.residue-modal-open {
 }
 
 .target-evidence-grid--overview {
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
 }
 
 .target-evidence-label {
