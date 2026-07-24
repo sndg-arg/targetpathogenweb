@@ -559,9 +559,26 @@ def pdb_structure(
 
     for p in context["pockets"]:
         consensus = _nearest_named_center(p.geometric_center, p2_centers)
+        p.consensus_label = ""
+        p.consensus_distance = None
+        p.consensus_shared_residues = 0
+        if consensus and consensus[1] <= _POCKET_CONSENSUS_DISTANCE:
+            matching_p2 = next(
+                (
+                    candidate
+                    for candidate in context["p2_pockets"]
+                    if f"P2Rank {candidate.name}" == consensus[0]
+                ),
+                None,
+            )
+            p.consensus_label = consensus[0]
+            p.consensus_distance = round(consensus[1], 1)
+            if matching_p2 is not None:
+                p.consensus_shared_residues = len(set(p.residues) & set(matching_p2.residues))
         consensus_note = (
-            f"Overlaps a P2Rank site (Δ {consensus[1]:.1f} Å)"
-            if consensus and consensus[1] <= _POCKET_CONSENSUS_DISTANCE else ""
+            f"Same-site prediction: {p.consensus_label} ({p.consensus_distance:.1f} Å center distance, "
+            f"{p.consensus_shared_residues} shared residues)"
+            if p.consensus_label else ""
         )
         nearest_site = _nearest_named_center(p.geometric_center, site_centers)
         site_note = f"Nearest annotated site: {nearest_site[0]} (Δ {nearest_site[1]:.1f} Å)" if nearest_site else ""
@@ -574,9 +591,28 @@ def pdb_structure(
 
     for p2 in context["p2_pockets"]:
         consensus = _nearest_named_center(p2.geometric_center, fpocket_centers)
+        p2.consensus_label = ""
+        p2.consensus_distance = None
+        p2.consensus_shared_residues = 0
+        if consensus and consensus[1] <= _POCKET_CONSENSUS_DISTANCE:
+            matching_fpocket = next(
+                (
+                    candidate
+                    for candidate in context["pockets"]
+                    if f"FPocket {candidate.name}" == consensus[0]
+                ),
+                None,
+            )
+            p2.consensus_label = consensus[0]
+            p2.consensus_distance = round(consensus[1], 1)
+            if matching_fpocket is not None:
+                p2.consensus_shared_residues = len(
+                    set(p2.residues) & set(matching_fpocket.residues)
+                )
         consensus_note = (
-            f"Overlaps an FPocket site (Δ {consensus[1]:.1f} Å)"
-            if consensus and consensus[1] <= _POCKET_CONSENSUS_DISTANCE else ""
+            f"Same-site prediction: {p2.consensus_label} ({p2.consensus_distance:.1f} Å center distance, "
+            f"{p2.consensus_shared_residues} shared residues)"
+            if p2.consensus_label else ""
         )
         nearest_site = _nearest_named_center(p2.geometric_center, site_centers)
         site_note = f"Nearest annotated site: {nearest_site[0]} (Δ {nearest_site[1]:.1f} Å)" if nearest_site else ""

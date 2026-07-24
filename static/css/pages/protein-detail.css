@@ -503,6 +503,13 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     font-weight: 600;
 }
 
+.metric-note {
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-label);
+    font-weight: 600;
+    line-height: 1.2;
+}
+
 .metric-value--annotation {
     display: flex;
     align-items: baseline;
@@ -712,24 +719,6 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     font-size: var(--tp-heading-sm);
     font-weight: 600;
     color: var(--protein-accent-ink);
-}
-
-.protein-card--record {
-    padding-top: var(--tp-space-3);
-    padding-bottom: var(--tp-space-3);
-    box-shadow: none;
-}
-
-.protein-card--record:hover {
-    box-shadow: var(--tp-shadow-xs);
-}
-
-.protein-card--record .section-head {
-    margin-bottom: var(--tp-space-3);
-}
-
-.protein-card--record .section-subtitle {
-    margin-top: 2px;
 }
 
 .section-head {
@@ -1296,6 +1285,38 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 4px;
+}
+
+.pocket-card-reprs > .pocket-repr-btn:first-child,
+.pocket-card-reprs > .pocket-repr-btn:last-child {
+    grid-column: 1 / -1;
+}
+
+.pocket-consensus {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 8px;
+    padding: 6px 8px;
+    border: 1px solid var(--tp-color-sage-200);
+    border-radius: 7px;
+    background: var(--tp-color-sage-050);
+    color: var(--tp-color-sage-800);
+    font-size: var(--tp-font-label);
+    font-weight: 600;
+    line-height: 1.25;
+}
+
+.pocket-consensus-status {
+    flex-basis: 100%;
+    color: var(--tp-color-sage-900);
+    font-weight: 800;
+}
+
+.pocket-consensus span:not(:first-child) + span::before {
+    content: "·";
+    margin-right: 8px;
+    color: var(--tp-color-sage-500);
 }
 
 .pocket-card-repr-group {
@@ -4129,60 +4150,6 @@ body.residue-modal-open {
 .target-evidence-card--secondary {
     background: var(--tp-color-surface-soft);
     border-color: var(--tp-color-border);
-}
-
-/* Compact variant: short textual values (Overview). Only used inside
-   .target-evidence-grid--overview, whose fields (accession, gene, status...)
-   are lower-stakes than Target profile/pocket evidence -- plain label+value
-   typography instead of another bordered box, the section panel around
-   Overview already provides the boundary these fields sit inside. */
-.target-evidence-card--compact {
-    gap: 4px;
-    min-height: 0;
-    padding: 0;
-    border: none;
-    background: transparent;
-}
-
-.target-evidence-card--compact .target-evidence-value {
-    font-family: inherit;
-    font-size: var(--tp-font-size-md);
-    font-weight: 600;
-    line-height: 1.4;
-    color: var(--tp-color-text-secondary);
-}
-
-.target-evidence-card--status {
-    display: grid;
-    justify-content: stretch;
-    align-content: start;
-}
-
-/* Rail carries the "unavailable" signal, matching the target-profile-item
-   good/bad rail idiom -- no bordered/tinted box for what's otherwise plain
-   typography here. */
-.target-evidence-card--warning {
-    padding-left: 10px;
-    box-shadow: inset 3px 0 0 var(--tp-color-warning-ink);
-}
-
-.target-evidence-card--warning .target-evidence-value {
-    color: var(--tp-color-warning-ink);
-}
-
-.target-evidence-grid--overview {
-    grid-template-columns:
-        minmax(140px, 0.75fr)
-        minmax(280px, 1.8fr)
-        minmax(180px, 1fr)
-        minmax(140px, 0.8fr);
-    row-gap: var(--tp-space-4);
-}
-
-@media (max-width: 991px) {
-    .target-evidence-grid--overview {
-        grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-    }
 }
 
 .target-evidence-label {

@@ -35,7 +35,7 @@ def build_target_metabolic_sentence(metabolic_context, human_offtarget_no_hit=Fa
             parts.append("no isoenzyme backup detected")
 
     percentile = metabolic_context.get("centrality_percentile")
-    if percentile is not None:
+    if percentile is not None and percentile > 0:
         parts.append(f"more central than {percentile}% of genes in this genome")
 
     if human_offtarget_no_hit:

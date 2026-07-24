@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260724-evidence-polish">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260724-scientific-clarity">
 {% endblock %}
 
 {% block body %}
@@ -88,10 +88,11 @@
                     <span class="metric-value">{% if metabolic_context.is_chokepoint %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}</span>
                 </div>
                 {% endif %}
-                {% if binders.total %}
+                {% if binders.summary %}
                 <div class="metric-pill">
-                    <span class="metric-label" title="{% trans 'Experimental PDB ligands, measured ChEMBL bioactivity, or ZINC proposed compounds associated with this protein.' %}">{% trans "Ligand records" %}</span>
-                    <span class="metric-value">{{ binders.total }}</span>
+                    <span class="metric-label" title="{% trans 'Same-protein PDB ligands or measured ChEMBL bioactivity. Transferred records and ZINC proposals are shown separately below.' %}">{% trans "Direct ligand evidence" %}</span>
+                    <span class="metric-value">{{ binders.summary.direct_count }}</span>
+                    <span class="metric-note">{% blocktrans with total=binders.total %}{{ total }} total records{% endblocktrans %}</span>
                 </div>
                 {% endif %}
                 <div class="metric-pill">
@@ -206,33 +207,6 @@
         </details>
 
         <div class="protein-grid">
-            <section class="protein-card protein-card--record tp-ui-panel">
-                <div class="section-head tp-ui-panel-head">
-                    <div>
-                        <h2>{% trans "Identity and provenance" %}</h2>
-                        <p class="section-subtitle">{% trans "Stable identifiers and the biological record from which this protein was imported." %}</p>
-                    </div>
-                </div>
-                <dl class="target-evidence-grid target-evidence-grid--overview">
-                    <div class="target-evidence-card target-evidence-card--compact">
-                        <dt class="target-evidence-label">{% trans "Accession" %}</dt>
-                        <dd class="target-evidence-value">{{ protein.accession }}</dd>
-                    </div>
-                    <div class="target-evidence-card target-evidence-card--compact">
-                        <dt class="target-evidence-label">{% trans "Assembly" %}</dt>
-                        <dd class="target-evidence-value"><a href="{% url 'tpwebapp:protein_list' protein.genome %}">{{ protein.assembly_description }}</a></dd>
-                    </div>
-                    <div class="target-evidence-card target-evidence-card--compact">
-                        <dt class="target-evidence-label">{% trans "Gene" %}</dt>
-                        <dd class="target-evidence-value">{{ protein.gene|default:"-" }}</dd>
-                    </div>
-                    <div class="target-evidence-card target-evidence-card--compact target-evidence-card--status">
-                        <dt class="target-evidence-label">{% trans "Annotation status" %}</dt>
-                        <dd class="target-evidence-value"><span class="status-pill">{{ protein.status }}</span></dd>
-                    </div>
-                </dl>
-            </section>
-
             {% if target_profile or selected_pocket_evidence or conservation_profile or microbiome_context %}
             <section class="protein-card tp-ui-panel" id="section-target-profile">
                 <div class="section-head tp-ui-panel-head">
@@ -267,6 +241,12 @@
                             {% elif item.label == "ColabFold pLDDT" %}
                             <span class="target-profile-scale">{% trans "0-100 confidence; >70 supports local structural interpretation." %}</span>
                             {% endif %}
+                        </dd>
+                        {% elif item.display_kind == "prevalence" %}
+                        <dd class="target-profile-value">
+                            {{ item.value }}
+                            <span class="target-profile-bar" aria-hidden="true"><span class="target-profile-bar-fill" style="width: {{ item.percentage }}%;"></span></span>
+                            <span class="target-profile-scale">{% trans "Lower prevalence suggests narrower overlap with the screened gut microbiome." %}</span>
                         </dd>
                         {% elif item.tone == "good" or item.tone == "bad" %}
                         <dd class="target-profile-value">
@@ -366,10 +346,17 @@
                         <strong class="target-evidence-value">{{ microbiome_context.count|default:"0" }}<span class="target-evidence-value-denom"> / {{ microbiome_context.total }}</span></strong>
                         <span class="target-evidence-subtext">{% trans "genomes with a hit" %}</span>
                         {% endif %}
-                        {% if microbiome_context.norm %}
+                        {% if microbiome_context.percentage is not None %}
                         <div class="target-evidence-meta">
                             <div class="target-evidence-meta-row">
-                                <span class="target-evidence-meta-key" title="{% trans "Hit count divided by total genomes analyzed. Lower values mean fewer gut microbiome matches." %}">{% trans "Normalized" %}</span>
+                                <span class="target-evidence-meta-key" title="{% trans "Percentage of screened genomes with a significant sequence-similarity hit. Lower values mean fewer gut microbiome matches." %}">{% trans "Prevalence" %}</span>
+                                <span class="target-evidence-meta-val">{{ microbiome_context.percentage }}%</span>
+                            </div>
+                        </div>
+                        {% elif microbiome_context.norm %}
+                        <div class="target-evidence-meta">
+                            <div class="target-evidence-meta-row">
+                                <span class="target-evidence-meta-key">{% trans "Normalized fraction" %}</span>
                                 <span class="target-evidence-meta-val">{{ microbiome_context.norm }}</span>
                             </div>
                         </div>
@@ -399,10 +386,10 @@
                     <div class="metabolic-score-stack">
                         {% if metabolic_context.centrality %}
                         <div class="metabolic-score-card" title="{% trans "Betweenness centrality of this gene's reaction(s) in the reaction-reaction network. Higher values mean more shortest paths pass through it - a proxy for how central/bottleneck-prone it is in the organism's metabolism." %}">
-                            {% if metabolic_context.centrality_percentile %}
-                            <span class="target-evidence-label">{% trans "Centrality percentile" %}</span>
+                            {% if metabolic_context.has_centrality_percentile %}
+                            <span class="target-evidence-label">{% trans "Relative network centrality" %}</span>
                             <strong class="target-evidence-value">{{ metabolic_context.centrality_percentile }}%</strong>
-                            <span class="target-evidence-subtext">{% blocktrans with score=metabolic_context.centrality %}Network centrality score: {{ score }}{% endblocktrans %}</span>
+                            <span class="target-evidence-subtext">{% trans "of genes have a lower centrality score" %}</span>
                             {% else %}
                             <span class="target-evidence-label">{% trans "Network centrality" %}</span>
                             <strong class="target-evidence-value">{{ metabolic_context.centrality }}</strong>

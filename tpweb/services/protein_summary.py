@@ -76,12 +76,20 @@ def druggability_label(value):
     return None
 
 
-def build_target_profile(raw_scores):
+def build_target_profile(raw_scores, microbiome_context=None):
     items = []
     for name, label, category, good_vals, bad_vals, tooltip in _SCORE_META:
         val = raw_scores.get(name)
         if not val:
             continue
+        if name == "human_identity":
+            human_screen = str(raw_scores.get("human_offtarget") or "").strip().lower()
+            try:
+                identity_is_placeholder = float(str(val).replace(",", ".")) == 0
+            except (TypeError, ValueError):
+                identity_is_placeholder = False
+            if human_screen == "no_hit" and identity_is_placeholder:
+                continue
         if val in good_vals:
             tone = "good"
         elif val in bad_vals:
@@ -89,11 +97,31 @@ def build_target_profile(raw_scores):
         else:
             tone = "neutral"
         display = val.replace("_", " ").replace("no hit", "No hit").replace("no_hit", "No hit")
+        display_kind = ""
+        percentage = None
+        if name == "gut_microbiome_offtarget" and microbiome_context:
+            percentage = microbiome_context.get("percentage")
+            if percentage is not None:
+                label = "Gut microbiome similarity"
+                display = f"{percentage}% of screened genomes"
+                display_kind = "prevalence"
+                tooltip = (
+                    "Fraction of screened gut microbiome reference genomes with a significant "
+                    "sequence-similarity hit. Lower prevalence suggests narrower microbiome overlap."
+                )
         if name in _NO_HIT_EVALUE_OVERRIDES:
             check_name, no_hit_val, _ = _NO_HIT_EVALUE_OVERRIDES[name]
             if str(raw_scores.get(check_name) or "").strip().lower() == no_hit_val:
                 continue
-        items.append({"label": label, "value": display, "tone": tone, "category": category, "tooltip": tooltip})
+        items.append({
+            "label": label,
+            "value": display,
+            "tone": tone,
+            "category": category,
+            "tooltip": tooltip,
+            "display_kind": display_kind,
+            "percentage": percentage,
+        })
     return items
 
 
@@ -263,7 +291,15 @@ def build_microbiome_context(raw_scores):
     norm = _format_score_value(_raw_score(raw_scores, "gut_microbiome_offtarget_norm"))
     if not count and not total and not norm:
         return None
-    return {"count": count, "total": total, "norm": norm}
+    percentage = None
+    try:
+        count_value = float(str(count).replace(",", "."))
+        total_value = float(str(total).replace(",", "."))
+        if total_value > 0:
+            percentage = round(100 * count_value / total_value, 1)
+    except (TypeError, ValueError):
+        pass
+    return {"count": count, "total": total, "norm": norm, "percentage": percentage}
 
 
 _CHOKEPOINT_LABELS = {
@@ -371,8 +407,8 @@ def build_metabolic_context(protein, raw_scores):
             value = float(centrality_raw)
             genome_values = _genome_centrality_values(protein.biodatabase)
             if genome_values:
-                below_or_equal = sum(1 for v in genome_values if v <= value)
-                percentile = round(100 * below_or_equal / len(genome_values), 1)
+                below = sum(1 for v in genome_values if v < value)
+                percentile = round(100 * below / len(genome_values), 1)
         except (TypeError, ValueError):
             percentile = None
 
@@ -385,6 +421,7 @@ def build_metabolic_context(protein, raw_scores):
         "pathways": sorted(pathway_chips.values(), key=lambda p: (p["source"], p["name"])),
         "centrality": centrality,
         "centrality_percentile": percentile,
+        "has_centrality_percentile": percentile is not None,
         "is_chokepoint": is_chokepoint,
         "import_run": import_run,
     }
@@ -510,8 +547,14 @@ def build_target_executive_summary(
         elif gut_offtarget == "hit":
             count = microbiome_context.get("count")
             total = microbiome_context.get("total")
-            detail = f"{count} hits across {total} screened genomes." if count and total else "Similarity to gut microbiome references was detected."
-            _append_summary_item(risks, "Microbiome similarity", detail, "risk", "#section-target-profile")
+            percentage = microbiome_context.get("percentage")
+            if count and total and percentage is not None:
+                detail = f"{count} of {total} screened genomes ({percentage}%) have a significant similarity hit."
+            elif count and total:
+                detail = f"{count} hits across {total} screened genomes."
+            else:
+                detail = "Similarity to gut microbiome references was detected."
+            _append_summary_item(risks, "Microbiome similarity", detail, "watch", "#section-target-profile")
 
     if conservation_profile:
         if conservation_profile.get("is_core"):
@@ -570,8 +613,12 @@ def build_target_executive_summary(
     ):
         _append_summary_item(
             strengths,
-            "Pocket consensus: FPocket + P2Rank agree",
-            f"Both independent pocket predictors flag a binding site (FPocket {fpocket_score:.2f}, P2Rank {p2rank_score:.2f}) - more reliable than either signal alone.",
+            "Independent pocket support: FPocket + P2Rank",
+            (
+                f"Both predictors report a high-scoring binding site "
+                f"(FPocket {fpocket_score:.2f}, P2Rank {p2rank_score:.2f}). "
+                "Use the 3D pocket comparison to verify whether they identify the same site."
+            ),
             "good",
             "#section-target-profile",
             priority=1,
@@ -713,11 +760,11 @@ def build_protein_executive_context(
     if structure_summary is None:
         structure_summary = summarize_structure_sources(structures)
 
-    target_profile = build_target_profile(raw_scores)
     selected_pocket_evidence = build_selected_pocket_evidence(raw_scores)
     annotate_selected_source_status(selected_pocket_evidence, structures)
     conservation_profile = build_conservation_profile(raw_scores)
     microbiome_context = build_microbiome_context(raw_scores)
+    target_profile = build_target_profile(raw_scores, microbiome_context=microbiome_context)
     metabolic_context = build_metabolic_context(protein, raw_scores)
 
     if binders is None:

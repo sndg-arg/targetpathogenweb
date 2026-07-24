@@ -23,6 +23,14 @@
                         </div>
                         <span class="tp-score-tag js-score-tag" data-score="{{ p.druggability }}">{{ p.druggability }}</span>
                     </div>
+                    {% if p.consensus_label %}
+                    <div class="pocket-consensus"
+                         title="{% trans 'The FPocket and P2Rank pocket centers are within the 8 Å same-site threshold.' %}">
+                        <span class="pocket-consensus-status">{% blocktrans with site=p.consensus_label %}Likely same site as {{ site }}{% endblocktrans %}</span>
+                        <span>{{ p.consensus_distance }} Å</span>
+                        <span>{% blocktrans count shared=p.consensus_shared_residues %}{{ shared }} shared residue{% plural %}{{ shared }} shared residues{% endblocktrans %}</span>
+                    </div>
+                    {% endif %}
                     {% if p.size_outlier %}
                         <div class="pocket-card-flag">
                             <span class="tp-chip tp-chip--warning tp-chip--sm" title="{{ p.size_outlier_note }}">{% trans "Unusual size" %}</span>
@@ -68,6 +76,14 @@
                         </div>
                         <span class="tp-score-tag js-score-tag" data-score="{{ p2.probability }}" data-score-type="p2rank-prob">{{ p2.probability }}</span>
                     </div>
+                    {% if p2.consensus_label %}
+                    <div class="pocket-consensus"
+                         title="{% trans 'The FPocket and P2Rank pocket centers are within the 8 Å same-site threshold.' %}">
+                        <span class="pocket-consensus-status">{% blocktrans with site=p2.consensus_label %}Likely same site as {{ site }}{% endblocktrans %}</span>
+                        <span>{{ p2.consensus_distance }} Å</span>
+                        <span>{% blocktrans count shared=p2.consensus_shared_residues %}{{ shared }} shared residue{% plural %}{{ shared }} shared residues{% endblocktrans %}</span>
+                    </div>
+                    {% endif %}
                     <span class="pocket-card-layer-label">{% trans "Show in viewer" %}</span>
                     <div class="pocket-card-reprs" aria-label="{% trans 'Pocket visual layers' %}">
                         <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="p2_{{p2.name}}_sph" data-layer-label="{% trans 'Pocket core' %}" aria-pressed="false" title="{% trans 'Show the specific P2Rank predicted binding site using imported surface atoms.' %}">{% trans "Pocket core" %}</button>
