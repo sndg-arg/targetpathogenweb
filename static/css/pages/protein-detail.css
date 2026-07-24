@@ -89,6 +89,10 @@
     background: var(--tp-color-surface);
 }
 
+.target-summary-panel--partial {
+    border-color: color-mix(in srgb, var(--tp-color-warning-border) 55%, var(--tp-color-border-soft));
+}
+
 .target-summary-lead {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
@@ -361,6 +365,38 @@
     font-size: var(--tp-font-size-sm);
 }
 
+.evidence-coverage {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 999px;
+    background: var(--tp-color-surface);
+}
+
+.evidence-coverage-label {
+    margin-right: 2px;
+    font-size: var(--tp-font-label);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--tp-color-text-muted);
+}
+
+.evidence-coverage-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--tp-color-border-strong);
+    cursor: help;
+}
+
+.evidence-coverage-dot.is-present {
+    background: var(--tp-color-success-ink);
+    box-shadow: 0 0 0 3px var(--tp-color-success-bg);
+}
+
 .hero-chip-list .hero-chip {
     display: inline-flex;
     align-items: center;
@@ -595,6 +631,23 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     gap: 14px;
 }
 
+.protein-grid-group-label {
+    padding-top: 14px;
+    margin-top: 4px;
+    border-top: 1px solid var(--tp-color-border-soft);
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-label);
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.protein-grid-group-label:first-child {
+    padding-top: 0;
+    margin-top: 0;
+    border-top: none;
+}
+
 .protein-card {
     border: 1px solid var(--tp-color-border-soft);
     border-radius: var(--tp-ui-radius-panel);
@@ -632,6 +685,22 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     gap: 10px;
     margin-bottom: 12px;
 }
+
+/* Threads the hero verdict tone (target_summary.tone) down into individual
+   section headers, so the reader carries the "how strong is this target"
+   read from the hero through Target profile and Ligand evidence. */
+.section-head--rail-strong,
+.section-head--rail-promising,
+.section-head--rail-partial,
+.section-head--rail-sparse {
+    padding-left: 10px;
+    border-radius: 4px;
+}
+
+.section-head--rail-strong { box-shadow: inset 3px 0 0 var(--tp-color-success-ink); }
+.section-head--rail-promising { box-shadow: inset 3px 0 0 var(--tp-color-brand-600); }
+.section-head--rail-partial { box-shadow: inset 3px 0 0 var(--tp-color-warning-ink); }
+.section-head--rail-sparse { box-shadow: inset 3px 0 0 var(--tp-color-border-strong); }
 
 .section-tools {
     display: inline-flex;
@@ -673,55 +742,6 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-sm);
     line-height: 1.4;
-}
-
-.overview-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(210px, 1fr));
-    gap: 10px;
-}
-
-.overview-item {
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: 12px;
-    background: var(--tp-color-surface-soft);
-    padding: 11px 13px;
-}
-
-.overview-item--status {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-}
-
-.overview-item--status dd {
-    margin-top: 8px;
-}
-
-.overview-item dt {
-    margin: 0;
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-label);
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-}
-
-.overview-item dd {
-    margin: 4px 0 0;
-    color: var(--tp-color-text-secondary);
-    font-size: var(--tp-font-size-md);
-    line-height: 1.4;
-}
-
-.overview-item--warning {
-    border-color: var(--tp-color-warning-border);
-    background: var(--tp-color-surface);
-}
-
-.overview-item--warning dd {
-    color: var(--tp-color-warning-ink);
-    font-weight: 600;
 }
 
 /* ── No-structure note ── */
@@ -1468,8 +1488,8 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     align-items: center;
     justify-content: space-between;
     flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 8px;
+    gap: var(--tp-space-2);
+    margin-top: var(--tp-space-2);
 }
 
 .structure-viewport-hint {
@@ -1510,7 +1530,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 .structure-color-guide-item {
     display: flex;
     align-items: flex-start;
-    gap: 8px;
+    gap: var(--tp-space-2);
     min-width: 0;
     font-size: var(--tp-font-size-xs);
     line-height: 1.45;
@@ -1549,7 +1569,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 .structure-actions {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: var(--tp-space-2);
     margin-bottom: 10px;
     align-items: center;
 }
@@ -3121,12 +3141,27 @@ body.residue-modal-open {
     animation-delay: 0.03s;
 }
 
-.protein-card:nth-child(2) {
+/* nth-of-type (not nth-child): .protein-grid-group-label divider <div>s sit
+   between .protein-card <section>s, so counting by tag keeps the stagger
+   stable regardless of which optional cards/dividers are present. */
+.protein-card:nth-of-type(2) {
     animation-delay: 0.05s;
 }
 
-.protein-card:nth-child(3) {
+.protein-card:nth-of-type(3) {
     animation-delay: 0.08s;
+}
+
+.protein-card:nth-of-type(4) {
+    animation-delay: 0.11s;
+}
+
+.protein-card:nth-of-type(5) {
+    animation-delay: 0.14s;
+}
+
+.protein-card:nth-of-type(6) {
+    animation-delay: 0.17s;
 }
 
 @media (max-width: 1100px) {
@@ -3164,10 +3199,6 @@ body.residue-modal-open {
         top: 66px;
         border-radius: 11px;
         width: 100%;
-    }
-
-    .overview-grid {
-        grid-template-columns: 1fr;
     }
 
     .protein-card {
@@ -3370,6 +3401,17 @@ body.residue-modal-open {
     border: 1px solid var(--tp-color-border-soft);
     border-radius: 12px;
     overflow: hidden;
+}
+
+.target-profile-group-label {
+    grid-column: 1 / -1;
+    padding: 7px 15px;
+    background: var(--tp-color-surface-soft);
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-label);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
 }
 
 .target-profile-item {
@@ -3943,6 +3985,40 @@ body.residue-modal-open {
 .target-evidence-card--secondary {
     background: var(--tp-color-surface-soft);
     border-color: var(--tp-color-border);
+}
+
+/* Compact variant: short textual values (Overview) instead of the large
+   display-font numbers the base card was built for. */
+.target-evidence-card--compact {
+    gap: 4px;
+    padding: 11px 13px;
+    background: var(--tp-color-surface-soft);
+}
+
+.target-evidence-card--compact .target-evidence-value {
+    font-family: inherit;
+    font-size: var(--tp-font-size-md);
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--tp-color-text-secondary);
+}
+
+.target-evidence-card--status {
+    display: flex;
+    justify-content: center;
+}
+
+.target-evidence-card--warning {
+    border-color: var(--tp-color-warning-border);
+    background: var(--tp-color-surface);
+}
+
+.target-evidence-card--warning .target-evidence-value {
+    color: var(--tp-color-warning-ink);
+}
+
+.target-evidence-grid--overview {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
 }
 
 .target-evidence-label {

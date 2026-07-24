@@ -59,6 +59,13 @@
                     {% endif %}
                 </div>
                 <div class="tp-view-head-actions">
+                    <div class="evidence-coverage" aria-label="{% trans 'Evidence coverage for this target' %}">
+                        <span class="evidence-coverage-label">{% trans "Evidence" %}</span>
+                        <span class="evidence-coverage-dot{% if structure_summary.has_structure %} is-present{% endif %}" title="{% trans '3D structure' %}"></span>
+                        <span class="evidence-coverage-dot{% if target_profile or selected_pocket_evidence or conservation_profile or microbiome_context %} is-present{% endif %}" title="{% trans 'Target profile evidence' %}"></span>
+                        <span class="evidence-coverage-dot{% if metabolic_context %} is-present{% endif %}" title="{% trans 'Metabolic context' %}"></span>
+                        <span class="evidence-coverage-dot{% if binders.total %} is-present{% endif %}" title="{% trans 'Ligand evidence' %}"></span>
+                    </div>
                     <a href="{{ view_export_url }}" class="btn tp-btn tp-btn--neutral tp-btn-with-icon tp-view-export-link">
                         <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/download.html" %}</span>
                         {% trans "Export view" %}
@@ -191,6 +198,7 @@
         </details>
 
         <div class="protein-grid">
+            <div class="protein-grid-group-label">{% trans "Target evidence" %}</div>
             <section class="protein-card tp-ui-panel">
                 <div class="section-head tp-ui-panel-head">
                     <div>
@@ -198,30 +206,30 @@
                         <p class="section-subtitle">{% trans "Basic information about this protein and its source genome." %}</p>
                     </div>
                 </div>
-                <dl class="overview-grid">
-                    <div class="overview-item">
-                        <dt>{% trans "Accession" %}</dt>
-                        <dd>{{ protein.accession }}</dd>
+                <dl class="target-evidence-grid target-evidence-grid--overview">
+                    <div class="target-evidence-card target-evidence-card--compact">
+                        <dt class="target-evidence-label">{% trans "Accession" %}</dt>
+                        <dd class="target-evidence-value">{{ protein.accession }}</dd>
                     </div>
-                    <div class="overview-item">
-                        <dt>{% trans "Assembly" %}</dt>
-                        <dd><a href="{% url 'tpwebapp:protein_list' protein.genome %}">{{ protein.assembly_description }}</a></dd>
+                    <div class="target-evidence-card target-evidence-card--compact">
+                        <dt class="target-evidence-label">{% trans "Assembly" %}</dt>
+                        <dd class="target-evidence-value"><a href="{% url 'tpwebapp:protein_list' protein.genome %}">{{ protein.assembly_description }}</a></dd>
                     </div>
-                    <div class="overview-item">
-                        <dt>{% trans "Gene" %}</dt>
-                        <dd>{{ protein.gene|default:"-" }}</dd>
+                    <div class="target-evidence-card target-evidence-card--compact">
+                        <dt class="target-evidence-label">{% trans "Gene" %}</dt>
+                        <dd class="target-evidence-value">{{ protein.gene|default:"-" }}</dd>
                     </div>
-                    <div class="overview-item overview-item--status">
-                        <dt>{% trans "Status" %}</dt>
-                        <dd><span class="status-pill">{{ protein.status }}</span></dd>
+                    <div class="target-evidence-card target-evidence-card--compact target-evidence-card--status">
+                        <dt class="target-evidence-label">{% trans "Status" %}</dt>
+                        <dd class="target-evidence-value"><span class="status-pill">{{ protein.status }}</span></dd>
                     </div>
-                    <div class="overview-item">
-                        <dt>{% trans "Amino acids" %}</dt>
-                        <dd>{{ protein.size }}</dd>
+                    <div class="target-evidence-card target-evidence-card--compact">
+                        <dt class="target-evidence-label">{% trans "Amino acids" %}</dt>
+                        <dd class="target-evidence-value">{{ protein.size }}</dd>
                     </div>
-                    <div class="overview-item{% if not structure_summary.has_structure %} overview-item--warning{% endif %}">
-                        <dt title="{% trans 'Best loaded 3D evidence for this protein: experimental PDB first when available, otherwise AlphaFold DB or ColabFold model.' %}">{% trans "3D evidence" %}</dt>
-                        <dd>{% if structure_summary.has_structure %}{{ structure_summary.label }}{% else %}{% trans "Unavailable" %}{% endif %}</dd>
+                    <div class="target-evidence-card target-evidence-card--compact{% if not structure_summary.has_structure %} target-evidence-card--warning{% endif %}">
+                        <dt class="target-evidence-label" title="{% trans 'Best loaded 3D evidence for this protein: experimental PDB first when available, otherwise AlphaFold DB or ColabFold model.' %}">{% trans "3D evidence" %}</dt>
+                        <dd class="target-evidence-value">{% if structure_summary.has_structure %}{{ structure_summary.label }}{% else %}{% trans "Unavailable" %}{% endif %}</dd>
                     </div>
                 </dl>
                 {% if ec_badges or go_badges %}
@@ -252,14 +260,23 @@
 
             {% if target_profile or selected_pocket_evidence or conservation_profile or microbiome_context %}
             <section class="protein-card tp-ui-panel" id="section-target-profile">
-                <div class="section-head tp-ui-panel-head">
+                <div class="section-head tp-ui-panel-head{% if target_summary %} section-head--rail-{{ target_summary.tone }}{% endif %}">
                     <div>
                         <h2>{% trans "Target profile" %}</h2>
                         <p class="section-subtitle">{% trans "Computed evidence for target prioritization." %}</p>
                     </div>
                 </div>
                 <dl class="target-profile-grid">
-                    {% for item in target_profile %}
+                    {% regroup target_profile by category as profile_by_category %}
+                    {% for group in profile_by_category %}
+                    <div class="target-profile-group-label">
+                        {% if group.grouper == "off_target" %}{% trans "Off-target risk" %}
+                        {% elif group.grouper == "essentiality" %}{% trans "Essentiality" %}
+                        {% elif group.grouper == "localization" %}{% trans "Localization" %}
+                        {% elif group.grouper == "structure" %}{% trans "Structure confidence" %}
+                        {% else %}{{ group.grouper }}{% endif %}
+                    </div>
+                    {% for item in group.list %}
                     <div class="target-profile-item target-profile-item--{{ item.tone }}"{% if item.tooltip %} title="{{ item.tooltip }}"{% endif %}>
                         <dt class="target-profile-label">{{ item.label }}</dt>
                         {% if item.label == "Human identity (%)" or item.label == "DEG identity (%)" or item.label == "ColabFold pLDDT" %}
@@ -294,6 +311,7 @@
                         </dd>
                         {% endif %}
                     </div>
+                    {% endfor %}
                     {% endfor %}
                 </dl>
 
@@ -457,6 +475,7 @@
             </section>
             {% endif %}
 
+            <div class="protein-grid-group-label">{% trans "Sequence & annotations" %}</div>
             <section class="protein-card tp-ui-panel" id="section-sequence">
                 <div class="section-head tp-ui-panel-head">
                     <div>
@@ -590,6 +609,7 @@
                 {% endif %}
             </section>
 
+            <div class="protein-grid-group-label">{% trans "Structure & chemistry" %}</div>
             {% if structure %}
                 <section class="protein-card tp-ui-panel" id="section-structure">
                     <div class="section-head tp-ui-panel-head">
@@ -728,9 +748,31 @@
                 </section>
             {% endif %}
 
+            {% if not structure %}
+                <section class="protein-card tp-ui-panel" id="section-structure">
+                    <div class="section-head tp-ui-panel-head">
+                        <div>
+                            <h2>{% trans "3D Structure" %}</h2>
+                            <p class="section-subtitle">{% trans "No structural model is available for this protein." %}</p>
+                        </div>
+                    </div>
+                    <div class="no-structure-note">
+                        <div class="no-structure-icon" aria-hidden="true">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><circle cx="12" cy="17" r="0.5" fill="currentColor" stroke="none"/><path d="M10.363 3.818l-7.455 12.727A1.91 1.91 0 0 0 4.545 19h14.91a1.91 1.91 0 0 0 1.637-2.455L13.637 3.818a1.91 1.91 0 0 0-3.274 0z"/></svg>
+                        </div>
+                        <div class="no-structure-body">
+                            <p class="no-structure-title">{% trans "Structure unavailable" %}</p>
+                            <p class="no-structure-reason">{% trans "No pre-computed model was found in the AlphaFold database and no ColabFold prediction is available for this protein." %}</p>
+                            <p class="no-structure-meta">{% trans "Sequence length" %}: <strong>{{ protein.size }} aa</strong></p>
+                        </div>
+                    </div>
+                    {% include "components/structure/pdb_evidence_table.html" with items=experimental_structures protein=protein %}
+                </section>
+            {% endif %}
+
             {% if binders.total or binders.search_query %}
                 <section class="protein-card tp-ui-panel" id="section-binders">
-                    <div class="section-head tp-ui-panel-head">
+                    <div class="section-head tp-ui-panel-head{% if target_summary %} section-head--rail-{{ target_summary.tone }}{% endif %}">
                         <div>
                             <h2>{% trans "Ligand evidence" %}</h2>
                             <p class="section-subtitle">{% trans "Ligands grouped by evidence source. PDB ligands keep the source crystal visible, and loaded crystals can be opened directly in the structure viewer." %}</p>
@@ -952,27 +994,6 @@
                 </section>
             {% endif %}
 
-            {% if not structure %}
-                <section class="protein-card tp-ui-panel" id="section-structure">
-                    <div class="section-head tp-ui-panel-head">
-                        <div>
-                            <h2>{% trans "3D Structure" %}</h2>
-                            <p class="section-subtitle">{% trans "No structural model is available for this protein." %}</p>
-                        </div>
-                    </div>
-                    <div class="no-structure-note">
-                        <div class="no-structure-icon" aria-hidden="true">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><circle cx="12" cy="17" r="0.5" fill="currentColor" stroke="none"/><path d="M10.363 3.818l-7.455 12.727A1.91 1.91 0 0 0 4.545 19h14.91a1.91 1.91 0 0 0 1.637-2.455L13.637 3.818a1.91 1.91 0 0 0-3.274 0z"/></svg>
-                        </div>
-                        <div class="no-structure-body">
-                            <p class="no-structure-title">{% trans "Structure unavailable" %}</p>
-                            <p class="no-structure-reason">{% trans "No pre-computed model was found in the AlphaFold database and no ColabFold prediction is available for this protein." %}</p>
-                            <p class="no-structure-meta">{% trans "Sequence length" %}: <strong>{{ protein.size }} aa</strong></p>
-                        </div>
-                    </div>
-                    {% include "components/structure/pdb_evidence_table.html" with items=experimental_structures protein=protein %}
-                </section>
-            {% endif %}
         </div>
 
         <div class="residue-modal-backdrop" id="residue-modal" aria-hidden="true">
