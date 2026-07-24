@@ -505,4 +505,5 @@ pipeline/settings.ini
 pipeline/*.log
 pipeline/*.json
 docker-compose.override.yml
-.claude/
+.claude/*
+!.claude/skills/
