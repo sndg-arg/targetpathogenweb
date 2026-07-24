@@ -19,11 +19,6 @@ Resumen ejecutivo arriba de la pagina de proteina para responder rapido si un ta
   - Baja similitud humana.
   - Ligando conocido fuerte.
 
-**Estado.**
-
-- Implementado.
-- Requiere validacion de wording con biologas para evitar que el resumen sobreprometa.
-
 ### Ligandos, ChEMBL, PDB y quimica del target
 
 Dashboard de senal quimica en la pagina de proteina.
@@ -63,10 +58,6 @@ El overview del genoma funciona como tablero macro, no como reflejo de una sola 
 - Ranking secundario `Worth a fresh look` para candidatos druggable/selectivos sin evidencia quimica explorada.
 - Export CSV del ranking compuesto con desglose completo de senales.
 
-**Estado.**
-
-- Implementado.
-- Requiere validacion de pesos/umbrales con el equipo.
 
 ### Visualizacion y control de pockets
 
@@ -96,11 +87,6 @@ El visualizador permite elegir un pocket puntual e inspeccionarlo en detalle sin
 - Paridad entre:
   - Pagina de proteina.
   - Full viewer.
-
-**Estado.**
-
-- Implementado tecnicamente.
-- Todavia conviene validarlo visualmente con biologas, porque fue una zona con varias iteraciones.
 
 ### Agente IA para exploracion de targets
 
@@ -153,10 +139,6 @@ Chat/agente en drawer global para explorar proteinas, filtros, scores, ligandos,
   - No confundir "buscame/mostrame" con "aplica filtro".
   - Reducir tool calls innecesarios para bajar tokens.
 
-**Estado.**
-
-- Sin pendientes criticos de codigo para esta iteracion.
-- Pendiente: validacion con uso real y preguntas de biologas.
 
 ### Premium UI consistency pass
 
