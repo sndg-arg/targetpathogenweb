@@ -277,8 +277,8 @@ def _build_binder_summary(tab_data):
     if not all_items:
         return None
 
-    direct_count = sum(1 for item in all_items if item.get("is_direct"))
-    homolog_count = len(all_items) - direct_count
+    direct_count = len(tab_data["pdb_direct"]) + len(tab_data["chembl_direct"])
+    homolog_count = len(tab_data["pdb_homolog"]) + len(tab_data["chembl_homolog"])
     structural_count = len(tab_data["pdb_direct"]) + len(tab_data["pdb_homolog"])
     bioactive_count = len(tab_data["chembl_direct"]) + len(tab_data["chembl_homolog"])
     proposed_count = len(tab_data["zinc"])

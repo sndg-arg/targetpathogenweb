@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260724-evidence-layout">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260724-evidence-polish">
 {% endblock %}
 
 {% block body %}
@@ -114,7 +114,7 @@
             <div class="target-summary-columns">
                 <div class="target-summary-column target-summary-column--strength">
                     <h3>{% trans "Main supporting evidence" %}</h3>
-                    <div class="target-summary-list">
+                    <div class="target-summary-list target-summary-list--strengths">
                         {% for item in target_summary.strengths|slice:":4" %}
                         <a href="{{ item.anchor }}" class="target-summary-item target-summary-item--{{ item.tone }}">
                             <strong>{{ item.label }}</strong>
@@ -143,7 +143,13 @@
                         </div>
                     </div>
                     <div class="target-summary-column target-summary-column--missing">
-                        <h3>{% trans "Evidence gaps" %}</h3>
+                        <h3>
+                            {% if target_summary.missing %}
+                                {% trans "Evidence gaps" %}
+                            {% else %}
+                                {% trans "Evidence coverage" %}
+                            {% endif %}
+                        </h3>
                         <div class="target-summary-list">
                             {% for item in target_summary.missing|slice:":4" %}
                             <a href="{{ item.anchor }}" class="target-summary-item target-summary-item--{{ item.tone }}">
@@ -200,7 +206,7 @@
         </details>
 
         <div class="protein-grid">
-            <section class="protein-card tp-ui-panel">
+            <section class="protein-card protein-card--record tp-ui-panel">
                 <div class="section-head tp-ui-panel-head">
                     <div>
                         <h2>{% trans "Identity and provenance" %}</h2>
@@ -714,7 +720,14 @@
 
                     {% if experimental_structures or predicted_structures %}
                     <details class="data-details structure-evidence-details">
-                        <summary>{% trans "All structural evidence" %}</summary>
+                        <summary>
+                            <span>{% trans "All structural evidence" %}</span>
+                            {% with experimental_count=experimental_structures|length predicted_count=predicted_structures|length %}
+                            <span class="data-details-summary-meta">
+                                {% blocktrans %}{{ experimental_count }} experimental · {{ predicted_count }} predicted{% endblocktrans %}
+                            </span>
+                            {% endwith %}
+                        </summary>
                         {% include "components/structure/pdb_evidence_table.html" with items=experimental_structures predicted_items=predicted_structures protein=protein %}
                     </details>
                     {% endif %}
@@ -765,7 +778,12 @@
                             <div class="binder-intel-stat">
                                 <span class="binder-intel-label">{% trans "Direct evidence" %}</span>
                                 <strong>{{ binders.summary.direct_count }}</strong>
-                                <span>{% blocktrans with count=binders.summary.homolog_count %}{{ count }} via homologs{% endblocktrans %}</span>
+                                <span>{% trans "same-protein records" %}</span>
+                            </div>
+                            <div class="binder-intel-stat">
+                                <span class="binder-intel-label">{% trans "Transferred evidence" %}</span>
+                                <strong>{{ binders.summary.homolog_count }}</strong>
+                                <span>{% trans "records from similar proteins" %}</span>
                             </div>
                             <div class="binder-intel-stat">
                                 <span class="binder-intel-label">{% trans "Structural ligands" %}</span>
@@ -775,12 +793,12 @@
                             <div class="binder-intel-stat">
                                 <span class="binder-intel-label">{% trans "Measured bioactivity" %}</span>
                                 <strong>{{ binders.summary.bioactive_count }}</strong>
-                                <span>{% blocktrans with count=binders.summary.proposed_count %}{{ count }} similarity-based ZINC proposals{% endblocktrans %}</span>
+                                <span>{% trans "direct and transferred ChEMBL records" %}</span>
                             </div>
                             <div class="binder-intel-stat">
-                                <span class="binder-intel-label">{% trans "Screening profile" %}</span>
-                                <strong>{{ binders.summary.clean_druglike_count }}</strong>
-                                <span>{% blocktrans with count=binders.summary.pains_alert_count %}drug-like and PAINS-free; {{ count }} PAINS alerts{% endblocktrans %}</span>
+                                <span class="binder-intel-label">{% trans "Proposed compounds" %}</span>
+                                <strong>{{ binders.summary.proposed_count }}</strong>
+                                <span>{% trans "similarity-based ZINC candidates" %}</span>
                             </div>
                         </div>
 

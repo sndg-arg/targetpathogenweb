@@ -156,6 +156,10 @@
     gap: var(--tp-space-2);
 }
 
+.target-summary-list--strengths {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .target-summary-item {
     display: grid;
     gap: 2px;
@@ -243,6 +247,10 @@
     color: var(--tp-color-success-ink);
     background: var(--tp-color-success-bg);
     font-weight: 800;
+}
+
+.target-summary-list--strengths .target-summary-more {
+    grid-column: 1 / -1;
 }
 
 /* ── Hero annotation groups ── */
@@ -623,23 +631,20 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 
 .protein-guide-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: var(--tp-space-2);
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    column-gap: var(--tp-space-5);
+    row-gap: 0;
     margin-top: var(--tp-space-3);
-    /* No internal scroll box -- every other <details> on this page expands
-       naturally with the page; this one was the only exception, forcing a
-       small scroll window over genuinely useful reference content. */
+    border-top: 1px solid var(--tp-color-border-soft);
 }
 
 .protein-guide-grid p {
     margin: 0;
-    padding: 7px 9px;
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: 8px;
-    background: var(--tp-color-surface-soft);
+    padding: 10px 0;
+    border-bottom: 1px solid var(--tp-color-border-soft);
     color: var(--tp-color-text-secondary);
-    font-size: var(--tp-font-label);
-    line-height: 1.38;
+    font-size: var(--tp-font-size-xs);
+    line-height: 1.42;
 }
 
 .protein-guide-grid strong {
@@ -707,6 +712,24 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     font-size: var(--tp-heading-sm);
     font-weight: 600;
     color: var(--protein-accent-ink);
+}
+
+.protein-card--record {
+    padding-top: var(--tp-space-3);
+    padding-bottom: var(--tp-space-3);
+    box-shadow: none;
+}
+
+.protein-card--record:hover {
+    box-shadow: var(--tp-shadow-xs);
+}
+
+.protein-card--record .section-head {
+    margin-bottom: var(--tp-space-3);
+}
+
+.protein-card--record .section-subtitle {
+    margin-top: 2px;
 }
 
 .section-head {
@@ -847,6 +870,24 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     padding: 12px;
     margin-bottom: 10px;
     background: var(--tp-color-surface);
+    scrollbar-width: thin;
+    scrollbar-color: var(--tp-color-border-strong) transparent;
+    overscroll-behavior-inline: contain;
+}
+
+.feature-viewer-shell::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.feature-viewer-shell::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.feature-viewer-shell::-webkit-scrollbar-thumb {
+    border: 2px solid var(--tp-color-surface);
+    border-radius: 999px;
+    background: var(--tp-color-border-strong);
 }
 
 .feature-viewer-shell button,
@@ -965,6 +1006,20 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 
 .data-details[open] > summary::after {
     transform: rotate(-135deg);
+}
+
+.data-details-summary-meta {
+    margin-left: auto;
+    padding-right: var(--tp-space-3);
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-label);
+    font-weight: 600;
+    letter-spacing: 0;
+    text-transform: none;
+}
+
+.structure-evidence-details > summary::after {
+    margin-left: 0;
 }
 
 .data-details .table-shell {
@@ -1133,8 +1188,9 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 
 .pocket-cards {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(240px, 280px));
     gap: 7px;
+    justify-content: start;
     margin-top: 8px;
 }
 
@@ -1966,7 +2022,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 
 .binder-intel-grid {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: var(--tp-space-2);
 }
 
@@ -3213,6 +3269,10 @@ body.residue-modal-open {
         grid-template-columns: 1fr;
     }
 
+    .binder-intel-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
     .structure-actions {
         row-gap: 10px;
     }
@@ -3264,6 +3324,10 @@ body.residue-modal-open {
     }
 
     .target-summary-lead {
+        grid-template-columns: 1fr;
+    }
+
+    .target-summary-list--strengths {
         grid-template-columns: 1fr;
     }
 
@@ -3444,7 +3508,7 @@ body.residue-modal-open {
     padding: var(--tp-space-3);
     border: 1px solid var(--tp-color-border-soft);
     border-radius: 10px;
-    background: var(--tp-color-surface-soft);
+    background: color-mix(in srgb, var(--tp-color-surface-soft) 72%, var(--tp-color-surface));
 }
 
 .target-profile-group-label {
@@ -3461,7 +3525,7 @@ body.residue-modal-open {
 .target-profile-group-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: var(--tp-space-2);
+    gap: 0;
     margin: 0;
 }
 
@@ -3470,12 +3534,13 @@ body.residue-modal-open {
     display: grid;
     gap: var(--tp-space-1);
     align-content: start;
-    min-height: 78px;
-    padding: var(--tp-space-2);
+    min-height: 74px;
+    padding: var(--tp-space-2) var(--tp-space-3);
     min-width: 0;
-    border: 1px solid transparent;
-    border-radius: 8px;
-    background: var(--tp-color-surface);
+    border: 0;
+    border-right: 1px solid var(--tp-color-border-soft);
+    border-radius: 0;
+    background: transparent;
     box-shadow: inset 3px 0 0 transparent;
     transition:
         background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
@@ -3483,9 +3548,12 @@ body.residue-modal-open {
         box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
 }
 
+.target-profile-item:last-child {
+    border-right: 0;
+}
+
 .target-profile-item:hover {
-    background: var(--tp-color-surface-soft);
-    border-color: var(--tp-color-border-soft);
+    background: color-mix(in srgb, var(--tp-color-surface) 72%, transparent);
     box-shadow: inset 3px 0 0 var(--tp-color-border-strong);
 }
 
@@ -4103,8 +4171,18 @@ body.residue-modal-open {
 }
 
 .target-evidence-grid--overview {
-    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    grid-template-columns:
+        minmax(140px, 0.75fr)
+        minmax(280px, 1.8fr)
+        minmax(180px, 1fr)
+        minmax(140px, 0.8fr);
     row-gap: var(--tp-space-4);
+}
+
+@media (max-width: 991px) {
+    .target-evidence-grid--overview {
+        grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    }
 }
 
 .target-evidence-label {
@@ -4840,5 +4918,26 @@ body.residue-modal-open {
 
     #viewport {
         height: 340px;
+    }
+}
+
+@media (max-width: 700px) {
+    .target-profile-group-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .target-profile-item {
+        border-right: 0;
+        border-bottom: 1px solid var(--tp-color-border-soft);
+    }
+
+    .target-profile-item:last-child {
+        border-bottom: 0;
+    }
+}
+
+@media (max-width: 520px) {
+    .data-details-summary-meta {
+        display: none;
     }
 }
