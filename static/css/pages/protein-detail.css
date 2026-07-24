@@ -1795,29 +1795,21 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 
     /* One panel for the whole sidebar (at-a-glance + nav together), not two
        separate bordered/shadowed cards stacked with a gap -- the latter
-       read as two disconnected floating boxes rather than one nav panel. */
+       read as two disconnected floating boxes rather than one nav panel.
+       No internal max-height/scroll: content is short (a summary card +
+       8 links) and never needed its own scroll, and constraining height
+       here risked content rendering past the rounded bottom edge instead
+       of actually clipping. Sticky positioning alone keeps it in view. */
     .protein-sidebar {
         position: sticky;
         top: 16px;
         z-index: 18;
         display: grid;
         gap: 0;
-        max-height: calc(100vh - 32px);
-        overflow-y: auto;
-        overscroll-behavior: contain;
         padding: var(--tp-space-4) var(--tp-space-3);
         border-radius: var(--tp-ui-radius-panel);
         background: var(--tp-color-surface);
         box-shadow: var(--tp-shadow-xs);
-    }
-
-    .protein-sidebar::-webkit-scrollbar {
-        width: 6px;
-    }
-
-    .protein-sidebar::-webkit-scrollbar-thumb {
-        background: var(--tp-color-border-strong);
-        border-radius: 999px;
     }
 
     .protein-at-glance {
