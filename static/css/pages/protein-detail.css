@@ -361,8 +361,14 @@
 }
 
 .annotation-entry-name {
+    display: block;
+    min-width: 0;
+    overflow: hidden;
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-sm);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: help;
 }
 
 .evidence-coverage {
@@ -4177,13 +4183,17 @@ body.residue-modal-open {
     border-color: var(--tp-color-border);
 }
 
-/* Compact variant: short textual values (Overview) instead of the large
-   display-font numbers the base card was built for. */
+/* Compact variant: short textual values (Overview). Only used inside
+   .target-evidence-grid--overview, whose fields (accession, gene, status...)
+   are lower-stakes than Target profile/pocket evidence -- plain label+value
+   typography instead of another bordered box, the section panel around
+   Overview already provides the boundary these fields sit inside. */
 .target-evidence-card--compact {
     gap: 4px;
-    min-height: 74px;
-    padding: 10px 12px;
-    background: var(--tp-color-surface-soft);
+    min-height: 0;
+    padding: 0;
+    border: none;
+    background: transparent;
 }
 
 .target-evidence-card--compact .target-evidence-value {
@@ -4199,9 +4209,12 @@ body.residue-modal-open {
     justify-content: center;
 }
 
+/* Rail carries the "unavailable" signal, matching the target-profile-item
+   good/bad rail idiom -- no bordered/tinted box for what's otherwise plain
+   typography here. */
 .target-evidence-card--warning {
-    border-color: var(--tp-color-warning-border);
-    background: var(--tp-color-surface);
+    padding-left: 10px;
+    box-shadow: inset 3px 0 0 var(--tp-color-warning-ink);
 }
 
 .target-evidence-card--warning .target-evidence-value {
@@ -4210,6 +4223,7 @@ body.residue-modal-open {
 
 .target-evidence-grid--overview {
     grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    row-gap: var(--tp-space-4);
 }
 
 .target-evidence-label {

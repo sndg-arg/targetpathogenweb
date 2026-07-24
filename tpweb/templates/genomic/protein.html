@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260724-sidebar2">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260724-sidebar3">
 {% endblock %}
 
 {% block body %}
@@ -539,7 +539,7 @@
                                     {% for ec in ec_annotations %}
                                         <li class="annotation-entry">
                                             <a href="{% url 'tpwebapp:protein_list' genome=protein.genome %}?annotation_kind=ec&annotation_value={{ ec.accession }}" class="annotation-entry-id">{{ ec.accession }}</a>
-                                            {% if ec.name %}<span class="annotation-entry-name">{{ ec.name }}</span>{% endif %}
+                                            {% if ec.name %}<span class="annotation-entry-name" title="{{ ec.name }}">{{ ec.name }}</span>{% endif %}
                                         </li>
                                     {% endfor %}
                                 </ul>
@@ -555,7 +555,7 @@
                                     {% for go in go_annotations %}
                                         <li class="annotation-entry">
                                             <a href="{% url 'tpwebapp:protein_list' genome=protein.genome %}?annotation_kind=go&annotation_value={{ go.accession }}" class="annotation-entry-id">{{ go.accession }}</a>
-                                            {% if go.name %}<span class="annotation-entry-name">{{ go.name }}</span>{% endif %}
+                                            {% if go.name %}<span class="annotation-entry-name" title="{{ go.name }}">{{ go.name }}</span>{% endif %}
                                         </li>
                                     {% endfor %}
                                 </ul>
