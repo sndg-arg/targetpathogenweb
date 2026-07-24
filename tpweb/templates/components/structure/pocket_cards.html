@@ -30,12 +30,10 @@
                     {% endif %}
                     <span class="pocket-card-layer-label">{% trans "Show in viewer" %}</span>
                     <div class="pocket-card-reprs" aria-label="{% trans 'Pocket visual layers' %}">
-                        <span class="pocket-card-repr-group">{% trans "Specific pocket" %}</span>
                         <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="{{p.name}}_sph" data-layer-label="{{ p.core_layer_label|default:"Pocket core" }}" aria-pressed="false" title="{{ p.core_note|default:"Show the specific FPocket cavity." }}">{{ p.core_button_label|default:"Pocket core" }}</button>
                         <span class="pocket-card-repr-group">{% trans "Surrounding area" %}</span>
                         <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="{{p.name}}_atm" data-layer-label="{% trans 'Surrounding residues' %}" aria-pressed="false" title="{% trans 'Show atoms/residues around this predicted pocket.' %}">{% trans "Nearby" %}</button>
                         <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="{{p.name}}_pol {{p.name}}_apol" data-layer-label="{% trans 'Surrounding surface' %}" aria-pressed="false" title="{% trans 'Show the wider residue surface around this pocket.' %}">{% trans "Surface" %}</button>
-                        <span class="pocket-card-repr-group">{% trans "Annotation" %}</span>
                         <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="{{p.name}}_lbl" data-layer-label="{% trans 'Residue labels' %}" aria-pressed="false" title="{% trans 'Show residue labels for this pocket.' %}">{% trans "Residue labels" %}</button>
                     </div>
                     <div class="pocket-card-actions">
@@ -72,12 +70,10 @@
                     </div>
                     <span class="pocket-card-layer-label">{% trans "Show in viewer" %}</span>
                     <div class="pocket-card-reprs" aria-label="{% trans 'Pocket visual layers' %}">
-                        <span class="pocket-card-repr-group">{% trans "Specific pocket" %}</span>
                         <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="p2_{{p2.name}}_sph" data-layer-label="{% trans 'Pocket core' %}" aria-pressed="false" title="{% trans 'Show the specific P2Rank predicted binding site using imported surface atoms.' %}">{% trans "Pocket core" %}</button>
                         <span class="pocket-card-repr-group">{% trans "Surrounding area" %}</span>
                         <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="p2_{{p2.name}}_atm" data-layer-label="{% trans 'Surrounding residues' %}" aria-pressed="false" title="{% trans 'Show atoms/residues around this predicted site.' %}">{% trans "Nearby" %}</button>
                         <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="p2_{{p2.name}}_pol p2_{{p2.name}}_apol" data-layer-label="{% trans 'Surrounding surface' %}" aria-pressed="false" title="{% trans 'Show the wider residue surface around this site.' %}">{% trans "Surface" %}</button>
-                        <span class="pocket-card-repr-group">{% trans "Annotation" %}</span>
                         <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="p2_{{p2.name}}_lbl" data-layer-label="{% trans 'Residue labels' %}" aria-pressed="false" title="{% trans 'Show residue labels for this pocket.' %}">{% trans "Residue labels" %}</button>
                     </div>
                     <div class="pocket-card-actions">

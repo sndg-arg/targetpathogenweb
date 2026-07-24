@@ -1875,17 +1875,33 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
         border-radius: var(--tp-ui-radius-panel);
     }
 
+    /* Sidebar list, not a row of standalone pill buttons: the .quick-nav
+       panel above already carries the border/shadow/background, so each
+       link goes flat here -- otherwise every link doubles up its own
+       border+background on top of the panel's, which is what read as a
+       stack of separate floating buttons instead of one cohesive nav. */
     .quick-nav .quick-nav-link {
         width: 100%;
         justify-content: flex-start;
         min-height: 36px;
         padding: 0.38rem 0.72rem;
+        border: 1px solid transparent !important;
         border-radius: 8px;
+        background: transparent !important;
+        box-shadow: none;
         text-align: left;
+    }
+
+    .quick-nav .quick-nav-link:hover,
+    .quick-nav .quick-nav-link:focus-visible {
+        border-color: transparent !important;
+        background: var(--tp-color-surface-muted) !important;
     }
 
     .quick-nav .quick-nav-link.is-active,
     .quick-nav .quick-nav-link[aria-current="true"] {
+        border-color: transparent !important;
+        background: var(--tp-color-surface-soft) !important;
         box-shadow: inset 3px 0 0 var(--protein-accent);
     }
 }
@@ -3612,15 +3628,16 @@ body.residue-modal-open {
     overflow-wrap: anywhere;
 }
 
+/* Rail carries the good/bad signal on its own -- kept the surface neutral
+   (dropped the tinted background) so color reads as signal on the one or
+   two items that need it, not as decoration repeated on every card. */
 .target-profile-item--good {
-    box-shadow: inset 3px 0 0 var(--tp-color-success-border);
-    background: color-mix(in srgb, var(--tp-color-success-bg) 24%, var(--tp-color-surface));
+    box-shadow: inset 3px 0 0 var(--tp-color-success-ink);
 }
 .target-profile-item--good .target-profile-label { color: color-mix(in srgb, var(--tp-color-success-ink) 78%, var(--tp-color-text-muted)); }
 
 .target-profile-item--bad {
-    box-shadow: inset 3px 0 0 var(--tp-color-warning-border);
-    background: color-mix(in srgb, var(--tp-color-warning-bg) 22%, var(--tp-color-surface));
+    box-shadow: inset 3px 0 0 var(--tp-color-warning-ink);
 }
 .target-profile-item--bad .target-profile-label { color: color-mix(in srgb, var(--tp-color-warning-ink) 78%, var(--tp-color-text-muted)); }
 
@@ -4333,6 +4350,17 @@ body.residue-modal-open {
     background: var(--tp-color-brand-200) !important;
     border-color: var(--tp-color-brand-300) !important;
     color: var(--tp-color-brand-900) !important;
+}
+
+/* Sidebar (>=1200px) keeps the flattened list treatment in dark mode too --
+   overrides the bordered-pill dark-mode active state above, which is still
+   correct for the horizontal mobile/tablet nav. */
+@media (min-width: 1200px) {
+    .tp-dark .quick-nav .quick-nav-link.is-active,
+    .tp-dark .quick-nav .quick-nav-link[aria-current="true"] {
+        background: var(--tp-color-surface-soft) !important;
+        border-color: transparent !important;
+    }
 }
 
 
