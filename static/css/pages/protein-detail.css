@@ -1793,16 +1793,22 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
         gap: var(--tp-space-4);
     }
 
+    /* One panel for the whole sidebar (at-a-glance + nav together), not two
+       separate bordered/shadowed cards stacked with a gap -- the latter
+       read as two disconnected floating boxes rather than one nav panel. */
     .protein-sidebar {
         position: sticky;
         top: 16px;
         z-index: 18;
         display: grid;
-        gap: var(--tp-space-3);
+        gap: 0;
         max-height: calc(100vh - 32px);
         overflow-y: auto;
         overscroll-behavior: contain;
-        padding-right: 2px;
+        padding: var(--tp-space-4) var(--tp-space-3);
+        border-radius: var(--tp-ui-radius-panel);
+        background: var(--tp-color-surface);
+        box-shadow: var(--tp-shadow-xs);
     }
 
     .protein-sidebar::-webkit-scrollbar {
@@ -1817,10 +1823,9 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     .protein-at-glance {
         display: grid;
         gap: var(--tp-space-2);
-        padding: var(--tp-space-3);
-        border-radius: var(--tp-ui-radius-panel);
-        background: var(--tp-color-surface);
-        box-shadow: var(--tp-shadow-xs);
+        padding-bottom: var(--tp-space-3);
+        margin-bottom: var(--tp-space-3);
+        border-bottom: 1px solid var(--tp-color-border-soft);
     }
 
     .protein-at-glance-kicker {
@@ -1868,33 +1873,32 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     .quick-nav {
         position: static;
         display: grid;
-        gap: 6px;
+        gap: 2px;
         overflow: visible;
-        padding: var(--tp-space-2);
-        border-radius: var(--tp-ui-radius-panel);
-        background: var(--tp-color-surface);
-        box-shadow: var(--tp-shadow-xs);
+        padding: 0;
+        background: transparent;
+        box-shadow: none;
         backdrop-filter: none;
     }
 
     .quick-nav.is-sticky {
-        border-radius: var(--tp-ui-radius-panel);
+        border-radius: 0;
     }
 
-    /* Sidebar list, not a row of standalone pill buttons: the .quick-nav
-       panel above already carries the border/shadow/background, so each
-       link goes flat here -- otherwise every link doubles up its own
-       border+background on top of the panel's, which is what read as a
-       stack of separate floating buttons instead of one cohesive nav. */
+    /* Sidebar list, not a row of standalone pill buttons or a second panel:
+       .protein-sidebar itself is now the one card, so every link is flat,
+       tightly stacked, plain text -- a considered list, not sparse floating
+       buttons each with their own chrome. */
     .quick-nav .quick-nav-link {
         width: 100%;
         justify-content: flex-start;
-        min-height: 36px;
-        padding: 0.38rem 0.72rem;
+        min-height: 32px;
+        padding: 0.3rem 0.6rem;
         border: 1px solid transparent !important;
-        border-radius: 8px;
+        border-radius: 6px;
         background: transparent !important;
         box-shadow: none;
+        font-size: var(--tp-font-size-sm);
         text-align: left;
     }
 
@@ -1909,6 +1913,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
         border-color: transparent !important;
         background: var(--tp-color-surface-soft) !important;
         box-shadow: inset 3px 0 0 var(--protein-accent);
+        font-weight: 600;
     }
 }
 
