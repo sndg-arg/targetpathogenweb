@@ -80,8 +80,9 @@ def _structure_toggle_detail(link, protein_length=None):
         pct = _coverage_pct()
         if pct is not None:
             parts.append(f"{pct:.0f}%")
-        if resolution is not None:
-            parts.append(f"{resolution:.2f} Å")
+        resolution_label = _format_resolution(resolution)
+        if resolution_label != "—":
+            parts.append(resolution_label)
         detail = " · ".join(parts)
         return label, detail
 
@@ -124,7 +125,9 @@ def _format_resolution(value):
         return "—"
     try:
         v = float(value)
-        if v <= 0 or v > 100:
+        # PDB.resolution historically defaults to 20 when no experimental
+        # resolution was imported. Treat that sentinel as unavailable.
+        if v <= 0 or v == 20:
             return "—"
         return f"{v:.2f} Å"
     except (TypeError, ValueError):

@@ -95,9 +95,7 @@
 
 .target-summary-lead {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: var(--tp-space-2) var(--tp-space-3);
-    align-items: center;
+    gap: var(--tp-space-1);
 }
 
 .target-summary-kicker {
@@ -116,31 +114,24 @@
     line-height: 1.22;
 }
 
-.target-summary-score {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 30px;
-    padding: 0 var(--tp-space-3);
-    border: 1px solid var(--tp-color-brand-300);
-    border-radius: 999px;
-    color: var(--protein-accent-ink);
-    background: var(--tp-color-brand-050);
-    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
-    font-size: var(--tp-font-size-xs);
-    font-weight: 700;
-    white-space: nowrap;
+.target-summary-lead p {
+    max-width: 760px;
+    margin: var(--tp-space-1) 0 0;
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-sm);
+    line-height: 1.4;
 }
 
 .target-summary-columns {
     display: grid;
-    grid-template-columns: minmax(0, 1.18fr) minmax(0, 0.91fr) minmax(0, 0.91fr);
+    grid-template-columns: minmax(0, 1.3fr) minmax(280px, 0.7fr);
+    gap: var(--tp-space-3);
+    align-items: start;
+}
+
+.target-summary-aside {
+    display: grid;
     gap: var(--tp-space-2);
-    /* stretch, not start -- Strengths regularly has more items than Risks/
-       Missing, and start-aligning let the three columns render as visibly
-       uneven heights (a "staircase" bottom edge) instead of one cohesive
-       3-column card. */
-    align-items: stretch;
 }
 
 .target-summary-column {
@@ -229,6 +220,29 @@
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-sm);
     line-height: 1.35;
+}
+
+.target-summary-complete {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--tp-space-2);
+    padding: var(--tp-space-2) 0;
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-size-sm);
+    line-height: 1.4;
+}
+
+.target-summary-complete::before {
+    content: "✓";
+    flex: 0 0 auto;
+    display: inline-grid;
+    place-items: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 999px;
+    color: var(--tp-color-success-ink);
+    background: var(--tp-color-success-bg);
+    font-weight: 800;
 }
 
 /* ── Hero annotation groups ── */
@@ -371,38 +385,6 @@
     cursor: help;
 }
 
-.evidence-coverage {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 10px;
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: 999px;
-    background: var(--tp-color-surface);
-}
-
-.evidence-coverage-label {
-    margin-right: 2px;
-    font-size: var(--tp-font-label);
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--tp-color-text-muted);
-}
-
-.evidence-coverage-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--tp-color-border-strong);
-    cursor: help;
-}
-
-.evidence-coverage-dot.is-present {
-    background: var(--tp-color-success-ink);
-    box-shadow: 0 0 0 3px var(--tp-color-success-bg);
-}
-
 .hero-chip-list .hero-chip {
     display: inline-flex;
     align-items: center;
@@ -513,6 +495,27 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     font-weight: 600;
 }
 
+.metric-value--annotation {
+    display: flex;
+    align-items: baseline;
+    gap: var(--tp-space-3);
+}
+
+.metric-value--annotation span + span {
+    position: relative;
+}
+
+.metric-value--annotation span + span::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: calc(var(--tp-space-3) / -2);
+    width: 1px;
+    height: 1em;
+    background: var(--tp-color-border);
+    transform: translateY(-50%);
+}
+
 .quick-nav {
     position: sticky;
     top: -2px;
@@ -522,10 +525,10 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     max-width: 100%;
     display: flex;
     flex-wrap: nowrap;
-    gap: 8px;
+    gap: 2px;
     justify-content: flex-start;
     overflow-x: auto;
-    padding: 8px 10px;
+    padding: 6px;
     border: 1px solid var(--tp-color-border-soft);
     border-radius: 12px;
     background: var(--tp-color-surface-soft);
@@ -547,13 +550,13 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     align-items: center;
     justify-content: center;
     text-align: center;
-    min-height: 40px;
-    padding: 0.42rem 0.98rem;
+    min-height: 36px;
+    padding: 0.38rem 0.82rem;
     line-height: 1.1;
     font-weight: 500;
-    border-radius: 999px;
-    border: 1px solid var(--tp-color-border) !important;
-    background: var(--tp-color-surface) !important;
+    border-radius: 8px;
+    border: 1px solid transparent !important;
+    background: transparent !important;
     color: var(--tp-color-text-secondary) !important;
     box-shadow: none;
     white-space: nowrap;
@@ -563,7 +566,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 .quick-nav .quick-nav-link:hover,
 .quick-nav .quick-nav-link:focus-visible {
     color: var(--tp-color-link-hover) !important;
-    border-color: var(--protein-accent-border) !important;
+    border-color: var(--tp-color-border-soft) !important;
     background: var(--tp-color-surface-muted) !important;
     text-decoration: none !important;
 }
@@ -571,8 +574,10 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 .quick-nav .quick-nav-link.is-active,
 .quick-nav .quick-nav-link[aria-current="true"] {
     color: var(--tp-color-link-hover) !important;
-    border-color: var(--protein-accent-border) !important;
-    background: var(--tp-color-brand-100) !important;
+    border-color: var(--tp-color-border-soft) !important;
+    background: var(--tp-color-surface) !important;
+    box-shadow: var(--tp-shadow-xs);
+    font-weight: 650;
     text-decoration: none !important;
 }
 
@@ -593,12 +598,23 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 }
 
 .protein-interpretation-guide summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--tp-space-3);
     cursor: pointer;
     color: var(--protein-accent-ink);
     font-family: "Space Grotesk", "Segoe UI", sans-serif;
     font-size: var(--tp-font-size-sm);
     font-weight: 600;
     line-height: 1.2;
+}
+
+.protein-guide-count {
+    color: var(--tp-color-text-muted);
+    font-family: "Source Sans 3", "Segoe UI", sans-serif;
+    font-size: var(--tp-font-label);
+    font-weight: 600;
 }
 
 .protein-interpretation-guide summary::marker {
@@ -645,21 +661,22 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     min-width: 0;
 }
 
-.protein-grid-group-label {
-    padding-top: 14px;
-    margin-top: 4px;
-    border-top: 1px solid var(--tp-color-border-soft);
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-label);
-    font-weight: 800;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-}
+@media (min-width: 1200px) {
+    .protein-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
 
-.protein-grid-group-label:first-child {
-    padding-top: 0;
-    margin-top: 0;
-    border-top: none;
+    .protein-grid > .protein-card {
+        grid-column: 1 / -1;
+    }
+
+    .protein-grid > #section-sequence {
+        grid-column: 1;
+    }
+
+    .protein-grid > #section-annotations {
+        grid-column: 2;
+    }
 }
 
 .protein-card {
@@ -699,22 +716,6 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     gap: 10px;
     margin-bottom: 12px;
 }
-
-/* Threads the hero verdict tone (target_summary.tone) down into individual
-   section headers, so the reader carries the "how strong is this target"
-   read from the hero through Target profile and Ligand evidence. */
-.section-head--rail-strong,
-.section-head--rail-promising,
-.section-head--rail-partial,
-.section-head--rail-sparse {
-    padding-left: 10px;
-    border-radius: 4px;
-}
-
-.section-head--rail-strong { box-shadow: inset 3px 0 0 var(--tp-color-success-ink); }
-.section-head--rail-promising { box-shadow: inset 3px 0 0 var(--tp-color-brand-600); }
-.section-head--rail-partial { box-shadow: inset 3px 0 0 var(--tp-color-warning-ink); }
-.section-head--rail-sparse { box-shadow: inset 3px 0 0 var(--tp-color-border-strong); }
 
 .section-tools {
     display: inline-flex;
@@ -1072,16 +1073,20 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 .sv-pocket-inspector-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: var(--tp-space-2);
+    gap: 0;
     margin: var(--tp-space-2) 0 0;
+    border-top: 1px solid var(--tp-color-border-soft);
+    border-bottom: 1px solid var(--tp-color-border-soft);
 }
 
 .sv-pocket-inspector-grid div {
     min-width: 0;
-    padding: 7px 9px;
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: 8px;
-    background: var(--tp-color-surface);
+    padding: 8px 10px;
+    border-right: 1px solid var(--tp-color-border-soft);
+}
+
+.sv-pocket-inspector-grid div:last-child {
+    border-right: 0;
 }
 
 .sv-pocket-inspector-grid dt {
@@ -1128,9 +1133,15 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 
 .pocket-cards {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
     gap: 7px;
     margin-top: 8px;
+}
+
+@media (max-width: 520px) {
+    .pocket-cards {
+        grid-template-columns: 1fr;
+    }
 }
 
 .pocket-card {
@@ -1374,13 +1385,14 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 .target-summary-more {
     display: inline-flex;
     align-items: center;
-    justify-content: center;
-    min-height: 30px;
-    padding: 0 var(--tp-space-3);
-    border: 1px solid var(--tp-color-border-strong);
-    border-radius: 999px;
+    justify-content: flex-start;
+    justify-self: start;
+    min-height: 26px;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
     color: var(--protein-accent-ink);
-    background: var(--tp-color-surface-soft);
+    background: transparent;
     font-size: var(--tp-font-size-xs);
     font-weight: 700;
     text-decoration: none;
@@ -1388,9 +1400,8 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 
 .target-summary-more:hover,
 .target-summary-more:focus-visible {
-    border-color: var(--protein-accent-border);
-    background: var(--protein-accent-soft);
-    text-decoration: none;
+    background: transparent;
+    text-decoration: underline;
 }
 
 .tp-score-tag.high {
@@ -1534,10 +1545,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 }
 
 .structure-color-guide {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    gap: 8px 12px;
-    align-items: start;
+    display: block;
     margin-top: 8px;
     padding: 8px 10px;
     border: 1px solid var(--tp-color-border-soft);
@@ -1548,12 +1556,17 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 }
 
 .structure-color-guide-title {
+    cursor: pointer;
+    list-style-position: outside;
     font-size: var(--tp-font-label);
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--tp-color-text-muted);
-    white-space: nowrap;
+}
+
+.structure-color-guide[open] .structure-color-guide-title {
+    margin-bottom: var(--tp-space-2);
 }
 
 .structure-color-guide-grid {
@@ -1920,12 +1933,10 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     display: grid;
     gap: var(--tp-space-3);
     margin: var(--tp-space-3) 0 var(--tp-space-4);
-    padding: var(--tp-space-3);
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: 8px;
-    background:
-        linear-gradient(135deg, color-mix(in srgb, var(--tp-color-brand-050) 70%, transparent), transparent 42%),
-        var(--tp-color-surface);
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
 }
 
 .binder-intel-lead {
@@ -3176,9 +3187,7 @@ body.residue-modal-open {
     animation-delay: 0.03s;
 }
 
-/* nth-of-type (not nth-child): .protein-grid-group-label divider <div>s sit
-   between .protein-card <section>s, so counting by tag keeps the stagger
-   stable regardless of which optional cards/dividers are present. */
+/* Keep entry motion subtle and deterministic across optional sections. */
 .protein-card:nth-of-type(2) {
     animation-delay: 0.05s;
 }
@@ -3256,10 +3265,6 @@ body.residue-modal-open {
 
     .target-summary-lead {
         grid-template-columns: 1fr;
-    }
-
-    .target-summary-score {
-        justify-self: start;
     }
 
     .section-head {
@@ -3426,29 +3431,38 @@ body.residue-modal-open {
 }
 
 /* === Target profile section === */
-.target-profile-grid {
+.target-profile-groups {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: var(--tp-space-2);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--tp-space-3);
     margin: 0;
     padding: 0;
-    background: transparent;
+}
+
+.target-profile-group {
+    min-width: 0;
+    padding: var(--tp-space-3);
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 10px;
+    background: var(--tp-color-surface-soft);
 }
 
 .target-profile-group-label {
-    grid-column: 1 / -1;
-    padding: var(--tp-space-2) 0 0;
+    margin: 0 0 var(--tp-space-2);
+    padding: 0 0 var(--tp-space-2);
+    border-bottom: 1px solid var(--tp-color-border-soft);
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-label);
     font-weight: 800;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    border-top: 1px solid var(--tp-color-border-soft);
 }
 
-.target-profile-group-label:first-child {
-    padding-top: 0;
-    border-top: 0;
+.target-profile-group-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: var(--tp-space-2);
+    margin: 0;
 }
 
 .target-profile-item {
@@ -3456,11 +3470,11 @@ body.residue-modal-open {
     display: grid;
     gap: var(--tp-space-1);
     align-content: start;
-    min-height: 92px;
-    padding: var(--tp-space-3);
+    min-height: 78px;
+    padding: var(--tp-space-2);
     min-width: 0;
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: 10px;
+    border: 1px solid transparent;
+    border-radius: 8px;
     background: var(--tp-color-surface);
     box-shadow: inset 3px 0 0 transparent;
     transition:
@@ -3471,8 +3485,8 @@ body.residue-modal-open {
 
 .target-profile-item:hover {
     background: var(--tp-color-surface-soft);
-    border-color: var(--tp-color-border);
-    box-shadow: inset 3px 0 0 var(--tp-color-border-strong), var(--tp-shadow-xs);
+    border-color: var(--tp-color-border-soft);
+    box-shadow: inset 3px 0 0 var(--tp-color-border-strong);
 }
 
 .target-profile-label {
@@ -3571,6 +3585,12 @@ body.residue-modal-open {
     border-color: var(--tp-color-warning-border);
     background: var(--tp-color-warning-bg);
     color: var(--tp-color-warning-ink);
+}
+
+@media (max-width: 1100px) {
+    .target-profile-groups {
+        grid-template-columns: 1fr;
+    }
 }
 
 /* === PDB evidence subsection (inside 3D Structure panel) === */
@@ -4065,8 +4085,9 @@ body.residue-modal-open {
 }
 
 .target-evidence-card--status {
-    display: flex;
-    justify-content: center;
+    display: grid;
+    justify-content: stretch;
+    align-content: start;
 }
 
 /* Rail carries the "unavailable" signal, matching the target-profile-item

@@ -117,6 +117,20 @@ def _format_score_value(value):
         return value
 
 
+def _format_network_centrality(value):
+    """Preserve small non-zero network scores instead of displaying them as 0."""
+    value = _raw_score({"value": value}, "value")
+    if not value:
+        return ""
+    try:
+        number = float(value.replace(",", "."))
+    except (TypeError, ValueError):
+        return value
+    if number and abs(number) < 0.0001:
+        return f"{number:.2e}"
+    return f"{number:.5f}".rstrip("0").rstrip(".")
+
+
 def _structure_source_kind(identifier):
     ident = (identifier or "").strip()
     upper = ident.upper()
@@ -350,7 +364,7 @@ def build_metabolic_context(protein, raw_scores):
             }
 
     centrality_raw = _raw_score(raw_scores, "PTOOLS_betweenness_centrality")
-    centrality = _format_score_value(centrality_raw)
+    centrality = _format_network_centrality(centrality_raw)
     percentile = None
     if centrality_raw:
         try:

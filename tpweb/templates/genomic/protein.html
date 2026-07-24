@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260724-sidebar6">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260724-evidence-layout">
 {% endblock %}
 
 {% block body %}
@@ -40,7 +40,9 @@
                         {% if metabolic_context %}
                         <a class="hero-chip tp-chip tp-chip--sm tp-chip--link" href="#section-metabolic-context" title="{% trans 'Jump to metabolic reactions and pathway context' %}">
                             <span class="tp-chip-db">{% trans "Metabolism" %}</span>
-                            <span class="tp-chip-acc">{{ metabolic_context.reactions|length }} {% trans "reaction(s)" %}</span>
+                            {% with reaction_count=metabolic_context.reactions|length %}
+                            <span class="tp-chip-acc">{% blocktrans count count=reaction_count %}{{ count }} reaction{% plural %}{{ count }} reactions{% endblocktrans %}</span>
+                            {% endwith %}
                         </a>
                         {% endif %}
                         {% for acc in uniprot_accessions %}
@@ -59,13 +61,6 @@
                     {% endif %}
                 </div>
                 <div class="tp-view-head-actions">
-                    <div class="evidence-coverage" aria-label="{% trans 'Evidence coverage for this target' %}">
-                        <span class="evidence-coverage-label">{% trans "Evidence" %}</span>
-                        <span class="evidence-coverage-dot{% if structure_summary.has_structure %} is-present{% endif %}" title="{% trans '3D structure' %}"></span>
-                        <span class="evidence-coverage-dot{% if target_profile or selected_pocket_evidence or conservation_profile or microbiome_context %} is-present{% endif %}" title="{% trans 'Target profile evidence' %}"></span>
-                        <span class="evidence-coverage-dot{% if metabolic_context %} is-present{% endif %}" title="{% trans 'Metabolic context' %}"></span>
-                        <span class="evidence-coverage-dot{% if binders.total %} is-present{% endif %}" title="{% trans 'Ligand evidence' %}"></span>
-                    </div>
                     <a href="{{ view_export_url }}" class="btn tp-btn tp-btn--neutral tp-btn-with-icon tp-view-export-link">
                         <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/download.html" %}</span>
                         {% trans "Export view" %}
@@ -100,8 +95,11 @@
                 </div>
                 {% endif %}
                 <div class="metric-pill">
-                    <span class="metric-label" title="{% trans 'Functional annotations currently loaded for this protein.' %}">{% trans "EC / GO" %}</span>
-                    <span class="metric-value">{{ ec_annotations|length }} / {{ go_annotations|length }}</span>
+                    <span class="metric-label" title="{% trans 'Functional annotations currently loaded for this protein.' %}">{% trans "Functional annotation" %}</span>
+                    <span class="metric-value metric-value--annotation">
+                        <span>{{ ec_annotations|length }} EC</span>
+                        <span>{{ go_annotations|length }} GO</span>
+                    </span>
                 </div>
             </div>
         </section>
@@ -111,15 +109,13 @@
             <div class="target-summary-lead">
                 <span class="target-summary-kicker">{% trans "Target summary" %}</span>
                 <h2>{{ target_summary.verdict }}</h2>
-                <span class="target-summary-score" title="{% trans 'Internal count of positive evidence signals used only to summarize this page.' %}">
-                    {% blocktrans with score=target_summary.signal_score %}{{ score }} evidence signals{% endblocktrans %}
-                </span>
+                <p>{% trans "Automated synthesis of the evidence currently loaded. Review the underlying records before prioritizing this protein." %}</p>
             </div>
             <div class="target-summary-columns">
                 <div class="target-summary-column target-summary-column--strength">
-                    <h3>{% trans "Strengths" %}</h3>
+                    <h3>{% trans "Main supporting evidence" %}</h3>
                     <div class="target-summary-list">
-                        {% for item in target_summary.strengths|slice:":5" %}
+                        {% for item in target_summary.strengths|slice:":4" %}
                         <a href="{{ item.anchor }}" class="target-summary-item target-summary-item--{{ item.tone }}">
                             <strong>{{ item.label }}</strong>
                             <span>{{ item.detail }}</span>
@@ -127,35 +123,37 @@
                         {% empty %}
                         <span class="target-summary-empty">{% trans "No strong positive signals detected yet." %}</span>
                         {% endfor %}
-                        {% if target_summary.strengths|length > 5 %}
-                        <a href="#section-target-profile" class="target-summary-more">{% trans "Review all positive signals" %}</a>
+                        {% if target_summary.strengths|length > 4 %}
+                        <a href="#section-target-profile" class="target-summary-more">{% trans "Review the complete evidence below" %}</a>
                         {% endif %}
                     </div>
                 </div>
-                <div class="target-summary-column target-summary-column--risk">
-                    <h3>{% trans "Risks / watch" %}</h3>
-                    <div class="target-summary-list">
-                        {% for item in target_summary.risks|slice:":4" %}
-                        <a href="{{ item.anchor }}" class="target-summary-item target-summary-item--{{ item.tone }}">
-                            <strong>{{ item.label }}</strong>
-                            <span>{{ item.detail }}</span>
-                        </a>
-                        {% empty %}
-                        <span class="target-summary-empty">{% trans "No major risk signal surfaced in the loaded evidence." %}</span>
-                        {% endfor %}
+                <div class="target-summary-aside">
+                    <div class="target-summary-column target-summary-column--risk">
+                        <h3>{% trans "Risks to review" %}</h3>
+                        <div class="target-summary-list">
+                            {% for item in target_summary.risks|slice:":4" %}
+                            <a href="{{ item.anchor }}" class="target-summary-item target-summary-item--{{ item.tone }}">
+                                <strong>{{ item.label }}</strong>
+                                <span>{{ item.detail }}</span>
+                            </a>
+                            {% empty %}
+                            <span class="target-summary-complete">{% trans "No major risk signal surfaced in the loaded evidence." %}</span>
+                            {% endfor %}
+                        </div>
                     </div>
-                </div>
-                <div class="target-summary-column target-summary-column--missing">
-                    <h3>{% trans "Missing evidence" %}</h3>
-                    <div class="target-summary-list">
-                        {% for item in target_summary.missing|slice:":4" %}
-                        <a href="{{ item.anchor }}" class="target-summary-item target-summary-item--{{ item.tone }}">
-                            <strong>{{ item.label }}</strong>
-                            <span>{{ item.detail }}</span>
-                        </a>
-                        {% empty %}
-                        <span class="target-summary-empty">{% trans "Core evidence streams are present for this target." %}</span>
-                        {% endfor %}
+                    <div class="target-summary-column target-summary-column--missing">
+                        <h3>{% trans "Evidence gaps" %}</h3>
+                        <div class="target-summary-list">
+                            {% for item in target_summary.missing|slice:":4" %}
+                            <a href="{{ item.anchor }}" class="target-summary-item target-summary-item--{{ item.tone }}">
+                                <strong>{{ item.label }}</strong>
+                                <span>{{ item.detail }}</span>
+                            </a>
+                            {% empty %}
+                            <span class="target-summary-complete">{% trans "Core evidence streams are available for this target." %}</span>
+                            {% endfor %}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -163,21 +161,24 @@
         {% endif %}
 
         <nav class="quick-nav" aria-label="{% trans "Protein sections" %}">
-            <a href="#section-overview" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Overview" %}</a>
-            {% if target_profile or selected_pocket_evidence or conservation_profile or microbiome_context %}<a href="#section-target-profile" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Target profile" %}</a>{% endif %}
-            {% if metabolic_context %}<a href="#section-metabolic-context" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Metabolic context" %}</a>{% endif %}
+            <a href="#section-overview" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Identity" %}</a>
+            {% if target_profile or selected_pocket_evidence or conservation_profile or microbiome_context %}<a href="#section-target-profile" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Prioritization" %}</a>{% endif %}
+            {% if metabolic_context %}<a href="#section-metabolic-context" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Metabolism" %}</a>{% endif %}
             <a href="#section-sequence" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Sequence" %}</a>
             <a href="#section-annotations" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Annotations" %}</a>
-            <a href="#section-features" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Features" %}</a>
-            <a href="#section-structure" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "3D Structure" %}</a>
+            <a href="#section-features" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Domains" %}</a>
+            <a href="#section-structure" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "3D structure" %}</a>
             {% if binders.total %}
-                <a href="#section-binders" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Binders" %}</a>
+                <a href="#section-binders" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Ligands" %}</a>
             {% endif %}
         </nav>
 
         <main class="protein-main" aria-label="{% trans 'Protein evidence sections' %}">
         <details class="protein-interpretation-guide tp-ui-panel">
-            <summary>{% trans "Glossary for terms on this page" %}</summary>
+            <summary>
+                <span>{% trans "Terms and data sources used on this page" %}</span>
+                <span class="protein-guide-count">{% trans "16 definitions" %}</span>
+            </summary>
             <div class="protein-guide-grid">
                 <p><strong>{% trans "PDB" %}</strong>: {% trans "experimentally determined structures from the Protein Data Bank. These are the strongest structural evidence, but may cover only part of the protein." %}</p>
                 <p><strong>{% trans "AlphaFold DB model" %}</strong>: {% trans "a precomputed predicted structure downloaded from AlphaFold Database/UniProt, not an experiment performed here." %}</p>
@@ -199,12 +200,11 @@
         </details>
 
         <div class="protein-grid">
-            <div class="protein-grid-group-label">{% trans "Target evidence" %}</div>
             <section class="protein-card tp-ui-panel">
                 <div class="section-head tp-ui-panel-head">
                     <div>
-                        <h2>{% trans "Overview" %}</h2>
-                        <p class="section-subtitle">{% trans "Basic information about this protein and its source genome." %}</p>
+                        <h2>{% trans "Identity and provenance" %}</h2>
+                        <p class="section-subtitle">{% trans "Stable identifiers and the biological record from which this protein was imported." %}</p>
                     </div>
                 </div>
                 <dl class="target-evidence-grid target-evidence-grid--overview">
@@ -221,62 +221,32 @@
                         <dd class="target-evidence-value">{{ protein.gene|default:"-" }}</dd>
                     </div>
                     <div class="target-evidence-card target-evidence-card--compact target-evidence-card--status">
-                        <dt class="target-evidence-label">{% trans "Status" %}</dt>
+                        <dt class="target-evidence-label">{% trans "Annotation status" %}</dt>
                         <dd class="target-evidence-value"><span class="status-pill">{{ protein.status }}</span></dd>
                     </div>
-                    <div class="target-evidence-card target-evidence-card--compact">
-                        <dt class="target-evidence-label">{% trans "Amino acids" %}</dt>
-                        <dd class="target-evidence-value">{{ protein.size }}</dd>
-                    </div>
-                    <div class="target-evidence-card target-evidence-card--compact{% if not structure_summary.has_structure %} target-evidence-card--warning{% endif %}">
-                        <dt class="target-evidence-label" title="{% trans 'Best loaded 3D evidence for this protein: experimental PDB first when available, otherwise AlphaFold DB or ColabFold model.' %}">{% trans "3D evidence" %}</dt>
-                        <dd class="target-evidence-value">{% if structure_summary.has_structure %}{{ structure_summary.label }}{% else %}{% trans "Unavailable" %}{% endif %}</dd>
-                    </div>
                 </dl>
-                {% if ec_badges or go_badges %}
-                    <div class="hero-annotations">
-                        {% if ec_badges %}
-                            <div class="hero-annotation-group">
-                                <span class="hero-annotation-label">EC</span>
-                                <div class="tp-chip-group">
-                                    {% for ec in ec_badges %}
-                                        <a href="{% url 'tpwebapp:protein_list' genome=protein.genome %}?annotation_kind=ec&annotation_value={{ ec.accession }}" class="tp-chip tp-chip--ec tp-chip--sm" title="{% if ec.name %}{{ ec.name }}{% else %}{% trans 'Filter proteins by EC annotation' %}: {{ ec.accession }}{% endif %}">{{ ec.accession }}</a>
-                                    {% endfor %}
-                                </div>
-                            </div>
-                        {% endif %}
-                        {% if go_badges %}
-                            <div class="hero-annotation-group">
-                                <span class="hero-annotation-label">GO</span>
-                                <div class="tp-chip-group">
-                                    {% for go in go_badges %}
-                                        <a href="{% url 'tpwebapp:protein_list' genome=protein.genome %}?annotation_kind=go&annotation_value={{ go.accession }}" class="tp-chip tp-chip--go tp-chip--sm" title="{% if go.name %}{% trans 'Filter proteins by GO annotation' %}: {{ go.accession }}{% else %}{% trans 'Filter proteins by GO annotation' %}: {{ go.accession }}{% endif %}">{{ go.accession }}{% if go.name %} <span class="tp-chip-name">{{ go.name }}</span>{% endif %}</a>
-                                    {% endfor %}
-                                </div>
-                            </div>
-                        {% endif %}
-                    </div>
-                {% endif %}
             </section>
 
             {% if target_profile or selected_pocket_evidence or conservation_profile or microbiome_context %}
             <section class="protein-card tp-ui-panel" id="section-target-profile">
-                <div class="section-head tp-ui-panel-head{% if target_summary %} section-head--rail-{{ target_summary.tone }}{% endif %}">
+                <div class="section-head tp-ui-panel-head">
                     <div>
-                        <h2>{% trans "Target profile" %}</h2>
-                        <p class="section-subtitle">{% trans "Computed evidence for target prioritization." %}</p>
+                        <h2>{% trans "Prioritization evidence" %}</h2>
+                        <p class="section-subtitle">{% trans "Selectivity, essentiality, structural confidence, conservation, and predicted binding-site evidence." %}</p>
                     </div>
                 </div>
-                <dl class="target-profile-grid">
+                <div class="target-profile-groups">
                     {% regroup target_profile by category as profile_by_category %}
                     {% for group in profile_by_category %}
-                    <div class="target-profile-group-label">
+                    <section class="target-profile-group">
+                    <h3 class="target-profile-group-label">
                         {% if group.grouper == "off_target" %}{% trans "Off-target risk" %}
                         {% elif group.grouper == "essentiality" %}{% trans "Essentiality" %}
                         {% elif group.grouper == "localization" %}{% trans "Localization" %}
                         {% elif group.grouper == "structure" %}{% trans "Structure confidence" %}
                         {% else %}{{ group.grouper }}{% endif %}
-                    </div>
+                    </h3>
+                    <dl class="target-profile-group-grid">
                     {% for item in group.list %}
                     <div class="target-profile-item target-profile-item--{{ item.tone }}"{% if item.tooltip %} title="{{ item.tooltip }}"{% endif %}>
                         <dt class="target-profile-label">{{ item.label }}</dt>
@@ -313,13 +283,15 @@
                         {% endif %}
                     </div>
                     {% endfor %}
+                    </dl>
+                    </section>
                     {% endfor %}
-                </dl>
+                </div>
 
                 {% if selected_pocket_evidence %}
                 <div class="target-evidence-block">
                     <div class="target-evidence-head">
-                        <h3>{% trans "Selected pocket evidence" %}</h3>
+                        <h3>{% trans "Binding-site evidence" %}</h3>
                         {% if selected_pocket_evidence.selected_source_kind %}<span class="tp-chip tp-chip--sm">{{ selected_pocket_evidence.selected_source_kind }}</span>{% endif %}
                     </div>
                     <p class="target-evidence-note">{% trans "The selected pocket score is the FPocket value used for ranking after applying the curated structure priority. It estimates small-molecule pocket quality; it is not experimental binding evidence. The 3D viewer may show a different loaded structure, so visible pockets can differ." %}</p>
@@ -424,7 +396,7 @@
                             {% if metabolic_context.centrality_percentile %}
                             <span class="target-evidence-label">{% trans "Centrality percentile" %}</span>
                             <strong class="target-evidence-value">{{ metabolic_context.centrality_percentile }}%</strong>
-                            <span class="target-evidence-subtext">{% blocktrans with score=metabolic_context.centrality %}Raw network centrality: {{ score }}{% endblocktrans %}</span>
+                            <span class="target-evidence-subtext">{% blocktrans with score=metabolic_context.centrality %}Network centrality score: {{ score }}{% endblocktrans %}</span>
                             {% else %}
                             <span class="target-evidence-label">{% trans "Network centrality" %}</span>
                             <strong class="target-evidence-value">{{ metabolic_context.centrality }}</strong>
@@ -476,7 +448,6 @@
             </section>
             {% endif %}
 
-            <div class="protein-grid-group-label">{% trans "Sequence & annotations" %}</div>
             <section class="protein-card tp-ui-panel" id="section-sequence">
                 <div class="section-head tp-ui-panel-head">
                     <div>
@@ -503,7 +474,7 @@
             <section class="protein-card tp-ui-panel" id="section-annotations">
                 <div class="section-head tp-ui-panel-head">
                     <div>
-                        <h2>{% trans "Functional Annotations" %}</h2>
+                        <h2>{% trans "Functional annotations" %}</h2>
                         <p class="section-subtitle">{% trans "Enzyme classification and Gene Ontology terms linked to this protein." %}</p>
                     </div>
                     <div class="section-tools">
@@ -554,8 +525,8 @@
             <section class="protein-card tp-ui-panel" id="section-features">
                 <div class="section-head tp-ui-panel-head">
                     <div>
-                        <h2>{% trans "Sequence Features" %}</h2>
-                        <p class="section-subtitle">{% trans "Domain/signature hits from InterPro and related databases." %}</p>
+                        <h2>{% trans "Sequence domains and features" %}</h2>
+                        <p class="section-subtitle">{% trans "Domain and signature matches imported from InterPro and related databases." %}</p>
                     </div>
                     <div class="section-tools">
                         <div class="features-tools-inline">
@@ -610,12 +581,11 @@
                 {% endif %}
             </section>
 
-            <div class="protein-grid-group-label">{% trans "Structure & chemistry" %}</div>
             {% if structure %}
                 <section class="protein-card tp-ui-panel" id="section-structure">
                     <div class="section-head tp-ui-panel-head">
                         <div>
-                            <h2>{% trans "3D Structure" %}</h2>
+                            <h2>{% trans "3D structure" %}</h2>
                             <p class="section-subtitle">{% trans "Selected loaded structure. Experimental PDB entries may cover only a portion of the sequence; AlphaFold DB and ColabFold models typically cover the full protein but remain computational predictions." %}</p>
                         </div>
                     </div>
@@ -644,7 +614,7 @@
                         {% endif %}
                         <a href="{% url "tpwebapp:structure_export" structure.id %}"
                            class="btn tp-btn tp-btn--neutral tp-btn--md structure-action-btn structure-download-btn"
-                           title="{% trans 'Download a visualization script for VMD (Visual Molecular Dynamics), free software to view the 3D structure with pocket overlays — vmd.ks.uiuc.edu' %}">{% trans "3D visualization script" %}</a>
+                           title="{% trans 'Download a visualization script for VMD (Visual Molecular Dynamics), free software to view the 3D structure with pocket overlays — vmd.ks.uiuc.edu' %}">{% trans "Download VMD script" %}</a>
                         <a href="{% url "tpwebapp:structure" structure.id %}?protein_id={{ protein.id }}"
                            class="btn tp-btn tp-btn--primary tp-btn--md structure-action-btn structure-fullscreen-link"
                            title="{% trans 'Open the dedicated full-screen 3D viewer with pocket overlays' %}">
@@ -669,15 +639,17 @@
                     </div>
                     <div class="structure-viewport-meta">
                         <p class="structure-viewport-hint">{% trans "Drag to rotate — click the view, then scroll to zoom." %}</p>
+                        {% if structure.pockets or structure.p2_pockets or alt_structure.pockets or alt_structure.p2_pockets %}
                         <div class="structure-score-legend" aria-label="{% trans "Pocket score legend" %}">
-                            <span class="legend-label">{% trans "Legend" %}</span>
+                            <span class="legend-label">{% trans "Pocket score" %}</span>
                             <span class="tp-score-tag high">{% trans "High" %}</span>
                             <span class="tp-score-tag medium">{% trans "Medium" %}</span>
                             <span class="tp-score-tag low">{% trans "Low" %}</span>
                         </div>
+                        {% endif %}
                     </div>
-                    <aside class="structure-color-guide" aria-label="{% trans "Structure color guide" %}">
-                        <div class="structure-color-guide-title">{% trans "Color guide" %}</div>
+                    <details class="structure-color-guide">
+                        <summary class="structure-color-guide-title">{% trans "How colors and pocket overlays are used" %}</summary>
                         <div class="structure-color-guide-grid">
                             <div class="structure-color-guide-item">
                                 <span class="structure-color-swatch structure-color-swatch--model" aria-hidden="true"></span>
@@ -692,7 +664,7 @@
                                 <span>{% trans "Pocket colors and alpha spheres are evidence overlays for predicted binding cavities; they are not alternative protein chains." %}</span>
                             </div>
                         </div>
-                    </aside>
+                    </details>
 
                     {% if structure.pockets or structure.p2_pockets or alt_structure.pockets or alt_structure.p2_pockets %}
                     <details class="data-details pocket-panel-details" open>
@@ -753,7 +725,7 @@
                 <section class="protein-card tp-ui-panel" id="section-structure">
                     <div class="section-head tp-ui-panel-head">
                         <div>
-                            <h2>{% trans "3D Structure" %}</h2>
+                            <h2>{% trans "3D structure" %}</h2>
                             <p class="section-subtitle">{% trans "No structural model is available for this protein." %}</p>
                         </div>
                     </div>
@@ -773,7 +745,7 @@
 
             {% if binders.total or binders.search_query %}
                 <section class="protein-card tp-ui-panel" id="section-binders">
-                    <div class="section-head tp-ui-panel-head{% if target_summary %} section-head--rail-{{ target_summary.tone }}{% endif %}">
+                    <div class="section-head tp-ui-panel-head">
                         <div>
                             <h2>{% trans "Ligand evidence" %}</h2>
                             <p class="section-subtitle">{% trans "Ligands grouped by evidence source. PDB ligands keep the source crystal visible, and loaded crystals can be opened directly in the structure viewer." %}</p>
@@ -801,14 +773,14 @@
                                 <span>{% blocktrans with count=binders.summary.loaded_crystal_count %}{{ count }} loaded crystals{% endblocktrans %}</span>
                             </div>
                             <div class="binder-intel-stat">
-                                <span class="binder-intel-label">{% trans "Bioactive compounds" %}</span>
+                                <span class="binder-intel-label">{% trans "Measured bioactivity" %}</span>
                                 <strong>{{ binders.summary.bioactive_count }}</strong>
-                                <span>{% blocktrans with count=binders.summary.proposed_count %}{{ count }} ZINC proposed compounds{% endblocktrans %}</span>
+                                <span>{% blocktrans with count=binders.summary.proposed_count %}{{ count }} similarity-based ZINC proposals{% endblocktrans %}</span>
                             </div>
                             <div class="binder-intel-stat">
-                                <span class="binder-intel-label">{% trans "Drug-like & clean" %}</span>
+                                <span class="binder-intel-label">{% trans "Screening profile" %}</span>
                                 <strong>{{ binders.summary.clean_druglike_count }}</strong>
-                                <span>{% blocktrans with count=binders.summary.pains_alert_count %}{{ count }} PAINS alerts{% endblocktrans %}</span>
+                                <span>{% blocktrans with count=binders.summary.pains_alert_count %}drug-like and PAINS-free; {{ count }} PAINS alerts{% endblocktrans %}</span>
                             </div>
                         </div>
 

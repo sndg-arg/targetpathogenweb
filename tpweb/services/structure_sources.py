@@ -64,7 +64,8 @@ def _structure_resolution_value(link):
     pdb = getattr(link, "pdb", None)
     value = getattr(link, "resolution", None) or getattr(pdb, "resolution", None)
     try:
-        return float(value)
+        resolution = float(value)
+        return 999.0 if resolution == 20 else resolution
     except (TypeError, ValueError):
         return 999.0
 
