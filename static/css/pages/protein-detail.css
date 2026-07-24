@@ -1876,12 +1876,15 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
         gap: 2px;
         overflow: visible;
         padding: 0;
+        border: none;
+        border-radius: 0;
         background: transparent;
         box-shadow: none;
         backdrop-filter: none;
     }
 
     .quick-nav.is-sticky {
+        border: none;
         border-radius: 0;
     }
 
