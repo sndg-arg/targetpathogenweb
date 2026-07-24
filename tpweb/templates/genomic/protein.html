@@ -278,7 +278,7 @@
                         <dd class="target-profile-value">
                             <span class="target-profile-risk-pill target-profile-risk-pill--{{ item.tone }}">
                                 {% if item.tone == "good" %}
-                                <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="2.5 8 6.5 12 13.5 4"/></svg>
+                                {% include "components/icons/check.html" %}
                                 {% else %}
                                 <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.5L13.8 12.5H2.2L8 2.5Z"/><line x1="8" y1="6.3" x2="8" y2="9"/><circle cx="8" cy="10.6" r="0.6" fill="currentColor" stroke="none"/></svg>
                                 {% endif %}
@@ -305,38 +305,15 @@
                     </div>
                     <p class="target-evidence-note">{% trans "The selected pocket score is the FPocket value used for ranking after applying the curated structure priority. It estimates small-molecule pocket quality; it is not experimental binding evidence. The 3D viewer may show a different loaded structure, so visible pockets can differ." %}</p>
                     <div class="target-evidence-grid">
-                        {% if selected_pocket_evidence.fpocket.score or selected_pocket_evidence.fpocket.structure or selected_pocket_evidence.fpocket.pocket %}
-                        <div class="target-evidence-card target-evidence-card--fpocket" title="{% trans "FPocket predicts geometric cavities on a 3D structure. Score 0-1; higher values suggest a better small-molecule pocket but do not prove binding." %}">
-                            <span class="target-evidence-label">FPocket</span>
-                            {% if selected_pocket_evidence.fpocket.score %}<strong class="target-evidence-value">{{ selected_pocket_evidence.fpocket.score }}</strong>{% endif %}
-                            <div class="target-evidence-meta">
-                                <div class="target-evidence-meta-row">
-                                    <span class="target-evidence-meta-key" title="{% trans "Structure used to compute this FPocket score" %}">{% trans "Structure" %}</span>
-                                    <span class="target-evidence-meta-val">{{ selected_pocket_evidence.fpocket.structure|default:"–" }}{% if selected_pocket_evidence.selected_source_status_tone == "warning" %}<span class="target-evidence-source-status target-evidence-source-status--warn" title="{% trans "This structure is not currently loaded in the 3D viewer. Pockets shown in the viewer belong to a different structure." %}"><svg viewBox="0 0 16 16" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.5L13.8 12.5H2.2L8 2.5Z"/><line x1="8" y1="6.5" x2="8" y2="9"/><circle cx="8" cy="11" r="0.6" fill="currentColor" stroke="none"/></svg></span>{% elif selected_pocket_evidence.selected_source_status_tone == "meta" %}<span class="target-evidence-source-status target-evidence-source-status--info" title="{% trans "Structure is loaded but not currently shown in the viewer." %}"><svg viewBox="0 0 16 16" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="8" r="6"/><line x1="8" y1="7" x2="8" y2="11"/><circle cx="8" cy="5.2" r="0.6" fill="currentColor" stroke="none"/></svg></span>{% endif %}</span>
-                                </div>
-                                <div class="target-evidence-meta-row">
-                                    <span class="target-evidence-meta-key" title="{% trans "Best-ranked pocket identifier from FPocket" %}">{% trans "Pocket" %}</span>
-                                    <span class="target-evidence-meta-val">{{ selected_pocket_evidence.fpocket.pocket|default:"–" }}</span>
-                                </div>
-                            </div>
-                        </div>
-                        {% endif %}
-                        {% if selected_pocket_evidence.p2rank.score or selected_pocket_evidence.p2rank.structure or selected_pocket_evidence.p2rank.pocket %}
-                        <div class="target-evidence-card target-evidence-card--p2rank" title="{% trans "P2Rank is a machine-learning predictor of ligand-binding sites. Probability 0-1; higher values support the pocket hypothesis but do not prove binding." %}">
-                            <span class="target-evidence-label">P2Rank</span>
-                            {% if selected_pocket_evidence.p2rank.score %}<strong class="target-evidence-value">{{ selected_pocket_evidence.p2rank.score }}</strong>{% endif %}
-                            <div class="target-evidence-meta">
-                                <div class="target-evidence-meta-row">
-                                    <span class="target-evidence-meta-key" title="{% trans "Structure used to compute this P2Rank score" %}">{% trans "Structure" %}</span>
-                                    <span class="target-evidence-meta-val">{{ selected_pocket_evidence.p2rank.structure|default:"–" }}{% if selected_pocket_evidence.selected_source_status_tone == "warning" %}<span class="target-evidence-source-status target-evidence-source-status--warn" title="{% trans "This structure is not currently loaded in the 3D viewer. Pockets shown in the viewer belong to a different structure." %}"><svg viewBox="0 0 16 16" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.5L13.8 12.5H2.2L8 2.5Z"/><line x1="8" y1="6.5" x2="8" y2="9"/><circle cx="8" cy="11" r="0.6" fill="currentColor" stroke="none"/></svg></span>{% elif selected_pocket_evidence.selected_source_status_tone == "meta" %}<span class="target-evidence-source-status target-evidence-source-status--info" title="{% trans "Structure is loaded but not currently shown in the viewer." %}"><svg viewBox="0 0 16 16" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="8" r="6"/><line x1="8" y1="7" x2="8" y2="11"/><circle cx="8" cy="5.2" r="0.6" fill="currentColor" stroke="none"/></svg></span>{% endif %}</span>
-                                </div>
-                                <div class="target-evidence-meta-row">
-                                    <span class="target-evidence-meta-key" title="{% trans "Best-ranked pocket identifier from P2Rank" %}">{% trans "Pocket" %}</span>
-                                    <span class="target-evidence-meta-val">{{ selected_pocket_evidence.p2rank.pocket|default:"–" }}</span>
-                                </div>
-                            </div>
-                        </div>
-                        {% endif %}
+                        {% trans "FPocket predicts geometric cavities on a 3D structure. Score 0-1; higher values suggest a better small-molecule pocket but do not prove binding." as fpocket_tooltip %}
+                        {% trans "Structure used to compute this FPocket score" as fpocket_structure_tooltip %}
+                        {% trans "Best-ranked pocket identifier from FPocket" as fpocket_pocket_tooltip %}
+                        {% include "components/structure/pocket_evidence_card.html" with tool_key="fpocket" tool_label="FPocket" tool_tooltip=fpocket_tooltip score=selected_pocket_evidence.fpocket.score structure=selected_pocket_evidence.fpocket.structure pocket=selected_pocket_evidence.fpocket.pocket structure_tooltip=fpocket_structure_tooltip pocket_tooltip=fpocket_pocket_tooltip %}
+
+                        {% trans "P2Rank is a machine-learning predictor of ligand-binding sites. Probability 0-1; higher values support the pocket hypothesis but do not prove binding." as p2rank_tooltip %}
+                        {% trans "Structure used to compute this P2Rank score" as p2rank_structure_tooltip %}
+                        {% trans "Best-ranked pocket identifier from P2Rank" as p2rank_pocket_tooltip %}
+                        {% include "components/structure/pocket_evidence_card.html" with tool_key="p2rank" tool_label="P2Rank" tool_tooltip=p2rank_tooltip score=selected_pocket_evidence.p2rank.score structure=selected_pocket_evidence.p2rank.structure pocket=selected_pocket_evidence.p2rank.pocket structure_tooltip=p2rank_structure_tooltip pocket_tooltip=p2rank_pocket_tooltip %}
                         {% if selected_pocket_evidence.colabfold.fpocket_score or selected_pocket_evidence.colabfold.p2rank_score %}
                         <div class="target-evidence-card target-evidence-card--secondary" title="{% trans "Pocket scores computed on the ColabFold-predicted model. Compare with the selected scores above to assess consistency across structure sources." %}">
                             <span class="target-evidence-label">{% trans "ColabFold model" %}</span>
@@ -367,7 +344,7 @@
                         <span class="target-evidence-label">{% trans "Core conservation" %}</span>
                         {% if conservation_profile.is_core %}
                         <span class="target-evidence-core-badge">
-                            <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="2.5 8 6.5 12 13.5 4"/></svg>
+                            {% include "components/icons/check.html" %}
                             {% trans "Conserved core gene" %}
                         </span>
                         {% else %}
@@ -439,7 +416,7 @@
                             <span class="target-evidence-label">{% trans "Chokepoint" %}</span>
                             {% if metabolic_context.is_chokepoint %}
                             <span class="target-evidence-core-badge">
-                                <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="2.5 8 6.5 12 13.5 4"/></svg>
+                                {% include "components/icons/check.html" %}
                                 {% trans "Chokepoint gene" %}
                             </span>
                             {% else %}
@@ -904,15 +881,7 @@
                          data-binders-panel="pdb_direct" role="tabpanel">
                         <p class="binders-panel-caption">{% trans "Highest-confidence structural evidence: ligands co-crystallized with this exact protein. If the source PDB is loaded in Target, use Open crystal to inspect it in the structure viewer." %}</p>
                         {% if binders.pdb_direct %}
-                            <div class="binder-filter-bar" data-binder-filter-bar>
-                                <span class="binder-filter-label">Show only:</span>
-                                <button class="binder-filter-chip" data-filter="ro5" type="button" title="Lipinski Rule of 5: MW ≤ 500 Da, LogP ≤ 5, HBD ≤ 5, HBA ≤ 10">Ro5-compliant</button>
-                                <button class="binder-filter-chip" data-filter="nopains" type="button" title="Hide compounds likely to cause false positives in biochemical assays">No PAINS</button>
-                                <button class="binder-filter-chip" data-filter="mw500" type="button" title="Molecular weight under 500 Da — favors membrane permeability">MW &lt; 500 Da</button>
-                                <span class="binder-filter-sep"></span>
-                                <span class="binder-filter-count" hidden></span>
-                                <button class="binder-filter-clear" type="button" hidden>Clear filters</button>
-                            </div>
+                            {% include "components/binders/binder_filter_bar.html" %}
                             {% include "components/binders/table_pdb.html" with binder_list=binders.pdb_direct %}
                         {% else %}
                             <p class="tp-state-note tp-state-note--empty binders-empty">
@@ -926,15 +895,7 @@
                          data-binders-panel="pdb_homolog" role="tabpanel">
                         <p class="binders-panel-caption">{% trans "Structural evidence inferred from similar proteins. The source crystal indicates where the ligand was observed; the UniProt column identifies the homologous protein carrying that ligand." %}</p>
                         {% if binders.pdb_homolog %}
-                            <div class="binder-filter-bar" data-binder-filter-bar>
-                                <span class="binder-filter-label">Show only:</span>
-                                <button class="binder-filter-chip" data-filter="ro5" type="button" title="Lipinski Rule of 5: MW ≤ 500 Da, LogP ≤ 5, HBD ≤ 5, HBA ≤ 10">Ro5-compliant</button>
-                                <button class="binder-filter-chip" data-filter="nopains" type="button" title="Hide compounds likely to cause false positives in biochemical assays">No PAINS</button>
-                                <button class="binder-filter-chip" data-filter="mw500" type="button" title="Molecular weight under 500 Da — favors membrane permeability">MW &lt; 500 Da</button>
-                                <span class="binder-filter-sep"></span>
-                                <span class="binder-filter-count" hidden></span>
-                                <button class="binder-filter-clear" type="button" hidden>Clear filters</button>
-                            </div>
+                            {% include "components/binders/binder_filter_bar.html" %}
                             {% include "components/binders/table_pdb.html" with binder_list=binders.pdb_homolog show_uniprot=True %}
                         {% else %}
                             <p class="tp-state-note tp-state-note--empty binders-empty">
@@ -948,16 +909,7 @@
                          data-binders-panel="chembl_direct" role="tabpanel">
                         <p class="binders-panel-caption">{% trans "Experimental bioactivity from ChEMBL measured directly on this protein. Score = pchembl (−log Ki/IC₅₀; higher = more potent)." %}</p>
                         {% if binders.chembl_direct %}
-                            <div class="binder-filter-bar" data-binder-filter-bar>
-                                <span class="binder-filter-label">Show only:</span>
-                                <button class="binder-filter-chip" data-filter="ro5" type="button" title="Lipinski Rule of 5: MW ≤ 500 Da, LogP ≤ 5, HBD ≤ 5, HBA ≤ 10">Ro5-compliant</button>
-                                <button class="binder-filter-chip" data-filter="nopains" type="button" title="Hide compounds likely to cause false positives in biochemical assays">No PAINS</button>
-                                <button class="binder-filter-chip" data-filter="mw500" type="button" title="Molecular weight under 500 Da — favors membrane permeability">MW &lt; 500 Da</button>
-                                <button class="binder-filter-chip" data-filter="pchembl6" type="button" title="pchembl ≥ 6 corresponds to IC₅₀ ≤ 1 μM — a standard hit threshold">pchembl ≥ 6</button>
-                                <span class="binder-filter-sep"></span>
-                                <span class="binder-filter-count" hidden></span>
-                                <button class="binder-filter-clear" type="button" hidden>Clear filters</button>
-                            </div>
+                            {% include "components/binders/binder_filter_bar.html" with extra_filter_key="pchembl6" extra_filter_title="pchembl ≥ 6 corresponds to IC₅₀ ≤ 1 μM — a standard hit threshold" extra_filter_label="pchembl ≥ 6" %}
                             {% include "components/binders/table_chembl.html" with binder_list=binders.chembl_direct %}
                         {% else %}
                             <p class="tp-state-note tp-state-note--empty binders-empty">
@@ -971,16 +923,7 @@
                          data-binders-panel="chembl_homolog" role="tabpanel">
                         <p class="binders-panel-caption">{% trans "Bioactivity inferred from similar proteins in ChEMBL. Score = pchembl (−log Ki/IC₅₀; higher = more potent)." %}</p>
                         {% if binders.chembl_homolog %}
-                            <div class="binder-filter-bar" data-binder-filter-bar>
-                                <span class="binder-filter-label">Show only:</span>
-                                <button class="binder-filter-chip" data-filter="ro5" type="button" title="Lipinski Rule of 5: MW ≤ 500 Da, LogP ≤ 5, HBD ≤ 5, HBA ≤ 10">Ro5-compliant</button>
-                                <button class="binder-filter-chip" data-filter="nopains" type="button" title="Hide compounds likely to cause false positives in biochemical assays">No PAINS</button>
-                                <button class="binder-filter-chip" data-filter="mw500" type="button" title="Molecular weight under 500 Da — favors membrane permeability">MW &lt; 500 Da</button>
-                                <button class="binder-filter-chip" data-filter="pchembl6" type="button" title="pchembl ≥ 6 corresponds to IC₅₀ ≤ 1 μM — a standard hit threshold">pchembl ≥ 6</button>
-                                <span class="binder-filter-sep"></span>
-                                <span class="binder-filter-count" hidden></span>
-                                <button class="binder-filter-clear" type="button" hidden>Clear filters</button>
-                            </div>
+                            {% include "components/binders/binder_filter_bar.html" with extra_filter_key="pchembl6" extra_filter_title="pchembl ≥ 6 corresponds to IC₅₀ ≤ 1 μM — a standard hit threshold" extra_filter_label="pchembl ≥ 6" %}
                             {% include "components/binders/table_chembl.html" with binder_list=binders.chembl_homolog show_uniprot=True %}
                         {% else %}
                             <p class="tp-state-note tp-state-note--empty binders-empty">
@@ -994,16 +937,7 @@
                          data-binders-panel="zinc" role="tabpanel">
                         <p class="binders-panel-caption">{% trans "Proposed virtual-screening candidates from ZINC. Score = Tanimoto similarity to a known binder (0–1; higher = more similar)." %}</p>
                         {% if binders.zinc %}
-                            <div class="binder-filter-bar" data-binder-filter-bar>
-                                <span class="binder-filter-label">Show only:</span>
-                                <button class="binder-filter-chip" data-filter="ro5" type="button" title="Lipinski Rule of 5: MW ≤ 500 Da, LogP ≤ 5, HBD ≤ 5, HBA ≤ 10">Ro5-compliant</button>
-                                <button class="binder-filter-chip" data-filter="nopains" type="button" title="Hide compounds likely to cause false positives in biochemical assays">No PAINS</button>
-                                <button class="binder-filter-chip" data-filter="mw500" type="button" title="Molecular weight under 500 Da — favors membrane permeability">MW &lt; 500 Da</button>
-                                <button class="binder-filter-chip" data-filter="tanimoto07" type="button" title="Tanimoto similarity ≥ 0.7 — high structural resemblance to a known active compound">Tanimoto ≥ 0.7</button>
-                                <span class="binder-filter-sep"></span>
-                                <span class="binder-filter-count" hidden></span>
-                                <button class="binder-filter-clear" type="button" hidden>Clear filters</button>
-                            </div>
+                            {% include "components/binders/binder_filter_bar.html" with extra_filter_key="tanimoto07" extra_filter_title="Tanimoto similarity ≥ 0.7 — high structural resemblance to a known active compound" extra_filter_label="Tanimoto ≥ 0.7" %}
                             {% include "components/binders/table_zinc.html" with binder_list=binders.zinc %}
                         {% else %}
                             <p class="tp-state-note tp-state-note--empty binders-empty">
@@ -1248,14 +1182,6 @@
                 searching: true,
                 autoWidth: false,
                 order: [[0, "asc"]]
-            });
-            initDataTableVariant("#annotations_table", {
-                tpVariant: "full",
-                pageLength: 10,
-                lengthChange: false,
-                ordering: true,
-                searching: true,
-                autoWidth: false
             });
 
             const representations = {};

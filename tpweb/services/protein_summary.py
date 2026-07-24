@@ -8,11 +8,14 @@ the LLM agent's explain_target tool without importing private view
 internals from a service module (CLAUDE.md: views delegate to services,
 not the other way around).
 """
+from django.core.cache import cache
 from django.urls import reverse
 
 from bioseq.models.Biodatabase import Biodatabase
+from tpweb.models.BioentryStructure import BioentryStructure
 from tpweb.models.ScoreParamValue import ScoreParamValue
 from tpweb.models.Metabolism import GeneReactionLink, MetabolicImportRun, ReactionParticipant
+from tpweb.services.assembly_workspace import OVERVIEW_CACHE_TTL_SECONDS
 from tpweb.services.binder_summary import create_binders_dict
 from tpweb.services.metabolism_summary import build_target_metabolic_sentence
 from tpweb.services.genome_workspace import genome_url_slug
@@ -20,6 +23,7 @@ from tpweb.services.structure_sources import (
     STRUCTURE_SOURCE_EXPERIMENTAL,
     STRUCTURE_SOURCE_MIXED,
     structure_matches_identifier,
+    summarize_structure_sources,
 )
 
 _SCORE_META = [
@@ -48,6 +52,28 @@ _NO_HIT_EVALUE_OVERRIDES = {
     "human_evalue": ("human_offtarget", "no_hit", "> 1e-5"),
     "deg_evalue":   ("hit_in_deg",      "n",      "> 1e-5"),
 }
+
+
+def druggability_label(value):
+    """Return (label, tone) for a numeric FPocket druggability score.
+
+    Moved from ProteinView.py so build_protein_executive_context can compute
+    it from the single ScoreParamValue query it already runs, instead of the
+    view running a second, separate query just for this one score."""
+    if value is None:
+        return None
+    try:
+        v = float(str(value).replace(",", "."))
+    except (TypeError, ValueError):
+        return None
+    label = f"{v:.3f}".rstrip("0").rstrip(".")
+    if v >= 0.7:
+        return (label, "high")
+    elif v >= 0.4:
+        return (label, "mid")
+    elif v > 0:
+        return (label, "low")
+    return None
 
 
 def build_target_profile(raw_scores):
@@ -249,6 +275,30 @@ def _build_reaction_participants(reaction):
     return substrates, products
 
 
+def _genome_centrality_values(biodatabase):
+    """Every PTOOLS_betweenness_centrality value loaded for a genome, used to
+    rank one protein's percentile against the rest of its genome.
+
+    This is a genome-wide scan (every protein's score, not just the one
+    being viewed), so it's cached per genome with the same TTL convention as
+    assembly_workspace.py's aggregates -- without this, build_metabolic_context
+    re-ran the full genome scan from scratch on every single protein detail
+    page view."""
+    cache_key = f"Target:metabolic_centrality_values:{biodatabase.biodatabase_id}"
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return cached
+    values = list(
+        ScoreParamValue.objects
+        .filter(score_param__name="PTOOLS_betweenness_centrality",
+                bioentry__biodatabase=biodatabase)
+        .values_list("numeric_value", flat=True)
+    )
+    values = [v for v in values if v is not None]
+    cache.set(cache_key, values, OVERVIEW_CACHE_TTL_SECONDS)
+    return values
+
+
 def build_metabolic_context(protein, raw_scores):
     links = list(
         GeneReactionLink.objects.filter(bioentry=protein)
@@ -305,13 +355,7 @@ def build_metabolic_context(protein, raw_scores):
     if centrality_raw:
         try:
             value = float(centrality_raw)
-            genome_values = list(
-                ScoreParamValue.objects
-                .filter(score_param__name="PTOOLS_betweenness_centrality",
-                        bioentry__biodatabase=protein.biodatabase)
-                .values_list("numeric_value", flat=True)
-            )
-            genome_values = [v for v in genome_values if v is not None]
+            genome_values = _genome_centrality_values(protein.biodatabase)
             if genome_values:
                 below_or_equal = sum(1 for v in genome_values if v <= value)
                 percentile = round(100 * below_or_equal / len(genome_values), 1)
@@ -621,22 +665,39 @@ def build_target_executive_summary(
     }
 
 
-def build_protein_executive_context(protein):
+def build_protein_executive_context(
+    protein, structures=None, structure_summary=None, search_query="", binders=None,
+):
     """One-call bundle of everything explain_target (and ProteinView.get)
     need: the raw ScoreParamValue dict plus every derived context builder
-    above, culminating in the strengths/risks/missing verdict."""
+    above, culminating in the strengths/risks/missing verdict.
+
+    ProteinView.get() already fetches/sorts `structures`, computes its own
+    `structure_summary`, and builds `binders` with the user's search query --
+    passing those in here avoids re-querying/recomputing them a second time.
+    Callers that don't have them yet (explain_target) get the exact same
+    behavior as before by leaving them as the defaults."""
+    score_param_values = list(
+        ScoreParamValue.objects.filter(bioentry=protein).select_related("score_param")
+    )
     raw_scores = {
         spv.score_param.name: spv.value if spv.value else (
             str(round(spv.numeric_value, 4)) if spv.numeric_value is not None else ""
         )
-        for spv in ScoreParamValue.objects.filter(bioentry=protein).select_related("score_param")
+        for spv in score_param_values
     }
+    drugg_spv = next(
+        (spv for spv in score_param_values if spv.score_param.name == "Druggability"), None
+    )
+    drugg_raw = None
+    if drugg_spv is not None:
+        drugg_raw = drugg_spv.numeric_value if drugg_spv.numeric_value is not None else drugg_spv.value or None
+    druggability = druggability_label(drugg_raw)
 
-    from tpweb.services.structure_sources import summarize_structure_sources
-    from tpweb.models.BioentryStructure import BioentryStructure
-
-    structures = list(BioentryStructure.objects.filter(bioentry=protein).select_related("pdb"))
-    structure_summary = summarize_structure_sources(structures)
+    if structures is None:
+        structures = list(BioentryStructure.objects.filter(bioentry=protein).select_related("pdb"))
+    if structure_summary is None:
+        structure_summary = summarize_structure_sources(structures)
 
     target_profile = build_target_profile(raw_scores)
     selected_pocket_evidence = build_selected_pocket_evidence(raw_scores)
@@ -645,7 +706,8 @@ def build_protein_executive_context(protein):
     microbiome_context = build_microbiome_context(raw_scores)
     metabolic_context = build_metabolic_context(protein, raw_scores)
 
-    binders = create_binders_dict(protein, structures=structures)
+    if binders is None:
+        binders = create_binders_dict(protein, search_query=search_query, structures=structures)
 
     target_summary = build_target_executive_summary(
         raw_scores,
@@ -659,6 +721,7 @@ def build_protein_executive_context(protein):
 
     return {
         "raw_scores": raw_scores,
+        "druggability": druggability,
         "target_profile": target_profile,
         "selected_pocket_evidence": selected_pocket_evidence,
         "conservation_profile": conservation_profile,

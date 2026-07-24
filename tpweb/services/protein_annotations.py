@@ -86,7 +86,11 @@ def annotation_dbnames(kind):
     return ANNOTATION_KIND_CONFIG[normalize_annotation_kind(kind)]["dbnames"]
 
 
-def _annotation_name(dbxref_relation):
+def annotation_name(dbxref_relation):
+    """dbxref -> its first term's definition, or "" if none. Public (no
+    leading underscore) because ProteinView.serialize_prot needs this same
+    lookup for its own annotations list and used to keep a verbatim copy of
+    this function rather than importing it."""
     dbxref = getattr(dbxref_relation, "dbxref", None)
     if dbxref is None:
         return ""
@@ -118,7 +122,7 @@ def iter_protein_annotations(protein, kind):
         seen_accessions.add(accession)
         yield {
             "accession": accession,
-            "name": _annotation_name(dbxref_relation),
+            "name": annotation_name(dbxref_relation),
         }
 
 

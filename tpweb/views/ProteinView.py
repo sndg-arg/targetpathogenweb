@@ -1,3 +1,4 @@
+from django.db.models import Prefetch
 from django.shortcuts import render
 from django.http import Http404
 from django.urls import reverse
@@ -10,10 +11,14 @@ from bioseq.models.Biodatabase import Biodatabase
 from bioseq.models.Bioentry import Bioentry
 from tpweb.models.pdb import PDBResidueSet
 from tpweb.models.BioentryStructure import ExperimentalStructureXref
-from tpweb.models.ScoreParamValue import ScoreParamValue
 from .StructureView import pdb_structure
-from tpweb.services.protein_annotations import annotation_dbnames, protein_annotation_badges, iter_protein_annotations
-from tpweb.services.csv_exports import xlsx_sections_response
+from tpweb.services.protein_annotations import (
+    annotation_dbnames,
+    annotation_name as _annotation_name,
+    protein_annotation_badges,
+    iter_protein_annotations,
+)
+from tpweb.services.csv_exports import build_view_export_url, xlsx_sections_response
 from tpweb.services.pipeline_status import (
     annotate_pipeline_status_for_genome,
     get_pipeline_status,
@@ -26,19 +31,15 @@ from tpweb.services.genome_workspace import (
 from tpweb.services.structure_files import detect_structure_format, display_code, structure_file_path
 from tpweb.services.structure_sources import (
     PDB_MODEL_EXPERIMENTS,
+    chain_selector as _chain_selector,
     summarize_structure_sources,
     sort_structures_by_preference as _sort_structures_by_preference,
     structure_toggle_label as _structure_toggle_label,
     PDB_MODEL_EXPERIMENTS as _PDB_MODEL_EXPERIMENTS,
 )
 from tpweb.services.protein_summary import (
-    build_target_profile as _build_target_profile,
     annotate_selected_source_status as _annotate_selected_source_status,
-    build_selected_pocket_evidence as _build_selected_pocket_evidence,
-    build_conservation_profile as _build_conservation_profile,
-    build_microbiome_context as _build_microbiome_context,
-    build_metabolic_context as _build_metabolic_context,
-    build_target_executive_summary as _build_target_executive_summary,
+    build_protein_executive_context as _build_protein_executive_context,
 )
 from tpweb.services.binder_summary import create_binders_dict
 
@@ -101,36 +102,11 @@ def _structure_toggle_detail(link, protein_length=None):
     return label, detail
 
 
-def _druggability_label(value):
-    """Return (label, tone) for a numeric FPocket druggability score."""
-    if value is None:
-        return None
-    try:
-        v = float(str(value).replace(",", "."))
-    except (TypeError, ValueError):
-        return None
-    label = f"{v:.3f}".rstrip("0").rstrip(".")
-    if v >= 0.7:
-        return (label, "high")
-    elif v >= 0.4:
-        return (label, "mid")
-    elif v > 0:
-        return (label, "low")
-    return None
-
-
-
-
 def _has_pocket_data(pdb_obj):
     return PDBResidueSet.objects.filter(
         pdb=pdb_obj,
         residue_set__name__in=["FPocketPocket", "P2RankPocket"],
     ).exists()
-
-
-def _chain_selector(chain):
-    chain = (chain or "").strip()
-    return f":{chain}" if chain else "polymer"
 
 
 def _first_location(feature):
@@ -141,20 +117,6 @@ def _first_location(feature):
         return locations.all()[0]
     except Exception:
         return None
-
-
-def _annotation_name(dbxref_relation):
-    dbxref = getattr(dbxref_relation, "dbxref", None)
-    if dbxref is None:
-        return ""
-    terms = getattr(dbxref, "terms", None)
-    if terms is None:
-        return ""
-    try:
-        first_term = terms.all()[0]
-    except Exception:
-        return ""
-    return getattr(getattr(first_term, "term", None), "definition", "") or ""
 
 
 def _format_resolution(value):
@@ -500,13 +462,6 @@ def serialize_prot(protein: Bioentry):
 class ProteinView(View):
     template_name = 'genomic/protein.html'
 
-    @staticmethod
-    def _build_view_export_url(request):
-        params = request.GET.copy()
-        params["export"] = "view_csv"
-        encoded = params.urlencode()
-        return f"?{encoded}" if encoded else "?export=view_csv"
-
     def get(self, request, protein_id, *args, **kwargs):
         # form = self.form_class(initial=self.initial)
 
@@ -515,7 +470,10 @@ class ProteinView(View):
         ).prefetch_related("seq", "biodatabase",
                            "qualifiers__term", "dbxrefs__dbxref__terms__term",
                            "features__type_term__ontology", "features__locations",
-                           "experimental_structure_xrefs",
+                           Prefetch(
+                               "experimental_structure_xrefs",
+                               queryset=ExperimentalStructureXref.objects.order_by("resolution"),
+                           ),
                            "structures__pdb__residue_sets__properties__property").get()
         assembly_name = protein.biodatabase.name.split(Biodatabase.PROT_POSTFIX)[0]
         if not user_can_access_genome_name(request.user, assembly_name):
@@ -528,11 +486,9 @@ class ProteinView(View):
         binders = create_binders_dict(protein, search_query=binders_search_query, structures=structures)
         structure_summary = summarize_structure_sources(structures)
 
-        experimental_xrefs = list(
-            ExperimentalStructureXref.objects
-            .filter(bioentry=protein)
-            .order_by("resolution")
-        )
+        # Reuses the ordered prefetch on `protein` set up above -- .all() on an
+        # already-prefetched relation replays the cached list, no new query.
+        experimental_xrefs = list(protein.experimental_structure_xrefs.all())
         loaded_ex_codes = {
             s.pdb.code.upper()
             for s in structures
@@ -549,35 +505,24 @@ class ProteinView(View):
             get_pipeline_status(), proteinDTO["assembly_name"]
         )
 
-        drugg_spv = ScoreParamValue.objects.filter(
-            bioentry=protein, score_param__name="Druggability"
-        ).first()
-        drugg_raw = None
-        if drugg_spv is not None:
-            drugg_raw = drugg_spv.numeric_value if drugg_spv.numeric_value is not None else drugg_spv.value or None
-        druggability = _druggability_label(drugg_raw)
-
-        raw_scores = {
-            spv.score_param.name: spv.value if spv.value else (
-                str(round(spv.numeric_value, 4)) if spv.numeric_value is not None else ""
-            )
-            for spv in ScoreParamValue.objects.filter(bioentry=protein).select_related("score_param")
-        }
-        target_profile = _build_target_profile(raw_scores)
-        selected_pocket_evidence = _build_selected_pocket_evidence(raw_scores)
-        _annotate_selected_source_status(selected_pocket_evidence, structures)
-        conservation_profile = _build_conservation_profile(raw_scores)
-        microbiome_context = _build_microbiome_context(raw_scores)
-        metabolic_context = _build_metabolic_context(protein, raw_scores)
-        target_summary = _build_target_executive_summary(
-            raw_scores,
-            structure_summary,
-            selected_pocket_evidence,
-            conservation_profile,
-            microbiome_context,
-            metabolic_context,
-            binders,
+        # structures/structure_summary/binders were already fetched above with
+        # this request's search query and sort order -- passing them in lets
+        # build_protein_executive_context reuse them instead of re-querying/
+        # recomputing (it also folds in what used to be a second, separate
+        # Druggability-only query).
+        executive_context = _build_protein_executive_context(
+            protein,
+            structures=structures,
+            structure_summary=structure_summary,
+            binders=binders,
         )
+        druggability = executive_context["druggability"]
+        target_profile = executive_context["target_profile"]
+        selected_pocket_evidence = executive_context["selected_pocket_evidence"]
+        conservation_profile = executive_context["conservation_profile"]
+        microbiome_context = executive_context["microbiome_context"]
+        metabolic_context = executive_context["metabolic_context"]
+        target_summary = executive_context["target_summary"]
 
         if request.GET.get("export") == "view_csv":
             sections = [
@@ -714,7 +659,7 @@ class ProteinView(View):
                "pipeline_status": pipeline_status,
                "druggability": druggability,
                "uniprot_accessions": uniprot_accessions,
-               "view_export_url": self._build_view_export_url(request)}
+               "view_export_url": build_view_export_url(request)}
         if structures:
             # Opción B: primary = best experimental (EX), alt = best predicted (CF/AF).
             # Ensures ColabFold is accessible even when multiple experimental PDBs

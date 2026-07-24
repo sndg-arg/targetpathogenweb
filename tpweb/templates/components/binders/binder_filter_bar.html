@@ -1,0 +1,13 @@
+{% load i18n %}
+<div class="binder-filter-bar" data-binder-filter-bar>
+    <span class="binder-filter-label">{% trans "Show only:" %}</span>
+    <button class="binder-filter-chip" data-filter="ro5" type="button" title="{% trans 'Lipinski Rule of 5: MW ≤ 500 Da, LogP ≤ 5, HBD ≤ 5, HBA ≤ 10' %}">{% trans "Ro5-compliant" %}</button>
+    <button class="binder-filter-chip" data-filter="nopains" type="button" title="{% trans 'Hide compounds likely to cause false positives in biochemical assays' %}">{% trans "No PAINS" %}</button>
+    <button class="binder-filter-chip" data-filter="mw500" type="button" title="{% trans 'Molecular weight under 500 Da — favors membrane permeability' %}">{% trans "MW" %} &lt; 500 Da</button>
+    {% if extra_filter_key %}
+        <button class="binder-filter-chip" data-filter="{{ extra_filter_key }}" type="button" title="{{ extra_filter_title }}">{{ extra_filter_label }}</button>
+    {% endif %}
+    <span class="binder-filter-sep"></span>
+    <span class="binder-filter-count" hidden></span>
+    <button class="binder-filter-clear" type="button" hidden>{% trans "Clear filters" %}</button>
+</div>

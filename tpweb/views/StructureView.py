@@ -10,6 +10,7 @@ from tpweb.models.pdb import PDB, Residue, Property, ResidueSet, PDBResidueSet, 
 from django.db.models import Q
 from tpweb.services.genome_workspace import user_can_access_genome_name, genome_url_slug
 from tpweb.services.structure_files import detect_structure_format, display_code, structure_file_path
+from tpweb.services.structure_sources import chain_selector as _chain_selector
 from tpweb.services.pocket_geometry import volume_outlier_map
 
 
@@ -28,11 +29,6 @@ _FPOCKET_INSPECTOR_PROPERTIES = [
 _P2RANK_INSPECTOR_PROPERTIES = [
     ("p2score", "P2Rank score"),
 ]
-
-
-def _chain_selector(chain):
-    chain = (chain or "").strip()
-    return f":{chain}" if chain else "polymer"
 
 
 def _format_float(value):

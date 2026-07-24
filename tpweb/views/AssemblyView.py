@@ -31,19 +31,12 @@ from tpweb.services.genome_workspace import (
     user_can_delete_genome_name,
 )
 from tpweb.services.genome_uploads import delete_genome_workspace, workspace_has_active_upload
-from tpweb.services.csv_exports import csv_response, xlsx_sections_response
+from tpweb.services.csv_exports import build_view_export_url, csv_response, xlsx_sections_response
 
 
 class AssemblyView(View):
     template_name = 'genomic/assembly.html'
     ACTION_DELETE_WORKSPACE = "delete_workspace"
-
-    @staticmethod
-    def _build_view_export_url(request):
-        params = request.GET.copy()
-        params["export"] = "view_csv"
-        encoded = params.urlencode()
-        return f"?{encoded}" if encoded else "?export=view_csv"
 
     def _resolve_jbrowse_base_url(self, request):
         configured = str(settings.JBROWSE_BASE_URL or "").strip()
@@ -142,7 +135,7 @@ class AssemblyView(View):
             "unexplored_targets": unexplored_targets,
             "top_targets_by_score": top_targets_by_score,
             "workspace_links": workspace_links,
-            "view_export_url": self._build_view_export_url(request),
+            "view_export_url": build_view_export_url(request),
             "jbrowse_url": jbrowse_url,
             "jbrowse_embed": jbrowse_embed,
             "pipeline_status": pipeline_status,

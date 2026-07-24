@@ -56,7 +56,7 @@ from tpweb.services.protein_serializer import (
     compute_score_value,
     score_param_value_map,
 )
-from tpweb.services.csv_exports import csv_response, xlsx_sections_response
+from tpweb.services.csv_exports import build_view_export_url, csv_response, xlsx_sections_response
 from tpweb.services.pipeline_status import (
     annotate_pipeline_status_for_genome,
     get_pipeline_status,
@@ -206,15 +206,6 @@ class ProteinListView(View):
         params["export"] = "csv"
         encoded = params.urlencode()
         return f"?{encoded}" if encoded else "?export=csv"
-
-    @staticmethod
-    def _build_view_export_url(request):
-        params = request.GET.copy()
-        if "page" in params:
-            params.pop("page")
-        params["export"] = "view_csv"
-        encoded = params.urlencode()
-        return f"?{encoded}" if encoded else "?export=view_csv"
 
     @staticmethod
     def _build_column_rows(score_params, selected_column_names):
@@ -1450,7 +1441,7 @@ class ProteinListView(View):
                 if label != "Score" or formula is not None
             ],
             "export_url": self._build_export_url(request),
-            "view_export_url": self._build_view_export_url(request),
+            "view_export_url": build_view_export_url(request, strip_params=("page",)),
             "sort_col": effective_sort_col,
             "sort_dir": effective_sort_dir,
             "sort_col_urls": sort_col_urls,

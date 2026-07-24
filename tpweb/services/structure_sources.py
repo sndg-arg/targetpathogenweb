@@ -43,6 +43,15 @@ def structure_toggle_label(experiment):
     return _STRUCTURE_TOGGLE_LABELS.get((experiment or "").upper(), "Model")
 
 
+def chain_selector(chain):
+    """PyMOL/NGL-style chain selector fragment, e.g. ':A' or 'polymer' when
+    no chain is set. Was copy-pasted identically in ProteinView.py and
+    StructureView.py; lives here since both views already depend on this
+    module."""
+    chain = (chain or "").strip()
+    return f":{chain}" if chain else "polymer"
+
+
 def _structure_coverage_span(link):
     start = getattr(link, "uniprot_start", None)
     end = getattr(link, "uniprot_end", None)
