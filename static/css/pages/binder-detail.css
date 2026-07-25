@@ -163,19 +163,22 @@
     margin-top: 14px;
 }
 
+/* Shared stat-card idiom with genome-overview.css / assembly.html -- same
+   border-radius, padding, label size and value size, so the "number in a
+   pill" concept looks identical whichever page it's on. */
 .binder-page .metric-pill {
-    border: 1px solid var(--binder-accent-border);
-    border-radius: 12px;
-    background: var(--tp-color-surface);
-    padding: 10px 14px;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 10px;
+    background: var(--tp-color-surface-soft);
+    padding: 10px 12px;
     min-height: 68px;
     display: grid;
     align-content: center;
-    gap: 3px;
+    gap: 2px;
 }
 
 .binder-page .metric-label {
-    font-size: 0.73rem;
+    font-size: var(--tp-font-label);
     font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -184,9 +187,12 @@
 
 .binder-page .metric-value {
     color: var(--binder-accent-ink);
-    font-size: 1.15rem;
-    line-height: 1.2;
+    font-size: 1.45rem;
+    line-height: 1.1;
     font-weight: 600;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
 }
 
 .metric-unit {
