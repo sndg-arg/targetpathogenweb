@@ -64,12 +64,27 @@
         return fallbackCopyText(text);
     }
 
+    function buttonLabelTarget(button) {
+        return button ? (button.querySelector("[data-copy-label]") || button) : null;
+    }
+
+    function readButtonLabel(button, fallback) {
+        if (!button) return fallback || "";
+        var target = buttonLabelTarget(button);
+        return button.getAttribute("data-default-label") || (target ? target.textContent : "") || fallback || "";
+    }
+
+    function writeButtonLabel(button, label) {
+        var target = buttonLabelTarget(button);
+        if (target) target.textContent = label;
+    }
+
     function setTemporaryLabel(button, temporaryLabel, durationMs) {
         if (!button) return;
-        var defaultLabel = button.getAttribute("data-default-label") || button.textContent || "";
-        button.textContent = temporaryLabel;
+        var defaultLabel = readButtonLabel(button, "");
+        writeButtonLabel(button, temporaryLabel);
         window.setTimeout(function () {
-            button.textContent = defaultLabel;
+            writeButtonLabel(button, defaultLabel);
         }, durationMs || 1200);
     }
 
@@ -78,9 +93,9 @@
         if (button.getAttribute("data-copy-bound") === "1") return;
         button.setAttribute("data-copy-bound", "1");
 
-        var defaultLabel = button.getAttribute("data-default-label") || button.textContent || "Copy";
+        var defaultLabel = readButtonLabel(button, "Copy");
         var copiedLabel = button.getAttribute("data-copied-label") || "Copied";
-        button.textContent = defaultLabel;
+        writeButtonLabel(button, defaultLabel);
 
         button.addEventListener("click", function () {
             var text = String(getText() || "").trim();
@@ -108,14 +123,14 @@
 
         residueModalInitialized = true;
         var lastFocusedTrigger = null;
-        var defaultCopyLabel = copyBtn ? (copyBtn.getAttribute("data-default-label") || copyBtn.textContent || "Copy") : "Copy";
+        var defaultCopyLabel = copyBtn ? readButtonLabel(copyBtn, "Copy") : "Copy";
         var copiedCopyLabel = copyBtn ? (copyBtn.getAttribute("data-copied-label") || "Copied") : "Copied";
 
         function openModalFromTrigger(trigger) {
             lastFocusedTrigger = trigger || null;
             var residues = parseResidues(trigger ? trigger.getAttribute("data-residues") : "");
             content.textContent = residues.length ? residues.join(", ") : "-";
-            if (copyBtn) copyBtn.textContent = defaultCopyLabel;
+            if (copyBtn) writeButtonLabel(copyBtn, defaultCopyLabel);
             modal.classList.add("is-open");
             modal.setAttribute("aria-hidden", "false");
             document.body.classList.add("residue-modal-open");
@@ -126,7 +141,7 @@
             modal.classList.remove("is-open");
             modal.setAttribute("aria-hidden", "true");
             document.body.classList.remove("residue-modal-open");
-            if (copyBtn) copyBtn.textContent = defaultCopyLabel;
+            if (copyBtn) writeButtonLabel(copyBtn, defaultCopyLabel);
             if (lastFocusedTrigger && typeof lastFocusedTrigger.focus === "function") {
                 lastFocusedTrigger.focus();
             }
@@ -161,9 +176,9 @@
             copyBtn.addEventListener("click", function () {
                 var text = (content.textContent || "").trim();
                 copyText(text).then(function () {
-                    copyBtn.textContent = copiedCopyLabel;
+                    writeButtonLabel(copyBtn, copiedCopyLabel);
                     window.setTimeout(function () {
-                        copyBtn.textContent = defaultCopyLabel;
+                        writeButtonLabel(copyBtn, defaultCopyLabel);
                     }, 1200);
                 });
             });

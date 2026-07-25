@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260724-scientific-clarity">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260725-action-semantics">
 {% endblock %}
 
 {% block body %}
@@ -449,11 +449,12 @@
                     </div>
                     <button
                         id="copy-sequence-btn"
-                        class="btn tp-btn tp-btn--outline tp-btn--sm btn-copy-seq"
+                        class="btn tp-btn tp-btn--outline tp-btn--sm tp-btn-with-icon btn-copy-seq"
                         type="button"
                         data-default-label="{% trans "Copy Sequence" %}"
                         data-copied-label="{% trans "Copied" %}">
-                        {% trans "Copy Sequence" %}
+                        <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/copy.html" %}</span>
+                        <span data-copy-label>{% trans "Copy Sequence" %}</span>
                     </button>
                 </div>
                 <textarea id="raw-protein-seq" class="d-none">{{ protein.seq }}</textarea>
@@ -528,8 +529,9 @@
                                 <button
                                     id="reset-feature-zoom-btn"
                                     type="button"
-                                    class="btn tp-btn tp-btn--outline tp-btn--sm features-reset-btn">
-                                    {% trans "Reset zoom" %}
+                                    class="btn tp-btn tp-btn--outline tp-btn--sm tp-btn-with-icon features-reset-btn">
+                                    <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/refresh.html" %}</span>
+                                    <span>{% trans "Reset zoom" %}</span>
                                 </button>
                             {% endif %}
                         </div>
@@ -591,7 +593,7 @@
                                     title="{% trans 'Switch structure' %}">
                                 <span class="structure-picker-label" id="structure-picker-label">{{ primary_structure_label }}</span>
                                 {% if primary_structure_detail_label %}<span class="structure-picker-detail" id="structure-picker-detail">{{ primary_structure_detail_label }}</span>{% endif %}
-                                <svg class="structure-picker-chevron" viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 1l4 4 4-4"/></svg>
+                                <span class="structure-picker-chevron" aria-hidden="true">{% include "components/icons/chevron_down.html" %}</span>
                             </button>
                             <ul class="structure-picker-menu" id="structure-picker-menu" role="listbox" hidden>
                                 <li class="structure-picker-item is-active" role="option" aria-selected="true" data-slot="primary">
@@ -606,16 +608,16 @@
                         </div>
                         {% endif %}
                         <a href="{% url "tpwebapp:structure_export" structure.id %}"
-                           class="btn tp-btn tp-btn--neutral tp-btn--md structure-action-btn structure-download-btn"
-                           title="{% trans 'Download a visualization script for VMD (Visual Molecular Dynamics), free software to view the 3D structure with pocket overlays — vmd.ks.uiuc.edu' %}">{% trans "Download VMD script" %}</a>
+                           class="btn tp-btn tp-btn--neutral tp-btn--md tp-btn-with-icon structure-action-btn structure-download-btn"
+                           title="{% trans 'Download a visualization script for VMD (Visual Molecular Dynamics), free software to view the 3D structure with pocket overlays — vmd.ks.uiuc.edu' %}">
+                            <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/download.html" %}</span>
+                            <span>{% trans "Download VMD script" %}</span>
+                        </a>
                         <a href="{% url "tpwebapp:structure" structure.id %}?protein_id={{ protein.id }}"
-                           class="btn tp-btn tp-btn--primary tp-btn--md structure-action-btn structure-fullscreen-link"
+                           class="btn tp-btn tp-btn--primary tp-btn--md tp-btn-with-icon structure-action-btn structure-fullscreen-link"
                            title="{% trans 'Open the dedicated full-screen 3D viewer with pocket overlays' %}">
-                            <svg class="structure-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" focusable="false">
-                                <path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/>
-                                <path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/>
-                            </svg>
-                            {% trans "Full viewer" %}
+                            <span class="tp-btn-icon structure-icon" aria-hidden="true">{% include "components/icons/maximize.html" %}</span>
+                            <span>{% trans "Full viewer" %}</span>
                         </a>
                     </div>
                     {% if structure and not structure.pockets and not structure.p2_pockets and not alt_structure.pockets and not alt_structure.p2_pockets %}
@@ -808,7 +810,10 @@
                                         <span class="binder-card-actions">
                                             <a href="{% url 'tpwebapp:binder_detail' binder_id=binders.summary.best.id %}" class="btn tp-btn tp-btn--outline tp-btn--sm binder-card-action">{% trans "Open detail" %}</a>
                                             {% if binders.summary.best.external_url %}
-                                            <a href="{{ binders.summary.best.external_url }}" class="btn tp-btn tp-btn--neutral tp-btn--sm binder-card-action binder-card-action--external" target="_blank" rel="noopener noreferrer">{{ binders.summary.best.external_label }}</a>
+                                            <a href="{{ binders.summary.best.external_url }}" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-btn-with-icon binder-card-action binder-card-action--external" target="_blank" rel="noopener noreferrer">
+                                                <span>{{ binders.summary.best.external_label }}</span>
+                                                <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/external_link.html" %}</span>
+                                            </a>
                                             {% endif %}
                                         </span>
                                     </div>
@@ -829,7 +834,10 @@
                                     <span class="binder-card-actions binder-card-actions--mini">
                                         <a href="{% url 'tpwebapp:binder_detail' binder_id=ligand.id %}" class="btn tp-btn tp-btn--outline tp-btn--sm binder-card-action">{% trans "Detail" %}</a>
                                         {% if ligand.external_url %}
-                                        <a href="{{ ligand.external_url }}" class="btn tp-btn tp-btn--neutral tp-btn--sm binder-card-action binder-card-action--external" target="_blank" rel="noopener noreferrer">{{ ligand.external_label }}</a>
+                                        <a href="{{ ligand.external_url }}" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-btn-with-icon binder-card-action binder-card-action--external" target="_blank" rel="noopener noreferrer">
+                                            <span>{{ ligand.external_label }}</span>
+                                            <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/external_link.html" %}</span>
+                                        </a>
                                         {% endif %}
                                     </span>
                                 </div>
@@ -850,7 +858,10 @@
                         {% if binders.search_query %}
                             <a href="?#section-binders" class="binders-search__clear" aria-label="{% trans 'Clear search' %}">&times;</a>
                         {% endif %}
-                        <button type="submit" class="btn tp-btn tp-btn--primary binders-search__submit">{% trans "Search" %}</button>
+                        <button type="submit" class="btn tp-btn tp-btn--primary tp-btn-with-icon binders-search__submit">
+                            <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/search.html" %}</span>
+                            <span>{% trans "Search" %}</span>
+                        </button>
                     </form>
 
                     <div class="binders-tabs" role="tablist" data-binders-tabs>
@@ -984,9 +995,12 @@
                 <div class="residue-modal-actions">
                     <button type="button"
                             id="copy-residue-list"
-                            class="btn tp-btn tp-btn--outline tp-btn--sm"
+                            class="btn tp-btn tp-btn--outline tp-btn--sm tp-btn-with-icon"
                             data-default-label="{% trans "Copy positions" %}"
-                            data-copied-label="{% trans "Copied" %}">{% trans "Copy positions" %}</button>
+                            data-copied-label="{% trans "Copied" %}">
+                        <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/copy.html" %}</span>
+                        <span data-copy-label>{% trans "Copy positions" %}</span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -1009,7 +1023,7 @@
 {% block jsloaded %}
     {{ graphic_features|json_script:"seqfeatures" }}
 
-    <script src="{% static 'js/pages/protein-detail.js' %}?v=20260605-1"></script>
+    <script src="{% static 'js/pages/protein-detail.js' %}?v=20260725-action-semantics"></script>
     <script src="{% static 'js/pages/pocket-inspector.js' %}?v=20260720-residuecount1"></script>
     <script src="{% static 'js/pages/ngl-shape-registry.js' %}?v=20260720-shaperegistry1"></script>
     <script>

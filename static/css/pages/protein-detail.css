@@ -615,9 +615,9 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 .protein-interpretation-guide summary {
     display: flex;
     align-items: center;
-    justify-content: space-between;
     gap: var(--tp-space-3);
     cursor: pointer;
+    list-style: none;
     color: var(--protein-accent-ink);
     font-family: "Space Grotesk", "Segoe UI", sans-serif;
     font-size: var(--tp-font-size-sm);
@@ -626,14 +626,53 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 }
 
 .protein-guide-count {
+    margin-left: auto;
     color: var(--tp-color-text-muted);
     font-family: "Source Sans 3", "Segoe UI", sans-serif;
     font-size: var(--tp-font-label);
     font-weight: 600;
 }
 
-.protein-interpretation-guide summary::marker {
-    color: var(--protein-accent);
+.protein-interpretation-guide summary::-webkit-details-marker,
+.structure-color-guide-title::-webkit-details-marker {
+    display: none;
+}
+
+.protein-interpretation-guide summary::marker,
+.structure-color-guide-title::marker {
+    content: "";
+}
+
+.protein-interpretation-guide summary::after,
+.structure-color-guide-title::after {
+    content: "";
+    flex: 0 0 auto;
+    width: var(--tp-chevron-size);
+    height: var(--tp-chevron-size);
+    border-right: var(--tp-chevron-stroke) solid currentColor;
+    border-bottom: var(--tp-chevron-stroke) solid currentColor;
+    transform: rotate(45deg);
+    transform-origin: center;
+    color: var(--tp-color-text-muted);
+    opacity: var(--tp-chevron-opacity);
+    transition: transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.protein-interpretation-guide[open] summary::after,
+.structure-color-guide[open] .structure-color-guide-title::after {
+    transform: rotate(-135deg);
+}
+
+.protein-interpretation-guide summary:focus-visible,
+.structure-color-guide-title:focus-visible {
+    outline: 2px solid var(--protein-accent-border);
+    outline-offset: 4px;
+    border-radius: 4px;
+}
+
+.protein-interpretation-guide summary:hover,
+.structure-color-guide-title:hover {
+    color: var(--protein-accent-ink);
 }
 
 .protein-guide-grid {
@@ -955,10 +994,14 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
                 color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
 }
 
-.data-details > summary:focus,
-.data-details > summary:focus-visible {
+.data-details > summary:focus {
     outline: none;
     box-shadow: none;
+}
+
+.data-details > summary:focus-visible {
+    outline: none;
+    box-shadow: inset 0 0 0 2px var(--protein-accent-border);
 }
 
 .data-details > summary:hover {
@@ -991,6 +1034,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     color: var(--tp-color-text-muted);
     opacity: var(--tp-chevron-opacity);
     margin-left: auto;
+    transition: transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
 }
 
 .data-details[open] > summary::after {
@@ -1633,13 +1677,20 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 }
 
 .structure-color-guide-title {
+    display: flex;
+    align-items: center;
+    gap: var(--tp-space-3);
     cursor: pointer;
-    list-style-position: outside;
+    list-style: none;
     font-size: var(--tp-font-label);
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--tp-color-text-muted);
+}
+
+.structure-color-guide-title::after {
+    margin-left: auto;
 }
 
 .structure-color-guide[open] .structure-color-guide-title {
@@ -1783,11 +1834,20 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 }
 
 .structure-picker-chevron {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     width: 10px;
     height: 6px;
     flex-shrink: 0;
     opacity: 0.6;
     transition: transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.structure-picker-chevron svg {
+    display: block;
+    width: 14px;
+    height: 14px;
 }
 
 .structure-picker-btn[aria-expanded="true"] .structure-picker-chevron {
@@ -1863,15 +1923,9 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 }
 
 .structure-icon {
-    width: 25px;
-    height: 25px;
-    display: block;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 2.2;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    margin: 0 auto;
+    width: 16px;
+    height: 16px;
+    margin: 0;
 }
 
 .structure-fullscreen-link {
@@ -2276,10 +2330,9 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     padding-inline: var(--tp-space-2);
 }
 
-.binder-card-action--external::after {
-    content: "↗";
-    margin-left: 4px;
-    font-size: var(--tp-font-label);
+.binder-card-action--external .tp-btn-icon {
+    width: 0.88rem;
+    height: 0.88rem;
 }
 
 .binder-tbl__name-main {
@@ -3385,7 +3438,11 @@ body.residue-modal-open {
     .quick-nav,
     .protein-card,
     .binder-card,
-    .quick-nav a {
+    .quick-nav a,
+    .data-details > summary::after,
+    .protein-interpretation-guide summary::after,
+    .structure-color-guide-title::after,
+    .structure-picker-chevron {
         animation: none !important;
         transition: none !important;
     }
