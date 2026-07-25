@@ -625,14 +625,6 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     line-height: 1.2;
 }
 
-.protein-guide-count {
-    margin-left: auto;
-    color: var(--tp-color-text-muted);
-    font-family: "Source Sans 3", "Segoe UI", sans-serif;
-    font-size: var(--tp-font-label);
-    font-weight: 600;
-}
-
 .protein-interpretation-guide summary::-webkit-details-marker,
 .structure-color-guide-title::-webkit-details-marker {
     display: none;

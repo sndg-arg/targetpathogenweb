@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260725-action-semantics">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260725-followup1">
 {% endblock %}
 
 {% block body %}
@@ -168,7 +168,7 @@
         {% endif %}
 
         <nav class="quick-nav" aria-label="{% trans "Protein sections" %}">
-            <a href="#section-overview" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Identity" %}</a>
+            <a href="#section-overview" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Overview" %}</a>
             {% if target_profile or selected_pocket_evidence or conservation_profile or microbiome_context %}<a href="#section-target-profile" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Prioritization" %}</a>{% endif %}
             {% if metabolic_context %}<a href="#section-metabolic-context" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Metabolism" %}</a>{% endif %}
             <a href="#section-sequence" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Sequence" %}</a>
@@ -184,7 +184,6 @@
         <details class="protein-interpretation-guide tp-ui-panel">
             <summary>
                 <span>{% trans "Terms and data sources used on this page" %}</span>
-                <span class="protein-guide-count">{% trans "16 definitions" %}</span>
             </summary>
             <div class="protein-guide-grid">
                 <p><strong>{% trans "PDB" %}</strong>: {% trans "experimentally determined structures from the Protein Data Bank. These are the strongest structural evidence, but may cover only part of the protein." %}</p>

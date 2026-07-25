@@ -56,53 +56,6 @@ def _short_method(method_str):
     return method_str or "—"
 
 
-def _structure_toggle_detail(link, protein_length=None):
-    """Return (label, detail) for a structure source toggle button.
-
-    For experimental PDB: 'PDB XXXX' + '99% · 1.85 Å'.
-    For predicted models: model name + coverage hint.
-    """
-    pdb = link.pdb
-    experiment = (getattr(pdb, "experiment", "") or "").upper()
-    start = getattr(link, "uniprot_start", None)
-    end = getattr(link, "uniprot_end", None)
-
-    def _coverage_pct():
-        if start is not None and end is not None and protein_length:
-            return (end - start + 1) / protein_length * 100
-        return None
-
-    if experiment == "EX":
-        code = (getattr(pdb, "code", "") or "").upper()
-        resolution = getattr(link, "resolution", None)
-        label = f"PDB {code}" if code else "Crystal structure"
-        parts = []
-        pct = _coverage_pct()
-        if pct is not None:
-            parts.append(f"{pct:.0f}%")
-        resolution_label = _format_resolution(resolution)
-        if resolution_label != "—":
-            parts.append(resolution_label)
-        detail = " · ".join(parts)
-        return label, detail
-
-    if experiment == "CF":
-        label = "ColabFold model"
-    elif experiment == "AF":
-        label = "AlphaFold DB model"
-    else:
-        label = _structure_toggle_label(experiment)
-
-    pct = _coverage_pct()
-    if pct is not None:
-        detail = f"{pct:.0f}% coverage"
-    elif start is None and end is None:
-        detail = "full sequence"
-    else:
-        detail = ""
-    return label, detail
-
-
 def _has_pocket_data(pdb_obj):
     return PDBResidueSet.objects.filter(
         pdb=pdb_obj,
@@ -126,8 +79,9 @@ def _format_resolution(value):
     try:
         v = float(value)
         # PDB.resolution historically defaults to 20 when no experimental
-        # resolution was imported. Treat that sentinel as unavailable.
-        if v <= 0 or v == 20:
+        # resolution was imported. Treat that sentinel (and other
+        # out-of-range values) as unavailable.
+        if v <= 0 or v == 20 or v > 100:
             return "—"
         return f"{v:.2f} Å"
     except (TypeError, ValueError):
@@ -239,7 +193,7 @@ def _viewer_structure_payload(link, protein_length):
     details = []
     if coverage.get("has_positions"):
         details.append(coverage["coverage_label"])
-    if resolution != "-":
+    if resolution != "—":
         details.append(resolution)
 
     return {
