@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20260723-specfix1">
+    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20260725-action-icons1">
 {% endblock %}
 
 {% block body %}
@@ -146,7 +146,10 @@
                              hidden></div>
                     </div>
                     <div class="toolbar-search-actions tp-ui-search-actions tp-ui-group">
-                        <button type="submit" class="btn tp-btn tp-btn--primary" id="protein-search-submit">{% trans "Search" %}</button>
+                        <button type="submit" class="btn tp-btn tp-btn--primary tp-btn-with-icon" id="protein-search-submit">
+                            <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/search.html" %}</span>
+                            <span>{% trans "Search" %}</span>
+                        </button>
                         {% trans "Clear search" as clear_search_label %}
                         {% if search_query %}
                             {% include "components/buttons/clear_action.html" with label=clear_search_label href=clear_search_url %}
@@ -183,7 +186,8 @@
                             <div class="toolbar-workbench__group toolbar-workbench__group--primary" aria-label="{% trans 'Filtering and ranking' %}">
                                 {% if filter_presets %}
                                 <div class="toolbar-filter-split" id="toolbar-presets-wrap">
-                                    <button type="button" class="toolbar-filter-split__main" id="open-filters-btn">
+                                    <button type="button" class="toolbar-filter-split__main tp-btn-with-icon" id="open-filters-btn">
+                                        <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/filter.html" %}</span>
                                         <span class="toolbar-action-btn__title">{% trans "Filters" %}</span>
                                         <span class="toolbar-action-btn__meta">
                                             {% if active_preset_name %}
@@ -202,6 +206,7 @@
                                             aria-expanded="false"
                                             title="{% trans 'Saved presets' %}">
                                         <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 2.5h10a.5.5 0 0 1 .5.5v10.3a.3.3 0 0 1-.47.25L8 10.5l-5.03 3.05A.3.3 0 0 1 2.5 13.3V3a.5.5 0 0 1 .5-.5z"/></svg>
+                                        <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/chevron_down.html" %}</span>
                                         {% if active_preset_name %}<span class="toolbar-filter-split__dot" aria-hidden="true"></span>{% endif %}
                                     </button>
                                     <div class="toolbar-presets-dropdown" id="toolbar-presets-dropdown" hidden>
@@ -242,12 +247,16 @@
                                             {% endfor %}
                                         </ul>
                                         <div class="tpd-foot">
-                                            <button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm tpd-open-drawer-btn" id="tpd-open-drawer-btn">{% trans "Save a new preset in Filters →" %}</button>
+                                            <button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm tp-btn-with-icon tpd-open-drawer-btn" id="tpd-open-drawer-btn">
+                                                <span>{% trans "Save a new preset in Filters" %}</span>
+                                                <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/arrow_right.html" %}</span>
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
                                 {% else %}
-                                <button type="button" class="btn tp-btn tp-btn--neutral toolbar-action-btn toolbar-action-btn--primary" id="open-filters-btn">
+                                <button type="button" class="btn tp-btn tp-btn--neutral tp-btn-with-icon toolbar-action-btn toolbar-action-btn--primary" id="open-filters-btn">
+                                    <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/filter.html" %}</span>
                                     <span class="toolbar-action-btn__title">{% trans "Filters" %}</span>
                                     <span class="toolbar-action-btn__meta">
                                         {% if selection_criteria_count %}
@@ -259,7 +268,8 @@
                                 </button>
                                 {% endif %}
                                 {% if formulas %}
-                                    <button type="button" class="btn tp-btn tp-btn--neutral toolbar-action-btn toolbar-action-btn--primary{% if not formula_active %} toolbar-action-btn--cta{% endif %}" id="open-formula-btn">
+                                    <button type="button" class="btn tp-btn tp-btn--neutral tp-btn-with-icon toolbar-action-btn toolbar-action-btn--primary{% if not formula_active %} toolbar-action-btn--cta{% endif %}" id="open-formula-btn">
+                                        <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/calculator.html" %}</span>
                                         <span class="toolbar-action-btn__title">{% trans "Scoring" %}</span>
                                         <span class="toolbar-action-btn__meta">
                                             {% if formula_active %}{{ formula.name }}{% else %}{% trans "Combine criteria →" %}{% endif %}
@@ -268,7 +278,8 @@
                                 {% endif %}
                             </div>
                             <div class="toolbar-workbench__group toolbar-workbench__group--secondary" aria-label="{% trans 'Table display' %}">
-                                <button type="button" class="btn tp-btn tp-btn--neutral toolbar-action-btn toolbar-action-btn--secondary" id="open-columns-btn">
+                                <button type="button" class="btn tp-btn tp-btn--neutral tp-btn-with-icon toolbar-action-btn toolbar-action-btn--secondary" id="open-columns-btn">
+                                    <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/columns.html" %}</span>
                                     <span class="toolbar-action-btn__title">{% trans "Columns" %}</span>
                                     <span class="toolbar-action-btn__meta">{% blocktrans count total=selected_column_count %}{{ total }} visible{% plural %}{{ total }} visible{% endblocktrans %}</span>
                                 </button>
@@ -313,7 +324,10 @@
                 {% csrf_token %}
                 <input type="hidden" name="action" value="reset_filters">
                 <input type="hidden" name="return_query" value="{{ query_string }}">
-                <button type="submit" class="btn tp-btn tp-btn--clear tp-btn--clear-caution filter-tray-clear-btn">{% trans "Clear all" %}</button>
+                <button type="submit" class="btn tp-btn tp-btn--clear tp-btn--clear-caution tp-btn-with-icon filter-tray-clear-btn">
+                    <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/trash.html" %}</span>
+                    <span>{% trans "Clear all" %}</span>
+                </button>
             </form>
         </section>
         {% endif %}
@@ -338,11 +352,17 @@
                             {% csrf_token %}
                             <input type="hidden" name="action" value="reset_filters">
                             <input type="hidden" name="return_query" value="{{ query_string }}">
-                            <button type="submit" class="btn tp-btn tp-btn--outline">{% trans "Clear all filters" %}</button>
+                            <button type="submit" class="btn tp-btn tp-btn--outline tp-btn-with-icon">
+                                <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/trash.html" %}</span>
+                                <span>{% trans "Clear all filters" %}</span>
+                            </button>
                         </form>
                         {% endif %}
                         {% if search_query %}
-                        <a href="{{ clear_search_url }}" class="btn tp-btn tp-btn--outline">{% trans "Clear search" %}</a>
+                        <a href="{{ clear_search_url }}" class="btn tp-btn tp-btn--outline tp-btn-with-icon">
+                            <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/x.html" %}</span>
+                            <span>{% trans "Clear search" %}</span>
+                        </a>
                         {% endif %}
                     </div>
                     {% endif %}
@@ -645,7 +665,10 @@
                 <span class="drawer-catalogue-count">
                     {% blocktrans count total=filter_groups_total_options %}{{ total }} criterion across {{ filter_groups|length }} categories{% plural %}{{ total }} criteria across {{ filter_groups|length }} categories{% endblocktrans %}
                 </span>
-                <button type="button" class="btn tp-btn tp-btn--clear drawer-catalogue-toggle" id="filter-expand-all" data-expand-all="false">{% trans "Expand all" %}</button>
+                <button type="button" class="btn tp-btn tp-btn--clear tp-btn-with-icon drawer-catalogue-toggle" id="filter-expand-all" data-expand-all="false">
+                    <span data-expand-all-label>{% trans "Expand all" %}</span>
+                    <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/chevron_down.html" %}</span>
+                </button>
             </div>
 
             <div class="drawer-filter-catalogue" id="drawer-filter-catalogue">
@@ -711,7 +734,9 @@
                                                aria-label="{% trans 'EC code (e.g. 1.1.1.1)' %}"
                                                pattern="^[0-9]+(\.[0-9]+){0,3}$"
                                                autocomplete="off">
-                                        <button type="submit" class="btn tp-btn tp-btn--primary filter-text-add">{% trans "Add" %}</button>
+                                        <button type="submit" class="btn tp-btn tp-btn--primary tp-btn-with-icon filter-text-add">
+                                            <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/plus.html" %}</span><span>{% trans "Add" %}</span>
+                                        </button>
                                     </form>
                                     {% if group.ec_specific_active %}
                                         <div class="filter-chip-group filter-chip-group--active">
@@ -746,7 +771,9 @@
                                                placeholder="GO:0008270"
                                                aria-label="{% trans 'GO term (e.g. GO:0008270)' %}"
                                                autocomplete="off">
-                                        <button type="submit" class="btn tp-btn tp-btn--primary filter-text-add">{% trans "Add" %}</button>
+                                        <button type="submit" class="btn tp-btn tp-btn--primary tp-btn-with-icon filter-text-add">
+                                            <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/plus.html" %}</span><span>{% trans "Add" %}</span>
+                                        </button>
                                     </form>
                                     {% if group.go_active %}
                                         <div class="filter-chip-group filter-chip-group--active">
@@ -772,6 +799,35 @@
                                         <span aria-hidden="true">→</span>
                                     </a>
                                 {% endif %}
+                            {% elif group.is_ligand_filter %}
+                                <div class="filter-param" data-filter-param data-search-text="ligand evidence binders pdb chembl zinc">
+                                    <div class="filter-param-head">
+                                        <span class="filter-param-label">{% trans "Ligand evidence" %}</span>
+                                    </div>
+                                    <div class="filter-chip-group">
+                                        {% for option in group.ligand_options %}
+                                            <form method="POST" action="" class="filter-chip-form">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="return_query" value="{{ query_string }}">
+                                                {% if option.active %}
+                                                    <input type="hidden" name="action" value="remove_filter">
+                                                    <input type="hidden" name="filter_option_id" value="{{ option.id }}">
+                                                {% else %}
+                                                    <input type="hidden" name="action" value="add_special_filter">
+                                                    <input type="hidden" name="special_kind" value="ligands">
+                                                    <input type="hidden" name="special_value" value="{{ option.value }}">
+                                                {% endif %}
+                                                <button type="submit"
+                                                        class="filter-chip {% if option.active %}filter-chip--active{% endif %}"
+                                                        data-server-active="{{ option.active|yesno:'true,false' }}"
+                                                        aria-pressed="{% if option.active %}true{% else %}false{% endif %}">
+                                                    <span class="filter-chip-label">{{ option.label }}</span>
+                                                    {% if option.active %}<span class="filter-chip-glyph" aria-hidden="true">&times;</span>{% endif %}
+                                                </button>
+                                            </form>
+                                        {% endfor %}
+                                    </div>
+                                </div>
                             {% else %}
                                 {% for param in group.params %}
                                     <div class="filter-param" data-filter-param data-search-text="{{ param.search_text }}">
@@ -812,7 +868,9 @@
                                                         <span class="filter-numeric-field-label">{% trans "Upper bound" %}</span>
                                                         <input type="text" inputmode="decimal" name="value_max" class="filter-numeric-input" placeholder="{{ param.placeholder_max }}" aria-label="{% trans 'Upper bound' %}">
                                                     </label>
-                                                    <button type="submit" class="btn tp-btn tp-btn--primary filter-numeric-apply">{% trans "Apply" %}</button>
+                                                    <button type="submit" class="btn tp-btn tp-btn--primary tp-btn-with-icon filter-numeric-apply">
+                                                        <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/check.html" %}</span><span>{% trans "Apply" %}</span>
+                                                    </button>
                                                 </div>
                                                 <p class="filter-numeric-message" aria-live="polite"></p>
                                             </form>
@@ -896,7 +954,10 @@
                         <input type="hidden" name="pending_annotation_kind" value="{% if annotation_filter %}{{ annotation_filter.kind }}{% endif %}">
                         <input type="hidden" name="pending_annotation_value" value="{% if annotation_filter %}{{ annotation_filter.value }}{% endif %}">
                         <input type="text" name="preset_name" class="filter-preset-name-input" placeholder="{% trans 'Name this selection…' %}" autocomplete="off" required>
-                        <button type="submit" class="btn tp-btn tp-btn--neutral filter-preset-save-btn">{% trans "Save" %}</button>
+                        <button type="submit" class="btn tp-btn tp-btn--neutral tp-btn-with-icon filter-preset-save-btn">
+                            <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/save.html" %}</span>
+                            <span>{% trans "Save" %}</span>
+                        </button>
                     </form>
                 </div>
             </section>
@@ -925,7 +986,10 @@
                     <span class="filter-pending-summary__count" id="filter-pending-count">0</span>
                     <span>{% trans "pending changes" %}</span>
                 </div>
-                <button type="submit" form="filters-apply-form" class="btn tp-btn tp-btn--primary drawer-done-btn" id="filters-apply-btn" disabled>{% trans "Apply filters" %}</button>
+                <button type="submit" form="filters-apply-form" class="btn tp-btn tp-btn--primary tp-btn-with-icon drawer-done-btn" id="filters-apply-btn" disabled>
+                    <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/check.html" %}</span>
+                    <span>{% trans "Apply filters" %}</span>
+                </button>
             </div>
         </div>
     </aside>
@@ -1052,9 +1116,15 @@
                 {% csrf_token %}
                 <input type="hidden" name="action" value="reset_columns">
                 <input type="hidden" name="return_query" value="{{ query_string }}">
-                <button type="submit" class="btn tp-btn tp-btn--clear columns-restore-link">{% trans "Restore defaults" %}</button>
+                <button type="submit" class="btn tp-btn tp-btn--clear tp-btn-with-icon columns-restore-link">
+                    <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/refresh.html" %}</span>
+                    <span>{% trans "Restore defaults" %}</span>
+                </button>
             </form>
-            <button class="btn tp-btn tp-btn--primary drawer-done-btn" type="submit" form="columns-form">{% trans "Apply" %}</button>
+            <button class="btn tp-btn tp-btn--primary tp-btn-with-icon drawer-done-btn" type="submit" form="columns-form">
+                <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/check.html" %}</span>
+                <span>{% trans "Apply" %}</span>
+            </button>
         </div>
     </aside>
 
@@ -1757,7 +1827,10 @@
                 });
                 if (filterExpandAllBtn) {
                     filterExpandAllBtn.setAttribute("data-expand-all", expanded ? "true" : "false");
-                    filterExpandAllBtn.textContent = expanded ? "{% trans 'Collapse all' %}" : "{% trans 'Expand all' %}";
+                    const expandLabel = filterExpandAllBtn.querySelector("[data-expand-all-label]");
+                    if (expandLabel) {
+                        expandLabel.textContent = expanded ? "{% trans 'Collapse all' %}" : "{% trans 'Expand all' %}";
+                    }
                 }
             }
 

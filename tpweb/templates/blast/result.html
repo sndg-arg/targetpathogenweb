@@ -27,7 +27,10 @@
         <div class="blast-card">
             <div class="blast-result-head">
                 <h2>{% trans "Alignment output" %}</h2>
-                <a class="btn tp-btn tp-btn--neutral" href="{% url 'tpwebapp:form' %}">{% trans "Run another search" %}</a>
+                <a class="btn tp-btn tp-btn--neutral tp-btn-with-icon" href="{% url 'tpwebapp:form' %}">
+                    <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/refresh.html" %}</span>
+                    <span>{% trans "Run another search" %}</span>
+                </a>
             </div>
             <pre class="blast-result-pre">{{ result }}</pre>
         </div>

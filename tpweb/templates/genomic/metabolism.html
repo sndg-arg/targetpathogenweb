@@ -107,13 +107,19 @@
                     </div>
 
                     <div class="metabolism-card-actions">
-                        <a href="{% url 'tpwebapp:genome_metabolism_pathway' genome=assembly.slug source=pathway.source external_id=pathway.external_id %}" class="btn tp-btn tp-btn--outline tp-btn--sm">{% trans "Open pathway map" %}</a>
+                        <a href="{% url 'tpwebapp:genome_metabolism_pathway' genome=assembly.slug source=pathway.source external_id=pathway.external_id %}" class="btn tp-btn tp-btn--outline tp-btn--sm tp-btn-with-icon">
+                            <span>{% trans "Open pathway map" %}</span>
+                            <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/arrow_right.html" %}</span>
+                        </a>
                         <form method="post" action="{{ proteins_url }}" class="metabolism-pathway-filter-form">
                             {% csrf_token %}
                             <input type="hidden" name="action" value="add_special_filter">
                             <input type="hidden" name="special_kind" value="pathway">
                             <input type="hidden" name="special_value" value="{{ pathway.source }}:{{ pathway.external_id }}">
-                            <button type="submit" class="btn tp-btn tp-btn--outline tp-btn--sm" title="{% trans "Show only proteins with a reaction in this pathway on the protein list." %}">{% trans "Filter protein list by this pathway" %}</button>
+                            <button type="submit" class="btn tp-btn tp-btn--outline tp-btn--sm tp-btn-with-icon" title="{% trans "Show only proteins with a reaction in this pathway on the protein list." %}">
+                                <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/filter.html" %}</span>
+                                <span>{% trans "Filter protein list by this pathway" %}</span>
+                            </button>
                         </form>
                     </div>
                     {% if pathway.top_targets %}

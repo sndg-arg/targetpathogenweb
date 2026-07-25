@@ -39,7 +39,10 @@
                         {% blocktrans with accession=test_genome_accession %}Use test genome {{ accession }}{% endblocktrans %}
                     </button>
                 </form>
-                <a href="{% url 'tpwebapp:genomes_list' %}" class="btn tp-btn tp-btn--outline">{% trans "Browse genomes" %}</a>
+                <a href="{% url 'tpwebapp:genomes_list' %}" class="btn tp-btn tp-btn--outline tp-btn-with-icon">
+                    <span>{% trans "Browse genomes" %}</span>
+                    <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/arrow_right.html" %}</span>
+                </a>
             </div>
         </section>
 
@@ -286,14 +289,17 @@
                                 <p class="genome-upload-submit-note">{% trans "Validate first to confirm the genome, TSV columns, archive layout, protein matching, structure directory, and LigQ_2 ligand-evidence output before writing anything." %}</p>
                             </div>
                             <div class="tp-ui-actions genome-upload-actions">
-                                <button type="submit" class="btn tp-btn tp-btn--outline" onclick="document.getElementById('external-import-action').value='validate_external_import';">
-                                    {% trans "Validate import" %}
+                                <button type="submit" class="btn tp-btn tp-btn--outline tp-btn-with-icon" onclick="document.getElementById('external-import-action').value='validate_external_import';">
+                                    <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/check.html" %}</span>
+                                    <span>{% trans "Validate import" %}</span>
                                 </button>
-                                <button type="submit" class="btn tp-btn tp-btn--secondary" onclick="document.getElementById('external-import-action').value='run_external_import';">
-                                    {% trans "Run import" %}
+                                <button type="submit" class="btn tp-btn tp-btn--secondary tp-btn-with-icon" onclick="document.getElementById('external-import-action').value='run_external_import';">
+                                    <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/play.html" %}</span>
+                                    <span>{% trans "Run import" %}</span>
                                 </button>
-                                <button type="submit" class="btn tp-btn tp-btn--primary" onclick="document.getElementById('external-import-action').value='run_curated_file_pipeline';">
-                                    {% trans "Run curated flow" %}
+                                <button type="submit" class="btn tp-btn tp-btn--primary tp-btn-with-icon" onclick="document.getElementById('external-import-action').value='run_curated_file_pipeline';">
+                                    <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/play.html" %}</span>
+                                    <span>{% trans "Run curated flow" %}</span>
                                 </button>
                             </div>
                         </div>
@@ -446,7 +452,10 @@
                                         {% csrf_token %}
                                         <input type="hidden" name="action" value="retry_curated_import">
                                         <input type="hidden" name="curated_import_job_id" value="{{ job.id }}">
-                                        <button type="submit" class="btn tp-btn tp-btn--outline btn-sm">{% trans "Retry" %}</button>
+                                        <button type="submit" class="btn tp-btn tp-btn--outline btn-sm tp-btn-with-icon">
+                                            <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/refresh.html" %}</span>
+                                            <span>{% trans "Retry" %}</span>
+                                        </button>
                                     </form>
                                 {% else %}
                                     <span class="text-muted">{% trans "None" %}</span>
@@ -480,8 +489,9 @@
                                accept=".tsv,.csv,.tar.gz,.gz,.tar,.txt,.json">
                         <p class="genome-upload-field-help">{% trans "Accepted: .tsv, .csv, .tar.gz, .json" %}</p>
                     </div>
-                    <button class="btn tp-btn tp-btn--primary" type="submit" id="data-file-upload-btn">
-                        {% trans "Upload file" %}
+                    <button class="btn tp-btn tp-btn--primary tp-btn-with-icon" type="submit" id="data-file-upload-btn">
+                        <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/upload.html" %}</span>
+                        <span>{% trans "Upload file" %}</span>
                     </button>
                 </form>
                 <div id="data-file-upload-result" class="genome-upload-import-result genome-upload-import-result--hidden">

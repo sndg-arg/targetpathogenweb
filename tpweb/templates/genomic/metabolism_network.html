@@ -116,7 +116,10 @@
                             <span class="metabolic-network-genome-score-bar"><span class="metabolic-network-genome-score-fill" data-field="score-bar"></span></span>
                         </dd>
                     </dl>
-                    <a href="#" class="btn tp-btn tp-btn--outline tp-btn--sm" id="metabolic-network-genome-open-map" hidden>{% trans "Open full pathway map" %} &rarr;</a>
+                    <a href="#" class="btn tp-btn tp-btn--outline tp-btn--sm tp-btn-with-icon" id="metabolic-network-genome-open-map" hidden>
+                        <span>{% trans "Open full pathway map" %}</span>
+                        <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/arrow_right.html" %}</span>
+                    </a>
                 </aside>
             </div>
         </div>

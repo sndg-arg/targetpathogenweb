@@ -62,7 +62,10 @@
 
                     <div class="customparam-actions">
                         {% if file_exists %}
-                            <button type="button" class="btn tp-btn tp-btn--danger" onclick="confirmOverwrite()">{% trans "Replace existing file" %}</button>
+                            <button type="button" class="btn tp-btn tp-btn--danger tp-btn-with-icon" onclick="confirmOverwrite()">
+                                <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/refresh.html" %}</span>
+                                <span>{% trans "Replace existing file" %}</span>
+                            </button>
                         {% else %}
                             <button type="submit" class="btn tp-btn tp-btn--primary tp-btn-with-icon">
                                 <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/upload.html" %}</span>

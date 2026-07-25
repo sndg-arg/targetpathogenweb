@@ -28,7 +28,10 @@
                         <input type="hidden" name="action" value="add_special_filter">
                         <input type="hidden" name="special_kind" value="pathway">
                         <input type="hidden" name="special_value" value="{{ pathway.source }}:{{ pathway.external_id }}">
-                        <button type="submit" class="btn tp-btn tp-btn--primary" title="{% trans "Show only proteins with a reaction in this pathway on the protein list." %}">{% trans "Filter protein list by this pathway" %}</button>
+                        <button type="submit" class="btn tp-btn tp-btn--primary tp-btn-with-icon" title="{% trans "Show only proteins with a reaction in this pathway on the protein list." %}">
+                            <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/filter.html" %}</span>
+                            <span>{% trans "Filter protein list by this pathway" %}</span>
+                        </button>
                     </form>
                 </div>
             </div>

@@ -45,8 +45,12 @@
                         <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="{{p.name}}_lbl" data-layer-label="{% trans 'Residue labels' %}" aria-pressed="false" title="{% trans 'Show residue labels for this pocket.' %}">{% trans "Residue labels" %}</button>
                     </div>
                     <div class="pocket-card-actions">
-                        <button type="button" class="btn tp-btn tp-btn--clear tp-btn--sm" onclick="ngl_zoom_to('{{p.name}}_zoom')" title="{% trans 'Center the 3D view on this pocket.' %}">{% trans "Center view" %}</button>
-                        <button type="button" class="btn tp-btn tp-btn--clear tp-btn--sm js-show-residues" data-residues="{{ p.residues|join:' ' }}" title="{% trans 'List residues assigned to this pocket.' %}">{% trans "List residues" %}</button>
+                        <button type="button" class="btn tp-btn tp-btn--clear tp-btn--sm tp-btn-with-icon" onclick="ngl_zoom_to('{{p.name}}_zoom')" title="{% trans 'Center the 3D view on this pocket.' %}">
+                            <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/target.html" %}</span><span>{% trans "Center view" %}</span>
+                        </button>
+                        <button type="button" class="btn tp-btn tp-btn--clear tp-btn--sm tp-btn-with-icon js-show-residues" data-residues="{{ p.residues|join:' ' }}" title="{% trans 'List residues assigned to this pocket.' %}">
+                            <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/list.html" %}</span><span>{% trans "List residues" %}</span>
+                        </button>
                     </div>
                 </div>
             {% endfor %}
@@ -93,8 +97,12 @@
                         <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="p2_{{p2.name}}_lbl" data-layer-label="{% trans 'Residue labels' %}" aria-pressed="false" title="{% trans 'Show residue labels for this pocket.' %}">{% trans "Residue labels" %}</button>
                     </div>
                     <div class="pocket-card-actions">
-                        <button type="button" class="btn tp-btn tp-btn--clear tp-btn--sm" onclick="ngl_zoom_to('p2_{{p2.name}}_zoom')" title="{% trans 'Center the 3D view on this pocket.' %}">{% trans "Center view" %}</button>
-                        <button type="button" class="btn tp-btn tp-btn--clear tp-btn--sm js-show-residues" data-residues="{{ p2.residues|join:' ' }}" title="{% trans 'List residues assigned to this pocket.' %}">{% trans "List residues" %}</button>
+                        <button type="button" class="btn tp-btn tp-btn--clear tp-btn--sm tp-btn-with-icon" onclick="ngl_zoom_to('p2_{{p2.name}}_zoom')" title="{% trans 'Center the 3D view on this pocket.' %}">
+                            <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/target.html" %}</span><span>{% trans "Center view" %}</span>
+                        </button>
+                        <button type="button" class="btn tp-btn tp-btn--clear tp-btn--sm tp-btn-with-icon js-show-residues" data-residues="{{ p2.residues|join:' ' }}" title="{% trans 'List residues assigned to this pocket.' %}">
+                            <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/list.html" %}</span><span>{% trans "List residues" %}</span>
+                        </button>
                     </div>
                 </div>
             {% endfor %}
@@ -115,8 +123,12 @@
                         </div>
                         <div class="residueset-row-actions">
                             <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="{{rs.name}}" aria-pressed="false" title="{% trans 'Show or hide this residue set in the 3D view.' %}">{% trans "Show" %}</button>
-                            <button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm" onclick="ngl_zoom_to('{{rs.name}}_zoom')" title="{% trans 'Center the 3D view on this residue set.' %}">{% trans "Zoom" %}</button>
-                            <button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm js-show-residues" data-residues="{{ rs.residues|join:' ' }}" title="{% trans 'List residues in this set.' %}">{% trans "Residues" %}</button>
+                            <button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm tp-btn-with-icon" onclick="ngl_zoom_to('{{rs.name}}_zoom')" title="{% trans 'Center the 3D view on this residue set.' %}">
+                                <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/target.html" %}</span><span>{% trans "Zoom" %}</span>
+                            </button>
+                            <button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm tp-btn-with-icon js-show-residues" data-residues="{{ rs.residues|join:' ' }}" title="{% trans 'List residues in this set.' %}">
+                                <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/list.html" %}</span><span>{% trans "Residues" %}</span>
+                            </button>
                         </div>
                     </div>
                 {% endfor %}

@@ -313,8 +313,11 @@
                     <div class="binder-string-head">
                         <span class="binder-string-label">SMILES</span>
                         <button type="button"
-                                class="btn tp-btn tp-btn--neutral tp-btn--sm binder-copy-btn"
-                                data-copy-target="binder-smiles-text">{% trans "Copy" %}</button>
+                                class="btn tp-btn tp-btn--neutral tp-btn--sm tp-btn-with-icon binder-copy-btn"
+                                data-copy-target="binder-smiles-text">
+                            <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/copy.html" %}</span>
+                            <span data-copy-label>{% trans "Copy" %}</span>
+                        </button>
                     </div>
                     <pre class="binder-string-value">{{ binder.smiles }}</pre>
                     <span hidden id="binder-smiles-text">{{ binder.smiles }}</span>
@@ -324,8 +327,11 @@
                         <div class="binder-string-head">
                             <span class="binder-string-label">InChI</span>
                             <button type="button"
-                                    class="btn tp-btn tp-btn--neutral tp-btn--sm binder-copy-btn"
-                                    data-copy-target="binder-inchi-text">{% trans "Copy" %}</button>
+                                    class="btn tp-btn tp-btn--neutral tp-btn--sm tp-btn-with-icon binder-copy-btn"
+                                    data-copy-target="binder-inchi-text">
+                                <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/copy.html" %}</span>
+                                <span data-copy-label>{% trans "Copy" %}</span>
+                            </button>
                         </div>
                         <pre class="binder-string-value">{{ properties.inchi }}</pre>
                         <span hidden id="binder-inchi-text">{{ properties.inchi }}</span>
@@ -336,8 +342,11 @@
                         <div class="binder-string-head">
                             <span class="binder-string-label">InChIKey</span>
                             <button type="button"
-                                    class="btn tp-btn tp-btn--neutral tp-btn--sm binder-copy-btn"
-                                    data-copy-target="binder-inchikey-text">{% trans "Copy" %}</button>
+                                    class="btn tp-btn tp-btn--neutral tp-btn--sm tp-btn-with-icon binder-copy-btn"
+                                    data-copy-target="binder-inchikey-text">
+                                <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/copy.html" %}</span>
+                                <span data-copy-label>{% trans "Copy" %}</span>
+                            </button>
                         </div>
                         <pre class="binder-string-value binder-string-value--short">{{ properties.inchi_key }}</pre>
                         <span hidden id="binder-inchikey-text">{{ properties.inchi_key }}</span>
@@ -488,9 +497,12 @@
                     if (!text) return;
                     if (navigator.clipboard && navigator.clipboard.writeText) {
                         navigator.clipboard.writeText(text).then(function () {
-                            const original = button.textContent;
-                            button.textContent = "{% trans 'Copied' %}";
-                            setTimeout(function () { button.textContent = original; }, 1400);
+                            const label = button.querySelector('[data-copy-label]');
+                            const original = label ? label.textContent : '';
+                            if (label) label.textContent = "{% trans 'Copied' %}";
+                            setTimeout(function () {
+                                if (label) label.textContent = original;
+                            }, 1400);
                         });
                     }
                 });

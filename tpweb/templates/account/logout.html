@@ -20,8 +20,14 @@
                     <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}">
                 {% endif %}
                 <div class="auth-actions">
-                    <a href="{% url 'tpwebapp:index' %}" class="btn tp-btn tp-btn--neutral">{% trans "Cancel" %}</a>
-                    <button class="btn tp-btn tp-btn--primary" type="submit">{% trans "Sign out" %}</button>
+                    <a href="{% url 'tpwebapp:index' %}" class="btn tp-btn tp-btn--neutral tp-btn-with-icon">
+                        <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/x.html" %}</span>
+                        <span>{% trans "Cancel" %}</span>
+                    </a>
+                    <button class="btn tp-btn tp-btn--primary tp-btn-with-icon" type="submit">
+                        <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/log_out.html" %}</span>
+                        <span>{% trans "Sign out" %}</span>
+                    </button>
                 </div>
             </form>
         </div>

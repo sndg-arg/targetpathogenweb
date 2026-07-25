@@ -91,8 +91,11 @@
                             </div>
                             <a id="selected-annotation-link"
                                href="#"
-                               class="btn tp-btn tp-btn--primary explorer-action-link"
-                               aria-disabled="true">{% trans "Open filtered proteins" %}</a>
+                               class="btn tp-btn tp-btn--primary tp-btn-with-icon explorer-action-link"
+                               aria-disabled="true">
+                                <span>{% trans "Open filtered proteins" %}</span>
+                                <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/arrow_right.html" %}</span>
+                            </a>
                         </div>
                     </section>
 
@@ -133,10 +136,11 @@
                                         <td>{{ row.protein_count }}</td>
                                         <td>
                                             <button type="button"
-                                                    class="btn tp-btn tp-btn--neutral btn-sm explorer-select-btn js-select-annotation"
+                                                    class="btn tp-btn tp-btn--neutral btn-sm tp-btn-with-icon explorer-select-btn js-select-annotation"
                                                     data-accession="{{ row.accession }}"
                                                     data-name="{{ row.name|default:'' }}">
-                                                {% trans "Select" %}
+                                                <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/check.html" %}</span>
+                                                <span>{% trans "Select" %}</span>
                                             </button>
                                         </td>
                                     </tr>
@@ -161,7 +165,10 @@
                         </p>
                         <p>{% trans "You can still inspect the protein ranking, review other annotation types, or continue with genome-level analysis." %}</p>
                         <div class="explorer-empty-actions">
-                            <a href="{% url 'tpwebapp:protein_list' genome=genome %}" class="btn tp-btn tp-btn--primary">{% trans "Open protein analysis" %}</a>
+                            <a href="{% url 'tpwebapp:protein_list' genome=genome %}" class="btn tp-btn tp-btn--primary tp-btn-with-icon">
+                                <span>{% trans "Open protein analysis" %}</span>
+                                <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/arrow_right.html" %}</span>
+                            </a>
                             {% if explorer.kind != "ec" %}
                                 <a href="{% url 'tpwebapp:annotation_explorer' genome=genome annotation_kind='ec' %}" class="btn tp-btn tp-btn--neutral">{% trans "Switch to EC tree" %}</a>
                             {% endif %}

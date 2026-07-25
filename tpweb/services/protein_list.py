@@ -243,6 +243,20 @@ def build_special_filter_payload(kind, value):
             "special_value": normalized,
             "display_name": normalized,
         }
+    if kind == "ligands":
+        normalized = value.strip().lower()
+        if normalized not in ("yes", "no"):
+            return None
+        display = "Has ligand evidence" if normalized == "yes" else "No ligand evidence"
+        return {
+            "id": f"special:ligands:{normalized}",
+            "score_param_name": "ligand_evidence",
+            "name": display,
+            "type": "special",
+            "special_key": "ligand_filter",
+            "special_value": normalized,
+            "display_name": display,
+        }
     if kind == "pathway":
         from tpweb.models.Metabolism import MetabolicPathway
 
@@ -461,6 +475,16 @@ def apply_selected_parameter_filters(queryset, selected_parameters):
         if "colabfold" in structure_values:
             structure_query |= Q(structures__pdb__experiment=PDB_EXPERIMENT_COLABFOLD)
         filtered_queryset = filtered_queryset.filter(structure_query)
+
+    ligand_values = [value.lower() for value in special_groups.get("ligand_filter", [])]
+    if ligand_values:
+        ligand_query = Q()
+        if "yes" in ligand_values:
+            ligand_query |= Q(binders__isnull=False)
+        if "no" in ligand_values:
+            ligand_query |= Q(binders__isnull=True)
+        if ligand_query:
+            filtered_queryset = filtered_queryset.filter(ligand_query)
 
     ec_values = [value for value in special_groups.get("ec_filter", []) if value]
     if ec_values:

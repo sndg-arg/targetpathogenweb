@@ -491,6 +491,30 @@ class ProteinListView(View):
                 "param_count": 1 if active_structure else 0,
             })
 
+        active_ligand_value = (function_data or {}).get("ligand_active")
+        filter_groups.append({
+            "category": "Ligands",
+            "is_ligand_filter": True,
+            "ligand_options": [
+                {
+                    "value": choice_value,
+                    "label": choice_label,
+                    "active": bool(active_ligand_value) and active_ligand_value.get("value") == choice_value,
+                    "id": (
+                        active_ligand_value.get("id")
+                        if active_ligand_value and active_ligand_value.get("value") == choice_value
+                        else None
+                    ),
+                }
+                for choice_value, choice_label in (
+                    ("yes", "Has ligand evidence"),
+                    ("no", "No ligand evidence"),
+                )
+            ],
+            "any_active": bool(active_ligand_value),
+            "param_count": 1 if active_ligand_value else 0,
+        })
+
         for category in sorted(grouped.keys(), key=_category_sort_key):
             params = sorted(grouped[category], key=lambda entry: _param_sort_key(category, entry))
             any_active = any(entry["any_active"] for entry in params)
@@ -1293,6 +1317,7 @@ class ProteinListView(View):
 
         active_ec_values = []
         active_go_values = []
+        active_ligand_value = None
         for parameter in selected_parameters:
             if str(parameter.get("type") or "").lower() != "special":
                 continue
@@ -1303,6 +1328,8 @@ class ProteinListView(View):
                 active_ec_values.append({"value": special_value, "id": entry_id})
             elif special_key == "go_filter" and special_value:
                 active_go_values.append({"value": special_value, "id": entry_id})
+            elif special_key == "ligand_filter" and special_value:
+                active_ligand_value = {"value": special_value, "id": entry_id}
 
         ec_class_value_set = {value for value, _ in self.EC_CLASSES}
         active_ec_class_set = {entry["value"] for entry in active_ec_values if entry["value"] in ec_class_value_set}
@@ -1323,6 +1350,7 @@ class ProteinListView(View):
             "ec_classes": ec_classes_for_drawer,
             "ec_specific_active": ec_specific_active,
             "go_active": active_go_values,
+            "ligand_active": active_ligand_value,
             "ec_explorer_url": reverse(
                 "tpwebapp:annotation_explorer",
                 kwargs={"genome": genome_url_slug(assembly_name), "annotation_kind": "ec"},

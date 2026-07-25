@@ -70,7 +70,10 @@
                     <div class="tp-ui-search-row tp-ui-toolbar-row tp-ui-toolbar-row--stack-sm">
                         <input class="form-control tp-ui-control tp-ui-search-input" type="text" id="genomes-search-input" name="search" placeholder="{% trans "Search by accession or description..." %}" value="{{ search_query }}">
                         <div class="tp-ui-search-actions">
-                            <button class="btn tp-btn tp-btn--primary" type="submit" id="genomes-search-submit">{% trans "Search" %}</button>
+                            <button class="btn tp-btn tp-btn--primary tp-btn-with-icon" type="submit" id="genomes-search-submit">
+                                <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/search.html" %}</span>
+                                <span>{% trans "Search" %}</span>
+                            </button>
                             {% url 'tpwebapp:genomes_list' as clear_genomes_search_url %}
                             {% trans "Clear search" as clear_search_label %}
                             {% if search_query %}

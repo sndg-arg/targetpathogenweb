@@ -154,8 +154,14 @@
                     <div class="sv-pocket-inspector-head">
                         <span class="sv-pocket-inspector-kicker">{% trans "Selected pocket" %}</span>
                         <div class="sv-pocket-inspector-actions">
-                            <button type="button" class="sv-pocket-inspector-toggle" id="sv-pocket-show-only-toggle" aria-pressed="false" title="{% trans "Hide other active pocket layers and keep the viewer focused on this selected pocket." %}">{% trans "Focus this pocket" %}</button>
-                            <button type="button" class="sv-pocket-inspector-clear" id="sv-pocket-clear-selection">{% trans "Clear selection" %}</button>
+                            <button type="button" class="sv-pocket-inspector-toggle tp-btn-with-icon" id="sv-pocket-show-only-toggle" aria-pressed="false" title="{% trans "Hide other active pocket layers and keep the viewer focused on this selected pocket." %}">
+                                <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/target.html" %}</span>
+                                <span>{% trans "Focus this pocket" %}</span>
+                            </button>
+                            <button type="button" class="sv-pocket-inspector-clear tp-btn-with-icon" id="sv-pocket-clear-selection">
+                                <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/x.html" %}</span>
+                                <span>{% trans "Clear selection" %}</span>
+                            </button>
                         </div>
                     </div>
                     <strong class="sv-pocket-inspector-title" data-pocket-field="title">-</strong>
@@ -209,9 +215,12 @@
         </div>
         <pre class="residue-modal-body" id="residue-modal-content"></pre>
         <div class="residue-modal-actions">
-            <button type="button" id="copy-residue-list" class="btn tp-btn tp-btn--neutral tp-btn--sm"
+            <button type="button" id="copy-residue-list" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-btn-with-icon"
                     data-default-label="{% trans 'Copy positions' %}"
-                    data-copied-label="{% trans 'Copied' %}">{% trans "Copy positions" %}</button>
+                    data-copied-label="{% trans 'Copied' %}">
+                <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/copy.html" %}</span>
+                <span data-copy-label>{% trans "Copy positions" %}</span>
+            </button>
         </div>
     </div>
 </div>
@@ -397,10 +406,13 @@ function jsloaded() {
                 var text = (content.textContent || "").trim();
                 var def = copyBtn.dataset.defaultLabel || "Copy positions";
                 var ok  = copyBtn.dataset.copiedLabel  || "Copied";
+                var label = copyBtn.querySelector("[data-copy-label]");
                 (navigator.clipboard ? navigator.clipboard.writeText(text) : Promise.reject())
                     .then(function () {
-                        copyBtn.textContent = ok;
-                        window.setTimeout(function () { copyBtn.textContent = def; }, 1300);
+                        if (label) label.textContent = ok;
+                        window.setTimeout(function () {
+                            if (label) label.textContent = def;
+                        }, 1300);
                     }).catch(function () {});
             });
         }

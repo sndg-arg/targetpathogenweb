@@ -70,7 +70,10 @@
                         <a href="{{ workspace_links.metabolism_url }}" class="btn tp-btn tp-btn--outline">{% trans "Metabolism" %}</a>
                     </div>
                     <div class="genome-hero-actions genome-hero-actions--secondary">
-                        <a href="{{ workspace_links.custom_scores_url }}" class="btn tp-btn tp-btn--neutral tp-btn--sm">{% trans "Add data" %}</a>
+                        <a href="{{ workspace_links.custom_scores_url }}" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-btn-with-icon">
+                            <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/plus.html" %}</span>
+                            <span>{% trans "Add data" %}</span>
+                        </a>
                         <a href="{{ workspace_links.formula_url }}" class="btn tp-btn tp-btn--neutral tp-btn--sm">{% trans "Custom score" %}</a>
                         <a href="{{ workspace_links.ec_explorer_url }}" class="btn tp-btn tp-btn--neutral tp-btn--sm">{% trans "EC tree" %}</a>
                         <a href="{{ workspace_links.blast_url }}" class="btn tp-btn tp-btn--neutral tp-btn--sm">BLAST</a>
@@ -292,7 +295,10 @@
                             <li><span class="evidence-bd-label" title="{% trans 'Chokepoint reactions in the imported Pathway Tools/MetaFlux network.' %}">{% trans "Chokepoint reactions" %}</span><span class="evidence-bd-value">{{ workspace_metrics.metabolic_chokepoint_reaction_count }}</span></li>
                             <li class="evidence-breakdown-priority"><span class="evidence-bd-label" title="{% trans 'Proteins that are both metabolic chokepoints and have FPocket druggability >= 0.4.' %}">{% trans "Chokepoint + pocket" %}</span><span class="evidence-bd-value">{{ workspace_metrics.metabolic_druggable_target_count }}</span></li>
                         </ul>
-                        <a href="{{ workspace_links.metabolism_url }}" class="btn tp-btn tp-btn--outline tp-btn--sm evidence-card-action">{% trans "Open metabolism" %}</a>
+                        <a href="{{ workspace_links.metabolism_url }}" class="btn tp-btn tp-btn--outline tp-btn--sm tp-btn-with-icon evidence-card-action">
+                            <span>{% trans "Open metabolism" %}</span>
+                            <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/arrow_right.html" %}</span>
+                        </a>
                     </div>
                     {% endif %}
                 </div>
@@ -334,7 +340,10 @@
                             <p class="section-subtitle">{% trans "Interactive view of contigs and annotation tracks." %}</p>
                         </div>
                         <div class="section-tools">
-                            <a href="{{ jbrowse_url }}" target="_blank" rel="noopener" class="btn tp-btn tp-btn--neutral tp-btn--sm">{% trans "Open in new tab" %} →</a>
+                            <a href="{{ jbrowse_url }}" target="_blank" rel="noopener" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-btn-with-icon">
+                                <span>{% trans "Open in new tab" %}</span>
+                                <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/external_link.html" %}</span>
+                            </a>
                         </div>
                     </div>
                     <div class="jbrowse-frame">
@@ -363,7 +372,10 @@
                         </select>
                     </div>
                     <input type="hidden" name="accession" value="{{ assembly.internal_name }}"/>
-                    <button class="btn tp-btn tp-btn--primary" type="submit">{% trans 'Download' %}</button>
+                    <button class="btn tp-btn tp-btn--primary tp-btn-with-icon" type="submit">
+                        <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/download.html" %}</span>
+                        <span>{% trans 'Download' %}</span>
+                    </button>
                 </form>
             </section>
 
@@ -424,7 +436,10 @@
                                 >
                             </div>
                             <div class="genome-delete-actions">
-                                <button type="submit" class="btn tp-btn tp-btn--clear tp-btn--clear-caution">{% trans "Delete dataset" %}</button>
+                                <button type="submit" class="btn tp-btn tp-btn--clear tp-btn--clear-caution tp-btn-with-icon">
+                                    <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/trash.html" %}</span>
+                                    <span>{% trans "Delete dataset" %}</span>
+                                </button>
                             </div>
                         </form>
                     </details>

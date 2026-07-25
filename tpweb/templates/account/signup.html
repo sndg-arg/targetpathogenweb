@@ -15,7 +15,10 @@
             <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}">
         {% endif %}
         <div class="auth-submit">
-            <button class="btn tp-btn tp-btn--primary" type="submit">{% trans "Create account" %}</button>
+            <button class="btn tp-btn tp-btn--primary tp-btn-with-icon" type="submit">
+                <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/user_plus.html" %}</span>
+                <span>{% trans "Create account" %}</span>
+            </button>
         </div>
     </form>
 {% endblock %}

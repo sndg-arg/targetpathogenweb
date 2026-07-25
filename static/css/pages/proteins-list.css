@@ -370,6 +370,30 @@ a.filter-pill .filter-pill-remove {
         transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
 }
 
+.toolbar-controls-left .toolbar-action-btn.tp-btn-with-icon,
+.toolbar-filter-split__main.tp-btn-with-icon {
+    display: grid !important;
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    column-gap: 8px;
+    row-gap: 2px;
+    justify-content: initial;
+}
+
+.toolbar-controls-left .toolbar-action-btn.tp-btn-with-icon .tp-btn-icon,
+.toolbar-filter-split__main.tp-btn-with-icon .tp-btn-icon {
+    grid-column: 1;
+    grid-row: 1 / 3;
+    align-self: center;
+}
+
+.toolbar-controls-left .toolbar-action-btn.tp-btn-with-icon .toolbar-action-btn__title,
+.toolbar-controls-left .toolbar-action-btn.tp-btn-with-icon .toolbar-action-btn__meta,
+.toolbar-filter-split__main.tp-btn-with-icon .toolbar-action-btn__title,
+.toolbar-filter-split__main.tp-btn-with-icon .toolbar-action-btn__meta {
+    grid-column: 2;
+}
+
 .toolbar-controls-left .toolbar-action-btn:hover,
 .toolbar-controls-left .toolbar-action-btn:focus-visible {
     color: var(--tp-color-text-primary) !important;
@@ -1438,7 +1462,7 @@ a.filter-pill .filter-pill-remove {
 
 .toolbar-filter-split__trigger {
     position: relative;
-    width: 34px;
+    width: 44px;
     flex-shrink: 0;
     border: none;
     border-left: 1px solid var(--tp-color-border-soft);
@@ -1448,8 +1472,15 @@ a.filter-pill .filter-pill-remove {
     display: flex;
     align-items: center;
     justify-content: center;
+    gap: 4px;
     color: var(--tp-color-text-muted);
     transition: background 140ms ease, color 140ms ease;
+}
+
+.toolbar-filter-split__trigger .tp-btn-icon {
+    width: 10px;
+    height: 10px;
+    flex-basis: 10px;
 }
 
 .toolbar-filter-split__trigger:hover,

@@ -22,7 +22,10 @@
                 <h1>{{ protein.accession }}</h1>
                 <p class="genome-description">{{ protein.description }}</p>
                 <div class="genome-hero-actions">
-                    <a href="{{ protein_url }}#section-metabolic-context" class="btn tp-btn tp-btn--outline">{% trans "Back to protein" %}</a>
+                    <a href="{{ protein_url }}#section-metabolic-context" class="btn tp-btn tp-btn--outline tp-btn-with-icon">
+                        <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/arrow_left.html" %}</span>
+                        <span>{% trans "Back to protein" %}</span>
+                    </a>
                 </div>
             </div>
         </div>

@@ -61,7 +61,10 @@
                 {% endif %}
 
                 <div class="auth-submit">
-                    <button class="btn tp-btn tp-btn--primary" type="submit">{% trans "Sign in" %}</button>
+                    <button class="btn tp-btn tp-btn--primary tp-btn-with-icon" type="submit">
+                        <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/log_in.html" %}</span>
+                        <span>{% trans "Sign in" %}</span>
+                    </button>
                 </div>
             </form>
 

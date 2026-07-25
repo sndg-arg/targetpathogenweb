@@ -41,11 +41,12 @@
                                     <span class="binder-crystal-res">{{ binder.crystal.resolution|floatformat:2 }}&thinsp;Å</span>
                                 {% endif %}
                                 {% if binder.crystal.loaded and binder.crystal.structure_id %}
-                                    <a class="btn tp-btn tp-btn--outline binder-crystal-viewer"
+                                    <a class="btn tp-btn tp-btn--outline tp-btn-with-icon binder-crystal-viewer"
                                        href="{% url 'tpwebapp:structure' binder.crystal.structure_id %}?protein_id={{ protein.id }}&focus_ligand={{ binder.name|urlencode }}"
                                        onclick="event.stopPropagation()"
                                        title="{% trans 'Open this loaded source crystal in the Target structure viewer, focused on this ligand' %}">
-                                        {% trans "Open crystal" %}
+                                        <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/eye.html" %}</span>
+                                        <span>{% trans "Open crystal" %}</span>
                                     </a>
                                 {% endif %}
                             </div>

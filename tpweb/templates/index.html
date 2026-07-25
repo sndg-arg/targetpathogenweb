@@ -22,13 +22,13 @@
                 <div class="tp-ui-group home-hero-actions">
                     {% url 'tpwebapp:genomes_list' as open_genomes_href %}
                     {% trans "Browse genomes" as open_genomes_label %}
-                    {% include "components/buttons/action.html" with variant="primary" href=open_genomes_href label=open_genomes_label %}
+                    {% include "components/buttons/action.html" with variant="primary" href=open_genomes_href label=open_genomes_label icon_template="components/icons/arrow_right.html" %}
                     {% url 'tpwebapp:genome_upload' as upload_genome_href %}
                     {% trans "Upload genome" as upload_genome_label %}
-                    {% include "components/buttons/action.html" with variant="neutral" href=upload_genome_href label=upload_genome_label classes="home-cta-neutral" %}
+                    {% include "components/buttons/action.html" with variant="neutral" href=upload_genome_href label=upload_genome_label icon_template="components/icons/upload.html" classes="home-cta-neutral" %}
                     {% url 'tpwebapp:form' as run_blast_href %}
                     {% trans "Run BLAST" as run_blast_label %}
-                    {% include "components/buttons/action.html" with variant="outline" href=run_blast_href label=run_blast_label %}
+                    {% include "components/buttons/action.html" with variant="outline" href=run_blast_href label=run_blast_label icon_template="components/icons/play.html" %}
                 </div>
             </div>
         </section>
@@ -141,7 +141,10 @@
                     <p class="tp-ui-field-label">{% trans "Methodology" %}</p>
                     <h2>{% trans "Data sources" %}</h2>
                 </div>
-                <a href="{% url 'tpwebapp:data_sources' %}" class="btn tp-btn tp-btn--outline tp-btn--sm home-about-view-btn">{% trans "Full reference" %}</a>
+                <a href="{% url 'tpwebapp:data_sources' %}" class="btn tp-btn tp-btn--outline tp-btn--sm tp-btn-with-icon home-about-view-btn">
+                    <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/arrow_right.html" %}</span>
+                    <span>{% trans "Full reference" %}</span>
+                </a>
             </div>
             <p class="home-about-lead">{% trans "Evidence for each protein is assembled through a 24-stage bioinformatics pipeline, combining external databases, comparative genomics, structural modeling, and machine learning." %}</p>
             <div class="home-about-grid">
@@ -256,7 +259,10 @@
                     <p class="tp-ui-field-label">{% trans "About us" %}</p>
                     <h2>{% trans "Developed at FCEN-UBA" %}</h2>
                 </div>
-                <a href="{% url 'tpwebapp:about_us' %}" class="btn tp-btn tp-btn--outline tp-btn--sm home-about-view-btn">{% trans "Read more" %}</a>
+                <a href="{% url 'tpwebapp:about_us' %}" class="btn tp-btn tp-btn--outline tp-btn--sm tp-btn-with-icon home-about-view-btn">
+                    <span>{% trans "Read more" %}</span>
+                    <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/arrow_right.html" %}</span>
+                </a>
             </div>
             <p class="home-about-lead">{% trans "Target Pathogen is developed at the Facultad de Ciencias Exactas y Naturales, Universidad de Buenos Aires, within a public and tuition-free university ecosystem. The project brings biology, chemistry, bioinformatics, and software development together to make pathogen target prioritization traceable and reviewable." %}</p>
         </section>
