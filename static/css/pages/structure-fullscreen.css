@@ -528,6 +528,7 @@ body:has(.sv-root) .tp-footer { display: none !important; }
 
 .pocket-property-chip {
     display: inline-block;
+    max-width: 100%;
     margin: 0 4px 4px 0;
     padding: 2px 8px;
     border-radius: 999px;
@@ -537,7 +538,8 @@ body:has(.sv-root) .tp-footer { display: none !important; }
     font-family: "Source Sans 3", "Segoe UI", sans-serif;
     font-size: 0.72rem;
     font-weight: 600;
-    white-space: nowrap;
+    white-space: normal;
+    overflow-wrap: anywhere;
 }
 
 .sv-pocket-inspector-note {

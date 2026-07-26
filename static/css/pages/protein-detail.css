@@ -1192,6 +1192,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 
 .pocket-property-chip {
     display: inline-block;
+    max-width: 100%;
     margin: 0 4px 4px 0;
     padding: 2px 8px;
     border-radius: 999px;
@@ -1201,7 +1202,8 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     font-family: "Source Sans 3", "Segoe UI", sans-serif;
     font-size: var(--tp-font-label);
     font-weight: 600;
-    white-space: nowrap;
+    white-space: normal;
+    overflow-wrap: anywhere;
 }
 
 .sv-pocket-inspector-note {
