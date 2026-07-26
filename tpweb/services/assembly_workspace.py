@@ -318,14 +318,22 @@ def _score_proteins(assembly_name):
         if score <= 0 and not signals:
             continue
 
-        shown_factors = (signals + cautions)[:6]
+        combined_factors = (signals + cautions)[:6]
+        # Split instead of relying on the card's 2-line CSS clamp to hide the
+        # overflow -- a clamp cuts wherever the box happens to run out of
+        # room, which silently drops real evidence for some proteins and not
+        # others depending on how long that protein's factor labels are.
+        # "factors" is what always renders inline (comfortably inside the
+        # clamp); anything past that is surfaced explicitly via a "+N" chip
+        # instead of being clipped invisibly.
         scored.append({
             "protein": p,
             "score": score,
             "fpocket": fpocket or 0.0,
             "direct_count": direct_count,
             "binder_count": binder_count,
-            "factors": shown_factors,
+            "factors": combined_factors[:4],
+            "extra_factors": combined_factors[4:],
             # Full, uncapped breakdown -- "factors" above is capped to 6 for the overview
             # card UI, but the CSV export (export_composite_ranking_rows) needs every
             # contribution, not just the ones that fit on a card.
@@ -366,6 +374,7 @@ def _format_score_items(scored_rows):
             "tier_label": tier_label,
             "tier_tone": tier_tone,
             "factors": row["factors"],
+            "extra_factors": row["extra_factors"],
             "binder_count": row["binder_count"],
             "direct_count": row["direct_count"],
             "druggability": row["fpocket"],

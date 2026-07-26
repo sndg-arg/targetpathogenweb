@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20260722-itemheight1">
+    <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20260726-signalmore1">
 {% endblock %}
 
 {% block body %}
@@ -230,7 +230,7 @@
                         </span>
                         <ul class="evidence-breakdown">
                             {% if workspace_metrics.experimental_structures %}
-                                <li><span class="evidence-bd-label" title="Experimentally determined structures (X-ray, cryo-EM, NMR) that are downloaded and visible in the 3D viewer right now.">{% trans "Loaded experimental" %}</span><span class="evidence-bd-value">{{ workspace_metrics.experimental_structures }}</span></li>
+                                <li class="evidence-breakdown-priority"><span class="evidence-bd-label" title="Experimentally determined structures (X-ray, cryo-EM, NMR) that are downloaded and visible in the 3D viewer right now.">{% trans "Loaded experimental" %}</span><span class="evidence-bd-value">{{ workspace_metrics.experimental_structures }}</span></li>
                             {% endif %}
                             {% if workspace_metrics.pdb_xref_entries %}
                                 <li><span class="evidence-bd-label" title="Proteins that UniProt reports as having at least one PDB entry — but those structures may not be downloaded yet.">{% trans "PDB xref proteins" %}</span><span class="evidence-bd-value">{{ workspace_metrics.pdb_xref_proteins }}</span></li>
