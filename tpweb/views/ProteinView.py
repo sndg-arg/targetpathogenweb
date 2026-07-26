@@ -645,7 +645,10 @@ class ProteinView(View):
             # Pocket overlays must belong to the same structure loaded first in
             # the viewer. If EX has no pockets yet, show the crystal structure
             # without pocket overlays instead of mixing AF/CF pockets onto it.
-            dto["structure"] = pdb_structure(primary_display, graphic_features)
+            dto["structure"] = pdb_structure(
+                primary_display, graphic_features,
+                target_chain=(primary_link.chain or "").strip() or None,
+            )
             dto["viewer_structure_id"] = primary_display.id
             dto["primary_structure_label"] = primary_viewer["short_label"]
             dto["primary_structure_detail_label"] = primary_viewer["detail_label"]
@@ -660,7 +663,10 @@ class ProteinView(View):
                 dto["alt_structure_label"] = alt_viewer["short_label"]
                 dto["alt_structure_detail_label"] = alt_viewer["detail_label"]
                 dto["alt_structure_source_name"] = alt_viewer["source_name"]
-                dto["alt_structure"] = pdb_structure(alt_link.pdb, [])
+                dto["alt_structure"] = pdb_structure(
+                    alt_link.pdb, [],
+                    target_chain=(alt_link.chain or "").strip() or None,
+                )
                 dto["alt_viewer_chain"] = alt_link.chain or ""
                 dto["alt_viewer_chain_selector"] = _chain_selector(alt_link.chain)
                 dto["alt_structure_has_pockets"] = _has_pocket_data(alt_link.pdb)

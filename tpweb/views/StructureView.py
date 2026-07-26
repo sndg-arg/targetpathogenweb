@@ -253,11 +253,18 @@ class StructureView(View):
 
     def get(self, request, struct_id, *args, **kwargs):
         structure = PDB.objects.filter(id=struct_id).get()
-        primary_data = pdb_structure(structure, [])
+        source_bioentry = self._resolve_source_bioentry(request, structure)
+
+        primary_link = None
+        if source_bioentry is not None:
+            primary_link = BioentryStructure.objects.filter(
+                pdb=structure, bioentry=source_bioentry
+            ).first()
+        primary_chain = (primary_link.chain or "").strip() if primary_link else ""
+        primary_data = pdb_structure(structure, [], target_chain=primary_chain or None)
 
         dto = {"structure": primary_data}
 
-        source_bioentry = self._resolve_source_bioentry(request, structure)
         if source_bioentry is not None:
             dto["source_protein_id"] = source_bioentry.bioentry_id
             dto["source_protein_label"] = source_bioentry.name or "Protein detail"
@@ -282,7 +289,8 @@ class StructureView(View):
                 if pdb.id in seen_ids:
                     continue
                 seen_ids.add(pdb.id)
-                s_data = primary_data if pdb.id == structure.id else pdb_structure(pdb, [])
+                link_chain = (link.chain or "").strip()
+                s_data = primary_data if pdb.id == structure.id else pdb_structure(pdb, [], target_chain=link_chain or None)
                 exp = (pdb.experiment or "").upper()
                 all_structures.append({
                     "id": pdb.id,
@@ -300,9 +308,6 @@ class StructureView(View):
 
             # Ensure the requested structure is always in the list
             if not any(s["id"] == structure.id for s in all_structures):
-                primary_link = BioentryStructure.objects.filter(
-                    pdb=structure, bioentry=source_bioentry
-                ).first()
                 chain_sel = _chain_selector(primary_link.chain if primary_link else "")
                 exp = (structure.experiment or "").upper()
                 all_structures.insert(0, {
@@ -385,7 +390,7 @@ class StructureView(View):
         return biodb_name
 
 
-def _ranked_pocket_ids(pdbobj, residue_set, property_obj, limit, min_value=None):
+def _ranked_pocket_ids(pdbobj, residue_set, property_obj, limit, min_value=None, target_chain=None):
     qs = PDBResidueSet.objects.filter(
         pdb=pdbobj,
         residue_set=residue_set,
@@ -393,6 +398,12 @@ def _ranked_pocket_ids(pdbobj, residue_set, property_obj, limit, min_value=None)
     )
     if min_value is not None:
         qs = qs.filter(properties__value__gte=min_value)
+    if target_chain:
+        # Exclude pockets with no residues on the chain actually rendered --
+        # a pocket computed against a different chain of a multi-chain PDB
+        # can outscore real candidates and otherwise win the top slot while
+        # never appearing anywhere near the visible structure.
+        qs = qs.filter(residue_set_residue__residue__chain=target_chain).distinct()
     qs = qs.order_by("-properties__value", "name").values_list("id", flat=True)
     if limit is not None:
         qs = qs[:limit]
@@ -405,6 +416,7 @@ def pdb_structure(
     pocket_limit=4,
     p2rank_limit=5,
     include_pockets_in_graphic_features=False,
+    target_chain=None,
 ):
     context = {"code": pdbobj.code, "display_code": display_code(pdbobj.code), "id": pdbobj.id}
 
@@ -448,8 +460,8 @@ def pdb_structure(
         ).values_list("pdbresidue_set_id", "value")
         size_outlier_map = volume_outlier_map(all_volumes)
 
-    pocket_ids = _ranked_pocket_ids(pdbobj, rs, ds, pocket_limit, min_value=0.2)
-    p2_pocket_ids = _ranked_pocket_ids(pdbobj, p2_rs, p2p, p2rank_limit)
+    pocket_ids = _ranked_pocket_ids(pdbobj, rs, ds, pocket_limit, min_value=0.2, target_chain=target_chain)
+    p2_pocket_ids = _ranked_pocket_ids(pdbobj, p2_rs, p2p, p2rank_limit, target_chain=target_chain)
 
     context["pockets"] = list(PDBResidueSet.objects.prefetch_related(
         "properties__property",
