@@ -23,7 +23,8 @@ from bioseq.models.Dbxref import Dbxref
 from bioseq.models.Ontology import Ontology
 from bioseq.models.Term import Term
 from bioseq.models.TermDbxref import TermDbxref
-from tpweb.models.BioentryStructure import ExperimentalStructureXref
+from tpweb.models.BioentryStructure import BioentryStructure, ExperimentalStructureXref
+from tpweb.models.pdb import Atom, PDBResidueSet, Residue, ResidueSet, ResidueSetResidue, AtomResidueSet
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +33,17 @@ BATCH_SIZE = 100
 REQUEST_TIMEOUT = 30
 RETRY_WAIT = 2
 MAX_RETRIES = 3
+
+# Structure sources whose residue numbering is a 1:1 match to the UniProt
+# canonical sequence (a single full-length chain, no crystallographic gaps),
+# so UniProt feature positions can be used directly as PDB `resid` values.
+# Experimental structures (PDB.experiment == "EX") are deliberately excluded —
+# doing that placement correctly needs a SIFTS-style residue mapping, not the
+# linear uniprot_start/uniprot_end offset used elsewhere in this module.
+MODEL_STRUCTURE_EXPERIMENTS = ("AF", "CF")
+
+UNIPROT_SITE_RESIDUE_SET_NAME = "UniProt"
+_SITE_FEATURE_TYPES = {"Active site", "Binding site", "Site"}
 
 
 def _proteome_name(assembly_name):
@@ -65,7 +77,7 @@ def _fetch_uniprot_batch(accessions):
     params = {
         "query": query,
         "format": "json",
-        "fields": "accession,ec,go_id,xref_pdb",
+        "fields": "accession,ec,go_id,xref_pdb,ft_act_site,ft_binding,ft_site",
         "size": len(accessions),
     }
 
@@ -115,6 +127,33 @@ def _parse_pdb_chain_mapping(value):
     if starts and ends:
         return chains, min(starts), max(ends)
     return chains, None, None
+
+
+def _parse_uniprot_site_features(entry):
+    """Extract active-site/binding-site/site features from a UniProt entry.
+
+    Returns a list of dicts ``{type, start, end, description}`` — one per
+    UniProt feature (a feature's own start/end range is kept intact rather
+    than split into single residues, so a multi-residue binding site stays
+    one group, the same way an M-CSA catalytic site does).
+    """
+    sites = []
+    for feature in entry.get("features", []):
+        feature_type = feature.get("type", "")
+        if feature_type not in _SITE_FEATURE_TYPES:
+            continue
+        location = feature.get("location", {})
+        start = location.get("start", {}).get("value")
+        end = location.get("end", {}).get("value")
+        if start is None or end is None:
+            continue
+        sites.append({
+            "type": feature_type,
+            "start": int(start),
+            "end": int(end),
+            "description": (feature.get("description") or "").strip(),
+        })
+    return sites
 
 
 def _parse_uniprot_response(data):
@@ -200,6 +239,7 @@ def _parse_uniprot_response(data):
             "ec_numbers": ec_numbers,
             "go_terms": go_terms,
             "pdb_xrefs": pdb_xrefs,
+            "sites": _parse_uniprot_site_features(entry),
         })
     return results
 
@@ -275,6 +315,73 @@ def _persist_pdb_xrefs(protein, pdb_xrefs):
         )
 
 
+def _persist_uniprot_sites(protein, sites):
+    """Map UniProt active-site/binding-site features onto this protein's
+    AlphaFold/ColabFold structures and store them via the same ResidueSet
+    machinery `load_csa` uses, so they show up in the same "nearest
+    annotated site" pocket comparison.
+
+    Only AF/CF structures are used: their residue numbering is 1:1 with the
+    UniProt canonical sequence (a single, gap-free predicted chain), so a
+    feature's `start`/`end` sequence positions can be used directly as PDB
+    `resid` values. Experimental structures are skipped entirely — a
+    linear uniprot_start/uniprot_end offset silently mis-places residues
+    across any indel between the deposited chain and the UniProt sequence,
+    which this pass does not attempt to correct.
+
+    Returns the number of sites created.
+    """
+    if not sites:
+        return 0
+
+    model_links = list(
+        BioentryStructure.objects.filter(
+            bioentry=protein, pdb__experiment__in=MODEL_STRUCTURE_EXPERIMENTS
+        ).select_related("pdb")
+    )
+    if not model_links:
+        return 0
+
+    residue_set, _ = ResidueSet.objects.get_or_create(
+        name=UNIPROT_SITE_RESIDUE_SET_NAME,
+        defaults={"description": "UniProt active/binding site features"},
+    )
+
+    created_sites = 0
+    for link in model_links:
+        pdb_obj = link.pdb
+        chain = link.chain or "A"
+        for site in sites:
+            name = f"{site['type']}:{site['start']}-{site['end']}"[:100]
+            if PDBResidueSet.objects.filter(pdb=pdb_obj, residue_set=residue_set, name=name).exists():
+                continue
+
+            prs = PDBResidueSet.objects.create(
+                pdb=pdb_obj,
+                residue_set=residue_set,
+                name=name,
+                description=site["description"][:65535],
+            )
+
+            linked_any = False
+            for resid in range(site["start"], site["end"] + 1):
+                residue = Residue.objects.filter(pdb=pdb_obj, chain=chain, resid=resid).first()
+                if residue is None:
+                    continue
+                rsr = ResidueSetResidue.objects.create(residue=residue, pdbresidue_set=prs)
+                ca_atom = Atom.objects.filter(residue=residue, name="CA").first()
+                if ca_atom is not None:
+                    AtomResidueSet.objects.create(atom=ca_atom, pdb_set=rsr)
+                    linked_any = True
+
+            if linked_any:
+                created_sites += 1
+            else:
+                prs.delete()
+
+    return created_sites
+
+
 def fetch_and_load_uniprot_annotations(assembly_name, lst_path=None, datadir=None):
     """Main entry point: fetch EC/GO from UniProt for mapped proteins.
 
@@ -305,7 +412,7 @@ def fetch_and_load_uniprot_annotations(assembly_name, lst_path=None, datadir=Non
     uniprot_mapping = _read_uniprot_mapping(lst_path)
     if not uniprot_mapping:
         logger.warning("No UniProt mapping found at %s — skipping annotation fetch", lst_path)
-        return {"ec_created": 0, "go_created": 0, "proteins_annotated": 0, "proteins_total": 0}
+        return {"ec_created": 0, "go_created": 0, "sites_created": 0, "proteins_annotated": 0, "proteins_total": 0}
 
     proteome_name = _proteome_name(assembly_name)
     proteins_by_locus = {
@@ -319,6 +426,7 @@ def fetch_and_load_uniprot_annotations(assembly_name, lst_path=None, datadir=Non
     uniprot_accessions = list(uniprot_mapping.keys())
     total_ec = 0
     total_go = 0
+    total_sites = 0
     proteins_annotated = 0
 
     for i in range(0, len(uniprot_accessions), BATCH_SIZE):
@@ -348,9 +456,11 @@ def fetch_and_load_uniprot_annotations(assembly_name, lst_path=None, datadir=Non
                 ec_created = _persist_annotations(protein, entry["ec_numbers"], "ec", ec_ontology)
                 go_created = _persist_annotations(protein, entry["go_terms"], Ontology.GO, go_ontology)
                 _persist_pdb_xrefs(protein, entry.get("pdb_xrefs", []))
+                sites_created = _persist_uniprot_sites(protein, entry.get("sites", []))
 
                 total_ec += ec_created
                 total_go += go_created
+                total_sites += sites_created
                 if ec_created or go_created:
                     proteins_annotated += 1
 
@@ -361,6 +471,7 @@ def fetch_and_load_uniprot_annotations(assembly_name, lst_path=None, datadir=Non
     stats = {
         "ec_created": total_ec,
         "go_created": total_go,
+        "sites_created": total_sites,
         "proteins_annotated": proteins_annotated,
         "proteins_total": len(uniprot_mapping),
     }
