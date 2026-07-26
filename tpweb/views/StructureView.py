@@ -203,6 +203,12 @@ def _join_nonempty(parts, sep=" | "):
     return sep.join(part for part in parts if part)
 
 
+def _annotated_site_label(residue_set):
+    source = str(residue_set.get("rs_name") or "").strip()
+    site_name = str(residue_set.get("name") or "").strip()
+    return ": ".join(part for part in (source, site_name) if part)
+
+
 def _fpocket_alpha_points(pdbobj, pocket_name):
     try:
         pocket_resid = int(pocket_name)
@@ -545,7 +551,12 @@ def pdb_structure(
         }
         graphic_features.append(gf)
     context["pdbid"] = pdbobj.code.lower()
-    context["residuesets"] = sorted(context["residuesets"], key=lambda x: x["rs_name"])
+    for residue_set in context["residuesets"]:
+        residue_set["display_label"] = _annotated_site_label(residue_set)
+    context["residuesets"] = sorted(
+        context["residuesets"],
+        key=lambda item: (item["rs_name"], item["name"]),
+    )
 
     # Derived pocket properties (geometric center, FPocket/P2Rank consensus, nearest
     # annotated functional site) -- computed here, after every pocket/site geometric
@@ -554,7 +565,9 @@ def pdb_structure(
     fpocket_centers = [(f"FPocket {p.name}", p.geometric_center) for p in context["pockets"]]
     p2_centers = [(f"P2Rank {p2.name}", p2.geometric_center) for p2 in context["p2_pockets"]]
     site_centers = [
-        (rs_dict["rs_name"], rs_dict["center"]) for rs_dict in context["residuesets"] if rs_dict.get("center")
+        (rs_dict["display_label"], rs_dict["center"])
+        for rs_dict in context["residuesets"]
+        if rs_dict.get("center")
     ]
 
     for p in context["pockets"]:

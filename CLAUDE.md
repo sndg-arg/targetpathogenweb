@@ -29,7 +29,7 @@ static/css/         # Design system — tokens only, no hardcoded hex
 1. clear_folder → download/test/custom gbk → load_gbk
 2. fasttarget → load_score (×3: human_offtarget, micro_offtarget, essenciality)
 3. index_genome_db → index_genome_seq → interproscan (remote SSH) → load_interpro
-4. gbk2uniprot_map → fetch_uniprot_annotations → alphafold loop → colabfold (local CPU or remote GPU) → structures chain → druggability → load_score
+4. gbk2uniprot_map → fetch_uniprot_annotations → alphafold loop → colabfold (local CPU or remote GPU) → structures chain → load_uniprot_sites → druggability → load_score
 5. psort → load_score
 6. get_binders → load_binders
 

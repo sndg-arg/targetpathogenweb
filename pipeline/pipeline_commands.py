@@ -124,6 +124,15 @@ def fetch_annotations_cmd(working_dir, genome, folder_path):
     return f"{PYTHON_BIN} {working_dir}/manage.py fetch_uniprot_annotations {genome} --datadir {working_dir}/data --lst {lst_path}"
 
 
+def load_uniprot_sites_cmd(working_dir, genome, folder_path):
+    """Attach UniProt functional sites after AF/CF structures are loaded."""
+    lst_path = os.path.join(folder_path, genome + "_unips.lst")
+    return (
+        f"{PYTHON_BIN} {working_dir}/manage.py load_uniprot_sites {genome}"
+        f" --datadir {_data_dir(working_dir)} --lst {lst_path} --overwrite"
+    )
+
+
 # --- Stage 14b: Experimental structures from PDB ---
 
 def fetch_exp_structures_cmd(working_dir, genome, folder_path):

@@ -14,11 +14,15 @@ the UniProt canonical sequence). Called that early, it always finds zero
 structures and silently does nothing.
 
 This command re-fetches the same UniProt feature data (ft_act_site,
-ft_binding, ft_site) and applies `_persist_uniprot_sites` again, intended
-to be run once alphafold/colabfold/structures-chain have completed for the
-genome, so the AF/CF BioentryStructure rows actually exist to attach to. It
-does not touch EC/GO/PDB annotations (those already ran and are idempotent
-regardless).
+ft_binding, ft_site) and applies `_persist_uniprot_sites` once
+alphafold/colabfold/structures-chain have completed. AlphaFold DB positions
+use canonical UniProt numbering; ColabFold positions are transferred only
+after a high-identity, high-coverage alignment to the local target sequence.
+It does not touch EC/GO/PDB annotations.
+
+The current pipelines invoke this command automatically after the structures
+stage. It remains available as an explicit command for existing genomes and
+recovery/backfill operations.
 
 Experimental (crystal) structures are not covered here or anywhere in this
 pass — see functional_annotations.MODEL_STRUCTURE_EXPERIMENTS and its
@@ -30,17 +34,11 @@ python manage.py load_uniprot_sites GCF_000009045.1 --datadir /app/.../data [--d
 """
 
 from django.conf import settings
-from django.core.management.base import BaseCommand, CommandError
-from django.db import transaction
+from django.core.management.base import BaseCommand
 
 from tpweb.services.functional_annotations import (
-    _fetch_uniprot_batch,
-    _persist_uniprot_sites,
-    _proteome_name,
-    _read_uniprot_mapping,
-    BATCH_SIZE,
+    load_uniprot_sites_for_genome,
 )
-from bioseq.models.Bioentry import Bioentry
 
 DEFAULT_DATA_DIR = str(settings.BASE_DIR / "data")
 
@@ -65,6 +63,11 @@ class Command(BaseCommand):
             help="Explicit path to {genome}_unips.lst (overrides --datadir)",
         )
         parser.add_argument("--dry-run", action="store_true")
+        parser.add_argument(
+            "--overwrite",
+            action="store_true",
+            help="Replace previously imported UniProt sites on model structures.",
+        )
 
     def handle(self, *args, **options):
         import math
@@ -78,46 +81,21 @@ class Command(BaseCommand):
             folder_name = assembly_name[math.floor(acclen / 2 - 1):math.floor(acclen / 2 + 2)]
             lst_path = datadir / folder_name / assembly_name / f"{assembly_name}_unips.lst"
 
-        uniprot_mapping = _read_uniprot_mapping(lst_path)
-        if not uniprot_mapping:
-            raise CommandError(f"No UniProt mapping found at {lst_path}")
-
-        proteome_name = _proteome_name(assembly_name)
-        proteins_by_locus = {
-            p.accession: p
-            for p in Bioentry.objects.filter(biodatabase__name=proteome_name)
-        }
-
-        uniprot_accessions = list(uniprot_mapping.keys())
-        self.stdout.write(self.style.HTTP_INFO(
-            f"{len(uniprot_accessions)} UniProt accession(s) mapped for {assembly_name}."
-        ))
-
-        if options["dry_run"]:
-            self.stdout.write(self.style.SUCCESS(
-                "[dry-run] Would re-fetch site features and attempt to attach them to "
-                "AlphaFold/ColabFold structures. No database changes made."
+        stats = load_uniprot_sites_for_genome(
+            assembly_name,
+            lst_path,
+            dry_run=options["dry_run"],
+            overwrite=options["overwrite"],
+        )
+        if not stats["mapped_accessions"]:
+            self.stdout.write(self.style.WARNING(
+                f"No UniProt mapping found at {lst_path}; site loading skipped."
             ))
             return
 
-        total_sites = 0
-        proteins_with_sites = 0
-        for i in range(0, len(uniprot_accessions), BATCH_SIZE):
-            batch = uniprot_accessions[i:i + BATCH_SIZE]
-            entries = _fetch_uniprot_batch(batch)
-            with transaction.atomic():
-                for entry in entries:
-                    locus_tag = uniprot_mapping.get(entry["accession"])
-                    if not locus_tag:
-                        continue
-                    protein = proteins_by_locus.get(locus_tag)
-                    if not protein:
-                        continue
-                    created = _persist_uniprot_sites(protein, entry.get("sites", []))
-                    total_sites += created
-                    if created:
-                        proteins_with_sites += 1
-
+        prefix = "[dry-run] Would map" if options["dry_run"] else "Imported"
         self.stdout.write(self.style.SUCCESS(
-            f"Imported {total_sites} UniProt site(s) across {proteins_with_sites} protein(s)."
+            f"{prefix} {stats['sites_mapped']} UniProt site(s) across "
+            f"{stats['proteins_with_sites']} protein(s), from "
+            f"{stats['mapped_accessions']} mapped accession(s)."
         ))

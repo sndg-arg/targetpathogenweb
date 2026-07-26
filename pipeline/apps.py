@@ -114,6 +114,16 @@ def fetch_uniprot_annotations(working_dir, genome, folder_path, inputs=[], stder
     return f"python {working_dir}/manage.py fetch_uniprot_annotations {genome} --datadir {working_dir}/data --lst {lst_path}"
 
 
+@bash_app(executors=["local_executor"])
+def load_uniprot_sites(working_dir, genome, folder_path, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
+    import os
+    lst_path = os.path.join(folder_path, genome + '_unips.lst')
+    return (
+        f"python {working_dir}/manage.py load_uniprot_sites {genome} "
+        f"--datadir {_data_dir(working_dir)} --lst {lst_path} --overwrite"
+    )
+
+
 @python_app(executors=["local_executor"])
 def get_unipslst(folder_path, genome, inputs=[], stderr=parsl.AUTO_LOGNAME, stdout=parsl.AUTO_LOGNAME):
     import os

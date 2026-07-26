@@ -360,6 +360,15 @@ Revisar el Target viejo y documentar que conviene migrar o reinterpretar.
 
 Evaluar fuentes externas para enriquecer estructura y ligandos.
 
+**Implementado parcialmente.**
+
+- Loader curado `load_csa` para sitios catalíticos CSA/M-CSA sobre estructuras PDB cargadas.
+- Mapeo estricto por PDB, cadena, residuo, código de inserción y nombre de residuo opcional.
+- Separación de copias de un sitio por cadena y `dry-run` con validación real de residuos.
+- Sitios activos/de unión de UniProt sobre AlphaFold DB y ColabFold, integrados al pipeline después de cargar estructuras.
+- En ColabFold, transferencia mediante alineamiento de secuencia con umbrales de identidad y cobertura; no se asume numeración 1:1.
+- Etiquetas completas de fuente, sitio y cadena en el visor.
+
 **AlphaFill.**
 
 - Prioridad alta.
@@ -371,12 +380,15 @@ Evaluar fuentes externas para enriquecer estructura y ligandos.
 **Ligysis.**
 
 - Potencial fuente para sitios de union e interacciones ligando-proteina.
-- Falta evaluar cobertura/licencia/API.
+- Licencia CC-BY y exportación por consulta, sin dump masivo identificado.
+- La numeración reportada es canónica de UniProt, no numeración de autor PDB.
+- Pendiente decidir si se ejecutará el pipeline propio de Ligysis para cobertura genómica.
 
 **CSA Atlas.**
 
-- Potencial fuente para residuos cataliticos.
-- Falta evaluar mapeo a proteina/estructura/residuo.
+- Loader implementado.
+- Pendiente validar contra un archivo real de CSA/M-CSA y una base del cluster antes de considerarlo evidencia operativa.
+- Pendiente definir la fuente/versión curada que se conservará para importaciones reproducibles.
 
 **Salida esperada.**
 

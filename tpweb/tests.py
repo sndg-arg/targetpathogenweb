@@ -60,7 +60,13 @@ from tpweb.services.pipeline_status import (
 from tpweb.services.structure_files import _candidate_seqstore_dirs, detect_structure_format_from_text
 from tpweb.services.structure_sources import summarize_structure_sources
 from tpweb.management.commands.load_af_model import store_structure_file
+from tpweb.management.commands.load_csa import (
+    _clean_optional_text,
+    _parse_residue_identifier,
+    _site_storage_name,
+)
 from tpweb.management.commands.import_selected_pdb_pocket_results import fallback_fpocket_to_json
+from tpweb.services.functional_annotations import _sequence_position_map
 from tpweb.services.genome_workspace import (
     build_workspace_genome_name,
     describe_genome_scope,
@@ -76,6 +82,7 @@ from tpweb.services.workspace import (
 )
 from tpweb.views.FormulaForm import FormulaForm
 from tpweb.views.IndexView import should_show_home_pipeline_panel
+from tpweb.views.StructureView import _annotated_site_label
 from tpweb.services.workspace import PUBLIC_WORKSPACE_USERNAME
 from tpweb.services.llm.base import Message, ToolCall, ToolDefinition, ToolResult
 from tpweb.services.llm.openai_provider import OpenAIProvider
@@ -388,6 +395,44 @@ class ProteinFormulaServiceTests(SimpleTestCase):
 
 
 class StructureAndAnnotationServiceTests(SimpleTestCase):
+    def test_sequence_position_map_preserves_identical_numbering(self):
+        mapping, metrics = _sequence_position_map("ACDEFG", "ACDEFG")
+
+        self.assertEqual(mapping[3], 3)
+        self.assertEqual(metrics, {"identity": 1.0, "coverage": 1.0})
+
+    def test_sequence_position_map_accounts_for_local_sequence_insertion(self):
+        mapping, metrics = _sequence_position_map("ACDEFG", "ACQDEFG")
+
+        self.assertEqual(mapping[3], 4)
+        self.assertGreaterEqual(metrics["identity"], 0.9)
+        self.assertEqual(metrics["coverage"], 1.0)
+
+    def test_sequence_position_map_rejects_distant_sequences(self):
+        mapping, metrics = _sequence_position_map("AAAAAA", "TTTTTT")
+
+        self.assertEqual(mapping, {})
+        self.assertLess(metrics["identity"], 0.9)
+
+    def test_csa_residue_identifier_parses_insertion_codes_and_numeric_csv_values(self):
+        self.assertEqual(_parse_residue_identifier("42A"), (42, "A"))
+        self.assertEqual(_parse_residue_identifier("42.0"), (42, ""))
+        self.assertEqual(_parse_residue_identifier(None), (None, ""))
+
+    def test_csa_optional_text_does_not_preserve_missing_values(self):
+        self.assertEqual(_clean_optional_text(float("nan")), "")
+        self.assertEqual(_clean_optional_text(" n/a "), "")
+
+    def test_csa_site_names_keep_chain_copies_separate_by_default(self):
+        self.assertEqual(_site_storage_name("M-CSA 123", "A", False), "M-CSA 123 | chain A")
+        self.assertEqual(_site_storage_name("M-CSA 123", "A", True), "M-CSA 123")
+
+    def test_annotated_site_label_keeps_source_site_and_chain(self):
+        self.assertEqual(
+            _annotated_site_label({"rs_name": "CSA", "name": "M-CSA 123 | chain A"}),
+            "CSA: M-CSA 123 | chain A",
+        )
+
     @patch("tpweb.services.structure_files.settings")
     def test_structure_file_candidates_include_media_root_and_seqs_parent(self, settings_mock):
         settings_mock.SEQS_DATA_DIR = "/app/targetpathogenweb/data/seqs"

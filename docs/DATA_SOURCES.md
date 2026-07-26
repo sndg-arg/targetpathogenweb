@@ -29,6 +29,7 @@ El pipeline se ejecuta linealmente. Las etapas pesadas (marcadas con ★) corren
 | 15 ★ | `alphafold_unips` | Descarga modelos de AlphaFold DB (4 descargas en paralelo) |
 | 16 ★ | `colabfold_predict` | Predice estructuras con ColabFold para proteínas sin modelo disponible |
 | 17 ★ | `structures_remote` | Procesa todas las estructuras: FPocket + P2Rank + carga a base de datos |
+| 17 | `load_uniprot_sites` | Proyecta sitios activos/de unión de UniProt sobre modelos AlphaFold DB y ColabFold ya cargados |
 | 18 | `druggability_2_csv` | Extrae puntuaciones de drogabilidad desde el output de FPocket a CSV |
 | 19 | `load_score druggability` | Carga el score de drogabilidad en la base de datos |
 | 20 | `psort` | Corre PSORTb para predecir localización subcelular |
@@ -75,6 +76,17 @@ Cada proteína tiene una única estructura asignada como preferida para el anál
 **Fuente:** ColabFold (implementación de AlphaFold2 con búsqueda acelerada via MMseqs2)  
 **Cómo se obtiene:** la etapa 16 corre ColabFold para proteínas que no tienen ni estructura experimental ni modelo de AlphaFold DB. Puede ejecutarse localmente (lento, ~30–60 min/proteína) o remotamente en GPU via SLURM. Se genera un archivo `.pdb` por proteína.  
 **Indicador en la vista:** "ColabFold".
+
+### Sitios funcionales sobre modelos
+
+**Fuente automática:** features `Active site`, `Binding site` y `Site` de UniProt.
+**Carga:** al finalizar la etapa 17, `load_uniprot_sites` proyecta estos residuos sobre los modelos ya cargados:
+
+- En AlphaFold DB se conserva la numeración canónica de UniProt.
+- En ColabFold se alinea primero la secuencia canónica con la secuencia local del target. Solo se proyectan sitios si la alineación alcanza al menos 90% de identidad y 90% de cobertura.
+- No se proyectan automáticamente sobre PDB experimentales: requieren un mapeo de residuos equivalente a SIFTS para evitar asignaciones incorrectas.
+
+**Fuente curada opcional:** `load_csa` permite importar residuos catalíticos de CSA/M-CSA por PDB, cadena, número de residuo y código de inserción. El comando separa por defecto las copias del mismo sitio presentes en cadenas distintas y su `--dry-run` valida el mapeo contra los residuos realmente cargados.
 
 ### pLDDT (predicted Local Distance Difference Test)
 **Qué es:** métrica de confianza del modelo predicho, calculada por AlphaFold/ColabFold para cada residuo. Escala 0–100.  

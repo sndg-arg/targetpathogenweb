@@ -39,6 +39,7 @@ from pipeline_commands import (
     load_interpro_cmd,
     gbk2uniprot_cmd,
     fetch_annotations_cmd,
+    load_uniprot_sites_cmd,
     fetch_exp_structures_cmd,
     alphafold_cmd,
     colabfold_cmd,
@@ -372,6 +373,11 @@ def run_genome(
         else:
             _assert_heavy_stage_allowed(17, "structures_af", allow_local_heavy)
             _run_structures_chain(17, working_dir, folder_path, genome)
+        _run_stage(
+            17,
+            "load_uniprot_sites",
+            load_uniprot_sites_cmd(working_dir, genome, folder_path),
+        )
     if not _skip(18):
         _run_stage(18, "druggability_2_csv", druggability_cmd(working_dir, genome))
     if not _skip(19):

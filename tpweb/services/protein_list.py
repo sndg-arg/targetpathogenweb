@@ -1,5 +1,8 @@
-from django.db.models import Q
 import re
+
+from django.db.models import Exists, OuterRef, Q
+
+from tpweb.models.Binders import Binders
 
 from tpweb.services.structure_sources import (
     PDB_EXPERIMENT_ALPHAFOLD,
@@ -478,13 +481,14 @@ def apply_selected_parameter_filters(queryset, selected_parameters):
 
     ligand_values = [value.lower() for value in special_groups.get("ligand_filter", [])]
     if ligand_values:
-        ligand_query = Q()
-        if "yes" in ligand_values:
-            ligand_query |= Q(binders__isnull=False)
-        if "no" in ligand_values:
-            ligand_query |= Q(binders__isnull=True)
-        if ligand_query:
-            filtered_queryset = filtered_queryset.filter(ligand_query)
+        wants_ligands = "yes" in ligand_values
+        wants_no_ligands = "no" in ligand_values
+        if wants_ligands != wants_no_ligands:
+            filtered_queryset = filtered_queryset.annotate(
+                has_ligand_evidence=Exists(
+                    Binders.objects.filter(locustag=OuterRef("pk"))
+                )
+            ).filter(has_ligand_evidence=wants_ligands)
 
     ec_values = [value for value in special_groups.get("ec_filter", []) if value]
     if ec_values:

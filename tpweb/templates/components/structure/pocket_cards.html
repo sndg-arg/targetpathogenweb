@@ -118,8 +118,10 @@
                 {% for rs in structure_data.residuesets %}
                     <div class="residueset-row">
                         <div class="residueset-row-info">
-                            <span class="residueset-type">{{ rs.rs_name }}</span>
-                            <span class="residueset-name" title="{% trans 'Residue set' %}: {{ rs.description }}">{{ rs.description }}</span>
+                            <span class="residueset-type">{{ rs.display_label }}</span>
+                            {% if rs.description %}
+                                <span class="residueset-name">{{ rs.description }}</span>
+                            {% endif %}
                         </div>
                         <div class="residueset-row-actions">
                             <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="{{rs.name}}" aria-pressed="false" title="{% trans 'Show or hide this residue set in the 3D view.' %}">{% trans "Show" %}</button>

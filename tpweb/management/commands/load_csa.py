@@ -35,6 +35,7 @@ if none of the guesses match.
 """
 
 import os
+import re
 
 import pandas as pd
 from django.core.management.base import BaseCommand, CommandError
@@ -50,9 +51,60 @@ DEFAULT_COLUMN_ALIASES = {
     "pdb": ["pdb", "pdb_id", "pdb id", "pdb code"],
     "chain": ["chain", "chain_id", "chain id", "chain/id"],
     "resid": ["resid", "residue_id", "residue id", "residue_number", "residue number", "pdb_resid"],
+    "icode": ["icode", "insertion_code", "insertion code", "pdb_icode"],
+    "resname": ["resname", "residue_name", "residue name", "three_letter_code"],
     "site": ["m-csa id", "mcsa_id", "mcsa id", "csa_id", "csa id", "site_number", "site number", "site_id"],
     "role": ["role", "roles", "function_location_abv", "residue_role"],
 }
+
+_MISSING_TEXT = {"", "nan", "none", "null", "na", "n/a", "<na>"}
+_RESIDUE_IDENTIFIER = re.compile(r"^\s*(-?\d+)(?:\.0+)?\s*([A-Za-z]?)\s*$")
+
+
+def _clean_optional_text(value, *, upper=False):
+    if pd.isna(value):
+        return ""
+    cleaned = str(value).strip()
+    if cleaned.lower() in _MISSING_TEXT:
+        return ""
+    return cleaned.upper() if upper else cleaned
+
+
+def _parse_residue_identifier(value):
+    """Return ``(resid, icode)`` from values such as 42, 42.0 or 42A."""
+    if pd.isna(value):
+        return None, ""
+    match = _RESIDUE_IDENTIFIER.match(str(value))
+    if not match:
+        return None, ""
+    return int(match.group(1)), match.group(2).upper()
+
+
+def _site_storage_name(site_id, chain, group_across_chains):
+    if group_across_chains:
+        return str(site_id)[:100]
+    return f"{site_id} | chain {chain}"[:100]
+
+
+def _resolve_loaded_residue(pdb_obj, row):
+    """Resolve one CSA row without silently choosing an ambiguous residue."""
+    candidates = Residue.objects.filter(
+        pdb=pdb_obj,
+        chain=row["chain"],
+        resid=int(row["resid"]),
+    )
+    if row["icode"]:
+        candidates = candidates.filter(icode=row["icode"])
+    else:
+        candidates = candidates.filter(icode__in=["", " "])
+    if row["resname"]:
+        candidates = candidates.filter(resname=row["resname"])
+    matches = list(candidates[:2])
+    if not matches:
+        return None, "missing"
+    if len(matches) > 1:
+        return None, "ambiguous"
+    return matches[0], "matched"
 
 
 class Command(BaseCommand):
@@ -63,6 +115,8 @@ class Command(BaseCommand):
         parser.add_argument("--pdb-column", default=None, metavar="NAME")
         parser.add_argument("--chain-column", default=None, metavar="NAME")
         parser.add_argument("--resid-column", default=None, metavar="NAME")
+        parser.add_argument("--icode-column", default=None, metavar="NAME")
+        parser.add_argument("--resname-column", default=None, metavar="NAME")
         parser.add_argument("--site-column", default=None, metavar="NAME",
                              help="Column that groups residues into one catalytic site "
                                   "(e.g. M-CSA ID). Required to avoid merging unrelated sites "
@@ -74,6 +128,12 @@ class Command(BaseCommand):
                              help="Replace any previously-imported CSA sites for the PDB codes "
                                   "found in this file. Without this flag, a PDB code that already "
                                   "has CSA sites imported is left untouched.")
+        parser.add_argument(
+            "--group-across-chains",
+            action="store_true",
+            help="Treat rows with the same PDB/site ID across chains as one site. "
+                 "By default each chain copy is kept separate.",
+        )
         parser.add_argument("--dry-run", action="store_true")
 
     def handle(self, *args, **options):
@@ -105,20 +165,37 @@ class Command(BaseCommand):
         pdb_col = resolve_column(options["pdb_column"], "pdb")
         chain_col = resolve_column(options["chain_column"], "chain")
         resid_col = resolve_column(options["resid_column"], "resid")
+        icode_col = resolve_column(options["icode_column"], "icode", required=False)
+        resname_col = resolve_column(options["resname_column"], "resname", required=False)
         site_col = resolve_column(options["site_column"], "site")
         role_col = resolve_column(options["role_column"], "role", required=False)
 
         overwrite = options["overwrite"]
         dry_run = options["dry_run"]
+        group_across_chains = options["group_across_chains"]
 
+        parsed_residues = df[resid_col].apply(_parse_residue_identifier)
         work = pd.DataFrame({
-            "pdb": df[pdb_col].astype(str).str.strip().str.upper(),
-            "chain": df[chain_col].astype(str).str.strip(),
-            "resid": pd.to_numeric(df[resid_col], errors="coerce"),
-            "site": df[site_col].astype(str).str.strip(),
+            "pdb": df[pdb_col].apply(lambda value: _clean_optional_text(value, upper=True)),
+            "chain": df[chain_col].apply(_clean_optional_text),
+            "resid": parsed_residues.apply(lambda parsed: parsed[0]),
+            "parsed_icode": parsed_residues.apply(lambda parsed: parsed[1]),
+            "site": df[site_col].apply(_clean_optional_text),
         })
+        work["icode"] = (
+            df[icode_col].apply(lambda value: _clean_optional_text(value, upper=True))
+            if icode_col
+            else work["parsed_icode"]
+        )
+        if icode_col:
+            work.loc[work["icode"] == "", "icode"] = work["parsed_icode"]
+        work["resname"] = (
+            df[resname_col].apply(lambda value: _clean_optional_text(value, upper=True))
+            if resname_col
+            else ""
+        )
         if role_col:
-            work["role"] = df[role_col].astype(str).str.strip()
+            work["role"] = df[role_col].apply(_clean_optional_text)
 
         before = len(work)
         work = work.dropna(subset=["resid", "pdb", "chain", "site"])
@@ -137,7 +214,14 @@ class Command(BaseCommand):
         matched = work[work["pdb"].isin(known_pdb_codes)]
         unmatched_pdb_count = len(pdb_codes_in_file) - len(known_pdb_codes)
 
-        sites = list(matched.groupby(["pdb", "site"]))
+        group_columns = ["pdb", "site"]
+        if not group_across_chains:
+            group_columns.append("chain")
+        sites = list(matched.groupby(group_columns))
+        pdb_by_code = {
+            pdb.code: pdb
+            for pdb in PDB.objects.filter(code__in=known_pdb_codes)
+        }
 
         self.stdout.write(self.style.HTTP_INFO(
             f"{len(work)} residue row(s) across {len(pdb_codes_in_file)} PDB code(s) in the file; "
@@ -147,8 +231,29 @@ class Command(BaseCommand):
         ))
 
         if dry_run:
+            matched_residues = 0
+            missing_residues = 0
+            ambiguous_residues = 0
+            mappable_sites = 0
+            for group_key, group in sites:
+                pdb_code = group_key[0]
+                pdb_obj = pdb_by_code.get(pdb_code)
+                site_has_match = False
+                for _, row in group.iterrows():
+                    residue, status = _resolve_loaded_residue(pdb_obj, row)
+                    if status == "matched" and residue is not None:
+                        matched_residues += 1
+                        site_has_match = True
+                    elif status == "ambiguous":
+                        ambiguous_residues += 1
+                    else:
+                        missing_residues += 1
+                if site_has_match:
+                    mappable_sites += 1
             self.stdout.write(self.style.SUCCESS(
-                f"[dry-run] Would attempt to import {len(sites)} catalytic site(s). "
+                f"[dry-run] {mappable_sites}/{len(sites)} catalytic site(s) have at least "
+                f"one unambiguous loaded residue ({matched_residues} residue row(s) matched; "
+                f"{missing_residues} missing; {ambiguous_residues} ambiguous). "
                 "No database changes made."
             ))
             return
@@ -165,6 +270,7 @@ class Command(BaseCommand):
         created_sites = 0
         skipped_sites_existing = 0
         skipped_residues_not_found = 0
+        skipped_residues_ambiguous = 0
         skipped_sites_no_match = 0
 
         with transaction.atomic():
@@ -173,15 +279,25 @@ class Command(BaseCommand):
                     residue_set=residue_set, pdb__code__in=known_pdb_codes
                 ).delete()
 
-            pdb_by_code = {pdb.code: pdb for pdb in PDB.objects.filter(code__in=known_pdb_codes)}
-
-            for (pdb_code, site_id), group in tqdm(sites):
+            for group_key, group in tqdm(sites):
+                if group_across_chains:
+                    pdb_code, site_id = group_key
+                    site_chain = ""
+                else:
+                    pdb_code, site_id, site_chain = group_key
                 pdb_obj = pdb_by_code.get(pdb_code)
                 if pdb_obj is None:
                     continue
 
+                storage_name = _site_storage_name(
+                    site_id,
+                    site_chain,
+                    group_across_chains,
+                )
                 already_exists = PDBResidueSet.objects.filter(
-                    pdb=pdb_obj, residue_set=residue_set, name=str(site_id)[:100]
+                    pdb=pdb_obj,
+                    residue_set=residue_set,
+                    name=storage_name,
                 ).exists()
                 if already_exists and not overwrite:
                     skipped_sites_existing += 1
@@ -195,15 +311,16 @@ class Command(BaseCommand):
                 prs = PDBResidueSet.objects.create(
                     pdb=pdb_obj,
                     residue_set=residue_set,
-                    name=str(site_id)[:100],
+                    name=storage_name,
                     description=description[:65535] if description else "",
                 )
 
                 linked_any = False
                 for _, row in group.iterrows():
-                    residue = Residue.objects.filter(
-                        pdb=pdb_obj, chain=row["chain"], resid=int(row["resid"])
-                    ).first()
+                    residue, status = _resolve_loaded_residue(pdb_obj, row)
+                    if status == "ambiguous":
+                        skipped_residues_ambiguous += 1
+                        continue
                     if residue is None:
                         skipped_residues_not_found += 1
                         continue
@@ -241,4 +358,10 @@ class Command(BaseCommand):
             self.stdout.write(self.style.WARNING(
                 f"  {skipped_residues_not_found} individual residue row(s) did not match any "
                 "loaded residue and were skipped within otherwise-created sites."
+            ))
+        if skipped_residues_ambiguous:
+            self.stdout.write(self.style.WARNING(
+                f"  {skipped_residues_ambiguous} individual residue row(s) matched more than "
+                "one loaded residue and were skipped; provide insertion-code/residue-name "
+                "columns to disambiguate them."
             ))

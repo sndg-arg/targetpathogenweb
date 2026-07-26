@@ -13,7 +13,7 @@ from config import TargetConfig
 from apps import (
     clear_folder, download_gbk, test_gbk, custom_gbk, load_gbk, sync_genome_metadata,
     fasttarget, load_score, index_genome_db, index_genome_seq,
-    interproscan, load_interpro, gbk2uniprot_map, fetch_uniprot_annotations,
+    interproscan, load_interpro, gbk2uniprot_map, fetch_uniprot_annotations, load_uniprot_sites,
     get_unipslst, alphafold_unips, esmfold_predict, structures_af,
     druggability_2_csv, psort, get_binders, load_binders,
 )
@@ -355,8 +355,18 @@ def run(genome, gram, custom, source_genome=None, is_test=False):
         17,
         "structures_af",
     )
+    r_uniprot_sites = _track_future(
+        load_uniprot_sites(
+            working_dir=working_dir,
+            genome=genome,
+            folder_path=folder_path,
+            inputs=[r_stru],
+        ),
+        17,
+        "load_uniprot_sites",
+    )
     d_2_csv = _track_future(
-        druggability_2_csv(working_dir=working_dir, genome=genome, inputs=[r_stru]),
+        druggability_2_csv(working_dir=working_dir, genome=genome, inputs=[r_uniprot_sites]),
         18,
         "druggability_2_csv",
     )

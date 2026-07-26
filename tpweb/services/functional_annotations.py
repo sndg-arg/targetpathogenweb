@@ -11,9 +11,11 @@ Usage (from a management command or pipeline step):
 import logging
 import time
 import re
+from collections import defaultdict
 from pathlib import Path
 
 import requests
+from Bio.Align import PairwiseAligner
 from django.db import transaction
 
 from bioseq.models.Bioentry import Bioentry
@@ -34,13 +36,17 @@ REQUEST_TIMEOUT = 30
 RETRY_WAIT = 2
 MAX_RETRIES = 3
 
-# Structure sources whose residue numbering is a 1:1 match to the UniProt
-# canonical sequence (a single full-length chain, no crystallographic gaps),
-# so UniProt feature positions can be used directly as PDB `resid` values.
+# Model sources eligible for UniProt feature projection. AlphaFold DB uses
+# canonical UniProt numbering. ColabFold is generated from the local target
+# sequence and therefore requires a validated sequence alignment first.
 # Experimental structures (PDB.experiment == "EX") are deliberately excluded —
 # doing that placement correctly needs a SIFTS-style residue mapping, not the
 # linear uniprot_start/uniprot_end offset used elsewhere in this module.
 MODEL_STRUCTURE_EXPERIMENTS = ("AF", "CF")
+MODEL_STRUCTURE_EXPERIMENT_ALPHAFOLD = "AF"
+MODEL_STRUCTURE_EXPERIMENT_COLABFOLD = "CF"
+MIN_SEQUENCE_IDENTITY = 0.90
+MIN_SEQUENCE_COVERAGE = 0.90
 
 UNIPROT_SITE_RESIDUE_SET_NAME = "UniProt"
 _SITE_FEATURE_TYPES = {"Active site", "Binding site", "Site"}
@@ -77,7 +83,7 @@ def _fetch_uniprot_batch(accessions):
     params = {
         "query": query,
         "format": "json",
-        "fields": "accession,ec,go_id,xref_pdb,ft_act_site,ft_binding,ft_site",
+        "fields": "accession,sequence,ec,go_id,xref_pdb,ft_act_site,ft_binding,ft_site",
         "size": len(accessions),
     }
 
@@ -236,6 +242,7 @@ def _parse_uniprot_response(data):
 
         results.append({
             "accession": accession,
+            "sequence": (entry.get("sequence", {}).get("value") or "").strip(),
             "ec_numbers": ec_numbers,
             "go_terms": go_terms,
             "pdb_xrefs": pdb_xrefs,
@@ -315,45 +322,164 @@ def _persist_pdb_xrefs(protein, pdb_xrefs):
         )
 
 
-def _persist_uniprot_sites(protein, sites):
-    """Map UniProt active-site/binding-site features onto this protein's
-    AlphaFold/ColabFold structures and store them via the same ResidueSet
-    machinery `load_csa` uses, so they show up in the same "nearest
-    annotated site" pocket comparison.
+def _normalize_protein_sequence(sequence):
+    sequence = re.sub(r"[^A-Za-z]", "", str(sequence or "")).upper()
+    return sequence.rstrip("*")
 
-    Only AF/CF structures are used: their residue numbering is 1:1 with the
-    UniProt canonical sequence (a single, gap-free predicted chain), so a
-    feature's `start`/`end` sequence positions can be used directly as PDB
-    `resid` values. Experimental structures are skipped entirely — a
-    linear uniprot_start/uniprot_end offset silently mis-places residues
-    across any indel between the deposited chain and the UniProt sequence,
-    which this pass does not attempt to correct.
 
-    Returns the number of sites created.
+def _protein_sequence(protein):
+    try:
+        return _normalize_protein_sequence(protein.seq.seq)
+    except (AttributeError, TypeError):
+        return ""
+
+
+def _sequence_position_map(source_sequence, target_sequence):
+    """Map 1-based positions between near-identical protein sequences."""
+    source = _normalize_protein_sequence(source_sequence)
+    target = _normalize_protein_sequence(target_sequence)
+    if not source or not target:
+        return {}, {"identity": 0.0, "coverage": 0.0}
+    if source == target:
+        return (
+            {position: position for position in range(1, len(source) + 1)},
+            {"identity": 1.0, "coverage": 1.0},
+        )
+
+    aligner = PairwiseAligner()
+    aligner.mode = "global"
+    aligner.match_score = 2.0
+    aligner.mismatch_score = -1.0
+    aligner.open_gap_score = -10.0
+    aligner.extend_gap_score = -0.5
+    alignment = aligner.align(source, target)[0]
+
+    mapping = {}
+    matches = 0
+    for source_block, target_block in zip(alignment.aligned[0], alignment.aligned[1]):
+        source_start, source_end = (int(value) for value in source_block)
+        target_start, target_end = (int(value) for value in target_block)
+        block_length = min(source_end - source_start, target_end - target_start)
+        for offset in range(block_length):
+            source_index = source_start + offset
+            target_index = target_start + offset
+            mapping[source_index + 1] = target_index + 1
+            if source[source_index] == target[target_index]:
+                matches += 1
+
+    coverage = len(mapping) / len(source)
+    identity = matches / len(mapping) if mapping else 0.0
+    metrics = {"identity": identity, "coverage": coverage}
+    if identity < MIN_SEQUENCE_IDENTITY or coverage < MIN_SEQUENCE_COVERAGE:
+        return {}, metrics
+    return mapping, metrics
+
+
+def _model_residue_lookup(pdb_obj, chain):
+    by_number = defaultdict(list)
+    for residue in Residue.objects.filter(
+        pdb=pdb_obj,
+        chain=chain,
+        type="R",
+    ).only("id", "resid", "icode"):
+        if str(residue.icode or "").strip():
+            continue
+        by_number[residue.resid].append(residue)
+    return {
+        resid: residues[0]
+        for resid, residues in by_number.items()
+        if len(residues) == 1
+    }
+
+
+def _persist_uniprot_sites(
+    protein,
+    sites,
+    uniprot_sequence="",
+    *,
+    overwrite=False,
+    dry_run=False,
+):
+    """Map UniProt sites safely onto AlphaFold DB and ColabFold models.
+
+    AlphaFold DB uses UniProt canonical numbering. ColabFold is generated from
+    the local protein sequence, so positions are transferred through a
+    validated global alignment. Experimental structures require a SIFTS-style
+    mapping and remain deliberately excluded.
     """
     if not sites:
         return 0
 
     model_links = list(
         BioentryStructure.objects.filter(
-            bioentry=protein, pdb__experiment__in=MODEL_STRUCTURE_EXPERIMENTS
+            bioentry=protein,
+            pdb__experiment__in=MODEL_STRUCTURE_EXPERIMENTS,
         ).select_related("pdb")
     )
     if not model_links:
         return 0
 
-    residue_set, _ = ResidueSet.objects.get_or_create(
-        name=UNIPROT_SITE_RESIDUE_SET_NAME,
-        defaults={"description": "UniProt active/binding site features"},
-    )
+    residue_set = None
+    if not dry_run:
+        residue_set, _ = ResidueSet.objects.get_or_create(
+            name=UNIPROT_SITE_RESIDUE_SET_NAME,
+            defaults={"description": "UniProt active/binding site features"},
+        )
 
     created_sites = 0
+    local_sequence = _protein_sequence(protein)
+    colabfold_position_map = None
+    colabfold_metrics = None
     for link in model_links:
         pdb_obj = link.pdb
         chain = link.chain or "A"
+        if pdb_obj.experiment == MODEL_STRUCTURE_EXPERIMENT_ALPHAFOLD:
+            position_map = None
+        else:
+            if colabfold_position_map is None:
+                colabfold_position_map, colabfold_metrics = _sequence_position_map(
+                    uniprot_sequence,
+                    local_sequence,
+                )
+            position_map = colabfold_position_map
+            if not position_map:
+                logger.warning(
+                    "Skipping UniProt sites on ColabFold model %s for %s: "
+                    "UniProt/local sequence identity %.3f, coverage %.3f",
+                    pdb_obj.code,
+                    protein.accession,
+                    (colabfold_metrics or {}).get("identity", 0.0),
+                    (colabfold_metrics or {}).get("coverage", 0.0),
+                )
+                continue
+
+        residue_lookup = _model_residue_lookup(pdb_obj, chain)
         for site in sites:
             name = f"{site['type']}:{site['start']}-{site['end']}"[:100]
-            if PDBResidueSet.objects.filter(pdb=pdb_obj, residue_set=residue_set, name=name).exists():
+            existing = PDBResidueSet.objects.filter(
+                pdb=pdb_obj,
+                residue_set__name=UNIPROT_SITE_RESIDUE_SET_NAME,
+                name=name,
+            )
+            if existing.exists() and not overwrite:
+                continue
+            if overwrite and not dry_run:
+                existing.delete()
+
+            source_positions = range(site["start"], site["end"] + 1)
+            target_positions = [
+                source_position if position_map is None else position_map.get(source_position)
+                for source_position in source_positions
+            ]
+            residues = [
+                residue_lookup[target_position]
+                for target_position in target_positions
+                if target_position in residue_lookup
+            ]
+            if not residues:
+                continue
+            if dry_run:
+                created_sites += 1
                 continue
 
             prs = PDBResidueSet.objects.create(
@@ -362,24 +488,72 @@ def _persist_uniprot_sites(protein, sites):
                 name=name,
                 description=site["description"][:65535],
             )
-
-            linked_any = False
-            for resid in range(site["start"], site["end"] + 1):
-                residue = Residue.objects.filter(pdb=pdb_obj, chain=chain, resid=resid).first()
-                if residue is None:
-                    continue
-                rsr = ResidueSetResidue.objects.create(residue=residue, pdbresidue_set=prs)
+            for residue in residues:
+                rsr = ResidueSetResidue.objects.create(
+                    residue=residue,
+                    pdbresidue_set=prs,
+                )
                 ca_atom = Atom.objects.filter(residue=residue, name="CA").first()
                 if ca_atom is not None:
                     AtomResidueSet.objects.create(atom=ca_atom, pdb_set=rsr)
-                    linked_any = True
-
-            if linked_any:
-                created_sites += 1
-            else:
-                prs.delete()
+            created_sites += 1
 
     return created_sites
+
+
+def load_uniprot_sites_for_genome(
+    assembly_name,
+    lst_path,
+    *,
+    dry_run=False,
+    overwrite=False,
+):
+    """Fetch and map UniProt functional sites after model structures exist."""
+    uniprot_mapping = _read_uniprot_mapping(lst_path)
+    if not uniprot_mapping:
+        return {
+            "mapped_accessions": 0,
+            "sites_mapped": 0,
+            "proteins_with_sites": 0,
+        }
+
+    proteins_by_locus = {
+        protein.accession: protein
+        for protein in Bioentry.objects.filter(
+            biodatabase__name=_proteome_name(assembly_name)
+        )
+    }
+    accessions = list(uniprot_mapping)
+    sites_mapped = 0
+    proteins_with_sites = 0
+    for index in range(0, len(accessions), BATCH_SIZE):
+        entries = _fetch_uniprot_batch(accessions[index:index + BATCH_SIZE])
+        with transaction.atomic():
+            for entry in entries:
+                locus_tag = uniprot_mapping.get(entry["accession"])
+                protein = proteins_by_locus.get(locus_tag)
+                if protein is None:
+                    continue
+                mapped = _persist_uniprot_sites(
+                    protein,
+                    entry.get("sites", []),
+                    entry.get("sequence", ""),
+                    overwrite=overwrite,
+                    dry_run=dry_run,
+                )
+                sites_mapped += mapped
+                if mapped:
+                    proteins_with_sites += 1
+            if dry_run:
+                transaction.set_rollback(True)
+        if index + BATCH_SIZE < len(accessions):
+            time.sleep(0.5)
+
+    return {
+        "mapped_accessions": len(accessions),
+        "sites_mapped": sites_mapped,
+        "proteins_with_sites": proteins_with_sites,
+    }
 
 
 def fetch_and_load_uniprot_annotations(assembly_name, lst_path=None, datadir=None):
@@ -426,7 +600,6 @@ def fetch_and_load_uniprot_annotations(assembly_name, lst_path=None, datadir=Non
     uniprot_accessions = list(uniprot_mapping.keys())
     total_ec = 0
     total_go = 0
-    total_sites = 0
     proteins_annotated = 0
 
     for i in range(0, len(uniprot_accessions), BATCH_SIZE):
@@ -456,11 +629,8 @@ def fetch_and_load_uniprot_annotations(assembly_name, lst_path=None, datadir=Non
                 ec_created = _persist_annotations(protein, entry["ec_numbers"], "ec", ec_ontology)
                 go_created = _persist_annotations(protein, entry["go_terms"], Ontology.GO, go_ontology)
                 _persist_pdb_xrefs(protein, entry.get("pdb_xrefs", []))
-                sites_created = _persist_uniprot_sites(protein, entry.get("sites", []))
-
                 total_ec += ec_created
                 total_go += go_created
-                total_sites += sites_created
                 if ec_created or go_created:
                     proteins_annotated += 1
 
@@ -471,7 +641,9 @@ def fetch_and_load_uniprot_annotations(assembly_name, lst_path=None, datadir=Non
     stats = {
         "ec_created": total_ec,
         "go_created": total_go,
-        "sites_created": total_sites,
+        # Site projection is deferred until AF/CF structures exist; the
+        # pipeline then calls load_uniprot_sites.
+        "sites_created": 0,
         "proteins_annotated": proteins_annotated,
         "proteins_total": len(uniprot_mapping),
     }
