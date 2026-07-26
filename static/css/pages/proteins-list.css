@@ -2114,7 +2114,6 @@ a.filter-pill .filter-pill-remove {
 }
 
 .scoring-formula-row__expression {
-    position: relative;
     display: block;
     margin: 0;
     padding: 8px 10px;
@@ -2129,11 +2128,29 @@ a.filter-pill .filter-pill-remove {
     border: 1px solid var(--tp-color-border-soft);
 }
 
+.scoring-formula-expression-wrap {
+    position: relative;
+    display: block;
+}
+
+/* This tooltip sits below its trigger (not above, like every other
+   .cell-tooltip on this page) -- these rows live in a scrollable list
+   where the code block is near the top of its own card, so there's
+   rarely room above it; below is the side with actual space. */
 .scoring-formula-help {
+    top: calc(100% + 8px);
+    bottom: auto;
     width: max-content;
     max-width: 340px;
     text-align: left;
     font-family: "Source Sans 3", "Segoe UI", sans-serif;
+}
+
+.scoring-formula-help::after {
+    top: auto;
+    bottom: 100%;
+    border-top-color: transparent;
+    border-bottom-color: var(--tp-tooltip-bg);
 }
 
 .scoring-formula-help-term {
@@ -2150,7 +2167,7 @@ a.filter-pill .filter-pill-remove {
     color: var(--tp-tooltip-color);
 }
 
-.scoring-formula-row__expression:hover .scoring-formula-help,
+.scoring-formula-expression-wrap:hover .scoring-formula-help,
 .scoring-formula-row:focus-visible .scoring-formula-help {
     opacity: 1;
 }

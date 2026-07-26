@@ -1195,16 +1195,10 @@
                                                 {% if entry.is_default %}<span class="scoring-formula-row__badge">{% trans "Default" %}</span>{% endif %}
                                             </span>
                                             {% if entry.expression %}
-                                                <code class="scoring-formula-row__expression">
-                                                    {{ entry.expression }}
-                                                    {% if entry.term_help %}
-                                                        <span class="cell-tooltip scoring-formula-help" role="tooltip">
-                                                            {% for term in entry.term_help %}
-                                                                <span class="scoring-formula-help-term"><strong>{{ term.label }}</strong>: {{ term.description }}</span>
-                                                            {% endfor %}
-                                                        </span>
-                                                    {% endif %}
-                                                </code>
+                                                <span class="scoring-formula-expression-wrap">
+                                                    <code class="scoring-formula-row__expression">{{ entry.expression }}</code>
+                                                    {% if entry.term_help %}<span class="cell-tooltip scoring-formula-help" role="tooltip">{% for term in entry.term_help %}<span class="scoring-formula-help-term"><strong>{{ term.label }}</strong>: {{ term.description }}</span>{% endfor %}</span>{% endif %}
+                                                </span>
                                             {% endif %}
                                         </span>
                                     </button>
