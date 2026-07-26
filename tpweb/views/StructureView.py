@@ -11,7 +11,7 @@ from django.db.models import Q
 from tpweb.services.genome_workspace import user_can_access_genome_name, genome_url_slug
 from tpweb.services.structure_files import detect_structure_format, disambiguate_display_codes, display_code, structure_file_path
 from tpweb.services.structure_sources import chain_selector as _chain_selector
-from tpweb.services.pocket_geometry import volume_outlier_map
+from tpweb.services.pocket_geometry import volume_outlier_map, filter_pdbresidueset_by_chain
 
 
 _METHOD_MAP = {"EX": "Crystal structure", "AF": "AlphaFold DB model", "CF": "ColabFold model"}
@@ -398,12 +398,7 @@ def _ranked_pocket_ids(pdbobj, residue_set, property_obj, limit, min_value=None,
     )
     if min_value is not None:
         qs = qs.filter(properties__value__gte=min_value)
-    if target_chain:
-        # Exclude pockets with no residues on the chain actually rendered --
-        # a pocket computed against a different chain of a multi-chain PDB
-        # can outscore real candidates and otherwise win the top slot while
-        # never appearing anywhere near the visible structure.
-        qs = qs.filter(residue_set_residue__residue__chain=target_chain).distinct()
+    qs = filter_pdbresidueset_by_chain(qs, target_chain)
     qs = qs.order_by("-properties__value", "name").values_list("id", flat=True)
     if limit is not None:
         qs = qs[:limit]

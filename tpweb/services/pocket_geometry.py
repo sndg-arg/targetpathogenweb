@@ -44,3 +44,26 @@ def volume_outlier_map(pdbresidueset_volumes, z_threshold=DEFAULT_Z_THRESHOLD, m
         z = _MAD_CONSTANT * (v - median) / mad
         result[pid] = (v > median and z > z_threshold, median, mad)
     return result
+
+
+def filter_pdbresidueset_by_chain(queryset, chain):
+    """Exclude PDBResidueSet pockets with no residues on `chain`.
+
+    A pocket computed against a chain that isn't the one actually shown/
+    scored for a given protein can otherwise outrank or override real
+    candidates. No-op when `chain` is blank -- no specific chain to enforce.
+    """
+    chain = (chain or "").strip()
+    if not chain:
+        return queryset
+    return queryset.filter(residue_set_residue__residue__chain=chain).distinct()
+
+
+def filter_residuesetproperty_by_chain(queryset, chain):
+    """Same guard as filter_pdbresidueset_by_chain, one hop further out --
+    for querysets of ResidueSetProperty (a pocket's scored property row)
+    rather than PDBResidueSet (the pocket itself)."""
+    chain = (chain or "").strip()
+    if not chain:
+        return queryset
+    return queryset.filter(pdbresidue_set__residue_set_residue__residue__chain=chain).distinct()
