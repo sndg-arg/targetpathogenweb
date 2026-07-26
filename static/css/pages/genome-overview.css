@@ -640,11 +640,15 @@
 }
 
 /* "+N" for factors past the 4 that always fit inside the 2-line clamp above
-   -- reveals the rest on hover instead of letting the clamp clip them
-   invisibly. Reads as a continuation of the same quiet keyword line (same
-   "·" separator as .targets-signal), not a separate colored badge. */
+   -- reveals the rest via the native title tooltip on hover/focus instead of
+   letting the clamp clip them invisibly. A custom popup here doesn't work:
+   .targets-signals has overflow:hidden (required for the line-clamp itself),
+   which clips any DOM-based tooltip trying to render outside its box --
+   title= is painted by the browser outside the page's own box model, so it
+   isn't subject to that clipping. Reads as a continuation of the same quiet
+   keyword line (same "·" separator as .targets-signal), not a separate
+   colored badge. */
 .targets-signal-more {
-    position: relative;
     color: var(--tp-color-text-muted);
     font-weight: 500;
     border-bottom: 1px dotted var(--tp-color-border-strong);
@@ -655,44 +659,6 @@
     content: "\00b7";
     margin: 0 8px;
     color: var(--tp-color-text-soft);
-}
-
-.targets-signal-tooltip {
-    position: absolute;
-    bottom: calc(100% + 8px);
-    left: 50%;
-    transform: translateX(-50%);
-    width: max-content;
-    max-width: 260px;
-    padding: 6px 10px;
-    border-radius: 8px;
-    background: var(--tp-tooltip-bg);
-    color: var(--tp-tooltip-color);
-    font-size: var(--tp-font-size-xs);
-    font-weight: 500;
-    line-height: 1.4;
-    text-align: left;
-    white-space: normal;
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 120ms ease;
-    z-index: 5;
-    box-shadow: var(--tp-shadow-lg);
-}
-
-.targets-signal-tooltip::after {
-    content: "";
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    border: 5px solid transparent;
-    border-top-color: var(--tp-tooltip-bg);
-}
-
-.targets-signal-more:hover .targets-signal-tooltip,
-.targets-link:focus-visible .targets-signal-tooltip {
-    opacity: 1;
 }
 
 .targets-footnote {

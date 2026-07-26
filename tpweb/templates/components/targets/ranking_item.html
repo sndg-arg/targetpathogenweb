@@ -18,7 +18,7 @@
             </div>
             {% if t.factors %}
                 <p class="targets-signals">
-                    {% for f in t.factors %}<span class="targets-signal targets-signal--{{ f.tone }}">{{ f.label }}</span>{% endfor %}{% if t.extra_factors %}<span class="targets-signal-more">+{{ t.extra_factors|length }}<span class="targets-signal-tooltip" role="tooltip">{% for f in t.extra_factors %}{{ f.label }}{% if not forloop.last %}, {% endif %}{% endfor %}</span></span>{% endif %}
+                    {% for f in t.factors %}<span class="targets-signal targets-signal--{{ f.tone }}">{{ f.label }}</span>{% endfor %}{% if t.extra_factors %}<span class="targets-signal-more" title="{% for f in t.extra_factors %}{{ f.label }}{% if not forloop.last %}, {% endif %}{% endfor %}">+{{ t.extra_factors|length }}</span>{% endif %}
                 </p>
             {% endif %}
         </div>
