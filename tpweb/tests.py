@@ -203,13 +203,16 @@ class GenomeServiceTests(SimpleTestCase):
         self.assertEqual(protein_coding_loaded, "62")
         self.assertEqual(untranslated_cds, "11")
 
+    @patch("tpweb.services.assembly_workspace.cache")
     @patch("tpweb.services.assembly_workspace.BioentryStructure")
     @patch("tpweb.services.assembly_workspace.Bioentry")
     def test_build_assembly_workspace_metrics_treats_colabfold_as_model_not_experimental(
         self,
         bioentry_model,
         bioentry_structure_model,
+        cache_mock,
     ):
+        cache_mock.get.return_value = None
         proteins = MagicMock()
         bioentry_model.objects.filter.return_value = proteins
         proteins.count.return_value = 62
@@ -494,7 +497,7 @@ class StructureAndAnnotationServiceTests(SimpleTestCase):
         summary = summarize_structure_sources([experimental_structure, alphafold_structure])
 
         self.assertEqual(summary["source"], "mixed")
-        self.assertEqual(summary["label"], "Experimental + AlphaFold")
+        self.assertEqual(summary["label"], "Experimental + AlphaFold DB model")
         self.assertEqual(summary["count"], 2)
 
     def test_summarize_structure_sources_handles_colabfold(self):
@@ -507,7 +510,7 @@ class StructureAndAnnotationServiceTests(SimpleTestCase):
         summary = summarize_structure_sources([colabfold_structure])
 
         self.assertEqual(summary["source"], "colabfold")
-        self.assertEqual(summary["label"], "ColabFold")
+        self.assertEqual(summary["label"], "ColabFold model")
         self.assertEqual(summary["count"], 1)
 
     def test_build_annotation_explorer_builds_ec_hierarchy(self):
@@ -1312,6 +1315,7 @@ class RouteSmokeTests(SimpleTestCase):
             "total_genomes": 0,
             "total_proteins": 0,
             "total_experimental": 0,
+            "total_pdb_xrefs": 0,
             "total_ec_annotated": 0,
         }
         get_pipeline_status.return_value = {"available": False, "running": False}
@@ -1333,6 +1337,7 @@ class RouteSmokeTests(SimpleTestCase):
             "total_genomes": 0,
             "total_proteins": 0,
             "total_experimental": 0,
+            "total_pdb_xrefs": 0,
             "total_ec_annotated": 0,
         }
         get_pipeline_status.return_value = {"available": False, "running": False}
