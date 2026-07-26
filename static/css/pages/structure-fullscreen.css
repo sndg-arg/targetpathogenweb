@@ -430,7 +430,7 @@ body:has(.sv-root) .tp-footer { display: none !important; }
 
 .sv-pocket-inspector {
     margin-top: 10px;
-    padding: 10px;
+    padding: var(--tp-space-4);
     border: 1px solid var(--structure-accent-border);
     border-radius: 10px;
     background: color-mix(in srgb, var(--structure-accent-soft) 45%, var(--tp-color-surface));
@@ -522,6 +522,10 @@ body:has(.sv-root) .tp-footer { display: none !important; }
     overflow-wrap: anywhere;
 }
 
+.sv-pocket-inspector-grid dd[data-pocket-field="properties"] {
+    margin-top: 6px;
+}
+
 .sv-pocket-inspector-wide {
     grid-column: 1 / -1;
 }
@@ -529,8 +533,8 @@ body:has(.sv-root) .tp-footer { display: none !important; }
 .pocket-property-chip {
     display: inline-block;
     max-width: 100%;
-    margin: 0 4px 4px 0;
-    padding: 2px 8px;
+    margin: 0 6px 8px 0;
+    padding: 5px 11px;
     border-radius: 999px;
     background: var(--tp-color-surface-muted);
     border: 1px solid var(--tp-color-border-soft);
@@ -538,6 +542,7 @@ body:has(.sv-root) .tp-footer { display: none !important; }
     font-family: "Source Sans 3", "Segoe UI", sans-serif;
     font-size: 0.72rem;
     font-weight: 600;
+    line-height: 1.4;
     white-space: normal;
     overflow-wrap: anywhere;
 }

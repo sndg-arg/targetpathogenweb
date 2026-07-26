@@ -1086,7 +1086,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 .pocket-panel-summary-link:hover { text-decoration: underline; }
 
 .sv-pocket-inspector {
-    padding: var(--tp-space-3);
+    padding: var(--tp-space-4);
     border: 1px solid var(--protein-accent-border);
     border-radius: 10px;
     background: color-mix(in srgb, var(--protein-accent-soft) 30%, var(--tp-color-surface));
@@ -1186,6 +1186,10 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     overflow-wrap: anywhere;
 }
 
+.sv-pocket-inspector-grid dd[data-pocket-field="properties"] {
+    margin-top: 6px;
+}
+
 .sv-pocket-inspector-wide {
     grid-column: auto;
 }
@@ -1193,8 +1197,8 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 .pocket-property-chip {
     display: inline-block;
     max-width: 100%;
-    margin: 0 4px 4px 0;
-    padding: 2px 8px;
+    margin: 0 6px 8px 0;
+    padding: 5px 11px;
     border-radius: 999px;
     background: var(--tp-color-surface-muted);
     border: 1px solid var(--tp-color-border-soft);
@@ -1202,6 +1206,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     font-family: "Source Sans 3", "Segoe UI", sans-serif;
     font-size: var(--tp-font-label);
     font-weight: 600;
+    line-height: 1.4;
     white-space: normal;
     overflow-wrap: anywhere;
 }
