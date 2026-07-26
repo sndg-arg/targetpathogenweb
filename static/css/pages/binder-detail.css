@@ -497,9 +497,10 @@
 
 .druglike-head {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: 10px;
+    gap: 6px 10px;
     margin-bottom: 10px;
 }
 
@@ -520,6 +521,12 @@
     text-transform: uppercase;
     letter-spacing: 0.05em;
     border: 1px solid transparent;
+    /* Never let the pill's own text wrap mid-phrase ("0" / "violations" on
+       separate lines) -- if the card is too narrow for title + badge on one
+       row, .druglike-head wraps them onto their own rows instead, and the
+       badge itself always stays a single, whole line. */
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .druglike-badge.is-pass {
