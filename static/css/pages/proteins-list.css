@@ -171,6 +171,15 @@
     overflow-wrap: anywhere;
 }
 
+/* A row showing its "nothing set" placeholder (None / No active filters /
+   No active search) shouldn't read with the same visual weight as a row
+   that actually has a value -- only real values (a chosen formula, typed
+   search text, applied criteria) get the strong accent color. */
+.hero-analysis-value--empty {
+    color: var(--tp-color-text-muted);
+    font-weight: 400;
+}
+
 .hero-analysis-value strong {
     font-weight: 600;
 }

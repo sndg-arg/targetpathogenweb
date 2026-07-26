@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20260726-formulahelp1">
+    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20260726-emptyvalue1">
 {% endblock %}
 
 {% block body %}
@@ -59,7 +59,7 @@
                 </summary>
                 <p class="hero-analysis-line">
                     <span class="hero-analysis-label">{% trans "Scoring formula" %}</span>
-                    <span class="hero-analysis-value">{% if formula %}{{ formula.name }}{% else %}None{% endif %}</span>
+                    <span class="hero-analysis-value{% if not formula %} hero-analysis-value--empty{% endif %}">{% if formula %}{{ formula.name }}{% else %}None{% endif %}</span>
                 </p>
                 <p class="hero-analysis-line">
                     <span class="hero-analysis-label">{% trans "Sorted by" %}</span>
@@ -67,7 +67,7 @@
                 </p>
                 <p class="hero-analysis-line">
                     <span class="hero-analysis-label">{% trans "Applied filters" %}</span>
-                    <span class="hero-analysis-value">
+                    <span class="hero-analysis-value{% if not active_preset_name and not grouped_parameters and not structure_source and not annotation_filter %} hero-analysis-value--empty{% endif %}">
                         {% if active_preset_name %}<span class="hero-analysis-preset">{{ active_preset_name }}</span>{% if grouped_parameters or structure_source or annotation_filter %}<span class="hero-analysis-sep"> · </span>{% endif %}{% endif %}
                         {% if grouped_parameters or structure_source or annotation_filter %}
                             {% for score_param, values in grouped_parameters.items %}
@@ -86,7 +86,7 @@
                 </p>
                 <p class="hero-analysis-line">
                     <span class="hero-analysis-label">{% trans "Search query" %}</span>
-                    <span class="hero-analysis-value">
+                    <span class="hero-analysis-value{% if not search_query %} hero-analysis-value--empty{% endif %}">
                         {% if search_query %}
                             <span title="{% trans 'Full search query' %}: {{ search_query }}">{{ search_query }}</span>
                         {% else %}
