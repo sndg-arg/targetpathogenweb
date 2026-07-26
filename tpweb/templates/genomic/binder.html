@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/binder-detail.css' %}?v=20260725-metricpill1">
+    <link rel="stylesheet" href="{% static 'css/pages/binder-detail.css' %}?v=20260726-formulafix1">
 {% endblock %}
 
 {% block body %}
@@ -60,7 +60,9 @@
                             </span>
                         {% endif %}
                         {% if properties.formula %}
-                            <span class="hero-chip tp-chip tp-chip--meta tp-chip--sm binder-formula-chip">{{ properties.formula }}</span>
+                            <span class="hero-chip tp-chip tp-chip--meta tp-chip--sm binder-formula-chip">
+                                <strong>{% trans "Formula" %}</strong>&thinsp;<span>{{ properties.formula }}</span>
+                            </span>
                         {% endif %}
                     </div>
                 </div>
@@ -244,6 +246,15 @@
                             <p class="druglike-note">
                                 {% trans "Estimated from TPSA and LogP only: TPSA ≤ 90 Å² and −1 ≤ LogP ≤ 5 are treated as a favorable small-molecule permeability screen." %}
                             </p>
+                            <ul class="druglike-checks">
+                                {% for c in properties.permeability_checks %}
+                                    <li class="{% if c.ok %}is-ok{% else %}is-bad{% endif %}">
+                                        <span class="check-icon" aria-hidden="true">{% if c.ok %}{% include "components/icons/check.html" %}{% else %}✗{% endif %}</span>
+                                        <span class="check-name">{{ c.name }}</span>
+                                        <span class="check-value">{{ c.value }}</span>
+                                    </li>
+                                {% endfor %}
+                            </ul>
                         </div>
 
                         <div class="druglike-block">
@@ -441,7 +452,7 @@
                                 </div>
                                 <ul class="siblings-list siblings-list--two-col">
                                     {% for s in siblings.proposed %}
-                                        <li><a href="{% url 'tpwebapp:binder_detail' binder_id=s.id %}"><code>{{ s.name }}</code>{% if s.score is not None %} <span class="siblings-meta">{{ s.score|stringformat:".2f" }}</span>{% endif %}</a></li>
+                                        <li><a href="{% url 'tpwebapp:binder_detail' binder_id=s.id %}"><code>{{ s.name }}</code>{% if s.score is not None %} <span class="siblings-meta">{{ s.score|stringformat:".3f" }}</span>{% endif %}</a></li>
                                     {% endfor %}
                                 </ul>
                             </div>

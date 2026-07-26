@@ -1,3 +1,4 @@
+import re
 from urllib.parse import quote
 
 from django.http import Http404
@@ -24,6 +25,27 @@ SOURCE_LABEL = {
     Binders.SOURCE_CHEMBL: "ChEMBL",
     Binders.SOURCE_PROPOSED: "ZINC",
 }
+
+
+_SUBSCRIPT = str.maketrans("0123456789", "₀₁₂₃₄₅₆₇₈₉")
+_SUPERSCRIPT = str.maketrans("0123456789+-", "⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻")
+
+
+def _format_molecular_formula(formula):
+    """Render RDKit's raw Hill-notation formula (e.g. "H2O7P2-2") with real
+    subscript element counts and a superscript charge, instead of plain
+    digits with an ASCII +/- charge suffix indistinguishable from the
+    formula itself."""
+    if not formula:
+        return formula
+    charge = re.search(r"([+-])(\d*)$", formula)
+    if not charge:
+        return formula.translate(_SUBSCRIPT)
+    base = formula[:charge.start()].translate(_SUBSCRIPT)
+    # Chemistry convention writes the charge digit(s) before the sign when
+    # superscripted (e.g. "2-" -> "²⁻"), the reverse of RDKit's raw order.
+    magnitude, sign = charge.group(2), charge.group(1)
+    return base + (magnitude + sign).translate(_SUPERSCRIPT)
 
 
 def _compute_properties(smiles):
@@ -62,7 +84,12 @@ def _compute_properties(smiles):
         {"name": "TPSA ≤ 140 Å²", "value": f"{tpsa:.1f}", "ok": tpsa <= 140},
     ]
     veber_violations = sum(0 if c["ok"] else 1 for c in veber_checks)
-    permeability_ok = tpsa <= 90 and -1 <= logp <= 5
+
+    permeability_checks = [
+        {"name": "TPSA ≤ 90 Å²", "value": f"{tpsa:.1f}", "ok": tpsa <= 90},
+        {"name": "−1 ≤ LogP ≤ 5", "value": f"{logp:.2f}", "ok": -1 <= logp <= 5},
+    ]
+    permeability_ok = all(c["ok"] for c in permeability_checks)
 
     try:
         pains_params = FilterCatalogParams()
@@ -90,7 +117,7 @@ def _compute_properties(smiles):
         "aromatic_rings": aromatic_rings,
         "heavy_atoms": heavy_atoms,
         "num_rings": num_rings,
-        "formula": formula,
+        "formula": _format_molecular_formula(formula),
         "fraction_csp3": f"{fraction_csp3:.2f}",
         "inchi": inchi,
         "inchi_key": inchi_key,
@@ -100,6 +127,7 @@ def _compute_properties(smiles):
         "veber_checks": veber_checks,
         "veber_violations": veber_violations,
         "veber_pass": veber_violations == 0,
+        "permeability_checks": permeability_checks,
         "permeability_ok": permeability_ok,
         "permeability_label": "High" if permeability_ok else "Check",
         "pains_hit": pains_hit,
