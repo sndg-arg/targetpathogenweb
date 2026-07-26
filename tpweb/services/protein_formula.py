@@ -4,6 +4,7 @@ from django.db.models import Q
 
 from tpweb.models.ScoreFormula import ScoreFormula
 from tpweb.models.ScoreParam import ScoreParam
+from tpweb.services.protein_list import humanize_identifier
 from tpweb.services.workspace import resolve_workspace_user
 
 
@@ -87,8 +88,10 @@ def build_all_term_descriptions():
 
 
 def annotate_formula_terms(expression, term_descriptions):
-    """Return "token: description · token: description" for every whole-word
-    token in *expression* that matches a key in *term_descriptions*.
+    """Return a list of {"label", "description"} for every whole-word token
+    in *expression* that matches a key in *term_descriptions*, one entry per
+    recognized term, label humanized (e.g. "colabfold_druggability_score" ->
+    "ColabFold Druggability Score") for display in a rich tooltip.
 
     Not a full expression parser -- these are known, finite identifier sets
     (ScoreParam/ScoreParamOptions names), so a word-boundary scan is enough
@@ -96,7 +99,7 @@ def annotate_formula_terms(expression, term_descriptions):
     to understand the surrounding arithmetic.
     """
     if not expression or not term_descriptions:
-        return ""
+        return []
     found = []
     seen = set()
     for match in re.finditer(r"[A-Za-z_][A-Za-z0-9_]*", expression):
@@ -107,8 +110,8 @@ def annotate_formula_terms(expression, term_descriptions):
         if not description:
             continue
         seen.add(token)
-        found.append(f"{token}: {description}")
-    return " · ".join(found)
+        found.append({"label": humanize_identifier(token) or token, "description": description})
+    return found
 
 
 def ordered_score_params(formula_term_list):

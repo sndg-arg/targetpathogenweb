@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20260726-heroanalysis1">
+    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20260726-formulahelp1">
 {% endblock %}
 
 {% block body %}
@@ -1195,7 +1195,16 @@
                                                 {% if entry.is_default %}<span class="scoring-formula-row__badge">{% trans "Default" %}</span>{% endif %}
                                             </span>
                                             {% if entry.expression %}
-                                                <code class="scoring-formula-row__expression"{% if entry.term_help %} title="{{ entry.term_help }}"{% endif %}>{{ entry.expression }}</code>
+                                                <code class="scoring-formula-row__expression">
+                                                    {{ entry.expression }}
+                                                    {% if entry.term_help %}
+                                                        <span class="cell-tooltip scoring-formula-help" role="tooltip">
+                                                            {% for term in entry.term_help %}
+                                                                <span class="scoring-formula-help-term"><strong>{{ term.label }}</strong>: {{ term.description }}</span>
+                                                            {% endfor %}
+                                                        </span>
+                                                    {% endif %}
+                                                </code>
                                             {% endif %}
                                         </span>
                                     </button>
