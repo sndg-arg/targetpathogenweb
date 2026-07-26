@@ -288,6 +288,7 @@ function jsloaded() {
 
     var representations = {};
     var visible = {};
+    window.__tpDebugRepresentations = representations;
     var activeStructureId = "{{ structure.id }}";
     var isSpinning = false;
     var structureLoadToken = 0;
@@ -445,6 +446,10 @@ function jsloaded() {
     var stage = new NGL("viewport", {
         backgroundColor: tpColor("--sv-viewer-canvas-bg", "#0d1519")
     });
+    // Temporary debug hook -- lets the browser console inspect the live
+    // NGL stage/component state while chasing a rendering bug. Safe to
+    // remove once that's resolved; doesn't change any behavior.
+    window.__tpDebugStage = stage;
 
     /* Resize NGL canvas to match actual DOM size, then optionally re-center */
     function syncNglSize(thenCenterComponent) {
