@@ -9,7 +9,7 @@ from tpweb.models.BioentryStructure import BioentryStructure
 from tpweb.models.pdb import PDB, Residue, Property, ResidueSet, PDBResidueSet, ResidueSetProperty
 from django.db.models import Q
 from tpweb.services.genome_workspace import user_can_access_genome_name, genome_url_slug
-from tpweb.services.structure_files import detect_structure_format, display_code, structure_file_path
+from tpweb.services.structure_files import detect_structure_format, disambiguate_display_codes, display_code, structure_file_path
 from tpweb.services.structure_sources import chain_selector as _chain_selector
 from tpweb.services.pocket_geometry import volume_outlier_map
 
@@ -319,6 +319,7 @@ class StructureView(View):
                     "is_active": True,
                 })
 
+            disambiguate_display_codes(all_structures)
             dto["all_structures"] = all_structures
             active = next((s for s in all_structures if s["is_active"]), all_structures[0] if all_structures else None)
             if active:

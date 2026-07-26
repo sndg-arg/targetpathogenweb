@@ -1,4 +1,5 @@
 import os
+import re
 
 from django.conf import settings
 
@@ -65,5 +66,26 @@ def detect_structure_format_from_text(text):
 
 def display_code(code):
     """Strip pipeline suffixes like _chain_A from PDB codes for user-facing display."""
-    import re
     return re.sub(r'_chain_\w+$', '', str(code or ''), flags=re.IGNORECASE).upper()
+
+
+_CHAIN_SUFFIX_RE = re.compile(r'_chain_(\w+)$', re.IGNORECASE)
+
+
+def disambiguate_display_codes(structures):
+    """structures is a list of dicts with "code" and "display_code" keys
+    (StructureView.py's all_structures) and a "short_method" key. When two
+    entries share the same (short_method, display_code) after
+    display_code()'s chain-suffix stripping -- e.g. "6E85" and
+    "6E85_CHAIN_A" both display as "6E85" -- disambiguate them instead of
+    showing an indistinguishable duplicate in the structure picker.
+    """
+    groups = {}
+    for s in structures:
+        groups.setdefault((s["short_method"], s["display_code"]), []).append(s)
+    for group in groups.values():
+        if len(group) < 2:
+            continue
+        for s in group:
+            match = _CHAIN_SUFFIX_RE.search(s["code"])
+            s["display_code"] = f"{s['display_code']} (chain {match.group(1).upper()})" if match else s["code"]

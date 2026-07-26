@@ -966,6 +966,11 @@ body.residue-modal-open { overflow: hidden; }
     transition: background-color 0.13s, opacity 0.13s;
 }
 
+.sv-struct-picker-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+}
+
 .sv-struct-picker-btn:hover,
 .sv-struct-picker-btn[aria-expanded="true"] {
     opacity: 1;
@@ -1038,6 +1043,12 @@ body.residue-modal-open { overflow: hidden; }
 .sv-struct-picker-item.is-active {
     background: var(--sv-btn-active-bg);
     font-weight: 700;
+}
+
+.sv-struct-picker-item[aria-disabled="true"] {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
 }
 
 .sv-struct-picker-item-label {

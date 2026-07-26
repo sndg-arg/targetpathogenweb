@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20260720-propchips3">
+    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20260726-loadguard1">
 {% endblock %}
 
 {% block body %}
@@ -259,6 +259,13 @@ function jsloaded() {
             if (textEl) textEl.textContent = text;
         }
     }
+    function setStructurePickerBusy(busy) {
+        var pickerBtn = document.getElementById("sv-struct-picker-btn");
+        if (pickerBtn) pickerBtn.disabled = busy;
+        document.querySelectorAll(".sv-struct-picker-item").forEach(function (el) {
+            el.setAttribute("aria-disabled", busy ? "true" : "false");
+        });
+    }
     var pocketInspector = document.getElementById("sv-pocket-inspector");
     var pocketClearBtn = document.getElementById("sv-pocket-clear-selection");
     var pocketShowOnlyBtn = document.getElementById("sv-pocket-show-only-toggle");
@@ -283,6 +290,7 @@ function jsloaded() {
     var visible = {};
     var activeStructureId = "{{ structure.id }}";
     var isSpinning = false;
+    var structureLoadToken = 0;
 
     /* ---- Measure nav height ---- */
     (function () {
@@ -547,13 +555,23 @@ function jsloaded() {
     function _loadStructureById(structureId) {
         structureId = String(structureId);
         activeStructureId = structureId;
+        var loadToken = ++structureLoadToken;
         clearRepresentationState();
         syncAnnotationPanels(structureId);
         updateIdentity(structureId);
         setLoadingNoteVisible(true, "{% trans 'Loading 3D structure…' %}");
+        setStructurePickerBusy(true);
         stage.removeAllComponents();
         stage.loadFile(structureUrls[structureId], { ext: structureFormats[structureId] || "pdb", defaultRepresentation: false })
             .then(function (component) {
+                if (loadToken !== structureLoadToken) {
+                    // A newer load started before this one resolved -- this
+                    // response is stale; discard it instead of layering its
+                    // cartoon/pockets on top of whatever the newer load set up.
+                    stage.removeComponent(component);
+                    return;
+                }
+                setStructurePickerBusy(false);
                 try {
                     initStructureComponent(component);
                 } catch (err) {
@@ -564,6 +582,8 @@ function jsloaded() {
                 }
             })
             .catch(function () {
+                if (loadToken !== structureLoadToken) return;
+                setStructurePickerBusy(false);
                 setLoadingNoteVisible(true, "{% trans 'Unable to load 3D structure.' %}");
             });
     }
@@ -740,7 +760,9 @@ function jsloaded() {
         });
         menu.addEventListener("click", function (ev) {
             var item = ev.target.closest(".sv-struct-picker-item");
-            if (item) window.switchStructure(item.getAttribute("data-id"));
+            if (item && item.getAttribute("aria-disabled") !== "true") {
+                window.switchStructure(item.getAttribute("data-id"));
+            }
         });
         document.addEventListener("click", function (ev) {
             if (!btn.contains(ev.target) && !menu.contains(ev.target)) {
