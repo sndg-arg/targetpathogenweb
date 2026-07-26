@@ -66,7 +66,7 @@ from tpweb.management.commands.load_csa import (
     _site_storage_name,
 )
 from tpweb.management.commands.import_selected_pdb_pocket_results import fallback_fpocket_to_json
-from tpweb.services.functional_annotations import _sequence_position_map
+from tpweb.services.functional_annotations import _read_uniprot_mapping, _sequence_position_map
 from tpweb.services.genome_workspace import (
     build_workspace_genome_name,
     describe_genome_scope,
@@ -398,6 +398,25 @@ class ProteinFormulaServiceTests(SimpleTestCase):
 
 
 class StructureAndAnnotationServiceTests(SimpleTestCase):
+    def test_read_uniprot_mapping_expands_pipe_delimited_accessions(self):
+        with TemporaryDirectory() as tmpdir:
+            mapping_path = Path(tmpdir) / "genome_unips.lst"
+            mapping_path.write_text(
+                "A0A0H3GM04|W8UNW6 locus_a\nA0A0H3GM05 locus_b\n",
+                encoding="utf-8",
+            )
+
+            mapping = _read_uniprot_mapping(mapping_path)
+
+        self.assertEqual(
+            mapping,
+            {
+                "A0A0H3GM04": "locus_a",
+                "W8UNW6": "locus_a",
+                "A0A0H3GM05": "locus_b",
+            },
+        )
+
     def test_sequence_position_map_preserves_identical_numbering(self):
         mapping, metrics = _sequence_position_map("ACDEFG", "ACDEFG")
 

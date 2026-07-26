@@ -69,7 +69,10 @@ def _read_uniprot_mapping(lst_path):
         for line in fh:
             parts = line.strip().split()
             if len(parts) >= 2:
-                mapping[parts[0]] = parts[1]
+                for accession in parts[0].split("|"):
+                    accession = accession.strip()
+                    if accession:
+                        mapping[accession] = parts[1]
     return mapping
 
 
