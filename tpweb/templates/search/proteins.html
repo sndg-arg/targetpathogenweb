@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20260726-chokepointicon1">
+    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20260726-heroanalysis1">
 {% endblock %}
 
 {% block body %}
@@ -49,7 +49,14 @@
                     {% include "components/pipeline/note.html" with pipeline_status=pipeline_status mode="genome" note_class="hero-pipeline-note" %}
                 </div>
             {% endif %}
-            <div class="hero-analysis-context">
+            <details class="hero-analysis-context" {% if not is_default_view %}open{% endif %}>
+                <summary class="hero-analysis-summary">
+                    {% if is_default_view %}
+                        {% trans "No filters or custom sorting applied — click to see defaults" %}
+                    {% else %}
+                        {% trans "View settings" %}
+                    {% endif %}
+                </summary>
                 <p class="hero-analysis-line">
                     <span class="hero-analysis-label">{% trans "Scoring formula" %}</span>
                     <span class="hero-analysis-value">{% if formula %}{{ formula.name }}{% else %}None{% endif %}</span>
@@ -91,7 +98,7 @@
                     <span class="hero-analysis-label">{% trans "Rows per page" %}</span>
                     <span class="hero-analysis-value">{{ page_size }}</span>
                 </p>
-            </div>
+            </details>
             {% if pipeline_status.available and pipeline_status.current_genome_status_note %}
                 <p class="tp-state-note {% if pipeline_status.failed_for_current_genome %}tp-state-note--error{% else %}tp-state-note--empty{% endif %}">
                     {{ pipeline_status.current_genome_status_note }}
@@ -1188,7 +1195,7 @@
                                                 {% if entry.is_default %}<span class="scoring-formula-row__badge">{% trans "Default" %}</span>{% endif %}
                                             </span>
                                             {% if entry.expression %}
-                                                <code class="scoring-formula-row__expression">{{ entry.expression }}</code>
+                                                <code class="scoring-formula-row__expression"{% if entry.term_help %} title="{{ entry.term_help }}"{% endif %}>{{ entry.expression }}</code>
                                             {% endif %}
                                         </span>
                                     </button>

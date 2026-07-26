@@ -105,6 +105,45 @@
     gap: 6px;
 }
 
+.hero-analysis-summary {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    list-style: none;
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-label);
+    font-weight: 500;
+}
+
+.hero-analysis-summary::-webkit-details-marker {
+    display: none;
+}
+
+.hero-analysis-summary::marker {
+    content: "";
+}
+
+.hero-analysis-summary::after {
+    content: "";
+    flex: 0 0 auto;
+    width: var(--tp-chevron-size);
+    height: var(--tp-chevron-size);
+    border-right: var(--tp-chevron-stroke) solid currentColor;
+    border-bottom: var(--tp-chevron-stroke) solid currentColor;
+    transform: rotate(45deg);
+    transform-origin: center;
+}
+
+.hero-analysis-context[open] .hero-analysis-summary::after {
+    transform: rotate(-135deg);
+}
+
+.hero-analysis-summary:hover,
+.hero-analysis-summary:focus-visible {
+    color: var(--view-accent-ink);
+}
+
 .hero-analysis-line {
     margin: 0;
     display: grid;

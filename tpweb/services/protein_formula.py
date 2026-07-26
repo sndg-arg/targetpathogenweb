@@ -1,6 +1,9 @@
+import re
+
 from django.db.models import Q
 
 from tpweb.models.ScoreFormula import ScoreFormula
+from tpweb.models.ScoreParam import ScoreParam
 from tpweb.services.workspace import resolve_workspace_user
 
 
@@ -60,6 +63,52 @@ def build_col_descriptions(formula_term_list):
             f"{term.score_param.description}. Possible values: {choice_names}. {choice_details}"
         )
     return descriptions
+
+
+def build_all_term_descriptions():
+    """Return a {token: description} dict covering every ScoreParam column name
+    and every categorical ScoreParamOptions value site-wide.
+
+    Unlike build_col_descriptions() (scoped to one formula's own
+    ScoreFormulaParam terms), this is independent of which formula is active
+    or whether a formula even has term rows at all -- expression-based
+    formulas (free-text .expression, e.g. "Kp score") have no
+    ScoreFormulaParam rows to scope a per-formula lookup from, so a global
+    dict is the only way to explain their raw column-name tokens too.
+    """
+    descriptions = {}
+    for param in ScoreParam.objects.all().prefetch_related("choices"):
+        if param.description:
+            descriptions[param.name] = param.description
+        for choice in param.choices.all():
+            if choice.description:
+                descriptions[choice.name] = choice.description
+    return descriptions
+
+
+def annotate_formula_terms(expression, term_descriptions):
+    """Return "token: description · token: description" for every whole-word
+    token in *expression* that matches a key in *term_descriptions*.
+
+    Not a full expression parser -- these are known, finite identifier sets
+    (ScoreParam/ScoreParamOptions names), so a word-boundary scan is enough
+    to recognize them inside free-text formula expressions without needing
+    to understand the surrounding arithmetic.
+    """
+    if not expression or not term_descriptions:
+        return ""
+    found = []
+    seen = set()
+    for match in re.finditer(r"[A-Za-z_][A-Za-z0-9_]*", expression):
+        token = match.group(0)
+        if token in seen:
+            continue
+        description = term_descriptions.get(token)
+        if not description:
+            continue
+        seen.add(token)
+        found.append(f"{token}: {description}")
+    return " · ".join(found)
 
 
 def ordered_score_params(formula_term_list):

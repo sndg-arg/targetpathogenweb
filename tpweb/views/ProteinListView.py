@@ -26,6 +26,8 @@ from tpweb.services.protein_list import (
 )
 from tpweb.services.protein_formula import (
     NO_FORMULA_SENTINEL,
+    annotate_formula_terms,
+    build_all_term_descriptions,
     build_col_descriptions,
     build_score_dict_and_columns,
     choose_formula,
@@ -891,14 +893,17 @@ class ProteinListView(View):
 
         current_formula_pk = getattr(formula, "pk", None)
         workspace_user_for_drawer = resolve_workspace_user(request.user)
+        all_term_descriptions = build_all_term_descriptions()
         formulas_for_drawer = []
         for f in formulas:
+            formula_expression = f.get_current_formula()
             formulas_for_drawer.append({
                 "pk": f.pk,
                 "name": f.name,
                 "is_default": bool(f.default),
                 "is_current": f.pk == current_formula_pk,
-                "expression": f.get_current_formula(),
+                "expression": formula_expression,
+                "term_help": annotate_formula_terms(formula_expression, all_term_descriptions),
                 "is_user_formula": f.user_id is not None and f.user_id == getattr(workspace_user_for_drawer, "pk", None),
             })
 
@@ -1405,6 +1410,12 @@ class ProteinListView(View):
         sort_direction_label = "ascending" if effective_sort_dir == "asc" else "descending"
         sorted_by_label = f"{sort_label_by_col.get(effective_sort_col, effective_sort_col)} ({sort_direction_label})"
 
+        is_default_view = not (
+            formula or grouped_parameters or structure_source or annotation_filter
+            or active_preset_name or search_query or raw_sort_col or raw_sort_dir
+            or page_size != DEFAULT_PAGE_SIZE
+        )
+
         return render(request, self.template_name, {
             "biodb__name": bdb.description if bdb.description else bdb.name,
             "biodb_accession": display_genome_name(bdb.name),
@@ -1475,5 +1486,6 @@ class ProteinListView(View):
             "sort_col_urls": sort_col_urls,
             "sorted_by_label": sorted_by_label,
             "formula_active": formula is not None,
+            "is_default_view": is_default_view,
 
         })  # , {'form': form})
