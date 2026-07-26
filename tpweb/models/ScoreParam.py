@@ -277,13 +277,13 @@ class ScoreParam(models.Model):
             description="Celular localization of the protein",
             default_operation="=", default_value="Unknown", user=None)[0]
         
-        ScoreParamOptions.objects.get_or_create(score_param=sp, name="Cellwall",description="Protein located in the cellwall")
-        ScoreParamOptions.objects.get_or_create(score_param=sp, name="Cytoplasmic",description="Protein located in the citoplasm")
-        ScoreParamOptions.objects.get_or_create(score_param=sp, name="CytoplasmicMembrane",description="Protein located in the citoplasmatic membrane")
-        ScoreParamOptions.objects.get_or_create(score_param=sp, name="Extracellular",description="Protein located in the extracelular matrix")
-        ScoreParamOptions.objects.get_or_create(score_param=sp, name="OuterMembrane",description="Protein located in the outer membrane")
-        ScoreParamOptions.objects.get_or_create(score_param=sp, name="Periplasmic",description="Protein located in periplasmatic space")
-        ScoreParamOptions.objects.get_or_create(score_param=sp, name="Unknown",description="Protein location not known")
+        ScoreParamOptions.objects.get_or_create(score_param=sp, name="Cellwall", defaults={"description": "Protein located in the cellwall"})
+        ScoreParamOptions.objects.get_or_create(score_param=sp, name="Cytoplasmic", defaults={"description": "Protein located in the cytoplasm"})
+        ScoreParamOptions.objects.get_or_create(score_param=sp, name="CytoplasmicMembrane", defaults={"description": "Protein located in the cytoplasmic membrane"})
+        ScoreParamOptions.objects.get_or_create(score_param=sp, name="Extracellular", defaults={"description": "Protein located in the extracellular matrix"})
+        ScoreParamOptions.objects.get_or_create(score_param=sp, name="OuterMembrane", defaults={"description": "Protein located in the outer membrane"})
+        ScoreParamOptions.objects.get_or_create(score_param=sp, name="Periplasmic", defaults={"description": "Protein located in periplasmatic space"})
+        ScoreParamOptions.objects.get_or_create(score_param=sp, name="Unknown", defaults={"description": "Protein location not known"})
 
         sp = ScoreParam.objects.get(name='Localization', user__isnull=True)
         formulas = ScoreFormula.objects.filter(name='Localization')
