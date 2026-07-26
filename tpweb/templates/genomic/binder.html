@@ -257,7 +257,7 @@
                             <ul class="druglike-checks">
                                 {% for c in properties.lipinski_checks %}
                                     <li class="{% if c.ok %}is-ok{% else %}is-bad{% endif %}">
-                                        <span class="check-icon" aria-hidden="true">{% if c.ok %}✓{% else %}✗{% endif %}</span>
+                                        <span class="check-icon" aria-hidden="true">{% if c.ok %}{% include "components/icons/check.html" %}{% else %}✗{% endif %}</span>
                                         <span class="check-name">{{ c.name }}</span>
                                         <span class="check-value">{{ c.value }}</span>
                                     </li>
@@ -275,7 +275,7 @@
                             <ul class="druglike-checks">
                                 {% for c in properties.veber_checks %}
                                     <li class="{% if c.ok %}is-ok{% else %}is-bad{% endif %}">
-                                        <span class="check-icon" aria-hidden="true">{% if c.ok %}✓{% else %}✗{% endif %}</span>
+                                        <span class="check-icon" aria-hidden="true">{% if c.ok %}{% include "components/icons/check.html" %}{% else %}✗{% endif %}</span>
                                         <span class="check-name">{{ c.name }}</span>
                                         <span class="check-value">{{ c.value }}</span>
                                     </li>
