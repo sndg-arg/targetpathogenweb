@@ -1611,6 +1611,44 @@ a.tp-chip--go:hover {
     }
 }
 
+/* ── shared tone naming ──────────────────────────────────────── */
+/* One naming dictionary for "is this value good/bad/neutral" across pages
+   -- protein.html's metric-pill (--drugg-high/mid/low, --priority,
+   --metabolic), binder.html's metric-value (--ok/--warn), and
+   proteins.html's per-cell chips (score_metric_tone: favorable/risk/
+   secondary) each independently invented their own tint scheme on top of
+   the same success/warning/danger tokens. Not migrated yet (that's a
+   separate, larger visual pass) -- this just gives future work one shared
+   vocabulary to converge on instead of a fourth invention. */
+:root {
+    --tp-tone-favorable: var(--tp-color-success-ink);
+    --tp-tone-favorable-bg: var(--tp-color-success-bg);
+    --tp-tone-favorable-border: var(--tp-color-success-border);
+    --tp-tone-risk: var(--tp-color-danger-ink);
+    --tp-tone-risk-bg: var(--tp-color-danger-bg);
+    --tp-tone-risk-border: var(--tp-color-danger-border);
+    --tp-tone-neutral: var(--tp-color-text-muted);
+    --tp-tone-neutral-bg: var(--tp-color-surface-muted);
+    --tp-tone-neutral-border: var(--tp-color-border-soft);
+}
+
+/* ── metric-value-icon ──────────────────────────────────────── */
+/* Shared inline icon prefix for a verdict/fact value (e.g. a checkmark
+   before "Yes" in a metric-pill, or before a chip label) -- used across
+   protein-detail.css and proteins-list.css, so it lives here instead of
+   being duplicated per page. Icons use stroke="currentColor" and inherit
+   the surrounding text color by default; --success forces the shared
+   success token when the surrounding element doesn't already set one. */
+.metric-value-icon {
+    display: inline-flex;
+    vertical-align: -1px;
+    margin-right: 4px;
+}
+
+.metric-value-icon--success {
+    color: var(--tp-color-success-ink);
+}
+
 /* ── tp-card ─────────────────────────────────────────────── */
 /* The only .tp-card definition -- two near-duplicate copies used to live
    inline in masterpage.html; padding/shadow here match what was actually

@@ -1,6 +1,8 @@
 from django import template
 import re
 
+from tpweb.services.protein_summary import druggability_label
+
 register = template.Library()
 
 @register.filter
@@ -116,6 +118,19 @@ def druggability_display(value):
     except (TypeError, ValueError):
         return value
     return f"{numeric:.3f}".rstrip("0").rstrip(".")
+
+
+@register.filter
+def druggability_tone(value):
+    """Return the high/mid/low tone for a druggability score.
+
+    Reuses protein_summary.druggability_label (the same threshold logic the
+    protein detail page's metric-pill uses) so the proteins list table's
+    per-cell tone doesn't drift out of sync with a second, hand-copied set
+    of thresholds.
+    """
+    result = druggability_label(value)
+    return result[1] if result else ""
 
 
 @register.filter

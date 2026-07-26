@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20260725-action-icons1">
+    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20260726-chokepointicon1">
 {% endblock %}
 
 {% block body %}
@@ -453,7 +453,7 @@
                                            class="tp-chip tp-chip--sm protein-metabolism-chip{% if protein.has_metabolic_chokepoint %} protein-metabolism-chip--chokepoint{% else %} protein-metabolism-chip--mapped{% endif %}"
                                            title="{{ protein.metabolism_text }}">
                                             {% if protein.has_metabolic_chokepoint %}
-                                                {% trans "Chokepoint" %}
+                                                <span class="metric-value-icon" aria-hidden="true">{% include "components/icons/check.html" %}</span>{% trans "Chokepoint" %}
                                             {% else %}
                                                 {% trans "Mapped" %}
                                             {% endif %}
@@ -485,7 +485,7 @@
                                         {% elif col == "Druggability" %}
                                             {% with val=tdata|dictkey:protein.id|dictkey:col %}
                                                 {% if val and val != "-" %}
-                                                    <span class="tp-chip tp-chip--score js-drugg-cell druggability-tip" data-score="{{ val }}">
+                                                    <span class="tp-chip tp-chip--score tp-chip--drugg-{{ val|druggability_tone }} druggability-tip" data-score="{{ val }}">
                                                         {{ val|druggability_display }}
                                                     </span>
                                                 {% else %}
@@ -2400,15 +2400,6 @@
                     }
                 });
                 syncNumericMode();
-            });
-
-            // Color-code druggability chips using FPocket thresholds
-            document.querySelectorAll(".js-drugg-cell").forEach(function (el) {
-                var v = parseFloat((el.dataset.score || "").replace(",", "."));
-                if (isNaN(v)) return;
-                if (v >= 0.7) { el.classList.add("tp-chip--drugg-high"); }
-                else if (v >= 0.4) { el.classList.add("tp-chip--drugg-mid"); }
-                else { el.classList.add("tp-chip--drugg-low"); }
             });
         }
 
