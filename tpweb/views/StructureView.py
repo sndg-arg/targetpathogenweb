@@ -193,6 +193,29 @@ def _nearest_named_center(center, named_centers):
     return best
 
 
+def _residue_identity(residue):
+    """Stable residue identity for cross-method pocket comparisons."""
+    return (
+        str(getattr(residue, "chain", "") or "").strip(),
+        int(getattr(residue, "resid")),
+        str(getattr(residue, "icode", "") or "").strip(),
+    )
+
+
+def _pocket_residue_overlap(left_residues, right_residues):
+    """Return overlap metrics without conflating equal numbers across chains."""
+    left = {_residue_identity(residue) for residue in left_residues}
+    right = {_residue_identity(residue) for residue in right_residues}
+    shared = left & right
+    union = left | right
+    smaller = min(len(left), len(right))
+    return {
+        "shared_count": len(shared),
+        "smaller_coverage": (len(shared) / smaller * 100.0) if smaller else 0.0,
+        "jaccard": (len(shared) / len(union) * 100.0) if union else 0.0,
+    }
+
+
 def _format_pocket_center(center):
     if center is None:
         return ""
@@ -474,6 +497,7 @@ def pdb_structure(
             p.size_outlier_note = ""
         p.geometric_center = _pocket_center(p.core_points)
         p.residues = []
+        p.comparison_residues = []
         data = []
 
         for rsr in p.residue_set_residue.all():
@@ -481,6 +505,7 @@ def pdb_structure(
                          "y": rsr.residue.resid,
                          "description": p.name, "id": p.name})
             p.residues.append(rsr.residue.resid)
+            p.comparison_residues.append(rsr.residue)
             for a in rsr.residue.atoms.all():
                 p.atoms.append(a.serial)
         if include_pockets_in_graphic_features:
@@ -504,6 +529,7 @@ def pdb_structure(
         p2.core_points = _residue_set_core_points(p2)
         p2.geometric_center = _pocket_center(p2.core_points)
         p2.residues = []
+        p2.comparison_residues = []
         data = []
 
         for rsr in p2.residue_set_residue.all():
@@ -511,6 +537,7 @@ def pdb_structure(
                          "y": rsr.residue.resid,
                          "description": p2.name, "id": p2.name})
             p2.residues.append(rsr.residue.resid)
+            p2.comparison_residues.append(rsr.residue)
             for a in rsr.residue.atoms.all():
                 p2.atoms.append(a.serial)
         if include_pockets_in_graphic_features:
@@ -575,6 +602,8 @@ def pdb_structure(
         p.consensus_label = ""
         p.consensus_distance = None
         p.consensus_shared_residues = 0
+        p.consensus_smaller_coverage = 0.0
+        p.consensus_jaccard = 0.0
         if consensus and consensus[1] <= _POCKET_CONSENSUS_DISTANCE:
             matching_p2 = next(
                 (
@@ -587,10 +616,17 @@ def pdb_structure(
             p.consensus_label = consensus[0]
             p.consensus_distance = round(consensus[1], 1)
             if matching_p2 is not None:
-                p.consensus_shared_residues = len(set(p.residues) & set(matching_p2.residues))
+                overlap = _pocket_residue_overlap(
+                    p.comparison_residues,
+                    matching_p2.comparison_residues,
+                )
+                p.consensus_shared_residues = overlap["shared_count"]
+                p.consensus_smaller_coverage = round(overlap["smaller_coverage"])
+                p.consensus_jaccard = round(overlap["jaccard"])
         consensus_note = (
             f"Same-site prediction: {p.consensus_label} ({p.consensus_distance:.1f} Å center distance, "
-            f"{p.consensus_shared_residues} shared residues)"
+            f"{p.consensus_shared_residues} shared residues, "
+            f"{p.consensus_smaller_coverage:.0f}% of the smaller site)"
             if p.consensus_label else ""
         )
         nearest_site = _nearest_named_center(p.geometric_center, site_centers)
@@ -607,6 +643,8 @@ def pdb_structure(
         p2.consensus_label = ""
         p2.consensus_distance = None
         p2.consensus_shared_residues = 0
+        p2.consensus_smaller_coverage = 0.0
+        p2.consensus_jaccard = 0.0
         if consensus and consensus[1] <= _POCKET_CONSENSUS_DISTANCE:
             matching_fpocket = next(
                 (
@@ -619,12 +657,17 @@ def pdb_structure(
             p2.consensus_label = consensus[0]
             p2.consensus_distance = round(consensus[1], 1)
             if matching_fpocket is not None:
-                p2.consensus_shared_residues = len(
-                    set(p2.residues) & set(matching_fpocket.residues)
+                overlap = _pocket_residue_overlap(
+                    p2.comparison_residues,
+                    matching_fpocket.comparison_residues,
                 )
+                p2.consensus_shared_residues = overlap["shared_count"]
+                p2.consensus_smaller_coverage = round(overlap["smaller_coverage"])
+                p2.consensus_jaccard = round(overlap["jaccard"])
         consensus_note = (
             f"Same-site prediction: {p2.consensus_label} ({p2.consensus_distance:.1f} Å center distance, "
-            f"{p2.consensus_shared_residues} shared residues)"
+            f"{p2.consensus_shared_residues} shared residues, "
+            f"{p2.consensus_smaller_coverage:.0f}% of the smaller site)"
             if p2.consensus_label else ""
         )
         nearest_site = _nearest_named_center(p2.geometric_center, site_centers)

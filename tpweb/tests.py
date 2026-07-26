@@ -82,7 +82,7 @@ from tpweb.services.workspace import (
 )
 from tpweb.views.FormulaForm import FormulaForm
 from tpweb.views.IndexView import should_show_home_pipeline_panel
-from tpweb.views.StructureView import _annotated_site_label
+from tpweb.views.StructureView import _annotated_site_label, _pocket_residue_overlap
 from tpweb.services.workspace import PUBLIC_WORKSPACE_USERNAME
 from tpweb.services.llm.base import Message, ToolCall, ToolDefinition, ToolResult
 from tpweb.services.llm.openai_provider import OpenAIProvider
@@ -432,6 +432,19 @@ class StructureAndAnnotationServiceTests(SimpleTestCase):
             _annotated_site_label({"rs_name": "CSA", "name": "M-CSA 123 | chain A"}),
             "CSA: M-CSA 123 | chain A",
         )
+
+    def test_pocket_overlap_does_not_conflate_residue_numbers_across_chains(self):
+        def residue(chain, resid, icode=""):
+            return SimpleNamespace(chain=chain, resid=resid, icode=icode)
+
+        overlap = _pocket_residue_overlap(
+            [residue("A", 10), residue("A", 11), residue("A", 12)],
+            [residue("B", 10), residue("A", 11), residue("A", 12, "A")],
+        )
+
+        self.assertEqual(overlap["shared_count"], 1)
+        self.assertAlmostEqual(overlap["smaller_coverage"], 100 / 3)
+        self.assertAlmostEqual(overlap["jaccard"], 20.0)
 
     @patch("tpweb.services.structure_files.settings")
     def test_structure_file_candidates_include_media_root_and_seqs_parent(self, settings_mock):

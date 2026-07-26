@@ -29,6 +29,7 @@
                         <span class="pocket-consensus-status">{% blocktrans with site=p.consensus_label %}Likely same site as {{ site }}{% endblocktrans %}</span>
                         <span>{{ p.consensus_distance }} Å</span>
                         <span>{% blocktrans count shared=p.consensus_shared_residues %}{{ shared }} shared residue{% plural %}{{ shared }} shared residues{% endblocktrans %}</span>
+                        <span>{{ p.consensus_smaller_coverage|floatformat:0 }}% {% trans "of smaller site" %}</span>
                     </div>
                     {% endif %}
                     {% if p.size_outlier %}
@@ -86,6 +87,7 @@
                         <span class="pocket-consensus-status">{% blocktrans with site=p2.consensus_label %}Likely same site as {{ site }}{% endblocktrans %}</span>
                         <span>{{ p2.consensus_distance }} Å</span>
                         <span>{% blocktrans count shared=p2.consensus_shared_residues %}{{ shared }} shared residue{% plural %}{{ shared }} shared residues{% endblocktrans %}</span>
+                        <span>{{ p2.consensus_smaller_coverage|floatformat:0 }}% {% trans "of smaller site" %}</span>
                     </div>
                     {% endif %}
                     <span class="pocket-card-layer-label">{% trans "Show in viewer" %}</span>

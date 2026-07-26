@@ -252,10 +252,14 @@ Mejorar la lectura de similitud contra humano, microbioma y otros organismos rel
 
 Comparar predicciones de pockets entre ambos metodos.
 
+**Implementado parcialmente.**
+
+- Comparación por distancia entre centros dentro de la misma estructura.
+- Conteo y porcentaje de residuos compartidos usando cadena, número de residuo y código de inserción.
+- Visualización del consenso en las cards de FPocket y P2Rank del detalle estructural.
+
 **Alcance.**
 
-- Distancia entre centros.
-- Porcentaje de residuos compartidos.
 - Solapamiento espacial.
 - Badge de consenso estructural.
 - Filtro para priorizar proteinas donde ambos metodos coinciden en el pocket principal.
