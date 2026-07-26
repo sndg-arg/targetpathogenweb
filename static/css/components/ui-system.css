@@ -14,14 +14,18 @@
 :root {
     --tp-ui-control-height: 44px;
     --tp-ui-control-height-compact: 40px;
+    /* radius-panel/hero and gap-sm/md/lg alias the base radius/space
+       scale (masterpage.html) rather than repeating its values under a
+       second name -- radius-control and gap-xs have no equivalent step
+       in that scale, so they stay as their own values. */
     --tp-ui-radius-control: 12px;
-    --tp-ui-radius-panel: 20px;
-    --tp-ui-radius-hero: 26px;
+    --tp-ui-radius-panel: var(--tp-radius-md);
+    --tp-ui-radius-hero: var(--tp-radius-lg);
     --tp-ui-panel-padding: 12px;
     --tp-ui-gap-xs: 6px;
-    --tp-ui-gap-sm: 8px;
-    --tp-ui-gap-md: 12px;
-    --tp-ui-gap-lg: 16px;
+    --tp-ui-gap-sm: var(--tp-space-2);
+    --tp-ui-gap-md: var(--tp-space-3);
+    --tp-ui-gap-lg: var(--tp-space-4);
     --tp-ui-motion-fast: 140ms;
     --tp-ui-motion-base: 180ms;
     --tp-ui-ease-standard: cubic-bezier(0.2, 0.65, 0.3, 1);
@@ -382,6 +386,20 @@
     border-color: var(--tp-color-danger-border);
     background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-danger-bg) 100%);
     color: var(--tp-color-danger-ink);
+}
+
+.tp-state-note--success {
+    border-style: solid;
+    border-color: var(--tp-color-success-border);
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-success-bg) 100%);
+    color: var(--tp-color-success-ink);
+}
+
+.tp-state-note--warning {
+    border-style: solid;
+    border-color: var(--tp-color-warning-border);
+    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-warning-bg) 100%);
+    color: var(--tp-color-warning-ink);
 }
 
 .tp-select {
@@ -748,6 +766,14 @@ a.tp-chip--go:hover {
     font-size: 0.86rem;
     font-weight: 400;
     padding: 4px 7px 4px 10px;
+    transition: border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.tp-chip--filter:hover,
+.tp-chip--filter:focus-visible {
+    border-color: var(--tp-color-border-strong);
+    background: var(--tp-color-surface-muted);
 }
 
 .tp-state-chip,
@@ -1586,12 +1612,21 @@ a.tp-chip--go:hover {
 }
 
 /* ── tp-card ─────────────────────────────────────────────── */
+/* The only .tp-card definition -- two near-duplicate copies used to live
+   inline in masterpage.html; padding/shadow here match what was actually
+   rendering (the last-loaded of the three always won the cascade), so
+   consolidating doesn't change how any existing .tp-card looks. */
 .tp-card {
     border: 1px solid var(--tp-color-border-soft);
     border-radius: var(--tp-ui-radius-panel);
     background: var(--tp-color-surface);
-    padding: var(--tp-ui-panel-padding);
+    padding: 16px;
+    box-shadow: var(--tp-shadow-sm);
     transition: border-color var(--tp-ui-motion-base) var(--tp-ui-ease-standard);
+}
+
+.tp-card + .tp-card {
+    margin-top: 14px;
 }
 
 .tp-card--elevated {
