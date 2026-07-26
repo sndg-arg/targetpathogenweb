@@ -18,12 +18,12 @@
                     {% url 'tpwebapp:assembly' genome as assembly_url %}
                     {% with crumb_genome="Genome: "|add:assembly_label %}
                     {% with crumb_protein="Protein: "|add:protein.accession %}
-                    {% with crumb_binder="Binder: "|add:binder.name %}
+                    {% with crumb_binder="Ligand: "|add:binder.name %}
                     {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_genome crumb_3_url=assembly_url crumb_4_label=crumb_proteins crumb_4_url=proteins_url crumb_5_label=crumb_protein crumb_5_url=protein_url crumb_6_label=crumb_binder %}
                     {% endwith %}
                     {% endwith %}
                     {% endwith %}
-                    <p class="binder-hero-eyebrow">{% trans "Binder profile" %}</p>
+                    <p class="binder-hero-eyebrow">{% trans "Ligand profile" %}</p>
                     <h1>{{ binder.name }}</h1>
                     <p class="binder-description">
                         {% if binder.is_pdb %}
@@ -65,7 +65,7 @@
                     </div>
                 </div>
             </div>
-            <div class="binder-metrics" aria-label="{% trans 'Binder summary' %}">
+            <div class="binder-metrics" aria-label="{% trans 'Ligand summary' %}">
                 {% if binder.score is not None %}
                     <div class="metric-pill">
                         <span class="metric-label">
@@ -96,7 +96,7 @@
             </div>
         </section>
 
-        <nav class="quick-nav" aria-label="{% trans 'Binder sections' %}">
+        <nav class="quick-nav" aria-label="{% trans 'Ligand sections' %}">
             <a href="#section-overview" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Overview" %}</a>
             {% if binder.svg %}
                 <a href="#section-structure" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Structure" %}</a>
@@ -113,7 +113,7 @@
                 <a href="#section-external" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "External" %}</a>
             {% endif %}
             {% if siblings.pdb or siblings.chembl or siblings.proposed %}
-                <a href="#section-siblings" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Other binders" %}</a>
+                <a href="#section-siblings" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Other ligands" %}</a>
             {% endif %}
         </nav>
 
@@ -396,7 +396,7 @@
                 <section class="binder-card tp-ui-panel binder-card--siblings" id="section-siblings">
                     <div class="section-head tp-ui-panel-head">
                         <div>
-                            <h2>{% trans "Other binders for this protein" %}</h2>
+                            <h2>{% trans "Other ligands for this protein" %}</h2>
                             <p class="section-subtitle">{% blocktrans with prot=protein.accession %}Quick navigation to other ligands bound to {{ prot }}.{% endblocktrans %}</p>
                         </div>
                     </div>
