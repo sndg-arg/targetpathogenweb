@@ -14,6 +14,7 @@ from tpweb.management.commands.import_selected_pdb_pocket_results import (
 )
 from tpweb.models.BioentryStructure import BioentryStructure
 from tpweb.models.pdb import PDB, PDBResidueSet
+from tpweb.services.structure_files import CHAIN_SUFFIX_RE
 
 
 FP_RESIDUE_SET = "FPocketPocket"
@@ -374,14 +375,43 @@ class Command(BaseCommand):
                     return os.path.join(dirpath, filename)
         return ""
 
+    def _sibling_link(self, bioentry, pdb_code):
+        """The bare-coded BioentryStructure link this chain-isolated pdb_code
+        was extracted from, if the protein is also linked to it -- same
+        crystal, so its uniprot_start/uniprot_end/resolution apply equally."""
+        base_code = CHAIN_SUFFIX_RE.sub("", pdb_code)
+        if base_code == pdb_code:
+            return None
+        return (
+            BioentryStructure.objects.filter(bioentry=bioentry, pdb__code__iexact=base_code)
+            .exclude(pdb__code__iexact=pdb_code)
+            .select_related("pdb")
+            .first()
+        )
+
     def _ensure_structure_link(self, bioentry, pdb, chain=None):
         link, _created = BioentryStructure.objects.get_or_create(
             bioentry=bioentry,
             pdb=pdb,
         )
+        update_fields = []
         if chain and link.chain != chain:
             link.chain = chain
-            link.save(update_fields=["chain"])
+            update_fields.append("chain")
+        if link.uniprot_start is None or link.uniprot_end is None or link.resolution is None:
+            sibling = self._sibling_link(bioentry, pdb.code)
+            if sibling:
+                if link.uniprot_start is None and sibling.uniprot_start is not None:
+                    link.uniprot_start = sibling.uniprot_start
+                    update_fields.append("uniprot_start")
+                if link.uniprot_end is None and sibling.uniprot_end is not None:
+                    link.uniprot_end = sibling.uniprot_end
+                    update_fields.append("uniprot_end")
+                if link.resolution is None and sibling.resolution is not None:
+                    link.resolution = sibling.resolution
+                    update_fields.append("resolution")
+        if update_fields:
+            link.save(update_fields=update_fields)
         return link
 
     def _load_structure(self, bioentry, struct_code, structure_file, experiment, datadir, chain=None):
