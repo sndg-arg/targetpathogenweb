@@ -7,7 +7,7 @@ from django.views import View
 from bioseq.models.Biodatabase import Biodatabase
 from tpweb.models.BioentryStructure import BioentryStructure
 from tpweb.models.pdb import PDB, Residue, Property, ResidueSet, PDBResidueSet, ResidueSetProperty
-from django.db.models import Q
+from django.db.models import FilteredRelation, Q
 from tpweb.services.genome_workspace import user_can_access_genome_name, genome_url_slug
 from tpweb.services.structure_files import detect_structure_format, disambiguate_display_codes, display_code, structure_file_path
 from tpweb.services.structure_sources import chain_selector as _chain_selector
@@ -391,15 +391,22 @@ class StructureView(View):
 
 
 def _ranked_pocket_ids(pdbobj, residue_set, property_obj, limit, min_value=None, target_chain=None):
-    qs = PDBResidueSet.objects.filter(
-        pdb=pdbobj,
-        residue_set=residue_set,
-        properties__property=property_obj,
+    # FilteredRelation gives this join a name (rank_prop) scoped to exactly
+    # property=property_obj, so the value filter/order below can't bind to a
+    # *different* property on the same pocket -- two separate .filter() calls
+    # spanning the same multi-valued "properties" relation would each get
+    # their own independent join (Django's documented behavior), letting a
+    # pocket pass min_value via some unrelated property (volume, alpha-sphere
+    # count, ...) regardless of its real druggability/p2rank score.
+    qs = (
+        PDBResidueSet.objects.filter(pdb=pdbobj, residue_set=residue_set)
+        .annotate(rank_prop=FilteredRelation("properties", condition=Q(properties__property=property_obj)))
+        .filter(rank_prop__isnull=False)
     )
     if min_value is not None:
-        qs = qs.filter(properties__value__gte=min_value)
+        qs = qs.filter(rank_prop__value__gte=min_value)
     qs = filter_pdbresidueset_by_chain(qs, target_chain)
-    qs = qs.order_by("-properties__value", "name").values_list("id", flat=True)
+    qs = qs.order_by("-rank_prop__value", "name").values_list("id", flat=True)
     if limit is not None:
         qs = qs[:limit]
     return list(qs)
