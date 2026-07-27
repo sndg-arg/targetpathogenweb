@@ -227,6 +227,11 @@
 }
 
 .genome-row.is-incomplete {
+    background: var(--tp-color-warning-bg) !important;
+    box-shadow: inset 3px 0 0 var(--tp-color-warning-border);
+}
+
+.genome-row.is-failed {
     background: var(--tp-color-danger-bg) !important;
     box-shadow: inset 3px 0 0 var(--tp-color-danger-border);
 }
@@ -333,10 +338,17 @@
 
 .genome-status-note {
     margin: 6px 0 0;
-    color: var(--tp-color-danger-ink);
     font-size: 0.84rem;
     font-weight: 600;
     line-height: 1.35;
+}
+
+.genome-status-note--incomplete {
+    color: var(--tp-color-warning-ink);
+}
+
+.genome-status-note--failed {
+    color: var(--tp-color-danger-ink);
 }
 
 .genomes-name a:hover {

@@ -63,6 +63,16 @@
     border-color: var(--tp-color-text-soft);
 }
 
+.metabolic-network-genome-dot--density-2 {
+    background: color-mix(in srgb, var(--tp-color-amber-500) 28%, var(--tp-color-surface-soft));
+    border-color: var(--tp-color-text-soft);
+}
+
+.metabolic-network-genome-dot--density-3 {
+    background: color-mix(in srgb, var(--tp-color-amber-500) 52%, var(--tp-color-surface-soft));
+    border-color: var(--tp-color-amber-500);
+}
+
 .metabolic-network-genome-dot--density-4 {
     background: color-mix(in srgb, var(--tp-color-amber-500) 82%, var(--tp-color-surface-soft));
     border-color: var(--tp-color-amber-500);

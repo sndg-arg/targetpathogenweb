@@ -5,7 +5,7 @@
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20260722-itemheight1">
     <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20260727-cardpolish1">
-    <link rel="stylesheet" href="{% static 'css/pages/metabolic-network-genome.css' %}?v=20260715-network4">
+    <link rel="stylesheet" href="{% static 'css/pages/metabolic-network-genome.css' %}?v=20260727-densitylegend1">
 {% endblock %}
 
 {% block body %}
@@ -62,8 +62,10 @@
         <div class="metabolic-network-genome-shell">
             <div class="metabolic-network-genome-toolbar">
                 <div class="metabolic-network-genome-legend" aria-label="{% trans "Network legend" %}">
-                    <span title="{% trans "One node per metabolic pathway. Click to zoom into its reactions." %}"><i class="metabolic-network-genome-dot metabolic-network-genome-dot--density-1"></i>{% trans "Pathway" %}</span>
-                    <span title="{% trans "A high share of this pathway's reactions are chokepoints - the sole producer or consumer of a metabolite, harder for the pathogen to route around." %}"><i class="metabolic-network-genome-dot metabolic-network-genome-dot--density-4"></i>{% trans "High chokepoint density" %}</span>
+                    <span title="{% trans "One node per metabolic pathway. Fewer than 1 in 5 of its reactions are chokepoints." %}"><i class="metabolic-network-genome-dot metabolic-network-genome-dot--density-1"></i>{% trans "Low chokepoint density" %}</span>
+                    <span title="{% trans "20-44% of this pathway's reactions are chokepoints." %}"><i class="metabolic-network-genome-dot metabolic-network-genome-dot--density-2"></i>{% trans "Some chokepoints" %}</span>
+                    <span title="{% trans "45-64% of this pathway's reactions are chokepoints." %}"><i class="metabolic-network-genome-dot metabolic-network-genome-dot--density-3"></i>{% trans "Elevated chokepoint density" %}</span>
+                    <span title="{% trans "65% or more of this pathway's reactions are chokepoints - the sole producer or consumer of a metabolite, harder for the pathogen to route around." %}"><i class="metabolic-network-genome-dot metabolic-network-genome-dot--density-4"></i>{% trans "High chokepoint density" %}</span>
                     <span title="{% trans "These two pathways share at least one reaction." %}"><i class="metabolic-network-genome-line"></i>{% trans "Cross-pathway connection" %}</span>
                 </div>
                 <div class="metabolic-network-genome-actions" aria-label="{% trans "Network controls" %}">

@@ -712,11 +712,14 @@ body.pipeline-info-open {
     display: grid;
     gap: 9px;
     align-content: start;
-    transition: border-color 0.14s;
+    box-shadow: var(--tp-shadow-xs);
+    transition: border-color 0.14s, box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard), transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
 }
 
 .home-about-card:hover {
     border-color: var(--tp-color-border-strong);
+    box-shadow: var(--tp-shadow-sm);
+    transform: translateY(-1px);
 }
 
 .home-about-card-head {
