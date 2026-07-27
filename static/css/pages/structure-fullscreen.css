@@ -590,7 +590,20 @@ body:has(.sv-root) .tp-footer { display: none !important; }
     color: var(--tp-color-text-muted);
     text-transform: uppercase;
     letter-spacing: 0.07em;
+    display: flex;
+    align-items: center;
+    gap: 6px;
 }
+.mini-section h3::before {
+    content: "";
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 999px;
+    flex-shrink: 0;
+    background: var(--tp-color-border-strong);
+}
+.mini-section-title--fpocket::before { background: var(--tp-color-brand-500); }
+.mini-section-title--p2rank::before { background: var(--tp-color-sage-500); }
 
 .table-hint {
     margin: 0 0 8px;
@@ -614,17 +627,24 @@ body:has(.sv-root) .tp-footer { display: none !important; }
     padding: 10px 12px;
     display: grid;
     gap: 8px;
+    box-shadow: var(--tp-shadow-xs);
     transition:
         border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
         background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
-        box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+        box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.pocket-card:hover {
+    box-shadow: var(--tp-shadow-sm);
+    transform: translateY(-1px);
 }
 
 .pocket-card.is-visible-in-viewer,
 .residueset-row.is-visible-in-viewer {
     border-color: var(--structure-accent-border);
     background: color-mix(in srgb, var(--structure-accent-soft) 38%, var(--tp-color-surface));
-    box-shadow: inset 3px 0 0 var(--structure-accent);
+    box-shadow: inset 3px 0 0 var(--structure-accent), var(--tp-shadow-xs);
 }
 
 .pocket-card.is-selected-pocket {
@@ -670,6 +690,34 @@ body:has(.sv-root) .tp-footer { display: none !important; }
 .pocket-card-head:focus-visible {
     outline: 2px solid var(--structure-accent-border);
     outline-offset: 2px;
+}
+
+.pocket-consensus {
+    margin-top: 6px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: var(--tp-color-surface-muted);
+    border: 1px solid var(--tp-color-border-soft);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    column-gap: 6px;
+    row-gap: 2px;
+    font-size: 0.74rem;
+    color: var(--tp-color-text-secondary);
+    line-height: 1.4;
+}
+
+.pocket-consensus-status {
+    flex-basis: 100%;
+    font-weight: 700;
+    color: var(--structure-accent-ink);
+}
+
+.pocket-consensus span:not(.pocket-consensus-status):not(:last-child)::after {
+    content: "·";
+    margin-left: 6px;
+    color: var(--tp-color-text-muted);
 }
 
 .pocket-card-flag {

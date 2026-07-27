@@ -2,7 +2,7 @@
 
 {% if structure_data.pockets %}
     <div class="mini-section js-structure-annotations" data-structure-key="{{ structure_key }}" {% if hidden %}hidden{% endif %}>
-        <h3>{% trans "Binding pockets" %} · FPocket</h3>
+        <h3 class="mini-section-title--fpocket">{% trans "Binding pockets" %} · FPocket</h3>
         <p class="table-hint">{% trans "Druggability: high ≥ 0.7 · medium 0.4–0.69 · low < 0.4" %}</p>
         <div class="pocket-cards">
             {% for p in structure_data.pockets %}
@@ -61,7 +61,7 @@
 
 {% if structure_data.p2_pockets %}
     <div class="mini-section js-structure-annotations" data-structure-key="{{ structure_key }}" {% if hidden %}hidden{% endif %}>
-        <h3>{% trans "Binding pockets" %} · P2Rank</h3>
+        <h3 class="mini-section-title--p2rank">{% trans "Binding pockets" %} · P2Rank</h3>
         <p class="table-hint">{% trans "Probability: high ≥ 0.5 · medium 0.2–0.49 · low < 0.2" %}</p>
         <div class="pocket-cards">
             {% for p2 in structure_data.p2_pockets %}
