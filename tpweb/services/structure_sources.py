@@ -1,3 +1,5 @@
+from tpweb.services.structure_files import CHAIN_SUFFIX_RE
+
 STRUCTURE_SOURCE_NONE = "none"
 STRUCTURE_SOURCE_EXPERIMENTAL = "experimental"
 STRUCTURE_SOURCE_ALPHAFOLD = "alphafold"
@@ -70,6 +72,15 @@ def _structure_resolution_value(link):
         return 999.0
 
 
+def _is_chain_isolated(pdb):
+    """True for a PDB row that was extracted to a single chain before pocket
+    detection ran (code like "6E85_CHAIN_A"), as opposed to a whole-file PDB
+    row sharing the same base code. Preferred as the default when both exist
+    for the same protein -- see sort_structures_by_preference below."""
+    code = str(getattr(pdb, "code", "") or "")
+    return bool(CHAIN_SUFFIX_RE.search(code))
+
+
 def sort_structures_by_preference(structures):
     def key(link):
         pdb = getattr(link, "pdb", None)
@@ -78,6 +89,7 @@ def sort_structures_by_preference(structures):
             _STRUCTURE_PREFERENCE.get(experiment, 9),
             -_structure_coverage_span(link),
             _structure_resolution_value(link),
+            not _is_chain_isolated(pdb),
             str(getattr(pdb, "code", "") or ""),
         )
 

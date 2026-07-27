@@ -69,7 +69,7 @@ def display_code(code):
     return re.sub(r'_chain_\w+$', '', str(code or ''), flags=re.IGNORECASE).upper()
 
 
-_CHAIN_SUFFIX_RE = re.compile(r'_chain_(\w+)$', re.IGNORECASE)
+CHAIN_SUFFIX_RE = re.compile(r'_chain_(\w+)$', re.IGNORECASE)
 
 
 def disambiguate_display_codes(structures):
@@ -87,5 +87,5 @@ def disambiguate_display_codes(structures):
         if len(group) < 2:
             continue
         for s in group:
-            match = _CHAIN_SUFFIX_RE.search(s["code"])
+            match = CHAIN_SUFFIX_RE.search(s["code"])
             s["display_code"] = f"{s['display_code']} (chain {match.group(1).upper()})" if match else s["code"]
