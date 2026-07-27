@@ -89,6 +89,18 @@
         cy.one("layoutstop", function () {
             cy.fit(cy.elements(), 24);
             container.classList.add("is-ready");
+            // A small/linear pathway lays out narrow-and-tall under dagre TB -- fit() can't
+            // stretch that to fill a wide canvas, so it leaves large dead space either side.
+            // Shrink and center the wrapper instead of leaving the graph looking sparse.
+            var wrap = container.closest(".metabolic-network-genome-canvas-wrap");
+            if (wrap) {
+                var bbox = cy.elements().boundingBox();
+                var renderedWidth = bbox.w * cy.zoom() + 80;
+                if (renderedWidth < wrap.clientWidth * 0.65) {
+                    wrap.style.maxWidth = Math.max(420, Math.round(renderedWidth)) + "px";
+                    wrap.classList.add("is-compact");
+                }
+            }
         });
 
         Array.prototype.forEach.call(

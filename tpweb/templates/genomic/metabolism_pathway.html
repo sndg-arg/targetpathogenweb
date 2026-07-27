@@ -4,8 +4,8 @@
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20260722-itemheight1">
-    <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20260727-cardpolish1">
-    <link rel="stylesheet" href="{% static 'css/pages/metabolic-network-genome.css' %}?v=20260727-densitylegend1">
+    <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20260727-reversiblearrow1">
+    <link rel="stylesheet" href="{% static 'css/pages/metabolic-network-genome.css' %}?v=20260727-canvascompact1">
 {% endblock %}
 
 {% block body %}
@@ -68,6 +68,7 @@
                 <div class="metabolic-network-genome-legend">
                     <span><i class="metabolic-network-genome-dot metabolic-network-genome-dot--density-4"></i>{% trans "Chokepoint reaction" %}</span>
                     <span><i class="metabolic-network-genome-dot metabolic-network-genome-dot--density-1"></i>{% trans "Metabolite" %}</span>
+                    <span title="{% trans "Reactions marked reversible in the imported SBML get an arrowhead on both ends." %}">&#8652; {% trans "Reversible reaction" %}</span>
                     <span>{% trans "Faded nodes are currency metabolites (ATP, water, etc.)" %}</span>
                 </div>
                 <div class="metabolic-network-genome-actions" aria-label="{% trans 'Pathway map controls' %}">
@@ -135,7 +136,7 @@
                         {% endfor %}
                         {% if reaction.substrate_hidden %}<span class="metabolite-chip is-currency" title="{{ reaction.substrate_hidden }} additional substrate{{ reaction.substrate_hidden|pluralize }}"><span class="metabolite-chip-label">+{{ reaction.substrate_hidden }}</span></span>{% endif %}
                     </div>
-                    <span class="metabolite-arrow">&rarr;</span>
+                    <span class="metabolite-arrow{% if reaction.reversible %} metabolite-arrow--reversible{% endif %}" title="{% if reaction.reversible %}{% trans "Reversible reaction" %}{% else %}{% trans "Not reversible" %}{% endif %}">{% if reaction.reversible %}&#8652;{% else %}&rarr;{% endif %}</span>
                     <div>
                         {% for item in reaction.products %}
                         <span class="metabolite-chip{% if item.is_currency %} is-currency{% endif %}" title="{% trans 'Product metabolite' %}: {{ item.name }}"><span class="metabolite-chip-label">{{ item.name }}</span></span>
@@ -159,8 +160,8 @@
 </div>
 
 {{ graph_payload|json_script:"metabolic-pathway-graph-data" }}
-<script src="{% static 'js/pages/metabolic-reaction-graph.js' %}?v=20260722-dagre1"></script>
-<script src="{% static 'js/pages/metabolic-pathway-graph.js' %}?v=20260727-maxzoom1"></script>
+<script src="{% static 'js/pages/metabolic-reaction-graph.js' %}?v=20260727-reversible1"></script>
+<script src="{% static 'js/pages/metabolic-pathway-graph.js' %}?v=20260727-canvascompact1"></script>
 <script>
 (function () {
     var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;

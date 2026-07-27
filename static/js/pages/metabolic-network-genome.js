@@ -454,6 +454,25 @@
                         });
                     }
                     container.classList.add("is-ready");
+                    // Same narrow/linear-pathway fix as the standalone pathway page's graph --
+                    // only relevant when drilled into one pathway's own reactions, never for
+                    // the collapsed overview (which always legitimately wants full width).
+                    var wrap = container.closest(".metabolic-network-genome-canvas-wrap");
+                    if (wrap) {
+                        var compact = false;
+                        if (isDetailView) {
+                            var bbox = cy.elements().boundingBox();
+                            var renderedWidth = bbox.w * cy.zoom() + 80;
+                            if (renderedWidth < wrap.clientWidth * 0.65) {
+                                wrap.style.maxWidth = Math.max(420, Math.round(renderedWidth)) + "px";
+                                compact = true;
+                            }
+                        }
+                        if (!compact) {
+                            wrap.style.maxWidth = "";
+                        }
+                        wrap.classList.toggle("is-compact", compact);
+                    }
                     if (firstLoad) {
                         firstLoad = false;
                         if (hint) hint.classList.add("is-visible");

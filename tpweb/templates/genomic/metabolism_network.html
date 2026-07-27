@@ -4,8 +4,8 @@
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20260722-itemheight1">
-    <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20260727-cardpolish1">
-    <link rel="stylesheet" href="{% static 'css/pages/metabolic-network-genome.css' %}?v=20260727-densitylegend1">
+    <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20260727-reversiblearrow1">
+    <link rel="stylesheet" href="{% static 'css/pages/metabolic-network-genome.css' %}?v=20260727-canvascompact1">
 {% endblock %}
 
 {% block body %}
@@ -128,6 +128,6 @@
     </section>
 </div>
 
-<script src="{% static 'js/pages/metabolic-reaction-graph.js' %}?v=20260722-dagre1"></script>
-<script src="{% static 'js/pages/metabolic-network-genome.js' %}?v=20260727-maxzoom1"></script>
+<script src="{% static 'js/pages/metabolic-reaction-graph.js' %}?v=20260727-reversible1"></script>
+<script src="{% static 'js/pages/metabolic-network-genome.js' %}?v=20260727-canvascompact1"></script>
 {% endblock %}

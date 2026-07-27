@@ -73,6 +73,15 @@
     color: var(--genome-accent-ink);
 }
 
+.metabolism-pathway-card--top {
+    border-color: var(--tp-color-brand-200);
+    background: var(--tp-color-brand-050);
+}
+
+.metabolism-pathway-card--top:hover {
+    border-color: var(--tp-color-brand-300);
+}
+
 .metabolism-pathway-main {
     display: grid;
     grid-template-columns: minmax(0, 1.3fr) minmax(150px, 1fr);
@@ -759,6 +768,10 @@
     color: var(--tp-color-text-muted);
     font-size: 0.88rem;
     font-weight: 800;
+}
+
+.metabolite-arrow--reversible {
+    color: var(--tp-color-sage-700);
 }
 
 .pathway-reaction-genes {

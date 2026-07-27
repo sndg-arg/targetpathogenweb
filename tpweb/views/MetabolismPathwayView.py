@@ -123,6 +123,7 @@ def _reaction_topology_row(reaction):
         "id": reaction.reaction_id,
         "name": reaction.name or reaction.reaction_id,
         "ec_numbers": [ec for ec in (reaction.ec_numbers or "").split(",") if ec],
+        "reversible": reaction.reversible,
         "chokepoint_role": chokepoint_role,
         "is_chokepoint": chokepoint_role != GeneReactionLink.CHOKEPOINT_NONE,
         "isoenzyme_count": reaction.isoenzyme_count,

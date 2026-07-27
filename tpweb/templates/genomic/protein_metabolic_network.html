@@ -4,7 +4,7 @@
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20260722-itemheight1">
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260727-summarycols1">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260727-reversiblearrow1">
     <link rel="stylesheet" href="{% static 'css/pages/protein-metabolic-network.css' %}?v=20260721-networkpage1">
 {% endblock %}
 
@@ -96,7 +96,7 @@
                                 {% if reaction.has_metabolites %}
                                 <div class="metabolic-reaction-formula">
                                     {% for s in reaction.substrates %}<span class="metabolite-chip{% if s.is_currency %} is-currency{% endif %}" title="{% trans 'Substrate metabolite' %}: {{ s.name }}"><span class="metabolite-chip-label">{% if s.stoichiometry != 1.0 %}{{ s.stoichiometry|floatformat:0 }} {% endif %}{{ s.name }}</span></span>{% if not forloop.last %}<span class="metabolite-plus">+</span>{% endif %}{% endfor %}
-                                    <span class="metabolite-arrow">&rarr;</span>
+                                    <span class="metabolite-arrow{% if reaction.reversible %} metabolite-arrow--reversible{% endif %}" title="{% if reaction.reversible %}{% trans "Reversible reaction" %}{% else %}{% trans "Not reversible" %}{% endif %}">{% if reaction.reversible %}&#8652;{% else %}&rarr;{% endif %}</span>
                                     {% for p in reaction.products %}<span class="metabolite-chip{% if p.is_currency %} is-currency{% endif %}" title="{% trans 'Product metabolite' %}: {{ p.name }}"><span class="metabolite-chip-label">{% if p.stoichiometry != 1.0 %}{{ p.stoichiometry|floatformat:0 }} {% endif %}{{ p.name }}</span></span>{% if not forloop.last %}<span class="metabolite-plus">+</span>{% endif %}{% endfor %}
                                 </div>
                                 {% endif %}
@@ -134,9 +134,15 @@
                         <span><i class="metabolic-legend-swatch"></i>{% trans "Pathway grouping" %}</span>
                     </div>
                     <div class="metabolic-map-actions" aria-label="{% trans "Network controls" %}">
-                        <button type="button" class="metabolic-map-btn" data-metabolic-action="fit" title="{% trans "Fit network to view" %}">{% trans "Fit" %}</button>
-                        <button type="button" class="metabolic-map-btn" data-metabolic-action="zoom-in" title="{% trans "Zoom in" %}">+</button>
-                        <button type="button" class="metabolic-map-btn" data-metabolic-action="zoom-out" title="{% trans "Zoom out" %}">-</button>
+                        <button type="button" class="metabolic-map-btn" data-metabolic-action="fit" title="{% trans "Fit network to view" %}" aria-label="{% trans "Fit network to view" %}">
+                            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6V2h4M14 6V2h-4M2 10v4h4M14 10v4h-4"/></svg>
+                        </button>
+                        <button type="button" class="metabolic-map-btn" data-metabolic-action="zoom-in" title="{% trans "Zoom in" %}" aria-label="{% trans "Zoom in" %}">
+                            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="7" cy="7" r="4"/><path d="M10.2 10.2L14 14M7 5v4M5 7h4"/></svg>
+                        </button>
+                        <button type="button" class="metabolic-map-btn" data-metabolic-action="zoom-out" title="{% trans "Zoom out" %}" aria-label="{% trans "Zoom out" %}">
+                            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="7" cy="7" r="4"/><path d="M10.2 10.2L14 14M5 7h4"/></svg>
+                        </button>
                     </div>
                 </div>
                 <div id="metabolic-network-cy" data-network-url="{% url 'tpwebapp:protein_metabolic_network' protein_id=protein.bioentry_id %}"></div>

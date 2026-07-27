@@ -4650,6 +4650,10 @@ body.residue-modal-open {
     margin: 0 2px;
 }
 
+.metabolite-arrow--reversible {
+    color: var(--tp-color-sage-700);
+}
+
 .metabolic-inspector strong {
     display: block;
     margin-bottom: 10px;

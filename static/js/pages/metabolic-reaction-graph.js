@@ -51,8 +51,10 @@
         var parentId = options.parentId || null;
         var elements = [];
         var metaboliteById = {};
+        var reactionById = {};
 
         (payload.metabolites || []).forEach(function (m) { metaboliteById[m.id] = m; });
+        (payload.reactions || []).forEach(function (r) { reactionById[r.id] = r; });
 
         (payload.reactions || []).forEach(function (reaction) {
             var hasChokepoint = (reaction.chokepoint_role || "none") !== "none";
@@ -63,6 +65,7 @@
                 ecNumbers: reaction.ec_numbers || [],
                 chokepointRole: reaction.chokepoint_role || "none",
                 isoenzymeCount: reaction.isoenzyme_count || 0,
+                reversible: Boolean(reaction.reversible),
                 genes: reaction.genes || [],
                 isReaction: true
             };
@@ -91,12 +94,14 @@
 
         (payload.participants || []).forEach(function (p, i) {
             var metabolite = metaboliteById[p.species_id];
+            var reaction = reactionById[p.reaction_id];
             var isCurrency = Boolean(metabolite && metabolite.is_currency);
             var reactionNodeId = idPrefix + "rxn::" + p.reaction_id;
             var metaboliteNodeId = idPrefix + "met::" + p.species_id;
             var isReactant = p.role === "reactant";
             var classes = [isReactant ? "flow-in" : "flow-out"];
             if (isCurrency) classes.push("flow-currency");
+            if (reaction && reaction.reversible) classes.push("flow-reversible");
             elements.push({
                 data: {
                     id: idPrefix + "edge::" + i,
@@ -261,6 +266,12 @@
                 style: { "opacity": 0.2, "width": 1 }
             },
             {
+                // Reversible reactions get an arrowhead on both ends -- same MetaCyc-style
+                // "double arrow" convention already used for the per-protein ego network.
+                selector: ".flow-reversible",
+                style: { "source-arrow-shape": "triangle", "source-arrow-color": palette.edge }
+            },
+            {
                 selector: "node:selected",
                 style: { "border-width": 3, "border-color": palette.text, "z-index": 40 }
             }
@@ -275,6 +286,7 @@
             '<div class="metabolic-network-tooltip-title">' + escapeHtml(data.label || data.id) + roleBadge + '</div>',
             '<dl>',
             '<dt>EC</dt><dd>' + escapeHtml(data.ecNumbers && data.ecNumbers.length ? data.ecNumbers.join(", ") : "-") + '</dd>',
+            '<dt>Reversible</dt><dd>' + (data.reversible ? "Yes" : "No") + '</dd>',
             '<dt>Genes</dt><dd>' + escapeHtml(genes.length ? genes.join(", ") : "-") + '</dd>',
             '</dl>'
         ].join("");
