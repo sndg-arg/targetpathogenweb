@@ -282,6 +282,21 @@
             return;
         }
 
+        // The empty-state copy and suggestion buttons are written for a
+        // protein/genome detail context -- outside those pages (Genomes list,
+        // Home, About Us, ...) neither applies. Detected the same way
+        // getPageState() already reads the page generically: by the root
+        // wrapper class each page template renders, not a Django context flag.
+        var TARGET_SCOPED_SELECTOR = ".protein-page, .genome-page, .sv-root, .proteins-page, .binder-page";
+        if (!document.querySelector(TARGET_SCOPED_SELECTOR)) {
+            var targetText = document.querySelector(".tp-agent-drawer-empty-text--target");
+            var genericText = document.querySelector(".tp-agent-drawer-empty-text--generic");
+            if (targetText) targetText.hidden = true;
+            if (genericText) genericText.hidden = false;
+            var suggestionsEl = document.querySelector(".tp-agent-drawer-suggestions");
+            if (suggestionsEl) suggestionsEl.hidden = true;
+        }
+
         var messagesEl = document.getElementById("tp-agent-drawer-messages");
         var inputEl = document.getElementById("tp-agent-drawer-input");
         var closeBtn = document.getElementById("tp-agent-drawer-close");

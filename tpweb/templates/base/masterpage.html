@@ -2320,7 +2320,8 @@
             <span class="tp-agent-drawer-empty-icon" aria-hidden="true">
                 <img src="{% static 'img/brand/tp-logo-mark-color.png' %}" alt="">
             </span>
-            {% trans "Ask about proteins, filters, scores, or evidence loaded for the genome you're currently viewing." %}
+            <span class="tp-agent-drawer-empty-text tp-agent-drawer-empty-text--target">{% trans "Ask about proteins, filters, scores, or evidence loaded for the genome you're currently viewing." %}</span>
+            <span class="tp-agent-drawer-empty-text tp-agent-drawer-empty-text--generic" hidden>{% trans "Ask about the platform, its data sources, or how genome and target prioritization works." %}</span>
         </p>
     </div>
     <div class="tp-agent-drawer-suggestions" aria-label="{% trans 'Suggested assistant prompts' %}">
@@ -2347,7 +2348,7 @@
 </aside>
 
 <script src="{% static 'bundle.js' %}?v=20260722-dagre1"></script>
-<script src="{% static 'js/global/agent-drawer.js' %}?v=20260722-loader1"></script>
+<script src="{% static 'js/global/agent-drawer.js' %}?v=20260727-genericscope1"></script>
 
 <script>
     function getCookie(name) {
