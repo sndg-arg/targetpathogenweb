@@ -187,13 +187,24 @@
         flashSelectedCard();
     }
 
+    var selectedFlashTimeout = null;
+
     function flashSelectedCard() {
         var card = document.getElementById("section-selected");
         if (!card) return;
+        // Clear any flash still in flight so two quick selections in a row don't cut each
+        // other's animation short and look like a stutter.
+        if (selectedFlashTimeout) {
+            window.clearTimeout(selectedFlashTimeout);
+            selectedFlashTimeout = null;
+        }
         card.classList.remove("is-flashing");
         void card.offsetWidth; // force reflow so re-adding the class restarts the animation
         card.classList.add("is-flashing");
-        window.setTimeout(function () { card.classList.remove("is-flashing"); }, 1200);
+        selectedFlashTimeout = window.setTimeout(function () {
+            card.classList.remove("is-flashing");
+            selectedFlashTimeout = null;
+        }, 1400);
     }
 
     function updateNetworkNote(container, payload) {

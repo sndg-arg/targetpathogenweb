@@ -42,15 +42,16 @@
     background: var(--tp-color-brand-050);
 }
 
-/* Brief highlight on the "Selected reaction" card whenever a new node/row is picked, so it's
-   obvious where the info landed even after the scrollIntoView above has already put it in view. */
+/* Brief background flash on the "Selected reaction" card whenever a new node/row is picked, so
+   it's obvious where the info landed even after the scrollIntoView above has already put it in
+   view -- snaps to a warm tint, then eases back down to the card's normal surface color. */
 @keyframes tp-metabolic-selected-flash {
-    0% { box-shadow: 0 0 0 3px color-mix(in srgb, var(--tp-color-brand-500) 55%, transparent); }
-    100% { box-shadow: 0 0 0 3px transparent; }
+    from { background-color: color-mix(in srgb, var(--tp-color-brand-500) 24%, var(--tp-color-surface)); }
+    to { background-color: var(--tp-color-surface); }
 }
 
 #section-selected.is-flashing {
-    animation: tp-metabolic-selected-flash 1100ms ease-out;
+    animation: tp-metabolic-selected-flash 1400ms ease-out;
 }
 
 @media (prefers-reduced-motion: reduce) {
