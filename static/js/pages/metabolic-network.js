@@ -122,13 +122,16 @@
             var srcGroup = assignment.groupOf[edge.source] && assignment.groupOf[edge.source].key;
             var tgtGroup = assignment.groupOf[edge.target] && assignment.groupOf[edge.target].key;
             var isCross = Boolean(srcGroup && tgtGroup && srcGroup !== tgtGroup);
+            var classes = [isCross ? "edge-cross" : ""];
+            if (edge.reversible) classes.push("is-reversible");
+            else if (edge.directed) classes.push("is-directed");
             elements.push({
                 data: {
                     id: edge.source + "__" + edge.target,
                     source: edge.source,
                     target: edge.target
                 },
-                classes: isCross ? "edge-cross" : ""
+                classes: classes.join(" ").trim()
             });
         });
         return elements;
@@ -204,7 +207,7 @@
             {
                 selector: "node",
                 style: {
-                    "shape": "ellipse",
+                    "shape": "round-rectangle",
                     "width": "data(size)",
                     "height": "data(size)",
                     "background-fill": "radial-gradient",
@@ -289,9 +292,22 @@
                     "curve-style": "bezier",
                     "opacity": 0.7,
                     "line-cap": "round",
+                    "target-arrow-shape": "none",
+                    "source-arrow-shape": "none",
+                    "target-arrow-color": palette.edge,
+                    "source-arrow-color": palette.edge,
+                    "arrow-scale": 0.9,
                     "transition-property": "opacity, width, line-color",
                     "transition-duration": "140ms"
                 }
+            },
+            {
+                selector: "edge.is-directed",
+                style: { "target-arrow-shape": "triangle" }
+            },
+            {
+                selector: "edge.is-reversible",
+                style: { "target-arrow-shape": "triangle", "source-arrow-shape": "triangle" }
             },
             {
                 selector: "edge.is-muted",
@@ -437,17 +453,16 @@
                     elements: buildElements(payload),
                     style: nodeStyleRules(readPalette()),
                     layout: {
-                        name: "fcose",
+                        name: "dagre",
+                        rankDir: "TB",
+                        nodeSep: 45,
+                        rankSep: 70,
+                        edgeSep: 12,
+                        ranker: "network-simplex",
                         animate: true,
-                        animationDuration: 800,
-                        animationEasing: "ease-out-cubic",
-                        nodeRepulsion: 9200,
-                        idealEdgeLength: 90,
-                        nodeSeparation: 68,
-                        gravity: 0.26,
+                        animationDuration: 500,
+                        fit: true,
                         padding: 36,
-                        componentSpacing: 85,
-                        nestingFactor: 0.45,
                         nodeDimensionsIncludeLabels: true
                     },
                     minZoom: 0.3,

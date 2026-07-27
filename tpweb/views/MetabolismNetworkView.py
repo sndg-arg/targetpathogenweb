@@ -6,13 +6,46 @@ from django.views import View
 
 from bioseq.models.Bioentry import Bioentry
 from bioseq.models.Biodatabase import Biodatabase
-from tpweb.models.Metabolism import GeneReactionLink, MetabolicReaction, MetabolicReactionEdge
+from tpweb.models.Metabolism import GeneReactionLink, MetabolicReaction, MetabolicReactionEdge, ReactionParticipant
 from tpweb.models.ScoreParamValue import ScoreParamValue
 from tpweb.services.genome_workspace import display_genome_name, genome_url_slug, user_can_access_genome_name
 from tpweb.services.protein_summary import build_metabolic_context
 
 MAX_HOPS = 2
 MAX_NODES = 60
+
+
+def _resolve_edge_direction(a_id, b_id, participant_roles):
+    """Real reactant->product direction between two reactions that share a
+    metabolite, derived from ReactionParticipant roles -- not the arbitrary
+    a/b order MetabolicReactionEdge stores (inherited from the network.sif
+    adjacency file). Returns (source_id, target_id) or None if direction
+    can't be determined (no shared species data, or votes from multiple
+    shared metabolites disagree -- a genuine cycle/ambiguous case, left
+    undirected rather than guessed)."""
+    roles_a = participant_roles.get(a_id, {})
+    roles_b = participant_roles.get(b_id, {})
+    shared = set(roles_a) & set(roles_b)
+    if not shared:
+        return None
+    # Prefer pathway-specific metabolites over currency cofactors (ATP,
+    # water, NAD+, ...) for the direction signal -- shared currency
+    # metabolites are common to unrelated reactions and are a weak/noisy
+    # signal of real pathway order.
+    candidates = {sid for sid in shared if not roles_a[sid][1]} or shared
+    forward = backward = 0
+    for sid in candidates:
+        role_a, _ = roles_a[sid]
+        role_b, _ = roles_b[sid]
+        if role_a == ReactionParticipant.ROLE_PRODUCT and role_b == ReactionParticipant.ROLE_REACTANT:
+            forward += 1
+        elif role_a == ReactionParticipant.ROLE_REACTANT and role_b == ReactionParticipant.ROLE_PRODUCT:
+            backward += 1
+    if forward and not backward:
+        return (a_id, b_id)
+    if backward and not forward:
+        return (b_id, a_id)
+    return None
 
 
 class MetabolismNetworkView(View):
@@ -47,15 +80,25 @@ class MetabolismNetworkView(View):
         for link in GeneReactionLink.objects.filter(reaction_id__in=reactions.keys()).select_related("bioentry"):
             genes_by_reaction.setdefault(link.reaction_id, []).append(link)
 
+        participant_roles = {}
+        for p in ReactionParticipant.objects.filter(reaction_id__in=reactions.keys()).select_related("species"):
+            participant_roles.setdefault(p.reaction_id, {})[p.species_id] = (p.role, p.species.is_currency)
+
         nodes = [
             self._serialize_node(reaction_id, reaction, genes_by_reaction.get(reaction_id, []),
                                   edge_pairs, focal_reaction_ids, protein.bioentry_id)
             for reaction_id, reaction in reactions.items()
         ]
-        edges = [
-            {"source": reactions[a].reaction_id, "target": reactions[b].reaction_id}
-            for a, b in edge_pairs
-        ]
+        edges = []
+        for a, b in edge_pairs:
+            direction = _resolve_edge_direction(a, b, participant_roles)
+            src_id, tgt_id = direction if direction else (a, b)
+            edges.append({
+                "source": reactions[src_id].reaction_id,
+                "target": reactions[tgt_id].reaction_id,
+                "directed": direction is not None,
+                "reversible": reactions[a].reversible or reactions[b].reversible,
+            })
         return JsonResponse({
             "nodes": nodes,
             "edges": edges,
