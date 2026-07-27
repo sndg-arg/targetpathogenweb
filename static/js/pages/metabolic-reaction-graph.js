@@ -253,12 +253,12 @@
                 selector: ".flow-in, .flow-out",
                 style: {
                     "curve-style": "bezier",
-                    "width": 1.5,
+                    "width": 2,
                     "line-color": palette.edge,
-                    "opacity": 0.75,
+                    "opacity": 0.92,
                     "target-arrow-shape": "triangle",
                     "target-arrow-color": palette.edge,
-                    "arrow-scale": 0.75
+                    "arrow-scale": 1.15
                 }
             },
             {
