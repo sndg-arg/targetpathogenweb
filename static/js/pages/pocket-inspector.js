@@ -104,6 +104,7 @@
                 });
             });
             clearPocketSelection();
+            if (typeof global.ngl_reset_zoom === "function") global.ngl_reset_zoom();
         }
 
         function inspectPocket(card) {
