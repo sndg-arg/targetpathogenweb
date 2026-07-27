@@ -12,7 +12,7 @@
             chokepoint: readToken("--tp-color-amber-500"),
             chokepointSoft: readToken("--tp-color-amber-050"),
             plain: readToken("--tp-color-text-soft"),
-            edge: readToken("--tp-color-border-strong"),
+            edge: readToken("--tp-color-text-primary"),
             ring: readToken("--tp-color-surface"),
             surfaceSoft: readToken("--tp-color-surface-soft"),
             text: readToken("--tp-color-text-primary"),
@@ -297,16 +297,16 @@
             {
                 selector: "edge",
                 style: {
-                    "width": 1.7,
+                    "width": 2,
                     "line-color": palette.edge,
                     "curve-style": "bezier",
-                    "opacity": 0.7,
+                    "opacity": 0.9,
                     "line-cap": "round",
                     "target-arrow-shape": "none",
                     "source-arrow-shape": "none",
                     "target-arrow-color": palette.edge,
                     "source-arrow-color": palette.edge,
-                    "arrow-scale": 0.9,
+                    "arrow-scale": 1.15,
                     "transition-property": "opacity, width, line-color",
                     "transition-duration": "140ms"
                 }
