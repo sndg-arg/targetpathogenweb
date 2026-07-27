@@ -11,6 +11,11 @@
 
 .protein-metabolic-network-shell {
     grid-template-columns: minmax(360px, 460px) minmax(0, 1fr);
+    /* Don't stretch the graph to match the sidebar's height -- once the reaction list is
+       allowed to grow unbounded (see below), a protein with many reactions would otherwise
+       drag the graph along into an absurdly tall column. Each side keeps its own natural
+       height instead. */
+    align-items: start;
 }
 
 .protein-metabolic-network-shell #metabolic-network-cy {
@@ -24,10 +29,16 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-/* "Selected reaction" is the one thing that changes on every click -- pin it near the top
-   so it can't scroll out of view while browsing the (possibly long) reaction list below it,
-   and give it a distinct tint so it reads as the active/focused panel, not just another
-   sidebar card. */
+/* More breathing room between the sidebar's distinct sections (stats / pathways / selected
+   reaction / reaction list) -- the default 12px gap read as one dense, run-together block. */
+.protein-metabolic-network-shell .metabolic-context-sidebar {
+    gap: 22px;
+}
+
+/* "Selected reaction" is the one thing that changes on every click -- kept as its own
+   separate, pinned panel (not folded into the reaction list's scroll) so it can't be lost
+   from view while browsing the list below it, and given a distinct tint so it reads as the
+   active/focused panel, not just another sidebar card. */
 .protein-metabolic-network-shell .metabolic-inspector {
     position: sticky;
     top: 12px;
@@ -37,8 +48,12 @@
     box-shadow: var(--tp-shadow-sm);
 }
 
+/* The boxed internal scrollbar (a second, nested scroll on top of the page's own) read as
+   unpolished. Let the list flow to its natural height as part of the single page scroll
+   instead -- align-items: start above keeps this from dragging the graph's height along. */
 .protein-metabolic-network-shell .metabolic-reaction-list {
-    max-height: 320px;
+    max-height: none;
+    overflow: visible;
 }
 
 @media (max-width: 1080px) {
