@@ -72,7 +72,7 @@
                 padding: 30
             }),
             minZoom: 0.2,
-            maxZoom: 3.5,
+            maxZoom: 6,
             wheelSensitivity: 1,
             userZoomingEnabled: true,
             userPanningEnabled: true,

@@ -4,7 +4,7 @@
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20260722-itemheight1">
-    <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20260721-reactiontable1">
+    <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20260727-cardpolish1">
     <link rel="stylesheet" href="{% static 'css/pages/metabolic-network-genome.css' %}?v=20260715-network4">
 {% endblock %}
 
@@ -160,7 +160,7 @@
 
 {{ graph_payload|json_script:"metabolic-pathway-graph-data" }}
 <script src="{% static 'js/pages/metabolic-reaction-graph.js' %}?v=20260722-dagre1"></script>
-<script src="{% static 'js/pages/metabolic-pathway-graph.js' %}?v=20260722-dagre1"></script>
+<script src="{% static 'js/pages/metabolic-pathway-graph.js' %}?v=20260727-maxzoom1"></script>
 <script>
 (function () {
     var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;

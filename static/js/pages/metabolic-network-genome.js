@@ -422,7 +422,7 @@
                     style: combinedStyle(),
                     layout: overviewLayout({ animate: true, animationDuration: 900, randomize: true }),
                     minZoom: 0.2,
-                    maxZoom: 3.5,
+                    maxZoom: 6,
                     wheelSensitivity: 1,
                     userZoomingEnabled: true,
                     userPanningEnabled: true,
