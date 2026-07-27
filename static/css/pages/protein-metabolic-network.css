@@ -41,3 +41,20 @@
     border-color: var(--tp-color-brand-300);
     background: var(--tp-color-brand-050);
 }
+
+/* Brief highlight on the "Selected reaction" card whenever a new node/row is picked, so it's
+   obvious where the info landed even after the scrollIntoView above has already put it in view. */
+@keyframes tp-metabolic-selected-flash {
+    0% { box-shadow: 0 0 0 3px color-mix(in srgb, var(--tp-color-brand-500) 55%, transparent); }
+    100% { box-shadow: 0 0 0 3px transparent; }
+}
+
+#section-selected.is-flashing {
+    animation: tp-metabolic-selected-flash 1100ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #section-selected.is-flashing {
+        animation: none;
+    }
+}

@@ -184,6 +184,16 @@
         if (activeItem) activeItem.classList.add("is-active");
 
         inspector.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        flashSelectedCard();
+    }
+
+    function flashSelectedCard() {
+        var card = document.getElementById("section-selected");
+        if (!card) return;
+        card.classList.remove("is-flashing");
+        void card.offsetWidth; // force reflow so re-adding the class restarts the animation
+        card.classList.add("is-flashing");
+        window.setTimeout(function () { card.classList.remove("is-flashing"); }, 1200);
     }
 
     function updateNetworkNote(container, payload) {
