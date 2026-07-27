@@ -1,63 +1,43 @@
-/* Full-page protein metabolic network (protein_metabolic_network.html) -- reuses the exact
- * .metabolic-context-shell/.metabolic-context-sidebar/.metabolic-network-shell classes from
- * protein-detail.css (the embedded preview on the protein page), just with more room since
- * this page isn't sharing space with a dozen other protein-detail sections. Mirrors the
- * structure.html vs. embedded-preview split.
+/* Full-page protein metabolic network (protein_metabolic_network.html) -- restructured as a
+ * linear stack of full-width tp-ui-panel cards (Pathways / Network / Selected reaction /
+ * Catalyzed reactions), matching the detail-page shape used by protein.html and binder.html,
+ * instead of a cramped sidebar-plus-graph shell. Reuses .metabolic-network-shell/.metabolic-map-*
+ * (toolbar + canvas, from protein-detail.css -- exclusive to this page, the embedded preview on
+ * protein.html has no interactive graph) and .metabolism-reaction-table/.pathway-reaction-row
+ * (from metabolism-overview.css -- the same reaction-row component metabolism_pathway.html uses).
  */
 
 .protein-metabolic-network-summary {
     margin-top: 0;
 }
 
-.protein-metabolic-network-shell {
-    grid-template-columns: minmax(360px, 460px) minmax(0, 1fr);
-    /* Don't stretch the graph to match the sidebar's height -- once the reaction list is
-       allowed to grow unbounded (see below), a protein with many reactions would otherwise
-       drag the graph along into an absurdly tall column. Each side keeps its own natural
-       height instead. */
-    align-items: start;
-}
-
-.protein-metabolic-network-shell #metabolic-network-cy {
+#metabolic-network-cy {
     min-height: clamp(520px, 70vh, 820px);
 }
 
-/* The score cards stack full-width by default (metabolic-context shared base rule) -- too
-   much vertical bulk on this dedicated page. Match the already-compact 2-column treatment
-   the embedded preview on protein.html uses for the same two cards. */
-.protein-metabolic-network-shell .metabolic-score-stack {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+/* The section card already provides the bordered/surfaced frame -- drop the inspector's own
+   box styling (shared with the embedded preview's score cards) here so it doesn't nest a
+   second box inside the "Selected reaction" card. */
+.protein-metabolic-network-page .metabolic-inspector {
+    border: 0;
+    padding: 0;
+    background: none;
 }
 
-/* More breathing room between the sidebar's distinct sections (stats / pathways / selected
-   reaction / reaction list) -- the default 12px gap read as one dense, run-together block. */
-.protein-metabolic-network-shell .metabolic-context-sidebar {
-    gap: 22px;
+/* .pathway-reaction-row (metabolism-overview.css) is a static, non-interactive list item on
+   the pathway-detail page it was built for -- here each row is clickable (selects the matching
+   node in the network above), so the affordance and selected-state highlight are scoped to
+   this page only, not the shared component. */
+.protein-metabolic-network-page .pathway-reaction-row {
+    cursor: pointer;
 }
 
-/* "Selected reaction" is the one thing that changes on every click -- kept as its own
-   separate, pinned panel (not folded into the reaction list's scroll) so it can't be lost
-   from view while browsing the list below it, and given a distinct tint so it reads as the
-   active/focused panel, not just another sidebar card. */
-.protein-metabolic-network-shell .metabolic-inspector {
-    position: sticky;
-    top: 12px;
-    z-index: 5;
-    border-color: var(--tp-color-brand-200);
+.protein-metabolic-network-page .pathway-reaction-row:focus-visible {
+    outline: 2px solid var(--tp-color-brand-300);
+    outline-offset: -1px;
+}
+
+.protein-metabolic-network-page .pathway-reaction-row.is-active {
+    border-color: var(--tp-color-brand-300);
     background: var(--tp-color-brand-050);
-    box-shadow: var(--tp-shadow-sm);
-}
-
-/* The boxed internal scrollbar (a second, nested scroll on top of the page's own) read as
-   unpolished. Let the list flow to its natural height as part of the single page scroll
-   instead -- align-items: start above keeps this from dragging the graph's height along. */
-.protein-metabolic-network-shell .metabolic-reaction-list {
-    max-height: none;
-    overflow: visible;
-}
-
-@media (max-width: 1080px) {
-    .protein-metabolic-network-shell {
-        grid-template-columns: 1fr;
-    }
 }

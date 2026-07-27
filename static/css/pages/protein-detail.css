@@ -4417,13 +4417,6 @@ body.residue-modal-open {
     overflow: hidden;
 }
 
-.metabolic-context-shell {
-    display: grid;
-    grid-template-columns: minmax(320px, 390px) minmax(0, 1fr);
-    gap: 16px;
-    margin-top: 12px;
-}
-
 /* Light preview embedded in the protein page (the reaction list + inspector + graph moved
    to protein_metabolic_network.html, mirroring the structure.html vs. embedded-preview
    split) -- just the two score cards, pathway chips, and a reaction count with a CTA. */
@@ -4448,13 +4441,6 @@ body.residue-modal-open {
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-xs);
     line-height: 1.45;
-}
-
-.metabolic-context-sidebar {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    min-width: 0;
 }
 
 .metabolic-score-stack {
@@ -4519,159 +4505,6 @@ body.residue-modal-open {
     color: var(--tp-color-text-soft);
     font-size: var(--tp-font-size-xs);
     line-height: 1.45;
-}
-
-.metabolic-reaction-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    max-height: 210px;
-    overflow-y: auto;
-    overflow-x: hidden;
-}
-
-.metabolic-reaction-item {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 10px;
-    padding: 9px 8px;
-    margin: 0 -8px;
-    border-top: 1px solid var(--tp-color-border-soft);
-    border-radius: 6px;
-    min-width: 0;
-    cursor: pointer;
-    transition: background-color 140ms ease;
-}
-
-.metabolic-reaction-item:hover,
-.metabolic-reaction-item:focus-visible {
-    background: var(--tp-color-surface-soft);
-}
-
-.metabolic-reaction-item.is-active {
-    background: var(--tp-color-brand-050);
-}
-
-.metabolic-reaction-item:focus-visible {
-    outline: 2px solid var(--tp-color-brand-300);
-    outline-offset: -1px;
-}
-
-.metabolic-reaction-item:first-child {
-    border-top: 0;
-    padding-top: 0;
-}
-
-.metabolic-reaction-item > div {
-    min-width: 0;
-}
-
-.metabolic-reaction-item a,
-.metabolic-reaction-item span {
-    font-size: var(--tp-font-size-xs);
-    font-weight: 700;
-    line-height: 1.25;
-    color: var(--tp-color-text-primary);
-    overflow-wrap: anywhere;
-}
-
-.metabolic-reaction-item .reaction-external-link {
-    color: var(--tp-color-brand-700);
-    text-decoration: underline;
-    text-decoration-thickness: 1px;
-    text-underline-offset: 3px;
-}
-
-.metabolic-reaction-item .reaction-external-link::after {
-    content: "KEGG";
-    margin-left: 6px;
-    padding: 1px 4px;
-    border: 1px solid var(--tp-color-brand-200);
-    border-radius: 5px;
-    font-size: 0.64em;
-    letter-spacing: 0.04em;
-    text-decoration: none;
-}
-
-.metabolic-reaction-item .reaction-external-link:hover {
-    color: var(--tp-color-brand-900);
-}
-
-/* The generic ".metabolic-reaction-item span" rule above sets overflow-wrap: anywhere for
-   the long chemical-name chips -- that same rule was also hitting this badge, which is short
-   phrase text, not a chemical name. Combined with flex-shrink squeezing its fit-content
-   width, it broke mid-word. Give it its own space, let it wrap only at word boundaries, and
-   use a shape suited to 2-3 lines instead of a pill built for one. */
-.metabolic-reaction-item .target-evidence-accessory-badge {
-    flex: 0 0 auto;
-    max-width: 120px;
-    border-radius: 10px;
-    text-align: center;
-    line-height: 1.3;
-    overflow-wrap: normal;
-    word-break: normal;
-    white-space: normal;
-}
-
-.metabolic-reaction-item small {
-    display: block;
-    margin-top: 4px;
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-label);
-}
-
-.metabolic-reaction-formula {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 4px;
-    margin-top: 6px;
-}
-
-.metabolite-chip {
-    display: inline-flex;
-    align-items: center;
-    min-width: 0;
-    max-width: 260px;
-    padding: 1px 7px;
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: 999px;
-    background: var(--tp-color-surface-soft);
-    color: var(--tp-color-text-secondary);
-    font-size: var(--tp-font-label);
-    font-weight: 600;
-    overflow: hidden;
-}
-
-.metabolite-chip-label {
-    display: block;
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.metabolite-chip.is-currency {
-    border-color: transparent;
-    background: none;
-    color: var(--tp-color-text-soft);
-    font-weight: 400;
-}
-
-.metabolite-plus,
-.metabolite-arrow {
-    color: var(--tp-color-text-soft);
-    font-size: var(--tp-font-label);
-}
-
-.metabolite-arrow {
-    font-weight: 700;
-    margin: 0 2px;
-}
-
-.metabolite-arrow--reversible {
-    color: var(--tp-color-sage-700);
 }
 
 .metabolic-inspector strong {
