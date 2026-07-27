@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20260726-reprgrid1">
+    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20260726-pocketpolish1">
 {% endblock %}
 
 {% block body %}
@@ -108,6 +108,7 @@
                         role="option" aria-selected="{% if s.is_active %}true{% else %}false{% endif %}"
                         data-id="{{ s.id }}"
                         data-code="{{ s.code|upper }}"
+                        data-display-code="{{ s.display_code|default:s.code|upper }}"
                         data-method="{{ s.method }}"
                         data-resolution="{{ s.resolution|default:'' }}"
                         data-vmd-url="{% url 'tpwebapp:structure_export' s.id %}">
@@ -227,7 +228,7 @@
 {% endblock %}
 
 {% block jsloaded %}
-<script src="{% static 'js/pages/pocket-inspector.js' %}?v=20260720-residuecount1"></script>
+<script src="{% static 'js/pages/pocket-inspector.js' %}?v=20260726-focusclearscroll1"></script>
 <script src="{% static 'js/pages/ngl-shape-registry.js' %}?v=20260720-shaperegistry1"></script>
 <script>
 function jsloaded() {
@@ -503,7 +504,7 @@ function jsloaded() {
     function updateIdentity(structureId) {
         var opt = document.querySelector(".sv-struct-picker-item[data-id='" + structureId + "']");
         if (!opt) return;
-        var code       = opt.getAttribute("data-code") || "";
+        var code       = opt.getAttribute("data-display-code") || opt.getAttribute("data-code") || "";
         var method     = opt.getAttribute("data-method") || "";
         var resolution = opt.getAttribute("data-resolution") || "";
         var vmdUrl     = opt.getAttribute("data-vmd-url") || "";

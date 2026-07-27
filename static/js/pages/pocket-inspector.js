@@ -93,12 +93,24 @@
             setStructureFocusDim(false);
         }
 
+        // Used only by the "Clear selection" button itself -- also switches
+        // off the selected pocket's own visible layer(s). clearPocketSelection()
+        // stays layer-agnostic because inspectPocket() reuses it internally when
+        // switching pockets, and switching must not clear other active layers.
+        function clearPocketSelectionAndLayers() {
+            document.querySelectorAll(".pocket-card.is-selected-pocket").forEach(function (card) {
+                card.querySelectorAll('.js-repr-toggle[aria-pressed="true"]').forEach(function (btn) {
+                    setReprButtonPressed(btn, false);
+                });
+            });
+            clearPocketSelection();
+        }
+
         function inspectPocket(card) {
             if (!card) return;
             var hasVisibleLayer = !!card.querySelector('.js-repr-toggle[aria-pressed="true"]');
             clearPocketSelection();
             card.classList.add("is-selected-pocket");
-            setStructureFocusDim(true);
 
             var coreRepr = card.getAttribute("data-pocket-core-repr") || "";
             var coreBtn = coreRepr ? card.querySelector('.js-repr-toggle[data-repr="' + coreRepr + '"]') : null;
@@ -121,7 +133,10 @@
             );
             setPocketInspectorField("residues", card.getAttribute("data-pocket-residues") || "");
             setPocketInspectorField("properties", card.getAttribute("data-pocket-properties") || "");
-            if (pocketInspector) pocketInspector.hidden = false;
+            if (pocketInspector) {
+                pocketInspector.hidden = false;
+                pocketInspector.scrollIntoView({ behavior: "smooth", block: "start" });
+            }
         }
 
         document.addEventListener("click", function (event) {
@@ -152,7 +167,7 @@
         });
 
         if (pocketClearBtn) {
-            pocketClearBtn.addEventListener("click", clearPocketSelection);
+            pocketClearBtn.addEventListener("click", clearPocketSelectionAndLayers);
         }
 
         if (pocketShowOnlyBtn) {
@@ -160,6 +175,7 @@
                 var selectedCard = document.querySelector(".pocket-card.is-selected-pocket");
                 if (!selectedCard) return;
                 setShowOnlySelectedPocket(!showOnlySelectedPocket);
+                setStructureFocusDim(showOnlySelectedPocket);
                 if (showOnlySelectedPocket) {
                     document.querySelectorAll(
                         '.pocket-card .js-repr-toggle[aria-pressed="true"], .residueset-row .js-repr-toggle[aria-pressed="true"]'
