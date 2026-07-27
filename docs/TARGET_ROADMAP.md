@@ -184,22 +184,22 @@ Incorpora informacion metabolica al analisis de targets.
 - Ranking de rutas a nivel genoma.
 - Pagina de mapa por ruta individual.
 - Grafo genome-wide estilo Krona.
+- Layout tipo MetaCyc (dagre, arriba a abajo) con direccion real segun el rol reactivo/producto de cada reaccion, no segun la adyacencia cruda del `network.sif`.
+- Flecha doble para reacciones reversibles, consistente en tabla, tooltips y los tres grafos (vecindario, ruta especifica y genome-wide).
+- Leyenda de densidad de chokepoints con los 4 niveles reales que usa el grafo.
+- Grafos chicos/lineales ya no quedan perdidos en un canvas ancho vacio.
+- Pagina de red metabolica de una proteina rediseñada como pagina de detalle (hero con metricas, quick-nav, cards separadas para Pathways/Network/Selected reaction/Catalyzed reactions), reemplazando la sidebar comprimida original.
 
 **Feedback de biologas.**
 
 - Les gusto:
   - `Metabolic context` en pagina de proteina.
   - Ranking de rutas.
-- No les termino de convencer:
-  - Topologia de fuerza de los grafos.
-  - Falta de principio/fin claro en la lectura de rutas.
+- Pidieron layout mas ordenado estilo MetaCyc y direccion/reversibilidad claras -- resuelto (ver Implementado).
 
 **Pendiente.**
 
 - Agregar busqueda por proteina en el ranking de rutas.
-- Pulir visualmente `Metabolic context` en pagina de proteina.
-- Redisenar grafos con layout mas ordenado, estilo MetaCyc.
-- Evaluar si conviene conectar metabolito-a-metabolito con la reaccion como label de borde, en vez de usar metabolito y reaccion como nodos separados.
 
 ### Visualizacion de Proteina 2.0
 
