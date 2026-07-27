@@ -710,6 +710,24 @@ body:has(.sv-root) .tp-footer { display: none !important; }
     text-transform: uppercase;
 }
 
+/* The core layer (Alpha spheres/Pocket atoms/Pocket core) is the primary
+   action for this pocket, so it gets its own full-width row instead of
+   sharing a grid cell with the "Surrounding area" group label. */
+.pocket-repr-btn--core {
+    grid-column: 1 / -1;
+}
+
+.pocket-card-repr-group {
+    grid-column: 1 / -1;
+    color: var(--tp-color-text-muted);
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    line-height: 1;
+    text-transform: uppercase;
+    margin-top: 2px;
+}
+
 .pocket-repr-btn {
     appearance: none;
     -webkit-appearance: none;
