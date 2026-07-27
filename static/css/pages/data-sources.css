@@ -158,6 +158,13 @@
     display: grid;
     gap: 9px;
     align-content: start;
+    box-shadow: var(--tp-shadow-xs);
+    transition: box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard), transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.ds-pipeline-card:hover {
+    box-shadow: var(--tp-shadow-sm);
+    transform: translateY(-1px);
 }
 
 .ds-pipeline-card-head {
