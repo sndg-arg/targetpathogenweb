@@ -4,8 +4,8 @@
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20260722-itemheight1">
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260727-reversiblearrow1">
-    <link rel="stylesheet" href="{% static 'css/pages/protein-metabolic-network.css' %}?v=20260721-networkpage1">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260727-sidebarredesign1">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-metabolic-network.css' %}?v=20260727-sidebarredesign1">
 {% endblock %}
 
 {% block body %}
@@ -74,6 +74,23 @@
                     {% endif %}
                 </div>
 
+                <div class="metabolic-inspector" id="metabolic-network-inspector">
+                    <span class="metabolic-sidebar-title">{% trans "Selected reaction" %}</span>
+                    <strong data-field="name">{% trans "Select a node" %}</strong>
+                    <dl>
+                        <dt>{% trans "EC" %}</dt>
+                        <dd data-field="ec">-</dd>
+                        <dt>{% trans "Pathway" %}</dt>
+                        <dd data-field="pathway">-</dd>
+                        <dt>{% trans "Genes" %}</dt>
+                        <dd data-field="genes">-</dd>
+                        <dt>{% trans "Role" %}</dt>
+                        <dd data-field="role">-</dd>
+                        <dt>{% trans "Isoenzymes" %}</dt>
+                        <dd data-field="isoenzymes">-</dd>
+                    </dl>
+                </div>
+
                 <div class="metabolic-sidebar-block">
                     <span class="metabolic-sidebar-title">{% trans "Catalyzed reactions" %}</span>
                     <div class="metabolic-reaction-list">
@@ -105,23 +122,6 @@
                         </div>
                         {% endfor %}
                     </div>
-                </div>
-
-                <div class="metabolic-inspector" id="metabolic-network-inspector">
-                    <span class="metabolic-sidebar-title">{% trans "Selected reaction" %}</span>
-                    <strong data-field="name">{% trans "Select a node" %}</strong>
-                    <dl>
-                        <dt>{% trans "EC" %}</dt>
-                        <dd data-field="ec">-</dd>
-                        <dt>{% trans "Pathway" %}</dt>
-                        <dd data-field="pathway">-</dd>
-                        <dt>{% trans "Genes" %}</dt>
-                        <dd data-field="genes">-</dd>
-                        <dt>{% trans "Role" %}</dt>
-                        <dd data-field="role">-</dd>
-                        <dt>{% trans "Isoenzymes" %}</dt>
-                        <dd data-field="isoenzymes">-</dd>
-                    </dl>
                 </div>
             </aside>
 
@@ -157,5 +157,5 @@
     </section>
 </div>
 
-<script src="{% static 'js/pages/metabolic-network.js' %}?v=20260727-dagredirection1"></script>
+<script src="{% static 'js/pages/metabolic-network.js' %}?v=20260727-sidebarredesign1"></script>
 {% endblock %}

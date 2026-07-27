@@ -174,6 +174,18 @@
             var el = inspector.querySelector('[data-field="' + field + '"]');
             if (el) el.textContent = fields[field];
         });
+
+        // Mirror the selection in the reaction list too, so it's clear which item the
+        // (sticky) inspector above is currently showing even while scrolling the list.
+        document.querySelectorAll(".metabolic-reaction-item.is-active").forEach(function (el) {
+            el.classList.remove("is-active");
+        });
+        var activeItem = document.querySelector('.metabolic-reaction-item[data-reaction-id="' + nodeData.id + '"]');
+        if (activeItem) activeItem.classList.add("is-active");
+
+        // Sticky positioning handles the common case; this is a safety net for layouts
+        // where the inspector isn't pinned (e.g. the narrow single-column breakpoint).
+        inspector.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
 
     function updateNetworkNote(container, payload) {
