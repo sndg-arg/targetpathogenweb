@@ -1061,6 +1061,22 @@ a.tp-chip--go:hover {
     top: 44px;
 }
 
+.tp-table-shell.is-h-scrollable:not(.is-h-scroll-start)::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 46px;
+    background: linear-gradient(270deg, transparent 0%, var(--tp-color-surface) 86%);
+    pointer-events: none;
+    z-index: 2;
+}
+
+.tp-table-shell.tp-table-shell--with-export.is-h-scrollable:not(.is-h-scroll-start)::before {
+    top: 44px;
+}
+
 .tp-table-scroll-hint {
     position: absolute;
     right: 14px;

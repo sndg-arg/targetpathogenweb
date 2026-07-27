@@ -142,6 +142,21 @@
     background: color-mix(in srgb, var(--tp-color-surface) 86%, var(--tp-color-surface-soft));
 }
 
+.target-summary-column--strength {
+    border-left-width: 3px;
+    border-left-color: var(--tp-color-success-border);
+}
+
+.target-summary-column--risk {
+    border-left-width: 3px;
+    border-left-color: var(--tp-color-danger-border);
+}
+
+.target-summary-column--missing {
+    border-left-width: 3px;
+    border-left-color: var(--tp-color-text-muted);
+}
+
 .target-summary-column h3 {
     margin: 0 0 var(--tp-space-2);
     color: var(--tp-color-text-muted);
