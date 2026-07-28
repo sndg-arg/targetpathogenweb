@@ -4585,7 +4585,12 @@ body.residue-modal-open {
 }
 
 .metabolic-legend-dot--focal {
-    background: var(--tp-color-brand-700);
+    /* Matches the actual node shape (round-rectangle, gradient fill, colored border) --
+       a plain filled circle here didn't look anything like the node it was supposed to
+       identify, once other nodes became circles too. */
+    border-radius: 3px;
+    background: var(--tp-color-brand-050);
+    border: 2px solid var(--tp-color-brand-700);
 }
 
 .metabolic-legend-dot--chokepoint {
