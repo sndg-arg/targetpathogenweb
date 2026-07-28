@@ -99,10 +99,10 @@
                 if (renderedWidth < wrap.clientWidth * 0.65) {
                     wrap.style.maxWidth = Math.max(420, Math.round(renderedWidth)) + "px";
                     wrap.classList.add("is-compact");
-                    // Cytoscape sizes its canvas to the container at the last resize it knew
-                    // about -- shrinking the CSS box without telling it leaves the render
-                    // buffer at the old (wider) size, which then gets visually clipped by the
-                    // now-smaller box. Resize + re-fit against the real new dimensions.
+                    // Force the browser to apply the new max-width synchronously before
+                    // Cytoscape re-measures -- without this, cy.resize() can still read the
+                    // old (wider) box because the style change hasn't been laid out yet.
+                    void wrap.offsetWidth;
                     cy.resize();
                     cy.fit(cy.elements(), 24);
                 }

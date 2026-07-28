@@ -474,10 +474,10 @@
                             wrap.style.maxWidth = "";
                         }
                         wrap.classList.toggle("is-compact", compact);
-                        // Cytoscape sizes its canvas to the container at the last resize it
-                        // knew about -- changing the CSS box width without telling it leaves
-                        // stale render-buffer dimensions, which then get visually clipped by
-                        // (or leave dead space inside) the actual box. Resize + re-fit.
+                        // Force the browser to apply the CSS width change synchronously
+                        // before Cytoscape re-measures -- without this, cy.resize() can still
+                        // read the old box because the style change hasn't been laid out yet.
+                        void wrap.offsetWidth;
                         cy.resize();
                         cy.fit(cy.elements(), 30);
                     }
