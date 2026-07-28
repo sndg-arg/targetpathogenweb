@@ -239,7 +239,12 @@
             {
                 selector: "node",
                 style: {
-                    "shape": "round-rectangle",
+                    // Circle = reaction everywhere in the app (matches the shared
+                    // reaction/metabolite graph's plain reaction-node shape); diamond =
+                    // chokepoint (below); rounded rectangle is reserved for the focal
+                    // "this protein" node and pathway-group containers, set explicitly on
+                    // those selectors rather than inherited from here.
+                    "shape": "ellipse",
                     "width": "data(size)",
                     "height": "data(size)",
                     "background-fill": "radial-gradient",
@@ -283,6 +288,7 @@
             {
                 selector: ".is-focal",
                 style: {
+                    "shape": "round-rectangle",
                     "background-gradient-stop-colors": palette.focalSoft + " " + palette.ring,
                     "border-color": palette.focal,
                     "width": 34,

@@ -4,7 +4,7 @@
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20260722-itemheight1">
-    <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20260727-reversiblearrow1">
+    <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20260728-connections1">
 {% endblock %}
 
 {% block body %}
@@ -93,6 +93,10 @@
                                 <div class="metabolism-stat" title="{% trans "Share of this pathway's reactions that are chokepoints." %}">
                                     <span class="metabolism-stat-n{% if pathway.chokepoint_count %} is-warm{% endif %}">{{ pathway.chokepoint_density_pct }}%</span>
                                     <span class="metabolism-stat-l">{% trans "Density" %}</span>
+                                </div>
+                                <div class="metabolism-stat" title="{% trans "Other pathways in this genome that share reactions with this one." %}">
+                                    <span class="metabolism-stat-n">{{ pathway.connections_count }}</span>
+                                    <span class="metabolism-stat-l">{% trans "Connects to" %}</span>
                                 </div>
                             </div>
                         </div>

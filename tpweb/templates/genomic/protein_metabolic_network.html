@@ -5,7 +5,7 @@
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20260722-itemheight1">
     <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260727-cardstack1">
-    <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20260727-cardstack1">
+    <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20260728-connections1">
     <link rel="stylesheet" href="{% static 'css/pages/protein-metabolic-network.css' %}?v=20260728-feedbackfix1">
 {% endblock %}
 
@@ -148,12 +148,14 @@
                 <div class="pathway-reaction-main">
                     <div>
                         {% if reaction.kegg_url %}
-                        <h3><a class="reaction-external-link" href="{{ reaction.kegg_url }}" target="_blank" rel="noopener noreferrer" title="{% trans 'Open reaction in KEGG' %}">{{ reaction.name }}</a></h3>
+                        <h3><a class="reaction-external-link reaction-external-link--kegg" href="{{ reaction.kegg_url }}" target="_blank" rel="noopener noreferrer" title="{% trans 'Open reaction in KEGG' %}">{{ reaction.name }}</a></h3>
                         {% else %}
                         <h3 title="{% trans 'Reaction' %}: {{ reaction.name }}">{{ reaction.name }}</h3>
                         {% endif %}
                         <p>
                             {% if reaction.ec_numbers %}EC {{ reaction.ec_numbers|join:", " }}{% else %}EC -{% endif %}
+                            &middot;
+                            <a class="reaction-external-link reaction-external-link--metacyc" href="{{ reaction.metacyc_url }}" target="_blank" rel="noopener noreferrer" title="{% trans 'Open reaction in MetaCyc' %}">{{ reaction.reaction_id }}</a>
                             &middot; {% if reaction.reversible %}{% trans "reversible" %}{% else %}{% trans "not reversible" %}{% endif %}
                             {% if reaction.isoenzyme_count > 1 %}
                                 &middot; <span title="{% trans "Isoenzymes are different genes that catalyze the same reaction. More than one means inhibiting this protein alone may not stop the reaction." %}">{% blocktrans with count=reaction.isoenzyme_count %}{{ count }} isoenzymes{% endblocktrans %}</span>
@@ -197,7 +199,7 @@
     {% endif %}
 </div>
 
-<script src="{% static 'js/pages/metabolic-network.js' %}?v=20260728-dynamiclabel1"></script>
+<script src="{% static 'js/pages/metabolic-network.js' %}?v=20260728-standardshape1"></script>
 <script>
 (function () {
     "use strict";

@@ -160,3 +160,38 @@ def build_genome_metabolism_network(assembly_name, user=None, formula_name=None,
         "edges": edges,
         "active_formula_name": active_formula.name if active_formula else None,
     }
+
+
+def pathway_neighbors(assembly_name, source, external_id, user=None, formula_name=None):
+    """Direct neighbors of one pathway (pathways it shares reaction-reaction adjacency
+    with), filtered from the exact same genome-wide network build_genome_metabolism_network
+    already computes for the "all pathways" page -- no separate heavy computation. Returns a
+    list of {"source", "external_id", "name", "reaction_count", "shared_weight"} sorted by
+    shared_weight descending, or [] if the pathway has no gene-linked reactions (so it never
+    got a node in the network to begin with)."""
+    network = build_genome_metabolism_network(assembly_name, user=user, formula_name=formula_name)
+    node_id = f"{source}__{external_id}"
+    nodes_by_id = {node["id"]: node for node in network["nodes"]}
+    if node_id not in nodes_by_id:
+        return []
+
+    neighbors = []
+    for edge in network["edges"]:
+        if edge["source"] == node_id:
+            other_id = edge["target"]
+        elif edge["target"] == node_id:
+            other_id = edge["source"]
+        else:
+            continue
+        other = nodes_by_id.get(other_id)
+        if not other:
+            continue
+        neighbors.append({
+            "source": other["source"],
+            "external_id": other["external_id"],
+            "name": other["name"],
+            "reaction_count": other["reaction_count"],
+            "shared_weight": edge["weight"],
+        })
+    neighbors.sort(key=lambda n: n["shared_weight"], reverse=True)
+    return neighbors

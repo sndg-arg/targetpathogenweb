@@ -4,7 +4,7 @@
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20260722-itemheight1">
-    <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20260727-reversiblearrow1">
+    <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20260728-connections1">
     <link rel="stylesheet" href="{% static 'css/pages/metabolic-network-genome.css' %}?v=20260728-fontscale1">
 {% endblock %}
 
@@ -97,6 +97,26 @@
         {% endif %}
     </section>
 
+    {% if connected_pathways %}
+    <section class="genome-card metabolism-panel tp-ui-panel">
+        <div class="section-head tp-ui-panel-head">
+            <div>
+                <h2>{% trans "Connected pathways" %}</h2>
+                <p class="section-subtitle">{% trans "Other pathways in this genome that share reactions with this one." %}</p>
+            </div>
+        </div>
+        <div class="metabolism-connected-pathways">
+            {% for neighbor in connected_pathways %}
+            <a href="{{ neighbor.url }}" class="metabolism-connected-pathway-chip" title="{% blocktrans with count=neighbor.shared_weight %}Shares {{ count }} reaction-reaction connection(s) with this pathway{% endblocktrans %}">
+                <span class="metabolism-source{% if neighbor.source == 'MODEL' %} metabolism-source--model{% endif %}">{{ neighbor.source }}</span>
+                <span class="metabolism-connected-pathway-name">{{ neighbor.name }}</span>
+                <span class="metabolism-connected-pathway-weight">{{ neighbor.shared_weight }} {% trans "shared" %}</span>
+            </a>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
     <section class="genome-card metabolism-panel tp-ui-panel">
         <div class="section-head tp-ui-panel-head">
             <div>
@@ -112,14 +132,12 @@
                         <h3 title="{% trans 'Reaction' %}: {{ reaction.name }}">{{ reaction.name }}</h3>
                         <p>
                             {% if reaction.ec_numbers %}EC {{ reaction.ec_numbers|join:", " }}{% else %}EC -{% endif %}
-                            {% if reaction.kegg_reaction_id %}
+                            {% if reaction.kegg_reaction_id and reaction.kegg_url %}
                             &middot;
-                            {% if reaction.kegg_url %}
-                            <a class="reaction-external-link" href="{{ reaction.kegg_url }}" target="_blank" rel="noopener noreferrer" title="{% trans 'Open reaction in KEGG' %}">{{ reaction.kegg_reaction_id }}</a>
-                            {% else %}
-                            {{ reaction.kegg_reaction_id }}
+                            <a class="reaction-external-link reaction-external-link--kegg" href="{{ reaction.kegg_url }}" target="_blank" rel="noopener noreferrer" title="{% trans 'Open reaction in KEGG' %}">{{ reaction.kegg_reaction_id }}</a>
                             {% endif %}
-                            {% endif %}
+                            &middot;
+                            <a class="reaction-external-link reaction-external-link--metacyc" href="{{ reaction.metacyc_url }}" target="_blank" rel="noopener noreferrer" title="{% trans 'Open reaction in MetaCyc' %}">{{ reaction.id }}</a>
                             &middot; {% if reaction.reversible %}{% trans "reversible" %}{% else %}{% trans "not reversible" %}{% endif %}
                         </p>
                     </div>

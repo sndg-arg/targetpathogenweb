@@ -368,6 +368,10 @@ def build_metabolic_context(protein, raw_scores):
             f"https://www.kegg.jp/entry/{reaction.kegg_reaction_id}"
             if reaction.kegg_reaction_id else ""
         )
+        # reaction_id is already the BioCyc/MetaCyc frame id (load_metabolism.py prefers the
+        # SBML name attribute, which MetaFlux/Pathway Tools exports use for the frame id), so
+        # unlike kegg_url this is always buildable, no annotation dependency.
+        metacyc_url = f"https://metacyc.org/META/NEW-IMAGE?type=REACTION&object={reaction.reaction_id}"
         substrates, products = _build_reaction_participants(reaction)
         reactions.append({
             "reaction_id": reaction.reaction_id,
@@ -375,6 +379,7 @@ def build_metabolic_context(protein, raw_scores):
             "ec_numbers": [ec for ec in (reaction.ec_numbers or "").split(",") if ec],
             "kegg_reaction_id": reaction.kegg_reaction_id,
             "kegg_url": kegg_url,
+            "metacyc_url": metacyc_url,
             "reversible": reaction.reversible,
             "chokepoint_role": link.chokepoint_role,
             "chokepoint_label": _CHOKEPOINT_LABELS.get(link.chokepoint_role),

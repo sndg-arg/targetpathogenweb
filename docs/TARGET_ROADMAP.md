@@ -188,6 +188,11 @@ Incorpora informacion metabolica al analisis de targets.
 - Grafos chicos/lineales ya no quedan perdidos en un canvas ancho vacio.
 - Colores de aristas/flechas con contraste alto (mismo token que el texto) en los tres grafos.
 - Pagina de red metabolica de una proteina rediseñada como pagina de detalle (hero con metricas, quick-nav, cards separadas para Pathways/Network/Selected reaction/Catalyzed reactions), reemplazando la sidebar comprimida original.
+- Fuente sans-serif (no monoespaciada) y forma de nodo consistente (circulo=reaccion, diamante=chokepoint) en los tres grafos; texto de chokepoint ya no compite en color con el resto.
+- Labels de nodos ya no se truncan con largo fijo -- Cytoscape recorta solo cuando el texto realmente no entra, en vez de siempre.
+- Link a MetaCyc en toda tabla de reacciones (`reaction_id` ya es el frame id de BioCyc, no requiere dato nuevo), ademas del link a KEGG existente.
+- Seccion "Connected pathways" en la pagina de vía especifica: reutiliza el mismo grafo genoma-completo ya calculado (`build_genome_metabolism_network`) filtrado a los vecinos directos de esa vía, en vez de forzar la idea de "red ego" dentro de la vista de todas las vías. Nota de "Connects to N" tambien agregada al ranking de rutas.
+- Evaluado BiGG (sin dato/mapeo existente, patogenos raramente estan en su set de modelos curados) y Escher (herramienta de curacion manual, no hace auto-layout mejor que dagre) -- descartados por ahora, no vale la pena construir especulativamente.
 
 **Feedback de biologas.**
 

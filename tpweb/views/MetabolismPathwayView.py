@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from django.http import Http404, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
@@ -7,7 +9,7 @@ from bioseq.models.Biodatabase import Biodatabase
 from tpweb.models.Metabolism import GeneReactionLink, MetabolicPathway, MetabolicReaction
 from tpweb.services.genome_workspace import display_genome_name, genome_url_slug, resolve_genome_from_slug
 from tpweb.services.metabolism_summary import build_genome_metabolism_summary
-from tpweb.services.metabolism_network import _primary_pathway_buckets, build_genome_metabolism_network
+from tpweb.services.metabolism_network import _primary_pathway_buckets, build_genome_metabolism_network, pathway_neighbors
 
 
 class MetabolismPathwayView(View):
@@ -25,6 +27,22 @@ class MetabolismPathwayView(View):
         slug = genome_url_slug(assembly_name)
         formula_name = request.GET.get("scoreformula") or None
         summary = build_genome_metabolism_summary(assembly_name, user=request.user, formula_name=formula_name)
+
+        # Reuse the same genome-wide network the "view as network" page builds, just to
+        # count each pathway's direct connections -- one build, not one per pathway row.
+        # build_genome_metabolism_summary uses multi-membership (a reaction can count
+        # toward every pathway it belongs to) while the network uses a strict one-pathway
+        # partition, so not every ranked pathway here is guaranteed a matching network node;
+        # those simply show 0 connections rather than erroring.
+        network = build_genome_metabolism_network(assembly_name, user=request.user, formula_name=formula_name)
+        connection_counts = defaultdict(int)
+        for edge in network["edges"]:
+            connection_counts[edge["source"]] += 1
+            connection_counts[edge["target"]] += 1
+        for pathway in summary["pathways"]:
+            node_id = f"{pathway['source']}__{pathway['external_id']}"
+            pathway["connections_count"] = connection_counts.get(node_id, 0)
+
         return render(request, self.template_name, {
             "assembly": {
                 "name": display_genome_name(assembly_name),
@@ -87,6 +105,9 @@ def _build_reaction_row(reaction):
         "ec_numbers": [ec for ec in (reaction.ec_numbers or "").split(",") if ec],
         "kegg_reaction_id": reaction.kegg_reaction_id,
         "kegg_url": f"https://www.kegg.jp/entry/{reaction.kegg_reaction_id}" if reaction.kegg_reaction_id else "",
+        # reaction_id is already the BioCyc/MetaCyc frame id -- always buildable, unlike
+        # kegg_url which depends on a KEGG annotation being present in the source SBML.
+        "metacyc_url": f"https://metacyc.org/META/NEW-IMAGE?type=REACTION&object={reaction.reaction_id}",
         "reversible": reaction.reversible,
         "isoenzyme_count": reaction.isoenzyme_count,
         "chokepoint_role": chokepoint_role,
@@ -196,6 +217,20 @@ class MetabolismPathwayDetailView(View):
         diagram_reaction_objects = [r for r in reactions if r.reaction_id in diagram_reaction_ids]
         slug = genome_url_slug(assembly_name)
 
+        connected_pathways = [
+            {
+                "name": neighbor["name"],
+                "source": neighbor["source"],
+                "external_id": neighbor["external_id"],
+                "reaction_count": neighbor["reaction_count"],
+                "shared_weight": neighbor["shared_weight"],
+                "url": reverse("tpwebapp:genome_metabolism_pathway", kwargs={
+                    "genome": slug, "source": neighbor["source"], "external_id": neighbor["external_id"],
+                }),
+            }
+            for neighbor in pathway_neighbors(assembly_name, source, external_id, user=request.user)
+        ]
+
         return render(request, self.template_name, {
             "assembly": {
                 "name": display_genome_name(assembly_name),
@@ -211,6 +246,7 @@ class MetabolismPathwayDetailView(View):
                 "chokepoint_count": chokepoint_count,
             },
             "reaction_rows": reaction_rows,
+            "connected_pathways": connected_pathways,
             "graph_payload": _reaction_metabolite_graph(diagram_reaction_objects),
             "omitted_reactions": omitted_reactions,
             "assembly_url": reverse("tpwebapp:assembly", kwargs={"genome": slug}),

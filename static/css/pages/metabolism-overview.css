@@ -283,6 +283,39 @@
     color: var(--tp-color-brand-900);
 }
 
+.metabolism-connected-pathways {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.metabolism-connected-pathway-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 11px;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 9px;
+    background: var(--tp-color-surface);
+    color: var(--tp-color-text-primary);
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: border-color 140ms ease, background 140ms ease, transform 140ms ease;
+}
+
+.metabolism-connected-pathway-chip:hover {
+    border-color: var(--tp-color-brand-300);
+    text-decoration: none;
+    transform: translateY(-1px);
+}
+
+.metabolism-connected-pathway-weight {
+    color: var(--tp-color-text-muted);
+    font-size: 0.72rem;
+    font-weight: 700;
+}
+
 .metabolism-target-meta {
     color: var(--tp-color-text-muted);
     font-size: 0.72rem;
@@ -686,7 +719,6 @@
 }
 
 .reaction-external-link::after {
-    content: "KEGG";
     margin-left: 5px;
     padding: 1px 4px;
     border: 1px solid var(--tp-color-brand-200);
@@ -694,6 +726,14 @@
     font-size: 0.64em;
     letter-spacing: 0.04em;
     text-decoration: none;
+}
+
+.reaction-external-link--kegg::after {
+    content: "KEGG";
+}
+
+.reaction-external-link--metacyc::after {
+    content: "MetaCyc";
 }
 
 .reaction-external-link:hover {
