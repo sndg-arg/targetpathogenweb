@@ -61,6 +61,7 @@
 
         var elements = window.TPMetabolicReactionGraph.buildElements(payload);
         var roots = window.TPMetabolicReactionGraph.suggestRoots(elements);
+        var fontScale = 1;
 
         var cy = window.cytoscape({
             container: container,
@@ -81,13 +82,21 @@
 
         if ("MutationObserver" in window) {
             var themeObserver = new MutationObserver(function () {
-                cy.style(window.TPMetabolicReactionGraph.styleRules(readPalette())).update();
+                cy.style(window.TPMetabolicReactionGraph.styleRules(readPalette(), fontScale)).update();
             });
             themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
         }
 
         cy.one("layoutstop", function () {
             cy.fit(cy.elements(), 24);
+            // Re-derive label/node size from the zoom this specific pathway actually fit
+            // at, so a tiny pathway (fit zoomed way in) and a sprawling one (zoomed way
+            // out) both read at roughly the same on-screen text size.
+            fontScale = window.TPMetabolicReactionGraph.computeFontScale(cy.zoom());
+            if (Math.abs(fontScale - 1) > 0.05) {
+                cy.style(window.TPMetabolicReactionGraph.styleRules(readPalette(), fontScale)).update();
+                cy.fit(cy.elements(), 24);
+            }
             container.classList.add("is-ready");
         });
 

@@ -412,16 +412,17 @@
                 setNote("");
 
                 var collapsedElements = buildCollapsedElements(payload);
+                var detailFontScale = 1;
 
-                function combinedStyle() {
+                function combinedStyle(fontScale) {
                     var palette = readPalette();
-                    return nodeStyleRules(palette).concat(window.TPMetabolicReactionGraph.styleRules(palette));
+                    return nodeStyleRules(palette).concat(window.TPMetabolicReactionGraph.styleRules(palette, fontScale));
                 }
 
                 var cy = window.cytoscape({
                     container: container,
                     elements: collapsedElements,
-                    style: combinedStyle(),
+                    style: combinedStyle(1),
                     layout: overviewLayout({ animate: true, animationDuration: 900, randomize: true }),
                     minZoom: 0.2,
                     maxZoom: 6,
@@ -433,7 +434,7 @@
 
                 if ("MutationObserver" in window) {
                     var themeObserver = new MutationObserver(function () {
-                        cy.style(combinedStyle()).update();
+                        cy.style(combinedStyle(detailFontScale)).update();
                     });
                     themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
                 }
@@ -449,11 +450,21 @@
                 var firstLoad = true;
                 cy.on("layoutstop", function () {
                     cy.fit(cy.elements(), 30);
-                    if (isDetailView && cy.zoom() < MIN_DETAIL_ZOOM) {
-                        cy.zoom({
-                            level: MIN_DETAIL_ZOOM,
-                            renderedPosition: { x: container.clientWidth / 2, y: container.clientHeight / 2 }
-                        });
+                    if (isDetailView) {
+                        // Rescale reaction/metabolite label size from the zoom this specific
+                        // pathway's drill-in actually fit at (see item 4's base-size comment
+                        // in metabolic-reaction-graph.js), before the min-zoom floor below.
+                        detailFontScale = window.TPMetabolicReactionGraph.computeFontScale(cy.zoom());
+                        if (Math.abs(detailFontScale - 1) > 0.05) {
+                            cy.style(combinedStyle(detailFontScale)).update();
+                            cy.fit(cy.elements(), 30);
+                        }
+                        if (cy.zoom() < MIN_DETAIL_ZOOM) {
+                            cy.zoom({
+                                level: MIN_DETAIL_ZOOM,
+                                renderedPosition: { x: container.clientWidth / 2, y: container.clientHeight / 2 }
+                            });
+                        }
                     }
                     container.classList.add("is-ready");
                     if (firstLoad) {
@@ -468,6 +479,7 @@
                     clearHover(cy);
                     tooltip.style.display = "none";
                     isDetailView = false;
+                    detailFontScale = 1;
                     cy.elements().remove();
                     cy.add(collapsedElements);
                     cy.layout(overviewLayout({ animate: true, animationDuration: 700, randomize: true })).run();

@@ -181,7 +181,8 @@
         };
     }
 
-    function styleRules(palette) {
+    function styleRules(palette, fontScale) {
+        fontScale = fontScale || 1;
         return [
             {
                 // A small labeled junction, not a text box -- metabolites are the diagram's
@@ -189,20 +190,20 @@
                 selector: ".reaction-node",
                 style: {
                     "shape": "ellipse",
-                    "width": 7,
-                    "height": 7,
+                    "width": 7 * fontScale,
+                    "height": 7 * fontScale,
                     "background-color": palette.surfaceSoft,
                     "border-width": 1.2,
                     "border-color": palette.plain,
                     "label": "data(displayLabel)",
                     "font-family": FONT_STACK,
-                    "font-size": 7,
+                    "font-size": 7 * fontScale,
                     "font-weight": 600,
                     "color": palette.textFaint,
                     "text-valign": "top",
                     "text-halign": "center",
-                    "text-margin-y": -4,
-                    "text-max-width": "110px",
+                    "text-margin-y": -4 * fontScale,
+                    "text-max-width": (110 * fontScale) + "px",
                     "text-wrap": "ellipsis",
                     "text-background-color": palette.ring,
                     "text-background-opacity": 1,
@@ -213,13 +214,13 @@
             {
                 selector: ".reaction-node.has-chokepoint",
                 style: {
-                    "width": 10,
-                    "height": 10,
+                    "width": 10 * fontScale,
+                    "height": 10 * fontScale,
                     "background-color": palette.chokepointSoft,
                     "border-color": palette.chokepoint,
                     "border-width": 2,
                     "color": palette.chokepoint,
-                    "font-size": 7.5,
+                    "font-size": 7.5 * fontScale,
                     "font-weight": 800
                 }
             },
@@ -227,19 +228,19 @@
                 selector: ".metabolite-node",
                 style: {
                     "shape": "ellipse",
-                    "width": 17,
-                    "height": 17,
+                    "width": 17 * fontScale,
+                    "height": 17 * fontScale,
                     "background-color": palette.plain,
                     "border-width": 1,
                     "border-color": palette.ring,
                     "label": "data(displayLabel)",
                     "font-family": FONT_STACK,
-                    "font-size": 8.5,
+                    "font-size": 8.5 * fontScale,
                     "font-weight": 700,
                     "color": palette.text,
                     "text-valign": "bottom",
-                    "text-margin-y": 4,
-                    "text-max-width": "80px",
+                    "text-margin-y": 4 * fontScale,
+                    "text-max-width": (80 * fontScale) + "px",
                     "text-wrap": "ellipsis",
                     "text-background-color": palette.ring,
                     "text-background-opacity": 1,
@@ -296,12 +297,24 @@
         ].join("");
     }
 
+    // Base node/label sizes in styleRules() were tuned by eye at a "typical" fit zoom for a
+    // medium-sized pathway. A tiny pathway fits at a much higher zoom (labels would look
+    // small relative to all the empty room) and a sprawling one at a much lower zoom
+    // (labels could shrink past legible) -- rescale from the zoom the fit actually landed
+    // on so text reads at roughly the same size regardless of pathway size. REFERENCE_ZOOM
+    // is a judgment call, not measured against real data; may need retuning once seen live.
+    var REFERENCE_ZOOM = 1.3;
+    function computeFontScale(zoom) {
+        return Math.max(0.7, Math.min(1.8, REFERENCE_ZOOM / (zoom || 1)));
+    }
+
     window.TPMetabolicReactionGraph = {
         FONT_STACK: FONT_STACK,
         buildElements: buildElements,
         suggestRoots: suggestRoots,
         flowLayout: flowLayout,
         styleRules: styleRules,
+        computeFontScale: computeFontScale,
         tooltipForReaction: tooltipForReaction,
         tooltipForMetabolite: tooltipForMetabolite
     };
