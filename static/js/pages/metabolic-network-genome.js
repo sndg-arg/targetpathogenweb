@@ -14,7 +14,9 @@
 (function () {
     "use strict";
 
-    var FONT_STACK = '"JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace';
+    // Matches the app's own body font (masterpage.html) -- monospace read as a raw data
+    // dump rather than a designed diagram.
+    var FONT_STACK = '"Source Sans 3", "Segoe UI", sans-serif';
 
     function readToken(name) {
         return getComputedStyle(document.documentElement).getPropertyValue(name).trim();

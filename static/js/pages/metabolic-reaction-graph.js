@@ -22,7 +22,9 @@
 (function () {
     "use strict";
 
-    var FONT_STACK = '"JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace';
+    // Matches the app's own body font (masterpage.html) -- monospace read as a raw data
+    // dump rather than a designed diagram.
+    var FONT_STACK = '"Source Sans 3", "Segoe UI", sans-serif';
 
     function escapeHtml(value) {
         return String(value == null ? "" : value)
@@ -192,7 +194,9 @@
                     "shape": "ellipse",
                     "width": 7 * fontScale,
                     "height": 7 * fontScale,
-                    "background-color": palette.surfaceSoft,
+                    "background-fill": "radial-gradient",
+                    "background-gradient-stop-colors": palette.surfaceSoft + " " + palette.ring,
+                    "background-gradient-stop-positions": "0 100",
                     "border-width": 1.2,
                     "border-color": palette.plain,
                     "label": "data(displayLabel)",
@@ -214,12 +218,18 @@
             {
                 selector: ".reaction-node.has-chokepoint",
                 style: {
+                    // Solid fill (not the gradient above) plus a diamond shape -- two
+                    // non-color-dependent cues that this node is a chokepoint, since a
+                    // pathway can have many of these and amber text on every other label
+                    // would just read as noise rather than a signal.
+                    "shape": "diamond",
                     "width": 10 * fontScale,
                     "height": 10 * fontScale,
+                    "background-fill": "solid",
                     "background-color": palette.chokepointSoft,
                     "border-color": palette.chokepoint,
                     "border-width": 2,
-                    "color": palette.chokepoint,
+                    "color": palette.text,
                     "font-size": 7.5 * fontScale,
                     "font-weight": 800
                 }
@@ -227,10 +237,15 @@
             {
                 selector: ".metabolite-node",
                 style: {
+                    // A richer gradient (plain -> ring) than the reaction junctions'
+                    // lighter one (surfaceSoft -> ring), preserving the size+color
+                    // hierarchy: metabolites read as the diagram's main characters.
                     "shape": "ellipse",
                     "width": 17 * fontScale,
                     "height": 17 * fontScale,
-                    "background-color": palette.plain,
+                    "background-fill": "radial-gradient",
+                    "background-gradient-stop-colors": palette.plain + " " + palette.ring,
+                    "background-gradient-stop-positions": "0 100",
                     "border-width": 1,
                     "border-color": palette.ring,
                     "label": "data(displayLabel)",

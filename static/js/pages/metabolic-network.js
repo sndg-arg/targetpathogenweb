@@ -281,7 +281,7 @@
                     "background-gradient-stop-colors": palette.chokepointSoft + " " + palette.ring,
                     "border-color": palette.chokepoint,
                     "border-width": 2,
-                    "color": palette.chokepoint,
+                    "color": palette.text,
                     "font-size": 10.5,
                     "font-weight": 800,
                     "opacity": 1,
