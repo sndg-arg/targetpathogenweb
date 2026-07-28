@@ -488,12 +488,18 @@ def pdb_structure(
             p.core_button_label = "Alpha spheres"
             p.core_layer_label = "Alpha spheres / pocket core"
             p.core_note = "Specific FPocket alpha-sphere geometry imported for this structure."
-        else:
+        elif residue_core_points:
             p.core_points = residue_core_points
             p.core_geometry = "residue_atoms"
             p.core_button_label = "Pocket atoms"
             p.core_layer_label = "Pocket atoms / specific pocket"
             p.core_note = "Alpha-sphere geometry was unavailable or did not align with this loaded structure; showing pocket atoms instead."
+        else:
+            p.core_points = residue_core_points
+            p.core_geometry = "none"
+            p.core_button_label = "No pocket geometry"
+            p.core_layer_label = "No pocket-specific geometry available"
+            p.core_note = "No alpha-sphere or residue-position data is available for this pocket; this layer just highlights the same residue selection as \"Nearby residues\"."
 
         is_outlier, median_volume, _mad = size_outlier_map.get(p.id, (False, None, None))
         p.size_outlier = is_outlier
@@ -542,10 +548,16 @@ def pdb_structure(
         p2.atoms = []
         p2.core_atoms = _residue_set_core_atoms(p2)
         p2.core_points = _residue_set_core_points(p2)
-        p2.core_geometry = "residue_atoms"
-        p2.core_button_label = "Predicted site atoms"
-        p2.core_layer_label = "Predicted site atoms / pocket residues"
-        p2.core_note = "P2Rank reports predicted binding-site residues, not alpha-sphere geometry, so this shows the residue atoms rather than a cavity-shape mesh."
+        if p2.core_points:
+            p2.core_geometry = "residue_atoms"
+            p2.core_button_label = "Predicted site atoms"
+            p2.core_layer_label = "Predicted site atoms / pocket residues"
+            p2.core_note = "P2Rank reports predicted binding-site residues, not alpha-sphere geometry, so this shows the residue atoms rather than a cavity-shape mesh."
+        else:
+            p2.core_geometry = "none"
+            p2.core_button_label = "No pocket geometry"
+            p2.core_layer_label = "No pocket-specific geometry available"
+            p2.core_note = "No residue-position data is available for this predicted site; this layer just highlights the same residue selection as \"Nearby residues\"."
         p2.geometric_center = _pocket_center(p2.core_points)
         p2.residues = []
         p2.comparison_residues = []
