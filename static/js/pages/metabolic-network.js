@@ -358,7 +358,7 @@
                 selector: ".edge-cross",
                 style: {
                     "width": 1.6,
-                    "line-color": palette.textFaint,
+                    "line-color": palette.edge,
                     "opacity": 0.85,
                     "line-style": "dashed",
                     "line-dash-pattern": [3, 3]
