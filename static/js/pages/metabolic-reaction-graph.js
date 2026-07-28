@@ -147,12 +147,14 @@
         if (supportsDagre()) {
             return {
                 // Dagre/Sugiyama puts the pathway into ordered layers and minimizes
-                // edge crossings within each layer. That is much closer to curated
-                // pathway diagrams than a generic force-directed layout. Top-to-bottom
-                // (not left-to-right) per the biologists' explicit ask: a clear start
-                // node at top flowing down to the end, like a MetaCyc pathway chart.
+                // edge crossings within each layer -- much closer to curated pathway
+                // diagrams than a generic force-directed layout. Left-to-right (not
+                // top-to-bottom): a linear chain renders wide-and-short this way, matching
+                // this app's canvas (always wide), instead of tall-and-narrow with dead
+                // space either side -- top-to-bottom kept breaking for small/linear
+                // pathways across several rounds of canvas-sizing fixes.
                 name: "dagre",
-                rankDir: "TB",
+                rankDir: "LR",
                 ranker: "network-simplex",
                 acyclicer: "greedy",
                 nodeSep: options.nodeSep || 46,

@@ -498,7 +498,7 @@
                     style: nodeStyleRules(readPalette()),
                     layout: {
                         name: "dagre",
-                        rankDir: "TB",
+                        rankDir: "LR",
                         nodeSep: 45,
                         rankSep: 70,
                         edgeSep: 12,

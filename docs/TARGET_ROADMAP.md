@@ -182,7 +182,7 @@ Incorpora informacion metabolica al analisis de targets.
 - Ranking de rutas a nivel genoma, con busqueda por nombre de ruta o proteina.
 - Pagina de mapa por ruta individual.
 - Grafo genome-wide estilo Krona.
-- Layout tipo MetaCyc (dagre, arriba a abajo) con direccion real segun el rol reactivo/producto de cada reaccion, no segun la adyacencia cruda del `network.sif`.
+- Layout tipo MetaCyc (dagre) con direccion real segun el rol reactivo/producto de cada reaccion, no segun la adyacencia cruda del `network.sif`. Originalmente de arriba a abajo por pedido de las biologas; cambiado a izquierda-derecha en los 3 grafos despues de que el sentido vertical rompiera repetidamente el ajuste del canvas en vias chicas/lineales (una cadena lineal queda ancha y baja en LR, que es la forma natural de un canvas siempre ancho) -- decision tomada a criterio propio, no vuelta a validar con las biologas todavia.
 - Flecha doble para reacciones reversibles, consistente en tabla, tooltips y los tres grafos (vecindario, ruta especifica y genome-wide).
 - Leyenda de densidad de chokepoints con los 4 niveles reales que usa el grafo.
 - Grafos chicos/lineales ya no quedan perdidos en un canvas ancho vacio.

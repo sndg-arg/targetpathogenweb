@@ -179,7 +179,7 @@
     position: relative;
     z-index: 1;
     width: 100%;
-    min-height: clamp(420px, 55vh, 640px);
+    min-height: clamp(320px, 40vh, 500px);
     opacity: 0;
     transform: translateY(8px);
     transition: opacity 240ms ease, transform 240ms ease;
