@@ -503,8 +503,12 @@
                     layout: {
                         name: "dagre",
                         rankDir: "LR",
-                        nodeSep: 45,
-                        rankSep: 70,
+                        // A bit more room than before -- the focal node alone is 34px,
+                        // and a close neighbor could leave barely any visible line
+                        // segment between the two node edges, reading as "no connection"
+                        // even though one exists.
+                        nodeSep: 52,
+                        rankSep: 88,
                         edgeSep: 12,
                         ranker: "network-simplex",
                         animate: true,
