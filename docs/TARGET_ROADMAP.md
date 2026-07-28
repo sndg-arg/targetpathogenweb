@@ -161,8 +161,6 @@ Pasada sistematica de consistencia visual en la app.
 - Implementado como pasada general.
 - Conviene mantenerlo como criterio de revision continua, no como tarea cerrada para siempre.
 
-## En progreso
-
 ### Informacion metabolica
 
 Incorpora informacion metabolica al analisis de targets.
@@ -181,13 +179,14 @@ Incorpora informacion metabolica al analisis de targets.
 - Integracion al scoring.
 - Oracion interpretativa automatica.
 - Grafo de vecindario embebido.
-- Ranking de rutas a nivel genoma.
+- Ranking de rutas a nivel genoma, con busqueda por nombre de ruta o proteina.
 - Pagina de mapa por ruta individual.
 - Grafo genome-wide estilo Krona.
 - Layout tipo MetaCyc (dagre, arriba a abajo) con direccion real segun el rol reactivo/producto de cada reaccion, no segun la adyacencia cruda del `network.sif`.
 - Flecha doble para reacciones reversibles, consistente en tabla, tooltips y los tres grafos (vecindario, ruta especifica y genome-wide).
 - Leyenda de densidad de chokepoints con los 4 niveles reales que usa el grafo.
 - Grafos chicos/lineales ya no quedan perdidos en un canvas ancho vacio.
+- Colores de aristas/flechas con contraste alto (mismo token que el texto) en los tres grafos.
 - Pagina de red metabolica de una proteina rediseñada como pagina de detalle (hero con metricas, quick-nav, cards separadas para Pathways/Network/Selected reaction/Catalyzed reactions), reemplazando la sidebar comprimida original.
 
 **Feedback de biologas.**
@@ -195,11 +194,9 @@ Incorpora informacion metabolica al analisis de targets.
 - Les gusto:
   - `Metabolic context` en pagina de proteina.
   - Ranking de rutas.
-- Pidieron layout mas ordenado estilo MetaCyc y direccion/reversibilidad claras -- resuelto (ver Implementado).
+- Pidieron layout mas ordenado estilo MetaCyc, direccion/reversibilidad claras y mayor contraste -- resuelto.
 
-**Pendiente.**
-
-- Agregar busqueda por proteina en el ranking de rutas.
+## En progreso
 
 ### Visualizacion de Proteina 2.0
 
