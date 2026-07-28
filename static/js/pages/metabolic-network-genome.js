@@ -456,31 +456,6 @@
                         });
                     }
                     container.classList.add("is-ready");
-                    // Same narrow/linear-pathway fix as the standalone pathway page's graph --
-                    // only relevant when drilled into one pathway's own reactions, never for
-                    // the collapsed overview (which always legitimately wants full width).
-                    var wrap = container.closest(".metabolic-network-genome-canvas-wrap");
-                    if (wrap) {
-                        var compact = false;
-                        if (isDetailView) {
-                            var bbox = cy.elements().boundingBox();
-                            var renderedWidth = bbox.w * cy.zoom() + 80;
-                            if (renderedWidth < wrap.clientWidth * 0.65) {
-                                wrap.style.maxWidth = Math.max(420, Math.round(renderedWidth)) + "px";
-                                compact = true;
-                            }
-                        }
-                        if (!compact) {
-                            wrap.style.maxWidth = "";
-                        }
-                        wrap.classList.toggle("is-compact", compact);
-                        // Force the browser to apply the CSS width change synchronously
-                        // before Cytoscape re-measures -- without this, cy.resize() can still
-                        // read the old box because the style change hasn't been laid out yet.
-                        void wrap.offsetWidth;
-                        cy.resize();
-                        cy.fit(cy.elements(), 30);
-                    }
                     if (firstLoad) {
                         firstLoad = false;
                         if (hint) hint.classList.add("is-visible");

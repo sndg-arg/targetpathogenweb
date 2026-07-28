@@ -145,11 +145,6 @@
     border-right: 1px solid var(--tp-color-border-soft);
 }
 
-.metabolic-network-genome-canvas-wrap.is-compact {
-    margin-left: auto;
-    margin-right: auto;
-}
-
 .metabolic-network-genome-glow {
     position: absolute;
     inset: 0;
