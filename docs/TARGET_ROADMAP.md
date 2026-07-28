@@ -207,14 +207,15 @@ Redisenar el visualizador 3D como experiencia completa.
 - Spin apagado por defecto.
 - Estados de botones sincronizados.
 - Nota aclarando que FPocket/P2Rank son predicciones computacionales.
+- Selector de estructura priorizado por fuente, cobertura y calidad (`sort_structures_by_preference` en `structure_sources.py`, ya conectado a ambos pickers).
+- Toolbar de camara y modos en el full viewer (spin, cartoon/surface, zoom, reset, selector de estructura, export VMD).
 
 **Falta.**
 
-- Coloreo por cadena.
-- Coloreo por estructura secundaria.
-- Manejo claro de estructuras multimericas.
-- Selector de estructura priorizado por fuente, cobertura y calidad.
-- Mejor toolbar de camara y modos.
+- Coloreo por cadena: ya existe (automatico, sin toggle) en el preview embebido; falta portarlo al full viewer y agregar un toggle real en vez de que sea automatico.
+- Coloreo por estructura secundaria: NGL lo soporta nativo, falta el boton/wiring en ambos visualizadores.
+- Manejo claro de estructuras multimericas: hoy siempre se resuelve una sola cadena por proteina, sin indicacion de que existan otras.
+- Paridad de controles entre el preview embebido (mas limitado) y el full viewer.
 - Decidir si la pagina embebida debe ser preview liviana y el full viewer la experiencia principal.
 
 ### Off-target 2.0
@@ -253,13 +254,13 @@ Comparar predicciones de pockets entre ambos metodos.
 
 - Comparación por distancia entre centros dentro de la misma estructura.
 - Conteo y porcentaje de residuos compartidos usando cadena, número de residuo y código de inserción.
+- Solapamiento espacial completo: distancia de centros (umbral 8 Å) + residuos compartidos + cobertura del sitio mas chico + Jaccard (`StructureView.py`), mas alla de lo que decia el roadmap.
 - Visualización del consenso en las cards de FPocket y P2Rank del detalle estructural.
 
 **Alcance.**
 
-- Solapamiento espacial.
-- Badge de consenso estructural.
-- Filtro para priorizar proteinas donde ambos metodos coinciden en el pocket principal.
+- Badge de consenso estructural: hoy es un bloque de info dentro del accordion de pockets, no un chip compacto a nivel resumen; la fuerza "Independent pocket support" usa umbrales de score, no el consenso geometrico ya calculado.
+- Filtro para priorizar proteinas donde ambos metodos coinciden en el pocket principal: no existe, el consenso no esta persistido a nivel de ranking/lista.
 
 ### Sitios funcionales y anotaciones estructurales
 
