@@ -536,6 +536,15 @@
                     }
                     cy.one("layoutstop", function () {
                         cy.fit(cy.elements(), 26);
+                        // The group label's text-max-width needs to roughly match its
+                        // actual box width, which varies with how many reactions it
+                        // contains -- a fixed guess either clips short names
+                        // unnecessarily or still overflows a narrow box. Size it per
+                        // node from the real rendered width once layout has settled.
+                        cy.nodes(".pathway-group").forEach(function (node) {
+                            var width = node.width();
+                            if (width) node.style("text-max-width", Math.max(80, width * 0.82) + "px");
+                        });
                         container.classList.add("is-ready");
                     });
                 });
