@@ -59,3 +59,15 @@
         animation: none;
     }
 }
+
+/* Line swatches for the network legend's edge entries (connected reaction / cross-pathway). */
+.metabolic-legend-line {
+    display: inline-block;
+    width: 16px;
+    height: 0;
+    border-top: 1.6px solid var(--tp-color-text-primary);
+}
+
+.metabolic-legend-line--cross {
+    border-top-style: dashed;
+}

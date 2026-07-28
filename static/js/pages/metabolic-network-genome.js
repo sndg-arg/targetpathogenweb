@@ -220,8 +220,10 @@
                     "text-margin-y": 5,
                     "text-wrap": "ellipsis",
                     "text-max-width": "110px",
-                    "text-outline-color": palette.ring,
-                    "text-outline-width": 3,
+                    "text-background-color": palette.ring,
+                    "text-background-opacity": 1,
+                    "text-background-shape": "roundrectangle",
+                    "text-background-padding": "2px",
                     "opacity": 0.96,
                     "transition-property": "opacity, border-width, border-color, width, height, background-color",
                     "transition-duration": "160ms",
@@ -472,6 +474,12 @@
                             wrap.style.maxWidth = "";
                         }
                         wrap.classList.toggle("is-compact", compact);
+                        // Cytoscape sizes its canvas to the container at the last resize it
+                        // knew about -- changing the CSS box width without telling it leaves
+                        // stale render-buffer dimensions, which then get visually clipped by
+                        // (or leave dead space inside) the actual box. Resize + re-fit.
+                        cy.resize();
+                        cy.fit(cy.elements(), 30);
                     }
                     if (firstLoad) {
                         firstLoad = false;

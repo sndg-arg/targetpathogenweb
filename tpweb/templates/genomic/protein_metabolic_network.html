@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20260722-itemheight1">
     <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260727-cardstack1">
     <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20260727-cardstack1">
-    <link rel="stylesheet" href="{% static 'css/pages/protein-metabolic-network.css' %}?v=20260727-bgflash1">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-metabolic-network.css' %}?v=20260728-feedbackfix1">
 {% endblock %}
 
 {% block body %}
@@ -90,7 +90,10 @@
                     <span><i class="metabolic-legend-dot metabolic-legend-dot--focal"></i>{% trans "This protein" %}</span>
                     <span><i class="metabolic-legend-dot metabolic-legend-dot--chokepoint"></i>{% trans "Chokepoint reaction" %}</span>
                     <span><i class="metabolic-legend-dot metabolic-legend-dot--plain"></i>{% trans "Neighbor reaction" %}</span>
-                    <span><i class="metabolic-legend-swatch"></i>{% trans "Pathway grouping" %}</span>
+                    <span><i class="metabolic-legend-swatch"></i>{% trans "Pathway grouping (2+ reactions sharing a route)" %}</span>
+                    <span><i class="metabolic-legend-line"></i>{% trans "Connected reaction (arrow shows direction, when known)" %}</span>
+                    <span>&#8652; {% trans "Reversible reaction (double arrow)" %}</span>
+                    <span><i class="metabolic-legend-line metabolic-legend-line--cross"></i>{% trans "Cross-pathway connection" %}</span>
                 </div>
                 <div class="metabolic-map-actions" aria-label="{% trans "Network controls" %}">
                     <button type="button" class="metabolic-map-btn" data-metabolic-action="fit" title="{% trans "Fit network to view" %}" aria-label="{% trans "Fit network to view" %}">
@@ -194,7 +197,7 @@
     {% endif %}
 </div>
 
-<script src="{% static 'js/pages/metabolic-network.js' %}?v=20260727-crossedge1"></script>
+<script src="{% static 'js/pages/metabolic-network.js' %}?v=20260728-feedbackfix1"></script>
 <script>
 (function () {
     "use strict";

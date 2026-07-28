@@ -69,7 +69,7 @@
                     <span><i class="metabolic-network-genome-dot metabolic-network-genome-dot--density-4"></i>{% trans "Chokepoint reaction" %}</span>
                     <span><i class="metabolic-network-genome-dot metabolic-network-genome-dot--density-1"></i>{% trans "Metabolite" %}</span>
                     <span title="{% trans "Reactions marked reversible in the imported SBML get an arrowhead on both ends." %}">&#8652; {% trans "Reversible reaction" %}</span>
-                    <span>{% trans "Faded nodes are currency metabolites (ATP, water, etc.)" %}</span>
+                    <span title="{% trans "Ubiquitous cofactors (ATP, water, NAD+, etc.) are left out of the diagram to keep it readable." %}">{% trans "Currency metabolites hidden" %}</span>
                 </div>
                 <div class="metabolic-network-genome-actions" aria-label="{% trans 'Pathway map controls' %}">
                     <button type="button" class="metabolic-map-btn" data-pathway-graph-action="fit" title="{% trans 'Fit to view' %}" aria-label="{% trans 'Fit to view' %}">
@@ -160,8 +160,8 @@
 </div>
 
 {{ graph_payload|json_script:"metabolic-pathway-graph-data" }}
-<script src="{% static 'js/pages/metabolic-reaction-graph.js' %}?v=20260727-edgecontrast1"></script>
-<script src="{% static 'js/pages/metabolic-pathway-graph.js' %}?v=20260727-darkedges1"></script>
+<script src="{% static 'js/pages/metabolic-reaction-graph.js' %}?v=20260728-feedbackfix1"></script>
+<script src="{% static 'js/pages/metabolic-pathway-graph.js' %}?v=20260728-feedbackfix1"></script>
 <script>
 (function () {
     var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;

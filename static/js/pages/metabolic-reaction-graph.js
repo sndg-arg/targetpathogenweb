@@ -76,31 +76,34 @@
             });
         });
 
+        // Currency metabolites (ATP, water, NAD+...) are ubiquitous and don't carry real
+        // pathway-specific signal -- biologists asked for them left out of the diagram
+        // entirely, not just de-emphasized.
         (payload.metabolites || []).forEach(function (metabolite) {
+            if (metabolite.is_currency) return;
             var data = {
                 id: idPrefix + "met::" + metabolite.id,
                 label: metabolite.name,
-                displayLabel: compactLabel(metabolite.name, metabolite.is_currency ? 10 : 16),
+                displayLabel: compactLabel(metabolite.name, 16),
                 compartment: metabolite.compartment,
-                isCurrency: metabolite.is_currency,
+                isCurrency: false,
                 isReaction: false
             };
             if (parentId) data.parent = parentId;
             elements.push({
                 data: data,
-                classes: ["metabolite-node", metabolite.is_currency ? "is-currency" : ""].join(" ").trim()
+                classes: "metabolite-node"
             });
         });
 
         (payload.participants || []).forEach(function (p, i) {
             var metabolite = metaboliteById[p.species_id];
+            if (metabolite && metabolite.is_currency) return;
             var reaction = reactionById[p.reaction_id];
-            var isCurrency = Boolean(metabolite && metabolite.is_currency);
             var reactionNodeId = idPrefix + "rxn::" + p.reaction_id;
             var metaboliteNodeId = idPrefix + "met::" + p.species_id;
             var isReactant = p.role === "reactant";
             var classes = [isReactant ? "flow-in" : "flow-out"];
-            if (isCurrency) classes.push("flow-currency");
             if (reaction && reaction.reversible) classes.push("flow-reversible");
             elements.push({
                 data: {
@@ -199,8 +202,10 @@
                     "text-margin-y": -4,
                     "text-max-width": "110px",
                     "text-wrap": "ellipsis",
-                    "text-outline-color": palette.ring,
-                    "text-outline-width": 2
+                    "text-background-color": palette.ring,
+                    "text-background-opacity": 1,
+                    "text-background-shape": "roundrectangle",
+                    "text-background-padding": "2px"
                 }
             },
             {
@@ -234,20 +239,11 @@
                     "text-margin-y": 4,
                     "text-max-width": "80px",
                     "text-wrap": "ellipsis",
-                    "text-outline-color": palette.ring,
-                    "text-outline-width": 2
+                    "text-background-color": palette.ring,
+                    "text-background-opacity": 1,
+                    "text-background-shape": "roundrectangle",
+                    "text-background-padding": "2px"
                 }
-            },
-            {
-                // Currency metabolites (ATP, water, NAD+...) are ubiquitous and would
-                // clutter every step if labeled by default -- kept small and unlabeled,
-                // name still one hover away, matching how MetaCyc de-emphasizes them.
-                selector: ".metabolite-node.is-currency",
-                style: { "width": 8, "height": 8, "opacity": 0.55, "label": "" }
-            },
-            {
-                selector: ".metabolite-node.is-currency.is-hovered",
-                style: { "label": "data(displayLabel)", "font-size": 7 }
             },
             {
                 selector: ".flow-in, .flow-out",
@@ -260,10 +256,6 @@
                     "target-arrow-color": palette.edge,
                     "arrow-scale": 1.15
                 }
-            },
-            {
-                selector: ".flow-currency",
-                style: { "opacity": 0.2, "width": 1 }
             },
             {
                 // Reversible reactions get an arrowhead on both ends -- same MetaCyc-style

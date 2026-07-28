@@ -51,6 +51,7 @@
     function assignPrimaryPathway(nodes, focalPathwayIds) {
         var groupOrder = [];
         var groupOf = {};
+        var counts = {};
         nodes.forEach(function (node) {
             var pathways = node.pathways || [];
             if (!pathways.length) return;
@@ -58,7 +59,15 @@
             var chosen = shared || pathways.slice().sort(function (a, b) { return a.name.localeCompare(b.name); })[0];
             var key = chosen.source + "__" + chosen.external_id;
             if (groupOrder.indexOf(key) === -1) groupOrder.push(key);
+            counts[key] = (counts[key] || 0) + 1;
             groupOf[node.id] = { key: key, name: chosen.name, source: chosen.source, externalId: chosen.external_id };
+        });
+        // A pathway shared by only one reaction among the nodes actually shown adds a
+        // disconnected-looking box without a real grouping signal -- render those nodes
+        // ungrouped instead, so only real multi-reaction clusters get a compound box.
+        groupOrder = groupOrder.filter(function (key) { return counts[key] > 1; });
+        Object.keys(groupOf).forEach(function (nodeId) {
+            if (counts[groupOf[nodeId].key] <= 1) delete groupOf[nodeId];
         });
         return { groupOf: groupOf, groupOrder: groupOrder };
     }
@@ -255,8 +264,10 @@
                     "text-margin-y": 5,
                     "text-wrap": "ellipsis",
                     "text-max-width": "110px",
-                    "text-outline-color": palette.ring,
-                    "text-outline-width": 3,
+                    "text-background-color": palette.ring,
+                    "text-background-opacity": 1,
+                    "text-background-shape": "roundrectangle",
+                    "text-background-padding": "2px",
                     "opacity": 0.95,
                     "transition-property": "opacity, border-width, border-color, width, height, background-color",
                     "transition-duration": "140ms",
@@ -381,8 +392,10 @@
                     "font-size": 12.5,
                     "font-weight": 800,
                     "text-transform": "uppercase",
-                    "text-outline-color": palette.ring,
-                    "text-outline-width": 2
+                    "text-background-color": palette.ring,
+                    "text-background-opacity": 1,
+                    "text-background-shape": "roundrectangle",
+                    "text-background-padding": "2px"
                 }
             }
         ];

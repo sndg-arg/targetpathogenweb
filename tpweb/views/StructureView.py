@@ -542,6 +542,10 @@ def pdb_structure(
         p2.atoms = []
         p2.core_atoms = _residue_set_core_atoms(p2)
         p2.core_points = _residue_set_core_points(p2)
+        p2.core_geometry = "residue_atoms"
+        p2.core_button_label = "Predicted site atoms"
+        p2.core_layer_label = "Predicted site atoms / pocket residues"
+        p2.core_note = "P2Rank reports predicted binding-site residues, not alpha-sphere geometry, so this shows the residue atoms rather than a cavity-shape mesh."
         p2.geometric_center = _pocket_center(p2.core_points)
         p2.residues = []
         p2.comparison_residues = []
