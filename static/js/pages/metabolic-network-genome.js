@@ -44,12 +44,6 @@
             .replace(/'/g, "&#039;");
     }
 
-    function compactLabel(label, max) {
-        label = label || "";
-        max = max || 20;
-        if (label.length <= max) return label;
-        return label.slice(0, max - 3) + "...";
-    }
 
     // Pathway node size by reaction count -- sqrt scaling so a handful of very large
     // pathways don't dwarf everything else. Bounds validated against real KpATCC43816 data
@@ -117,7 +111,7 @@
                 data: {
                     id: node.id,
                     label: node.name,
-                    displayLabel: showLabel ? compactLabel(node.name, 20) : "",
+                    displayLabel: showLabel ? node.name : "",
                     source: node.source,
                     externalId: node.external_id,
                     reactionCount: node.reaction_count,

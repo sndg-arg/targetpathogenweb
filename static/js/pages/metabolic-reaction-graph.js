@@ -35,13 +35,6 @@
             .replace(/'/g, "&#039;");
     }
 
-    function compactLabel(label, max) {
-        label = label || "";
-        max = max || 16;
-        if (label.length <= max) return label;
-        return label.slice(0, max - 3) + "...";
-    }
-
     function formatRole(role) {
         if (!role || role === "none") return "None";
         return role.replace(/_/g, " ");
@@ -63,7 +56,11 @@
             var data = {
                 id: idPrefix + "rxn::" + reaction.id,
                 label: reaction.name,
-                displayLabel: compactLabel(reaction.name, hasChokepoint ? 20 : 16),
+                // Full name, not pre-truncated -- Cytoscape's own text-wrap: "ellipsis" +
+                // text-max-width already truncates dynamically based on actual rendered
+                // width (which now also scales with fontScale), so a name only gets an
+                // ellipsis when it genuinely doesn't fit, instead of always.
+                displayLabel: reaction.name,
                 ecNumbers: reaction.ec_numbers || [],
                 chokepointRole: reaction.chokepoint_role || "none",
                 isoenzymeCount: reaction.isoenzyme_count || 0,
@@ -86,7 +83,7 @@
             var data = {
                 id: idPrefix + "met::" + metabolite.id,
                 label: metabolite.name,
-                displayLabel: compactLabel(metabolite.name, 16),
+                displayLabel: metabolite.name,
                 compartment: metabolite.compartment,
                 isCurrency: false,
                 isReaction: false

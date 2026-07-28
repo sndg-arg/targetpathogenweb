@@ -32,13 +32,6 @@
         return 16 + Math.min(degree || 0, 10) * 2.4;
     }
 
-    function compactReactionLabel(label, max) {
-        label = label || "";
-        max = max || 22;
-        if (label.length <= max) return label;
-        return label.slice(0, max - 3) + "...";
-    }
-
     function escapeHtml(value) {
         return String(value == null ? "" : value)
             .replace(/&/g, "&amp;")
@@ -102,13 +95,12 @@
         nodes.forEach(function (node) {
             var chokepointRole = node.chokepoint_role || "none";
             var hasChokepoint = chokepointRole !== "none";
-            var isLabeled = node.is_focal || hasChokepoint;
             var group = assignment.groupOf[node.id];
             elements.push({
                 data: {
                     id: node.id,
                     label: node.name,
-                    displayLabel: compactReactionLabel(node.name, isLabeled ? 22 : 15),
+                    displayLabel: node.name,
                     ecNumbers: node.ec_numbers,
                     keggReactionId: node.kegg_reaction_id,
                     reversible: node.reversible,
