@@ -374,6 +374,11 @@
                 }
             },
             {
+                // Label sits just inside the box's own top padding, like a card title --
+                // it previously floated well above-left of the box (a large negative
+                // margin), which read as disconnected from the group it names, and made
+                // long names run toward the canvas edge. text-max-width/wrap now let
+                // Cytoscape truncate only genuinely-long names, instead of never at all.
                 selector: ".pathway-group",
                 style: {
                     "shape": "round-rectangle",
@@ -384,9 +389,10 @@
                     "corner-radius": 12,
                     "label": "data(label)",
                     "text-valign": "top",
-                    "text-halign": "left",
-                    "text-margin-x": 8,
-                    "text-margin-y": -18,
+                    "text-halign": "center",
+                    "text-margin-y": 8,
+                    "text-max-width": "160px",
+                    "text-wrap": "ellipsis",
                     "font-size": 12.5,
                     "font-weight": 800,
                     "text-transform": "uppercase",
