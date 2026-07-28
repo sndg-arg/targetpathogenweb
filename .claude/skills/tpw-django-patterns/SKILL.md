@@ -73,6 +73,33 @@ silently diverge from what the caller already has — this session almost invert
 extracting from that same list using the *original* priority order, not assuming the two
 code paths resolved values identically.
 
+## Reuse an existing service's computed data instead of building new computation
+
+Before writing new aggregation/graph-traversal logic for a feature, check whether an existing
+service function already computes a superset of what you need — filter its output instead of
+recomputing. Example: `tpweb/services/metabolism_network.py::build_genome_metabolism_network()`
+already computes every pathway-pair edge for a genome; when a feature needed "just this one
+pathway's neighbors," the fix was a small `pathway_neighbors()` helper that calls the existing
+function and filters its edge list for one node id, rather than writing a second traversal. Cheap,
+low-risk, and automatically stays consistent with whatever the existing computation already shows
+elsewhere in the app.
+
+## Verify external-integration feasibility before proposing it
+
+When a request suggests wiring in an external data source, ID scheme, or third-party library,
+check what's actually true before promising anything — don't estimate effort from vibes:
+- Grep the relevant models/importers for whether the data already exists in some form (a field
+  meant for one external system sometimes already carries what a different, requested one needs —
+  e.g. `MetabolicReaction.reaction_id` turned out to already be a BioCyc/MetaCyc frame id, read
+  straight out of the SBML import in `load_metabolism.py`, making a MetaCyc link free; a
+  differently-requested BiGG link would have needed a brand-new field plus an external ID-mapping
+  step that doesn't exist anywhere in the codebase).
+- For a proposed third-party library, actually check (WebFetch, docs) what it does before assuming
+  it fits — a tool can be real and well-regarded but built around manual curation rather than
+  automatic generation from arbitrary per-record data, which may not fit this app's
+  generate-per-genome architecture. Decline explicitly with the concrete reason instead of building
+  a partial integration on a guess.
+
 ## `{% regroup %}` requires pre-sorted input
 
 Django's `{% regroup list by attr as groups %}` only works correctly if `list` is already sorted by

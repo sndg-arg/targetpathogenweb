@@ -21,6 +21,11 @@ observed examples: `docs/TARGET_ROADMAP.md`, `docs/TARGET_FUNCTIONAL_REPORT.md`.
 be swept into a commit unless the user explicitly asked for that specific file to be included.
 Run `git status --short` after staging to confirm only the intended files are staged.
 
+In practice `docs/TARGET_ROADMAP.md` gets updated and committed often — the rule above is about
+never including it *by accident* via broad staging, not about avoiding it. When a code change
+completes or corrects a roadmap item (or the user directly asks to update the roadmap), edit and
+stage it explicitly by name like any other intentionally-changed file.
+
 ## Commit message
 
 Concise, explains *why* the change was made, not just what changed. End with:

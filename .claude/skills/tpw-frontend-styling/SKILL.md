@@ -1,6 +1,6 @@
 ---
 name: tpw-frontend-styling
-description: Design-token, CSS, and Django-template conventions for Target Pathogen Web. Load before editing any file under static/css/pages/, static/css/components/, or tpweb/templates/ — covers the hex-color rule, the token inventory, reusable component idioms (stat cards, panels, chips), dark mode, motion, and how to verify a template/CSS change without a local execution environment.
+description: Design-token, CSS, and Django-template conventions for Target Pathogen Web. Load before editing any file under static/css/pages/, static/css/components/, or tpweb/templates/ — covers the hex-color rule, the token inventory, reusable component idioms (stat cards, panels, chips), dark mode, motion, cache-busters, and how to verify a template/CSS change without a local execution environment. For Cytoscape.js graph rendering specifically (static/js/pages/metabolic-*.js), load tpw-metabolism-graphs instead/in addition.
 ---
 
 # Target Pathogen Web — frontend styling conventions
@@ -60,6 +60,31 @@ whether it's page-local or shared; don't duplicate a shared class's styling into
 - `.tp-btn` / `.tp-btn--{primary,neutral,outline}` + `.tp-btn--sm/md`, always paired with
   `.btn` for base sizing.
 - `.tp-state-note--{empty,error}` for "nothing here yet" / error inline messages.
+
+## Cache-busters
+
+Static files are loaded from templates with a `?v=N` query-string cache-buster. Bump it in
+**every** template that loads a static file you changed — grep across `tpweb/templates/` for the
+file's name to find every include site, since the same JS/CSS file is often loaded from more than
+one template. Watch for `replace_all` hitting the wrong spot when two different files happen to
+share the same old version-number string; if that happens, re-grep with more specific surrounding
+context rather than trusting a blind global replace.
+
+## Modifier classes for content that varies by context, not a shared default on the base class
+
+If a shared base class currently hardcodes context-specific content (e.g. a `::after { content:
+"KEGG" }` badge on a class that's reused for multiple different external-link types), don't leave
+the hardcoded value in place once a second variant is needed — split it into modifier classes
+(`--kegg`, `--metacyc`, etc.), each with its own `::after` content, and update every existing call
+site to add the right modifier. Leaving the base class's default in place "for the common case" is
+how a second call site silently inherits the wrong label.
+
+## Django `{% trans %}` string safety
+
+When a translated string needs to contain a literal apostrophe, wrap the whole `{% trans %}` value
+in single quotes rather than escaping a double quote inside it — Django's template tag parser is
+strict about quoting, and an escaped `\"` inside a `{% trans "..." %}` is a real parse risk, not
+just a style preference.
 
 ## Dark mode
 
