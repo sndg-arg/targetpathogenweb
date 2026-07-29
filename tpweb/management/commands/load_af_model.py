@@ -186,7 +186,33 @@ class Command(BaseCommand):
                 pdb_path = th.name
             th.close()
 
+        if is_cif:
+            pdb_path = self._sanitize_cif(pdb_path)
+
         chains = list(parser.get_structure("X", pdb_path)[0].get_chains())
         for chain in tqdm(chains):
             self._process_chain_residues(pdb_model, chain)
             self._process_chain_atoms(pdb_model, chain)
+
+    @staticmethod
+    def _sanitize_cif(pdb_path):
+        """Biopython's MMCIF2Dict tokenizer raises "Opening quote in middle of
+        word" on a bare apostrophe inside an ATOM/HETATM row -- nucleotide
+        prime-notation atom names (O5', C1', ...), common in ATP/nucleotide
+        ligands, aren't valid under CIF's quoting rules even though they're a
+        real atom-naming convention. target-human-web's own 3Dmol.js viewer
+        hit the identical parser bug client-side and works around it the same
+        way (sanitizeCif(): swap ' for * on those rows only)."""
+        with open(pdb_path, "r", encoding="utf-8", errors="replace") as fh:
+            lines = fh.readlines()
+        changed = False
+        for i, line in enumerate(lines):
+            if (line.startswith("ATOM") or line.startswith("HETATM")) and "'" in line:
+                lines[i] = line.replace("'", "*")
+                changed = True
+        if not changed:
+            return pdb_path
+        th = tempfile.NamedTemporaryFile(mode="w", suffix=".cif", dir="/tmp", delete=False, encoding="utf-8")
+        th.writelines(lines)
+        th.close()
+        return th.name

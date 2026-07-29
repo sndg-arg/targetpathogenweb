@@ -38,7 +38,10 @@ class Residue(models.Model):
                             db_column="pdb_id", on_delete=models.CASCADE)
     # chain = CustomBinaryCharField(max_length=20)
     chain = models.CharField(max_length=20)
-    resname = models.CharField(max_length=4)
+    # PDB started issuing 5-character CCD ligand codes once the legacy 3-char
+    # alphanumeric namespace was exhausted (e.g. "A1H4U") -- widened from 4 to
+    # fit those; existing 3/4-char codes are unaffected.
+    resname = models.CharField(max_length=10)
     resid = models.IntegerField()
     icode = models.CharField(max_length=2, default="")
 
