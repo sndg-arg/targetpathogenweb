@@ -197,22 +197,21 @@ class Command(BaseCommand):
     @staticmethod
     def _sanitize_cif(pdb_path):
         """Biopython's MMCIF2Dict tokenizer raises "Opening quote in middle of
-        word" on a bare apostrophe inside an ATOM/HETATM row -- nucleotide
-        prime-notation atom names (O5', C1', ...), common in ATP/nucleotide
-        ligands, aren't valid under CIF's quoting rules even though they're a
-        real atom-naming convention. target-human-web's own 3Dmol.js viewer
-        hit the identical parser bug client-side and works around it the same
-        way (sanitizeCif(): swap ' for * on those rows only)."""
+        word" on a bare apostrophe it can't resolve as a matched quote pair --
+        seen both in ATOM/HETATM rows (nucleotide prime-notation atom names
+        like O5', C1', common in ATP/nucleotide ligands) and in plain
+        _chem_comp-style name fields (e.g. "ADENOSINE-5'-TRIPHOSPHATE").
+        target-human-web's own 3Dmol.js viewer hit the identical parser bug
+        client-side and works around it the same way (sanitizeCif(): swap '
+        for *). Applied file-wide rather than only on ATOM/HETATM rows, since
+        the offending apostrophe can appear in other single-line data items
+        too and we don't read compound names/titles back out of these files
+        for anything -- losing the literal apostrophe there is harmless."""
         with open(pdb_path, "r", encoding="utf-8", errors="replace") as fh:
-            lines = fh.readlines()
-        changed = False
-        for i, line in enumerate(lines):
-            if (line.startswith("ATOM") or line.startswith("HETATM")) and "'" in line:
-                lines[i] = line.replace("'", "*")
-                changed = True
-        if not changed:
+            content = fh.read()
+        if "'" not in content:
             return pdb_path
         th = tempfile.NamedTemporaryFile(mode="w", suffix=".cif", dir="/tmp", delete=False, encoding="utf-8")
-        th.writelines(lines)
+        th.write(content.replace("'", "*"))
         th.close()
         return th.name
