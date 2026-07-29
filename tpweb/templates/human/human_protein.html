@@ -8,11 +8,11 @@
        styling this page deliberately reuses verbatim (same markup, same tokens) --
        human-protein-detail.css only adds the genuinely new human-specific classes. #}
     <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260728-focalswatch1">
-    <link rel="stylesheet" href="{% static 'css/pages/human-protein-detail.css' %}?v=20260729-humantargets1">
+    <link rel="stylesheet" href="{% static 'css/pages/human-protein-detail.css' %}?v=20260729-humantargets2">
 {% endblock %}
 
 {% block body %}
-    <div class="human-protein-page">
+    <div class="human-protein-page protein-page">
         <section class="protein-hero tp-page-hero" id="section-overview">
             <div class="protein-hero-top tp-view-head">
                 <div class="protein-hero-content tp-view-head-copy">
@@ -215,24 +215,25 @@
                     </div>
                 </div>
                 <textarea id="human-raw-sequence" hidden>{{ sequence.sequence }}</textarea>
+                {% if sequence.sequence %}
                 <pre class="human-sequence-block">{{ sequence.sequence }}</pre>
+                {% else %}
+                <p class="tp-state-note tp-state-note--empty">{% trans "No sequence loaded for this protein." %}</p>
+                {% endif %}
 
                 {% if sequence.feature_lanes %}
                 <div class="human-feature-lanes">
                     {% for lane in sequence.feature_lanes %}
                     <div class="human-feature-lane">
-                        <h3>{{ lane.type }}</h3>
-                        <table class="tp-table tp-table--plain human-feature-table">
-                            <thead><tr><th>{% trans "Position" %}</th><th>{% trans "Description" %}</th></tr></thead>
-                            <tbody>
-                                {% for feature in lane.features %}
-                                <tr>
-                                    <td>{{ feature.start }}{% if feature.end and feature.end != feature.start %}–{{ feature.end }}{% endif %}</td>
-                                    <td>{{ feature.description|default:"—" }}</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                        <span class="human-feature-lane__label">{{ lane.type }}</span>
+                        <div class="human-feature-lane__items">
+                            {% for feature in lane.features %}
+                            <div class="human-feature-item">
+                                <span class="human-feature-item__pos">{{ feature.start }}{% if feature.end and feature.end != feature.start %}–{{ feature.end }}{% endif %}</span>
+                                <span class="human-feature-item__desc">{{ feature.description|default:"—" }}</span>
+                            </div>
+                            {% endfor %}
+                        </div>
                     </div>
                     {% endfor %}
                 </div>
