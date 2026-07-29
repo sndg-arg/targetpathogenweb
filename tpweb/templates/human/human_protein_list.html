@@ -1,0 +1,49 @@
+{% extends '../base/masterpage.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block head %}
+    <title>{% trans "Human Targets" %}</title>
+    <link rel="stylesheet" href="{% static 'css/pages/human-protein-list.css' %}?v=20260729-humantargets1">
+{% endblock %}
+
+{% block body %}
+    <div class="human-list-page">
+        <div class="tp-view-head">
+            <div class="tp-view-head-copy">
+                <p class="tp-view-eyebrow">{% trans "Human Targets" %}</p>
+                <h1>{% trans "Curated human proteins" %}</h1>
+                <p>{% trans "A small, fixed set of human UniProt proteins -- sequence, structure, and ligand evidence, with several analyses layered on top rather than a genome pipeline to run." %}</p>
+            </div>
+        </div>
+
+        <form method="GET" class="human-list-search" role="search">
+            <input type="search" name="q" value="{{ query }}" placeholder="{% trans 'Search by accession, gene, or name…' %}" aria-label="{% trans 'Search human proteins' %}">
+            <button type="submit" class="btn tp-btn tp-btn--primary tp-btn-with-icon">
+                <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/search.html" %}</span>
+                <span>{% trans "Search" %}</span>
+            </button>
+            {% if query %}<a href="{% url 'tpwebapp:human_protein_list' %}" class="btn tp-btn tp-btn--neutral">{% trans "Clear" %}</a>{% endif %}
+        </form>
+
+        <p class="human-list-count">{% blocktrans count count=total_count %}{{ count }} protein{% plural %}{{ count }} proteins{% endblocktrans %}</p>
+
+        <div class="human-protein-grid">
+            {% for hp in proteins %}
+            <a class="human-protein-card tp-ui-panel" href="{% url 'tpwebapp:human_protein' hp.uniprot_accession %}">
+                <div class="human-protein-card__head">
+                    <span class="human-protein-card__acc">{{ hp.uniprot_accession }}</span>
+                    {% if hp.is_reviewed %}<span class="tp-chip tp-chip--sm">{% trans "Reviewed" %}</span>{% endif %}
+                </div>
+                <h3>{{ hp.protein_name|default:hp.uniprot_accession }}</h3>
+                <p class="human-protein-card__gene">{{ hp.gene_symbol|default:"—" }}</p>
+                <div class="human-protein-card__meta">
+                    {% if hp.sequence_length %}<span>{{ hp.sequence_length }} aa</span>{% endif %}
+                </div>
+            </a>
+            {% empty %}
+            <p class="tp-state-note tp-state-note--empty">{% trans "No human proteins match this search." %}</p>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}

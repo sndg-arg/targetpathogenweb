@@ -1,0 +1,69 @@
+.human-list-page {
+    display: grid;
+    gap: var(--tp-space-5);
+    --human-accent: var(--tp-color-brand-800);
+}
+
+.human-list-search {
+    display: flex;
+    gap: var(--tp-space-2);
+    max-width: 640px;
+}
+
+.human-list-search input[type="search"] {
+    flex: 1;
+    border: 1px solid var(--tp-color-border);
+    border-radius: var(--tp-radius-md);
+    padding: var(--tp-space-2) var(--tp-space-3);
+    background: var(--tp-color-surface);
+    color: var(--tp-color-text-primary);
+}
+
+.human-list-count {
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-sm);
+    margin: 0;
+}
+
+.human-protein-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: var(--tp-space-4);
+}
+
+.human-protein-card {
+    display: block;
+    padding: var(--tp-space-4);
+    text-decoration: none;
+    color: inherit;
+}
+
+.human-protein-card h3 {
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-size: var(--tp-font-size-lg);
+    margin: var(--tp-space-2) 0 var(--tp-space-1);
+}
+
+.human-protein-card__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--tp-space-2);
+}
+
+.human-protein-card__acc {
+    font-family: "SFMono-Regular", Consolas, monospace;
+    font-size: var(--tp-font-size-sm);
+    color: var(--human-accent);
+}
+
+.human-protein-card__gene {
+    color: var(--tp-color-text-muted);
+    margin: 0;
+}
+
+.human-protein-card__meta {
+    margin-top: var(--tp-space-3);
+    font-size: var(--tp-font-size-xs);
+    color: var(--tp-color-text-soft);
+}

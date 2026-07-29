@@ -36,6 +36,8 @@ from .views.DataSourcesView import DataSourcesView
 from .views.AboutUsView import AboutUsView
 from .views.AgentChatView import AgentChatView
 from .views.RobotsView import RobotsView
+from .views.HumanProteinListView import HumanProteinListView
+from .views.HumanProteinView import HumanProteinView
 from django.conf.urls.static import static
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
@@ -99,6 +101,8 @@ urlpatterns = [
     path("genomes", view=GenomesView.as_view(), name="genomes_list"),
     path("genomes/upload", view=GenomeUploadView.as_view(), name="genome_upload"),
     path("genomes/upload-file", view=DataFileUploadView.as_view(), name="data_file_upload"),
+    path("human/proteins", view=HumanProteinListView.as_view(), name="human_protein_list"),
+    path("human/protein/<str:accession>", view=HumanProteinView.as_view(), name="human_protein"),
     path("agent-chat", view=AgentChatView.as_view(), name="agent_chat"),
     path("molecule", view=MoleculeView.as_view(), name="molecules"),
     path("structure_raw/<int:struct_id>", view=StructureRawView.as_view(), name="structure_raw"),

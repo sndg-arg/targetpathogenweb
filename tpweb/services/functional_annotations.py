@@ -254,8 +254,14 @@ def _parse_uniprot_response(data):
     return results
 
 
-def _persist_annotations(protein, annotations, dbname, ontology):
-    """Create Dbxref + BioentryDbxref + Term + TermDbxref for a list of annotations."""
+def persist_ec_go_annotations(protein, annotations, dbname, ontology):
+    """Create Dbxref + BioentryDbxref + Term + TermDbxref for a list of annotations.
+
+    Generic over any `Bioentry` -- no genome/pipeline coupling. Public so the
+    Human Targets ingestion command (`import_human_curated_proteins`) can
+    reuse it to keep EC/GO chips consistent with the rest of the site,
+    without duplicating this logic.
+    """
     created = 0
     for ann in annotations:
         accession = ann["id"]
@@ -629,8 +635,8 @@ def fetch_and_load_uniprot_annotations(assembly_name, lst_path=None, datadir=Non
                     logger.debug("Locus tag %s not found in DB for UniProt %s", locus_tag, uniprot_acc)
                     continue
 
-                ec_created = _persist_annotations(protein, entry["ec_numbers"], "ec", ec_ontology)
-                go_created = _persist_annotations(protein, entry["go_terms"], Ontology.GO, go_ontology)
+                ec_created = persist_ec_go_annotations(protein, entry["ec_numbers"], "ec", ec_ontology)
+                go_created = persist_ec_go_annotations(protein, entry["go_terms"], Ontology.GO, go_ontology)
                 _persist_pdb_xrefs(protein, entry.get("pdb_xrefs", []))
                 total_ec += ec_created
                 total_go += go_created

@@ -7,6 +7,7 @@ from .CustomParamFile import CustomParam
 from .Binders import Binders
 from .BioentryStructure import BioentryStructure, ExperimentalStructureXref
 from .CuratedImportJob import CuratedImportJob
+from .HumanProtein import HumanProtein
 from .GenomeUpload import GenomeUpload
 from .PipelineRun import PipelineRun, PipelineStageEvent
 from .FilterPreset import FilterPreset

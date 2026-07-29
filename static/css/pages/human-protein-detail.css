@@ -1,0 +1,352 @@
+/*
+ * Human Targets — protein detail page.
+ *
+ * Deliberately narrow: the hero/card/quick-nav/metric-pill/binders-table/
+ * binder-intel/binder-mol-modal styling is reused verbatim from
+ * protein-detail.css (same markup, same tokens, loaded alongside this file
+ * -- see human_protein.html's {% block head %}), so this file only adds the
+ * genuinely new human-specific classes (Overview/Function/Sequence/
+ * Structure/Cross-refs) plus the custom properties the reused classes
+ * expect from their normal `.protein-page` ancestor, aliased here onto
+ * `.human-protein-page` instead.
+ */
+
+.human-protein-page {
+    font-family: "Source Sans 3", "Segoe UI", sans-serif;
+    color: var(--tp-color-text-primary);
+    display: grid;
+    gap: var(--tp-space-4);
+    --protein-accent: var(--tp-color-brand-800);
+    --protein-accent-ink: var(--tp-color-brand-900);
+    --protein-accent-soft: var(--tp-color-brand-100);
+    --protein-accent-border: var(--tp-color-brand-300);
+    --human-accent: var(--tp-color-brand-800);
+}
+
+.human-protein-page h1,
+.human-protein-page h2,
+.human-protein-page h3 {
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+}
+
+.hero-chip-reviewed {
+    background: var(--tp-color-success-bg);
+    color: var(--tp-color-success-ink);
+    border-color: var(--tp-color-success-border);
+}
+
+/* Overview */
+
+.human-overview-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(240px, 1fr);
+    gap: var(--tp-space-6);
+    align-items: start;
+}
+
+@media (max-width: 900px) {
+    .human-overview-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.human-overview-block {
+    margin-top: var(--tp-space-4);
+}
+
+.human-overview-block h3 {
+    font-size: var(--tp-font-size-md);
+    margin-bottom: var(--tp-space-2);
+}
+
+.human-caution {
+    margin-top: var(--tp-space-3);
+}
+
+.human-publication-list {
+    margin: 0;
+    padding-left: var(--tp-space-4);
+    font-size: var(--tp-font-size-sm);
+}
+
+.human-publication-list li {
+    margin-bottom: var(--tp-space-1);
+}
+
+.human-identifiers-card,
+.human-pill-block {
+    background: var(--tp-color-surface-soft);
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 12px;
+    padding: var(--tp-space-4);
+    margin-bottom: var(--tp-space-4);
+}
+
+.human-identifiers-card h3,
+.human-pill-block h3 {
+    font-size: var(--tp-font-label);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--tp-color-text-muted);
+    margin-bottom: var(--tp-space-3);
+}
+
+.human-kv-list {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: var(--tp-space-1) var(--tp-space-3);
+    margin: 0;
+}
+
+.human-kv-list dt {
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-sm);
+}
+
+.human-kv-list dd {
+    margin: 0;
+    font-size: var(--tp-font-size-sm);
+}
+
+.human-lineage {
+    margin: var(--tp-space-3) 0 0;
+    font-size: var(--tp-font-size-xs);
+    color: var(--tp-color-text-muted);
+}
+
+/* Function */
+
+.human-function-text {
+    white-space: pre-line;
+    line-height: 1.6;
+}
+
+.human-catalytic-list {
+    display: grid;
+    gap: var(--tp-space-2);
+    margin-top: var(--tp-space-4);
+}
+
+.human-catalytic-card {
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 12px;
+    padding: var(--tp-space-3);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--tp-space-2);
+}
+
+.human-reaction-eq {
+    margin: 0;
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    flex-basis: 100%;
+}
+
+.human-go-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: var(--tp-space-3);
+    margin-top: var(--tp-space-4);
+}
+
+.human-go-card {
+    background: var(--tp-color-surface-soft);
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 12px;
+    padding: var(--tp-space-3);
+}
+
+.human-go-card h3 {
+    font-size: var(--tp-font-size-sm);
+    color: var(--tp-color-text-muted);
+    margin-bottom: var(--tp-space-2);
+}
+
+/* Sequence */
+
+.human-sequence-block {
+    font-family: "SFMono-Regular", Consolas, monospace;
+    font-size: var(--tp-font-size-sm);
+    line-height: 1.6;
+    background: var(--tp-color-surface-soft);
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 12px;
+    padding: var(--tp-space-4);
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+.human-feature-lanes {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: var(--tp-space-4);
+    margin-top: var(--tp-space-4);
+}
+
+.human-feature-lane h3 {
+    font-size: var(--tp-font-size-sm);
+    color: var(--tp-color-text-muted);
+    margin-bottom: var(--tp-space-2);
+}
+
+.human-feature-table {
+    width: 100%;
+    font-size: var(--tp-font-size-sm);
+}
+
+.human-feature-table th,
+.human-feature-table td {
+    text-align: left;
+    padding: var(--tp-space-1) var(--tp-space-2);
+    border-bottom: 1px solid var(--tp-color-border-soft);
+}
+
+/* Structure */
+
+.human-structure-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--tp-space-2);
+    margin-bottom: var(--tp-space-4);
+}
+
+.human-structure-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--tp-space-1);
+    border: 1px solid var(--tp-color-border-soft);
+    background: var(--tp-color-surface);
+    border-radius: 999px;
+    padding: var(--tp-space-1) var(--tp-space-3);
+    font-size: var(--tp-font-size-sm);
+    cursor: pointer;
+}
+
+.human-structure-tab.is-active {
+    background: var(--human-accent);
+    color: var(--tp-color-on-accent);
+    border-color: var(--human-accent);
+}
+
+.human-structure-tab__count {
+    font-size: var(--tp-font-size-xs);
+    opacity: 0.8;
+}
+
+.human-structure-body {
+    display: grid;
+    grid-template-columns: minmax(200px, 260px) 1fr;
+    gap: var(--tp-space-4);
+}
+
+@media (max-width: 900px) {
+    .human-structure-body {
+        grid-template-columns: 1fr;
+    }
+}
+
+.human-structure-panel.is-hidden {
+    display: none;
+}
+
+.human-structure-entry {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    width: 100%;
+    text-align: left;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 12px;
+    padding: var(--tp-space-2) var(--tp-space-3);
+    margin-bottom: var(--tp-space-2);
+    background: var(--tp-color-surface);
+    cursor: pointer;
+    font-size: var(--tp-font-size-sm);
+}
+
+.human-structure-entry.is-active {
+    border-color: var(--human-accent);
+    background: var(--tp-color-surface-soft);
+}
+
+.human-structure-viewer {
+    position: relative;
+    min-height: 420px;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 12px;
+    background: var(--tp-color-structure-bg, var(--tp-color-surface-panel));
+    overflow: hidden;
+}
+
+#human-structure-viewport {
+    position: absolute;
+    inset: 0;
+}
+
+#human-structure-loading {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    pointer-events: none;
+}
+
+/* Cross-references */
+
+.human-xref-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: var(--tp-space-3);
+}
+
+.human-xref-card {
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 12px;
+    padding: var(--tp-space-3);
+    background: var(--tp-color-surface-soft);
+}
+
+.human-xref-card h3 {
+    font-size: var(--tp-font-label);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--tp-color-text-muted);
+    margin-bottom: var(--tp-space-2);
+}
+
+.human-xref-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: var(--tp-space-1);
+}
+
+.human-xref-list li {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--tp-space-2);
+    font-size: var(--tp-font-size-sm);
+}
+
+.human-xref-db {
+    color: var(--tp-color-text-muted);
+}
+
+.human-xref-id {
+    font-family: "SFMono-Regular", Consolas, monospace;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .human-structure-tab,
+    .human-structure-entry {
+        transition: none;
+    }
+}
