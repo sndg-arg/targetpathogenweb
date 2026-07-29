@@ -126,6 +126,22 @@ class Command(BaseCommand):
             residues = {"_".join([str(x.resid), x.icode, x.resname]): x
                         for x in Residue.objects.filter(pdb__code=code, chain=chain.id)}
             atoms = []
+            # MMCIFParser (unlike PDBParser) leaves Atom.serial_number unset --
+            # Atom.serial is NOT NULL, so synthesize a stable per-chain counter
+            # for those. Classic .pdb files already carry a real serial_number
+            # from PDBParser, so this fallback never fires on that path and
+            # existing (bacteria) ingestion is unaffected.
+            next_serial = 1
+
+            def _resolve_serial(real_serial):
+                nonlocal next_serial
+                if real_serial is not None:
+                    next_serial = max(next_serial, real_serial + 1)
+                    return real_serial
+                serial = next_serial
+                next_serial += 1
+                return serial
+
             for residue in chain.get_residues():
                 resid = "_".join([str(residue.id[1]), residue.id[2], residue.resname])
                 if resid in residues:
@@ -133,14 +149,14 @@ class Command(BaseCommand):
                     for atom in list(residue):
                         if atom.is_disordered():
                             for altLoc, a in atom.child_dict.items():
-                                atm = Atom(residue=residue_model, serial=a.serial_number, name=a.id,
+                                atm = Atom(residue=residue_model, serial=_resolve_serial(a.serial_number), name=a.id,
                                            x=float(a.coord[0]), y=float(a.coord[1]),
                                            z=float(a.coord[2]), altLoc=altLoc,
                                            occupancy=float(a.occupancy), bfactor=float(a.bfactor),
                                            element=a.element)
                                 atoms.append(atm)
                         else:
-                            atm = Atom(residue=residue_model, serial=atom.serial_number, name=atom.id,
+                            atm = Atom(residue=residue_model, serial=_resolve_serial(atom.serial_number), name=atom.id,
                                        x=float(atom.coord[0]), y=float(atom.coord[1]),
                                        z=float(atom.coord[2]), altLoc=" ",
                                        occupancy=float(atom.occupancy), bfactor=float(atom.bfactor),
