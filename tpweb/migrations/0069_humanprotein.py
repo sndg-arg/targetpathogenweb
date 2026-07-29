@@ -13,7 +13,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="HumanProtein",
             fields=[
-                ("id", models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
                 ("uniprot_accession", models.CharField(db_index=True, max_length=32, unique=True)),
                 ("protein_name", models.CharField(blank=True, default="", max_length=512)),
                 ("gene_symbol", models.CharField(blank=True, default="", max_length=64)),

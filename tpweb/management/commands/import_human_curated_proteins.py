@@ -289,7 +289,14 @@ class Command(BaseCommand):
                 self.stderr.write(f"skip {accession}: {accession}_full.json not found")
                 continue
 
-            fields = _build_human_protein_fields(entry_json)
+            # <ACC>_full.json is target-human-web's own pipeline-shaped document
+            # (features/comments/cross_references regrouped by type for its own
+            # app's convenience) -- the genuine UniProt REST response our
+            # extraction helpers below expect lives untouched under "raw_entry".
+            # Confirmed present in all 10 curated accessions' real Zenodo files.
+            entry = entry_json.get("raw_entry") or entry_json
+
+            fields = _build_human_protein_fields(entry)
             fields["ingest_source_path"] = str(protein_dir)
 
             if dry_run:
@@ -310,7 +317,7 @@ class Command(BaseCommand):
                 defaults={"uniprot_accession": accession, **fields},
             )
 
-            ec_created = persist_ec_go_annotations(bioentry, _extract_ec_numbers(entry_json), "ec", ec_ontology)
+            ec_created = persist_ec_go_annotations(bioentry, _extract_ec_numbers(entry), "ec", ec_ontology)
             go_created = persist_ec_go_annotations(bioentry, fields["go_terms"], Ontology.GO, go_ontology)
             self.stdout.write(f"  EC created: {ec_created}, GO created: {go_created}")
 
