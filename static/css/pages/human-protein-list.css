@@ -34,8 +34,18 @@
 .human-protein-card {
     display: block;
     padding: var(--tp-space-4);
-    text-decoration: none;
     color: inherit;
+}
+
+/* Bootstrap 4's default `a:hover { text-decoration: underline; }` (loaded
+   sitewide in masterpage.html) outranks a plain `.human-protein-card` rule
+   on specificity -- pin every link state explicitly, same as `.tp-btn`/
+   `.quick-nav-link` already do elsewhere for the same reason. */
+.human-protein-card,
+.human-protein-card:hover,
+.human-protein-card:focus-visible,
+.human-protein-card:visited {
+    text-decoration: none !important;
 }
 
 .human-protein-card h3 {

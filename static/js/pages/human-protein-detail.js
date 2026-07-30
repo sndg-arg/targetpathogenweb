@@ -23,6 +23,43 @@
         }
     }
 
+    function initQuickNav() {
+        var nav = document.querySelector(".quick-nav");
+        if (!nav) return;
+        var links = Array.from(nav.querySelectorAll("a[href^='#']"));
+        var targets = links
+            .map(function (link) {
+                var id = (link.getAttribute("href") || "").slice(1);
+                var section = id ? document.getElementById(id) : null;
+                return section ? { link: link, section: section } : null;
+            })
+            .filter(Boolean);
+        if (!targets.length) return;
+
+        function setActive(sectionId) {
+            targets.forEach(function (entry) {
+                var isActive = entry.section.id === sectionId;
+                entry.link.classList.toggle("is-active", isActive);
+                entry.link.setAttribute("aria-current", isActive ? "true" : "false");
+            });
+        }
+
+        function updateActive() {
+            var triggerLine = Math.round(window.innerHeight * 0.32);
+            var active = targets[0];
+            for (var i = targets.length - 1; i >= 0; i--) {
+                if (targets[i].section.getBoundingClientRect().top <= triggerLine) {
+                    active = targets[i];
+                    break;
+                }
+            }
+            setActive(active.section.id);
+        }
+
+        window.addEventListener("scroll", updateActive, { passive: true });
+        updateActive();
+    }
+
     function initCopySequence() {
         var button = document.getElementById("copy-human-sequence");
         var source = document.getElementById("human-raw-sequence");
@@ -271,6 +308,7 @@
     }
 
     ready(function () {
+        initQuickNav();
         initCopySequence();
         initStructureViewer();
         initBindersTabs();
