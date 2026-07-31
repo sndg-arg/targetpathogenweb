@@ -701,9 +701,23 @@ function jsloaded() {
 
         window.ngl_set_color_mode = function (mode) {
             currentColorMode = mode;
-            if (typeof representations.__main_cartoon.setParameters === "function") {
-                representations.__main_cartoon.setParameters({ color: colorForMode(mode) });
-            }
+            // NGL's "color" key is only understood by addRepresentation's own
+            // constructor-time normalization (into its real internal
+            // colorScheme/colorValue parameters) -- setParameters({color: ...})
+            // on an existing representation silently ignores it, since that's
+            // not a registered parameter name. Rebuilding the representation
+            // reuses the same construction path that's already known to work.
+            var wasVisible = visible.__main_cartoon;
+            component.removeRepresentation(representations.__main_cartoon);
+            representations.__main_cartoon = component.addRepresentation("cartoon", {
+                aspectRatio: STRUCTURE_VIEWER_CONFIG.mainCartoonAspectRatio,
+                scale: STRUCTURE_VIEWER_CONFIG.mainCartoonScale,
+                sele: "backbone and " + activeChainSelector,
+                color: colorForMode(mode)
+            });
+            representations.__main_cartoon.sele = "backbone and " + activeChainSelector;
+            representations.__main_cartoon.setVisibility(wasVisible);
+            visible.__main_cartoon = wasVisible;
             setColorButtonState(mode);
         };
 
