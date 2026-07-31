@@ -201,21 +201,22 @@ Incorpora informacion metabolica al analisis de targets.
   - Ranking de rutas.
 - Pidieron layout mas ordenado estilo MetaCyc, direccion/reversibilidad claras y mayor contraste -- resuelto.
 
-## En progreso
-
 ### Visualizacion de Proteina 2.0
 
 Redisenar el visualizador 3D como experiencia completa.
 
-**Ya existe.**
+**Implementado.**
 
 - Spin apagado por defecto.
 - Estados de botones sincronizados.
 - Nota aclarando que FPocket/P2Rank son predicciones computacionales.
 - Selector de estructura priorizado por fuente, cobertura y calidad (`sort_structures_by_preference` en `structure_sources.py`, ya conectado a ambos pickers).
 - Toolbar de camara y modos en el full viewer (spin, cartoon/surface, zoom, reset, selector de estructura, export VMD).
-- Toggle real de esquema de color en el full viewer: Uniforme / Por cadena / Por estructura secundaria, junto al toggle Cartoon/Surface. El preview embebido se dejo liviano a proposito, sin nuevos controles.
+- Toggle real de esquema de color en el full viewer: Uniforme / Por cadena / Por estructura secundaria, junto al toggle Cartoon/Surface. El preview embebido se dejo liviano a proposito, sin nuevos controles. "Por cadena" solo aparece cuando la estructura activa realmente tiene mas de una cadena.
 - Estructuras multimericas: se corrigio una truncacion a una sola cadena en `experimental_structures.py`; ahora se muestran todas las cadenas (homooligomeros y proteinas fragmentadas), con backfill (`backfill_structure_chains`) para genomas ya cargados.
+- Verificado en vivo: toggle de color y coloreo por estructura secundaria funcionando correctamente en el full viewer.
+
+## En progreso
 
 ### Off-target 2.0
 
@@ -509,19 +510,18 @@ Auditoria funcional de `target-human-web`, el proyecto companero de target human
 
 ## Orden sugerido
 
-1. Revisar en navegador/cluster lo implementado: metabolismo, target summary, ligandos, pockets y agente.
-2. Visualizacion de Proteina 2.0.
-3. Off-target 2.0.
-4. Comparacion FPocket vs P2Rank.
-5. Drogabilidad por fuente y estructura.
-6. Integracion AlphaFill.
-7. Sitios funcionales y anotaciones estructurales.
-8. Priorizacion estructural completa.
-9. Sequence & feature viewer 2.0.
-10. Cross-references hub.
-11. Pathway-level target prioritization.
-12. Red de senalizacion/regulacion por proteina.
-13. Evidence provenance / audit layer.
-14. Constructor de score mejorado.
-15. Columnas custom para analisis.
-16. Auditoria Target viejo e integraciones externas.
+1. ~~Visualizacion de Proteina 2.0.~~ Hecho y verificado en vivo.
+2. Off-target 2.0.
+3. Comparacion FPocket vs P2Rank.
+4. Drogabilidad por fuente y estructura.
+5. Integracion AlphaFill.
+6. Sitios funcionales y anotaciones estructurales.
+7. Priorizacion estructural completa.
+8. Sequence & feature viewer 2.0.
+9. Cross-references hub.
+10. Pathway-level target prioritization.
+11. Red de senalizacion/regulacion por proteina.
+12. Evidence provenance / audit layer.
+13. Constructor de score mejorado.
+14. Columnas custom para analisis.
+15. Auditoria Target viejo e integraciones externas.
