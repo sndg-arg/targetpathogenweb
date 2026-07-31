@@ -125,6 +125,79 @@ def build_target_profile(raw_scores, microbiome_context=None):
     return items
 
 
+_SCORE_META_CATEGORY_BY_NAME = {name: category for name, _label, category, _good, _bad, _tooltip in _SCORE_META}
+
+
+def build_score_breakdown(protein, score_param_values, user):
+    """Composite score for this protein under the user's default formula,
+    with a breakdown of which factors weighed it up/down.
+
+    Mirrors how protein_serializer.py::build_protein_table_row computes the
+    same score for the genome-wide list (same compute_score_value /
+    compute_expression_score primitives), and how
+    metabolism_summary.py::_resolve_scorer resolves a user's formula outside
+    that list view -- reused here for a single protein instead of a bulk
+    ranking pass. Returns None when no formula resolves for this user (the
+    template just omits the card, same pattern as the page's other optional
+    evidence blocks)."""
+    from tpweb.services.protein_formula import choose_formula, coefficient_map, resolve_formulas_for_user
+    from tpweb.services.protein_serializer import compute_expression_score, compute_score_value
+    from tpweb.services.score_param_types import is_numeric_score_param
+
+    formulas = resolve_formulas_for_user(user)
+    formula = choose_formula(formulas, "")
+    if formula is None:
+        return None
+
+    # Same float/string typing protein_serializer.py::score_param_value_map applies,
+    # built from the score_param_values already fetched by the caller (this function's
+    # only caller, build_protein_executive_context, queries them once for raw_scores/
+    # druggability too -- re-querying protein.score_params.all() here would just
+    # re-fetch the same rows a second time).
+    param_values = {}
+    for spv in score_param_values:
+        param_name = spv.score_param.name
+        if is_numeric_score_param(spv.score_param):
+            if spv.numeric_value is not None:
+                param_values[param_name] = spv.numeric_value
+                continue
+            try:
+                param_values[param_name] = float(str(spv.value).replace(",", "."))
+            except (TypeError, ValueError):
+                param_values[param_name] = None
+            continue
+        param_values[param_name] = spv.value
+
+    expression = (formula.expression or "").strip()
+    if expression:
+        from tpweb.services.formula_evaluator import build_all_options_zero
+        zero_cache = build_all_options_zero(user)
+        score_value, _weights = compute_expression_score(protein, expression, zero_cache)
+        return {
+            "score": round(score_value, 2),
+            "formula_name": formula.name,
+            "top_factors": [],
+            "has_breakdown": False,
+        }
+
+    coefficient_by_param = coefficient_map(list(formula.terms.select_related("score_param")))
+    score_value, weights = compute_score_value(param_values, coefficient_by_param)
+    top_factors = [
+        {
+            "name": name,
+            "contribution": round(contribution, 2),
+            "is_off_target": _SCORE_META_CATEGORY_BY_NAME.get(name) == "off_target",
+        }
+        for name, contribution in sorted(weights.items(), key=lambda item: -abs(item[1]))[:5]
+    ]
+    return {
+        "score": round(score_value, 2),
+        "formula_name": formula.name,
+        "top_factors": top_factors,
+        "has_breakdown": True,
+    }
+
+
 def _raw_score(raw_scores, name):
     value = raw_scores.get(name)
     if value is None:
@@ -515,6 +588,11 @@ def build_target_executive_summary(
             "#section-metabolic-context",
         )
 
+    # Computed here (rather than down with the rest of the pocket signals,
+    # below) so the human/microbiome off-target sentences can weigh the risk
+    # against druggability instead of reporting it in isolation.
+    fpocket_score = _score_float(raw_scores, "Druggability")
+
     human_offtarget = _raw_score(raw_scores, "human_offtarget").lower()
     if human_offtarget == "no_hit":
         _append_summary_item(
@@ -527,16 +605,23 @@ def build_target_executive_summary(
     elif human_offtarget == "hit":
         identity_value = _score_float(raw_scores, "human_identity")
         identity = _format_score_value(_raw_score(raw_scores, "human_identity"))
+        druggability_clause = (
+            f" This target also has a predicted binding pocket (FPocket {fpocket_score:.2f}) — "
+            "check the ligand evidence before deprioritizing on off-target risk alone."
+            if fpocket_score is not None and fpocket_score >= 0.4
+            else ""
+        )
         if identity_value is not None and identity_value < 30:
             _append_summary_item(
                 risks,
                 "Low human similarity",
-                f"A human hit was flagged, but identity is only {identity}% - a weak match, lower risk than a close homolog.",
+                f"A human hit was flagged, but identity is only {identity}% - a weak match, lower risk than a close homolog.{druggability_clause}",
                 "watch",
+                "#section-binders",
             )
         else:
-            detail = f"Top human hit identity: {identity}%." if identity else "A significant human homolog was found."
-            _append_summary_item(risks, "Human similarity", detail, "risk")
+            detail = f"Top human hit identity: {identity}%.{druggability_clause}" if identity else f"A significant human homolog was found.{druggability_clause}"
+            _append_summary_item(risks, "Human similarity", detail, "risk", "#section-binders")
 
     if microbiome_context:
         gut_offtarget = _raw_score(raw_scores, "gut_microbiome_offtarget").lower()
@@ -559,7 +644,9 @@ def build_target_executive_summary(
                 detail = f"{count} hits across {total} screened genomes."
             else:
                 detail = "Similarity to gut microbiome references was detected."
-            _append_summary_item(risks, "Microbiome similarity", detail, "watch", "#section-target-profile")
+            if fpocket_score is not None and fpocket_score >= 0.4:
+                detail += f" This target also has a predicted binding pocket (FPocket {fpocket_score:.2f}) — check the ligand evidence before deprioritizing on off-target risk alone."
+            _append_summary_item(risks, "Microbiome similarity", detail, "watch", "#section-binders")
 
     if conservation_profile:
         if conservation_profile.get("is_core"):
@@ -580,7 +667,6 @@ def build_target_executive_summary(
                 "#section-target-profile",
             )
 
-    fpocket_score = _score_float(raw_scores, "Druggability")
     pocket_size_outlier = _truthy_score(_raw_score(raw_scores, "pocket_size_outlier"))
     p2rank_score = _score_float(raw_scores, "p2rank_probability")
     if fpocket_score is not None:
@@ -732,7 +818,7 @@ def build_target_executive_summary(
 
 
 def build_protein_executive_context(
-    protein, structures=None, structure_summary=None, search_query="", binders=None,
+    protein, structures=None, structure_summary=None, search_query="", binders=None, user=None,
 ):
     """One-call bundle of everything explain_target (and ProteinView.get)
     need: the raw ScoreParamValue dict plus every derived context builder
@@ -785,6 +871,8 @@ def build_protein_executive_context(
         binders,
     )
 
+    score_breakdown = build_score_breakdown(protein, score_param_values, user) if user is not None else None
+
     return {
         "raw_scores": raw_scores,
         "druggability": druggability,
@@ -796,4 +884,5 @@ def build_protein_executive_context(
         "structure_summary": structure_summary,
         "binders": binders,
         "target_summary": target_summary,
+        "score_breakdown": score_breakdown,
     }

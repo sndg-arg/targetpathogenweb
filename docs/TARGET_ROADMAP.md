@@ -228,21 +228,20 @@ Mejorar la lectura de similitud contra humano, microbioma y otros organismos rel
 - Estilo data sheet academico.
 - Flags de riesgo por color.
 - Barras de magnitud para metricas porcentuales.
+- Score compuesto visible en la pagina de proteina por primera vez: card "Composite score" con el
+  valor bajo la formula default del usuario y los 5 factores que mas pesaron (`build_score_breakdown`
+  en `protein_summary.py`, reutiliza los mismos calculos que ya usaba el listado de proteinas).
+- Explicacion de riesgo enriquecida para hit humano/microbioma: la oracion ahora menciona el score
+  de drogabilidad (FPocket) cuando existe, y el link ya no apunta a si misma sino a la evidencia de
+  ligandos (`#section-binders`) -- antes de descartar el target solo por riesgo off-target.
 
 **Falta.**
 
-- Exponer filtros desde la seccion off-target de la pagina de proteina.
-- Filtros por:
-  - Identidad.
-  - Cobertura.
-  - E-value.
-  - Organismo.
-- Explicacion de riesgo por eje.
-- Integracion explicita con:
-  - Estructura.
-  - Ligandos.
-  - Drogabilidad.
-  - Score final.
+- Filtros reales por Identidad/Cobertura/E-value/Organismo: bloqueado por dato -- hoy solo se
+  guarda el mejor hit humano (identity+evalue) y un conteo de especies para microbioma; coverage y
+  organismo por hit no se persisten en ningun lado (se descartan en `fast_command.py` al colapsar
+  al mejor hit). Necesita modelo nuevo por-hit, cambio de pipeline de ingesta y backfill/reimport
+  de genomas ya cargados -- merece su propio plan, no encarado todavia.
 
 ## To Do
 

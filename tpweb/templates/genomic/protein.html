@@ -313,8 +313,27 @@
                 </div>
                 {% endif %}
 
-                {% if conservation_profile or microbiome_context %}
+                {% if conservation_profile or microbiome_context or score_breakdown %}
                 <div class="target-evidence-grid target-evidence-grid--compact">
+                    {% if score_breakdown %}
+                    <div class="target-evidence-card" title="{% trans "Composite score under the active score formula, combining every weighted signal below (including off-target risk) into one number." %}">
+                        <span class="target-evidence-label">{% trans "Composite score" %}</span>
+                        <strong class="target-evidence-value">{{ score_breakdown.score }}</strong>
+                        <span class="target-evidence-subtext">{{ score_breakdown.formula_name }}</span>
+                        {% if score_breakdown.top_factors %}
+                        <div class="target-evidence-meta target-evidence-meta--top">
+                            {% for factor in score_breakdown.top_factors %}
+                            <div class="target-evidence-meta-row">
+                                <span class="target-evidence-meta-key"{% if factor.is_off_target %} title="{% trans "Off-target signal" %}"{% endif %}>{{ factor.name }}</span>
+                                <span class="target-evidence-meta-val">{% if factor.contribution >= 0 %}+{% endif %}{{ factor.contribution }}</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% elif not score_breakdown.has_breakdown %}
+                        <span class="target-evidence-subtext">{% trans "This formula uses a custom expression; no per-factor breakdown is available." %}</span>
+                        {% endif %}
+                    </div>
+                    {% endif %}
                     {% if conservation_profile %}
                     <div class="target-evidence-card" title="{% trans "Conservation across multiple Klebsiella genomes. A gene is flagged as core only when both Roary and CoreCruncher agree." %}">
                         <span class="target-evidence-label">{% trans "Core conservation" %}</span>

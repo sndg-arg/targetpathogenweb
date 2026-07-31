@@ -472,6 +472,7 @@ class ProteinView(View):
             structures=structures,
             structure_summary=structure_summary,
             binders=binders,
+            user=request.user,
         )
         druggability = executive_context["druggability"]
         target_profile = executive_context["target_profile"]
@@ -480,6 +481,7 @@ class ProteinView(View):
         microbiome_context = executive_context["microbiome_context"]
         metabolic_context = executive_context["metabolic_context"]
         target_summary = executive_context["target_summary"]
+        score_breakdown = executive_context["score_breakdown"]
 
         if request.GET.get("export") == "view_csv":
             sections = [
@@ -606,6 +608,7 @@ class ProteinView(View):
                "experimental_structures": experimental_structures,
                "target_profile": target_profile,
                "target_summary": target_summary,
+               "score_breakdown": score_breakdown,
                "selected_pocket_evidence": selected_pocket_evidence,
                "conservation_profile": conservation_profile,
                "microbiome_context": microbiome_context,
