@@ -528,6 +528,16 @@ function jsloaded() {
         {% endfor %}
     };
 
+    /* "By chain" is only worth offering when a structure actually has more
+       than one chain to distinguish -- otherwise it looks identical to
+       Uniform and is just a confusing extra option. */
+    var structureIsMultichain = {
+        {% for s in all_structures %}
+        "{{ s.id }}": {% if s.is_multichain %}true{% else %}false{% endif %},
+        {% endfor %}
+    };
+    var chainColorButton = document.querySelector('.js-structure-color[data-color-mode="chainname"]');
+
     /* ---- Topbar / sidebar update on structure switch ---- */
     function updateIdentity(structureId) {
         var opt = document.querySelector(".sv-struct-picker-item[data-id='" + structureId + "']");
@@ -631,7 +641,12 @@ function jsloaded() {
         var activeChainSelector = structureChainSelectors[activeStructureId] || "polymer";
         var pocketSurfaceKeys = [];
         var priorityPocketSurfaceKeys = [];
+        var isMultichain = !!structureIsMultichain[activeStructureId];
         var currentColorMode = structureColorDefaults[activeStructureId] || "flat";
+        if (currentColorMode === "chainname" && !isMultichain) {
+            currentColorMode = "flat";
+        }
+        if (chainColorButton) chainColorButton.hidden = !isMultichain;
 
         function colorForMode(mode) {
             return mode === "flat" ? (tpColor("--tp-color-structure-cartoon") || "#2288a3") : mode;

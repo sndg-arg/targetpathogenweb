@@ -47,21 +47,46 @@ def structure_toggle_label(experiment):
     return _STRUCTURE_TOGGLE_LABELS.get((experiment or "").upper(), "Model")
 
 
+def chain_parts(chain):
+    """Split a possibly multi-chain field (e.g. 'A,B,C' for a homooligomer
+    or fragmented/heteromeric structure) into its individual chain letters.
+    Empty list when `chain` is blank."""
+    return [part.strip() for part in re.split(r"[,;]", chain or "") if part.strip()]
+
+
 def chain_selector(chain):
     """NGL selector fragment for one or more chains, e.g. ':A', '(:A OR :B
     OR :C)' for a multi-chain (homooligomer or fragmented/heteromeric)
     structure, or 'polymer' when no chain is set. Was copy-pasted
     identically in ProteinView.py and StructureView.py; lives here since
     both views already depend on this module."""
-    chain = (chain or "").strip()
-    if not chain:
-        return "polymer"
-    parts = [part.strip() for part in re.split(r"[,;]", chain) if part.strip()]
+    parts = chain_parts(chain)
     if not parts:
         return "polymer"
     if len(parts) == 1:
         return f":{parts[0]}"
     return "(" + " OR ".join(f":{part}" for part in parts) + ")"
+
+
+def is_multichain(chain, structure_data=None):
+    """True when coloring 'by chain' would actually show more than one
+    color -- i.e. there's a real choice to offer the user.
+
+    When `chain` names specific chain letter(s) for this protein, that
+    count is authoritative (an unrestricted co-crystallized chain
+    belonging to a different protein is never included -- see
+    _parse_pdb_chain_mapping in functional_annotations.py, which only
+    reports chains that map to the protein being annotated). When `chain`
+    is blank (selector falls back to 'polymer', i.e. the whole file is
+    shown unrestricted), fall back to counting distinct chains actually
+    present in the loaded structure (`structure_data["chains"]`, already
+    computed by StructureView.pdb_structure from real residue data).
+    """
+    parts = chain_parts(chain)
+    if parts:
+        return len(parts) > 1
+    chains_in_file = (structure_data or {}).get("chains") or []
+    return len(chains_in_file) > 1
 
 
 def _structure_coverage_span(link):

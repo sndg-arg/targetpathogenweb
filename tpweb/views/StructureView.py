@@ -10,7 +10,7 @@ from tpweb.models.pdb import PDB, Residue, Property, ResidueSet, PDBResidueSet, 
 from django.db.models import FilteredRelation, Q
 from tpweb.services.genome_workspace import user_can_access_genome_name, genome_url_slug
 from tpweb.services.structure_files import detect_structure_format, disambiguate_display_codes, display_code, structure_file_path
-from tpweb.services.structure_sources import chain_selector as _chain_selector
+from tpweb.services.structure_sources import chain_selector as _chain_selector, is_multichain as _is_multichain
 from tpweb.services.pocket_geometry import volume_outlier_map, filter_pdbresidueset_by_chain
 
 
@@ -292,6 +292,7 @@ class StructureView(View):
                 link_chain = (link.chain or "").strip()
                 s_data = primary_data if pdb.id == structure.id else pdb_structure(pdb, [], target_chain=link_chain or None)
                 exp = (pdb.experiment or "").upper()
+                multichain = _is_multichain(link.chain, s_data)
                 all_structures.append({
                     "id": pdb.id,
                     "code": pdb.code,
@@ -301,7 +302,8 @@ class StructureView(View):
                     "short_method": _SHORT_METHOD.get(exp, s_data["method"]),
                     "resolution": s_data.get("resolution"),
                     "chain_selector": _chain_selector(link.chain),
-                    "chain_color_default": exp == "EX",
+                    "is_multichain": multichain,
+                    "chain_color_default": exp == "EX" and multichain,
                     "file_format": self._structure_file_format(link.bioentry, pdb),
                     "structure_data": s_data,
                     "is_active": pdb.id == structure.id,
@@ -309,8 +311,10 @@ class StructureView(View):
 
             # Ensure the requested structure is always in the list
             if not any(s["id"] == structure.id for s in all_structures):
-                chain_sel = _chain_selector(primary_link.chain if primary_link else "")
+                primary_chain_value = primary_link.chain if primary_link else ""
+                chain_sel = _chain_selector(primary_chain_value)
                 exp = (structure.experiment or "").upper()
+                multichain = _is_multichain(primary_chain_value, primary_data)
                 all_structures.insert(0, {
                     "id": structure.id,
                     "code": structure.code,
@@ -320,7 +324,8 @@ class StructureView(View):
                     "short_method": _SHORT_METHOD.get(exp, primary_data["method"]),
                     "resolution": primary_data.get("resolution"),
                     "chain_selector": chain_sel,
-                    "chain_color_default": exp == "EX",
+                    "is_multichain": multichain,
+                    "chain_color_default": exp == "EX" and multichain,
                     "file_format": self._structure_file_format(source_bioentry, structure),
                     "structure_data": primary_data,
                     "is_active": True,
@@ -333,6 +338,7 @@ class StructureView(View):
                 dto["viewer_chain_selector"] = active["chain_selector"]
         else:
             exp = (structure.experiment or "").upper()
+            multichain = _is_multichain("", primary_data)
             dto["all_structures"] = [{
                 "id": structure.id,
                 "code": structure.code,
@@ -342,7 +348,8 @@ class StructureView(View):
                 "short_method": _SHORT_METHOD.get(exp, primary_data["method"]),
                 "resolution": primary_data.get("resolution"),
                 "chain_selector": "polymer",
-                "chain_color_default": exp == "EX",
+                "is_multichain": multichain,
+                "chain_color_default": exp == "EX" and multichain,
                 "file_format": self._structure_file_format(None, structure),
                 "structure_data": primary_data,
                 "is_active": True,
