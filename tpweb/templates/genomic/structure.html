@@ -74,6 +74,15 @@
 
             <div class="sv-tb-sep" aria-hidden="true"></div>
 
+            {# Color scheme #}
+            <div class="sv-mode-group" role="group" aria-label="{% trans 'Color scheme' %}">
+                <button type="button" class="sv-mode-btn js-structure-color" data-color-mode="flat" aria-pressed="false" title="{% trans 'Uniform color for the whole structure.' %}">{% trans "Uniform" %}</button>
+                <button type="button" class="sv-mode-btn js-structure-color" data-color-mode="chainname" aria-pressed="false" title="{% trans 'Color each chain differently.' %}">{% trans "By chain" %}</button>
+                <button type="button" class="sv-mode-btn js-structure-color" data-color-mode="sstruc" aria-pressed="false" title="{% trans 'Color by secondary structure (helix/sheet/coil).' %}">{% trans "By structure" %}</button>
+            </div>
+
+            <div class="sv-tb-sep" aria-hidden="true"></div>
+
             {# Zoom controls #}
             <button type="button" class="sv-tb-btn" onclick="ngl_zoom_step(1)" title="{% trans 'Zoom in' %}" aria-label="{% trans 'Zoom in' %}">
                 <svg class="sv-tb-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
@@ -271,6 +280,7 @@ function jsloaded() {
     var pocketClearBtn = document.getElementById("sv-pocket-clear-selection");
     var pocketShowOnlyBtn = document.getElementById("sv-pocket-show-only-toggle");
     var structureModeButtons = Array.from(document.querySelectorAll(".js-structure-mode"));
+    var structureColorButtons = Array.from(document.querySelectorAll(".js-structure-color"));
     var ligandFocusPill = document.getElementById("sv-topbar-ligand-focus");
     var ligandFocusApplied = false;
     var focusLigandCode = (function () {
@@ -329,6 +339,14 @@ function jsloaded() {
     function setModeButtonState(mode) {
         structureModeButtons.forEach(function (btn) {
             var isActive = btn.getAttribute("data-mode") === mode;
+            btn.classList.toggle("is-active", isActive);
+            btn.setAttribute("aria-pressed", isActive ? "true" : "false");
+        });
+    }
+
+    function setColorButtonState(colorMode) {
+        structureColorButtons.forEach(function (btn) {
+            var isActive = btn.getAttribute("data-color-mode") === colorMode;
             btn.classList.toggle("is-active", isActive);
             btn.setAttribute("aria-pressed", isActive ? "true" : "false");
         });
@@ -436,6 +454,7 @@ function jsloaded() {
     window.ngl_zoom_step  = function () {};
     window.ngl_reset_zoom = function () {};
     window.ngl_set_mode   = function () {};
+    window.ngl_set_color_mode = function () {};
     window.representations = representations;
 
     if (typeof NGL === "undefined") {
@@ -497,6 +516,15 @@ function jsloaded() {
     var structureFormats = {
         {% for s in all_structures %}
         "{{ s.id }}": "{{ s.file_format|default:'pdb' }}",
+        {% endfor %}
+    };
+
+    /* Default color scheme per structure: chain coloring for experimental
+       structures (mirrors protein.html's automatic behavior for the embedded
+       preview), uniform color for predicted models -- but toggleable here. */
+    var structureColorDefaults = {
+        {% for s in all_structures %}
+        "{{ s.id }}": {% if s.chain_color_default %}"chainname"{% else %}"flat"{% endif %},
         {% endfor %}
     };
 
@@ -603,6 +631,11 @@ function jsloaded() {
         var activeChainSelector = structureChainSelectors[activeStructureId] || "polymer";
         var pocketSurfaceKeys = [];
         var priorityPocketSurfaceKeys = [];
+        var currentColorMode = structureColorDefaults[activeStructureId] || "flat";
+
+        function colorForMode(mode) {
+            return mode === "flat" ? (tpColor("--tp-color-structure-cartoon") || "#2288a3") : mode;
+        }
 
         window.ngl_reset_zoom = function () {
             component.autoView();
@@ -646,10 +679,18 @@ function jsloaded() {
             aspectRatio: STRUCTURE_VIEWER_CONFIG.mainCartoonAspectRatio,
             scale: STRUCTURE_VIEWER_CONFIG.mainCartoonScale,
             sele: "backbone and " + activeChainSelector,
-            color: tpColor("--tp-color-structure-cartoon") || "#2288a3"
+            color: colorForMode(currentColorMode)
         });
         visible.__main_cartoon = true;
         representations.__main_cartoon.sele = "backbone and " + activeChainSelector;
+
+        window.ngl_set_color_mode = function (mode) {
+            currentColorMode = mode;
+            if (typeof representations.__main_cartoon.setParameters === "function") {
+                representations.__main_cartoon.setParameters({ color: colorForMode(mode) });
+            }
+            setColorButtonState(mode);
+        };
 
         representations.__main_density = component.addRepresentation("surface", {
             sele: "polymer and " + activeChainSelector,
@@ -705,9 +746,16 @@ function jsloaded() {
             });
         });
 
+        structureColorButtons.forEach(function (btn) {
+            btn.addEventListener("click", function () {
+                window.ngl_set_color_mode(btn.getAttribute("data-color-mode") || "flat");
+            });
+        });
+
         document.querySelectorAll("#sv-sidebar input[type='checkbox']").forEach(function (cb) { cb.checked = false; });
 
         window.ngl_set_mode("cartoon");
+        window.ngl_set_color_mode(currentColorMode);
 
         /* ---- Ligand focus (opened from a binder's "Open crystal" link) ---- */
         if (focusLigandCode && !ligandFocusApplied) {

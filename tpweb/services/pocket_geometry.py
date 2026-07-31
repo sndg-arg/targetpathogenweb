@@ -6,6 +6,7 @@ command) so the outlier definition never drifts between the two.
 """
 from __future__ import annotations
 
+import re
 import statistics
 
 # Iglewicz-Hoaglin modified z-score convention.
@@ -46,24 +47,32 @@ def volume_outlier_map(pdbresidueset_volumes, z_threshold=DEFAULT_Z_THRESHOLD, m
     return result
 
 
+def _chain_parts(chain):
+    """Split a possibly multi-chain field (e.g. 'A,B,C' for a homooligomer
+    or fragmented/heteromeric structure -- see chain_selector() in
+    structure_sources.py) into its individual chain letters."""
+    return [part.strip() for part in re.split(r"[,;]", chain or "") if part.strip()]
+
+
 def filter_pdbresidueset_by_chain(queryset, chain):
-    """Exclude PDBResidueSet pockets with no residues on `chain`.
+    """Exclude PDBResidueSet pockets with no residues on any of `chain`'s
+    chain letter(s).
 
     A pocket computed against a chain that isn't the one actually shown/
     scored for a given protein can otherwise outrank or override real
     candidates. No-op when `chain` is blank -- no specific chain to enforce.
     """
-    chain = (chain or "").strip()
-    if not chain:
+    parts = _chain_parts(chain)
+    if not parts:
         return queryset
-    return queryset.filter(residue_set_residue__residue__chain=chain).distinct()
+    return queryset.filter(residue_set_residue__residue__chain__in=parts).distinct()
 
 
 def filter_residuesetproperty_by_chain(queryset, chain):
     """Same guard as filter_pdbresidueset_by_chain, one hop further out --
     for querysets of ResidueSetProperty (a pocket's scored property row)
     rather than PDBResidueSet (the pocket itself)."""
-    chain = (chain or "").strip()
-    if not chain:
+    parts = _chain_parts(chain)
+    if not parts:
         return queryset
-    return queryset.filter(pdbresidue_set__residue_set_residue__residue__chain=chain).distinct()
+    return queryset.filter(pdbresidue_set__residue_set_residue__residue__chain__in=parts).distinct()

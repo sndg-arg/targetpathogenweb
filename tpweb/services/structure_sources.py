@@ -1,3 +1,5 @@
+import re
+
 from tpweb.services.structure_files import CHAIN_SUFFIX_RE
 
 STRUCTURE_SOURCE_NONE = "none"
@@ -46,12 +48,20 @@ def structure_toggle_label(experiment):
 
 
 def chain_selector(chain):
-    """PyMOL/NGL-style chain selector fragment, e.g. ':A' or 'polymer' when
-    no chain is set. Was copy-pasted identically in ProteinView.py and
-    StructureView.py; lives here since both views already depend on this
-    module."""
+    """NGL selector fragment for one or more chains, e.g. ':A', '(:A OR :B
+    OR :C)' for a multi-chain (homooligomer or fragmented/heteromeric)
+    structure, or 'polymer' when no chain is set. Was copy-pasted
+    identically in ProteinView.py and StructureView.py; lives here since
+    both views already depend on this module."""
     chain = (chain or "").strip()
-    return f":{chain}" if chain else "polymer"
+    if not chain:
+        return "polymer"
+    parts = [part.strip() for part in re.split(r"[,;]", chain) if part.strip()]
+    if not parts:
+        return "polymer"
+    if len(parts) == 1:
+        return f":{parts[0]}"
+    return "(" + " OR ".join(f":{part}" for part in parts) + ")"
 
 
 def _structure_coverage_span(link):

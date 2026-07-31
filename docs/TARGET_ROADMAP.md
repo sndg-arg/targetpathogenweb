@@ -214,14 +214,8 @@ Redisenar el visualizador 3D como experiencia completa.
 - Nota aclarando que FPocket/P2Rank son predicciones computacionales.
 - Selector de estructura priorizado por fuente, cobertura y calidad (`sort_structures_by_preference` en `structure_sources.py`, ya conectado a ambos pickers).
 - Toolbar de camara y modos en el full viewer (spin, cartoon/surface, zoom, reset, selector de estructura, export VMD).
-
-**Falta.**
-
-- Coloreo por cadena: ya existe (automatico, sin toggle) en el preview embebido; falta portarlo al full viewer y agregar un toggle real en vez de que sea automatico.
-- Coloreo por estructura secundaria: NGL lo soporta nativo, falta el boton/wiring en ambos visualizadores.
-- Manejo claro de estructuras multimericas: hoy siempre se resuelve una sola cadena por proteina, sin indicacion de que existan otras.
-- Paridad de controles entre el preview embebido (mas limitado) y el full viewer.
-- Decidir si la pagina embebida debe ser preview liviana y el full viewer la experiencia principal.
+- Toggle real de esquema de color en el full viewer: Uniforme / Por cadena / Por estructura secundaria, junto al toggle Cartoon/Surface. El preview embebido se dejo liviano a proposito, sin nuevos controles.
+- Estructuras multimericas: se corrigio una truncacion a una sola cadena en `experimental_structures.py`; ahora se muestran todas las cadenas (homooligomeros y proteinas fragmentadas), con backfill (`backfill_structure_chains`) para genomas ya cargados.
 
 ### Off-target 2.0
 

@@ -121,7 +121,11 @@ def _update_structure_link(xref, pdb_obj):
         pdb=pdb_obj,
     )
     updates = []
-    chain = (xref.chains or "").split(",", 1)[0].strip()
+    # Keep every chain letter xref.chains carries (comma-joined -- see
+    # _parse_pdb_chain_mapping) instead of truncating to the first one:
+    # the downloaded PDB file already contains every chain intact, and
+    # chain_selector() below now knows how to select more than one.
+    chain = (xref.chains or "").strip()
     for field, value in (
         ("chain", chain),
         ("uniprot_start", xref.uniprot_start),
