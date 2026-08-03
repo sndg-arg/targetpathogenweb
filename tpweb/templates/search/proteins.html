@@ -1419,16 +1419,21 @@
             let filtersToolbarMetaOriginal = null;
 
             function updateFiltersToolbarMeta(pendingCount) {
-                if (!openFiltersBtn) return;
-                const meta = openFiltersBtn.querySelector(".toolbar-action-btn__meta");
+                // Looked up directly (not via the outer openFiltersBtn const) --
+                // this runs from the eager syncPendingFilterForms() call near the
+                // top of jsloaded(), before that const's declaration further down
+                // the script would otherwise be initialized (TDZ ReferenceError).
+                const btn = document.getElementById("open-filters-btn");
+                if (!btn) return;
+                const meta = btn.querySelector(".toolbar-action-btn__meta");
                 if (!meta) return;
                 if (filtersToolbarMetaOriginal === null) filtersToolbarMetaOriginal = meta.textContent;
                 if (pendingCount > 0) {
                     meta.textContent = filtersToolbarMetaOriginal.trim() + " · " + pendingCount + " {% trans 'pending' %}";
-                    openFiltersBtn.classList.add("has-pending-filters");
+                    btn.classList.add("has-pending-filters");
                 } else {
                     meta.textContent = filtersToolbarMetaOriginal;
-                    openFiltersBtn.classList.remove("has-pending-filters");
+                    btn.classList.remove("has-pending-filters");
                 }
             }
 
