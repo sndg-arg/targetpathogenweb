@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20260803-sharelink1">
+    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20260803-pendingedge1">
 {% endblock %}
 
 {% block body %}
@@ -1001,7 +1001,7 @@
                     <input type="hidden" name="pending_annotation_kind" value="{% if annotation_filter %}{{ annotation_filter.kind }}{% endif %}">
                     <input type="hidden" name="pending_annotation_value" value="{% if annotation_filter %}{{ annotation_filter.value }}{% endif %}">
                 </form>
-                <div class="filter-pending-summary" id="filter-pending-summary" hidden>
+                <div class="filter-pending-summary" id="filter-pending-summary" role="status" aria-live="polite" hidden>
                     <div class="filter-pending-summary__head">
                         <span class="filter-pending-summary__count" id="filter-pending-count">0</span>
                         <span>{% trans "pending changes" %}</span>
@@ -1345,14 +1345,26 @@
             // pendingToggleMap: keyed by filter_option_id, value = payload.
             // Clicking the same chip twice cancels the pending action.
             let pendingToggleMap = new Map();
-            // pendingAppendActions: non-toggleable (numeric, text, special-add).
-            let pendingAppendActions = [];
+            // pendingAppendEntries: non-toggleable (numeric, text, special-add), as
+            // {id, payload, form} -- payload is exactly what gets JSON.stringify'd for
+            // the server (see syncPendingFilterForms), so the form reference is kept
+            // only in this wrapper, never merged into payload itself.
+            let pendingAppendEntries = [];
+            let nextPendingAppendId = 1;
             let pendingStructureSource = CURRENT_FILTER_STATE.structureSource;
             let pendingAnnotationKind = CURRENT_FILTER_STATE.annotationKind;
             let pendingAnnotationValue = CURRENT_FILTER_STATE.annotationValue;
 
             function getAllPendingActions() {
-                return pendingAppendActions.concat(Array.from(pendingToggleMap.values()));
+                return pendingAppendEntries.map(function (entry) { return entry.payload; })
+                    .concat(Array.from(pendingToggleMap.values()).map(function (entry) { return entry.payload; }));
+            }
+
+            function hasPendingChanges() {
+                const structureChanged = (pendingStructureSource || "") !== (CURRENT_FILTER_STATE.structureSource || "");
+                const annotationChanged = (pendingAnnotationKind || "") !== (CURRENT_FILTER_STATE.annotationKind || "")
+                    || (pendingAnnotationValue || "") !== (CURRENT_FILTER_STATE.annotationValue || "");
+                return getAllPendingActions().length > 0 || structureChanged || annotationChanged;
             }
 
             function cleanPendingValue(value) {
@@ -1379,10 +1391,11 @@
                     const operation = payload.numeric_operation || "gte";
                     const value = cleanPendingValue(payload.value);
                     const valueMax = cleanPendingValue(payload.value_max);
-                    if (operation === "between") {
-                        return paramLabel + ": " + value + " - " + valueMax;
-                    }
-                    return paramLabel + ": " + numericOperationLabel(operation) + " " + value;
+                    const base = operation === "between"
+                        ? paramLabel + ": " + value + " - " + valueMax
+                        : paramLabel + ": " + numericOperationLabel(operation) + " " + value;
+                    const activeLabel = form?.closest(".filter-param")?.querySelector(".filter-chip--active:not(.filter-chip--pending) .filter-chip-label")?.textContent.trim();
+                    return activeLabel ? base + " ({% trans 'replaces' %} " + activeLabel + ")" : base;
                 }
                 if (payload.action === "add_special_filter") {
                     const value = String(payload.special_value || "").trim();
@@ -1403,6 +1416,52 @@
                 return payload && payload._summary_label ? payload._summary_label : "{% trans 'Filter change' %}";
             }
 
+            let filtersToolbarMetaOriginal = null;
+
+            function updateFiltersToolbarMeta(pendingCount) {
+                if (!openFiltersBtn) return;
+                const meta = openFiltersBtn.querySelector(".toolbar-action-btn__meta");
+                if (!meta) return;
+                if (filtersToolbarMetaOriginal === null) filtersToolbarMetaOriginal = meta.textContent;
+                if (pendingCount > 0) {
+                    meta.textContent = filtersToolbarMetaOriginal.trim() + " · " + pendingCount + " {% trans 'pending' %}";
+                    openFiltersBtn.classList.add("has-pending-filters");
+                } else {
+                    meta.textContent = filtersToolbarMetaOriginal;
+                    openFiltersBtn.classList.remove("has-pending-filters");
+                }
+            }
+
+            function pendingSummaryItems() {
+                var items = pendingAppendEntries.map(function (entry) {
+                    return { kind: "append", key: entry.id, label: pendingActionLabel(entry.payload) };
+                });
+                pendingToggleMap.forEach(function (entry, optionId) {
+                    items.push({ kind: "toggle", key: optionId, label: pendingActionLabel(entry.payload) });
+                });
+                return items;
+            }
+
+            function removePendingAppendEntry(id) {
+                const index = pendingAppendEntries.findIndex(function (entry) { return entry.id === id; });
+                if (index === -1) return;
+                const entry = pendingAppendEntries[index];
+                pendingAppendEntries.splice(index, 1);
+                const form = entry.form;
+                const stillPendingForSameForm = pendingAppendEntries.some(function (e) { return e.form === form; });
+                if (form && !stillPendingForSameForm) {
+                    form.classList.remove("has-pending-filter");
+                    const button = form.querySelector("button[type='submit'], .filter-text-add, .filter-numeric-apply");
+                    if (button) {
+                        button.classList.remove("filter-chip--pending");
+                        button.removeAttribute("data-pending");
+                    }
+                    const message = form.closest(".filter-param")?.querySelector(".filter-input-message");
+                    if (message) message.textContent = "";
+                }
+                syncPendingFilterForms();
+            }
+
             function renderPendingSummary(pendingCount, structureChanged, annotationChanged) {
                 if (!filterPendingSummary) return;
                 filterPendingSummary.hidden = pendingCount === 0;
@@ -1410,19 +1469,35 @@
                 if (!filterPendingList) return;
                 filterPendingList.innerHTML = "";
                 if (pendingCount === 0) return;
-                const labels = getAllPendingActions().map(pendingActionLabel);
-                if (structureChanged) labels.push("{% trans 'Structure source filter changed' %}");
-                if (annotationChanged) labels.push("{% trans 'Annotation filter changed' %}");
-                labels.slice(0, 4).forEach(function (label) {
-                    const item = document.createElement("li");
-                    item.textContent = label;
-                    filterPendingList.appendChild(item);
+                var items = pendingSummaryItems();
+                if (structureChanged) items.push({ kind: "structure", key: null, label: "{% trans 'Structure source filter changed' %}" });
+                if (annotationChanged) items.push({ kind: "annotation", key: null, label: "{% trans 'Annotation filter changed' %}" });
+                items.forEach(function (item) {
+                    const li = document.createElement("li");
+                    li.className = "filter-pending-summary__item";
+                    const labelSpan = document.createElement("span");
+                    labelSpan.className = "filter-pending-summary__item-label";
+                    labelSpan.textContent = item.label;
+                    labelSpan.title = item.label;
+                    li.appendChild(labelSpan);
+                    if (item.kind === "append" || item.kind === "toggle") {
+                        const removeBtn = document.createElement("button");
+                        removeBtn.type = "button";
+                        removeBtn.className = "filter-pill-remove filter-pending-summary__remove";
+                        removeBtn.setAttribute("aria-label", "{% trans 'Remove this pending change' %}");
+                        removeBtn.textContent = "\xD7";
+                        removeBtn.addEventListener("click", function () {
+                            if (item.kind === "append") {
+                                removePendingAppendEntry(item.key);
+                            } else {
+                                cancelPendingToggle(item.key);
+                                syncPendingFilterForms();
+                            }
+                        });
+                        li.appendChild(removeBtn);
+                    }
+                    filterPendingList.appendChild(li);
                 });
-                if (labels.length > 4) {
-                    const overflow = document.createElement("li");
-                    overflow.textContent = "+" + String(labels.length - 4) + " {% trans 'more' %}";
-                    filterPendingList.appendChild(overflow);
-                }
             }
 
             function syncPendingFilterForms() {
@@ -1444,6 +1519,7 @@
                     || (pendingAnnotationValue || "") !== (CURRENT_FILTER_STATE.annotationValue || "");
                 const pendingCount = getAllPendingActions().length + (structureChanged ? 1 : 0) + (annotationChanged ? 1 : 0);
                 renderPendingSummary(pendingCount, structureChanged, annotationChanged);
+                updateFiltersToolbarMeta(pendingCount);
                 if (filtersApplyBtn) {
                     filtersApplyBtn.disabled = pendingCount === 0;
                     var badge = filtersApplyBtn.querySelector(".apply-btn-count");
@@ -1527,29 +1603,38 @@
                 });
             }
 
+            function cancelPendingToggle(optionId) {
+                var entry = pendingToggleMap.get(optionId);
+                if (!entry) return;
+                pendingToggleMap.delete(optionId);
+                var form = entry.form;
+                var button = form ? form.querySelector(".filter-chip") : null;
+                var serverActive = button ? button.dataset.serverActive === "true" : false;
+                if (button) {
+                    button.classList.toggle("filter-chip--active", serverActive);
+                    button.setAttribute("aria-pressed", serverActive ? "true" : "false");
+                    button.classList.remove("filter-chip--pending");
+                    button.removeAttribute("data-pending");
+                    setChipGlyph(button, serverActive);
+                }
+                if (!entry.isKeyOverride && form) {
+                    var actionInput = form.querySelector("input[name='action']");
+                    if (actionInput) actionInput.value = serverActive ? "remove_filter" : "add_filter";
+                }
+            }
+
             function handleToggleChip(form, payload, keyOverride) {
                 var optionId = keyOverride !== undefined ? keyOverride : String(payload.filter_option_id || "");
                 if (!optionId) return;
-                var button = form.querySelector(".filter-chip");
-                var serverActive = button ? button.dataset.serverActive === "true" : false;
 
                 if (pendingToggleMap.has(optionId)) {
                     // Second click: cancel, restore to server state
-                    pendingToggleMap.delete(optionId);
-                    if (button) {
-                        button.classList.toggle("filter-chip--active", serverActive);
-                        button.setAttribute("aria-pressed", serverActive ? "true" : "false");
-                        button.classList.remove("filter-chip--pending");
-                        button.removeAttribute("data-pending");
-                        setChipGlyph(button, serverActive);
-                    }
-                    if (!keyOverride) {
-                        var actionInput = form.querySelector("input[name='action']");
-                        if (actionInput) actionInput.value = serverActive ? "remove_filter" : "add_filter";
-                    }
+                    cancelPendingToggle(optionId);
                 } else {
                     // First click: add to pending
-                    pendingToggleMap.set(optionId, payload);
+                    var button = form.querySelector(".filter-chip");
+                    var serverActive = button ? button.dataset.serverActive === "true" : false;
+                    pendingToggleMap.set(optionId, { payload: payload, form: form, isKeyOverride: keyOverride !== undefined });
                     // For special-key chips (EC class), willBeActive is the inverse of server state.
                     // For regular chips, derive it from the action field.
                     var willBeActive = keyOverride !== undefined ? !serverActive : payload.action === "add_filter";
@@ -1608,8 +1693,20 @@
                     return;
                 }
 
-                // Numeric, text, special-add: append (non-cancelable individually)
-                pendingAppendActions.push(payload);
+                // Numeric, text, special-add.
+                // Numeric filters are single-value-per-param (matching the server's own
+                // normalize_selected_parameters dedup) -- replace any existing pending
+                // entry for the same score_param_id instead of queuing a second,
+                // contradictory one. EC/GO text entries legitimately coexist as
+                // separate chips, so those are never deduped this way.
+                if (payload.action === "add_numeric_filter") {
+                    const existingIndex = pendingAppendEntries.findIndex(function (entry) {
+                        return entry.payload.action === "add_numeric_filter"
+                            && entry.payload.score_param_id === payload.score_param_id;
+                    });
+                    if (existingIndex !== -1) pendingAppendEntries.splice(existingIndex, 1);
+                }
+                pendingAppendEntries.push({ id: nextPendingAppendId++, payload: payload, form: form });
                 const button = form.querySelector("button[type='submit'], .filter-text-add, .filter-numeric-apply");
                 if (button) {
                     button.classList.add("filter-chip--pending");
@@ -1658,6 +1755,9 @@
                     if (!page || page < 1) page = 1;
                     if (page > max) page = max;
                     if (page === {{ pagination.number }}) return;
+                    if (hasPendingChanges() && !confirm("{% trans 'You have unsaved filter changes. Leaving this page will discard them.' %}")) {
+                        return;
+                    }
                     var params = new URLSearchParams(window.location.search);
                     params.set("page", page);
                     if (window.TPPageLoader) window.TPPageLoader.show();
@@ -2034,14 +2134,33 @@
 
             document.querySelectorAll(".tpd-apply-form").forEach(function (form) {
                 form.addEventListener("submit", function (e) {
-                    var structureChanged = (pendingStructureSource || "") !== (CURRENT_FILTER_STATE.structureSource || "");
-                    var annotationChanged = (pendingAnnotationKind || "") !== (CURRENT_FILTER_STATE.annotationKind || "")
-                        || (pendingAnnotationValue || "") !== (CURRENT_FILTER_STATE.annotationValue || "");
-                    var hasPending = getAllPendingActions().length > 0 || structureChanged || annotationChanged;
-                    if (hasPending && !confirm("{% trans 'You have unsaved filter changes. Applying this preset will discard them.' %}")) {
+                    if (hasPendingChanges() && !confirm("{% trans 'You have unsaved filter changes. Applying this preset will discard them.' %}")) {
                         e.preventDefault();
                     }
                 });
+            });
+
+            const drawerResetForm = document.querySelector(".drawer-reset-form");
+            if (drawerResetForm) {
+                drawerResetForm.addEventListener("submit", function (e) {
+                    if (hasPendingChanges() && !confirm("{% trans 'You have unsaved filter changes. Clearing all criteria will discard them too.' %}")) {
+                        e.preventDefault();
+                    }
+                });
+            }
+
+            document.addEventListener("click", function (e) {
+                const paginationLink = e.target.closest(".pagination a");
+                if (!paginationLink) return;
+                if (hasPendingChanges() && !confirm("{% trans 'You have unsaved filter changes. Leaving this page will discard them.' %}")) {
+                    e.preventDefault();
+                }
+            });
+
+            window.addEventListener("beforeunload", function (e) {
+                if (!hasPendingChanges()) return;
+                e.preventDefault();
+                e.returnValue = "";
             });
 
             if (tpdOpenDrawerBtn) {

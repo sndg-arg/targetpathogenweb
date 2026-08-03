@@ -452,6 +452,19 @@ a.filter-pill .filter-pill-remove {
     outline: none;
 }
 
+/* Closed drawer still needs a visible cue that filter changes are queued
+   but not yet applied -- otherwise pending state is invisible once the
+   drawer closes (see #filter-pending-summary, which only exists inside it). */
+#open-filters-btn.has-pending-filters {
+    border-color: var(--tp-color-brand-300) !important;
+    background: color-mix(in srgb, var(--tp-color-brand-100) 35%, var(--tp-color-surface)) !important;
+}
+
+#open-filters-btn.has-pending-filters .toolbar-action-btn__meta {
+    color: var(--tp-color-brand-700);
+    font-weight: 600;
+}
+
 .toolbar-controls-left .toolbar-action-btn:focus-visible {
     box-shadow: 0 0 0 3px var(--tp-color-brand-100) !important;
 }
@@ -3721,10 +3734,6 @@ a.filter-pill .filter-pill-remove {
         max-width: none;
     }
 
-    .filter-pending-summary__list li {
-        max-width: calc(100vw - 210px);
-    }
-
     .drawer-clear-btn {
         min-width: clamp(116px, 30vw, 138px);
         font-size: 0.95rem;
@@ -3778,13 +3787,15 @@ a.filter-pill .filter-pill-remove {
     vertical-align: middle;
 }
 
-/* Compact pending summary in the drawer footer */
+/* Pending summary in the drawer footer -- a vertical, scrollable list (not
+   capped) so every queued change is reachable and individually removable,
+   not just the first few with a dead "+N more" for the rest. */
 .filter-pending-summary {
     display: flex;
-    align-items: center;
-    gap: 8px;
+    flex-direction: column;
+    gap: 6px;
     min-width: 0;
-    flex: 1 1 220px;
+    flex: 1 1 260px;
     max-width: 420px;
     padding: 7px 9px;
     border: 1px solid var(--tp-color-border-soft);
@@ -3824,29 +3835,40 @@ a.filter-pill .filter-pill-remove {
 
 .filter-pending-summary__list {
     display: flex;
-    align-items: center;
-    gap: 6px;
+    flex-direction: column;
+    gap: 4px;
     min-width: 0;
+    max-height: 132px;
     margin: 0;
     padding: 0;
+    overflow-y: auto;
     list-style: none;
     color: var(--tp-color-text-secondary);
     font-weight: 600;
 }
 
-.filter-pending-summary__list li {
+.filter-pending-summary__item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    min-width: 0;
+}
+
+.filter-pending-summary__item-label {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
     min-width: 0;
-    max-width: 170px;
 }
 
-.filter-pending-summary__list li + li::before {
-    content: "/";
-    margin-right: 6px;
-    color: var(--tp-color-text-soft);
-    font-weight: 500;
+.filter-pending-summary__remove {
+    width: 16px;
+    min-width: 16px;
+    height: 16px;
+    min-height: 16px;
+    font-size: 0.78rem;
+    flex: 0 0 16px;
 }
 
 /* --- Presets panel (bottom of drawer body) ------------------------------- */
