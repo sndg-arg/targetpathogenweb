@@ -601,7 +601,18 @@ function jsloaded() {
         setLoadingNoteVisible(true, "{% trans 'Loading 3D structure…' %}");
         setStructurePickerBusy(true);
         stage.removeAllComponents();
-        stage.loadFile(structureUrls[structureId], { ext: structureFormats[structureId] || "pdb", defaultRepresentation: false })
+        // Check the URL ourselves before handing it to NGL: a 404/network
+        // failure inside NGL's own NetworkStreamer can throw as an uncaught
+        // error that never reaches loadFile()'s promise chain, leaving the
+        // loading note spinning forever instead of reaching the .catch()
+        // below. A plain fetch() here always resolves/rejects normally.
+        fetch(structureUrls[structureId])
+            .then(function (response) {
+                if (!response.ok) {
+                    throw new Error("HTTP " + response.status);
+                }
+                return stage.loadFile(structureUrls[structureId], { ext: structureFormats[structureId] || "pdb", defaultRepresentation: false });
+            })
             .then(function (component) {
                 if (loadToken !== structureLoadToken) {
                     // A newer load started before this one resolved -- this
