@@ -3529,9 +3529,30 @@ a.filter-pill .filter-pill-remove {
     line-height: 1.25;
 }
 
+.filter-input-message:not(:empty) {
+    display: inline-flex;
+    align-items: flex-start;
+    gap: 6px;
+    max-width: 100%;
+}
+
+.filter-input-message:not(:empty)::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    margin-top: 4px;
+    border-radius: 999px;
+    background: var(--tp-color-brand-500);
+    flex: 0 0 auto;
+}
+
 .filter-numeric-form.has-numeric-error .filter-input-message,
 .filter-numeric-form.has-numeric-error .filter-numeric-message {
     color: var(--tp-color-danger-ink);
+}
+
+.filter-numeric-form.has-numeric-error .filter-input-message:not(:empty)::before {
+    background: var(--tp-color-danger-ink);
 }
 
 .filter-text-form + .filter-input-message {
@@ -3541,7 +3562,7 @@ a.filter-pill .filter-pill-remove {
 .filter-numeric-form.has-pending-filter,
 .filter-text-form.has-pending-filter {
     border-color: var(--tp-color-brand-200);
-    background: color-mix(in srgb, var(--tp-color-brand-100) 45%, var(--tp-color-surface));
+    background: color-mix(in srgb, var(--tp-color-brand-100) 28%, var(--tp-color-surface));
 }
 
 .filter-numeric-form.has-pending-filter .filter-input-message,
@@ -3694,6 +3715,16 @@ a.filter-pill .filter-pill-remove {
         gap: 6px;
     }
 
+    .filter-pending-summary {
+        order: -1;
+        flex-basis: 100%;
+        max-width: none;
+    }
+
+    .filter-pending-summary__list li {
+        max-width: calc(100vw - 210px);
+    }
+
     .drawer-clear-btn {
         min-width: clamp(116px, 30vw, 138px);
         font-size: 0.95rem;
@@ -3747,17 +3778,19 @@ a.filter-pill .filter-pill-remove {
     vertical-align: middle;
 }
 
-/* Pending summary is superseded by the button badge — keep in DOM only */
+/* Compact pending summary in the drawer footer */
 .filter-pending-summary {
-    display: grid;
-    gap: 6px;
-    min-width: min(260px, 100%);
-    max-width: 360px;
-    padding: 8px 10px;
-    border: 1px solid var(--tp-color-brand-200);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    flex: 1 1 220px;
+    max-width: 420px;
+    padding: 7px 9px;
+    border: 1px solid var(--tp-color-border-soft);
     border-radius: 8px;
-    background: color-mix(in srgb, var(--tp-color-brand-100) 38%, var(--tp-color-surface));
-    color: var(--tp-color-brand-800);
+    background: var(--tp-color-surface);
+    color: var(--tp-color-text-secondary);
     font-size: 0.78rem;
     line-height: 1.25;
 }
@@ -3770,6 +3803,8 @@ a.filter-pill .filter-pill-remove {
     display: inline-flex;
     align-items: center;
     gap: 6px;
+    min-width: max-content;
+    color: var(--tp-color-text-primary);
     font-weight: 700;
 }
 
@@ -3788,8 +3823,10 @@ a.filter-pill .filter-pill-remove {
 }
 
 .filter-pending-summary__list {
-    display: grid;
-    gap: 3px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
     margin: 0;
     padding: 0;
     list-style: none;
@@ -3801,6 +3838,15 @@ a.filter-pill .filter-pill-remove {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    min-width: 0;
+    max-width: 170px;
+}
+
+.filter-pending-summary__list li + li::before {
+    content: "/";
+    margin-right: 6px;
+    color: var(--tp-color-text-soft);
+    font-weight: 500;
 }
 
 /* --- Presets panel (bottom of drawer body) ------------------------------- */

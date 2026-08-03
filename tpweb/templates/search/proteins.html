@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20260726-emptyvalue1">
+    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20260803-pendingfilters2">
 {% endblock %}
 
 {% block body %}
@@ -1608,6 +1608,11 @@
                 if (form.matches(".filter-text-form, .filter-numeric-form")) {
                     form.reset();
                     form.classList.remove("has-numeric-error");
+                    form.classList.remove("is-between");
+                    const primaryLabel = form.querySelector('[data-numeric-field="primary"] .filter-numeric-field-label');
+                    const secondaryInput = form.querySelector('[data-numeric-field="secondary"] input');
+                    if (primaryLabel) primaryLabel.textContent = "{% trans 'Minimum' %}";
+                    if (secondaryInput) secondaryInput.value = "";
                     form.classList.add("has-pending-filter");
                     const message = form.closest(".filter-param")?.querySelector(".filter-input-message");
                     if (message) {
