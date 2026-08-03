@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20260803-pendingfilters2">
+    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20260803-sharelink1">
 {% endblock %}
 
 {% block body %}
@@ -327,15 +327,25 @@
                     </form>
                 {% endfor %}
             </div>
-            <form method="POST" action="" class="filter-tray-clear-form">
-                {% csrf_token %}
-                <input type="hidden" name="action" value="reset_filters">
-                <input type="hidden" name="return_query" value="{{ query_string }}">
-                <button type="submit" class="btn tp-btn tp-btn--clear tp-btn--clear-caution tp-btn-with-icon filter-tray-clear-btn">
-                    <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/trash.html" %}</span>
-                    <span>{% trans "Clear all" %}</span>
+            <div class="filter-tray-actions">
+                <button type="button" id="copy-share-link-btn" class="btn tp-btn tp-btn--outline tp-btn-with-icon filter-tray-share-btn"
+                        data-share-url="{{ share_url }}"
+                        data-default-label="{% trans 'Copy link' %}"
+                        data-copied-label="{% trans 'Copied' %}"
+                        title="{% trans 'Copy a link that reproduces this exact filtered view for anyone who opens it.' %}">
+                    <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/link.html" %}</span>
+                    <span data-copy-label>{% trans "Copy link" %}</span>
                 </button>
-            </form>
+                <form method="POST" action="" class="filter-tray-clear-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="reset_filters">
+                    <input type="hidden" name="return_query" value="{{ query_string }}">
+                    <button type="submit" class="btn tp-btn tp-btn--clear tp-btn--clear-caution tp-btn-with-icon filter-tray-clear-btn">
+                        <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/trash.html" %}</span>
+                        <span>{% trans "Clear all" %}</span>
+                    </button>
+                </form>
+            </div>
         </section>
         {% endif %}
 
@@ -2497,6 +2507,24 @@
                     }
                 });
                 syncNumericMode();
+            });
+        }
+
+        const copyShareLinkBtn = document.getElementById("copy-share-link-btn");
+        if (copyShareLinkBtn) {
+            copyShareLinkBtn.addEventListener("click", function () {
+                const url = copyShareLinkBtn.getAttribute("data-share-url") || "";
+                const defaultLabel = copyShareLinkBtn.getAttribute("data-default-label") || "Copy link";
+                const copiedLabel = copyShareLinkBtn.getAttribute("data-copied-label") || "Copied";
+                const label = copyShareLinkBtn.querySelector("[data-copy-label]");
+                (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject())
+                    .then(function () {
+                        if (label) label.textContent = copiedLabel;
+                        window.setTimeout(function () {
+                            if (label) label.textContent = defaultLabel;
+                        }, 1300);
+                    })
+                    .catch(function () {});
             });
         }
 

@@ -1,3 +1,5 @@
+import base64
+import json
 import re
 
 from django.db.models import Exists, OuterRef, Q
@@ -121,6 +123,48 @@ def normalize_selected_parameters(raw_selected_parameters):
         else:
             selected_parameters[existing_index] = clean_item
     return selected_parameters
+
+
+def encode_selected_parameters(selected_parameters):
+    """Serialize a selected_parameters list into a URL-safe string, for a
+    shareable link that reproduces the current filters for anyone who opens
+    it (selected_parameters otherwise lives only in server-side session --
+    see ProteinListView.get()'s ?filters= handling)."""
+    raw = json.dumps(selected_parameters, separators=(",", ":")).encode("utf-8")
+    return base64.urlsafe_b64encode(raw).decode("ascii")
+
+
+def decode_selected_parameters_param(raw):
+    """Inverse of encode_selected_parameters. Returns None (never raises) on
+    any malformed/truncated/tampered value -- a broken shared link must fail
+    to seed filters, not crash the page."""
+    try:
+        decoded = base64.urlsafe_b64decode(raw.encode("ascii"))
+        parsed = json.loads(decoded)
+    except (ValueError, TypeError, UnicodeDecodeError, UnicodeEncodeError):
+        return None
+    return parsed if isinstance(parsed, list) else None
+
+
+def filter_visible_selected_parameters(selected_parameters, visible_score_param_ids):
+    """Drop any categorical/numeric filter whose score_param_id isn't in
+    visible_score_param_ids -- a shared link can reference a Custom column
+    owned by a different user (or since deleted), and ScoreParam.objects.get
+    would still succeed since the row exists; visibility must be checked
+    against the requesting user explicitly. "special" filters (EC/GO/ligand/
+    pathway) aren't tied to a real ScoreParam row, so they're always kept.
+    Returns (kept_list, dropped_count)."""
+    kept = []
+    dropped = 0
+    for item in selected_parameters:
+        if _selected_parameter_kind(item) == "special":
+            kept.append(item)
+            continue
+        if _coerce_score_param_id(item.get("score_param_id")) in visible_score_param_ids:
+            kept.append(item)
+        else:
+            dropped += 1
+    return kept, dropped
 
 
 def _format_numeric_filter_value(value):

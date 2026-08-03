@@ -1,3 +1,4 @@
+from django.contrib import messages
 from django.views import View
 from django.shortcuts import render
 from django.db.models import Count, Exists, OuterRef, Prefetch, Q
@@ -18,7 +19,10 @@ from tpweb.services.protein_list import (
     apply_filter_changes,
     apply_protein_search,
     apply_selected_parameter_filters,
+    decode_selected_parameters_param,
     empty_pagination_payload,
+    encode_selected_parameters,
+    filter_visible_selected_parameters,
     grouped_selected_parameters,
     humanize_identifier,
     normalize_selected_parameters,
@@ -154,6 +158,36 @@ class ProteinListView(View):
         "Metabolism",
         "Score",
     )
+
+    @staticmethod
+    def _seed_filters_from_link(request, raw_filters_param):
+        """Handle a shared-link ?filters= param: decode it, drop anything
+        the requesting user can't see (a link can reference a Custom column
+        owned by a different user, or since deleted), seed session with
+        what's left, then redirect to a clean URL -- ?filters= is a one-time
+        seed, not a persistent source of truth (mirrors how preset-apply/
+        filter-change POST handlers already redirect after mutating
+        session)."""
+        decoded = decode_selected_parameters_param(raw_filters_param)
+        if decoded is None:
+            messages.warning(request, "No pudimos interpretar el link de filtros compartido.")
+        else:
+            normalized = normalize_selected_parameters(decoded)
+            visible_ids = set(visible_score_params_queryset(request.user).values_list("pk", flat=True))
+            kept, dropped_count = filter_visible_selected_parameters(normalized, visible_ids)
+            set_workspace_session_value(request.session, request.user, "selected_parameters", kept)
+            if dropped_count:
+                messages.warning(
+                    request,
+                    f"{dropped_count} filtro(s) del link no se pudieron aplicar (columna no disponible para tu usuario)."
+                )
+        redirect_params = request.GET.copy()
+        redirect_params.pop("filters", None)
+        redirect_params.pop("page", None)
+        redirect_url = request.path
+        if redirect_params:
+            redirect_url = f"{redirect_url}?{redirect_params.urlencode()}"
+        return redirect(redirect_url)
 
     @staticmethod
     def _clean_redirect_query(return_query, structure_source="", annotation_kind="", annotation_value="", applied_preset_id=None):
@@ -867,6 +901,10 @@ class ProteinListView(View):
         if not assembly_name:
             raise Http404("Genome not found")
 
+        raw_filters_param = request.GET.get("filters")
+        if raw_filters_param is not None:
+            return self._seed_filters_from_link(request, raw_filters_param)
+
         page_size = parse_page_size(request.GET.get("pageSize", DEFAULT_PAGE_SIZE))
         clear_search_url = self._build_clear_search_url(request, page_size)
         formulas = resolve_formulas_for_user(request.user)
@@ -1316,6 +1354,11 @@ class ProteinListView(View):
             query_params.pop("page")
         query_string = query_params.urlencode()
 
+        share_params = query_params.copy()
+        if selected_parameters:
+            share_params["filters"] = encode_selected_parameters(selected_parameters)
+        share_url = request.build_absolute_uri(f"{request.path}?{share_params.urlencode()}")
+
         structure_source_choices = self._build_structure_source_choices(
             request, page_size, structure_source
         )
@@ -1438,6 +1481,7 @@ class ProteinListView(View):
             "current_formula":current_formula,
             "formula_term_count": len(formula_term_list),
             "query_string": query_string,
+            "share_url": share_url,
             "genome": genome_url_slug(assembly_name),
             "assembly_name":assembly_name,
             "assembly_label": display_genome_name(assembly_name),
