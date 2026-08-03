@@ -14,6 +14,23 @@ def structure_file_path(genome_name, protein_accession, structure_code):
         last_path = candidate
         if os.path.exists(candidate):
             return candidate
+
+    # Some imports save the file under the bare PDB code even though
+    # PDB.code carries a "_chain_X" disambiguation suffix (the same crystal
+    # structure can be linked to more than one locus, so the suffix exists
+    # to tell those DB rows apart, not necessarily to name a separate
+    # per-chain file on disk). Fall back to the base code before giving up
+    # -- the NGL chain selector already restricts the displayed chain(s)
+    # regardless of which file version loads, so this is a safe substitute,
+    # not a wrong-structure risk.
+    base_code = CHAIN_SUFFIX_RE.sub("", structure_code)
+    if base_code != structure_code:
+        for base_dir in _candidate_seqstore_dirs():
+            seqstore = SeqStore(base_dir)
+            candidate = seqstore.structure(genome_name, protein_accession, base_code)
+            if os.path.exists(candidate):
+                return candidate
+
     raise FileNotFoundError(last_path or structure_code)
 
 
