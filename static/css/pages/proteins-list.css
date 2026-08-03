@@ -3787,14 +3787,14 @@ a.filter-pill .filter-pill-remove {
    row, so it's styled deliberately for that (a plain divided strip, not a
    third bordered "card" stacked between two buttons) rather than the
    boxed treatment that made the footer feel heavy with only 1-2 items. */
+/* A native <details> -- the same collapse pattern already used for the
+   "Function"/"Pocket" filter category groups above it in this drawer
+   (.filter-group / .filter-group-chevron), collapsed by default so N
+   queued changes reads as one compact status line instead of an
+   always-expanded list. */
 .filter-pending-summary {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    min-width: 0;
-    flex-basis: 100%;
-    padding: 6px 0 2px;
     border-top: 1px solid var(--tp-color-border-soft);
+    padding: 0 16px;
     color: var(--tp-color-text-secondary);
     font-size: 0.76rem;
     line-height: 1.2;
@@ -3805,14 +3805,37 @@ a.filter-pill .filter-pill-remove {
 }
 
 .filter-pending-summary__head {
-    display: inline-flex;
+    list-style: none;
+    display: flex;
     align-items: center;
-    gap: 5px;
-    min-width: max-content;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 8px 0;
+    cursor: pointer;
+    user-select: none;
     color: var(--tp-color-text-muted);
-    font-size: 0.7rem;
+    font-size: 0.72rem;
     font-weight: 600;
     letter-spacing: 0.02em;
+}
+
+.filter-pending-summary__head::-webkit-details-marker {
+    display: none;
+}
+
+.filter-pending-summary__head:hover {
+    color: var(--tp-color-text-secondary);
+}
+
+.filter-pending-summary__head:focus-visible {
+    outline: 2px solid var(--tp-color-border-accent);
+    outline-offset: 2px;
+}
+
+.filter-pending-summary__head-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
 }
 
 .filter-pending-summary__count {
@@ -3829,14 +3852,28 @@ a.filter-pill .filter-pill-remove {
     font-variant-numeric: tabular-nums;
 }
 
+.filter-pending-summary__chevron {
+    width: 7px;
+    height: 7px;
+    border-right: 2px solid var(--tp-color-text-muted);
+    border-bottom: 2px solid var(--tp-color-text-muted);
+    transform: rotate(-45deg);
+    transition: transform 180ms ease;
+    flex: 0 0 auto;
+}
+
+.filter-pending-summary[open] .filter-pending-summary__chevron {
+    transform: rotate(45deg);
+}
+
 .filter-pending-summary__list {
     display: flex;
     flex-direction: column;
     gap: 3px;
     min-width: 0;
-    max-height: 96px;
-    margin: 3px 0 0;
-    padding: 0;
+    max-height: 128px;
+    margin: 0;
+    padding: 0 0 8px;
     overflow-y: auto;
     list-style: none;
     color: var(--tp-color-text-secondary);

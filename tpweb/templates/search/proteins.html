@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20260803-pendinglight1">
+    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20260803-footerredesign1">
 {% endblock %}
 
 {% block body %}
@@ -980,6 +980,16 @@
                     </form>
                 </div>
             </section>
+            <details class="filter-pending-summary" id="filter-pending-summary" aria-live="polite" hidden>
+                <summary class="filter-pending-summary__head">
+                    <span class="filter-pending-summary__head-label">
+                        <span class="filter-pending-summary__count" id="filter-pending-count">0</span>
+                        <span>{% trans "pending changes" %}</span>
+                    </span>
+                    <span class="filter-pending-summary__chevron" aria-hidden="true"></span>
+                </summary>
+                <ul class="filter-pending-summary__list" id="filter-pending-list"></ul>
+            </details>
             <div class="drawer-foot-actions">
                 <form method="POST" action="" class="drawer-reset-form">
                     {% csrf_token %}
@@ -1001,13 +1011,6 @@
                     <input type="hidden" name="pending_annotation_kind" value="{% if annotation_filter %}{{ annotation_filter.kind }}{% endif %}">
                     <input type="hidden" name="pending_annotation_value" value="{% if annotation_filter %}{{ annotation_filter.value }}{% endif %}">
                 </form>
-                <div class="filter-pending-summary" id="filter-pending-summary" role="status" aria-live="polite" hidden>
-                    <div class="filter-pending-summary__head">
-                        <span class="filter-pending-summary__count" id="filter-pending-count">0</span>
-                        <span>{% trans "pending changes" %}</span>
-                    </div>
-                    <ul class="filter-pending-summary__list" id="filter-pending-list"></ul>
-                </div>
                 <button type="submit" form="filters-apply-form" class="btn tp-btn tp-btn--primary tp-btn-with-icon drawer-done-btn" id="filters-apply-btn" disabled>
                     <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/check.html" %}</span>
                     <span>{% trans "Apply filters" %}</span>
