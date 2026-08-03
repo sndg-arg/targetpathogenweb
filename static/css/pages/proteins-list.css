@@ -3728,12 +3728,6 @@ a.filter-pill .filter-pill-remove {
         gap: 6px;
     }
 
-    .filter-pending-summary {
-        order: -1;
-        flex-basis: 100%;
-        max-width: none;
-    }
-
     .drawer-clear-btn {
         min-width: clamp(116px, 30vw, 138px);
         font-size: 0.95rem;
@@ -3787,23 +3781,23 @@ a.filter-pill .filter-pill-remove {
     vertical-align: middle;
 }
 
-/* Pending summary in the drawer footer -- a vertical, scrollable list (not
-   capped) so every queued change is reachable and individually removable,
-   not just the first few with a dead "+N more" for the rest. */
+/* Pending summary in the drawer footer. At this drawer's actual width
+   (max 460px, see .filters-drawer) there was never room for this to sit
+   beside the Clear/Apply buttons -- it always wraps to its own full-width
+   row, so it's styled deliberately for that (a plain divided strip, not a
+   third bordered "card" stacked between two buttons) rather than the
+   boxed treatment that made the footer feel heavy with only 1-2 items. */
 .filter-pending-summary {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 2px;
     min-width: 0;
-    flex: 1 1 260px;
-    max-width: 420px;
-    padding: 7px 9px;
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: 8px;
-    background: var(--tp-color-surface);
+    flex-basis: 100%;
+    padding: 6px 0 2px;
+    border-top: 1px solid var(--tp-color-border-soft);
     color: var(--tp-color-text-secondary);
-    font-size: 0.78rem;
-    line-height: 1.25;
+    font-size: 0.76rem;
+    line-height: 1.2;
 }
 
 .filter-pending-summary[hidden] {
@@ -3813,38 +3807,40 @@ a.filter-pill .filter-pill-remove {
 .filter-pending-summary__head {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 5px;
     min-width: max-content;
-    color: var(--tp-color-text-primary);
-    font-weight: 700;
+    color: var(--tp-color-text-muted);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
 }
 
 .filter-pending-summary__count {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 18px;
-    height: 18px;
-    padding: 0 5px;
+    min-width: 15px;
+    height: 15px;
+    padding: 0 4px;
     border-radius: 999px;
     background: var(--tp-color-brand-600);
     color: white;
-    font-size: 0.68rem;
+    font-size: 0.64rem;
     font-variant-numeric: tabular-nums;
 }
 
 .filter-pending-summary__list {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 3px;
     min-width: 0;
-    max-height: 132px;
-    margin: 0;
+    max-height: 96px;
+    margin: 3px 0 0;
     padding: 0;
     overflow-y: auto;
     list-style: none;
     color: var(--tp-color-text-secondary);
-    font-weight: 600;
+    font-weight: 500;
 }
 
 .filter-pending-summary__item {
