@@ -2775,11 +2775,19 @@ a.filter-pill .filter-pill-remove {
     min-width: 0;
 }
 
-.filter-tray-clear-form {
+.filter-tray-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     margin: 0 0 0 auto;
 }
 
-.filter-tray-clear-btn {
+.filter-tray-clear-form {
+    margin: 0;
+}
+
+.filter-tray-clear-btn,
+.filter-tray-share-btn {
     padding: 5px 14px;
     border-radius: 999px !important;
     font-size: 0.82rem;
@@ -3511,13 +3519,34 @@ a.filter-pill .filter-pill-remove {
     background: var(--tp-color-surface-muted) !important;
 }
 
+.filter-input-message,
 .filter-numeric-message {
     min-height: 1rem;
     margin: -2px 2px 0;
-    color: var(--tp-color-danger-ink);
+    color: var(--tp-color-text-muted);
     font-size: 0.74rem;
     font-weight: 600;
     line-height: 1.25;
+}
+
+.filter-numeric-form.has-numeric-error .filter-input-message,
+.filter-numeric-form.has-numeric-error .filter-numeric-message {
+    color: var(--tp-color-danger-ink);
+}
+
+.filter-text-form + .filter-input-message {
+    margin-top: 6px;
+}
+
+.filter-numeric-form.has-pending-filter,
+.filter-text-form.has-pending-filter {
+    border-color: var(--tp-color-brand-200);
+    background: color-mix(in srgb, var(--tp-color-brand-100) 45%, var(--tp-color-surface));
+}
+
+.filter-numeric-form.has-pending-filter .filter-input-message,
+.filter-text-form.has-pending-filter + .filter-input-message {
+    color: var(--tp-color-brand-700);
 }
 
 @media (max-width: 560px) {
@@ -3720,11 +3749,58 @@ a.filter-pill .filter-pill-remove {
 
 /* Pending summary is superseded by the button badge — keep in DOM only */
 .filter-pending-summary {
+    display: grid;
+    gap: 6px;
+    min-width: min(260px, 100%);
+    max-width: 360px;
+    padding: 8px 10px;
+    border: 1px solid var(--tp-color-brand-200);
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--tp-color-brand-100) 38%, var(--tp-color-surface));
+    color: var(--tp-color-brand-800);
+    font-size: 0.78rem;
+    line-height: 1.25;
+}
+
+.filter-pending-summary[hidden] {
     display: none;
 }
 
+.filter-pending-summary__head {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 700;
+}
+
 .filter-pending-summary__count {
-    display: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: var(--tp-color-brand-600);
+    color: white;
+    font-size: 0.68rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.filter-pending-summary__list {
+    display: grid;
+    gap: 3px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    color: var(--tp-color-text-secondary);
+    font-weight: 600;
+}
+
+.filter-pending-summary__list li {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 /* --- Presets panel (bottom of drawer body) ------------------------------- */

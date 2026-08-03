@@ -729,7 +729,7 @@
                                     <div class="filter-param-head">
                                         <span class="filter-param-label">{% trans "Specific EC code" %}</span>
                                     </div>
-                                    <form method="POST" action="" class="filter-text-form">
+                                    <form method="POST" action="" class="filter-text-form" data-param-label="{% trans 'Specific EC code' %}">
                                         {% csrf_token %}
                                         <input type="hidden" name="action" value="add_special_filter">
                                         <input type="hidden" name="special_kind" value="ec">
@@ -745,6 +745,7 @@
                                             <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/plus.html" %}</span><span>{% trans "Add" %}</span>
                                         </button>
                                     </form>
+                                    <p class="filter-input-message" aria-live="polite"></p>
                                     {% if group.ec_specific_active %}
                                         <div class="filter-chip-group filter-chip-group--active">
                                             {% for entry in group.ec_specific_active %}
@@ -767,7 +768,7 @@
                                     <div class="filter-param-head">
                                         <span class="filter-param-label">{% trans "GO term" %}</span>
                                     </div>
-                                    <form method="POST" action="" class="filter-text-form">
+                                    <form method="POST" action="" class="filter-text-form" data-param-label="{% trans 'GO term' %}">
                                         {% csrf_token %}
                                         <input type="hidden" name="action" value="add_special_filter">
                                         <input type="hidden" name="special_kind" value="go">
@@ -782,6 +783,7 @@
                                             <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/plus.html" %}</span><span>{% trans "Add" %}</span>
                                         </button>
                                     </form>
+                                    <p class="filter-input-message" aria-live="polite"></p>
                                     {% if group.go_active %}
                                         <div class="filter-chip-group filter-chip-group--active">
                                             {% for entry in group.go_active %}
@@ -847,7 +849,7 @@
                                             {% endif %}
                                         </div>
                                         {% if param.type == "numeric" %}
-                                            <form method="POST" action="" class="filter-numeric-form">
+                                            <form method="POST" action="" class="filter-numeric-form" data-param-label="{{ param.label }}">
                                                 {% csrf_token %}
                                                 <input type="hidden" name="action" value="add_numeric_filter">
                                                 <input type="hidden" name="score_param_id" value="{{ param.id }}">
@@ -879,7 +881,7 @@
                                                         <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/check.html" %}</span><span>{% trans "Apply" %}</span>
                                                     </button>
                                                 </div>
-                                                <p class="filter-numeric-message" aria-live="polite"></p>
+                                                <p class="filter-numeric-message filter-input-message" aria-live="polite"></p>
                                             </form>
                                             {% if param.active_filters %}
                                                 <div class="filter-chip-group filter-chip-group--active">
@@ -990,8 +992,11 @@
                     <input type="hidden" name="pending_annotation_value" value="{% if annotation_filter %}{{ annotation_filter.value }}{% endif %}">
                 </form>
                 <div class="filter-pending-summary" id="filter-pending-summary" hidden>
-                    <span class="filter-pending-summary__count" id="filter-pending-count">0</span>
-                    <span>{% trans "pending changes" %}</span>
+                    <div class="filter-pending-summary__head">
+                        <span class="filter-pending-summary__count" id="filter-pending-count">0</span>
+                        <span>{% trans "pending changes" %}</span>
+                    </div>
+                    <ul class="filter-pending-summary__list" id="filter-pending-list"></ul>
                 </div>
                 <button type="submit" form="filters-apply-form" class="btn tp-btn tp-btn--primary tp-btn-with-icon drawer-done-btn" id="filters-apply-btn" disabled>
                     <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/check.html" %}</span>
@@ -1309,6 +1314,7 @@
             const filterPresetSaveForm = document.getElementById("filter-preset-save-form");
             const filterPendingSummary = document.getElementById("filter-pending-summary");
             const filterPendingCount = document.getElementById("filter-pending-count");
+            const filterPendingList = document.getElementById("filter-pending-list");
             let suggestionsTimer = null;
             let suggestionRequestId = 0;
             let activeSuggestionIndex = -1;
@@ -1339,6 +1345,76 @@
                 return pendingAppendActions.concat(Array.from(pendingToggleMap.values()));
             }
 
+            function cleanPendingValue(value) {
+                return String(value || "").trim().replace(",", ".");
+            }
+
+            function getFormParamLabel(form) {
+                if (!form) return "";
+                const explicit = (form.getAttribute("data-param-label") || "").trim();
+                if (explicit) return explicit;
+                const label = form.closest(".filter-param")?.querySelector(".filter-param-label");
+                return label ? label.textContent.trim() : "";
+            }
+
+            function numericOperationLabel(operation) {
+                if (operation === "lte") return "<=";
+                if (operation === "between") return "between";
+                return ">=";
+            }
+
+            function buildPendingActionLabel(payload, form) {
+                const paramLabel = getFormParamLabel(form);
+                if (payload.action === "add_numeric_filter") {
+                    const operation = payload.numeric_operation || "gte";
+                    const value = cleanPendingValue(payload.value);
+                    const valueMax = cleanPendingValue(payload.value_max);
+                    if (operation === "between") {
+                        return paramLabel + ": " + value + " - " + valueMax;
+                    }
+                    return paramLabel + ": " + numericOperationLabel(operation) + " " + value;
+                }
+                if (payload.action === "add_special_filter") {
+                    const value = String(payload.special_value || "").trim();
+                    return (paramLabel || payload.special_kind || "{% trans 'Filter' %}") + ": " + value;
+                }
+                if (payload.action === "remove_filter") {
+                    const chipLabel = form?.querySelector(".filter-chip-label")?.textContent.trim();
+                    return "{% trans 'Remove' %}: " + (chipLabel || paramLabel || "{% trans 'criterion' %}");
+                }
+                if (payload.action === "add_filter") {
+                    const chipLabel = form?.querySelector(".filter-chip-label")?.textContent.trim();
+                    return (paramLabel ? paramLabel + ": " : "") + (chipLabel || "{% trans 'criterion' %}");
+                }
+                return paramLabel || "{% trans 'Filter change' %}";
+            }
+
+            function pendingActionLabel(payload) {
+                return payload && payload._summary_label ? payload._summary_label : "{% trans 'Filter change' %}";
+            }
+
+            function renderPendingSummary(pendingCount, structureChanged, annotationChanged) {
+                if (!filterPendingSummary) return;
+                filterPendingSummary.hidden = pendingCount === 0;
+                if (filterPendingCount) filterPendingCount.textContent = String(pendingCount);
+                if (!filterPendingList) return;
+                filterPendingList.innerHTML = "";
+                if (pendingCount === 0) return;
+                const labels = getAllPendingActions().map(pendingActionLabel);
+                if (structureChanged) labels.push("{% trans 'Structure source filter changed' %}");
+                if (annotationChanged) labels.push("{% trans 'Annotation filter changed' %}");
+                labels.slice(0, 4).forEach(function (label) {
+                    const item = document.createElement("li");
+                    item.textContent = label;
+                    filterPendingList.appendChild(item);
+                });
+                if (labels.length > 4) {
+                    const overflow = document.createElement("li");
+                    overflow.textContent = "+" + String(labels.length - 4) + " {% trans 'more' %}";
+                    filterPendingList.appendChild(overflow);
+                }
+            }
+
             function syncPendingFilterForms() {
                 const actionPayload = JSON.stringify(getAllPendingActions());
                 [filtersApplyForm, filterPresetSaveForm].forEach(function (form) {
@@ -1357,6 +1433,7 @@
                 const annotationChanged = (pendingAnnotationKind || "") !== (CURRENT_FILTER_STATE.annotationKind || "")
                     || (pendingAnnotationValue || "") !== (CURRENT_FILTER_STATE.annotationValue || "");
                 const pendingCount = getAllPendingActions().length + (structureChanged ? 1 : 0) + (annotationChanged ? 1 : 0);
+                renderPendingSummary(pendingCount, structureChanged, annotationChanged);
                 if (filtersApplyBtn) {
                     filtersApplyBtn.disabled = pendingCount === 0;
                     var badge = filtersApplyBtn.querySelector(".apply-btn-count");
@@ -1488,6 +1565,7 @@
                 event.preventDefault();
                 const payload = formDataToObject(form);
                 if (!payload.action) return;
+                payload._summary_label = buildPendingActionLabel(payload, form);
 
                 if (payload.action === "set_structure_filter") {
                     const requestedStructure = payload.structure_source || "";
@@ -1529,8 +1607,12 @@
                 }
                 if (form.matches(".filter-text-form, .filter-numeric-form")) {
                     form.reset();
-                    const message = form.querySelector(".filter-numeric-message");
-                    if (message) message.textContent = "{% trans 'Pending until filters are applied.' %}";
+                    form.classList.remove("has-numeric-error");
+                    form.classList.add("has-pending-filter");
+                    const message = form.closest(".filter-param")?.querySelector(".filter-input-message");
+                    if (message) {
+                        message.textContent = "{% trans 'Queued' %}: " + payload._summary_label + ". {% trans 'Use Apply filters to update results.' %}";
+                    }
                 }
                 syncPendingFilterForms();
             }
