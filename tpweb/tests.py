@@ -20,6 +20,7 @@ from tpweb.models.PipelineRun import PipelineRun
 from tpweb.models.ScoreFormula import ScoreFormula
 from tpweb.models.ScoreParam import ScoreParam, ScoreParamOptions
 from tpweb.models.ScoreParamValue import ScoreParamValue
+from tpweb.models.Binders import Binders
 from tpweb.services.assembly_workspace import build_assembly_workspace_metrics
 from tpweb.services.assembly_overview import build_assembly_overview
 from tpweb.services.formula_evaluator import (
@@ -42,6 +43,7 @@ from tpweb.services.genomes import build_genome_dto, safe_int, summarize_genomes
 from tpweb.services.go_ontology import expand_go_records, parse_go_obo
 from tpweb.services.protein_list import (
     add_selected_parameter,
+    apply_selected_parameter_filters,
     apply_protein_search,
     empty_pagination_payload,
     grouped_selected_parameters,
@@ -357,6 +359,29 @@ class ProteinListServiceTests(SimpleTestCase):
         selected = remove_selected_parameter(selected, 1)
         self.assertEqual([x["id"] for x in selected], [2])
 
+    def test_ligand_filter_selection_is_mutually_exclusive(self):
+        selected = add_selected_parameter(
+            [],
+            {
+                "id": "special:ligands:yes",
+                "type": "special",
+                "special_key": "ligand_filter",
+                "special_value": "yes",
+            },
+        )
+        selected = add_selected_parameter(
+            selected,
+            {
+                "id": "special:ligands:no",
+                "type": "special",
+                "special_key": "ligand_filter",
+                "special_value": "no",
+            },
+        )
+
+        self.assertEqual(len(selected), 1)
+        self.assertEqual(selected[0]["special_value"], "no")
+
     def test_parse_page_size_bounds(self):
         self.assertEqual(parse_page_size("5"), 10)
         self.assertEqual(parse_page_size("25"), 25)
@@ -381,6 +406,57 @@ class ProteinListServiceTests(SimpleTestCase):
         result = apply_protein_search(queryset, "")
         self.assertIs(result, queryset)
         self.assertFalse(queryset.called)
+
+
+class ProteinListFilterQueryTests(TestCase):
+    def test_ligand_evidence_filter_matches_binder_by_protein_accession(self):
+        proteome = Biodatabase.objects.create(name="TEST_protein")
+        with_ligand = Bioentry.objects.create(
+            biodatabase=proteome,
+            name="protA",
+            accession="LOCUS_A",
+            identifier="LOCUS_A",
+        )
+        without_ligand = Bioentry.objects.create(
+            biodatabase=proteome,
+            name="protB",
+            accession="LOCUS_B",
+            identifier="LOCUS_B",
+        )
+        Binders.objects.create(
+            ccd_id="ATP",
+            pdb_id="1ABC",
+            uniprot="P12345",
+            locustag=with_ligand,
+            smiles="C",
+        )
+        proteins = Bioentry.objects.filter(biodatabase=proteome)
+
+        has_ligands = apply_selected_parameter_filters(
+            proteins,
+            [
+                {
+                    "type": "special",
+                    "special_key": "ligand_filter",
+                    "special_value": "yes",
+                }
+            ],
+        )
+        no_ligands = apply_selected_parameter_filters(
+            proteins,
+            [
+                {
+                    "type": "special",
+                    "special_key": "ligand_filter",
+                    "special_value": "no",
+                }
+            ],
+        )
+
+        self.assertEqual(list(has_ligands.values_list("accession", flat=True)), ["LOCUS_A"])
+        self.assertEqual(list(no_ligands.values_list("accession", flat=True)), ["LOCUS_B"])
+        self.assertNotEqual(with_ligand.pk, with_ligand.accession)
+        self.assertNotEqual(without_ligand.pk, without_ligand.accession)
 
 
 class ProteinFormulaServiceTests(SimpleTestCase):

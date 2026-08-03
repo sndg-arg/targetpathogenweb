@@ -208,6 +208,13 @@ def add_selected_parameter(selected_parameters, option_dict):
             if _selected_parameter_kind(item) != "numeric"
             or _coerce_score_param_id(item.get("score_param_id")) != option_param_id
         ]
+    elif option_kind == "special" and option_dict.get("special_key") == "ligand_filter":
+        selected_parameters = [
+            item
+            for item in selected_parameters
+            if _selected_parameter_kind(item) != "special"
+            or item.get("special_key") != "ligand_filter"
+        ]
     option_id = str(option_dict.get("id"))
     if any(str(item.get("id")) == option_id for item in selected_parameters):
         return selected_parameters
@@ -486,7 +493,7 @@ def apply_selected_parameter_filters(queryset, selected_parameters):
         if wants_ligands != wants_no_ligands:
             filtered_queryset = filtered_queryset.annotate(
                 has_ligand_evidence=Exists(
-                    Binders.objects.filter(locustag=OuterRef("pk"))
+                    Binders.objects.filter(locustag_id=OuterRef("accession"))
                 )
             ).filter(has_ligand_evidence=wants_ligands)
 
