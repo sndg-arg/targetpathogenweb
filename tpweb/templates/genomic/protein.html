@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260728-focalswatch1">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260729-loaderror1">
 {% endblock %}
 
 {% block body %}
@@ -1270,9 +1270,10 @@
             const structureLoadingNote = document.getElementById("structure-loading-note");
             const viewportElement = document.getElementById("viewport");
 
-            function setStructureLoadingVisible(visible, text) {
+            function setStructureLoadingVisible(visible, text, isError) {
                 if (!structureLoadingNote) return;
                 structureLoadingNote.style.display = visible ? "flex" : "none";
+                structureLoadingNote.classList.toggle("structure-loading-note--error", !!isError);
                 if (structureLoadingNote.parentElement) {
                     structureLoadingNote.parentElement.classList.toggle("is-loading", visible);
                 }
@@ -1412,7 +1413,7 @@
                 bindStructureWheelToViewer(viewportElement.parentElement || viewportElement);
 
                 if (typeof NGL === "undefined") {
-                    setStructureLoadingVisible(true, structureLoadErrorMessage);
+                    setStructureLoadingVisible(true, structureLoadErrorMessage, true);
                     return;
                 }
 
@@ -1561,7 +1562,7 @@
                             }, { delay: 60, maxWait: 900, idleTimeout: 700 });
                         })
                         .catch(function () {
-                            setStructureLoadingVisible(true, structureLoadErrorMessage);
+                            setStructureLoadingVisible(true, structureLoadErrorMessage, true);
                         });
                 }
 

@@ -1982,6 +1982,13 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     to { transform: rotate(360deg); }
 }
 
+/* An error message ("Unable to load...") reads as still-in-progress if a
+   spinner keeps turning right next to it -- hide it once loading has
+   definitively failed instead of just changing the text. */
+.structure-loading-note--error .structure-loading-spinner {
+    display: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
     .structure-loading-spinner {
         animation: none;

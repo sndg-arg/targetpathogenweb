@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20260727-premiumpolish1">
+    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20260729-loaderror1">
 {% endblock %}
 
 {% block body %}
@@ -261,9 +261,10 @@ function jsloaded() {
     var loadingNote   = document.getElementById("structure-loading-note");
     var vmdLink       = document.getElementById("sv-vmd-link");
 
-    function setLoadingNoteVisible(visible, text) {
+    function setLoadingNoteVisible(visible, text, isError) {
         if (!loadingNote) return;
         loadingNote.style.display = visible ? "flex" : "none";
+        loadingNote.classList.toggle("sv-loading-note--error", !!isError);
         if (text !== undefined) {
             var textEl = loadingNote.querySelector(".sv-loading-text");
             if (textEl) textEl.textContent = text;
@@ -458,7 +459,7 @@ function jsloaded() {
     window.representations = representations;
 
     if (typeof NGL === "undefined") {
-        setLoadingNoteVisible(true, "{% trans 'Unable to load 3D structure.' %}");
+        setLoadingNoteVisible(true, "{% trans 'Unable to load 3D structure.' %}", true);
         return;
     }
 
@@ -634,7 +635,7 @@ function jsloaded() {
             .catch(function () {
                 if (loadToken !== structureLoadToken) return;
                 setStructurePickerBusy(false);
-                setLoadingNoteVisible(true, "{% trans 'Unable to load 3D structure.' %}");
+                setLoadingNoteVisible(true, "{% trans 'Unable to load 3D structure.' %}", true);
             });
     }
 

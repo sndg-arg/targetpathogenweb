@@ -158,6 +158,13 @@ body:has(.sv-root) .tp-footer { display: none !important; }
     to { transform: rotate(360deg); }
 }
 
+/* An error message ("Unable to load...") reads as still-in-progress if a
+   spinner keeps turning right next to it -- hide it once loading has
+   definitively failed instead of just changing the text. */
+.sv-loading-note--error .sv-loading-spinner {
+    display: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
     .sv-loading-spinner {
         animation: none;
