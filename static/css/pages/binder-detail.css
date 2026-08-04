@@ -61,7 +61,12 @@
 
 /* ── Hero ─────────────────────────────────────────────────────────── */
 
-/* Base styles from .tp-page-hero in ui-system.css */
+/* No longer boxed via .tp-page-hero -- sits directly on the page
+   background (see tpw-editorial-redesign), so it needs its own padding
+   now instead of inheriting that shared class's. */
+.binder-hero {
+    padding: 20px 18px;
+}
 
 .binder-hero-top {
     display: flex;
@@ -239,6 +244,9 @@
     border: 1px solid var(--tp-color-border-soft);
     border-radius: 12px;
     background: var(--tp-color-surface-soft);
+    /* This box's own border needs to align with the 18px text inset used
+       by the unboxed hero around it. */
+    margin: 0 18px;
 }
 
 .binder-page .quick-nav::-webkit-scrollbar {
@@ -291,18 +299,19 @@
 
 /* ── Grid + panels ────────────────────────────────────────────────── */
 
+/* Sections sit directly on the page background, no card boxing (see
+   tpw-editorial-redesign). Eight sections here, each already opening
+   with its own bold h2 -- a divider before every one would read as a
+   ruled form, so a wider gap instead of a hairline, same call as
+   protein.html's .protein-grid. */
 .binder-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 14px;
+    gap: 32px;
 }
 
 .binder-card {
-    border: 1px solid var(--tp-color-border);
-    border-radius: var(--tp-ui-radius-panel);
-    background: var(--tp-color-surface);
-    padding: 16px;
-    overflow: hidden;
+    padding: 16px 18px;
     scroll-margin-top: 128px;
 }
 

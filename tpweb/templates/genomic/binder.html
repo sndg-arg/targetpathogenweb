@@ -3,12 +3,12 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/binder-detail.css' %}?v=20260726-formulafix3">
+    <link rel="stylesheet" href="{% static 'css/pages/binder-detail.css' %}?v=20260804-fusion1">
 {% endblock %}
 
 {% block body %}
     <div class="binder-page">
-        <section class="binder-hero tp-page-hero" id="section-overview">
+        <section class="binder-hero" id="section-overview">
             <div class="binder-hero-top tp-view-head">
                 <div class="binder-hero-content tp-view-head-copy">
                     {% trans "Genomes" as crumb_genomes %}
@@ -121,7 +121,7 @@
 
         <div class="binder-grid">
             <!-- Identifiers -->
-            <section class="binder-card tp-ui-panel binder-card--identifiers">
+            <section class="binder-card binder-card--identifiers">
                 <div class="section-head tp-ui-panel-head">
                     <div>
                         <h2>{% trans "Identifiers" %}</h2>
@@ -165,7 +165,7 @@
             </section>
 
             {% if binder.svg %}
-                <section class="binder-card tp-ui-panel binder-card--structure" id="section-structure">
+                <section class="binder-card binder-card--structure" id="section-structure">
                     <div class="section-head tp-ui-panel-head">
                         <div>
                             <h2>{% trans "Structure" %}</h2>
@@ -177,7 +177,7 @@
             {% endif %}
 
             {% if properties %}
-                <section class="binder-card tp-ui-panel binder-card--properties" id="section-properties">
+                <section class="binder-card binder-card--properties" id="section-properties">
                     <div class="section-head tp-ui-panel-head">
                         <div>
                             <h2>{% trans "Physicochemical properties" %}</h2>
@@ -228,7 +228,7 @@
                     </div>
                 </section>
 
-                <section class="binder-card tp-ui-panel binder-card--druglikeness" id="section-druglikeness">
+                <section class="binder-card binder-card--druglikeness" id="section-druglikeness">
                     <div class="section-head tp-ui-panel-head">
                         <div>
                             <h2>{% trans "Drug-likeness" %}</h2>
@@ -313,7 +313,7 @@
                 </section>
             {% endif %}
 
-            <section class="binder-card tp-ui-panel binder-card--strings" id="section-strings">
+            <section class="binder-card binder-card--strings" id="section-strings">
                 <div class="section-head tp-ui-panel-head">
                     <div>
                         <h2>{% trans "Chemical representations" %}</h2>
@@ -366,7 +366,7 @@
             </section>
 
             {% if binder.notes_items %}
-                <section class="binder-card tp-ui-panel binder-card--provenance" id="section-provenance">
+                <section class="binder-card binder-card--provenance" id="section-provenance">
                     <div class="section-head tp-ui-panel-head">
                         <div>
                             <h2>{% trans "Provenance" %}</h2>
@@ -385,7 +385,7 @@
             {% endif %}
 
             {% if external_links %}
-                <section class="binder-card tp-ui-panel binder-card--external" id="section-external">
+                <section class="binder-card binder-card--external" id="section-external">
                     <div class="section-head tp-ui-panel-head">
                         <div>
                             <h2>{% trans "External resources" %}</h2>
@@ -404,7 +404,7 @@
             {% endif %}
 
             {% if siblings.pdb or siblings.chembl or siblings.proposed %}
-                <section class="binder-card tp-ui-panel binder-card--siblings" id="section-siblings">
+                <section class="binder-card binder-card--siblings" id="section-siblings">
                     <div class="section-head tp-ui-panel-head">
                         <div>
                             <h2>{% trans "Other ligands for this protein" %}</h2>
