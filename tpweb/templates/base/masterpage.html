@@ -1989,18 +1989,17 @@
 
         /* Pure-CSS "target scanner" -- two concentric rings spinning in
            opposite directions around a center dot, evoking the target/
-           crosshair brand motif without pulling in the raster logo mark. */
+           crosshair brand motif without pulling in the raster logo mark.
+           No frame/background of its own -- the rings are already a
+           circular shape; boxing them in a second rounded square just
+           nested one rounded shape inside another for no reason. */
         .tp-page-loader-mark {
             width: 46px;
             height: 46px;
             flex-shrink: 0;
-            border-radius: 14px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(135deg, var(--tp-color-brand-050), var(--tp-color-sage-050));
-            border: 1px solid var(--tp-color-border-accent);
-            box-shadow: var(--tp-shadow-sm);
         }
 
         .tp-page-loader-target {
