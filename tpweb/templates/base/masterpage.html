@@ -1042,7 +1042,15 @@
             box-shadow: inset 0 -2px 0 rgba(255, 255, 255, 0.6);
         }
 
+        /* Used to be two nested wrappers, main.tp-main > div.tp-shell --
+           .tp-shell had already been stripped down to an inert box (no
+           border/background/shadow/padding of its own, its one-time
+           entrance animation permanently disabled) plus the masthead
+           accent bar. Nothing else in the codebase targets .tp-shell (no
+           JS, no other template), so it was pure redundant nesting with
+           no job left. Merged onto .tp-main directly. */
         .tp-main {
+            position: relative;
             flex: 1 0 auto;
             width: 100%;
             max-width: 1360px;
@@ -1050,26 +1058,15 @@
             padding: 18px 18px 36px;
         }
 
-        .tp-shell {
-            position: relative;
-            border: 0;
-            border-radius: 0;
-            background: transparent;
-            box-shadow: none;
-            padding: 0;
-            overflow: visible;
-            animation: none;
-        }
-
         /* Site-wide masthead rule -- every page's content sits inside
-           .tp-shell, so this is the one place to put it instead of a
+           .tp-main, so this is the one place to put it instead of a
            per-page hero decoration. Used to live as .home-hero::before,
            scoped to Home only, back when the hero had its own bordered
            card to be "the top edge of"; now that Home's sections share one
            continuous background instead of separate cards, anchoring it
            here makes it a consistent site identity mark instead of an
            orphaned line with nothing to attach to. */
-        .tp-shell::before {
+        .tp-main::before {
             content: "";
             position: absolute;
             inset: 0 0 auto 0;
@@ -1180,11 +1177,6 @@
 
             .tp-main {
                 padding: 10px 10px 24px;
-            }
-
-            .tp-shell {
-                border-radius: 0;
-                padding: 0;
             }
         }
 
@@ -1540,21 +1532,7 @@
             opacity: 1;
         }
 
-        @keyframes tp-shell-enter {
-            from {
-                opacity: 0;
-                transform: translateY(8px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
         @media (prefers-reduced-motion: reduce) {
-            .tp-shell {
-                animation: none;
-            }
             .btn,
             a,
             .tp-side-link {
@@ -2297,19 +2275,17 @@
 </nav>
 
 <main class="tp-main">
-    <div class="tp-shell">
-        {% if messages %}
-        <div class="tp-messages" id="tp-messages">
-            {% for message in messages %}
-                <div class="tp-message tp-message--{{ message.tags|default:'info' }}">
-                    <span>{{ message }}</span>
-                    <button type="button" class="tp-message-close" aria-label="Close">&times;</button>
-                </div>
-            {% endfor %}
-        </div>
-        {% endif %}
-        {% block body %}{% endblock %}
+    {% if messages %}
+    <div class="tp-messages" id="tp-messages">
+        {% for message in messages %}
+            <div class="tp-message tp-message--{{ message.tags|default:'info' }}">
+                <span>{{ message }}</span>
+                <button type="button" class="tp-message-close" aria-label="Close">&times;</button>
+            </div>
+        {% endfor %}
     </div>
+    {% endif %}
+    {% block body %}{% endblock %}
 </main>
 
 <footer class="footer mt-auto py-3 tp-footer">
