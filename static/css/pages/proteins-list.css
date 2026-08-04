@@ -1,15 +1,20 @@
+/* No card boxing/gap between top-level sections -- they sit directly on
+   the page background, divided by a hairline instead. See
+   tpw-editorial-redesign skill. */
 .proteins-page {
     font-family: "Source Sans 3", "Segoe UI", sans-serif;
     color: var(--tp-ink);
     margin: 0;
-    display: grid;
-    gap: var(--tp-space-4);
     --view-accent: var(--tp-accent);
     --view-accent-deep: var(--tp-accent-deep);
     --view-accent-ink: var(--tp-color-brand-900);
     --view-accent-soft: var(--tp-color-info-bg);
     --view-accent-soft-2: var(--tp-color-brand-050);
     --view-accent-border: var(--tp-color-brand-300);
+}
+
+.proteins-page > section ~ section {
+    border-top: 1px solid var(--tp-color-border-soft);
 }
 
 .proteins-page h1,
@@ -25,7 +30,12 @@
     font-weight: 700;
 }
 
-/* Base styles from .tp-page-hero in ui-system.css */
+/* No longer boxed via .tp-page-hero -- sits directly on the page
+   background (see tpw-editorial-redesign), so it needs its own padding
+   now instead of inheriting that shared class's. */
+.proteins-hero {
+    padding: 20px 18px;
+}
 
 .hero-top {
     display: flex;
@@ -300,26 +310,14 @@ a.filter-pill .filter-pill-remove {
 .toolbar-card {
     position: relative;
     z-index: 20;
-    border: 1px solid var(--tp-color-border);
-    border-radius: var(--tp-ui-radius-panel);
-    background: var(--tp-color-surface);
-    padding: var(--tp-ui-panel-padding);
+    padding: 14px 18px;
     display: grid;
     gap: var(--tp-ui-gap-md);
-    box-shadow: var(--tp-shadow-xs);
-    transition:
-        border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
-        box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
 }
 
 .toolbar-card:has(.toolbar-presets-dropdown:not([hidden])),
 .toolbar-card.is-presets-open {
     z-index: 900;
-}
-
-.toolbar-card:hover {
-    border-color: var(--tp-color-border-strong);
-    box-shadow: var(--tp-shadow-sm);
 }
 
 .search-form {
