@@ -13,7 +13,7 @@
 .human-list-search input[type="search"] {
     flex: 1;
     border: 1px solid var(--tp-color-border);
-    border-radius: var(--tp-radius-md);
+    border-radius: var(--tp-radius-hairline);
     padding: var(--tp-space-2) var(--tp-space-3);
     background: var(--tp-color-surface);
     color: var(--tp-color-text-primary);
