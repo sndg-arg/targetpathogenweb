@@ -137,26 +137,25 @@
     gap: var(--tp-space-2);
 }
 
+/* No full box of its own -- a colored left-accent groups the items
+   below it as strengths/risks/missing without adding a third nested
+   card on top of the panel and the individual items (see
+   tpw-editorial-redesign: card-in-a-card-in-a-card). */
 .target-summary-column {
     min-width: 0;
-    padding: var(--tp-space-3);
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: 8px;
-    background: color-mix(in srgb, var(--tp-color-surface) 86%, var(--tp-color-surface-soft));
+    padding: 0 0 0 var(--tp-space-3);
+    border-left: 3px solid var(--tp-color-border-soft);
 }
 
 .target-summary-column--strength {
-    border-left-width: 3px;
     border-left-color: var(--tp-color-success-border);
 }
 
 .target-summary-column--risk {
-    border-left-width: 3px;
     border-left-color: var(--tp-color-danger-border);
 }
 
 .target-summary-column--missing {
-    border-left-width: 3px;
     border-left-color: var(--tp-color-text-muted);
 }
 
