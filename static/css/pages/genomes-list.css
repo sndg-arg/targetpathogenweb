@@ -149,7 +149,6 @@
     justify-content: space-between;
     gap: 12px;
     padding: 16px 18px 12px;
-    border-bottom: 1px solid var(--tp-color-border-soft);
 }
 
 .genome-list-head-copy {
