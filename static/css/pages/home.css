@@ -20,9 +20,10 @@
 }
 
 .home-hero {
-    position: relative;
-    overflow: hidden;
-    padding: 28px 30px 26px;
+    /* Horizontal padding matches .home-panel/.home-post below so the left
+       text edge lines up down the whole page now that there's no card
+       frame to hide a mismatch. */
+    padding: 28px 18px 26px;
 }
 
 .home-hero-copy {
@@ -33,19 +34,6 @@
 
 .home-hero-stats {
     margin-top: 16px;
-}
-
-.home-hero::before {
-    content: "";
-    position: absolute;
-    inset: 0 0 auto 0;
-    height: 4px;
-    background: linear-gradient(90deg, var(--tp-color-brand-800) 0%, var(--tp-color-sage-700) 58%, var(--tp-color-brand-600) 100%);
-}
-
-.home-hero > * {
-    position: relative;
-    z-index: 1;
 }
 
 .home-hero-copy h1 {
