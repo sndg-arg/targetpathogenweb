@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20260803-quietremove1">
+    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20260804-smoothdetails1">
 {% endblock %}
 
 {% block body %}
@@ -2060,6 +2060,77 @@
                     if (expandLabel) {
                         expandLabel.textContent = expanded ? "{% trans 'Collapse all' %}" : "{% trans 'Expand all' %}";
                     }
+                }
+            }
+
+            // Smooth open/close for the drawer's native <details> panels
+            // (filter category groups + the pending-changes summary), driven
+            // by user clicks on their <summary> only -- the programmatic
+            // group.open assignments above (search-as-you-type, expand/collapse
+            // all) stay instant on purpose, since animating every keystroke's
+            // toggle would feel laggy.
+            const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+            const SMOOTH_DETAILS_DURATION = 200;
+            const SMOOTH_DETAILS_EASING = "ease-out";
+
+            function wireSmoothDetails(details) {
+                const summary = details.querySelector(":scope > summary");
+                if (!summary) return;
+                let animation = null;
+
+                function finish(isOpen) {
+                    details.open = isOpen;
+                    details.style.height = "";
+                    details.style.overflow = "";
+                    details.classList.toggle("is-open-visual", isOpen);
+                    animation = null;
+                }
+
+                function expand() {
+                    if (animation) animation.cancel();
+                    const startHeight = details.offsetHeight + "px";
+                    details.style.overflow = "hidden";
+                    details.classList.add("is-open-visual");
+                    details.open = true;
+                    const endHeight = details.offsetHeight + "px";
+                    animation = details.animate(
+                        { height: [startHeight, endHeight] },
+                        { duration: SMOOTH_DETAILS_DURATION, easing: SMOOTH_DETAILS_EASING }
+                    );
+                    animation.onfinish = function () { finish(true); };
+                }
+
+                function collapse() {
+                    if (animation) animation.cancel();
+                    const startHeight = details.offsetHeight + "px";
+                    details.style.overflow = "hidden";
+                    details.classList.remove("is-open-visual");
+                    details.open = false;
+                    const endHeight = details.offsetHeight + "px";
+                    details.open = true;
+                    animation = details.animate(
+                        { height: [startHeight, endHeight] },
+                        { duration: SMOOTH_DETAILS_DURATION, easing: SMOOTH_DETAILS_EASING }
+                    );
+                    animation.onfinish = function () { finish(false); };
+                }
+
+                summary.addEventListener("click", function (e) {
+                    e.preventDefault();
+                    if (details.open) {
+                        collapse();
+                    } else {
+                        expand();
+                    }
+                });
+            }
+
+            if (!prefersReducedMotion) {
+                if (filterCatalogue) {
+                    filterCatalogue.querySelectorAll(".filter-group").forEach(wireSmoothDetails);
+                }
+                if (filterPendingSummary) {
+                    wireSmoothDetails(filterPendingSummary);
                 }
             }
 

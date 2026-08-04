@@ -3101,7 +3101,8 @@ a.filter-pill .filter-pill-remove {
     transition: transform 180ms ease;
 }
 
-.filter-group[open] .filter-group-chevron {
+.filter-group[open] .filter-group-chevron,
+.filter-group.is-open-visual .filter-group-chevron {
     transform: rotate(45deg);
 }
 
@@ -3862,8 +3863,16 @@ a.filter-pill .filter-pill-remove {
     flex: 0 0 auto;
 }
 
-.filter-pending-summary[open] .filter-pending-summary__chevron {
+.filter-pending-summary[open] .filter-pending-summary__chevron,
+.filter-pending-summary.is-open-visual .filter-pending-summary__chevron {
     transform: rotate(45deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .filter-group-chevron,
+    .filter-pending-summary__chevron {
+        transition: none;
+    }
 }
 
 .filter-pending-summary__list {
