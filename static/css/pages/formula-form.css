@@ -28,26 +28,15 @@
 
 /* ── Hero ── */
 
+/* No longer its own boxed card -- sits directly on the page background
+   (see tpw-editorial-redesign). Its own top accent bar is gone too: that
+   was a page-local duplicate of the site-wide masthead rule in
+   .tp-main::before, which now covers this. The workbench cards below
+   stay individually boxed -- a side-by-side editor/variable-picker tool
+   layout, not sequential page sections (same call as customparam.html's
+   form+guide pair). */
 .formula-hero {
-    position: relative;
-    overflow: hidden;
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: var(--tp-ui-radius-hero);
-    background: var(--tp-color-surface);
-    padding: 22px 22px 18px;
-}
-
-.formula-hero::before {
-    content: "";
-    position: absolute;
-    inset: 0 0 auto 0;
-    height: 4px;
-    background: linear-gradient(90deg, var(--tp-color-brand-800) 0%, var(--tp-color-sage-700) 55%, var(--tp-color-brand-500) 100%);
-}
-
-.formula-hero > * {
-    position: relative;
-    z-index: 1;
+    padding: 22px 18px 18px;
 }
 
 .formula-eyebrow {
