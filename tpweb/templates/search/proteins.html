@@ -1370,6 +1370,20 @@
                 return getAllPendingActions().length > 0 || structureChanged || annotationChanged;
             }
 
+            // Set right before any navigation this page itself already asked
+            // about (its own confirm() dialog, or a submission that actually
+            // *resolves* the pending changes rather than discarding them) --
+            // beforeunload below only needs to catch navigation nothing here
+            // warned about yet (typing a URL, closing the tab, browser back).
+            let suppressBeforeUnloadWarning = false;
+
+            function confirmDiscardPending(message) {
+                if (!hasPendingChanges()) return true;
+                const confirmed = confirm(message);
+                if (confirmed) suppressBeforeUnloadWarning = true;
+                return confirmed;
+            }
+
             function cleanPendingValue(value) {
                 return String(value || "").trim().replace(",", ".");
             }
@@ -1763,7 +1777,7 @@
                     if (!page || page < 1) page = 1;
                     if (page > max) page = max;
                     if (page === {{ pagination.number }}) return;
-                    if (hasPendingChanges() && !confirm("{% trans 'You have unsaved filter changes. Leaving this page will discard them.' %}")) {
+                    if (!confirmDiscardPending("{% trans 'You have unsaved filter changes. Leaving this page will discard them.' %}")) {
                         return;
                     }
                     var params = new URLSearchParams(window.location.search);
@@ -2142,7 +2156,7 @@
 
             document.querySelectorAll(".tpd-apply-form").forEach(function (form) {
                 form.addEventListener("submit", function (e) {
-                    if (hasPendingChanges() && !confirm("{% trans 'You have unsaved filter changes. Applying this preset will discard them.' %}")) {
+                    if (!confirmDiscardPending("{% trans 'You have unsaved filter changes. Applying this preset will discard them.' %}")) {
                         e.preventDefault();
                     }
                 });
@@ -2151,7 +2165,26 @@
             const drawerResetForm = document.querySelector(".drawer-reset-form");
             if (drawerResetForm) {
                 drawerResetForm.addEventListener("submit", function (e) {
-                    if (hasPendingChanges() && !confirm("{% trans 'You have unsaved filter changes. Clearing all criteria will discard them too.' %}")) {
+                    if (!confirmDiscardPending("{% trans 'You have unsaved filter changes. Clearing all criteria will discard them too.' %}")) {
+                        e.preventDefault();
+                    }
+                });
+            }
+
+            if (filtersApplyForm) {
+                // Applying resolves the pending changes, it never discards
+                // them -- must never trigger the beforeunload warning below.
+                filtersApplyForm.addEventListener("submit", function () {
+                    suppressBeforeUnloadWarning = true;
+                });
+            }
+
+            if (filterPresetSaveForm) {
+                // Saving a preset only captures the already-applied filters,
+                // not anything still pending -- genuinely worth a warning,
+                // but only its own, not a redundant native one too.
+                filterPresetSaveForm.addEventListener("submit", function (e) {
+                    if (!confirmDiscardPending("{% trans 'You have unsaved filter changes that this preset will not include. Save anyway?' %}")) {
                         e.preventDefault();
                     }
                 });
@@ -2160,13 +2193,13 @@
             document.addEventListener("click", function (e) {
                 const paginationLink = e.target.closest(".pagination a");
                 if (!paginationLink) return;
-                if (hasPendingChanges() && !confirm("{% trans 'You have unsaved filter changes. Leaving this page will discard them.' %}")) {
+                if (!confirmDiscardPending("{% trans 'You have unsaved filter changes. Leaving this page will discard them.' %}")) {
                     e.preventDefault();
                 }
             });
 
             window.addEventListener("beforeunload", function (e) {
-                if (!hasPendingChanges()) return;
+                if (suppressBeforeUnloadWarning || !hasPendingChanges()) return;
                 e.preventDefault();
                 e.returnValue = "";
             });
