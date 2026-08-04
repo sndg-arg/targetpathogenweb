@@ -295,7 +295,9 @@
 }
 
 .genome-card {
-    padding: 16px;
+    /* Horizontal padding matches .genome-hero's 18px so card content
+       lines up with the hero above it instead of sitting 2px narrower. */
+    padding: 16px 18px;
     scroll-margin-top: 128px;
 }
 
