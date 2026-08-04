@@ -1409,8 +1409,12 @@
                 border: 1px solid transparent;
             }
 
+            /* A given alpha reads much fainter on the narrow collapsed
+               pill (~60px wide) than on the full-width expanded row --
+               same tint, far less surface area to carry it. Bumped so
+               collapsed and expanded read as the same visual language. */
             .tp-side-link.tp-side-link--primary {
-                background: rgba(255, 255, 255, 0.05);
+                background: rgba(255, 255, 255, 0.09);
             }
 
             /* Plain centered text, no background/radius of its own -- the
