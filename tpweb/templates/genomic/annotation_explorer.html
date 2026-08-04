@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/annotation-explorer.css' %}?v=20260804-scrollfix1">
+    <link rel="stylesheet" href="{% static 'css/pages/annotation-explorer.css' %}?v=20260804-fusion1">
     <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
 {% endblock %}
 
@@ -11,7 +11,7 @@
     {{ explorer.chart|json_script:"annotation-chart-data" }}
 
     <div class="explorer-page">
-        <section class="explorer-hero tp-page-hero">
+        <section class="explorer-hero">
             {% trans "Genomes" as crumb_genomes %}
             {% trans "Proteins" as crumb_proteins %}
             {% if explorer.kind == "ec" %}

@@ -20,7 +20,12 @@
 
 /* ── Hero ── */
 
-/* Base styles from .tp-page-hero in ui-system.css */
+/* No longer boxed via .tp-page-hero -- sits directly on the page
+   background (see tpw-editorial-redesign), so it needs its own padding
+   now instead of inheriting that shared class's. */
+.explorer-hero {
+    padding: 20px 18px;
+}
 
 .explorer-eyebrow {
     display: inline-flex;
@@ -55,11 +60,15 @@
 
 /* ── Cards ── */
 
+/* Kept boxed on purpose -- a single workbench/tool card, not a stack of
+   page sections. Margin aligns its border with the 18px text inset the
+   unboxed hero above it uses. */
 .explorer-card {
     border: 1px solid var(--tp-color-border-soft);
     border-radius: var(--tp-ui-radius-panel);
     background: var(--tp-color-surface);
     padding: 18px;
+    margin: 0 18px;
 }
 
 /* ── Workbench ── */
