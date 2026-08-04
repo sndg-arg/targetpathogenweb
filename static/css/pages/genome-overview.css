@@ -12,6 +12,15 @@
     --genome-accent-border: var(--tp-color-brand-300);
 }
 
+/* Only matches direct <section> siblings -- .quick-nav is a <nav> and
+   .genome-grid is a <div>, so this only kicks in on pages (like
+   Metabolism) where a content section sits as a direct sibling of the
+   hero with nothing else in between. Assembly's quick-nav/genome-grid
+   stay on their own gap-based spacing, untouched by this rule. */
+.genome-page > section ~ section {
+    border-top: 1px solid var(--tp-color-border-soft);
+}
+
 .genome-page h1,
 .genome-page h2,
 .genome-page h3 {
@@ -46,7 +55,12 @@
 
 /* ── Hero ─────────────────────────────────────────────────────────── */
 
-/* Base styles from .tp-page-hero in ui-system.css */
+/* No longer boxed via .tp-page-hero -- sits directly on the page
+   background (see tpw-editorial-redesign), so it needs its own padding
+   now instead of inheriting that shared class's. */
+.genome-hero {
+    padding: 20px 18px;
+}
 
 .genome-hero-top {
     display: flex;
@@ -262,30 +276,38 @@
    downloads/details/danger) -- a plain single-column stack, not a 2-column
    grid. (Previously declared as a 2-column grid with every child forcing
    grid-column:1/-1 to override it back to full-width; that template was
-   never actually used and just made the layout harder to follow.) */
+   never actually used and just made the layout harder to follow.)
+   No per-card border/background/shadow -- sections sit directly on the
+   page background. See tpw-editorial-redesign skill. */
 .genome-grid {
     display: flex;
     flex-direction: column;
-    gap: 14px;
+}
+
+/* Spacing only, no hairline -- six sections in a row (targets/evidence/
+   browse/downloads/details/danger), each already opening with its own
+   bold h2. A divider before every single one on top of that would read
+   as a ruled form/spreadsheet rather than an editorial page; the heading
+   itself is enough of a "new section" signal here, so this is generous
+   whitespace instead of a repeated line. */
+.genome-grid > * ~ * {
+    margin-top: 40px;
 }
 
 .genome-card {
+    padding: 16px;
+    scroll-margin-top: 128px;
+}
+
+/* Exception: the two ranking tiles inside .genome-targets-wrap are a
+   side-by-side pair (same content type, just differently filtered), not
+   sequential page sections -- they keep individual card treatment like a
+   chip/tile pair, per tpw-editorial-redesign's exception rule. */
+.genome-card--ranking {
     border: 1px solid var(--tp-color-border);
     border-radius: var(--tp-ui-radius-panel);
     background: var(--tp-color-surface);
-    padding: 16px;
-    overflow: hidden;
-    scroll-margin-top: 128px;
     box-shadow: var(--tp-shadow-xs);
-    transition:
-        border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
-        box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
-        transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
-}
-
-.genome-card:hover {
-    border-color: var(--tp-color-border-strong);
-    box-shadow: var(--tp-shadow-sm);
 }
 
 .genome-card h2 {

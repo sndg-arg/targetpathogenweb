@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20260722-itemheight1">
+    <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20260804-fusion1">
     <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260804-crossrefs1">
     <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20260728-connections1">
     <link rel="stylesheet" href="{% static 'css/pages/protein-metabolic-network.css' %}?v=20260728-feedbackfix1">
@@ -11,7 +11,7 @@
 
 {% block body %}
 <div class="genome-page metabolism-page protein-metabolic-network-page">
-    <section class="genome-hero metabolism-hero tp-page-hero">
+    <section class="genome-hero metabolism-hero">
         <div class="genome-hero-top tp-view-head">
             <div class="genome-hero-content tp-view-head-copy">
                 {% trans "Genomes" as crumb_genomes %}
@@ -59,7 +59,7 @@
         <a href="#section-reactions" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Catalyzed reactions" %}</a>
     </nav>
 
-    <section class="genome-card metabolism-panel tp-ui-panel" id="section-pathways">
+    <section class="genome-card metabolism-panel" id="section-pathways">
         <div class="section-head tp-ui-panel-head">
             <div>
                 <h2>{% trans "Pathways" %}</h2>
@@ -77,7 +77,7 @@
         {% endif %}
     </section>
 
-    <section class="genome-card metabolism-panel tp-ui-panel" id="section-network">
+    <section class="genome-card metabolism-panel" id="section-network">
         <div class="section-head tp-ui-panel-head">
             <div>
                 <h2>{% trans "Network" %}</h2>
@@ -111,7 +111,7 @@
         </div>
     </section>
 
-    <section class="genome-card metabolism-panel tp-ui-panel" id="section-selected">
+    <section class="genome-card metabolism-panel" id="section-selected">
         <div class="section-head tp-ui-panel-head">
             <div>
                 <h2>{% trans "Selected reaction" %}</h2>
@@ -135,7 +135,7 @@
         </div>
     </section>
 
-    <section class="genome-card metabolism-panel tp-ui-panel" id="section-reactions">
+    <section class="genome-card metabolism-panel" id="section-reactions">
         <div class="section-head tp-ui-panel-head">
             <div>
                 <h2>{% trans "Catalyzed reactions" %}</h2>

@@ -13,7 +13,11 @@
     --view-accent-border: var(--tp-color-brand-300);
 }
 
-.proteins-page > section ~ section {
+/* .filter-tray excluded on both sides -- it already carries its own
+   border + left-accent stripe as a contextual "active filters" callout,
+   so a hairline on top of that would be two boundary signals for the
+   same seam. Its own margin provides the spacing instead. */
+.proteins-page > section:not(.filter-tray) ~ section:not(.filter-tray) {
     border-top: 1px solid var(--tp-color-border-soft);
 }
 

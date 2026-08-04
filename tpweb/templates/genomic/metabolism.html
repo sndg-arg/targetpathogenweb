@@ -3,13 +3,13 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20260722-itemheight1">
+    <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20260804-fusion1">
     <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20260728-connections1">
 {% endblock %}
 
 {% block body %}
 <div class="genome-page metabolism-page">
-    <section class="genome-hero metabolism-hero tp-page-hero">
+    <section class="genome-hero metabolism-hero">
         <div class="genome-hero-top tp-view-head">
             <div class="genome-hero-content tp-view-head-copy">
                 {% trans "Genomes" as crumb_genomes %}
@@ -46,7 +46,7 @@
         </div>
     </section>
 
-    <section class="genome-card metabolism-panel tp-ui-panel">
+    <section class="genome-card metabolism-panel">
         <div class="section-head tp-ui-panel-head">
             <div>
                 <h2>{% trans "Pathway target space" %}</h2>

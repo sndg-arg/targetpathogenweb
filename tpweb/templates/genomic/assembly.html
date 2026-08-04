@@ -4,12 +4,12 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20260726-signalmore2">
+    <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20260804-fusion1">
 {% endblock %}
 
 {% block body %}
     <div class="genome-page">
-        <section class="genome-hero tp-page-hero" id="section-overview">
+        <section class="genome-hero" id="section-overview">
             <div class="genome-hero-top tp-view-head">
                 <div class="genome-hero-content tp-view-head-copy">
                     {% trans "Genomes" as crumb_genomes %}
@@ -142,7 +142,7 @@
             {% if top_targets_by_score.items or unexplored_targets.items %}
                 <section class="genome-targets-wrap" id="section-targets">
                     {% if top_targets_by_score.items %}
-                        <div class="genome-card tp-ui-panel genome-card--ranking">
+                        <div class="genome-card genome-card--ranking">
                             <div class="section-head tp-ui-panel-head">
                                 <div>
                                     <!-- Invisible spacer matching the secondary ranking's "No ligand evidence
@@ -181,7 +181,7 @@
                     {% endif %}
 
                     {% if unexplored_targets.items %}
-                        <div class="genome-card tp-ui-panel genome-card--ranking genome-card--ranking-secondary">
+                        <div class="genome-card genome-card--ranking genome-card--ranking-secondary">
                             <div class="section-head tp-ui-panel-head">
                                 <div>
                                     <span class="targets-eyebrow">{% trans "No ligand evidence yet" %}</span>
@@ -215,7 +215,7 @@
             {% endif %}
 
             <!-- Evidence available -->
-            <section class="genome-card tp-ui-panel genome-card--evidence" id="section-evidence">
+            <section class="genome-card genome-card--evidence" id="section-evidence">
                 <div class="section-head tp-ui-panel-head">
                     <div>
                         <h2>{% trans "Evidence available" %}</h2>
@@ -333,7 +333,7 @@
             </section>
 
             {% if jbrowse_embed.enabled %}
-                <section class="genome-card tp-ui-panel genome-card--browse" id="section-browse">
+                <section class="genome-card genome-card--browse" id="section-browse">
                     <div class="section-head tp-ui-panel-head">
                         <div>
                             <h2>{% trans "Genome browser" %}</h2>
@@ -353,7 +353,7 @@
             {% endif %}
 
             <!-- Downloads -->
-            <section class="genome-card tp-ui-panel genome-card--downloads" id="section-downloads">
+            <section class="genome-card genome-card--downloads" id="section-downloads">
                 <div class="section-head tp-ui-panel-head">
                     <div>
                         <h2>{% trans "Downloads" %}</h2>
@@ -380,7 +380,7 @@
             </section>
 
             <!-- Imported details -->
-            <section class="genome-card tp-ui-panel genome-card--details" id="section-details">
+            <section class="genome-card genome-card--details" id="section-details">
                 <div class="section-head tp-ui-panel-head">
                     <div>
                         <h2>{% trans "Imported genome details" %}</h2>
@@ -409,7 +409,7 @@
             </section>
 
             {% if can_delete_workspace %}
-                <section class="genome-card tp-ui-panel genome-card--danger" id="section-dataset">
+                <section class="genome-card genome-card--danger" id="section-dataset">
                     <div class="section-head tp-ui-panel-head">
                         <div>
                             <h2>{% trans "Dataset removal" %}</h2>
