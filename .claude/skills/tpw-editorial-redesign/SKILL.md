@@ -146,6 +146,25 @@ literal stacks, per the no-hardcoded-values rule above.
   with a single 1px `border-top`/`border-bottom: 1px solid var(--tp-color-border-soft)` hairline.
   Keep `--tp-shadow-xs`/`-sm` for genuinely floating/overlay elements only (modals, dropdowns,
   tooltips, the agent drawer) — not for static content sections sitting in the page flow.
+- **Section fusion — the more important structural move, not just a radius swap.** Flat corners
+  alone still read as "SaaS dashboard" if the page is a vertical stack of N separately-bordered
+  `.tp-ui-panel` boxes with gaps between them (hero card, then a gap, then an "about" card, then a
+  gap, then another card). Merge siblings like that into **one continuous bordered sheet**: drop
+  `.tp-ui-panel`/individual borders from each section, give the *outer wrapping container* a
+  single `border: 1px solid var(--tp-color-border-soft)` (no gap, no per-section background), and
+  add a hairline `border-top` between consecutive sibling `<section>`s instead — use `section ~
+  section` (general sibling), not `section + section` (adjacent), since a conditional script tag
+  or modal-backdrop `<div>` can sit between two sections in the DOM without breaking the divider.
+  Reference implementation: `home.css`'s `.home-page`/`.home-page > section ~ section` (redesign
+  step 3). Apply the same fusion wherever a page stacks multiple `.tp-ui-panel`/`.tp-card`
+  sections vertically with gaps — check each page in steps 5-7 for this pattern, not just radius.
+- **Seamless mosaic for card grids** (already documented in `tpw-frontend-styling`): when a section
+  contains a grid of small equal-weight cards (e.g. home's 6-card "Data sources" methodology
+  grid), don't give each card its own border/radius/shadow — set the grid container's `gap: 1px`
+  + `background: var(--tp-color-border-soft)`, and give each card `background: var(--tp-color-
+  surface)` only. The 1px gaps read as hairline dividers, and a hover state becomes a background
+  tint (`var(--tp-color-surface-soft)`) instead of a border/shadow/lift change. Reference:
+  `home.css`'s `.home-about-grid`/`.home-about-card`.
 
 ## Interaction & motion — keep the app feeling like a tool, not a page
 
