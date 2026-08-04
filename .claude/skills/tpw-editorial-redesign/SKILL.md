@@ -83,6 +83,20 @@ thing on the page. When evaluating a candidate: "is this a distinct page section
 methodology write-up, an operations panel)" → fuse it. "Is this one tile among several
 same-shaped siblings, closer to a tag than a section" → leave its card styling alone.
 
+## Any element that keeps its own border needs a margin, not just padding
+
+This bit as a real bug across several pages before it got caught: once a page's hero/sections are
+fused (no border, inset via `padding: <v> 18px`), anything that's *intentionally* left boxed
+(quick-nav, a workbench card, a callout) still needs `margin: 0 18px` on the box itself. Without
+it, the box's border sits flush at the page's raw edge (`margin: 0` by default) while everything
+else's *text* starts 18px in via padding — the border visibly pokes out to the left of all the
+unboxed content around it. Padding alone only controls where a box's own content sits *inside* the
+box; it does nothing for where the box's edge sits *relative to its siblings*. Checklist for any
+element you deliberately leave boxed: does it sit next to (or between) unboxed, padding-inset
+content? If yes, it needs `margin: 0 18px` (or equivalent) so the border lines up. Also watch for
+`width: 100%` combined with that margin — it overflows the container (100% + 36px); use `width:
+auto` (or drop the explicit width and rely on grid stretch/flex sizing) instead.
+
 ## Site-wide chrome already handled — don't redo per page
 
 - **Masthead accent bar**: lives on `.tp-main::before`/`::after` in `masterpage.html` (gradient
@@ -105,12 +119,19 @@ templates with more than one occurrence (a single `.tp-ui-panel` isn't a "stacke
   `genomic/customparam.html`. Assembly/metabolism/metabolism_network/metabolism_pathway/
   protein_metabolic_network share `.genome-hero`/`.genome-card` in `genome-overview.css`, fixed
   once there rather than per page.
-- **Still open — Medium**: `search/formulaform.html` (6), `about/about_us.html` (6).
-- **Still open — Large** (many of these ~20 occurrences will be legitimate "small tile" exceptions
-  per the rule above, not page-sections to fuse — don't blind-strip every `.tp-ui-panel` class
-  without checking what each one actually renders): `user/upload_data.html` (13),
-  `human/human_protein.html` (12), `genomic/binder.html` (16), `genomic/protein.html` (20),
-  `about/data_sources.html` (20).
+- **Done (all)**: `search/formulaform.html`, `about/about_us.html`, `user/upload_data.html`,
+  `human/human_protein.html`, `genomic/binder.html`, `genomic/protein.html`,
+  `about/data_sources.html`, `genomic/annotation_explorer.html` (single-hero page, missed by the
+  original ">1 tp-ui-panel" scan — re-audit with `grep -rln "tp-page-hero" tpweb/templates` to
+  catch that class of miss, not just the multi-panel one). Every `.tp-page-hero` usage site-wide is
+  gone as of this pass — confirm that stays true (`grep -rln tp-page-hero tpweb/templates` should
+  return nothing) before considering a new page "done."
+- Workbench/tool-style pages keep one card boxed on purpose: `formula-form.css`'s editor+variables
+  cards and footer, `customparam.css`'s form+guide, `genome-upload.css`'s submit-form+guide,
+  `annotation-explorer.css`'s single `.explorer-card`. `protein-detail.css`'s
+  `.target-summary-panel` (tone-colored executive summary) and `.protein-interpretation-guide`
+  (collapsible info box) are callout-style exceptions, not workbench ones, but the same "boxed
+  element needs `margin: 0 18px` for border alignment" fix applies to all of them.
 - Check each page's own CSS file under `static/css/pages/` for its `.tp-ui-panel`/`.tp-card`-based
   section styling before editing the template — several pages (genomes-list, proteins-list,
   customparam) duplicate the shared class's box styling directly under a page-specific class name,
