@@ -19,26 +19,12 @@
 }
 .genome-upload-page h1 { font-weight: 700; }
 
+/* No longer its own boxed card -- sits directly on the page background
+   (see tpw-editorial-redesign). Its own top accent bar is gone too: that
+   was a page-local duplicate of the site-wide masthead rule in
+   .tp-main::before, which now covers this. */
 .genome-upload-hero {
-    position: relative;
-    overflow: hidden;
-    border: 1px solid var(--upload-border);
-    border-radius: var(--tp-ui-radius-hero);
-    background: var(--tp-color-surface);
-    padding: 22px 22px 18px;
-}
-
-.genome-upload-hero::before {
-    content: "";
-    position: absolute;
-    inset: 0 0 auto 0;
-    height: 4px;
-    background: linear-gradient(90deg, var(--tp-color-brand-800) 0%, var(--tp-color-sage-700) 55%, var(--tp-color-brand-500) 100%);
-}
-
-.genome-upload-hero > * {
-    position: relative;
-    z-index: 1;
+    padding: 22px 18px 18px;
 }
 
 .genome-upload-eyebrow {
@@ -143,22 +129,33 @@
     grid-template-columns: minmax(0, 1.6fr) minmax(300px, 0.9fr);
     gap: 18px;
     align-items: start;
+    /* The two cards inside keep their own border -- margin aligns that
+       border with the 18px text inset the unboxed hero uses. */
+    margin: 0 18px;
 }
 
-.genome-upload-card,
-.genome-upload-history {
+/* .genome-upload-card (the form+guide workbench pair) keeps its own
+   card box -- side-by-side tool layout, same call as customparam.html's
+   form+guide. .genome-upload-history sections (recent submissions,
+   curated import, etc.) fuse instead -- they're sequential page
+   sections, not a paired workbench. See tpw-editorial-redesign. */
+.genome-upload-card {
     border: 1px solid var(--upload-border);
     border-radius: var(--tp-ui-radius-panel);
     background: var(--tp-color-surface);
-}
-
-.genome-upload-card {
-    padding: 16px;
+    padding: 16px 18px;
 }
 
 .genome-upload-history {
-    overflow: hidden;
-    padding: 16px;
+    padding: 16px 18px;
+}
+
+/* Extra breathing room between consecutive history-style sections
+   (staff view can stack up to 4), on top of .genome-upload-page's own
+   grid gap -- each already opens with its own bold h2, so spacing only,
+   no hairline, same call as assembly.html's genome-grid. */
+.genome-upload-history ~ .genome-upload-history {
+    margin-top: 20px;
 }
 
 .genome-upload-card-head {
