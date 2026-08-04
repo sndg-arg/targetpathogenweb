@@ -66,8 +66,14 @@
             --tp-color-nav-800: #123947;
             --tp-color-nav-700: #185266;
             --tp-color-nav-600: #267188;
-            --tp-color-page-start: #eef0f3;
-            --tp-color-page-end: #e2e5ea;
+            /* Matches --tp-color-surface below -- the page background used
+               to be a visibly darker gray specifically to create contrast
+               for white cards floating on it. Now that content sections
+               sit directly on the page background instead of on separate
+               card surfaces, that contrast has no job to do anymore and
+               just reads as an unwanted gray margin around white content. */
+            --tp-color-page-start: #fdfdfd;
+            --tp-color-page-end: #fdfdfd;
             --tp-color-surface: #fdfdfd;
             --tp-color-surface-soft: #f6f7f9;
             --tp-color-surface-muted: #eef0f3;
