@@ -214,7 +214,9 @@
     flex-wrap: nowrap;
     gap: 8px;
     overflow-x: auto;
-    padding: 8px 10px;
+    /* Horizontal padding matches .genome-hero/.genome-card's 18px so the
+       first nav link lines up with the hero/card text above and below it. */
+    padding: 8px 18px;
     border: 1px solid var(--tp-color-border-soft);
     border-radius: 10px;
     background: var(--tp-color-surface-soft);
