@@ -1,6 +1,9 @@
-/* No card boxing/gap between top-level sections -- they sit directly on
-   the page background, divided by a hairline instead (see "section ~
-   section" below). See tpw-editorial-redesign skill. */
+/* No card boxing between top-level sections -- they sit directly on the
+   page background. Spacing only between them (no hairline): hero has a
+   big h1, the table section opens with its own h2 "Available genomes",
+   and the toolbar is just a search bar -- close enough together that a
+   line felt like one signal too many on top of the heading/whitespace
+   already doing the job. See tpw-editorial-redesign skill. */
 .genomes-page {
     font-family: "Source Sans 3", "Segoe UI", sans-serif;
     color: var(--tp-ink);
@@ -14,7 +17,7 @@
 }
 
 .genomes-page > section ~ section {
-    border-top: 1px solid var(--tp-color-border-soft);
+    margin-top: 32px;
 }
 
 .genomes-page h1,
