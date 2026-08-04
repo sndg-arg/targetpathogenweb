@@ -4846,6 +4846,29 @@ body.residue-modal-open {
     }
 }
 
+/* ── Cross-references hub (#section-cross-references) ───────────────── */
+
+.cross-reference-group + .cross-reference-group {
+    margin-top: var(--tp-space-4);
+}
+
+.cross-reference-group-label {
+    margin: 0 0 var(--tp-space-2);
+    padding: 0 0 var(--tp-space-2);
+    border-bottom: 1px solid var(--tp-color-border-soft);
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-label);
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.cross-reference-chip-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--tp-space-2);
+}
+
 @media (max-width: 520px) {
     .data-details-summary-meta {
         display: none;

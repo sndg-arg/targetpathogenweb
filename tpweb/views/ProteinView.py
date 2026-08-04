@@ -42,6 +42,7 @@ from tpweb.services.protein_summary import (
     build_protein_executive_context as _build_protein_executive_context,
 )
 from tpweb.services.binder_summary import create_binders_dict
+from tpweb.services.cross_references import build_protein_cross_references
 
 
 def _short_method(method_str):
@@ -697,6 +698,8 @@ class ProteinView(View):
             predicted_structures = _build_predicted_structures(predicted, protein_length, primary_link=primary_link, alt_link=alt_link)
             dto["predicted_structures"] = predicted_structures
 
-
+        dto["cross_references"] = build_protein_cross_references(
+            dto["uniprot_accessions"], dto["experimental_structures"], dto["binders"], dto["metabolic_context"],
+        )
 
         return render(request, self.template_name, dto)
