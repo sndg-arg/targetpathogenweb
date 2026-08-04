@@ -7,13 +7,13 @@
     {# protein-detail.css supplies the hero/card/binders-table/binder-intel/binder-mol-modal
        styling this page deliberately reuses verbatim (same markup, same tokens) --
        human-protein-detail.css only adds the genuinely new human-specific classes. #}
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260804-crossrefs1">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260804-fusion1">
     <link rel="stylesheet" href="{% static 'css/pages/human-protein-detail.css' %}?v=20260729-humantargets2">
 {% endblock %}
 
 {% block body %}
     <div class="human-protein-page protein-page">
-        <section class="protein-hero tp-page-hero" id="section-overview">
+        <section class="protein-hero" id="section-overview">
             <div class="protein-hero-top tp-view-head">
                 <div class="protein-hero-content tp-view-head-copy">
                     {% trans "Human Targets" as crumb_human %}
@@ -84,7 +84,7 @@
 
         <main class="protein-main" aria-label="{% trans 'Protein evidence sections' %}">
 
-            <section class="protein-card tp-ui-panel" id="section-overview-detail">
+            <section class="protein-card" id="section-overview-detail">
                 <div class="section-head tp-ui-panel-head">
                     <div>
                         <h2>{% trans "Overview" %}</h2>
@@ -156,7 +156,7 @@
                 </div>
             </section>
 
-            <section class="protein-card tp-ui-panel" id="section-function">
+            <section class="protein-card" id="section-function">
                 <div class="section-head tp-ui-panel-head">
                     <div>
                         <h2>{% trans "Function" %}</h2>
@@ -201,7 +201,7 @@
                 {% endif %}
             </section>
 
-            <section class="protein-card tp-ui-panel" id="section-sequence">
+            <section class="protein-card" id="section-sequence">
                 <div class="section-head tp-ui-panel-head">
                     <div>
                         <h2>{% trans "Sequence" %}</h2>
@@ -241,7 +241,7 @@
             </section>
 
             {% if structure.has_structure %}
-            <section class="protein-card tp-ui-panel" id="section-structure">
+            <section class="protein-card" id="section-structure">
                 <div class="section-head tp-ui-panel-head">
                     <div>
                         <h2>{% trans "3D structure" %}</h2>
@@ -280,7 +280,7 @@
             {% endif %}
 
             {% if binders.total %}
-            <section class="protein-card tp-ui-panel" id="section-binders">
+            <section class="protein-card" id="section-binders">
                 <div class="section-head tp-ui-panel-head">
                     <div>
                         <h2>{% trans "Ligand evidence" %}</h2>
@@ -388,7 +388,7 @@
             </section>
             {% endif %}
 
-            <section class="protein-card tp-ui-panel" id="section-xrefs">
+            <section class="protein-card" id="section-xrefs">
                 <div class="section-head tp-ui-panel-head">
                     <div>
                         <h2>{% trans "Cross-references" %}</h2>

@@ -78,6 +78,9 @@
         linear-gradient(135deg, color-mix(in srgb, var(--tp-color-brand-050) 82%, transparent), transparent 48%),
         var(--tp-color-surface);
     box-shadow: var(--tp-shadow-sm);
+    /* Tone-colored callout, kept boxed on purpose -- margin aligns its
+       border with the 18px text inset the unboxed hero uses. */
+    margin: 0 18px;
 }
 
 .target-summary-panel--strong,
@@ -551,7 +554,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     top: -2px;
     z-index: 25;
     align-self: stretch;
-    width: 100%;
+    width: auto;
     max-width: 100%;
     display: flex;
     flex-wrap: nowrap;
@@ -563,6 +566,9 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     border-radius: 12px;
     background: var(--tp-color-surface-soft);
     backdrop-filter: blur(3px);
+    /* This box's own border needs to align with the 18px text inset used
+       by the unboxed hero around it. */
+    margin: 0 18px;
 }
 
 .quick-nav::-webkit-scrollbar {
@@ -616,15 +622,22 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     border-top-right-radius: 0;
 }
 
+/* human_protein.html nests its .protein-card sections directly here (no
+   .protein-grid wrapper) -- 32px matches .protein-grid's gap below so
+   both pages get the same generous section spacing instead of a
+   hairline (each card already opens with its own bold h2). */
 .protein-main {
     display: grid;
-    gap: 14px;
+    gap: 32px;
     min-width: 0;
 }
 
 .protein-interpretation-guide {
     padding: var(--tp-space-3) var(--tp-space-4);
     border-radius: var(--tp-ui-radius-panel);
+    /* Collapsible info box, kept boxed via .tp-ui-panel on purpose --
+       margin aligns its border with the 18px text inset used elsewhere. */
+    margin: 0 18px;
 }
 
 .protein-interpretation-guide summary {
@@ -714,10 +727,15 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     text-decoration: none !important;
 }
 
+/* Sections sit directly on the page background, no card boxing (see
+   tpw-editorial-redesign). This page stacks 7-8 sections, each already
+   opening with its own bold h2 -- a divider before every one would read
+   as a ruled form, so a wider gap instead of a hairline, same call as
+   assembly.html's genome-grid. */
 .protein-grid {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
-    gap: 14px;
+    gap: 32px;
     min-width: 0;
 }
 
@@ -740,25 +758,15 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 }
 
 .protein-card {
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: var(--tp-ui-radius-panel);
-    background: var(--tp-color-surface);
-    padding: 16px;
-    overflow: hidden;
-    box-shadow: var(--tp-shadow-xs);
-    transition:
-        border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
-        box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
-        transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+    padding: 16px 18px;
+    scroll-margin-top: 128px;
 }
 
-.protein-card:hover {
-    border-color: var(--tp-color-border-strong);
-    box-shadow: var(--tp-shadow-sm);
-}
-
-.protein-card,
+/* No longer boxed via .tp-page-hero -- sits directly on the page
+   background (see tpw-editorial-redesign), so it needs its own padding
+   now instead of inheriting that shared class's. */
 .protein-hero {
+    padding: 20px 18px;
     scroll-margin-top: 128px;
 }
 
