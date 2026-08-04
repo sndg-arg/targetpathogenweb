@@ -44,6 +44,33 @@ gigante flotando sobre el fondo."
    generous padding than the panels below it), align them — a mismatch that a card border used to
    hide becomes visible once sections share one continuous background.
 
+## When a hairline divider earns its place — and when it's noise
+
+A divider isn't the default for every section boundary. It has one job: mark a seam that would
+otherwise be ambiguous. Two clear cases:
+
+- **Use it** when a page has a small number of sections (roughly 2-4) and/or adjacent sections
+  don't already carry a strong heading/eyebrow of their own — the line is doing real work marking
+  where one block ends and the next begins. Home (hero/operations/about/team), Genomes
+  (hero/toolbar/table), Metabolism (hero/panel) all fall here.
+- **Skip it** (spacing only — a generous `margin-top`, no `border-top`) when a page stacks many
+  sections in a row (5+) and each one already opens with its own bold `h2`/eyebrow. A line before
+  *every single one* on top of that duplicates a signal the heading already gives, and starts
+  reading as a ruled form/spreadsheet rather than an editorial page. Assembly
+  (`genome-overview.css`'s `.genome-grid`, six sections: targets/evidence/browse/downloads/
+  details/danger) is the reference case — `.genome-grid > * ~ *` uses `margin-top: 40px` only, no
+  border.
+- **Skip it** when one of the two sections already carries its own distinct boundary treatment
+  (a callout with its own border/background/accent stripe, e.g. Proteins' `.filter-tray`) — a
+  hairline on top of that is a second signal for one seam. Exclude that section from the sibling
+  selector on both sides (`section:not(.filter-tray) ~ section:not(.filter-tray)`), relying on its
+  own margin for spacing instead.
+
+There's no fixed section-count threshold — 2-4 defaults to "use it," 5+ with strong per-section
+headings defaults to "skip it," but read the actual page rather than mechanically applying a
+number. When unsure, ask rather than guessing again — this exact question came up mid-rollout and
+changed how several already-shipped pages were adjusted.
+
 ## The exception: small equal-weight content tiles keep their card treatment
 
 Not everything inside a fused section becomes borderless. A grid of small, equal-weight tiles
@@ -72,18 +99,25 @@ same-shaped siblings, closer to a tag than a section" → leave its card styling
 Audited via `grep -o "tp-ui-panel\b" <template> | wc -l` across `tpweb/templates/`, only counting
 templates with more than one occurrence (a single `.tp-ui-panel` isn't a "stacked cards" case):
 
-- **Small/quick wins**: `search/genomes.html` (2), `genomic/metabolism_network.html` (2),
-  `genomic/metabolism.html` (2), `genomic/customparam.html` (2).
-- **Medium**: `search/formulaform.html` (6), `genomic/metabolism_pathway.html` (6),
-  `about/about_us.html` (6), `genomic/protein_metabolic_network.html` (8).
-- **Large — needs careful per-panel judgment** (many of these ~20 occurrences will be legitimate
-  "small tile" exceptions per the rule above, not page-sections to fuse — don't blind-strip every
-  `.tp-ui-panel` class without checking what each one actually renders):
-  `user/upload_data.html` (13), `human/human_protein.html` (12), `genomic/assembly.html` (14),
-  `genomic/binder.html` (16), `genomic/protein.html` (20), `about/data_sources.html` (20).
-- Corresponding CSS: `search/proteins.html` (genomes/proteins list pages), `genomic/assembly.html`
-  → `genome-overview.css`; check each page's own CSS file under `static/css/pages/` for its
-  `.tp-ui-panel`/`.tp-card`-based section styling before editing the template.
+- **Done**: `index.html` (Home), `search/genomes.html`, `search/proteins.html`,
+  `genomic/assembly.html`, `genomic/metabolism.html`, `genomic/metabolism_network.html`,
+  `genomic/metabolism_pathway.html`, `genomic/protein_metabolic_network.html`,
+  `genomic/customparam.html`. Assembly/metabolism/metabolism_network/metabolism_pathway/
+  protein_metabolic_network share `.genome-hero`/`.genome-card` in `genome-overview.css`, fixed
+  once there rather than per page.
+- **Still open — Medium**: `search/formulaform.html` (6), `about/about_us.html` (6).
+- **Still open — Large** (many of these ~20 occurrences will be legitimate "small tile" exceptions
+  per the rule above, not page-sections to fuse — don't blind-strip every `.tp-ui-panel` class
+  without checking what each one actually renders): `user/upload_data.html` (13),
+  `human/human_protein.html` (12), `genomic/binder.html` (16), `genomic/protein.html` (20),
+  `about/data_sources.html` (20).
+- Check each page's own CSS file under `static/css/pages/` for its `.tp-ui-panel`/`.tp-card`-based
+  section styling before editing the template — several pages (genomes-list, proteins-list,
+  customparam) duplicate the shared class's box styling directly under a page-specific class name,
+  so removing the HTML class alone isn't enough; the page CSS needs its own edit too. Conversely,
+  if a page-specific class is applied *alongside* a shared class that still has its old box styling
+  (e.g. `tp-ui-panel` left in the HTML after only editing the page CSS), the shared class's box
+  reappears — pull both, or neither, per element.
 
 For each page: identify the top-level sections (usually direct children of the page's outermost
 wrapper div), decide fuse-vs-keep per the exception rule above, remove `tp-ui-panel`/`tp-card`
