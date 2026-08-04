@@ -1,29 +1,22 @@
-/* No outer border/background -- .tp-main/.tp-shell are already transparent
-   up to <body>, so a bordered, surface-colored .home-page would read as a
-   white card floating on the page's own gradient background instead of
-   being part of it. Sections are separated only by the hairline
-   border-top below, not by a frame around the whole page. */
 .home-page {
+    display: grid;
     width: 100%;
     max-width: 1520px;
     margin: 0 auto;
+    gap: var(--tp-space-4);
     --home-accent: var(--tp-color-brand-800);
     --home-accent-deep: var(--tp-color-brand-900);
     --home-accent-soft: var(--tp-color-brand-100);
-}
-
-/* General sibling combinator, not adjacent (+) -- the conditional pipeline
-   status script tag and the pipeline-info-modal backdrop <div> can sit
-   between two <section>s in the DOM without breaking the divider. */
-.home-page > section ~ section {
-    border-top: 1px solid var(--tp-color-border-soft);
+    --home-shadow: var(--tp-shadow-sm);
 }
 
 .home-hero {
-    /* Horizontal padding matches .home-panel/.home-post below so the left
-       text edge lines up down the whole page now that there's no card
-       frame to hide a mismatch. */
-    padding: 28px 18px 26px;
+    position: relative;
+    overflow: hidden;
+    padding: 28px 30px 26px;
+    border-radius: var(--tp-ui-radius-hero);
+    border: 1px solid var(--tp-color-border-soft);
+    background: var(--tp-color-surface);
 }
 
 .home-hero-copy {
@@ -34,6 +27,19 @@
 
 .home-hero-stats {
     margin-top: 16px;
+}
+
+.home-hero::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--tp-color-brand-800) 0%, var(--tp-color-sage-700) 58%, var(--tp-color-brand-600) 100%);
+}
+
+.home-hero > * {
+    position: relative;
+    z-index: 1;
 }
 
 .home-hero-copy h1 {
@@ -113,7 +119,7 @@
     gap: 6px;
     padding: 4px;
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: var(--tp-radius-flat);
+    border-radius: 999px;
     background: var(--tp-color-surface);
 }
 
@@ -137,7 +143,7 @@
     padding: 0 !important;
     justify-content: center;
     border: 0 !important;
-    border-radius: var(--tp-radius-flat) !important;
+    border-radius: 999px !important;
     background: transparent !important;
     box-shadow: none !important;
     transform: none !important;
@@ -217,7 +223,7 @@
     padding: 0 !important;
     justify-content: center;
     border: 0 !important;
-    border-radius: var(--tp-radius-flat) !important;
+    border-radius: 999px !important;
     background: transparent !important;
     box-shadow: none !important;
     transform: none !important;
@@ -261,7 +267,8 @@
 }
 
 .home-operations.is-failed {
-    background: var(--tp-color-danger-bg);
+    border-color: var(--tp-color-danger-border);
+    background: var(--tp-color-surface);
 }
 
 .home-pipeline-stack {
@@ -372,7 +379,7 @@ body.pipeline-info-open {
     max-height: calc(100dvh - 40px);
     display: grid;
     grid-template-rows: auto 1fr auto;
-    border-radius: var(--tp-radius-flat);
+    border-radius: 14px;
     border: 1px solid var(--tp-color-border-soft);
     background: var(--tp-color-surface);
     box-shadow: var(--tp-shadow-lg);
@@ -430,7 +437,7 @@ body.pipeline-info-open {
     gap: 10px;
     padding: 16px 16px 14px;
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: var(--tp-radius-flat);
+    border-radius: 14px;
     background: var(--tp-color-surface-soft);
 }
 
@@ -454,7 +461,7 @@ body.pipeline-info-open {
     align-items: center;
     min-height: 32px;
     padding: 0 12px;
-    border-radius: var(--tp-radius-flat);
+    border-radius: 999px;
     border: 1px solid var(--tp-color-border-soft);
     background: var(--tp-color-surface);
     color: var(--tp-color-text-primary);
@@ -507,7 +514,7 @@ body.pipeline-info-open {
 
 .pipeline-info-branch {
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: var(--tp-radius-flat);
+    border-radius: 14px;
     padding: 0;
     overflow: hidden;
     background: var(--tp-color-surface);
@@ -560,7 +567,7 @@ body.pipeline-info-open {
     justify-content: center;
     width: 22px;
     height: 22px;
-    border-radius: var(--tp-radius-flat);
+    border-radius: 999px;
     font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
     font-size: var(--tp-font-label);
     font-weight: 600;
@@ -691,29 +698,28 @@ body.pipeline-info-open {
     max-width: 76ch;
 }
 
-/* Seamless mosaic (see tpw-frontend-styling): the container's 1px gap +
-   border-soft background shows through as hairline dividers between cells,
-   so no individual card needs its own border/radius/shadow. */
 .home-about-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 1px;
-    margin-top: 4px;
-    border: 1px solid var(--tp-color-border-soft);
-    background: var(--tp-color-border-soft);
+    gap: 10px;
 }
 
 .home-about-card {
     padding: 15px 16px 14px;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 10px;
     background: var(--tp-color-surface);
     display: grid;
     gap: 9px;
     align-content: start;
-    transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+    box-shadow: var(--tp-shadow-xs);
+    transition: border-color 0.14s, box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard), transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
 }
 
 .home-about-card:hover {
-    background: var(--tp-color-surface-soft);
+    border-color: var(--tp-color-border-strong);
+    box-shadow: var(--tp-shadow-sm);
+    transform: translateY(-1px);
 }
 
 .home-about-card-head {
@@ -769,10 +775,11 @@ body.pipeline-info-open {
 
 .tp-dark .home-about-card {
     background: var(--tp-color-surface-soft);
+    border-color: var(--tp-color-border-soft);
 }
 
 .tp-dark .home-about-card:hover {
-    background: var(--tp-color-surface-muted);
+    border-color: var(--tp-color-border);
 }
 
 /* ── Dark mode overrides — pipeline roadmap panel ── */

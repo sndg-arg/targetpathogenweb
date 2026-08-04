@@ -14,26 +14,13 @@
 :root {
     --tp-ui-control-height: 44px;
     --tp-ui-control-height-compact: 40px;
-    /* gap-sm/md/lg alias the base space scale (masterpage.html) rather than
-       repeating its values under a second name -- gap-xs has no equivalent
-       step in that scale, so it stays its own value. */
-    /* Editorial redesign: form controls (text inputs, selects) get the
-       hairline radius, not full flat -- a dead-square corner on a text
-       field reads as a rendering bug. Button-shaped consumers of the OLD
-       12px value (pagination, file-input) now override to --tp-radius-flat
-       individually rather than following this token, since they're
-       buttons wearing a "control" token, not controls themselves. */
-    --tp-ui-radius-control: var(--tp-radius-hairline);
-    /* radius-panel/hero used to alias --tp-radius-md/-lg (20px/26px). Now
-       repointed straight to --tp-radius-flat: every one of their ~26
-       consumers across static/css/pages/*.css and agent-drawer.css is a
-       page hero or content panel -- exactly what the editorial redesign
-       flattens -- so this single change (not per-file edits) is the
-       intended "shared token cascades everywhere" move, not an
-       unreviewed side effect. --tp-radius-md/-lg themselves are untouched
-       for any other direct consumer. */
-    --tp-ui-radius-panel: var(--tp-radius-flat);
-    --tp-ui-radius-hero: var(--tp-radius-flat);
+    /* radius-panel/hero and gap-sm/md/lg alias the base radius/space
+       scale (masterpage.html) rather than repeating its values under a
+       second name -- radius-control and gap-xs have no equivalent step
+       in that scale, so they stay as their own values. */
+    --tp-ui-radius-control: 12px;
+    --tp-ui-radius-panel: var(--tp-radius-md);
+    --tp-ui-radius-hero: var(--tp-radius-lg);
     --tp-ui-panel-padding: 12px;
     --tp-ui-gap-xs: 6px;
     --tp-ui-gap-sm: var(--tp-space-2);
@@ -57,16 +44,18 @@
 
 .tp-ui-panel {
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: var(--tp-radius-flat);
+    border-radius: var(--tp-ui-radius-panel);
     background: var(--tp-color-surface);
+    box-shadow: var(--tp-shadow-xs);
     transition:
         border-color var(--tp-ui-motion-base) var(--tp-ui-ease-standard),
+        box-shadow var(--tp-ui-motion-base) var(--tp-ui-ease-standard),
         transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
 }
 
 .tp-ui-toolbar {
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: var(--tp-radius-flat);
+    border-radius: var(--tp-ui-radius-panel);
     background: var(--tp-color-surface);
     padding: var(--tp-ui-panel-padding);
     transition: border-color var(--tp-ui-motion-base) var(--tp-ui-ease-standard);
@@ -76,6 +65,10 @@
     .tp-ui-panel:hover,
     .tp-ui-toolbar:hover {
         border-color: var(--tp-color-brand-200);
+    }
+
+    .tp-ui-panel:hover {
+        box-shadow: var(--tp-shadow-sm);
     }
 }
 
@@ -112,12 +105,15 @@
 /* ── Canonical page hero ── */
 .tp-page-hero {
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: var(--tp-radius-flat);
+    border-radius: var(--tp-ui-radius-hero);
     background: var(--tp-color-surface);
     padding: 20px;
     position: relative;
     overflow: hidden;
-    transition: border-color var(--tp-ui-motion-base) var(--tp-ui-ease-standard);
+    box-shadow: var(--tp-shadow-sm);
+    transition:
+        border-color var(--tp-ui-motion-base) var(--tp-ui-ease-standard),
+        box-shadow var(--tp-ui-motion-base) var(--tp-ui-ease-standard);
 }
 
 .tp-page-hero::before {
@@ -136,6 +132,7 @@
 @media (hover: hover) and (pointer: fine) {
     .tp-page-hero:hover {
         border-color: var(--tp-color-brand-200);
+        box-shadow: var(--tp-shadow-md);
     }
 }
 
@@ -183,7 +180,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border-radius: var(--tp-radius-flat);
+    border-radius: 999px;
     min-width: 34px;
     height: 34px;
     border: 1px solid var(--tp-color-border-strong);
@@ -259,7 +256,7 @@
     min-height: 34px;
     padding: 0 14px 0 10px;
     border: 1px solid var(--tp-color-border-strong);
-    border-radius: var(--tp-radius-flat);
+    border-radius: 999px;
     background: var(--tp-color-surface);
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-sm);
@@ -279,7 +276,7 @@
     height: 15px;
     flex-shrink: 0;
     background: none;
-    border-radius: var(--tp-radius-flat);
+    border-radius: 0;
     box-shadow: none;
 }
 
@@ -319,7 +316,7 @@
     min-width: min(300px, 100%);
     flex: 1 1 auto;
     border: 1px solid var(--tp-color-border) !important;
-    border-radius: var(--tp-radius-hairline) !important;
+    border-radius: 10px !important;
     background: var(--tp-color-surface) !important;
     color: var(--tp-color-text-primary) !important;
     font: inherit !important;
@@ -364,7 +361,7 @@
 .tp-state-note {
     margin: 0;
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: var(--tp-radius-flat);
+    border-radius: 10px;
     background: var(--tp-color-surface-muted);
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-sm);
@@ -505,7 +502,7 @@
     right: 0;
     z-index: 80;
     border: 1px solid var(--tp-color-border);
-    border-radius: var(--tp-radius-flat);
+    border-radius: 10px;
     background: var(--tp-color-surface);
     box-shadow: var(--tp-shadow-lg);
     padding: 6px;
@@ -529,7 +526,7 @@
     appearance: none;
     width: 100%;
     border: 1px solid transparent;
-    border-radius: var(--tp-radius-flat);
+    border-radius: 8px;
     background: transparent;
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-md);
@@ -631,7 +628,7 @@
     display: inline-flex;
     align-items: center;
     border: 1px solid var(--tp-color-border);
-    border-radius: var(--tp-radius-flat);
+    border-radius: 999px;
     background: var(--tp-color-surface-soft);
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-sm);
@@ -763,9 +760,6 @@ a.tp-chip--go:hover {
 }
 
 .tp-chip--filter {
-    /* Interactive filter tag, not a static label -- gets the small
-       hairline radius allowance instead of the flat chip default. */
-    border-radius: var(--tp-radius-hairline);
     border-color: var(--tp-color-border);
     background: var(--tp-color-surface-soft);
     color: var(--tp-color-text-secondary);
@@ -880,7 +874,7 @@ a.tp-chip--go:hover {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border-radius: var(--tp-radius-flat);
+    border-radius: 9px;
     margin: 0;
     border: 1px solid var(--tp-color-border);
     color: var(--tp-color-text-secondary);
@@ -1005,12 +999,12 @@ a.tp-chip--go:hover {
 
 .tp-table-shell__scroll::-webkit-scrollbar-track {
     background: var(--tp-color-surface-muted);
-    border-radius: var(--tp-radius-flat);
+    border-radius: 999px;
 }
 
 .tp-table-shell__scroll::-webkit-scrollbar-thumb {
     background: var(--tp-color-brand-400);
-    border-radius: var(--tp-radius-flat);
+    border-radius: 999px;
     border: 2px solid var(--tp-color-surface-muted);
 }
 
@@ -1094,7 +1088,7 @@ a.tp-chip--go:hover {
     gap: 7px;
     padding: 7px 11px;
     border: 1px solid var(--tp-color-border-strong);
-    border-radius: var(--tp-radius-flat);
+    border-radius: 999px;
     background: var(--tp-color-surface);
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-xs);
@@ -1133,7 +1127,7 @@ a.tp-chip--go:hover {
         --tp-table-cell-py: 0.55rem;
         --tp-table-cell-first-pl: 0.7rem;
         --tp-table-thead-font: 0.78rem;
-        border-radius: var(--tp-radius-flat);
+        border-radius: 10px;
     }
 
     .tp-table--premium {
@@ -1176,7 +1170,7 @@ a.tp-chip--go:hover {
     min-height: 34px;
     padding: 0 12px;
     border: 1px solid var(--tp-color-border-strong);
-    border-radius: var(--tp-radius-flat);
+    border-radius: 999px;
     background: var(--tp-color-surface);
     color: var(--tp-color-text-secondary);
     font-size: 0.82rem;
@@ -1286,7 +1280,7 @@ a.tp-chip--go:hover {
 .tp-dt-wrapper .dataTables_length select,
 .tp-dt-wrapper .dataTables_filter input {
     border: 1px solid var(--tp-color-border) !important;
-    border-radius: var(--tp-radius-hairline) !important;
+    border-radius: 10px !important;
     background: var(--tp-color-surface) !important;
     color: var(--tp-color-text-primary) !important;
     font: inherit !important;
@@ -1377,7 +1371,7 @@ a.tp-chip--go:hover {
 .tp-dt-wrapper .dataTables_paginate .paginate_button.current {
     float: none !important;
     margin: 0 !important;
-    border-radius: var(--tp-radius-flat) !important;
+    border-radius: var(--tp-ui-radius-control) !important;
     border: 1px solid var(--tp-color-border) !important;
     color: var(--tp-color-text-secondary) !important;
     background: var(--tp-color-surface) !important;
@@ -1431,7 +1425,7 @@ a.tp-chip--go:hover {
 .tp-dt-wrapper.tp-dt-variant-compact .dataTables_paginate .paginate_button {
     min-width: 36px;
     min-height: 36px;
-    border-radius: var(--tp-radius-flat) !important;
+    border-radius: 9px !important;
     padding: 0 0.64rem !important;
 }
 
@@ -1535,7 +1529,7 @@ a.tp-chip--go:hover {
     gap: 4px;
     max-width: 100%;
     border: 0;
-    border-radius: var(--tp-radius-flat);
+    border-radius: 0;
     background: transparent;
 }
 
@@ -1560,7 +1554,7 @@ a.tp-chip--go:hover {
     display: inline-flex;
     align-items: center;
     min-height: 24px;
-    border-radius: var(--tp-radius-flat);
+    border-radius: 999px;
     font-size: var(--tp-font-size-sm);
     line-height: 1.2;
     padding: 0 9px;
@@ -1597,7 +1591,7 @@ a.tp-chip--go:hover {
 
 @media (max-width: 700px) {
     .tp-breadcrumb-list {
-        border-radius: var(--tp-radius-flat);
+        border-radius: 0;
     }
 
     .tp-breadcrumb-link,
@@ -1678,7 +1672,7 @@ a.tp-chip--go:hover {
    consolidating doesn't change how any existing .tp-card looks. */
 .tp-card {
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: var(--tp-radius-flat);
+    border-radius: var(--tp-ui-radius-panel);
     background: var(--tp-color-surface);
     padding: 16px;
     box-shadow: var(--tp-shadow-sm);
@@ -1721,9 +1715,7 @@ a.tp-chip--go:hover {
     width: 100%;
     min-height: var(--tp-ui-control-height);
     border: 1px solid var(--tp-color-border-strong);
-    /* Explicit flat override, not the (now-hairline) control token -- the
-       brief calls out "Browse/Upload" specifically as a flat-button case. */
-    border-radius: var(--tp-radius-flat);
+    border-radius: var(--tp-ui-radius-control);
     background: var(--tp-color-surface);
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-sm);
@@ -1736,7 +1728,7 @@ a.tp-chip--go:hover {
 
 .tp-file-input::file-selector-button {
     border: 1px solid var(--view-accent-border, var(--tp-color-border-strong));
-    border-radius: var(--tp-radius-flat);
+    border-radius: var(--tp-ui-radius-control);
     background: var(--tp-color-surface);
     color: var(--view-accent-ink, var(--tp-color-brand-800));
     font-size: var(--tp-font-size-sm);
