@@ -3895,6 +3895,11 @@ a.filter-pill .filter-pill-remove {
     min-width: 0;
 }
 
+/* Quieter than the base .filter-pill-remove treatment it's paired with --
+   a list of 5-7 pending items shouldn't read as 5-7 solid teal dots before
+   the user has touched anything. Picks up color/weight only on
+   hover/focus, same "quiet until interacted with" idiom as most refined
+   list-row actions. */
 .filter-pending-summary__remove {
     width: 16px;
     min-width: 16px;
@@ -3902,6 +3907,16 @@ a.filter-pill .filter-pill-remove {
     min-height: 16px;
     font-size: 0.78rem;
     flex: 0 0 16px;
+    border-color: transparent;
+    background: transparent;
+    color: var(--tp-color-text-soft);
+}
+
+.filter-pending-summary__remove:hover,
+.filter-pending-summary__remove:focus-visible {
+    border-color: var(--view-accent-border);
+    background: var(--tp-color-brand-100);
+    color: var(--view-accent-deep);
 }
 
 /* --- Presets panel (bottom of drawer body) ------------------------------- */
