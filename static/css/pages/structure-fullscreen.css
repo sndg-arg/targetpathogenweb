@@ -291,6 +291,9 @@ body:has(.sv-root) .tp-footer { display: none !important; }
 
 .sv-download-link { text-decoration: none; }
 
+/* Sidebar overlay toggle — only shown under the narrow-viewport breakpoint (see §16) */
+.sv-sidebar-toggle-btn { display: none; }
+
 /* Separator */
 .sv-tb-sep {
     width: 1px;
@@ -1209,11 +1212,26 @@ body.residue-modal-open { overflow: hidden; }
     .sv-legend,
     .sv-sidebar {
         animation: none;
+        transition: none;
     }
 }
 
-/* ── 16. Responsive (narrow: collapse sidebar) ── */
+/* ── 16. Responsive (narrow: sidebar becomes a toggleable overlay, not hidden outright) ── */
 @media (max-width: 720px) {
-    .sv-sidebar { display: none; }
+    .sv-sidebar-toggle-btn { display: inline-flex; }
+
+    .sv-sidebar {
+        position: absolute;
+        inset: 0 0 0 auto;
+        width: min(320px, 86vw);
+        z-index: 30;
+        transform: translateX(100%);
+        transition: transform 0.25s ease;
+        box-shadow: var(--tp-shadow-lg);
+    }
+    .sv-sidebar.is-open {
+        transform: translateX(0);
+    }
+
     .sv-toolbar { max-width: calc(100vw - 20px); overflow-x: auto; }
 }

@@ -335,7 +335,7 @@
     height: calc(340px - 52px);
     max-height: calc(340px - 52px);
     overflow-y: scroll !important;
-    overflow-x: hidden !important;
+    overflow-x: auto !important;
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
     scrollbar-gutter: stable;

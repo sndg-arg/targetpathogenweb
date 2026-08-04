@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20260729-loaderror1">
+    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20260804-sidebartoggle1">
 {% endblock %}
 
 {% block body %}
@@ -139,6 +139,17 @@
                 </svg>
                 <span class="sv-tb-label">VMD</span>
             </a>
+
+            {# Sidebar toggle — mobile only, opens the structure-details panel as an overlay #}
+            <div class="sv-tb-sep" aria-hidden="true"></div>
+            <button type="button" class="sv-tb-btn sv-sidebar-toggle-btn" id="sv-sidebar-toggle-btn"
+                    aria-controls="sv-sidebar" aria-expanded="false"
+                    title="{% trans 'Show structure details' %}" aria-label="{% trans 'Show structure details' %}">
+                <svg class="sv-tb-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <circle cx="8" cy="8" r="6.5"/><path d="M8 7.2v4M8 5.2v.01"/>
+                </svg>
+                <span class="sv-tb-label">{% trans "Info" %}</span>
+            </button>
 
         </nav>
     </div>
@@ -444,6 +455,25 @@ function jsloaded() {
                     }).catch(function () {});
             });
         }
+    })();
+
+    /* ---- Sidebar toggle (mobile: sidebar is an overlay, hidden by default) ---- */
+    (function () {
+        var toggleBtn = document.getElementById("sv-sidebar-toggle-btn");
+        var sidebar   = document.getElementById("sv-sidebar");
+        if (!toggleBtn || !sidebar) return;
+
+        function setOpen(open) {
+            sidebar.classList.toggle("is-open", open);
+            toggleBtn.setAttribute("aria-expanded", open ? "true" : "false");
+        }
+
+        toggleBtn.addEventListener("click", function () {
+            setOpen(!sidebar.classList.contains("is-open"));
+        });
+        document.addEventListener("keydown", function (ev) {
+            if (ev.key === "Escape" && sidebar.classList.contains("is-open")) setOpen(false);
+        });
     })();
 
     decorateScoreTags();
