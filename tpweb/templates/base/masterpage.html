@@ -1069,9 +1069,45 @@
         .tp-main::before {
             content: "";
             position: absolute;
-            inset: 0 0 auto 0;
-            height: 4px;
+            top: 0;
+            left: 32px;
+            right: 32px;
+            height: 5px;
+            border-radius: 999px;
             background: linear-gradient(90deg, var(--tp-color-brand-800) 0%, var(--tp-color-sage-700) 58%, var(--tp-color-brand-600) 100%);
+            box-shadow: 0 3px 14px color-mix(in srgb, var(--tp-color-brand-700) 40%, transparent);
+        }
+
+        /* One-time shimmer sweep on page load -- same box as ::before
+           (position/size/radius) so the highlight band is naturally
+           clipped to the same pill shape, no extra overflow trick needed.
+           Plays once (fill-mode forwards fades it to invisible), not a
+           looping animation. */
+        .tp-main::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 32px;
+            right: 32px;
+            height: 5px;
+            border-radius: 999px;
+            background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.85) 50%, transparent 100%);
+            background-size: 55% 100%;
+            background-repeat: no-repeat;
+            background-position: -55% 0;
+            animation: tp-masthead-shimmer 1.5s ease-out 350ms 1 forwards;
+            pointer-events: none;
+        }
+
+        @keyframes tp-masthead-shimmer {
+            from {
+                background-position: -55% 0;
+                opacity: 1;
+            }
+            to {
+                background-position: 155% 0;
+                opacity: 0;
+            }
         }
 
         .tp-table-shell {
@@ -1537,6 +1573,11 @@
             a,
             .tp-side-link {
                 transition: none;
+            }
+
+            .tp-main::after {
+                animation: none;
+                opacity: 0;
             }
         }
 
