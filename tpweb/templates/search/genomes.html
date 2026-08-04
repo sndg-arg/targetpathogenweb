@@ -4,13 +4,13 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/genomes-list.css' %}?v=20260727-statuscolors1">
+    <link rel="stylesheet" href="{% static 'css/pages/genomes-list.css' %}?v=20260804-fusion1">
 {% endblock %}
 
 {% block body %}
 
     <div class="genomes-page">
-        <section class="genomes-hero tp-page-hero">
+        <section class="genomes-hero">
             <div class="tp-view-head">
                 <div class="tp-view-head-copy">
                     {% trans "Genomes" as crumb_genomes %}
@@ -65,7 +65,7 @@
         {% endif %}
 
         {% if genomes or has_search %}
-            <section class="genomes-toolbar tp-ui-toolbar">
+            <section class="genomes-toolbar">
                 <form method="GET" action="" class="genomes-search tp-ui-toolbar-form" id="genomes-search-form">
                     <div class="tp-ui-search-row tp-ui-toolbar-row tp-ui-toolbar-row--stack-sm">
                         <input class="form-control tp-ui-control tp-ui-search-input" type="text" id="genomes-search-input" name="search" placeholder="{% trans "Search by accession or description..." %}" value="{{ search_query }}">
@@ -89,7 +89,7 @@
 
         {% if genomes %}
             <section class="genomes-workspace">
-                <div class="genome-list-card tp-ui-panel">
+                <div class="genome-list-card">
                     <div class="genome-list-head">
                     <div class="genome-list-head-copy">
                         <h2>{% trans "Available genomes" %}</h2>
@@ -158,7 +158,7 @@
                 </div>
             </section>
         {% else %}
-            <section class="genome-workspace-empty tp-ui-panel">
+            <section class="genome-workspace-empty">
                 {% if has_search %}
                     <p class="tp-state-note tp-state-note--empty mb-0">{% trans "No genomes match the current search." %}</p>
                 {% else %}

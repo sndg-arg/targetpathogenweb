@@ -1,15 +1,20 @@
+/* No card boxing/gap between top-level sections -- they sit directly on
+   the page background, divided by a hairline instead (see "section ~
+   section" below). See tpw-editorial-redesign skill. */
 .genomes-page {
     font-family: "Source Sans 3", "Segoe UI", sans-serif;
     color: var(--tp-ink);
     margin: 0;
-    display: grid;
-    gap: var(--tp-space-4);
     --view-accent: var(--tp-accent);
     --view-accent-ink: var(--tp-color-brand-900);
     --view-accent-soft: var(--tp-color-info-bg);
     --view-accent-soft-2: var(--tp-color-brand-050);
     --view-accent-border: var(--tp-color-brand-300);
     --genomes-border: var(--tp-color-border);
+}
+
+.genomes-page > section ~ section {
+    border-top: 1px solid var(--tp-color-border-soft);
 }
 
 .genomes-page h1,
@@ -22,7 +27,12 @@
 }
 .genomes-page h1 { font-weight: 700; }
 
-/* Base styles from .tp-page-hero in ui-system.css */
+/* No longer boxed via .tp-page-hero -- sits directly on the page
+   background (see tpw-editorial-redesign), so it needs its own padding
+   now instead of inheriting that shared class's. */
+.genomes-hero {
+    padding: 20px 18px;
+}
 
 .genomes-hero-head {
     display: flex;
@@ -111,10 +121,7 @@
 }
 
 .genomes-toolbar {
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: var(--tp-ui-radius-panel);
-    background: var(--tp-color-surface-soft);
-    padding: var(--tp-ui-panel-padding);
+    padding: 14px 18px;
     display: flex;
     align-items: center;
     flex-wrap: wrap;
@@ -133,13 +140,6 @@
     display: block;
 }
 
-.genome-list-card {
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: var(--tp-ui-radius-panel);
-    background: var(--tp-color-surface);
-    overflow: hidden;
-}
-
 .genome-list-head {
     display: flex;
     align-items: flex-end;
@@ -147,7 +147,6 @@
     gap: 12px;
     padding: 16px 18px 12px;
     border-bottom: 1px solid var(--tp-color-border-soft);
-    background: var(--tp-color-surface-soft);
 }
 
 .genome-list-head-copy {
@@ -363,13 +362,10 @@
 }
 
 .genome-workspace-empty {
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: var(--tp-ui-radius-panel);
-    background: var(--tp-color-surface-soft);
     display: grid;
     gap: 14px;
     align-items: start;
-    padding: 20px;
+    padding: 20px 18px;
 }
 
 .genome-workspace-empty-copy {
