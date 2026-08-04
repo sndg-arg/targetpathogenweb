@@ -3,14 +3,14 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/data-sources.css' %}?v=20260727-cardhover1">
+    <link rel="stylesheet" href="{% static 'css/pages/data-sources.css' %}?v=20260804-fusion1">
 {% endblock %}
 
 {% block body %}
 <div class="ds-page">
 
     {# ── Hero ── #}
-    <section class="ds-hero tp-page-hero">
+    <section class="ds-hero">
         <div class="tp-view-head">
             <div class="tp-view-head-copy">
                 {% url 'tpwebapp:index' as index_url %}
@@ -38,7 +38,7 @@
     </nav>
 
     {# -- 1. Platform capabilities -- #}
-    <section class="ds-panel tp-ui-panel" id="platform-capabilities">
+    <section class="ds-panel" id="platform-capabilities">
         <div class="section-head tp-ui-panel-head">
             <div>
                 <p class="tp-ui-field-label">{% trans "Integrated functionality" %}</p>
@@ -93,7 +93,7 @@
     </section>
 
     {# -- 2. Pipeline -- #}
-    <section class="ds-panel tp-ui-panel" id="pipeline">
+    <section class="ds-panel" id="pipeline">
         <div class="section-head tp-ui-panel-head">
             <div>
                 <p class="tp-ui-field-label">{% trans "Overview" %}</p>
@@ -148,7 +148,7 @@
     </section>
 
     {# ── 2. Protein data ── #}
-    <section class="ds-panel tp-ui-panel" id="protein-data">
+    <section class="ds-panel" id="protein-data">
         <div class="section-head tp-ui-panel-head">
             <div>
                 <p class="tp-ui-field-label">{% trans "Stages 2–3" %}</p>
@@ -185,7 +185,7 @@
     </section>
 
     {# ── 3. 3D Structure ── #}
-    <section class="ds-panel tp-ui-panel" id="structure">
+    <section class="ds-panel" id="structure">
         <div class="section-head tp-ui-panel-head">
             <div>
                 <p class="tp-ui-field-label">{% trans "Stages 13, 15, 16" %}</p>
@@ -233,7 +233,7 @@
     </section>
 
     {# ── 4. Binding sites ── #}
-    <section class="ds-panel tp-ui-panel" id="binding-sites">
+    <section class="ds-panel" id="binding-sites">
         <div class="section-head tp-ui-panel-head">
             <div>
                 <p class="tp-ui-field-label">{% trans "Stage 17" %}</p>
@@ -271,7 +271,7 @@
     </section>
 
     {# ── 5. Functional annotation ── #}
-    <section class="ds-panel tp-ui-panel" id="annotation">
+    <section class="ds-panel" id="annotation">
         <div class="section-head tp-ui-panel-head">
             <div>
                 <p class="tp-ui-field-label">{% trans "Stages 10–11, 13" %}</p>
@@ -304,7 +304,7 @@
     </section>
 
     {# ── 6. Target profile ── #}
-    <section class="ds-panel tp-ui-panel" id="target-profile">
+    <section class="ds-panel" id="target-profile">
         <div class="section-head tp-ui-panel-head">
             <div>
                 <p class="tp-ui-field-label">{% trans "Stages 4–7, 20–21" %}</p>
@@ -350,7 +350,7 @@
     </section>
 
     {# ── 7. Ligand evidence ── #}
-    <section class="ds-panel tp-ui-panel" id="ligands">
+    <section class="ds-panel" id="ligands">
         <div class="section-head tp-ui-panel-head">
             <div>
                 <p class="tp-ui-field-label">{% trans "Stage 24" %}</p>
@@ -422,7 +422,7 @@
     </section>
 
     {# ── 8. Drug-likeness ── #}
-    <section class="ds-panel tp-ui-panel" id="drug-likeness">
+    <section class="ds-panel" id="drug-likeness">
         <div class="section-head tp-ui-panel-head">
             <div>
                 <p class="tp-ui-field-label">{% trans "Computed from SMILES · RDKit" %}</p>
@@ -470,7 +470,7 @@
     </section>
 
     {# ── 9. Interpretation ── #}
-    <section class="ds-panel tp-ui-panel" id="interpretation">
+    <section class="ds-panel" id="interpretation">
         <div class="section-head tp-ui-panel-head">
             <div>
                 <p class="tp-ui-field-label">{% trans "Important" %}</p>

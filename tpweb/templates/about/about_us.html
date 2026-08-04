@@ -3,13 +3,13 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/data-sources.css' %}?v=20260727-cardhover1">
+    <link rel="stylesheet" href="{% static 'css/pages/data-sources.css' %}?v=20260804-fusion1">
 {% endblock %}
 
 {% block body %}
 <div class="ds-page">
 
-    <section class="ds-hero tp-page-hero">
+    <section class="ds-hero">
         <div class="tp-view-head">
             <div class="tp-view-head-copy">
                 {% url 'tpwebapp:index' as index_url %}
@@ -28,7 +28,7 @@
         <a class="ds-quick-nav-link" href="#team">{% trans "Team" %}</a>
     </nav>
 
-    <section class="ds-panel tp-ui-panel" id="purpose">
+    <section class="ds-panel" id="purpose">
         <div class="section-head tp-ui-panel-head">
             <div>
                 <p class="tp-ui-field-label">{% trans "Why it exists" %}</p>
@@ -39,7 +39,7 @@
         <p class="ds-body">{% trans "The platform brings together genome annotation, off-target analysis, essentiality, structural models, pocket predictions, ligand evidence, drug-likeness descriptors, and curated project data. The goal is to help biology and bioinformatics teams move from thousands of proteins to a smaller set of target candidates that can be discussed, filtered, ranked, and inspected with their evidence trail visible." %}</p>
     </section>
 
-    <section class="ds-panel tp-ui-panel" id="institution">
+    <section class="ds-panel" id="institution">
         <div class="section-head tp-ui-panel-head">
             <div>
                 <p class="tp-ui-field-label">{% trans "Institutional context" %}</p>
@@ -63,7 +63,7 @@
         </div>
     </section>
 
-    <section class="ds-panel tp-ui-panel" id="team">
+    <section class="ds-panel" id="team">
         <div class="section-head tp-ui-panel-head">
             <div>
                 <p class="tp-ui-field-label">{% trans "People" %}</p>

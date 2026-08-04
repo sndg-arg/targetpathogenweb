@@ -14,6 +14,19 @@
     --ds-accent-border: var(--tp-color-brand-200);
 }
 
+/* .ds-panel sections sit directly on the page background, no card
+   boxing (see tpw-editorial-redesign). Shared by about_us.html (3
+   panels) and data_sources.html (10 panels) -- the latter has enough
+   sections, each with its own bold h2, that a divider before every one
+   would read as a ruled form, so spacing only, same call as
+   genome-overview.css's .genome-grid. Extra margin here is additive on
+   top of .ds-page's own grid gap, and only between consecutive panels
+   (not hero->quick-nav or quick-nav->first panel, which keep the
+   tighter base gap). */
+.ds-panel ~ .ds-panel {
+    margin-top: 24px;
+}
+
 .ds-page h1,
 .ds-page h2,
 .ds-page h3,
@@ -24,6 +37,13 @@
 }
 
 /* ── Hero ── */
+/* No longer boxed via .tp-page-hero -- sits directly on the page
+   background (see tpw-editorial-redesign), so it needs its own padding
+   now instead of inheriting that shared class's. */
+.ds-hero {
+    padding: 20px 18px;
+}
+
 .ds-eyebrow {
     margin: 6px 0 10px;
     color: var(--tp-color-text-muted);
@@ -60,7 +80,9 @@
     flex-wrap: nowrap;
     gap: 6px;
     overflow-x: auto;
-    padding: 8px 10px;
+    /* Horizontal padding matches .ds-hero/.ds-panel's 18px so the first
+       nav link lines up with the hero/panel text above and below it. */
+    padding: 8px 18px;
     border: 1px solid var(--tp-color-border-soft);
     border-radius: 12px;
     background: var(--tp-color-surface-soft);
@@ -103,7 +125,7 @@
 }
 
 /* ── Panel common ── */
-.ds-panel { padding: 20px 22px; }
+.ds-panel { padding: 20px 18px; }
 
 .ds-panel-title {
     margin: 2px 0 0;
