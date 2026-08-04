@@ -666,7 +666,9 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 }
 
 .protein-interpretation-guide[open] summary::after,
-.structure-color-guide[open] .structure-color-guide-title::after {
+.protein-interpretation-guide.is-open-visual summary::after,
+.structure-color-guide[open] .structure-color-guide-title::after,
+.structure-color-guide.is-open-visual .structure-color-guide-title::after {
     transform: rotate(-135deg);
 }
 
@@ -1044,7 +1046,8 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     transition: transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
 }
 
-.data-details[open] > summary::after {
+.data-details[open] > summary::after,
+.data-details.is-open-visual > summary::after {
     transform: rotate(-135deg);
 }
 

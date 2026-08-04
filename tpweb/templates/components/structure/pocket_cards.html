@@ -115,7 +115,7 @@
 
 {% if structure_data.residuesets %}
     <div class="mini-section js-structure-annotations" data-structure-key="{{ structure_key }}" {% if hidden %}hidden{% endif %}>
-        <details class="data-details">
+        <details class="data-details js-smooth-details">
             <summary>{% trans "Residue sets" %}</summary>
             <div class="residueset-list">
                 {% for rs in structure_data.residuesets %}

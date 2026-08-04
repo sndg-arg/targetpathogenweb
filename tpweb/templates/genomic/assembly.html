@@ -155,7 +155,7 @@
                                     <p class="section-subtitle">
                                         {% trans "Composite score (0-100%) weighing druggability, ligand evidence, and five other independent signals." %}
                                     </p>
-                                    <details class="targets-methodology">
+                                    <details class="targets-methodology js-smooth-details">
                                         <summary>{% trans "How is this calculated?" %}</summary>
                                         <p>
                                             {% trans "FPocket druggability, P2Rank pocket support, ligand evidence type, selectivity/off-target screens, essentiality, conservation, structure, and metabolic context each contribute independently. Ligand counts are context, not a linear score multiplier - direct PDB ligand, measured ChEMBL activity, homolog-transferred evidence, and ZINC proposals are capped separately. Use the ligand-support ranking alongside this one when the raw count itself matters." %}
@@ -387,7 +387,7 @@
                         <p class="section-subtitle">{% trans "Properties imported from the source record." %}</p>
                     </div>
                 </div>
-                <details class="genome-raw-details">
+                <details class="genome-raw-details js-smooth-details">
                     <summary>{% trans "Show imported genome details" %}</summary>
                     <div class="tp-table-shell genome-raw-table">
                         <table class="table table-striped table-hover mb-0 tp-table tp-table--plain">
@@ -416,7 +416,7 @@
                             <p class="section-subtitle">{% trans "Delete this uploaded genome dataset and all derived records." %}</p>
                         </div>
                     </div>
-                    <details class="genome-delete-summary">
+                    <details class="genome-delete-summary js-smooth-details">
                         <summary>{% trans "Show deletion controls" %}</summary>
                         <form method="post" class="genome-delete-form">
                             {% csrf_token %}

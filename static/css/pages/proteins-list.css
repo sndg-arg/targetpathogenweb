@@ -133,9 +133,11 @@
     border-bottom: var(--tp-chevron-stroke) solid currentColor;
     transform: rotate(45deg);
     transform-origin: center;
+    transition: transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
 }
 
-.hero-analysis-context[open] .hero-analysis-summary::after {
+.hero-analysis-context[open] .hero-analysis-summary::after,
+.hero-analysis-context.is-open-visual .hero-analysis-summary::after {
     transform: rotate(-135deg);
 }
 
@@ -3870,7 +3872,8 @@ a.filter-pill .filter-pill-remove {
 
 @media (prefers-reduced-motion: reduce) {
     .filter-group-chevron,
-    .filter-pending-summary__chevron {
+    .filter-pending-summary__chevron,
+    .hero-analysis-summary::after {
         transition: none;
     }
 }

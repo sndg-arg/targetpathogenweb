@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20260804-smoothdetails1">
+    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20260804-smoothdetails2">
 {% endblock %}
 
 {% block body %}
@@ -49,7 +49,7 @@
                     {% include "components/pipeline/note.html" with pipeline_status=pipeline_status mode="genome" note_class="hero-pipeline-note" %}
                 </div>
             {% endif %}
-            <details class="hero-analysis-context" {% if not is_default_view %}open{% endif %}>
+            <details class="hero-analysis-context js-smooth-details" {% if not is_default_view %}open{% endif %}>
                 <summary class="hero-analysis-summary">
                     {% if is_default_view %}
                         {% trans "No filters or custom sorting applied — click to see defaults" %}
@@ -690,7 +690,7 @@
 
             <div class="drawer-filter-catalogue" id="drawer-filter-catalogue">
                 {% for group in filter_groups %}
-                    <details class="filter-group {% if group.is_function %}filter-group--function{% endif %}"
+                    <details class="filter-group js-smooth-details {% if group.is_function %}filter-group--function{% endif %}"
                              data-filter-group
                              data-category="{{ group.category|lower }}"
                              {% if group.any_active %}open{% endif %}>
@@ -980,7 +980,7 @@
                     </form>
                 </div>
             </section>
-            <details class="filter-pending-summary" id="filter-pending-summary" aria-live="polite" hidden>
+            <details class="filter-pending-summary js-smooth-details" id="filter-pending-summary" aria-live="polite" hidden>
                 <summary class="filter-pending-summary__head">
                     <span class="filter-pending-summary__head-label">
                         <span class="filter-pending-summary__count" id="filter-pending-count">0</span>
@@ -2063,76 +2063,13 @@
                 }
             }
 
-            // Smooth open/close for the drawer's native <details> panels
-            // (filter category groups + the pending-changes summary), driven
-            // by user clicks on their <summary> only -- the programmatic
-            // group.open assignments above (search-as-you-type, expand/collapse
-            // all) stay instant on purpose, since animating every keystroke's
-            // toggle would feel laggy.
-            const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-            const SMOOTH_DETAILS_DURATION = 200;
-            const SMOOTH_DETAILS_EASING = "ease-out";
-
-            function wireSmoothDetails(details) {
-                const summary = details.querySelector(":scope > summary");
-                if (!summary) return;
-                let animation = null;
-
-                function finish(isOpen) {
-                    details.open = isOpen;
-                    details.style.height = "";
-                    details.style.overflow = "";
-                    details.classList.toggle("is-open-visual", isOpen);
-                    animation = null;
-                }
-
-                function expand() {
-                    if (animation) animation.cancel();
-                    const startHeight = details.offsetHeight + "px";
-                    details.style.overflow = "hidden";
-                    details.classList.add("is-open-visual");
-                    details.open = true;
-                    const endHeight = details.offsetHeight + "px";
-                    animation = details.animate(
-                        { height: [startHeight, endHeight] },
-                        { duration: SMOOTH_DETAILS_DURATION, easing: SMOOTH_DETAILS_EASING }
-                    );
-                    animation.onfinish = function () { finish(true); };
-                }
-
-                function collapse() {
-                    if (animation) animation.cancel();
-                    const startHeight = details.offsetHeight + "px";
-                    details.style.overflow = "hidden";
-                    details.classList.remove("is-open-visual");
-                    details.open = false;
-                    const endHeight = details.offsetHeight + "px";
-                    details.open = true;
-                    animation = details.animate(
-                        { height: [startHeight, endHeight] },
-                        { duration: SMOOTH_DETAILS_DURATION, easing: SMOOTH_DETAILS_EASING }
-                    );
-                    animation.onfinish = function () { finish(false); };
-                }
-
-                summary.addEventListener("click", function (e) {
-                    e.preventDefault();
-                    if (details.open) {
-                        collapse();
-                    } else {
-                        expand();
-                    }
-                });
-            }
-
-            if (!prefersReducedMotion) {
-                if (filterCatalogue) {
-                    filterCatalogue.querySelectorAll(".filter-group").forEach(wireSmoothDetails);
-                }
-                if (filterPendingSummary) {
-                    wireSmoothDetails(filterPendingSummary);
-                }
-            }
+            // Smooth open/close for these <details> panels is handled globally
+            // by static/js/global/smooth-details.js via the .js-smooth-details
+            // class on the markup -- see that file for how it works. The
+            // programmatic group.open assignments above (search-as-you-type,
+            // expand/collapse all) stay instant on purpose, since animating
+            // every keystroke's toggle would feel laggy; that script only
+            // wires up user clicks on <summary>, so those paths are untouched.
 
             if (filterSearchInput) {
                 filterSearchInput.addEventListener("input", applyFilterCatalogueSearch);

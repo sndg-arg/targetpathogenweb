@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260804-mobilegrid1">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260804-smoothdetails1">
 {% endblock %}
 
 {% block body %}
@@ -181,7 +181,7 @@
         </nav>
 
         <main class="protein-main" aria-label="{% trans 'Protein evidence sections' %}">
-        <details class="protein-interpretation-guide tp-ui-panel">
+        <details class="protein-interpretation-guide tp-ui-panel js-smooth-details">
             <summary>
                 <span>{% trans "Terms and data sources used on this page" %}</span>
             </summary>
@@ -562,7 +562,7 @@
                     <div class="feature-viewer-shell">
                         <div id="div2"></div>
                     </div>
-                    <details class="data-details">
+                    <details class="data-details js-smooth-details">
                         <summary>
                             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true" style="flex-shrink:0;opacity:0.6"><rect x="1" y="1" width="12" height="12" rx="1.5" stroke="currentColor" stroke-width="1.3"/><line x1="1" y1="4.5" x2="13" y2="4.5" stroke="currentColor" stroke-width="1.3"/><line x1="5" y1="4.5" x2="5" y2="13" stroke="currentColor" stroke-width="1.3"/></svg>
                             {% trans "Show feature table" %}
@@ -664,7 +664,7 @@
                         </div>
                         {% endif %}
                     </div>
-                    <details class="structure-color-guide">
+                    <details class="structure-color-guide js-smooth-details">
                         <summary class="structure-color-guide-title">{% trans "How colors and pocket overlays are used" %}</summary>
                         <div class="structure-color-guide-grid">
                             <div class="structure-color-guide-item">
@@ -695,7 +695,7 @@
                     </details>
 
                     {% if structure.pockets or structure.p2_pockets or alt_structure.pockets or alt_structure.p2_pockets %}
-                    <details class="data-details pocket-panel-details" open>
+                    <details class="data-details pocket-panel-details js-smooth-details" open>
                         <summary class="pocket-panel-summary">
                             {% trans "Pocket details" %}
                             <span class="pocket-panel-summary-hint">{% trans "Inspect a specific pocket, or" %} <a href="{% url "tpwebapp:structure" structure.id %}?protein_id={{ protein.id }}" class="pocket-panel-summary-link">{% trans "open the full viewer" %}</a></span>
@@ -747,7 +747,7 @@
                     {% endif %}
 
                     {% if experimental_structures or predicted_structures %}
-                    <details class="data-details structure-evidence-details">
+                    <details class="data-details structure-evidence-details js-smooth-details">
                         <summary>
                             <span>{% trans "All structural evidence" %}</span>
                             {% with experimental_count=experimental_structures|length predicted_count=predicted_structures|length %}
