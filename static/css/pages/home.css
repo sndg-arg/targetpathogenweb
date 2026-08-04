@@ -1,13 +1,12 @@
-/* One continuous sheet, not a stack of separately-bordered cards: a single
-   outer border holds hero/operations/about/team, and consecutive top-level
-   <section>s get a hairline border-top between them (see "section ~ section"
-   below) instead of each owning its own box. */
+/* No outer border/background -- .tp-main/.tp-shell are already transparent
+   up to <body>, so a bordered, surface-colored .home-page would read as a
+   white card floating on the page's own gradient background instead of
+   being part of it. Sections are separated only by the hairline
+   border-top below, not by a frame around the whole page. */
 .home-page {
     width: 100%;
     max-width: 1520px;
     margin: 0 auto;
-    border: 1px solid var(--tp-color-border-soft);
-    background: var(--tp-color-surface);
     --home-accent: var(--tp-color-brand-800);
     --home-accent-deep: var(--tp-color-brand-900);
     --home-accent-soft: var(--tp-color-brand-100);
