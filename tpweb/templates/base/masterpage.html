@@ -1413,17 +1413,18 @@
                 background: rgba(255, 255, 255, 0.05);
             }
 
+            /* Plain centered text, no background/radius of its own -- the
+               parent .tp-side-link already carries the single hover/active
+               box (background + border below). A second rounded box here
+               nested inside that one read as "button inside a card". */
             .tp-side-link::before {
                 content: attr(data-short);
                 display: none;
                 width: 24px;
-                height: 24px;
                 line-height: 24px;
-                border-radius: 8px;
                 text-align: center;
                 font-size: 0.73rem;
                 font-weight: 600;
-                background: rgba(255, 255, 255, 0.16);
                 color: var(--tp-color-on-accent);
             }
 
@@ -1439,12 +1440,6 @@
                 color: var(--tp-color-on-accent);
                 border: 1px solid rgba(255, 255, 255, 0.2);
                 box-shadow: inset 3px 0 0 rgba(255, 255, 255, 0.6);
-            }
-
-            .tp-side-link.active::before {
-                background: rgba(255, 255, 255, 0.18);
-                color: var(--tp-color-on-accent);
-                box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.28);
             }
 
             .tp-side-footer {
