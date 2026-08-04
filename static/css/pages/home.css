@@ -1,22 +1,31 @@
+/* One continuous background, not a stack of separately-boxed cards: no
+   grid gap between sections, no per-section border/background -- each
+   top-level <section> just sits in normal flow, divided from the next by
+   a hairline border-top (see "section ~ section" below) instead of being
+   its own floating card. Rounded corners stay everywhere they still apply
+   (buttons, chips/tags) -- this is a structural change, not a geometry
+   one. */
 .home-page {
-    display: grid;
     width: 100%;
     max-width: 1520px;
     margin: 0 auto;
-    gap: var(--tp-space-4);
     --home-accent: var(--tp-color-brand-800);
     --home-accent-deep: var(--tp-color-brand-900);
     --home-accent-soft: var(--tp-color-brand-100);
-    --home-shadow: var(--tp-shadow-sm);
+}
+
+/* General sibling combinator, not adjacent (+) -- the conditional pipeline
+   status script tag and the pipeline-info-modal backdrop <div> can sit
+   between two <section>s in the DOM without breaking the divider. */
+.home-page > section ~ section {
+    border-top: 1px solid var(--tp-color-border-soft);
 }
 
 .home-hero {
-    position: relative;
-    overflow: hidden;
-    padding: 28px 30px 26px;
-    border-radius: var(--tp-ui-radius-hero);
-    border: 1px solid var(--tp-color-border-soft);
-    background: var(--tp-color-surface);
+    /* Horizontal padding matches .home-panel/.home-post below so the left
+       text edge lines up down the page now that sections aren't boxed
+       separately. */
+    padding: 28px 18px 26px;
 }
 
 .home-hero-copy {
@@ -27,19 +36,6 @@
 
 .home-hero-stats {
     margin-top: 16px;
-}
-
-.home-hero::before {
-    content: "";
-    position: absolute;
-    inset: 0 0 auto 0;
-    height: 4px;
-    background: linear-gradient(90deg, var(--tp-color-brand-800) 0%, var(--tp-color-sage-700) 58%, var(--tp-color-brand-600) 100%);
-}
-
-.home-hero > * {
-    position: relative;
-    z-index: 1;
 }
 
 .home-hero-copy h1 {
@@ -267,8 +263,7 @@
 }
 
 .home-operations.is-failed {
-    border-color: var(--tp-color-danger-border);
-    background: var(--tp-color-surface);
+    background: var(--tp-color-danger-bg);
 }
 
 .home-pipeline-stack {
@@ -698,28 +693,32 @@ body.pipeline-info-open {
     max-width: 76ch;
 }
 
+/* Seamless mosaic, not six separate mini-cards: the container's 1px gap +
+   border-soft background shows through as hairline dividers between
+   cells, so no individual card needs its own border/radius/shadow. These
+   are content cards (icon + heading + paragraph), not labels/tags, so
+   they follow the "no cards" rule -- the .tp-chip tags inside each one
+   keep their normal rounded pill shape untouched. */
 .home-about-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
+    gap: 1px;
+    margin-top: 4px;
+    border: 1px solid var(--tp-color-border-soft);
+    background: var(--tp-color-border-soft);
 }
 
 .home-about-card {
     padding: 15px 16px 14px;
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: 10px;
     background: var(--tp-color-surface);
     display: grid;
     gap: 9px;
     align-content: start;
-    box-shadow: var(--tp-shadow-xs);
-    transition: border-color 0.14s, box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard), transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+    transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
 }
 
 .home-about-card:hover {
-    border-color: var(--tp-color-border-strong);
-    box-shadow: var(--tp-shadow-sm);
-    transform: translateY(-1px);
+    background: var(--tp-color-surface-soft);
 }
 
 .home-about-card-head {
@@ -775,11 +774,10 @@ body.pipeline-info-open {
 
 .tp-dark .home-about-card {
     background: var(--tp-color-surface-soft);
-    border-color: var(--tp-color-border-soft);
 }
 
 .tp-dark .home-about-card:hover {
-    border-color: var(--tp-color-border);
+    background: var(--tp-color-surface-muted);
 }
 
 /* ── Dark mode overrides — pipeline roadmap panel ── */
