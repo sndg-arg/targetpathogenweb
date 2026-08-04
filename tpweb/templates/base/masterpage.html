@@ -1070,27 +1070,25 @@
             content: "";
             position: absolute;
             top: 0;
-            left: 32px;
-            right: 32px;
-            height: 8px;
-            border-radius: 999px;
+            left: 0;
+            right: 0;
+            height: 4px;
             background: linear-gradient(90deg, var(--tp-color-brand-800) 0%, var(--tp-color-sage-700) 58%, var(--tp-color-brand-600) 100%);
-            box-shadow: 0 4px 22px color-mix(in srgb, var(--tp-color-brand-700) 60%, transparent);
+            box-shadow: 0 2px 12px color-mix(in srgb, var(--tp-color-brand-700) 45%, transparent);
         }
 
         /* One-time shimmer sweep on page load -- same box as ::before
-           (position/size/radius) so the highlight band is naturally
-           clipped to the same pill shape, no extra overflow trick needed.
-           Plays once (fill-mode forwards fades it to invisible), not a
-           looping animation. */
+           (position/size) so the highlight band is naturally clipped to
+           the same shape, no extra overflow trick needed. Plays once
+           (fill-mode forwards fades it to invisible), not a looping
+           animation. */
         .tp-main::after {
             content: "";
             position: absolute;
             top: 0;
-            left: 32px;
-            right: 32px;
-            height: 8px;
-            border-radius: 999px;
+            left: 0;
+            right: 0;
+            height: 4px;
             background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.85) 50%, transparent 100%);
             background-size: 55% 100%;
             background-repeat: no-repeat;
