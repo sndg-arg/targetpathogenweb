@@ -9,9 +9,17 @@
     width: 100%;
     max-width: 1520px;
     margin: 0 auto;
+    /* Light mode only (see .tp-dark override below) -- a solid surface
+       fill instead of showing the page's subtle gradient through, without
+       reintroducing a bordered/shadowed "card" edge around it. */
+    background: var(--tp-color-surface);
     --home-accent: var(--tp-color-brand-800);
     --home-accent-deep: var(--tp-color-brand-900);
     --home-accent-soft: var(--tp-color-brand-100);
+}
+
+.tp-dark .home-page {
+    background: transparent;
 }
 
 /* General sibling combinator, not adjacent (+) -- the conditional pipeline
