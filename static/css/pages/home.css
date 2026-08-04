@@ -693,32 +693,33 @@ body.pipeline-info-open {
     max-width: 76ch;
 }
 
-/* Seamless mosaic, not six separate mini-cards: the container's 1px gap +
-   border-soft background shows through as hairline dividers between
-   cells, so no individual card needs its own border/radius/shadow. These
-   are content cards (icon + heading + paragraph), not labels/tags, so
-   they follow the "no cards" rule -- the .tp-chip tags inside each one
-   keep their normal rounded pill shape untouched. */
+/* These are small individual rounded cards on purpose -- unlike the
+   page-level sections (hero/operations/about/team), which merged into one
+   continuous background, this is a grid of equal-weight tiles closer in
+   spirit to a chip/tag than to a page section, and reads better with its
+   own rounded corner + border + shadow per tile. */
 .home-about-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 1px;
-    margin-top: 4px;
-    border: 1px solid var(--tp-color-border-soft);
-    background: var(--tp-color-border-soft);
+    gap: 10px;
 }
 
 .home-about-card {
     padding: 15px 16px 14px;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 10px;
     background: var(--tp-color-surface);
     display: grid;
     gap: 9px;
     align-content: start;
-    transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+    box-shadow: var(--tp-shadow-xs);
+    transition: border-color 0.14s, box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard), transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
 }
 
 .home-about-card:hover {
-    background: var(--tp-color-surface-soft);
+    border-color: var(--tp-color-border-strong);
+    box-shadow: var(--tp-shadow-sm);
+    transform: translateY(-1px);
 }
 
 .home-about-card-head {
@@ -774,10 +775,11 @@ body.pipeline-info-open {
 
 .tp-dark .home-about-card {
     background: var(--tp-color-surface-soft);
+    border-color: var(--tp-color-border-soft);
 }
 
 .tp-dark .home-about-card:hover {
-    background: var(--tp-color-surface-muted);
+    border-color: var(--tp-color-border);
 }
 
 /* ── Dark mode overrides — pipeline roadmap panel ── */
