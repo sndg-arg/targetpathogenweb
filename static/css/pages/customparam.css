@@ -80,6 +80,10 @@
     grid-template-columns: minmax(0, 1.6fr) minmax(300px, 0.9fr);
     gap: 18px;
     align-items: start;
+    /* The two cards inside keep their own border -- margin here aligns
+       that border with the 18px text inset the unboxed hero uses,
+       instead of sitting flush at the page's raw edge. */
+    margin: 0 18px;
 }
 
 /* ── Cards ── */

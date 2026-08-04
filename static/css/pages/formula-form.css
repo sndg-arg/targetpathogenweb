@@ -103,6 +103,9 @@
     grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
     gap: 18px;
     align-items: start;
+    /* The cards inside keep their own border -- margin aligns that
+       border with the 18px text inset the unboxed hero uses. */
+    margin: 0 18px;
 }
 
 .formula-editor-col {
@@ -456,6 +459,8 @@
     border-radius: var(--tp-ui-radius-panel);
     background: var(--tp-color-surface-soft);
     padding: 18px 22px;
+    /* Same border-alignment fix as .formula-workbench above. */
+    margin: 0 18px;
 }
 
 .formula-footer-copy {

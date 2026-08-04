@@ -214,12 +214,15 @@
     flex-wrap: nowrap;
     gap: 8px;
     overflow-x: auto;
-    /* Horizontal padding matches .genome-hero/.genome-card's 18px so the
-       first nav link lines up with the hero/card text above and below it. */
-    padding: 8px 18px;
+    padding: 8px 10px;
     border: 1px solid var(--tp-color-border-soft);
     border-radius: 10px;
     background: var(--tp-color-surface-soft);
+    /* This box's own border needs to align with the 18px text inset used
+       by the unboxed hero/cards around it, or it visually pokes out past
+       everything else -- margin does that; internal padding is a
+       separate, smaller detail for the first pill's own breathing room. */
+    margin: 0 18px;
 }
 
 .genome-page .quick-nav::-webkit-scrollbar {
@@ -362,6 +365,10 @@
     gap: 14px;
     scroll-margin-top: 128px;
     align-items: stretch;
+    /* The two ranking tiles inside keep their own border -- margin aligns
+       that border with the 18px text inset used elsewhere on the page,
+       instead of sitting flush at the page's raw edge. */
+    margin: 0 18px;
 }
 
 @media (max-width: 991px) {

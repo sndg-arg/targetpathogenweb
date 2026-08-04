@@ -2757,7 +2757,10 @@ a.filter-pill .filter-pill-remove {
    ========================================================================== */
 
 .filter-tray {
-    margin: 14px 0 18px;
+    /* Horizontal margin so this box's own border aligns with the 18px
+       text inset used by the unboxed hero/toolbar around it -- without
+       it, the border sits flush at the page's raw edge instead. */
+    margin: 14px 18px 18px;
     padding: 12px 16px;
     background: var(--tp-color-surface);
     border: 1px solid var(--tp-color-border);
