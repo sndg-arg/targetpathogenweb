@@ -97,7 +97,7 @@
     height: 30px;
     flex-shrink: 0;
     border-radius: 10px;
-    background: linear-gradient(135deg, var(--tp-color-brand-050), var(--tp-color-sage-050));
+    background: color-mix(in srgb, var(--tp-color-surface) 90%, var(--tp-color-brand-500));
     border: 1px solid var(--tp-color-border-accent);
     box-shadow: var(--tp-shadow-sm);
     color: var(--tp-color-brand-700);
@@ -162,7 +162,7 @@
     width: 40px;
     height: 40px;
     border-radius: 12px;
-    background: linear-gradient(135deg, var(--tp-color-brand-050), var(--tp-color-sage-050));
+    background: color-mix(in srgb, var(--tp-color-surface) 90%, var(--tp-color-brand-500));
     border: 1px solid var(--tp-color-border-accent);
     box-shadow: var(--tp-shadow-sm);
 }
