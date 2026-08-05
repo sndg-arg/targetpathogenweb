@@ -68,15 +68,17 @@
     margin-top: 12px;
 }
 
+/* Flat tone tint, not a decorative diagonal gradient -- reads as quality
+   paper stock rather than an AI-template flourish. border-radius matches
+   the 12px small-card convention used elsewhere in this file
+   (.target-evidence-card and friends) instead of an ad hoc 8px. */
 .target-summary-panel {
     display: grid;
     gap: var(--tp-space-3);
-    padding: var(--tp-space-4);
+    padding: 20px 22px;
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: 8px;
-    background:
-        linear-gradient(135deg, color-mix(in srgb, var(--tp-color-brand-050) 82%, transparent), transparent 48%),
-        var(--tp-color-surface);
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--tp-color-surface) 96%, var(--tp-color-brand-500));
     box-shadow: var(--tp-shadow-sm);
     /* Tone-colored callout, kept boxed on purpose -- margin aligns its
        border with the 18px text inset the unboxed hero uses. */
@@ -94,6 +96,7 @@
 
 .target-summary-panel--partial {
     border-color: color-mix(in srgb, var(--tp-color-warning-border) 55%, var(--tp-color-border-soft));
+    background: color-mix(in srgb, var(--tp-color-surface) 96%, var(--tp-color-warning-border));
 }
 
 .target-summary-lead {
@@ -137,30 +140,17 @@
     gap: var(--tp-space-2);
 }
 
-/* No full box of its own -- a colored left-accent groups the items
-   below it as strengths/risks/missing without adding a third nested
-   card on top of the panel and the individual items (see
-   tpw-editorial-redesign: card-in-a-card-in-a-card). */
+/* No box, not even a left-accent bar -- this is a heading, not a
+   container. Reads like a journal section header ("METHODS",
+   "RESULTS"), with the tone conveyed through the label's own ink color
+   instead of a bar next to it. See tpw-editorial-redesign: avoid
+   card-in-a-card-in-a-card. */
 .target-summary-column {
     min-width: 0;
-    padding: 0 0 0 var(--tp-space-3);
-    border-left: 3px solid var(--tp-color-border-soft);
-}
-
-.target-summary-column--strength {
-    border-left-color: var(--tp-color-success-border);
-}
-
-.target-summary-column--risk {
-    border-left-color: var(--tp-color-danger-border);
-}
-
-.target-summary-column--missing {
-    border-left-color: var(--tp-color-text-muted);
 }
 
 .target-summary-column h3 {
-    margin: 0 0 var(--tp-space-2);
+    margin: 0 0 10px;
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-label);
     font-weight: 850;
@@ -168,43 +158,69 @@
     text-transform: uppercase;
 }
 
+.target-summary-column--strength h3 {
+    color: var(--tp-color-success-ink);
+}
+
+.target-summary-column--risk h3 {
+    color: var(--tp-color-danger-ink);
+}
+
 .target-summary-list {
     display: grid;
-    gap: var(--tp-space-2);
+    gap: 10px;
 }
 
 .target-summary-list--strengths {
     grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-/* No border/radius/background of its own -- just a thin tone-colored
-   left marker (this item's own confidence tone, independent of its
-   group's). Was a fully boxed card, making the panel three levels of
-   nested boxes deep (panel > column > item); this is the third level
-   flattened to a plain list row. */
+/* Small refined card -- the same idiom as Home's methodology tiles
+   (.target-evidence-card): border + 12px radius + a subtle hover lift.
+   Tone reads through a small status dot next to the title instead of a
+   thick colored left-border (that read as an alert stripe, not a
+   confidence marker), one level flatter than the original fully-boxed
+   design but not bare -- see tpw-editorial-redesign. */
 .target-summary-item {
     display: grid;
-    gap: 2px;
+    gap: 3px;
     min-width: 0;
-    padding: var(--tp-space-2) var(--tp-space-3);
-    border-left: 2px solid var(--tp-color-border-soft);
+    padding: 14px 16px;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 12px;
     color: inherit;
     text-decoration: none;
-    background: transparent;
-    transition: background 140ms ease, border-color 140ms ease;
+    background: var(--tp-color-surface);
+    transition: transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
 }
 
 .target-summary-item:hover,
 .target-summary-item:focus-visible {
-    background: var(--tp-color-surface-soft);
+    transform: translateY(-1px);
+    border-color: var(--tp-color-brand-300);
+    box-shadow: var(--tp-shadow-sm);
     text-decoration: none;
 }
 
 .target-summary-item strong {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     color: var(--tp-color-text-primary);
     font-size: var(--tp-font-size-sm);
     font-weight: 750;
     line-height: 1.2;
+}
+
+.target-summary-item strong::before {
+    content: "";
+    flex: 0 0 auto;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--tp-color-text-muted);
 }
 
 .target-summary-item span {
@@ -213,32 +229,39 @@
     line-height: 1.35;
 }
 
-.target-summary-item--good {
-    border-left-color: var(--tp-color-success-border);
+.target-summary-item--good strong::before {
+    background: var(--tp-color-success-ink);
 }
 
-.target-summary-item--neutral {
-    border-left-color: var(--tp-color-brand-500, var(--protein-accent));
+.target-summary-item--neutral strong::before {
+    background: var(--tp-color-brand-500, var(--protein-accent));
 }
 
-.target-summary-item--watch {
-    border-left-color: var(--tp-color-warning-border);
+.target-summary-item--watch strong::before {
+    background: var(--tp-color-warning-ink);
+}
+
+.target-summary-item--risk strong::before {
+    background: var(--tp-color-danger-ink);
 }
 
 .target-summary-item--risk {
-    border-left-color: var(--tp-color-danger-border);
+    background: color-mix(in srgb, var(--tp-color-danger-bg) 35%, var(--tp-color-surface));
 }
 
 .target-summary-item--missing {
-    border-left-color: var(--tp-color-text-muted);
     opacity: 0.92;
+}
+
+.target-summary-item--missing strong::before {
+    background: var(--tp-color-text-muted);
 }
 
 .target-summary-empty {
     display: block;
     padding: var(--tp-space-2) var(--tp-space-3);
     border: 1px dashed var(--tp-color-border-soft);
-    border-radius: 8px;
+    border-radius: 12px;
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-sm);
     line-height: 1.35;
