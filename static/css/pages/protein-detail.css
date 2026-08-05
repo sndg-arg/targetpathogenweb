@@ -177,25 +177,26 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+/* No border/radius/background of its own -- just a thin tone-colored
+   left marker (this item's own confidence tone, independent of its
+   group's). Was a fully boxed card, making the panel three levels of
+   nested boxes deep (panel > column > item); this is the third level
+   flattened to a plain list row. */
 .target-summary-item {
     display: grid;
     gap: 2px;
     min-width: 0;
     padding: var(--tp-space-2) var(--tp-space-3);
-    border: 1px solid var(--tp-color-border-soft);
-    border-left-width: 3px;
-    border-radius: 8px;
+    border-left: 2px solid var(--tp-color-border-soft);
     color: inherit;
     text-decoration: none;
-    background: var(--tp-color-surface);
-    transition: transform 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+    background: transparent;
+    transition: background 140ms ease, border-color 140ms ease;
 }
 
 .target-summary-item:hover,
 .target-summary-item:focus-visible {
-    transform: translateY(-1px);
-    border-color: var(--tp-color-brand-300);
-    box-shadow: var(--tp-shadow-sm);
+    background: var(--tp-color-surface-soft);
     text-decoration: none;
 }
 
