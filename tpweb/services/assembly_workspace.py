@@ -532,8 +532,15 @@ def _build_assembly_workspace_metrics(assembly_name):
     )
     has_curated_data = spv_qs.filter(score_param__name="best_fpocket_structure").exists()
 
-    localization_qs = spv_qs.filter(score_param__name="Localization").exclude(
-        value__in=["", "nan", "None", "null"]
+    # "Unknown" is PSORTb's own no-call bucket (also the literal fallback value
+    # tpweb_psort_fallback assigns to every protein when PSORTb couldn't run at
+    # all) -- a real string, not empty/null, so it passes the exclude below on
+    # its own. Excluded separately so "with localization" means "with an
+    # informative call", not "PSORTb ran (even if it shrugged)".
+    localization_qs = (
+        spv_qs.filter(score_param__name="Localization")
+        .exclude(value__in=["", "nan", "None", "null"])
+        .exclude(value__iexact="Unknown")
     )
     localization_annotated = localization_qs.values("bioentry_id").distinct().count()
     localization_breakdown = [
