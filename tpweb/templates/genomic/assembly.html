@@ -472,6 +472,16 @@
             }
 
             function getActive() {
+                // A section near the end of the page (Downloads, Details) can sit
+                // close enough to the bottom that there isn't enough room left to
+                // scroll to satisfy the threshold check below -- the document runs
+                // out before its top ever clears "scrollY + nav height + 24", so
+                // it would never register as active on its own. Once the page is
+                // scrolled (near) all the way down, just treat the last section as
+                // active regardless of the math.
+                var atBottom = (window.scrollY + window.innerHeight) >= (document.documentElement.scrollHeight - 4);
+                if (atBottom) return sections[sections.length - 1];
+
                 var threshold = window.scrollY + nav.offsetHeight + 24;
                 var active = sections[0];
                 for (var i = 0; i < sections.length; i++) {
