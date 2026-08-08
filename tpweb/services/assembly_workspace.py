@@ -521,13 +521,24 @@ def _build_assembly_workspace_metrics(assembly_name):
 
     spv_qs = ScoreParamValue.objects.filter(bioentry__biodatabase__name=proteome_name)
     proteins_with_druggability = (
-        spv_qs.filter(score_param__name="Druggability")
+        spv_qs.filter(score_param__name__in=["Druggability", "p2rank_probability"])
         .exclude(value__in=["", "nan", "None", "null"])
         .values("bioentry_id")
         .distinct()
         .count()
     )
     has_curated_data = spv_qs.filter(score_param__name="best_fpocket_structure").exists()
+
+    localization_qs = spv_qs.filter(score_param__name="Localization").exclude(
+        value__in=["", "nan", "None", "null"]
+    )
+    localization_annotated = localization_qs.values("bioentry_id").distinct().count()
+    localization_breakdown = [
+        f"{row['value']} ({row['count']})"
+        for row in localization_qs.values("value")
+        .annotate(count=Count("bioentry_id", distinct=True))
+        .order_by("-count")[:6]
+    ]
 
     binders_qs = Binders.objects.filter(locustag__biodatabase__name=proteome_name)
     binder_total = binders_qs.count()
@@ -591,6 +602,9 @@ def _build_assembly_workspace_metrics(assembly_name):
         "ec_coverage_pct": _pct(ec_annotated, total_proteins),
         "go_annotated": go_annotated,
         "go_coverage_pct": _pct(go_annotated, total_proteins),
+        "localization_annotated": localization_annotated,
+        "localization_coverage_pct": _pct(localization_annotated, total_proteins),
+        "localization_breakdown": localization_breakdown,
         "binder_total": binder_total,
         "binder_pdb_direct": binder_pdb_direct,
         "binder_pdb_homolog": binder_pdb_homolog,

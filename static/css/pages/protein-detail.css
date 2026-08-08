@@ -40,8 +40,31 @@
     width: 100%;
 }
 
+/* Which genome you're standing in -- deliberately louder than the eyebrow/accession
+   line below, since it's easy to lose track of when jumping between proteins. */
+.protein-hero-genome {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 7px;
+    text-decoration: none;
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+}
+.protein-hero-genome:hover .protein-hero-genome-value { text-decoration: underline; }
+.protein-hero-genome-label {
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-label);
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+.protein-hero-genome-value {
+    color: var(--protein-accent-ink);
+    font-size: var(--tp-font-size-lg);
+    font-weight: 700;
+}
+
 .protein-hero-eyebrow {
-    margin: 6px 0 10px;
+    margin: 10px 0 10px;
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-label);
     font-weight: 500;
@@ -54,6 +77,16 @@
     font-size: var(--tp-heading-lg);
     line-height: 1.1;
     color: var(--protein-accent-ink);
+}
+
+.protein-accession-line {
+    margin: 8px 0 0;
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-sm);
+}
+.protein-accession-label {
+    font-weight: 600;
+    color: var(--tp-color-text-secondary);
 }
 
 .protein-description {

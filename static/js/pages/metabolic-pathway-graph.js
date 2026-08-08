@@ -138,6 +138,31 @@
             clearHover();
             tooltip.style.display = "none";
         });
+
+        // Reaction table -> graph: click a row to locate and highlight its node in the
+        // diagram above. Some rows have no matching node -- very large pathways cap the
+        // diagram at 45 reactions server-side (see MetabolismPathwayView.py), prioritizing
+        // chokepoints -- so a missing node is a valid outcome, not a bug, and just no-ops.
+        var activeRow = null;
+        Array.prototype.forEach.call(
+            document.querySelectorAll(".pathway-reaction-row[data-reaction-id]"),
+            function (row) {
+                row.addEventListener("click", function (evt) {
+                    if (evt.target.closest("a")) return;
+                    var reactionId = row.getAttribute("data-reaction-id");
+                    var node = cy.getElementById("rxn::" + reactionId);
+                    if (!node || node.empty()) return;
+                    if (activeRow) activeRow.classList.remove("pathway-reaction-row--located");
+                    activeRow = row;
+                    row.classList.add("pathway-reaction-row--located");
+                    clearHover();
+                    var neighborhood = node.closedNeighborhood();
+                    cy.elements().not(neighborhood).addClass("is-muted");
+                    neighborhood.addClass("is-hovered");
+                    cy.animate({ fit: { eles: neighborhood, padding: 60 } }, { duration: 400 });
+                });
+            }
+        );
     }
 
     if (document.readyState === "loading") {

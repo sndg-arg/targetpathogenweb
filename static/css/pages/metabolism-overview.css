@@ -662,6 +662,7 @@
     border-radius: 8px;
     background: var(--tp-color-surface);
     box-shadow: var(--tp-shadow-xs);
+    cursor: pointer;
     transition: border-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
 }
 
@@ -673,6 +674,11 @@
     border-color: var(--tp-color-border-strong);
     box-shadow: var(--tp-shadow-lg);
     transform: translateY(-1px);
+}
+
+.pathway-reaction-row--located {
+    border-color: var(--tp-color-brand-700);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--tp-color-brand-700) 30%, transparent);
 }
 
 .pathway-reaction-row .target-evidence-accessory-badge {

@@ -88,20 +88,20 @@
             </div>
             <div class="genome-metrics" aria-label="{% trans 'Genome summary' %}">
                 <div class="metric-pill">
-                    <span class="metric-label">{% trans "Proteins" %}</span>
+                    <span class="metric-label" title="{% trans 'Total proteins loaded for this genome.' %}">{% trans "Proteins" %}</span>
                     <span class="metric-value">{{ workspace_metrics.total_proteins }}</span>
                 </div>
                 <div class="metric-pill">
-                    <span class="metric-label">{% trans "With 3D structure" %}</span>
+                    <span class="metric-label" title="{% trans 'Proteins with at least one 3D structure loaded — experimental (PDB), AlphaFold DB, or ColabFold.' %}">{% trans "With 3D structure" %}</span>
                     <span class="metric-value">{{ workspace_metrics.proteins_with_structure }}</span>
                 </div>
                 <div class="metric-pill">
-                    <span class="metric-label">{% trans "Annotated" %}</span>
+                    <span class="metric-label" title="{% trans 'Proteins with at least one functional annotation — an EC number or a GO term.' %}">{% trans "Annotated" %}</span>
                     <span class="metric-value">{{ workspace_metrics.functional_annotated }}</span>
                 </div>
                 {% if workspace_metrics.proteins_with_druggability %}
                 <div class="metric-pill">
-                    <span class="metric-label">{% trans "With pocket score" %}</span>
+                    <span class="metric-label" title="{% trans 'Proteins with a pocket/druggability score from FPocket, P2Rank, or both — this does not mean both methods agree, only that at least one produced a score.' %}">{% trans "With pocket score" %}</span>
                     <span class="metric-value">{{ workspace_metrics.proteins_with_druggability }}</span>
                 </div>
                 {% endif %}
@@ -221,7 +221,7 @@
             <section class="genome-card genome-card--evidence" id="section-evidence">
                 <div class="section-head tp-ui-panel-head">
                     <div>
-                        <h2>{% trans "Evidence available" %}</h2>
+                        <h2>{% trans "Evidence available" %}{% trans "Hover any stat below for what it counts and how it's computed." as evidence_help %}{% include "components/ui/section_help.html" with text=evidence_help %}</h2>
                         <p class="section-subtitle">{% trans "Structural, functional, ligand, and metabolic evidence available for proteins in this genome." %}</p>
                     </div>
                 </div>
@@ -256,6 +256,12 @@
                         <ul class="evidence-breakdown">
                             <li><span class="evidence-bd-label">EC</span><span class="evidence-bd-value">{{ workspace_metrics.ec_annotated }}</span></li>
                             <li><span class="evidence-bd-label">GO</span><span class="evidence-bd-value">{{ workspace_metrics.go_annotated }}</span></li>
+                            {% if workspace_metrics.localization_annotated %}
+                            <li>
+                                <span class="evidence-bd-label" title="{% blocktrans with items=workspace_metrics.localization_breakdown|join:", " %}Predicted subcellular localization (PSORTb) by compartment: {{ items }}{% endblocktrans %}">{% trans "Localization" %}</span>
+                                <span class="evidence-bd-value">{{ workspace_metrics.localization_annotated }}</span>
+                            </li>
+                            {% endif %}
                         </ul>
                     </div>
 

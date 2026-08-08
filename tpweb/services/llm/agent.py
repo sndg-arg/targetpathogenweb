@@ -109,7 +109,13 @@ class Agent:
             messages.append(Message(role="user", tool_results=tool_results))
 
         self.last_messages = messages
-        return "No pude completar la solicitud en el número de pasos permitido."
+        # Bypasses the model entirely (max_turns exhausted), so it can't answer in
+        # whatever language the user was writing in -- say it in both rather than
+        # guessing wrong.
+        return (
+            "I couldn't complete the request within the allowed number of steps. "
+            "No pude completar la solicitud en el número de pasos permitido."
+        )
 
     def _execute(self, call: ToolCall) -> ToolResult:
         entry = self.tools.get(call.name)

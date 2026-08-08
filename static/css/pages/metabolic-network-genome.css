@@ -352,8 +352,8 @@
 
 .metabolic-network-genome-inspector dl {
     display: grid;
-    grid-template-columns: 78px minmax(0, 1fr);
-    gap: 7px 10px;
+    grid-template-columns: 86px minmax(0, 1fr);
+    gap: 7px 14px;
     margin: 0 0 12px;
 }
 

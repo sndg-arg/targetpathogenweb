@@ -2,9 +2,10 @@
  * masterpage.html, not part of the webpack bundle, matching the existing
  * plain-script convention used by protein-detail.js/metabolic-network.js).
  *
- * Conversation history is kept in memory only (a plain JS array) and
- * round-tripped to the server on every message -- it is intentionally not
- * persisted across page reloads (see AgentChatView.py's module docstring).
+ * Conversation history is persisted server-side per browser session (see
+ * AgentChatView.py's module docstring) -- this file just keeps a local copy
+ * in a plain JS array and round-trips it on every message, and hydrates that
+ * array from the server once on load so a page reload doesn't lose it.
  */
 (function () {
     "use strict";
@@ -308,6 +309,24 @@
 
         var history = [];
         var pending = false;
+
+        // Hydrate from the last 7 days of this browser session's conversation, if any.
+        // Best-effort: a failed/slow fetch just leaves the drawer at its normal empty state.
+        if (chatUrl) {
+            fetch(chatUrl, { method: "GET", headers: { "X-Requested-With": "XMLHttpRequest" } })
+                .then(function (response) { return response.ok ? response.json() : null; })
+                .then(function (data) {
+                    if (!data || !data.history || !data.history.length) return;
+                    history = data.history;
+                    history.forEach(function (item) {
+                        if (!item.text) return;
+                        if (item.role === "user" || item.role === "assistant") {
+                            appendMessage(item.role, item.text);
+                        }
+                    });
+                })
+                .catch(function () { /* best effort -- drawer just starts empty */ });
+        }
 
         var BIOLOGIST_MODE_KEY = "tpAgentBiologistMode";
         var biologistMode = false;

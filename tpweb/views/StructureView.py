@@ -202,6 +202,15 @@ def _residue_identity(residue):
     )
 
 
+def _residue_display_label(residue):
+    """Amino-acid code + residue number for display (e.g. 'Asp123'), instead of
+    the bare residue number -- falls back to just the number when resname is
+    missing (e.g. a non-standard/unparsed residue)."""
+    resname = str(getattr(residue, "resname", "") or "").strip()
+    resid = getattr(residue, "resid", "")
+    return f"{resname.capitalize()}{resid}" if resname else str(resid)
+
+
 def _pocket_residue_overlap(left_residues, right_residues):
     """Return overlap metrics without conflating equal numbers across chains."""
     left = {_residue_identity(residue) for residue in left_residues}
@@ -535,7 +544,7 @@ def pdb_structure(
             data.append({"x": rsr.residue.resid,
                          "y": rsr.residue.resid,
                          "description": p.name, "id": p.name})
-            p.residues.append(rsr.residue.resid)
+            p.residues.append(_residue_display_label(rsr.residue))
             p.comparison_residues.append(rsr.residue)
             for a in rsr.residue.atoms.all():
                 p.atoms.append(a.serial)
@@ -577,7 +586,7 @@ def pdb_structure(
             data.append({"x": rsr.residue.resid,
                          "y": rsr.residue.resid,
                          "description": p2.name, "id": p2.name})
-            p2.residues.append(rsr.residue.resid)
+            p2.residues.append(_residue_display_label(rsr.residue))
             p2.comparison_residues.append(rsr.residue)
             for a in rsr.residue.atoms.all():
                 p2.atoms.append(a.serial)

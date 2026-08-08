@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260804-fusion4">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260807-hero-genome1">
 {% endblock %}
 
 {% block body %}
@@ -21,14 +21,16 @@
                     {% with crumb_protein=protein.accession|add:" · "|add:protein.description %}
                     {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=protein.assembly_label crumb_3_url=assembly_url crumb_4_label=crumb_proteins crumb_4_url=proteins_url crumb_5_label=crumb_protein %}
                     {% endwith %}
+                    <a class="protein-hero-genome" href="{{ assembly_url }}" title="{% trans 'Go to genome overview' %}">
+                        <span class="protein-hero-genome-label">{% trans "Genome" %}</span>
+                        <span class="protein-hero-genome-value">{{ protein.assembly_label|default:protein.assembly_name }}</span>
+                    </a>
                     <p class="protein-hero-eyebrow">{% trans "Protein target profile" %}</p>
-                    <h1>{{ protein.accession }}</h1>
-                    <p class="protein-description">{{ protein.description|default:"-" }}</p>
+                    <h1>{{ protein.description|default:protein.accession }}</h1>
+                    <p class="protein-accession-line" title="{% trans "Accession assigned to this protein in the genome's GenBank record." %}">
+                        <span class="protein-accession-label">{% trans "Accession" %}:</span> {{ protein.accession }}
+                    </p>
                     <div class="hero-chip-list tp-chip-group">
-                        <span class="hero-chip tp-chip tp-chip--meta tp-chip--sm" title="{% trans 'Source genome' %}: {{ protein.assembly_label|default:protein.assembly_name }}">
-                            <strong>{% trans "Genome" %}:</strong>
-                            <span>{{ protein.assembly_label|default:protein.assembly_name }}</span>
-                        </span>
                         <span class="hero-chip tp-chip tp-chip--meta tp-chip--sm hero-chip-gene" title="{% trans 'Gene name or locus tag reported for this protein' %}: {{ protein.gene|default_if_none:'-' }}">
                             <strong>{% trans "Gene" %}:</strong>
                             <span class="gene-value">{{ protein.gene|default:"-" }}</span>
@@ -40,9 +42,13 @@
                         {% if metabolic_context %}
                         <a class="hero-chip tp-chip tp-chip--sm tp-chip--link" href="#section-metabolic-context" title="{% trans 'Jump to metabolic reactions and pathway context' %}">
                             <span class="tp-chip-db">{% trans "Metabolism" %}</span>
+                            {% if metabolic_context.in_network %}
                             {% with reaction_count=metabolic_context.reactions|length %}
                             <span class="tp-chip-acc">{% blocktrans count count=reaction_count %}{{ count }} reaction{% plural %}{{ count }} reactions{% endblocktrans %}</span>
                             {% endwith %}
+                            {% else %}
+                            <span class="tp-chip-acc">{% trans "Not in network" %}</span>
+                            {% endif %}
                         </a>
                         {% endif %}
                         {% for acc in uniprot_accessions %}
@@ -78,7 +84,7 @@
                     <span class="metric-value">{{ druggability.0 }}</span>
                 </div>
                 {% endif %}
-                {% if metabolic_context %}
+                {% if metabolic_context.in_network %}
                 <div class="metric-pill {% if metabolic_context.is_chokepoint %}metric-pill--priority{% endif %}">
                     <span class="metric-label" title="{% if metabolic_context.is_chokepoint %}{% trans 'Reactions catalyzed by this protein in the imported metabolic model. Colored green because this protein is a chokepoint.' %}{% else %}{% trans 'Reactions catalyzed by this protein in the imported metabolic model.' %}{% endif %}">{% trans "Metabolic reactions" %}</span>
                     <span class="metric-value">{{ metabolic_context.reactions|length }}</span>
@@ -211,18 +217,18 @@
             <section class="protein-card" id="section-target-profile">
                 <div class="section-head tp-ui-panel-head">
                     <div>
-                        <h2>{% trans "Prioritization evidence" %}</h2>
+                        <h2>{% trans "Prioritization evidence" %}{% trans "Hover any value below for what it means and how it's scored." as target_profile_help %}{% include "components/ui/section_help.html" with text=target_profile_help %}</h2>
                         <p class="section-subtitle">{% trans "Selectivity, essentiality, structural confidence, conservation, and predicted binding-site evidence." %}</p>
                     </div>
                 </div>
                 <div class="target-profile-groups">
                     {% regroup target_profile by category as profile_by_category %}
                     {% for group in profile_by_category %}
+                    {% if group.grouper != "localization" %}
                     <section class="target-profile-group">
                     <h3 class="target-profile-group-label">
                         {% if group.grouper == "off_target" %}{% trans "Off-target risk" %}
                         {% elif group.grouper == "essentiality" %}{% trans "Essentiality" %}
-                        {% elif group.grouper == "localization" %}{% trans "Localization" %}
                         {% elif group.grouper == "structure" %}{% trans "Structure confidence" %}
                         {% else %}{{ group.grouper }}{% endif %}
                     </h3>
@@ -271,6 +277,7 @@
                     {% endfor %}
                     </dl>
                     </section>
+                    {% endif %}
                     {% endfor %}
                 </div>
 
@@ -280,17 +287,19 @@
                         <h3>{% trans "Binding-site evidence" %}</h3>
                         {% if selected_pocket_evidence.selected_source_kind %}<span class="tp-chip tp-chip--sm">{{ selected_pocket_evidence.selected_source_kind }}</span>{% endif %}
                     </div>
-                    <p class="target-evidence-note">{% trans "The selected pocket score is the FPocket value used for ranking after applying the curated structure priority. It estimates small-molecule pocket quality; it is not experimental binding evidence. The 3D viewer may show a different loaded structure, so visible pockets can differ." %}</p>
+                    <p class="target-evidence-note">{% trans "P2Rank's binding-site probability is the primary druggability signal shown across the app; FPocket's druggability score is shown alongside it for comparison. Both estimate small-molecule pocket quality after applying the curated structure priority — neither is experimental binding evidence. The 3D viewer may show a different loaded structure, so visible pockets can differ." %}</p>
                     <div class="target-evidence-grid">
-                        {% trans "FPocket predicts geometric cavities on a 3D structure. Score 0-1; higher values suggest a better small-molecule pocket but do not prove binding." as fpocket_tooltip %}
-                        {% trans "Structure used to compute this FPocket score" as fpocket_structure_tooltip %}
-                        {% trans "Best-ranked pocket identifier from FPocket" as fpocket_pocket_tooltip %}
-                        {% include "components/structure/pocket_evidence_card.html" with tool_key="fpocket" tool_label="FPocket" tool_tooltip=fpocket_tooltip score=selected_pocket_evidence.fpocket.score structure=selected_pocket_evidence.fpocket.structure pocket=selected_pocket_evidence.fpocket.pocket structure_tooltip=fpocket_structure_tooltip pocket_tooltip=fpocket_pocket_tooltip %}
-
                         {% trans "P2Rank is a machine-learning predictor of ligand-binding sites. Probability 0-1; higher values support the pocket hypothesis but do not prove binding." as p2rank_tooltip %}
                         {% trans "Structure used to compute this P2Rank score" as p2rank_structure_tooltip %}
                         {% trans "Best-ranked pocket identifier from P2Rank" as p2rank_pocket_tooltip %}
-                        {% include "components/structure/pocket_evidence_card.html" with tool_key="p2rank" tool_label="P2Rank" tool_tooltip=p2rank_tooltip score=selected_pocket_evidence.p2rank.score structure=selected_pocket_evidence.p2rank.structure pocket=selected_pocket_evidence.p2rank.pocket structure_tooltip=p2rank_structure_tooltip pocket_tooltip=p2rank_pocket_tooltip %}
+                        {% trans "Druggability (P2Rank)" as p2rank_label %}
+                        {% include "components/structure/pocket_evidence_card.html" with tool_key="p2rank" tool_label=p2rank_label tool_tooltip=p2rank_tooltip score=selected_pocket_evidence.p2rank.score structure=selected_pocket_evidence.p2rank.structure pocket=selected_pocket_evidence.p2rank.pocket structure_tooltip=p2rank_structure_tooltip pocket_tooltip=p2rank_pocket_tooltip %}
+
+                        {% trans "FPocket predicts geometric cavities on a 3D structure. Score 0-1; higher values suggest a better small-molecule pocket but do not prove binding." as fpocket_tooltip %}
+                        {% trans "Structure used to compute this FPocket score" as fpocket_structure_tooltip %}
+                        {% trans "Best-ranked pocket identifier from FPocket" as fpocket_pocket_tooltip %}
+                        {% trans "Druggability (FPocket)" as fpocket_label %}
+                        {% include "components/structure/pocket_evidence_card.html" with tool_key="fpocket" tool_label=fpocket_label tool_tooltip=fpocket_tooltip score=selected_pocket_evidence.fpocket.score structure=selected_pocket_evidence.fpocket.structure pocket=selected_pocket_evidence.fpocket.pocket structure_tooltip=fpocket_structure_tooltip pocket_tooltip=fpocket_pocket_tooltip %}
                         {% if selected_pocket_evidence.colabfold.fpocket_score or selected_pocket_evidence.colabfold.p2rank_score %}
                         <div class="target-evidence-card target-evidence-card--secondary" title="{% trans "Pocket scores computed on the ColabFold-predicted model. Compare with the selected scores above to assess consistency across structure sources." %}">
                             <span class="target-evidence-label">{% trans "ColabFold model" %}</span>
@@ -458,14 +467,31 @@
             <section class="protein-card metabolic-browser-card" id="section-metabolic-context">
                 <div class="section-head tp-ui-panel-head">
                     <div>
-                        <h2>{% trans "Metabolic context" %}</h2>
+                        <h2>{% trans "Metabolic context" %}{% trans "This network is curated, not automatically generated. Hover the values below for details." as metabolic_help %}{% include "components/ui/section_help.html" with text=metabolic_help %}</h2>
                         <p class="section-subtitle">{% trans "Reactions catalyzed, pathway membership, and centrality in the genome-scale metabolic network." %}</p>
                     </div>
+                    {% if metabolic_context.in_network %}
                     <a href="{% url 'tpwebapp:protein_metabolic_network_page' protein_id=protein.id %}" class="btn tp-btn tp-btn--primary tp-btn--sm tp-btn-with-icon">
                         <span>{% trans "Explore metabolic network" %}</span>
                         <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/arrow_right.html" %}</span>
                     </a>
+                    {% endif %}
                 </div>
+
+                {% if not metabolic_context.in_network %}
+                <p class="tp-state-note tp-state-note--empty">
+                    {% trans "This protein is not associated with the imported metabolic network for this genome." %}
+                </p>
+                <a href="{{ metabolic_context.network_url }}" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-btn-with-icon">
+                    <span>{% trans "Browse the genome's metabolic network" %}</span>
+                    <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/arrow_right.html" %}</span>
+                </a>
+                {% if metabolic_context.import_run %}
+                <p class="metabolic-provenance">
+                    {% blocktrans with fname=metabolic_context.import_run.sbml_filename date=metabolic_context.import_run.imported_at|date:"Y-m-d" %}Imported from {{ fname }} · {{ date }}{% endblocktrans %}
+                </p>
+                {% endif %}
+                {% else %}
 
                 {% if metabolic_context.summary_sentence %}
                 <p class="metabolic-summary-sentence">{{ metabolic_context.summary_sentence }}</p>
@@ -474,7 +500,7 @@
                 <div class="metabolic-context-preview">
                     <div class="metabolic-score-stack">
                         {% if metabolic_context.centrality %}
-                        <div class="metabolic-score-card" title="{% trans "Betweenness centrality of this gene's reaction(s) in the reaction-reaction network. Higher values mean more shortest paths pass through it - a proxy for how central/bottleneck-prone it is in the organism's metabolism." %}">
+                        <div class="metabolic-score-card" title="{% trans "Betweenness centrality of this gene's reaction(s) in the reaction-reaction network. Higher values mean more shortest paths pass through it - a proxy for how central/chokepoint-prone it is in the organism's metabolism." %}">
                             {% if metabolic_context.has_centrality_percentile %}
                             <span class="target-evidence-label">{% trans "Relative network centrality" %}</span>
                             <strong class="target-evidence-value">{{ metabolic_context.centrality_percentile }}%</strong>
@@ -527,6 +553,7 @@
                     {% blocktrans with fname=metabolic_context.import_run.sbml_filename date=metabolic_context.import_run.imported_at|date:"Y-m-d" %}Imported from {{ fname }} · {{ date }}{% endblocktrans %}
                 </p>
                 {% endif %}
+                {% endif %}
             </section>
             {% endif %}
 
@@ -565,6 +592,24 @@
                         {% if go_annotations %}<span class="tp-chip tp-chip--count tp-chip--sm">{{ go_annotations|length }} GO</span>{% endif %}
                     </div>
                 </div>
+                {% regroup target_profile by category as localization_by_category %}
+                {% for loc_group in localization_by_category %}
+                    {% if loc_group.grouper == "localization" %}
+                    <div class="annotation-panel annotation-panel--localization">
+                        <div class="annotation-panel-head">
+                            <h3>{% trans "Subcellular localization" %}</h3>
+                        </div>
+                        <dl class="target-profile-group-grid">
+                        {% for item in loc_group.list %}
+                            <div class="target-profile-item target-profile-item--{{ item.tone }}"{% if item.tooltip %} title="{{ item.tooltip }}"{% endif %}>
+                                <dt class="target-profile-label">{{ item.label }}</dt>
+                                <dd class="target-profile-value">{{ item.value }}</dd>
+                            </div>
+                        {% endfor %}
+                        </dl>
+                    </div>
+                    {% endif %}
+                {% endfor %}
                 {% if ec_annotations or go_annotations %}
                     <div class="annotation-panels">
                         {% if ec_annotations %}
@@ -1136,7 +1181,7 @@
 {% block jsloaded %}
     {{ graphic_features|json_script:"seqfeatures" }}
 
-    <script src="{% static 'js/pages/protein-detail.js' %}?v=20260725-action-semantics"></script>
+    <script src="{% static 'js/pages/protein-detail.js' %}?v=20260807-quicknav-fix"></script>
     <script src="{% static 'js/pages/pocket-inspector.js' %}?v=20260726-resetzoom1"></script>
     <script src="{% static 'js/pages/ngl-shape-registry.js' %}?v=20260720-shaperegistry1"></script>
     <script>

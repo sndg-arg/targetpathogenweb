@@ -178,6 +178,25 @@
                  attribute (HTML5 form-association-by-id), since it's now a DOM sibling instead
                  of a descendant. -->
 
+            <details class="hero-analysis-context js-smooth-details">
+                <summary class="hero-analysis-summary">{% trans "Search by sequence (BLAST)" %}</summary>
+                <p class="hero-analysis-line">{% trans "Paste an amino acid sequence to find the closest-matching proteins in this genome (blastp against every protein loaded here)." %}</p>
+                <form method="POST" action="{% url 'tpwebapp:protein_blast' genome=genome %}" class="tp-ui-toolbar-form" target="_blank">
+                    {% csrf_token %}
+                    <div class="tp-ui-field">
+                        <label class="tp-ui-field-label" for="protein-blast-sequence">{% trans "Amino acid sequence" %}</label>
+                        <textarea name="sequence" id="protein-blast-sequence" class="form-control tp-ui-control" rows="3"
+                                  placeholder="{% trans 'Paste FASTA or a raw amino acid sequence…' %}"></textarea>
+                    </div>
+                    <div class="tp-ui-actions">
+                        <button type="submit" class="btn tp-btn tp-btn--neutral tp-btn-with-icon">
+                            <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/search.html" %}</span>
+                            <span>{% trans "Run BLAST against this genome" %}</span>
+                        </button>
+                    </div>
+                </form>
+            </details>
+
                 <div class="toolbar-controls-row tp-ui-toolbar-row tp-ui-toolbar-row--between">
                     <div class="toolbar-controls-left tp-ui-group">
                         <div class="per-page-control tp-ui-control" title="{% trans "Proteins per page" %}">
@@ -193,7 +212,7 @@
                             <div class="toolbar-workbench__group toolbar-workbench__group--primary" aria-label="{% trans 'Filtering and ranking' %}">
                                 {% if filter_presets %}
                                 <div class="toolbar-filter-split" id="toolbar-presets-wrap">
-                                    <button type="button" class="toolbar-filter-split__main tp-btn-with-icon" id="open-filters-btn">
+                                    <button type="button" class="toolbar-filter-split__main tp-btn-with-icon" id="open-filters-btn" title="{% trans 'Counts every active score/structure filter, plus any filter applied by following an EC/GO annotation link from a protein page.' %}">
                                         <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/filter.html" %}</span>
                                         <span class="toolbar-action-btn__title">{% trans "Filters" %}</span>
                                         <span class="toolbar-action-btn__meta">
@@ -262,7 +281,7 @@
                                     </div>
                                 </div>
                                 {% else %}
-                                <button type="button" class="btn tp-btn tp-btn--neutral tp-btn-with-icon toolbar-action-btn toolbar-action-btn--primary" id="open-filters-btn">
+                                <button type="button" class="btn tp-btn tp-btn--neutral tp-btn-with-icon toolbar-action-btn toolbar-action-btn--primary" id="open-filters-btn" title="{% trans 'Counts every active score/structure filter, plus any filter applied by following an EC/GO annotation link from a protein page.' %}">
                                     <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/filter.html" %}</span>
                                     <span class="toolbar-action-btn__title">{% trans "Filters" %}</span>
                                     <span class="toolbar-action-btn__meta">

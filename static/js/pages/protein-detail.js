@@ -224,7 +224,33 @@
             });
         }
 
+        // Clicking a link jumps here immediately, before the browser's smooth-scroll
+        // animation finishes -- without this, a short section (e.g. a short protein's
+        // Sequence) can have its whole height above the trigger line already mid-scroll,
+        // so the geometric heuristic below picks the next section instead of the one
+        // just clicked. Held for a beat to cover the animation, then released back to
+        // normal scroll-based tracking.
+        var manualActiveId = null;
+        var manualActiveUntil = 0;
+
+        links.forEach(function (link) {
+            link.addEventListener("click", function () {
+                var id = (link.getAttribute("href") || "").slice(1);
+                if (!id) return;
+                manualActiveId = id;
+                manualActiveUntil = Date.now() + 1000;
+                setActive(id);
+            });
+        });
+
         function updateActive() {
+            if (manualActiveId) {
+                if (Date.now() < manualActiveUntil) {
+                    setActive(manualActiveId);
+                    return;
+                }
+                manualActiveId = null;
+            }
             var triggerLine = Math.round(window.innerHeight * 0.32);
             var active = targets[0];
             for (var i = targets.length - 1; i >= 0; i--) {

@@ -31,6 +31,7 @@
         <a class="ds-quick-nav-link" href="#structure">{% trans "3D structure" %}</a>
         <a class="ds-quick-nav-link" href="#binding-sites">{% trans "Binding sites" %}</a>
         <a class="ds-quick-nav-link" href="#annotation">{% trans "Annotation" %}</a>
+        <a class="ds-quick-nav-link" href="#metabolism-methodology">{% trans "Metabolism" %}</a>
         <a class="ds-quick-nav-link" href="#target-profile">{% trans "Target profile" %}</a>
         <a class="ds-quick-nav-link" href="#ligands">{% trans "Ligands" %}</a>
         <a class="ds-quick-nav-link" href="#drug-likeness">{% trans "Drug-likeness" %}</a>
@@ -300,6 +301,27 @@
         <div class="ds-subsection">
             <h3>{% trans "Gene Ontology (GO) and EC numbers" %}</h3>
             <p class="ds-body">{% trans "GO terms and EC numbers are collected from two sources and merged: InterProScan column output (stage 11) and UniProt curated data (stage 13, requires successful UniProt mapping). If a protein has no UniProt mapping and InterProScan found no hits, EC = 0 is the expected and correct result." %}</p>
+        </div>
+    </section>
+
+    {# ── 5b. Metabolism ── #}
+    <section class="ds-panel" id="metabolism-methodology">
+        <div class="section-head tp-ui-panel-head">
+            <div>
+                <p class="tp-ui-field-label">{% trans "Manual, per genome" %}</p>
+                <h2 class="ds-panel-title">{% trans "Metabolic network" %}</h2>
+                <p class="ds-panel-subtitle">{% trans "load_metabolism (SBML + per-gene results + network.sif)" %}</p>
+            </div>
+        </div>
+        <div class="ds-subsection">
+            <p class="ds-body">
+                {% trans "This metabolic network is curated, not generated automatically from the uploaded genome. It is built externally with Pathway Tools/MetaFlux and imported per genome as an SBML export, a per-gene centrality/chokepoint results table, and a reaction-reaction adjacency graph (network.sif)." %}
+            </p>
+            <p class="ds-body">
+                {% blocktrans %}Methodology follows: Ramos, P.I.P. et al. "An integrative, multi-omics approach towards the prioritization of <em>Klebsiella pneumoniae</em> drug targets." <em>Scientific Reports</em> 8, 10755 (2018).{% endblocktrans %}
+                <a href="https://doi.org/10.1038/s41598-018-28916-7" target="_blank" rel="noopener noreferrer">doi.org/10.1038/s41598-018-28916-7</a>
+            </p>
+            <p class="ds-body">{% trans "Centrality (betweenness) and chokepoint status feed the same score/filter system as every other evidence type — a reaction with no other producer or consumer for a metabolite is a chokepoint, harder for the pathogen to route around if inhibited." %}</p>
         </div>
     </section>
 

@@ -11,6 +11,7 @@ from .HumanProtein import HumanProtein
 from .GenomeUpload import GenomeUpload
 from .PipelineRun import PipelineRun, PipelineStageEvent
 from .FilterPreset import FilterPreset
+from .AgentChatSession import AgentChatSession
 from .Metabolism import (
     MetabolicPathway,
     MetabolicReaction,

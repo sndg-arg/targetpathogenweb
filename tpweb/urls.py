@@ -20,6 +20,7 @@ from .views.StructureRawView import StructureRawView
 from .views.StructureView import StructureView
 from .views.FormView import FormView
 from .views.NewView import NewView
+from .views.ProteinBlastView import ProteinBlastView
 from .views.MoleculeView import MoleculeView
 from .views.ParameterFormView import load_options
 from .views.BinderDetailView import BinderDetailView
@@ -97,6 +98,7 @@ urlpatterns = [
     path("protein/<int:protein_id>/metabolic-network/view", view=ProteinMetabolicNetworkPageView.as_view(), name="protein_metabolic_network_page"),
     path("genome/<str:genome>/proteins", view=ProteinListView.as_view(), name="protein_list"),
     path("genome/<str:genome>/proteins/suggestions", view=ProteinSearchSuggestionsView.as_view(), name="protein_search_suggestions"),
+    path("genome/<str:genome>/proteins/blast", view=ProteinBlastView.as_view(), name="protein_blast"),
     path("download", view=DownloadView.as_view(), name="download"),
     path("genomes", view=GenomesView.as_view(), name="genomes_list"),
     path("genomes/upload", view=GenomeUploadView.as_view(), name="genome_upload"),

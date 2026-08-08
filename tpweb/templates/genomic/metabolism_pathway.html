@@ -4,7 +4,7 @@
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20260804-fusion5">
-    <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20260728-connections1">
+    <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20260807-rxnrow-click">
     <link rel="stylesheet" href="{% static 'css/pages/metabolic-network-genome.css' %}?v=20260728-fontscale1">
 {% endblock %}
 
@@ -126,7 +126,7 @@
         </div>
         <div class="metabolism-reaction-table">
             {% for reaction in reaction_rows %}
-            <article class="pathway-reaction-row{% if reaction.is_chokepoint %} pathway-reaction-row--chokepoint{% endif %}">
+            <article class="pathway-reaction-row{% if reaction.is_chokepoint %} pathway-reaction-row--chokepoint{% endif %}" data-reaction-id="{{ reaction.id }}" title="{% trans 'Click to locate this reaction in the graph above' %}">
                 <div class="pathway-reaction-main">
                     <div>
                         <h3 title="{% trans 'Reaction' %}: {{ reaction.name }}">{{ reaction.name }}</h3>
@@ -179,7 +179,7 @@
 
 {{ graph_payload|json_script:"metabolic-pathway-graph-data" }}
 <script src="{% static 'js/pages/metabolic-reaction-graph.js' %}?v=20260728-dynamiclabel1"></script>
-<script src="{% static 'js/pages/metabolic-pathway-graph.js' %}?v=20260728-fontscale1"></script>
+<script src="{% static 'js/pages/metabolic-pathway-graph.js' %}?v=20260807-rxnrow-click"></script>
 <script>
 (function () {
     var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;

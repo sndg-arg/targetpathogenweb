@@ -4,8 +4,8 @@
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20260804-fusion5">
-    <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20260728-connections1">
-    <link rel="stylesheet" href="{% static 'css/pages/metabolic-network-genome.css' %}?v=20260728-dynamiclabel1">
+    <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20260807-rxnrow-click">
+    <link rel="stylesheet" href="{% static 'css/pages/metabolic-network-genome.css' %}?v=20260807-inspector-spacing">
 {% endblock %}
 
 {% block body %}
@@ -47,6 +47,11 @@
             </div>
         </div>
     </section>
+
+    <p class="tp-state-note tp-state-note--empty metabolism-curation-note">
+        {% trans "This metabolic network is curated, not automatically generated from the genome." %}
+        <a href="{% url 'tpwebapp:data_sources' %}#metabolism-methodology">{% trans "Methodology and citation" %}</a>
+    </p>
 
     <section class="genome-card metabolism-panel">
         <div class="section-head tp-ui-panel-head">

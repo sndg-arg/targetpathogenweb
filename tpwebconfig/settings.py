@@ -435,5 +435,6 @@ else:
 JBROWSE_EMBED_ENABLED = env.bool("JBROWSE_EMBED_ENABLED", default=True)
 # BLAST
 BLASTN_PATH = env('BLASTN_PATH', default = 'blastn')
+BLASTP_PATH = env('BLASTP_PATH', default = 'blastp')
 # CRISPY
 CRISPY_TEMPLATE_PACK = 'bootstrap4'

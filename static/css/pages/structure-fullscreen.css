@@ -333,6 +333,7 @@ body:has(.sv-root) .tp-footer { display: none !important; }
     white-space: nowrap;
 }
 .sv-mode-btn:hover { opacity: 0.90; background: var(--sv-btn-hover-bg); }
+.sv-mode-btn:disabled { opacity: 0.30; cursor: default; pointer-events: none; }
 .sv-mode-btn.is-active {
     background: var(--sv-btn-active-bg);
     color: var(--sv-btn-active-color);

@@ -4,7 +4,7 @@
 
 {% block head %}
     <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20260804-fusion5">
-    <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20260728-connections1">
+    <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20260807-rxnrow-click">
 {% endblock %}
 
 {% block body %}
@@ -45,6 +45,12 @@
             </div>
         </div>
     </section>
+
+    <p class="tp-state-note tp-state-note--empty metabolism-curation-note">
+        {% trans "This metabolic network is curated, not automatically generated from the genome." %}
+        {% blocktrans %}Methodology: Ramos, P.I.P. et al. "An integrative, multi-omics approach towards the prioritization of <em>Klebsiella pneumoniae</em> drug targets." <em>Scientific Reports</em> 8, 10755 (2018).{% endblocktrans %}
+        <a href="https://doi.org/10.1038/s41598-018-28916-7" target="_blank" rel="noopener noreferrer">doi.org/10.1038/s41598-018-28916-7</a>
+    </p>
 
     <section class="genome-card metabolism-panel">
         <div class="section-head tp-ui-panel-head">
@@ -132,7 +138,7 @@
                         <a href="{% url 'tpwebapp:protein' protein_id=target.protein_id %}"
                            class="metabolism-target-chip{% if forloop.first %} metabolism-target-chip--top{% endif %}">
                             <span class="metabolism-target-id">{{ target.accession }}</span>
-                            <span class="metabolism-target-meta" title="{% trans "drug = FPocket druggability score. cent = betweenness centrality in the reaction network (higher = more of a metabolic bottleneck)." %}">
+                            <span class="metabolism-target-meta" title="{% trans "drug = FPocket druggability score. cent = betweenness centrality in the reaction network (higher = more of a metabolic chokepoint)." %}">
                                 {% trans "drug" %} {{ target.druggability|floatformat:2 }}
                                 &middot; {% trans "cent" %} {{ target.centrality|floatformat:3 }}
                             </span>

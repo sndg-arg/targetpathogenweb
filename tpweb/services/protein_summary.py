@@ -428,13 +428,25 @@ def build_metabolic_context(protein, raw_scores):
         .select_related("reaction")
         .prefetch_related("reaction__pathways", "reaction__participants__species")
     )
+    assembly_name = protein.biodatabase.name.split(Biodatabase.PROT_POSTFIX)[0]
+    assembly_slug = genome_url_slug(assembly_name)
+    import_run = MetabolicImportRun.objects.filter(genome_accession=assembly_name).first()
+
     if not links:
-        return None
+        if not import_run:
+            # No metabolic model imported for this genome at all -- nothing to show.
+            return None
+        # A network is imported for this genome, but this protein just isn't part of
+        # it -- still show the section with an explicit empty state instead of hiding
+        # it, so it's clear this is "not associated" rather than "no data loaded".
+        return {
+            "in_network": False,
+            "import_run": import_run,
+            "network_url": reverse("tpwebapp:genome_metabolism", kwargs={"genome": assembly_slug}),
+        }
 
     reactions = []
     pathway_chips = {}
-    assembly_name = protein.biodatabase.name.split(Biodatabase.PROT_POSTFIX)[0]
-    assembly_slug = genome_url_slug(assembly_name)
     for link in links:
         reaction = link.reaction
         kegg_url = (
@@ -492,9 +504,8 @@ def build_metabolic_context(protein, raw_scores):
 
     is_chokepoint = any(l.chokepoint_role != GeneReactionLink.CHOKEPOINT_NONE for l in links)
 
-    import_run = MetabolicImportRun.objects.filter(genome_accession=assembly_name).first()
-
     context = {
+        "in_network": True,
         "reactions": reactions,
         "pathways": sorted(pathway_chips.values(), key=lambda p: (p["source"], p["name"])),
         "centrality": centrality,
@@ -547,7 +558,7 @@ def build_target_executive_summary(
         if metabolic_context.get("is_chokepoint"):
             _append_summary_item(
                 strengths,
-                "Metabolic bottleneck",
+                "Metabolic chokepoint",
                 "Catalyzes a reaction that is the only producer or consumer of a metabolite in the imported metabolic model.",
                 "good",
                 "#section-metabolic-context",

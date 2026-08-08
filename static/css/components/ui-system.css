@@ -1772,3 +1772,27 @@ a.tp-chip--go:hover {
         transition: none !important;
     }
 }
+
+/* Small "?" affordance next to a section heading, hinting there's an explanation on
+   hover/focus -- for sections whose terms are only explained via title tooltips on
+   individual items, with no visual cue that hovering would help. */
+.section-help-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    margin-left: 6px;
+    color: var(--tp-color-text-muted);
+    cursor: help;
+    vertical-align: middle;
+}
+.section-help-icon svg {
+    width: 100%;
+    height: 100%;
+}
+.section-help-icon:hover,
+.section-help-icon:focus-visible {
+    color: var(--tp-color-text-secondary);
+    outline: none;
+}

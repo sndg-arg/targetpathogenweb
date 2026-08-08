@@ -207,7 +207,7 @@ SYSTEM_SCORE_PARAM_DEFINITIONS = {
             "Betweenness centrality of the metabolic reaction(s) this gene catalyzes, within the "
             "genome-scale metabolic reaction network (BioCyc/Pathway Tools MetaFlux). Higher values "
             "mean the reaction sits on more shortest paths between other reactions — a proxy for how "
-            "central/bottleneck-prone it is in the organism's metabolism. "
+            "central/chokepoint-prone it is in the organism's metabolism. "
             "Available only for genomes analyzed with the metabolic network pipeline."
         ),
         "type": "N",

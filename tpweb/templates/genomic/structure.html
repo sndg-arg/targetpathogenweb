@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20260804-sidebartoggle1">
+    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20260807-hetero-surface-disable">
 {% endblock %}
 
 {% block body %}
@@ -80,6 +80,20 @@
                 <button type="button" class="sv-mode-btn js-structure-color" data-color-mode="chainname" aria-pressed="false" title="{% trans 'Color each chain differently.' %}">{% trans "By chain" %}</button>
                 <button type="button" class="sv-mode-btn js-structure-color" data-color-mode="sstruc" aria-pressed="false" title="{% trans 'Color by secondary structure (helix/sheet/coil).' %}">{% trans "By structure" %}</button>
             </div>
+
+            <div class="sv-tb-sep" aria-hidden="true"></div>
+
+            {# Heteroatoms toggle -- everything that co-crystallized with the chain (ligands,
+               cofactors, ions), excluding solvent. Only meaningful for experimental PDB
+               structures; harmless no-op on AlphaFold/ColabFold models, which have none. #}
+            <button type="button" class="sv-tb-btn js-hetero-toggle" id="sv-hetero-btn"
+                    aria-pressed="false" title="{% trans 'Show heteroatoms co-crystallized with this structure (ligands, cofactors, ions) — excludes water.' %}">
+                <svg class="sv-tb-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <circle cx="5" cy="6" r="1.6"/><circle cx="11" cy="5" r="1.6"/><circle cx="8" cy="11" r="1.6"/>
+                    <path d="M6.2 6.9L9.8 10.1M6.4 5.3L9.6 5.3"/>
+                </svg>
+                <span class="sv-tb-label">{% trans "Heteroatoms" %}</span>
+            </button>
 
             <div class="sv-tb-sep" aria-hidden="true"></div>
 
@@ -268,6 +282,7 @@ function jsloaded() {
     });
 
     var spinBtn       = document.getElementById("sv-spin-btn");
+    var heteroBtn     = document.getElementById("sv-hetero-btn");
     var resetZoomBtn  = document.getElementById("structure-reset-zoom-btn");
     var loadingNote   = document.getElementById("structure-loading-note");
     var vmdLink       = document.getElementById("sv-vmd-link");
@@ -354,6 +369,24 @@ function jsloaded() {
             btn.classList.toggle("is-active", isActive);
             btn.setAttribute("aria-pressed", isActive ? "true" : "false");
         });
+        // Surface rendering only ever shows the uniform color -- the color-mode
+        // rebuild only touches the cartoon representation (see ngl_set_color_mode),
+        // so "By chain"/"By structure" silently do nothing on the surface layer.
+        // Disable them instead of leaving a control that looks like it should work.
+        var isSurface = mode === "density";
+        structureColorButtons.forEach(function (btn) {
+            var colorMode = btn.getAttribute("data-color-mode") || "flat";
+            var shouldDisable = isSurface && colorMode !== "flat";
+            if (!btn.dataset.originalTitle) btn.dataset.originalTitle = btn.getAttribute("title") || "";
+            btn.disabled = shouldDisable;
+            btn.setAttribute("aria-disabled", shouldDisable ? "true" : "false");
+            btn.setAttribute(
+                "title",
+                shouldDisable
+                    ? "{% trans 'Not available in Surface mode — only Uniform color applies to the surface layer.' %}"
+                    : btn.dataset.originalTitle
+            );
+        });
     }
 
     function setColorButtonState(colorMode) {
@@ -405,6 +438,12 @@ function jsloaded() {
                 stage.setSpin(isSpinning);
             }
             updateSpinButton();
+        });
+    }
+
+    if (heteroBtn) {
+        heteroBtn.addEventListener("click", function () {
+            if (typeof window.ngl_toggle_hetero === "function") window.ngl_toggle_hetero();
         });
     }
 
@@ -662,8 +701,11 @@ function jsloaded() {
                     setLoadingNoteVisible(false);
                 }
             })
-            .catch(function () {
+            .catch(function (err) {
                 if (loadToken !== structureLoadToken) return;
+                if (window.console && console.error) {
+                    console.error("Unable to load structure", structureId, structureUrls[structureId], err);
+                }
                 setStructurePickerBusy(false);
                 setLoadingNoteVisible(true, "{% trans 'Unable to load 3D structure.' %}", true);
             });
@@ -775,6 +817,26 @@ function jsloaded() {
         representations.__main_density.setVisibility(false);
         representations.__main_density.sele = "polymer and " + activeChainSelector;
 
+        /* ---- Heteroatoms: everything co-crystallized with the chain (ligands, cofactors,
+           ions), excluding solvent. Empty selection on AlphaFold/ColabFold models -- harmless. ---- */
+        representations.__hetero = component.addRepresentation("ball+stick", {
+            sele: "hetero and not water",
+            color: tpColor("--tp-color-rose-500", "#cf628c"),
+            multipleBond: true
+        });
+        visible.__hetero = false;
+        representations.__hetero.setVisibility(false);
+
+        window.ngl_toggle_hetero = function () {
+            if (!representations.__hetero) return;
+            visible.__hetero = !visible.__hetero;
+            representations.__hetero.setVisibility(visible.__hetero);
+            if (heteroBtn) {
+                heteroBtn.setAttribute("aria-pressed", visible.__hetero ? "true" : "false");
+                heteroBtn.classList.toggle("sv-tb-active", visible.__hetero);
+            }
+        };
+
         function updateDensityForPockets() {
             if (!visible.__main_density || !representations.__main_density) return;
             var anyPocketVisible = Object.keys(visible).some(function (key) {
@@ -819,6 +881,7 @@ function jsloaded() {
 
         structureColorButtons.forEach(function (btn) {
             btn.addEventListener("click", function () {
+                if (btn.disabled) return;
                 window.ngl_set_color_mode(btn.getAttribute("data-color-mode") || "flat");
             });
         });
