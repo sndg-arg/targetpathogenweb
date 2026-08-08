@@ -95,6 +95,7 @@ class AssemblyView(View):
                 kwargs={"genome": slug, "annotation_kind": "ec"},
             ),
             "blast_url": f"{reverse('tpwebapp:form')}?genome={biodb.name}",
+            "protein_blast_url": reverse("tpwebapp:protein_blast", kwargs={"genome": slug}),
         }
 
         media_root = Path(settings.MEDIA_ROOT)

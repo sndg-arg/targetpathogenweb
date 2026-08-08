@@ -6,7 +6,7 @@ from pathlib import Path
 from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import Http404
-from django.shortcuts import redirect, render
+from django.shortcuts import render
 from django.urls import reverse
 from django.views import View
 
@@ -17,41 +17,50 @@ from tpweb.services.genome_workspace import display_genome_name, resolve_genome_
 
 
 class ProteinBlastView(LoginRequiredMixin, View):
-    """blastp search against a single genome's protein set, embedded in the protein
-    table page (search/proteins.html) rather than the standalone genome-picker BLAST
-    page (FormView, blastn-only). Reuses the protein BLAST db that
+    """blastp search against a single genome's protein set -- a standalone page
+    reached from a button on the genome overview (assembly.html), the same pattern
+    as FormView's genome-locked blastn page, just amino-acid and always locked to
+    one genome (no genome picker). Reuses the protein BLAST db that
     index_genome_seq_clean already builds for every genome at pipeline stage 9
     (makeblastdb -dbtype prot over SeqStore.faa) -- no new indexing step needed."""
 
-    template_name = "blast/protein_result.html"
+    form_template_name = "blast/protein_form.html"
+    result_template_name = "blast/protein_result.html"
+
+    def _base_context(self, resolved, genome_slug):
+        return {
+            "genome_name": resolved,
+            "genome_label": display_genome_name(resolved),
+            "proteins_url": reverse("tpwebapp:protein_list", kwargs={"genome": genome_slug}),
+        }
+
+    def _resolve_or_404(self, request, genome):
+        resolved = resolve_genome_from_slug(request.user, genome)
+        if not resolved or not Biodatabase.objects.filter(name=resolved).exists():
+            raise Http404("Genome not found")
+        return resolved
 
     def get(self, request, genome, *args, **kwargs):
-        return redirect(reverse("tpwebapp:protein_list", kwargs={"genome": genome}))
+        resolved = self._resolve_or_404(request, genome)
+        context = self._base_context(resolved, genome)
+        context["sequence_value"] = ""
+        return render(request, self.form_template_name, context)
 
     def post(self, request, genome, *args, **kwargs):
-        resolved = resolve_genome_from_slug(request.user, genome)
-        if not resolved:
-            raise Http404("Genome not found")
-        biodatabase = Biodatabase.objects.filter(name=resolved).first()
-        if biodatabase is None:
-            raise Http404("Genome not found")
+        resolved = self._resolve_or_404(request, genome)
+        context = self._base_context(resolved, genome)
 
         sequence = (request.POST.get("sequence") or "").strip()
         max_chars = int(os.environ.get("TPW_BLAST_MAX_QUERY_CHARS", "20000"))
-        context = {
-            "genome_name": resolved,
-            "genome_label": display_genome_name(resolved),
-            "sequence_value": sequence,
-            "proteins_url": reverse("tpwebapp:protein_list", kwargs={"genome": genome}),
-        }
+        context["sequence_value"] = sequence
 
         if not sequence:
             context["error_message"] = "Please provide a valid amino acid sequence. The query is empty!"
-            return render(request, self.template_name, context)
+            return render(request, self.form_template_name, context)
         if len(sequence) > max_chars:
             context["error_message"] = f"Query is too large. Limit: {max_chars} characters."
             context["sequence_value"] = sequence[:max_chars]
-            return render(request, self.template_name, context)
+            return render(request, self.form_template_name, context)
 
         query_id = uuid.uuid4()
         result_dir = Path(settings.MEDIA_ROOT) / "blast_results"
@@ -78,14 +87,14 @@ class ProteinBlastView(LoginRequiredMixin, View):
             sp.check_output(cmd, stderr=sp.STDOUT, timeout=timeout_seconds)
         except sp.TimeoutExpired:
             context["error_message"] = f"BLAST query timed out after {timeout_seconds} seconds."
-            return render(request, self.template_name, context)
+            return render(request, self.form_template_name, context)
         except sp.CalledProcessError as exc:
             details = exc.output.decode("utf-8", errors="replace") if exc.output else str(exc)
             context["error_message"] = f"BLAST query failed. {details}"
-            return render(request, self.template_name, context)
+            return render(request, self.form_template_name, context)
         except OSError as exc:
             context["error_message"] = f"BLAST executable is unavailable. {exc}"
-            return render(request, self.template_name, context)
+            return render(request, self.form_template_name, context)
         finally:
             query_path.unlink(missing_ok=True)
 
@@ -123,4 +132,4 @@ class ProteinBlastView(LoginRequiredMixin, View):
             hit["protein"] = proteins_by_accession.get(hit["subject_id"])
 
         context["hits"] = hits
-        return render(request, self.template_name, context)
+        return render(request, self.result_template_name, context)

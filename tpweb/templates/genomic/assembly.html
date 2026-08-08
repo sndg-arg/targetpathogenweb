@@ -76,7 +76,8 @@
                         </a>
                         <a href="{{ workspace_links.formula_url }}" class="btn tp-btn tp-btn--neutral tp-btn--sm">{% trans "Custom score" %}</a>
                         <a href="{{ workspace_links.ec_explorer_url }}" class="btn tp-btn tp-btn--neutral tp-btn--sm">{% trans "EC tree" %}</a>
-                        <a href="{{ workspace_links.blast_url }}" class="btn tp-btn tp-btn--neutral tp-btn--sm">BLAST</a>
+                        <a href="{{ workspace_links.blast_url }}" class="btn tp-btn tp-btn--neutral tp-btn--sm" title="{% trans 'Nucleotide BLAST (blastn) against this genome.' %}">BLAST</a>
+                        <a href="{{ workspace_links.protein_blast_url }}" class="btn tp-btn tp-btn--neutral tp-btn--sm" title="{% trans 'Amino acid BLAST (blastp) against every protein loaded for this genome.' %}">{% trans "Protein BLAST" %}</a>
                     </div>
                 </div>
                 <div class="tp-view-head-actions">
