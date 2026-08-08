@@ -192,7 +192,7 @@ def format_target_comparison(records):
         )
         rows.append(
             f"{record['accession']} | {record['evidence_score']}/{record['evidence_max']} | "
-            f"FPocket {record['fpocket']}, P2Rank {record['p2rank']} | "
+            f"P2Rank {record['p2rank']}, FPocket {record['fpocket']} | "
             f"{human_label} | "
             f"{record['microbiome_count']}/{record['microbiome_total']} | "
             f"{record['deg']} | {metabolism} | {record['direct_ligands']} | {risks}"

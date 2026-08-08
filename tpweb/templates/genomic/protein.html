@@ -80,7 +80,7 @@
                 </div>
                 {% if druggability %}
                 <div class="metric-pill metric-pill--drugg metric-pill--drugg-{{ druggability.1 }}">
-                    <span class="metric-label" title="{% if druggability.1 == 'high' %}{% trans 'FPocket pocket score on the selected structure. Higher values suggest a more druggable binding pocket. Colored green because this score is 0.7 or higher.' %}{% elif druggability.1 == 'mid' %}{% trans 'FPocket pocket score on the selected structure. Higher values suggest a more druggable binding pocket. Colored amber because this score is between 0.4 and 0.7.' %}{% else %}{% trans 'FPocket pocket score on the selected structure. Higher values suggest a more druggable binding pocket. Colored red because this score is below 0.4.' %}{% endif %}">{% trans "Pocket druggability" %}</span>
+                    <span class="metric-label" title="{% blocktrans with source=druggability.2 %}{{ source }} pocket score on the selected structure. Higher values suggest a more druggable binding pocket.{% endblocktrans %}">{% blocktrans with source=druggability.2 %}Pocket druggability ({{ source }}){% endblocktrans %}</span>
                     <span class="metric-value">{{ druggability.0 }}</span>
                 </div>
                 {% endif %}
@@ -304,16 +304,16 @@
                         <div class="target-evidence-card target-evidence-card--secondary" title="{% trans "Pocket scores computed on the ColabFold-predicted model. Compare with the selected scores above to assess consistency across structure sources." %}">
                             <span class="target-evidence-label">{% trans "ColabFold model" %}</span>
                             <div class="target-evidence-meta target-evidence-meta--top">
-                                {% if selected_pocket_evidence.colabfold.fpocket_score %}
-                                <div class="target-evidence-meta-row">
-                                    <span class="target-evidence-meta-key" title="{% trans "FPocket druggability score on the ColabFold model" %}">FPocket</span>
-                                    <span class="target-evidence-meta-val"><strong>{{ selected_pocket_evidence.colabfold.fpocket_score }}</strong>{% if selected_pocket_evidence.colabfold.fpocket_pocket %} &middot; {{ selected_pocket_evidence.colabfold.fpocket_pocket }}{% endif %}</span>
-                                </div>
-                                {% endif %}
                                 {% if selected_pocket_evidence.colabfold.p2rank_score %}
                                 <div class="target-evidence-meta-row">
                                     <span class="target-evidence-meta-key" title="{% trans "P2Rank binding site probability on the ColabFold model" %}">P2Rank</span>
                                     <span class="target-evidence-meta-val"><strong>{{ selected_pocket_evidence.colabfold.p2rank_score }}</strong>{% if selected_pocket_evidence.colabfold.p2rank_pocket %} &middot; {{ selected_pocket_evidence.colabfold.p2rank_pocket }}{% endif %}</span>
+                                </div>
+                                {% endif %}
+                                {% if selected_pocket_evidence.colabfold.fpocket_score %}
+                                <div class="target-evidence-meta-row">
+                                    <span class="target-evidence-meta-key" title="{% trans "FPocket druggability score on the ColabFold model" %}">FPocket</span>
+                                    <span class="target-evidence-meta-val"><strong>{{ selected_pocket_evidence.colabfold.fpocket_score }}</strong>{% if selected_pocket_evidence.colabfold.fpocket_pocket %} &middot; {{ selected_pocket_evidence.colabfold.fpocket_pocket }}{% endif %}</span>
                                 </div>
                                 {% endif %}
                             </div>

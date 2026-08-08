@@ -76,6 +76,30 @@ def druggability_label(value):
     return None
 
 
+def p2rank_label(value):
+    """Return (label, tone) for a P2Rank binding-site probability score.
+
+    Same shape as druggability_label but P2Rank's own thresholds (high >= 0.5,
+    medium 0.2-0.49 -- see the "Probability: high >= 0.5..." hint in
+    pocket_cards.html and p2rank_probability_color in StructureView.py),
+    since P2Rank's probability scale isn't calibrated the same as FPocket's
+    druggability score."""
+    if value is None:
+        return None
+    try:
+        v = float(str(value).replace(",", "."))
+    except (TypeError, ValueError):
+        return None
+    label = f"{v:.3f}".rstrip("0").rstrip(".")
+    if v >= 0.5:
+        return (label, "high")
+    elif v >= 0.2:
+        return (label, "mid")
+    elif v > 0:
+        return (label, "low")
+    return None
+
+
 def build_target_profile(raw_scores, microbiome_context=None):
     items = []
     for name, label, category, good_vals, bad_vals, tooltip in _SCORE_META:
@@ -603,6 +627,22 @@ def build_target_executive_summary(
     # below) so the human/microbiome off-target sentences can weigh the risk
     # against druggability instead of reporting it in isolation.
     fpocket_score = _score_float(raw_scores, "Druggability")
+    p2rank_score = _score_float(raw_scores, "p2rank_probability")
+
+    def _pocket_signal_clause():
+        # P2Rank is the primary druggability signal shown across the app (roadmap
+        # 6/08); fall back to FPocket when no P2Rank value is loaded.
+        if p2rank_score is not None and p2rank_score >= 0.2:
+            return (
+                f" This target also has a predicted binding pocket (P2Rank {p2rank_score:.2f}) — "
+                "check the ligand evidence before deprioritizing on off-target risk alone."
+            )
+        if fpocket_score is not None and fpocket_score >= 0.4:
+            return (
+                f" This target also has a predicted binding pocket (FPocket {fpocket_score:.2f}) — "
+                "check the ligand evidence before deprioritizing on off-target risk alone."
+            )
+        return ""
 
     human_offtarget = _raw_score(raw_scores, "human_offtarget").lower()
     if human_offtarget == "no_hit":
@@ -616,12 +656,7 @@ def build_target_executive_summary(
     elif human_offtarget == "hit":
         identity_value = _score_float(raw_scores, "human_identity")
         identity = _format_score_value(_raw_score(raw_scores, "human_identity"))
-        druggability_clause = (
-            f" This target also has a predicted binding pocket (FPocket {fpocket_score:.2f}) — "
-            "check the ligand evidence before deprioritizing on off-target risk alone."
-            if fpocket_score is not None and fpocket_score >= 0.4
-            else ""
-        )
+        druggability_clause = _pocket_signal_clause()
         if identity_value is not None and identity_value < 30:
             _append_summary_item(
                 risks,
@@ -655,8 +690,7 @@ def build_target_executive_summary(
                 detail = f"{count} hits across {total} screened genomes."
             else:
                 detail = "Similarity to gut microbiome references was detected."
-            if fpocket_score is not None and fpocket_score >= 0.4:
-                detail += f" This target also has a predicted binding pocket (FPocket {fpocket_score:.2f}) — check the ligand evidence before deprioritizing on off-target risk alone."
+            detail += _pocket_signal_clause()
             _append_summary_item(risks, "Microbiome similarity", detail, "watch", "#section-binders")
 
     if conservation_profile:
@@ -679,7 +713,6 @@ def build_target_executive_summary(
             )
 
     pocket_size_outlier = _truthy_score(_raw_score(raw_scores, "pocket_size_outlier"))
-    p2rank_score = _score_float(raw_scores, "p2rank_probability")
     if fpocket_score is not None:
         if fpocket_score >= 0.7:
             if pocket_size_outlier:
@@ -715,10 +748,10 @@ def build_target_executive_summary(
     ):
         _append_summary_item(
             strengths,
-            "Independent pocket support: FPocket + P2Rank",
+            "Independent pocket support: P2Rank + FPocket",
             (
                 f"Both predictors report a high-scoring binding site "
-                f"(FPocket {fpocket_score:.2f}, P2Rank {p2rank_score:.2f}). "
+                f"(P2Rank {p2rank_score:.2f}, FPocket {fpocket_score:.2f}). "
                 "Use the 3D pocket comparison to verify whether they identify the same site."
             ),
             "good",
@@ -849,13 +882,32 @@ def build_protein_executive_context(
         )
         for spv in score_param_values
     }
+    # P2Rank is the primary druggability signal shown across the app (roadmap 6/08) --
+    # prefer it here too, falling back to FPocket's score when no P2Rank value is loaded.
+    # 3-tuple (label, tone, source) instead of druggability_label's bare 2-tuple, so the
+    # template can say which tool the shown value actually came from.
+    p2rank_spv = next(
+        (spv for spv in score_param_values if spv.score_param.name == "p2rank_probability"), None
+    )
+    p2rank_raw = None
+    if p2rank_spv is not None:
+        p2rank_raw = p2rank_spv.numeric_value if p2rank_spv.numeric_value is not None else p2rank_spv.value or None
+    p2rank_druggability = p2rank_label(p2rank_raw)
+
     drugg_spv = next(
         (spv for spv in score_param_values if spv.score_param.name == "Druggability"), None
     )
     drugg_raw = None
     if drugg_spv is not None:
         drugg_raw = drugg_spv.numeric_value if drugg_spv.numeric_value is not None else drugg_spv.value or None
-    druggability = druggability_label(drugg_raw)
+    fpocket_druggability = druggability_label(drugg_raw)
+
+    if p2rank_druggability:
+        druggability = (p2rank_druggability[0], p2rank_druggability[1], "P2Rank")
+    elif fpocket_druggability:
+        druggability = (fpocket_druggability[0], fpocket_druggability[1], "FPocket")
+    else:
+        druggability = None
 
     if structures is None:
         structures = list(BioentryStructure.objects.filter(bioentry=protein).select_related("pdb"))
