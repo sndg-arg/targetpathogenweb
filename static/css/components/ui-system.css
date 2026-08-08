@@ -814,16 +814,14 @@ a.tp-chip--go:hover {
 }
 
 .tp-table--premium thead th {
-    /* Was position: sticky; top: 0 -- see .protein-table thead th in
-       proteins-list.css: inside an overflow:auto scroll wrapper this
-       permanently reserved extra height (a phantom empty row), not just a
-       repaint glitch, so sticky was dropped rather than patched further. */
     background: var(--tp-table-thead-bg);
     border-bottom: var(--tp-table-row-border);
     color: var(--tp-table-thead-color);
     font-size: var(--tp-table-thead-font);
     font-weight: var(--tp-table-thead-weight);
     letter-spacing: 0.15px;
+    position: sticky;
+    top: 0;
     white-space: nowrap;
     z-index: var(--tp-table-sticky-z);
 }
@@ -990,16 +988,7 @@ a.tp-chip--go:hover {
 .tp-table-shell__scroll {
     width: 100%;
     max-width: 100%;
-    /* overflow: auto (both axes) was reserving extra vertical space under a
-       short table -- confirmed by disabling it live, and reproducible even
-       with no scrolling involved (not a repaint/sticky artifact, tried and
-       ruled both out). Only the horizontal axis is actually needed here (for
-       wide tables with many evidence columns); letting Y behave as visible
-       removes whatever was inflating the box's height without losing the
-       column-scrolling this element exists for. Now that the header isn't
-       sticky either, there's no vertical-scroll feature left to preserve. */
-    overflow-x: auto;
-    overflow-y: visible;
+    overflow: auto;
     scrollbar-width: thin;
     scrollbar-color: var(--tp-color-brand-400) var(--tp-color-surface-muted);
 }

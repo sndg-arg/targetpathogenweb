@@ -785,16 +785,19 @@ a.filter-pill .filter-pill-remove {
     overflow-y: visible;
 }
 
+.protein-table-panel .tp-table-shell__scroll {
+    scrollbar-width: none;
+}
+
+.protein-table-panel .tp-table-shell__scroll::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+}
+
 .protein-table thead th {
-    /* Was position: sticky; top: 0 -- inside a table nested in an
-       overflow: auto scroll container, that reserved extra height
-       permanently (not just during scroll), reading as a phantom empty row
-       under a single result. will-change: transform didn't help (this isn't
-       a repaint/compositing artifact), so dropped sticky entirely rather
-       than keep guessing at the exact mechanism. Trade-off: the header no
-       longer stays pinned while scrolling a long page (e.g. 100 rows/page)
-       within this box. */
     background: var(--tp-table-thead-bg);
+    position: sticky;
+    top: 0;
     z-index: var(--tp-table-sticky-z);
     white-space: nowrap;
     font-size: var(--tp-table-thead-font);
