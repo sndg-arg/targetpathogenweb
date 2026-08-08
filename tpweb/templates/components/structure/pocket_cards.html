@@ -79,6 +79,11 @@
                             <span class="tp-score-tag js-score-tag" data-score="{{ p.druggability }}">{{ p.druggability }}</span>
                             {% if p.size_outlier %}
                                 <span class="tp-chip tp-chip--warning tp-chip--sm" title="{{ p.size_outlier_note }}">{% trans "Unusual size" %}</span>
+                            {% else %}
+                                {# Reserves the same vertical space as the flag above, invisibly, so a
+                                   card without "Unusual size" still lines up with one that has it --
+                                   otherwise the shorter header shifts everything below it up. #}
+                                <span class="tp-chip tp-chip--warning tp-chip--sm pocket-card-badge-placeholder" aria-hidden="true">{% trans "Unusual size" %}</span>
                             {% endif %}
                         </div>
                     </div>

@@ -1396,6 +1396,10 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     max-width: 100%;
 }
 
+.pocket-card-badge-placeholder {
+    visibility: hidden;
+}
+
 .pocket-card-label {
     display: grid;
     gap: 1px;

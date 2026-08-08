@@ -743,6 +743,10 @@ body:has(.sv-root) .tp-footer { display: none !important; }
     max-width: 100%;
 }
 
+.pocket-card-badge-placeholder {
+    visibility: hidden;
+}
+
 .pocket-card-name {
     font-size: 0.85rem;
     font-weight: 600;
