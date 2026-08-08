@@ -865,6 +865,12 @@ function jsloaded() {
             });
             updateDensityForPockets();
             setModeButtonState(isDensity ? "density" : "cartoon");
+            // "By chain"/"By structure" are disabled in Surface (see
+            // setModeButtonState) but were still showing as selected if that was
+            // the active color going in -- only "Uniform" is ever clickable in
+            // Surface, so reflect that in the toolbar highlight too. currentColorMode
+            // itself is untouched, so Cartoon restores the real prior selection.
+            setColorButtonState(isDensity ? "flat" : currentColorMode);
         };
 
         /* ---- Pocket representations per structure ---- */
