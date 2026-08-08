@@ -325,6 +325,21 @@ Mejorar la lectura de similitud contra humano, microbioma y otros organismos rel
 
 ## To Do
 
+### GC content faltante en genomas importados/curados
+
+Investigado (6/08): "Imported genome details" muestra "GC —" para genomas que entraron por
+import externo/curado (ej. KpATCC43816). No es un bug de render -- `genome_metadata.py` ya
+tiene una regla intencional que muestra "—" en vez de "0%" cuando la propiedad `GC` importada
+vale literalmente `0`/`0.0` (evita mostrar un cero falso cuando el dato nunca se cargo). La
+causa real es que el GC no se calculo/importo para estos genomas.
+
+**Alcance.**
+
+- Calcular GC directo desde el FASTA de la secuencia ya cargada (`EntryLength` ya se conoce
+  por genoma, el mismo camino podria dar GC sin depender de que el import externo lo traiga).
+- Decidir si se corre una sola vez como backfill para genomas ya cargados con "—", o se agrega
+  como paso del import/pipeline para genomas nuevos.
+
 ### Comparacion FPocket vs P2Rank
 
 Comparar predicciones de pockets entre ambos metodos.
