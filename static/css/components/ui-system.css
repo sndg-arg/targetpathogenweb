@@ -990,7 +990,16 @@ a.tp-chip--go:hover {
 .tp-table-shell__scroll {
     width: 100%;
     max-width: 100%;
-    overflow: auto;
+    /* overflow: auto (both axes) was reserving extra vertical space under a
+       short table -- confirmed by disabling it live, and reproducible even
+       with no scrolling involved (not a repaint/sticky artifact, tried and
+       ruled both out). Only the horizontal axis is actually needed here (for
+       wide tables with many evidence columns); letting Y behave as visible
+       removes whatever was inflating the box's height without losing the
+       column-scrolling this element exists for. Now that the header isn't
+       sticky either, there's no vertical-scroll feature left to preserve. */
+    overflow-x: auto;
+    overflow-y: visible;
     scrollbar-width: thin;
     scrollbar-color: var(--tp-color-brand-400) var(--tp-color-surface-muted);
 }
