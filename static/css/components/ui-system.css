@@ -814,6 +814,10 @@ a.tp-chip--go:hover {
 }
 
 .tp-table--premium thead th {
+    /* Was position: sticky; top: 0 -- see .protein-table thead th in
+       proteins-list.css: inside an overflow:auto scroll wrapper this
+       permanently reserved extra height (a phantom empty row), not just a
+       repaint glitch, so sticky was dropped rather than patched further. */
     background: var(--tp-table-thead-bg);
     border-bottom: var(--tp-table-row-border);
     color: var(--tp-table-thead-color);
@@ -821,13 +825,7 @@ a.tp-chip--go:hover {
     font-weight: var(--tp-table-thead-weight);
     letter-spacing: 0.15px;
     white-space: nowrap;
-    position: sticky;
-    top: 0;
     z-index: var(--tp-table-sticky-z);
-    /* See .protein-table thead th in proteins-list.css: sticky cells inside a
-       horizontally-scrolling container can repaint at their old position
-       without GPU compositing, looking like a phantom extra row. */
-    will-change: transform;
 }
 
 .tp-table--premium thead th,
