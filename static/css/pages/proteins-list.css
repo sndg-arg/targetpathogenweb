@@ -616,6 +616,17 @@ a.filter-pill .filter-pill-remove {
     overflow: hidden;
 }
 
+.protein-table-panel .table-wrap.tp-table-shell--with-export {
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+}
+
+.protein-table-panel .table-wrap.tp-table-shell--with-export::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+}
+
 .protein-workspace {
     display: grid;
     grid-template-columns: 1fr;
