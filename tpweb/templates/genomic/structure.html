@@ -83,9 +83,11 @@
 
             <div class="sv-tb-sep" aria-hidden="true"></div>
 
-            {# Heteroatoms toggle -- everything that co-crystallized with the chain (ligands,
-               cofactors, ions), excluding solvent. Only meaningful for experimental PDB
-               structures; harmless no-op on AlphaFold/ColabFold models, which have none. #}
+            {% comment %}
+            Heteroatoms toggle -- everything that co-crystallized with the chain (ligands,
+            cofactors, ions), excluding solvent. Only meaningful for experimental PDB
+            structures; harmless no-op on AlphaFold/ColabFold models, which have none.
+            {% endcomment %}
             <button type="button" class="sv-tb-btn js-hetero-toggle" id="sv-hetero-btn"
                     aria-pressed="false" title="{% trans 'Show heteroatoms co-crystallized with this structure (ligands, cofactors, ions) — excludes water.' %}">
                 <svg class="sv-tb-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">

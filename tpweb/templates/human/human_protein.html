@@ -4,9 +4,11 @@
 
 {% block head %}
     <title>{{ human_protein.uniprot_accession }} · {% trans "Human Targets" %}</title>
-    {# protein-detail.css supplies the hero/card/binders-table/binder-intel/binder-mol-modal
-       styling this page deliberately reuses verbatim (same markup, same tokens) --
-       human-protein-detail.css only adds the genuinely new human-specific classes. #}
+    {% comment %}
+    protein-detail.css supplies the hero/card/binders-table/binder-intel/binder-mol-modal
+    styling this page deliberately reuses verbatim (same markup, same tokens) --
+    human-protein-detail.css only adds the genuinely new human-specific classes.
+    {% endcomment %}
     <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260807-pocket-align2">
     <link rel="stylesheet" href="{% static 'css/pages/human-protein-detail.css' %}?v=20260729-humantargets2">
 {% endblock %}
