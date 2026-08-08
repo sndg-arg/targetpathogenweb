@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20260804-fusion5">
+    <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20260807-nometabolism-dup">
 {% endblock %}
 
 {% block body %}
@@ -127,12 +127,6 @@
             <a href="#section-evidence" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Evidence" %}</a>
             {% if jbrowse_embed.enabled %}
                 <a href="#section-browse" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Genome browser" %}</a>
-            {% endif %}
-            {% if workspace_metrics.metabolic_reaction_count %}
-                <a href="{{ workspace_links.metabolism_url }}" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link" title="{% trans 'Opens the Metabolism page' %}">
-                    {% trans "Metabolism" %}
-                    <span class="quick-nav-link-ext-icon" aria-hidden="true">{% include "components/icons/external_link.html" %}</span>
-                </a>
             {% endif %}
             <a href="#section-downloads" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Downloads" %}</a>
             <a href="#section-details" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Details" %}</a>
@@ -337,7 +331,7 @@
                 </div>
                 <p class="evidence-footnote">
                     <strong>{% trans "Note" %}:</strong>
-                    {% trans "PDB and ChEMBL records on this protein are the strongest ligand evidence. Similar-protein records are inferred from related proteins and should be interpreted as transferred evidence. ChEMBL similar-protein records are capped at the top 100 per protein and ZINC at the top 50 candidates." %}
+                    {% trans "Direct PDB and ChEMBL records on a protein are the strongest ligand evidence. Similar-protein records are inferred from related proteins and should be interpreted as transferred evidence. ChEMBL similar-protein records are capped at the top 100 per protein and ZINC at the top 50 candidates." %}
                 </p>
             </section>
 

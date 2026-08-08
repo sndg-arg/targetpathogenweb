@@ -258,14 +258,6 @@
    of scrolling to a section on this one (there's no in-page "Metabolism"
    section to jump to) -- without it, this tab looked identical to the
    real in-page anchors and clicking it felt like a bug. */
-.quick-nav-link-ext-icon {
-    display: inline-flex;
-    width: 11px;
-    height: 11px;
-    flex-shrink: 0;
-    opacity: 0.7;
-}
-
 .genome-page .quick-nav .quick-nav-link:hover,
 .genome-page .quick-nav .quick-nav-link:focus-visible {
     color: var(--tp-color-text-primary) !important;

@@ -223,6 +223,14 @@ def _score_proteins(assembly_name):
         cautions = []
         score = 0.0
 
+        # P2Rank checked (and its signal added) before FPocket so it's the pocket
+        # signal that shows first in the ranking card chips, consistent with it
+        # being the primary druggability source everywhere else in the app.
+        p2rank = _as_float(param_values.get("p2rank_probability"))
+        if p2rank is not None and p2rank >= 0.5:
+            score += 1.0
+            _add_signal(signals, "P2Rank pocket support")
+
         fpocket = _as_float(param_values.get("Druggability"))
         pocket_size_outlier = _is_yes(param_values.get("pocket_size_outlier"))
         if fpocket is not None:
@@ -250,11 +258,6 @@ def _score_proteins(assembly_name):
             elif fpocket > 0:
                 score -= 0.5
                 _add_signal(cautions, f"Weak FPocket druggability {_format_decimal(fpocket)}", "bad")
-
-        p2rank = _as_float(param_values.get("p2rank_probability"))
-        if p2rank is not None and p2rank >= 0.5:
-            score += 1.0
-            _add_signal(signals, "P2Rank pocket support")
 
         binder_counts = binder_counts_by_gene.get(gene_id, {})
         pdb_direct = binder_counts.get("pdb_direct", 0)
