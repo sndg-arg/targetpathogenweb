@@ -4,79 +4,6 @@ Documento vivo para ordenar tareas de producto e implementacion. La idea es mant
 
 ## Hecho / en uso
 
-### Batch de pedidos de las biologas (6/08 + reporte previo)
-
-Dos documentos de las biologas (cambios de producto + bugs de una sesion de uso anterior)
-implementados como prioridad, pausando el orden sugerido que tenia este roadmap hasta este punto.
-
-**Incluye.**
-
-- P2Rank como valor de druggability principal mostrado (antes FPocket primero), ambos
-  etiquetados explicitamente por fuente ("Druggability (P2Rank)"/"(FPocket)") con la estructura
-  de origen visible.
-- "With pocket score" ampliado a FPocket OR P2Rank (antes solo FPocket).
-- Tooltips en las metric-pills principales del genoma (Proteins, With 3D structure, Annotated,
-  With pocket score).
-- Localizacion celular (PSORTb) movida de "Prioritization evidence" a "Functional annotation",
-  con breakdown por compartimento en la card de evidencia del genoma.
-- Busqueda por secuencia de aminoacidos (blastp) embebida en la tabla de proteinas, reusando el
-  indice proteico que el pipeline ya genera por genoma (stage 9) -- resultados como hits a
-  proteinas clickeables, no el reporte crudo de alineamiento.
-- Visor 3D: capa de heteroatomos co-cristalizados (excluye solvente), toggle nuevo en la toolbar.
-- Visor 3D: "Site 1/2" renombrado a "Pocket 1/2" en las cards de FPocket/P2Rank.
-- Visor 3D: posiciones de residuos con codigo de aminoacido + numero (ej. Asp123), antes solo
-  el numero.
-- Visor 3D: color-by-chain/by-structure deshabilitado en modo Surface (silenciosamente no hacia
-  nada ahi, ahora se griséa en vez de dejar clickear una opcion rota).
-- Metabolism: la seccion de contexto metabolico de una proteina ahora siempre aparece, con
-  estado vacio explicito + link a la red general del genoma cuando la proteina no esta asociada
-  a la red importada.
-- Header de proteina: el nombre (no el accession) pasa a ser el titulo principal; accession baja
-  a linea secundaria con tooltip aclarando que viene del GenBank del genoma; genoma actual
-  destacado con tipografia propia arriba del titulo.
-- Chatbot: persistencia de 7 dias por sesion de navegador (antes 0 persistencia real pese al
-  docstring "stateless"), modelo `AgentChatSession` nuevo keyeado por session key de Django (no
-  por usuario autenticado, ya que la app comparte una cuenta "public"). Cleanup via management
-  command `clear_old_agent_chats` (sin Celery beat -- agendar por cron externo).
-- Chatbot: prompt reforzado para no tratar preguntas generales como si fueran sobre "esta
-  proteina" solo por estar en una pagina de proteina.
-- Terminologia: ultimas menciones de "bottleneck" reemplazadas por "chokepoint" en la app.
-- Fix: bug real en el scroll-spy del quick-nav de proteina (`updateActive` en
-  `protein-detail.js`) que podia marcar "Annotations" activo al aterrizar en "Sequence" si esta
-  era corta -- ahora el click de un link fija el activo manualmente durante la animacion de
-  scroll.
-- Metabolismo: click en una fila de la tabla de reacciones centra/resalta el nodo
-  correspondiente en el grafo de la pagina de la via (feature nueva, no existia).
-- Metabolismo: espaciado del inspector del grafo genome-wide (chokepoints y demas campos)
-  ajustado -- quedaba muy pegado.
-- Nota de curacion + cita (Ramos et al. 2018, Scientific Reports) agregada en las paginas de
-  metabolismo y como seccion nueva en la pagina de Methodology, aclarando que la red es curada
-  manualmente, no generada automaticamente.
-- Iconos de ayuda (?) agregados a los headers de Evidence available, Prioritization evidence y
-  Metabolic context.
-- Logging real del error (404/CORS/archivo corrupto) al fallar la carga de una estructura PDB en
-  el visor, antes silencioso.
-
-**Investigado sin encontrar defecto.** Boton "Open full pathway map" del grafo genome-wide: el
-codigo esta correctamente conectado para el tap sobre un nodo de pathway/cluster; para nodos de
-reaccion/metabolito el detalle es solo hover por diseño actual (sin boton ahi). No se encontro
-una URL rota ni un handler faltante para el caso de pathway-node.
-
-**Pendiente de verificacion en vivo** (sin entorno Django/browser local en esta sesion): BLAST
-proteico contra un genoma real; persistencia de chat de 7 dias entre sesiones de navegador
-distintas; caso puntual de "Unable to load PDB structure" en protein 35767 (revisar en el
-cluster); y el boton "Open full pathway map" en un click real sobre un nodo de pathway.
-
-**Quedo fuera de este batch** (a re-consultar con las biologas):
-
-- "Organizacion botones" y "se ve raro" -- reportes demasiado abstractos sin pagina/detalle
-  especifico.
-- Metabolismo Kp13: los 3 archivos de `load_metabolism` (SBML, TSV, network.sif) todavia no
-  estaban listos.
-
-El "Orden sugerido" de este roadmap (Off-target 2.0 primero, etc.) queda retomado despues de
-este batch.
-
 ### Target executive summary
 
 Resumen ejecutivo arriba de la pagina de proteina para responder rapido si un target parece prometedor.
@@ -290,6 +217,86 @@ Redisenar el visualizador 3D como experiencia completa.
 - Verificado en vivo: toggle de color y coloreo por estructura secundaria funcionando correctamente en el full viewer.
 
 ## En progreso
+
+### Batch de pedidos de las biologas (6/08 + reporte previo)
+
+Dos documentos de las biologas (cambios de producto + bugs de una sesion de uso anterior)
+implementados como prioridad, pausando el orden sugerido que tenia este roadmap hasta este punto.
+No se cierra como "Hecho" todavia porque una parte necesita confirmacion en vivo (sin entorno
+Django/browser local en la sesion donde se implemento) y quedan 2-3 puntos sin arrancar.
+
+**Hecho (implementado y verificable por codigo).**
+
+- P2Rank como valor de druggability principal mostrado (antes FPocket primero), ambos
+  etiquetados explicitamente por fuente ("Druggability (P2Rank)"/"(FPocket)") con la estructura
+  de origen visible.
+- "With pocket score" ampliado a FPocket OR P2Rank (antes solo FPocket).
+- Tooltips en las metric-pills principales del genoma (Proteins, With 3D structure, Annotated,
+  With pocket score).
+- Localizacion celular (PSORTb) movida de "Prioritization evidence" a "Functional annotation",
+  con breakdown por compartimento en la card de evidencia del genoma.
+- Visor 3D: capa de heteroatomos co-cristalizados (excluye solvente), toggle nuevo en la toolbar.
+- Visor 3D: "Site 1/2" renombrado a "Pocket 1/2" en las cards de FPocket/P2Rank.
+- Visor 3D: posiciones de residuos con codigo de aminoacido + numero (ej. Asp123), antes solo
+  el numero.
+- Visor 3D: color-by-chain/by-structure deshabilitado en modo Surface (silenciosamente no hacia
+  nada ahi, ahora se grisea en vez de dejar clickear una opcion rota).
+- Metabolism: la seccion de contexto metabolico de una proteina ahora siempre aparece, con
+  estado vacio explicito + link a la red general del genoma cuando la proteina no esta asociada
+  a la red importada.
+- Header de proteina: el nombre (no el accession) pasa a ser el titulo principal; accession baja
+  a linea secundaria con tooltip aclarando que viene del GenBank del genoma; genoma actual
+  destacado con tipografia propia arriba del titulo.
+- Chatbot: prompt reforzado para no tratar preguntas generales como si fueran sobre "esta
+  proteina" solo por estar en una pagina de proteina.
+- Terminologia: ultimas menciones de "bottleneck" reemplazadas por "chokepoint" en la app.
+- Fix: bug real en el scroll-spy del quick-nav de proteina (`updateActive` en
+  `protein-detail.js`) que podia marcar "Annotations" activo al aterrizar en "Sequence" si esta
+  era corta -- ahora el click de un link fija el activo manualmente durante la animacion de
+  scroll.
+- Metabolismo: click en una fila de la tabla de reacciones centra/resalta el nodo
+  correspondiente en el grafo de la pagina de la via (feature nueva, no existia).
+- Metabolismo: espaciado del inspector del grafo genome-wide (chokepoints y demas campos)
+  ajustado -- quedaba muy pegado.
+- Nota de curacion + cita (Ramos et al. 2018, Scientific Reports) agregada en las paginas de
+  metabolismo y como seccion nueva en la pagina de Methodology, aclarando que la red es curada
+  manualmente, no generada automaticamente.
+- Iconos de ayuda (?) agregados a los headers de Evidence available, Prioritization evidence y
+  Metabolic context.
+- Logging real del error (404/CORS/archivo corrupto) al fallar la carga de una estructura PDB en
+  el visor, antes silencioso.
+
+**En curso (implementado, pendiente de confirmar en vivo).**
+
+- Busqueda por secuencia de aminoacidos (blastp) embebida en la tabla de proteinas, reusando el
+  indice proteico que el pipeline ya genera por genoma (stage 9) -- falta correr una busqueda
+  real contra un genoma cargado.
+- Chatbot: persistencia de 7 dias por sesion de navegador (antes 0 persistencia real pese al
+  docstring "stateless"), modelo `AgentChatSession` nuevo keyeado por session key de Django (no
+  por usuario autenticado, ya que la app comparte una cuenta "public"). Cleanup via management
+  command `clear_old_agent_chats` (sin Celery beat -- agendar por cron externo). Falta correr
+  `python manage.py migrate` (migracion `0071_agentchatsession`) y probar en dos sesiones de
+  navegador distintas que no se mezclen los mensajes.
+- Boton "Open full pathway map" del grafo genome-wide: investigado a fondo, el codigo esta
+  correctamente conectado para el tap sobre un nodo de pathway/cluster (para nodos de
+  reaccion/metabolito el detalle es solo hover por diseño actual, sin boton ahi) -- no se
+  encontro una URL rota ni un handler faltante. Falta repetir el click real en vivo para
+  confirmar si el problema persiste o era ese caso de hover-only.
+- Bug puntual "Unable to load PDB structure" en protein 35767: se agrego logging real del error
+  (404/CORS/archivo corrupto) al fallar la carga de una estructura en el visor, antes
+  silencioso -- falta revisar en el cluster si ese caso especifico sigue reproduciendo.
+
+**Falta (no arrancado, bloqueado por dato o por definir).**
+
+- Metabolismo Kp13: los 3 archivos de `load_metabolism` (SBML, TSV, network.sif) todavia no
+  estaban listos -- sin archivos no hay tarea de codigo.
+- "Organizacion botones": reporte demasiado abstracto (no se sabe pagina ni botones) -- a
+  re-consultar con las biologas.
+- "Se ve raro": reporte demasiado abstracto (sin pagina/detalle especifico) -- a re-consultar
+  con las biologas.
+
+El "Orden sugerido" de este roadmap (Off-target 2.0 primero, etc.) queda retomado cuando este
+batch se cierre del todo.
 
 ### Off-target 2.0
 
