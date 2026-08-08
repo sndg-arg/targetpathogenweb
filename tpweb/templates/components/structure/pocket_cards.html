@@ -75,7 +75,12 @@
                             <strong class="pocket-card-name">{% trans "Pocket" %} {{ forloop.counter }}</strong>
                             <span class="pocket-card-id">FPocket #{{ p.name }}</span>
                         </div>
-                        <span class="tp-score-tag js-score-tag" data-score="{{ p.druggability }}">{{ p.druggability }}</span>
+                        <div class="pocket-card-badges">
+                            <span class="tp-score-tag js-score-tag" data-score="{{ p.druggability }}">{{ p.druggability }}</span>
+                            {% if p.size_outlier %}
+                                <span class="tp-chip tp-chip--warning tp-chip--sm" title="{{ p.size_outlier_note }}">{% trans "Unusual size" %}</span>
+                            {% endif %}
+                        </div>
                     </div>
                     {% if p.consensus_label %}
                     <div class="pocket-consensus"
@@ -85,11 +90,6 @@
                         <span>{% blocktrans count shared=p.consensus_shared_residues %}{{ shared }} shared residue{% plural %}{{ shared }} shared residues{% endblocktrans %}</span>
                         <span>{{ p.consensus_smaller_coverage|floatformat:0 }}% {% trans "of smaller site" %}</span>
                     </div>
-                    {% endif %}
-                    {% if p.size_outlier %}
-                        <div class="pocket-card-flag">
-                            <span class="tp-chip tp-chip--warning tp-chip--sm" title="{{ p.size_outlier_note }}">{% trans "Unusual size" %}</span>
-                        </div>
                     {% endif %}
                     <span class="pocket-card-layer-label">{% trans "Show in viewer" %}</span>
                     <div class="pocket-card-reprs" aria-label="{% trans 'Pocket visual layers' %}">

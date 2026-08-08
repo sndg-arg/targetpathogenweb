@@ -731,12 +731,15 @@ body:has(.sv-root) .tp-footer { display: none !important; }
     color: var(--tp-color-text-muted);
 }
 
-.pocket-card-flag {
+.pocket-card-badges {
     display: flex;
-    margin-top: 6px;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+    flex: 0 0 auto;
 }
 
-.pocket-card-flag .tp-chip {
+.pocket-card-badges .tp-chip {
     max-width: 100%;
 }
 

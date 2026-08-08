@@ -813,9 +813,14 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     }
 }
 
+/* Clearance for the sticky .quick-nav when a nav link jumps here: nav height
+   (6px padding + 36px min-height link + 6px padding + 2px border = 50px)
+   minus its -2px sticky offset, plus ~24px breathing room. Was 128px, which
+   left a large empty gap above the section on jump -- keep this in sync with
+   .quick-nav's own box model if that ever changes. */
 .protein-card {
     padding: 16px 18px;
-    scroll-margin-top: 128px;
+    scroll-margin-top: 72px;
 }
 
 /* No longer boxed via .tp-page-hero -- sits directly on the page
@@ -823,7 +828,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
    now instead of inheriting that shared class's. */
 .protein-hero {
     padding: 20px 18px;
-    scroll-margin-top: 128px;
+    scroll-margin-top: 72px;
 }
 
 .protein-card h2 {
@@ -1379,12 +1384,15 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     outline-offset: 2px;
 }
 
-.pocket-card-flag {
+.pocket-card-badges {
     display: flex;
-    margin-top: 6px;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+    flex: 0 0 auto;
 }
 
-.pocket-card-flag .tp-chip {
+.pocket-card-badges .tp-chip {
     max-width: 100%;
 }
 
