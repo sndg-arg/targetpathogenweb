@@ -308,7 +308,15 @@
     /* Horizontal padding matches .genome-hero's 18px so card content
        lines up with the hero above it instead of sitting 2px narrower. */
     padding: 16px 18px;
-    scroll-margin-top: 128px;
+    /* Clearance for the sticky .quick-nav when a nav link jumps here: nav box
+       (8px padding + 34px min-height link + 8px padding + 2px border = 52px)
+       minus its -2px sticky offset, plus ~24px breathing room. Was 128px,
+       which both left a large empty gap above the section on jump AND made
+       the quick-nav's own scroll-spy threshold (scrollY + nav.offsetHeight +
+       24, see assembly.html's jsloaded) never match the landed position, so
+       the clicked link never got marked active either. Keep this in sync
+       with .quick-nav's own box model if that ever changes. */
+    scroll-margin-top: 74px;
 }
 
 /* Exception: the two ranking tiles inside .genome-targets-wrap are a
@@ -368,7 +376,8 @@
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: 14px;
-    scroll-margin-top: 128px;
+    /* See .genome-card's scroll-margin-top comment. */
+    scroll-margin-top: 74px;
     align-items: stretch;
     /* The two ranking tiles inside keep their own border -- margin aligns
        that border with the 18px text inset used elsewhere on the page,
