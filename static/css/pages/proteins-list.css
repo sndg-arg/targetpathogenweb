@@ -794,6 +794,12 @@ a.filter-pill .filter-pill-remove {
     font-size: var(--tp-table-thead-font);
     font-weight: var(--tp-table-thead-weight);
     color: var(--tp-table-thead-color);
+    /* Sticky cells inside a horizontally-scrolling (overflow: auto) container
+       can repaint without being promoted to their own compositing layer,
+       leaving a ghost of the header painted at its old position during a
+       horizontal scroll -- reads as a phantom second row. Forcing GPU
+       compositing here avoids that repaint artifact. */
+    will-change: transform;
 }
 
 .protein-table thead th,

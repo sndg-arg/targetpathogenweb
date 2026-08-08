@@ -824,6 +824,10 @@ a.tp-chip--go:hover {
     position: sticky;
     top: 0;
     z-index: var(--tp-table-sticky-z);
+    /* See .protein-table thead th in proteins-list.css: sticky cells inside a
+       horizontally-scrolling container can repaint at their old position
+       without GPU compositing, looking like a phantom extra row. */
+    will-change: transform;
 }
 
 .tp-table--premium thead th,
