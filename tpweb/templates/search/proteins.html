@@ -1855,7 +1855,13 @@
                 searchInput.focus();
                 hideSuggestions();
                 if (detailUrl) {
-                    if (window.TPPageLoader) window.TPPageLoader.show();
+                    if (window.TPPageLoader) {
+                        if (window.TPPageLoader.showForUrl) {
+                            window.TPPageLoader.showForUrl(detailUrl);
+                        } else {
+                            window.TPPageLoader.show();
+                        }
+                    }
                     window.location.assign(detailUrl);
                     return;
                 }

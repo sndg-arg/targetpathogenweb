@@ -2450,6 +2450,45 @@
         const LOADER_OPENING_PREFIX = "{% trans 'Opening' %}";
         const LOADER_LABEL_MAX_LENGTH = 42;
 
+        // Genome overview and protein detail are the two heaviest pages to
+        // render (see the assembly_workspace/pdb_structure query cost) --
+        // a single static "Opening X…" label sits there doing nothing for a
+        // couple seconds. This doesn't measure real progress, it's a staged
+        // sequence of plausible-sounding steps that just keeps advancing on a
+        // timer, purely to make the wait read as "something is happening"
+        // instead of a frozen label. Matches exactly `/genome/<slug>` and
+        // `/protein/<id>` -- NOT their sub-pages (proteins list, metabolism,
+        // structure viewer, etc.), which already get the normal per-link label.
+        const GENOME_OVERVIEW_PATH_RE = /^\/genome\/[^/]+\/?$/;
+        const PROTEIN_DETAIL_PATH_RE = /^\/protein\/\d+\/?$/;
+        const GENOME_OVERVIEW_SEQUENCE = [
+            "{% trans 'Resolving genome workspace…' %}",
+            "{% trans 'Loading genome metrics…' %}",
+            "{% trans 'Preparing target rankings…' %}",
+            "{% trans 'Opening genome overview…' %}"
+        ];
+        const PROTEIN_DETAIL_SEQUENCE = [
+            "{% trans 'Loading protein record…' %}",
+            "{% trans 'Collecting functional evidence…' %}",
+            "{% trans 'Preparing structure summary…' %}",
+            "{% trans 'Opening protein view…' %}"
+        ];
+        const LOADER_SEQUENCE_STEP_MS = 550;
+        let sequenceTimer = null;
+
+        function loaderSequenceForUrl(url) {
+            let pathname = null;
+            try {
+                pathname = (typeof url === "string" ? new URL(url, window.location.href) : url).pathname;
+            } catch (error) {
+                return null;
+            }
+            if (!pathname) return null;
+            if (GENOME_OVERVIEW_PATH_RE.test(pathname)) return GENOME_OVERVIEW_SEQUENCE;
+            if (PROTEIN_DETAIL_PATH_RE.test(pathname)) return PROTEIN_DETAIL_SEQUENCE;
+            return null;
+        }
+
         function loaderEl() {
             return document.getElementById("tp-page-loader");
         }
@@ -2469,6 +2508,31 @@
                 ? label.slice(0, LOADER_LABEL_MAX_LENGTH - 1).trimEnd() + "…"
                 : label;
             copyEl.textContent = LOADER_OPENING_PREFIX + " " + trimmed + "…";
+        }
+
+        function stopLoaderSequence() {
+            window.clearInterval(sequenceTimer);
+            sequenceTimer = null;
+        }
+
+        function startLoaderSequence(messages) {
+            stopLoaderSequence();
+            const copyEl = loaderCopyEl();
+            if (!copyEl || !messages || !messages.length) return;
+            let index = 0;
+            copyEl.textContent = messages[0];
+            sequenceTimer = window.setInterval(function () {
+                index += 1;
+                if (index >= messages.length) {
+                    // Stay on the last ("Opening…") message instead of
+                    // looping -- if the real navigation is still pending past
+                    // the full sequence, restarting from "Resolving…" would
+                    // read as if it had gone backwards/gotten stuck.
+                    stopLoaderSequence();
+                    return;
+                }
+                copyEl.textContent = messages[index];
+            }, LOADER_SEQUENCE_STEP_MS);
         }
 
         function deriveLoaderLabel(el) {
@@ -2509,7 +2573,12 @@
 
         function show(options) {
             const opts = options || {};
-            setLoaderCopy(opts.label || null);
+            if (opts.sequence) {
+                startLoaderSequence(opts.sequence);
+            } else {
+                stopLoaderSequence();
+                setLoaderCopy(opts.label || null);
+            }
             window.clearTimeout(showTimer);
             showTimer = window.setTimeout(function () {
                 document.documentElement.classList.add(NAVIGATING_CLASS);
@@ -2519,6 +2588,7 @@
 
         function hide() {
             window.clearTimeout(showTimer);
+            stopLoaderSequence();
             document.documentElement.classList.remove(LOADING_CLASS, NAVIGATING_CLASS);
             setLoaderVisible(false);
             clearAction();
@@ -2579,7 +2649,8 @@
                 const url = linkUrl(link);
                 if (shouldSkipUrl(url)) return;
                 markAction(link);
-                show({ label: deriveLoaderLabel(link) });
+                const sequence = loaderSequenceForUrl(url);
+                show(sequence ? { sequence: sequence } : { label: deriveLoaderLabel(link) });
             });
 
             document.addEventListener("submit", function (event) {
@@ -2607,6 +2678,15 @@
             show: show,
             hide: hide,
             markAction: markAction,
+            // For programmatic navigations (e.g. the protein search
+            // autocomplete's window.location.assign) that don't go through
+            // the click handler above and so never get the automatic
+            // sequence detection -- pass the destination URL and get the
+            // same staged messages a normal link click to that page would.
+            showForUrl: function (url, fallbackOptions) {
+                const sequence = loaderSequenceForUrl(url);
+                show(sequence ? { sequence: sequence } : (fallbackOptions || {}));
+            },
             withLoading: function (promiseOrFactory, options) {
                 show(options);
                 let result;
