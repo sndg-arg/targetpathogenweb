@@ -425,6 +425,16 @@ class ProteinView(View):
                                queryset=ExperimentalStructureXref.objects.order_by("resolution"),
                            ),
                            "structures__pdb__residue_sets__properties__property").get()
+        # bioentry_id is shared across a genome's <name>, <name>_prots, and
+        # <name>_rnas biodatabases (same numeric id space, different rows) --
+        # nothing else guarantees the requested id actually landed in the
+        # _prots one. Without this check, /protein/<id> for a genome-level or
+        # RNA bioentry_id still "worked" (rendered something), just
+        # catastrophically slowly: a whole-chromosome Bioentry can carry
+        # thousands of GenBank features that this view and its template only
+        # expect a handful of per protein.
+        if not protein.biodatabase.name.endswith(Biodatabase.PROT_POSTFIX):
+            raise Http404("Protein not found")
         assembly_name = protein.biodatabase.name.split(Biodatabase.PROT_POSTFIX)[0]
         if not user_can_access_genome_name(request.user, assembly_name):
             raise Http404("Protein not found")
