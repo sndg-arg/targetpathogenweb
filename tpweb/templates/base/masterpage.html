@@ -2091,21 +2091,15 @@
         }
 
         .tp-page-action-loading {
-            position: relative;
+            /* No visual spinner on the clicked element itself anymore -- the
+               global .tp-page-loader overlay already communicates "loading a
+               new view", and this per-element ::after spinner broke layout
+               wherever the clicked link/button sat in a tight container (a
+               table cell, a chip next to a badge) by inserting extra inline
+               content right after it. pointer-events:none is kept: it still
+               prevents a second click on the same control while the
+               navigation it already triggered is in flight. */
             pointer-events: none;
-        }
-
-        .tp-page-action-loading::after {
-            content: "";
-            width: 0.9em;
-            height: 0.9em;
-            margin-left: 0.55em;
-            border: 2px solid currentColor;
-            border-right-color: transparent;
-            border-radius: 50%;
-            display: inline-block;
-            vertical-align: -0.12em;
-            animation: tp-page-loader-spin 780ms linear infinite;
         }
 
         @keyframes tp-page-loader-spin {
@@ -2133,7 +2127,6 @@
 
         @media (prefers-reduced-motion: reduce) {
             .tp-page-loader,
-            .tp-page-action-loading::after,
             .tp-page-loader-target-ring,
             .tp-page-loader-target::before {
                 animation: none !important;
