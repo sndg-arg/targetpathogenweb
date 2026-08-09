@@ -511,6 +511,16 @@
             transition: transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard), box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard), background-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard), border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard), color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
         }
 
+        /* .btn/.tp-btn's own "display" (and .tp-btn-with-icon's "display ... !important")
+           have equal-or-higher specificity than the UA stylesheet's [hidden] { display:
+           none }, so a hidden button/link with one of those classes silently stays
+           visible -- doubled attribute selector below outranks any single-class rule,
+           important or not, so a plain `hidden` attribute always wins regardless of
+           which button variant classes are present. */
+        [hidden][hidden] {
+            display: none !important;
+        }
+
         .btn:not(.btn-sm):not(.btn-lg),
         .tp-btn:not(.btn-sm):not(.btn-lg) {
             min-height: 44px;
