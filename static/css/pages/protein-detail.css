@@ -4870,6 +4870,16 @@ body.residue-modal-open {
     line-height: 1.4;
 }
 
+/* protein_metabolic_network.html's own page usage -- unlike protein.html's,
+   which sits inside an already-padded .protein-card, this one sits directly
+   in the .genome-page flow between the hero and .quick-nav. Zero horizontal
+   margin there meant this bordered banner spanned wider than the 18px-inset
+   .quick-nav pill bar right below it. */
+.protein-metabolic-network-summary {
+    margin-left: 18px;
+    margin-right: 18px;
+}
+
 .metabolic-provenance {
     margin: 10px 0 0;
     color: var(--tp-color-text-soft);
