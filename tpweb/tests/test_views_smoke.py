@@ -160,7 +160,9 @@ class StaticContentViewTests(SimpleTestCase):
         response = self.client.get(reverse("tpwebapp:molecules"))
         self.assertEqual(response.status_code, 200)
 
-    def test_human_protein_list_renders_with_empty_dataset(self):
+
+class HumanProteinListViewTests(TestCase):
+    def test_renders_with_empty_dataset(self):
         response = self.client.get(reverse("tpwebapp:human_protein_list"))
         self.assertEqual(response.status_code, 200)
 
