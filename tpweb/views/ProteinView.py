@@ -9,7 +9,6 @@ import itertools
 from bioseq.io.BioIO import BioIO
 from bioseq.models.Biodatabase import Biodatabase
 from bioseq.models.Bioentry import Bioentry
-from tpweb.models.pdb import PDBResidueSet
 from tpweb.models.BioentryStructure import ExperimentalStructureXref
 from .StructureView import pdb_structure
 from tpweb.services.protein_annotations import (
@@ -55,13 +54,6 @@ def _short_method(method_str):
     if "NMR" in m:
         return "NMR"
     return method_str or "—"
-
-
-def _has_pocket_data(pdb_obj):
-    return PDBResidueSet.objects.filter(
-        pdb=pdb_obj,
-        residue_set__name__in=["FPocketPocket", "P2RankPocket"],
-    ).exists()
 
 
 def _first_location(feature):
@@ -426,7 +418,7 @@ class ProteinView(View):
         protein = Bioentry.objects.filter(
             bioentry_id=protein_id
         ).prefetch_related("seq", "biodatabase",
-                           "qualifiers__term", "dbxrefs__dbxref__terms__term",
+                           "dbxrefs__dbxref__terms__term",
                            "features__type_term__ontology", "features__locations",
                            Prefetch(
                                "experimental_structure_xrefs",
@@ -437,7 +429,15 @@ class ProteinView(View):
         if not user_can_access_genome_name(request.user, assembly_name):
             raise Http404("Protein not found")
         proteinDTO, features, annotations, graphic_features = serialize_prot(protein)
-        structures = protein.structures.prefetch_related("pdb__residues").all()
+        # No consumer of `structures` in this view or the services it calls
+        # (_build_experimental_structures, _sort_structures_by_preference,
+        # summarize_structure_sources, create_binders_dict) reads
+        # `s.pdb.residues` -- that used to only back the chain-name derivation
+        # inside pdb_structure(), which now derives chains via a `.values_list`
+        # query instead of a full residue fetch (see StructureView.py). Dropping
+        # this prefetch removes an expensive full-residue-table pull per linked
+        # structure, on every protein page load.
+        structures = protein.structures.all()
         structures = _sort_structures_by_preference(structures)
         experimental_structures = _build_experimental_structures(protein, structures)
         binders_search_query = request.GET.get("binder_search", "").strip()
@@ -660,7 +660,7 @@ class ProteinView(View):
             dto["viewer_chain"] = primary_link.chain or ""
             dto["viewer_chain_selector"] = _chain_selector(primary_link.chain)
             dto["pocket_structure_label"] = primary_viewer["short_label"]
-            dto["pocket_structure_has_pockets"] = _has_pocket_data(primary_display)
+            dto["pocket_structure_has_pockets"] = bool(dto["structure"]["pockets"]) or bool(dto["structure"]["p2_pockets"])
             if alt_link is not None:
                 alt_viewer = _viewer_structure_payload(alt_link, protein_length)
                 dto["alt_structure_id"] = alt_link.pdb.id
@@ -673,7 +673,7 @@ class ProteinView(View):
                 )
                 dto["alt_viewer_chain"] = alt_link.chain or ""
                 dto["alt_viewer_chain_selector"] = _chain_selector(alt_link.chain)
-                dto["alt_structure_has_pockets"] = _has_pocket_data(alt_link.pdb)
+                dto["alt_structure_has_pockets"] = bool(dto["alt_structure"]["pockets"]) or bool(dto["alt_structure"]["p2_pockets"])
 
             _annotate_selected_source_status(selected_pocket_evidence, structures, [primary_link, alt_link])
 

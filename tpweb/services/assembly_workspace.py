@@ -350,13 +350,30 @@ def _score_proteins(assembly_name):
     return scored
 
 
+def _cached_score_proteins(assembly_name):
+    """Every caller of _score_proteins wants the same per-genome result --
+    route them all through one cache entry instead of get_overview_target_
+    rankings managing its own cache while export_composite_ranking_rows and
+    score_single_protein each re-ran the full scan uncached. Rows carry live
+    Bioentry instances (row["protein"]); both the Redis (django_redis,
+    pickle serializer) and LocMemCache backends this app can be configured
+    with handle that natively."""
+    cache_key = f"Target:score_proteins:{assembly_name}"
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return cached
+    scored = _score_proteins(assembly_name)
+    cache.set(cache_key, scored, OVERVIEW_CACHE_TTL_SECONDS)
+    return scored
+
+
 def score_single_protein(assembly_name, accession):
     """Evidence-convergence score row for one protein, for the agent's
     explain_target tool. _score_proteins' binder/structure/metabolic lookups
     are genome-wide bulk queries by design, so this is a cheap filter over
     the full result rather than a rewrite of the scoring logic per-protein.
     Returns None if the accession has no resolvable/scored row."""
-    for row in _score_proteins(assembly_name):
+    for row in _cached_score_proteins(assembly_name):
         if row["protein"].accession == accession:
             return row
     return None
@@ -396,7 +413,7 @@ def get_top_targets_by_score(assembly_name, user, limit=5, scored=None):
     over-rank proteins by one raw signal such as FPocket or ligand count.
     """
     if scored is None:
-        scored = _score_proteins(assembly_name)
+        scored = _cached_score_proteins(assembly_name)
     ranked = sorted(scored, key=lambda r: (r["score"], r["fpocket"], r["direct_count"], r["binder_count"]), reverse=True)
     return {"formula_name": "Evidence convergence", "items": _format_score_items(ranked[:limit])}
 
@@ -412,7 +429,7 @@ def get_unexplored_targets(assembly_name, user, limit=5, scored=None):
     has drugged yet - a target-discovery view instead of a "most-studied" one.
     """
     if scored is None:
-        scored = _score_proteins(assembly_name)
+        scored = _cached_score_proteins(assembly_name)
     unexplored = [r for r in scored if r["binder_count"] == 0]
     unexplored.sort(key=lambda r: (r["score"], r["fpocket"]), reverse=True)
     return {"formula_name": "Unexplored candidates", "items": _format_score_items(unexplored[:limit])}
@@ -431,7 +448,7 @@ def get_overview_target_rankings(assembly_name, user, limit=5):
     cached = cache.get(cache_key)
     if cached is not None:
         return cached
-    scored = _score_proteins(assembly_name)
+    scored = _cached_score_proteins(assembly_name)
     top_targets = get_top_targets_by_score(assembly_name, user, limit=limit, scored=scored)
     unexplored_targets = get_unexplored_targets(assembly_name, user, limit=limit, scored=scored)
     result = (top_targets, unexplored_targets)
@@ -444,7 +461,7 @@ def export_composite_ranking_rows(assembly_name):
     top 5 shown on the overview cards) with the complete contribution
     breakdown, for the CSV export named in the roadmap. Returns
     (headers, rows) ready for csv_exports.csv_response."""
-    scored = _score_proteins(assembly_name)
+    scored = _cached_score_proteins(assembly_name)
     scored.sort(key=lambda r: (r["score"], r["fpocket"], r["direct_count"], r["binder_count"]), reverse=True)
 
     headers = [
@@ -542,58 +559,86 @@ def _build_assembly_workspace_metrics(assembly_name):
         .exclude(value__in=["", "nan", "None", "null"])
         .exclude(value__iexact="Unknown")
     )
-    localization_annotated = localization_qs.values("bioentry_id").distinct().count()
-    localization_breakdown = [
-        f"{row['value']} ({row['count']})"
-        for row in localization_qs.values("value")
+    # One query instead of two: the breakdown rows already carry everything
+    # needed for the total (Localization is single-valued per protein --
+    # ScoreParamValue's unique_together on (score_param, bioentry) guarantees
+    # each bioentry contributes to exactly one "value" group here, so summing
+    # the per-value counts can't double-count).
+    localization_rows = list(
+        localization_qs.values("value")
         .annotate(count=Count("bioentry_id", distinct=True))
-        .order_by("-count")[:6]
-    ]
+        .order_by("-count")
+    )
+    localization_annotated = sum(row["count"] for row in localization_rows)
+    localization_breakdown = [f"{row['value']} ({row['count']})" for row in localization_rows[:6]]
 
     binders_qs = Binders.objects.filter(locustag__biodatabase__name=proteome_name)
-    binder_total = binders_qs.count()
-    binder_pdb_direct = binders_qs.filter(source=Binders.SOURCE_PDB, is_direct=True).count()
-    binder_pdb_homolog = binders_qs.filter(source=Binders.SOURCE_PDB, is_direct=False).count()
-    binder_chembl_direct = binders_qs.filter(source=Binders.SOURCE_CHEMBL, is_direct=True).count()
-    binder_chembl_homolog = binders_qs.filter(source=Binders.SOURCE_CHEMBL, is_direct=False).count()
-    binder_zinc = binders_qs.filter(source=Binders.SOURCE_PROPOSED).count()
+    # One aggregate instead of six separate .count() round trips over the
+    # same base queryset.
+    binder_counts = binders_qs.aggregate(
+        total=Count("id"),
+        pdb_direct=Count("id", filter=Q(source=Binders.SOURCE_PDB, is_direct=True)),
+        pdb_homolog=Count("id", filter=Q(source=Binders.SOURCE_PDB, is_direct=False)),
+        chembl_direct=Count("id", filter=Q(source=Binders.SOURCE_CHEMBL, is_direct=True)),
+        chembl_homolog=Count("id", filter=Q(source=Binders.SOURCE_CHEMBL, is_direct=False)),
+        zinc=Count("id", filter=Q(source=Binders.SOURCE_PROPOSED)),
+    )
+    binder_total = binder_counts["total"]
+    binder_pdb_direct = binder_counts["pdb_direct"]
+    binder_pdb_homolog = binder_counts["pdb_homolog"]
+    binder_chembl_direct = binder_counts["chembl_direct"]
+    binder_chembl_homolog = binder_counts["chembl_homolog"]
+    binder_zinc = binder_counts["zinc"]
     binder_direct = binder_pdb_direct + binder_chembl_direct
     binder_homolog = binder_pdb_homolog + binder_chembl_homolog
     proteins_with_binders = (
         binders_qs.values("locustag_id").distinct().count() if binder_total else 0
     )
 
+    # reaction_count + pathway_count in one aggregate over the same base
+    # queryset instead of two separate .count() calls. pathways is a M2M --
+    # Count(..., distinct=True) already only counts rows with a real join, the
+    # filter mirrors the original isnull=False explicitly rather than relying
+    # on that implicitly.
     metabolic_reactions_qs = MetabolicReaction.objects.filter(genome_accession=assembly_name)
-    metabolic_reaction_count = metabolic_reactions_qs.count()
-    metabolic_pathway_count = (
-        metabolic_reactions_qs
-        .filter(pathways__isnull=False)
-        .values("pathways")
-        .distinct()
-        .count()
-        if metabolic_reaction_count else 0
+    metabolic_reaction_totals = metabolic_reactions_qs.aggregate(
+        reaction_count=Count("id"),
+        pathway_count=Count("pathways", filter=Q(pathways__isnull=False), distinct=True),
     )
+    metabolic_reaction_count = metabolic_reaction_totals["reaction_count"]
+    metabolic_pathway_count = metabolic_reaction_totals["pathway_count"] if metabolic_reaction_count else 0
+
     metabolic_links_qs = GeneReactionLink.objects.filter(reaction__genome_accession=assembly_name)
-    metabolic_protein_count = (
-        metabolic_links_qs.values("bioentry_id").distinct().count()
-        if metabolic_reaction_count else 0
-    )
     chokepoint_links_qs = metabolic_links_qs.exclude(chokepoint_role=GeneReactionLink.CHOKEPOINT_NONE)
-    metabolic_chokepoint_gene_count = (
-        chokepoint_links_qs.values("bioentry_id").distinct().count()
-        if metabolic_reaction_count else 0
-    )
-    metabolic_chokepoint_reaction_count = (
-        chokepoint_links_qs.values("reaction_id").distinct().count()
-        if metabolic_reaction_count else 0
-    )
+    if metabolic_reaction_count:
+        # protein_count + chokepoint_reaction_count in one aggregate over the
+        # same base queryset (chokepoint_role is a plain field, not a
+        # relation, so filtering it inside Count() can't create the kind of
+        # ambiguous multi-valued join FilteredRelation exists to prevent
+        # elsewhere in this codebase -- see StructureView._ranked_pocket_ids).
+        link_totals = metabolic_links_qs.aggregate(
+            protein_count=Count("bioentry_id", distinct=True),
+            chokepoint_reaction_count=Count(
+                "reaction_id", filter=~Q(chokepoint_role=GeneReactionLink.CHOKEPOINT_NONE), distinct=True
+            ),
+        )
+        metabolic_protein_count = link_totals["protein_count"]
+        metabolic_chokepoint_reaction_count = link_totals["chokepoint_reaction_count"]
+        # Fetched as a set (not a .count()) because metabolic_druggable_target_count
+        # below needs the actual ids to intersect against druggable_gene_ids --
+        # metabolic_chokepoint_gene_count is then free (len() of what's already
+        # in memory) instead of a seventh query re-deriving the same count.
+        chokepoint_gene_ids = set(chokepoint_links_qs.values_list("bioentry_id", flat=True))
+    else:
+        metabolic_protein_count = 0
+        metabolic_chokepoint_reaction_count = 0
+        chokepoint_gene_ids = set()
+    metabolic_chokepoint_gene_count = len(chokepoint_gene_ids)
+
     druggable_gene_ids = set(
         spv_qs
         .filter(score_param__name="Druggability", numeric_value__gte=0.4)
         .values_list("bioentry_id", flat=True)
-    )
-    chokepoint_gene_ids = set(
-        chokepoint_links_qs.values_list("bioentry_id", flat=True)
     )
     metabolic_druggable_target_count = len(chokepoint_gene_ids & druggable_gene_ids)
 

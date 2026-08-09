@@ -30,6 +30,29 @@ _P2RANK_INSPECTOR_PROPERTIES = [
     ("p2score", "P2Rank score"),
 ]
 
+# Property/ResidueSet rows below are fixed vocabulary defined by the pipeline
+# import code (druggability_score, p2score, probability properties; the
+# FPocketPocket/P2RankPocket residue-set kinds) -- identical for every
+# structure and every request, effectively never edited at runtime. Loading
+# them once per worker process instead of re-querying (6 queries) on every
+# pdb_structure() call. If one of these rows is ever renamed/added through an
+# admin action rather than a pipeline import, a worker restart picks it up.
+_pdb_reference_rows_cache = None
+
+
+def _pdb_reference_rows():
+    global _pdb_reference_rows_cache
+    if _pdb_reference_rows_cache is None:
+        _pdb_reference_rows_cache = {
+            "druggability_score": Property.objects.get(name="druggability_score"),
+            "p2score": Property.objects.get(name="p2score"),
+            "probability": Property.objects.get(name="probability"),
+            "FPocketPocket": ResidueSet.objects.get(name="FPocketPocket"),
+            "P2RankPocket": ResidueSet.objects.get(name="P2RankPocket"),
+            "volume": Property.objects.filter(name="volume").first(),
+        }
+    return _pdb_reference_rows_cache
+
 
 def _format_float(value):
     try:
@@ -241,22 +264,6 @@ def _annotated_site_label(residue_set):
     return ": ".join(part for part in (source, site_name) if part)
 
 
-def _fpocket_alpha_points(pdbobj, pocket_name):
-    try:
-        pocket_resid = int(pocket_name)
-    except (TypeError, ValueError):
-        return []
-    alpha_residues = Residue.objects.prefetch_related("atoms").filter(
-        pdb=pdbobj,
-        resname="STP",
-        resid=pocket_resid,
-    )
-    atoms = []
-    for residue in alpha_residues:
-        atoms.extend(residue.atoms.all())
-    return _atom_points(atoms, use_bfactor_radius=True)
-
-
 class StructureView(View):
     template_name = 'genomic/structure.html'
 
@@ -441,7 +448,10 @@ def pdb_structure(
 ):
     context = {"code": pdbobj.code, "display_code": display_code(pdbobj.code), "id": pdbobj.id}
 
-    context["chains"] = [{"name": x} for x in set([r.chain for r in pdbobj.residues.all() if r.chain.strip()])]
+    chain_names = (
+        Residue.objects.filter(pdb=pdbobj).exclude(chain="").values_list("chain", flat=True).distinct()
+    )
+    context["chains"] = [{"name": chain} for chain in chain_names if chain.strip()]
     context["layers"] = []
 
     resnames = list(Residue.objects.filter(pdb=pdbobj, type=Residue.HETATOM).values("resname").distinct())
@@ -462,16 +472,17 @@ def pdb_structure(
             context["dna"] += [x for x in context["chains"] if x["name"] == chain]
             context["chains"] = [x for x in context["chains"] if x["name"] != chain]
 
-    ds = Property.objects.get(name="druggability_score")
-    p2s = Property.objects.get(name="p2score")
-    p2p = Property.objects.get(name="probability")
-    rs = ResidueSet.objects.get(name="FPocketPocket")
-    p2_rs = ResidueSet.objects.get(name="P2RankPocket")
+    ref = _pdb_reference_rows()
+    ds = ref["druggability_score"]
+    p2s = ref["p2score"]
+    p2p = ref["probability"]
+    rs = ref["FPocketPocket"]
+    p2_rs = ref["P2RankPocket"]
 
     # Compare every FPocket pocket's volume against its OWN structure's other
     # pockets (not the top-N shown in the UI, nor a fixed global cutoff) --
     # what counts as "unusually large" varies by protein.
-    volume_prop = Property.objects.filter(name="volume").first()
+    volume_prop = ref["volume"]
     size_outlier_map = {}
     if volume_prop is not None:
         all_volumes = ResidueSetProperty.objects.filter(
@@ -484,23 +495,51 @@ def pdb_structure(
     pocket_ids = _ranked_pocket_ids(pdbobj, rs, ds, pocket_limit, min_value=0.2, target_chain=target_chain)
     p2_pocket_ids = _ranked_pocket_ids(pdbobj, p2_rs, p2p, p2rank_limit, target_chain=target_chain)
 
-    context["pockets"] = list(PDBResidueSet.objects.prefetch_related(
-        "properties__property",
-        "residue_set_residue__residue__atoms",
-        "residue_set_residue__atoms__atom",
-    ).filter(id__in=pocket_ids))
+    # pocket_ids/p2_pocket_ids come from two different residue-set kinds
+    # (FPocketPocket vs P2RankPocket), so their id sets never overlap -- fetch
+    # both in one query instead of two identical-shaped ones, then split back
+    # out by id while preserving each list's own ranked order.
+    pockets_by_id = {
+        obj.id: obj
+        for obj in PDBResidueSet.objects.prefetch_related(
+            "properties__property",
+            "residue_set_residue__residue__atoms",
+            "residue_set_residue__atoms__atom",
+        ).filter(id__in=pocket_ids + p2_pocket_ids)
+    }
+    context["pockets"] = [pockets_by_id[i] for i in pocket_ids if i in pockets_by_id]
+    context["p2_pockets"] = [pockets_by_id[i] for i in p2_pocket_ids if i in pockets_by_id]
 
-    context["p2_pockets"] = list(PDBResidueSet.objects.prefetch_related(
-        "properties__property",
-        "residue_set_residue__residue__atoms",
-        "residue_set_residue__atoms__atom",
-    ).filter(id__in=p2_pocket_ids))
+    # FPocket alpha-sphere geometry lives on Residue rows named "STP", one per
+    # pocket, keyed by resid == the pocket's own name/number. Bulk-fetch every
+    # pocket's alpha residues in one query instead of one query per pocket
+    # inside the loop below (was up to pocket_limit=4 extra queries per call).
+    pocket_resids = []
+    for p in context["pockets"]:
+        try:
+            pocket_resids.append(int(p.name))
+        except (TypeError, ValueError):
+            pass
+    alpha_atoms_by_resid = defaultdict(list)
+    if pocket_resids:
+        for residue in Residue.objects.prefetch_related("atoms").filter(
+            pdb=pdbobj, resname="STP", resid__in=pocket_resids
+        ):
+            alpha_atoms_by_resid[residue.resid].extend(residue.atoms.all())
+
     for p in context["pockets"]:
         p.druggability = [x.value for x in p.properties.all() if x.property == ds][0]
         p.atoms = []
         p.core_atoms = _residue_set_core_atoms(p)
         residue_core_points = _residue_set_core_points(p)
-        alpha_core_points = _fpocket_alpha_points(pdbobj, p.name)
+        try:
+            pocket_resid = int(p.name)
+        except (TypeError, ValueError):
+            pocket_resid = None
+        alpha_core_points = (
+            _atom_points(alpha_atoms_by_resid.get(pocket_resid, []), use_bfactor_radius=True)
+            if pocket_resid is not None else []
+        )
         if alpha_core_points and _points_are_near_residue_cloud(alpha_core_points, residue_core_points):
             p.core_points = alpha_core_points
             p.core_geometry = "alpha_spheres"
