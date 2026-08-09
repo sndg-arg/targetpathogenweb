@@ -338,8 +338,36 @@ After importing, stages that haven't run yet (UniProt mapping, binders, InterPro
 | `core_corecruncher` | `core_corecruncher` |
 
 ## Running tests
+`tpweb/tests.py` was split into a package: `tpweb/tests/test_services.py` (services,
+management-command helpers, LLM adapters), `tpweb/tests/test_views_smoke.py` (route/view
+smoke tests), more `test_*.py` files can be added freely — Django discovers them by app
+label. `pipeline/` isn't a Django app (no `__init__.py`, invoked as a standalone script), so
+its tests live separately under `pipeline/tests/` and run as a plain `unittest` suite.
+
 ```bash
-# Inside container (preferred):
-docker compose exec web bash -c "DJANGO_SETTINGS_MODULE=tpwebconfig.settings python -m django test tpweb.tests.PipelineStatusTests"
+# One command, runs both suites (tpweb app tests + pipeline/tests):
+make test
+# equivalent to: docker compose exec web python scripts/run_tests.py
+
+# A single test class, inside container:
+docker compose exec web bash -c "DJANGO_SETTINGS_MODULE=tpwebconfig.settings python -m django test tpweb.tests.test_services.PipelineStatusTests"
 # Note: custom 'test' management command shadows Django's built-in — use python -m django test
+
+# Lint (whole repo, same as CI):
+make lint
+make format        # auto-fix
+
+# Coverage report:
+make coverage
 ```
+
+### Enforcement
+- **Local git hooks** (`make precommit-install`, run once after cloning): on every `commit`,
+  ruff + basic hygiene checks run (fast, no DB needed). On every `push`, the full test suite
+  runs (`scripts/run_tests.py`) — this is what actually needs Postgres, so it only runs at
+  push time, not on every small commit. Config lives in `.pre-commit-config.yaml`.
+- **CI** (`.github/workflows/qa.yml`): runs on every PR and on push to `main`/`master` —
+  Django system check, full test suite with coverage, and `ruff check .` / `ruff format
+  --check .` across the whole repo (not a hardcoded file list).
+- **Branch protection**: `main` requires the `QA / checks` status check to pass before a PR
+  can be merged.

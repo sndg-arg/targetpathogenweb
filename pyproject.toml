@@ -24,3 +24,21 @@ ignore = [
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
+
+[tool.coverage.run]
+branch = true
+omit = [
+  "*/migrations/*",
+  "*/__pycache__/*",
+  "parsl/*",
+  "*/tests/*",
+  "manage.py",
+  "scripts/run_tests.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+  "pragma: no cover",
+  "raise NotImplementedError",
+  "if __name__ == .__main__.:",
+]

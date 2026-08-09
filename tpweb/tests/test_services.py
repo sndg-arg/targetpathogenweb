@@ -6,11 +6,8 @@ from tempfile import TemporaryDirectory
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
-import tpweb.services.pipeline_status as pipeline_status_service
-
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
-from django.db.utils import InterfaceError
 from django.test import SimpleTestCase, TestCase
 
 from bioseq.models.Bioentry import Bioentry
@@ -85,7 +82,6 @@ from tpweb.services.workspace import (
 from tpweb.views.FormulaForm import FormulaForm
 from tpweb.views.IndexView import should_show_home_pipeline_panel
 from tpweb.views.StructureView import _annotated_site_label, _pocket_residue_overlap
-from tpweb.services.workspace import PUBLIC_WORKSPACE_USERNAME
 from tpweb.services.llm.base import Message, ToolCall, ToolDefinition, ToolResult
 from tpweb.services.llm.openai_provider import OpenAIProvider
 
@@ -1294,65 +1290,6 @@ class PipelineStatusTests(SimpleTestCase):
         self.assertEqual(status["state_class"], "running")
 
 
-class HealthViewTests(SimpleTestCase):
-    def test_live_health_endpoint(self):
-        response = self.client.get("/health/live")
-        self.assertEqual(response.status_code, 200)
-        payload = response.json()
-        self.assertEqual(payload["status"], "ok")
-        self.assertEqual(payload["service"], "tpweb")
-
-    @patch("tpweb.views.HealthView.get_pipeline_status")
-    @patch("tpweb.views.HealthView._database_ready")
-    def test_ready_health_endpoint_ok(self, database_ready, get_pipeline_status):
-        database_ready.return_value = True
-        get_pipeline_status.return_value = {"available": True, "running": True}
-
-        response = self.client.get("/health/ready")
-        self.assertEqual(response.status_code, 200)
-        payload = response.json()
-        self.assertEqual(payload["status"], "ready")
-        self.assertEqual(payload["checks"]["database"], "ok")
-        self.assertTrue(payload["pipeline_running"])
-
-    @patch("tpweb.views.HealthView.get_pipeline_status")
-    @patch("tpweb.views.HealthView._database_ready")
-    def test_ready_health_endpoint_degraded(self, database_ready, get_pipeline_status):
-        database_ready.return_value = False
-        get_pipeline_status.return_value = {"available": False, "running": False}
-
-        response = self.client.get("/health/ready")
-        self.assertEqual(response.status_code, 503)
-        payload = response.json()
-        self.assertEqual(payload["status"], "degraded")
-        self.assertEqual(payload["checks"]["database"], "error")
-        self.assertFalse(payload["pipeline_running"])
-
-    @patch("tpweb.views.HealthView.get_pipeline_status")
-    def test_pipeline_health_endpoint(self, get_pipeline_status):
-        get_pipeline_status.return_value = {"available": True, "running": True, "stage_current": 4}
-
-        response = self.client.get("/health/pipeline")
-        self.assertEqual(response.status_code, 200)
-        payload = response.json()
-        self.assertEqual(payload["status"], "ok")
-        self.assertEqual(payload["pipeline"]["stage_current"], 4)
-
-    def test_request_timing_header_is_exposed(self):
-        response = self.client.get("/health/live")
-        self.assertIn("X-Request-Duration-Ms", response.headers)
-
-    @patch("tpweb.services.pipeline_status.latest_active_pipeline_run")
-    def test_get_pipeline_status_falls_back_to_idle_on_database_error(self, latest_active_pipeline_run):
-        latest_active_pipeline_run.side_effect = InterfaceError("connection already closed")
-
-        payload = pipeline_status_service.get_pipeline_status()
-
-        self.assertFalse(payload["available"])
-        self.assertFalse(payload["running"])
-        self.assertEqual(payload["state_class"], "idle")
-
-
 class HomePipelinePanelVisibilityTests(SimpleTestCase):
     def test_hides_idle_pipeline_panel(self):
         self.assertFalse(
@@ -1389,69 +1326,6 @@ class HomePipelinePanelVisibilityTests(SimpleTestCase):
                 now=now,
             )
         )
-
-class RouteSmokeTests(SimpleTestCase):
-    @patch("tpweb.views.IndexView.TPPost.objects.first")
-    @patch("tpweb.views.IndexView.get_pipeline_status")
-    @patch("tpweb.views.IndexView.summarize_genomes")
-    @patch("tpweb.views.IndexView.build_genomes_dto")
-    @patch("tpweb.views.IndexView.build_genomes_queryset")
-    def test_index_route_renders(
-        self,
-        build_genomes_queryset,
-        build_genomes_dto,
-        summarize_genomes,
-        get_pipeline_status,
-        post_first,
-    ):
-        build_genomes_queryset.return_value = []
-        build_genomes_dto.return_value = []
-        summarize_genomes.return_value = {
-            "total_genomes": 0,
-            "total_proteins": 0,
-            "total_experimental": 0,
-            "total_pdb_xrefs": 0,
-            "total_ec_annotated": 0,
-        }
-        get_pipeline_status.return_value = {"available": False, "running": False}
-        post_first.return_value = None
-
-        response = self.client.get("/")
-        self.assertEqual(response.status_code, 200)
-
-    @patch("tpweb.views.GenomesView.get_pipeline_status")
-    @patch("tpweb.views.GenomesView.summarize_genomes")
-    @patch("tpweb.views.GenomesView.build_genomes_dto")
-    @patch("tpweb.views.GenomesView.build_genomes_queryset")
-    def test_genomes_route_renders(
-        self, build_genomes_queryset, build_genomes_dto, summarize_genomes, get_pipeline_status
-    ):
-        build_genomes_queryset.return_value = []
-        build_genomes_dto.return_value = []
-        summarize_genomes.return_value = {
-            "total_genomes": 0,
-            "total_proteins": 0,
-            "total_experimental": 0,
-            "total_pdb_xrefs": 0,
-            "total_ec_annotated": 0,
-        }
-        get_pipeline_status.return_value = {"available": False, "running": False}
-
-        response = self.client.get("/genomes")
-        self.assertEqual(response.status_code, 200)
-
-
-class AssemblyViewTests(TestCase):
-    def test_assembly_route_renders_for_incomplete_workspace_without_bioentries(self):
-        Biodatabase.objects.create(
-            name=f"{PUBLIC_WORKSPACE_USERNAME}__NZ_AP023069.1",
-            description="Incomplete genome workspace",
-        )
-
-        response = self.client.get("/genome/NZ_AP023069.1")
-
-        self.assertEqual(response.status_code, 200)
-
 
 class FPocketFallbackConversionTests(SimpleTestCase):
     def test_fallback_fpocket_to_json_reads_native_fpocket_output(self):

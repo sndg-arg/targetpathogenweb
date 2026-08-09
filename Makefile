@@ -15,7 +15,7 @@ else
 endif
 
 .PHONY: build up down stop restart logs status migrate shell \
-        format lint test qa precommit-install precommit-run
+        format lint test coverage qa precommit-install precommit-run
 
 build:
 	$(COMPOSE) build $(svc)
@@ -57,10 +57,14 @@ lint:
 test:
 	$(PYTHON) scripts/run_tests.py
 
+coverage:
+	$(PYTHON) -m coverage run --source=tpweb,pipeline scripts/run_tests.py
+	$(PYTHON) -m coverage report -m
+
 qa: lint test
 
 precommit-install:
-	$(PYTHON) -m pre_commit install
+	$(PYTHON) -m pre_commit install --hook-type pre-commit --hook-type pre-push
 
 precommit-run:
 	$(PYTHON) -m pre_commit run --all-files

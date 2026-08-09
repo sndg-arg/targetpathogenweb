@@ -218,10 +218,12 @@ Dark mode overrides all tokens via `:root.tp-dark`. Theme toggle is in the sideb
 ## Development
 
 ```bash
-make lint      # ruff check
-make format    # ruff format
-make test      # run tests (inside container recommended)
-make qa        # lint + tests
+make lint              # ruff check (whole repo)
+make format            # ruff format
+make test              # run tests (tpweb app + pipeline/tests)
+make coverage          # test run + coverage report
+make qa                # lint + tests
+make precommit-install # one-time: activate git hooks (see below)
 ```
 
 Tests run best inside the container (DB host is `db`):
@@ -229,6 +231,18 @@ Tests run best inside the container (DB host is `db`):
 ```bash
 docker compose exec web make qa
 ```
+
+### Git hooks
+
+Run `make precommit-install` once after cloning. It installs two hooks (config in
+`.pre-commit-config.yaml`):
+
+- **pre-commit**: ruff + basic hygiene (trailing whitespace, merge conflicts) — fast, no DB.
+- **pre-push**: the full test suite — needs Postgres, so it only runs when you push, not on
+  every commit.
+
+CI (`.github/workflows/qa.yml`) runs the same lint + test suite on every PR, and `main` is
+branch-protected: a PR can't be merged until that check passes.
 
 ## Cluster Deployment
 
