@@ -67,7 +67,7 @@
 
     representations["{{p.name}}_lbl"] = component.addRepresentation("label", {
         labelType: "text",
-        labelText: {},
+        labelText: residueLabelTextByAtomIndex,
         sele: activeChainSelector + " AND .CA AND ({{p.residue_ids|join:" OR "}})",
         color: tpColor("--tp-color-structure-label") || "#0e2330",
         backgroundColor: tpColor("--tp-color-structure-label-bg") || "rgba(255,255,255,0.78)",
@@ -79,7 +79,6 @@
         fixedSize: true,
         attachment: "middle-center"
     });
-    applyResidueLabelText(representations["{{p.name}}_lbl"]);
     visible["{{p.name}}_lbl"] = false;
     representations["{{p.name}}_lbl"].setVisibility(false);
     representations["{{p.name}}_lbl"].sele = activeChainSelector + " AND .CA AND ({{p.residue_ids|join:" OR "}})";
@@ -157,7 +156,7 @@
 
     representations["p2_{{p2.name}}_lbl"] = component.addRepresentation("label", {
         labelType: "text",
-        labelText: {},
+        labelText: residueLabelTextByAtomIndex,
         sele: activeChainSelector + " AND .CA AND ({{p2.residue_ids|join:" OR "}})",
         color: tpColor("--tp-color-structure-label") || "#0e2330",
         backgroundColor: tpColor("--tp-color-structure-label-bg") || "rgba(255,255,255,0.78)",
@@ -169,7 +168,6 @@
         fixedSize: true,
         attachment: "middle-center"
     });
-    applyResidueLabelText(representations["p2_{{p2.name}}_lbl"]);
     visible["p2_{{p2.name}}_lbl"] = false;
     representations["p2_{{p2.name}}_lbl"].setVisibility(false);
     representations["p2_{{p2.name}}_lbl"].sele = activeChainSelector + " AND .CA AND ({{p2.residue_ids|join:" OR "}})";

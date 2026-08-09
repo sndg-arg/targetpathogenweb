@@ -379,28 +379,6 @@ function jsloaded() {
         if (resetZoomBtn) resetZoomBtn.disabled = !enabled;
     }
 
-    // NGL's built-in "res" label type only offers the one-letter amino-acid
-    // code ("D42"), and there's no built-in type combining the three-letter
-    // code with the residue number -- the closest built-ins are "resname"
-    // (three-letter code alone, e.g. "ASP") and "resno" (bare number alone).
-    // Build the "Asp42"-style text ourselves (same format as the "List
-    // residues" panel) and feed it through labelType "text", which reads
-    // per-atom strings from a {atomIndex: text} map. Must run AFTER the
-    // representation exists (structureView is only built once addRepresentation
-    // has resolved the sele into an actual set of atoms), so this is called
-    // right after construction, not passed in as a constructor param.
-    function applyResidueLabelText(rep) {
-        if (!rep || !rep.structureView) return;
-        var text = {};
-        rep.structureView.eachAtom(function (ap) {
-            var resname = (ap.resname || "").toLowerCase();
-            text[ap.index] = resname
-                ? resname.charAt(0).toUpperCase() + resname.slice(1) + ap.resno
-                : String(ap.resno);
-        });
-        rep.setParameters({ labelText: text });
-    }
-
     function setModeButtonState(mode) {
         structureModeButtons.forEach(function (btn) {
             var isActive = btn.getAttribute("data-mode") === mode;
@@ -776,6 +754,26 @@ function jsloaded() {
         // no need to patch or upgrade the vendored ngl package itself.
         component.structure.eachResidue(function (rp) {
             if (rp.sstruc === "s") rp.sstruc = "e";
+        });
+
+        // "Asp42"-style residue-label text (three-letter code + number, same
+        // format as the "List residues" panel), keyed by NGL's own internal
+        // atom index. NGL's built-in "res" label type only offers the
+        // one-letter code ("D42"), and there's no built-in type combining
+        // three-letter + number. Built once for every atom in the whole
+        // structure (cheap, no selection filtering needed here) rather than
+        // scoped per-pocket -- each pocket's label representation still only
+        // *renders* its own CA atoms via its own `sele`, this map just needs
+        // to have an entry available for whichever atom indices end up
+        // selected. Passed straight in as the labelText constructor param
+        // (not set afterwards via setParameters, which doesn't reliably
+        // trigger a label-buffer rebuild in this NGL version).
+        var residueLabelTextByAtomIndex = {};
+        component.structure.eachAtom(function (ap) {
+            var resname = (ap.resname || "").toLowerCase();
+            residueLabelTextByAtomIndex[ap.index] = resname
+                ? resname.charAt(0).toUpperCase() + resname.slice(1) + ap.resno
+                : String(ap.resno);
         });
 
         var activeChainSelector = structureChainSelectors[activeStructureId] || "polymer";
