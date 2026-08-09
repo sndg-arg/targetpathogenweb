@@ -340,11 +340,6 @@
     background: var(--tp-color-amber-500);
 }
 
-.metabolism-pathway-detail-page .metabolism-panel {
-    margin-top: 16px;
-    box-shadow: var(--tp-shadow-sm);
-}
-
 .metabolism-pathway-detail-page .genome-hero-eyebrow,
 .metabolism-pathway-detail-page .genome-hero h1,
 .metabolism-pathway-detail-page .genome-description,
