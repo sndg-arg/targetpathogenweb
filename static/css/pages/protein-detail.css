@@ -4886,6 +4886,17 @@ body.residue-modal-open {
     font-size: var(--tp-font-label);
 }
 
+/* Same story as .protein-metabolic-network-summary just above: this page's
+   own usage is a direct child of .genome-page (right before the closing
+   </div>, after the last .genome-card), not nested in a padded card like
+   protein.html's and metabolism_pathway.html's uses of the same base
+   class -- scoped to this page only via the page-wrapper class already on
+   <div class="genome-page metabolism-page protein-metabolic-network-page">. */
+.protein-metabolic-network-page > .metabolic-provenance {
+    margin-left: 18px;
+    margin-right: 18px;
+}
+
 @media (max-width: 1080px) {
     .metabolic-context-shell {
         grid-template-columns: 1fr;
