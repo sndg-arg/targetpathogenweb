@@ -48,7 +48,7 @@ jobs:
           python -m pip install -r requirements/base.txt
           python -m pip install "numpy<2"
           python -m pip install rdkit-pypi
-          python -m pip install ruff coverage
+          python -m pip install ruff "coverage[toml]"
 
       - name: Checkout runtime library dependencies
         run: |

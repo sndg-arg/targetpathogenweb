@@ -9,4 +9,4 @@ ruff
 pre-commit
 pytest
 pytest-django
-coverage
+coverage[toml]
