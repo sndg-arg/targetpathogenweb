@@ -379,6 +379,28 @@ function jsloaded() {
         if (resetZoomBtn) resetZoomBtn.disabled = !enabled;
     }
 
+    // NGL's built-in "res" label type only offers the one-letter amino-acid
+    // code ("D42"), and there's no built-in type combining the three-letter
+    // code with the residue number -- the closest built-ins are "resname"
+    // (three-letter code alone, e.g. "ASP") and "resno" (bare number alone).
+    // Build the "Asp42"-style text ourselves (same format as the "List
+    // residues" panel) and feed it through labelType "text", which reads
+    // per-atom strings from a {atomIndex: text} map. Must run AFTER the
+    // representation exists (structureView is only built once addRepresentation
+    // has resolved the sele into an actual set of atoms), so this is called
+    // right after construction, not passed in as a constructor param.
+    function applyResidueLabelText(rep) {
+        if (!rep || !rep.structureView) return;
+        var text = {};
+        rep.structureView.eachAtom(function (ap) {
+            var resname = (ap.resname || "").toLowerCase();
+            text[ap.index] = resname
+                ? resname.charAt(0).toUpperCase() + resname.slice(1) + ap.resno
+                : String(ap.resno);
+        });
+        rep.setParameters({ labelText: text });
+    }
+
     function setModeButtonState(mode) {
         structureModeButtons.forEach(function (btn) {
             var isActive = btn.getAttribute("data-mode") === mode;
