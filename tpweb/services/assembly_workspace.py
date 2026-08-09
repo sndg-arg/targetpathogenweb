@@ -330,7 +330,15 @@ def _score_proteins(assembly_name):
         # clamp); anything past that is surfaced explicitly via a "+N" chip
         # instead of being clipped invisibly.
         scored.append({
-            "protein": p,
+            # Plain primitives, not the Bioentry instance itself -- these rows
+            # get cached (see _cached_score_proteins below), and a live model
+            # instance pickled into a shared cache is more fragile than it
+            # needs to be (schema drift across a rolling deploy landing inside
+            # the TTL window, larger payload). Nothing downstream needs more
+            # than these three fields off the protein.
+            "bioentry_id": p.bioentry_id,
+            "accession": p.accession,
+            "description": p.description,
             "score": score,
             "fpocket": fpocket or 0.0,
             "direct_count": direct_count,
@@ -354,10 +362,10 @@ def _cached_score_proteins(assembly_name):
     """Every caller of _score_proteins wants the same per-genome result --
     route them all through one cache entry instead of get_overview_target_
     rankings managing its own cache while export_composite_ranking_rows and
-    score_single_protein each re-ran the full scan uncached. Rows carry live
-    Bioentry instances (row["protein"]); both the Redis (django_redis,
-    pickle serializer) and LocMemCache backends this app can be configured
-    with handle that natively."""
+    score_single_protein each re-ran the full scan uncached. Rows are plain
+    dicts of primitives (see _score_proteins), not Bioentry instances --
+    deliberately kept that way so this cache entry only ever holds simple,
+    stable-across-deploys data."""
     cache_key = f"Target:score_proteins:{assembly_name}"
     cached = cache.get(cache_key)
     if cached is not None:
@@ -374,7 +382,7 @@ def score_single_protein(assembly_name, accession):
     the full result rather than a rewrite of the scoring logic per-protein.
     Returns None if the accession has no resolvable/scored row."""
     for row in _cached_score_proteins(assembly_name):
-        if row["protein"].accession == accession:
+        if row["accession"] == accession:
             return row
     return None
 
@@ -382,12 +390,11 @@ def score_single_protein(assembly_name, accession):
 def _format_score_items(scored_rows):
     items = []
     for row in scored_rows:
-        p = row["protein"]
         tier_label, tier_tone = _evidence_convergence_tier(row["score"])
         items.append({
-            "bioentry_id": p.bioentry_id,
-            "accession": p.accession,
-            "description": p.description,
+            "bioentry_id": row["bioentry_id"],
+            "accession": row["accession"],
+            "description": row["description"],
             "score": round(row["score"], 1),
             "score_max": int(EVIDENCE_CONVERGENCE_MAX_SCORE),
             "score_percent": round((row["score"] / EVIDENCE_CONVERGENCE_MAX_SCORE) * 100),
@@ -480,11 +487,10 @@ def export_composite_ranking_rows(assembly_name):
     ]
     rows = []
     for row in scored:
-        p = row["protein"]
         tier_label, _tone = _evidence_convergence_tier(row["score"])
         rows.append([
-            p.accession,
-            p.description,
+            row["accession"],
+            row["description"],
             round(row["score"], 1),
             int(EVIDENCE_CONVERGENCE_MAX_SCORE),
             tier_label,
