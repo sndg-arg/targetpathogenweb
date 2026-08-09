@@ -109,9 +109,9 @@ class ComputeFolderPathTests(unittest.TestCase):
     def test_splits_genome_accession_into_middle_bucket_directory(self):
         # Mirrors the on-disk layout documented in CLAUDE.md's genome reset
         # recipe -- get this math wrong and stages read/write the wrong folder.
-        # "NZ_AP023069.1" is 13 chars; floor(13/2-1):floor(13/2+2) == [5:7] == "02".
+        # "NZ_AP023069.1" is 13 chars; floor(13/2-1):floor(13/2+2) == [5:8] == "023".
         folder_path = rpd._compute_folder_path("/app/tp", "NZ_AP023069.1")
-        self.assertEqual(folder_path, "/app/tp/data/02/NZ_AP023069.1")
+        self.assertEqual(folder_path, "/app/tp/data/023/NZ_AP023069.1")
 
 
 if __name__ == "__main__":
