@@ -47,7 +47,12 @@ def main() -> int:
     settings.MIGRATION_MODULES = DisableMigrations()
     django.setup()
     runner_class = get_runner(settings)
-    test_runner = runner_class(verbosity=2)
+    # interactive=False: this runs unattended (CI, `docker exec`, pre-push
+    # hook) with no tty to answer Django's "drop and recreate?" prompt --
+    # without it, a leftover test DB from a killed prior run hangs forever
+    # waiting on stdin. keepdb=True reuses that DB instead of dropping it,
+    # which is also just faster on repeat runs.
+    test_runner = runner_class(verbosity=2, interactive=False, keepdb=True)
     failures = test_runner.run_tests(["tpweb"])
     if failures:
         return 1
