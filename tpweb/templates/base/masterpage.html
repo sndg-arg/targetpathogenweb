@@ -109,6 +109,15 @@
             --tp-color-structure-bg: #f6fbf9;
             --tp-color-structure-label: #0e2330;
             --tp-color-structure-label-bg: rgba(255, 255, 255, 0.78);
+            /* NGL's own built-in "sstruc" colorScheme (By structure mode) --
+               hardcoded inside the vendored ngl library itself, not something
+               we pass in, so these mirror its literal output exactly rather
+               than following the app's light/dark palette. Same value in
+               both themes on purpose -- the 3D-rendered colors never change
+               with app theme, so the legend swatches must not either. */
+            --tp-color-sstruc-helix: #ff0080;
+            --tp-color-sstruc-sheet: #ffc800;
+            --tp-color-sstruc-coil: #ffffff;
             /* Structure viewer — light mode (canvas matches page theme) */
             --sv-viewer-canvas-bg: #f0f6fa;
             --sv-overlay-bg: rgba(228, 241, 250, 0.90);

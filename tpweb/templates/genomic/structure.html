@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20260807-pocket-align2">
+    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20260809-sstruc-legend">
 {% endblock %}
 
 {% block body %}
@@ -43,12 +43,25 @@
             <span class="sv-loading-text">{% trans "Loading 3D structure…" %}</span>
         </p>
 
-        {# Pocket score legend #}
-        <div class="sv-legend" id="sv-legend">
-            <span class="sv-legend-label">{% trans "Pockets" %}</span>
-            <span class="tp-score-tag high">{% trans "High" %}</span>
-            <span class="tp-score-tag medium">{% trans "Medium" %}</span>
-            <span class="tp-score-tag low">{% trans "Low" %}</span>
+        {% comment %}
+        Pocket high/medium/low score legend used to float here too, but it
+        duplicated (and was less precise than) the "Probability"/"Druggability"
+        threshold captions already sitting right above each pocket group in
+        the sidebar list (pocket_cards.html) -- those have method-specific
+        numbers (P2Rank and FPocket use different thresholds), this one didn't.
+        Removed rather than kept as a second, generic copy floating over the
+        canvas.
+        {% endcomment %}
+
+        {# Secondary-structure color legend -- only meaningful in "By structure"
+           color mode, hidden otherwise. Colors mirror NGL's own built-in sstruc
+           palette exactly (see --tp-color-sstruc-* in masterpage.html), since
+           that's a hardcoded library palette we don't control the values of. #}
+        <div class="sv-legend sv-sstruc-legend" id="sv-sstruc-legend" hidden>
+            <span class="sv-legend-label">{% trans "Structure" %}</span>
+            <span class="sv-sstruc-swatch"><span class="sv-sstruc-dot sv-sstruc-dot--helix" aria-hidden="true"></span>{% trans "Helix" %}</span>
+            <span class="sv-sstruc-swatch"><span class="sv-sstruc-dot sv-sstruc-dot--sheet" aria-hidden="true"></span>{% trans "Sheet" %}</span>
+            <span class="sv-sstruc-swatch"><span class="sv-sstruc-dot sv-sstruc-dot--coil" aria-hidden="true"></span>{% trans "Coil" %}</span>
         </div>
 
         {# Floating toolbar #}
@@ -288,6 +301,7 @@ function jsloaded() {
     var resetZoomBtn  = document.getElementById("structure-reset-zoom-btn");
     var loadingNote   = document.getElementById("structure-loading-note");
     var vmdLink       = document.getElementById("sv-vmd-link");
+    var sstrucLegend  = document.getElementById("sv-sstruc-legend");
 
     function setLoadingNoteVisible(visible, text, isError) {
         if (!loadingNote) return;
@@ -397,6 +411,9 @@ function jsloaded() {
             btn.classList.toggle("is-active", isActive);
             btn.setAttribute("aria-pressed", isActive ? "true" : "false");
         });
+        // The helix/sheet/coil legend only means anything while that palette
+        // is actually on screen.
+        if (sstrucLegend) sstrucLegend.hidden = colorMode !== "sstruc";
     }
 
     function decorateScoreTags() {

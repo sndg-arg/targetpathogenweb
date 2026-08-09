@@ -196,12 +196,29 @@ body:has(.sv-root) .tp-footer { display: none !important; }
     margin-right: 2px;
 }
 
-/* Score tags in legend get dark-friendly treatment */
-.sv-legend .tp-score-tag {
-    min-width: 48px;
-    font-size: 0.74rem;
-    padding: 1px 8px;
+.sv-sstruc-swatch {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--sv-overlay-text);
 }
+
+.sv-sstruc-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 1px solid var(--sv-overlay-border);
+    /* Fixed colors, not tokens tied to the app's own palette -- these mirror
+       NGL's own hardcoded "sstruc" colorScheme output exactly (see
+       --tp-color-sstruc-* in masterpage.html), so the dot only means
+       something if it matches what's actually on screen in the viewport. */
+}
+
+.sv-sstruc-dot--helix { background: var(--tp-color-sstruc-helix); }
+.sv-sstruc-dot--sheet { background: var(--tp-color-sstruc-sheet); }
+.sv-sstruc-dot--coil  { background: var(--tp-color-sstruc-coil); }
 
 /* ── 6. Floating bottom toolbar ── */
 .sv-toolbar {
