@@ -1919,11 +1919,16 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 }
 
 .structure-picker-detail {
+    /* Was set in a monospace font -- in a fixed-width font every space
+       character (including the ones in the " · " separator between
+       coverage and resolution, e.g. "38.4% · 2.50 Å") takes a full
+       character cell, reading as a much bigger gap than the same text
+       would in the page's normal proportional font. Nothing about this
+       label needs digit alignment, so just use the inherited font. */
     flex-shrink: 0;
     color: var(--tp-color-text-muted);
     font-weight: 500;
     font-size: var(--tp-font-size-xs);
-    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
 }
 
 .structure-picker-chevron {
@@ -1996,10 +2001,11 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 }
 
 .structure-picker-item-detail {
+    /* See .structure-picker-detail's comment -- same monospace-widens-the-
+       separator issue, same fix. */
     flex-shrink: 0;
     font-size: var(--tp-font-label);
     color: var(--tp-color-text-muted);
-    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
 }
 
 .protein-page .structure-download-btn.tp-btn--neutral {
