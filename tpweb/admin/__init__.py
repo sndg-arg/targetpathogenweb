@@ -1,8 +1,21 @@
-from tpweb.models.BioentryStructure import BioentryStructure
 from django.contrib import admin
-from tpweb.admin.UserAdmin import UserAdmin
 
-str(UserAdmin)
+import tpweb.admin.PDBAdmin as PDBAdmin
+import tpweb.admin.PropertyAdmin as PropertyAdmin
+import tpweb.admin.ScoreFormulaAdmin as ScoreFormulaAdmin
+import tpweb.admin.ScoreParamAdmin as ScoreParamAdmin
+import tpweb.admin.TPPostAdmin as TPPostAdmin
+import tpweb.admin.UserAdmin as UserAdmin
+from tpweb.models.BioentryStructure import BioentryStructure
+
+__all__ = [
+    "PDBAdmin",
+    "PropertyAdmin",
+    "ScoreFormulaAdmin",
+    "ScoreParamAdmin",
+    "TPPostAdmin",
+    "UserAdmin",
+]
 
 
 class BioentryStructureAdmin(admin.ModelAdmin):
@@ -10,23 +23,3 @@ class BioentryStructureAdmin(admin.ModelAdmin):
 
 
 admin.site.register(BioentryStructure, BioentryStructureAdmin)
-
-import tpweb.admin.PDBAdmin
-
-str(PDBAdmin)
-
-import tpweb.admin.ScoreParamAdmin
-
-str(ScoreParamAdmin)
-
-import tpweb.admin.ScoreFormulaAdmin
-
-str(ScoreFormulaAdmin)
-
-import tpweb.admin.TPPostAdmin
-
-str(TPPostAdmin)
-
-import tpweb.admin.PropertyAdmin
-
-str(PropertyAdmin)
