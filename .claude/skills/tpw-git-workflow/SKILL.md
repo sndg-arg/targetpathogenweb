@@ -28,13 +28,9 @@ stage it explicitly by name like any other intentionally-changed file.
 
 ## Commit message
 
-Concise, explains *why* the change was made, not just what changed. End with:
-
-```
-Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>
-```
-
-Pass the message via a heredoc, per standard git-commit discipline.
+Concise, explains *why* the change was made, not just what changed. **Do not add a
+`Co-Authored-By: Claude` trailer** — the user asked for commits in this repo to not carry that
+line. Pass the message via a heredoc, per standard git-commit discipline.
 
 ## Push behavior
 
