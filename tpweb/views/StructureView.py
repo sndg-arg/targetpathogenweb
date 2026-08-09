@@ -576,6 +576,12 @@ def pdb_structure(
             p.size_outlier_note = ""
         p.geometric_center = _pocket_center(p.core_points)
         p.residues = []
+        # Bare residue numbers, kept separate from the display-formatted
+        # p.residues ("Asp123") -- ngl_pocket_representations.js joins this
+        # list straight into an NGL selection string ("123 OR 145 OR ..."),
+        # which only understands plain residue numbers, not amino-acid-coded
+        # labels.
+        p.residue_ids = []
         p.comparison_residues = []
         data = []
 
@@ -584,6 +590,7 @@ def pdb_structure(
                          "y": rsr.residue.resid,
                          "description": p.name, "id": p.name})
             p.residues.append(_residue_display_label(rsr.residue))
+            p.residue_ids.append(rsr.residue.resid)
             p.comparison_residues.append(rsr.residue)
             for a in rsr.residue.atoms.all():
                 p.atoms.append(a.serial)
@@ -618,6 +625,8 @@ def pdb_structure(
             p2.core_note = "No residue-position data is available for this predicted site; this layer just highlights the same residue selection as \"Nearby residues\"."
         p2.geometric_center = _pocket_center(p2.core_points)
         p2.residues = []
+        # See p.residue_ids above -- same reason, same fix.
+        p2.residue_ids = []
         p2.comparison_residues = []
         data = []
 
@@ -626,6 +635,7 @@ def pdb_structure(
                          "y": rsr.residue.resid,
                          "description": p2.name, "id": p2.name})
             p2.residues.append(_residue_display_label(rsr.residue))
+            p2.residue_ids.append(rsr.residue.resid)
             p2.comparison_residues.append(rsr.residue)
             for a in rsr.residue.atoms.all():
                 p2.atoms.append(a.serial)

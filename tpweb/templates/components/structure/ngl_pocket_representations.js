@@ -1,5 +1,5 @@
 {% for p in structure_data.pockets %}
-    var fpocketResidueSele = activeChainSelector + " AND NOT STP AND NOT water AND ({{p.residues|join:" OR "}})";
+    var fpocketResidueSele = activeChainSelector + " AND NOT STP AND NOT water AND ({{p.residue_ids|join:" OR "}})";
     sele = fpocketResidueSele;
     representations["{{p.name}}_apol"] = component.addRepresentation("surface", {
         sele: sele,
@@ -67,7 +67,7 @@
 
     representations["{{p.name}}_lbl"] = component.addRepresentation("label", {
         labelType: "res",
-        sele: activeChainSelector + " AND .CA AND ({{p.residues|join:" OR "}})",
+        sele: activeChainSelector + " AND .CA AND ({{p.residue_ids|join:" OR "}})",
         color: tpColor("--tp-color-structure-label") || "#0e2330",
         backgroundColor: tpColor("--tp-color-structure-label-bg") || "rgba(255,255,255,0.78)",
         showBackground: true,
@@ -80,14 +80,14 @@
     });
     visible["{{p.name}}_lbl"] = false;
     representations["{{p.name}}_lbl"].setVisibility(false);
-    representations["{{p.name}}_lbl"].sele = activeChainSelector + " AND .CA AND ({{p.residues|join:" OR "}})";
+    representations["{{p.name}}_lbl"].sele = activeChainSelector + " AND .CA AND ({{p.residue_ids|join:" OR "}})";
     representations["{{p.name}}_zoom"] = {
         sele: fpocketResidueSele
     };
 {% endfor %}
 
 {% for p2 in structure_data.p2_pockets %}
-    var p2rankResidueSele = activeChainSelector + " AND NOT STP AND NOT water AND ({{p2.residues|join:" OR "}})";
+    var p2rankResidueSele = activeChainSelector + " AND NOT STP AND NOT water AND ({{p2.residue_ids|join:" OR "}})";
     sele = p2rankResidueSele;
     representations["p2_{{p2.name}}_apol"] = component.addRepresentation("surface", {
         sele: sele,
@@ -155,7 +155,7 @@
 
     representations["p2_{{p2.name}}_lbl"] = component.addRepresentation("label", {
         labelType: "res",
-        sele: activeChainSelector + " AND .CA AND ({{p2.residues|join:" OR "}})",
+        sele: activeChainSelector + " AND .CA AND ({{p2.residue_ids|join:" OR "}})",
         color: tpColor("--tp-color-structure-label") || "#0e2330",
         backgroundColor: tpColor("--tp-color-structure-label-bg") || "rgba(255,255,255,0.78)",
         showBackground: true,
@@ -168,7 +168,7 @@
     });
     visible["p2_{{p2.name}}_lbl"] = false;
     representations["p2_{{p2.name}}_lbl"].setVisibility(false);
-    representations["p2_{{p2.name}}_lbl"].sele = activeChainSelector + " AND .CA AND ({{p2.residues|join:" OR "}})";
+    representations["p2_{{p2.name}}_lbl"].sele = activeChainSelector + " AND .CA AND ({{p2.residue_ids|join:" OR "}})";
     representations["p2_{{p2.name}}_zoom"] = {
         sele: p2rankResidueSele
     };
