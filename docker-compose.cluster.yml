@@ -48,7 +48,7 @@ services:
       - DJANGO_ROOT=${DJANGO_ROOT:-/app/staticfiles}
       - JBROWSE_BASE_URL=${JBROWSE_BASE_URL:-http://localhost:3000/}
       - SEQS_DATA_DIR=${SEQS_DATA_DIR:-/app/targetpathogenweb/data}
-      - REDIS_URL=${REDIS_URL:-}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/1}
       - SENTRY_DSN=${SENTRY_DSN:-}
       - PYTHONPATH=/app/sndgjobs:/app/sndgbiodb:/app/targetpathogen:/app/sndg-bio:/app/target:/app/targetpathogenweb
       - TPW_DATA_DIR=${TPW_DATA_DIR:-/data/targetpathogen/data}
@@ -158,7 +158,7 @@ services:
       - DJANGO_ROOT=${DJANGO_ROOT:-/app/staticfiles}
       - JBROWSE_BASE_URL=${JBROWSE_BASE_URL:-http://localhost:3000/}
       - SEQS_DATA_DIR=${SEQS_DATA_DIR:-/app/targetpathogenweb/data}
-      - REDIS_URL=${REDIS_URL:-}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/1}
       - SENTRY_DSN=${SENTRY_DSN:-}
       - PYTHONPATH=/app/sndgjobs:/app/sndgbiodb:/app/targetpathogen:/app/sndg-bio:/app/target:/app/targetpathogenweb
       - TPW_DATA_DIR=${TPW_DATA_DIR:-/data/targetpathogen/data}
@@ -230,6 +230,40 @@ services:
       - TPW_LIGQ_MAX_KNOWN=${TPW_LIGQ_MAX_KNOWN:-100}
       - TPW_LIGQ_MAX_ZINC=${TPW_LIGQ_MAX_ZINC:-50}
       - TPW_LIGQ_MIN_TANIMOTO=${TPW_LIGQ_MIN_TANIMOTO:-0.5}
+
+  # Shared cache backend for web/queue -- without this, each of gunicorn's 3
+  # sync workers on `web` falls back to its own private LocMemCache (see
+  # tpwebconfig/settings.py's REDIS_URL branch), so the 15-minute caches in
+  # assembly_workspace.py/protein_summary.py only had roughly a 1-in-3 chance
+  # of a hit depending on which worker picked up a given request -- the
+  # "sometimes fast, sometimes slow" symptom. Pure cache, no persistence
+  # needed: everything stored in it already has its own TTL and is safe to
+  # lose on a restart (just a cold-cache moment, not data loss).
+  redis:
+    image: redis:7-alpine
+    container_name: ${TPW_CONTAINER_PREFIX:-targetpathogenweb}_redis
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    networks:
+      - edge
+    expose:
+      - "6379"
+    deploy:
+      resources:
+        limits:
+          memory: 256m
+          cpus: '0.5'
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    restart: always
 
   jbrowse:
     deploy:
