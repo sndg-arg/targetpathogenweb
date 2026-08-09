@@ -297,7 +297,7 @@
                         <ul class="evidence-breakdown">
                             <li class="evidence-breakdown-priority"><span class="evidence-bd-label" title="{% trans 'Genes catalyzing reactions that are the only producer or consumer of a metabolite in the imported metabolic network.' %}">{% trans "Chokepoint genes" %}</span><span class="evidence-bd-value">{{ workspace_metrics.metabolic_chokepoint_gene_count }}</span></li>
                             <li><span class="evidence-bd-label" title="{% trans 'Chokepoint reactions in the imported Pathway Tools/MetaFlux network.' %}">{% trans "Chokepoint reactions" %}</span><span class="evidence-bd-value">{{ workspace_metrics.metabolic_chokepoint_reaction_count }}</span></li>
-                            <li class="evidence-breakdown-priority"><span class="evidence-bd-label" title="{% trans 'Proteins that are both metabolic chokepoints and have FPocket druggability >= 0.4.' %}">{% trans "Chokepoint + pocket" %}</span><span class="evidence-bd-value">{{ workspace_metrics.metabolic_druggable_target_count }}</span></li>
+                            <li class="evidence-breakdown-priority"><span class="evidence-bd-label" title="{% trans 'Proteins that are both metabolic chokepoints and druggable (P2Rank >= 0.5, or FPocket >= 0.4 when no P2Rank value is loaded).' %}">{% trans "Chokepoint + pocket" %}</span><span class="evidence-bd-value">{{ workspace_metrics.metabolic_druggable_target_count }}</span></li>
                         </ul>
                         <a href="{{ workspace_links.metabolism_url }}" class="btn tp-btn tp-btn--outline tp-btn--sm tp-btn-with-icon evidence-card-action">
                             <span>{% trans "Open metabolism" %}</span>

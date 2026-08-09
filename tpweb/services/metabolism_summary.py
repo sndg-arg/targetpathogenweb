@@ -69,15 +69,28 @@ def _score_maps(proteome_name):
         ScoreParamValue.objects
         .filter(
             bioentry__biodatabase__name=proteome_name,
-            score_param__name__in=["Druggability", "PTOOLS_betweenness_centrality"],
+            score_param__name__in=["Druggability", "p2rank_probability", "PTOOLS_betweenness_centrality"],
         )
         .select_related("score_param")
         .values("bioentry_id", "score_param__name", "numeric_value", "value")
     )
-    scores = defaultdict(dict)
+    raw_by_gene = defaultdict(dict)
     for row in score_rows:
         raw = row["numeric_value"] if row["numeric_value"] is not None else row["value"]
-        scores[row["bioentry_id"]][row["score_param__name"]] = _to_float(raw)
+        raw_by_gene[row["bioentry_id"]][row["score_param__name"]] = raw
+
+    # P2Rank is the primary druggability signal shown across the app -- prefer it here
+    # too, falling back to FPocket's score only for proteins with no P2Rank value loaded.
+    # Kept under the "Druggability" key so every existing caller (target_score heuristic,
+    # top-target tiebreak, the "drug" chip on metabolism.html) picks it up unchanged.
+    scores = defaultdict(dict)
+    for gene_id, values in raw_by_gene.items():
+        drugg_source = values.get("p2rank_probability")
+        if drugg_source is None:
+            drugg_source = values.get("Druggability")
+        scores[gene_id]["Druggability"] = _to_float(drugg_source)
+        if "PTOOLS_betweenness_centrality" in values:
+            scores[gene_id]["PTOOLS_betweenness_centrality"] = _to_float(values["PTOOLS_betweenness_centrality"])
     return scores
 
 

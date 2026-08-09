@@ -641,11 +641,25 @@ def _build_assembly_workspace_metrics(assembly_name):
         chokepoint_gene_ids = set()
     metabolic_chokepoint_gene_count = len(chokepoint_gene_ids)
 
-    druggable_gene_ids = set(
+    # P2Rank is the primary druggability signal shown across the app -- prefer it per
+    # protein (its own >= 0.5 "high" threshold, not FPocket's 0.4), falling back to
+    # FPocket's score only for proteins with no P2Rank value loaded at all.
+    p2rank_druggable_gene_ids = set(
+        spv_qs
+        .filter(score_param__name="p2rank_probability", numeric_value__gte=0.5)
+        .values_list("bioentry_id", flat=True)
+    )
+    p2rank_covered_gene_ids = set(
+        spv_qs
+        .filter(score_param__name="p2rank_probability", numeric_value__isnull=False)
+        .values_list("bioentry_id", flat=True)
+    )
+    fpocket_druggable_gene_ids = set(
         spv_qs
         .filter(score_param__name="Druggability", numeric_value__gte=0.4)
         .values_list("bioentry_id", flat=True)
     )
+    druggable_gene_ids = p2rank_druggable_gene_ids | (fpocket_druggable_gene_ids - p2rank_covered_gene_ids)
     metabolic_druggable_target_count = len(chokepoint_gene_ids & druggable_gene_ids)
 
     return {

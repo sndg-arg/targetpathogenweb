@@ -138,7 +138,7 @@
                         <a href="{% url 'tpwebapp:protein' protein_id=target.protein_id %}"
                            class="metabolism-target-chip{% if forloop.first %} metabolism-target-chip--top{% endif %}">
                             <span class="metabolism-target-id">{{ target.accession }}</span>
-                            <span class="metabolism-target-meta" title="{% trans "drug = FPocket druggability score. cent = betweenness centrality in the reaction network (higher = more of a metabolic chokepoint)." %}">
+                            <span class="metabolism-target-meta" title="{% trans "drug = druggability score (P2Rank when available, otherwise FPocket). cent = betweenness centrality in the reaction network (higher = more of a metabolic chokepoint)." %}">
                                 {% trans "drug" %} {{ target.druggability|floatformat:2 }}
                                 &middot; {% trans "cent" %} {{ target.centrality|floatformat:3 }}
                             </span>

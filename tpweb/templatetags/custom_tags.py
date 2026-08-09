@@ -30,6 +30,8 @@ def humanize_identifier(value):
         "deg_evalue": "DEG E-value",
         "hit_in_deg": "Hit in DEG",
         "no_hit": "No hit",
+        "druggability": "Druggability (FPocket)",
+        "p2rank_probability": "Druggability (P2Rank)",
     }
     exact_replacement = exact_replacements.get(text.lower())
     if exact_replacement:
