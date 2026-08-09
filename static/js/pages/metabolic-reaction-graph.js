@@ -281,7 +281,20 @@
             {
                 selector: "node:selected",
                 style: { "border-width": 3, "border-color": palette.text, "z-index": 40 }
-            }
+            },
+            // The standalone per-pathway page has no other style source (unlike the
+            // genome-wide network's drill-in view, which layers its own .is-hovered/
+            // .is-muted rules from metabolic-network-genome.js on top) -- without these,
+            // hover and the reaction-table "locate in graph" click add the classes but
+            // nothing visibly changes. Placed last so they win over the node/edge type
+            // rules above for the same properties.
+            {
+                selector: ".is-hovered",
+                style: { "border-width": 3, "border-color": palette.text, "opacity": 1, "z-index": 45 }
+            },
+            { selector: ".is-muted", style: { "opacity": 0.18 } },
+            { selector: "edge.is-muted", style: { "opacity": 0.08 } },
+            { selector: "edge.is-hovered", style: { "opacity": 0.9, "z-index": 30 } }
         ];
     }
 
