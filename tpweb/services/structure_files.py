@@ -1,3 +1,4 @@
+import math
 import os
 import re
 
@@ -31,7 +32,32 @@ def structure_file_path(genome_name, protein_accession, structure_code):
             if os.path.exists(candidate):
                 return candidate
 
+    # tpweb.services.experimental_structures.fetch_and_load_experimental_structures
+    # (run via the backfill_experimental_structures command) downloads RCSB
+    # PDBs straight into <mid>/<genome_name>/experimental/<accession>/<code>.pdb
+    # -- plain text, no .gz -- a storage convention SeqStore itself has never
+    # known about (it only understands the alphafold/<accession>/<code>.pdb.gz
+    # layout the main pipeline writes). Structures backfilled this way loaded
+    # fine into the DB but 404'd here ever since. Try both codes, both with
+    # and without .gz, since nothing guarantees every file was written by the
+    # exact same version of that command.
+    for code in (structure_code, base_code):
+        for base_dir in _candidate_seqstore_dirs():
+            genome_dir = os.path.join(base_dir, _mid_shard(genome_name), genome_name)
+            for filename in (f"{code}.pdb", f"{code}.pdb.gz", f"{code}.cif", f"{code}.cif.gz"):
+                candidate = os.path.join(genome_dir, "experimental", protein_accession, filename)
+                if os.path.exists(candidate):
+                    return candidate
+
     raise FileNotFoundError(last_path or structure_code)
+
+
+def _mid_shard(name):
+    """Same 3-char middle-of-the-name sharding used throughout the pipeline
+    (backfill_experimental_structures.py, import_external_results.py, etc.)
+    to spread genome directories across the data volume."""
+    n = len(name)
+    return name[math.floor(n / 2 - 1):math.floor(n / 2 + 2)]
 
 
 def _candidate_seqstore_dirs():
@@ -53,18 +79,35 @@ def _candidate_seqstore_dirs():
 
     return candidates
 
+def _structure_opener(structure_path):
+    """Most stored structures are gzip (SeqStore's own convention), but the
+    experimental-structures backfill fallback above writes plain text -- pick
+    the right opener from the extension instead of assuming either one."""
+    if str(structure_path).lower().endswith(".gz"):
+        import gzip
+        return gzip.open
+    return open
+
+
+def read_structure_text(structure_path):
+    """Full text content of a stored structure file, transparently handling
+    both the gzip (SeqStore) and plain-text (experimental backfill) cases."""
+    opener = _structure_opener(structure_path)
+    try:
+        with opener(structure_path, "rt", errors="replace") as handle:
+            return handle.read()
+    except TypeError:
+        with opener(structure_path, "rt") as handle:
+            return handle.read()
+
+
 def detect_structure_format(structure_path):
     """Return the NGL file extension for a stored structure file.
 
     SeqStore stores every source as gzip under a generic path, so the original
     .pdb/.cif extension is not reliable. Detect from the first text chunk.
     """
-    opener = None
-    if str(structure_path).lower().endswith(".gz"):
-        import gzip
-        opener = gzip.open
-    else:
-        opener = open
+    opener = _structure_opener(structure_path)
     try:
         with opener(structure_path, "rt", errors="replace") as handle:
             head = handle.read(8192)
