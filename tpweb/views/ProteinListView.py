@@ -1157,6 +1157,18 @@ class ProteinListView(View):
         column_param_names = set(selected_column_names)
         # Include sort column in prefetch when it's a score param column
         sort_param_for_prefetch = raw_sort_col if raw_sort_col in selected_column_names else None
+        # When no formula and no explicit sort, default to Druggability desc if available --
+        # preferring P2Rank's value over FPocket's own per protein (roadmap: P2Rank is the
+        # primary druggability signal shown everywhere else in the app -- protein page,
+        # metabolism ranking, workspace counts), falling back to FPocket when a protein has
+        # no P2Rank value loaded. An explicit sort_col=Druggability click (the column header)
+        # still sorts by the raw FPocket score only -- this only changes the untouched,
+        # land-on-the-page default. The "Druggability" column's own displayed values, its
+        # ScoreFormula term, and CSV export are unaffected: this only substitutes the sort key.
+        _drugg_default = (
+            not raw_sort_col and formula is None
+            and "Druggability" in selected_column_names
+        )
         if formula_expression:
             from tpweb.services.formula_evaluator import (
                 build_all_options_zero, build_expression_variables, safe_eval_expression,
@@ -1168,6 +1180,8 @@ class ProteinListView(View):
             needed_score_param_names = formula_param_names | column_param_names
             if sort_param_for_prefetch:
                 needed_score_param_names = needed_score_param_names | {sort_param_for_prefetch}
+            if _drugg_default:
+                needed_score_param_names = needed_score_param_names | {"Druggability", "p2rank_probability"}
 
         ranking_spv_qs = ScoreParamValue.objects.select_related("score_param")
         if needed_score_param_names is not None:
@@ -1185,11 +1199,6 @@ class ProteinListView(View):
         coefficient_by_param = coefficient_map(formula_term_list)
 
         # Resolve effective sort: which column and direction
-        # When no formula and no explicit sort, default to Druggability desc if available
-        _drugg_default = (
-            not raw_sort_col and formula is None
-            and "Druggability" in selected_column_names
-        )
         sort_by_param = raw_sort_col if raw_sort_col in selected_column_names else (
             "Druggability" if _drugg_default else None
         )
@@ -1212,12 +1221,19 @@ class ProteinListView(View):
                         score_value = 0.0
                 else:
                     score_value, _ = compute_score_value(param_values, coefficient_by_param)
+                if _drugg_default:
+                    p2rank_value = param_values.get("p2rank_probability")
+                    col_val = p2rank_value if p2rank_value is not None else param_values.get("Druggability")
+                elif sort_by_param:
+                    col_val = param_values.get(sort_by_param)
+                else:
+                    col_val = None
                 ranked_proteins.append(
                     {
                         "id": protein.bioentry_id,
                         "accession": protein.accession,
                         "score": score_value,
-                        "col_val": param_values.get(sort_by_param) if sort_by_param else None,
+                        "col_val": col_val,
                     }
                 )
         except Exception:
@@ -1450,6 +1466,12 @@ class ProteinListView(View):
 
         sort_label_by_col = {"__accession__": "Protein"}
         sort_label_by_col.update({col: humanize_identifier(col) or col for col in tcolumns})
+        if _drugg_default:
+            # The default (no explicit sort_col) case sorts by a P2Rank-preferred value,
+            # not the raw FPocket score humanize_identifier's "Druggability (FPocket)"
+            # label would otherwise imply -- an explicit column-header click still says
+            # "(FPocket)" correctly, since that path sorts by the raw column only.
+            sort_label_by_col["Druggability"] = "Druggability (P2Rank preferred)"
         sort_direction_label = "ascending" if effective_sort_dir == "asc" else "descending"
         sorted_by_label = f"{sort_label_by_col.get(effective_sort_col, effective_sort_col)} ({sort_direction_label})"
 
