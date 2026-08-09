@@ -216,6 +216,25 @@ Redisenar el visualizador 3D como experiencia completa.
 - Estructuras multimericas: se corrigio una truncacion a una sola cadena en `experimental_structures.py`; ahora se muestran todas las cadenas (homooligomeros y proteinas fragmentadas), con backfill (`backfill_structure_chains`) para genomas ya cargados.
 - Verificado en vivo: toggle de color y coloreo por estructura secundaria funcionando correctamente en el full viewer.
 
+### Rendimiento: apertura lenta de genoma y proteina individual
+
+Investigacion + fix de por que `/genome/<slug>` y `/protein/<id>` tardaban en abrir. Causa real: tres problemas independientes, no uno solo.
+
+**Encontrado y arreglado.**
+
+- No habia Redis en el stack del cluster (`REDIS_URL` siempre vacio, sin servicio definido) -- cada uno de los 3 workers de gunicorn tenia su propio cache en memoria sin compartir, asi que el cache de 15 min de `assembly_workspace.py` rendia ~1/3 de lo esperado ("a veces rapido, a veces lento" segun que worker atendia). Agregado servicio `redis` al `docker-compose.cluster.yml` (sin persistencia, es puro cache) + paquete `django-redis` que faltaba en `requirements/base.txt`.
+- `pdb_structure()` (visor 3D, usado 2x por pagina de proteina y 1x por estructura en `/structure/<id>`) tenia un N+1 real (alpha-spheres por pocket) y re-consultaba en cada llamada 6 filas de referencia que nunca cambian -- bulk-fetch + cache en memoria del proceso.
+- `ProteinView`/`assembly_workspace.py`: prefetches muertos, `_has_pocket_data` con query aparte pudiendo derivarse gratis de datos ya calculados, dos paths de scoring sin cachear (export CSV y scoring de una proteina para el chatbot), conteos duplicados/colapsables con `aggregate()`.
+- Bug de yapa encontrado perfilando: `/protein/<id>` no validaba que el id perteneciera de verdad a una base `_prots` -- un id de la base del genoma completo (cromosoma) renderizaba igual, tratando miles de features del genoma entero como si fueran de una sola proteina (30s+). Ahora 404 inmediato.
+- Mejora de percepcion adicional (no mide progreso real): mensajes en etapas en el loader global al navegar a estas dos paginas, en vez de un label estatico.
+
+**Medido en vivo en el cluster (KpATCC43816), antes/despues de todo lo anterior.**
+
+- Genoma, cache frio: 4.8s (una vez cada 15 min, esperable). Cache caliente: 0.16-0.17s, estable entre requests.
+- Proteina con estructura experimental+predicted: 1.1s primera vez, 0.1-0.24s despues.
+- Proteina sin estructura (96 features): 0.42-0.50s, estable.
+- Indice en `ScoreParamValue.value` (considerado, no implementado): con estos tiempos no parece necesario. Queda en To Do por si vuelve a aparecer lentitud puntual en filtros de localizacion/druggability.
+
 ## En progreso
 
 ### Batch de pedidos de las biologas (6/08 + reporte previo)
