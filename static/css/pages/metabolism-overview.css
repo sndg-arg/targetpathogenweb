@@ -14,6 +14,17 @@
     text-wrap: balance;
 }
 
+/* .tp-state-note (ui-system.css) is margin:0 by design -- callers add their
+   own context spacing. This one sits directly in the .genome-page flow
+   between the hero and the first .genome-card (metabolism.html and
+   metabolism_network.html both use it the same way), so without it the
+   bordered note spanned wider than the 18px-inset hero/card content next
+   to it. Same fix as protein_metabolic_network.html's summary banner. */
+.metabolism-curation-note {
+    margin-left: 18px;
+    margin-right: 18px;
+}
+
 .metabolism-pathway-search {
     margin-top: 14px;
 }
