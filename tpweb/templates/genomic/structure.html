@@ -724,6 +724,21 @@ function jsloaded() {
 
     /* ---- Main NGL init per component load ---- */
     function initStructureComponent(component) {
+        // NGL 0.10.4's own automatic secondary-structure calculation labels
+        // beta strands 's' (structure-utils.js's proteinPolymer), but its
+        // sstruc color scheme and sheet-specific spline smoothing only ever
+        // recognize 'e'/'b' as beta strand -- 's' silently falls into the
+        // same bucket as coil ('s'/'l' both render as plain white/coil). A
+        // real internal mismatch in this pinned library version (confirmed
+        // against its own source), not a data problem -- every structure we
+        // checked showed helices correctly but never a sheet color. Remap it
+        // right after load, before any representation reads sstruc, using
+        // the structure's own public proxy setter (residueProxy.sstruc) --
+        // no need to patch or upgrade the vendored ngl package itself.
+        component.structure.eachResidue(function (rp) {
+            if (rp.sstruc === "s") rp.sstruc = "e";
+        });
+
         var activeChainSelector = structureChainSelectors[activeStructureId] || "polymer";
         var pocketSurfaceKeys = [];
         var priorityPocketSurfaceKeys = [];
