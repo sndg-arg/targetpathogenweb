@@ -590,7 +590,7 @@ def build_metabolic_context(protein, raw_scores):
         except (TypeError, ValueError):
             percentile = None
 
-    is_chokepoint = any(l.chokepoint_role != GeneReactionLink.CHOKEPOINT_NONE for l in links)
+    is_chokepoint = any(link.chokepoint_role != GeneReactionLink.CHOKEPOINT_NONE for link in links)
 
     context = {
         "in_network": True,
@@ -973,10 +973,14 @@ def build_protein_executive_context(
     fpocket_druggability = druggability_label(drugg_raw)
 
     if p2rank_druggability:
-        structure_source = _resolve_structure_source_label(raw_scores.get("best_p2rank_structure"), structures)
+        structure_source = _resolve_structure_source_label(
+            _raw_score(raw_scores, "best_p2rank_structure"), structures
+        )
         druggability = (p2rank_druggability[0], p2rank_druggability[1], "P2Rank", structure_source)
     elif fpocket_druggability:
-        structure_source = _resolve_structure_source_label(raw_scores.get("best_fpocket_structure"), structures)
+        structure_source = _resolve_structure_source_label(
+            _raw_score(raw_scores, "best_fpocket_structure"), structures
+        )
         if structure_source is None:
             # Classic in-app pipeline never recorded which structure won -- re-derive it.
             structure_source = _resolve_fpocket_structure_by_max_score(structures)
