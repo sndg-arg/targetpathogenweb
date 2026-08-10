@@ -253,6 +253,16 @@ class HtmxFragmentViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn("Type an expression above", response.content.decode())
 
+    def test_validate_expression_accepts_valid_numeric_expression(self):
+        response = self.client.get(reverse("tpwebapp:validate_expression"), {"expression": "1 + 1"})
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Valid expression", response.content.decode())
+
+    def test_validate_expression_rejects_division_by_zero(self):
+        response = self.client.get(reverse("tpwebapp:validate_expression"), {"expression": "1 / 0"})
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("formula-valid-badge--err", response.content.decode())
+
 
 class SitemapViewTests(SimpleTestCase):
     def test_sitemap_lists_static_content_pages(self):
