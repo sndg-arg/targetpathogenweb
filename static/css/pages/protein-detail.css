@@ -36,63 +36,9 @@
     margin-top: 8px;
 }
 
-/* Export view: elevated + captioned so it reads as a considered action,
-   not a stray metadata chip. Scoped to .protein-hero specifically --
-   .tp-view-export-link's own base style in ui-system.css is shared by 6
-   other pages that didn't ask for this treatment. */
-.protein-hero .tp-view-export-link {
-    border-color: var(--tp-color-border-accent);
-    box-shadow: var(--tp-shadow-sm);
-    transition: transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
-        box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
-        border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
-        background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
-}
-
-.protein-hero .tp-view-export-link:hover,
-.protein-hero .tp-view-export-link:focus-visible {
-    transform: translateY(-1px);
-    box-shadow: var(--tp-shadow-md);
-}
-
-.protein-hero-export-group {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-}
-
-.protein-hero-export-caption {
-    margin: 6px 2px 0;
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-label);
-}
-
 .protein-hero-content {
     max-width: none;
     width: 100%;
-}
-
-/* Which genome you're standing in -- deliberately louder than the eyebrow/accession
-   line below, since it's easy to lose track of when jumping between proteins. */
-.protein-hero-genome {
-    display: inline-flex;
-    align-items: baseline;
-    gap: 7px;
-    text-decoration: none;
-    font-family: "Space Grotesk", "Segoe UI", sans-serif;
-}
-.protein-hero-genome:hover .protein-hero-genome-value { text-decoration: underline; }
-.protein-hero-genome-label {
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-label);
-    font-weight: 500;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-}
-.protein-hero-genome-value {
-    color: var(--protein-accent-ink);
-    font-size: var(--tp-font-size-lg);
-    font-weight: 700;
 }
 
 .protein-hero-eyebrow {
