@@ -298,6 +298,31 @@ class LoginRequiredRedirectTests(SimpleTestCase):
         self.assertEqual(response.status_code, 302)
 
 
+class ProteinBlastViewTests(TestCase):
+    def test_get_renders_for_authenticated_user_with_existing_genome(self):
+        Biodatabase.objects.create(name="TEST")
+        user = get_user_model().objects.create_user(
+            username="blast-genome-user", password="test-pass"
+        )
+        self.client.force_login(user)
+
+        response = self.client.get(reverse("tpwebapp:protein_blast", kwargs={"genome": "TEST"}))
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_get_for_unknown_genome_is_not_found(self):
+        user = get_user_model().objects.create_user(
+            username="blast-missing-genome-user", password="test-pass"
+        )
+        self.client.force_login(user)
+
+        response = self.client.get(
+            reverse("tpwebapp:protein_blast", kwargs={"genome": "does-not-exist"})
+        )
+
+        self.assertEqual(response.status_code, 404)
+
+
 class StructureRawViewTests(TestCase):
     def test_unknown_structure_id_is_not_found(self):
         response = self.client.get(reverse("tpwebapp:structure_raw", kwargs={"struct_id": 999999}))
