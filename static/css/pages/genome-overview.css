@@ -379,10 +379,17 @@
     /* See .genome-card's scroll-margin-top comment. */
     scroll-margin-top: 74px;
     align-items: stretch;
-    /* The two ranking tiles inside keep their own border -- margin aligns
-       that border with the 18px text inset used elsewhere on the page,
-       instead of sitting flush at the page's raw edge. */
-    margin: 0 18px;
+    /* The two ranking tiles inside keep their own border -- left/right margin
+       aligns that border with the 18px text inset used elsewhere on the page,
+       instead of sitting flush at the page's raw edge. Deliberately no
+       margin-top/bottom set here: a "margin: 0 18px" shorthand used to zero
+       those out, which (same specificity, later in the cascade) silently
+       defeated .genome-grid's own "40px gap between sections" rule below --
+       harmless while this was the grid's first child with no preceding
+       sibling to space from, but once moved lower on the page it collapsed
+       flush against whatever section sits above it. */
+    margin-left: 18px;
+    margin-right: 18px;
 }
 
 @media (max-width: 991px) {
