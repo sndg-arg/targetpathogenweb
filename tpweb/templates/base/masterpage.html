@@ -26,7 +26,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
     <link rel="stylesheet" href="{% static 'css/components/ui-system.css' %}?v=20260808-table-scroll-host-fix">
-    <link rel="stylesheet" href="{% static 'css/components/agent-drawer.css' %}?v=20260804-fusion1">
+    <link rel="stylesheet" href="{% static 'css/components/agent-drawer.css' %}?v=20260810-multisession1">
     <style>
         :root {
             --tp-color-text-primary: #132f3d;
@@ -2382,6 +2382,23 @@
             </svg>
             {% trans "Explain terms" %}
         </button>
+        <div class="tp-agent-drawer-toolbar-actions">
+            <button type="button" id="tp-agent-drawer-new" class="tp-agent-drawer-icon-btn" aria-label="{% trans 'New conversation' %}" title="{% trans 'New conversation' %}">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" width="14" height="14" aria-hidden="true"><path d="M8 2.5v11M2.5 8h11"/></svg>
+            </button>
+            <button type="button" id="tp-agent-drawer-history-toggle" class="tp-agent-drawer-icon-btn" aria-label="{% trans 'Previous conversations' %}" title="{% trans 'Previous conversations' %}" aria-expanded="false" aria-controls="tp-agent-drawer-history-panel">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" aria-hidden="true">
+                    <circle cx="8" cy="8.5" r="5.5"/>
+                    <path d="M8 5.5v3l2.2 1.3"/>
+                </svg>
+            </button>
+            <div id="tp-agent-drawer-history-panel" class="tp-agent-drawer-history-panel" hidden
+                 data-untitled-label="{% trans 'New conversation' %}">
+                <p class="tp-agent-drawer-history-panel-title">{% trans "Previous conversations" %}</p>
+                <div id="tp-agent-drawer-history-list" class="tp-agent-drawer-history-list"></div>
+                <p id="tp-agent-drawer-history-empty" class="tp-agent-drawer-history-empty" hidden>{% trans "No previous conversations yet." %}</p>
+            </div>
+        </div>
     </div>
     <div id="tp-agent-drawer-messages" class="tp-agent-drawer-messages" role="log" aria-live="polite">
         <p class="tp-agent-drawer-empty">
@@ -2406,7 +2423,7 @@
             {% trans "Clear filters" %}
         </button>
     </div>
-    <form id="tp-agent-drawer-form" class="tp-agent-drawer-form" data-chat-url="{% url 'tpwebapp:agent_chat' %}" data-tp-loader="off">
+    <form id="tp-agent-drawer-form" class="tp-agent-drawer-form" data-chat-url="{% url 'tpwebapp:agent_chat' %}" data-sessions-url="{% url 'tpwebapp:agent_chat_sessions' %}" data-tp-loader="off">
         <textarea id="tp-agent-drawer-input" class="tp-agent-drawer-input" rows="2" placeholder="{% trans 'Ask the assistant…' %}" aria-label="{% trans 'Message' %}"></textarea>
         <button type="submit" class="tp-btn tp-btn--primary tp-agent-drawer-send" aria-label="{% trans 'Send' %}" title="{% trans 'Send' %}">
             <span class="sr-only">{% trans "Send" %}</span>
@@ -2416,7 +2433,7 @@
 </aside>
 
 <script src="{% static 'bundle.js' %}?v=20260722-dagre1"></script>
-<script src="{% static 'js/global/agent-drawer.js' %}?v=20260727-genericscope1"></script>
+<script src="{% static 'js/global/agent-drawer.js' %}?v=20260810-multisession1"></script>
 <script src="{% static 'js/global/nav-toggle.js' %}?v=20260804-navtoggle1"></script>
 <script src="{% static 'js/global/smooth-details.js' %}?v=20260804-smoothdetails1"></script>
 

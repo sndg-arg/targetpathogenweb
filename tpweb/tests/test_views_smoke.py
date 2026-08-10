@@ -447,7 +447,33 @@ class AgentChatViewTests(TestCase):
         response = self.client.get(reverse("tpwebapp:agent_chat"))
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json(), {"history": []})
+        self.assertEqual(response.json(), {"history": [], "conversation_id": None})
+
+
+class AgentChatSessionsViewTests(TestCase):
+    def test_lists_no_sessions_for_a_brand_new_browser_session(self):
+        response = self.client.get(reverse("tpwebapp:agent_chat_sessions"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {"sessions": []})
+
+    def test_never_lists_another_browser_session_s_conversations(self):
+        from django.test import Client
+
+        from tpweb.models.AgentChatSession import AgentChatSession
+
+        first_client = Client()
+        first_client.get(reverse("tpwebapp:agent_chat"))  # mints a session_key
+        first_session_key = first_client.session.session_key
+        AgentChatSession.objects.create(
+            session_key=first_session_key, title="First visitor's chat", history_json=[]
+        )
+
+        second_client = Client()
+        response = second_client.get(reverse("tpwebapp:agent_chat_sessions"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {"sessions": []})
 
 
 class MetabolismPathwayViewTests(TestCase):

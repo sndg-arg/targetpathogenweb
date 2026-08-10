@@ -1,6 +1,6 @@
 import gzip
 import json
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from types import SimpleNamespace
@@ -9,15 +9,25 @@ from unittest.mock import MagicMock, patch
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
 from django.test import SimpleTestCase, TestCase
+from django.utils import timezone as django_timezone
 
 from bioseq.models.Bioentry import Bioentry
 from bioseq.models.Biodatabase import Biodatabase
+from tpweb.models.AgentChatSession import AgentChatSession
 from tpweb.models.GenomeUpload import GenomeUpload
 from tpweb.models.PipelineRun import PipelineRun
 from tpweb.models.ScoreFormula import ScoreFormula
 from tpweb.models.ScoreParam import ScoreParam, ScoreParamOptions
 from tpweb.models.ScoreParamValue import ScoreParamValue
 from tpweb.models.Binders import Binders
+from tpweb.services.agent_chat_sessions import (
+    SESSION_IDLE_GAP,
+    default_conversation,
+    find_conversation,
+    list_conversations,
+    resolve_active_conversation,
+    set_title_if_blank,
+)
 from tpweb.services.assembly_workspace import build_assembly_workspace_metrics
 from tpweb.services.assembly_overview import build_assembly_overview
 from tpweb.services.formula_evaluator import (
@@ -1530,3 +1540,90 @@ class OpenAIProviderTranslationTests(SimpleTestCase):
 
         self.assertEqual(result.usage.input_tokens, 0)
         self.assertEqual(result.usage.output_tokens, 0)
+
+
+class AgentChatSessionsServiceTests(TestCase):
+    """resolve_active_conversation's idle-gap/force-new/explicit-id branches,
+    and list_conversations' retention filtering and session isolation."""
+
+    def _backdated(self, session_key, minutes_old, title=""):
+        row = AgentChatSession.objects.create(session_key=session_key, title=title, history_json=[])
+        backdated = django_timezone.now() - timedelta(minutes=minutes_old)
+        AgentChatSession.objects.filter(pk=row.pk).update(updated_at=backdated)
+        row.refresh_from_db()
+        return row
+
+    def test_creates_a_new_conversation_for_a_session_with_none_yet(self):
+        row = resolve_active_conversation("brand-new-session")
+
+        self.assertIsNotNone(row.pk)
+        self.assertEqual(row.session_key, "brand-new-session")
+        self.assertEqual(row.history_json, [])
+
+    def test_reuses_a_recently_active_conversation(self):
+        recent = self._backdated("session-a", minutes_old=5)
+
+        row = resolve_active_conversation("session-a")
+
+        self.assertEqual(row.pk, recent.pk)
+
+    def test_does_not_reuse_an_idle_expired_conversation(self):
+        stale = self._backdated("session-b", minutes_old=SESSION_IDLE_GAP.total_seconds() / 60 + 5)
+
+        row = resolve_active_conversation("session-b")
+
+        self.assertNotEqual(row.pk, stale.pk)
+        self.assertEqual(AgentChatSession.objects.filter(session_key="session-b").count(), 2)
+
+    def test_explicit_conversation_id_is_always_reused_regardless_of_staleness(self):
+        stale = self._backdated("session-c", minutes_old=999)
+
+        row = resolve_active_conversation("session-c", conversation_id=stale.pk)
+
+        self.assertEqual(row.pk, stale.pk)
+
+    def test_force_new_always_creates_a_row_even_if_a_fresh_one_exists(self):
+        recent = self._backdated("session-d", minutes_old=1)
+
+        row = resolve_active_conversation("session-d", force_new=True)
+
+        self.assertNotEqual(row.pk, recent.pk)
+
+    def test_find_conversation_never_returns_another_session_s_row(self):
+        other = self._backdated("session-e", minutes_old=1)
+
+        self.assertIsNone(find_conversation("someone-else", other.pk))
+        self.assertEqual(find_conversation("session-e", other.pk).pk, other.pk)
+
+    def test_default_conversation_never_creates_a_row(self):
+        self.assertIsNone(default_conversation("session-f"))
+        self.assertEqual(AgentChatSession.objects.filter(session_key="session-f").count(), 0)
+
+    def test_set_title_if_blank_sets_once_and_never_overwrites(self):
+        row = AgentChatSession.objects.create(session_key="session-g", history_json=[])
+
+        set_title_if_blank(row, "  What genes are near this chokepoint?  ")
+        self.assertEqual(row.title, "What genes are near this chokepoint?")
+
+        set_title_if_blank(row, "A completely different message")
+        self.assertEqual(row.title, "What genes are near this chokepoint?")
+
+    def test_list_conversations_excludes_other_sessions_and_expired_rows(self):
+        mine = self._backdated("session-h", minutes_old=1, title="Mine")
+        # Idle-expired (past SESSION_IDLE_GAP) but still within the 7-day
+        # HISTORY_RETENTION window is a separate, older conversation still on
+        # the list, not a "recently active" one -- exercise that here too.
+        self._backdated(
+            "session-h",
+            minutes_old=SESSION_IDLE_GAP.total_seconds() / 60 + 5,
+            title="Idle but retained",
+        )
+        self._backdated("session-h", minutes_old=60 * 24 * 8, title="Past retention window")
+        self._backdated("someone-else", minutes_old=1, title="Not mine")
+
+        result = list_conversations("session-h")
+
+        # Most recent first; the >7-day-old row and the other session's row are absent.
+        self.assertEqual([entry["title"] for entry in result], ["Mine", "Idle but retained"])
+        self.assertEqual(result[0]["id"], mine.pk)
+        self.assertEqual(result[0]["message_count"], 0)

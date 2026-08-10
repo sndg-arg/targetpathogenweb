@@ -1,12 +1,14 @@
 """HTTP endpoint for the in-app AI assistant drawer.
 
-Conversation history is persisted server-side, keyed by Django session key
-(see AgentChatSession / _load_persisted_history / _save_persisted_history
-below), with a 7-day rolling TTL -- one conversation per browser session,
-not per authenticated user, since Target is mostly used without login
-(shared 'public' workspace account). This means two people sharing that
-account from different browsers never see each other's messages, but
-reloading the drawer's own page restores the same conversation.
+Conversation history is persisted server-side as AgentChatSession rows,
+keyed by Django session key -- not per authenticated user, since Target is
+mostly used without login (shared 'public' workspace account). A browser
+session can hold several conversations over time (split by inactivity or an
+explicit "new conversation" action); see tpweb/services/agent_chat_sessions.py
+for the rules on which conversation a given turn belongs to and how long
+conversations are kept. This means two people sharing the public account
+from different browsers never see each other's messages, but reloading the
+drawer's own page restores the same (still-recent) conversation.
 
 Genome/protein scope is never taken from the request body directly -- it
 is re-derived server-side from page_path (the frontend's
@@ -23,19 +25,23 @@ import logging
 import os
 import re
 import time
-from datetime import timedelta
 from urllib.parse import urlparse
 
 from django.conf import settings
 from django.http import JsonResponse
 from django.urls import resolve
 from django.urls.exceptions import Resolver404
-from django.utils import timezone
 from django.views import View
 
 from bioseq.models.Biodatabase import Biodatabase
 from bioseq.models.Bioentry import Bioentry
-from tpweb.models.AgentChatSession import AgentChatSession
+from tpweb.services.agent_chat_sessions import (
+    default_conversation,
+    find_conversation,
+    list_conversations,
+    resolve_active_conversation,
+    set_title_if_blank,
+)
 from tpweb.services.genome_workspace import resolve_genome_from_slug, user_can_access_genome_name
 from tpweb.services.workspace import resolve_workspace_user, set_workspace_session_value
 from tpweb.services.llm.agent import Agent
@@ -50,8 +56,6 @@ from tpweb.services.llm.prompts import (
 from tpweb.services.llm.tool_registry import build_scoped_tools
 
 logger = logging.getLogger("tpweb.agent")
-
-HISTORY_TTL = timedelta(days=7)
 
 
 def _message_to_json(message: Message) -> dict:
@@ -95,7 +99,7 @@ def _compact_value(value, text_limit=180):
         return None
     if isinstance(value, bool):
         return value
-    if isinstance(value, (int, float)):
+    if isinstance(value, int | float):
         return value
     text = re.sub(r"\s+", " ", str(value)).strip()
     if not text:
@@ -211,12 +215,8 @@ def _ensure_session_key(request):
     return request.session.session_key
 
 
-def _load_persisted_history(session_key):
-    if not session_key:
-        return []
-    cutoff = timezone.now() - HISTORY_TTL
-    row = AgentChatSession.objects.filter(session_key=session_key, updated_at__gte=cutoff).first()
-    if not row:
+def _history_from_row(row):
+    if row is None:
         return []
     try:
         return [_message_from_json(item) for item in row.history_json or []]
@@ -225,23 +225,34 @@ def _load_persisted_history(session_key):
         return []
 
 
-def _save_persisted_history(session_key, messages):
-    if not session_key:
-        return
-    AgentChatSession.objects.update_or_create(
-        session_key=session_key,
-        defaults={"history_json": [_message_to_json(item) for item in messages]},
-    )
+def _save_persisted_history(row, messages):
+    row.history_json = [_message_to_json(item) for item in messages]
+    row.save(update_fields=["history_json", "updated_at", "title"])
 
 
 class AgentChatView(View):
     def get(self, request, *args, **kwargs):
-        """Hydrates the drawer with this session's saved conversation on page
+        """Hydrates the drawer with a conversation's saved history on page
         load -- without this, 'persisted' history would never be visible
-        again after a reload, defeating the point of persisting it."""
+        again after a reload, defeating the point of persisting it.
+
+        With no conversation_id, hydrates the session's current (recently
+        active) conversation, if any -- a bare page load never creates one.
+        """
         session_key = _ensure_session_key(request)
-        history = _load_persisted_history(session_key)
-        return JsonResponse({"history": [_message_to_json(item) for item in history]})
+        conversation_id = request.GET.get("conversation_id")
+        row = (
+            find_conversation(session_key, conversation_id)
+            if conversation_id
+            else default_conversation(session_key)
+        )
+        history = _history_from_row(row)
+        return JsonResponse(
+            {
+                "history": [_message_to_json(item) for item in history],
+                "conversation_id": row.pk if row else None,
+            }
+        )
 
     def post(self, request, *args, **kwargs):
         if not llm_agent_enabled() and not os.environ.get("TPW_LLM_PROVIDER", "").strip():
@@ -271,7 +282,13 @@ class AgentChatView(View):
         biologist_mode = bool(payload.get("biologist_mode"))
 
         session_key = _ensure_session_key(request)
-        history = _load_persisted_history(session_key)
+        row = resolve_active_conversation(
+            session_key,
+            conversation_id=payload.get("conversation_id"),
+            force_new=bool(payload.get("force_new")),
+        )
+        set_title_if_blank(row, message)
+        history = _history_from_row(row)
 
         workspace_user = resolve_workspace_user(request.user)
         session_user = request.user
@@ -291,11 +308,12 @@ class AgentChatView(View):
                     Message(role="assistant", text=reply),
                 ]
             )
-            _save_persisted_history(session_key, history)
+            _save_persisted_history(row, history)
             return JsonResponse(
                 {
                     "reply": reply,
                     "history": [_message_to_json(item) for item in history],
+                    "conversation_id": row.pk,
                     "reload": True,
                     "redirect_url": self._reload_url_without_query(
                         str(payload.get("page_url") or payload.get("page_path") or "")
@@ -365,10 +383,11 @@ class AgentChatView(View):
         )
 
         persisted_history = _compact_history(agent.last_messages, max_messages=12)
-        _save_persisted_history(session_key, persisted_history)
+        _save_persisted_history(row, persisted_history)
         response = {
             "reply": reply,
             "history": [_message_to_json(item) for item in persisted_history],
+            "conversation_id": row.pk,
         }
         if _tool_was_called(agent.last_messages, "clear_filters") or _tool_was_called(
             agent.last_messages, "apply_filters"
@@ -488,3 +507,12 @@ class AgentChatView(View):
             "current tab. Do not treat this snapshot as biological evidence; for claims about "
             "proteins, scores, ligands, metabolism, or off-targets, call the available tools."
         )
+
+
+class AgentChatSessionsView(View):
+    def get(self, request, *args, **kwargs):
+        """Lists this browser session's recent conversations for the
+        assistant drawer's history picker -- never another session's, since
+        list_conversations always filters by this request's own session_key."""
+        session_key = _ensure_session_key(request)
+        return JsonResponse({"sessions": list_conversations(session_key)})

@@ -2,10 +2,14 @@
  * masterpage.html, not part of the webpack bundle, matching the existing
  * plain-script convention used by protein-detail.js/metabolic-network.js).
  *
- * Conversation history is persisted server-side per browser session (see
- * AgentChatView.py's module docstring) -- this file just keeps a local copy
- * in a plain JS array and round-trips it on every message, and hydrates that
- * array from the server once on load so a page reload doesn't lose it.
+ * Conversation history is persisted server-side, split into multiple
+ * conversations per browser session (see AgentChatView.py's module docstring
+ * and tpweb/services/agent_chat_sessions.py). This file keeps a local copy
+ * of the *current* conversation in a plain JS array and round-trips it on
+ * every message; currentConversationId tracks which server-side conversation
+ * that is. Switching conversations (via the history picker or "New
+ * conversation") re-fetches from the server rather than reconciling
+ * client-side state.
  */
 (function () {
     "use strict";
@@ -305,25 +309,43 @@
         var toggleBtnMobile = document.getElementById("tp-agent-drawer-toggle-mobile");
         var suggestionButtons = Array.prototype.slice.call(document.querySelectorAll(".tp-agent-drawer-suggestion"));
         var biologistToggle = document.getElementById("tp-agent-drawer-biologist-toggle");
+        var newConversationBtn = document.getElementById("tp-agent-drawer-new");
+        var historyToggleBtn = document.getElementById("tp-agent-drawer-history-toggle");
+        var historyPanel = document.getElementById("tp-agent-drawer-history-panel");
+        var historyListEl = document.getElementById("tp-agent-drawer-history-list");
+        var historyEmptyEl = document.getElementById("tp-agent-drawer-history-empty");
+        var untitledLabel = historyPanel ? historyPanel.getAttribute("data-untitled-label") : "New conversation";
         var chatUrl = form.getAttribute("data-chat-url");
+        var sessionsUrl = form.getAttribute("data-sessions-url");
 
         var history = [];
         var pending = false;
+        var currentConversationId = null;
+        var forceNewOnNextSend = false;
+        // Snapshot of the drawer's initial empty-state markup, captured before any
+        // hydration runs, so "New conversation" can restore it exactly later.
+        var emptyStateHtml = messagesEl ? messagesEl.innerHTML : "";
 
-        // Hydrate from the last 7 days of this browser session's conversation, if any.
+        function renderHistory(items) {
+            (items || []).forEach(function (item) {
+                if (!item.text) return;
+                if (item.role === "user" || item.role === "assistant") {
+                    appendMessage(item.role, item.text);
+                }
+            });
+        }
+
+        // Hydrate from this browser session's current conversation, if any.
         // Best-effort: a failed/slow fetch just leaves the drawer at its normal empty state.
         if (chatUrl) {
             fetch(chatUrl, { method: "GET", headers: { "X-Requested-With": "XMLHttpRequest" } })
                 .then(function (response) { return response.ok ? response.json() : null; })
                 .then(function (data) {
-                    if (!data || !data.history || !data.history.length) return;
+                    if (!data) return;
+                    currentConversationId = data.conversation_id || null;
+                    if (!data.history || !data.history.length) return;
                     history = data.history;
-                    history.forEach(function (item) {
-                        if (!item.text) return;
-                        if (item.role === "user" || item.role === "assistant") {
-                            appendMessage(item.role, item.text);
-                        }
-                    });
+                    renderHistory(history);
                 })
                 .catch(function () { /* best effort -- drawer just starts empty */ });
         }
@@ -386,6 +408,121 @@
             if (event.key === "Escape" && drawer.classList.contains("is-open")) {
                 setOpen(false);
             }
+            if (event.key === "Escape" && historyPanel && !historyPanel.hidden) {
+                setHistoryPanelOpen(false);
+            }
+        });
+
+        function setHistoryPanelOpen(open) {
+            if (!historyPanel) return;
+            historyPanel.hidden = !open;
+            if (historyToggleBtn) {
+                historyToggleBtn.setAttribute("aria-expanded", open ? "true" : "false");
+            }
+            if (open) {
+                loadSessionsList();
+            }
+        }
+
+        function formatConversationTimestamp(isoString) {
+            var date = new Date(isoString);
+            if (isNaN(date.getTime())) return "";
+            try {
+                return new Intl.DateTimeFormat(undefined, { dateStyle: "short", timeStyle: "short" }).format(date);
+            } catch (e) {
+                return date.toLocaleString();
+            }
+        }
+
+        function loadSessionsList() {
+            if (!sessionsUrl || !historyListEl) return;
+            fetch(sessionsUrl, { method: "GET", headers: { "X-Requested-With": "XMLHttpRequest" } })
+                .then(function (response) { return response.ok ? response.json() : null; })
+                .then(function (data) {
+                    var sessions = (data && data.sessions) || [];
+                    historyListEl.innerHTML = "";
+                    if (historyEmptyEl) {
+                        historyEmptyEl.hidden = sessions.length > 0;
+                    }
+                    sessions.forEach(function (session) {
+                        var item = document.createElement("button");
+                        item.type = "button";
+                        item.className = "tp-agent-drawer-history-item";
+                        if (session.id === currentConversationId) {
+                            item.classList.add("is-active");
+                        }
+                        item.setAttribute("data-conversation-id", session.id);
+
+                        var titleEl = document.createElement("span");
+                        titleEl.className = "tp-agent-drawer-history-item-title";
+                        titleEl.textContent = session.title || untitledLabel;
+
+                        var metaEl = document.createElement("span");
+                        metaEl.className = "tp-agent-drawer-history-item-meta";
+                        var count = session.message_count || 0;
+                        metaEl.textContent = formatConversationTimestamp(session.updated_at) + " · " + count;
+
+                        item.appendChild(titleEl);
+                        item.appendChild(metaEl);
+                        item.addEventListener("click", function () {
+                            openConversation(session.id);
+                        });
+                        historyListEl.appendChild(item);
+                    });
+                })
+                .catch(function () { /* best effort -- panel just stays empty */ });
+        }
+
+        function openConversation(conversationId) {
+            if (!chatUrl) return;
+            fetch(chatUrl + "?conversation_id=" + encodeURIComponent(conversationId), {
+                method: "GET",
+                headers: { "X-Requested-With": "XMLHttpRequest" },
+            })
+                .then(function (response) { return response.ok ? response.json() : null; })
+                .then(function (data) {
+                    if (!data) return;
+                    currentConversationId = data.conversation_id || null;
+                    forceNewOnNextSend = false;
+                    history = data.history || [];
+                    if (messagesEl) {
+                        messagesEl.innerHTML = emptyStateHtml;
+                    }
+                    renderHistory(history);
+                })
+                .catch(function () { /* best effort */ })
+                .finally(function () {
+                    setHistoryPanelOpen(false);
+                });
+        }
+
+        function startNewConversation() {
+            history = [];
+            currentConversationId = null;
+            forceNewOnNextSend = true;
+            if (messagesEl) {
+                messagesEl.innerHTML = emptyStateHtml;
+            }
+            setHistoryPanelOpen(false);
+            if (inputEl) {
+                inputEl.focus();
+            }
+        }
+
+        if (newConversationBtn) {
+            newConversationBtn.addEventListener("click", startNewConversation);
+        }
+        if (historyToggleBtn) {
+            historyToggleBtn.addEventListener("click", function () {
+                setHistoryPanelOpen(historyPanel && historyPanel.hidden);
+            });
+        }
+        document.addEventListener("click", function (event) {
+            if (!historyPanel || historyPanel.hidden) return;
+            if (historyPanel.contains(event.target) || event.target === historyToggleBtn || (historyToggleBtn && historyToggleBtn.contains(event.target))) {
+                return;
+            }
+            setHistoryPanelOpen(false);
         });
 
         function appendMessage(role, text) {
@@ -444,6 +581,8 @@
                     biologist_mode: biologistMode,
                     history: history,
                     message: message,
+                    conversation_id: currentConversationId,
+                    force_new: forceNewOnNextSend,
                 }),
             })
                 .then(function (response) {
@@ -463,6 +602,11 @@
                         return;
                     }
                     history = result.data.history || history;
+                    currentConversationId = result.data.conversation_id || currentConversationId;
+                    forceNewOnNextSend = false;
+                    if (historyPanel && !historyPanel.hidden) {
+                        loadSessionsList();
+                    }
                     appendMessage("assistant", result.data.reply || "");
                     if (result.data.reload) {
                         window.setTimeout(function () {
