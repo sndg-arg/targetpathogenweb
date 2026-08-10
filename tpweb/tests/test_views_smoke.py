@@ -248,3 +248,72 @@ class HtmxFragmentViewTests(TestCase):
         response = self.client.get(reverse("tpwebapp:validate_expression"))
         self.assertEqual(response.status_code, 200)
         self.assertIn("Type an expression above", response.content.decode())
+
+
+class SitemapViewTests(SimpleTestCase):
+    def test_sitemap_lists_static_content_pages(self):
+        response = self.client.get(reverse("tpwebapp:sitemap_xml"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "application/xml")
+        body = response.content.decode()
+        self.assertIn("<urlset", body)
+        self.assertIn(reverse("tpwebapp:about_us"), body)
+        self.assertIn(reverse("tpwebapp:genomes_list"), body)
+
+
+class DeleteFormulaViewTests(TestCase):
+    def test_get_is_not_allowed(self):
+        response = self.client.get(
+            reverse("tpwebapp:delete_formula", kwargs={"genome": "NZ_AP023069.1", "formula_pk": 1})
+        )
+        self.assertEqual(response.status_code, 405)
+
+    def test_post_for_unknown_genome_is_not_found(self):
+        response = self.client.post(
+            reverse("tpwebapp:delete_formula", kwargs={"genome": "does-not-exist", "formula_pk": 1})
+        )
+        self.assertEqual(response.status_code, 404)
+
+
+class LoginRequiredRedirectTests(SimpleTestCase):
+    """These views are gated by LoginRequiredMixin -- an anonymous GET must
+    redirect to login rather than reach any DB/fixture-dependent code."""
+
+    def test_blast_result_view_requires_login(self):
+        response = self.client.get(
+            reverse("tpwebapp:blast_res", kwargs={"result_id": "not-a-uuid"})
+        )
+        self.assertEqual(response.status_code, 302)
+
+    def test_protein_blast_view_requires_login(self):
+        response = self.client.get(
+            reverse("tpwebapp:protein_blast", kwargs={"genome": "NZ_AP023069.1"})
+        )
+        self.assertEqual(response.status_code, 302)
+
+    def test_genome_upload_view_requires_login(self):
+        response = self.client.get(reverse("tpwebapp:genome_upload"))
+        self.assertEqual(response.status_code, 302)
+
+
+class StructureRawViewTests(SimpleTestCase):
+    def test_unknown_structure_id_is_not_found(self):
+        response = self.client.get(reverse("tpwebapp:structure_raw", kwargs={"struct_id": 999999}))
+        self.assertEqual(response.status_code, 404)
+
+
+class StructureExportViewTests(SimpleTestCase):
+    def test_unknown_structure_id_is_not_found(self):
+        response = self.client.get(
+            reverse("tpwebapp:structure_export", kwargs={"struct_id": 999999})
+        )
+        self.assertEqual(response.status_code, 404)
+
+
+class HumanProteinViewTests(SimpleTestCase):
+    def test_unknown_accession_is_not_found(self):
+        response = self.client.get(
+            reverse("tpwebapp:human_protein", kwargs={"accession": "DOES-NOT-EXIST"})
+        )
+        self.assertEqual(response.status_code, 404)
