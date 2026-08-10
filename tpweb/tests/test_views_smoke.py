@@ -499,6 +499,21 @@ class MetabolismNetworkViewTests(TestCase):
         )
         self.assertEqual(response.status_code, 404)
 
+    def test_returns_empty_network_for_protein_with_no_reactions(self):
+        proteome = Biodatabase.objects.create(name="TEST_prots")
+        protein = Bioentry.objects.create(
+            biodatabase=proteome, name="protA", accession="LOCUS_A", identifier="LOCUS_A"
+        )
+
+        response = self.client.get(
+            reverse(
+                "tpwebapp:protein_metabolic_network", kwargs={"protein_id": protein.bioentry_id}
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {"nodes": [], "edges": []})
+
 
 class ProteinViewTests(TestCase):
     def test_renders_for_protein_with_no_structures_or_annotations(self):
