@@ -47,6 +47,8 @@ EXACT_REPLACEMENTS = {
     "no_hit": "No hit",
     "ec_number": "EC number",
     "go_term": "GO term",
+    "druggability": "Druggability (FPocket)",
+    "p2rank_probability": "Druggability (P2Rank)",
 }
 
 
