@@ -184,6 +184,12 @@
                             </li>
                             {% endif %}
                         </ul>
+                        {% if workspace_metrics.ec_annotated %}
+                        <a href="{{ workspace_links.ec_explorer_url }}" class="btn tp-btn tp-btn--outline tp-btn--sm tp-btn-with-icon evidence-card-action">
+                            <span>{% trans "Explore EC tree" %}</span>
+                            <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/arrow_right.html" %}</span>
+                        </a>
+                        {% endif %}
                     </div>
 
                     <div class="evidence-card evidence-card--binders">
