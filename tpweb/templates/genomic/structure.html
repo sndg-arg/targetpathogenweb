@@ -555,15 +555,32 @@ function jsloaded() {
         backgroundColor: tpColor("--sv-viewer-canvas-bg", "#0d1519")
     });
 
-    /* Resize NGL canvas to match actual DOM size, then optionally re-center */
+    /* Resize NGL canvas to match actual DOM size, then optionally re-center.
+       The second, delayed handleResize() exists because the container can
+       still be settling after the first one -- but without a matching
+       autoView() call there, that second resize only restretched the canvas
+       without re-centering the camera, so a premature first attempt never
+       got corrected. Re-center after both. */
     function syncNglSize(thenCenterComponent) {
         if (!stage || typeof stage.handleResize !== "function") return;
-        window.requestAnimationFrame(function () {
-            stage.handleResize();
+        function centerNow() {
             if (thenCenterComponent && typeof thenCenterComponent.autoView === "function") {
                 thenCenterComponent.autoView(0);
             }
-            window.setTimeout(function () { stage.handleResize(); }, 80);
+        }
+        window.requestAnimationFrame(function () {
+            stage.handleResize();
+            centerNow();
+            window.setTimeout(function () {
+                stage.handleResize();
+                centerNow();
+            }, 80);
+            // Slower-settling layouts can outlast the 80ms pass above -- one
+            // more, longer-delayed catch-up so those cases still end up centered.
+            window.setTimeout(function () {
+                stage.handleResize();
+                centerNow();
+            }, 500);
         });
     }
 

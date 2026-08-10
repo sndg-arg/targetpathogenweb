@@ -1521,15 +1521,32 @@
                 // previous order here), centered the camera against a stale/smaller
                 // canvas -- the structure would then render high and cropped once the
                 // real, larger canvas caught up. Same fix already proven in
-                // structure.html's syncNglSize().
-                window.requestAnimationFrame(function () {
-                    stageInstance.handleResize();
+                // structure.html's syncNglSize() -- and the same gap this closes
+                // there too: the second, delayed handleResize() below exists because
+                // the container can still be settling after the first one (e.g. the
+                // loading overlay's own removal reflowing the layout beneath it), but
+                // without a matching autoView() call, that second resize only
+                // restretched the canvas without re-centering the camera -- if the
+                // first attempt was premature, the crop never got corrected.
+                function centerNow() {
                     if (thenCenterComponent && typeof thenCenterComponent.autoView === "function") {
                         thenCenterComponent.autoView(0);
                     }
+                }
+                window.requestAnimationFrame(function () {
+                    stageInstance.handleResize();
+                    centerNow();
                     window.setTimeout(function () {
                         stageInstance.handleResize();
+                        centerNow();
                     }, 80);
+                    // Slower-settling layouts (webfonts, a still-finishing scroll-into-
+                    // view animation) can outlast the 80ms pass above -- one more,
+                    // longer-delayed catch-up so those cases still end up centered.
+                    window.setTimeout(function () {
+                        stageInstance.handleResize();
+                        centerNow();
+                    }, 500);
                 });
             }
 
