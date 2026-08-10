@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260810-big-genome-label">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260810-genome-inline-eyebrow">
 {% endblock %}
 
 {% block body %}
@@ -21,11 +21,11 @@
                     {% with crumb_protein=protein.accession|add:" · "|add:protein.description %}
                     {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=protein.assembly_label crumb_3_url=assembly_url crumb_4_label=crumb_proteins crumb_4_url=proteins_url crumb_5_label=crumb_protein %}
                     {% endwith %}
-                    <a class="protein-hero-genome" href="{{ assembly_url }}" title="{% trans "Open this genome's overview" %}">
-                        <span class="protein-hero-genome-label">{% trans "Genome" %}</span>
-                        <span class="protein-hero-genome-value">{{ protein.assembly_label }}</span>
-                    </a>
-                    <p class="protein-hero-eyebrow">{% trans "Protein target profile" %}</p>
+                    <p class="protein-hero-eyebrow">
+                        <a class="protein-hero-eyebrow-genome" href="{{ assembly_url }}" title="{% trans "Open this genome's overview" %}">{{ protein.assembly_label }}</a>
+                        <span class="protein-hero-eyebrow-sep" aria-hidden="true">&middot;</span>
+                        {% trans "Protein target profile" %}
+                    </p>
                     <h1>{{ protein.description|default:protein.accession }}</h1>
                     <p class="protein-accession-line" title="{% trans "Accession assigned to this protein in the genome's GenBank record." %}">
                         <span class="protein-accession-label">{% trans "Accession" %}:</span> {{ protein.accession }}

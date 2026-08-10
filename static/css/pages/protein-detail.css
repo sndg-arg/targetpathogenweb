@@ -40,49 +40,37 @@
     width: 100%;
 }
 
-.protein-hero-genome {
-    display: inline-flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 2px;
-    margin-top: 10px;
-    padding: 6px 14px;
-    border-radius: 11px;
-    border: 1px solid var(--tp-color-border-soft);
-    background: var(--tp-color-surface-soft);
-    text-decoration: none;
-    transition: border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard), background-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
-}
-
-.protein-hero-genome:hover,
-.protein-hero-genome:focus-visible {
-    border-color: var(--tp-color-border-accent);
-    background: var(--tp-color-surface-panel);
-}
-
-.protein-hero-genome-label {
-    font-size: var(--tp-font-label);
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--tp-color-text-muted);
-}
-
-.protein-hero-genome-value {
-    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
-    font-size: var(--tp-heading-md);
-    font-weight: 700;
-    line-height: 1.2;
-    color: var(--tp-color-text-primary);
-}
-
 .protein-hero-eyebrow {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 7px;
     margin: 10px 0 10px;
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-label);
     font-weight: 500;
     letter-spacing: 0.08em;
     text-transform: uppercase;
+}
+
+.protein-hero-eyebrow-genome {
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: var(--tp-font-size-md);
+    font-weight: 700;
+    letter-spacing: normal;
+    text-transform: none;
+    color: var(--tp-color-text-primary);
+    text-decoration: none;
+}
+
+.protein-hero-eyebrow-genome:hover,
+.protein-hero-eyebrow-genome:focus-visible {
+    color: var(--protein-accent-ink);
+    text-decoration: underline;
+}
+
+.protein-hero-eyebrow-sep {
+    color: var(--tp-color-border-strong);
 }
 
 .protein-hero h1 {
