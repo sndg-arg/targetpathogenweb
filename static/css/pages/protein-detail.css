@@ -27,12 +27,11 @@
     display: flex;
     justify-content: space-between;
     gap: 18px;
-    /* Centered against the whole header height (not pinned to the short
-       breadcrumb line at the top) -- flex-start anchored "Export view" to
-       the shortest line in the left column instead of the header's actual
-       visual weight (genome chip, title, accession) several lines down,
-       which read as the button being randomly placed. */
-    align-items: center;
+    /* Top-pinned like every other page's .tp-view-head-actions (assembly,
+       proteins, genomes, annotation_explorer all use the shared flex-start
+       from ui-system.css) -- confirmed live this reads better than centering
+       it against the header, which was this page's own one-off deviation. */
+    align-items: flex-start;
     margin-top: 8px;
 }
 
@@ -3982,9 +3981,7 @@ body.residue-modal-open {
 /* ── Target pocket evidence ── */
 
 .target-evidence-block {
-    margin-top: 1.25rem;
-    padding-top: 1.25rem;
-    border-top: 1px solid var(--tp-color-border-soft);
+    margin-top: 1.75rem;
 }
 
 .target-evidence-head {
