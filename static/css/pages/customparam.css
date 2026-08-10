@@ -8,8 +8,11 @@
     --cp-border: var(--tp-color-border-soft);
 }
 
+/* No hairline -- spacing only, same treatment as about-us/data-sources.css
+   (this page's grid gap is 16px; the extra 24px margin here matches that
+   page's own .ds-panel ~ .ds-panel value for the same ~40px total feel). */
 .customparam-page > section ~ section {
-    border-top: 1px solid var(--tp-color-border-soft);
+    margin-top: 24px;
 }
 
 .customparam-page h1,

@@ -1,8 +1,9 @@
 /* One continuous background, not a stack of separately-boxed cards: no
    grid gap between sections, no per-section border/background -- each
-   top-level <section> just sits in normal flow, divided from the next by
-   a hairline border-top (see "section ~ section" below) instead of being
-   its own floating card. Rounded corners stay everywhere they still apply
+   top-level <section> just sits in normal flow, spaced from the next by
+   margin alone (see "section ~ section" below), same treatment as
+   about-us/data-sources.css, instead of being its own floating card or
+   divided by a hairline. Rounded corners stay everywhere they still apply
    (buttons, chips/tags) -- this is a structural change, not a geometry
    one. */
 .home-page {
@@ -16,9 +17,11 @@
 
 /* General sibling combinator, not adjacent (+) -- the conditional pipeline
    status script tag and the pipeline-info-modal backdrop <div> can sit
-   between two <section>s in the DOM without breaking the divider. */
+   between two <section>s in the DOM without breaking the spacing. No grid
+   gap on .home-page itself (unlike customparam/genome-overview.css), so
+   this carries the full ~40px on its own instead of stacking with one. */
 .home-page > section ~ section {
-    border-top: 1px solid var(--tp-color-border-soft);
+    margin-top: 40px;
 }
 
 .home-hero {

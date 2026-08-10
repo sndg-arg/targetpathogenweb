@@ -12,13 +12,16 @@
     --genome-accent-border: var(--tp-color-brand-300);
 }
 
-/* Only matches direct <section> siblings -- .quick-nav is a <nav> and
+/* No hairline -- spacing only, same treatment as about-us/data-sources.css
+   (this page's grid gap is 16px; the extra 24px margin here matches that
+   page's own .ds-panel ~ .ds-panel value for the same ~40px total feel).
+   Only matches direct <section> siblings -- .quick-nav is a <nav> and
    .genome-grid is a <div>, so this only kicks in on pages (like
    Metabolism) where a content section sits as a direct sibling of the
    hero with nothing else in between. Assembly's quick-nav/genome-grid
    stay on their own gap-based spacing, untouched by this rule. */
 .genome-page > section ~ section {
-    border-top: 1px solid var(--tp-color-border-soft);
+    margin-top: 24px;
 }
 
 .genome-page h1,
