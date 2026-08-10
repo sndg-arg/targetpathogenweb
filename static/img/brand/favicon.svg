@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Target Pathogen">
+  <rect width="64" height="64" rx="14" fill="#ffffff"/>
+  <g fill="none" stroke-linecap="round">
+    <path d="M12 30a23 23 0 0 1 41-15" stroke="#252b93" stroke-width="7"/>
+    <path d="M52 47a23 23 0 0 1-28 6" stroke="#252b93" stroke-width="7"/>
+    <path d="M12 39a23 23 0 0 0 7 14" stroke="#252b93" stroke-width="7"/>
+    <path d="M25 14a20 20 0 0 1 22 2" stroke="#336fb0" stroke-width="5"/>
+    <path d="M18 40a20 20 0 0 1 5-20" stroke="#336fb0" stroke-width="5"/>
+    <path d="M23 47a20 20 0 0 0 16 4" stroke="#336fb0" stroke-width="5"/>
+    <path d="M31 20a12 12 0 0 0-2 24" stroke="#252b93" stroke-width="5"/>
+    <path d="M39 42a12 12 0 0 0 7-8" stroke="#252b93" stroke-width="5"/>
+    <path d="M31 25l5-1" stroke="#252b93" stroke-width="5"/>
+  </g>
+  <circle cx="34" cy="32" r="4.5" fill="#ff1f27"/>
+</svg>
