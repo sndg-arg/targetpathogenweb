@@ -52,12 +52,12 @@ class LoadSelectedPdbBackfillHelperTests(TestCase):
     def test_parse_structure_candidates_preserves_order_and_duplicates(self):
         # Unlike export_selected_pdb_pocket_jobs._parse_structure_candidates
         # (sorted(set(...))), this variant is a plain list comprehension --
-        # order-preserving and duplicate-preserving. Getting this wrong by
-        # assuming the two copies behave identically would silently change
-        # which structure gets tried first.
-        candidates = _parse_structure_candidates("{'2XYZ', '1ABC', '1ABC'}")
-        self.assertEqual(sorted(candidates), ["1ABC", "1ABC", "2XYZ"])
-        self.assertEqual(len(candidates), 3)
+        # order-preserving and duplicate-preserving. A *set*-literal input
+        # would hide that (Python's set literal itself dedupes before this
+        # function ever runs), so this uses a list literal, which preserves
+        # both order and the duplicate through ast.literal_eval.
+        candidates = _parse_structure_candidates("['2XYZ', '1ABC', '1ABC']")
+        self.assertEqual(candidates, ["2XYZ", "1ABC", "1ABC"])
 
 
 class LoadSelectedAlphafoldBackfillHelperTests(TestCase):
