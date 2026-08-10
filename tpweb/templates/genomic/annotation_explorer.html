@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/annotation-explorer.css' %}?v=20260512-1">
+    <link rel="stylesheet" href="{% static 'css/pages/annotation-explorer.css' %}?v=20260804-fusion1">
     <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
 {% endblock %}
 
@@ -11,7 +11,7 @@
     {{ explorer.chart|json_script:"annotation-chart-data" }}
 
     <div class="explorer-page">
-        <section class="explorer-hero tp-page-hero">
+        <section class="explorer-hero">
             {% trans "Genomes" as crumb_genomes %}
             {% trans "Proteins" as crumb_proteins %}
             {% if explorer.kind == "ec" %}
@@ -91,8 +91,11 @@
                             </div>
                             <a id="selected-annotation-link"
                                href="#"
-                               class="btn tp-btn tp-btn--primary explorer-action-link"
-                               aria-disabled="true">{% trans "Open filtered proteins" %}</a>
+                               class="btn tp-btn tp-btn--primary tp-btn-with-icon explorer-action-link"
+                               aria-disabled="true">
+                                <span>{% trans "Open filtered proteins" %}</span>
+                                <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/arrow_right.html" %}</span>
+                            </a>
                         </div>
                     </section>
 
@@ -133,10 +136,11 @@
                                         <td>{{ row.protein_count }}</td>
                                         <td>
                                             <button type="button"
-                                                    class="btn tp-btn tp-btn--neutral btn-sm explorer-select-btn js-select-annotation"
+                                                    class="btn tp-btn tp-btn--neutral btn-sm tp-btn-with-icon explorer-select-btn js-select-annotation"
                                                     data-accession="{{ row.accession }}"
                                                     data-name="{{ row.name|default:'' }}">
-                                                {% trans "Select" %}
+                                                <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/check.html" %}</span>
+                                                <span>{% trans "Select" %}</span>
                                             </button>
                                         </td>
                                     </tr>
@@ -161,7 +165,10 @@
                         </p>
                         <p>{% trans "You can still inspect the protein ranking, review other annotation types, or continue with genome-level analysis." %}</p>
                         <div class="explorer-empty-actions">
-                            <a href="{% url 'tpwebapp:protein_list' genome=genome %}" class="btn tp-btn tp-btn--primary">{% trans "Open protein analysis" %}</a>
+                            <a href="{% url 'tpwebapp:protein_list' genome=genome %}" class="btn tp-btn tp-btn--primary tp-btn-with-icon">
+                                <span>{% trans "Open protein analysis" %}</span>
+                                <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/arrow_right.html" %}</span>
+                            </a>
                             {% if explorer.kind != "ec" %}
                                 <a href="{% url 'tpwebapp:annotation_explorer' genome=genome annotation_kind='ec' %}" class="btn tp-btn tp-btn--neutral">{% trans "Switch to EC tree" %}</a>
                             {% endif %}
@@ -289,6 +296,17 @@
                     return mutedColor;
                 });
             }
+
+            function buildRemainderValues() {
+                if (!chartData || !chartData.values) return [];
+                const values = chartData.values.map(function (value) {
+                    return Number(value || 0);
+                });
+                if (values.length) values[0] = 0;
+                return values;
+            }
+
+            const chartRemainderValues = buildRemainderValues();
 
             function nodeAccessionFromId(id) {
                 return String(id || "").split(":").slice(1).join(":");
@@ -427,12 +445,13 @@
                             ids: chartData.ids,
                             labels: buildDisplayLabels(currentEcDisplayRootId),
                             parents: chartData.parents,
-                            values: chartData.values,
+                            values: chartRemainderValues,
                             textinfo: "label",
                             branchvalues: "remainder",
                             insidetextorientation: "auto",
                             hovertext: chartData.hover_labels,
-                            hovertemplate: "<b>%{hovertext}</b><br>%{value} proteins<extra></extra>",
+                            customdata: chartData.values,
+                            hovertemplate: "<b>%{hovertext}</b><br>%{customdata} proteins<extra></extra>",
                             marker: { colors: buildMarkerColors("") }
                         }],
                         {

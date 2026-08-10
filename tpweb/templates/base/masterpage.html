@@ -5,6 +5,7 @@
 <script>
     // Apply theme before first paint to avoid FOUC
     (function() {
+        document.documentElement.classList.add("tp-page-is-loading");
         var pref = localStorage.getItem("tp-theme");
         if (pref === "dark" || (pref !== "light" && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
             document.documentElement.classList.add("tp-dark");
@@ -16,12 +17,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="">
     <title>{% trans "Target Pathogen" %}</title>
-    <link rel="icon" href="favicon.ico" type="image/x-icon"/>
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'img/brand/favicon-32.png' %}?v=4">
+    <link rel="icon" type="image/png" sizes="512x512" href="{% static 'img/brand/favicon-512.png' %}?v=4">
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'img/brand/apple-touch-icon.png' %}?v=4">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
-    <link rel="stylesheet" href="{% static 'css/components/ui-system.css' %}?v=20260510-1">
+    <link rel="stylesheet" href="{% static 'css/components/ui-system.css' %}?v=20260808-table-scroll-host-fix">
+    <link rel="stylesheet" href="{% static 'css/components/agent-drawer.css' %}?v=20260804-fusion1">
     <style>
         :root {
             --tp-color-text-primary: #132f3d;
@@ -34,6 +38,8 @@
             --tp-color-brand-800: #146984;
             --tp-color-brand-700: #2288a3;
             --tp-color-brand-600: #39a6be;
+            --tp-color-brand-500: #5eb6ca;
+            --tp-color-brand-400: #70bed0;
             --tp-color-brand-300: #82c5d5;
             --tp-color-brand-200: #afdbe4;
             --tp-color-brand-100: #d4edf2;
@@ -60,16 +66,22 @@
             --tp-color-nav-800: #123947;
             --tp-color-nav-700: #185266;
             --tp-color-nav-600: #267188;
-            --tp-color-page-start: #f0f2f5;
-            --tp-color-page-end: #e4e7ec;
+            /* Matches --tp-color-surface below -- the page background used
+               to be a visibly darker gray specifically to create contrast
+               for white cards floating on it. Now that content sections
+               sit directly on the page background instead of on separate
+               card surfaces, that contrast has no job to do anymore and
+               just reads as an unwanted gray margin around white content. */
+            --tp-color-page-start: #ffffff;
+            --tp-color-page-end: #ffffff;
             --tp-color-surface: #ffffff;
-            --tp-color-surface-soft: #f8f9fa;
-            --tp-color-surface-muted: #f1f3f5;
-            --tp-color-surface-panel: #e9ecef;
-            --tp-color-surface-alt: #f1f3f5;
-            --tp-color-border: #e0e3e8;
-            --tp-color-border-soft: #ebedf0;
-            --tp-color-border-strong: #cdd1d8;
+            --tp-color-surface-soft: #f6f7f9;
+            --tp-color-surface-muted: #eef0f3;
+            --tp-color-surface-panel: #e7eaee;
+            --tp-color-surface-alt: #eef0f3;
+            --tp-color-border: #dde0e6;
+            --tp-color-border-soft: #e8eaed;
+            --tp-color-border-strong: #c9cdd5;
             --tp-color-border-accent: #74b3c4;
             --tp-color-highlight: #74b3c4;
             --tp-color-selection: #e8f0fa;
@@ -88,15 +100,39 @@
             --tp-color-danger-ink: #8a2c33;
             --tp-color-danger-bg: #fbe9eb;
             --tp-color-danger-border: #efc1c6;
-            --tp-color-structure-density: #d8e1e9;
-            --tp-color-structure-pocket-apolar: #20c3d6;
-            --tp-color-structure-pocket-polar: #0b4f6c;
+            --tp-color-structure-density: #a3c9d6;
+            --tp-color-structure-pocket-apolar: #d9534f;
+            --tp-color-structure-pocket-polar: #7a2e28;
             --tp-color-structure-p2-apolar: #f59e0b;
             --tp-color-structure-p2-polar: #8b5cf6;
             --tp-color-structure-cartoon: #2288a3;
             --tp-color-structure-bg: #f6fbf9;
             --tp-color-structure-label: #0e2330;
             --tp-color-structure-label-bg: rgba(255, 255, 255, 0.78);
+            /* NGL's own built-in "sstruc" colorScheme (By structure mode) --
+               hardcoded inside the vendored ngl library itself, not something
+               we pass in, so these mirror its literal output exactly rather
+               than following the app's light/dark palette. Same value in
+               both themes on purpose -- the 3D-rendered colors never change
+               with app theme, so the legend swatches must not either. */
+            --tp-color-sstruc-helix: #ff0080;
+            --tp-color-sstruc-sheet: #ffc800;
+            --tp-color-sstruc-coil: #ffffff;
+            /* Structure viewer — light mode (canvas matches page theme) */
+            --sv-viewer-canvas-bg: #f0f6fa;
+            --sv-overlay-bg: rgba(228, 241, 250, 0.90);
+            --sv-overlay-border: rgba(10, 40, 70, 0.09);
+            --sv-toolbar-bg: rgba(232, 244, 252, 0.94);
+            --sv-toolbar-border: rgba(10, 40, 70, 0.11);
+            --sv-overlay-text: #0e2030;
+            --sv-overlay-text-muted: #3d6070;
+            --sv-code-bg: rgba(10, 40, 70, 0.07);
+            --sv-btn-bg: rgba(10, 40, 70, 0.06);
+            --sv-btn-hover-bg: rgba(10, 40, 70, 0.11);
+            --sv-btn-active-bg: rgba(34, 136, 163, 0.14);
+            --sv-btn-active-color: #0e6278;
+            --sv-sep: rgba(10, 40, 70, 0.10);
+            --sv-shadow: 0 8px 28px rgba(0, 0, 0, 0.18);
             --tp-ink: var(--tp-color-text-primary);
             --tp-muted: var(--tp-color-text-muted);
             --tp-accent: var(--tp-color-brand-800);
@@ -135,6 +171,7 @@
             --tp-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
             --tp-shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.10);
             --tp-shadow: var(--tp-shadow-sm);
+            --tp-color-scrim: rgba(0, 0, 0, 0.48);
             --tp-sidebar-w: 260px;
             --tp-sidebar-w-collapsed: 84px;
             --tp-radius-lg: 26px;
@@ -185,6 +222,8 @@
             --tp-color-brand-800: #7ccce3;
             --tp-color-brand-700: #5fb8d4;
             --tp-color-brand-600: #39a6be;
+            --tp-color-brand-500: #2a8aa3;
+            --tp-color-brand-400: #227c96;
             --tp-color-brand-300: #1a6e88;
             --tp-color-brand-200: #144f64;
             --tp-color-brand-100: #0f3a4a;
@@ -270,12 +309,33 @@
             --tp-color-structure-density: #3ab8d0;
             --tp-color-structure-label: #f0f6fa;
             --tp-color-structure-label-bg: rgba(0, 0, 0, 0.6);
+            --tp-color-structure-pocket-apolar: #ff8a75;
+            --tp-color-structure-pocket-polar: #c96a5c;
+            --tp-color-structure-p2-apolar: #ffb020;
+            --tp-color-structure-p2-polar: #a78bfa;
+
+            /* structure viewer overlay — dark mode */
+            --sv-viewer-canvas-bg: #0d1519;
+            --sv-overlay-bg: rgba(10, 18, 24, 0.82);
+            --sv-overlay-border: rgba(255, 255, 255, 0.07);
+            --sv-toolbar-bg: rgba(7, 14, 20, 0.88);
+            --sv-toolbar-border: rgba(255, 255, 255, 0.11);
+            --sv-overlay-text: #deeaf2;
+            --sv-overlay-text-muted: #7da8bf;
+            --sv-code-bg: rgba(255, 255, 255, 0.10);
+            --sv-btn-bg: rgba(255, 255, 255, 0.07);
+            --sv-btn-hover-bg: rgba(255, 255, 255, 0.14);
+            --sv-btn-active-bg: rgba(57, 166, 190, 0.22);
+            --sv-btn-active-color: #6fd4f0;
+            --sv-sep: rgba(255, 255, 255, 0.11);
+            --sv-shadow: 0 8px 28px rgba(0, 0, 0, 0.32);
 
             /* shadows — stronger in dark mode */
             --tp-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.16);
             --tp-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.22);
             --tp-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.28);
             --tp-shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.36);
+            --tp-color-scrim: rgba(0, 0, 0, 0.6);
 
             --tp-focus-ring: rgba(95, 184, 212, 0.36);
             --tp-grid-line: rgba(255, 255, 255, 0.04);
@@ -439,10 +499,26 @@
 
         .btn,
         .tp-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.45rem;
             border-radius: 11px;
             font-weight: 500;
-            line-height: 1.2;
+            line-height: 1;
+            text-align: center;
+            vertical-align: middle;
             transition: transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard), box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard), background-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard), border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard), color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+        }
+
+        /* .btn/.tp-btn's own "display" (and .tp-btn-with-icon's "display ... !important")
+           have equal-or-higher specificity than the UA stylesheet's [hidden] { display:
+           none }, so a hidden button/link with one of those classes silently stays
+           visible -- doubled attribute selector below outranks any single-class rule,
+           important or not, so a plain `hidden` attribute always wins regardless of
+           which button variant classes are present. */
+        [hidden][hidden] {
+            display: none !important;
         }
 
         .btn:not(.btn-sm):not(.btn-lg),
@@ -468,11 +544,10 @@
         .btn-primary,
         .tp-btn--primary {
             font-weight: 600;
-            background: linear-gradient(180deg, var(--tp-color-brand-800) 0%, var(--tp-color-brand-900) 100%);
+            background: var(--tp-color-brand-800);
             background-color: var(--tp-color-brand-800) !important;
             border-color: transparent !important;
             color: var(--tp-color-on-accent) !important;
-            box-shadow: var(--tp-shadow-xs);
         }
 
         .btn-primary:hover,
@@ -489,11 +564,10 @@
 
         .btn-success,
         .tp-btn--success {
-            background: linear-gradient(180deg, var(--tp-color-sage-900) 0%, var(--tp-color-sage-700) 100%);
-            background-color: var(--tp-color-sage-900) !important;
+            background: var(--tp-color-sage-700);
+            background-color: var(--tp-color-sage-700) !important;
             border-color: transparent !important;
             color: var(--tp-color-on-accent) !important;
-            box-shadow: var(--tp-shadow-xs);
         }
 
         .btn-success:hover,
@@ -510,11 +584,10 @@
 
         .btn-info,
         .tp-btn--info {
-            background: linear-gradient(180deg, var(--tp-color-brand-800) 0%, var(--tp-color-brand-900) 100%);
+            background: var(--tp-color-brand-800);
             background-color: var(--tp-color-brand-800) !important;
             border-color: transparent !important;
             color: var(--tp-color-on-accent) !important;
-            box-shadow: var(--tp-shadow-xs);
         }
 
         .btn-info:hover,
@@ -532,10 +605,9 @@
         .btn-outline-info,
         .btn-outline-primary,
         .tp-btn--outline {
-            color: var(--tp-color-brand-900) !important;
-            border-color: var(--tp-color-brand-300) !important;
-            background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-brand-050) 100%) !important;
-            box-shadow: var(--tp-shadow-xs);
+            color: var(--tp-color-text-primary) !important;
+            border-color: var(--tp-color-border-strong) !important;
+            background: var(--tp-color-surface) !important;
         }
 
         .btn-outline-info:hover,
@@ -547,17 +619,16 @@
         .tp-btn--outline:hover,
         .tp-btn--outline:focus,
         .tp-btn--outline:active {
-            color: var(--tp-color-link-hover) !important;
-            border-color: var(--tp-color-brand-800) !important;
-            background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-brand-100) 100%) !important;
+            color: var(--tp-color-brand-800) !important;
+            border-color: var(--tp-color-brand-600) !important;
+            background: var(--tp-color-brand-050) !important;
         }
 
         .btn-secondary,
         .tp-btn--secondary {
-            background: linear-gradient(180deg, var(--tp-color-brand-800) 0%, var(--tp-color-brand-900) 100%);
+            background: var(--tp-color-brand-800);
             border-color: transparent !important;
             color: var(--tp-color-on-accent) !important;
-            box-shadow: var(--tp-shadow-xs);
         }
 
         .btn-secondary:hover,
@@ -575,7 +646,7 @@
         .tp-btn--neutral {
             color: var(--tp-color-text-secondary);
             border-color: var(--tp-color-border-strong);
-            background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+            background: var(--tp-color-surface);
         }
 
         .btn-outline-secondary:hover,
@@ -589,22 +660,30 @@
             background: var(--tp-accent-2-soft) !important;
         }
 
-        .tp-view-export-link {
+        /* Scoped by its real ancestor container (.tp-view-head-actions, used
+           consistently in all five templates that render this link) AND
+           the class doubled -- .tp-dark .tp-btn--neutral (0,2,0) / :hover
+           (0,3,0) lives LATER in this same file, so this needs to
+           genuinely EXCEED that specificity, not just tie it (a tie would
+           still lose to source order). Otherwise "Export view" reverts to
+           a plain gray neutral button in dark mode. Same specificity bug
+           fixed on .tpd-delete-btn earlier this session. */
+        .tp-view-head-actions .tp-view-export-link.tp-view-export-link {
             min-height: 34px;
             padding: 0 14px 0 10px;
             gap: 7px;
             border: 1px solid var(--tp-color-brand-300) !important;
             border-radius: 999px !important;
-            background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-brand-050) 100%) !important;
+            background: var(--tp-color-brand-050) !important;
             color: var(--tp-color-brand-800) !important;
             font-size: var(--tp-font-size-sm);
             font-weight: 600;
         }
 
-        .tp-view-export-link:hover,
-        .tp-view-export-link:focus {
+        .tp-view-head-actions .tp-view-export-link.tp-view-export-link:hover,
+        .tp-view-head-actions .tp-view-export-link.tp-view-export-link:focus {
             border-color: var(--tp-color-brand-600) !important;
-            background: linear-gradient(180deg, var(--tp-color-brand-050) 0%, var(--tp-color-brand-100) 100%) !important;
+            background: var(--tp-color-brand-100) !important;
             color: var(--tp-color-brand-900) !important;
         }
 
@@ -612,7 +691,7 @@
         .tp-btn--dark {
             color: var(--tp-color-nav-800);
             border-color: var(--tp-color-border-strong);
-            background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+            background: var(--tp-color-surface);
         }
 
         .btn-outline-dark:hover,
@@ -628,10 +707,9 @@
 
         .btn-danger,
         .tp-btn--danger {
-            background: linear-gradient(180deg, var(--tp-color-rose-700) 0%, var(--tp-color-danger-ink) 100%);
+            background: var(--tp-color-rose-700);
             border-color: var(--tp-color-danger-ink);
             color: var(--tp-color-on-accent);
-            box-shadow: var(--tp-shadow-xs);
         }
 
         .btn-danger:hover,
@@ -696,7 +774,7 @@
             box-shadow: none !important;
         }
 
-        .btn.tp-btn-with-icon {
+        .tp-btn-with-icon {
             display: inline-flex !important;
             align-items: center !important;
             gap: 0.4rem;
@@ -708,7 +786,7 @@
         .tp-btn--clear {
             color: var(--tp-color-text-muted) !important;
             border-color: var(--tp-color-border-strong) !important;
-            background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%) !important;
+            background: var(--tp-color-surface) !important;
             box-shadow: none !important;
         }
 
@@ -738,7 +816,7 @@
         .tp-btn--clear.tp-btn--clear-caution {
             color: var(--tp-color-text-muted) !important;
             border-color: var(--tp-color-border-strong) !important;
-            background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%) !important;
+            background: var(--tp-color-surface) !important;
             box-shadow: none !important;
         }
 
@@ -789,7 +867,7 @@
         .tp-btn--clear-warn {
             color: var(--tp-color-amber-900) !important;
             border-color: var(--tp-color-amber-200) !important;
-            background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-amber-050) 100%) !important;
+            background: var(--tp-color-amber-050) !important;
             box-shadow: none !important;
         }
 
@@ -842,11 +920,10 @@
         .custom-select {
             border-color: var(--tp-color-border-strong);
             border-radius: var(--tp-ui-radius-control);
-            background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+            background: var(--tp-color-surface);
             color: var(--tp-color-text-secondary);
             font-weight: 600;
             min-height: var(--tp-ui-control-height);
-            box-shadow: var(--tp-shadow-xs);
             transition:
                 border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
                 box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
@@ -877,7 +954,7 @@
         .custom-select:disabled {
             color: var(--tp-color-text-soft);
             border-color: var(--tp-color-border-soft);
-            background: linear-gradient(180deg, var(--tp-color-surface-soft) 0%, var(--tp-color-surface-muted) 100%);
+            background: var(--tp-color-surface-muted);
             box-shadow: none;
         }
 
@@ -887,11 +964,10 @@
             border-radius: 999px;
             padding: 4px 10px;
             font-size: 0.82rem;
-            font-weight: 700;
+            font-weight: 500;
             border: 1px solid var(--tp-color-border-strong);
-            background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+            background: var(--tp-color-surface);
             color: var(--tp-color-text-secondary);
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.84);
         }
 
         .tp-state-chip.running {
@@ -912,33 +988,12 @@
             border-color: var(--tp-state-idle-border);
         }
 
-        .tp-card {
-            border: 1px solid var(--tp-color-border-soft);
-            border-radius: var(--tp-radius-md);
-            background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
-            box-shadow: var(--tp-shadow-sm);
-        }
-
         .tp-toolbar {
             display: flex;
             flex-wrap: wrap;
             align-items: center;
             gap: var(--tp-space-2);
             padding: var(--tp-space-3);
-        }
-
-        .tp-chip {
-            display: inline-flex;
-            align-items: center;
-            border: 1px solid var(--tp-color-border-strong);
-            border-radius: 999px;
-            background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
-            color: var(--tp-color-text-secondary);
-            font-size: var(--tp-font-size-sm);
-            font-weight: 600;
-            line-height: 1.35;
-            padding: 4px 10px;
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
         }
 
         .page-link {
@@ -1000,7 +1055,21 @@
             color: var(--tp-color-on-accent) !important;
         }
 
+        #main_header .nav-link.is-active {
+            background: rgba(255, 255, 255, 0.16);
+            color: var(--tp-color-on-accent) !important;
+            box-shadow: inset 0 -2px 0 rgba(255, 255, 255, 0.6);
+        }
+
+        /* Used to be two nested wrappers, main.tp-main > div.tp-shell --
+           .tp-shell had already been stripped down to an inert box (no
+           border/background/shadow/padding of its own, its one-time
+           entrance animation permanently disabled) plus the masthead
+           accent bar. Nothing else in the codebase targets .tp-shell (no
+           JS, no other template), so it was pure redundant nesting with
+           no job left. Merged onto .tp-main directly. */
         .tp-main {
+            position: relative;
             flex: 1 0 auto;
             width: 100%;
             max-width: 1360px;
@@ -1008,27 +1077,54 @@
             padding: 18px 18px 36px;
         }
 
-        .tp-shell {
-            position: relative;
-            border: 0;
-            border-radius: 0;
-            background: transparent;
-            box-shadow: none;
-            padding: 0;
-            overflow: visible;
-            animation: none;
+        /* Site-wide masthead rule -- every page's content sits inside
+           .tp-main, so this is the one place to put it instead of a
+           per-page hero decoration. Used to live as .home-hero::before,
+           scoped to Home only, back when the hero had its own bordered
+           card to be "the top edge of"; now that Home's sections share one
+           continuous background instead of separate cards, anchoring it
+           here makes it a consistent site identity mark instead of an
+           orphaned line with nothing to attach to. */
+        .tp-main::before {
+            content: "";
+            position: absolute;
+            top: 0.5px;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--tp-color-brand-800) 0%, var(--tp-color-sage-700) 58%, var(--tp-color-brand-600) 100%);
+            box-shadow: 0 2px 12px color-mix(in srgb, var(--tp-color-brand-700) 45%, transparent);
         }
 
-        .tp-card {
-            border: 1px solid var(--tp-color-border-soft);
-            border-radius: var(--tp-ui-radius-panel);
-            background: var(--tp-color-surface);
-            box-shadow: var(--tp-shadow-sm);
-            padding: 16px;
+        /* One-time shimmer sweep on page load -- same box as ::before
+           (position/size) so the highlight band is naturally clipped to
+           the same shape, no extra overflow trick needed. Plays once
+           (fill-mode forwards fades it to invisible), not a looping
+           animation. */
+        .tp-main::after {
+            content: "";
+            position: absolute;
+            top: 0.5px;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.85) 50%, transparent 100%);
+            background-size: 55% 100%;
+            background-repeat: no-repeat;
+            background-position: -55% 0;
+            animation: tp-masthead-shimmer 1.5s ease-out 350ms 1 forwards;
+            pointer-events: none;
         }
 
-        .tp-card + .tp-card {
-            margin-top: 14px;
+        @keyframes tp-masthead-shimmer {
+            from {
+                background-position: -55% 0;
+                opacity: 1;
+            }
+            to {
+                background-position: 155% 0;
+                opacity: 0;
+            }
         }
 
         .tp-table-shell {
@@ -1045,9 +1141,9 @@
 
         .tp-table-shell thead th,
         .tp-table-shell thead td {
-            background: linear-gradient(180deg, var(--tp-color-surface-soft) 0%, var(--tp-color-surface-panel) 100%);
+            background: var(--tp-color-surface-soft);
             font-size: 0.87rem;
-            font-weight: 700;
+            font-weight: 600;
             color: var(--tp-color-text-secondary);
             position: sticky;
             top: 0;
@@ -1135,11 +1231,6 @@
             .tp-main {
                 padding: 10px 10px 24px;
             }
-
-            .tp-shell {
-                border-radius: 0;
-                padding: 0;
-            }
         }
 
         /* ── Mobile nav polish (<768px, hamburger active) ── */
@@ -1225,6 +1316,7 @@
                 width: var(--tp-sidebar-w);
                 display: flex;
                 flex-direction: column;
+                overflow-y: auto;
                 background:
                     radial-gradient(560px 220px at -18% -12%, rgba(45, 136, 168, 0.28) 0%, transparent 60%),
                     radial-gradient(380px 180px at 118% 102%, rgba(47, 127, 112, 0.24) 0%, transparent 68%),
@@ -1290,7 +1382,7 @@
                 align-items: center;
                 justify-content: center;
                 cursor: pointer;
-                font-weight: 700;
+                font-weight: 600;
             }
 
             .tp-sidebar-toggle:hover {
@@ -1318,7 +1410,7 @@
                 margin: 0;
                 color: rgba(231, 244, 249, 0.58);
                 font-size: 0.72rem;
-                font-weight: 700;
+                font-weight: 500;
                 letter-spacing: 0.08em;
                 text-transform: uppercase;
                 padding: 0 4px;
@@ -1336,21 +1428,26 @@
                 border: 1px solid transparent;
             }
 
+            /* A given alpha reads much fainter on the narrow collapsed
+               pill (~60px wide) than on the full-width expanded row --
+               same tint, far less surface area to carry it. Bumped so
+               collapsed and expanded read as the same visual language. */
             .tp-side-link.tp-side-link--primary {
-                background: rgba(255, 255, 255, 0.05);
+                background: rgba(255, 255, 255, 0.09);
             }
 
+            /* Plain centered text, no background/radius of its own -- the
+               parent .tp-side-link already carries the single hover/active
+               box (background + border below). A second rounded box here
+               nested inside that one read as "button inside a card". */
             .tp-side-link::before {
                 content: attr(data-short);
                 display: none;
                 width: 24px;
-                height: 24px;
                 line-height: 24px;
-                border-radius: 8px;
                 text-align: center;
                 font-size: 0.73rem;
-                font-weight: 700;
-                background: rgba(255, 255, 255, 0.16);
+                font-weight: 600;
                 color: var(--tp-color-on-accent);
             }
 
@@ -1362,16 +1459,10 @@
             }
 
             .tp-side-link.active {
-                background: linear-gradient(96deg, rgba(250, 224, 170, 0.31) 0%, rgba(244, 198, 107, 0.26) 48%, rgba(255, 255, 255, 0.14) 100%);
+                background: rgba(255, 255, 255, 0.16);
                 color: var(--tp-color-on-accent);
-                border: 1px solid rgba(245, 216, 164, 0.76);
-                box-shadow: inset 2px 0 0 rgba(245, 196, 112, 1), 0 4px 12px rgba(10, 24, 33, 0.16);
-            }
-
-            .tp-side-link.active::before {
-                background: rgba(245, 196, 112, 0.34);
-                color: var(--tp-color-on-accent);
-                box-shadow: inset 0 0 0 1px rgba(245, 216, 164, 0.68);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                box-shadow: inset 3px 0 0 rgba(255, 255, 255, 0.6);
             }
 
             .tp-side-footer {
@@ -1414,6 +1505,7 @@
 
             body.tp-sidebar-collapsed .tp-sidebar {
                 width: var(--tp-sidebar-w-collapsed);
+                overflow-x: hidden;
             }
 
             body.tp-sidebar-collapsed .tp-brand-full,
@@ -1421,11 +1513,11 @@
             body.tp-sidebar-collapsed .tp-user-chip,
             body.tp-sidebar-collapsed .tp-side-footer form,
             body.tp-sidebar-collapsed .tp-side-footer > a {
-                display: none;
+                display: none !important;
             }
 
             body.tp-sidebar-collapsed .tp-brand-short {
-                display: inline;
+                display: inline-block !important;
             }
 
             body.tp-sidebar-collapsed .tp-sidebar-kicker,
@@ -1452,28 +1544,13 @@
                 display: flex;
                 align-items: center;
                 justify-content: center;
+                box-sizing: border-box;
                 padding: 9px 6px;
+                max-width: 100%;
             }
 
             body.tp-sidebar-collapsed .tp-side-link::before {
                 display: block;
-            }
-
-            body.tp-sidebar-collapsed .tp-side-link:hover::after {
-                content: attr(data-label);
-                position: absolute;
-                left: calc(100% + 10px);
-                top: 50%;
-                transform: translateY(-50%);
-                background: #1a3040;
-                color: #e2e8f0;
-                border: 1px solid rgba(255, 255, 255, 0.12);
-                border-radius: 7px;
-                font-size: 0.79rem;
-                font-weight: 700;
-                padding: 4px 8px;
-                white-space: nowrap;
-                box-shadow: 0 4px 14px rgba(9, 22, 33, 0.18);
             }
 
             body.tp-sidebar-collapsed .tp-side-footer {
@@ -1481,37 +1558,60 @@
             }
         }
 
-        @keyframes tp-shell-enter {
-            from {
-                opacity: 0;
-                transform: translateY(8px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .tp-sidebar-floating-label {
+            position: fixed;
+            left: calc(var(--tp-sidebar-w-collapsed) + 10px);
+            top: 0;
+            transform: translateY(-50%);
+            z-index: 1090;
+            max-width: min(260px, calc(100vw - var(--tp-sidebar-w-collapsed) - 24px));
+            padding: 5px 8px;
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 7px;
+            background: #1a3040;
+            color: #e2e8f0;
+            box-shadow: var(--tp-shadow-md);
+            font-size: 0.79rem;
+            font-weight: 600;
+            line-height: 1.25;
+            opacity: 0;
+            pointer-events: none;
+            white-space: nowrap;
+            transition: opacity var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+        }
+
+        .tp-sidebar-floating-label.is-visible {
+            opacity: 1;
         }
 
         @media (prefers-reduced-motion: reduce) {
-            .tp-shell {
-                animation: none;
-            }
             .btn,
             a,
             .tp-side-link {
                 transition: none;
             }
+
+            .tp-main::after {
+                animation: none;
+                opacity: 0;
+            }
         }
 
         /* ── Theme toggle ─────────────────────────────── */
+        .tp-side-footer-row {
+            display: flex;
+            gap: 6px;
+            margin-top: 8px;
+        }
+
         .tp-theme-toggle {
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 6px;
-            width: 100%;
-            padding: 7px 10px;
-            margin-top: 8px;
+            flex: 1 1 0;
+            min-width: 0;
+            padding: 7px 8px;
             border: 1px solid rgba(255, 255, 255, 0.12);
             border-radius: 9px;
             background: rgba(255, 255, 255, 0.06);
@@ -1528,10 +1628,30 @@
             border-color: rgba(255, 255, 255, 0.2);
         }
 
+        /* Featured brand tint so the Assistant entry point reads as the
+           bigger, purpose-built feature it is, not an equal-weight utility
+           toggle sitting next to the theme switch. */
+        #tp-agent-drawer-toggle {
+            border-color: rgba(94, 182, 202, 0.35);
+            background: rgba(94, 182, 202, 0.12);
+            color: rgba(220, 241, 246, 0.95);
+        }
+
+        #tp-agent-drawer-toggle:hover {
+            border-color: rgba(94, 182, 202, 0.55);
+            background: rgba(94, 182, 202, 0.2);
+        }
+
         .tp-theme-toggle-icon {
             display: inline-flex;
-            font-size: 0.92rem;
-            line-height: 1;
+            width: 15px;
+            height: 15px;
+            flex-shrink: 0;
+        }
+
+        .tp-theme-toggle-icon svg {
+            width: 100%;
+            height: 100%;
         }
 
         .tp-theme-toggle-label {
@@ -1557,12 +1677,33 @@
             box-shadow: var(--tp-shadow-xs) !important;
         }
 
+        /* primary button — dark mode: use darker brand for white-text contrast */
+        .tp-dark .btn-primary,
+        .tp-dark .tp-btn--primary {
+            background: var(--tp-color-brand-300) !important;
+            background-color: var(--tp-color-brand-300) !important;
+            border-color: var(--tp-color-brand-200) !important;
+            color: #ffffff !important;
+        }
+
+        .tp-dark .btn-primary:hover,
+        .tp-dark .btn-primary:focus,
+        .tp-dark .btn-primary:active,
+        .tp-dark .tp-btn--primary:hover,
+        .tp-dark .tp-btn--primary:focus,
+        .tp-dark .tp-btn--primary:active {
+            background: var(--tp-color-brand-200) !important;
+            background-color: var(--tp-color-brand-200) !important;
+            border-color: var(--tp-color-brand-200) !important;
+            color: #ffffff !important;
+        }
+
         /* neutral button variant */
         .tp-dark .btn-outline-secondary,
         .tp-dark .tp-btn--neutral {
             color: var(--tp-color-text-primary) !important;
             border-color: var(--tp-color-border-strong) !important;
-            background: linear-gradient(180deg, var(--tp-color-surface-soft) 0%, var(--tp-color-surface-muted) 100%) !important;
+            background: var(--tp-color-surface-soft) !important;
         }
 
         .tp-dark .btn-outline-secondary:hover,
@@ -1581,7 +1722,7 @@
         .tp-dark .tp-btn--dark {
             color: var(--tp-color-text-primary) !important;
             border-color: var(--tp-color-border-strong) !important;
-            background: linear-gradient(180deg, var(--tp-color-surface-soft) 0%, var(--tp-color-surface-muted) 100%) !important;
+            background: var(--tp-color-surface-soft) !important;
         }
 
         .tp-dark .btn-outline-dark:hover,
@@ -1595,7 +1736,17 @@
             background: var(--tp-color-surface-panel) !important;
         }
 
-        /* outline button hover */
+        /* outline button — dark resting state */
+        .tp-dark .btn-outline-info,
+        .tp-dark .btn-outline-primary,
+        .tp-dark .tp-btn--outline {
+            color: var(--tp-color-text-primary) !important;
+            border-color: var(--tp-color-border-strong) !important;
+            background: var(--tp-color-surface-soft) !important;
+            box-shadow: none !important;
+        }
+
+        /* outline button — dark hover */
         .tp-dark .btn-outline-info:hover,
         .tp-dark .btn-outline-info:focus,
         .tp-dark .btn-outline-info:active,
@@ -1606,8 +1757,8 @@
         .tp-dark .tp-btn--outline:focus,
         .tp-dark .tp-btn--outline:active {
             color: var(--tp-color-brand-900) !important;
-            border-color: var(--tp-color-brand-700) !important;
-            background: var(--tp-color-brand-100) !important;
+            border-color: var(--tp-color-brand-600) !important;
+            background: color-mix(in srgb, var(--tp-color-brand-600) 14%, var(--tp-color-surface-muted)) !important;
         }
 
         /* headings / components using nav-800 for text */
@@ -1811,17 +1962,228 @@
             border-top-color: transparent;
             border-bottom-color: var(--tp-tooltip-bg);
         }
+
+        .tp-page-loader {
+            position: fixed;
+            inset: 0;
+            z-index: 5000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            background:
+                radial-gradient(560px 260px at 22% 14%, rgba(57, 166, 190, 0.20), transparent 62%),
+                radial-gradient(520px 280px at 82% 82%, rgba(47, 127, 103, 0.16), transparent 65%),
+                rgba(238, 240, 243, 0.88);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition:
+                opacity var(--tp-ui-motion-base) var(--tp-ui-ease-standard),
+                visibility 0s linear var(--tp-ui-motion-base);
+        }
+
+        html.tp-page-is-loading .tp-page-loader,
+        html.tp-page-is-navigating .tp-page-loader {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+            transition-delay: 0s;
+        }
+
+        .tp-page-loader-card {
+            width: min(380px, 100%);
+            border: 1px solid var(--tp-color-border);
+            border-radius: 16px;
+            background:
+                linear-gradient(180deg, rgba(253, 253, 253, 0.94) 0%, rgba(246, 247, 249, 0.94) 100%);
+            box-shadow: var(--tp-shadow-lg);
+            padding: 20px 22px;
+            color: var(--tp-color-text-primary);
+        }
+
+        .tp-page-loader-head {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        /* Pure-CSS "target scanner" -- two concentric rings spinning in
+           opposite directions around a center dot, evoking the target/
+           crosshair brand motif without pulling in the raster logo mark.
+           No frame/background of its own -- the rings are already a
+           circular shape; boxing them in a second rounded square just
+           nested one rounded shape inside another for no reason. */
+        .tp-page-loader-mark {
+            width: 46px;
+            height: 46px;
+            flex-shrink: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .tp-page-loader-target {
+            position: relative;
+            width: 26px;
+            height: 26px;
+        }
+
+        /* Ring "thickness" comes from a mask cutting the center out of a
+           circle, filled with a conic-gradient that fades from transparent
+           to full color -- a smooth comet-tail sweep instead of a flat
+           two-tone border arc. */
+        .tp-page-loader-target-ring {
+            position: absolute;
+            border-radius: 50%;
+            -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 2px));
+            mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 2px));
+        }
+
+        .tp-page-loader-target-ring:nth-child(1) {
+            inset: 0;
+            background: conic-gradient(from 0deg, transparent 0%, var(--tp-color-brand-800) 92%, var(--tp-color-brand-800) 100%);
+            animation: tp-page-loader-spin 1500ms linear infinite;
+        }
+
+        .tp-page-loader-target-ring:nth-child(2) {
+            inset: 8px;
+            background: conic-gradient(from 0deg, transparent 0%, var(--tp-color-brand-500) 88%, var(--tp-color-brand-500) 100%);
+            animation: tp-page-loader-spin-reverse 1150ms linear infinite;
+        }
+
+        /* Radar-ping pulse expanding from the center dot, behind it in
+           paint order -- reinforces a "scanning for a target" read. */
+        .tp-page-loader-target::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            margin: auto;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: var(--tp-color-rose-500);
+            opacity: 0.55;
+            animation: tp-page-loader-ping 1800ms cubic-bezier(0, 0, 0.2, 1) infinite;
+        }
+
+        .tp-page-loader-target::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            margin: auto;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: var(--tp-color-rose-500);
+            box-shadow: 0 0 4px 0 color-mix(in srgb, var(--tp-color-rose-500) 65%, transparent);
+        }
+
+        .tp-page-loader-title {
+            margin: 0;
+            font-family: "Space Grotesk", "Segoe UI", sans-serif;
+            font-size: var(--tp-font-size-lg);
+            font-weight: 700;
+            letter-spacing: 0;
+            color: var(--tp-color-text-primary);
+        }
+
+        .tp-page-loader-copy {
+            margin: 2px 0 0;
+            color: var(--tp-color-text-secondary);
+            font-size: var(--tp-font-size-sm);
+            line-height: 1.35;
+        }
+
+        html.tp-dark .tp-page-loader {
+            background:
+                radial-gradient(560px 260px at 22% 14%, rgba(57, 166, 190, 0.18), transparent 62%),
+                radial-gradient(520px 280px at 82% 82%, rgba(47, 127, 103, 0.15), transparent 65%),
+                rgba(8, 22, 30, 0.72);
+        }
+
+        html.tp-dark .tp-page-loader-card {
+            background:
+                linear-gradient(180deg, rgba(18, 37, 47, 0.96) 0%, rgba(14, 30, 39, 0.94) 100%);
+        }
+
+        .tp-page-action-loading {
+            /* No visual spinner on the clicked element itself anymore -- the
+               global .tp-page-loader overlay already communicates "loading a
+               new view", and this per-element ::after spinner broke layout
+               wherever the clicked link/button sat in a tight container (a
+               table cell, a chip next to a badge) by inserting extra inline
+               content right after it. pointer-events:none is kept: it still
+               prevents a second click on the same control while the
+               navigation it already triggered is in flight. */
+            pointer-events: none;
+        }
+
+        @keyframes tp-page-loader-spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes tp-page-loader-spin-reverse {
+            to {
+                transform: rotate(-360deg);
+            }
+        }
+
+        @keyframes tp-page-loader-ping {
+            0% {
+                transform: scale(1);
+                opacity: 0.55;
+            }
+            100% {
+                transform: scale(5);
+                opacity: 0;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .tp-page-loader,
+            .tp-page-loader-target-ring,
+            .tp-page-loader-target::before {
+                animation: none !important;
+                transition: none !important;
+            }
+
+            .tp-page-loader-target::before {
+                opacity: 0 !important;
+            }
+        }
     </style>
 
     {% block head %}{% endblock %}
 </head>
 <body>
+<script>(function(){var v=localStorage.getItem("tp.sidebar.collapsed");var c=v===null?window.matchMedia("(max-width:1440px)").matches:v==="1";if(c&&window.matchMedia("(min-width:992px)").matches){document.body.classList.add("tp-sidebar-collapsed");}}());</script>
+<div id="tp-page-loader" class="tp-page-loader" role="status" aria-live="polite" aria-hidden="true">
+    <div class="tp-page-loader-card">
+        <div class="tp-page-loader-head">
+            <span class="tp-page-loader-mark" aria-hidden="true">
+                <span class="tp-page-loader-target">
+                    <span class="tp-page-loader-target-ring"></span>
+                    <span class="tp-page-loader-target-ring"></span>
+                </span>
+            </span>
+            <div>
+                <p class="tp-page-loader-title">{% trans "Target Pathogen" %}</p>
+                <p class="tp-page-loader-copy" id="tp-page-loader-copy">{% trans "Opening the next view…" %}</p>
+            </div>
+        </div>
+    </div>
+</div>
 <aside class="tp-sidebar" aria-label="{% trans "Primary navigation" %}">
     <div class="tp-sidebar-brand">
         <div class="tp-sidebar-brand-row">
-            <a href="{% url 'tpwebapp:index' %}">
-                <span class="tp-brand-full">{% trans "Target Pathogen" %}</span>
-                <span class="tp-brand-short">TP</span>
+            <a href="{% url 'tpwebapp:index' %}" aria-label="{% trans 'Target Pathogen' %}">
+                <img class="tp-brand-full" src="{% static 'img/brand/tp-logo-full-white.png' %}" alt="{% trans 'Target Pathogen' %}" style="display:block;width:190px;max-width:calc(var(--tp-sidebar-w) - 86px);height:auto;max-height:72px;object-fit:contain;object-position:left center;">
+                <img class="tp-brand-short" src="{% static 'img/brand/tp-logo-mark-white.png' %}?v=2" alt="" aria-hidden="true" style="width:44px;height:44px;object-fit:contain;">
             </a>
             <button id="tp-sidebar-toggle" class="tp-sidebar-toggle" type="button" aria-label="{% trans "Collapse navigation" %}" title="{% trans "Collapse navigation" %}" aria-expanded="true">
                 <span class="tp-chevron tp-chevron--left tp-sidebar-toggle-icon" aria-hidden="true"></span>
@@ -1832,23 +2194,32 @@
     <nav class="tp-side-nav">
         <div class="tp-side-section">
             <p class="tp-side-section-label">{% trans "Analysis" %}</p>
-            <a class="tp-side-link tp-side-link--primary {% if request.resolver_match.url_name == 'index' %}active{% endif %}" data-short="HM" data-label="Home" title="Home" href="{% url 'tpwebapp:index' %}">
+            <a class="tp-side-link tp-side-link--primary {% if request.resolver_match.url_name == 'index' %}active{% endif %}" data-short="HM" data-label="Home" aria-label="Home" href="{% url 'tpwebapp:index' %}">
                 <span class="tp-side-text">Home</span>
             </a>
-            <a class="tp-side-link tp-side-link--primary {% if request.resolver_match.url_name == 'genomes_list' or request.resolver_match.url_name == 'assembly' or request.resolver_match.url_name == 'protein_list' or request.resolver_match.url_name == 'protein' or request.resolver_match.url_name == 'annotation_explorer' %}active{% endif %}" data-short="GE" data-label="{% trans 'Genomes' %}" title="{% trans 'Genomes' %}" href="{% url 'tpwebapp:genomes_list' %}">
+            <a class="tp-side-link tp-side-link--primary {% if request.resolver_match.url_name == 'genomes_list' or request.resolver_match.url_name == 'assembly' or request.resolver_match.url_name == 'protein_list' or request.resolver_match.url_name == 'protein' or request.resolver_match.url_name == 'annotation_explorer' %}active{% endif %}" data-short="GE" data-label="{% trans 'Genomes' %}" aria-label="{% trans 'Genomes' %}" href="{% url 'tpwebapp:genomes_list' %}">
                 <span class="tp-side-text">{% trans "Genomes" %}</span>
             </a>
-            <a class="tp-side-link tp-side-link--primary {% if request.resolver_match.url_name == 'genome_upload' or request.resolver_match.url_name == 'customparam' %}active{% endif %}" data-short="UP" data-label="{% trans 'Upload' %}" title="{% trans 'Upload' %}" href="{% url 'tpwebapp:genome_upload' %}">
+            <a class="tp-side-link tp-side-link--primary {% if request.resolver_match.url_name == 'human_protein_list' or request.resolver_match.url_name == 'human_protein' %}active{% endif %}" data-short="HT" data-label="{% trans 'Human Targets' %}" aria-label="{% trans 'Human Targets' %}" href="{% url 'tpwebapp:human_protein_list' %}">
+                <span class="tp-side-text">{% trans "Human Targets" %}</span>
+            </a>
+            <a class="tp-side-link tp-side-link--primary {% if request.resolver_match.url_name == 'genome_upload' or request.resolver_match.url_name == 'customparam' %}active{% endif %}" data-short="UP" data-label="{% trans 'Upload' %}" aria-label="{% trans 'Upload' %}" href="{% url 'tpwebapp:genome_upload' %}">
                 <span class="tp-side-text">{% trans "Upload" %}</span>
             </a>
-            <a class="tp-side-link tp-side-link--primary {% if '/form' in request.path or '/result/' in request.path %}active{% endif %}" data-short="BL" data-label="{% trans 'BLAST' %}" title="{% trans 'BLAST' %}" href="{% url 'tpwebapp:form' %}">
+            <a class="tp-side-link tp-side-link--primary {% if '/form' in request.path or '/result/' in request.path %}active{% endif %}" data-short="BL" data-label="{% trans 'BLAST' %}" aria-label="{% trans 'BLAST' %}" href="{% url 'tpwebapp:form' %}">
                 <span class="tp-side-text">{% trans "BLAST" %}</span>
+            </a>
+            <a class="tp-side-link tp-side-link--primary {% if request.resolver_match.url_name == 'data_sources' %}active{% endif %}" data-short="MT" data-label="{% trans 'Methodology' %}" aria-label="{% trans 'Methodology' %}" href="{% url 'tpwebapp:data_sources' %}">
+                <span class="tp-side-text">{% trans "Methodology" %}</span>
+            </a>
+            <a class="tp-side-link tp-side-link--primary {% if request.resolver_match.url_name == 'about_us' %}active{% endif %}" data-short="AB" data-label="{% trans 'About us' %}" aria-label="{% trans 'About us' %}" href="{% url 'tpwebapp:about_us' %}">
+                <span class="tp-side-text">{% trans "About us" %}</span>
             </a>
         </div>
         {% if user.is_staff %}
         <div class="tp-side-section">
             <p class="tp-side-section-label">{% trans "Support" %}</p>
-            <a class="tp-side-link {% if '/admin' in request.path %}active{% endif %}" data-short="AD" data-label="{% trans 'Admin' %}" title="{% trans 'Admin' %}" href="{% url 'admin:index' %}">
+            <a class="tp-side-link {% if '/admin' in request.path %}active{% endif %}" data-short="AD" data-label="{% trans 'Admin' %}" aria-label="{% trans 'Admin' %}" href="{% url 'admin:index' %}">
                 <span class="tp-side-text">{% trans "Admin" %}</span>
             </a>
         </div>
@@ -1864,39 +2235,72 @@
         {% else %}
             <a class="btn btn-sm btn-outline-light btn-block" href="{% url 'account_login' %}">{% trans "Login" %}</a>
         {% endif %}
-        <button id="tp-theme-toggle" class="tp-theme-toggle" type="button" aria-label="{% trans 'Toggle theme' %}" title="{% trans 'Toggle theme' %}">
-            <span class="tp-theme-toggle-icon" aria-hidden="true"></span>
-            <span class="tp-theme-toggle-label"></span>
-        </button>
+        <div class="tp-side-footer-row">
+            <button id="tp-agent-drawer-toggle" class="tp-theme-toggle" type="button"
+                    aria-label="{% trans 'Open assistant' %}" title="{% trans 'Open assistant' %}"
+                    aria-expanded="false" aria-controls="tp-agent-drawer">
+                <span class="tp-theme-toggle-icon" aria-hidden="true">
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true">
+                        <path d="M2 3.5h12v7H8.8L5.5 13v-2.5H2v-7Z"/>
+                        <path d="M5 6.5h6M5 8.5h4"/>
+                    </svg>
+                </span>
+                <span class="tp-theme-toggle-label">{% trans "Assistant" %}</span>
+            </button>
+            <button id="tp-theme-toggle" class="tp-theme-toggle" type="button" aria-label="{% trans 'Toggle theme' %}" title="{% trans 'Toggle theme' %}">
+                <span class="tp-theme-toggle-icon" aria-hidden="true"></span>
+                <span class="tp-theme-toggle-label"></span>
+            </button>
+        </div>
     </div>
 </aside>
+<div id="tp-sidebar-floating-label" class="tp-sidebar-floating-label" role="tooltip" aria-hidden="true"></div>
 
-<nav id="main_header" class="navbar navbar-expand-md navbar-dark fixed-top tp-topbar-mobile">
+<nav id="main_header" class="navbar navbar-expand-lg navbar-dark fixed-top tp-topbar-mobile">
     <div class="container-fluid">
-        <a class="navbar-brand" href="{% url 'tpwebapp:index' %}">{% trans "Target Pathogen" %}</a>
+        <a class="navbar-brand" href="{% url 'tpwebapp:index' %}" aria-label="{% trans 'Target Pathogen' %}"><img class="tp-mobile-brand-img" src="{% static 'img/brand/tp-logo-full-white.png' %}" alt="{% trans 'Target Pathogen' %}" style="display:block;width:min(190px,56vw);height:auto;max-height:42px;object-fit:contain;object-position:left center;"></a>
+        <button id="tp-agent-drawer-toggle-mobile" class="tp-agent-drawer-toggle-mobile" type="button"
+                aria-label="{% trans 'Open assistant' %}" title="{% trans 'Open assistant' %}"
+                aria-expanded="false" aria-controls="tp-agent-drawer">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" aria-hidden="true">
+                <path d="M2 3.5h12v7H8.8L5.5 13v-2.5H2v-7Z"/>
+                <path d="M5 6.5h6M5 8.5h4"/>
+            </svg>
+        </button>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse"
                 aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarCollapse">
+            {% with url_name=request.resolver_match.url_name %}
             <ul class="navbar-nav mr-auto mb-2 mb-md-0">
                 <li class="nav-item">
-                    <a class="nav-link" aria-current="page" href="{% url 'tpwebapp:index' %}">Home</a>
+                    <a class="nav-link{% if url_name == 'index' %} is-active{% endif %}" {% if url_name == 'index' %}aria-current="page"{% endif %} href="{% url 'tpwebapp:index' %}">Home</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" aria-current="page" href="{% url 'tpwebapp:genomes_list' %}">{% trans "Genomes" %}</a>
+                    <a class="nav-link{% if url_name == 'genomes_list' or url_name == 'assembly' or url_name == 'protein_list' or url_name == 'protein' or url_name == 'annotation_explorer' or url_name == 'formula_form' or url_name == 'customparam' %} is-active{% endif %}" {% if url_name == 'genomes_list' or url_name == 'assembly' or url_name == 'protein_list' or url_name == 'protein' or url_name == 'annotation_explorer' %}aria-current="page"{% endif %} href="{% url 'tpwebapp:genomes_list' %}">{% trans "Genomes" %}</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" aria-current="page" href="{% url 'tpwebapp:genome_upload' %}">{% trans "Upload" %}</a>
+                    <a class="nav-link{% if url_name == 'human_protein_list' or url_name == 'human_protein' %} is-active{% endif %}" {% if url_name == 'human_protein_list' or url_name == 'human_protein' %}aria-current="page"{% endif %} href="{% url 'tpwebapp:human_protein_list' %}">{% trans "Human Targets" %}</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" aria-current="page" href="{% url 'tpwebapp:form' %}">{% trans "BLAST" %}</a>
+                    <a class="nav-link{% if url_name == 'genome_upload' %} is-active{% endif %}" {% if url_name == 'genome_upload' %}aria-current="page"{% endif %} href="{% url 'tpwebapp:genome_upload' %}">{% trans "Upload" %}</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link{% if url_name == 'form' or url_name == 'blast_res' %} is-active{% endif %}" {% if url_name == 'form' or url_name == 'blast_res' %}aria-current="page"{% endif %} href="{% url 'tpwebapp:form' %}">{% trans "BLAST" %}</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link{% if url_name == 'data_sources' %} is-active{% endif %}" {% if url_name == 'data_sources' %}aria-current="page"{% endif %} href="{% url 'tpwebapp:data_sources' %}">{% trans "Methodology" %}</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link{% if url_name == 'about_us' %} is-active{% endif %}" {% if url_name == 'about_us' %}aria-current="page"{% endif %} href="{% url 'tpwebapp:about_us' %}">{% trans "About us" %}</a>
                 </li>
                 {% if user.is_staff %}
                 <li class="nav-item">
-                    <a class="nav-link" aria-current="page" href="{% url 'admin:index' %}">{% trans "Admin" %}</a>
+                    <a class="nav-link{% if url_name == 'admin' %} is-active{% endif %}" href="{% url 'admin:index' %}">{% trans "Admin" %}</a>
                 </li>
                 {% endif %}
+            {% endwith %}
                 {% if user.is_authenticated %}
                     <li id="user_dropdown" class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-expanded="false">
@@ -1920,26 +2324,86 @@
 </nav>
 
 <main class="tp-main">
-    <div class="tp-shell">
-        {% if messages %}
-        <div class="tp-messages" id="tp-messages">
-            {% for message in messages %}
-                <div class="tp-message tp-message--{{ message.tags|default:'info' }}">
-                    <span>{{ message }}</span>
-                    <button type="button" class="tp-message-close" aria-label="Close">&times;</button>
-                </div>
-            {% endfor %}
-        </div>
-        {% endif %}
-        {% block body %}{% endblock %}
+    {% if messages %}
+    <div class="tp-messages" id="tp-messages">
+        {% for message in messages %}
+            <div class="tp-message tp-message--{{ message.tags|default:'info' }}">
+                <span>{{ message }}</span>
+                <button type="button" class="tp-message-close" aria-label="Close">&times;</button>
+            </div>
+        {% endfor %}
     </div>
+    {% endif %}
+    {% block body %}{% endblock %}
 </main>
 
 <footer class="footer mt-auto py-3 tp-footer">
     {% block footer %}{% endblock %}
 </footer>
 
-<script src="{% static 'bundle.js' %}"></script>
+<div id="tp-agent-drawer-backdrop" class="tp-agent-drawer-backdrop" hidden></div>
+<aside id="tp-agent-drawer" class="tp-agent-drawer" aria-hidden="true" aria-label="{% trans 'Assistant' %}">
+    <header class="tp-agent-drawer-header">
+        <span class="tp-agent-drawer-heading">
+            <span class="tp-agent-drawer-avatar" aria-hidden="true">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" width="15" height="15" aria-hidden="true">
+                    <path d="M8 1.5l1.05 2.6L11.7 5.1l-2.65 1L8 8.7l-1.05-2.6L4.3 5.1l2.65-1L8 1.5Z"/>
+                    <path d="M13 9l.55 1.4L15 11l-1.45.6L13 13l-.55-1.4L11 11l1.45-.6L13 9Z"/>
+                </svg>
+            </span>
+            <span class="tp-agent-drawer-title">{% trans "Assistant" %}</span>
+        </span>
+        <button id="tp-agent-drawer-close" class="tp-agent-drawer-close" type="button" aria-label="{% trans 'Close assistant' %}" title="{% trans 'Close assistant' %}">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" width="14" height="14" aria-hidden="true"><path d="M3 3l10 10M13 3L3 13"/></svg>
+        </button>
+    </header>
+    <div class="tp-agent-drawer-toolbar">
+        <button type="button" id="tp-agent-drawer-biologist-toggle" class="tp-agent-drawer-mode-toggle"
+                aria-pressed="false"
+                title="{% trans 'When on, the assistant briefly defines technical terms (FPocket, chokepoint, e-value...) the first time it uses them.' %}">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" aria-hidden="true">
+                <path d="M2 3.5c1.6-.7 3.4-.7 5 0v9c-1.6-.7-3.4-.7-5 0v-9Z"/>
+                <path d="M14 3.5c-1.6-.7-3.4-.7-5 0v9c1.6-.7 3.4-.7 5 0v-9Z"/>
+            </svg>
+            {% trans "Explain terms" %}
+        </button>
+    </div>
+    <div id="tp-agent-drawer-messages" class="tp-agent-drawer-messages" role="log" aria-live="polite">
+        <p class="tp-agent-drawer-empty">
+            <span class="tp-agent-drawer-empty-icon" aria-hidden="true">
+                <img src="{% static 'img/brand/tp-logo-mark-color.png' %}" alt="">
+            </span>
+            <span class="tp-agent-drawer-empty-text tp-agent-drawer-empty-text--target">{% trans "Ask about proteins, filters, scores, or evidence loaded for the genome you're currently viewing." %}</span>
+            <span class="tp-agent-drawer-empty-text tp-agent-drawer-empty-text--generic" hidden>{% trans "Ask about the platform, its data sources, or how genome and target prioritization works." %}</span>
+        </p>
+    </div>
+    <div class="tp-agent-drawer-suggestions" aria-label="{% trans 'Suggested assistant prompts' %}">
+        <button type="button" class="tp-agent-drawer-suggestion" data-agent-prompt="{% trans 'Explain this target using only loaded evidence.' %}">
+            {% trans "Explain target" %}
+        </button>
+        <button type="button" class="tp-agent-drawer-suggestion" data-agent-prompt="{% trans 'Audit the evidence for this target and tell me where each conclusion comes from.' %}">
+            {% trans "Audit evidence" %}
+        </button>
+        <button type="button" class="tp-agent-drawer-suggestion" data-agent-prompt="{% trans 'Find promising targets with no human off-target signal and good pocket evidence.' %}">
+            {% trans "Find selective targets" %}
+        </button>
+        <button type="button" class="tp-agent-drawer-suggestion" data-agent-prompt="{% trans 'Clear all active protein-list filters.' %}">
+            {% trans "Clear filters" %}
+        </button>
+    </div>
+    <form id="tp-agent-drawer-form" class="tp-agent-drawer-form" data-chat-url="{% url 'tpwebapp:agent_chat' %}" data-tp-loader="off">
+        <textarea id="tp-agent-drawer-input" class="tp-agent-drawer-input" rows="2" placeholder="{% trans 'Ask the assistant…' %}" aria-label="{% trans 'Message' %}"></textarea>
+        <button type="submit" class="tp-btn tp-btn--primary tp-agent-drawer-send" aria-label="{% trans 'Send' %}" title="{% trans 'Send' %}">
+            <span class="sr-only">{% trans "Send" %}</span>
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true"><path d="M2 8h11.5M9 3.5L14 8l-5 4.5"/></svg>
+        </button>
+    </form>
+</aside>
+
+<script src="{% static 'bundle.js' %}?v=20260722-dagre1"></script>
+<script src="{% static 'js/global/agent-drawer.js' %}?v=20260727-genericscope1"></script>
+<script src="{% static 'js/global/nav-toggle.js' %}?v=20260804-navtoggle1"></script>
+<script src="{% static 'js/global/smooth-details.js' %}?v=20260804-smoothdetails1"></script>
 
 <script>
     function getCookie(name) {
@@ -1972,6 +2436,288 @@
             }
         });
     }
+
+    (function () {
+        const LOADING_CLASS = "tp-page-is-loading";
+        const NAVIGATING_CLASS = "tp-page-is-navigating";
+        const ACTION_LOADING_CLASS = "tp-page-action-loading";
+        const EXCLUDED_LINK_SELECTOR = [
+            "[data-tp-loader='off']",
+            "[data-no-page-loader]",
+            "[download]",
+            "[target='_blank']",
+            "[data-toggle]",
+            "[data-bs-toggle]",
+            ".dropdown-toggle",
+            ".tp-agent-drawer-suggestion"
+        ].join(",");
+        const EXCLUDED_FORM_SELECTOR = [
+            "[data-tp-loader='off']",
+            "[data-no-page-loader]",
+            "#tp-agent-drawer-form"
+        ].join(",");
+        let showTimer = null;
+        let activeAction = null;
+        const LOADER_DEFAULT_COPY = "{% trans 'Opening the next view…' %}";
+        const LOADER_OPENING_PREFIX = "{% trans 'Opening' %}";
+        const LOADER_LABEL_MAX_LENGTH = 42;
+
+        // Genome overview and protein detail are the two heaviest pages to
+        // render (see the assembly_workspace/pdb_structure query cost) --
+        // a single static "Opening X…" label sits there doing nothing for a
+        // couple seconds. This doesn't measure real progress, it's a staged
+        // sequence of plausible-sounding steps that just keeps advancing on a
+        // timer, purely to make the wait read as "something is happening"
+        // instead of a frozen label. Matches exactly `/genome/<slug>` and
+        // `/protein/<id>` -- NOT their sub-pages (proteins list, metabolism,
+        // structure viewer, etc.), which already get the normal per-link label.
+        const GENOME_OVERVIEW_PATH_RE = /^\/genome\/[^/]+\/?$/;
+        const PROTEIN_DETAIL_PATH_RE = /^\/protein\/\d+\/?$/;
+        const GENOME_OVERVIEW_SEQUENCE = [
+            "{% trans 'Resolving genome workspace…' %}",
+            "{% trans 'Loading genome metrics…' %}",
+            "{% trans 'Preparing target rankings…' %}",
+            "{% trans 'Opening genome overview…' %}"
+        ];
+        const PROTEIN_DETAIL_SEQUENCE = [
+            "{% trans 'Loading protein record…' %}",
+            "{% trans 'Collecting functional evidence…' %}",
+            "{% trans 'Preparing structure summary…' %}",
+            "{% trans 'Opening protein view…' %}"
+        ];
+        const LOADER_SEQUENCE_STEP_MS = 550;
+        let sequenceTimer = null;
+
+        function loaderSequenceForUrl(url) {
+            let pathname = null;
+            try {
+                pathname = (typeof url === "string" ? new URL(url, window.location.href) : url).pathname;
+            } catch (error) {
+                return null;
+            }
+            if (!pathname) return null;
+            if (GENOME_OVERVIEW_PATH_RE.test(pathname)) return GENOME_OVERVIEW_SEQUENCE;
+            if (PROTEIN_DETAIL_PATH_RE.test(pathname)) return PROTEIN_DETAIL_SEQUENCE;
+            return null;
+        }
+
+        function loaderEl() {
+            return document.getElementById("tp-page-loader");
+        }
+
+        function loaderCopyEl() {
+            return document.getElementById("tp-page-loader-copy");
+        }
+
+        function setLoaderCopy(label) {
+            const copyEl = loaderCopyEl();
+            if (!copyEl) return;
+            if (!label) {
+                copyEl.textContent = LOADER_DEFAULT_COPY;
+                return;
+            }
+            const trimmed = label.length > LOADER_LABEL_MAX_LENGTH
+                ? label.slice(0, LOADER_LABEL_MAX_LENGTH - 1).trimEnd() + "…"
+                : label;
+            copyEl.textContent = LOADER_OPENING_PREFIX + " " + trimmed + "…";
+        }
+
+        function stopLoaderSequence() {
+            window.clearInterval(sequenceTimer);
+            sequenceTimer = null;
+        }
+
+        function startLoaderSequence(messages) {
+            stopLoaderSequence();
+            const copyEl = loaderCopyEl();
+            if (!copyEl || !messages || !messages.length) return;
+            let index = 0;
+            copyEl.textContent = messages[0];
+            sequenceTimer = window.setInterval(function () {
+                index += 1;
+                if (index >= messages.length) {
+                    // Stay on the last ("Opening…") message instead of
+                    // looping -- if the real navigation is still pending past
+                    // the full sequence, restarting from "Resolving…" would
+                    // read as if it had gone backwards/gotten stuck.
+                    stopLoaderSequence();
+                    return;
+                }
+                copyEl.textContent = messages[index];
+            }, LOADER_SEQUENCE_STEP_MS);
+        }
+
+        function deriveLoaderLabel(el) {
+            if (!el) return null;
+            const raw = (el.getAttribute("aria-label") || el.getAttribute("title") || el.textContent || "")
+                .replace(/\s+/g, " ")
+                .trim();
+            if (!raw) return null;
+            // A bare textContent fallback on a link/button with several
+            // nested elements (a data row, a card) reads as several labels
+            // jammed together with no separators -- past a plausible
+            // single-control label length, prefer the generic default copy
+            // over a garbled truncation.
+            if (raw.length > 90) return null;
+            return raw;
+        }
+
+        function setLoaderVisible(visible) {
+            const loader = loaderEl();
+            if (loader) {
+                loader.setAttribute("aria-hidden", visible ? "false" : "true");
+            }
+            if (document.body) {
+                if (visible) {
+                    document.body.setAttribute("aria-busy", "true");
+                } else {
+                    document.body.removeAttribute("aria-busy");
+                }
+            }
+        }
+
+        function clearAction() {
+            if (!activeAction) return;
+            activeAction.classList.remove(ACTION_LOADING_CLASS);
+            activeAction.removeAttribute("aria-busy");
+            activeAction = null;
+        }
+
+        function show(options) {
+            const opts = options || {};
+            if (opts.sequence) {
+                startLoaderSequence(opts.sequence);
+            } else {
+                stopLoaderSequence();
+                setLoaderCopy(opts.label || null);
+            }
+            window.clearTimeout(showTimer);
+            showTimer = window.setTimeout(function () {
+                document.documentElement.classList.add(NAVIGATING_CLASS);
+                setLoaderVisible(true);
+            }, Number.isFinite(opts.delay) ? opts.delay : 90);
+        }
+
+        function hide() {
+            window.clearTimeout(showTimer);
+            stopLoaderSequence();
+            document.documentElement.classList.remove(LOADING_CLASS, NAVIGATING_CLASS);
+            setLoaderVisible(false);
+            clearAction();
+            setLoaderCopy(null);
+        }
+
+        function markAction(el) {
+            clearAction();
+            if (!el || !el.classList) return;
+            activeAction = el;
+            activeAction.classList.add(ACTION_LOADING_CLASS);
+            activeAction.setAttribute("aria-busy", "true");
+        }
+
+        function isModifiedClick(event) {
+            return event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey;
+        }
+
+        function shouldSkipUrl(url) {
+            if (!url) return true;
+            if (url.protocol && !["http:", "https:"].includes(url.protocol)) return true;
+            if (url.origin !== window.location.origin) return true;
+            if (url.pathname === window.location.pathname && url.search === window.location.search && url.hash) return true;
+            if (url.pathname === window.location.pathname && url.search === window.location.search && !url.hash) return true;
+            return /\/download\/?|\/export\/?|csv|xlsx|fasta|\.fna|\.faa|\.gbk?|\.zip|\.pdb$/i.test(url.pathname);
+        }
+
+        function shouldSkipFormUrl(url) {
+            if (!url) return true;
+            if (url.protocol && !["http:", "https:"].includes(url.protocol)) return true;
+            if (url.origin !== window.location.origin) return true;
+            return /\/download\/?|\/export\/?|csv|xlsx|fasta|\.fna|\.faa|\.gbk?|\.zip|\.pdb$/i.test(url.pathname);
+        }
+
+        function linkUrl(link) {
+            try {
+                return new URL(link.getAttribute("href"), window.location.href);
+            } catch (error) {
+                return null;
+            }
+        }
+
+        function formUrl(form) {
+            try {
+                return new URL(form.getAttribute("action") || window.location.href, window.location.href);
+            } catch (error) {
+                return null;
+            }
+        }
+
+        function initNavigationLoading() {
+            window.setTimeout(hide, 180);
+
+            document.addEventListener("click", function (event) {
+                if (isModifiedClick(event)) return;
+                const link = event.target.closest ? event.target.closest("a[href]") : null;
+                if (!link || link.matches(EXCLUDED_LINK_SELECTOR)) return;
+                const url = linkUrl(link);
+                if (shouldSkipUrl(url)) return;
+                markAction(link);
+                const sequence = loaderSequenceForUrl(url);
+                show(sequence ? { sequence: sequence } : { label: deriveLoaderLabel(link) });
+            });
+
+            document.addEventListener("submit", function (event) {
+                window.setTimeout(function () {
+                    if (event.defaultPrevented) return;
+                    const form = event.target;
+                    if (!form || !form.matches || form.matches(EXCLUDED_FORM_SELECTOR)) return;
+                    const target = (form.getAttribute("target") || "").toLowerCase();
+                    if (target && target !== "_self") return;
+                    if (shouldSkipFormUrl(formUrl(form))) return;
+                    const submitter = event.submitter || form.querySelector("button[type='submit'], input[type='submit'], .tp-btn");
+                    markAction(submitter);
+                    show({ label: deriveLoaderLabel(submitter) });
+                }, 0);
+            });
+
+            window.addEventListener("pageshow", hide);
+            window.addEventListener("load", hide);
+            window.addEventListener("pagehide", function () {
+                setLoaderVisible(true);
+            });
+        }
+
+        window.TPPageLoader = {
+            show: show,
+            hide: hide,
+            markAction: markAction,
+            // For programmatic navigations (e.g. the protein search
+            // autocomplete's window.location.assign) that don't go through
+            // the click handler above and so never get the automatic
+            // sequence detection -- pass the destination URL and get the
+            // same staged messages a normal link click to that page would.
+            showForUrl: function (url, fallbackOptions) {
+                const sequence = loaderSequenceForUrl(url);
+                show(sequence ? { sequence: sequence } : (fallbackOptions || {}));
+            },
+            withLoading: function (promiseOrFactory, options) {
+                show(options);
+                let result;
+                try {
+                    result = typeof promiseOrFactory === "function" ? promiseOrFactory() : promiseOrFactory;
+                } catch (error) {
+                    hide();
+                    throw error;
+                }
+                return Promise.resolve(result).finally(hide);
+            }
+        };
+
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", initNavigationLoading, { once: true });
+        } else {
+            initNavigationLoading();
+        }
+    })();
 
     if (window.jQuery && $.fn && $.fn.dataTable) {
         const TP_DT_VARIANTS = Object.freeze({
@@ -2068,6 +2814,8 @@
 
     (function () {
         const STORAGE_KEY = "tp.sidebar.collapsed";
+        let sidebarTooltip = null;
+        let activeTooltipTrigger = null;
 
         function isDesktop() {
             return window.matchMedia("(min-width: 992px)").matches;
@@ -2080,9 +2828,13 @@
         function applySidebarState(collapsed) {
             if (!isDesktop()) {
                 document.body.classList.remove("tp-sidebar-collapsed");
+                hideSidebarTooltip();
                 return;
             }
             document.body.classList.toggle("tp-sidebar-collapsed", collapsed);
+            if (!collapsed) {
+                hideSidebarTooltip();
+            }
             const button = document.getElementById("tp-sidebar-toggle");
             if (button) {
                 button.setAttribute("aria-expanded", collapsed ? "false" : "true");
@@ -2094,6 +2846,57 @@
                 button.title = collapsed ? "Expand navigation" : "Collapse navigation";
                 button.setAttribute("aria-label", collapsed ? "Expand navigation" : "Collapse navigation");
             }
+        }
+
+        function hideSidebarTooltip() {
+            activeTooltipTrigger = null;
+            if (!sidebarTooltip) return;
+            sidebarTooltip.classList.remove("is-visible");
+            sidebarTooltip.setAttribute("aria-hidden", "true");
+        }
+
+        function showSidebarTooltip(trigger) {
+            if (!document.body.classList.contains("tp-sidebar-collapsed")) {
+                hideSidebarTooltip();
+                return;
+            }
+            sidebarTooltip = sidebarTooltip || document.getElementById("tp-sidebar-floating-label");
+            if (!sidebarTooltip) return;
+            const label = trigger.getAttribute("data-label") || trigger.getAttribute("aria-label") || "";
+            if (!label) {
+                hideSidebarTooltip();
+                return;
+            }
+            activeTooltipTrigger = trigger;
+            const rect = trigger.getBoundingClientRect();
+            sidebarTooltip.textContent = label;
+            sidebarTooltip.style.top = `${rect.top + rect.height / 2}px`;
+            sidebarTooltip.classList.add("is-visible");
+            sidebarTooltip.setAttribute("aria-hidden", "false");
+        }
+
+        function updateSidebarTooltipPosition() {
+            if (activeTooltipTrigger) {
+                showSidebarTooltip(activeTooltipTrigger);
+            }
+        }
+
+        function initSidebarTooltips() {
+            sidebarTooltip = document.getElementById("tp-sidebar-floating-label");
+            if (!sidebarTooltip) return;
+
+            document.querySelectorAll(".tp-side-link[data-label]").forEach(function (link) {
+                link.addEventListener("mouseenter", function () {
+                    showSidebarTooltip(link);
+                });
+                link.addEventListener("focus", function () {
+                    showSidebarTooltip(link);
+                });
+                link.addEventListener("mouseleave", hideSidebarTooltip);
+                link.addEventListener("blur", hideSidebarTooltip);
+            });
+
+            window.addEventListener("scroll", updateSidebarTooltipPosition, { passive: true });
         }
 
         function initSidebarToggle() {
@@ -2116,6 +2919,7 @@
             window.addEventListener("resize", function () {
                 if (!isDesktop()) {
                     document.body.classList.remove("tp-sidebar-collapsed");
+                    hideSidebarTooltip();
                 } else {
                     const current = localStorage.getItem(STORAGE_KEY);
                     if (current === null) {
@@ -2127,18 +2931,26 @@
             });
         }
 
-        if (document.readyState === "loading") {
-            document.addEventListener("DOMContentLoaded", initSidebarToggle);
-        } else {
+        function initSidebar() {
             initSidebarToggle();
+            initSidebarTooltips();
+        }
+
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", initSidebar);
+        } else {
+            initSidebar();
         }
     })();
 
     /* ── Theme toggle ──────────────────────────────── */
     (function () {
-        var MODES = ["auto", "light", "dark"];
-        var ICONS = { auto: "\u25D0", light: "\u2600", dark: "\u263E" };
-        var LABELS = { auto: "Auto", light: "Light", dark: "Dark" };
+        var MODES = ["light", "dark"];
+        var ICONS = {
+            light: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="8" cy="8" r="2.75"/><path d="M8 1.5V3M8 13v1.5M1.5 8H3M13 8h1.5M3.4 3.4l1.06 1.06M11.54 11.54l1.06 1.06M12.6 3.4l-1.06 1.06M4.46 11.54l-1.06 1.06"/></svg>',
+            dark:  '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M13.5 10.5A6.5 6.5 0 0 1 5.5 2.5a6.5 6.5 0 1 0 8 8z"/></svg>'
+        };
+        var LABELS = { light: "Light", dark: "Dark" };
 
         function getEffective(mode) {
             if (mode === "dark") return true;
@@ -2151,7 +2963,7 @@
             document.documentElement.classList.toggle("tp-dark", dark);
             var btn = document.getElementById("tp-theme-toggle");
             if (btn) {
-                btn.querySelector(".tp-theme-toggle-icon").textContent = ICONS[mode];
+                btn.querySelector(".tp-theme-toggle-icon").innerHTML = ICONS[mode];
                 btn.querySelector(".tp-theme-toggle-label").textContent = LABELS[mode];
             }
             document.dispatchEvent(new CustomEvent("tp:themechange", {
@@ -2164,7 +2976,7 @@
 
         function current() {
             var stored = localStorage.getItem("tp-theme");
-            return MODES.indexOf(stored) !== -1 ? stored : "auto";
+            return MODES.indexOf(stored) !== -1 ? stored : "light";
         }
 
         function cycle() {
@@ -2693,14 +3505,20 @@
                 const bar = document.createElement("div");
                 bar.className = "tp-table-export-bar";
                 host.classList.add("tp-table-shell--with-export");
-                let scroll = host.querySelector(":scope > .tp-table-shell__scroll");
-                if (!scroll) {
-                    scroll = document.createElement("div");
-                    scroll.className = "tp-table-shell__scroll";
-                    host.appendChild(scroll);
-                }
-                if (!scroll.contains(content)) {
-                    scroll.appendChild(content);
+                if (host.dataset.tableScrollWrap === "off") {
+                    if (!host.contains(content)) {
+                        host.appendChild(content);
+                    }
+                } else {
+                    let scroll = host.querySelector(":scope > .tp-table-shell__scroll");
+                    if (!scroll) {
+                        scroll = document.createElement("div");
+                        scroll.className = "tp-table-shell__scroll";
+                        host.appendChild(scroll);
+                    }
+                    if (!scroll.contains(content)) {
+                        scroll.appendChild(content);
+                    }
                 }
                 bar.appendChild(createExportButton(table, "#" + table.id));
                 host.insertBefore(bar, host.firstChild);
@@ -2815,8 +3633,16 @@
 
         let activeEl = null;
 
+        document.querySelectorAll("[title]").forEach(function (el) {
+            const title = el.getAttribute("title");
+            if (title && !el.getAttribute("data-tp-native-title")) {
+                el.setAttribute("data-tp-native-title", title);
+                el.removeAttribute("title");
+            }
+        });
+
         function getTitle(el) {
-            return el.getAttribute("data-tp-native-title") || el.getAttribute("title") || "";
+            return el.getAttribute("data-tp-native-title") || "";
         }
 
         function positionTooltip(el) {
@@ -2854,20 +3680,12 @@
         }
 
         function showTooltip(el) {
-            const title = el.getAttribute("title");
-            if (title) {
-                el.setAttribute("data-tp-native-title", title);
-                el.removeAttribute("title");
-            }
             if (!getTitle(el).trim()) return;
             activeEl = el;
             positionTooltip(el);
         }
 
         function hideTooltip(el) {
-            if (el && el.getAttribute("data-tp-native-title") && !el.getAttribute("title")) {
-                el.setAttribute("title", el.getAttribute("data-tp-native-title"));
-            }
             if (activeEl === el) {
                 activeEl = null;
                 tooltip.classList.remove("is-visible");
@@ -2876,7 +3694,7 @@
 
         document.addEventListener("pointerover", function (event) {
             if (!(event.target instanceof Element)) return;
-            const el = event.target.closest("[title], [data-tp-native-title]");
+            const el = event.target.closest("[data-tp-native-title]");
             if (el && event.relatedTarget instanceof Node && el.contains(event.relatedTarget)) return;
             if (el) showTooltip(el);
         });
@@ -2890,7 +3708,7 @@
 
         document.addEventListener("focusin", function (event) {
             if (!(event.target instanceof Element)) return;
-            const el = event.target.closest("[title], [data-tp-native-title]");
+            const el = event.target.closest("[data-tp-native-title]");
             if (el) showTooltip(el);
         });
 

@@ -64,12 +64,27 @@
         return fallbackCopyText(text);
     }
 
+    function buttonLabelTarget(button) {
+        return button ? (button.querySelector("[data-copy-label]") || button) : null;
+    }
+
+    function readButtonLabel(button, fallback) {
+        if (!button) return fallback || "";
+        var target = buttonLabelTarget(button);
+        return button.getAttribute("data-default-label") || (target ? target.textContent : "") || fallback || "";
+    }
+
+    function writeButtonLabel(button, label) {
+        var target = buttonLabelTarget(button);
+        if (target) target.textContent = label;
+    }
+
     function setTemporaryLabel(button, temporaryLabel, durationMs) {
         if (!button) return;
-        var defaultLabel = button.getAttribute("data-default-label") || button.textContent || "";
-        button.textContent = temporaryLabel;
+        var defaultLabel = readButtonLabel(button, "");
+        writeButtonLabel(button, temporaryLabel);
         window.setTimeout(function () {
-            button.textContent = defaultLabel;
+            writeButtonLabel(button, defaultLabel);
         }, durationMs || 1200);
     }
 
@@ -78,9 +93,9 @@
         if (button.getAttribute("data-copy-bound") === "1") return;
         button.setAttribute("data-copy-bound", "1");
 
-        var defaultLabel = button.getAttribute("data-default-label") || button.textContent || "Copy";
+        var defaultLabel = readButtonLabel(button, "Copy");
         var copiedLabel = button.getAttribute("data-copied-label") || "Copied";
-        button.textContent = defaultLabel;
+        writeButtonLabel(button, defaultLabel);
 
         button.addEventListener("click", function () {
             var text = String(getText() || "").trim();
@@ -108,14 +123,14 @@
 
         residueModalInitialized = true;
         var lastFocusedTrigger = null;
-        var defaultCopyLabel = copyBtn ? (copyBtn.getAttribute("data-default-label") || copyBtn.textContent || "Copy") : "Copy";
+        var defaultCopyLabel = copyBtn ? readButtonLabel(copyBtn, "Copy") : "Copy";
         var copiedCopyLabel = copyBtn ? (copyBtn.getAttribute("data-copied-label") || "Copied") : "Copied";
 
         function openModalFromTrigger(trigger) {
             lastFocusedTrigger = trigger || null;
             var residues = parseResidues(trigger ? trigger.getAttribute("data-residues") : "");
             content.textContent = residues.length ? residues.join(", ") : "-";
-            if (copyBtn) copyBtn.textContent = defaultCopyLabel;
+            if (copyBtn) writeButtonLabel(copyBtn, defaultCopyLabel);
             modal.classList.add("is-open");
             modal.setAttribute("aria-hidden", "false");
             document.body.classList.add("residue-modal-open");
@@ -126,7 +141,7 @@
             modal.classList.remove("is-open");
             modal.setAttribute("aria-hidden", "true");
             document.body.classList.remove("residue-modal-open");
-            if (copyBtn) copyBtn.textContent = defaultCopyLabel;
+            if (copyBtn) writeButtonLabel(copyBtn, defaultCopyLabel);
             if (lastFocusedTrigger && typeof lastFocusedTrigger.focus === "function") {
                 lastFocusedTrigger.focus();
             }
@@ -161,9 +176,9 @@
             copyBtn.addEventListener("click", function () {
                 var text = (content.textContent || "").trim();
                 copyText(text).then(function () {
-                    copyBtn.textContent = copiedCopyLabel;
+                    writeButtonLabel(copyBtn, copiedCopyLabel);
                     window.setTimeout(function () {
-                        copyBtn.textContent = defaultCopyLabel;
+                        writeButtonLabel(copyBtn, defaultCopyLabel);
                     }, 1200);
                 });
             });
@@ -209,26 +224,46 @@
             });
         }
 
-        if ("IntersectionObserver" in window) {
-            var observer = new IntersectionObserver(function (entries) {
-                var activeEntry = entries
-                    .filter(function (entry) { return entry.isIntersecting; })
-                    .sort(function (a, b) { return b.intersectionRatio - a.intersectionRatio; })[0];
-                if (activeEntry && activeEntry.target && activeEntry.target.id) {
-                    setActive(activeEntry.target.id);
+        // Clicking a link jumps here immediately, before the browser's smooth-scroll
+        // animation finishes -- without this, a short section (e.g. a short protein's
+        // Sequence) can have its whole height above the trigger line already mid-scroll,
+        // so the geometric heuristic below picks the next section instead of the one
+        // just clicked. Held for a beat to cover the animation, then released back to
+        // normal scroll-based tracking.
+        var manualActiveId = null;
+        var manualActiveUntil = 0;
+
+        links.forEach(function (link) {
+            link.addEventListener("click", function () {
+                var id = (link.getAttribute("href") || "").slice(1);
+                if (!id) return;
+                manualActiveId = id;
+                manualActiveUntil = Date.now() + 1000;
+                setActive(id);
+            });
+        });
+
+        function updateActive() {
+            if (manualActiveId) {
+                if (Date.now() < manualActiveUntil) {
+                    setActive(manualActiveId);
+                    return;
                 }
-            }, {
-                rootMargin: "-22% 0px -64% 0px",
-                threshold: [0.1, 0.35, 0.6]
-            });
-            targets.forEach(function (entry) {
-                observer.observe(entry.section);
-            });
-            setActive(targets[0].section.id);
-            return;
+                manualActiveId = null;
+            }
+            var triggerLine = Math.round(window.innerHeight * 0.32);
+            var active = targets[0];
+            for (var i = targets.length - 1; i >= 0; i--) {
+                if (targets[i].section.getBoundingClientRect().top <= triggerLine) {
+                    active = targets[i];
+                    break;
+                }
+            }
+            setActive(active.section.id);
         }
 
-        setActive(targets[0].section.id);
+        window.addEventListener("scroll", updateActive, { passive: true });
+        updateActive();
     }
 
     function initPointerButtonBlur(scopeSelector) {

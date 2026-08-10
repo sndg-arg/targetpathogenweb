@@ -70,7 +70,7 @@ def _resolve_ssh_options(host, user=None, port=22):
 
     try:
         ssh_config = paramiko.SSHConfig()
-        with open(config_path, "r", encoding="utf-8") as handle:
+        with open(config_path, encoding="utf-8") as handle:
             ssh_config.parse(handle)
         entry = ssh_config.lookup(host)
     except Exception:
@@ -128,7 +128,7 @@ def _record_remote_info(run_id_raw, *, message, payload=None):
 
 
 def _gzip_tsv_output(tsv_path, tsv_gz_path):
-    with open(tsv_path, "r", encoding="utf-8") as handle:
+    with open(tsv_path, encoding="utf-8") as handle:
         zipped_content = gzip.compress(handle.read().encode("utf-8"))
     with open(tsv_gz_path, "wb") as handle:
         handle.write(zipped_content)
@@ -167,7 +167,10 @@ def _build_remote_config(cfg_dict):
     ssh_host = ssh_options["host"]
     ssh_user = ssh_options["user"]
     ssh_port = ssh_options["port"]
-    ssh_key_filename = ssh_options["key_filename"]
+    env_key_filename = _env_text("SSH_KEY_FILENAME")
+    ssh_key_filename = (
+        os.path.expanduser(env_key_filename) if env_key_filename else ssh_options["key_filename"]
+    )
 
     ssh_password = _env_text("SSH_PASSWORD")
     if ssh_password is None:
@@ -204,7 +207,9 @@ def _build_remote_config(cfg_dict):
             default=60,
         ),
         conda_prefix=_env_text("TPW_INTERPRO_CONDA_PREFIX", default="/home/shared/miniconda3.8"),
-        iprscan_install_dir=_env_text("TPW_INTERPRO_INSTALL_DIR", default="/grupos/public/iprscan/current"),
+        iprscan_install_dir=_env_text(
+            "TPW_INTERPRO_INSTALL_DIR", default="/grupos/public/iprscan/current"
+        ),
         iprscan_applications=_env_text("TPW_INTERPRO_APPLICATIONS", default=None),
         slurm_partition=os.getenv("TPW_INTERPRO_PARTITION", "cpu"),
         slurm_time=os.getenv("TPW_INTERPRO_TIME", "05:00:00"),
@@ -293,7 +298,7 @@ def run_remote_interproscan(cfg_dict, folder_path, genome):
                 f'JOB_BASE="${{SLURM_TMPDIR:-{remote_job_dir}/slurm_tmp}}"',
                 'mkdir -p "$JOB_BASE"',
                 f'TMP_ROOT="$(mktemp -d "$JOB_BASE/{safe_genome}_${{SLURM_JOB_ID:-manual}}_XXXXXX")"',
-                'trap \'rm -rf "$TMP_ROOT"\' EXIT',
+                "trap 'rm -rf \"$TMP_ROOT\"' EXIT",
                 'mkdir -p "$TMP_ROOT/work" "$TMP_ROOT/out" "$TMP_ROOT/tmp"',
                 f'cp {shlex.quote(remote_input)} "$TMP_ROOT/work/{genome}.faa.gz"',
                 (
@@ -338,10 +343,7 @@ def run_remote_interproscan(cfg_dict, folder_path, genome):
             friendly = classify_slurm_resource_message(details)
             if friendly:
                 details = f"{friendly} SLURM response: {details}"
-            raise RuntimeError(
-                f"Unable to submit remote InterProScan job for {genome}: "
-                f"{details}"
-            )
+            raise RuntimeError(f"Unable to submit remote InterProScan job for {genome}: {details}")
 
         run_id_raw = str(os.getenv("TPW_PIPELINE_RUN_ID") or "").strip()
         job_id = submit_out.split(";")[0].strip()
@@ -399,7 +401,9 @@ def run_remote_interproscan(cfg_dict, folder_path, genome):
                     _, slurm_err_text, _ = _run_remote(
                         f"tail -n 120 {shlex.quote(remote_stderr)} 2>/dev/null || true"
                     )
-                    details = slurm_err_text or slurm_out_text or state_err or "no remote output captured"
+                    details = (
+                        slurm_err_text or slurm_out_text or state_err or "no remote output captured"
+                    )
                     friendly = classify_slurm_resource_message(details)
                     if friendly:
                         details = f"{friendly} SLURM details: {details}"

@@ -1,9 +1,6 @@
 ipython
-#django-debug-toolbar
-parsl
+django-debug-toolbar
 parsl[monitoring]
-scp
-scpClient
 scpClient
 configparse
 pythoncyc
@@ -12,3 +9,4 @@ ruff
 pre-commit
 pytest
 pytest-django
+coverage[toml]

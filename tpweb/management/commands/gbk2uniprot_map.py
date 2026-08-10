@@ -52,7 +52,7 @@ class Command(BaseCommand):
                 "from": "RefSeq_Protein",
                 "to": "UniProtKB",
             },
-            headers={"User-Agent": "TargetPathogenWeb/1.0"},
+            headers={"User-Agent": "Target-Pathogen-Web/1.0"},
             timeout=60,
         )
         resp.raise_for_status()
@@ -66,7 +66,7 @@ class Command(BaseCommand):
         resp = session.get(
             f"https://rest.uniprot.org/idmapping/uniprotkb/results/stream/{job_id}",
             params={"format": "tsv"},
-            headers={"User-Agent": "TargetPathogenWeb/1.0"},
+            headers={"User-Agent": "Target-Pathogen-Web/1.0"},
             timeout=120,
         )
         resp.raise_for_status()
@@ -77,7 +77,7 @@ class Command(BaseCommand):
         for _ in range(90):
             resp = session.get(
                 f"https://rest.uniprot.org/idmapping/status/{job_id}",
-                headers={"User-Agent": "TargetPathogenWeb/1.0"},
+                headers={"User-Agent": "Target-Pathogen-Web/1.0"},
                 timeout=60,
             )
             resp.raise_for_status()
@@ -107,7 +107,7 @@ class Command(BaseCommand):
                 "fields": "accession,id,reviewed,protein_name,gene_names,organism_name,length,xref_refseq",
                 "size": 500,
             },
-            headers={"User-Agent": "TargetPathogenWeb/1.0"},
+            headers={"User-Agent": "Target-Pathogen-Web/1.0"},
             timeout=120,
         )
         resp.raise_for_status()
@@ -143,7 +143,7 @@ class Command(BaseCommand):
         # Keep the OR query short enough for proxy/server URL limits.
         chunk_size = 25
         for start in range(0, len(ids), chunk_size):
-            chunk = ids[start:start + chunk_size]
+            chunk = ids[start : start + chunk_size]
             try:
                 chunk_df = self._search_refseq_batch(session, chunk)
             except Exception as exc:
@@ -179,7 +179,9 @@ class Command(BaseCommand):
             ).values_list("bioentry__accession", "value")
         )
 
-        prot_id_to_bioentry = {protein_id: bioentry_id for bioentry_id, protein_id in protein_ids_qs}
+        prot_id_to_bioentry = {
+            protein_id: bioentry_id for bioentry_id, protein_id in protein_ids_qs
+        }
         prot_id_to_locus_tag = {protein_id: locus_tag for locus_tag, protein_id in protein_ids_loc}
 
         if not options["mapping_tmp"]:
@@ -198,7 +200,7 @@ class Command(BaseCommand):
 
             with tqdm(batch_ranges) as progress:
                 for i in progress:
-                    batch = protein_ids_qs[i:i + batch_size]
+                    batch = protein_ids_qs[i : i + batch_size]
                     batch_ids = [protein_id for _, protein_id in batch if protein_id]
                     if not batch_ids:
                         continue
@@ -348,7 +350,11 @@ class Command(BaseCommand):
 
         self.stdout.write("\n".join(unip_list) + ("\n" if unip_list else ""))
 
-        mapped_ids = set(merged_df["From"]) if merged_df is not None and "From" in merged_df.columns else set()
+        mapped_ids = (
+            set(merged_df["From"])
+            if merged_df is not None and "From" in merged_df.columns
+            else set()
+        )
         not_mapped = set(prot_id_to_bioentry) - mapped_ids
         if not_mapped:
             if not options["not_mapped"]:

@@ -3,7 +3,8 @@ from django.db.models import Count, Q
 from bioseq.models.Bioentry import Bioentry
 from bioseq.models.Biodatabase import Biodatabase
 from bioseq.models.Ontology import Ontology
-from tpweb.models.BioentryStructure import BioentryStructure
+from tpweb.models.BioentryStructure import BioentryStructure, ExperimentalStructureXref
+from tpweb.models.ScoreParamValue import ScoreParamValue
 from tpweb.services.genome_workspace import (
     describe_genome_scope,
     display_genome_name,
@@ -16,7 +17,8 @@ from tpweb.services.structure_sources import PDB_MODEL_EXPERIMENTS
 GENOME_TABLE_COLUMNS = {
     "EntryLength": "Length [bp]",
     "COUNT_CDS": "# Proteins",
-    "COUNT_EXPERIMENTAL": "Experimental structures",
+    "COUNT_EXPERIMENTAL": "Loaded exp. structures",
+    "COUNT_PDB_XREFS": "PDB xrefs",
     "COUNT_EC": "EC-annotated proteins",
 }
 
@@ -42,11 +44,9 @@ def resolve_live_count(genome_name, live_counts_by_genome, qualifier_value):
 
 def build_genomes_queryset(user=None, search_query=""):
     genomes = (
-        Biodatabase.objects.exclude(
-            Q(name__endswith="_rnas") | Q(name__endswith="_prots")
-        ).filter(
-            visible_genome_name_filter(user)
-        ).prefetch_related("qualifiers__term")
+        Biodatabase.objects.exclude(Q(name__endswith="_rnas") | Q(name__endswith="_prots"))
+        .filter(visible_genome_name_filter(user))
+        .prefetch_related("qualifiers__term")
     )
     cleaned_query = (search_query or "").strip()
     if not cleaned_query:
@@ -103,6 +103,23 @@ def _experimental_counts_by_genome(genome_names):
     return _normalize_counts_by_genome(experimental_counts)
 
 
+def _pdb_xref_counts_by_genome(genome_names):
+    if not genome_names:
+        return {}
+
+    pdb_xref_counts = dict(
+        ExperimentalStructureXref.objects.filter(
+            bioentry__biodatabase__name__in=[
+                f"{name}{Biodatabase.PROT_POSTFIX}" for name in genome_names
+            ]
+        )
+        .values("bioentry__biodatabase__name")
+        .annotate(total=Count("id"))
+        .values_list("bioentry__biodatabase__name", "total")
+    )
+    return _normalize_counts_by_genome(pdb_xref_counts)
+
+
 def _ec_counts_by_genome(genome_names):
     proteins = _proteins_by_genome_queryset(genome_names)
     if not proteins.exists():
@@ -117,17 +134,36 @@ def _ec_counts_by_genome(genome_names):
     return _normalize_counts_by_genome(ec_counts)
 
 
+def _curated_genome_names(genome_names):
+    if not genome_names:
+        return set()
+    proteome_names = [f"{name}{Biodatabase.PROT_POSTFIX}" for name in genome_names]
+    curated_proteome_names = set(
+        ScoreParamValue.objects.filter(
+            bioentry__biodatabase__name__in=proteome_names,
+            score_param__name="best_fpocket_structure",
+        )
+        .values_list("bioentry__biodatabase__name", flat=True)
+        .distinct()
+    )
+    return {name.removesuffix(Biodatabase.PROT_POSTFIX) for name in curated_proteome_names}
+
+
 def build_genome_dto(
     genome,
     user=None,
     columns=GENOME_TABLE_COLUMNS,
     protein_counts_by_genome=None,
     experimental_counts_by_genome=None,
+    pdb_xref_counts_by_genome=None,
     ec_counts_by_genome=None,
+    curated_genome_names=None,
 ):
     protein_counts_by_genome = protein_counts_by_genome or {}
     experimental_counts_by_genome = experimental_counts_by_genome or {}
+    pdb_xref_counts_by_genome = pdb_xref_counts_by_genome or {}
     ec_counts_by_genome = ec_counts_by_genome or {}
+    curated_genome_names = curated_genome_names or set()
 
     workspace_scope = describe_genome_scope(user, genome.name)
     genome_dto = {
@@ -137,6 +173,7 @@ def build_genome_dto(
         "description": genome.description,
         "workspace_scope_key": workspace_scope["key"],
         "workspace_scope_label": workspace_scope["label"],
+        "has_curated_data": genome.name in curated_genome_names,
     }
     qualifiers = genome.qualifiers_dict()
     protein_count = safe_int(
@@ -160,6 +197,13 @@ def build_genome_dto(
             qualifiers.get("COUNT_EC"),
         )
     )
+    pdb_xref_count = safe_int(
+        resolve_live_count(
+            genome.name,
+            pdb_xref_counts_by_genome,
+            qualifiers.get("COUNT_PDB_XREFS"),
+        )
+    )
     for column_name in columns:
         if column_name == "COUNT_CDS":
             genome_dto[column_name] = protein_count
@@ -170,6 +214,9 @@ def build_genome_dto(
         if column_name == "COUNT_EC":
             genome_dto[column_name] = ec_count
             continue
+        if column_name == "COUNT_PDB_XREFS":
+            genome_dto[column_name] = pdb_xref_count
+            continue
         genome_dto[column_name] = qualifiers.get(column_name)
     return genome_dto
 
@@ -179,7 +226,9 @@ def build_genomes_dto(genomes, user=None, columns=GENOME_TABLE_COLUMNS):
     genome_names = [genome.name for genome in genomes]
     protein_counts_by_genome = _protein_counts_by_genome(genome_names)
     experimental_counts_by_genome = _experimental_counts_by_genome(genome_names)
+    pdb_xref_counts_by_genome = _pdb_xref_counts_by_genome(genome_names)
     ec_counts_by_genome = _ec_counts_by_genome(genome_names)
+    curated_names = _curated_genome_names(genome_names)
 
     return [
         build_genome_dto(
@@ -188,7 +237,9 @@ def build_genomes_dto(genomes, user=None, columns=GENOME_TABLE_COLUMNS):
             columns=columns,
             protein_counts_by_genome=protein_counts_by_genome,
             experimental_counts_by_genome=experimental_counts_by_genome,
+            pdb_xref_counts_by_genome=pdb_xref_counts_by_genome,
             ec_counts_by_genome=ec_counts_by_genome,
+            curated_genome_names=curated_names,
         )
         for genome in genomes
     ]
@@ -197,13 +248,13 @@ def build_genomes_dto(genomes, user=None, columns=GENOME_TABLE_COLUMNS):
 def summarize_genomes(genomes_dto):
     total_genomes = len(genomes_dto)
     total_proteins = sum(safe_int(genome.get("COUNT_CDS")) for genome in genomes_dto)
-    total_experimental = sum(
-        safe_int(genome.get("COUNT_EXPERIMENTAL")) for genome in genomes_dto
-    )
+    total_experimental = sum(safe_int(genome.get("COUNT_EXPERIMENTAL")) for genome in genomes_dto)
     total_ec_annotated = sum(safe_int(genome.get("COUNT_EC")) for genome in genomes_dto)
+    total_pdb_xrefs = sum(safe_int(genome.get("COUNT_PDB_XREFS")) for genome in genomes_dto)
     return {
         "total_genomes": total_genomes,
         "total_proteins": total_proteins,
         "total_experimental": total_experimental,
+        "total_pdb_xrefs": total_pdb_xrefs,
         "total_ec_annotated": total_ec_annotated,
     }

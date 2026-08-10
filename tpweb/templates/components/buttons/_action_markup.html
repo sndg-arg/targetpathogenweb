@@ -1,19 +1,22 @@
 {% if href and not disabled %}
     <a
         href="{{ href }}"
-        class="{{ button_classes }}{% if classes %} {{ classes }}{% endif %}"
+        class="{{ button_classes }}{% if icon_template %} tp-btn-with-icon{% endif %}{% if classes %} {{ classes }}{% endif %}"
         {% if id %}id="{{ id }}"{% endif %}
         {% if title %}title="{{ title }}"{% endif %}
         {% if target %}target="{{ target }}"{% endif %}
         {% if rel %}rel="{{ rel }}"{% endif %}
         {% if attrs %}{{ attrs|safe }}{% endif %}
     >
-        {{ label }}
+        {% if icon_template %}
+            <span class="tp-btn-icon" aria-hidden="true">{% include icon_template %}</span>
+        {% endif %}
+        <span>{{ label }}</span>
     </a>
 {% else %}
     <button
         type="{{ button_type|default:'button' }}"
-        class="{{ button_classes }}{% if classes %} {{ classes }}{% endif %}"
+        class="{{ button_classes }}{% if icon_template %} tp-btn-with-icon{% endif %}{% if classes %} {{ classes }}{% endif %}"
         {% if id %}id="{{ id }}"{% endif %}
         {% if name %}name="{{ name }}"{% endif %}
         {% if value %}value="{{ value }}"{% endif %}
@@ -22,6 +25,9 @@
         {% if disabled %}disabled{% endif %}
         {% if attrs %}{{ attrs|safe }}{% endif %}
     >
-        {{ label }}
+        {% if icon_template %}
+            <span class="tp-btn-icon" aria-hidden="true">{% include icon_template %}</span>
+        {% endif %}
+        <span>{{ label }}</span>
     </button>
 {% endif %}

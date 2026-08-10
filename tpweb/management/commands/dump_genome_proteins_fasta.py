@@ -1,5 +1,4 @@
 import sys
-from pathlib import Path
 
 from django.core.management.base import BaseCommand, CommandError
 
@@ -35,14 +34,10 @@ class Command(BaseCommand):
         biodb_name = options["biodatabase_name"]
         try:
             biodb = Biodatabase.objects.get(name=biodb_name)
-        except Biodatabase.DoesNotExist:
-            raise CommandError(f"Biodatabase '{biodb_name}' not found.")
+        except Biodatabase.DoesNotExist as exc:
+            raise CommandError(f"Biodatabase '{biodb_name}' not found.") from exc
 
-        qs = (
-            Bioentry.objects.filter(biodatabase=biodb)
-            .select_related("seq")
-            .order_by("accession")
-        )
+        qs = Bioentry.objects.filter(biodatabase=biodb).select_related("seq").order_by("accession")
         total = qs.count()
         if total == 0:
             raise CommandError(f"Biodatabase '{biodb_name}' has no proteins loaded.")

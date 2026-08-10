@@ -9,7 +9,7 @@ def validate_expression_view(request):
     if not expr:
         return HttpResponse(
             '<span class="formula-valid-badge formula-valid-badge--empty">'
-            'Type an expression above</span>'
+            "Type an expression above</span>"
         )
 
     user = resolve_workspace_user(request.user)
@@ -20,8 +20,8 @@ def validate_expression_view(request):
             '<svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">'
             '<circle cx="6.5" cy="6.5" r="6.5" fill="currentColor" opacity=".15"/>'
             '<path d="M3.5 6.5l2 2 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>'
-            '</svg>'
-            'Valid expression</span>'
+            "</svg>"
+            "Valid expression</span>"
         )
     else:
         error = result.get("error") or "Invalid expression"
@@ -31,6 +31,6 @@ def validate_expression_view(request):
             f'<svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">'
             f'<circle cx="6.5" cy="6.5" r="6.5" fill="currentColor" opacity=".15"/>'
             f'<path d="M4 4l5 5M9 4l-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>'
-            f'</svg>'
-            f'{safe_error}</span>'
+            f"</svg>"
+            f"{safe_error}</span>"
         )

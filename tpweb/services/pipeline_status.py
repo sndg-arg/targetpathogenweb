@@ -28,9 +28,7 @@ from tpweb.services.workspace import (
 logger = logging.getLogger(__name__)
 
 ARGENTINA_TZ = timezone(timedelta(hours=-3))
-PIPELINE_STATUS_CACHE_TTL_SECONDS = float(
-    os.getenv("TPW_PIPELINE_STATUS_CACHE_TTL_SECONDS", "4")
-)
+PIPELINE_STATUS_CACHE_TTL_SECONDS = float(os.getenv("TPW_PIPELINE_STATUS_CACHE_TTL_SECONDS", "4"))
 _PIPELINE_STATUS_CACHE: dict = {
     "expires_at": 0.0,
     "status": None,
@@ -165,7 +163,7 @@ def _activity_label_for_stage(stage_number, active_app):
     if stage_number == 10 or active_app == "interproscan":
         return "InterProScan: domain annotation"
     if stage_number == 14 or active_app == "alphafold_unips":
-        return "AlphaFold: model generation"
+        return "AlphaFold DB: model download"
     return None
 
 
@@ -197,9 +195,7 @@ def _status_from_running_upload(upload):
     status_data["state_class"] = "running"
     status_data["run_id"] = f"upload:{upload.id}"
     status_data["genome_accession"] = str(upload.internal_accession or "").strip() or None
-    status_data["genome_display_accession"] = display_genome_name(
-        status_data["genome_accession"]
-    )
+    status_data["genome_display_accession"] = display_genome_name(status_data["genome_accession"])
     status_data["activity_label"] = "Genome upload in progress"
 
     timestamp = None
@@ -305,7 +301,8 @@ def _active_stage_from_pipeline_run(run):
         }
 
     return {
-        "stage_number": run.current_stage or (latest_stage_event.stage_number if latest_stage_event else None),
+        "stage_number": run.current_stage
+        or (latest_stage_event.stage_number if latest_stage_event else None),
         "task_id": run.current_task_id,
         "app_name": run.current_app or (latest_stage_event.app_name if latest_stage_event else ""),
         "failed_event": latest_failed_event,
@@ -356,7 +353,9 @@ def _status_from_pipeline_run(run):
         status_data["stage_label"] = STAGE_LABELS.get(stage_number)
         # Progress based on completed stages, not linear stage number
         if stages_completed:
-            status_data["progress_percent"] = int(len(stages_completed) / PIPELINE_STAGE_TOTAL * 100)
+            status_data["progress_percent"] = int(
+                len(stages_completed) / PIPELINE_STAGE_TOTAL * 100
+            )
         else:
             status_data["progress_percent"] = _progress_percent(stage_number)
     if task_id is not None:
@@ -499,20 +498,22 @@ def sanitize_pipeline_status_for_user(pipeline_status: Mapping | None, user) -> 
             current_workspace_slug,
         }
     else:
-        genome_visible_to_user = not genome_accession or user_can_access_genome_name(user, genome_accession)
+        genome_visible_to_user = not genome_accession or user_can_access_genome_name(
+            user, genome_accession
+        )
     genome_hidden_from_user = bool(genome_accession) and not genome_visible_to_user
     genome_exists = True
     if genome_accession and not status.get("running"):
         genome_exists = Biodatabase.objects.filter(name=genome_accession).exists()
-    stale_deleted_genome = bool(genome_accession) and not status.get("running") and not genome_exists
+    stale_deleted_genome = (
+        bool(genome_accession) and not status.get("running") and not genome_exists
+    )
 
     status["genome_visible_to_user"] = genome_visible_to_user
     status["genome_exists"] = genome_exists
     status["workspace_slug"] = workspace_slug or None
     status["workspace_owner_id"] = workspace_owner_id
-    status["running_for_other_workspace"] = bool(
-        status.get("running") and genome_hidden_from_user
-    )
+    status["running_for_other_workspace"] = bool(status.get("running") and genome_hidden_from_user)
 
     if stale_deleted_genome:
         return _reset_pipeline_status_to_idle(status)
@@ -577,6 +578,7 @@ def clear_pipeline_activity_state():
             except Exception:
                 pass
 
+
 def annotate_pipeline_status_for_genome(
     pipeline_status: Mapping | None, genome_accession: str | None
 ) -> dict:
@@ -587,9 +589,7 @@ def annotate_pipeline_status_for_genome(
     state_label = str(status.get("state_label") or "").strip()
     matches_current_genome = bool(target_genome and running_genome == target_genome)
 
-    status["running_for_current_genome"] = bool(
-        running and matches_current_genome
-    )
+    status["running_for_current_genome"] = bool(running and matches_current_genome)
     status["running_for_other_genome"] = bool(
         running and running_genome and target_genome and running_genome != target_genome
     )
@@ -627,9 +627,7 @@ def annotate_pipeline_status_for_genomes(
     for genome in genomes:
         genome_data = dict(genome)
         genome_data.update(
-            annotate_pipeline_status_for_genome(
-                pipeline_status, genome_data.get("internal_name")
-            )
+            annotate_pipeline_status_for_genome(pipeline_status, genome_data.get("internal_name"))
         )
         annotated_genomes.append(genome_data)
     return annotated_genomes

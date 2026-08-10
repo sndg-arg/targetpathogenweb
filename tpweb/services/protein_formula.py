@@ -1,6 +1,10 @@
+import re
+
 from django.db.models import Q
 
 from tpweb.models.ScoreFormula import ScoreFormula
+from tpweb.models.ScoreParam import ScoreParam
+from tpweb.services.protein_list import humanize_identifier
 from tpweb.services.workspace import resolve_workspace_user
 
 
@@ -62,6 +66,54 @@ def build_col_descriptions(formula_term_list):
     return descriptions
 
 
+def build_all_term_descriptions():
+    """Return a {token: description} dict covering every ScoreParam column name
+    and every categorical ScoreParamOptions value site-wide.
+
+    Unlike build_col_descriptions() (scoped to one formula's own
+    ScoreFormulaParam terms), this is independent of which formula is active
+    or whether a formula even has term rows at all -- expression-based
+    formulas (free-text .expression, e.g. "Kp score") have no
+    ScoreFormulaParam rows to scope a per-formula lookup from, so a global
+    dict is the only way to explain their raw column-name tokens too.
+    """
+    descriptions = {}
+    for param in ScoreParam.objects.all().prefetch_related("choices"):
+        if param.description:
+            descriptions[param.name] = param.description
+        for choice in param.choices.all():
+            if choice.description:
+                descriptions[choice.name] = choice.description
+    return descriptions
+
+
+def annotate_formula_terms(expression, term_descriptions):
+    """Return a list of {"label", "description"} for every whole-word token
+    in *expression* that matches a key in *term_descriptions*, one entry per
+    recognized term, label humanized (e.g. "colabfold_druggability_score" ->
+    "ColabFold Druggability Score") for display in a rich tooltip.
+
+    Not a full expression parser -- these are known, finite identifier sets
+    (ScoreParam/ScoreParamOptions names), so a word-boundary scan is enough
+    to recognize them inside free-text formula expressions without needing
+    to understand the surrounding arithmetic.
+    """
+    if not expression or not term_descriptions:
+        return []
+    found = []
+    seen = set()
+    for match in re.finditer(r"[A-Za-z_][A-Za-z0-9_]*", expression):
+        token = match.group(0)
+        if token in seen:
+            continue
+        description = term_descriptions.get(token)
+        if not description:
+            continue
+        seen.add(token)
+        found.append({"label": humanize_identifier(token) or token, "description": description})
+    return found
+
+
 def ordered_score_params(formula_term_list):
     ordered = []
     seen_score_param_ids = set()
@@ -85,9 +137,7 @@ def build_score_dict_and_columns(ordered_params):
 def coefficient_map(formula_term_list):
     coefficient_by_param = {}
     for term in formula_term_list:
-        coefficient_by_param.setdefault(term.score_param.name, {})[
-            term.value
-        ] = term.coefficient
+        coefficient_by_param.setdefault(term.score_param.name, {})[term.value] = term.coefficient
     return coefficient_by_param
 
 
@@ -109,9 +159,7 @@ def formula_to_dto(formula, description_by_param):
             )
             continue
 
-        multi_desc = " ".join(
-            [f"{term.coefficient} if {term.value} " for term in param_terms]
-        )
+        multi_desc = " ".join([f"{term.coefficient} if {term.value} " for term in param_terms])
         dto_terms.append(
             {
                 "coefficient": 1,

@@ -1,4 +1,3 @@
-
 import requests
 
 
@@ -9,11 +8,11 @@ def get_chembl_target_id(uniprot_id):
     if response.status_code != 200:
         raise Exception(f"Failed to fetch data from ChEMBL API: {response.status_code}")
     data = response.json()
-    targets = data.get('targets', [])
+    targets = data.get("targets", [])
     print(targets)
     if not targets:
         raise ValueError(f"No ChEMBL target found for UniProt ID: {uniprot_id}")
-    return targets[0]['target_chembl_id']
+    return targets[0]["target_chembl_id"]
 
 
 def get_compounds_for_target(chembl_target_id):
@@ -23,8 +22,12 @@ def get_compounds_for_target(chembl_target_id):
     if response.status_code != 200:
         raise Exception(f"Failed to fetch data from ChEMBL API: {response.status_code}")
     data = response.json()
-    activities = data.get('activities', [])
-    compounds = {activity['molecule_chembl_id'] for activity in activities if 'molecule_chembl_id' in activity}
+    activities = data.get("activities", [])
+    compounds = {
+        activity["molecule_chembl_id"]
+        for activity in activities
+        if "molecule_chembl_id" in activity
+    }
     return compounds
 
 

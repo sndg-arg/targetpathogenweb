@@ -1,6 +1,6 @@
-# FastTarget Configuration File (vendored from mcpalumbo/fasttarget for TargetPathogenWeb)
+# FastTarget Configuration File (vendored from mcpalumbo/fasttarget for Target Pathogen Web)
 #
-# Defaults here are tuned for the TargetPathogenWeb pipeline (stage 4).
+# Defaults here are tuned for the Target Pathogen Web pipeline (stage 4).
 # `fast_command.py` rewrites organism.* and cpus before each run.
 #
 # Source: https://github.com/mcpalumbo/fasttarget

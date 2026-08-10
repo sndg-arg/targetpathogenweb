@@ -57,9 +57,12 @@ class Command(BaseCommand):
         faa = seqstore.faa(acc)
         gff = seqstore.gff(acc)
 
-        with BgzfWriter(genome_fna) as hf, gzip.open(faa, "wt") as hp, gzip.open(
-            genes_fna, "wt"
-        ) as hge, BgzfWriter(gff) as hg:
+        with (
+            BgzfWriter(genome_fna) as hf,
+            gzip.open(faa, "wt") as hp,
+            gzip.open(genes_fna, "wt") as hge,
+            BgzfWriter(gff) as hg,
+        ):
             id_handler, writer = self.create_gff_writer(hg)
             for contig in tqdm(gbio.record_list(), total=gbio.total):
                 bpio.write(utils.proteins_from_sequence(contig), hp, "fasta")
@@ -92,10 +95,14 @@ class Command(BaseCommand):
         for sf in sorted(contig.features, key=lambda f: f.location.start):
             sf = writer._clean_feature(sf)
             if "note" in sf.qualifiers:
-                sf.qualifiers["note"] = sf.qualifiers.get("gene", sf.qualifiers.get("locus_tag", [""]))[0]
+                sf.qualifiers["note"] = sf.qualifiers.get(
+                    "gene", sf.qualifiers.get("locus_tag", [""])
+                )[0]
             for ssf in sf.sub_features:
                 if "note" in ssf.qualifiers:
-                    ssf.qualifiers["note"] = ssf.qualifiers.get("gene", ssf.qualifiers.get("locus_tag", [""]))[0]
+                    ssf.qualifiers["note"] = ssf.qualifiers.get(
+                        "gene", ssf.qualifiers.get("locus_tag", [""])
+                    )[0]
             if (
                 isinstance(sf.location, CompoundLocation)
                 and int(sf.location.start) == 0

@@ -1,6 +1,10 @@
 # Binders and LigQ_2 Operations
 
-This document records how TargetPathogenWeb loads ligand/binder evidence from LigQ_2, how evidence is classified, and how to recover/reload results on Nodo0.
+This document records how Target Pathogen Web loads ligand evidence from LigQ_2, the internal Target step that gathers PDB, ChEMBL, and ZINC compound records; how evidence is classified; and how to recover/reload results on Nodo0.
+
+For the generic curated genome import workflow, including source-priority rules
+and manual Nodo0 loading commands, see
+[`docs/CURATED_GENOME_IMPORT.md`](CURATED_GENOME_IMPORT.md).
 
 ## Evidence model
 
@@ -59,10 +63,10 @@ For CSS/template-only changes, a container restart may be enough only if the ima
 Run before loading binders for a genome:
 
 ```bash
-docker exec target2_nodo0_web bash -c ". /opt/conda/etc/profile.d/conda.sh && conda activate tpv2 && python manage.py gbk2uniprot_map public__NC_002516.2 --batch_size 300 --datadir /app/targetpathogenweb/data"
+docker exec target2_nodo0_web bash -c ". /opt/conda/etc/profile.d/conda.sh && conda activate tpv2 && python manage.py gbk2uniprot_map <GENOME> --batch_size 300 --datadir /app/targetpathogenweb/data"
 ```
 
-The command first tries UniProt's async idmapping API. If that backend returns an error, TargetPathogenWeb falls back to UniProtKB search by RefSeq xref, e.g.:
+The command first tries UniProt's async idmapping API. If that backend returns an error, Target Pathogen Web falls back to UniProtKB search by RefSeq xref, e.g.:
 
 ```text
 xref:RefSeq-NP_064721.1
@@ -81,36 +85,31 @@ The mapping is cached at:
 <genome_data_dir>/unips_mapping.csv
 ```
 
-For PAO1:
+For the target genome:
 
 ```text
-/data/targetpathogen/data/NC_/public__NC_002516.2/unips_mapping.csv
+/data/targetpathogen/data/<PREFIX>/<GENOME>/unips_mapping.csv
 ```
 
 If a failed/empty mapping was cached, remove it and rerun:
 
 ```bash
-sudo rm -f /data/targetpathogen/data/NC_/public__NC_002516.2/unips_mapping.csv
-sudo rm -f /data/targetpathogen/data/NC_/public__NC_002516.2/unips_not_mapped.csv
+sudo rm -f /data/targetpathogen/data/<PREFIX>/<GENOME>/unips_mapping.csv
+sudo rm -f /data/targetpathogen/data/<PREFIX>/<GENOME>/unips_not_mapped.csv
 rm -f not_mapped.lst
 ```
 
-Verify mapping counts:
+Verify mapping exists:
 
 ```bash
 docker exec target2_nodo0_web bash -c ". /opt/conda/etc/profile.d/conda.sh && conda activate tpv2 && python manage.py shell -c \"
 from bioseq.models.BioentryDbxref import BioentryDbxref
-print('UnipSp:', BioentryDbxref.objects.filter(bioentry__biodatabase__name='public__NC_002516.2_prots', dbxref__dbname='UnipSp').count())
-print('UnipTr:', BioentryDbxref.objects.filter(bioentry__biodatabase__name='public__NC_002516.2_prots', dbxref__dbname='UnipTr').count())
+print('UnipSp:', BioentryDbxref.objects.filter(bioentry__biodatabase__name='<GENOME>_prots', dbxref__dbname='UnipSp').count())
+print('UnipTr:', BioentryDbxref.objects.filter(bioentry__biodatabase__name='<GENOME>_prots', dbxref__dbname='UnipTr').count())
 \""
 ```
 
-In the PAO1 recovery run, the expected order of magnitude was:
-
-```text
-UnipSp: 1421
-UnipTr: 4140
-```
+The exact values depend on the genome and upstream mapping coverage.
 
 ## Running LigQ_2 manually on cranex
 
@@ -132,31 +131,31 @@ git checkout search_backend
 FASTA files generated from the DB were copied to cranex:
 
 ```text
-/home/agutson/tpw_ligq/NZ_AP023069/proteins.fasta
-/home/agutson/tpw_ligq/NC_002516/proteins.fasta
+/home/agutson/tpw_ligq/<OTHER_GENOME_SHORT>/proteins.fasta
+/home/agutson/tpw_ligq/<GENOME_SHORT>/proteins.fasta
 ```
 
 SLURM script pattern:
 
 ```bash
-cat > /home/agutson/tpw_ligq/run_NC_002516.sh << 'EOF'
+cat > /home/agutson/tpw_ligq/run_<GENOME_SHORT>.sh << 'EOF'
 #!/bin/bash
-#SBATCH --job-name=ligq_NC_002516
+#SBATCH --job-name=ligq_<GENOME_SHORT>
 #SBATCH --partition=cpu
 #SBATCH --time=02:00:00
 #SBATCH --mem=32G
 #SBATCH --cpus-per-task=8
-#SBATCH --output=/home/agutson/tpw_ligq/NC_002516/slurm-%j.out
+#SBATCH --output=/home/agutson/tpw_ligq/<GENOME_SHORT>/slurm-%j.out
 
 export PATH=/home/agutson/work/conda_envs/ligq_2_local/bin:$PATH
 
-mkdir -p /home/agutson/tpw_ligq/NC_002516/output
+mkdir -p /home/agutson/tpw_ligq/<GENOME_SHORT>/output
 cd /home/agutson/work/LigQ_2
 python run_ligq_2.py \
-    --input-fasta /home/agutson/tpw_ligq/NC_002516/proteins.fasta \
-    --output-dir /home/agutson/tpw_ligq/NC_002516/output
+    --input-fasta /home/agutson/tpw_ligq/<GENOME_SHORT>/proteins.fasta \
+    --output-dir /home/agutson/tpw_ligq/<GENOME_SHORT>/output
 EOF
-sbatch /home/agutson/tpw_ligq/run_NC_002516.sh
+sbatch /home/agutson/tpw_ligq/run_<GENOME_SHORT>.sh
 ```
 
 Notes:
@@ -164,14 +163,13 @@ Notes:
 - Use the Python binary/environment directly by exporting `PATH`. This avoids compute-node conda activation issues.
 - Do not use container-internal paths such as `/app/targetpathogenweb/data/...` on cranex. Copy FASTA files to cranex first.
 - Check jobs with `squeue -u agutson`.
-- Check output with `tail -30 /home/agutson/tpw_ligq/NC_002516/slurm-<jobid>.out`.
+- Check output with `tail -30 /home/agutson/tpw_ligq/<GENOME_SHORT>/slurm-<jobid>.out`.
 
 Expected success:
 
 ```text
 Pipeline completed successfully.
-Global summary shape: (5572, 10)
-Results written under: /home/agutson/tpw_ligq/NC_002516/output
+Results written under: /home/agutson/tpw_ligq/<GENOME_SHORT>/output
 ```
 
 ## Copy LigQ_2 output back to Nodo0
@@ -180,24 +178,20 @@ From Nodo0 as `dockeradmin`:
 
 ```bash
 scp -r -i /home/dockeradmin/.ssh/id_ed25519_agutson_cluster \
-    agutson@cluster.qb.fcen.uba.ar:/home/agutson/tpw_ligq/NC_002516/output/ \
-    /data/targetpathogen/data/NC_/public__NC_002516.2/ligq2/
+    agutson@cluster.qb.fcen.uba.ar:/home/agutson/tpw_ligq/<GENOME_SHORT>/output/ \
+    /data/targetpathogen/data/<PREFIX>/<GENOME>/ligq2/
 ```
 
-LigQ_2 `search_backend` writes `predicted_ligands.tsv`; the loader currently expects `zinc_ligands.tsv`. Rename before loading:
-
-```bash
-find /data/targetpathogen/data/NC_/public__NC_002516.2/ligq2/output/search_results/ \
-    -name "predicted_ligands.tsv" \
-    -exec bash -c 'mv "$1" "$(dirname "$1")/zinc_ligands.tsv"' _ {} \;
-```
+LigQ_2 `search_backend` writes `predicted_ligands.tsv`; the loader accepts it as
+the ZINC/proposed-ligand table. Older `zinc_ligands.tsv` outputs are still
+accepted.
 
 ## Load LigQ_2 results into the database
 
 Dry-run first if the output is new:
 
 ```bash
-docker exec target2_nodo0_web bash -c ". /opt/conda/etc/profile.d/conda.sh && conda activate tpv2 && python manage.py load_ligq_2_results --dry-run /app/targetpathogenweb/data/NC_/public__NC_002516.2/ligq2/output"
+docker exec target2_nodo0_web bash -c ". /opt/conda/etc/profile.d/conda.sh && conda activate tpv2 && python manage.py load_ligq_2_results --dry-run /app/targetpathogenweb/data/<PREFIX>/<GENOME>/ligq2/output"
 ```
 
 Delete existing binders for the proteome:
@@ -205,7 +199,7 @@ Delete existing binders for the proteome:
 ```bash
 docker exec target2_nodo0_web bash -c ". /opt/conda/etc/profile.d/conda.sh && conda activate tpv2 && python manage.py shell -c \"
 from tpweb.models.Binders import Binders
-deleted, _ = Binders.objects.filter(locustag__biodatabase__name='public__NC_002516.2_prots').delete()
+deleted, _ = Binders.objects.filter(locustag__biodatabase__name='<GENOME>_prots').delete()
 print(f'Deleted {deleted} binders')
 \""
 ```
@@ -213,15 +207,10 @@ print(f'Deleted {deleted} binders')
 Load:
 
 ```bash
-docker exec target2_nodo0_web bash -c ". /opt/conda/etc/profile.d/conda.sh && conda activate tpv2 && python manage.py load_ligq_2_results /app/targetpathogenweb/data/NC_/public__NC_002516.2/ligq2/output"
+docker exec target2_nodo0_web bash -c ". /opt/conda/etc/profile.d/conda.sh && conda activate tpv2 && python manage.py load_ligq_2_results /app/targetpathogenweb/data/<PREFIX>/<GENOME>/ligq2/output"
 ```
 
-Typical PAO1 load summary:
-
-```text
-known: raw=51784  kept=40729  written=40729  missing_locustag=0
-zinc:  raw=232379 kept=122852 written=122852 missing_locustag=0
-```
+Review the loader summary for missing locus tags and unexpected drops.
 
 ## Verify direct vs homolog classification
 
@@ -230,7 +219,7 @@ After loading:
 ```bash
 docker exec target2_nodo0_web bash -c ". /opt/conda/etc/profile.d/conda.sh && conda activate tpv2 && python manage.py shell -c \"
 from tpweb.models.Binders import Binders
-qs = Binders.objects.filter(locustag__biodatabase__name='public__NC_002516.2_prots')
+qs = Binders.objects.filter(locustag__biodatabase__name='<GENOME>_prots')
 print('total:', qs.count())
 print('direct:', qs.filter(is_direct=True).count())
 print('homolog:', qs.filter(is_direct=False).count())
@@ -242,7 +231,15 @@ print('zinc:', qs.filter(source='proposed').count())
 \""
 ```
 
-If `direct` is zero for a well-studied genome like PAO1, check UniProt mapping first. For less-studied genomes, all binders may legitimately be homolog-derived.
+If `direct` is zero for a well-studied genome, check UniProt mapping first. For less-studied genomes, all binders may legitimately be homolog-derived.
+
+If UniProt mappings were imported after `load_ligq_2_results`, recompute the
+direct/homolog flags without reloading LigQ output:
+
+```bash
+docker exec target2_nodo0_web bash -c ". /opt/conda/etc/profile.d/conda.sh && conda activate tpv2 && python manage.py recompute_binder_directness <GENOME> --dry-run"
+docker exec target2_nodo0_web bash -c ". /opt/conda/etc/profile.d/conda.sh && conda activate tpv2 && python manage.py recompute_binder_directness <GENOME>"
+```
 
 ## UI expectations
 
@@ -275,8 +272,7 @@ This can be an upstream UniProt/EBI backend issue. The tpweb override falls back
 
 Check:
 
-1. `UnipSp` / `UnipTr` counts for that genome.
+1. `UnipSp` / `UnipTr` mappings exist for that genome.
 2. The genome name uses `_prots`, not `_prot`.
-3. The loader has been rerun after UniProt mapping.
+3. `recompute_binder_directness <genome>` has been run after UniProt mapping.
 4. The genome may genuinely have no PDB/ChEMBL direct evidence.
-

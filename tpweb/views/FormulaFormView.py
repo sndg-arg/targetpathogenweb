@@ -4,7 +4,11 @@ from django.urls import reverse
 
 from tpweb.models.ScoreFormula import ScoreFormula
 from tpweb.services.formula_evaluator import available_variables_grouped, validate_expression_syntax
-from tpweb.services.genome_workspace import display_genome_name, genome_url_slug, resolve_genome_from_slug
+from tpweb.services.genome_workspace import (
+    display_genome_name,
+    genome_url_slug,
+    resolve_genome_from_slug,
+)
 from tpweb.services.workspace import resolve_workspace_user
 from tpweb.views.FormulaForm import FormulaForm
 
@@ -52,7 +56,9 @@ def FormulaFormView(request, genome):
 
     if request.method == "POST":
         if "reset_process" in request.POST:
-            return redirect(reverse("tpwebapp:formula_form", kwargs={"genome": genome_url_slug(assembly_name)}))
+            return redirect(
+                reverse("tpwebapp:formula_form", kwargs={"genome": genome_url_slug(assembly_name)})
+            )
 
         form = FormulaForm(request.POST)
         if form.is_valid():
@@ -69,7 +75,9 @@ def FormulaFormView(request, genome):
                     defaults={"expression": expression},
                 )
                 return redirect(
-                    reverse("tpwebapp:protein_list", kwargs={"genome": genome_url_slug(assembly_name)})
+                    reverse(
+                        "tpwebapp:protein_list", kwargs={"genome": genome_url_slug(assembly_name)}
+                    )
                     + f"?scoreformula={name}"
                 )
     else:

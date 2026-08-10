@@ -1,5 +1,6 @@
 {% for p in structure_data.pockets %}
-    sele = "(STP AND .APOL AND {{p.name}}) OR (NOT water AND @{{p.atoms|join:","}})";
+    var fpocketResidueSele = activeChainSelector + " AND NOT STP AND NOT water AND ({{p.residue_ids|join:" OR "}})";
+    sele = fpocketResidueSele;
     representations["{{p.name}}_apol"] = component.addRepresentation("surface", {
         sele: sele,
         multipleBond: false,
@@ -14,7 +15,7 @@
         priorityPocketSurfaceKeys.push("{{p.name}}_apol");
     {% endif %}
 
-    sele = "(STP AND .POL AND {{p.name}}) OR (NOT water AND @{{p.atoms|join:","}})";
+    sele = fpocketResidueSele;
     representations["{{p.name}}_pol"] = component.addRepresentation("surface", {
         sele: sele,
         multipleBond: false,
@@ -35,25 +36,39 @@
     representations["{{p.name}}_apol"].setVisibility(false);
 
     representations["{{p.name}}_atm"] = component.addRepresentation("ball+stick", {
-        sele: "NOT STP AND NOT water AND @{{p.atoms|join:","}}",
+        sele: fpocketResidueSele,
         color: tpColor("--tp-color-structure-pocket-polar")
     });
     visible["{{p.name}}_atm"] = false;
     representations["{{p.name}}_atm"].setVisibility(false);
-    representations["{{p.name}}_atm"].sele = "NOT STP AND NOT water AND @{{p.atoms|join:","}}";
+    representations["{{p.name}}_atm"].sele = fpocketResidueSele;
 
+    {% if p.core_points %}
+    var fpocketCoreShape{{ forloop.counter }} = new NGL.Shape("FPocket {{p.name}} core");
+    var fpocketCoreColor{{ forloop.counter }} = tpColorTriplet("--tp-color-structure-pocket-apolar", "#20c3d6");
+    {% for point in p.core_points %}
+    fpocketCoreShape{{ forloop.parentloop.counter }}.addSphere([{{ point.x }}, {{ point.y }}, {{ point.z }}], fpocketCoreColor{{ forloop.parentloop.counter }}, {{ point.radius }});
+    {% endfor %}
+    registerShapeComponent("{{p.name}}_sph", fpocketCoreShape{{ forloop.counter }});
+    {% else %}
     representations["{{p.name}}_sph"] = component.addRepresentation("spacefill", {
-        sele: "NOT STP AND NOT water AND @{{p.atoms|join:","}}",
+        sele: fpocketResidueSele,
         color: tpColor("--tp-color-structure-pocket-apolar"),
         radiusScale: 0.7
     });
+    {% endif %}
     visible["{{p.name}}_sph"] = false;
     representations["{{p.name}}_sph"].setVisibility(false);
-    representations["{{p.name}}_sph"].sele = "NOT STP AND NOT water AND @{{p.atoms|join:","}}";
+    {% if p.core_points %}
+    representations["{{p.name}}_sph"].tpShapeComponent = true;
+    {% else %}
+    representations["{{p.name}}_sph"].sele = fpocketResidueSele;
+    {% endif %}
 
     representations["{{p.name}}_lbl"] = component.addRepresentation("label", {
-        labelType: "res",
-        sele: activeChainSelector + " AND .CA AND ({{p.residues|join:" OR "}})",
+        labelType: "text",
+        labelText: residueLabelTextByAtomIndex,
+        sele: activeChainSelector + " AND .CA AND ({{p.residue_ids|join:" OR "}})",
         color: tpColor("--tp-color-structure-label") || "#0e2330",
         backgroundColor: tpColor("--tp-color-structure-label-bg") || "rgba(255,255,255,0.78)",
         showBackground: true,
@@ -66,14 +81,15 @@
     });
     visible["{{p.name}}_lbl"] = false;
     representations["{{p.name}}_lbl"].setVisibility(false);
-    representations["{{p.name}}_lbl"].sele = activeChainSelector + " AND .CA AND ({{p.residues|join:" OR "}})";
+    representations["{{p.name}}_lbl"].sele = activeChainSelector + " AND .CA AND ({{p.residue_ids|join:" OR "}})";
     representations["{{p.name}}_zoom"] = {
-        sele: "NOT STP AND NOT water AND @{{p.atoms|join:","}}"
+        sele: fpocketResidueSele
     };
 {% endfor %}
 
 {% for p2 in structure_data.p2_pockets %}
-    sele = "(STP AND .APOL AND {{p2.name}}) OR (NOT water AND @{{p2.atoms|join:","}})";
+    var p2rankResidueSele = activeChainSelector + " AND NOT STP AND NOT water AND ({{p2.residue_ids|join:" OR "}})";
+    sele = p2rankResidueSele;
     representations["p2_{{p2.name}}_apol"] = component.addRepresentation("surface", {
         sele: sele,
         multipleBond: false,
@@ -88,7 +104,7 @@
         priorityPocketSurfaceKeys.push("p2_{{p2.name}}_apol");
     {% endif %}
 
-    sele = "(STP AND .POL AND {{p2.name}}) OR (NOT water AND @{{p2.atoms|join:","}})";
+    sele = p2rankResidueSele;
     representations["p2_{{p2.name}}_pol"] = component.addRepresentation("surface", {
         sele: sele,
         multipleBond: false,
@@ -109,25 +125,39 @@
     representations["p2_{{p2.name}}_apol"].setVisibility(false);
 
     representations["p2_{{p2.name}}_atm"] = component.addRepresentation("ball+stick", {
-        sele: "NOT STP AND NOT water AND @{{p2.atoms|join:","}}",
+        sele: p2rankResidueSele,
         color: tpColor("--tp-color-structure-p2-polar")
     });
     visible["p2_{{p2.name}}_atm"] = false;
     representations["p2_{{p2.name}}_atm"].setVisibility(false);
-    representations["p2_{{p2.name}}_atm"].sele = "NOT STP AND NOT water AND @{{p2.atoms|join:","}}";
+    representations["p2_{{p2.name}}_atm"].sele = p2rankResidueSele;
 
+    {% if p2.core_points %}
+    var p2rankCoreShape{{ forloop.counter }} = new NGL.Shape("P2Rank {{p2.name}} core");
+    var p2rankCoreColor{{ forloop.counter }} = tpColorTriplet("--tp-color-structure-p2-apolar", "#f59e0b");
+    {% for point in p2.core_points %}
+    p2rankCoreShape{{ forloop.parentloop.counter }}.addSphere([{{ point.x }}, {{ point.y }}, {{ point.z }}], p2rankCoreColor{{ forloop.parentloop.counter }}, 1.1);
+    {% endfor %}
+    registerShapeComponent("p2_{{p2.name}}_sph", p2rankCoreShape{{ forloop.counter }});
+    {% else %}
     representations["p2_{{p2.name}}_sph"] = component.addRepresentation("spacefill", {
-        sele: "NOT STP AND NOT water AND @{{p2.atoms|join:","}}",
+        sele: p2rankResidueSele,
         color: tpColor("--tp-color-structure-p2-apolar"),
         radiusScale: 0.7
     });
+    {% endif %}
     visible["p2_{{p2.name}}_sph"] = false;
     representations["p2_{{p2.name}}_sph"].setVisibility(false);
-    representations["p2_{{p2.name}}_sph"].sele = "NOT STP AND NOT water AND @{{p2.atoms|join:","}}";
+    {% if p2.core_points %}
+    representations["p2_{{p2.name}}_sph"].tpShapeComponent = true;
+    {% else %}
+    representations["p2_{{p2.name}}_sph"].sele = p2rankResidueSele;
+    {% endif %}
 
     representations["p2_{{p2.name}}_lbl"] = component.addRepresentation("label", {
-        labelType: "res",
-        sele: activeChainSelector + " AND .CA AND ({{p2.residues|join:" OR "}})",
+        labelType: "text",
+        labelText: residueLabelTextByAtomIndex,
+        sele: activeChainSelector + " AND .CA AND ({{p2.residue_ids|join:" OR "}})",
         color: tpColor("--tp-color-structure-label") || "#0e2330",
         backgroundColor: tpColor("--tp-color-structure-label-bg") || "rgba(255,255,255,0.78)",
         showBackground: true,
@@ -140,9 +170,9 @@
     });
     visible["p2_{{p2.name}}_lbl"] = false;
     representations["p2_{{p2.name}}_lbl"].setVisibility(false);
-    representations["p2_{{p2.name}}_lbl"].sele = activeChainSelector + " AND .CA AND ({{p2.residues|join:" OR "}})";
+    representations["p2_{{p2.name}}_lbl"].sele = activeChainSelector + " AND .CA AND ({{p2.residue_ids|join:" OR "}})";
     representations["p2_{{p2.name}}_zoom"] = {
-        sele: "NOT STP AND NOT water AND @{{p2.atoms|join:","}}"
+        sele: p2rankResidueSele
     };
 {% endfor %}
 

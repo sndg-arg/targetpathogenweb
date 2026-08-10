@@ -5,18 +5,22 @@
     gap: var(--tp-space-4);
     --ff-accent-ink: var(--tp-color-brand-900);
     --ff-accent-soft: var(--tp-color-info-bg);
-    --ff-accent-soft-2: color-mix(in srgb, var(--tp-color-brand-050) 72%, white);
+    --ff-accent-soft-2: var(--tp-color-brand-050);
     --ff-accent-border: var(--tp-color-brand-300);
     --ff-border: var(--tp-color-border-soft);
     --ff-mono: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
-    --ff-editor-bg: color-mix(in srgb, var(--tp-color-brand-950) 96%, var(--tp-color-brand-800));
+    --ff-editor-bg: var(--tp-color-brand-900);
+    --ff-editor-color: var(--tp-color-brand-100);
 }
 
 .formula-page h1,
 .formula-page h2,
 .formula-page h3 {
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-weight: 600;
     letter-spacing: -0.01em;
 }
+.formula-page h1 { font-weight: 700; }
 
 .formula-page > form {
     display: contents;
@@ -24,27 +28,15 @@
 
 /* ── Hero ── */
 
+/* No longer its own boxed card -- sits directly on the page background
+   (see tpw-editorial-redesign). Its own top accent bar is gone too: that
+   was a page-local duplicate of the site-wide masthead rule in
+   .tp-main::before, which now covers this. The workbench cards below
+   stay individually boxed -- a side-by-side editor/variable-picker tool
+   layout, not sequential page sections (same call as customparam.html's
+   form+guide pair). */
 .formula-hero {
-    position: relative;
-    overflow: hidden;
-    border: 1px solid var(--ff-border);
-    border-radius: var(--tp-ui-radius-hero);
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
-    padding: 22px 22px 18px;
-    box-shadow: var(--tp-ui-shadow-panel);
-}
-
-.formula-hero::before {
-    content: "";
-    position: absolute;
-    inset: 0 0 auto 0;
-    height: 4px;
-    background: linear-gradient(90deg, var(--tp-color-brand-800) 0%, var(--tp-color-sage-700) 55%, var(--tp-color-brand-500) 100%);
-}
-
-.formula-hero > * {
-    position: relative;
-    z-index: 1;
+    padding: 22px 18px 18px;
 }
 
 .formula-eyebrow {
@@ -55,7 +47,7 @@
     color: var(--tp-color-text-muted);
     font-family: var(--ff-mono);
     font-size: var(--tp-font-label);
-    font-weight: 700;
+    font-weight: 500;
     letter-spacing: 0.08em;
     text-transform: uppercase;
 }
@@ -91,7 +83,7 @@
 
 .formula-chip-id {
     font-family: var(--ff-mono);
-    font-weight: 700;
+    font-weight: 600;
     color: var(--ff-accent-ink);
 }
 
@@ -100,7 +92,7 @@
 .formula-alert {
     border: 1px solid var(--tp-color-danger-border);
     border-radius: var(--tp-ui-radius-panel);
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-danger-bg) 100%);
+    background: var(--tp-color-danger-bg);
     padding: 14px 16px;
 }
 
@@ -111,6 +103,9 @@
     grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
     gap: 18px;
     align-items: start;
+    /* The cards inside keep their own border -- margin aligns that
+       border with the 18px text inset the unboxed hero uses. */
+    margin: 0 18px;
 }
 
 .formula-editor-col {
@@ -121,10 +116,9 @@
 /* ── Cards ── */
 
 .formula-card {
-    border: 1px solid var(--ff-border);
+    border: 1px solid var(--tp-color-border-soft);
     border-radius: var(--tp-ui-radius-panel);
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
-    box-shadow: var(--tp-ui-shadow-panel);
+    background: var(--tp-color-surface);
     padding: 16px;
     display: grid;
     gap: 14px;
@@ -168,8 +162,8 @@
     resize: vertical;
     min-height: 120px;
     background: var(--ff-editor-bg) !important;
-    color: color-mix(in srgb, var(--tp-color-brand-100) 90%, white) !important;
-    border: 1px solid color-mix(in srgb, var(--tp-color-brand-700) 60%, transparent) !important;
+    color: var(--ff-editor-color) !important;
+    border: 1px solid var(--tp-color-brand-700) !important;
     border-radius: 12px !important;
     caret-color: var(--tp-color-brand-300);
     padding: 14px 16px !important;
@@ -177,12 +171,12 @@
 }
 
 .formula-expression-input::placeholder {
-    color: color-mix(in srgb, var(--tp-color-brand-400) 55%, transparent) !important;
+    color: color-mix(in srgb, var(--tp-color-brand-600) 55%, transparent) !important;
 }
 
 .formula-expression-input:focus {
-    border-color: var(--tp-color-brand-400) !important;
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--tp-color-brand-400) 22%, transparent) !important;
+    border-color: var(--tp-color-brand-600) !important;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--tp-color-brand-600) 22%, transparent) !important;
     outline: none !important;
 }
 
@@ -229,7 +223,7 @@
     margin: 0;
     color: var(--tp-color-text-muted);
     font-size: 0.75rem;
-    font-weight: 700;
+    font-weight: 500;
     letter-spacing: 0.07em;
     text-transform: uppercase;
 }
@@ -237,7 +231,7 @@
 .formula-katex-block {
     border: 1px solid var(--tp-color-border-soft);
     border-radius: 12px;
-    background: linear-gradient(180deg, var(--tp-color-surface-soft) 0%, var(--tp-color-surface-muted) 100%);
+    background: var(--tp-color-surface-soft);
     padding: 14px 16px;
     min-height: 58px;
     display: flex;
@@ -265,7 +259,7 @@
     margin: 0;
     color: var(--tp-color-text-muted);
     font-size: 0.75rem;
-    font-weight: 700;
+    font-weight: 500;
     letter-spacing: 0.07em;
     text-transform: uppercase;
 }
@@ -290,22 +284,15 @@
     font-weight: 600;
     padding: 4px 10px;
     cursor: pointer;
-    transition: background 0.14s, border-color 0.14s, transform 0.1s;
+    transition: background 0.14s, border-color 0.14s;
     line-height: 1.4;
 }
 
 .formula-fn-chip:hover,
 .formula-op-chip:hover,
 .formula-example-chip:hover {
-    background: var(--ff-accent-soft-2);
-    border-color: var(--ff-accent-border);
-    transform: translateY(-1px);
-}
-
-.formula-fn-chip:active,
-.formula-op-chip:active,
-.formula-example-chip:active {
-    transform: translateY(0);
+    background: var(--tp-color-surface-muted);
+    border-color: var(--tp-color-border);
 }
 
 .formula-op-chip {
@@ -327,7 +314,7 @@
 .formula-example-chip span {
     color: var(--ff-accent-ink);
     font-size: 0.82rem;
-    font-weight: 700;
+    font-weight: 600;
 }
 
 .formula-example-chip code {
@@ -381,7 +368,7 @@
     margin: 0;
     color: var(--tp-color-text-muted);
     font-size: 0.75rem;
-    font-weight: 700;
+    font-weight: 500;
     letter-spacing: 0.06em;
     text-transform: uppercase;
     padding-bottom: 2px;
@@ -407,7 +394,7 @@
     font-weight: 500;
     padding: 3px 8px;
     cursor: pointer;
-    transition: background 0.12s, border-color 0.12s, color 0.12s, transform 0.1s;
+    transition: background 0.12s, border-color 0.12s, color 0.12s;
     line-height: 1.4;
     text-align: left;
     max-width: 100%;
@@ -427,9 +414,9 @@
     border-radius: 999px;
     background: var(--tp-color-surface-muted);
     color: var(--tp-color-text-muted);
-    font-family: var(--tp-font-body);
+    font-family: "Source Sans 3", "Segoe UI", sans-serif;
     font-size: 0.64rem;
-    font-weight: 800;
+    font-weight: 500;
     letter-spacing: 0.04em;
     line-height: 1;
     padding: 3px 6px;
@@ -447,14 +434,9 @@
 }
 
 .formula-var-chip:hover {
-    background: var(--ff-accent-soft-2);
-    border-color: var(--ff-accent-border);
+    background: var(--tp-color-surface-muted);
+    border-color: var(--tp-color-border);
     color: var(--ff-accent-ink);
-    transform: translateY(-1px);
-}
-
-.formula-var-chip:active {
-    transform: translateY(0);
 }
 
 /* ── Field error ── */
@@ -473,11 +455,12 @@
     align-items: flex-end;
     gap: 24px;
     justify-content: space-between;
-    border: 1px solid var(--ff-border);
+    border: 1px solid var(--tp-color-border-soft);
     border-radius: var(--tp-ui-radius-panel);
-    background: linear-gradient(180deg, var(--ff-accent-soft-2) 0%, var(--tp-color-surface) 100%);
-    box-shadow: var(--tp-ui-shadow-panel);
+    background: var(--tp-color-surface-soft);
     padding: 18px 22px;
+    /* Same border-alignment fix as .formula-workbench above. */
+    margin: 0 18px;
 }
 
 .formula-footer-copy {
@@ -490,7 +473,7 @@
     margin: 0;
     color: var(--ff-accent-ink);
     font-size: 0.96rem;
-    font-weight: 700;
+    font-weight: 600;
 }
 
 .formula-footer-note {
@@ -526,7 +509,7 @@
 
 @keyframes formula-enter {
     from { opacity: 0; transform: translateY(6px); }
-    to   { opacity: 1; transform: translateY(0); }
+    to   { opacity: 1; transform: none; }
 }
 
 /* ── Responsive ── */
@@ -569,4 +552,9 @@
     .formula-footer-actions .btn {
         width: 100%;
     }
+}
+
+.tp-dark .formula-page {
+    --ff-editor-bg: var(--tp-color-brand-050);
+    --ff-editor-color: var(--tp-color-brand-900);
 }

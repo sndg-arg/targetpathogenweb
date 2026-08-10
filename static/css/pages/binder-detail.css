@@ -26,8 +26,10 @@
 .binder-page h2,
 .binder-page h3 {
     font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-weight: 600;
     letter-spacing: 0.2px;
 }
+.binder-page h1 { font-weight: 700; }
 
 .binder-page code {
     font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
@@ -39,9 +41,32 @@
     color: var(--tp-color-text-primary);
 }
 
+.binder-hero,
+.binder-page .quick-nav,
+.binder-card {
+    animation: tp-ui-enter 340ms var(--tp-ui-ease-standard) both;
+}
+
+.binder-page .quick-nav {
+    animation-delay: 40ms;
+}
+
+.binder-card {
+    animation-delay: 80ms;
+}
+
+.binder-card:nth-of-type(2) { animation-delay: 110ms; }
+.binder-card:nth-of-type(3) { animation-delay: 140ms; }
+.binder-card:nth-of-type(4) { animation-delay: 170ms; }
+
 /* ── Hero ─────────────────────────────────────────────────────────── */
 
-/* Base styles from .tp-page-hero in ui-system.css */
+/* No longer boxed via .tp-page-hero -- sits directly on the page
+   background (see tpw-editorial-redesign), so it needs its own padding
+   now instead of inheriting that shared class's. */
+.binder-hero {
+    padding: 20px 18px;
+}
 
 .binder-hero-top {
     display: flex;
@@ -60,7 +85,7 @@
     margin: 6px 0 10px;
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-label);
-    font-weight: 700;
+    font-weight: 500;
     letter-spacing: 0.08em;
     text-transform: uppercase;
 }
@@ -70,7 +95,6 @@
     font-size: var(--tp-heading-lg);
     line-height: 1.1;
     color: var(--binder-accent-ink);
-    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
     word-break: break-all;
 }
 
@@ -91,7 +115,7 @@
 .binder-context-id {
     font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
     color: var(--binder-accent-ink);
-    font-weight: 700;
+    font-weight: 600;
     text-decoration: none;
 }
 
@@ -144,21 +168,23 @@
     margin-top: 14px;
 }
 
+/* Shared stat-card idiom with genome-overview.css / assembly.html -- same
+   border-radius, padding, label size and value size, so the "number in a
+   pill" concept looks identical whichever page it's on. */
 .binder-page .metric-pill {
-    border: 1px solid var(--binder-accent-border);
-    border-radius: 12px;
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-panel) 100%);
-    padding: 10px 14px;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 10px;
+    background: var(--tp-color-surface-soft);
+    padding: 10px 12px;
     min-height: 68px;
     display: grid;
     align-content: center;
-    gap: 3px;
-    box-shadow: var(--tp-shadow-xs);
+    gap: 2px;
 }
 
 .binder-page .metric-label {
-    font-size: 0.73rem;
-    font-weight: 700;
+    font-size: var(--tp-font-label);
+    font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     color: var(--tp-color-text-muted);
@@ -166,9 +192,12 @@
 
 .binder-page .metric-value {
     color: var(--binder-accent-ink);
-    font-size: 1.15rem;
-    line-height: 1.2;
-    font-weight: 700;
+    font-size: 1.45rem;
+    line-height: 1.1;
+    font-weight: 600;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
 }
 
 .metric-unit {
@@ -214,8 +243,10 @@
     padding: 8px 10px;
     border: 1px solid var(--tp-color-border-soft);
     border-radius: 12px;
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
-    box-shadow: var(--tp-shadow-xs);
+    background: var(--tp-color-surface-soft);
+    /* This box's own border needs to align with the 18px text inset used
+       by the unboxed hero around it. */
+    margin: 0 18px;
 }
 
 .binder-page .quick-nav::-webkit-scrollbar {
@@ -235,10 +266,10 @@
     min-height: 36px;
     padding: 0.32rem 0.85rem;
     line-height: 1.1;
-    font-weight: 600;
+    font-weight: 500;
     border-radius: 999px;
-    border: 1px solid var(--tp-color-border-strong) !important;
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%) !important;
+    border: 1px solid var(--tp-color-border) !important;
+    background: var(--tp-color-surface) !important;
     color: var(--tp-color-text-secondary) !important;
     white-space: nowrap;
     text-decoration: none !important;
@@ -246,33 +277,53 @@
 
 .binder-page .quick-nav .quick-nav-link:hover,
 .binder-page .quick-nav .quick-nav-link:focus-visible {
+    color: var(--tp-color-text-primary) !important;
+    border-color: var(--tp-color-border-strong) !important;
+    background: var(--tp-color-surface-muted) !important;
+}
+
+.binder-page .quick-nav .quick-nav-link.is-active,
+.binder-page .quick-nav .quick-nav-link[aria-current="true"] {
     color: var(--tp-color-link-hover) !important;
     border-color: var(--binder-accent-border) !important;
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--binder-accent-soft) 100%) !important;
+    background: var(--tp-color-brand-100) !important;
+    text-decoration: none !important;
+}
+
+.tp-dark .binder-page .quick-nav .quick-nav-link.is-active,
+.tp-dark .binder-page .quick-nav .quick-nav-link[aria-current="true"] {
+    background: var(--tp-color-brand-200) !important;
+    border-color: var(--tp-color-brand-300) !important;
+    color: var(--tp-color-brand-900) !important;
 }
 
 /* ── Grid + panels ────────────────────────────────────────────────── */
 
+/* Sections sit directly on the page background, no card boxing (see
+   tpw-editorial-redesign). Eight sections here, each already opening
+   with its own bold h2 -- a divider before every one would read as a
+   ruled form, so a wider gap instead of a hairline, same call as
+   protein.html's .protein-grid. */
 .binder-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 14px;
+    gap: 32px;
 }
 
 .binder-card {
-    border: 1px solid var(--tp-color-border);
-    border-radius: var(--tp-ui-radius-panel);
-    background: var(--tp-color-surface);
-    box-shadow: var(--tp-ui-shadow-panel);
-    padding: 16px;
-    overflow: hidden;
+    padding: 16px 18px;
     scroll-margin-top: 128px;
+}
+
+.binder-card--identifiers {
+    display: flex;
+    flex-direction: column;
 }
 
 .binder-card h2 {
     margin: 0;
     font-size: var(--tp-heading-sm);
-    font-weight: var(--tp-font-weight-bold);
+    font-weight: 600;
     color: var(--binder-accent-ink);
 }
 
@@ -306,6 +357,15 @@
     }
 }
 
+@media (prefers-reduced-motion: reduce) {
+    .binder-hero,
+    .binder-page .quick-nav,
+    .binder-card {
+        animation: none !important;
+        transition: none !important;
+    }
+}
+
 /* ── Structure SVG ────────────────────────────────────────────────── */
 
 .binder-svg-box {
@@ -334,6 +394,12 @@
     display: flex;
     flex-direction: column;
     gap: 10px;
+    /* The grid stretches this card to match Structure's height (its 2D
+       diagram is usually taller than this short row list) -- center the
+       rows in that space instead of leaving them pinned to the top with
+       dead air below, which read as an unfinished/cut-off card. */
+    flex: 1;
+    justify-content: center;
 }
 
 .binder-id-row {
@@ -346,7 +412,7 @@
 .binder-id-row dt {
     color: var(--tp-color-text-muted);
     font-size: 0.78rem;
-    font-weight: 700;
+    font-weight: 500;
     letter-spacing: 0.06em;
     text-transform: uppercase;
 }
@@ -356,6 +422,11 @@
     color: var(--tp-color-text-primary);
     font-weight: 500;
     overflow-wrap: anywhere;
+}
+
+.binder-id-row-sub {
+    color: var(--tp-color-text-muted);
+    font-weight: 400;
 }
 
 @media (max-width: 640px) {
@@ -376,7 +447,7 @@
 .property-cell {
     border: 1px solid var(--tp-color-border-soft);
     border-radius: 10px;
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+    background: var(--tp-color-surface);
     padding: 10px 12px;
     display: grid;
     gap: 4px;
@@ -386,7 +457,7 @@
 
 .property-label {
     font-size: var(--tp-font-label);
-    font-weight: 700;
+    font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     color: var(--tp-color-text-muted);
@@ -401,7 +472,7 @@
 
 .property-value {
     font-size: 1.05rem;
-    font-weight: 700;
+    font-weight: 600;
     color: var(--binder-accent-ink);
     line-height: 1.2;
 }
@@ -435,15 +506,16 @@
 
 .druglike-head {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: 10px;
+    gap: 6px 10px;
     margin-bottom: 10px;
 }
 
 .druglike-title {
     font-size: 1rem;
-    font-weight: 700;
+    font-weight: 600;
     color: var(--binder-accent-ink);
 }
 
@@ -454,10 +526,16 @@
     padding: 4px 10px;
     border-radius: 999px;
     font-size: 0.78rem;
-    font-weight: 700;
+    font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     border: 1px solid transparent;
+    /* Never let the pill's own text wrap mid-phrase ("0" / "violations" on
+       separate lines) -- if the card is too narrow for title + badge on one
+       row, .druglike-head wraps them onto their own rows instead, and the
+       badge itself always stays a single, whole line. */
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .druglike-badge.is-pass {
@@ -524,7 +602,7 @@
 .check-value {
     font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
     font-size: 0.85rem;
-    font-weight: 700;
+    font-weight: 600;
     color: var(--binder-accent-ink);
 }
 
@@ -559,7 +637,7 @@
 
 .binder-string-label {
     font-size: 0.78rem;
-    font-weight: 700;
+    font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.06em;
     color: var(--tp-color-text-muted);
@@ -606,7 +684,7 @@
 
 .binder-link-category {
     font-size: 0.7rem;
-    font-weight: 700;
+    font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.06em;
     color: var(--binder-accent-ink);
@@ -648,15 +726,29 @@
 }
 
 .siblings-group-title {
-    margin: 0 0 8px;
+    margin: 0 0 4px;
     font-size: 0.85rem;
-    font-weight: 700;
+    font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.06em;
     color: var(--binder-accent-ink);
     display: flex;
     align-items: center;
     gap: 8px;
+}
+
+.siblings-group-desc {
+    margin: 0 0 8px;
+    font-size: 0.82rem;
+    color: var(--tp-color-text-muted);
+    line-height: 1.4;
+}
+
+.siblings-col-hint {
+    font-weight: 400;
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 0.75em;
+    opacity: 0.8;
 }
 
 .siblings-group-count {

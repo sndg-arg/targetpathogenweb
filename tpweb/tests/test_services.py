@@ -1,0 +1,1532 @@
+import gzip
+import json
+from datetime import datetime, timezone
+from pathlib import Path
+from tempfile import TemporaryDirectory
+from types import SimpleNamespace
+from unittest.mock import MagicMock, patch
+
+from django.contrib.auth import get_user_model
+from django.contrib.auth.models import AnonymousUser
+from django.test import SimpleTestCase, TestCase
+
+from bioseq.models.Bioentry import Bioentry
+from bioseq.models.Biodatabase import Biodatabase
+from tpweb.models.GenomeUpload import GenomeUpload
+from tpweb.models.PipelineRun import PipelineRun
+from tpweb.models.ScoreFormula import ScoreFormula
+from tpweb.models.ScoreParam import ScoreParam, ScoreParamOptions
+from tpweb.models.ScoreParamValue import ScoreParamValue
+from tpweb.models.Binders import Binders
+from tpweb.services.assembly_workspace import build_assembly_workspace_metrics
+from tpweb.services.assembly_overview import build_assembly_overview
+from tpweb.services.formula_evaluator import (
+    available_variables_grouped,
+    build_all_options_zero,
+    build_expression_variables,
+    safe_eval_expression,
+)
+from tpweb.services.genome_uploads import (
+    _finalize_upload,
+    build_queue_position_map,
+    clear_genome_upload_history,
+    delete_genome_workspace,
+    owner_has_active_uploads,
+    workspace_has_active_upload,
+)
+from tpweb.services.genome_metadata import build_genome_metadata_rows, genome_metadata_label
+from tpweb.services.genome_upload_status import reconcile_genome_uploads
+from tpweb.services.genomes import build_genome_dto, safe_int, summarize_genomes
+from tpweb.services.go_ontology import expand_go_records, parse_go_obo
+from tpweb.services.protein_list import (
+    add_selected_parameter,
+    apply_selected_parameter_filters,
+    apply_protein_search,
+    empty_pagination_payload,
+    grouped_selected_parameters,
+    normalize_selected_parameters,
+    parse_page_size,
+    remove_selected_parameter,
+)
+from tpweb.services.protein_annotations import ANNOTATION_KIND_CONFIG, build_annotation_explorer
+from tpweb.services.protein_formula import choose_formula, resolve_formulas_for_user
+from tpweb.services.protein_serializer import build_protein_table_row
+from tpweb.services.pipeline_status import (
+    _status_from_last_run_marker,
+    annotate_pipeline_status_for_genome,
+    sanitize_pipeline_status_for_user,
+)
+from tpweb.services.structure_files import (
+    _candidate_seqstore_dirs,
+    detect_structure_format_from_text,
+)
+from tpweb.services.structure_sources import summarize_structure_sources
+from tpweb.management.commands.load_af_model import store_structure_file
+from tpweb.management.commands.load_csa import (
+    _clean_optional_text,
+    _parse_residue_identifier,
+    _site_storage_name,
+)
+from tpweb.management.commands.import_selected_pdb_pocket_results import fallback_fpocket_to_json
+from tpweb.services.functional_annotations import _read_uniprot_mapping, _sequence_position_map
+from tpweb.services.genome_workspace import (
+    build_workspace_genome_name,
+    describe_genome_scope,
+    display_genome_name,
+    user_can_access_genome_name,
+    user_can_delete_genome_name,
+)
+from tpweb.services.score_params import visible_score_params_queryset
+from tpweb.services.workspace import (
+    get_public_workspace_user,
+    get_workspace_session_value,
+    set_workspace_session_value,
+)
+from tpweb.views.FormulaForm import FormulaForm
+from tpweb.views.IndexView import should_show_home_pipeline_panel
+from tpweb.views.StructureView import _annotated_site_label, _pocket_residue_overlap
+from tpweb.services.llm.base import Message, ToolCall, ToolDefinition, ToolResult
+from tpweb.services.llm.openai_provider import OpenAIProvider
+
+
+class GenomeServiceTests(SimpleTestCase):
+    databases = {"default"}
+
+    def test_safe_int_handles_invalid_values(self):
+        self.assertEqual(safe_int(None), 0)
+        self.assertEqual(safe_int("abc"), 0)
+        self.assertEqual(safe_int("12.0"), 12)
+
+    def test_summarize_genomes_returns_expected_metrics(self):
+        genomes = [
+            {"name": "G1", "COUNT_CDS": "5", "COUNT_EXPERIMENTAL": "2", "COUNT_EC": "4"},
+            {"name": "G2", "COUNT_CDS": "7", "COUNT_EXPERIMENTAL": "1", "COUNT_EC": "0"},
+        ]
+        summary = summarize_genomes(genomes)
+        self.assertEqual(summary["total_genomes"], 2)
+        self.assertEqual(summary["total_proteins"], 12)
+        self.assertEqual(summary["total_experimental"], 3)
+        self.assertEqual(summary["total_ec_annotated"], 4)
+
+    def test_build_genome_dto_uses_db_fallback_counts_when_qualifiers_missing(self):
+        genome = type(
+            "Genome",
+            (),
+            {
+                "name": "NZ_AP023069.1",
+                "description": "Example genome",
+                "qualifiers_dict": lambda self: {},
+            },
+        )()
+
+        dto = build_genome_dto(
+            genome,
+            protein_counts_by_genome={"NZ_AP023069.1": 62},
+            experimental_counts_by_genome={"NZ_AP023069.1": 7},
+            ec_counts_by_genome={"NZ_AP023069.1": 31},
+        )
+
+        self.assertEqual(dto["COUNT_CDS"], 62)
+        self.assertEqual(dto["COUNT_EXPERIMENTAL"], 7)
+        self.assertEqual(dto["COUNT_EC"], 31)
+
+    def test_build_genome_dto_prefers_live_counts_over_qualifiers(self):
+        genome = type(
+            "Genome",
+            (),
+            {
+                "name": "NZ_AP023069.1",
+                "description": "Example genome",
+                "qualifiers_dict": lambda self: {
+                    "COUNT_CDS": "73",
+                    "COUNT_EXPERIMENTAL": "8",
+                    "COUNT_EC": "12",
+                },
+            },
+        )()
+
+        dto = build_genome_dto(
+            genome,
+            protein_counts_by_genome={"NZ_AP023069.1": 62},
+            experimental_counts_by_genome={"NZ_AP023069.1": 7},
+            ec_counts_by_genome={"NZ_AP023069.1": 31},
+        )
+
+        self.assertEqual(dto["COUNT_CDS"], 62)
+        self.assertEqual(dto["COUNT_EXPERIMENTAL"], 7)
+        self.assertEqual(dto["COUNT_EC"], 31)
+
+    def test_describe_genome_scope_returns_personal_for_current_user_workspace(self):
+        user = type("User", (), {"is_authenticated": True, "pk": 7})()
+
+        scope = describe_genome_scope(user, "user-7__NC_002516.2")
+
+        self.assertEqual(scope["key"], "personal")
+        self.assertEqual(scope["label"], "Private")
+
+    def test_build_genome_dto_adds_workspace_scope_metadata(self):
+        user = type("User", (), {"is_authenticated": True, "pk": 7})()
+        genome = type(
+            "Genome",
+            (),
+            {
+                "name": "public__NZ_AP023069.1",
+                "description": "Public genome",
+                "qualifiers_dict": lambda self: {},
+            },
+        )()
+
+        dto = build_genome_dto(genome, user=user)
+
+        self.assertEqual(dto["workspace_scope_key"], "public")
+        self.assertEqual(dto["workspace_scope_label"], "Public")
+
+    def test_build_assembly_overview_prefers_live_protein_counts(self):
+        overview = build_assembly_overview(
+            user=AnonymousUser(),
+            genome_name="NZ_AP023069.1",
+            description="Neisseria gonorrhoeae strain TUM19854 chromosome, complete genome",
+            props={"COUNT_CDS": "73", "COUNT_gene": "75", "COUNT_tRNA": "2"},
+            workspace_metrics={"total_proteins": 62},
+        )
+
+        protein_coding_loaded = next(
+            fact["value"]
+            for fact in overview["loaded_feature_facts"]
+            if fact["label"] == "Protein-coding loaded"
+        )
+        untranslated_cds = next(
+            fact["value"]
+            for fact in overview["composition_facts"]
+            if fact["label"] == "CDS without protein sequence"
+        )
+
+        self.assertEqual(protein_coding_loaded, "62")
+        self.assertEqual(untranslated_cds, "11")
+
+    @patch("tpweb.services.assembly_workspace.cache")
+    @patch("tpweb.services.assembly_workspace.BioentryStructure")
+    @patch("tpweb.services.assembly_workspace.Bioentry")
+    def test_build_assembly_workspace_metrics_treats_colabfold_as_model_not_experimental(
+        self,
+        bioentry_model,
+        bioentry_structure_model,
+        cache_mock,
+    ):
+        cache_mock.get.return_value = None
+        proteins = MagicMock()
+        bioentry_model.objects.filter.return_value = proteins
+        proteins.count.return_value = 62
+
+        distinct_count_values = iter([11, 10, 1, 31, 22, 44])
+
+        def build_distinct_qs():
+            distinct_qs = MagicMock()
+            distinct_qs.count.return_value = next(distinct_count_values)
+            filtered_qs = MagicMock()
+            filtered_qs.distinct.return_value = distinct_qs
+            return filtered_qs
+
+        proteins.filter.side_effect = [build_distinct_qs() for _ in range(6)]
+
+        structure_filtered = MagicMock()
+        structure_excluded = MagicMock()
+        structure_values = MagicMock()
+        structure_distinct = MagicMock()
+        structure_distinct.count.return_value = 0
+        bioentry_structure_model.objects.filter.return_value = structure_filtered
+        structure_filtered.exclude.return_value = structure_excluded
+        structure_excluded.values.return_value = structure_values
+        structure_values.distinct.return_value = structure_distinct
+
+        metrics = build_assembly_workspace_metrics("public__NZ_AP023069.1")
+
+        self.assertEqual(metrics["proteins_with_structure"], 11)
+        self.assertEqual(metrics["experimental_structures"], 0)
+        self.assertEqual(metrics["alphafold_structures"], 10)
+        self.assertEqual(metrics["colabfold_structures"], 1)
+        structure_filtered.exclude.assert_called_once_with(pdb__experiment__in=("AF", "CF"))
+
+    def test_genome_metadata_labels_are_human_readable(self):
+        self.assertEqual(genome_metadata_label("EntryLength"), "Sequence length [bp]")
+        self.assertEqual(genome_metadata_label("COUNT_CDS"), "Protein-coding features")
+        self.assertEqual(genome_metadata_label("COUNT_tmRNA"), "tmRNA features")
+
+    def test_genome_metadata_rows_follow_expected_order(self):
+        rows = build_genome_metadata_rows(
+            {
+                "COUNT_tmRNA": "1",
+                "EntryLength": "6264404",
+                "COUNT_CDS": "5572",
+            }
+        )
+        self.assertEqual(
+            [row["key"] for row in rows],
+            ["EntryLength", "COUNT_CDS", "COUNT_tmRNA"],
+        )
+
+
+class GOOntologyServiceTests(SimpleTestCase):
+    def test_parse_go_obo_extracts_primary_fields(self):
+        text = """
+format-version: 1.2
+
+[Term]
+id: GO:0000001
+name: mitochondrion inheritance
+namespace: biological_process
+def: "The distribution of mitochondria..." [GOC:mcc]
+alt_id: GO:1234567
+
+[Term]
+id: GO:0000002
+name: obsolete mitochondrial genome maintenance
+def: "Something obsolete." [GOC:ai]
+is_obsolete: true
+"""
+
+        records = parse_go_obo(text)
+
+        self.assertEqual(len(records), 2)
+        self.assertEqual(records[0].identifier, "GO:0000001")
+        self.assertEqual(records[0].name, "mitochondrion inheritance")
+        self.assertEqual(records[0].definition, "The distribution of mitochondria...")
+        self.assertEqual(records[0].alt_ids, ("GO:1234567",))
+        self.assertFalse(records[0].is_obsolete)
+        self.assertTrue(records[1].is_obsolete)
+
+    def test_expand_go_records_includes_alt_ids_as_obsolete_aliases(self):
+        text = """
+[Term]
+id: GO:0000001
+name: mitochondrion inheritance
+def: "Definition one." [GOC:x]
+alt_id: GO:1234567
+alt_id: GO:7654321
+"""
+
+        records = parse_go_obo(text)
+        expanded = expand_go_records(records)
+
+        self.assertEqual(
+            [item.identifier for item in expanded],
+            ["GO:0000001", "GO:1234567", "GO:7654321"],
+        )
+        self.assertFalse(expanded[0].is_obsolete)
+        self.assertTrue(expanded[1].is_obsolete)
+        self.assertEqual(expanded[1].canonical_id, "GO:0000001")
+        self.assertEqual(expanded[1].name, "mitochondrion inheritance")
+
+
+class ProteinListServiceTests(SimpleTestCase):
+    def test_normalize_selected_parameters(self):
+        self.assertEqual(normalize_selected_parameters([]), [])
+        self.assertEqual(normalize_selected_parameters("invalid"), [])
+
+    def test_grouped_selected_parameters(self):
+        selected = [
+            {"score_param_name": "Druggability", "name": "High"},
+            {"score_param_name": "Druggability", "name": "Medium"},
+            {"score_param_name": "Localization", "name": "Cytoplasm"},
+        ]
+        grouped = grouped_selected_parameters(selected)
+        self.assertEqual(grouped["Druggability"], "High, Medium")
+        self.assertEqual(grouped["Localization"], "Cytoplasm")
+
+    def test_grouped_selected_parameters_handles_numeric_filters(self):
+        selected = [
+            {
+                "score_param_name": "druggability_score",
+                "type": "numeric",
+                "operation": ">=",
+                "value": 0.75,
+            }
+        ]
+
+        grouped = grouped_selected_parameters(selected, humanize=True)
+
+        self.assertEqual(grouped["Druggability Score"], ">= 0.75")
+
+    def test_add_and_remove_selected_parameter(self):
+        selected = [{"id": 1, "name": "High"}]
+        selected = add_selected_parameter(selected, {"id": 2, "name": "Medium"})
+        self.assertEqual(len(selected), 2)
+        selected = add_selected_parameter(selected, {"id": 2, "name": "Medium"})
+        self.assertEqual(len(selected), 2)
+        selected = remove_selected_parameter(selected, 1)
+        self.assertEqual([x["id"] for x in selected], [2])
+
+    def test_ligand_filter_selection_is_mutually_exclusive(self):
+        selected = add_selected_parameter(
+            [],
+            {
+                "id": "special:ligands:yes",
+                "type": "special",
+                "special_key": "ligand_filter",
+                "special_value": "yes",
+            },
+        )
+        selected = add_selected_parameter(
+            selected,
+            {
+                "id": "special:ligands:no",
+                "type": "special",
+                "special_key": "ligand_filter",
+                "special_value": "no",
+            },
+        )
+
+        self.assertEqual(len(selected), 1)
+        self.assertEqual(selected[0]["special_value"], "no")
+
+    def test_parse_page_size_bounds(self):
+        self.assertEqual(parse_page_size("5"), 10)
+        self.assertEqual(parse_page_size("25"), 25)
+        self.assertEqual(parse_page_size("200"), 100)
+        self.assertEqual(parse_page_size("invalid"), 25)
+
+    def test_empty_pagination_payload(self):
+        payload = empty_pagination_payload()
+        self.assertEqual(payload["number"], 1)
+        self.assertEqual(payload["num_pages"], 1)
+        self.assertEqual(payload["proteins"].paginator.count, 0)
+
+    def test_apply_protein_search_no_query_returns_same_queryset(self):
+        class DummyQueryset:
+            called = False
+
+            def filter(self, *args, **kwargs):
+                self.called = True
+                return self
+
+        queryset = DummyQueryset()
+        result = apply_protein_search(queryset, "")
+        self.assertIs(result, queryset)
+        self.assertFalse(queryset.called)
+
+
+class ProteinListFilterQueryTests(TestCase):
+    def test_ligand_evidence_filter_matches_binder_by_protein_accession(self):
+        proteome = Biodatabase.objects.create(name="TEST_protein")
+        with_ligand = Bioentry.objects.create(
+            biodatabase=proteome,
+            name="protA",
+            accession="LOCUS_A",
+            identifier="LOCUS_A",
+        )
+        without_ligand = Bioentry.objects.create(
+            biodatabase=proteome,
+            name="protB",
+            accession="LOCUS_B",
+            identifier="LOCUS_B",
+        )
+        Binders.objects.create(
+            ccd_id="ATP",
+            pdb_id="1ABC",
+            uniprot="P12345",
+            locustag=with_ligand,
+            smiles="C",
+        )
+        proteins = Bioentry.objects.filter(biodatabase=proteome)
+
+        has_ligands = apply_selected_parameter_filters(
+            proteins,
+            [
+                {
+                    "type": "special",
+                    "special_key": "ligand_filter",
+                    "special_value": "yes",
+                }
+            ],
+        )
+        no_ligands = apply_selected_parameter_filters(
+            proteins,
+            [
+                {
+                    "type": "special",
+                    "special_key": "ligand_filter",
+                    "special_value": "no",
+                }
+            ],
+        )
+
+        self.assertEqual(list(has_ligands.values_list("accession", flat=True)), ["LOCUS_A"])
+        self.assertEqual(list(no_ligands.values_list("accession", flat=True)), ["LOCUS_B"])
+        self.assertNotEqual(with_ligand.pk, with_ligand.accession)
+        self.assertNotEqual(without_ligand.pk, without_ligand.accession)
+
+
+class ProteinFormulaServiceTests(SimpleTestCase):
+    def test_choose_formula_by_requested_name(self):
+        formula_a = type("Formula", (), {"name": "A", "default": False})()
+        formula_b = type("Formula", (), {"name": "B", "default": True})()
+        selected = choose_formula([formula_a, formula_b], "A")
+        self.assertIs(selected, formula_a)
+
+    def test_choose_formula_falls_back_to_default(self):
+        formula_a = type("Formula", (), {"name": "A", "default": False})()
+        formula_b = type("Formula", (), {"name": "B", "default": True})()
+        selected = choose_formula([formula_a, formula_b], "")
+        self.assertIs(selected, formula_b)
+
+
+class StructureAndAnnotationServiceTests(SimpleTestCase):
+    def test_read_uniprot_mapping_expands_pipe_delimited_accessions(self):
+        with TemporaryDirectory() as tmpdir:
+            mapping_path = Path(tmpdir) / "genome_unips.lst"
+            mapping_path.write_text(
+                "A0A0H3GM04|W8UNW6 locus_a\nA0A0H3GM05 locus_b\n",
+                encoding="utf-8",
+            )
+
+            mapping = _read_uniprot_mapping(mapping_path)
+
+        self.assertEqual(
+            mapping,
+            {
+                "A0A0H3GM04": "locus_a",
+                "W8UNW6": "locus_a",
+                "A0A0H3GM05": "locus_b",
+            },
+        )
+
+    def test_sequence_position_map_preserves_identical_numbering(self):
+        mapping, metrics = _sequence_position_map("ACDEFG", "ACDEFG")
+
+        self.assertEqual(mapping[3], 3)
+        self.assertEqual(metrics, {"identity": 1.0, "coverage": 1.0})
+
+    def test_sequence_position_map_accounts_for_local_sequence_insertion(self):
+        mapping, metrics = _sequence_position_map("ACDEFG", "ACQDEFG")
+
+        self.assertEqual(mapping[3], 4)
+        self.assertGreaterEqual(metrics["identity"], 0.9)
+        self.assertEqual(metrics["coverage"], 1.0)
+
+    def test_sequence_position_map_rejects_distant_sequences(self):
+        mapping, metrics = _sequence_position_map("AAAAAA", "TTTTTT")
+
+        self.assertEqual(mapping, {})
+        self.assertLess(metrics["identity"], 0.9)
+
+    def test_csa_residue_identifier_parses_insertion_codes_and_numeric_csv_values(self):
+        self.assertEqual(_parse_residue_identifier("42A"), (42, "A"))
+        self.assertEqual(_parse_residue_identifier("42.0"), (42, ""))
+        self.assertEqual(_parse_residue_identifier(None), (None, ""))
+
+    def test_csa_optional_text_does_not_preserve_missing_values(self):
+        self.assertEqual(_clean_optional_text(float("nan")), "")
+        self.assertEqual(_clean_optional_text(" n/a "), "")
+
+    def test_csa_site_names_keep_chain_copies_separate_by_default(self):
+        self.assertEqual(_site_storage_name("M-CSA 123", "A", False), "M-CSA 123 | chain A")
+        self.assertEqual(_site_storage_name("M-CSA 123", "A", True), "M-CSA 123")
+
+    def test_annotated_site_label_keeps_source_site_and_chain(self):
+        self.assertEqual(
+            _annotated_site_label({"rs_name": "CSA", "name": "M-CSA 123 | chain A"}),
+            "CSA: M-CSA 123 | chain A",
+        )
+
+    def test_pocket_overlap_does_not_conflate_residue_numbers_across_chains(self):
+        def residue(chain, resid, icode=""):
+            return SimpleNamespace(chain=chain, resid=resid, icode=icode)
+
+        overlap = _pocket_residue_overlap(
+            [residue("A", 10), residue("A", 11), residue("A", 12)],
+            [residue("B", 10), residue("A", 11), residue("A", 12, "A")],
+        )
+
+        self.assertEqual(overlap["shared_count"], 1)
+        self.assertAlmostEqual(overlap["smaller_coverage"], 100 / 3)
+        self.assertAlmostEqual(overlap["jaccard"], 20.0)
+
+    @patch("tpweb.services.structure_files.settings")
+    def test_structure_file_candidates_include_media_root_and_seqs_parent(self, settings_mock):
+        settings_mock.SEQS_DATA_DIR = "/app/targetpathogenweb/data/seqs"
+        settings_mock.MEDIA_ROOT = "/app/targetpathogenweb/data"
+
+        candidates = _candidate_seqstore_dirs()
+
+        self.assertEqual(
+            candidates,
+            [
+                "/app/targetpathogenweb/data/seqs",
+                "/app/targetpathogenweb/data",
+            ],
+        )
+
+    def test_detect_structure_format_from_text_handles_pdb_and_cif(self):
+        self.assertEqual(detect_structure_format_from_text("HEADER test\nATOM test\n"), "pdb")
+        self.assertEqual(
+            detect_structure_format_from_text("data_8ORR\n#\nloop_\n_atom_site.group_PDB\n"),
+            "cif",
+        )
+
+    def test_store_structure_file_writes_world_readable_gzip(self):
+        with TemporaryDirectory() as tmpdir:
+            source = Path(tmpdir) / "model.pdb"
+            destination = Path(tmpdir) / "seqstore" / "model.pdb.gz"
+            source.write_text("HEADER test\nATOM test\n")
+
+            store_structure_file(str(source), str(destination))
+
+            self.assertEqual(destination.stat().st_mode & 0o777, 0o644)
+            with gzip.open(destination, "rt") as handle:
+                self.assertEqual(handle.read(), "HEADER test\nATOM test\n")
+
+    def test_summarize_structure_sources_handles_mixed_sources(self):
+        experimental_structure = type(
+            "Structure",
+            (),
+            {"pdb": type("PDB", (), {"experiment": "X-RAY"})()},
+        )()
+        alphafold_structure = type(
+            "Structure",
+            (),
+            {"pdb": type("PDB", (), {"experiment": "AF"})()},
+        )()
+
+        summary = summarize_structure_sources([experimental_structure, alphafold_structure])
+
+        self.assertEqual(summary["source"], "mixed")
+        self.assertEqual(summary["label"], "Experimental + AlphaFold DB model")
+        self.assertEqual(summary["count"], 2)
+
+    def test_summarize_structure_sources_handles_colabfold(self):
+        colabfold_structure = type(
+            "Structure",
+            (),
+            {"pdb": type("PDB", (), {"experiment": "CF"})()},
+        )()
+
+        summary = summarize_structure_sources([colabfold_structure])
+
+        self.assertEqual(summary["source"], "colabfold")
+        self.assertEqual(summary["label"], "ColabFold model")
+        self.assertEqual(summary["count"], 1)
+
+    def test_build_annotation_explorer_builds_ec_hierarchy(self):
+        def dbxref_relation(accession, name=""):
+            return type(
+                "BioentryDbxref",
+                (),
+                {
+                    "dbxref": type(
+                        "Dbxref",
+                        (),
+                        {
+                            "dbname": ANNOTATION_KIND_CONFIG["ec"]["dbnames"][0],
+                            "accession": accession,
+                            "terms": type(
+                                "Terms",
+                                (),
+                                {
+                                    "all": lambda self: [
+                                        type(
+                                            "TermRelation",
+                                            (),
+                                            {"term": type("Term", (), {"definition": name})()},
+                                        )()
+                                    ]
+                                },
+                            )(),
+                        },
+                    )()
+                },
+            )()
+
+        protein_a = type(
+            "Protein",
+            (),
+            {
+                "bioentry_id": 1,
+                "dbxrefs": type(
+                    "Manager",
+                    (),
+                    {"all": lambda self: [dbxref_relation("1.2.3.4", "Example enzyme")]},
+                )(),
+            },
+        )()
+        protein_b = type(
+            "Protein",
+            (),
+            {
+                "bioentry_id": 2,
+                "dbxrefs": type(
+                    "Manager",
+                    (),
+                    {"all": lambda self: [dbxref_relation("1.2.3.5", "Sibling enzyme")]},
+                )(),
+            },
+        )()
+
+        explorer = build_annotation_explorer([protein_a, protein_b], "ec")
+
+        self.assertEqual(explorer["annotation_count"], 2)
+        self.assertIn("ec:1.2", explorer["chart"]["ids"])
+        self.assertIn(
+            "1.2 Acting on the aldehyde or oxo group of donors", explorer["chart"]["labels"]
+        )
+        self.assertIn("1.2.3.4 — oxalate oxidase", explorer["chart"]["hover_labels"])
+        self.assertEqual(explorer["rows"][0]["protein_count"], 1)
+
+    def test_build_annotation_explorer_adds_hover_text_for_known_third_level_ec_prefix(self):
+        def dbxref_relation(accession, name=""):
+            return type(
+                "BioentryDbxref",
+                (),
+                {
+                    "dbxref": type(
+                        "Dbxref",
+                        (),
+                        {
+                            "dbname": ANNOTATION_KIND_CONFIG["ec"]["dbnames"][0],
+                            "accession": accession,
+                            "terms": type("Terms", (), {"all": lambda self: []})(),
+                        },
+                    )()
+                },
+            )()
+
+        protein = type(
+            "Protein",
+            (),
+            {
+                "bioentry_id": 1,
+                "dbxrefs": type(
+                    "Manager", (), {"all": lambda self: [dbxref_relation("2.4.1.1")]}
+                )(),
+            },
+        )()
+
+        explorer = build_annotation_explorer([protein], "ec")
+        prefix_index = explorer["chart"]["ids"].index("ec:2.4.1")
+
+        self.assertEqual(
+            explorer["chart"]["hover_labels"][prefix_index],
+            "2.4.1 — Hexosyltransferases",
+        )
+
+    def test_build_annotation_explorer_labels_partial_ec_assignments(self):
+        def dbxref_relation(accession):
+            return type(
+                "BioentryDbxref",
+                (),
+                {
+                    "dbxref": type(
+                        "Dbxref",
+                        (),
+                        {
+                            "dbname": ANNOTATION_KIND_CONFIG["ec"]["dbnames"][0],
+                            "accession": accession,
+                            "terms": type("Terms", (), {"all": lambda self: []})(),
+                        },
+                    )()
+                },
+            )()
+
+        protein = type(
+            "Protein",
+            (),
+            {
+                "bioentry_id": 1,
+                "dbxrefs": type(
+                    "Manager", (), {"all": lambda self: [dbxref_relation("7.1.1.-")]}
+                )(),
+            },
+        )()
+
+        explorer = build_annotation_explorer([protein], "ec")
+        partial_index = explorer["chart"]["ids"].index("ec:7.1.1.-")
+
+        self.assertEqual(
+            explorer["chart"]["labels"][partial_index], "7.1.1.- partial EC assignment"
+        )
+        self.assertEqual(
+            explorer["chart"]["hover_labels"][partial_index], "7.1.1.- — partial EC assignment"
+        )
+
+
+class WorkspaceIsolationTests(TestCase):
+    def setUp(self):
+        self.user_model = get_user_model()
+        self.alice = self.user_model.objects.create_user(
+            username="alice",
+            password="test-pass",
+        )
+        self.bob = self.user_model.objects.create_user(
+            username="bob",
+            password="test-pass",
+        )
+        self.public_user = get_public_workspace_user()
+
+    def create_score_param(self, name, category, user=None, type="C"):
+        return ScoreParam.objects.create(
+            category=category,
+            name=name,
+            type=type,
+            default_operation="=" if type == "C" else ">=",
+            default_value="",
+            description="",
+            user=user,
+        )
+
+    def test_workspace_session_values_are_namespaced(self):
+        session = {}
+
+        set_workspace_session_value(session, AnonymousUser(), "selected_parameters", ["public"])
+        set_workspace_session_value(session, self.alice, "selected_parameters", ["alice"])
+
+        self.assertEqual(
+            get_workspace_session_value(session, AnonymousUser(), "selected_parameters", []),
+            ["public"],
+        )
+        self.assertEqual(
+            get_workspace_session_value(session, self.alice, "selected_parameters", []),
+            ["alice"],
+        )
+
+    def test_visible_score_params_queryset_isolated_by_workspace(self):
+        self.create_score_param(name="GlobalBuiltin", category="Protein", user=None)
+        self.create_score_param(name="PublicCustom", category="Custom", user=self.public_user)
+        self.create_score_param(name="AliceCustom", category="Custom", user=self.alice)
+        self.create_score_param(name="BobCustom", category="Custom", user=self.bob)
+
+        anonymous_names = list(
+            visible_score_params_queryset(AnonymousUser()).values_list("name", flat=True)
+        )
+        alice_names = list(visible_score_params_queryset(self.alice).values_list("name", flat=True))
+
+        self.assertIn("GlobalBuiltin", anonymous_names)
+        self.assertIn("PublicCustom", anonymous_names)
+        self.assertNotIn("AliceCustom", anonymous_names)
+        self.assertNotIn("BobCustom", anonymous_names)
+
+        self.assertIn("GlobalBuiltin", alice_names)
+        self.assertIn("AliceCustom", alice_names)
+        self.assertNotIn("PublicCustom", alice_names)
+        self.assertNotIn("BobCustom", alice_names)
+
+    def test_resolve_formulas_for_user_uses_current_workspace(self):
+        ScoreFormula.objects.create(name="PublicFormula", user=self.public_user, default=True)
+        ScoreFormula.objects.create(name="AliceFormula", user=self.alice, default=True)
+        ScoreFormula.objects.create(name="BobFormula", user=self.bob, default=True)
+
+        anonymous_formulas = [
+            formula.name for formula in resolve_formulas_for_user(AnonymousUser())
+        ]
+        alice_formulas = [formula.name for formula in resolve_formulas_for_user(self.alice)]
+
+        self.assertEqual(anonymous_formulas, ["PublicFormula"])
+        self.assertEqual(alice_formulas, ["AliceFormula"])
+
+    def test_formula_form_only_shows_visible_params(self):
+        self.create_score_param(name="GlobalBuiltin", category="Protein", user=None)
+        self.create_score_param(name="AliceCustom", category="Custom", user=self.alice)
+        self.create_score_param(name="BobCustom", category="Custom", user=self.bob)
+
+        formula_form = FormulaForm(user=self.alice)
+        formula_names = list(formula_form.fields["param"].queryset.values_list("name", flat=True))
+
+        self.assertIn("GlobalBuiltin", formula_names)
+        self.assertIn("AliceCustom", formula_names)
+        self.assertNotIn("BobCustom", formula_names)
+
+    def test_expression_variable_helpers_use_public_workspace_for_anonymous_user(self):
+        global_param = self.create_score_param(name="GlobalBuiltin", category="Protein", user=None)
+        public_param = self.create_score_param(
+            name="PublicCustom", category="Custom", user=self.public_user
+        )
+        alice_param = self.create_score_param(
+            name="AliceCustom", category="Custom", user=self.alice
+        )
+
+        ScoreParamOptions.objects.create(score_param=global_param, name="High", description="")
+        ScoreParamOptions.objects.create(score_param=public_param, name="Y", description="")
+        ScoreParamOptions.objects.create(score_param=alice_param, name="Private", description="")
+
+        zero_cache = build_all_options_zero(AnonymousUser())
+        self.assertIn("globalbuiltin_high", zero_cache)
+        self.assertIn("publiccustom_y", zero_cache)
+        self.assertNotIn("alicecustom_private", zero_cache)
+
+        grouped = available_variables_grouped(AnonymousUser())
+        flattened = {entry["var"] for entries in grouped.values() for entry in entries}
+        self.assertIn("globalbuiltin_high", flattened)
+        self.assertIn("publiccustom_y", flattened)
+        self.assertNotIn("alicecustom_private", flattened)
+
+    def test_formula_palette_hides_large_categorical_params_without_breaking_evaluation(self):
+        high_cardinality_param = self.create_score_param(
+            name="best_fpocket_structure",
+            category="Custom",
+            user=self.public_user,
+        )
+        low_cardinality_param = self.create_score_param(
+            name="core_roary",
+            category="Conservation",
+            user=self.public_user,
+        )
+        for index in range(26):
+            ScoreParamOptions.objects.create(
+                score_param=high_cardinality_param,
+                name=f"CB_VK055_{index:04d}",
+                description="",
+            )
+        ScoreParamOptions.objects.create(
+            score_param=low_cardinality_param, name="core", description=""
+        )
+        ScoreParamOptions.objects.create(
+            score_param=low_cardinality_param, name="accessory", description=""
+        )
+
+        zero_cache = build_all_options_zero(AnonymousUser())
+        self.assertIn("best_fpocket_structure_cb_vk055_0000", zero_cache)
+
+        grouped = available_variables_grouped(AnonymousUser())
+        flattened = {entry["var"] for entries in grouped.values() for entry in entries}
+        self.assertNotIn("best_fpocket_structure_cb_vk055_0000", flattened)
+        self.assertIn("core_roary_core", flattened)
+        self.assertIn("core_roary_accessory", flattened)
+
+    def test_expression_variable_helpers_include_numeric_values(self):
+        proteome = Biodatabase.objects.create(name="TEST_protein")
+        protein = Bioentry.objects.create(
+            biodatabase=proteome,
+            name="protA",
+            accession="protA",
+            identifier="protA",
+        )
+        numeric_param = self.create_score_param(
+            name="Druggability",
+            category="Pocket",
+            user=None,
+            type="N",
+        )
+        ScoreParamValue.objects.create(
+            bioentry=protein,
+            score_param=numeric_param,
+            value="0.82",
+            numeric_value=0.82,
+        )
+
+        zero_cache = build_all_options_zero(AnonymousUser())
+        variables = build_expression_variables(protein, zero_cache)
+
+        self.assertIn("druggability", zero_cache)
+        self.assertEqual(variables["druggability"], 0.82)
+        self.assertAlmostEqual(
+            safe_eval_expression("druggability", variables),
+            0.82,
+        )
+
+    def test_workspace_genome_names_are_hidden_from_other_users(self):
+        alice_internal = build_workspace_genome_name("NZ_AP023069.1", self.alice)
+        bob_internal = build_workspace_genome_name("NZ_AP023069.1", self.bob)
+        public_internal = build_workspace_genome_name("NZ_AP023069.1", AnonymousUser())
+
+        self.assertEqual(display_genome_name(alice_internal), "NZ_AP023069.1")
+        self.assertTrue(user_can_access_genome_name(self.alice, alice_internal))
+        self.assertFalse(user_can_access_genome_name(self.alice, bob_internal))
+        self.assertFalse(user_can_access_genome_name(AnonymousUser(), alice_internal))
+        self.assertTrue(user_can_delete_genome_name(self.alice, alice_internal))
+        self.assertFalse(user_can_delete_genome_name(self.bob, alice_internal))
+        self.assertFalse(user_can_delete_genome_name(self.alice, public_internal))
+
+
+class GenomeUploadQueueTests(TestCase):
+    def setUp(self):
+        self.user_model = get_user_model()
+        self.alice = self.user_model.objects.create_user(
+            username="alice_queue",
+            password="test-pass",
+        )
+        self.bob = self.user_model.objects.create_user(
+            username="bob_queue",
+            password="test-pass",
+        )
+
+    def create_upload(self, owner, accession, status):
+        return GenomeUpload.objects.create(
+            owner=owner,
+            display_accession=accession,
+            internal_accession=build_workspace_genome_name(accession, owner),
+            gram="n",
+            gbk_file="",
+            status=status,
+        )
+
+    def test_build_queue_position_map_is_global_and_ordered(self):
+        first = self.create_upload(self.alice, "NZ_AP023069.1", GenomeUpload.STATUS_SUBMITTED)
+        second = self.create_upload(self.bob, "NC_002516.2", GenomeUpload.STATUS_SUBMITTED)
+        self.create_upload(self.alice, "GCF_000001", GenomeUpload.STATUS_FAILED)
+
+        positions = build_queue_position_map()
+
+        self.assertEqual(positions[first.id], 1)
+        self.assertEqual(positions[second.id], 2)
+        self.assertEqual(len(positions), 2)
+
+    def test_owner_has_active_uploads_only_for_queued_or_running(self):
+        self.assertFalse(owner_has_active_uploads(self.alice))
+
+        self.create_upload(self.alice, "NZ_AP023069.1", GenomeUpload.STATUS_SUBMITTED)
+        self.assertTrue(owner_has_active_uploads(self.alice))
+
+        GenomeUpload.objects.filter(owner=self.alice).update(status=GenomeUpload.STATUS_FAILED)
+        self.assertFalse(owner_has_active_uploads(self.alice))
+
+    @patch("tpweb.services.genome_uploads._delete_workspace_biodatabases")
+    def test_clear_genome_upload_history_removes_failed_workspace_artifacts(self, delete_workspace):
+        failed = self.create_upload(self.alice, "NZ_AP023069.1", GenomeUpload.STATUS_FAILED)
+        self.create_upload(self.alice, "NC_002516.2", GenomeUpload.STATUS_FINISHED)
+
+        deleted_count = clear_genome_upload_history(self.alice)
+
+        self.assertEqual(deleted_count, 2)
+        delete_workspace.assert_called_once_with(failed.internal_accession)
+
+    def test_workspace_has_active_upload_is_scoped_by_internal_accession(self):
+        upload = self.create_upload(self.alice, "NZ_AP023069.1", GenomeUpload.STATUS_SUBMITTED)
+
+        self.assertTrue(workspace_has_active_upload(upload.internal_accession, owner=self.alice))
+        self.assertFalse(workspace_has_active_upload("user-999__OTHER", owner=self.alice))
+
+    @patch("tpweb.services.genome_uploads._delete_workspace_biodatabases")
+    def test_delete_genome_workspace_removes_workspace_upload_records(self, delete_workspace):
+        upload = self.create_upload(self.alice, "NZ_AP023069.1", GenomeUpload.STATUS_FINISHED)
+
+        deleted_count = delete_genome_workspace(upload.internal_accession, owner=self.alice)
+
+        self.assertEqual(deleted_count, 1)
+        self.assertFalse(GenomeUpload.objects.filter(pk=upload.pk).exists())
+        delete_workspace.assert_called_once_with(upload.internal_accession)
+
+    @patch("tpweb.services.genome_uploads.clear_pipeline_activity_state")
+    @patch("tpweb.services.genome_uploads._delete_workspace_biodatabases")
+    @patch("tpweb.services.genome_uploads._delete_upload_artifacts")
+    def test_finalize_upload_does_not_crash_when_upload_was_deleted(
+        self,
+        delete_upload_artifacts,
+        delete_workspace_biodatabases,
+        clear_pipeline_activity_state,
+    ):
+        upload = self.create_upload(self.alice, "NZ_AP023069.1", GenomeUpload.STATUS_RUNNING)
+        upload.delete()
+
+        status = _finalize_upload(upload, returncode=1)
+
+        self.assertEqual(status, GenomeUpload.STATUS_FAILED)
+        delete_upload_artifacts.assert_called_once_with(upload)
+        delete_workspace_biodatabases.assert_called_once_with(upload.internal_accession)
+        clear_pipeline_activity_state.assert_called_once()
+
+    @patch("tpweb.services.genome_uploads._extract_error_message")
+    @patch("tpweb.services.genome_uploads._delete_workspace_biodatabases")
+    def test_finalize_upload_removes_partial_workspace_when_pipeline_fails(
+        self,
+        delete_workspace_biodatabases,
+        extract_error_message,
+    ):
+        upload = self.create_upload(self.alice, "NZ_AP023069.1", GenomeUpload.STATUS_RUNNING)
+        extract_error_message.return_value = "Pipeline failed."
+
+        status = _finalize_upload(upload, returncode=1)
+
+        upload.refresh_from_db()
+        self.assertEqual(status, GenomeUpload.STATUS_FAILED)
+        self.assertEqual(upload.status, GenomeUpload.STATUS_FAILED)
+        self.assertEqual(upload.error_message, "Pipeline failed.")
+        delete_workspace_biodatabases.assert_called_once_with(upload.internal_accession)
+
+    @patch("tpweb.services.genome_uploads._extract_error_message")
+    @patch("tpweb.services.genome_uploads._delete_workspace_biodatabases")
+    def test_finalize_upload_prefers_explicit_error_message(
+        self,
+        delete_workspace_biodatabases,
+        extract_error_message,
+    ):
+        upload = self.create_upload(self.alice, "NZ_AP023069.1", GenomeUpload.STATUS_RUNNING)
+        extract_error_message.return_value = "Generic failure."
+
+        status = _finalize_upload(
+            upload,
+            returncode=1,
+            error_message="Pipeline exceeded timeout of 86400 seconds during genome processing.",
+        )
+
+        upload.refresh_from_db()
+        self.assertEqual(status, GenomeUpload.STATUS_FAILED)
+        self.assertEqual(
+            upload.error_message,
+            "Pipeline exceeded timeout of 86400 seconds during genome processing.",
+        )
+        delete_workspace_biodatabases.assert_called_once_with(upload.internal_accession)
+
+    @patch("tpweb.services.genome_upload_status._upload_has_matching_process")
+    @patch("tpweb.services.genome_upload_status._process_exists")
+    def test_reconcile_keeps_running_upload_when_matching_process_exists(
+        self, process_exists, upload_has_matching_process
+    ):
+        upload = self.create_upload(self.alice, "NC_002516.2", GenomeUpload.STATUS_RUNNING)
+        upload.launch_pid = None
+        upload.save(update_fields=["launch_pid"])
+        process_exists.return_value = False
+        upload_has_matching_process.return_value = True
+
+        reconcile_genome_uploads(
+            {
+                "running": True,
+                "genome_accession": None,
+                "state_label": "Pipeline running",
+            },
+            owner=self.alice,
+        )
+
+        upload.refresh_from_db()
+        self.assertEqual(upload.status, GenomeUpload.STATUS_RUNNING)
+        self.assertEqual(upload.error_message, "")
+
+    @patch("tpweb.services.genome_upload_status._upload_has_matching_process")
+    @patch("tpweb.services.genome_upload_status._process_exists")
+    def test_reconcile_ignores_cancelled_legacy_run_for_new_upload(
+        self, process_exists, upload_has_matching_process
+    ):
+        upload = self.create_upload(self.alice, "NZ_AP023069.1", GenomeUpload.STATUS_SUBMITTED)
+        process_exists.return_value = False
+        upload_has_matching_process.return_value = False
+
+        PipelineRun.objects.create(
+            genome_upload=None,
+            internal_accession=upload.internal_accession,
+            source_accession="NZ_AP023069.1",
+            gram="n",
+            status=PipelineRun.STATUS_CANCELLED,
+            error_message="Old cancelled legacy run",
+        )
+
+        reconcile_genome_uploads(
+            {
+                "running": False,
+                "genome_accession": None,
+                "state_label": "No pipeline activity detected",
+            },
+            owner=self.alice,
+        )
+
+        upload.refresh_from_db()
+        self.assertEqual(upload.status, GenomeUpload.STATUS_SUBMITTED)
+        self.assertEqual(upload.error_message, "")
+
+    def test_reconcile_revives_failed_upload_when_linked_pipeline_run_is_active(self):
+        upload = self.create_upload(self.alice, "NZ_AP023069.1", GenomeUpload.STATUS_FAILED)
+        upload.error_message = "Old failure"
+        upload.save(update_fields=["error_message"])
+
+        PipelineRun.objects.create(
+            genome_upload=upload,
+            internal_accession=upload.internal_accession,
+            source_accession=upload.display_accession,
+            gram=upload.gram,
+            status=PipelineRun.STATUS_RUNNING,
+        )
+
+        reconcile_genome_uploads(
+            {
+                "running": True,
+                "genome_accession": upload.internal_accession,
+                "state_label": "Pipeline running",
+            },
+            owner=self.alice,
+        )
+
+        upload.refresh_from_db()
+        self.assertEqual(upload.status, GenomeUpload.STATUS_RUNNING)
+        self.assertEqual(upload.error_message, "")
+
+    def test_sanitize_pipeline_status_prefers_workspace_owner_for_private_run(self):
+        status = sanitize_pipeline_status_for_user(
+            {
+                "available": True,
+                "running": True,
+                "state_label": "Pipeline running",
+                "state_class": "running",
+                "genome_accession": build_workspace_genome_name("NZ_AP023069.1", self.alice),
+                "genome_display_accession": "NZ_AP023069.1",
+                "workspace_slug": "user-999",
+                "workspace_owner_id": self.alice.id,
+                "stage_current": 10,
+            },
+            self.alice,
+        )
+
+        self.assertTrue(status["genome_visible_to_user"])
+        self.assertFalse(status["running_for_other_workspace"])
+        self.assertEqual(
+            status["genome_accession"], build_workspace_genome_name("NZ_AP023069.1", self.alice)
+        )
+
+
+class ProteinSerializerServiceTests(SimpleTestCase):
+    def test_build_protein_table_row(self):
+        score_param_a = type("SP", (), {"name": "ParamA"})()
+        score_param_b = type("SP", (), {"name": "ParamB"})()
+        score_value_a = type("SV", (), {"score_param": score_param_a, "value": "High"})()
+        score_value_b = type("SV", (), {"score_param": score_param_b, "value": "Low"})()
+        score_params = type(
+            "ScoreParams", (), {"all": lambda self: [score_value_a, score_value_b]}
+        )()
+        empty_manager = type("EmptyManager", (), {"all": lambda self: []})()
+        protein = type(
+            "Protein",
+            (),
+            {
+                "bioentry_id": 10,
+                "accession": "ACC001",
+                "name": "Prot1",
+                "description": "Desc",
+                "score_params": score_params,
+                "structures": empty_manager,
+                "dbxrefs": empty_manager,
+                "genes": lambda self: ["abc", "longgenevalue"],
+            },
+        )()
+        row, table_data, weights = build_protein_table_row(
+            protein,
+            visible_columns={"ParamA": "x", "ParamB": "y"},
+            coefficient_by_param={"ParamA": {"High": 2.5}, "ParamB": {"Low": -1.0}},
+        )
+        self.assertEqual(row["score"], 1.5)
+        self.assertEqual(row["genes"], ["abc"])
+        self.assertEqual(table_data["Score"], 1.5)
+        self.assertEqual(weights["ParamA"], 2.5)
+
+
+class PipelineStatusTests(SimpleTestCase):
+    def test_annotate_pipeline_status_for_genome_flags(self):
+        status = {
+            "running": True,
+            "genome_accession": "NZ_AP023069.1",
+        }
+        current = annotate_pipeline_status_for_genome(status, "NZ_AP023069.1")
+        self.assertTrue(current["running_for_current_genome"])
+        self.assertFalse(current["running_for_other_genome"])
+        self.assertIsNone(current["other_genome_accession"])
+
+        other = annotate_pipeline_status_for_genome(status, "GCA_000001")
+        self.assertFalse(other["running_for_current_genome"])
+        self.assertTrue(other["running_for_other_genome"])
+        self.assertEqual(other["other_genome_accession"], "NZ_AP023069.1")
+
+    def test_annotate_pipeline_status_for_genome_marks_failed_workspace_as_incomplete(self):
+        status = {
+            "running": False,
+            "genome_accession": "NZ_AP023069.1",
+            "state_label": "Last pipeline run failed",
+        }
+
+        current = annotate_pipeline_status_for_genome(status, "NZ_AP023069.1")
+
+        self.assertTrue(current["failed_for_current_genome"])
+        self.assertTrue(current["incomplete_for_current_genome"])
+        self.assertIn("incomplete", current["current_genome_status_note"].lower())
+        self.assertIn("failed", current["current_genome_status_note"].lower())
+
+    def test_annotate_pipeline_status_for_genome_marks_stopped_workspace_as_incomplete(self):
+        status = {
+            "running": False,
+            "genome_accession": "NZ_AP023069.1",
+            "state_label": "Last pipeline run stopped before completion",
+        }
+
+        current = annotate_pipeline_status_for_genome(status, "NZ_AP023069.1")
+
+        self.assertFalse(current["failed_for_current_genome"])
+        self.assertTrue(current["incomplete_for_current_genome"])
+        self.assertIn("stopped before completion", current["current_genome_status_note"])
+
+    def test_status_from_last_run_marker_reads_shared_data_marker(self):
+        with TemporaryDirectory() as tmpdir:
+            base_dir = Path(tmpdir)
+            marker_path = base_dir / "data" / "pipeline" / "last_pipeline_run.json"
+            marker_path.parent.mkdir(parents=True, exist_ok=True)
+            marker_path.write_text(
+                """
+{
+  "status": "finished",
+  "genomes": ["user-2__NZ_AP023069.1"],
+  "finished_at_utc": "2026-03-28T21:00:00+00:00"
+}
+                """.strip(),
+                encoding="utf-8",
+            )
+
+            status = _status_from_last_run_marker(base_dir)
+
+        self.assertIsNotNone(status)
+        self.assertTrue(status.available)
+        self.assertEqual(status.state_label, "Last pipeline run finished")
+        self.assertEqual(status.genome_accession, "USER-2__NZ_AP023069.1")
+        self.assertEqual(status.genome_display_accession, "NZ_AP023069.1")
+
+    @patch("tpweb.services.pipeline_status.Biodatabase")
+    def test_sanitize_pipeline_status_for_user_hides_deleted_workspace_status(
+        self, biodatabase_model
+    ):
+        biodatabase_model.objects.filter.return_value.exists.return_value = False
+
+        status = sanitize_pipeline_status_for_user(
+            {
+                "available": True,
+                "running": False,
+                "state_label": "Last pipeline run failed",
+                "state_class": "failed",
+                "genome_accession": "user-2__NC_002516.2",
+                "genome_display_accession": "NC_002516.2",
+                "stage_current": 4,
+                "progress_percent": 19,
+            },
+            AnonymousUser(),
+        )
+
+        self.assertFalse(status["available"])
+        self.assertFalse(status["running"])
+
+    def test_sanitize_pipeline_status_for_user_keeps_public_run_visible_for_anonymous_user(self):
+        status = sanitize_pipeline_status_for_user(
+            {
+                "available": True,
+                "running": True,
+                "state_label": "Pipeline running",
+                "state_class": "running",
+                "genome_accession": "public__NZ_AP023069.1",
+                "genome_display_accession": "NZ_AP023069.1",
+                "workspace_slug": "public",
+                "workspace_owner_id": 1,
+                "stage_current": 9,
+            },
+            AnonymousUser(),
+        )
+
+        self.assertTrue(status["genome_visible_to_user"])
+        self.assertFalse(status["running_for_other_workspace"])
+        self.assertEqual(status["genome_accession"], "public__NZ_AP023069.1")
+        self.assertEqual(status["state_class"], "running")
+
+
+class HomePipelinePanelVisibilityTests(SimpleTestCase):
+    def test_hides_idle_pipeline_panel(self):
+        self.assertFalse(should_show_home_pipeline_panel({"available": False, "running": False}))
+
+    def test_shows_running_pipeline_panel(self):
+        self.assertTrue(should_show_home_pipeline_panel({"available": True, "running": True}))
+
+    def test_shows_recent_finished_pipeline_panel(self):
+        now = datetime(2026, 7, 1, 12, 0, tzinfo=timezone.utc)
+        self.assertTrue(
+            should_show_home_pipeline_panel(
+                {
+                    "available": True,
+                    "running": False,
+                    "last_updated": "2026-07-01 08:00 (UTC-3)",
+                },
+                now=now,
+            )
+        )
+
+    def test_hides_old_finished_pipeline_panel(self):
+        now = datetime(2026, 7, 1, 12, 0, tzinfo=timezone.utc)
+        self.assertFalse(
+            should_show_home_pipeline_panel(
+                {
+                    "available": True,
+                    "running": False,
+                    "last_updated": "2026-06-29 08:00 (UTC-3)",
+                },
+                now=now,
+            )
+        )
+
+
+class FPocketFallbackConversionTests(SimpleTestCase):
+    def test_fallback_fpocket_to_json_reads_native_fpocket_output(self):
+        with TemporaryDirectory() as tmp:
+            fpocket_dir = Path(tmp) / "6CIA_out"
+            pockets_dir = fpocket_dir / "pockets"
+            pockets_dir.mkdir(parents=True)
+
+            (fpocket_dir / "6CIA_info.txt").write_text(
+                "Pocket 1 :\n"
+                "\tScore :\t0.211\n"
+                "\tDruggability Score :\t0.011\n"
+                "\tNumber of Alpha Spheres :\t49\n",
+                encoding="utf-8",
+            )
+            (fpocket_dir / "6CIA_out.pdb").write_text(
+                "HETATM    1 APOL STP     1       1.000   2.000   3.000  0.00  1.00\n",
+                encoding="utf-8",
+            )
+            (pockets_dir / "pocket1_vert.pqr").write_text(
+                "ATOM      1 APOL STP     1      4.000   5.000   6.000  0.00  1.50\n",
+                encoding="utf-8",
+            )
+            (pockets_dir / "pocket1_atm.pdb").write_text(
+                "ATOM    123  CA  GLY A  45      11.111  22.222  33.333  1.00 20.00           C\n",
+                encoding="utf-8",
+            )
+
+            json_path = fallback_fpocket_to_json(str(fpocket_dir))
+
+            self.assertIsNotNone(json_path)
+            with gzip.open(json_path, "rt", encoding="utf-8") as handle:
+                pockets = json.load(handle)
+
+            self.assertEqual(len(pockets), 1)
+            self.assertEqual(pockets[0]["number"], 1)
+            self.assertEqual(pockets[0]["atoms"], ["123"])
+            self.assertEqual(pockets[0]["residues"], ["A45"])
+            self.assertEqual(pockets[0]["properties"]["Score"], 0.211)
+            self.assertEqual(pockets[0]["properties"]["Druggability Score"], 0.011)
+            self.assertTrue(pockets[0]["as_lines"][0].startswith("HETATM"))
+            self.assertIn("   4.000   5.000   6.000", pockets[0]["as_lines"][0])
+
+
+class OpenAIProviderTranslationTests(SimpleTestCase):
+    """Exercises the highest-risk part of the OpenAI adapter -- translating
+    the neutral Message/ToolCall/ToolResult shape to and from OpenAI's
+    Responses API wire format -- without needing OPENAI_API_KEY or network
+    access. `_post` (the one method that actually calls urllib) is patched
+    with a fake Responses-API-shaped dict instead of a client object, since
+    this adapter talks to the API directly via urllib.request rather than
+    through the `openai` SDK."""
+
+    def _provider(self):
+        return OpenAIProvider(model="gpt-4o", api_key="test-key")
+
+    def test_multiple_tool_results_flatten_into_function_call_output_items(self):
+        message = Message(
+            role="user",
+            tool_results=[
+                ToolResult(tool_call_id="call_1", content="first result"),
+                ToolResult(tool_call_id="call_2", content="second result", is_error=True),
+            ],
+        )
+
+        response_input = OpenAIProvider._to_response_input([message])
+
+        self.assertEqual(
+            response_input,
+            [
+                {"type": "function_call_output", "call_id": "call_1", "output": "first result"},
+                {"type": "function_call_output", "call_id": "call_2", "output": "second result"},
+            ],
+        )
+
+    def test_tool_calls_message_carries_function_arguments_as_json_string(self):
+        message = Message(
+            role="assistant",
+            text=None,
+            tool_calls=[ToolCall(id="call_1", name="get_current_time", input={"tz": "UTC"})],
+        )
+
+        response_input = OpenAIProvider._to_response_input([message])
+
+        self.assertEqual(len(response_input), 1)
+        function_call = response_input[0]
+        self.assertEqual(function_call["type"], "function_call")
+        self.assertEqual(function_call["call_id"], "call_1")
+        self.assertEqual(function_call["name"], "get_current_time")
+        self.assertEqual(json.loads(function_call["arguments"]), {"tz": "UTC"})
+
+    def test_generate_maps_tool_calls_finish_reason_and_parses_arguments(self):
+        fake_response = {
+            "status": "completed",
+            "output": [
+                {
+                    "type": "function_call",
+                    "call_id": "call_9",
+                    "name": "apply_filters",
+                    "arguments": '{"changes": []}',
+                }
+            ],
+        }
+
+        provider = self._provider()
+        with patch.object(provider, "_post", return_value=fake_response):
+            result = provider.generate(
+                messages=[Message(role="user", text="apply high druggability filter")],
+                tools=[
+                    ToolDefinition(
+                        name="apply_filters", description="...", input_schema={"type": "object"}
+                    )
+                ],
+                system="You are a test agent.",
+            )
+
+        self.assertEqual(result.stop_reason, "tool_use")
+        self.assertEqual(len(result.tool_calls), 1)
+        self.assertEqual(result.tool_calls[0].name, "apply_filters")
+        self.assertEqual(result.tool_calls[0].input, {"changes": []})
+
+    def test_generate_maps_stop_finish_reason_to_end_turn(self):
+        fake_response = {
+            "status": "completed",
+            "output": [
+                {"type": "message", "content": [{"type": "output_text", "text": "All done."}]}
+            ],
+        }
+
+        provider = self._provider()
+        with patch.object(provider, "_post", return_value=fake_response):
+            result = provider.generate(messages=[Message(role="user", text="hi")], tools=[])
+
+        self.assertEqual(result.stop_reason, "end_turn")
+        self.assertEqual(result.text, "All done.")
+        self.assertEqual(result.tool_calls, [])
+
+    def test_malformed_tool_call_arguments_do_not_raise(self):
+        fake_response = {
+            "status": "completed",
+            "output": [
+                {
+                    "type": "function_call",
+                    "call_id": "call_bad",
+                    "name": "apply_filters",
+                    "arguments": "{not valid json",
+                }
+            ],
+        }
+
+        provider = self._provider()
+        with patch.object(provider, "_post", return_value=fake_response):
+            result = provider.generate(messages=[], tools=[])
+
+        self.assertEqual(result.tool_calls[0].input, {})
+
+    def test_generate_maps_usage_tokens(self):
+        fake_response = {
+            "status": "completed",
+            "output": [{"type": "message", "content": [{"type": "output_text", "text": "hi"}]}],
+            "usage": {"input_tokens": 120, "output_tokens": 34},
+        }
+
+        provider = self._provider()
+        with patch.object(provider, "_post", return_value=fake_response):
+            result = provider.generate(messages=[Message(role="user", text="hi")], tools=[])
+
+        self.assertEqual(result.usage.input_tokens, 120)
+        self.assertEqual(result.usage.output_tokens, 34)
+
+    def test_generate_defaults_usage_when_missing_from_response(self):
+        fake_response = {
+            "status": "completed",
+            "output": [{"type": "message", "content": [{"type": "output_text", "text": "hi"}]}],
+        }
+
+        provider = self._provider()
+        with patch.object(provider, "_post", return_value=fake_response):
+            result = provider.generate(messages=[Message(role="user", text="hi")], tools=[])
+
+        self.assertEqual(result.usage.input_tokens, 0)
+        self.assertEqual(result.usage.output_tokens, 0)

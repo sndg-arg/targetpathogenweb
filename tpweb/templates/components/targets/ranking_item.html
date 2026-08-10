@@ -1,0 +1,26 @@
+{% load i18n %}
+<li class="targets-item">
+    <a class="targets-link" href="{% url 'tpwebapp:protein' protein_id=t.bioentry_id %}" aria-label="{{ t.accession }}">
+        <div class="targets-main">
+            <div class="targets-heading">
+                <div class="targets-row-top">
+                    <div class="targets-identity">
+                        <span class="targets-rank">#{{ forloop.counter }}</span>
+                        <span class="targets-accession">{{ t.accession }}</span>
+                    </div>
+                    <div class="targets-score targets-score--{{ t.tier_tone }}" title="{{ score_tooltip }}">
+                        <span class="targets-score-number">{{ t.score_percent }}<span class="targets-score-max">%</span></span>
+                        <span class="targets-score-bar" aria-hidden="true"><span class="targets-score-fill" style="width: {{ t.score_percent }}%"></span></span>
+                        <span class="targets-score-tier">{{ t.tier_label }}</span>
+                    </div>
+                </div>
+                <p class="targets-description">{{ t.description|default:"-" }}</p>
+            </div>
+            {% if t.factors %}
+                <p class="targets-signals">
+                    {% for f in t.factors %}<span class="targets-signal targets-signal--{{ f.tone }}">{{ f.label }}</span>{% endfor %}{% if t.extra_factors %}<span class="targets-signal-more" title="{% for f in t.extra_factors %}{{ f.label }}{% if not forloop.last %}, {% endif %}{% endfor %}">+{{ t.extra_factors|length }}</span>{% endif %}
+                </p>
+            {% endif %}
+        </div>
+    </a>
+</li>

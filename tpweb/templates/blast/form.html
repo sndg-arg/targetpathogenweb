@@ -4,7 +4,7 @@
 {% load custom_tags %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/blast.css' %}?v=20260511-1">
+    <link rel="stylesheet" href="{% static 'css/pages/blast.css' %}?v=20260710-select-fix1">
 {% endblock %}
 
 {% block body %}
@@ -92,11 +92,12 @@
                     </div>
 
                     <div class="tp-ui-actions">
-                        <button type="submit" class="btn tp-btn tp-btn--primary">
+                        <button type="submit" class="btn tp-btn tp-btn--primary tp-btn-with-icon">
+                            <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/play.html" %}</span>
                             {% if blast_locked_to_genome %}
-                                {% trans "Run BLAST against this genome" %}
+                                <span>{% trans "Run BLAST against this genome" %}</span>
                             {% else %}
-                                {% trans "Run BLAST" %}
+                                <span>{% trans "Run BLAST" %}</span>
                             {% endif %}
                         </button>
                     </div>

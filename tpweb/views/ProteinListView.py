@@ -1,32 +1,36 @@
+from django.contrib import messages
 from django.views import View
 from django.shortcuts import render
-from django.db.models import Prefetch
+from django.db.models import Count, Exists, OuterRef, Prefetch, Q
+from bioseq.models.BioentryQualifierValue import BioentryQualifierValue
 from django.http import JsonResponse
 from django.http import Http404
 from django.urls import reverse
 from bioseq.models.Biodatabase import Biodatabase
 from bioseq.models.Bioentry import Bioentry
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.db.models import Q
 
 from tpweb.models.ScoreParamValue import ScoreParamValue
-from tpweb.models.ScoreParam import ScoreParamOptions
+from tpweb.models.BioentryStructure import BioentryStructure
 from django.shortcuts import redirect
 from urllib.parse import urlencode, parse_qs
 from tpweb.services.protein_list import (
     DEFAULT_PAGE_SIZE,
-    add_selected_parameter,
+    apply_filter_changes,
     apply_protein_search,
     apply_selected_parameter_filters,
-    empty_pagination_payload,
+    decode_selected_parameters_param,
+    encode_selected_parameters,
+    filter_visible_selected_parameters,
     grouped_selected_parameters,
     humanize_identifier,
     normalize_selected_parameters,
     parse_page_size,
-    remove_selected_parameter,
 )
 from tpweb.services.protein_formula import (
     NO_FORMULA_SENTINEL,
+    annotate_formula_terms,
+    build_all_term_descriptions,
     build_col_descriptions,
     build_score_dict_and_columns,
     choose_formula,
@@ -36,7 +40,6 @@ from tpweb.services.protein_formula import (
     resolve_formulas_for_user,
 )
 from tpweb.services.protein_annotations import (
-    ANNOTATION_KIND_CONFIG,
     annotation_dbnames,
     annotation_kind_label,
     annotation_supports_prefix,
@@ -57,7 +60,7 @@ from tpweb.services.protein_serializer import (
     compute_score_value,
     score_param_value_map,
 )
-from tpweb.services.csv_exports import csv_response, xlsx_sections_response
+from tpweb.services.csv_exports import build_view_export_url, csv_response, xlsx_sections_response
 from tpweb.services.pipeline_status import (
     annotate_pipeline_status_for_genome,
     get_pipeline_status,
@@ -70,7 +73,9 @@ from tpweb.services.structure_sources import (
 )
 from tpweb.services.workspace import resolve_workspace_user
 from tpweb.models.CustomParamFile import CustomParam
+from tpweb.models.FilterPreset import FilterPreset
 from pathlib import Path
+import json
 import logging
 
 
@@ -94,15 +99,15 @@ class ProteinSearchSuggestionsView(View):
         limit = max(1, min(limit, 20))
 
         suggestions = (
-            Bioentry.objects.filter(
-                biodatabase__name=assembly_name + Biodatabase.PROT_POSTFIX
-            )
+            Bioentry.objects.filter(biodatabase__name=assembly_name + Biodatabase.PROT_POSTFIX)
             .filter(
-                Q(accession__icontains=query) |
-                Q(description__icontains=query)
+                Q(accession__icontains=query)
+                | Q(description__icontains=query)
+                | Q(qualifiers__value__icontains=query, qualifiers__term__identifier="gene")
             )
+            .distinct()
             .order_by("accession")
-            .values("accession", "description")[:limit]
+            .values("bioentry_id", "accession", "description")[:limit]
         )
 
         results = []
@@ -115,16 +120,31 @@ class ProteinSearchSuggestionsView(View):
             description = (item.get("description") or "").strip()
             if len(description) > 120:
                 description = description[:117] + "..."
-            results.append({
-                "accession": accession,
-                "description": description,
-            })
+            results.append(
+                {
+                    "accession": accession,
+                    "description": description,
+                    "gene": "",
+                    "url": reverse("tpwebapp:protein", kwargs={"protein_id": item["bioentry_id"]}),
+                }
+            )
+
+        if results:
+            gene_map = dict(
+                BioentryQualifierValue.objects.filter(
+                    bioentry__biodatabase__name=assembly_name + Biodatabase.PROT_POSTFIX,
+                    bioentry__accession__in=[r["accession"] for r in results],
+                    term__identifier="gene",
+                ).values_list("bioentry__accession", "value")
+            )
+            for r in results:
+                r["gene"] = gene_map.get(r["accession"], "")
 
         return JsonResponse({"results": results})
 
 
 class ProteinListView(View):
-    template_name = 'search/proteins.html'
+    template_name = "search/proteins.html"
     VISIBLE_COLUMNS_SESSION_KEY = "protein_visible_columns"
     FIXED_COLUMN_LABELS = (
         "Protein",
@@ -133,8 +153,92 @@ class ProteinListView(View):
         "Structure",
         "EC",
         "GO",
+        "Metabolism",
         "Score",
     )
+
+    @staticmethod
+    def _seed_filters_from_link(request, raw_filters_param):
+        """Handle a shared-link ?filters= param: decode it, drop anything
+        the requesting user can't see (a link can reference a Custom column
+        owned by a different user, or since deleted), seed session with
+        what's left, then redirect to a clean URL -- ?filters= is a one-time
+        seed, not a persistent source of truth (mirrors how preset-apply/
+        filter-change POST handlers already redirect after mutating
+        session)."""
+        decoded = decode_selected_parameters_param(raw_filters_param)
+        if decoded is None:
+            messages.warning(request, "No pudimos interpretar el link de filtros compartido.")
+        else:
+            normalized = normalize_selected_parameters(decoded)
+            visible_ids = set(
+                visible_score_params_queryset(request.user).values_list("pk", flat=True)
+            )
+            kept, dropped_count = filter_visible_selected_parameters(normalized, visible_ids)
+            set_workspace_session_value(request.session, request.user, "selected_parameters", kept)
+            if dropped_count:
+                messages.warning(
+                    request,
+                    f"{dropped_count} filtro(s) del link no se pudieron aplicar (columna no disponible para tu usuario).",
+                )
+        redirect_params = request.GET.copy()
+        redirect_params.pop("filters", None)
+        redirect_params.pop("page", None)
+        redirect_url = request.path
+        if redirect_params:
+            redirect_url = f"{redirect_url}?{redirect_params.urlencode()}"
+        return redirect(redirect_url)
+
+    @staticmethod
+    def _clean_redirect_query(
+        return_query,
+        structure_source="",
+        annotation_kind="",
+        annotation_value="",
+        applied_preset_id=None,
+    ):
+        params = parse_qs(return_query or "", keep_blank_values=False)
+        for key in ("page", "ec_filter", "applied_preset"):
+            params.pop(key, None)
+
+        structure_source = (structure_source or "").strip().lower()
+        if structure_source:
+            params["structure_source"] = [structure_source]
+        else:
+            params.pop("structure_source", None)
+
+        annotation_value = (annotation_value or "").strip()
+        if annotation_value:
+            params["annotation_kind"] = [normalize_annotation_kind(annotation_kind or "ec")]
+            params["annotation_value"] = [annotation_value]
+        else:
+            params.pop("annotation_kind", None)
+            params.pop("annotation_value", None)
+
+        if applied_preset_id is not None:
+            params["applied_preset"] = [str(applied_preset_id)]
+
+        return urlencode(
+            {key: value[0] if len(value) == 1 else value for key, value in params.items()},
+            doseq=True,
+        )
+
+    @staticmethod
+    def _apply_filter_change(selected_parameters, change):
+        # Thin delegation to the shared, request-agnostic implementation in
+        # protein_list.py, which the agent's apply_filters/search_proteins
+        # tools also call.
+        from tpweb.services.protein_list import apply_filter_change
+
+        return apply_filter_change(selected_parameters, change)
+
+    @classmethod
+    def _apply_filter_changes_payload(cls, selected_parameters, payload):
+        try:
+            changes = json.loads(payload or "[]")
+        except (TypeError, ValueError):
+            changes = []
+        return apply_filter_changes(selected_parameters, changes)
 
     @staticmethod
     def _build_export_url(request):
@@ -144,15 +248,6 @@ class ProteinListView(View):
         params["export"] = "csv"
         encoded = params.urlencode()
         return f"?{encoded}" if encoded else "?export=csv"
-
-    @staticmethod
-    def _build_view_export_url(request):
-        params = request.GET.copy()
-        if "page" in params:
-            params.pop("page")
-        params["export"] = "view_csv"
-        encoded = params.urlencode()
-        return f"?{encoded}" if encoded else "?export=view_csv"
 
     @staticmethod
     def _build_column_rows(score_params, selected_column_names):
@@ -204,112 +299,26 @@ class ProteinListView(View):
         ("7", "Translocases"),
     ]
 
-    @staticmethod
-    def _build_special_filter_payload(kind, value):
-        value = (value or "").strip()
-        if not value:
-            return None
-        if kind == "ec":
-            return {
-                "id": f"special:ec:{value}",
-                "score_param_name": "ec_number",
-                "name": value,
-                "type": "special",
-                "special_key": "ec_filter",
-                "special_value": value,
-                "display_name": value,
-            }
-        if kind == "go":
-            normalized = value.upper() if not value.upper().startswith("GO:") else value.upper()
-            if not normalized.startswith("GO:") and normalized.isdigit():
-                normalized = f"GO:{normalized.zfill(7)}"
-            return {
-                "id": f"special:go:{normalized}",
-                "score_param_name": "go_term",
-                "name": normalized,
-                "type": "special",
-                "special_key": "go_filter",
-                "special_value": normalized,
-                "display_name": normalized,
-            }
-        return None
+    _NUMERIC_FILTER_PLACEHOLDERS = {
+        "human_identity": ("30", "80"),
+        "micro_identity": ("30", "80"),
+        "deg_identity": ("30", "80"),
+        "human_evalue": ("1e-5", "0.01"),
+        "micro_evalue": ("1e-5", "0.01"),
+        "deg_evalue": ("1e-5", "0.01"),
+        "colabfold_plddt": ("70", "100"),
+        "gut_microbiome_offtarget_counts": ("1", "10"),
+        "gut_microbiome_genomes_analyzed": ("100", "200"),
+        "gut_microbiome_offtarget_norm": ("0.1", "0.5"),
+        "colabfold_druggability_score": ("0.7", "1.0"),
+        "colabfold_p2rank_probability": ("0.5", "1.0"),
+        "p2rank_probability": ("0.5", "1.0"),
+    }
 
     @staticmethod
-    def _build_numeric_filter_payload(score_param_id, raw_min, raw_max, operation=None):
-        try:
-            param_pk = int(score_param_id)
-        except (TypeError, ValueError):
-            return None
-        from tpweb.models.ScoreParam import ScoreParam as _ScoreParam
-        try:
-            score_param = _ScoreParam.objects.get(pk=param_pk)
-        except _ScoreParam.DoesNotExist:
-            return None
-        try:
-            value_min = float(str(raw_min).replace(",", ".")) if raw_min not in ("", None) else None
-        except (TypeError, ValueError):
-            value_min = None
-        try:
-            value_max = float(str(raw_max).replace(",", ".")) if raw_max not in ("", None) else None
-        except (TypeError, ValueError):
-            value_max = None
-
-        requested_operation = str(operation or "").strip().lower()
-        operation_map = {
-            "gte": ">=",
-            ">=": ">=",
-            "min": ">=",
-            "lte": "<=",
-            "<=": "<=",
-            "max": "<=",
-            "between": "between",
-            "range": "between",
-        }
-        requested_operation = operation_map.get(requested_operation)
-
-        if requested_operation == ">=":
-            value_max = None
-        elif requested_operation == "<=":
-            if value_max is None:
-                value_max = value_min
-            value_min = None
-        elif requested_operation == "between":
-            if value_min is None or value_max is None:
-                return None
-
-        if value_min is None and value_max is None:
-            return None
-        if value_min is not None and value_max is not None:
-            if value_min > value_max:
-                value_min, value_max = value_max, value_min
-            operation = "between"
-            display_value = f"between {value_min:g} and {value_max:g}"
-            filter_id = f"numeric:{score_param.pk}:between:{value_min:g}:{value_max:g}"
-            primary_value = value_min
-        elif value_min is not None:
-            operation = ">="
-            display_value = f"≥ {value_min:g}"
-            filter_id = f"numeric:{score_param.pk}:>=:{value_min:g}"
-            primary_value = value_min
-        else:
-            operation = "<="
-            display_value = f"≤ {value_max:g}"
-            filter_id = f"numeric:{score_param.pk}:<=:{value_max:g}"
-            primary_value = value_max
-            value_max = None
-        return {
-            "id": filter_id,
-            "score_param_id": score_param.pk,
-            "score_param_name": score_param.name,
-            "type": "numeric",
-            "operation": operation,
-            "value": primary_value,
-            "value_max": value_max if operation == "between" else None,
-            "display_name": display_value,
-        }
-
-    @staticmethod
-    def _build_filter_groups(score_params, selected_parameters, structure_choices=None, function_data=None):
+    def _build_filter_groups(
+        score_params, selected_parameters, structure_choices=None, function_data=None
+    ):
         selected_option_ids = {
             str(parameter.get("id"))
             for parameter in selected_parameters
@@ -337,22 +346,32 @@ class ProteinListView(View):
             if not is_categorical:
                 numeric_param_count += 1
                 active_filters = active_numeric_by_param.get(str(score_param.pk), [])
-                grouped.setdefault(category, []).append({
-                    "id": score_param.pk,
-                    "name": score_param.name,
-                    "label": param_label,
-                    "description": score_param.description or "",
-                    "type": "numeric",
-                    "active_filters": [
-                        {
-                            "id": entry.get("id"),
-                            "display_name": entry.get("display_name", ""),
-                        }
-                        for entry in active_filters
-                    ],
-                    "any_active": bool(active_filters),
-                    "search_text": (param_label + " " + category).lower(),
-                })
+                ph, ph_max = ProteinListView._NUMERIC_FILTER_PLACEHOLDERS.get(
+                    score_param.name, ("0.70", "1.00")
+                )
+                grouped.setdefault(category, []).append(
+                    {
+                        "id": score_param.pk,
+                        "name": score_param.name,
+                        "label": param_label,
+                        "description": score_param.description or "",
+                        "type": "numeric",
+                        "placeholder": ph,
+                        "placeholder_max": ph_max,
+                        "active_filters": [
+                            {
+                                "id": entry.get("id"),
+                                "display_name": entry.get("display_name", ""),
+                            }
+                            for entry in active_filters
+                        ],
+                        "any_active": bool(active_filters),
+                        "search_text": (param_label + " " + category).lower(),
+                    }
+                )
+                continue
+            param_name_lower = score_param.name.lower()
+            if param_name_lower.endswith("_structure") or param_name_lower.endswith("_pocket"):
                 continue
             choices = list(score_param.choices.all())
             if not choices:
@@ -361,41 +380,79 @@ class ProteinListView(View):
             search_tokens = [param_label, category]
             any_active = False
             for option in choices:
-                option_label = humanize_identifier(option.name) or option.name
+                if param_name_lower.endswith("_pocket"):
+                    raw = (option.name or "").strip()
+                    if raw == "No_pockets":
+                        option_label = "No pockets"
+                    elif raw.lower().startswith("pocket pocket"):
+                        suffix = raw[len("pocket pocket") :].strip()
+                        option_label = f"Pocket {suffix}" if suffix else "Pocket"
+                    else:
+                        option_label = raw or option.name
+                else:
+                    option_label = humanize_identifier(option.name) or option.name
                 option_active = str(option.pk) in selected_option_ids
                 if option_active:
                     any_active = True
                 option_tone = ""
+                normalized_option_name = str(option.name or "").strip().lower()
                 if score_param.name in {"human_offtarget", "gut_microbiome_offtarget"}:
-                    normalized_option_name = str(option.name or "").strip().lower()
                     if normalized_option_name in {"hit", "y", "yes"}:
                         option_tone = "risk"
                     elif normalized_option_name in {"no_hit", "no hit", "n", "no"}:
                         option_tone = "favorable"
-                options.append({
-                    "id": option.pk,
-                    "name": option.name,
-                    "label": option_label,
-                    "description": option.description or "",
-                    "active": option_active,
-                    "tone": option_tone,
-                })
+                elif param_name_lower in {"core_roary", "core_corecruncher"}:
+                    if option.name == "Core":
+                        option_tone = "favorable"
+                    elif option.name == "Accessory":
+                        option_tone = "secondary"
+                elif param_name_lower == "hit_in_deg":
+                    if normalized_option_name == "y":
+                        option_tone = "favorable"
+                    elif normalized_option_name == "n":
+                        option_tone = "secondary"
+                elif param_name_lower == "localization":
+                    if normalized_option_name in {
+                        "extracellular",
+                        "outermembrane",
+                        "outer membrane",
+                        "cellwall",
+                        "periplasmic",
+                        "cytoplasmicmembrane",
+                        "cytoplasmic membrane",
+                    }:
+                        option_tone = "favorable"
+                    elif normalized_option_name == "cytoplasmic":
+                        option_tone = "risk"
+                options.append(
+                    {
+                        "id": option.pk,
+                        "name": option.name,
+                        "label": option_label,
+                        "description": option.description or "",
+                        "active": option_active,
+                        "tone": option_tone,
+                    }
+                )
                 search_tokens.append(option_label)
-            grouped.setdefault(category, []).append({
-                "id": score_param.pk,
-                "name": score_param.name,
-                "label": param_label,
-                "description": score_param.description or "",
-                "type": "categorical",
-                "options": options,
-                "any_active": any_active,
-                "search_text": " ".join(search_tokens).lower(),
-            })
+            grouped.setdefault(category, []).append(
+                {
+                    "id": score_param.pk,
+                    "name": score_param.name,
+                    "label": param_label,
+                    "description": score_param.description or "",
+                    "type": "categorical",
+                    "options": options,
+                    "any_active": any_active,
+                    "search_text": " ".join(search_tokens).lower(),
+                }
+            )
 
         preferred_order = [
             "Pocket",
             "Off-target",
             "Essentiality",
+            "Conservation",
             "Localization",
             "Protein",
             "Custom",
@@ -447,56 +504,96 @@ class ProteinListView(View):
                 or bool(ec_specific_active)
                 or bool(go_active)
             )
-            filter_groups.append({
-                "category": "Function",
-                "is_function": True,
-                "ec_classes": ec_classes,
-                "ec_specific_active": ec_specific_active,
-                "go_active": go_active,
-                "ec_explorer_url": ec_explorer_url,
-                "any_active": any_function_active,
-                "param_count": len(ec_specific_active) + len(go_active) + sum(1 for c in ec_classes if c.get("active")),
-            })
+            filter_groups.append(
+                {
+                    "category": "Function",
+                    "is_function": True,
+                    "ec_classes": ec_classes,
+                    "ec_specific_active": ec_specific_active,
+                    "go_active": go_active,
+                    "ec_explorer_url": ec_explorer_url,
+                    "any_active": any_function_active,
+                    "param_count": len(ec_specific_active)
+                    + len(go_active)
+                    + sum(1 for c in ec_classes if c.get("active")),
+                }
+            )
 
         structure_choices = [choice for choice in (structure_choices or []) if choice.get("value")]
         if structure_choices:
-            active_structure = next((choice for choice in structure_choices if choice.get("active")), None)
-            filter_groups.append({
-                "category": "Structure",
-                "params": [{
-                    "id": "structure_source",
-                    "name": "structure_source",
-                    "label": "Structure source",
-                    "description": "Limit proteins by the type of structure evidence currently available.",
-                    "options": [
+            active_structure = next(
+                (choice for choice in structure_choices if choice.get("active")), None
+            )
+            filter_groups.append(
+                {
+                    "category": "Structure",
+                    "params": [
                         {
-                            "id": f"structure::{choice['value']}",
-                            "name": choice["value"],
-                            "label": choice["label"],
-                            "description": "",
-                            "active": bool(choice.get("active")),
-                            "url": choice["url"],
-                            "is_link": True,
+                            "id": "structure_source",
+                            "name": "structure_source",
+                            "label": "3D evidence source",
+                            "description": "Limit proteins by the type of structure evidence currently available.",
+                            "options": [
+                                {
+                                    "id": f"structure::{choice['value']}",
+                                    "name": choice["value"],
+                                    "label": choice["label"],
+                                    "description": "",
+                                    "active": bool(choice.get("active")),
+                                    "url": choice["url"],
+                                    "is_link": True,
+                                }
+                                for choice in structure_choices
+                            ],
+                            "any_active": bool(active_structure),
+                            "search_text": "3d evidence structure source "
+                            + " ".join(choice["label"] for choice in structure_choices).lower(),
                         }
-                        for choice in structure_choices
                     ],
                     "any_active": bool(active_structure),
-                    "search_text": "structure source " + " ".join(
-                        choice["label"] for choice in structure_choices
-                    ).lower(),
-                }],
-                "any_active": bool(active_structure),
-                "param_count": 1,
-            })
+                    "param_count": 1 if active_structure else 0,
+                }
+            )
+
+        active_ligand_value = (function_data or {}).get("ligand_active")
+        filter_groups.append(
+            {
+                "category": "Ligands",
+                "is_ligand_filter": True,
+                "ligand_options": [
+                    {
+                        "value": choice_value,
+                        "label": choice_label,
+                        "active": bool(active_ligand_value)
+                        and active_ligand_value.get("value") == choice_value,
+                        "id": (
+                            active_ligand_value.get("id")
+                            if active_ligand_value
+                            and active_ligand_value.get("value") == choice_value
+                            else None
+                        ),
+                    }
+                    for choice_value, choice_label in (
+                        ("yes", "Has ligand evidence"),
+                        ("no", "No ligand evidence"),
+                    )
+                ],
+                "any_active": bool(active_ligand_value),
+                "param_count": 1 if active_ligand_value else 0,
+            }
+        )
 
         for category in sorted(grouped.keys(), key=_category_sort_key):
             params = sorted(grouped[category], key=lambda entry: _param_sort_key(category, entry))
-            filter_groups.append({
-                "category": category,
-                "params": params,
-                "any_active": any(entry["any_active"] for entry in params),
-                "param_count": len(params),
-            })
+            any_active = any(entry["any_active"] for entry in params)
+            filter_groups.append(
+                {
+                    "category": category,
+                    "params": params,
+                    "any_active": any_active,
+                    "param_count": sum(1 for entry in params if entry.get("any_active")),
+                }
+            )
         return filter_groups, numeric_param_count
 
     @staticmethod
@@ -545,8 +642,8 @@ class ProteinListView(View):
     def _build_structure_source_choices(request, page_size, current_value):
         base_choices = [
             {"value": "experimental", "label": "Has experimental PDB"},
-            {"value": "alphafold", "label": "AlphaFold"},
-            {"value": "colabfold", "label": "ColabFold"},
+            {"value": "alphafold", "label": "AlphaFold DB model"},
+            {"value": "colabfold", "label": "ColabFold model"},
             {"value": "none", "label": "No structure"},
         ]
         choices = []
@@ -556,11 +653,13 @@ class ProteinListView(View):
             params["structure_source"] = choice["value"]
             if "page" in params:
                 params.pop("page")
-            choices.append({
-                **choice,
-                "active": current_value == choice["value"],
-                "url": f"?{params.urlencode()}",
-            })
+            choices.append(
+                {
+                    **choice,
+                    "active": current_value == choice["value"],
+                    "url": f"?{params.urlencode()}",
+                }
+            )
         return choices
 
     @staticmethod
@@ -581,8 +680,15 @@ class ProteinListView(View):
         return pages
 
     @staticmethod
-    def _build_table_rows(assembly_name, protein_ids, needed_score_param_names, col_descriptions,
-                          coefficient_by_param, expression=None, zero_cache=None):
+    def _build_table_rows(
+        assembly_name,
+        protein_ids,
+        needed_score_param_names,
+        col_descriptions,
+        coefficient_by_param,
+        expression=None,
+        zero_cache=None,
+    ):
         if not protein_ids:
             return [], {}
 
@@ -590,19 +696,28 @@ class ProteinListView(View):
         if needed_score_param_names is not None:
             spv_qs = spv_qs.filter(score_param__name__in=needed_score_param_names)
 
-        proteins_queryset = Bioentry.objects.filter(
-            biodatabase__name=assembly_name + Biodatabase.PROT_POSTFIX,
-            bioentry_id__in=protein_ids,
-        ).prefetch_related(
-            "qualifiers__term",
-            "structures__pdb",
-            "dbxrefs__dbxref__terms__term",
-            Prefetch("score_params", queryset=spv_qs),
+        proteins_queryset = (
+            Bioentry.objects.filter(
+                biodatabase__name=assembly_name + Biodatabase.PROT_POSTFIX,
+                bioentry_id__in=protein_ids,
+            )
+            .annotate(
+                metabolic_reaction_count=Count("metabolic_reactions", distinct=True),
+                metabolic_chokepoint_count=Count(
+                    "metabolic_reactions",
+                    filter=~Q(metabolic_reactions__chokepoint_role="none"),
+                    distinct=True,
+                ),
+            )
+            .prefetch_related(
+                "qualifiers__term",
+                "structures__pdb",
+                "dbxrefs__dbxref__terms__term",
+                Prefetch("score_params", queryset=spv_qs),
+            )
         )
 
-        proteins_map = {
-            protein.bioentry_id: protein for protein in proteins_queryset
-        }
+        proteins_map = {protein.bioentry_id: protein for protein in proteins_queryset}
         proteins_dto = []
         tdatas = {}
         for protein_id in protein_ids:
@@ -644,7 +759,9 @@ class ProteinListView(View):
             filters_text.append(f"Structure filter: {humanize_identifier(structure_source)}")
 
         if annotation_filter:
-            label = annotation_filter.get("kind_label") or annotation_filter.get("kind") or "Annotation"
+            label = (
+                annotation_filter.get("kind_label") or annotation_filter.get("kind") or "Annotation"
+            )
             value = annotation_filter.get("value") or "-"
             filters_text.append(f"{label}: {value}")
 
@@ -659,7 +776,16 @@ class ProteinListView(View):
             ["Exported proteins", total_count],
         ]
 
-        data_headers = ["Rank", "Protein", "Description", "Gene", "Structure", "EC", "GO"] + list(tcolumns)
+        data_headers = [
+            "Rank",
+            "Protein",
+            "Description",
+            "Gene",
+            "Structure",
+            "EC",
+            "GO",
+            "Metabolism",
+        ] + list(tcolumns)
 
         return [
             {
@@ -675,53 +801,133 @@ class ProteinListView(View):
         ]
 
     def post(self, request, genome, *args, **kwargs):
+        assembly_name = resolve_genome_from_slug(request.user, genome)
+        if not assembly_name:
+            raise Http404("Genome not found")
+
+        workspace_user = resolve_workspace_user(request.user)
         selected_parameters = normalize_selected_parameters(
             get_workspace_session_value(request.session, request.user, "selected_parameters", [])
         )
 
         action = request.POST.get("action")
+        applied_preset_id = None
+        current_structure_source = request.GET.get("structure_source", "").strip().lower()
+        target_structure_source = current_structure_source
+        target_annotation_kind = normalize_annotation_kind(request.GET.get("annotation_kind", "ec"))
+        target_annotation_value = request.GET.get("annotation_value", "").strip()
+        if request.GET.get("ec_filter", "").strip():
+            target_annotation_kind = "ec"
+            target_annotation_value = request.GET.get("ec_filter", "").strip()
 
         if action == "add_filter":
-            option_id = request.POST.get("filter_option_id")
-            if option_id:
-                try:
-                    option_dict = ScoreParamOptions.objects.get(id=option_id).to_dict()
-                    selected_parameters = add_selected_parameter(
-                        selected_parameters, option_dict
-                    )
-                except (ScoreParamOptions.DoesNotExist, ValueError, TypeError):
-                    pass
+            selected_parameters = self._apply_filter_change(
+                selected_parameters,
+                {"action": action, "filter_option_id": request.POST.get("filter_option_id")},
+            )
 
         elif action == "add_special_filter":
-            kind = (request.POST.get("special_kind") or "").strip().lower()
-            value = (request.POST.get("special_value") or "").strip()
-            payload = self._build_special_filter_payload(kind, value)
-            if payload:
-                selected_parameters = add_selected_parameter(selected_parameters, payload)
+            selected_parameters = self._apply_filter_change(
+                selected_parameters,
+                {
+                    "action": action,
+                    "special_kind": request.POST.get("special_kind"),
+                    "special_value": request.POST.get("special_value"),
+                },
+            )
 
         elif action == "add_numeric_filter":
-            score_param_id = (request.POST.get("score_param_id") or "").strip()
-            numeric_operation = (request.POST.get("numeric_operation") or "").strip()
-            raw_min = (request.POST.get("value") or "").strip()
-            raw_max = (request.POST.get("value_max") or "").strip()
-            payload = self._build_numeric_filter_payload(
-                score_param_id,
-                raw_min,
-                raw_max,
-                operation=numeric_operation,
+            selected_parameters = self._apply_filter_change(
+                selected_parameters,
+                {
+                    "action": action,
+                    "score_param_id": request.POST.get("score_param_id"),
+                    "numeric_operation": request.POST.get("numeric_operation"),
+                    "value": request.POST.get("value"),
+                    "value_max": request.POST.get("value_max"),
+                },
             )
-            if payload:
-                selected_parameters = add_selected_parameter(selected_parameters, payload)
 
         elif action == "remove_filter":
-            option_id = request.POST.get("filter_option_id")
-            if option_id:
-                selected_parameters = remove_selected_parameter(
-                    selected_parameters, option_id
+            selected_parameters = self._apply_filter_change(
+                selected_parameters,
+                {"action": action, "filter_option_id": request.POST.get("filter_option_id")},
+            )
+
+        elif action == "set_structure_filter":
+            requested_structure = (request.POST.get("structure_source") or "").strip().lower()
+            target_structure_source = (
+                "" if requested_structure == current_structure_source else requested_structure
+            )
+
+        elif action == "apply_filter_changes":
+            selected_parameters = self._apply_filter_changes_payload(
+                selected_parameters,
+                request.POST.get("filter_actions_json"),
+            )
+            target_structure_source = (
+                (request.POST.get("pending_structure_source") or "").strip().lower()
+            )
+            target_annotation_kind = normalize_annotation_kind(
+                request.POST.get("pending_annotation_kind") or target_annotation_kind
+            )
+            target_annotation_value = (request.POST.get("pending_annotation_value") or "").strip()
+
+        elif action == "save_filter_preset":
+            selected_parameters = self._apply_filter_changes_payload(
+                selected_parameters,
+                request.POST.get("filter_actions_json"),
+            )
+            target_structure_source = (
+                (request.POST.get("pending_structure_source") or "").strip().lower()
+            )
+            target_annotation_kind = normalize_annotation_kind(
+                request.POST.get("pending_annotation_kind") or target_annotation_kind
+            )
+            target_annotation_value = (request.POST.get("pending_annotation_value") or "").strip()
+            preset_name = (request.POST.get("preset_name") or "").strip()
+            if preset_name:
+                saved_preset, _ = FilterPreset.objects.update_or_create(
+                    owner=workspace_user,
+                    genome_name=assembly_name,
+                    name=preset_name,
+                    defaults={
+                        "selected_parameters": normalize_selected_parameters(selected_parameters),
+                        "structure_source": target_structure_source,
+                        "annotation_kind": target_annotation_kind
+                        if target_annotation_value
+                        else "",
+                        "annotation_value": target_annotation_value,
+                    },
                 )
+                applied_preset_id = saved_preset.pk
+
+        elif action == "apply_filter_preset":
+            preset_id = request.POST.get("preset_id")
+            preset = FilterPreset.objects.filter(
+                id=preset_id,
+                owner=workspace_user,
+                genome_name=assembly_name,
+            ).first()
+            if preset:
+                selected_parameters = normalize_selected_parameters(preset.selected_parameters)
+                target_structure_source = preset.structure_source or ""
+                target_annotation_kind = normalize_annotation_kind(preset.annotation_kind or "ec")
+                target_annotation_value = preset.annotation_value or ""
+                applied_preset_id = preset.pk
+
+        elif action == "delete_filter_preset":
+            preset_id = request.POST.get("preset_id")
+            FilterPreset.objects.filter(
+                id=preset_id,
+                owner=workspace_user,
+                genome_name=assembly_name,
+            ).delete()
 
         elif action == "reset_filters":
             selected_parameters = []
+            target_structure_source = ""
+            target_annotation_value = ""
 
         elif action == "update_columns":
             requested_columns = request.POST.getlist("visible_columns")
@@ -746,24 +952,26 @@ class ProteinListView(View):
         )
 
         return_query = request.POST.get("return_query", "").strip()
+        redirect_query = self._clean_redirect_query(
+            return_query,
+            structure_source=target_structure_source,
+            annotation_kind=target_annotation_kind,
+            annotation_value=target_annotation_value,
+            applied_preset_id=applied_preset_id,
+        )
         redirect_url = request.path
-        if return_query:
-            params = parse_qs(return_query, keep_blank_values=False)
-            if action == "reset_filters":
-                for key in ("annotation_kind", "annotation_value", "ec_filter", "structure_source"):
-                    params.pop(key, None)
-            cleaned = urlencode(
-                {k: v[0] if len(v) == 1 else v for k, v in params.items()},
-                doseq=True,
-            )
-            if cleaned:
-                redirect_url = f"{redirect_url}?{cleaned}"
+        if redirect_query:
+            redirect_url = f"{redirect_url}?{redirect_query}"
         return redirect(redirect_url)
 
     def get(self, request, genome, *args, **kwargs):
         assembly_name = resolve_genome_from_slug(request.user, genome)
         if not assembly_name:
             raise Http404("Genome not found")
+
+        raw_filters_param = request.GET.get("filters")
+        if raw_filters_param is not None:
+            return self._seed_filters_from_link(request, raw_filters_param)
 
         page_size = parse_page_size(request.GET.get("pageSize", DEFAULT_PAGE_SIZE))
         clear_search_url = self._build_clear_search_url(request, page_size)
@@ -772,9 +980,9 @@ class ProteinListView(View):
         formula = choose_formula(formulas, requested_formula)
 
         bdb = Biodatabase.objects.get(name=assembly_name)
-        #ScoreParam.initialize()
-        #formula = ScoreFormula.objects.filter(name="GARDP_Target_Overall").get()
-        #formula = ScoreFormula.objects.filter(name="GARDP_Virtual_Screening").get()
+        # ScoreParam.initialize()
+        # formula = ScoreFormula.objects.filter(name="GARDP_Target_Overall").get()
+        # formula = ScoreFormula.objects.filter(name="GARDP_Virtual_Screening").get()
 
         if formula is None:
             formula_term_list = []
@@ -791,25 +999,97 @@ class ProteinListView(View):
 
         current_formula_pk = getattr(formula, "pk", None)
         workspace_user_for_drawer = resolve_workspace_user(request.user)
+        all_term_descriptions = build_all_term_descriptions()
         formulas_for_drawer = []
         for f in formulas:
-            formulas_for_drawer.append({
-                "pk": f.pk,
-                "name": f.name,
-                "is_default": bool(f.default),
-                "is_current": f.pk == current_formula_pk,
-                "expression": f.get_current_formula(),
-                "is_user_formula": f.user_id is not None and f.user_id == getattr(workspace_user_for_drawer, "pk", None),
-            })
+            formula_expression = f.get_current_formula()
+            formulas_for_drawer.append(
+                {
+                    "pk": f.pk,
+                    "name": f.name,
+                    "is_default": bool(f.default),
+                    "is_current": f.pk == current_formula_pk,
+                    "expression": formula_expression,
+                    "term_help": annotate_formula_terms(formula_expression, all_term_descriptions),
+                    "is_user_formula": f.user_id is not None
+                    and f.user_id == getattr(workspace_user_for_drawer, "pk", None),
+                }
+            )
 
         workspace_user = resolve_workspace_user(request.user)
         custom_data_files = list(
-            CustomParam.objects.filter(owner=workspace_user, accession=assembly_name).order_by("tsv")
+            CustomParam.objects.filter(owner=workspace_user, accession=assembly_name).order_by(
+                "tsv"
+            )
         )
-        custom_data_for_drawer = [
-            {"file_name": Path(cp.tsv.name).name}
-            for cp in custom_data_files
-        ]
+        custom_data_for_drawer = [{"file_name": Path(cp.tsv.name).name} for cp in custom_data_files]
+        last_applied_preset_raw = request.GET.get("applied_preset", "")
+        try:
+            last_applied_preset_id = int(last_applied_preset_raw)
+        except (TypeError, ValueError):
+            last_applied_preset_id = None
+
+        filter_presets = []
+        for preset in FilterPreset.objects.filter(
+            owner=workspace_user,
+            genome_name=assembly_name,
+        ).order_by("name", "id"):
+            selected = normalize_selected_parameters(preset.selected_parameters)
+            criteria_labels = []
+            grouped_categorical = {}
+            for item in selected:
+                item_kind = str(item.get("type") or "categorical").strip().lower()
+                param_name_raw = item.get("score_param_name") or ""
+                if item_kind in ("", "categorical") and param_name_raw:
+                    human_val = humanize_identifier(item.get("name", ""))
+                    grouped_categorical.setdefault(humanize_identifier(param_name_raw), []).append(
+                        human_val
+                    )
+                elif item_kind == "numeric" and param_name_raw:
+                    human_name = humanize_identifier(param_name_raw)
+                    op = item.get("operation", "")
+                    val = item.get("value")
+                    val_max = item.get("value_max")
+                    if op == "between" and val is not None and val_max is not None:
+                        criteria_labels.append(f"{human_name}: {val:g}–{val_max:g}")
+                    elif val is not None:
+                        criteria_labels.append(f"{human_name} {op} {val:g}")
+                elif item_kind == "special":
+                    display_name = item.get("display_name") or item.get("name", "")
+                    special_key = str(item.get("special_key") or "").strip()
+                    if display_name:
+                        if special_key == "ec_filter":
+                            criteria_labels.append(f"EC class: {humanize_identifier(display_name)}")
+                        elif special_key == "go_filter":
+                            criteria_labels.append(f"GO: {display_name}")
+                        elif special_key == "structure_source":
+                            criteria_labels.append(
+                                f"Structure: {humanize_identifier(display_name)}"
+                            )
+                        else:
+                            criteria_labels.append(humanize_identifier(display_name))
+            for param_label, values in grouped_categorical.items():
+                criteria_labels.append(f"{param_label}: {', '.join(values)}")
+            if preset.structure_source:
+                criteria_labels.append(f"Structure: {humanize_identifier(preset.structure_source)}")
+            if preset.annotation_value:
+                ann_kind = normalize_annotation_kind(preset.annotation_kind or "ec")
+                ann_label = annotation_kind_label(ann_kind) if ann_kind else "Annotation"
+                criteria_labels.append(f"{ann_label}: {preset.annotation_value}")
+            filter_presets.append(
+                {
+                    "id": preset.pk,
+                    "name": preset.name,
+                    "criteria_count": (
+                        len(selected)
+                        + (1 if preset.structure_source else 0)
+                        + (1 if preset.annotation_value else 0)
+                    ),
+                    "criteria_labels": criteria_labels[:8],
+                    "is_last_applied": preset.pk == last_applied_preset_id,
+                }
+            )
+        active_preset_name = next((p["name"] for p in filter_presets if p["is_last_applied"]), "")
 
         all_visible_score_params = list(
             visible_score_params_queryset(request.user).prefetch_related("choices")
@@ -817,11 +1097,20 @@ class ProteinListView(View):
         visible_score_param_by_name = {
             score_param.name: score_param for score_param in all_visible_score_params
         }
-        default_column_names = [score_param.name for score_param in ordered_score_params(formula_term_list)]
+        default_column_names = [
+            score_param.name for score_param in ordered_score_params(formula_term_list)
+        ]
         if not default_column_names:
-            # No formula active — default to Druggability column if it exists
+            # No formula active -- default to Druggability + p2rank_probability columns
+            # if they exist. p2rank_probability listed first: the default ranking below
+            # (_drugg_default) sorts by it when present, falling back to Druggability's
+            # FPocket score only for proteins with no P2Rank value -- showing both
+            # columns, in that order, is what actually explains the resulting row order
+            # instead of the FPocket column alone looking unsorted.
             default_column_names = [
-                name for name in [
+                name
+                for name in [
+                    "p2rank_probability",
                     "Druggability",
                     "human_offtarget",
                     "human_identity",
@@ -848,11 +1137,12 @@ class ProteinListView(View):
         ]
         score_dict, tcolumns = build_score_dict_and_columns(ordered_params)
         selected_col_descriptions = {
-            score_param.name: (score_param.description or "")
-            for score_param in ordered_params
+            score_param.name: (score_param.description or "") for score_param in ordered_params
         }
         if "Score" in tcolumns:
-            selected_col_descriptions["Score"] = "Weighted prioritization score from the selected formula."
+            selected_col_descriptions["Score"] = (
+                "Weighted prioritization score from the selected formula."
+            )
         col_descriptions = {
             **selected_col_descriptions,
             **col_descriptions,
@@ -862,8 +1152,8 @@ class ProteinListView(View):
             tcolumns = [c for c in tcolumns if c != "Score"]
 
         tdatas = {}
-        page = request.GET.get('page', 1)
-        search_query = request.GET.get('search', '').strip()
+        page = request.GET.get("page", 1)
+        search_query = request.GET.get("search", "").strip()
         raw_sort_col = request.GET.get("sort_col", "").strip()
         raw_sort_dir = request.GET.get("sort_dir", "").strip().lower()
         if raw_sort_dir not in ("asc", "desc"):
@@ -878,12 +1168,18 @@ class ProteinListView(View):
         proteins = Bioentry.objects.filter(
             biodatabase__name=assembly_name + Biodatabase.PROT_POSTFIX,
         )
+        total_protein_count = proteins.count()
         if structure_source == "none":
             proteins = proteins.filter(structures__isnull=True)
         elif structure_source == "experimental":
-            proteins = proteins.filter(structures__isnull=False).exclude(
-                structures__pdb__experiment__in=PDB_MODEL_EXPERIMENTS
+            experimental_structures = BioentryStructure.objects.filter(
+                bioentry=OuterRef("pk"),
+            ).exclude(
+                pdb__experiment__in=PDB_MODEL_EXPERIMENTS,
             )
+            proteins = proteins.annotate(
+                has_experimental_structure=Exists(experimental_structures),
+            ).filter(has_experimental_structure=True)
         elif structure_source == "alphafold":
             proteins = proteins.filter(structures__pdb__experiment=PDB_EXPERIMENT_ALPHAFOLD)
         elif structure_source == "colabfold":
@@ -905,18 +1201,32 @@ class ProteinListView(View):
             get_workspace_session_value(request.session, request.user, "selected_parameters", [])
         )
         grouped_parameters = grouped_selected_parameters(selected_parameters, humanize=True)
+
+        def _display_filter_option_name(parameter):
+            if str(parameter.get("type") or "").lower() in {"numeric", "special"}:
+                return parameter.get("display_name")
+            raw_name = parameter.get("name") or ""
+            param_name = str(parameter.get("score_param_name") or "").lower()
+            if param_name.endswith("_structure"):
+                return raw_name
+            if param_name.endswith("_pocket"):
+                if raw_name == "No_pockets":
+                    return "No pockets"
+                if raw_name.lower().startswith("pocket pocket"):
+                    suffix = raw_name[len("pocket pocket") :].strip()
+                    return f"Pocket {suffix}" if suffix else "Pocket"
+                return raw_name
+            return humanize_identifier(raw_name) or raw_name
+
         display_parameters = [
             {
                 **parameter,
                 "display_score_param_name": (
-                    humanize_identifier(parameter.get("score_param_name")) or parameter.get("score_param_name")
+                    humanize_identifier(parameter.get("score_param_name"))
+                    or parameter.get("score_param_name")
                 ),
                 "name": parameter.get("name") or parameter.get("display_name") or "",
-                "display_name": (
-                    parameter.get("display_name")
-                    if str(parameter.get("type") or "").lower() in {"numeric", "special"}
-                    else (humanize_identifier(parameter.get("name")) or parameter.get("name"))
-                ),
+                "display_name": _display_filter_option_name(parameter),
             }
             for parameter in selected_parameters
         ]
@@ -925,7 +1235,9 @@ class ProteinListView(View):
             try:
                 proteins = apply_selected_parameter_filters(proteins, selected_parameters)
             except Exception:
-                logger.exception("Failed to build protein selected-parameter filters: %s", selected_parameters)
+                logger.exception(
+                    "Failed to build protein selected-parameter filters: %s", selected_parameters
+                )
                 raise
 
         proteins = apply_protein_search(proteins, search_query)
@@ -935,10 +1247,24 @@ class ProteinListView(View):
         column_param_names = set(selected_column_names)
         # Include sort column in prefetch when it's a score param column
         sort_param_for_prefetch = raw_sort_col if raw_sort_col in selected_column_names else None
+        # When no formula and no explicit sort, default to Druggability desc if available --
+        # preferring P2Rank's value over FPocket's own per protein (roadmap: P2Rank is the
+        # primary druggability signal shown everywhere else in the app -- protein page,
+        # metabolism ranking, workspace counts), falling back to FPocket when a protein has
+        # no P2Rank value loaded. An explicit sort_col=Druggability click (the column header)
+        # still sorts by the raw FPocket score only -- this only changes the untouched,
+        # land-on-the-page default. The "Druggability" column's own displayed values, its
+        # ScoreFormula term, and CSV export are unaffected: this only substitutes the sort key.
+        _drugg_default = (
+            not raw_sort_col and formula is None and "Druggability" in selected_column_names
+        )
         if formula_expression:
             from tpweb.services.formula_evaluator import (
-                build_all_options_zero, build_expression_variables, safe_eval_expression,
+                build_all_options_zero,
+                build_expression_variables,
+                safe_eval_expression,
             )
+
             zero_cache = build_all_options_zero(request.user)
             needed_score_param_names = None  # prefetch all for expression scoring
         else:
@@ -946,30 +1272,34 @@ class ProteinListView(View):
             needed_score_param_names = formula_param_names | column_param_names
             if sort_param_for_prefetch:
                 needed_score_param_names = needed_score_param_names | {sort_param_for_prefetch}
+            if _drugg_default:
+                needed_score_param_names = needed_score_param_names | {
+                    "Druggability",
+                    "p2rank_probability",
+                }
 
         ranking_spv_qs = ScoreParamValue.objects.select_related("score_param")
         if needed_score_param_names is not None:
             ranking_spv_qs = ranking_spv_qs.filter(score_param__name__in=needed_score_param_names)
 
-        ranking_queryset = proteins.only(
-            "bioentry_id",
-            "accession",
-            "name",
-            "description",
-        ).prefetch_related(
-            Prefetch("score_params", queryset=ranking_spv_qs)
-        ).distinct()
+        ranking_queryset = (
+            proteins.only(
+                "bioentry_id",
+                "accession",
+                "name",
+                "description",
+            )
+            .prefetch_related(Prefetch("score_params", queryset=ranking_spv_qs))
+            .distinct()
+        )
 
         coefficient_by_param = coefficient_map(formula_term_list)
 
         # Resolve effective sort: which column and direction
-        # When no formula and no explicit sort, default to Druggability desc if available
-        _drugg_default = (
-            not raw_sort_col and formula is None
-            and "Druggability" in selected_column_names
-        )
-        sort_by_param = raw_sort_col if raw_sort_col in selected_column_names else (
-            "Druggability" if _drugg_default else None
+        sort_by_param = (
+            raw_sort_col
+            if raw_sort_col in selected_column_names
+            else ("Druggability" if _drugg_default else None)
         )
         sort_by_score = (raw_sort_col == "Score" and formula is not None) or (
             not raw_sort_col and formula is not None and not sort_by_param
@@ -990,12 +1320,23 @@ class ProteinListView(View):
                         score_value = 0.0
                 else:
                     score_value, _ = compute_score_value(param_values, coefficient_by_param)
+                if _drugg_default:
+                    p2rank_value = param_values.get("p2rank_probability")
+                    col_val = (
+                        p2rank_value
+                        if p2rank_value is not None
+                        else param_values.get("Druggability")
+                    )
+                elif sort_by_param:
+                    col_val = param_values.get(sort_by_param)
+                else:
+                    col_val = None
                 ranked_proteins.append(
                     {
                         "id": protein.bioentry_id,
                         "accession": protein.accession,
                         "score": score_value,
-                        "col_val": param_values.get(sort_by_param) if sort_by_param else None,
+                        "col_val": col_val,
                     }
                 )
         except Exception:
@@ -1038,12 +1379,21 @@ class ProteinListView(View):
             ranked_proteins = non_null + null_group
         elif sort_by_score:
             if effective_sort_dir == "asc":
-                ranked_proteins = sorted(ranked_proteins, key=lambda p: (p["score"], p["accession"]))
+                ranked_proteins = sorted(
+                    ranked_proteins, key=lambda p: (p["score"], p["accession"])
+                )
             else:
-                ranked_proteins = sorted(ranked_proteins, key=lambda p: (-p["score"], p["accession"]))
+                ranked_proteins = sorted(
+                    ranked_proteins, key=lambda p: (-p["score"], p["accession"])
+                )
         else:
-            ranked_proteins = sorted(ranked_proteins, key=lambda p: p["accession"],
-                                     reverse=(effective_sort_dir == "desc"))
+            ranked_proteins = sorted(
+                ranked_proteins,
+                key=lambda p: p["accession"],
+                reverse=(effective_sort_dir == "desc"),
+            )
+
+        filtered_protein_count = len(ranked_proteins)
 
         export_mode = request.GET.get("export")
         if export_mode in {"csv", "view_csv"}:
@@ -1057,7 +1407,16 @@ class ProteinListView(View):
                 expression=formula_expression or None,
                 zero_cache=zero_cache,
             )
-            headers = ["Rank", "Protein", "Description", "Gene", "Structure", "EC", "GO"] + tcolumns
+            headers = [
+                "Rank",
+                "Protein",
+                "Description",
+                "Gene",
+                "Structure",
+                "EC",
+                "GO",
+                "Metabolism",
+            ] + tcolumns
             rows = []
             for index, protein in enumerate(export_proteins, start=1):
                 metric_values = export_tdatas.get(protein["id"], {})
@@ -1070,6 +1429,7 @@ class ProteinListView(View):
                         protein["structure_source_label"],
                         protein.get("ec_text") or "-",
                         protein.get("go_text") or "-",
+                        protein.get("metabolism_text") or "-",
                         *[metric_values.get(column, "-") for column in tcolumns],
                     ]
                 )
@@ -1086,7 +1446,9 @@ class ProteinListView(View):
                         "kind": annotation_kind,
                         "kind_label": annotation_kind_label(annotation_kind),
                         "value": annotation_value,
-                    } if annotation_value else None,
+                    }
+                    if annotation_value
+                    else None,
                     fixed_column_labels=self.FIXED_COLUMN_LABELS,
                     tcolumns=tcolumns,
                     rows=rows,
@@ -1129,12 +1491,18 @@ class ProteinListView(View):
             query_params.pop("page")
         query_string = query_params.urlencode()
 
+        share_params = query_params.copy()
+        if selected_parameters:
+            share_params["filters"] = encode_selected_parameters(selected_parameters)
+        share_url = request.build_absolute_uri(f"{request.path}?{share_params.urlencode()}")
+
         structure_source_choices = self._build_structure_source_choices(
             request, page_size, structure_source
         )
 
         active_ec_values = []
         active_go_values = []
+        active_ligand_value = None
         for parameter in selected_parameters:
             if str(parameter.get("type") or "").lower() != "special":
                 continue
@@ -1145,10 +1513,16 @@ class ProteinListView(View):
                 active_ec_values.append({"value": special_value, "id": entry_id})
             elif special_key == "go_filter" and special_value:
                 active_go_values.append({"value": special_value, "id": entry_id})
+            elif special_key == "ligand_filter" and special_value:
+                active_ligand_value = {"value": special_value, "id": entry_id}
 
         ec_class_value_set = {value for value, _ in self.EC_CLASSES}
-        active_ec_class_set = {entry["value"] for entry in active_ec_values if entry["value"] in ec_class_value_set}
-        ec_specific_active = [entry for entry in active_ec_values if entry["value"] not in ec_class_value_set]
+        active_ec_class_set = {
+            entry["value"] for entry in active_ec_values if entry["value"] in ec_class_value_set
+        }
+        ec_specific_active = [
+            entry for entry in active_ec_values if entry["value"] not in ec_class_value_set
+        ]
 
         ec_classes_for_drawer = [
             {
@@ -1165,6 +1539,7 @@ class ProteinListView(View):
             "ec_classes": ec_classes_for_drawer,
             "ec_specific_active": ec_specific_active,
             "go_active": active_go_values,
+            "ligand_active": active_ligand_value,
             "ec_explorer_url": reverse(
                 "tpwebapp:annotation_explorer",
                 kwargs={"genome": genome_url_slug(assembly_name), "annotation_kind": "ec"},
@@ -1180,110 +1555,160 @@ class ProteinListView(View):
 
         # Pagination info
         pagination_info = {
-            'proteins': proteins_page,
-            'has_previous': proteins_page.has_previous(),
-            'has_next': proteins_page.has_next(),
-            'previous_page_number': proteins_page.previous_page_number() if proteins_page.has_previous() else None,
-            'next_page_number': proteins_page.next_page_number() if proteins_page.has_next() else None,
-            'number': proteins_page.number,
-            'num_pages': proteins_page.paginator.num_pages,
-            'page_range': proteins_page.paginator.page_range
+            "proteins": proteins_page,
+            "has_previous": proteins_page.has_previous(),
+            "has_next": proteins_page.has_next(),
+            "previous_page_number": proteins_page.previous_page_number()
+            if proteins_page.has_previous()
+            else None,
+            "next_page_number": proteins_page.next_page_number()
+            if proteins_page.has_next()
+            else None,
+            "number": proteins_page.number,
+            "num_pages": proteins_page.paginator.num_pages,
+            "page_range": proteins_page.paginator.page_range,
         }
-        page_numbers = self._build_page_numbers(proteins_page.number, proteins_page.paginator.num_pages)
-        pipeline_status = annotate_pipeline_status_for_genome(
-            get_pipeline_status(), bdb.name
+        page_numbers = self._build_page_numbers(
+            proteins_page.number, proteins_page.paginator.num_pages
         )
-        annotation_filter = {
-            "kind": annotation_kind,
-            "kind_label": annotation_kind_label(annotation_kind),
-            "value": annotation_value,
-            "name": annotation_term_name(annotation_kind, annotation_value),
-        } if annotation_value else None
+        pipeline_status = annotate_pipeline_status_for_genome(get_pipeline_status(), bdb.name)
+        annotation_filter = (
+            {
+                "kind": annotation_kind,
+                "kind_label": annotation_kind_label(annotation_kind),
+                "value": annotation_value,
+                "name": annotation_term_name(annotation_kind, annotation_value),
+            }
+            if annotation_value
+            else None
+        )
         structure_filter = next(
             (choice for choice in structure_source_choices if choice.get("active")),
             None,
         )
 
         sort_col_urls = {
-            "__accession__": self._build_sort_url(request, "__accession__", effective_sort_col, effective_sort_dir, default_dir="asc"),
+            "__accession__": self._build_sort_url(
+                request, "__accession__", effective_sort_col, effective_sort_dir, default_dir="asc"
+            ),
         }
         if formula is not None:
-            sort_col_urls["Score"] = self._build_sort_url(request, "Score", effective_sort_col, effective_sort_dir, default_dir="desc")
+            sort_col_urls["Score"] = self._build_sort_url(
+                request, "Score", effective_sort_col, effective_sort_dir, default_dir="desc"
+            )
         for _col in tcolumns:
             if _col == "Score":
                 continue
-            sort_col_urls[_col] = self._build_sort_url(request, _col, effective_sort_col, effective_sort_dir, default_dir="desc")
+            sort_col_urls[_col] = self._build_sort_url(
+                request, _col, effective_sort_col, effective_sort_dir, default_dir="desc"
+            )
 
         sort_label_by_col = {"__accession__": "Protein"}
         sort_label_by_col.update({col: humanize_identifier(col) or col for col in tcolumns})
+        if _drugg_default:
+            # The default (no explicit sort_col) case sorts by a P2Rank-preferred value,
+            # not the raw FPocket score humanize_identifier's "Druggability (FPocket)"
+            # label would otherwise imply -- an explicit column-header click still says
+            # "(FPocket)" correctly, since that path sorts by the raw column only.
+            sort_label_by_col["Druggability"] = "Druggability (P2Rank preferred)"
         sort_direction_label = "ascending" if effective_sort_dir == "asc" else "descending"
         sorted_by_label = f"{sort_label_by_col.get(effective_sort_col, effective_sort_col)} ({sort_direction_label})"
 
-        return render(request, self.template_name, {
-            "biodb__name": bdb.description if bdb.description else bdb.name,
-            "biodb_accession": display_genome_name(bdb.name),
-            "biodb_description": bdb.description if bdb.description else "",
-            "assembly_url": reverse("tpwebapp:assembly", kwargs={"genome": genome_url_slug(assembly_name)}),
-            "proteins": proteins_dto,
-            "score_dict": score_dict,
-            "tcolumns": tcolumns,
-            "tdata": page_tdatas,
-            "formula": formuladto,
-            "col_descriptions": col_descriptions,
-            "formulas":formulas,
-            "formulas_for_drawer": formulas_for_drawer,
-            "custom_data_for_drawer": custom_data_for_drawer,
-            "custom_data_count": len(custom_data_for_drawer),
-            "custom_score_url": reverse("tpwebapp:formula_form", kwargs={"genome": genome_url_slug(assembly_name)}),
-            "custom_data_url": reverse("tpwebapp:customparam", kwargs={"genome": genome_url_slug(assembly_name)}),
-            "current_formula":current_formula,
-            "formula_term_count": len(formula_term_list),
-            "query_string": query_string,
-            "genome": genome_url_slug(assembly_name),
-            "assembly_name":assembly_name,
-            "assembly_label": display_genome_name(assembly_name),
-            "parameters":selected_parameters,
-            "selection_criteria_count": (
-                len(selected_parameters)
-                + (1 if annotation_value else 0)
-                + (1 if structure_filter else 0)
-            ),
-            "display_parameters":display_parameters,
-            "grouped_parameters":grouped_parameters,
-            "pagination":pagination_info,
-            "page_size": page_size,
-            "search_query": search_query,
-            "page_numbers": page_numbers,
-            "filter_groups": filter_groups,
-            "filter_groups_total_options": sum(
-                len(param.get("options", []))
-                for group in filter_groups
-                for param in group.get("params", [])
-            ),
-            "numeric_param_count": numeric_param_count,
-            "pipeline_status": pipeline_status,
-            "clear_search_url": clear_search_url,
-            "clear_annotation_url": self._build_clear_annotation_url(request, page_size),
-            "clear_structure_url": self._build_clear_structure_url(request, page_size),
-            "structure_source": structure_source,
-            "structure_filter": structure_filter,
-            "structure_source_choices": structure_source_choices,
-            "ec_filter_value": annotation_value if annotation_kind == "ec" else "",
-            "annotation_filter": annotation_filter,
-            "column_rows": self._build_column_rows(all_visible_score_params, selected_column_names),
-            "selected_column_names": selected_column_names,
-            "selected_column_count": len(selected_column_names),
-            "default_column_names": default_column_names,
-            "fixed_column_labels": [
-                label for label in self.FIXED_COLUMN_LABELS
-                if label != "Score" or formula is not None
-            ],
-            "export_url": self._build_export_url(request),
-            "view_export_url": self._build_view_export_url(request),
-            "sort_col": effective_sort_col,
-            "sort_dir": effective_sort_dir,
-            "sort_col_urls": sort_col_urls,
-            "sorted_by_label": sorted_by_label,
-            "formula_active": formula is not None,
+        is_default_view = not (
+            formula
+            or grouped_parameters
+            or structure_source
+            or annotation_filter
+            or active_preset_name
+            or search_query
+            or raw_sort_col
+            or raw_sort_dir
+            or page_size != DEFAULT_PAGE_SIZE
+        )
 
-        })  # , {'form': form})
+        return render(
+            request,
+            self.template_name,
+            {
+                "biodb__name": bdb.description if bdb.description else bdb.name,
+                "biodb_accession": display_genome_name(bdb.name),
+                "biodb_description": bdb.description if bdb.description else "",
+                "assembly_url": reverse(
+                    "tpwebapp:assembly", kwargs={"genome": genome_url_slug(assembly_name)}
+                ),
+                "proteins": proteins_dto,
+                "score_dict": score_dict,
+                "tcolumns": tcolumns,
+                "tdata": page_tdatas,
+                "formula": formuladto,
+                "col_descriptions": col_descriptions,
+                "formulas": formulas,
+                "formulas_for_drawer": formulas_for_drawer,
+                "custom_data_for_drawer": custom_data_for_drawer,
+                "custom_data_count": len(custom_data_for_drawer),
+                "filter_presets": filter_presets,
+                "active_preset_name": active_preset_name,
+                "custom_score_url": reverse(
+                    "tpwebapp:formula_form", kwargs={"genome": genome_url_slug(assembly_name)}
+                ),
+                "custom_data_url": reverse(
+                    "tpwebapp:customparam", kwargs={"genome": genome_url_slug(assembly_name)}
+                ),
+                "current_formula": current_formula,
+                "formula_term_count": len(formula_term_list),
+                "query_string": query_string,
+                "share_url": share_url,
+                "genome": genome_url_slug(assembly_name),
+                "assembly_name": assembly_name,
+                "assembly_label": display_genome_name(assembly_name),
+                "parameters": selected_parameters,
+                "selection_criteria_count": (
+                    len(selected_parameters)
+                    + (1 if annotation_value else 0)
+                    + (1 if structure_filter else 0)
+                ),
+                "display_parameters": display_parameters,
+                "grouped_parameters": grouped_parameters,
+                "pagination": pagination_info,
+                "page_size": page_size,
+                "search_query": search_query,
+                "filtered_protein_count": filtered_protein_count,
+                "total_protein_count": total_protein_count,
+                "page_numbers": page_numbers,
+                "filter_groups": filter_groups,
+                "filter_groups_total_options": sum(
+                    len(param.get("options", []))
+                    for group in filter_groups
+                    for param in group.get("params", [])
+                ),
+                "numeric_param_count": numeric_param_count,
+                "pipeline_status": pipeline_status,
+                "clear_search_url": clear_search_url,
+                "clear_annotation_url": self._build_clear_annotation_url(request, page_size),
+                "clear_structure_url": self._build_clear_structure_url(request, page_size),
+                "structure_source": structure_source,
+                "structure_filter": structure_filter,
+                "structure_source_choices": structure_source_choices,
+                "ec_filter_value": annotation_value if annotation_kind == "ec" else "",
+                "annotation_filter": annotation_filter,
+                "column_rows": self._build_column_rows(
+                    all_visible_score_params, selected_column_names
+                ),
+                "selected_column_names": selected_column_names,
+                "selected_column_count": len(selected_column_names),
+                "default_column_names": default_column_names,
+                "fixed_column_labels": [
+                    label
+                    for label in self.FIXED_COLUMN_LABELS
+                    if label != "Score" or formula is not None
+                ],
+                "export_url": self._build_export_url(request),
+                "view_export_url": build_view_export_url(request, strip_params=("page",)),
+                "sort_col": effective_sort_col,
+                "sort_dir": effective_sort_dir,
+                "sort_col_urls": sort_col_urls,
+                "sorted_by_label": sorted_by_label,
+                "formula_active": formula is not None,
+                "is_default_view": is_default_view,
+            },
+        )  # , {'form': form})

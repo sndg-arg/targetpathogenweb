@@ -5,7 +5,7 @@
     gap: var(--tp-space-4);
     --blast-accent-ink: var(--tp-color-brand-900);
     --blast-accent-soft: var(--tp-color-info-bg);
-    --blast-accent-soft-2: color-mix(in srgb, var(--tp-color-brand-050) 72%, white);
+    --blast-accent-soft-2: var(--tp-color-brand-050);
     --blast-accent-border: var(--tp-color-brand-300);
     --blast-border: var(--tp-color-border-soft);
     --blast-mono: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
@@ -14,19 +14,21 @@
 .blast-page h1,
 .blast-page h2,
 .blast-page h3 {
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-weight: 600;
     letter-spacing: -0.01em;
 }
+.blast-page h1 { font-weight: 700; }
 
 /* ── Hero ── */
 
 .blast-hero {
     position: relative;
     overflow: hidden;
-    border: 1px solid var(--blast-border);
+    border: 1px solid var(--tp-color-border-soft);
     border-radius: var(--tp-ui-radius-hero);
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+    background: var(--tp-color-surface);
     padding: 22px 22px 18px;
-    box-shadow: var(--tp-ui-shadow-panel);
 }
 
 .blast-hero::before {
@@ -50,7 +52,7 @@
     color: var(--tp-color-text-muted);
     font-family: var(--blast-mono);
     font-size: var(--tp-font-label);
-    font-weight: 700;
+    font-weight: 500;
     letter-spacing: 0.08em;
     text-transform: uppercase;
 }
@@ -95,10 +97,9 @@
 /* ── Cards ── */
 
 .blast-card {
-    border: 1px solid var(--blast-border);
+    border: 1px solid var(--tp-color-border-soft);
     border-radius: var(--tp-ui-radius-panel);
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
-    box-shadow: var(--tp-ui-shadow-panel);
+    background: var(--tp-color-surface);
     padding: 16px;
     display: grid;
     gap: 14px;
@@ -209,7 +210,7 @@
 
 @keyframes blast-enter {
     from { opacity: 0; transform: translateY(6px); }
-    to   { opacity: 1; transform: translateY(0); }
+    to   { opacity: 1; transform: none; }
 }
 
 /* ── Responsive ── */

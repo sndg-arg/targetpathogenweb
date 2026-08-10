@@ -1,5 +1,6 @@
 from django.urls import path
-#from .views.TestCelery import test_celery
+
+# from .views.TestCelery import test_celery
 from .views.AssemblyView import AssemblyView
 from .views.DownloadView import DownloadView
 from .views.GenomesView import GenomesView
@@ -7,58 +8,131 @@ from .views.IndexView import IndexView
 from .views.HealthView import HealthLiveView, HealthPipelineView, HealthReadyView
 from .views.ProteinListView import ProteinListView, ProteinSearchSuggestionsView
 from .views.ProteinView import ProteinView
+from .views.MetabolismNetworkView import MetabolismNetworkView, ProteinMetabolicNetworkPageView
+from .views.MetabolismPathwayView import (
+    MetabolismNetworkExpandView,
+    MetabolismNetworkGraphView,
+    MetabolismNetworkPageView,
+    MetabolismPathwayDetailView,
+    MetabolismPathwayView,
+)
 from .views.StructureExportView import StructureExportView
 from .views.StructureRawView import StructureRawView
 from .views.StructureView import StructureView
 from .views.FormView import FormView
 from .views.NewView import NewView
+from .views.ProteinBlastView import ProteinBlastView
 from .views.MoleculeView import MoleculeView
 from .views.ParameterFormView import load_options
 from .views.BinderDetailView import BinderDetailView
 from .views.FormulaFormView import FormulaFormView
 from .views.ValidateExpressionView import validate_expression_view
 from .views.DeleteFormulaView import delete_formula_view
-from .views.TestCelery import test_celery
-#from debug_toolbar.toolbar import debug_toolbar_urls
+
+# from debug_toolbar.toolbar import debug_toolbar_urls
 from .views.CustomParamView import upload_form
 from .views.GenomeUploadView import GenomeUploadView
+from .views.DataFileUploadView import DataFileUploadView
 from .views.AnnotationExplorerView import AnnotationExplorerView
+from .views.DataSourcesView import DataSourcesView
+from .views.AboutUsView import AboutUsView
+from .views.AgentChatView import AgentChatView
+from .views.RobotsView import RobotsView
+from .views.HumanProteinListView import HumanProteinListView
+from .views.HumanProteinView import HumanProteinView
 from django.conf.urls.static import static
 from django.conf import settings
-from django.contrib.auth.decorators import login_required
 
-from tpweb.views.UserViews import (
-    user_detail_view,
-    user_redirect_view,
-    user_update_view,
-)
 
-from .admin import *
+from django.shortcuts import render
+
+from .admin import *  # noqa: F403 -- runs each admin submodule's admin.site.register() side effect
 
 app_name = "tpwebapp"
-from django.shortcuts import render
+
+
 def untestview(request):
-    return render(request, 'test.html')
+    return render(request, "test.html")
+
 
 urlpatterns = [
-    #path("~redirect/", view=user_redirect_view, name="redirect"),
-    #path("~update/", view=user_update_view, name="update"),
-    #path("<str:username>/", view=user_detail_view, name="detail"),
-    #path("test_celery/", view=test_celery, name="test_celery"),
-
-    #path("",view=login_required(IndexView.as_view()),name="index"),
-    path("",view=IndexView.as_view(),name="index"),
+    # path("~redirect/", view=user_redirect_view, name="redirect"),
+    # path("~update/", view=user_update_view, name="update"),
+    # path("<str:username>/", view=user_detail_view, name="detail"),
+    # path("test_celery/", view=test_celery, name="test_celery"),
+    # path("",view=login_required(IndexView.as_view()),name="index"),
+    path("", view=IndexView.as_view(), name="index"),
+    path("robots.txt", view=RobotsView.as_view(), name="robots_txt"),
+    path("about/data-sources", view=DataSourcesView.as_view(), name="data_sources"),
+    path("about/us", view=AboutUsView.as_view(), name="about_us"),
     path("genome/<str:genome>", view=AssemblyView.as_view(), name="assembly"),
-    path("genome/<str:genome>/explore/<str:annotation_kind>", view=AnnotationExplorerView.as_view(), name="annotation_explorer"),
+    path(
+        "genome/<str:genome>/metabolism",
+        view=MetabolismPathwayView.as_view(),
+        name="genome_metabolism",
+    ),
+    # Network routes are registered BEFORE genome_metabolism_pathway's generic
+    # <source>/<external_id> pattern below, since that pattern would otherwise greedily
+    # match "network/data" as source="network", external_id="data".
+    path(
+        "genome/<str:genome>/metabolism/network",
+        view=MetabolismNetworkPageView.as_view(),
+        name="genome_metabolism_network",
+    ),
+    path(
+        "genome/<str:genome>/metabolism/network/data",
+        view=MetabolismNetworkGraphView.as_view(),
+        name="genome_metabolism_network_data",
+    ),
+    path(
+        "genome/<str:genome>/metabolism/network/<str:source>/<str:external_id>",
+        view=MetabolismNetworkExpandView.as_view(),
+        name="genome_metabolism_network_expand",
+    ),
+    path(
+        "genome/<str:genome>/metabolism/<str:source>/<str:external_id>",
+        view=MetabolismPathwayDetailView.as_view(),
+        name="genome_metabolism_pathway",
+    ),
+    path(
+        "genome/<str:genome>/explore/<str:annotation_kind>",
+        view=AnnotationExplorerView.as_view(),
+        name="annotation_explorer",
+    ),
     path("protein/<int:protein_id>", view=ProteinView.as_view(), name="protein"),
+    path(
+        "protein/<int:protein_id>/metabolic-network",
+        view=MetabolismNetworkView.as_view(),
+        name="protein_metabolic_network",
+    ),
+    path(
+        "protein/<int:protein_id>/metabolic-network/view",
+        view=ProteinMetabolicNetworkPageView.as_view(),
+        name="protein_metabolic_network_page",
+    ),
     path("genome/<str:genome>/proteins", view=ProteinListView.as_view(), name="protein_list"),
-    path("genome/<str:genome>/proteins/suggestions", view=ProteinSearchSuggestionsView.as_view(), name="protein_search_suggestions"),
+    path(
+        "genome/<str:genome>/proteins/suggestions",
+        view=ProteinSearchSuggestionsView.as_view(),
+        name="protein_search_suggestions",
+    ),
+    path(
+        "genome/<str:genome>/proteins/blast", view=ProteinBlastView.as_view(), name="protein_blast"
+    ),
     path("download", view=DownloadView.as_view(), name="download"),
     path("genomes", view=GenomesView.as_view(), name="genomes_list"),
     path("genomes/upload", view=GenomeUploadView.as_view(), name="genome_upload"),
+    path("genomes/upload-file", view=DataFileUploadView.as_view(), name="data_file_upload"),
+    path("human/proteins", view=HumanProteinListView.as_view(), name="human_protein_list"),
+    path("human/protein/<str:accession>", view=HumanProteinView.as_view(), name="human_protein"),
+    path("agent-chat", view=AgentChatView.as_view(), name="agent_chat"),
     path("molecule", view=MoleculeView.as_view(), name="molecules"),
     path("structure_raw/<int:struct_id>", view=StructureRawView.as_view(), name="structure_raw"),
-    path("structure_export/<int:struct_id>", view=StructureExportView.as_view(), name="structure_export"),
+    path(
+        "structure_export/<int:struct_id>",
+        view=StructureExportView.as_view(),
+        name="structure_export",
+    ),
     path("load_options/", load_options, name="load_options"),
     path("structure/<int:struct_id>", view=StructureView.as_view(), name="structure"),
     path("binder/<int:binder_id>", view=BinderDetailView.as_view(), name="binder_detail"),
@@ -67,11 +141,15 @@ urlpatterns = [
     path("result/<str:result_id>", view=NewView.as_view(), name="blast_res"),
     path("genome/<str:genome>/formula", view=FormulaFormView, name="formula_form"),
     path("formula/validate-expression/", view=validate_expression_view, name="validate_expression"),
-    path("genome/<str:genome>/formula/<int:formula_pk>/delete", view=delete_formula_view, name="delete_formula"),
+    path(
+        "genome/<str:genome>/formula/<int:formula_pk>/delete",
+        view=delete_formula_view,
+        name="delete_formula",
+    ),
     path("genome/<str:genome>/custom-evidence", view=upload_form, name="customparam"),
     path("health/live", view=HealthLiveView.as_view(), name="health_live"),
     path("health/ready", view=HealthReadyView.as_view(), name="health_ready"),
     path("health/pipeline", view=HealthPipelineView.as_view(), name="health_pipeline"),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-#if 1:
+# if 1:
 #    urlpatterns = urlpatterns + debug_toolbar_urls()

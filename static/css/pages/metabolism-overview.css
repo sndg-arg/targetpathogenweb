@@ -1,0 +1,900 @@
+/* Metabolic pathways overview — hero reuses genome-overview.css as-is (same .genome-page/
+   .genome-hero/.metric-pill classes); this file only covers the pathway ranking list below it. */
+
+.metabolism-page {
+    font-variant-numeric: tabular-nums;
+}
+
+.metric-pill--warm .metric-value {
+    color: var(--tp-color-amber-700);
+}
+
+.metabolism-page h2,
+.metabolism-page h3 {
+    text-wrap: balance;
+}
+
+/* .tp-state-note (ui-system.css) is margin:0 by design -- callers add their
+   own context spacing. This one sits directly in the .genome-page flow
+   between the hero and the first .genome-card (metabolism.html and
+   metabolism_network.html both use it the same way), so without it the
+   bordered note spanned wider than the 18px-inset hero/card content next
+   to it. Same fix as protein_metabolic_network.html's summary banner. */
+.metabolism-curation-note {
+    margin-left: 18px;
+    margin-right: 18px;
+}
+
+.metabolism-pathway-search {
+    margin-top: 14px;
+}
+
+.metabolism-pathway-search .tp-ui-search-input {
+    width: 100%;
+}
+
+#metabolism-pathway-empty.metabolism-pathway-search-empty {
+    display: none;
+    margin-top: 10px;
+}
+
+#metabolism-pathway-empty.metabolism-pathway-search-empty.is-visible {
+    display: block;
+}
+
+.metabolism-pathway-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.metabolism-pathway-card {
+    display: grid;
+    grid-template-columns: 28px 1fr;
+    gap: 12px;
+    padding: 14px 16px;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 10px;
+    background: var(--tp-color-surface);
+    box-shadow: var(--tp-shadow-xs);
+    transition:
+        border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+    animation: tp-ui-enter 340ms var(--tp-ui-ease-standard) both;
+}
+
+.metabolism-pathway-card:hover {
+    border-color: var(--tp-color-border-strong);
+    box-shadow: var(--tp-shadow-sm);
+    transform: translateY(-1px);
+}
+
+.metabolism-rank {
+    align-self: start;
+    min-width: 28px;
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--tp-color-text-muted);
+}
+
+.metabolism-pathway-card--top .metabolism-rank {
+    color: var(--genome-accent-ink);
+}
+
+.metabolism-pathway-card--top {
+    border-color: var(--tp-color-brand-200);
+    background: var(--tp-color-brand-050);
+}
+
+.metabolism-pathway-card--top:hover {
+    border-color: var(--tp-color-brand-300);
+}
+
+.metabolism-pathway-main {
+    display: grid;
+    grid-template-columns: minmax(0, 1.3fr) minmax(150px, 1fr);
+    gap: 18px;
+    align-items: start;
+}
+
+.metabolism-pathway-title {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.metabolism-source {
+    display: inline-flex;
+    align-items: center;
+    padding: 1px 7px;
+    border-radius: 999px;
+    background: var(--tp-color-brand-050);
+    color: var(--tp-color-brand-900);
+    font-size: 0.64rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+}
+
+.metabolism-source--model {
+    background: var(--tp-color-surface-muted);
+    color: var(--tp-color-text-secondary);
+}
+
+.metabolism-pathway-title h3 {
+    margin: 0;
+    color: var(--genome-accent-ink);
+    font-size: var(--tp-heading-sm);
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.metabolism-pathway-title h3 a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.metabolism-pathway-title h3 a:hover {
+    color: var(--tp-color-brand-800);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.metabolism-pathway-id {
+    margin: 3px 0 0;
+    color: var(--tp-color-text-soft);
+    font-size: 0.74rem;
+}
+
+.metabolism-stat-row {
+    display: flex;
+    gap: 18px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+}
+
+.metabolism-stat {
+    min-width: 60px;
+}
+
+.metabolism-stat-n {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--tp-color-text-primary);
+    line-height: 1.2;
+}
+
+.metabolism-stat-n.is-warm {
+    color: var(--tp-color-amber-700);
+}
+
+.metabolism-stat-l {
+    display: block;
+    margin-top: 1px;
+    color: var(--tp-color-text-muted);
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.metabolism-score-block {
+    min-width: 130px;
+}
+
+.metabolism-score-label {
+    display: block;
+    color: var(--tp-color-text-muted);
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.metabolism-score-n {
+    display: inline-block;
+    margin-top: 4px;
+    padding: 5px 10px;
+    border: 1px solid var(--genome-accent-border);
+    border-radius: 8px;
+    background: var(--genome-accent-soft);
+    color: var(--genome-accent-ink);
+    font-size: 0.9rem;
+    font-weight: 600;
+    line-height: 1;
+}
+
+.metabolism-score-sub {
+    display: block;
+    margin-top: 5px;
+    color: var(--tp-color-text-muted);
+    font-size: 0.72rem;
+    font-weight: 600;
+}
+
+.metabolism-score-track {
+    height: 4px;
+    margin-top: 8px;
+    border-radius: 3px;
+    background: var(--tp-color-border-soft);
+    overflow: hidden;
+}
+
+.metabolism-score-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: var(--genome-accent, var(--tp-color-brand-800));
+}
+
+.metabolism-target-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 12px;
+}
+
+.metabolism-card-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.metabolism-pathway-filter-form {
+    display: contents;
+}
+
+.metabolism-target-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 10px;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 9px;
+    background: var(--tp-color-surface);
+    color: var(--tp-color-text-primary);
+    font-size: 0.78rem;
+    text-decoration: none;
+    transition: border-color 140ms ease, background 140ms ease, color 140ms ease, transform 140ms ease;
+}
+
+.metabolism-target-chip:hover {
+    border-color: var(--tp-color-brand-300);
+    text-decoration: none;
+    transform: translateY(-1px);
+}
+
+.metabolism-target-chip--empty {
+    color: var(--tp-color-text-muted);
+    background: var(--tp-color-surface-muted);
+    border-style: dashed;
+    cursor: default;
+}
+
+.metabolism-target-chip--empty:hover {
+    border-color: var(--tp-color-border-soft);
+}
+
+.metabolism-target-chip--top {
+    border-color: var(--tp-color-brand-700);
+    background: var(--tp-color-brand-050);
+}
+
+.metabolism-target-id {
+    color: var(--tp-color-brand-800);
+    font-size: 0.83rem;
+    font-weight: 800;
+}
+
+.metabolism-target-chip--top .metabolism-target-id {
+    color: var(--tp-color-brand-900);
+}
+
+.metabolism-connected-pathways {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.metabolism-connected-pathway-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 11px;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 9px;
+    background: var(--tp-color-surface);
+    color: var(--tp-color-text-primary);
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: border-color 140ms ease, background 140ms ease, transform 140ms ease;
+}
+
+.metabolism-connected-pathway-chip:hover {
+    border-color: var(--tp-color-brand-300);
+    text-decoration: none;
+    transform: translateY(-1px);
+}
+
+.metabolism-connected-pathway-weight {
+    color: var(--tp-color-text-muted);
+    font-size: 0.72rem;
+    font-weight: 700;
+}
+
+.metabolism-target-meta {
+    color: var(--tp-color-text-muted);
+    font-size: 0.72rem;
+}
+
+.metabolism-chokepoint-dot {
+    width: 6px;
+    height: 6px;
+    flex: 0 0 auto;
+    border-radius: 999px;
+    background: var(--tp-color-amber-500);
+}
+
+.metabolism-pathway-detail-page .genome-hero-eyebrow,
+.metabolism-pathway-detail-page .genome-hero h1,
+.metabolism-pathway-detail-page .genome-description,
+.metabolism-pathway-detail-page .genome-hero-actions,
+.metabolism-pathway-detail-page .genome-metrics {
+    animation: tp-ui-enter 340ms var(--tp-ui-ease-standard) both;
+}
+
+.metabolism-pathway-detail-page .genome-hero h1 { animation-delay: 40ms; }
+.metabolism-pathway-detail-page .genome-description { animation-delay: 80ms; }
+.metabolism-pathway-detail-page .genome-hero-actions { animation-delay: 120ms; }
+.metabolism-pathway-detail-page .genome-metrics { animation-delay: 160ms; }
+
+.metabolism-pathway-detail-page .genome-metrics .metric-pill {
+    transition:
+        transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.metabolism-pathway-detail-page .genome-metrics .metric-pill:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--tp-shadow-sm);
+    border-color: var(--tp-color-border-strong);
+}
+
+.metabolism-pathway-detail-page .pathway-reaction-row {
+    animation: tp-ui-enter 340ms var(--tp-ui-ease-standard) both;
+}
+
+.metabolism-reaction-table .pathway-reaction-row:nth-child(1) { animation-delay: 0ms; }
+.metabolism-reaction-table .pathway-reaction-row:nth-child(2) { animation-delay: 28ms; }
+.metabolism-reaction-table .pathway-reaction-row:nth-child(3) { animation-delay: 56ms; }
+.metabolism-reaction-table .pathway-reaction-row:nth-child(4) { animation-delay: 84ms; }
+.metabolism-reaction-table .pathway-reaction-row:nth-child(5) { animation-delay: 112ms; }
+.metabolism-reaction-table .pathway-reaction-row:nth-child(6) { animation-delay: 140ms; }
+.metabolism-reaction-table .pathway-reaction-row:nth-child(7) { animation-delay: 168ms; }
+.metabolism-reaction-table .pathway-reaction-row:nth-child(8) { animation-delay: 196ms; }
+.metabolism-reaction-table .pathway-reaction-row:nth-child(9) { animation-delay: 224ms; }
+.metabolism-reaction-table .pathway-reaction-row:nth-child(10) { animation-delay: 252ms; }
+.metabolism-reaction-table .pathway-reaction-row:nth-child(11) { animation-delay: 280ms; }
+.metabolism-reaction-table .pathway-reaction-row:nth-child(12) { animation-delay: 308ms; }
+.metabolism-reaction-table .pathway-reaction-row:nth-child(13) { animation-delay: 336ms; }
+.metabolism-reaction-table .pathway-reaction-row:nth-child(14) { animation-delay: 364ms; }
+.metabolism-reaction-table .pathway-reaction-row:nth-child(n+15) { animation-delay: 392ms; }
+
+.metabolism-pathway-map-shell {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 8px;
+    background: var(--tp-color-surface);
+}
+
+.metabolic-pathway-map-tooltip {
+    position: absolute;
+    z-index: 20;
+    max-width: 320px;
+    padding: 11px 12px;
+    border: 1px solid var(--tp-color-border-strong);
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--tp-color-surface) 96%, var(--tp-color-brand-050));
+    color: var(--tp-color-text-primary);
+    box-shadow: var(--tp-shadow-lg);
+    pointer-events: none;
+}
+
+.metabolic-pathway-map-tooltip .metabolic-network-tooltip-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-size: 0.86rem;
+    font-weight: 800;
+}
+
+.metabolic-pathway-map-tooltip .metabolic-network-tooltip-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 6px;
+    border: 1px solid color-mix(in srgb, var(--tp-color-amber-500) 48%, transparent);
+    border-radius: 999px;
+    background: var(--tp-color-amber-050);
+    color: var(--tp-color-amber-700);
+    font-size: 0.68rem;
+}
+
+.metabolic-pathway-map-tooltip dl {
+    display: grid;
+    grid-template-columns: 62px minmax(0, 1fr);
+    gap: 4px 8px;
+    margin: 0;
+}
+
+.metabolic-pathway-map-tooltip dt {
+    color: var(--tp-color-text-muted);
+    font-size: 0.68rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.metabolic-pathway-map-tooltip dd {
+    margin: 0;
+    color: var(--tp-color-text-primary);
+    font-size: 0.76rem;
+    word-break: break-word;
+}
+
+.metabolic-pathway-map-tooltip .metabolic-network-tooltip-hint {
+    margin-top: 9px;
+    padding-top: 8px;
+    border-top: 1px solid var(--tp-color-border-soft);
+    color: var(--tp-color-text-muted);
+    font-size: 0.72rem;
+}
+
+.metabolism-pathway-map-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--tp-color-border-soft);
+    background: var(--tp-color-surface-soft);
+}
+
+.metabolism-pathway-map-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 16px;
+    color: var(--tp-color-text-secondary);
+    font-size: 0.76rem;
+    font-weight: 700;
+}
+
+.metabolism-pathway-map-legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.metabolism-pathway-map-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex: 0 0 auto;
+}
+
+.metabolism-pathway-map-actions .metabolic-map-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    height: 28px;
+    padding: 0 10px;
+    border: 1px solid var(--tp-color-border-strong);
+    border-radius: 6px;
+    background: var(--tp-color-surface);
+    color: var(--tp-color-text-secondary);
+    font-size: 0.76rem;
+    font-weight: 800;
+    line-height: 1;
+    transition: border-color 140ms ease, background 140ms ease, color 140ms ease, transform 140ms ease;
+}
+
+.metabolism-pathway-map-actions .metabolic-map-btn:hover {
+    border-color: var(--tp-color-brand-300);
+    color: var(--tp-color-text-primary);
+    background: var(--tp-color-surface-soft);
+    transform: translateY(-1px);
+}
+
+.map-legend-box,
+.map-legend-dot {
+    width: 12px;
+    height: 12px;
+    flex: 0 0 auto;
+    border: 1px solid var(--tp-color-border-strong);
+}
+
+.map-legend-box {
+    border-radius: 3px;
+    background: var(--tp-color-brand-050);
+    border-color: var(--tp-color-brand-700);
+}
+
+.map-legend-box--chokepoint {
+    background: var(--tp-color-amber-050);
+    border-color: var(--tp-color-amber-500);
+}
+
+.map-legend-dot {
+    border-radius: 999px;
+    background: var(--tp-color-sage-500);
+    border-color: var(--tp-color-surface);
+}
+
+.map-legend-dot--currency {
+    background: var(--tp-color-text-soft);
+    opacity: 0.7;
+}
+
+.metabolic-pathway-diagram {
+    min-height: 520px;
+    overflow: auto;
+    cursor: default;
+}
+
+.metabolic-pathway-diagram svg {
+    display: block;
+    min-width: 960px;
+    width: 100%;
+    transition: opacity 220ms ease;
+    animation: tp-metabolism-map-in 280ms ease both;
+}
+
+.metabolic-pathway-diagram.is-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 320px;
+    color: var(--tp-color-text-muted);
+    font-size: 0.9rem;
+}
+
+.pathway-map-axis {
+    fill: var(--tp-color-text-muted);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.pathway-map-reaction-label {
+    fill: var(--tp-color-text-primary);
+    font-size: 12.5px;
+    font-weight: 800;
+}
+
+.pathway-map-gene-label {
+    fill: var(--tp-color-text-secondary);
+    font-size: 10.5px;
+    font-weight: 700;
+}
+
+.pathway-map-gene-label.is-muted-label {
+    fill: var(--tp-color-text-muted);
+    font-weight: 600;
+    font-style: italic;
+}
+
+.pathway-map-gene-link {
+    cursor: pointer;
+}
+
+.pathway-map-gene-link .pathway-map-gene-label {
+    text-decoration: underline;
+    text-decoration-color: transparent;
+    transition: fill 140ms ease, text-decoration-color 140ms ease;
+}
+
+.pathway-map-gene-link:hover .pathway-map-gene-label {
+    fill: var(--tp-color-brand-700);
+    text-decoration-color: var(--tp-color-brand-300);
+}
+
+.pathway-map-metabolite-dot {
+    cursor: pointer;
+    transition: r 140ms ease, opacity 140ms ease;
+}
+
+.pathway-map-metabolite-dot:hover {
+    opacity: 1;
+}
+
+.pathway-map-shared-label {
+    fill: var(--tp-color-sage-700);
+    font-size: 10.5px;
+    font-weight: 800;
+}
+
+.pathway-map-metabolite {
+    fill: var(--tp-color-text-primary);
+    font-size: 11.5px;
+    font-weight: 650;
+}
+
+.pathway-map-metabolite.is-currency {
+    fill: var(--tp-color-text-muted);
+    font-weight: 500;
+}
+
+.pathway-map-row {
+    transition: opacity 140ms ease;
+}
+
+.pathway-map-row rect,
+.pathway-map-row path,
+.pathway-map-row circle {
+    transition: opacity 140ms ease, stroke-width 140ms ease, filter 140ms ease;
+}
+
+.pathway-map-row:hover > rect:first-of-type {
+    filter: brightness(0.985);
+}
+
+.pathway-map-row:hover text {
+    font-weight: 800;
+}
+
+.metabolic-provenance {
+    margin: 10px 0 0;
+    color: var(--tp-color-text-soft);
+    font-size: var(--tp-font-label);
+}
+
+.metabolism-reaction-table {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.pathway-reaction-row {
+    padding: 14px;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 8px;
+    background: var(--tp-color-surface);
+    box-shadow: var(--tp-shadow-xs);
+    cursor: pointer;
+    transition: border-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
+}
+
+.pathway-reaction-row--chokepoint {
+    border-color: color-mix(in srgb, var(--tp-color-amber-500) 42%, var(--tp-color-border-soft));
+}
+
+.pathway-reaction-row:hover {
+    border-color: var(--tp-color-border-strong);
+    box-shadow: var(--tp-shadow-lg);
+    transform: translateY(-1px);
+}
+
+.pathway-reaction-row--located {
+    border-color: var(--tp-color-brand-700);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--tp-color-brand-700) 30%, transparent);
+}
+
+.pathway-reaction-row .target-evidence-accessory-badge {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    padding: 3px 9px;
+    border: 1px solid color-mix(in srgb, var(--tp-color-amber-500) 38%, transparent);
+    border-radius: 999px;
+    background: var(--tp-color-amber-050);
+    color: var(--tp-color-amber-700);
+    font-size: 0.72rem;
+    font-weight: 800;
+    line-height: 1.2;
+}
+
+.pathway-reaction-main {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.pathway-reaction-main h3 {
+    margin: 0;
+    color: var(--tp-color-text-primary);
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 0.88rem;
+    font-weight: 700;
+}
+
+.pathway-reaction-main p {
+    margin: 3px 0 0;
+    color: var(--tp-color-text-muted);
+    font-size: 0.78rem;
+}
+
+.reaction-external-link {
+    color: var(--tp-color-brand-700);
+    font-weight: 800;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+}
+
+.reaction-external-link::after {
+    margin-left: 5px;
+    padding: 1px 4px;
+    border: 1px solid var(--tp-color-brand-200);
+    border-radius: 5px;
+    font-size: 0.64em;
+    letter-spacing: 0.04em;
+    text-decoration: none;
+}
+
+.reaction-external-link--kegg::after {
+    content: "KEGG";
+}
+
+.reaction-external-link--metacyc::after {
+    content: "MetaCyc";
+}
+
+.reaction-external-link:hover {
+    color: var(--tp-color-brand-900);
+}
+
+.pathway-reaction-equation {
+    /* Content-hugging flex, not a stretched 1fr/auto/1fr grid -- a reaction with one
+       substrate and one product otherwise left a large dead gap between the chip and
+       the arrow, since the grid columns always spanned the full row width regardless
+       of how little content was in them. */
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.pathway-reaction-equation > div {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+}
+
+.pathway-reaction-genes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.metabolite-chip {
+    display: inline-flex;
+    align-items: center;
+    min-width: 0;
+    max-width: 220px;
+    padding: 3px 8px;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 999px;
+    background: var(--tp-color-surface-soft);
+    color: var(--tp-color-text-primary);
+    font-size: 0.74rem;
+    font-weight: 650;
+    line-height: 1.25;
+    overflow: hidden;
+    vertical-align: middle;
+    transition: border-color 140ms ease, background 140ms ease, color 140ms ease, transform 140ms ease;
+}
+
+.metabolite-chip:hover {
+    border-color: var(--tp-color-brand-300);
+    background: var(--tp-color-brand-050);
+    transform: translateY(-1px);
+}
+
+.metabolite-chip-label {
+    display: block;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.metabolite-chip.is-currency {
+    color: var(--tp-color-text-muted);
+    background: var(--tp-color-surface-muted);
+    font-weight: 500;
+}
+
+.metabolite-arrow {
+    color: var(--tp-color-text-muted);
+    font-size: 0.88rem;
+    font-weight: 800;
+}
+
+.metabolite-arrow--reversible {
+    color: var(--tp-color-sage-700);
+}
+
+.pathway-reaction-genes {
+    margin-top: 10px;
+}
+
+@keyframes tp-metabolism-map-in {
+    from {
+        opacity: 0;
+        transform: scale(0.992);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+@keyframes tp-metabolism-row-fade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.pathway-map-row {
+    animation: tp-metabolism-row-fade 300ms ease both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .metabolism-pathway-card,
+    .metabolic-pathway-diagram svg,
+    .metabolism-pathway-detail-page .genome-hero-eyebrow,
+    .metabolism-pathway-detail-page .genome-hero h1,
+    .metabolism-pathway-detail-page .genome-description,
+    .metabolism-pathway-detail-page .genome-hero-actions,
+    .metabolism-pathway-detail-page .genome-metrics,
+    .metabolism-pathway-detail-page .pathway-reaction-row,
+    .pathway-map-row {
+        animation: none;
+    }
+
+    .metabolism-pathway-card,
+    .metabolism-target-chip,
+    .pathway-reaction-row,
+    .metabolite-chip,
+    .metabolism-pathway-detail-page .genome-metrics .metric-pill {
+        transition: none;
+    }
+}
+
+@media (max-width: 1100px) {
+    .metabolism-pathway-main {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 720px) {
+    .metabolism-stat-row {
+        gap: 14px;
+    }
+
+    .metabolism-pathway-title {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .metabolism-card-actions {
+        justify-content: flex-start;
+    }
+
+    .pathway-reaction-main {
+        display: grid;
+        grid-template-columns: 1fr;
+    }
+}

@@ -1,0 +1,477 @@
+/* Global assistant drawer -- present on every page (loaded from masterpage.html
+   like ui-system.css itself), not scoped to a single page's CSS file. */
+
+.tp-agent-drawer-backdrop {
+    position: fixed;
+    inset: 0;
+    background: var(--tp-color-scrim);
+    z-index: 1190;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--tp-ui-motion-base) var(--tp-ui-ease-standard);
+}
+
+.tp-agent-drawer-backdrop.is-visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.tp-agent-drawer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: min(420px, 100vw);
+    display: flex;
+    flex-direction: column;
+    background: var(--tp-color-surface);
+    border-left: 1px solid var(--tp-color-border-soft);
+    box-shadow: var(--tp-shadow-lg);
+    z-index: 1200;
+    transform: translateX(100%);
+    transition: transform var(--tp-ui-motion-base) var(--tp-ui-ease-standard);
+}
+
+.tp-agent-drawer.is-open {
+    transform: translateX(0);
+}
+
+.tp-agent-drawer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--tp-space-4) var(--tp-space-5);
+    border-bottom: 1px solid var(--tp-color-border-soft);
+    flex-shrink: 0;
+}
+
+.tp-agent-drawer-toolbar {
+    display: flex;
+    justify-content: flex-end;
+    padding: var(--tp-space-2) var(--tp-space-5) 0;
+    flex-shrink: 0;
+}
+
+.tp-agent-drawer-mode-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    appearance: none;
+    border: 1px solid var(--tp-color-border-soft);
+    background: var(--tp-color-surface);
+    color: var(--tp-color-text-muted);
+    border-radius: 999px;
+    padding: 0.28rem 0.65rem;
+    font: inherit;
+    font-size: 0.72rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.tp-agent-drawer-mode-toggle:hover,
+.tp-agent-drawer-mode-toggle:focus-visible {
+    border-color: var(--tp-color-brand-300);
+    color: var(--tp-color-text-primary);
+}
+
+.tp-agent-drawer-mode-toggle[aria-pressed="true"] {
+    background: color-mix(in srgb, var(--tp-color-brand-500) 14%, var(--tp-color-surface));
+    border-color: var(--tp-color-brand-500);
+    color: var(--tp-color-brand-700);
+}
+
+.tp-agent-drawer-heading {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+}
+
+.tp-agent-drawer-avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    flex-shrink: 0;
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--tp-color-surface) 90%, var(--tp-color-brand-500));
+    border: 1px solid var(--tp-color-border-accent);
+    box-shadow: var(--tp-shadow-sm);
+    color: var(--tp-color-brand-700);
+}
+
+.tp-agent-drawer-title {
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-weight: 700;
+    font-size: 0.98rem;
+    color: var(--tp-color-text-primary);
+}
+
+.tp-agent-drawer-close {
+    appearance: none;
+    border: none;
+    background: transparent;
+    color: var(--tp-color-text-muted);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.tp-agent-drawer-close:hover,
+.tp-agent-drawer-close:focus-visible {
+    background: var(--tp-color-surface-soft);
+    color: var(--tp-color-text-primary);
+}
+
+.tp-agent-drawer-messages {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    padding: var(--tp-space-5);
+    display: flex;
+    flex-direction: column;
+    gap: var(--tp-space-3);
+}
+
+.tp-agent-drawer-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin: auto 0;
+    padding: var(--tp-space-5) var(--tp-space-4);
+    text-align: center;
+    color: var(--tp-color-text-muted);
+    font-size: 0.86rem;
+    line-height: 1.5;
+}
+
+.tp-agent-drawer-empty-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--tp-color-surface) 90%, var(--tp-color-brand-500));
+    border: 1px solid var(--tp-color-border-accent);
+    box-shadow: var(--tp-shadow-sm);
+}
+
+.tp-agent-drawer-empty-icon img {
+    width: 22px;
+    height: 22px;
+}
+
+.tp-agent-drawer-msg {
+    max-width: 88%;
+    padding: var(--tp-space-3) var(--tp-space-4);
+    border-radius: var(--tp-ui-radius-panel);
+    font-size: 0.88rem;
+    line-height: 1.45;
+    word-break: break-word;
+}
+
+.tp-agent-drawer-msg p,
+.tp-agent-drawer-msg ul,
+.tp-agent-drawer-msg ol,
+.tp-agent-drawer-msg h3,
+.tp-agent-drawer-msg h4,
+.tp-agent-drawer-msg h5 {
+    margin: 0;
+}
+
+.tp-agent-drawer-msg > * + * {
+    margin-top: var(--tp-space-2);
+}
+
+.tp-agent-drawer-msg ul,
+.tp-agent-drawer-msg ol {
+    padding-left: 1.1rem;
+}
+
+.tp-agent-drawer-msg li + li {
+    margin-top: 0.25rem;
+}
+
+.tp-agent-drawer-msg a {
+    color: var(--tp-color-brand-600);
+    font-weight: 650;
+    text-decoration: none;
+}
+
+.tp-agent-drawer-msg a:hover,
+.tp-agent-drawer-msg a:focus-visible {
+    text-decoration: underline;
+}
+
+.tp-agent-drawer-msg h3,
+.tp-agent-drawer-msg h4,
+.tp-agent-drawer-msg h5 {
+    color: var(--tp-color-text-primary);
+    font-size: 0.9rem;
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+.tp-agent-drawer-msg code {
+    font-family: var(--tp-font-mono);
+    font-size: 0.82em;
+    background: var(--tp-color-surface);
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: var(--tp-ui-radius-xs);
+    padding: 0.02rem 0.22rem;
+}
+
+.tp-agent-drawer-msg pre {
+    margin: 0;
+    padding: var(--tp-space-3);
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: var(--tp-ui-radius-xs);
+    background: var(--tp-color-surface);
+    overflow-x: auto;
+}
+
+.tp-agent-drawer-msg pre code {
+    border: none;
+    padding: 0;
+    background: none;
+    white-space: pre;
+}
+
+.tp-agent-drawer-table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: var(--tp-ui-radius-xs);
+}
+
+.tp-agent-drawer-msg table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+    white-space: nowrap;
+}
+
+.tp-agent-drawer-msg th,
+.tp-agent-drawer-msg td {
+    padding: 0.32rem 0.55rem;
+    text-align: left;
+    border-bottom: 1px solid var(--tp-color-border-soft);
+}
+
+.tp-agent-drawer-msg thead th {
+    background: var(--tp-color-surface);
+    color: var(--tp-color-text-secondary);
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+.tp-agent-drawer-msg tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.tp-agent-drawer-msg--user {
+    align-self: flex-end;
+    background: var(--tp-color-brand-500);
+    color: var(--tp-color-surface);
+    border-bottom-right-radius: 6px;
+    white-space: pre-wrap;
+}
+
+.tp-agent-drawer-msg--assistant {
+    align-self: flex-start;
+    background: var(--tp-color-surface-soft);
+    color: var(--tp-color-text-primary);
+    border: 1px solid var(--tp-color-border-soft);
+    border-bottom-left-radius: 6px;
+}
+
+.tp-agent-drawer-msg--error {
+    align-self: stretch;
+    background: transparent;
+    color: var(--tp-color-danger-ink);
+    border: 1px dashed var(--tp-color-border-soft);
+    white-space: pre-wrap;
+}
+
+.tp-agent-drawer-retry {
+    display: block;
+    margin-top: var(--tp-space-2);
+    appearance: none;
+    border: 1px solid currentColor;
+    background: transparent;
+    color: inherit;
+    border-radius: 999px;
+    padding: 0.28rem 0.7rem;
+    font: inherit;
+    font-size: 0.76rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.tp-agent-drawer-retry:hover,
+.tp-agent-drawer-retry:focus-visible {
+    background: color-mix(in srgb, var(--tp-color-danger-ink) 10%, transparent);
+    transform: translateY(-1px);
+}
+
+.tp-agent-drawer-msg--pending {
+    align-self: flex-start;
+    background: var(--tp-color-surface-soft);
+    border: 1px solid var(--tp-color-border-soft);
+    border-bottom-left-radius: 6px;
+    padding-top: var(--tp-space-3);
+    padding-bottom: var(--tp-space-3);
+}
+
+.tp-agent-drawer-typing {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.tp-agent-drawer-typing span {
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--tp-color-text-soft);
+    animation: tp-agent-drawer-typing 1000ms ease-in-out infinite;
+}
+
+.tp-agent-drawer-typing span:nth-child(2) { animation-delay: 160ms; }
+.tp-agent-drawer-typing span:nth-child(3) { animation-delay: 320ms; }
+
+@keyframes tp-agent-drawer-typing {
+    0%, 60%, 100% { opacity: 0.35; transform: translateY(0); }
+    30% { opacity: 1; transform: translateY(-2.5px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .tp-agent-drawer-typing span {
+        animation: none;
+        opacity: 0.7;
+    }
+}
+
+.tp-agent-drawer-suggestions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--tp-space-2);
+    padding: var(--tp-space-3) var(--tp-space-4);
+    border-top: 1px solid var(--tp-color-border-soft);
+    background: var(--tp-color-surface);
+    flex-shrink: 0;
+}
+
+.tp-agent-drawer-suggestion {
+    appearance: none;
+    border: 1px solid var(--tp-color-border-soft);
+    background: var(--tp-color-surface-soft);
+    color: var(--tp-color-text-secondary);
+    border-radius: 999px;
+    padding: 0.35rem 0.6rem;
+    font: inherit;
+    font-size: 0.78rem;
+    font-weight: 600;
+    line-height: 1;
+    cursor: pointer;
+    transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.tp-agent-drawer-suggestion:hover,
+.tp-agent-drawer-suggestion:focus-visible {
+    background: color-mix(in srgb, var(--tp-color-brand-500) 10%, var(--tp-color-surface));
+    border-color: var(--tp-color-brand-500);
+    color: var(--tp-color-text-primary);
+    transform: translateY(-1px);
+}
+
+.tp-agent-drawer-form {
+    display: flex;
+    align-items: flex-end;
+    gap: var(--tp-space-2);
+    padding: var(--tp-space-4);
+    border-top: 1px solid var(--tp-color-border-soft);
+    flex-shrink: 0;
+}
+
+.tp-agent-drawer-input {
+    flex: 1 1 auto;
+    resize: none;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 20px;
+    padding: 10px 16px;
+    font-size: 0.88rem;
+    font-family: inherit;
+    color: var(--tp-color-text-primary);
+    background: var(--tp-color-surface-soft);
+    transition: border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.tp-agent-drawer-input:focus-visible {
+    outline: none;
+    border-color: var(--tp-color-brand-300);
+    background: var(--tp-color-surface);
+    box-shadow: 0 0 0 3px var(--tp-color-brand-100);
+}
+
+/* Icon-only round send button -- the "Send" label stays in the DOM for
+   screen readers (.sr-only) but isn't shown, matching the compact
+   pill-input + circular-action pattern instead of a rectangular labeled
+   button. Sizing/shape use !important because the base .tp-btn geometry
+   rule (min-height/padding) isn't itself !important, so this alone is
+   enough to win -- no specificity workaround needed here. */
+.tp-agent-drawer-send {
+    flex-shrink: 0;
+    width: 40px !important;
+    height: 40px !important;
+    min-height: 40px !important;
+    padding: 0 !important;
+    border-radius: 999px !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tp-agent-drawer-send svg {
+    width: 16px;
+    height: 16px;
+}
+
+.tp-agent-drawer-toggle-mobile {
+    appearance: none;
+    border: none;
+    background: transparent;
+    color: var(--tp-color-on-accent);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 999px;
+    cursor: pointer;
+    margin-right: var(--tp-space-2);
+}
+
+@media (min-width: 992px) {
+    .tp-agent-drawer-toggle-mobile {
+        display: none;
+    }
+}

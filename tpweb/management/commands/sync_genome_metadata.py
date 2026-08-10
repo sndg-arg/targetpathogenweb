@@ -25,7 +25,7 @@ METADATA_KEYS = (
 def _open_gbk(path):
     if path.endswith(".gz"):
         return gzip.open(path, "rt")
-    return open(path, "rt")
+    return open(path)
 
 
 class Command(BaseCommand):
@@ -36,10 +36,7 @@ class Command(BaseCommand):
         parser.add_argument("gbk_path")
 
     def _resolve_term(self, key):
-        term = (
-            Term.objects.filter(identifier=key).first()
-            or Term.objects.filter(name=key).first()
-        )
+        term = Term.objects.filter(identifier=key).first() or Term.objects.filter(name=key).first()
         if term is not None:
             return term
 
@@ -48,7 +45,9 @@ class Command(BaseCommand):
         if sample_qv and sample_qv.term:
             ontology = sample_qv.term.ontology
         if ontology is None:
-            ontology, _ = Ontology.objects.get_or_create(name="bioindex", defaults={"definition": ""})
+            ontology, _ = Ontology.objects.get_or_create(
+                name="bioindex", defaults={"definition": ""}
+            )
 
         return Term.objects.create(
             name=key,
@@ -66,11 +65,18 @@ class Command(BaseCommand):
             raise CommandError(f"GBK file not found: {gbk_path}")
 
         with _open_gbk(gbk_path) as handle:
-            record = SeqIO.read(handle, "genbank")
+            records = list(SeqIO.parse(handle, "genbank"))
 
-        counts = Counter(feature.type for feature in record.features)
+        if not records:
+            raise CommandError(f"No GenBank records found in: {gbk_path}")
+
+        counts = Counter()
+        entry_length = 0
+        for record in records:
+            entry_length += len(record.seq)
+            counts.update(feature.type for feature in record.features)
         values = {
-            "EntryLength": str(len(record.seq)),
+            "EntryLength": str(entry_length),
             "COUNT_gene": str(counts.get("gene", 0)),
             "COUNT_CDS": str(counts.get("CDS", 0)),
             "COUNT_tRNA": str(counts.get("tRNA", 0)),

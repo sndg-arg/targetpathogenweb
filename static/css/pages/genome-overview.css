@@ -12,16 +12,55 @@
     --genome-accent-border: var(--tp-color-brand-300);
 }
 
+/* Only matches direct <section> siblings -- .quick-nav is a <nav> and
+   .genome-grid is a <div>, so this only kicks in on pages (like
+   Metabolism) where a content section sits as a direct sibling of the
+   hero with nothing else in between. Assembly's quick-nav/genome-grid
+   stay on their own gap-based spacing, untouched by this rule. */
+.genome-page > section ~ section {
+    border-top: 1px solid var(--tp-color-border-soft);
+}
+
 .genome-page h1,
 .genome-page h2,
 .genome-page h3 {
     font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-weight: 600;
     letter-spacing: 0.2px;
 }
+.genome-page h1 { font-weight: 700; }
+
+.genome-hero,
+.genome-page .quick-nav,
+.genome-card {
+    /* backwards, not both -- see the shared .tp-ui-enter rule in ui-system.css
+       for why: "both" permanently flags the element as animation-active even
+       long after it's visually settled, which is a known trigger for Chrome
+       mispositioning a native <select> popup nested inside it (e.g. the
+       Downloads section's format select). */
+    animation: tp-ui-enter 340ms var(--tp-ui-ease-standard) backwards;
+}
+
+.genome-page .quick-nav {
+    animation-delay: 40ms;
+}
+
+.genome-card {
+    animation-delay: 80ms;
+}
+
+.genome-card:nth-of-type(2) { animation-delay: 110ms; }
+.genome-card:nth-of-type(3) { animation-delay: 140ms; }
+.genome-card:nth-of-type(4) { animation-delay: 170ms; }
 
 /* ── Hero ─────────────────────────────────────────────────────────── */
 
-/* Base styles from .tp-page-hero in ui-system.css */
+/* No longer boxed via .tp-page-hero -- sits directly on the page
+   background (see tpw-editorial-redesign), so it needs its own padding
+   now instead of inheriting that shared class's. */
+.genome-hero {
+    padding: 20px 18px;
+}
 
 .genome-hero-top {
     display: flex;
@@ -41,7 +80,7 @@
     margin: 6px 0 10px;
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-label);
-    font-weight: 700;
+    font-weight: 500;
     letter-spacing: 0.08em;
     text-transform: uppercase;
 }
@@ -51,26 +90,30 @@
     font-size: var(--tp-heading-lg);
     line-height: 1.1;
     color: var(--genome-accent-ink);
-    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
     word-break: break-all;
+}
+
+.genome-curated-callout {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.genome-curated-callout-note {
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-sm);
+    line-height: 1.35;
 }
 
 .genome-description {
     margin: 10px 0 0;
     color: var(--tp-color-text-secondary);
-    font-size: 1rem;
+    font-size: var(--tp-font-size-md);
     line-height: 1.42;
     max-width: 920px;
 }
 
-.genome-mission {
-    margin: 10px 0 0;
-    color: var(--genome-accent-ink);
-    font-size: 1.02rem;
-    font-weight: 600;
-    line-height: 1.45;
-    max-width: 920px;
-}
 
 .genome-hero .hero-chip-list {
     margin-top: 12px;
@@ -94,7 +137,7 @@
 .hero-pipeline-note {
     margin: 0;
     color: var(--tp-color-text-muted);
-    font-size: 0.84rem;
+    font-size: var(--tp-font-size-sm);
     font-weight: 500;
     line-height: 1.35;
 }
@@ -111,6 +154,11 @@
     justify-content: center;
 }
 
+.genome-hero-actions--secondary {
+    gap: 8px;
+    margin-top: 10px;
+}
+
 /* ── Metric pills ─────────────────────────────────────────────────── */
 
 .genome-metrics {
@@ -121,20 +169,19 @@
 }
 
 .genome-page .metric-pill {
-    border: 1px solid var(--genome-accent-border);
-    border-radius: 12px;
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-panel) 100%);
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 10px;
+    background: var(--tp-color-surface-soft);
     padding: 10px 12px;
     min-height: 68px;
     display: grid;
     align-content: center;
     gap: 2px;
-    box-shadow: var(--tp-shadow-xs);
 }
 
 .genome-page .metric-label {
     font-size: var(--tp-font-label);
-    font-weight: 700;
+    font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     color: var(--tp-color-text-muted);
@@ -142,16 +189,17 @@
 
 .genome-page .metric-value {
     color: var(--genome-accent-ink);
-    font-size: 1.4rem;
+    /* Matches .evidence-headline/.targets-score-number's "big number" role. */
+    font-size: 1.45rem;
     line-height: 1.1;
-    font-weight: 700;
+    font-weight: 600;
     display: flex;
     align-items: baseline;
     gap: 8px;
 }
 
 .metric-value-pct {
-    font-size: 0.85rem;
+    font-size: var(--tp-font-size-sm);
     font-weight: 600;
     color: var(--tp-color-text-muted);
 }
@@ -168,9 +216,13 @@
     overflow-x: auto;
     padding: 8px 10px;
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: 12px;
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
-    box-shadow: var(--tp-shadow-xs);
+    border-radius: 10px;
+    background: var(--tp-color-surface-soft);
+    /* This box's own border needs to align with the 18px text inset used
+       by the unboxed hero/cards around it, or it visually pokes out past
+       everything else -- margin does that; internal padding is a
+       separate, smaller detail for the first pill's own breathing room. */
+    margin: 0 18px;
 }
 
 .genome-page .quick-nav::-webkit-scrollbar {
@@ -186,49 +238,102 @@
     flex: 0 0 auto;
     display: inline-flex;
     align-items: center;
+    gap: 5px;
     justify-content: center;
     text-align: center;
-    min-height: 36px;
-    padding: 0.32rem 0.95rem;
+    min-height: 34px;
+    padding: 0.28rem 0.9rem;
     line-height: 1.1;
-    font-weight: 600;
+    font-weight: 500;
     border-radius: 999px;
-    border: 1px solid var(--tp-color-border-strong) !important;
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%) !important;
+    border: 1px solid var(--tp-color-border) !important;
+    background: transparent !important;
     color: var(--tp-color-text-secondary) !important;
     white-space: nowrap;
     text-decoration: none !important;
+    transition: border-color 120ms ease, color 120ms ease, background 120ms ease;
 }
 
+/* Marks the one quick-nav tab that navigates to a different page instead
+   of scrolling to a section on this one (there's no in-page "Metabolism"
+   section to jump to) -- without it, this tab looked identical to the
+   real in-page anchors and clicking it felt like a bug. */
 .genome-page .quick-nav .quick-nav-link:hover,
 .genome-page .quick-nav .quick-nav-link:focus-visible {
+    color: var(--tp-color-text-primary) !important;
+    border-color: var(--tp-color-border-strong) !important;
+    background: var(--tp-color-surface) !important;
+}
+
+.genome-page .quick-nav .quick-nav-link.is-active,
+.genome-page .quick-nav .quick-nav-link[aria-current="true"] {
     color: var(--tp-color-link-hover) !important;
     border-color: var(--genome-accent-border) !important;
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--genome-accent-soft) 100%) !important;
+    background: var(--tp-color-brand-100) !important;
+    text-decoration: none !important;
+}
+
+.tp-dark .genome-page .quick-nav .quick-nav-link.is-active,
+.tp-dark .genome-page .quick-nav .quick-nav-link[aria-current="true"] {
+    background: var(--tp-color-brand-200) !important;
+    border-color: var(--tp-color-brand-300) !important;
+    color: var(--tp-color-brand-900) !important;
 }
 
 /* ── Grid + panels ────────────────────────────────────────────────── */
 
+/* Every direct child below is a full-width section (targets/evidence/browse/
+   downloads/details/danger) -- a plain single-column stack, not a 2-column
+   grid. (Previously declared as a 2-column grid with every child forcing
+   grid-column:1/-1 to override it back to full-width; that template was
+   never actually used and just made the layout harder to follow.)
+   No per-card border/background/shadow -- sections sit directly on the
+   page background. See tpw-editorial-redesign skill. */
 .genome-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 14px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Spacing only, no hairline -- six sections in a row (targets/evidence/
+   browse/downloads/details/danger), each already opening with its own
+   bold h2. A divider before every single one on top of that would read
+   as a ruled form/spreadsheet rather than an editorial page; the heading
+   itself is enough of a "new section" signal here, so this is generous
+   whitespace instead of a repeated line. */
+.genome-grid > * ~ * {
+    margin-top: 40px;
 }
 
 .genome-card {
+    /* Horizontal padding matches .genome-hero's 18px so card content
+       lines up with the hero above it instead of sitting 2px narrower. */
+    padding: 16px 18px;
+    /* Clearance for the sticky .quick-nav when a nav link jumps here: nav box
+       (8px padding + 34px min-height link + 8px padding + 2px border = 52px)
+       minus its -2px sticky offset, plus ~24px breathing room. Was 128px,
+       which both left a large empty gap above the section on jump AND made
+       the quick-nav's own scroll-spy threshold (scrollY + nav.offsetHeight +
+       24, see assembly.html's jsloaded) never match the landed position, so
+       the clicked link never got marked active either. Keep this in sync
+       with .quick-nav's own box model if that ever changes. */
+    scroll-margin-top: 74px;
+}
+
+/* Exception: the two ranking tiles inside .genome-targets-wrap are a
+   side-by-side pair (same content type, just differently filtered), not
+   sequential page sections -- they keep individual card treatment like a
+   chip/tile pair, per tpw-editorial-redesign's exception rule. */
+.genome-card--ranking {
     border: 1px solid var(--tp-color-border);
     border-radius: var(--tp-ui-radius-panel);
     background: var(--tp-color-surface);
-    box-shadow: var(--tp-ui-shadow-panel);
-    padding: 16px;
-    overflow: hidden;
-    scroll-margin-top: 128px;
+    box-shadow: var(--tp-shadow-xs);
 }
 
 .genome-card h2 {
     margin: 0;
     font-size: var(--tp-heading-sm);
-    font-weight: var(--tp-font-weight-bold);
+    font-weight: 600;
     color: var(--genome-accent-ink);
 }
 
@@ -243,18 +348,8 @@
 .genome-page .section-subtitle {
     margin: 4px 0 0;
     color: var(--tp-color-text-muted);
-    font-size: 0.86rem;
+    font-size: var(--tp-font-size-sm);
     line-height: 1.45;
-}
-
-.genome-targets-wrap,
-.genome-card--evidence,
-.genome-card--composition,
-.genome-card--browse,
-.genome-card--downloads,
-.genome-card--details,
-.genome-card--danger {
-    grid-column: 1 / -1;
 }
 
 .genome-card--downloads {
@@ -279,9 +374,21 @@
 
 .genome-targets-wrap {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: 14px;
-    scroll-margin-top: 128px;
+    /* See .genome-card's scroll-margin-top comment. */
+    scroll-margin-top: 74px;
+    align-items: stretch;
+    /* The two ranking tiles inside keep their own border -- margin aligns
+       that border with the 18px text inset used elsewhere on the page,
+       instead of sitting flush at the page's raw edge. */
+    margin: 0 18px;
+}
+
+@media (max-width: 991px) {
+    .genome-page .quick-nav {
+        top: 64px;
+    }
 }
 
 @media (max-width: 980px) {
@@ -296,17 +403,62 @@
     align-self: stretch;
 }
 
-/* Clamp descriptions to 1 line for uniform item height */
-.genome-card--ranking .targets-description {
-    -webkit-line-clamp: 1;
+.targets-export-btn {
+    flex-shrink: 0;
+    white-space: nowrap;
 }
 
-/* Breakdown chips inside targets-main (right card) align left like factor chips */
-.genome-card--ranking .targets-breakdown {
-    justify-content: flex-start;
-    padding-left: 38px;
-    flex-wrap: nowrap;
-    overflow: hidden;
+/* Secondary ranking (ligand support) is a supporting view, not the primary
+   answer - demoted a notch so the eye lands on the score ranking first. */
+.genome-card--ranking-secondary {
+    background: var(--tp-color-surface-soft);
+}
+
+.genome-card--ranking-secondary .section-head h2 {
+    font-size: var(--tp-font-size-md);
+}
+
+.targets-eyebrow {
+    display: block;
+    margin-bottom: 2px;
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-label);
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.targets-methodology {
+    margin-top: 6px;
+}
+
+.targets-methodology summary {
+    cursor: pointer;
+    display: inline-block;
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-size-xs);
+    font-weight: 600;
+    text-decoration: underline;
+    text-decoration-color: var(--tp-color-border-strong);
+    text-underline-offset: 3px;
+    list-style: none;
+}
+
+.targets-methodology summary::-webkit-details-marker {
+    display: none;
+}
+
+.targets-methodology summary:hover,
+.targets-methodology summary:focus-visible {
+    color: var(--genome-accent-ink);
+    text-decoration-color: var(--genome-accent-border);
+}
+
+.targets-methodology p {
+    margin: 6px 0 0;
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-sm);
+    line-height: 1.5;
 }
 
 .targets-list {
@@ -317,220 +469,250 @@
     display: flex;
     flex-direction: column;
     gap: 10px;
+    /* Grows to fill the stretched card height (both ranking cards are equal-height
+       grid siblings), so the footnote lands at the same relative position in both
+       instead of floating right under a shorter list with dead space below it. */
+    flex: 1;
 }
 
 .targets-item {
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: 12px;
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
-    transition: transform 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+    border-radius: 10px;
+    background: var(--tp-color-surface);
+    box-shadow: var(--tp-shadow-xs);
+    transition:
+        border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
 }
 
-.targets-item:hover {
-    border-color: var(--genome-accent-border);
+.targets-item:hover,
+.targets-item:focus-within {
+    border-color: var(--tp-color-border-strong);
+    box-shadow: var(--tp-shadow-sm);
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px color-mix(in srgb, var(--tp-color-brand-800) 10%, transparent);
 }
 
 .targets-link {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 16px;
-    align-items: center;
+    display: block;
     padding: 14px 16px;
     color: inherit;
     text-decoration: none;
 }
 
-.targets-link--score {
-    grid-template-columns: 1fr;
-    align-items: stretch;
+.targets-link:hover,
+.targets-link:focus-visible {
+    text-decoration: none;
+    color: inherit;
 }
 
-.targets-score {
-    margin-left: auto;
-    font-weight: var(--tp-font-weight-semibold);
-    color: var(--genome-accent-ink);
-    line-height: 1;
-    padding: 5px 10px;
-    background: var(--genome-accent-soft);
-    border: 1px solid var(--genome-accent-border);
-    border-radius: 8px;
-    display: inline-flex;
-    align-items: baseline;
+/* :focus-within above already lifts the whole card to match :hover; this adds
+   a crisp ring on the link itself so keyboard users see exactly what's
+   focused, instead of the outline:none-with-no-replacement it had before. */
+.targets-link:focus-visible {
+    outline: 2px solid var(--genome-accent-border);
+    outline-offset: -2px;
+    border-radius: 10px;
+}
+
+.targets-main {
+    min-width: 0;
+    display: grid;
     gap: 6px;
 }
 
-.targets-score-label {
-    color: var(--tp-color-text-secondary);
-    font-size: 0.68rem;
-    font-weight: 800;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
+/* Row-top + description share one explicit height floor so this block renders
+   pixel-identical across every item in both rankings, regardless of exactly
+   how long a given tier label or description happens to be -- rather than
+   relying on each item's own content to coincidentally line up. */
+.targets-heading {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-height: 4.75rem;
 }
 
-.targets-score-value {
-    font-size: 0.9rem;
+.targets-row-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.targets-identity {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    min-width: 0;
+}
+
+.targets-rank {
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: var(--tp-font-size-md);
+    font-weight: 600;
+    color: var(--tp-color-text-muted);
+    min-width: 28px;
+}
+
+.targets-accession {
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: var(--tp-font-size-lg);
+    font-weight: 600;
+    color: var(--genome-accent-ink);
+}
+
+.targets-description {
+    margin: 0;
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-size-md);
+    line-height: 1.4;
+    padding-left: 38px;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+/* Clamp descriptions to 1 line for uniform item height */
+.genome-card--ranking .targets-description {
+    -webkit-line-clamp: 1;
+}
+
+/* ── Score: one clear number, one thin bar, one quiet tier caption -- not a
+   bordered badge fighting the rest of the row for attention. Color is spent
+   once, on the number and the bar; the tier word stays a quiet label so the
+   eye has exactly one bright thing to land on per row. ── */
+.targets-score {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 5px;
+    flex-shrink: 0;
+}
+
+.targets-score-number {
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    /* Matches .evidence-headline's size -- same page, same "big highlighted
+       number" role, so they should read as the same visual weight. */
+    font-size: 1.45rem;
+    font-weight: 700;
+    line-height: 1;
     font-variant-numeric: tabular-nums;
 }
 
-.targets-direct-count {
-    margin-left: auto;
-    font-size: 0.84rem;
-    font-weight: var(--tp-font-weight-semibold);
-    color: var(--tp-color-sage-900, var(--tp-color-text-primary));
-    line-height: 1;
-    padding: 4px 10px;
-    background: var(--tp-color-sage-050);
-    border: 1px solid var(--tp-color-sage-200);
-    border-radius: 8px;
-    white-space: nowrap;
-}
-
-.targets-evidence {
-    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
-    font-size: 0.78rem;
-    font-weight: 600;
-    line-height: 1;
-    color: var(--tp-color-text-muted);
-    padding: 4px 10px;
-    background: var(--tp-color-surface-soft);
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: 999px;
-    position: relative;
-    cursor: help;
-}
-
-/* Chips that contain a .targets-tooltip get the (i) hint + relative anchor. */
-.targets-bd:has(> .targets-tooltip),
-.targets-evidence:has(> .targets-tooltip) {
-    position: relative;
-    cursor: help;
-}
-
-.targets-bd:has(> .targets-tooltip) strong::after {
-    content: " ⓘ";
-    margin-left: 4px;
-    font-weight: 400;
-    opacity: 0.55;
-    font-size: 0.92em;
-}
-
-/* Custom tooltip — same look as .cell-tooltip used across the app. */
-.targets-tooltip {
-    position: absolute;
-    bottom: calc(100% + 8px);
-    left: 50%;
-    transform: translateX(-50%);
-    padding: 8px 12px;
-    border-radius: 8px;
-    background: var(--tp-tooltip-bg);
-    color: var(--tp-tooltip-color);
-    font-size: 0.78rem;
+.targets-score-max {
+    font-size: var(--tp-font-size-xs);
     font-weight: 500;
-    line-height: 1.45;
-    white-space: normal;
-    width: max-content;
-    max-width: 280px;
-    text-align: center;
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 140ms ease;
-    z-index: 50;
-    box-shadow: var(--tp-shadow-lg);
+    color: var(--tp-color-text-muted);
 }
 
-.targets-tooltip::after {
-    content: "";
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    border: 5px solid transparent;
-    border-top-color: var(--tp-tooltip-bg);
+.targets-score-bar {
+    width: 72px;
+    height: 3px;
+    border-radius: 2px;
+    background: var(--tp-color-border-soft);
+    overflow: hidden;
 }
 
-.targets-bd:hover .targets-tooltip,
-.targets-bd:focus-visible .targets-tooltip,
-.targets-evidence:hover .targets-tooltip,
-.targets-evidence:focus-visible .targets-tooltip {
-    opacity: 1;
+.targets-score-fill {
+    display: block;
+    height: 100%;
+    border-radius: 2px;
+    background: currentColor;
 }
 
-/* Anchor leftmost / rightmost chips so their tooltips don't overflow horizontally.
-   PDB is the leftmost chip in the breakdown row → tooltip extends to the right.
-   ZINC is the rightmost → tooltip extends to the left.
-   .targets-evidence sits on the right edge of the score ranking → same as ZINC.
-   ChEMBL stays centered (default). */
-.targets-bd--pdb .targets-tooltip {
-    left: 0;
-    transform: none;
-}
-
-.targets-bd--pdb .targets-tooltip::after {
-    left: 20px;
-    transform: none;
-}
-
-.targets-bd--zinc .targets-tooltip,
-.targets-evidence .targets-tooltip {
-    left: auto;
-    right: 0;
-    transform: none;
-}
-
-.targets-bd--zinc .targets-tooltip::after,
-.targets-evidence .targets-tooltip::after {
-    left: auto;
-    right: 20px;
-    transform: none;
-}
-
-.targets-factors {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    padding-left: 38px;
-}
-
-.targets-factor {
-    font-size: var(--tp-font-label);
+.targets-score-tier {
+    font-size: 0.66rem;
     font-weight: 600;
-    padding: 3px 9px;
-    border-radius: 999px;
-    border: 1px solid transparent;
-    white-space: nowrap;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--tp-color-text-muted);
 }
 
-.targets-factor--good {
-    background: var(--tp-color-success-bg);
+.targets-score--good .targets-score-number,
+.targets-score--good .targets-score-fill {
     color: var(--tp-color-success-ink);
-    border-color: var(--tp-color-success-border);
 }
 
-.targets-factor--bad {
-    background: var(--tp-color-danger-bg);
-    color: var(--tp-color-danger-ink);
-    border-color: var(--tp-color-danger-border);
+.targets-score--neutral .targets-score-number,
+.targets-score--neutral .targets-score-fill {
+    color: var(--tp-color-info-ink);
 }
 
-.targets-factor--neutral {
-    background: var(--tp-color-surface-soft);
+.targets-score--bad .targets-score-number,
+.targets-score--bad .targets-score-fill {
+    color: var(--tp-color-warning-ink);
+}
+
+/* ── Signals: a quiet, editorial keyword line, not a wall of colored pills.
+   Color is spent only on real cautions, so a risk still stands out; ordinary
+   supporting evidence reads as calm, evenly-weighted text -- the tier badge
+   above already carries the "how strong overall" signal, these are the why. ── */
+.targets-signals {
+    margin: 2px 0 0;
+    padding-left: 38px;
     color: var(--tp-color-text-secondary);
-    border-color: var(--tp-color-border-soft);
+    font-size: var(--tp-font-size-xs);
+    line-height: 1.7;
+    /* Clamped to a fixed 2 lines -- proteins qualify for anywhere from ~2 to the
+       6-signal cap, and letting that vary the wrapped line count made every card
+       in the list a different height (reads as unpolished in a ranked list,
+       where a uniform row height is expected). Same technique already used on
+       .targets-description just above it. min-height covers the other
+       direction -- a protein with few enough signals to fit on one line would
+       otherwise make its card shorter than the rest. */
+    min-height: 3.4em;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
 }
 
-@media (max-width: 720px) {
-    .targets-factors {
-        padding-left: 0;
-    }
+.targets-signal {
+    font-weight: 500;
+}
+
+/* Separator lives on ::before of every item but the first, not ::after of every
+   item but the last -- if it wraps, it travels down with the item it belongs to
+   instead of being orphaned at the end of the previous line. */
+.targets-signal:not(:first-child)::before {
+    content: "\00b7";
+    margin: 0 8px;
+    color: var(--tp-color-text-soft);
+}
+
+.targets-signal--bad {
+    color: var(--tp-color-danger-ink);
+    font-weight: 600;
+}
+
+/* "+N" for factors past the 4 that always fit inside the 2-line clamp above
+   -- reveals the rest via the native title tooltip on hover/focus instead of
+   letting the clamp clip them invisibly. A custom popup here doesn't work:
+   .targets-signals has overflow:hidden (required for the line-clamp itself),
+   which clips any DOM-based tooltip trying to render outside its box --
+   title= is painted by the browser outside the page's own box model, so it
+   isn't subject to that clipping. Reads as a continuation of the same quiet
+   keyword line (same "·" separator as .targets-signal), not a separate
+   colored badge. */
+.targets-signal-more {
+    color: var(--tp-color-text-muted);
+    font-weight: 500;
+    border-bottom: 1px dotted var(--tp-color-border-strong);
+    cursor: help;
+}
+
+.targets-signal-more::before {
+    content: "\00b7";
+    margin: 0 8px;
+    color: var(--tp-color-text-soft);
 }
 
 .targets-footnote {
     margin: 18px 0 0;
     padding-top: 12px;
     border-top: 1px dashed var(--tp-color-border-soft);
-    font-size: 0.86rem;
+    font-size: var(--tp-font-size-sm);
     color: var(--tp-color-text-muted);
 }
 
@@ -545,146 +727,20 @@
     text-decoration: underline;
 }
 
-.targets-link:hover,
-.targets-link:focus-visible {
-    text-decoration: none;
-    color: inherit;
-    outline: none;
-}
-
-.targets-main {
-    min-width: 0;
-    display: grid;
-    gap: 6px;
-}
-
-.targets-title {
-    display: flex;
-    align-items: baseline;
-    gap: 10px;
-}
-
-.targets-rank {
-    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
-    font-size: 0.95rem;
-    font-weight: 700;
-    color: var(--tp-color-text-muted);
-    min-width: 28px;
-}
-
-.targets-accession {
-    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: var(--genome-accent-ink);
-}
-
-.targets-description {
-    margin: 0;
-    color: var(--tp-color-text-secondary);
-    font-size: 0.95rem;
-    line-height: 1.4;
-    padding-left: 38px;
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-}
-
-.targets-stats {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 8px;
-    flex: 0 0 auto;
-}
-
-.targets-stat--total {
-    display: flex;
-    align-items: baseline;
-    gap: 6px;
-    color: var(--genome-accent-ink);
-}
-
-.targets-stat-value {
-    font-size: 1.6rem;
-    font-weight: 700;
-    line-height: 1;
-    font-family: "Space Grotesk", "Segoe UI", sans-serif;
-}
-
-.targets-stat-label {
-    font-size: 0.78rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--tp-color-text-muted);
-}
-
-.targets-breakdown {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    padding-left: 38px;
-}
-
-.targets-bd {
-    font-size: var(--tp-font-label);
-    font-weight: 600;
-    padding: 3px 8px;
-    border-radius: 999px;
-    border: 1px solid transparent;
-    white-space: nowrap;
-}
-
-.targets-bd strong {
-    font-weight: 700;
-}
-
-.targets-bd--pdb,
-.targets-bd--pdb-direct {
-    background: var(--tp-color-brand-100);
-    color: var(--tp-color-brand-900);
-    border-color: var(--tp-color-brand-300);
-}
-
-.targets-bd--chembl,
-.targets-bd--chembl-direct {
-    background: color-mix(in srgb, var(--tp-color-sage-700) 12%, var(--tp-color-surface));
-    color: var(--tp-color-sage-900, var(--tp-color-text-primary));
-    border-color: color-mix(in srgb, var(--tp-color-sage-700) 28%, var(--tp-color-border-soft));
-}
-
-.targets-bd--homolog {
-    background: var(--tp-color-surface-muted);
-    color: var(--tp-color-text-secondary);
-    border-color: var(--tp-color-border-soft);
-}
-
-.targets-bd--zinc {
-    background: var(--tp-color-info-bg);
-    color: var(--tp-color-text-primary);
-    border-color: var(--tp-color-border-soft);
-}
-
 @media (max-width: 720px) {
-    .targets-link {
-        grid-template-columns: 1fr;
+    .targets-row-top {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
     }
-    .targets-stats {
+
+    .targets-score {
         align-items: flex-start;
     }
-    .targets-breakdown {
-        justify-content: flex-start;
-    }
-    .targets-description {
-        padding-left: 0;
-    }
-}
 
-@media (max-width: 880px) {
-    .genome-grid {
-        grid-template-columns: minmax(0, 1fr);
+    .targets-description,
+    .targets-signals {
+        padding-left: 0;
     }
 }
 
@@ -698,8 +754,8 @@
 
 .evidence-card {
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: 12px;
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+    border-radius: 10px;
+    background: var(--tp-color-surface);
     padding: 16px 18px;
     display: flex;
     flex-direction: column;
@@ -730,9 +786,13 @@
     --evidence-accent: var(--tp-color-brand-600);
 }
 
+.evidence-card--metabolism {
+    --evidence-accent: var(--tp-color-success-ink);
+}
+
 .evidence-label {
     font-size: var(--tp-font-label);
-    font-weight: 700;
+    font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.06em;
     color: var(--tp-color-text-muted);
@@ -740,7 +800,7 @@
 
 .evidence-headline {
     font-size: 1.45rem;
-    font-weight: 700;
+    font-weight: 600;
     color: var(--genome-accent-ink);
     line-height: 1.1;
     display: flex;
@@ -749,7 +809,7 @@
 }
 
 .evidence-headline-sub {
-    font-size: 0.88rem;
+    font-size: var(--tp-font-size-sm);
     font-weight: 500;
     color: var(--tp-color-text-muted);
 }
@@ -770,7 +830,7 @@
     justify-content: space-between;
     align-items: baseline;
     gap: 8px;
-    font-size: 0.92rem;
+    font-size: var(--tp-font-size-sm);
 }
 
 .evidence-breakdown-priority {
@@ -784,6 +844,12 @@
     color: var(--tp-color-sage-900);
 }
 
+.evidence-breakdown-priority .evidence-bd-value {
+    color: var(--tp-color-sage-900);
+    font-weight: 700;
+    font-size: var(--tp-font-size-lg);
+}
+
 .evidence-bd-label {
     color: var(--tp-color-text-secondary);
     font-weight: 600;
@@ -791,44 +857,46 @@
 
 .evidence-bd-value {
     font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
-    color: var(--genome-accent-ink);
-    font-weight: 700;
+    color: var(--tp-color-text-muted);
+    font-weight: 500;
+    font-size: var(--tp-font-size-sm);
 }
 
-/* ── Composition list ────────────────────────────────────────────── */
-
-.composition-list {
-    margin: 0;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 10px;
+.evidence-card-action {
+    align-self: flex-start;
+    margin-top: auto;
 }
 
-.composition-row {
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: 10px;
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
-    padding: 10px 12px;
-    display: grid;
-    gap: 4px;
-    min-height: 68px;
-    align-content: center;
+/* ── Composition inline (within Evidence section) ────────────────── */
+
+.evidence-composition {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 24px;
+    padding-top: 14px;
+    margin-top: 14px;
+    border-top: 1px dashed var(--tp-color-border-soft);
 }
 
-.composition-row dt {
+.evidence-composition-item {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+}
+
+.evidence-composition-label {
     font-size: var(--tp-font-label);
-    font-weight: 700;
+    font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     color: var(--tp-color-text-muted);
 }
 
-.composition-row dd {
-    margin: 0;
+.evidence-composition-value {
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: var(--tp-font-size-sm);
+    font-weight: 600;
     color: var(--genome-accent-ink);
-    font-size: 1.02rem;
-    font-weight: 700;
-    line-height: 1.2;
 }
 
 /* ── JBrowse iframe ──────────────────────────────────────────────── */
@@ -854,7 +922,7 @@
     margin: 14px 0 0;
     padding-top: 12px;
     border-top: 1px dashed var(--tp-color-border-soft);
-    font-size: 0.82rem;
+    font-size: var(--tp-font-size-xs);
     color: var(--tp-color-text-muted);
     line-height: 1.45;
     font-style: italic;
@@ -865,7 +933,7 @@
 .genome-raw-details summary {
     cursor: pointer;
     color: var(--genome-accent-ink);
-    font-weight: 700;
+    font-weight: 500;
     list-style: none;
     display: inline-flex;
     align-items: center;
@@ -874,7 +942,7 @@
     padding: 0 14px;
     border: 1px solid var(--tp-color-border-strong);
     border-radius: 999px;
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+    background: var(--tp-color-surface);
     transition: border-color 140ms ease, background 140ms ease;
 }
 
@@ -886,13 +954,13 @@
 .genome-raw-details summary:focus-visible {
     outline: none;
     border-color: var(--genome-accent-border);
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--genome-accent-soft) 100%);
+    background: var(--tp-color-surface-soft);
 }
 
 .genome-raw-details[open] summary {
     margin-bottom: 12px;
     border-color: var(--genome-accent-border);
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--genome-accent-soft) 100%);
+    background: var(--tp-color-brand-050);
 }
 
 .genome-raw-table {
@@ -903,7 +971,7 @@
 
 .genome-card--danger {
     border-color: var(--tp-color-danger-border);
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-danger-bg) 100%);
+    background: var(--tp-color-danger-bg);
 }
 
 .genome-card--danger h2 {
@@ -920,10 +988,10 @@
     padding: 0 14px;
     border: 1px solid var(--tp-color-danger-border);
     border-radius: 999px;
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, color-mix(in srgb, var(--tp-color-danger-bg) 70%, var(--tp-color-surface)) 100%);
+    background: var(--tp-color-danger-bg);
     color: var(--tp-color-danger-ink);
-    font-size: 0.9rem;
-    font-weight: 700;
+    font-size: var(--tp-font-size-sm);
+    font-weight: 500;
     transition: border-color 140ms ease, background 140ms ease;
 }
 
@@ -943,7 +1011,7 @@
 .genome-delete-copy {
     margin: 0;
     color: var(--tp-color-text-secondary);
-    font-size: 0.92rem;
+    font-size: var(--tp-font-size-sm);
     line-height: 1.45;
 }
 
@@ -962,5 +1030,14 @@
     .genome-hero-actions .btn,
     .genome-delete-actions .btn {
         width: 100%;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .genome-hero,
+    .genome-page .quick-nav,
+    .genome-card {
+        animation: none !important;
+        transition: none !important;
     }
 }

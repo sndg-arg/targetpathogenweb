@@ -71,6 +71,178 @@ SYSTEM_SCORE_PARAM_DEFINITIONS = {
         "default_operation": "<=",
         "default_value": "1",
     },
+    "colabfold_druggability_score": {
+        "category": "Pocket",
+        "description": (
+            "FPocket druggability score for the best ColabFold predicted structure (0–1). "
+            "≥ 0.7 highly druggable · ≥ 0.4 moderately druggable · < 0.4 low druggability. "
+            "Available only for genomes analyzed with the curated pipeline."
+        ),
+        "type": "N",
+        "default_operation": ">=",
+        "default_value": "0",
+    },
+    "colabfold_p2rank_probability": {
+        "category": "Pocket",
+        "description": (
+            "P2RANK ligandability score for the best pocket in the ColabFold model (0–1). "
+            "Higher values indicate higher predicted ligandability. "
+            "Available only for genomes analyzed with the curated pipeline."
+        ),
+        "type": "N",
+        "default_operation": ">=",
+        "default_value": "0",
+    },
+    "p2rank_probability": {
+        "category": "Pocket",
+        "description": (
+            "P2RANK ligandability score for the best pocket in the experimental structure (0–1). "
+            "Higher values indicate higher predicted ligandability. "
+            "Available only for genomes analyzed with the curated pipeline."
+        ),
+        "type": "N",
+        "default_operation": ">=",
+        "default_value": "0",
+    },
+    "colabfold_plddt": {
+        "category": "Pocket",
+        "description": (
+            "ColabFold model confidence score (pLDDT, 0–100). "
+            "Values ≥ 70 indicate reliable local structure; low values mean the predicted "
+            "structure — and its pocket predictions — may be unreliable. "
+            "Available only for genomes analyzed with the curated pipeline."
+        ),
+        "type": "N",
+        "default_operation": ">=",
+        "default_value": "0",
+    },
+    "pocket_size_outlier": {
+        "category": "Pocket",
+        "description": (
+            "Whether this protein's best/representative FPocket pocket has an unusually large or "
+            "diffuse geometry compared to that structure's other pockets (statistical outlier by "
+            "volume). Often reflects a low-confidence or disordered model region that FPocket "
+            "scores as druggable without being a real small-molecule cavity — treat a high "
+            "druggability score with more caution when this is Y."
+        ),
+        "type": "C",
+        "default_operation": "=",
+        "default_value": "N",
+        "options": ("Y", "N"),
+        "option_descriptions": {
+            "Y": "Best pocket's volume is a statistical outlier among this structure's pockets — verify manually before trusting the druggability score.",
+            "N": "Best pocket's volume is within the normal range for this structure's pockets.",
+        },
+    },
+    "gut_microbiome_offtarget_norm": {
+        "category": "Off-target",
+        "description": (
+            "Gut microbiome off-target signal normalized by the number of analyzed genomes (0–1). "
+            "Values near 0 are favorable; higher values indicate broader microbiome cross-reactivity. "
+            "Available only for genomes analyzed with the curated pipeline."
+        ),
+        "type": "N",
+        "default_operation": "<=",
+        "default_value": "0",
+    },
+    "gut_microbiome_offtarget_counts": {
+        "category": "Off-target",
+        "description": (
+            "Number of gut microbiome reference genomes with a homolog above the identity/coverage threshold. "
+            "Lower counts are favorable for microbiome sparing. "
+            "Available only for genomes analyzed with the curated pipeline."
+        ),
+        "type": "N",
+        "default_operation": "<=",
+        "default_value": "0",
+    },
+    "gut_microbiome_genomes_analyzed": {
+        "category": "Off-target",
+        "description": (
+            "Total number of gut microbiome reference genomes screened for off-target homology. "
+            "Use together with off-target counts to interpret the normalized score. "
+            "Available only for genomes analyzed with the curated pipeline."
+        ),
+        "type": "N",
+        "default_operation": ">=",
+        "default_value": "0",
+    },
+    "core_roary": {
+        "category": "Conservation",
+        "description": (
+            "Pan-genome core status from Roary. "
+            "Core genes are conserved across all (or nearly all) strains in the pan-genome; "
+            "accessory genes are present only in a subset of strains. "
+            "Available only for genomes analyzed with the curated pipeline."
+        ),
+        "type": "C",
+        "default_operation": "=",
+        "default_value": "Core",
+        "options": ("Core", "Accessory"),
+        "option_descriptions": {
+            "Core": "Gene conserved across all (or nearly all) strains in the pan-genome (value ≥ 0.5).",
+            "Accessory": "Gene present only in a subset of strains (value < 0.5).",
+        },
+    },
+    "core_corecruncher": {
+        "category": "Conservation",
+        "description": (
+            "Pan-genome core status from CoreCruncher. "
+            "Core genes are conserved across all (or nearly all) strains in the pan-genome; "
+            "accessory genes are present only in a subset of strains. "
+            "Available only for genomes analyzed with the curated pipeline."
+        ),
+        "type": "C",
+        "default_operation": "=",
+        "default_value": "Core",
+        "options": ("Core", "Accessory"),
+        "option_descriptions": {
+            "Core": "Gene conserved across all (or nearly all) strains in the pan-genome (value ≥ 0.5).",
+            "Accessory": "Gene present only in a subset of strains (value < 0.5).",
+        },
+    },
+    "PTOOLS_betweenness_centrality": {
+        "category": "Metabolism",
+        "description": (
+            "Betweenness centrality of the metabolic reaction(s) this gene catalyzes, within the "
+            "genome-scale metabolic reaction network (BioCyc/Pathway Tools MetaFlux). Higher values "
+            "mean the reaction sits on more shortest paths between other reactions — a proxy for how "
+            "central/chokepoint-prone it is in the organism's metabolism. "
+            "Available only for genomes analyzed with the metabolic network pipeline."
+        ),
+        "type": "N",
+        "default_operation": ">=",
+        "default_value": "0",
+    },
+    "metabolic_chokepoint": {
+        "category": "Metabolism",
+        "description": (
+            "Whether this gene catalyzes a metabolic chokepoint reaction — the sole reaction "
+            "producing or consuming a given metabolite in the network. Chokepoint reactions are "
+            "attractive drug targets because inhibiting them can't easily be bypassed. "
+            "Available only for genomes analyzed with the metabolic network pipeline."
+        ),
+        "type": "C",
+        "default_operation": "=",
+        "default_value": "N",
+        "options": ("Y", "N"),
+        "option_descriptions": {
+            "Y": "Gene catalyzes at least one producing, consuming, or both-sided chokepoint reaction.",
+            "N": "Gene does not catalyze any chokepoint reaction.",
+        },
+    },
+    "PTOOLS_edges": {
+        "category": "Metabolism",
+        "description": (
+            "Degree (edge count) of this gene's reaction(s) in the full genome-scale metabolic "
+            "reaction network — how many other reactions it directly shares a metabolite with. "
+            "Higher values indicate a more densely connected reaction, independent of betweenness "
+            "centrality. Available only for genomes analyzed with the metabolic network pipeline."
+        ),
+        "type": "N",
+        "default_operation": ">=",
+        "default_value": "0",
+    },
 }
 
 
@@ -79,9 +251,7 @@ def ensure_system_score_param(name, source_df=None):
     if definition is None:
         return None
 
-    score_param = (
-        ScoreParam.objects.filter(name=name, user__isnull=True).order_by("id").first()
-    )
+    score_param = ScoreParam.objects.filter(name=name, user__isnull=True).order_by("id").first()
     if score_param is None:
         score_param = ScoreParam.objects.create(
             category=definition["category"],
@@ -160,7 +330,11 @@ def visible_score_params_queryset(user):
 
 
 def visible_categorical_score_params_queryset(user):
-    return [score_param.pk for score_param in visible_score_params_queryset(user) if is_categorical_score_param(score_param)]
+    return [
+        score_param.pk
+        for score_param in visible_score_params_queryset(user)
+        if is_categorical_score_param(score_param)
+    ]
 
 
 def visible_score_param_options_queryset(user, param_id):

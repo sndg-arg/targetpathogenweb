@@ -86,7 +86,11 @@ def annotation_dbnames(kind):
     return ANNOTATION_KIND_CONFIG[normalize_annotation_kind(kind)]["dbnames"]
 
 
-def _annotation_name(dbxref_relation):
+def annotation_name(dbxref_relation):
+    """dbxref -> its first term's definition, or "" if none. Public (no
+    leading underscore) because ProteinView.serialize_prot needs this same
+    lookup for its own annotations list and used to keep a verbatim copy of
+    this function rather than importing it."""
     dbxref = getattr(dbxref_relation, "dbxref", None)
     if dbxref is None:
         return ""
@@ -118,7 +122,7 @@ def iter_protein_annotations(protein, kind):
         seen_accessions.add(accession)
         yield {
             "accession": accession,
-            "name": _annotation_name(dbxref_relation),
+            "name": annotation_name(dbxref_relation),
         }
 
 
@@ -179,17 +183,15 @@ def _ec_resolve_name(accession, exact_names):
     ec_labels = _load_ec_hierarchy_labels()
     parts = accession.split(".")
 
+    if "-" in parts:
+        return "partial EC assignment"
     if len(parts) == 1:
         return ec_labels["class_labels"].get(accession, "")
     if len(parts) <= 3:
         return ec_labels["prefix_labels"].get(accession, "")
 
     # Level 4: curated JSON first, then DB-derived name as fallback
-    return (
-        ec_labels["enzyme_names"].get(accession)
-        or exact_names.get(accession)
-        or ""
-    )
+    return ec_labels["enzyme_names"].get(accession) or exact_names.get(accession) or ""
 
 
 def _ec_display_label(prefix, exact_names):

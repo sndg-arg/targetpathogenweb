@@ -8,27 +8,28 @@ from tqdm import tqdm
 
 from bioseq.io.SeqStore import SeqStore
 
+
 class Command(BaseCommand):
-    help = 'Takes the genome and locus_tag as arguments and retrives the json to be upload with load_fpocket'
+    help = "Takes the genome and locus_tag as arguments and retrives the json to be upload with load_fpocket"
 
     def add_arguments(self, parser):
-        parser.add_argument('genome')
-        parser.add_argument('locus_tag')
-        parser.add_argument('--overwrite', action="store_true")
-        parser.add_argument('--datadir', default="./data")
+        parser.add_argument("genome")
+        parser.add_argument("locus_tag")
+        parser.add_argument("--overwrite", action="store_true")
+        parser.add_argument("--datadir", default="./data")
 
     def _write_empty_output(self, seqstore, genome, locus_tag, reason):
         output_dir = seqstore.p2rank_folder(genome, locus_tag)
         os.makedirs(output_dir, exist_ok=True)
         json_path = os.path.join(output_dir, "p2pocket.json")
-        with open(json_path, 'w', encoding="utf-8") as outfile:
+        with open(json_path, "w", encoding="utf-8") as outfile:
             json.dump([], outfile)
-        with gzip.open(json_path + '.gz', 'wt', encoding="utf-8") as gzoutfile:
+        with gzip.open(json_path + ".gz", "wt", encoding="utf-8") as gzoutfile:
             json.dump([], gzoutfile)
         self.stderr.write(
             f"P2Rank output missing or invalid for {genome}/{locus_tag}; wrote empty pocket set ({reason})."
         )
-    
+
     def handle(self, *args, **options):
         genome = options["genome"]
         locus_tag = options["locus_tag"]
@@ -53,20 +54,17 @@ class Command(BaseCommand):
             atoms = record["surf_atom_ids"].split()
             score = record["score"]
             probability = record["probability"]
-            properties = {
-                "P2Rank score": score,
-                "P2Rrank probability": probability
-            }
+            properties = {"P2Rank score": score, "P2Rrank probability": probability}
             data_dict = {
                 "number": name,
                 "residues": residues,
                 "atoms": atoms,
-                "properties": properties
+                "properties": properties,
             }
             data_list.append(data_dict)
         json_path = os.path.join(seqstore.p2rank_folder(genome, locus_tag), "p2pocket.json")
         os.makedirs(os.path.dirname(json_path), exist_ok=True)
-        with open(json_path, 'w', encoding="utf-8") as outfile:
+        with open(json_path, "w", encoding="utf-8") as outfile:
             json.dump(data_list, outfile)
-        with gzip.open(json_path + '.gz', 'wt', encoding="utf-8") as gzoutfile:
+        with gzip.open(json_path + ".gz", "wt", encoding="utf-8") as gzoutfile:
             json.dump(data_list, gzoutfile)

@@ -71,7 +71,9 @@ def _strain_from_description(description):
     if not text:
         return None
 
-    match = re.search(r"\bstrain\s+(.+?)(?:\s+(chromosome|plasmid|contig)\b|,\s|$)", text, re.IGNORECASE)
+    match = re.search(
+        r"\bstrain\s+(.+?)(?:\s+(chromosome|plasmid|contig)\b|,\s|$)", text, re.IGNORECASE
+    )
     if match:
         return match.group(1).strip()
 
@@ -109,7 +111,9 @@ def build_assembly_overview(user, genome_name, description, props, workspace_met
     tmrna_count = _parse_int(props.get("COUNT_tmRNA"))
     entry_length = _parse_int(props.get("EntryLength"))
 
-    rna_total = sum(value or 0 for value in [trna_count, rrna_count, ncrna_count, tmrna_count]) or None
+    rna_total = (
+        sum(value or 0 for value in [trna_count, rrna_count, ncrna_count, tmrna_count]) or None
+    )
     untranslated_cds_count = None
     if source_cds_count is not None and cds_count is not None and source_cds_count >= cds_count:
         untranslated_cds_count = source_cds_count - cds_count

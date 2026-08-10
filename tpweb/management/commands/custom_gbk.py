@@ -1,32 +1,34 @@
-
-import gzip
-import io
 import re
 import shutil
 import warnings
 import os
-from Bio import BiopythonWarning, BiopythonParserWarning, BiopythonDeprecationWarning, BiopythonExperimentalWarning, SeqIO
+from Bio import (
+    BiopythonWarning,
+    BiopythonParserWarning,
+    BiopythonDeprecationWarning,
+    BiopythonExperimentalWarning,
+)
 from django.core.management.base import BaseCommand
 from django.core.exceptions import ValidationError
 from bioseq.io.GenebankIO import GenebankIO
 from bioseq.io.SeqStore import SeqStore
 
-warnings.simplefilter('ignore', RuntimeWarning)
-warnings.simplefilter('ignore', BiopythonWarning)
-warnings.simplefilter('ignore', BiopythonParserWarning)
-warnings.simplefilter('ignore', BiopythonDeprecationWarning)
-warnings.simplefilter('ignore', BiopythonExperimentalWarning)
+warnings.simplefilter("ignore", RuntimeWarning)
+warnings.simplefilter("ignore", BiopythonWarning)
+warnings.simplefilter("ignore", BiopythonParserWarning)
+warnings.simplefilter("ignore", BiopythonDeprecationWarning)
+warnings.simplefilter("ignore", BiopythonExperimentalWarning)
 
 
 class Command(BaseCommand):
-    help = 'Downloads a genebank file from accession number'
+    help = "Downloads a genebank file from accession number"
 
     def add_arguments(self, parser):
-        parser.add_argument('--email', default="something@adomain.com")
-        parser.add_argument('--stdout', action="store_true")
-        parser.add_argument('accession')
-        parser.add_argument('--custom', default = None)
-        parser.add_argument('--datadir', default="./data")
+        parser.add_argument("--email", default="something@adomain.com")
+        parser.add_argument("--stdout", action="store_true")
+        parser.add_argument("accession")
+        parser.add_argument("--custom", default=None)
+        parser.add_argument("--datadir", default="./data")
 
     def handle(self, *args, **options):
         if options["custom"] is None:

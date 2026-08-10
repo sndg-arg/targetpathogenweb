@@ -21,4 +21,6 @@ def delete_formula_view(request, genome, formula_pk):
     except ScoreFormula.DoesNotExist:
         pass  # already gone or doesn't belong to this user — ignore silently
 
-    return redirect(reverse("tpwebapp:protein_list", kwargs={"genome": genome_url_slug(assembly_name)}))
+    return redirect(
+        reverse("tpwebapp:protein_list", kwargs={"genome": genome_url_slug(assembly_name)})
+    )

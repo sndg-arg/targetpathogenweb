@@ -1,0 +1,79 @@
+{% extends '../base/masterpage.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block head %}
+    <link rel="stylesheet" href="{% static 'css/pages/blast.css' %}?v=20260710-select-fix1">
+{% endblock %}
+
+{% block body %}
+    <div class="blast-page">
+
+        {# ── Hero ── #}
+        <section class="blast-hero">
+            {% trans "Genomes" as crumb_genomes %}
+            {% trans "Proteins" as crumb_proteins %}
+            {% trans "Sequence search" as crumb_blast %}
+            {% url 'tpwebapp:index' as index_url %}
+            {% url 'tpwebapp:genomes_list' as genomes_url %}
+            {% with crumb_genome="Genome: "|add:genome_label %}
+            {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_genome crumb_3_url=proteins_url crumb_4_label=crumb_blast %}
+            {% endwith %}
+
+            <span class="blast-eyebrow">{% trans "Sequence search · blastp · genome-specific" %}</span>
+            <h1>{% trans "Protein sequence search" %}</h1>
+            <p class="blast-subtitle">
+                {% blocktrans with genome=genome_label %}Amino acid BLAST (blastp) against every protein loaded for {{ genome }}.{% endblocktrans %}
+            </p>
+        </section>
+
+        <div class="blast-card">
+            <div class="blast-result-head">
+                <h2>{% trans "Closest protein hits" %}</h2>
+                <a class="btn tp-btn tp-btn--neutral tp-btn-with-icon" href="{{ proteins_url }}">
+                    <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/refresh.html" %}</span>
+                    <span>{% trans "Back to protein list" %}</span>
+                </a>
+            </div>
+
+            {% if error_message %}
+                <p class="tp-state-note tp-state-note--error mb-0">{{ error_message }}</p>
+            {% elif not hits %}
+                <p class="tp-state-note tp-state-note--empty mb-0">{% trans "No hits found for this query in this genome (e-value ≤ 1e-5)." %}</p>
+            {% else %}
+                <div class="table-shell tp-table-shell">
+                    <table class="table table-striped table-hover mb-0 tp-table tp-table--plain">
+                        <thead>
+                            <tr>
+                                <th scope="col">{% trans "Protein" %}</th>
+                                <th scope="col" title="{% trans 'Percent identity between query and subject over the aligned region.' %}">{% trans "% identity" %}</th>
+                                <th scope="col" title="{% trans 'Length of the aligned region, in residues.' %}">{% trans "Align. length" %}</th>
+                                <th scope="col" title="{% trans 'Expect value — lower means a more significant match.' %}">{% trans "E-value" %}</th>
+                                <th scope="col" title="{% trans 'Bit score — higher means a stronger match.' %}">{% trans "Bit score" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for hit in hits %}
+                            <tr>
+                                <td>
+                                    {% if hit.protein %}
+                                        <a href="{% url 'tpwebapp:protein' hit.protein.bioentry_id %}">{{ hit.protein.accession }}</a>
+                                        {% if hit.protein.description %}<span class="tp-state-note--empty">{{ hit.protein.description }}</span>{% endif %}
+                                    {% else %}
+                                        {{ hit.subject_id }}
+                                    {% endif %}
+                                </td>
+                                <td>{{ hit.identity }}%</td>
+                                <td>{{ hit.length }}</td>
+                                <td>{{ hit.evalue }}</td>
+                                <td>{{ hit.bitscore }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        </div>
+
+    </div>
+{% endblock %}

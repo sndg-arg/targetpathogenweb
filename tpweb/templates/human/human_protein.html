@@ -1,0 +1,436 @@
+{% extends '../base/masterpage.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block head %}
+    <title>{{ human_protein.uniprot_accession }} · {% trans "Human Targets" %}</title>
+    {% comment %}
+    protein-detail.css supplies the hero/card/binders-table/binder-intel/binder-mol-modal
+    styling this page deliberately reuses verbatim (same markup, same tokens) --
+    human-protein-detail.css only adds the genuinely new human-specific classes.
+    {% endcomment %}
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260809-provenance-inset">
+    <link rel="stylesheet" href="{% static 'css/pages/human-protein-detail.css' %}?v=20260729-humantargets2">
+{% endblock %}
+
+{% block body %}
+    <div class="human-protein-page protein-page">
+        <section class="protein-hero" id="section-overview">
+            <div class="protein-hero-top tp-view-head">
+                <div class="protein-hero-content tp-view-head-copy">
+                    {% trans "Human Targets" as crumb_human %}
+                    {% url 'tpwebapp:index' as index_url %}
+                    {% with crumb_protein=human_protein.uniprot_accession|add:" · "|add:human_protein.protein_name %}
+                    {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_human crumb_2_url=human_protein_list_url crumb_3_label=crumb_protein %}
+                    {% endwith %}
+                    <p class="protein-hero-eyebrow">{% trans "Human curated protein" %}</p>
+                    <h1>{{ human_protein.uniprot_accession }}</h1>
+                    <p class="protein-description">{{ human_protein.protein_name|default:"—" }}</p>
+                    <div class="hero-chip-list tp-chip-group">
+                        <span class="hero-chip tp-chip tp-chip--meta tp-chip--sm">
+                            <strong>{% trans "Gene" %}:</strong>
+                            <span>{{ human_protein.gene_symbol|default:"—" }}</span>
+                        </span>
+                        <span class="hero-chip tp-chip tp-chip--meta tp-chip--sm">
+                            <strong>{% trans "Organism" %}:</strong>
+                            <span>{{ human_protein.organism_name|default:"Homo sapiens" }}</span>
+                        </span>
+                        {% if overview.is_reviewed %}
+                        <span class="hero-chip tp-chip tp-chip--sm hero-chip-reviewed" title="{% trans 'Manually reviewed, Swiss-Prot record' %}">
+                            {% trans "Reviewed" %}
+                        </span>
+                        {% endif %}
+                        <a class="hero-chip tp-chip tp-chip--sm tp-chip--link" href="https://www.uniprot.org/uniprotkb/{{ human_protein.uniprot_accession }}" target="_blank" rel="noopener" title="{% trans 'View on UniProt' %}">
+                            <span class="tp-chip-db">UniProt</span>
+                            <span class="tp-chip-ext-icon" aria-hidden="true">↗</span>
+                        </a>
+                    </div>
+                </div>
+                <div class="tp-view-head-actions">
+                    <a href="{{ human_protein_list_url }}" class="btn tp-btn tp-btn--neutral tp-btn-with-icon">
+                        <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/arrow_left.html" %}</span>
+                        {% trans "All human targets" %}
+                    </a>
+                </div>
+            </div>
+            <div class="protein-metrics" aria-label="{% trans "Protein summary" %}">
+                {% for fact in overview.quick_facts %}
+                <div class="metric-pill">
+                    <span class="metric-label">{{ fact.label }}</span>
+                    <span class="metric-value">{{ fact.value }}</span>
+                </div>
+                {% endfor %}
+                {% if binders.total %}
+                <div class="metric-pill">
+                    <span class="metric-label" title="{% trans 'Ligand evidence records currently loaded for this protein.' %}">{% trans "Ligand records" %}</span>
+                    <span class="metric-value">{{ binders.total }}</span>
+                </div>
+                {% endif %}
+                {% if structure.has_structure %}
+                <div class="metric-pill">
+                    <span class="metric-label">{% trans "3D structures" %}</span>
+                    <span class="metric-value">{{ structure.sub_tabs|length }} {% trans "sources" %}</span>
+                </div>
+                {% endif %}
+            </div>
+        </section>
+
+        <nav class="quick-nav" aria-label="{% trans "Protein sections" %}">
+            <a href="#section-overview" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Overview" %}</a>
+            <a href="#section-function" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Function" %}</a>
+            <a href="#section-sequence" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Sequence" %}</a>
+            {% if structure.has_structure %}<a href="#section-structure" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "3D structure" %}</a>{% endif %}
+            {% if binders.total %}<a href="#section-binders" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Ligands" %}</a>{% endif %}
+            <a href="#section-xrefs" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Cross-refs" %}</a>
+        </nav>
+
+        <main class="protein-main" aria-label="{% trans 'Protein evidence sections' %}">
+
+            <section class="protein-card" id="section-overview-detail">
+                <div class="section-head tp-ui-panel-head">
+                    <div>
+                        <h2>{% trans "Overview" %}</h2>
+                        <p class="section-subtitle">{{ overview.summary_sentence|default:"—" }}</p>
+                    </div>
+                </div>
+                <div class="human-overview-grid">
+                    <div class="human-overview-main">
+                        {% if overview.caution_text %}
+                        <p class="tp-state-note tp-state-note--error human-caution">{{ overview.caution_text }}</p>
+                        {% endif %}
+                        {% if overview.subunit_text %}
+                        <div class="human-overview-block">
+                            <h3>{% trans "Subunit structure" %}</h3>
+                            <p>{{ overview.subunit_text }}</p>
+                        </div>
+                        {% endif %}
+                        {% if overview.polymorphism_text %}
+                        <div class="human-overview-block">
+                            <h3>{% trans "Polymorphism" %}</h3>
+                            <p>{{ overview.polymorphism_text }}</p>
+                        </div>
+                        {% endif %}
+                        {% if overview.publications %}
+                        <div class="human-overview-block">
+                            <h3>{% trans "Publications" %}</h3>
+                            <ul class="human-publication-list">
+                                {% for pub in overview.publications|slice:":8" %}
+                                <li><a href="https://pubmed.ncbi.nlm.nih.gov/{{ pub.pubmed }}/" target="_blank" rel="noopener">{{ pub.title|default:pub.pubmed }}</a></li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <aside class="human-overview-aside">
+                        <div class="human-identifiers-card">
+                            <h3>{% trans "Identifiers" %}</h3>
+                            <dl class="human-kv-list">
+                                <dt>{% trans "Gene" %}</dt><dd>{{ human_protein.gene_symbol|default:"—" }}</dd>
+                                <dt>{% trans "UniProt" %}</dt><dd>{{ human_protein.uniprot_accession }}</dd>
+                                <dt>{% trans "Organism" %}</dt><dd>{{ human_protein.organism_name|default:"Homo sapiens" }}{% if human_protein.taxon_id %} (taxon {{ human_protein.taxon_id }}){% endif %}</dd>
+                                {% if overview.chromosome %}<dt>{% trans "Chromosome" %}</dt><dd>{{ overview.chromosome }}</dd>{% endif %}
+                            </dl>
+                            {% if overview.lineage %}
+                            <p class="human-lineage">{{ overview.lineage|join:" › " }}</p>
+                            {% endif %}
+                        </div>
+                        {% if overview.subcellular_locations %}
+                        <div class="human-pill-block">
+                            <h3>{% trans "Subcellular location" %}</h3>
+                            <div class="tp-chip-group">
+                                {% for loc in overview.subcellular_locations %}
+                                <span class="tp-chip tp-chip--sm">{{ loc }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if overview.keywords %}
+                        <div class="human-pill-block">
+                            <h3>{% trans "Keywords" %}</h3>
+                            <div class="tp-chip-group">
+                                {% for kw in overview.keywords %}
+                                <span class="tp-chip tp-chip--sm tp-chip--meta">{{ kw }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </aside>
+                </div>
+            </section>
+
+            <section class="protein-card" id="section-function">
+                <div class="section-head tp-ui-panel-head">
+                    <div>
+                        <h2>{% trans "Function" %}</h2>
+                        <p class="section-subtitle">{% trans "Molecular function, catalytic activity, and Gene Ontology annotations." %}</p>
+                    </div>
+                    <div class="section-tools">
+                        <span class="tp-chip tp-chip--count tp-chip--sm">{{ ec_badges|length }} EC</span>
+                        <span class="tp-chip tp-chip--count tp-chip--sm">{{ go_badges|length }} GO</span>
+                    </div>
+                </div>
+                {% if function.function_text %}
+                <p class="human-function-text">{{ function.function_text|linebreaksbr }}</p>
+                {% else %}
+                <p class="tp-state-note tp-state-note--empty">{% trans "No function description loaded for this protein." %}</p>
+                {% endif %}
+
+                {% if function.catalytic_activity %}
+                <div class="human-catalytic-list">
+                    {% for cat in function.catalytic_activity %}
+                    <div class="human-catalytic-card">
+                        {% if cat.ec %}<span class="tp-chip tp-chip--sm tp-chip--ec">EC {{ cat.ec }}</span>{% endif %}
+                        {% if cat.rhea %}<span class="tp-chip tp-chip--sm tp-chip--meta">{{ cat.rhea }}</span>{% endif %}
+                        {% if cat.reaction %}<p class="human-reaction-eq">{{ cat.reaction }}</p>{% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                {% if function.go_cards %}
+                <div class="human-go-grid">
+                    {% for card in function.go_cards %}
+                    <div class="human-go-card">
+                        <h3>{{ card.label }}</h3>
+                        <div class="tp-chip-group">
+                            {% for term in card.terms %}
+                            <span class="tp-chip tp-chip--sm tp-chip--go" title="{{ term.id }}">{{ term.name|default:term.id }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </section>
+
+            <section class="protein-card" id="section-sequence">
+                <div class="section-head tp-ui-panel-head">
+                    <div>
+                        <h2>{% trans "Sequence" %}</h2>
+                        <p class="section-subtitle">{% blocktrans with length=sequence.sequence_length %}{{ length }} amino acids{% endblocktrans %}</p>
+                    </div>
+                    <div class="section-tools">
+                        <button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm tp-btn-with-icon" id="copy-human-sequence" data-default-label="{% trans "Copy sequence" %}" data-copied-label="{% trans "Copied" %}">
+                            <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/copy.html" %}</span>
+                            <span data-copy-label>{% trans "Copy sequence" %}</span>
+                        </button>
+                    </div>
+                </div>
+                <textarea id="human-raw-sequence" hidden>{{ sequence.sequence }}</textarea>
+                {% if sequence.sequence %}
+                <pre class="human-sequence-block">{{ sequence.sequence }}</pre>
+                {% else %}
+                <p class="tp-state-note tp-state-note--empty">{% trans "No sequence loaded for this protein." %}</p>
+                {% endif %}
+
+                {% if sequence.feature_lanes %}
+                <div class="human-feature-lanes">
+                    {% for lane in sequence.feature_lanes %}
+                    <div class="human-feature-lane">
+                        <span class="human-feature-lane__label">{{ lane.type }}</span>
+                        <div class="human-feature-lane__items">
+                            {% for feature in lane.features %}
+                            <div class="human-feature-item">
+                                <span class="human-feature-item__pos">{{ feature.start }}{% if feature.end and feature.end != feature.start %}–{{ feature.end }}{% endif %}</span>
+                                <span class="human-feature-item__desc">{{ feature.description|default:"—" }}</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </section>
+
+            {% if structure.has_structure %}
+            <section class="protein-card" id="section-structure">
+                <div class="section-head tp-ui-panel-head">
+                    <div>
+                        <h2>{% trans "3D structure" %}</h2>
+                        <p class="section-subtitle">{% trans "AlphaFold and AlphaFill predicted models, plus experimental PDB structures when available." %}</p>
+                    </div>
+                </div>
+                <div class="human-structure-tabs" role="tablist" data-structure-tabs>
+                    {% for tab in structure.sub_tabs %}
+                    <button type="button" class="human-structure-tab {% if tab.key == structure.default_tab %}is-active{% endif %}" role="tab" data-structure-tab="{{ tab.key }}">
+                        <span>{{ tab.label }}</span>
+                        <span class="human-structure-tab__count">{{ tab.count }}</span>
+                    </button>
+                    {% endfor %}
+                </div>
+                <div class="human-structure-body">
+                    <div class="human-structure-list">
+                        {% for tab in structure.sub_tabs %}
+                        <div class="human-structure-panel {% if tab.key != structure.default_tab %}is-hidden{% endif %}" data-structure-panel="{{ tab.key }}">
+                            {% for entry in tab.entries %}
+                            <button type="button" class="human-structure-entry" data-structure-url="{{ entry.url }}" data-structure-source="{{ tab.key }}">
+                                <strong>{{ entry.title|default:entry.code }}</strong>
+                                {% if entry.resolution %}<span>{{ entry.resolution|floatformat:2 }} Å</span>{% endif %}
+                                {% if entry.method %}<span>{{ entry.method }}</span>{% endif %}
+                            </button>
+                            {% endfor %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="human-structure-viewer">
+                        <div id="human-structure-viewport"></div>
+                        <p class="tp-state-note tp-state-note--empty" id="human-structure-loading">{% trans "Select a structure to load it." %}</p>
+                    </div>
+                </div>
+                {{ structure.sub_tabs|json_script:"human-structure-data" }}
+            </section>
+            {% endif %}
+
+            {% if binders.total %}
+            <section class="protein-card" id="section-binders">
+                <div class="section-head tp-ui-panel-head">
+                    <div>
+                        <h2>{% trans "Ligand evidence" %}</h2>
+                        <p class="section-subtitle">{% trans "Ligands grouped by evidence source, via the same LigQ_2 pipeline used across Target." %}</p>
+                    </div>
+                    <div class="section-tools">
+                        <span class="tp-chip tp-chip--count tp-chip--sm">{{ binders.total }} {% trans "records" %}</span>
+                    </div>
+                </div>
+
+                {% if binders.summary %}
+                <div class="binder-intel-panel">
+                    <div class="binder-intel-lead">
+                        <span class="binder-intel-kicker">{% trans "Chemistry signal" %}</span>
+                        <p><span class="metric-value-icon metric-value-icon--success" aria-hidden="true">{% include "components/icons/check.html" %}</span>{{ binders.summary.summary_text }}</p>
+                    </div>
+                    <div class="binder-intel-grid" aria-label="{% trans 'Ligand evidence summary' %}">
+                        <div class="binder-intel-stat">
+                            <span class="binder-intel-label">{% trans "Direct evidence" %}</span>
+                            <strong>{{ binders.summary.direct_count }}</strong>
+                            <span>{% trans "same-protein records" %}</span>
+                        </div>
+                        <div class="binder-intel-stat">
+                            <span class="binder-intel-label">{% trans "Transferred evidence" %}</span>
+                            <strong>{{ binders.summary.homolog_count }}</strong>
+                            <span>{% trans "records from similar proteins" %}</span>
+                        </div>
+                        <div class="binder-intel-stat">
+                            <span class="binder-intel-label">{% trans "Structural ligands" %}</span>
+                            <strong>{{ binders.summary.structural_count }}</strong>
+                            <span>{% blocktrans with count=binders.summary.loaded_crystal_count %}{{ count }} loaded crystals{% endblocktrans %}</span>
+                        </div>
+                        <div class="binder-intel-stat">
+                            <span class="binder-intel-label">{% trans "Measured bioactivity" %}</span>
+                            <strong>{{ binders.summary.bioactive_count }}</strong>
+                            <span>{% trans "direct and transferred ChEMBL records" %}</span>
+                        </div>
+                        <div class="binder-intel-stat">
+                            <span class="binder-intel-label">{% trans "Proposed compounds" %}</span>
+                            <strong>{{ binders.summary.proposed_count }}</strong>
+                            <span>{% trans "similarity-based ZINC candidates" %}</span>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <form method="GET" class="binders-search" role="search">
+                    <input type="search" name="binder_search" class="binders-search__input" value="{{ binders.search_query }}"
+                           placeholder="{% trans 'Search by ligand ID, PDB, UniProt, SMILES…' %}" aria-label="{% trans 'Search ligands' %}">
+                    {% if binders.search_query %}<a href="?#section-binders" class="binders-search__clear" aria-label="{% trans 'Clear search' %}">&times;</a>{% endif %}
+                    <button type="submit" class="btn tp-btn tp-btn--primary tp-btn-with-icon binders-search__submit">
+                        <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/search.html" %}</span>
+                        <span>{% trans "Search" %}</span>
+                    </button>
+                </form>
+
+                <div class="binders-tabs" role="tablist" data-binders-tabs>
+                    <button type="button" class="binders-tab {% if binders.default_tab == 'pdb_direct' %}is-active{% endif %}" role="tab" aria-selected="{% if binders.default_tab == 'pdb_direct' %}true{% else %}false{% endif %}" data-binders-tab="pdb_direct">
+                        <span>{% trans "PDB co-crystal" %}</span>{% if binders.pdb_direct_count %}<span class="binders-tab__count">{{ binders.pdb_direct_count }}</span>{% endif %}
+                    </button>
+                    <button type="button" class="binders-tab {% if binders.default_tab == 'pdb_homolog' %}is-active{% endif %}" role="tab" aria-selected="{% if binders.default_tab == 'pdb_homolog' %}true{% else %}false{% endif %}" data-binders-tab="pdb_homolog">
+                        <span>{% trans "PDB via homologs" %}</span>{% if binders.pdb_homolog_count %}<span class="binders-tab__count">{{ binders.pdb_homolog_count }}</span>{% endif %}
+                    </button>
+                    <button type="button" class="binders-tab {% if binders.default_tab == 'chembl_direct' %}is-active{% endif %}" role="tab" aria-selected="{% if binders.default_tab == 'chembl_direct' %}true{% else %}false{% endif %}" data-binders-tab="chembl_direct">
+                        <span>{% trans "ChEMBL bioactive" %}</span>{% if binders.chembl_direct_count %}<span class="binders-tab__count">{{ binders.chembl_direct_count }}</span>{% endif %}
+                    </button>
+                    <button type="button" class="binders-tab {% if binders.default_tab == 'chembl_homolog' %}is-active{% endif %}" role="tab" aria-selected="{% if binders.default_tab == 'chembl_homolog' %}true{% else %}false{% endif %}" data-binders-tab="chembl_homolog">
+                        <span>{% trans "ChEMBL via homologs" %}</span>{% if binders.chembl_homolog_count %}<span class="binders-tab__count">{{ binders.chembl_homolog_count }}{% if binders.chembl_homolog_capped %}+{% endif %}</span>{% endif %}
+                    </button>
+                    <button type="button" class="binders-tab {% if binders.default_tab == 'zinc' %}is-active{% endif %}" role="tab" aria-selected="{% if binders.default_tab == 'zinc' %}true{% else %}false{% endif %}" data-binders-tab="zinc">
+                        <span>{% trans "ZINC" %}</span>{% if binders.zinc_count %}<span class="binders-tab__count">{{ binders.zinc_count }}{% if binders.zinc_capped %}+{% endif %}</span>{% endif %}
+                    </button>
+                </div>
+
+                <div class="binders-panel {% if binders.default_tab != 'pdb_direct' %}is-hidden{% endif %}" data-binders-panel="pdb_direct" role="tabpanel">
+                    {% if binders.pdb_direct %}
+                        {% include "components/binders/binder_filter_bar.html" %}
+                        {% include "components/binders/table_pdb.html" with binder_list=binders.pdb_direct %}
+                    {% else %}<p class="tp-state-note tp-state-note--empty binders-empty">{% trans "No co-crystallized ligand found for this exact protein." %}</p>{% endif %}
+                </div>
+                <div class="binders-panel {% if binders.default_tab != 'pdb_homolog' %}is-hidden{% endif %}" data-binders-panel="pdb_homolog" role="tabpanel">
+                    {% if binders.pdb_homolog %}
+                        {% include "components/binders/binder_filter_bar.html" %}
+                        {% include "components/binders/table_pdb.html" with binder_list=binders.pdb_homolog show_uniprot=True %}
+                    {% else %}<p class="tp-state-note tp-state-note--empty binders-empty">{% trans "No matches." %}</p>{% endif %}
+                </div>
+                <div class="binders-panel {% if binders.default_tab != 'chembl_direct' %}is-hidden{% endif %}" data-binders-panel="chembl_direct" role="tabpanel">
+                    {% if binders.chembl_direct %}
+                        {% include "components/binders/binder_filter_bar.html" with extra_filter_key="pchembl6" extra_filter_title="pchembl ≥ 6 corresponds to IC₅₀ ≤ 1 μM — a standard hit threshold" extra_filter_label="pchembl ≥ 6" %}
+                        {% include "components/binders/table_chembl.html" with binder_list=binders.chembl_direct %}
+                    {% else %}<p class="tp-state-note tp-state-note--empty binders-empty">{% trans "No matches." %}</p>{% endif %}
+                </div>
+                <div class="binders-panel {% if binders.default_tab != 'chembl_homolog' %}is-hidden{% endif %}" data-binders-panel="chembl_homolog" role="tabpanel">
+                    {% if binders.chembl_homolog %}
+                        {% include "components/binders/binder_filter_bar.html" with extra_filter_key="pchembl6" extra_filter_title="pchembl ≥ 6 corresponds to IC₅₀ ≤ 1 μM — a standard hit threshold" extra_filter_label="pchembl ≥ 6" %}
+                        {% include "components/binders/table_chembl.html" with binder_list=binders.chembl_homolog show_uniprot=True %}
+                    {% else %}<p class="tp-state-note tp-state-note--empty binders-empty">{% trans "No matches." %}</p>{% endif %}
+                </div>
+                <div class="binders-panel {% if binders.default_tab != 'zinc' %}is-hidden{% endif %}" data-binders-panel="zinc" role="tabpanel">
+                    {% if binders.zinc %}
+                        {% include "components/binders/binder_filter_bar.html" with extra_filter_key="tanimoto07" extra_filter_title="Tanimoto similarity ≥ 0.7 — high structural resemblance to a known active compound" extra_filter_label="Tanimoto ≥ 0.7" %}
+                        {% include "components/binders/table_zinc.html" with binder_list=binders.zinc %}
+                    {% else %}<p class="tp-state-note tp-state-note--empty binders-empty">{% trans "No virtual-screening candidates for this protein." %}</p>{% endif %}
+                </div>
+            </section>
+            {% endif %}
+
+            <section class="protein-card" id="section-xrefs">
+                <div class="section-head tp-ui-panel-head">
+                    <div>
+                        <h2>{% trans "Cross-references" %}</h2>
+                        <p class="section-subtitle">{% trans "External database identifiers grouped by category." %}</p>
+                    </div>
+                </div>
+                {% if xrefs.groups %}
+                <div class="human-xref-grid">
+                    {% for group in xrefs.groups %}
+                    <div class="human-xref-card">
+                        <h3>{{ group.label }}</h3>
+                        <ul class="human-xref-list">
+                            {% for item in group.items %}
+                            <li><span class="human-xref-db">{{ item.database }}</span><span class="human-xref-id">{{ item.id }}</span></li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="tp-state-note tp-state-note--empty">{% trans "No cross-references loaded for this protein." %}</p>
+                {% endif %}
+            </section>
+        </main>
+
+        <div class="binder-mol-modal" id="binder-mol-modal" aria-hidden="true">
+            <div class="binder-mol-modal__panel" role="dialog" aria-modal="true" aria-labelledby="binder-mol-modal-title">
+                <div class="binder-mol-modal__head">
+                    <div>
+                        <h3 id="binder-mol-modal-title">{% trans "Ligand structure" %}</h3>
+                        <p id="binder-mol-modal-meta"></p>
+                    </div>
+                    <button type="button" class="btn tp-btn tp-btn--neutral tp-btn--sm binder-mol-modal__close" id="binder-mol-modal-close" aria-label="{% trans 'Close' %}">&times;</button>
+                </div>
+                <div class="binder-mol-modal__body" id="binder-mol-modal-body"></div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block jsloaded %}
+    <script src="{% static 'js/pages/human-protein-detail.js' %}?v=20260729-humantargets2"></script>
+{% endblock %}

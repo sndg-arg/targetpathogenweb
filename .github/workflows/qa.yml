@@ -48,7 +48,7 @@ jobs:
           python -m pip install -r requirements/base.txt
           python -m pip install "numpy<2"
           python -m pip install rdkit-pypi
-          python -m pip install ruff
+          python -m pip install ruff "coverage[toml]"
 
       - name: Checkout runtime library dependencies
         run: |
@@ -63,11 +63,12 @@ jobs:
       - name: Django system check
         run: python manage.py check
 
-      - name: Unit and smoke tests
-        run: python scripts/run_tests.py
-
-      - name: Lint changed core modules
+      - name: Unit and smoke tests (with coverage)
         run: |
-          python -m ruff check tpweb/services/pipeline_status.py
-          python -m ruff check tpweb/views/HealthView.py tpweb/middleware/observability.py
-          python -m ruff check scripts/run_tests.py tpweb/tests.py
+          python -m coverage run --source=tpweb,pipeline scripts/run_tests.py
+          python -m coverage report -m
+
+      - name: Lint (whole repo)
+        run: |
+          python -m ruff check .
+          python -m ruff format --check .

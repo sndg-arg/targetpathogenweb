@@ -1,6 +1,10 @@
+/* No card boxing/gap between top-level sections -- they sit directly on
+   the page background, divided by a hairline instead. See
+   tpw-editorial-redesign skill. */
 .proteins-page {
-    display: grid;
-    gap: var(--tp-space-4);
+    font-family: "Source Sans 3", "Segoe UI", sans-serif;
+    color: var(--tp-ink);
+    margin: 0;
     --view-accent: var(--tp-accent);
     --view-accent-deep: var(--tp-accent-deep);
     --view-accent-ink: var(--tp-color-brand-900);
@@ -9,7 +13,33 @@
     --view-accent-border: var(--tp-color-brand-300);
 }
 
-/* Base styles from .tp-page-hero in ui-system.css */
+/* .filter-tray excluded on both sides -- it already carries its own
+   border + left-accent stripe as a contextual "active filters" callout,
+   so a hairline on top of that would be two boundary signals for the
+   same seam. Its own margin provides the spacing instead. */
+.proteins-page > section:not(.filter-tray) ~ section:not(.filter-tray) {
+    border-top: 1px solid var(--tp-color-border-soft);
+}
+
+.proteins-page h1,
+.proteins-page h2,
+.proteins-page h3,
+.proteins-page h4 {
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+}
+
+.proteins-page h1 {
+    font-weight: 700;
+}
+
+/* No longer boxed via .tp-page-hero -- sits directly on the page
+   background (see tpw-editorial-redesign), so it needs its own padding
+   now instead of inheriting that shared class's. */
+.proteins-hero {
+    padding: 20px 18px;
+}
 
 .hero-top {
     display: flex;
@@ -22,23 +52,22 @@
 .hero-top h1 {
     margin: 0;
     font-size: var(--tp-heading-lg);
-    letter-spacing: 0.2px;
     color: var(--view-accent-ink);
-    line-height: 1.08;
+    line-height: 1.1;
 }
 
 .hero-subtitle {
-    margin: 6px 0 0;
-    color: var(--tp-color-text-muted);
+    margin: 10px 0 0;
+    color: var(--tp-color-text-secondary);
     font-size: 1rem;
-    line-height: 1.4;
+    line-height: 1.42;
 }
 
 .hero-context {
-    margin: 8px 0 0;
-    color: var(--tp-color-text-muted);
+    margin: 10px 0 0;
+    color: var(--tp-color-text-secondary);
     font-size: 1rem;
-    line-height: 1.4;
+    line-height: 1.42;
     overflow-wrap: anywhere;
 }
 
@@ -88,7 +117,47 @@
     border-top: 1px solid var(--tp-color-border-soft);
     display: grid;
     gap: 6px;
-    max-width: 760px;
+}
+
+.hero-analysis-summary {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    list-style: none;
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-label);
+    font-weight: 500;
+}
+
+.hero-analysis-summary::-webkit-details-marker {
+    display: none;
+}
+
+.hero-analysis-summary::marker {
+    content: "";
+}
+
+.hero-analysis-summary::after {
+    content: "";
+    flex: 0 0 auto;
+    width: var(--tp-chevron-size);
+    height: var(--tp-chevron-size);
+    border-right: var(--tp-chevron-stroke) solid currentColor;
+    border-bottom: var(--tp-chevron-stroke) solid currentColor;
+    transform: rotate(45deg);
+    transform-origin: center;
+    transition: transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.hero-analysis-context[open] .hero-analysis-summary::after,
+.hero-analysis-context.is-open-visual .hero-analysis-summary::after {
+    transform: rotate(-135deg);
+}
+
+.hero-analysis-summary:hover,
+.hero-analysis-summary:focus-visible {
+    color: var(--view-accent-ink);
 }
 
 .hero-analysis-line {
@@ -105,7 +174,7 @@
 .hero-analysis-label {
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-label);
-    font-weight: 700;
+    font-weight: 500;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     line-height: 1.25;
@@ -118,12 +187,37 @@
     overflow-wrap: anywhere;
 }
 
+/* A row showing its "nothing set" placeholder (None / No active filters /
+   No active search) shouldn't read with the same visual weight as a row
+   that actually has a value -- only real values (a chosen formula, typed
+   search text, applied criteria) get the strong accent color. */
+.hero-analysis-value--empty {
+    color: var(--tp-color-text-muted);
+    font-weight: 400;
+}
+
 .hero-analysis-value strong {
-    font-weight: 700;
+    font-weight: 600;
 }
 
 .hero-analysis-sep {
     color: var(--tp-color-text-soft);
+}
+
+.hero-analysis-preset {
+    display: inline-block;
+    padding: 1px 7px;
+    border-radius: 5px;
+    font-size: var(--tp-font-label);
+    font-weight: 600;
+    background: var(--tp-color-brand-100);
+    color: var(--tp-color-brand-800);
+    vertical-align: baseline;
+}
+
+.hero-analysis-criterion {
+    white-space: nowrap;
+    overflow-wrap: normal;
 }
 
 /* Annotation filter chip uses the same .filter-pill styles as parameter criteria */
@@ -166,14 +260,68 @@ a.filter-pill .filter-pill-remove {
     margin-inline: auto;
 }
 
+.protein-table td[data-col="metabolism"] {
+    min-width: 128px;
+    text-align: center;
+}
+
+.protein-metabolism-chip {
+    gap: 6px;
+    white-space: nowrap;
+    border-width: 1px;
+}
+
+.protein-metabolism-chip--mapped {
+    color: var(--tp-color-sage-700);
+    background: var(--tp-color-sage-050);
+    border-color: var(--tp-color-sage-200);
+}
+
+.protein-metabolism-chip--chokepoint {
+    color: var(--tp-color-amber-700);
+    background: var(--tp-color-amber-050);
+    border-color: var(--tp-color-amber-200);
+}
+
+.protein-metabolism-chip__count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--tp-color-surface) 72%, transparent);
+    font-size: 0.68rem;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.protein-metabolism-empty {
+    display: inline-flex;
+    align-items: center;
+    min-height: 22px;
+    padding: 2px 8px;
+    border: 1px dashed var(--tp-color-border);
+    border-radius: 999px;
+    color: var(--tp-color-text-muted);
+    background: var(--tp-color-surface-soft);
+    font-size: 0.72rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
 .toolbar-card {
-    border: 1px solid var(--tp-color-border);
-    border-radius: var(--tp-ui-radius-panel);
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
-    padding: var(--tp-ui-panel-padding);
+    position: relative;
+    z-index: 20;
+    padding: 14px 18px;
     display: grid;
     gap: var(--tp-ui-gap-md);
-    box-shadow: var(--tp-ui-shadow-panel);
+}
+
+.toolbar-card:has(.toolbar-presets-dropdown:not([hidden])),
+.toolbar-card.is-presets-open {
+    z-index: 900;
 }
 
 .search-form {
@@ -266,8 +414,36 @@ a.filter-pill .filter-pill-remove {
     border: 1px solid var(--tp-color-border) !important;
     background: var(--tp-color-surface) !important;
     border-radius: 10px;
-    box-shadow: none !important;
-    transition: border-color 140ms ease, background 140ms ease;
+    box-shadow: var(--tp-shadow-xs) !important;
+    transition:
+        border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.toolbar-controls-left .toolbar-action-btn.tp-btn-with-icon,
+.toolbar-filter-split__main.tp-btn-with-icon {
+    display: grid !important;
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    column-gap: 8px;
+    row-gap: 2px;
+    justify-content: initial;
+}
+
+.toolbar-controls-left .toolbar-action-btn.tp-btn-with-icon .tp-btn-icon,
+.toolbar-filter-split__main.tp-btn-with-icon .tp-btn-icon {
+    grid-column: 1;
+    grid-row: 1 / 3;
+    align-self: center;
+}
+
+.toolbar-controls-left .toolbar-action-btn.tp-btn-with-icon .toolbar-action-btn__title,
+.toolbar-controls-left .toolbar-action-btn.tp-btn-with-icon .toolbar-action-btn__meta,
+.toolbar-filter-split__main.tp-btn-with-icon .toolbar-action-btn__title,
+.toolbar-filter-split__main.tp-btn-with-icon .toolbar-action-btn__meta {
+    grid-column: 2;
 }
 
 .toolbar-controls-left .toolbar-action-btn:hover,
@@ -275,7 +451,22 @@ a.filter-pill .filter-pill-remove {
     color: var(--tp-color-text-primary) !important;
     border-color: var(--tp-color-border-accent) !important;
     background: var(--tp-color-surface-soft) !important;
+    box-shadow: var(--tp-shadow-sm) !important;
+    transform: translateY(-1px);
     outline: none;
+}
+
+/* Closed drawer still needs a visible cue that filter changes are queued
+   but not yet applied -- otherwise pending state is invisible once the
+   drawer closes (see #filter-pending-summary, which only exists inside it). */
+#open-filters-btn.has-pending-filters {
+    border-color: var(--tp-color-brand-300) !important;
+    background: color-mix(in srgb, var(--tp-color-brand-100) 35%, var(--tp-color-surface)) !important;
+}
+
+#open-filters-btn.has-pending-filters .toolbar-action-btn__meta {
+    color: var(--tp-color-brand-700);
+    font-weight: 600;
 }
 
 .toolbar-controls-left .toolbar-action-btn:focus-visible {
@@ -356,8 +547,16 @@ a.filter-pill .filter-pill-remove {
 }
 
 .search-suggestion-accession {
-    font-weight: 700;
+    font-weight: 600;
     font-size: 0.92rem;
+}
+
+.search-suggestion-gene {
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 0.79rem;
+    font-weight: 500;
+    color: var(--tp-color-brand-700);
+    line-height: 1.25;
 }
 
 .search-suggestion-description {
@@ -379,7 +578,7 @@ a.filter-pill .filter-pill-remove {
 .per-page-label {
     margin: 0;
     font-size: var(--tp-font-label);
-    font-weight: 700;
+    font-weight: 500;
     color: var(--tp-color-text-secondary);
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -390,7 +589,7 @@ a.filter-pill .filter-pill-remove {
     min-width: 152px;
     width: 152px;
     margin-left: 0;
-    font-weight: 700;
+    font-weight: 600;
     text-align: left;
     cursor: pointer;
 }
@@ -402,7 +601,7 @@ a.filter-pill .filter-pill-remove {
 
 .per-page-control .tp-select-trigger {
     border-color: var(--view-accent-border);
-    font-weight: 700;
+    font-weight: 600;
 }
 
 .table-wrap {
@@ -411,11 +610,21 @@ a.filter-pill .filter-pill-remove {
     background: var(--tp-color-surface);
     overflow: auto;
     min-width: 0;
-    box-shadow: var(--tp-shadow-sm);
 }
 
 .table-wrap.tp-table-shell--with-export {
     overflow: hidden;
+}
+
+.protein-table-panel .table-wrap.tp-table-shell--with-export {
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+}
+
+.protein-table-panel .table-wrap.tp-table-shell--with-export::-webkit-scrollbar {
+    width: 0;
+    height: 0;
 }
 
 .protein-workspace {
@@ -434,22 +643,62 @@ a.filter-pill .filter-pill-remove {
     margin: 0;
 }
 
+.protein-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 72px 32px;
+    text-align: center;
+    gap: 10px;
+}
+
+.protein-empty-state__icon {
+    color: var(--tp-color-text-soft);
+    opacity: 0.35;
+    margin-bottom: 6px;
+}
+
+.protein-empty-state__title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--tp-color-text-secondary);
+    margin: 0;
+}
+
+.protein-empty-state__hint {
+    font-size: 0.88rem;
+    color: var(--tp-color-text-muted);
+    margin: 0;
+}
+
+.protein-empty-state__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 6px;
+}
+
+.protein-empty-clear-form {
+    margin: 0;
+}
+
 .protein-table-scroll-note {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
     padding: 10px 14px;
-    border: 1px solid color-mix(in srgb, var(--tp-color-border-strong) 80%, white);
+    border: 1px solid var(--tp-color-border-strong);
     border-radius: 999px;
-    background: color-mix(in srgb, var(--tp-color-surface) 88%, white);
-    box-shadow: var(--tp-shadow-xs);
+    background: var(--tp-color-surface);
     color: var(--tp-color-text-secondary);
 }
 
 .protein-table-scroll-note__label {
     font-size: 0.8rem;
-    font-weight: 700;
+    font-weight: 500;
     letter-spacing: 0.04em;
     text-transform: uppercase;
     color: var(--tp-color-brand-900);
@@ -478,15 +727,8 @@ a.filter-pill .filter-pill-remove {
     position: relative;
     height: 22px;
     border-radius: 999px;
-    background: linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--tp-color-brand-100) 48%, white) 0%,
-        color-mix(in srgb, var(--tp-color-brand-200) 58%, white) 100%
-    );
-    border: 1px solid color-mix(in srgb, var(--tp-color-brand-300) 44%, white);
-    box-shadow:
-        inset 0 1px 2px rgba(0, 0, 0, 0.06),
-        0 1px 0 rgba(255, 255, 255, 0.65);
+    background: var(--tp-color-brand-050);
+    border: 1px solid var(--tp-color-brand-200);
     overflow: hidden;
     --protein-scroll-thumb-size: 96px;
     --protein-scroll-thumb-offset: 0px;
@@ -504,8 +746,8 @@ a.filter-pill .filter-pill-remove {
     inset: 5px 12px 5px auto;
     width: 14px;
     background:
-        linear-gradient(45deg, transparent 35%, color-mix(in srgb, var(--tp-color-brand-700) 42%, white) 36%, color-mix(in srgb, var(--tp-color-brand-700) 42%, white) 54%, transparent 55%) left center / 6px 10px no-repeat,
-        linear-gradient(45deg, transparent 35%, color-mix(in srgb, var(--tp-color-brand-700) 42%, white) 36%, color-mix(in srgb, var(--tp-color-brand-700) 42%, white) 54%, transparent 55%) right center / 6px 10px no-repeat;
+        linear-gradient(45deg, transparent 35%, var(--tp-color-brand-400) 36%, var(--tp-color-brand-400) 54%, transparent 55%) left center / 6px 10px no-repeat,
+        linear-gradient(45deg, transparent 35%, var(--tp-color-brand-400) 36%, var(--tp-color-brand-400) 54%, transparent 55%) right center / 6px 10px no-repeat;
     opacity: 0.52;
     pointer-events: none;
 }
@@ -517,15 +759,8 @@ a.filter-pill .filter-pill-remove {
     width: var(--protein-scroll-thumb-size);
     transform: translateX(var(--protein-scroll-thumb-offset));
     border-radius: 999px;
-    background: linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--tp-color-brand-700) 88%, white) 0%,
-        color-mix(in srgb, var(--tp-color-brand-900) 82%, white) 100%
-    );
-    box-shadow:
-        var(--tp-shadow-sm),
-        inset 0 1px 0 rgba(255, 255, 255, 0.24);
-    border: 1px solid color-mix(in srgb, var(--tp-color-brand-900) 72%, black);
+    background: var(--tp-color-brand-600);
+    border: 1px solid var(--tp-color-brand-900);
     transition: transform 120ms ease, width 120ms ease, opacity 120ms ease;
 }
 
@@ -559,6 +794,15 @@ a.filter-pill .filter-pill-remove {
     min-width: 100%;
     overflow-x: clip;
     overflow-y: visible;
+}
+
+.protein-table-panel .tp-table-shell__scroll {
+    scrollbar-width: none;
+}
+
+.protein-table-panel .tp-table-shell__scroll::-webkit-scrollbar {
+    width: 0;
+    height: 0;
 }
 
 .protein-table thead th {
@@ -640,12 +884,12 @@ a.filter-pill .filter-pill-remove {
 .rank-col {
     width: 56px;
     text-align: center;
-    font-weight: 700;
+    font-weight: 600;
     color: var(--tp-color-text-secondary);
 }
 
 .acc-col a {
-    font-weight: 700;
+    font-weight: 600;
     color: var(--view-accent-ink);
     text-decoration: none;
 }
@@ -845,7 +1089,7 @@ a.filter-pill .filter-pill-remove {
     align-items: center;
     gap: 5px;
     position: relative;
-    color: var(--tp-color-amber-700, #9a7316);
+    color: var(--tp-color-amber-700);
     font-size: var(--tp-font-label);
     font-weight: 600;
     white-space: nowrap;
@@ -914,7 +1158,7 @@ a.filter-pill .filter-pill-remove {
     align-items: center;
     font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
     font-size: 0.7rem;
-    font-weight: 700;
+    font-weight: 500;
     color: var(--tp-color-text-muted);
     padding: 2px 5px;
     border-radius: 999px;
@@ -981,7 +1225,7 @@ a.filter-pill .filter-pill-remove {
 }
 
 .protein-metric-chip {
-    font-weight: 800;
+    font-weight: 600;
 }
 
 .protein-metric-chip--risk {
@@ -994,6 +1238,12 @@ a.filter-pill .filter-pill-remove {
     color: var(--tp-color-success-ink);
     background: var(--tp-color-success-bg);
     border-color: var(--tp-color-success-border) !important;
+}
+
+.protein-metric-chip--secondary {
+    color: var(--tp-color-text-muted);
+    background: var(--tp-color-surface-muted);
+    border-color: var(--tp-color-border) !important;
 }
 
 .druggability-tip {
@@ -1054,7 +1304,7 @@ a.filter-pill .filter-pill-remove {
 
 .pipeline-like-code {
     color: var(--tp-color-rose-700);
-    font-weight: 700;
+    font-weight: 600;
 }
 
 .pagination-row {
@@ -1081,7 +1331,7 @@ a.filter-pill .filter-pill-remove {
     color: var(--tp-color-text-primary);
     font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
     font-size: inherit;
-    font-weight: 700;
+    font-weight: 600;
     text-align: center;
     line-height: 1.4;
     -moz-appearance: textfield;
@@ -1129,9 +1379,9 @@ a.filter-pill .filter-pill-remove {
     top: 0;
     height: 100vh;
     width: min(460px, 95vw);
-    background: var(--tp-color-surface);
-    border-left: 1px solid var(--tp-color-border-soft);
-    box-shadow: -4px 0 20px color-mix(in srgb, var(--tp-color-brand-950) 14%, transparent);
+    background: var(--tp-color-surface-soft);
+    border-left: 1px solid var(--tp-color-border);
+    box-shadow: -8px 0 48px color-mix(in srgb, var(--tp-color-brand-950) 20%, transparent);
     transform: translateX(100%);
     transition: transform var(--tp-ui-motion-base) var(--tp-ui-ease-standard);
     z-index: 1050;
@@ -1144,40 +1394,51 @@ a.filter-pill .filter-pill-remove {
 }
 
 .drawer-head {
-    padding: 15px 14px 13px;
+    padding: 14px 20px 12px;
     border-bottom: 1px solid var(--tp-color-border-soft);
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 8px;
+    background: var(--tp-color-surface-soft);
 }
 
 .drawer-head h2 {
     margin: 0;
-    font-size: 1.16rem;
-    letter-spacing: 0.01em;
+    font-family: "Space Grotesk", system-ui, sans-serif;
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--tp-color-text-secondary);
 }
 
-.drawer-close-btn {
-    width: 38px !important;
-    min-width: 38px !important;
-    height: 38px !important;
-    min-height: 38px !important;
+/* Selector repeats the class -- .tp-dark .tp-btn--neutral (0,2,0, !important)
+   otherwise beats a plain single-class override here in dark mode, even
+   though this already uses !important (same specificity bug found and
+   fixed on .tpd-delete-btn earlier this session: page CSS loads after
+   masterpage.html's inline <style>, so a tie is enough to win -- a deficit
+   isn't). */
+.drawer-close-btn.drawer-close-btn {
+    width: 30px !important;
+    min-width: 30px !important;
+    height: 30px !important;
+    min-height: 30px !important;
     padding: 0 !important;
-    border-radius: 12px;
+    border-radius: 8px;
     display: inline-grid;
     place-items: center;
-    border-color: var(--tp-color-border-strong) !important;
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%) !important;
-    color: var(--tp-color-text-secondary) !important;
+    border-color: var(--tp-color-border) !important;
+    background: transparent !important;
+    color: var(--tp-color-text-muted) !important;
     box-shadow: none !important;
 }
 
-.drawer-close-btn:hover,
-.drawer-close-btn:focus-visible {
-    border-color: var(--tp-color-brand-300) !important;
-    background: var(--tp-color-brand-100) !important;
-    color: var(--tp-color-link-hover) !important;
+.drawer-close-btn.drawer-close-btn:hover,
+.drawer-close-btn.drawer-close-btn:focus-visible {
+    border-color: var(--tp-color-border-strong) !important;
+    background: var(--tp-color-surface-muted) !important;
+    color: var(--tp-color-text-secondary) !important;
 }
 
 .drawer-close-glyph {
@@ -1192,28 +1453,373 @@ a.filter-pill .filter-pill-remove {
 }
 
 .drawer-body {
-    padding: 15px 14px 14px;
+    padding: 0;
     overflow: auto;
     display: grid;
-    gap: 12px;
+    gap: 0;
     align-content: start;
+    background: var(--tp-color-surface-soft);
 }
 
 .drawer-foot {
-    padding: 12px 14px;
     border-top: 1px solid var(--tp-color-border-soft);
+    background: var(--tp-color-surface-soft);
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+/* Presets accordion — collapsible, always at top of footer */
+.filter-presets-footer {
+    padding: 10px 16px 12px;
+    border-bottom: 1px solid var(--tp-color-border-soft);
+    background: var(--tp-color-surface-soft);
+}
+
+.filter-presets-save-label {
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--tp-color-text-muted);
+    margin-bottom: 8px;
+}
+
+.filter-presets-footer .filter-preset-save-form {
+    margin-bottom: 0;
+}
+
+/* ── Toolbar filter split button + presets dropdown ─────── */
+
+.toolbar-filter-split {
+    position: relative;
+    z-index: 1;
+    display: inline-flex;
+    align-items: stretch;
+    border: 1px solid var(--tp-color-border);
+    border-radius: 10px;
+    overflow: visible;
+    background: var(--tp-color-surface);
+    transition: border-color 140ms ease;
+}
+
+.toolbar-filter-split.is-presets-open {
+    z-index: 910;
+}
+
+.toolbar-filter-split:hover {
+    border-color: var(--tp-color-border-accent);
+}
+
+.toolbar-filter-split__main {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    padding: 8px 12px 8px 14px;
+    background: transparent;
+    border: none;
+    border-radius: 9px 0 0 9px;
+    cursor: pointer;
+    color: var(--tp-color-text-primary);
+    transition: background 140ms ease;
+    min-width: 0;
+}
+
+.toolbar-filter-split__main:hover {
+    background: var(--tp-color-surface-soft);
+}
+
+.toolbar-filter-split__main .toolbar-action-btn__title {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--tp-color-text-primary);
+    white-space: nowrap;
+}
+
+.toolbar-filter-split__main .toolbar-action-btn__meta {
+    font-size: 0.76rem;
+    font-weight: 500;
+    color: var(--tp-color-text-muted);
+    white-space: nowrap;
+}
+
+.toolbar-filter-split__trigger {
+    position: relative;
+    width: 44px;
+    flex-shrink: 0;
+    border: none;
+    border-left: 1px solid var(--tp-color-border-soft);
+    border-radius: 0 9px 9px 0;
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    color: var(--tp-color-text-muted);
+    transition: background 140ms ease, color 140ms ease;
+}
+
+.toolbar-filter-split__trigger .tp-btn-icon {
+    width: 10px;
+    height: 10px;
+    flex-basis: 10px;
+}
+
+.toolbar-filter-split__trigger:hover,
+.toolbar-filter-split__trigger[aria-expanded="true"] {
+    background: var(--tp-color-brand-050);
+    color: var(--tp-color-brand-700);
+}
+
+.toolbar-filter-split__trigger--active {
+    color: var(--tp-color-brand-600);
+}
+
+.toolbar-filter-split__trigger--active:hover,
+.toolbar-filter-split__trigger--active[aria-expanded="true"] {
+    background: var(--tp-color-brand-100);
+    color: var(--tp-color-brand-800);
+}
+
+.toolbar-filter-split__dot {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--tp-color-brand-600);
+    border: 1.5px solid var(--tp-color-surface);
+}
+
+.toolbar-presets-dropdown {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    z-index: 920;
+    min-width: 290px;
+    max-width: 380px;
+    background: var(--tp-color-surface);
+    border: 1px solid var(--tp-color-border);
+    border-radius: 12px;
+    box-shadow: var(--tp-shadow-lg), var(--tp-shadow-sm);
+    overflow: hidden;
+}
+
+.tpd-list {
+    list-style: none;
+    margin: 0;
+    padding: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-height: 340px;
+    overflow-y: auto;
+}
+
+/* One unified card per preset -- apply action and delete action share a
+   single border/rounded shape (like a settings-list row with a trailing
+   icon action), instead of two separately-chromed elements floating next
+   to each other with a gap between them. */
+.tpd-row {
+    display: flex;
+    align-items: stretch;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 8px;
+    background: var(--tp-color-surface);
+    overflow: hidden;
+    transition: border-color 120ms ease, background 120ms ease;
+}
+
+.tpd-row:hover,
+.tpd-row:focus-within {
+    border-color: var(--tp-color-brand-600);
+}
+
+.tpd-row--active {
+    border-color: var(--tp-color-brand-300);
+    background: var(--tp-color-brand-050);
+}
+
+.tpd-row--active:hover,
+.tpd-row--active:focus-within {
+    border-color: var(--tp-color-brand-600);
+    background: var(--tp-color-brand-100);
+}
+
+.tpd-apply-form {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin: 0;
+}
+
+.tpd-delete-form {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: stretch;
+    margin: 0;
+    border-left: 1px solid var(--tp-color-border-soft);
+}
+
+.tpd-row--active .tpd-delete-form {
+    border-left-color: var(--tp-color-brand-200);
+}
+
+.tpd-apply-btn {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 3px;
+    padding: 8px 11px;
+    border: none;
+    background: transparent;
+    color: var(--tp-color-text-primary);
+    text-align: left;
+    cursor: pointer;
+    transition: background 120ms ease;
+}
+
+.tpd-apply-btn:hover,
+.tpd-apply-btn:focus-visible {
+    background: var(--tp-color-surface-soft);
+    outline: none;
+}
+
+.tpd-row--active .tpd-apply-btn:hover,
+.tpd-row--active .tpd-apply-btn:focus-visible {
+    background: var(--tp-color-brand-100);
+}
+
+.tpd-apply-btn:focus-visible {
+    box-shadow: inset 0 0 0 2px var(--tp-color-brand-100);
+}
+
+.tpd-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+}
+
+.tpd-name {
+    flex: 1 1 auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--tp-color-text-primary);
+}
+
+.tpd-count {
+    flex: 0 0 auto;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--tp-color-text-muted);
+}
+
+.tpd-badge {
+    flex: 0 0 auto;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--tp-color-brand-700);
+    background: var(--tp-color-brand-100);
+    border: 1px solid var(--tp-color-brand-300);
+    border-radius: 4px;
+    padding: 2px 6px;
+}
+
+.tpd-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 3px;
+}
+
+.tpd-chip {
+    font-size: 0.69rem;
+    font-weight: 500;
+    color: var(--tp-color-brand-800);
+    background: var(--tp-color-brand-050);
+    border: 1px solid var(--tp-color-brand-100);
+    border-radius: 4px;
+    padding: 2px 6px;
+    white-space: nowrap;
+    line-height: 1.4;
+}
+
+.tpd-row--active .tpd-chip {
+    background: var(--tp-color-brand-100);
+    border-color: var(--tp-color-brand-200);
+}
+
+/* Full-height trailing action strip, flush with the card it's attached to --
+   not a separate floating chip. Transparent/borderless at rest so it reads
+   as part of the row; only picks up the danger tint on hover, when the
+   destructive action is actually in reach.
+   Selector repeats .tpd-delete-btn to out-specificity masterpage.html's
+   .btn.tp-btn--clear rule (two classes) -- a single-class override there
+   was silently losing that specificity fight despite both using
+   !important, which is why this used to render as a solid boxed button
+   even at rest. */
+.tpd-row .tpd-delete-btn.tpd-delete-btn {
+    width: 36px;
+    height: 100%;
+    min-height: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    border-radius: 0 !important;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--tp-color-text-muted) !important;
+    background: transparent !important;
+    transition: background 120ms ease, color 120ms ease;
+}
+
+.tpd-row .tpd-delete-btn.tpd-delete-btn:hover,
+.tpd-row .tpd-delete-btn.tpd-delete-btn:focus-visible {
+    background: var(--tp-color-danger-bg) !important;
+    color: var(--tp-color-danger-ink) !important;
+    outline: none;
+}
+
+.tpd-delete-btn svg {
+    width: 15px;
+    height: 15px;
+    pointer-events: none;
+}
+
+.tpd-foot {
+    padding: 8px;
+    border-top: 1px solid var(--tp-color-border-soft);
+    background: var(--tp-color-surface-soft);
+}
+
+.tpd-open-drawer-btn {
+    width: 100%;
+    text-align: center;
+}
+
+/* Clear / Apply actions row */
+.drawer-foot-actions {
+    padding: 10px 16px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: var(--tp-ui-gap-sm);
-    flex-wrap: nowrap;
-    background: linear-gradient(180deg, var(--tp-color-surface-soft), var(--tp-color-surface));
+    flex-wrap: wrap;
 }
 
 .drawer-reset-form {
     display: flex;
     align-items: center;
-    margin-left: auto;
     flex: 0 0 auto;
 }
 
@@ -1239,8 +1845,7 @@ a.filter-pill .filter-pill-remove {
 .drawer-block {
     border: 1px solid var(--tp-color-border-soft);
     border-radius: 12px;
-    background: linear-gradient(180deg, var(--tp-color-surface-soft) 0%, var(--tp-color-surface-muted) 100%);
-    box-shadow: var(--tp-shadow-xs);
+    background: var(--tp-color-surface-soft);
     padding: 11px;
 }
 
@@ -1282,7 +1887,7 @@ a.filter-pill .filter-pill-remove {
 .drawer-field-label {
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-label);
-    font-weight: 700;
+    font-weight: 500;
     letter-spacing: 0.05em;
     text-transform: uppercase;
 }
@@ -1336,7 +1941,7 @@ a.filter-pill .filter-pill-remove {
     color: var(--view-accent-deep);
     background: var(--tp-color-brand-100);
     cursor: pointer;
-    font-weight: 700;
+    font-weight: 600;
     font-size: 1rem;
     display: inline-flex;
     align-items: center;
@@ -1420,17 +2025,14 @@ a.filter-pill .filter-pill-remove {
 }
 
 .scoring-formula-delete-btn {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
     width: 32px;
     height: 32px;
-    border-radius: 8px;
-    border: 1px solid transparent;
-    background: transparent;
-    color: var(--tp-color-text-muted);
-    cursor: pointer;
-    transition: background 120ms, border-color 120ms, color 120ms;
+    min-height: 32px !important;
+    padding: 0 !important;
+    border-radius: 8px !important;
     margin-top: 8px;
 }
 
@@ -1443,10 +2045,11 @@ a.filter-pill .filter-pill-remove {
     overflow: visible;
 }
 
-.scoring-formula-delete-btn:hover {
-    background: var(--tp-color-danger-bg);
-    border-color: var(--tp-color-danger-border);
-    color: var(--tp-color-danger-ink);
+.scoring-formula-delete-btn:hover,
+.scoring-formula-delete-btn:focus-visible {
+    background: var(--tp-color-danger-bg) !important;
+    border-color: var(--tp-color-danger-border) !important;
+    color: var(--tp-color-danger-ink) !important;
 }
 
 .scoring-formula-row {
@@ -1532,7 +2135,7 @@ a.filter-pill .filter-pill-remove {
 .scoring-formula-row__name {
     color: var(--tp-color-text-primary);
     font-size: 0.98rem;
-    font-weight: 700;
+    font-weight: 600;
     line-height: 1.25;
 }
 
@@ -1542,7 +2145,7 @@ a.filter-pill .filter-pill-remove {
 
 .scoring-formula-row__badge {
     font-size: 0.68rem;
-    font-weight: 700;
+    font-weight: 500;
     letter-spacing: 0.06em;
     text-transform: uppercase;
     color: var(--tp-color-text-muted);
@@ -1571,6 +2174,50 @@ a.filter-pill .filter-pill-remove {
     border: 1px solid var(--tp-color-border-soft);
 }
 
+.scoring-formula-expression-wrap {
+    position: relative;
+    display: block;
+}
+
+/* This tooltip sits below its trigger (not above, like every other
+   .cell-tooltip on this page) -- these rows live in a scrollable list
+   where the code block is near the top of its own card, so there's
+   rarely room above it; below is the side with actual space. */
+.scoring-formula-help {
+    top: calc(100% + 8px);
+    bottom: auto;
+    width: max-content;
+    max-width: 340px;
+    text-align: left;
+    font-family: "Source Sans 3", "Segoe UI", sans-serif;
+}
+
+.scoring-formula-help::after {
+    top: auto;
+    bottom: 100%;
+    border-top-color: transparent;
+    border-bottom-color: var(--tp-tooltip-bg);
+}
+
+.scoring-formula-help-term {
+    display: block;
+}
+
+.scoring-formula-help-term:not(:last-child) {
+    margin-bottom: 6px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid color-mix(in srgb, var(--tp-tooltip-color) 20%, transparent);
+}
+
+.scoring-formula-help-term strong {
+    color: var(--tp-tooltip-color);
+}
+
+.scoring-formula-expression-wrap:hover .scoring-formula-help,
+.scoring-formula-row:focus-visible .scoring-formula-help {
+    opacity: 1;
+}
+
 .scoring-formula-row--current .scoring-formula-row__expression {
     background: var(--tp-color-surface);
     border-color: var(--tp-color-brand-200);
@@ -1590,7 +2237,7 @@ a.filter-pill .filter-pill-remove {
 .scoring-mydata__title {
     margin: 0;
     font-size: 0.78rem;
-    font-weight: 700;
+    font-weight: 500;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--tp-color-text-secondary);
@@ -1699,7 +2346,13 @@ a.filter-pill .filter-pill-remove {
 /* === Columns modal — fixed-note (always-shown chips) === */
 
 .columns-body {
+    padding: 16px 18px 20px;
+    display: flex;
+    flex-direction: column;
     gap: 16px;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
 }
 
 .columns-fixed-note {
@@ -1715,7 +2368,7 @@ a.filter-pill .filter-pill-remove {
 
 .columns-fixed-note__label {
     font-size: var(--tp-font-label);
-    font-weight: 700;
+    font-weight: 500;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--tp-color-text-muted);
@@ -1757,7 +2410,7 @@ a.filter-pill .filter-pill-remove {
 .columns-section-head h3 {
     margin: 0;
     font-size: 0.78rem;
-    font-weight: 700;
+    font-weight: 500;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--tp-color-text-secondary);
@@ -1955,10 +2608,15 @@ a.filter-pill .filter-pill-remove {
 }
 
 .columns-foot {
+    /* .drawer-foot sets flex-direction: column as its base layout; override
+       back to a row here since justify-content: space-between below is
+       meant to place "Restore defaults" and "Apply" side by side, not
+       stack them (which is what happened without this). */
+    flex-direction: row;
     justify-content: space-between;
     border-top: 1px solid var(--tp-color-border-soft);
     background: var(--tp-color-surface);
-    padding-top: 12px;
+    padding: 12px 18px;
     gap: 10px;
     align-items: center;
 }
@@ -1967,32 +2625,37 @@ a.filter-pill .filter-pill-remove {
     margin: 0;
 }
 
-.columns-restore-link {
-    appearance: none;
-    background: transparent;
-    border: none;
+/* Matches .drawer-catalogue-toggle's established compact-clear-button
+   variant (link-colored text, brand-tinted hover fill) instead of the
+   default muted-gray/surface-hover look, which read as washed out next to
+   that sibling pattern used elsewhere in this same drawer.
+   Selector repeats the class -- .btn.tp-btn--clear (0,2,0) / :hover (0,3,0)
+   otherwise beats a single-class border-color override here, so the
+   intended borderless look was silently losing to the default clear-button
+   border in both light and dark mode. Same fix applied to
+   .drawer-catalogue-toggle just below, which had the identical bug
+   already, pre-existing. */
+.columns-restore-link.columns-restore-link {
     padding: 6px 8px;
-    color: var(--tp-color-text-muted);
-    font: inherit;
     font-size: 0.84rem;
-    font-weight: 500;
-    cursor: pointer;
-    border-radius: 6px;
-    transition: color 140ms ease, background 140ms ease;
+    font-weight: 600;
+    border-radius: 6px !important;
+    color: var(--tp-color-link) !important;
+    border-color: transparent !important;
 }
 
-.columns-restore-link:hover,
-.columns-restore-link:focus-visible {
-    color: var(--tp-color-text-primary);
-    background: var(--tp-color-surface-soft);
+.columns-restore-link.columns-restore-link:hover,
+.columns-restore-link.columns-restore-link:focus-visible {
+    color: var(--tp-color-link-hover) !important;
+    background: var(--tp-color-brand-100) !important;
+    border-color: transparent !important;
     outline: none;
-    text-decoration: underline;
 }
 
 .proteins-hero,
 .toolbar-card,
 .protein-workspace {
-    animation: proteins-enter 0.36s ease;
+    animation: tp-ui-enter 340ms var(--tp-ui-ease-standard) both;
 }
 
 .toolbar-card {
@@ -2001,6 +2664,15 @@ a.filter-pill .filter-pill-remove {
 
 .protein-workspace {
     animation-delay: 0.08s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .proteins-hero,
+    .toolbar-card,
+    .protein-workspace {
+        animation: none !important;
+        transition: none !important;
+    }
 }
 
 @media (max-width: 940px) {
@@ -2105,7 +2777,10 @@ a.filter-pill .filter-pill-remove {
    ========================================================================== */
 
 .filter-tray {
-    margin: 14px 0 18px;
+    /* Horizontal margin so this box's own border aligns with the 18px
+       text inset used by the unboxed hero/toolbar around it -- without
+       it, the border sits flush at the page's raw edge instead. */
+    margin: 14px 18px 18px;
     padding: 12px 16px;
     background: var(--tp-color-surface);
     border: 1px solid var(--tp-color-border);
@@ -2115,7 +2790,6 @@ a.filter-pill .filter-pill-remove {
     flex-wrap: wrap;
     align-items: center;
     gap: 12px 16px;
-    box-shadow: var(--tp-shadow-xs);
 }
 
 .filter-tray-head {
@@ -2127,7 +2801,7 @@ a.filter-pill .filter-pill-remove {
 .filter-tray-label {
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-label);
-    font-weight: 700;
+    font-weight: 500;
     letter-spacing: 0.08em;
     text-transform: uppercase;
 }
@@ -2141,30 +2815,24 @@ a.filter-pill .filter-pill-remove {
     min-width: 0;
 }
 
-.filter-tray-clear-form {
+.filter-tray-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     margin: 0 0 0 auto;
 }
 
-.filter-tray-clear-btn {
-    appearance: none;
-    background: transparent;
-    border: 1px solid var(--tp-color-border-strong);
-    color: var(--tp-color-text-secondary);
+.filter-tray-clear-form {
+    margin: 0;
+}
+
+.filter-tray-clear-btn,
+.filter-tray-share-btn {
     padding: 5px 14px;
-    border-radius: 999px;
+    border-radius: 999px !important;
     font-size: 0.82rem;
     font-weight: 600;
     letter-spacing: 0.02em;
-    cursor: pointer;
-    transition: background 140ms ease, color 140ms ease, border-color 140ms ease;
-}
-
-.filter-tray-clear-btn:hover,
-.filter-tray-clear-btn:focus-visible {
-    background: var(--tp-color-rose-050);
-    border-color: var(--tp-color-rose-300);
-    color: var(--tp-color-rose-700);
-    outline: none;
 }
 
 /* ==========================================================================
@@ -2172,13 +2840,66 @@ a.filter-pill .filter-pill-remove {
    ========================================================================== */
 
 .drawer-active-summary {
-    padding: 16px 20px 12px;
-    background: var(--tp-color-surface-soft);
+    padding: 12px 20px 14px;
     border-bottom: 1px solid var(--tp-color-border-soft);
+    background: var(--tp-color-brand-050);
+    border-left: 3px solid var(--tp-color-brand-600);
 }
 
-.drawer-active-summary.is-empty {
-    background: var(--tp-color-surface);
+.drawer-active-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.drawer-active-label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--tp-color-brand-700);
+}
+
+/* Active filter pills — brand-teal tint to communicate "applied" state */
+.drawer-active-summary .filter-pill {
+    background: var(--tp-color-brand-050);
+    border-color: var(--tp-color-brand-200);
+    color: var(--tp-color-brand-900);
+    border-radius: 8px;
+    padding: 5px 5px 5px 11px;
+    font-size: 0.83rem;
+    gap: 8px;
+    transition: border-color 120ms ease, background 120ms ease;
+}
+
+.drawer-active-summary .filter-pill:hover {
+    background: var(--tp-color-brand-100);
+    border-color: var(--tp-color-brand-300);
+}
+
+.drawer-active-summary .filter-pill strong {
+    font-weight: 600;
+    color: var(--tp-color-brand-800);
+}
+
+.drawer-active-summary .filter-pill-remove {
+    background: var(--tp-color-brand-100);
+    border-color: var(--tp-color-brand-200);
+    color: var(--tp-color-brand-700);
+    width: 18px;
+    min-width: 18px;
+    height: 18px;
+    min-height: 18px;
+    flex: 0 0 18px;
+    font-size: 0.88rem;
+}
+
+.drawer-active-summary .filter-pill-remove:hover,
+.drawer-active-summary .filter-pill-remove:focus-visible {
+    background: var(--tp-color-brand-200);
+    border-color: var(--tp-color-brand-300);
+    color: var(--tp-color-brand-900);
 }
 
 /* ==========================================================================
@@ -2189,8 +2910,8 @@ a.filter-pill .filter-pill-remove {
     position: sticky;
     top: 0;
     z-index: 2;
-    padding: 12px 20px;
-    background: var(--tp-color-surface);
+    padding: 10px 16px;
+    background: var(--tp-color-surface-soft);
     border-bottom: 1px solid var(--tp-color-border-soft);
     display: flex;
     align-items: center;
@@ -2208,12 +2929,12 @@ a.filter-pill .filter-pill-remove {
     flex: 1 1 auto;
     min-width: 0;
     border: 1px solid var(--tp-color-border);
-    border-radius: 10px;
-    padding: 9px 14px;
+    border-radius: 8px;
+    padding: 8px 12px;
     background: var(--tp-color-surface);
     color: var(--tp-color-text-primary);
     font: inherit;
-    font-size: 0.92rem;
+    font-size: 0.88rem;
     transition: border-color 140ms ease, box-shadow 140ms ease;
 }
 
@@ -2260,34 +2981,33 @@ a.filter-pill .filter-pill-remove {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 10px 20px 4px;
+    padding: 6px 18px 2px;
     color: var(--tp-color-text-muted);
-    font-size: 0.78rem;
-    letter-spacing: 0.02em;
+    font-size: 0.7rem;
+    letter-spacing: 0.01em;
 }
 
 .drawer-catalogue-count {
-    font-weight: 500;
+    font-weight: 400;
 }
 
-.drawer-catalogue-toggle {
-    appearance: none;
-    background: transparent;
-    border: none;
-    color: var(--tp-color-link);
-    font: inherit;
+/* Selector repeats the class -- see the matching comment on
+   .columns-restore-link for why (same pre-existing bug, this is the
+   original instance it was modeled after). */
+.drawer-catalogue-toggle.drawer-catalogue-toggle {
     font-size: 0.82rem;
     font-weight: 600;
-    cursor: pointer;
     padding: 4px 6px;
-    border-radius: 6px;
-    transition: background 140ms ease, color 140ms ease;
+    border-radius: 6px !important;
+    color: var(--tp-color-link) !important;
+    border-color: transparent !important;
 }
 
-.drawer-catalogue-toggle:hover,
-.drawer-catalogue-toggle:focus-visible {
-    color: var(--tp-color-link-hover);
-    background: var(--tp-color-brand-100);
+.drawer-catalogue-toggle.drawer-catalogue-toggle:hover,
+.drawer-catalogue-toggle.drawer-catalogue-toggle:focus-visible {
+    color: var(--tp-color-link-hover) !important;
+    background: var(--tp-color-brand-100) !important;
+    border-color: transparent !important;
     outline: none;
 }
 
@@ -2296,18 +3016,18 @@ a.filter-pill .filter-pill-remove {
    ========================================================================== */
 
 .drawer-filter-catalogue {
-    padding: 6px 12px 20px;
+    padding: 8px 14px 32px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
 }
 
 .filter-group {
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: 12px;
+    border-radius: 10px;
     background: var(--tp-color-surface);
-    overflow: visible;
-    transition: border-color 140ms ease, box-shadow 140ms ease;
+    overflow: hidden;
+    transition: border-color 160ms ease;
 }
 
 .filter-group:hover {
@@ -2316,7 +3036,6 @@ a.filter-pill .filter-pill-remove {
 
 .filter-group[open] {
     border-color: var(--tp-color-border);
-    box-shadow: var(--tp-shadow-xs);
 }
 
 .filter-group.is-search-hidden {
@@ -2330,11 +3049,12 @@ a.filter-pill .filter-pill-remove {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 12px 16px;
+    padding: 11px 16px;
     color: var(--tp-color-text-primary);
-    font-weight: 600;
-    font-size: 0.95rem;
+    font-weight: 400;
+    font-size: 0.92rem;
     gap: 12px;
+    background: var(--tp-color-surface);
 }
 
 .filter-group-summary::-webkit-details-marker {
@@ -2351,7 +3071,9 @@ a.filter-pill .filter-pill-remove {
 }
 
 .filter-group-name {
-    font-size: 0.94rem;
+    font-family: "Space Grotesk", system-ui, sans-serif;
+    font-size: 0.88rem;
+    font-weight: 500;
     letter-spacing: 0.01em;
     color: var(--tp-color-text-primary);
 }
@@ -2383,6 +3105,20 @@ a.filter-pill .filter-pill-remove {
     text-align: center;
 }
 
+/* Selected-criteria count — brand teal pill, shown by JS next to the dot */
+.filter-group-selected-count {
+    font-size: var(--tp-font-label);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--tp-color-brand-900);
+    background: var(--tp-color-brand-100);
+    border: 1px solid var(--tp-color-brand-200);
+    border-radius: 999px;
+    padding: 2px 9px;
+    min-width: 22px;
+    text-align: center;
+}
+
 .filter-group-chevron {
     width: 7px;
     height: 7px;
@@ -2392,15 +3128,16 @@ a.filter-pill .filter-pill-remove {
     transition: transform 180ms ease;
 }
 
-.filter-group[open] .filter-group-chevron {
+.filter-group[open] .filter-group-chevron,
+.filter-group.is-open-visual .filter-group-chevron {
     transform: rotate(45deg);
 }
 
 .filter-group-body {
-    padding: 8px 16px 16px;
+    padding: 14px 16px 20px;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 18px;
     border-top: 1px solid var(--tp-color-border-soft);
     background: var(--tp-color-surface);
 }
@@ -2417,15 +3154,14 @@ a.filter-pill .filter-pill-remove {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
 }
 
 .filter-param-label {
-    color: var(--tp-color-text-secondary);
-    font-size: 0.78rem;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
+    color: var(--tp-color-text-muted);
+    font-size: 0.76rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
 }
 
 .filter-param-help {
@@ -2498,7 +3234,7 @@ a.filter-pill .filter-pill-remove {
 .filter-chip-group {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
+    gap: 7px;
 }
 
 .filter-chip-form {
@@ -2509,32 +3245,35 @@ a.filter-pill .filter-pill-remove {
     appearance: none;
     background: var(--tp-color-surface);
     border: 1px solid var(--tp-color-border);
-    color: var(--tp-color-text-primary);
-    padding: 6px 12px;
+    color: var(--tp-color-text-secondary);
+    padding: 5px 13px;
     border-radius: 999px;
     font: inherit;
-    font-size: 0.85rem;
-    font-weight: 500;
+    font-size: 0.83rem;
+    font-weight: 400;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    transition: background 140ms ease, border-color 140ms ease, color 140ms ease, transform 140ms ease;
+    box-shadow: none;
+    transition: background 120ms ease, border-color 120ms ease, color 120ms ease, box-shadow 180ms ease;
 }
 
 .filter-chip:is(a, a:visited) {
     text-decoration: none;
-    color: var(--tp-color-text-primary);
+    color: var(--tp-color-text-secondary);
 }
 
+/* Hover gives a clear teal preview — signals interactivity without commitment */
 .filter-chip:hover {
-    background: var(--tp-color-surface-soft);
-    border-color: var(--tp-color-border-strong);
-    color: var(--tp-color-text-primary);
+    background: var(--tp-color-brand-050);
+    border-color: var(--tp-color-brand-300);
+    color: var(--tp-color-brand-900);
 }
 
 .filter-chip:active {
-    transform: translateY(1px);
+    background: var(--tp-color-brand-100);
+    border-color: var(--tp-color-brand-600);
 }
 
 .filter-chip:focus-visible {
@@ -2542,69 +3281,83 @@ a.filter-pill .filter-pill-remove {
     outline-offset: 2px;
 }
 
+/* Pending-add state (was inactive, JS added --active + --pending): light teal */
 .filter-chip--active {
     background: var(--tp-color-brand-100);
-    border-color: var(--tp-color-brand-700);
+    border-color: var(--tp-color-brand-600);
     color: var(--tp-color-brand-900);
+    font-weight: 500;
 }
 
-.filter-chip--active:hover {
-    background: var(--tp-color-brand-200);
+/* Server-applied, no pending change: solid brand fill — unambiguously "ON" */
+.filter-chip--active:not(.filter-chip--pending) {
+    background: var(--tp-color-brand-700);
     border-color: var(--tp-color-brand-700);
+    color: var(--tp-color-brand-050);
+    font-weight: 500;
+}
+
+.filter-chip--active:not(.filter-chip--pending):hover {
+    background: var(--tp-color-brand-800);
+    border-color: var(--tp-color-brand-800);
+}
+
+.filter-chip--active:not(.filter-chip--pending) .filter-chip-glyph {
+    color: var(--tp-color-brand-050);
+    opacity: 0.85;
 }
 
 .filter-chip--active:is(a, a:visited) {
     color: var(--tp-color-brand-900);
 }
 
+.filter-chip--active:not(.filter-chip--pending):is(a, a:visited) {
+    color: var(--tp-color-brand-050);
+}
+
 .filter-chip--risk {
-    border-color: color-mix(in srgb, #d75151 34%, var(--tp-color-border));
-    color: #8f2d2d;
+    border-color: var(--tp-color-danger-border);
+    color: var(--tp-color-danger-ink);
 }
 
 .filter-chip--risk:hover,
 .filter-chip--risk.filter-chip--active {
-    background: color-mix(in srgb, #d75151 12%, var(--tp-color-surface));
-    border-color: #d75151;
-    color: #7f2525;
+    background: var(--tp-color-danger-bg);
+    border-color: var(--tp-color-danger-border);
+    color: var(--tp-color-danger-ink);
 }
 
 .filter-chip--favorable {
-    border-color: color-mix(in srgb, #14966f 34%, var(--tp-color-border));
-    color: #0f684f;
+    border-color: var(--tp-color-sage-200);
+    color: var(--tp-color-sage-900);
 }
 
 .filter-chip--favorable:hover,
 .filter-chip--favorable.filter-chip--active {
-    background: color-mix(in srgb, #14966f 12%, var(--tp-color-surface));
-    border-color: #14966f;
-    color: #0d5c47;
+    background: var(--tp-color-sage-050);
+    border-color: var(--tp-color-sage-200);
+    color: var(--tp-color-sage-900);
 }
 
-.tp-dark .filter-chip--risk {
-    color: #f2b8b8;
+.filter-chip--secondary {
+    color: var(--tp-color-text-muted);
+    border-color: var(--tp-color-border);
 }
 
-.tp-dark .filter-chip--risk:hover,
-.tp-dark .filter-chip--risk.filter-chip--active {
-    color: #ffd2d2;
-}
-
-.tp-dark .filter-chip--favorable {
-    color: #aee8d3;
-}
-
-.tp-dark .filter-chip--favorable:hover,
-.tp-dark .filter-chip--favorable.filter-chip--active {
-    color: #d4f7e9;
+.filter-chip--secondary:hover,
+.filter-chip--secondary.filter-chip--active {
+    background: var(--tp-color-surface-muted);
+    border-color: var(--tp-color-border-strong);
+    color: var(--tp-color-text-secondary);
 }
 
 .filter-chip-glyph {
-    font-size: 0.95rem;
+    font-size: 0.88rem;
     line-height: 1;
     color: var(--tp-color-brand-700);
-    margin-right: -2px;
-    font-weight: 600;
+    font-weight: 500;
+    opacity: 0.75;
+    margin-left: 1px;
 }
 
 .filter-chip-label {
@@ -2654,26 +3407,11 @@ a.filter-pill .filter-pill-remove {
 }
 
 .filter-text-add {
-    appearance: none;
-    border: 1px solid var(--tp-color-border);
-    background: var(--tp-color-surface);
-    color: var(--tp-color-text-primary);
-    padding: 7px 14px;
-    border-radius: 8px;
-    font: inherit;
-    font-size: 0.85rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: border-color 140ms ease, background 140ms ease, color 140ms ease;
+    padding: 7px 16px;
+    border-radius: 8px !important;
+    font-size: 0.83rem;
+    min-height: 0 !important;
     flex: 0 0 auto;
-}
-
-.filter-text-add:hover,
-.filter-text-add:focus-visible {
-    border-color: var(--tp-color-brand-700);
-    background: var(--tp-color-brand-100);
-    color: var(--tp-color-brand-900);
-    outline: none;
 }
 
 .filter-numeric-form {
@@ -2681,17 +3419,17 @@ a.filter-pill .filter-pill-remove {
     gap: 8px;
     padding: 10px;
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: 10px;
-    background: linear-gradient(180deg, var(--tp-color-surface-soft), var(--tp-color-surface));
+    border-radius: 8px;
+    background: var(--tp-color-surface-soft);
 }
 
 .filter-numeric-toolbar {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 4px;
+    gap: 3px;
     padding: 3px;
     border: 1px solid var(--tp-color-border-soft);
-    border-radius: 9px;
+    border-radius: 8px;
     background: var(--tp-color-surface-muted);
 }
 
@@ -2710,14 +3448,14 @@ a.filter-pill .filter-pill-remove {
 
 .filter-numeric-mode span {
     display: flex;
-    min-height: 30px;
+    min-height: 28px;
     align-items: center;
     justify-content: center;
     border-radius: 7px;
-    color: var(--tp-color-text-secondary);
+    color: var(--tp-color-text-muted);
     font-size: 0.74rem;
-    font-weight: 800;
-    letter-spacing: 0.03em;
+    font-weight: 500;
+    letter-spacing: 0.02em;
     line-height: 1.1;
     text-align: center;
     cursor: pointer;
@@ -2726,7 +3464,8 @@ a.filter-pill .filter-pill-remove {
 
 .filter-numeric-mode input:checked + span {
     background: var(--tp-color-surface);
-    color: var(--tp-color-brand-900);
+    color: var(--tp-color-text-primary);
+    font-weight: 600;
     box-shadow: var(--tp-shadow-sm);
 }
 
@@ -2755,9 +3494,9 @@ a.filter-pill .filter-pill-remove {
 
 .filter-numeric-field-label {
     color: var(--tp-color-text-muted);
-    font-size: 0.68rem;
-    font-weight: 800;
-    letter-spacing: 0.06em;
+    font-size: 0.66rem;
+    font-weight: 500;
+    letter-spacing: 0.07em;
     line-height: 1;
     text-transform: uppercase;
 }
@@ -2795,57 +3534,81 @@ a.filter-pill .filter-pill-remove {
 }
 
 .filter-numeric-form.has-numeric-error .filter-numeric-input:focus {
-    border-color: var(--tp-color-danger-500, #d75151);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--tp-color-danger-500, #d75151) 18%, transparent);
+    border-color: var(--tp-color-danger-ink);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--tp-color-danger-ink) 18%, transparent);
 }
 
 .filter-numeric-apply {
-    min-height: 37px;
-    appearance: none;
-    border: 1px solid var(--tp-color-brand-300);
-    border-radius: 8px;
-    background: var(--tp-color-brand-800);
-    color: white;
-    cursor: pointer;
-    font: inherit;
-    font-size: 0.82rem;
-    font-weight: 800;
-    padding: 7px 12px;
-    transition: background 140ms ease, border-color 140ms ease, transform 100ms ease;
-}
-
-.filter-numeric-apply:hover,
-.filter-numeric-apply:focus-visible {
-    background: var(--tp-color-brand-900);
-    border-color: var(--tp-color-brand-700);
-    outline: none;
-}
-
-.filter-numeric-apply:active {
-    transform: translateY(1px);
+    border-radius: 8px !important;
+    font-size: 0.83rem;
+    padding: 7px 16px;
+    min-height: 0 !important;
+    white-space: nowrap;
+    align-self: end;
 }
 
 .filter-numeric-apply:disabled {
-    border-color: var(--tp-color-border);
-    background: var(--tp-color-surface-muted);
-    color: var(--tp-color-text-muted);
+    border-color: var(--tp-color-border) !important;
+    background: var(--tp-color-surface-muted) !important;
+    color: var(--tp-color-text-muted) !important;
     cursor: not-allowed;
-    transform: none;
 }
 
 .filter-numeric-apply:disabled:hover,
 .filter-numeric-apply:disabled:focus-visible {
-    border-color: var(--tp-color-border);
-    background: var(--tp-color-surface-muted);
+    border-color: var(--tp-color-border) !important;
+    background: var(--tp-color-surface-muted) !important;
 }
 
+.filter-input-message,
 .filter-numeric-message {
     min-height: 1rem;
     margin: -2px 2px 0;
-    color: var(--tp-color-danger-700, #9f2f2f);
+    color: var(--tp-color-text-muted);
     font-size: 0.74rem;
-    font-weight: 700;
+    font-weight: 600;
     line-height: 1.25;
+}
+
+.filter-input-message:not(:empty) {
+    display: inline-flex;
+    align-items: flex-start;
+    gap: 6px;
+    max-width: 100%;
+}
+
+.filter-input-message:not(:empty)::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    margin-top: 4px;
+    border-radius: 999px;
+    background: var(--tp-color-brand-500);
+    flex: 0 0 auto;
+}
+
+.filter-numeric-form.has-numeric-error .filter-input-message,
+.filter-numeric-form.has-numeric-error .filter-numeric-message {
+    color: var(--tp-color-danger-ink);
+}
+
+.filter-numeric-form.has-numeric-error .filter-input-message:not(:empty)::before {
+    background: var(--tp-color-danger-ink);
+}
+
+.filter-text-form + .filter-input-message {
+    margin-top: 6px;
+}
+
+.filter-numeric-form.has-pending-filter,
+.filter-text-form.has-pending-filter {
+    border-color: var(--tp-color-brand-200);
+    background: color-mix(in srgb, var(--tp-color-brand-100) 28%, var(--tp-color-surface));
+}
+
+.filter-numeric-form.has-pending-filter .filter-input-message,
+.filter-text-form.has-pending-filter + .filter-input-message {
+    color: var(--tp-color-brand-700);
 }
 
 @media (max-width: 560px) {
@@ -2942,7 +3705,9 @@ a.filter-pill .filter-pill-remove {
 }
 
 .drawer-done-btn {
-    min-width: 96px;
+    min-width: 110px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
 }
 
 @media (max-width: 700px) {
@@ -2982,8 +3747,12 @@ a.filter-pill .filter-pill-remove {
         width: 100vw;
     }
 
-    .drawer-foot {
-        padding: 10px 12px;
+    .filter-presets-footer {
+        padding: 8px 12px 10px;
+    }
+
+    .drawer-foot-actions {
+        padding: 8px 12px;
         gap: 6px;
     }
 
@@ -2999,13 +3768,397 @@ a.filter-pill .filter-pill-remove {
     }
 }
 
-@keyframes proteins-enter {
-    from {
-        opacity: 0;
-        transform: translateY(6px);
+/* Filter workflow: deferred apply, pending indicator, and presets */
+
+/* Hero chip: count shown as "N / total" */
+.filter-result-chip strong {
+    font-weight: 700;
+}
+
+/* Pending state — brand double-ring that fades in/out smoothly */
+.filter-chip--pending {
+    box-shadow: 0 0 0 2px var(--tp-color-brand-100), 0 0 0 3.5px var(--tp-color-brand-600);
+}
+
+/* Apply button disabled state */
+.drawer-done-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+}
+
+/* Hidden apply form (data carrier only) */
+.filters-apply-form {
+    display: none;
+}
+
+/* Count badge inside the Apply button */
+.apply-btn-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: color-mix(in srgb, white 22%, transparent);
+    border: 1px solid color-mix(in srgb, white 18%, transparent);
+    font-size: 0.7rem;
+    font-weight: 700;
+    margin-left: 7px;
+    font-variant-numeric: tabular-nums;
+    vertical-align: middle;
+}
+
+/* Pending summary in the drawer footer. At this drawer's actual width
+   (max 460px, see .filters-drawer) there was never room for this to sit
+   beside the Clear/Apply buttons -- it always wraps to its own full-width
+   row, so it's styled deliberately for that (a plain divided strip, not a
+   third bordered "card" stacked between two buttons) rather than the
+   boxed treatment that made the footer feel heavy with only 1-2 items. */
+/* A native <details> -- the same collapse pattern already used for the
+   "Function"/"Pocket" filter category groups above it in this drawer
+   (.filter-group / .filter-group-chevron), collapsed by default so N
+   queued changes reads as one compact status line instead of an
+   always-expanded list. */
+.filter-pending-summary {
+    border-top: 1px solid var(--tp-color-border-soft);
+    padding: 0 16px;
+    color: var(--tp-color-text-secondary);
+    font-size: 0.76rem;
+    line-height: 1.2;
+}
+
+.filter-pending-summary[hidden] {
+    display: none;
+}
+
+.filter-pending-summary__head {
+    list-style: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 8px 0;
+    cursor: pointer;
+    user-select: none;
+    color: var(--tp-color-text-muted);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+.filter-pending-summary__head::-webkit-details-marker {
+    display: none;
+}
+
+.filter-pending-summary__head:hover {
+    color: var(--tp-color-text-secondary);
+}
+
+.filter-pending-summary__head:focus-visible {
+    outline: 2px solid var(--tp-color-border-accent);
+    outline-offset: 2px;
+}
+
+.filter-pending-summary__head-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.filter-pending-summary__count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 15px;
+    height: 15px;
+    padding: 0 4px;
+    border-radius: 999px;
+    background: var(--tp-color-brand-600);
+    color: white;
+    font-size: 0.64rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.filter-pending-summary__chevron {
+    width: 7px;
+    height: 7px;
+    border-right: 2px solid var(--tp-color-text-muted);
+    border-bottom: 2px solid var(--tp-color-text-muted);
+    transform: rotate(-45deg);
+    transition: transform 180ms ease;
+    flex: 0 0 auto;
+}
+
+.filter-pending-summary[open] .filter-pending-summary__chevron,
+.filter-pending-summary.is-open-visual .filter-pending-summary__chevron {
+    transform: rotate(45deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .filter-group-chevron,
+    .filter-pending-summary__chevron,
+    .hero-analysis-summary::after {
+        transition: none;
     }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+}
+
+.filter-pending-summary__list {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+    max-height: 128px;
+    margin: 0;
+    padding: 0 0 8px;
+    overflow-y: auto;
+    list-style: none;
+    color: var(--tp-color-text-secondary);
+    font-weight: 500;
+}
+
+.filter-pending-summary__item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    min-width: 0;
+}
+
+.filter-pending-summary__item-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+}
+
+/* Quieter than the base .filter-pill-remove treatment it's paired with --
+   a list of 5-7 pending items shouldn't read as 5-7 solid teal dots before
+   the user has touched anything. Picks up color/weight only on
+   hover/focus, same "quiet until interacted with" idiom as most refined
+   list-row actions. */
+.filter-pending-summary__remove {
+    width: 16px;
+    min-width: 16px;
+    height: 16px;
+    min-height: 16px;
+    font-size: 0.78rem;
+    flex: 0 0 16px;
+    border-color: transparent;
+    background: transparent;
+    color: var(--tp-color-text-soft);
+}
+
+.filter-pending-summary__remove:hover,
+.filter-pending-summary__remove:focus-visible {
+    border-color: var(--view-accent-border);
+    background: var(--tp-color-brand-100);
+    color: var(--view-accent-deep);
+}
+
+/* --- Presets panel (bottom of drawer body) ------------------------------- */
+
+.filter-presets-panel {
+    margin: 6px 14px 20px;
+    padding: 12px;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 12px;
+    background: var(--tp-color-surface-soft);
+}
+
+.filter-presets-panel__head {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-bottom: 10px;
+}
+
+.filter-presets-panel__title {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--tp-color-text-muted);
+}
+
+.filter-presets-panel__hint {
+    color: var(--tp-color-text-muted);
+    font-size: 0.8rem;
+    line-height: 1.4;
+}
+
+.filter-preset-save-form {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.filter-preset-save-btn.btn {
+    padding: 7px 14px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    min-height: 0;
+    height: auto;
+    border-radius: 8px;
+    align-self: stretch;
+}
+
+.filter-preset-name-input {
+    min-width: 0;
+    border: 1px solid var(--tp-color-border);
+    border-radius: 8px;
+    padding: 7px 10px;
+    background: var(--tp-color-surface);
+    color: var(--tp-color-text-primary);
+    font: inherit;
+    font-size: 0.88rem;
+    transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.filter-preset-name-input::placeholder {
+    color: var(--tp-color-text-soft);
+}
+
+.filter-preset-name-input:focus {
+    outline: none;
+    border-color: var(--tp-color-border-accent);
+    box-shadow: 0 0 0 3px var(--tp-color-brand-100);
+}
+
+.filter-preset-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.filter-preset-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 6px;
+    align-items: stretch;
+}
+
+.filter-preset-apply-form,
+.filter-preset-delete-form {
+    margin: 0;
+}
+
+.filter-preset-apply-btn {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 5px;
+    padding: 9px 12px;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 10px;
+    background: var(--tp-color-surface);
+    color: var(--tp-color-text-primary);
+    text-align: left;
+    cursor: pointer;
+    transition: border-color 140ms ease, background 140ms ease;
+}
+
+.filter-preset-apply-btn:hover,
+.filter-preset-apply-btn:focus-visible {
+    border-color: var(--tp-color-brand-700);
+    background: var(--tp-color-surface-soft);
+    outline: none;
+}
+
+.filter-preset-apply-btn:focus-visible {
+    box-shadow: 0 0 0 3px var(--tp-color-brand-100);
+}
+
+.filter-preset-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.filter-preset-name {
+    flex: 1 1 auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--tp-color-text-primary);
+}
+
+.filter-preset-count {
+    flex: 0 0 auto;
+    color: var(--tp-color-text-muted);
+    font-size: 0.78rem;
+    font-weight: 500;
+}
+
+.filter-preset-active-badge {
+    flex: 0 0 auto;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--tp-color-brand-700);
+    background: var(--tp-color-brand-100);
+    border: 1px solid var(--tp-color-brand-300);
+    border-radius: 4px;
+    padding: 2px 7px;
+}
+
+.filter-preset-criteria {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--tp-color-text-muted);
+    font-weight: 400;
+    line-height: 1.4;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.filter-preset-row--active .filter-preset-apply-btn {
+    border-color: var(--tp-color-brand-300);
+    background: var(--tp-color-brand-050);
+}
+
+.filter-preset-row--active .filter-preset-apply-btn:hover,
+.filter-preset-row--active .filter-preset-apply-btn:focus-visible {
+    border-color: var(--tp-color-brand-700);
+    background: var(--tp-color-brand-100);
+}
+
+.filter-preset-meta {
+    flex: 0 0 auto;
+    color: var(--tp-color-text-muted);
+    font-size: 0.78rem;
+    font-weight: 500;
+}
+
+.filter-preset-delete-btn {
+    width: 38px;
+    height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 10px;
+    background: var(--tp-color-surface);
+    color: var(--tp-color-text-muted);
+    cursor: pointer;
+    transition: background 140ms ease, border-color 140ms ease, color 140ms ease;
+}
+
+.filter-preset-delete-btn:hover,
+.filter-preset-delete-btn:focus-visible {
+    background: var(--tp-color-danger-bg);
+    border-color: var(--tp-color-danger-border);
+    color: var(--tp-color-danger-ink);
+    outline: none;
+}
+
+.filter-preset-delete-btn svg {
+    width: 16px;
+    height: 16px;
 }

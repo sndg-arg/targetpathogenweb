@@ -1,4 +1,4 @@
-# TargetPathogenWeb — Claude Context
+# Target Pathogen Web — Claude Context
 
 ## What this is
 Django 4 web platform for genome-level protein exploration and bioinformatics target prioritization.
@@ -29,7 +29,7 @@ static/css/         # Design system — tokens only, no hardcoded hex
 1. clear_folder → download/test/custom gbk → load_gbk
 2. fasttarget → load_score (×3: human_offtarget, micro_offtarget, essenciality)
 3. index_genome_db → index_genome_seq → interproscan (remote SSH) → load_interpro
-4. gbk2uniprot_map → fetch_uniprot_annotations → alphafold loop → colabfold (local CPU or remote GPU) → structures chain → druggability → load_score
+4. gbk2uniprot_map → fetch_uniprot_annotations → alphafold loop → colabfold (local CPU or remote GPU) → structures chain → load_uniprot_sites → druggability → load_score
 5. psort → load_score
 6. get_binders → load_binders
 
@@ -94,6 +94,48 @@ conda env: `interproscan`. Key fix: `set -u` must come AFTER `conda activate`.
 - **Per-genome workspace**: `<folder_path>/ligq2/proteins.fasta`, `<folder_path>/ligq2/output/` (search_results subtree).
 - **Remote workdir**: `${SSH_WORKDIR}/tpw_ligq/<safe_genome>_<timestamp>/`. Cleaning up after success is optional.
 
+## Metabolic pathway integration
+Incorporates genome-scale metabolic network topology (BioCyc/Pathway Tools MetaFlux) into
+target analysis: which reactions/pathways a protein participates in, how central/bottleneck it
+is (betweenness centrality, chokepoints), and a Reactome-style network diagram on the protein
+detail page.
+- **Not an in-app pipeline stage.** Like the Gates-Targets import, this is a manual/external
+  step today — run `load_metabolism` (or `import_external_results` with the extra flags below)
+  after the genome's GBK is loaded. Wiring it into `run_pipeline_direct.py` as a numbered stage
+  is future work, once this becomes routine per-genome output.
+- **Inputs** (produced by the vendored `fasttarget/ftscripts/pathways.py:run_metabolism_ptools`,
+  outside the Django app, typically on a machine running Pathway Tools):
+  - A MetaFlux SBML export (reactions, EC numbers, KEGG reaction IDs where available,
+    gene-reaction associations).
+  - A per-gene results TSV with `gene`, `PTOOLS_betweenness_centrality`, `PTOOLS_edges`,
+    `PTOOLS_producing_chokepoints`, `PTOOLS_consuming_chokepoints`, `PTOOLS_both_chokepoints`.
+  - `network.sif` — the reaction-reaction adjacency graph used to compute those metrics.
+- **Models**: `tpweb/models/Metabolism.py` — `MetabolicPathway` (KEGG or BioCyc, global
+  reference), `MetabolicReaction` (per-genome, keyed by BioCyc frame id), `GeneReactionLink`
+  (`Bioentry` ↔ `MetabolicReaction`, carries `chokepoint_role`), `MetabolicReactionEdge`
+  (per-genome reaction-reaction adjacency, powers the diagram).
+- **Ingestion**: `python manage.py load_metabolism <genome_name> --sbml PATH
+  --metabolic-results-tsv PATH --network-sif PATH [--overwrite] [--dry-run]`. Also reachable via
+  `import_external_results` with the same three flags as an additional step. Centrality/chokepoint
+  scalars feed the existing `ScoreParam`/`ScoreParamValue` system (`PTOOLS_betweenness_centrality`,
+  `metabolic_chokepoint`) — no separate UI plumbing needed for filtering/CSV export/`ScoreFormula`
+  prioritization weights.
+- **Pathway naming**: KEGG pathway membership is derived from the KEGG reaction IDs already
+  embedded in the SBML annotations, via a bundled static reference file
+  `tpweb/data/kegg_reaction_pathways.json` (fetch/refresh with `python manage.py
+  fetch_kegg_pathway_map`, which needs internet access to `rest.kegg.org` — this is global
+  reference chemistry, not organism-specific, so it's fetched once and committed, not per genome).
+  If that file is missing, reactions still import fine, just without pathway chips. A BioCyc
+  SmartTable source (`MetabolicPathway.source = "BIOCYC"`) is modeled but not yet implemented —
+  needs a real sample export to validate the parser against.
+- **Visualization**: protein detail page, "Metabolic context" section — reaction list, pathway
+  chips, centrality percentile, chokepoint badge, and a Cytoscape.js ego-network diagram (`static/js/pages/metabolic-network.js`,
+  data from `MetabolismNetworkView` at `/protein/<id>/metabolic-network`) colored by chokepoint
+  role, clickable to jump to neighboring targets that share a reaction.
+- **Cleanup**: `genome_uploads._delete_workspace_biodatabases` deletes `MetabolicReaction` rows
+  scoped by `genome_accession` (a string, not a FK to `Biodatabase`) alongside the genome's
+  `Biodatabase` rows.
+
 ## PSORTb
 Runs via Docker-in-Docker (`/var/run/docker.sock` mounted). Has fallback to `tpweb_psort_fallback` management command when Docker is unavailable.
 
@@ -107,7 +149,14 @@ Runs via Docker-in-Docker (`/var/run/docker.sock` mounted). Has fallback to `tpw
 - Cluster (Nodo0, QB FCEN UBA): `make build ENV=cluster && make up ENV=cluster`
 - Cluster access: `ssh agutson@cluster.qb.fcen.uba.ar → sudo su glyco → ssh nodo0 → sudo su dockeradmin`
 - Data lives in `/data/targetpathogen/` on cluster (RAID — never delete volumes)
-- See `docs/CLUSTER_DEPLOY.md` for full deploy guide
+- Nodo0 is a shared orchestration node, not a bioinformatics compute node. Do
+  not run full-proteome BLAST/HMMER, InterProScan, LigQ_2, AlphaFold/ColabFold,
+  FPocket, or P2Rank directly on Nodo0; use SLURM-backed remote stages.
+- Use cached service-scoped cluster builds (`make build ENV=cluster svc=web`;
+  `make up ENV=cluster svc=web`). Avoid `--no-cache` unless fixing a concrete
+  image-cache problem.
+- See `docs/CLUSTER_DEPLOY.md` for the full Nodo0 operating policy, SLURM
+  monitoring commands, and large-file transfer workflow.
 
 ## Debugging on cluster (nodo0)
 
@@ -232,9 +281,93 @@ sudo rm -rf -- "/data/targetpathogen/data/${MID}/${ACC}"
 sudo rm -rf -- "/data/targetpathogen/fasttarget_organism/${ACC}"
 ```
 
-## Running tests
+## Importing external analysis results (Gates-Targets pipeline)
+
+Use `import_external_results` to load pre-computed scores + structures into Target without re-running the full pipeline.
+
+### 1. Load the genome first
+Upload the `.gbk.gz` via the web UI (Genomes → Upload), let it run through stage 3 (load_gbk), then stop the pipeline.
+
+### 2. Transfer files to the server
+
+**glyco cannot write to `/data/targetpathogen/data/` directly** — use `/tmp/` on nodo0 as a staging area instead.
+
+From cranex (after copying files there with scp from your Mac):
 ```bash
-# Inside container (preferred):
-docker compose exec web bash -c "DJANGO_SETTINGS_MODULE=tpwebconfig.settings python -m django test tpweb.tests.PipelineStatusTests"
-# Note: custom 'test' management command shadows Django's built-in — use python -m django test
+# TSV only (small — copy directly to the data volume via docker):
+docker exec target2_nodo0_web bash -c "cat > /tmp/results_table.tsv" < results_table.tsv
+
+# Large files (structures tar ~850MB) — scp to /tmp/ on nodo0, then access from container:
+scp /home/agutson/ATCC43816_structures_only.tar.gz glyco@nodo0:/tmp/ATCC43816_structures_only.tar.gz
 ```
+
+The container can read `/tmp/` on the host because nodo0's `/tmp/` is accessible from inside the container at the same path.
+
+### 3. Extract the structures tar inside the container
+```bash
+docker exec target2_nodo0_queue bash -c "tar -xzf /tmp/ATCC43816_structures_only.tar.gz -C /tmp/"
+
+# Verify extraction (check one PDB):
+docker exec target2_nodo0_queue find /tmp -name "*.pdb" -maxdepth 6 | head -3
+```
+
+### 4. Run the import command
+```bash
+docker exec target2_nodo0_web bash -c ". /opt/conda/etc/profile.d/conda.sh && conda activate tpv2 && python manage.py import_external_results public__KpATCC43816 \
+  --results-tsv /tmp/results_table.tsv \
+  --structures-dir /tmp/KpATCC43816/structures \
+  --datadir /app/targetpathogenweb/data \
+  --overwrite"
+```
+
+Replace `public__KpATCC43816` with the actual internal accession (shown in the Genomes page URL or upload history). Adjust `--structures-dir` to match the actual extraction path.
+
+### 5. Run remaining pipeline stages manually (optional)
+After importing, stages that haven't run yet (UniProt mapping, binders, InterProScan) can still be kicked off via the web UI or management commands.
+
+### Gates TSV → Target column mapping
+| Gates column | Target ScoreParam |
+|---|---|
+| `human_offtarget` | `human_offtarget` |
+| `druggability_score` | `Druggability` |
+| `psortb_localization` | `Localization` |
+| `gut_microbiome_offtarget_norm` | `gut_microbiome_offtarget_norm` |
+| `gut_microbiome_offtarget_counts` | `gut_microbiome_offtarget_counts` |
+| `colabfold_plddt` | `colabfold_plddt` |
+| `core_roary` | `core_roary` |
+| `core_corecruncher` | `core_corecruncher` |
+
+## Running tests
+`tpweb/tests.py` was split into a package: `tpweb/tests/test_services.py` (services,
+management-command helpers, LLM adapters), `tpweb/tests/test_views_smoke.py` (route/view
+smoke tests), more `test_*.py` files can be added freely — Django discovers them by app
+label. `pipeline/` isn't a Django app (no `__init__.py`, invoked as a standalone script), so
+its tests live separately under `pipeline/tests/` and run as a plain `unittest` suite.
+
+```bash
+# One command, runs both suites (tpweb app tests + pipeline/tests):
+make test
+# equivalent to: docker compose exec web python scripts/run_tests.py
+
+# A single test class, inside container:
+docker compose exec web bash -c "DJANGO_SETTINGS_MODULE=tpwebconfig.settings python -m django test tpweb.tests.test_services.PipelineStatusTests"
+# Note: custom 'test' management command shadows Django's built-in — use python -m django test
+
+# Lint (whole repo, same as CI):
+make lint
+make format        # auto-fix
+
+# Coverage report:
+make coverage
+```
+
+### Enforcement
+- **Local git hooks** (`make precommit-install`, run once after cloning): on every `commit`,
+  ruff + basic hygiene checks run (fast, no DB needed). On every `push`, the full test suite
+  runs (`scripts/run_tests.py`) — this is what actually needs Postgres, so it only runs at
+  push time, not on every small commit. Config lives in `.pre-commit-config.yaml`.
+- **CI** (`.github/workflows/qa.yml`): runs on every PR and on push to `main`/`master` —
+  Django system check, full test suite with coverage, and `ruff check .` / `ruff format
+  --check .` across the whole repo (not a hardcoded file list).
+- **Branch protection**: `main` requires the `QA / checks` status check to pass before a PR
+  can be merged.

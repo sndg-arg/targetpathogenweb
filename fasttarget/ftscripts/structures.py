@@ -1823,8 +1823,14 @@ def extract_chain_from_pdb(pdb_file, chain_ids, output_file):
     io.set_structure(structure)
 
     selector = MultiChainSelect(chain_ids)
-    io.save(output_file, select=selector)
-    
+    # preserve_atom_numbering=True keeps the original atom serial numbers from
+    # the source PDB. FPocket/P2Rank pocket residues are matched back to the
+    # database by atom serial (FPocket2SQL.load_pockets); without this flag
+    # Biopython renumbers atoms from 1, which desyncs the serials whenever the
+    # extracted chain isn't the first one in the source file and makes pockets
+    # render offset from the protein in the 3D viewer.
+    io.save(output_file, select=selector, preserve_atom_numbering=True)
+
     # Verify output file was created and has content
     if not os.path.exists(output_file) or os.path.getsize(output_file) == 0:
         raise IOError(f"Failed to create output file {output_file}")
@@ -1902,7 +1908,9 @@ def extract_chain_from_cif(cif_file, chain_ids, output_file):
         io = PDBIO()
         io.set_structure(structure)
         selector = MultiChainSelect(chain_ids)
-        io.save(output_file, select=selector)
+        # See extract_chain_from_pdb: preserve original atom serials so FPocket
+        # pocket atoms map back to the correct DB rows.
+        io.save(output_file, select=selector, preserve_atom_numbering=True)
     
     # Verify output file was created and has content
     if not os.path.exists(output_file) or os.path.getsize(output_file) == 0:

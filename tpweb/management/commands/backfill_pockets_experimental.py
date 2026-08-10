@@ -1,5 +1,5 @@
 """
-Run FPocket + P2Rank + druggability on crystal (EX) structures that were
+Run FPocket + P2Rank on crystal (EX) structures that were
 loaded by backfill_experimental_structures but have no pocket data yet.
 
 Steps per protein:
@@ -10,7 +10,8 @@ Steps per protein:
   5. P2Rank predictions → JSON (inline, mirrors p2rank_2_json logic)
   6. Load P2Rank pockets (load_fpocket --P2rank_pocket)
 
-After all proteins in a genome: re-run druggability_2_csv.
+By default this command does not re-run druggability_2_csv. Curated imports
+should keep the Druggability score that came from the supplied results TSV.
 """
 
 import gzip
@@ -39,7 +40,9 @@ HOST_DATA_PREFIX = "/data/targetpathogen/data"
 
 
 def _chain_tokens(chain):
-    return [token.strip() for token in str(chain or "").replace("/", ",").split(",") if token.strip()]
+    return [
+        token.strip() for token in str(chain or "").replace("/", ",").split(",") if token.strip()
+    ]
 
 
 def _pdb_chain_id(line):
@@ -59,7 +62,7 @@ def _filtered_pdb_for_chain(pdb_path, chain, locus_dir):
         return filtered_path
 
     kept = 0
-    with open(pdb_path, "rt", errors="replace") as src, open(filtered_path, "wt") as dst:
+    with open(pdb_path, errors="replace") as src, open(filtered_path, "w") as dst:
         for line in src:
             record = line[:6].strip()
             if record in {"ATOM", "ANISOU", "TER"}:
@@ -75,7 +78,11 @@ def _filtered_pdb_for_chain(pdb_path, chain, locus_dir):
             elif record in {"MODEL", "ENDMDL", "END"}:
                 dst.write(line)
     if kept == 0:
-        logger.warning("Chain filter %s kept no atoms for %s; using full PDB", ",".join(sorted(chains)), pdb_path)
+        logger.warning(
+            "Chain filter %s kept no atoms for %s; using full PDB",
+            ",".join(sorted(chains)),
+            pdb_path,
+        )
         try:
             os.remove(filtered_path)
         except OSError:
@@ -108,12 +115,17 @@ def _docker_mount_source(path):
 def _docker_chmod_work_path(locus_dir, work_path):
     """Use the host Docker daemon to chmod files created by tool containers."""
     cmd = [
-        "docker", "run",
+        "docker",
+        "run",
         "--rm",
-        "--entrypoint", "chmod",
-        "-v", f"{_docker_mount_source(locus_dir)}:/work",
+        "--entrypoint",
+        "chmod",
+        "-v",
+        f"{_docker_mount_source(locus_dir)}:/work",
         "ezequieljsosa/fpocket",
-        "-R", "a+rwX", work_path,
+        "-R",
+        "a+rwX",
+        work_path,
     ]
     return subprocess.run(cmd, capture_output=True, cwd=locus_dir)
 
@@ -130,22 +142,31 @@ def _run_fpocket(locus_dir, pdb_path):
 
     pdb_basename_only = os.path.basename(pdb_path)
     cmd = [
-        "docker", "run",
-        "--rm", "-i",
-        "-v", f"{_docker_mount_source(locus_dir)}:/work",
+        "docker",
+        "run",
+        "--rm",
+        "-i",
+        "-v",
+        f"{_docker_mount_source(locus_dir)}:/work",
         "ezequieljsosa/fpocket",
-        "fpocket", "-f", f"/work/{pdb_basename_only}",
+        "fpocket",
+        "-f",
+        f"/work/{pdb_basename_only}",
     ]
     logger.info("Running FPocket for %s", pdb_basename)
     result = subprocess.run(cmd, capture_output=True, cwd=locus_dir)
     if result.returncode != 0:
-        logger.error("FPocket failed for %s: %s", pdb_basename, result.stderr.decode(errors="replace")[:500])
+        logger.error(
+            "FPocket failed for %s: %s", pdb_basename, result.stderr.decode(errors="replace")[:500]
+        )
         return None
 
     if not os.path.isdir(out_dir):
         stdout = result.stdout.decode(errors="replace")[:500]
         stderr = result.stderr.decode(errors="replace")[:500]
-        logger.error("FPocket produced no output for %s. stdout=%s stderr=%s", pdb_basename, stdout, stderr)
+        logger.error(
+            "FPocket produced no output for %s. stdout=%s stderr=%s", pdb_basename, stdout, stderr
+        )
         return None
 
     _docker_chmod_work_path(locus_dir, f"/work/{os.path.basename(out_dir)}")
@@ -168,7 +189,11 @@ def _fpocket_to_json(fpocket_dir, python_bin=PYTHON_BIN):
     )
     result = subprocess.run(["bash", "-lc", cmd], capture_output=True)
     if result.returncode != 0 or not os.path.exists(json_gz) or os.path.getsize(json_gz) == 0:
-        logger.error("fpocket2json failed for %s: %s", fpocket_dir, result.stderr.decode(errors="replace")[:500])
+        logger.error(
+            "fpocket2json failed for %s: %s",
+            fpocket_dir,
+            result.stderr.decode(errors="replace")[:500],
+        )
         try:
             os.remove(json_gz)
         except OSError:
@@ -208,14 +233,21 @@ def _run_p2rank(locus_dir, pdb_path, cpus=2):
     out_rel = os.path.relpath(out_dir, locus_dir)
 
     cmd = [
-        "docker", "run",
-        "--rm", "-i",
-        "-v", f"{_docker_mount_source(locus_dir)}:/work",
+        "docker",
+        "run",
+        "--rm",
+        "-i",
+        "-v",
+        f"{_docker_mount_source(locus_dir)}:/work",
         "mcpalumbo/p2rank:latest",
-        "prank", "predict",
-        "-f", f"/work/{pdb_basename_only}",
-        "-o", f"/work/{out_rel}",
-        "-threads", str(cpus),
+        "prank",
+        "predict",
+        "-f",
+        f"/work/{pdb_basename_only}",
+        "-o",
+        f"/work/{out_rel}",
+        "-threads",
+        str(cpus),
     ]
     logger.info("Running P2Rank for %s", pdb_basename)
     result = subprocess.run(cmd, capture_output=True, cwd=locus_dir)
@@ -266,15 +298,17 @@ def _p2rank_to_json(p2rank_dir, pdb_basename):
             name = int(str(row["name"])[6:].replace(" ", ""))
             residues = str(row["residue_ids"]).replace("_", "").split()
             atoms = str(row["surf_atom_ids"]).split()
-            data_list.append({
-                "number": name,
-                "residues": residues,
-                "atoms": atoms,
-                "properties": {
-                    "P2Rank score": row["score"],
-                    "P2Rrank probability": row["probability"],
-                },
-            })
+            data_list.append(
+                {
+                    "number": name,
+                    "residues": residues,
+                    "atoms": atoms,
+                    "properties": {
+                        "P2Rank score": row["score"],
+                        "P2Rrank probability": row["probability"],
+                    },
+                }
+            )
         except Exception as exc:
             logger.warning("Skipping malformed P2Rank row: %s", exc)
 
@@ -285,7 +319,7 @@ def _p2rank_to_json(p2rank_dir, pdb_basename):
 
 class Command(BaseCommand):
     help = (
-        "Run FPocket + P2Rank + druggability on crystal (EX) structures "
+        "Run FPocket + P2Rank on crystal (EX) structures "
         "that were loaded by backfill_experimental_structures."
     )
 
@@ -319,7 +353,13 @@ class Command(BaseCommand):
         parser.add_argument(
             "--skip-druggability",
             action="store_true",
-            help="Skip druggability_2_csv step.",
+            help="Deprecated compatibility flag. Druggability is skipped unless --recompute-druggability is set.",
+        )
+
+        parser.add_argument(
+            "--recompute-druggability",
+            action="store_true",
+            help="Re-run druggability_2_csv after loading pockets. Do not use for curated TSV imports unless you intentionally want computed pocket scores to replace curated Druggability values.",
         )
 
     def handle(self, *args, **options):
@@ -328,7 +368,7 @@ class Command(BaseCommand):
         genomes_arg = options["genomes"]
         skip_fpocket = options["skip_fpocket"]
         skip_p2rank = options["skip_p2rank"]
-        skip_druggability = options["skip_druggability"]
+        skip_druggability = options["skip_druggability"] or not options["recompute_druggability"]
 
         qs = Biodatabase.objects.exclude(name__endswith=Biodatabase.PROT_POSTFIX)
         if genomes_arg:
@@ -343,7 +383,7 @@ class Command(BaseCommand):
 
         for assembly_name in assemblies:
             acclen = len(assembly_name)
-            folder_name = assembly_name[math.floor(acclen / 2 - 1):math.floor(acclen / 2 + 2)]
+            folder_name = assembly_name[math.floor(acclen / 2 - 1) : math.floor(acclen / 2 + 2)]
             folder_path = f"{datadir}/{folder_name}/{assembly_name}"
             exp_dir = os.path.join(folder_path, "experimental")
 
@@ -356,13 +396,9 @@ class Command(BaseCommand):
 
             # Find all EX PDB structures associated with proteins from this genome
             proteome_name = f"{assembly_name}{Biodatabase.PROT_POSTFIX}"
-            links = (
-                BioentryStructure.objects
-                .select_related("pdb", "bioentry")
-                .filter(
-                    bioentry__biodatabase__name=proteome_name,
-                    pdb__experiment="EX",
-                )
+            links = BioentryStructure.objects.select_related("pdb", "bioentry").filter(
+                bioentry__biodatabase__name=proteome_name,
+                pdb__experiment="EX",
             )
 
             for link in links:
@@ -397,16 +433,18 @@ class Command(BaseCommand):
                                     datadir=datadir,
                                     verbosity=0,
                                 )
-                                self.stdout.write(f"      FPocket loaded")
+                                self.stdout.write("      FPocket loaded")
                             except SystemExit as exc:
                                 if exc.code != 0:
                                     self.stderr.write(f"      load_fpocket (FP) exited {exc.code}")
                             except Exception as exc:
                                 self.stderr.write(f"      load_fpocket (FP) error: {exc}")
                         else:
-                            self.stdout.write(f"      FPocket JSON conversion failed — skipping load")
+                            self.stdout.write(
+                                "      FPocket JSON conversion failed — skipping load"
+                            )
                     else:
-                        self.stdout.write(f"      FPocket run failed — skipping")
+                        self.stdout.write("      FPocket run failed — skipping")
 
                 # --- P2Rank ---
                 if not skip_p2rank:
@@ -424,29 +462,27 @@ class Command(BaseCommand):
                                     datadir=datadir,
                                     verbosity=0,
                                 )
-                                self.stdout.write(f"      P2Rank loaded")
+                                self.stdout.write("      P2Rank loaded")
                             except SystemExit as exc:
                                 if exc.code != 0:
                                     self.stderr.write(f"      load_fpocket (P2) exited {exc.code}")
                             except Exception as exc:
                                 self.stderr.write(f"      load_fpocket (P2) error: {exc}")
                         else:
-                            self.stdout.write(f"      P2Rank JSON failed — skipping load")
+                            self.stdout.write("      P2Rank JSON failed — skipping load")
                     else:
-                        self.stdout.write(f"      P2Rank run failed — skipping")
+                        self.stdout.write("      P2Rank run failed — skipping")
 
                 processed += 1
 
-            self.stdout.write(
-                f"  Done: {processed} processed, {skipped} skipped."
-            )
+            self.stdout.write(f"  Done: {processed} processed, {skipped} skipped.")
 
             # --- Druggability ---
             if not skip_druggability and processed > 0:
                 self.stdout.write(f"  Running druggability_2_csv for {assembly_name}...")
                 try:
                     call_command("druggability_2_csv", assembly_name, datadir=datadir, verbosity=0)
-                    self.stdout.write(f"  Druggability done.")
+                    self.stdout.write("  Druggability done.")
                 except SystemExit as exc:
                     if exc.code != 0:
                         self.stderr.write(f"  druggability_2_csv exited {exc.code}")

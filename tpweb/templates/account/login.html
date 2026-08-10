@@ -4,7 +4,7 @@
 {% load account %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/auth.css' %}?v=20260512-1">
+    <link rel="stylesheet" href="{% static 'css/pages/auth.css' %}?v=20260710-select-fix1">
 {% endblock %}
 
 {% block body %}
@@ -61,13 +61,12 @@
                 {% endif %}
 
                 <div class="auth-submit">
-                    <button class="btn tp-btn tp-btn--primary" type="submit">{% trans "Sign in" %}</button>
+                    <button class="btn tp-btn tp-btn--primary tp-btn-with-icon" type="submit">
+                        <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/log_in.html" %}</span>
+                        <span>{% trans "Sign in" %}</span>
+                    </button>
                 </div>
             </form>
-
-            <div class="auth-footer">
-                <a href="{% url 'account_reset_password' %}">{% trans "Forgot your password?" %}</a>
-            </div>
         </div>
     </div>
 {% endblock %}

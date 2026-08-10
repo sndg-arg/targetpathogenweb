@@ -3,7 +3,7 @@ from tpweb.services.protein_list import humanize_identifier
 from tpweb.services.structure_sources import summarize_structure_sources
 
 
-def _display_table_value(value):
+def _display_table_value(value, column_name=""):
     if value is None:
         return "-"
     if isinstance(value, (int, float)):
@@ -12,6 +12,11 @@ def _display_table_value(value):
     if not text or text.lower() in {"none", "nan", "null"}:
         return "-"
     if text.replace(".", "", 1).isdigit():
+        return text
+    col = str(column_name).lower()
+    if col.endswith("_structure") or col.endswith("_pocket"):
+        return text
+    if col in {"core_roary", "core_corecruncher"}:
         return text
     return humanize_identifier(text) or text
 
@@ -48,6 +53,7 @@ def compute_score_value(param_values, coefficient_by_param):
 
 def compute_expression_score(protein, expression, zero_cache):
     from tpweb.services.formula_evaluator import build_expression_variables, safe_eval_expression
+
     variables = build_expression_variables(protein, zero_cache)
     try:
         return float(safe_eval_expression(expression, variables)), {}
@@ -55,14 +61,23 @@ def compute_expression_score(protein, expression, zero_cache):
         return 0.0, {}
 
 
-def build_protein_table_row(protein, visible_columns, coefficient_by_param,
-                             expression=None, zero_cache=None):
+def build_protein_table_row(
+    protein, visible_columns, coefficient_by_param, expression=None, zero_cache=None
+):
     param_values = score_param_value_map(protein)
     table_data = {
-        name: _display_table_value(value)
+        name: _display_table_value(value, name)
         for name, value in param_values.items()
         if name in visible_columns
     }
+    _EVALUE_NO_HIT_GUARDS = {
+        "human_evalue": ("human_offtarget", {"no_hit", "no hit"}),
+        "deg_evalue": ("hit_in_deg", {"n"}),
+    }
+    for evalue_col, (guard_col, no_hit_vals) in _EVALUE_NO_HIT_GUARDS.items():
+        if evalue_col in table_data:
+            if str(param_values.get(guard_col) or "").strip().lower() in no_hit_vals:
+                table_data[evalue_col] = "—"
     if expression and zero_cache is not None:
         score_value, weights = compute_expression_score(protein, expression, zero_cache)
     else:
@@ -81,6 +96,14 @@ def build_protein_table_row(protein, visible_columns, coefficient_by_param,
     go_summary = protein_annotation_summary(protein, "go", limit=3)
     ec_badges = ec_summary["badges"]
     go_badges = go_summary["badges"]
+    metabolic_reaction_count = int(getattr(protein, "metabolic_reaction_count", 0) or 0)
+    metabolic_chokepoint_count = int(getattr(protein, "metabolic_chokepoint_count", 0) or 0)
+    if metabolic_reaction_count:
+        metabolism_text = f"{metabolic_reaction_count} reactions" + (
+            f", {metabolic_chokepoint_count} chokepoints" if metabolic_chokepoint_count else ""
+        )
+    else:
+        metabolism_text = "No metabolic model"
 
     row = {
         "id": protein.bioentry_id,
@@ -102,6 +125,11 @@ def build_protein_table_row(protein, visible_columns, coefficient_by_param,
         "go_text": ", ".join(b["accession"] for b in go_badges) or "-",
         "go_total": go_summary["total"],
         "go_remaining": go_summary["remaining"],
+        "metabolic_reaction_count": metabolic_reaction_count,
+        "metabolic_chokepoint_count": metabolic_chokepoint_count,
+        "has_metabolic_context": metabolic_reaction_count > 0,
+        "has_metabolic_chokepoint": metabolic_chokepoint_count > 0,
+        "metabolism_text": metabolism_text,
         "has_structure": structure_summary["has_structure"],
     }
     return row, table_data, weights

@@ -10,7 +10,7 @@ GO_BASIC_OBO_FALLBACK_URLS = (
     "https://release.geneontology.org/latest/ontology/go-basic.obo",
 )
 GO_DOWNLOAD_HEADERS = {
-    "User-Agent": "targetpathogenweb/1.0 (+https://github.com/sndg-arg/targetpathogenweb)",
+    "User-Agent": "Target-Pathogen-Web/1.0 (+https://github.com/sndg-arg/targetpathogenweb)",
     "Accept": "text/plain, text/*;q=0.9, */*;q=0.8",
 }
 

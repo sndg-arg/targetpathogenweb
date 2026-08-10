@@ -3,40 +3,32 @@
     gap: var(--tp-space-4);
     --cp-accent-ink: var(--tp-color-brand-900);
     --cp-accent-soft: var(--tp-color-info-bg);
-    --cp-accent-soft-2: color-mix(in srgb, var(--tp-color-brand-050) 72%, white);
+    --cp-accent-soft-2: var(--tp-color-brand-050);
     --cp-accent-border: var(--tp-color-brand-300);
     --cp-border: var(--tp-color-border-soft);
+}
+
+.customparam-page > section ~ section {
+    border-top: 1px solid var(--tp-color-border-soft);
 }
 
 .customparam-page h1,
 .customparam-page h2,
 .customparam-page h3 {
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-weight: 600;
     letter-spacing: -0.01em;
 }
+.customparam-page h1 { font-weight: 700; }
 
 /* ── Hero ── */
 
+/* No longer its own boxed card -- sits directly on the page background
+   (see tpw-editorial-redesign). Its own top accent bar is gone too: that
+   was a page-local duplicate of the site-wide masthead rule in
+   .tp-main::before, which now covers this. */
 .customparam-hero {
-    position: relative;
-    overflow: hidden;
-    border: 1px solid var(--cp-border);
-    border-radius: var(--tp-ui-radius-hero);
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
-    padding: 22px 22px 18px;
-    box-shadow: var(--tp-ui-shadow-panel);
-}
-
-.customparam-hero::before {
-    content: "";
-    position: absolute;
-    inset: 0 0 auto 0;
-    height: 4px;
-    background: linear-gradient(90deg, var(--tp-color-brand-800) 0%, var(--tp-color-sage-700) 55%, var(--tp-color-brand-500) 100%);
-}
-
-.customparam-hero > * {
-    position: relative;
-    z-index: 1;
+    padding: 22px 18px 18px;
 }
 
 .customparam-eyebrow {
@@ -47,7 +39,7 @@
     color: var(--tp-color-text-muted);
     font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
     font-size: var(--tp-font-label);
-    font-weight: 700;
+    font-weight: 500;
     letter-spacing: 0.08em;
     text-transform: uppercase;
 }
@@ -77,7 +69,7 @@
 
 .customparam-chip-id {
     font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
-    font-weight: 700;
+    font-weight: 600;
     color: var(--cp-accent-ink);
 }
 
@@ -88,20 +80,23 @@
     grid-template-columns: minmax(0, 1.6fr) minmax(300px, 0.9fr);
     gap: 18px;
     align-items: start;
+    /* The two cards inside keep their own border -- margin here aligns
+       that border with the 18px text inset the unboxed hero uses,
+       instead of sitting flush at the page's raw edge. */
+    margin: 0 18px;
 }
 
 /* ── Cards ── */
 
 .customparam-card {
-    border: 1px solid var(--cp-border);
+    border: 1px solid var(--tp-color-border-soft);
     border-radius: var(--tp-ui-radius-panel);
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
-    box-shadow: var(--tp-ui-shadow-panel);
+    background: var(--tp-color-surface);
     padding: 16px;
 }
 
 .customparam-card--guide {
-    background: linear-gradient(180deg, var(--tp-color-surface) 0%, var(--tp-color-surface-soft) 100%);
+    background: var(--tp-color-surface);
     display: grid;
     gap: 8px;
 }
@@ -112,7 +107,7 @@
 }
 
 .customparam-card h2 {
-    margin: 0;
+    margin: 0 0 14px;
     color: var(--cp-accent-ink);
     font-size: var(--tp-heading-sm);
     line-height: 1.15;
@@ -175,7 +170,7 @@
     padding: 14px 16px;
     border: 1px solid var(--tp-color-border-soft);
     border-radius: 18px;
-    background: linear-gradient(180deg, var(--cp-accent-soft-2) 0%, var(--tp-color-surface) 100%);
+    background: var(--tp-color-surface-soft);
 }
 
 .customparam-submit-copy {
@@ -186,7 +181,7 @@
     margin: 0;
     color: var(--cp-accent-ink);
     font-size: 0.96rem;
-    font-weight: 700;
+    font-weight: 600;
 }
 
 .customparam-submit-note {
@@ -197,8 +192,8 @@
 }
 
 .customparam-actions {
-    margin-top: 0;
-    flex-shrink: 0;
+    display: flex;
+    margin-top: 4px;
 }
 
 /* ── Guide (aside) ── */
@@ -233,7 +228,7 @@
     background: var(--cp-accent-soft);
     border: 1px solid var(--cp-accent-border);
     color: var(--cp-accent-ink);
-    font-weight: var(--tp-font-weight-bold);
+    font-weight: 600;
     font-size: 0.92rem;
     flex-shrink: 0;
 }
@@ -258,14 +253,14 @@
     padding: 12px 14px;
     border: 1px solid var(--tp-color-border-soft);
     border-radius: 14px;
-    background: linear-gradient(180deg, var(--tp-color-surface-soft) 0%, var(--tp-color-surface-muted) 100%);
+    background: var(--tp-color-surface-soft);
 }
 
 .customparam-example-label {
     margin: 0 0 8px;
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-label);
-    font-weight: 700;
+    font-weight: 500;
     letter-spacing: 0.07em;
     text-transform: uppercase;
 }
@@ -298,7 +293,7 @@
     }
     to {
         opacity: 1;
-        transform: translateY(0);
+        transform: none;
     }
 }
 

@@ -1,0 +1,230 @@
+{% extends '../base/masterpage.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block head %}
+    <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20260808-scrollmargin-fix">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260809-provenance-inset">
+    <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20260809-drop-leftover-shadow">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-metabolic-network.css' %}?v=20260728-feedbackfix1">
+{% endblock %}
+
+{% block body %}
+<div class="genome-page metabolism-page protein-metabolic-network-page">
+    <section class="genome-hero metabolism-hero">
+        <div class="genome-hero-top tp-view-head">
+            <div class="genome-hero-content tp-view-head-copy">
+                {% trans "Genomes" as crumb_genomes %}
+                {% url 'tpwebapp:index' as index_url %}
+                {% url 'tpwebapp:genomes_list' as genomes_url %}
+                {% trans "Metabolic network" as crumb_network %}
+                {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=assembly_name crumb_3_url=assembly_url crumb_4_label=protein.accession crumb_4_url=protein_url crumb_5_label=crumb_network %}
+                <p class="genome-hero-eyebrow">{% trans "Metabolic network" %}</p>
+                <h1>{{ protein.accession }}</h1>
+                <p class="genome-description">{{ protein.description }}</p>
+                <div class="genome-hero-actions">
+                    <a href="{{ protein_url }}#section-metabolic-context" class="btn tp-btn tp-btn--outline tp-btn-with-icon">
+                        <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/arrow_left.html" %}</span>
+                        <span>{% trans "Back to protein" %}</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="genome-metrics" aria-label="{% trans 'Metabolic target summary' %}">
+            {% if metabolic_context.centrality %}
+            <div class="metric-pill" title="{% trans "Betweenness centrality of this gene's reaction(s) in the reaction-reaction network. Higher values mean more shortest paths pass through it - a proxy for how central/chokepoint-prone it is in the organism's metabolism." %}">
+                <span class="metric-label">{% trans "Network centrality" %}</span>
+                <span class="metric-value">{{ metabolic_context.centrality }}
+                    {% if metabolic_context.centrality_percentile %}
+                    <span class="metric-value-pct">{% blocktrans with pct=metabolic_context.centrality_percentile %}top {{ pct }}%{% endblocktrans %}</span>
+                    {% endif %}
+                </span>
+            </div>
+            {% endif %}
+            <div class="metric-pill{% if metabolic_context.is_chokepoint %} metric-pill--warm{% endif %}" title="{% trans "A chokepoint reaction is the sole producer or consumer of a metabolite in the network - inhibiting it is harder for the pathogen to route around, making it an attractive drug target." %}">
+                <span class="metric-label">{% trans "Chokepoint" %}</span>
+                <span class="metric-value">{% if metabolic_context.is_chokepoint %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}</span>
+            </div>
+        </div>
+    </section>
+
+    {% if metabolic_context.summary_sentence %}
+    <p class="metabolic-summary-sentence protein-metabolic-network-summary">{{ metabolic_context.summary_sentence }}</p>
+    {% endif %}
+
+    <nav class="quick-nav" aria-label="{% trans "Metabolic network sections" %}">
+        <a href="#section-pathways" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Pathways" %}</a>
+        <a href="#section-network" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Network" %}</a>
+        <a href="#section-selected" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Selected reaction" %}</a>
+        <a href="#section-reactions" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Catalyzed reactions" %}</a>
+    </nav>
+
+    <section class="genome-card metabolism-panel" id="section-pathways">
+        <div class="section-head tp-ui-panel-head">
+            <div>
+                <h2>{% trans "Pathways" %}</h2>
+                <p class="section-subtitle">{% trans "KEGG pathways this gene's reaction(s) belong to." %}</p>
+            </div>
+        </div>
+        {% if metabolic_context.pathways %}
+        <div class="metabolic-pathway-chips">
+            {% for pathway in metabolic_context.pathways %}
+            <a href="{{ pathway.url }}" class="tp-chip tp-chip--{{ pathway.source|lower }}" title="{{ pathway.source }}:{{ pathway.external_id }}">{{ pathway.name }}</a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="metabolic-no-pathway-note">{% trans "No specific KEGG pathway assigned - this reaction either has no KEGG mapping, or only matches a generic overview map with no route-level information." %}</p>
+        {% endif %}
+    </section>
+
+    <section class="genome-card metabolism-panel" id="section-network">
+        <div class="section-head tp-ui-panel-head">
+            <div>
+                <h2>{% trans "Network" %}</h2>
+                <p class="section-subtitle">{% trans "Two-hop reaction neighborhood around this protein; pathway boxes use one primary KEGG route per reaction when several mappings exist. Click a pathway box to open its full route map." %}</p>
+            </div>
+        </div>
+        <div class="metabolic-network-shell">
+            <div class="metabolic-map-toolbar">
+                <div class="metabolic-map-legend" aria-label="{% trans "Network legend" %}">
+                    <span><i class="metabolic-legend-dot metabolic-legend-dot--focal"></i>{% trans "Reaction catalyzed by this protein" %}</span>
+                    <span><i class="metabolic-legend-dot metabolic-legend-dot--chokepoint"></i>{% trans "Chokepoint reaction" %}</span>
+                    <span><i class="metabolic-legend-dot metabolic-legend-dot--plain"></i>{% trans "Neighbor reaction" %}</span>
+                    <span><i class="metabolic-legend-swatch"></i>{% trans "Pathway grouping (2+ reactions sharing a route)" %}</span>
+                    <span><i class="metabolic-legend-line"></i>{% trans "Connected reaction (arrow shows direction, when known)" %}</span>
+                    <span>&#8652; {% trans "Reversible reaction (double arrow)" %}</span>
+                    <span><i class="metabolic-legend-line metabolic-legend-line--cross"></i>{% trans "Cross-pathway connection" %}</span>
+                </div>
+                <div class="metabolic-map-actions" aria-label="{% trans "Network controls" %}">
+                    <button type="button" class="metabolic-map-btn" data-metabolic-action="fit" title="{% trans "Fit network to view" %}" aria-label="{% trans "Fit network to view" %}">
+                        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6V2h4M14 6V2h-4M2 10v4h4M14 10v4h-4"/></svg>
+                    </button>
+                    <button type="button" class="metabolic-map-btn" data-metabolic-action="zoom-in" title="{% trans "Zoom in" %}" aria-label="{% trans "Zoom in" %}">
+                        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="7" cy="7" r="4"/><path d="M10.2 10.2L14 14M7 5v4M5 7h4"/></svg>
+                    </button>
+                    <button type="button" class="metabolic-map-btn" data-metabolic-action="zoom-out" title="{% trans "Zoom out" %}" aria-label="{% trans "Zoom out" %}">
+                        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="7" cy="7" r="4"/><path d="M10.2 10.2L14 14M5 7h4"/></svg>
+                    </button>
+                </div>
+            </div>
+            <div id="metabolic-network-cy" data-network-url="{% url 'tpwebapp:protein_metabolic_network' protein_id=protein.bioentry_id %}"></div>
+        </div>
+    </section>
+
+    <section class="genome-card metabolism-panel" id="section-selected">
+        <div class="section-head tp-ui-panel-head">
+            <div>
+                <h2>{% trans "Selected reaction" %}</h2>
+                <p class="section-subtitle">{% trans "Click a node in the network above, or a row in the table below, to inspect it here." %}</p>
+            </div>
+        </div>
+        <div class="metabolic-inspector" id="metabolic-network-inspector">
+            <strong data-field="name">{% trans "Select a node" %}</strong>
+            <dl>
+                <dt>{% trans "EC" %}</dt>
+                <dd data-field="ec">-</dd>
+                <dt>{% trans "Pathway" %}</dt>
+                <dd data-field="pathway">-</dd>
+                <dt>{% trans "Genes" %}</dt>
+                <dd data-field="genes">-</dd>
+                <dt>{% trans "Role" %}</dt>
+                <dd data-field="role">-</dd>
+                <dt>{% trans "Isoenzymes" %}</dt>
+                <dd data-field="isoenzymes">-</dd>
+            </dl>
+        </div>
+    </section>
+
+    <section class="genome-card metabolism-panel" id="section-reactions">
+        <div class="section-head tp-ui-panel-head">
+            <div>
+                <h2>{% trans "Catalyzed reactions" %}</h2>
+                <p class="section-subtitle">{% trans "Every reaction this gene catalyzes, with substrates/products and isoenzyme backup." %}</p>
+            </div>
+        </div>
+        <div class="metabolism-reaction-table">
+            {% for reaction in metabolic_context.reactions %}
+            <article class="pathway-reaction-row{% if reaction.chokepoint_label %} pathway-reaction-row--chokepoint{% endif %}" data-reaction-id="{{ reaction.reaction_id }}" role="button" tabindex="0" title="{% trans 'Locate this reaction in the network above' %}">
+                <div class="pathway-reaction-main">
+                    <div>
+                        {% if reaction.kegg_url %}
+                        <h3><a class="reaction-external-link reaction-external-link--kegg" href="{{ reaction.kegg_url }}" target="_blank" rel="noopener noreferrer" title="{% trans 'Open reaction in KEGG' %}">{{ reaction.name }}</a></h3>
+                        {% else %}
+                        <h3 title="{% trans 'Reaction' %}: {{ reaction.name }}">{{ reaction.name }}</h3>
+                        {% endif %}
+                        <p>
+                            {% if reaction.ec_numbers %}EC {{ reaction.ec_numbers|join:", " }}{% else %}EC -{% endif %}
+                            &middot;
+                            <a class="reaction-external-link reaction-external-link--metacyc" href="{{ reaction.metacyc_url }}" target="_blank" rel="noopener noreferrer" title="{% trans 'Open reaction in MetaCyc' %}">{{ reaction.reaction_id }}</a>
+                            &middot; {% if reaction.reversible %}{% trans "reversible" %}{% else %}{% trans "not reversible" %}{% endif %}
+                            {% if reaction.isoenzyme_count > 1 %}
+                                &middot; <span title="{% trans "Isoenzymes are different genes that catalyze the same reaction. More than one means inhibiting this protein alone may not stop the reaction." %}">{% blocktrans with count=reaction.isoenzyme_count %}{{ count }} isoenzymes{% endblocktrans %}</span>
+                            {% else %}
+                                &middot; <span title="{% trans "No other gene in this genome is known to catalyze the same reaction, so this protein cannot be bypassed by an isoenzyme." %}">{% trans "no isoenzyme backup" %}</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                    {% if reaction.chokepoint_label %}
+                    <span class="target-evidence-accessory-badge">{{ reaction.chokepoint_label }}</span>
+                    {% endif %}
+                </div>
+                {% if reaction.has_metabolites %}
+                <div class="pathway-reaction-equation">
+                    <div>
+                        {% for s in reaction.substrates %}
+                        <span class="metabolite-chip{% if s.is_currency %} is-currency{% endif %}" title="{% trans 'Substrate metabolite' %}: {{ s.name }}"><span class="metabolite-chip-label">{% if s.stoichiometry != 1.0 %}{{ s.stoichiometry|floatformat:0 }} {% endif %}{{ s.name }}</span></span>
+                        {% empty %}
+                        <span class="annotation-empty">-</span>
+                        {% endfor %}
+                    </div>
+                    <span class="metabolite-arrow{% if reaction.reversible %} metabolite-arrow--reversible{% endif %}" title="{% if reaction.reversible %}{% trans "Reversible reaction" %}{% else %}{% trans "Not reversible" %}{% endif %}">{% if reaction.reversible %}&#8652;{% else %}&rarr;{% endif %}</span>
+                    <div>
+                        {% for p in reaction.products %}
+                        <span class="metabolite-chip{% if p.is_currency %} is-currency{% endif %}" title="{% trans 'Product metabolite' %}: {{ p.name }}"><span class="metabolite-chip-label">{% if p.stoichiometry != 1.0 %}{{ p.stoichiometry|floatformat:0 }} {% endif %}{{ p.name }}</span></span>
+                        {% empty %}
+                        <span class="annotation-empty">-</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </article>
+            {% endfor %}
+        </div>
+    </section>
+
+    {% if metabolic_context.import_run %}
+    <p class="metabolic-provenance">
+        {% blocktrans with fname=metabolic_context.import_run.sbml_filename date=metabolic_context.import_run.imported_at|date:"Y-m-d" %}Imported from {{ fname }} · {{ date }}{% endblocktrans %}
+    </p>
+    {% endif %}
+</div>
+
+<script src="{% static 'js/pages/metabolic-network.js' %}?v=20260728-spacing1"></script>
+<script>
+(function () {
+    "use strict";
+    var links = Array.prototype.slice.call(document.querySelectorAll(".quick-nav .quick-nav-link[href^='#section-']"));
+    if (!links.length || !("IntersectionObserver" in window)) return;
+
+    function setActive(id) {
+        links.forEach(function (link) {
+            var isActive = link.getAttribute("href") === "#" + id;
+            link.classList.toggle("is-active", isActive);
+            if (isActive) link.setAttribute("aria-current", "true");
+            else link.removeAttribute("aria-current");
+        });
+    }
+
+    var observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+            if (entry.isIntersecting) setActive(entry.target.id);
+        });
+    }, { rootMargin: "-15% 0px -70% 0px" });
+
+    links.forEach(function (link) {
+        var section = document.getElementById(link.getAttribute("href").slice(1));
+        if (section) observer.observe(section);
+    });
+})();
+</script>
+{% endblock %}

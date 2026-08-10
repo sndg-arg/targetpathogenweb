@@ -4,6 +4,7 @@ Pure command builders for each pipeline stage.
 Each function returns a bash command string — no Parsl dependency.
 Extracted from apps.py @bash_app definitions.
 """
+
 import os
 import shlex
 import sys
@@ -21,8 +22,7 @@ def _host_bind_path(container_path, env_name, container_base):
     container_base = os.path.abspath(container_base)
     container_path = os.path.abspath(container_path)
     if not host_base or not (
-        container_path == container_base
-        or container_path.startswith(container_base + os.sep)
+        container_path == container_base or container_path.startswith(container_base + os.sep)
     ):
         return container_path
     if not os.path.isabs(host_base):
@@ -34,6 +34,7 @@ def _host_bind_path(container_path, env_name, container_base):
 
 
 # --- Stage 2: Genome download variants ---
+
 
 def download_gbk_cmd(working_dir, genome, target_accession=None):
     cmd = f"{PYTHON_BIN} {working_dir}/manage.py tpweb_download_gbk {genome} --datadir {working_dir}/data"
@@ -52,6 +53,7 @@ def custom_gbk_cmd(working_dir, genome, custom):
 
 # --- Stage 3: Load genome ---
 
+
 def load_gbk_cmd(working_dir, folder_path, genome):
     gbk_path = os.path.join(folder_path, f"{genome}.gbk.gz")
     return f"{PYTHON_BIN} {working_dir}/manage.py load_gbk {gbk_path} --overwrite --accession {genome} --datadir {working_dir}/data"
@@ -64,14 +66,17 @@ def sync_genome_metadata_cmd(working_dir, folder_path, genome):
 
 # --- Stage 4: FastTarget ---
 
+
 def fasttarget_cmd(working_dir, genome, folder_path):
     return f"{PYTHON_BIN} {working_dir}/manage.py fast_command {genome} {folder_path} --datadir {_data_dir(working_dir)}"
 
 
 # --- Stages 5-7, 19, 21: Score loading ---
 
+
 def load_score_cmd(working_dir, genome, param):
     from bioseq.io.SeqStore import SeqStore
+
     ss = SeqStore(_data_dir(working_dir))
     tsv_getters = {
         "druggability": ss.druggability_tsv,
@@ -89,6 +94,7 @@ def load_score_cmd(working_dir, genome, param):
 
 # --- Stage 8-9: Indexing ---
 
+
 def index_db_cmd(working_dir, genome):
     return f"{PYTHON_BIN} {working_dir}/manage.py index_genome_db {genome} --datadir {working_dir}/data"
 
@@ -99,12 +105,16 @@ def index_seq_cmd(working_dir, genome):
 
 # --- Stage 11: Load InterPro ---
 
+
 def load_interpro_cmd(working_dir, genome, folder_path):
     protein_file = os.path.join(folder_path, genome + ".faa.tsv")
-    return f"{PYTHON_BIN} {working_dir}/manage.py load_interpro {genome} --interpro_tsv {protein_file}"
+    return (
+        f"{PYTHON_BIN} {working_dir}/manage.py load_interpro {genome} --interpro_tsv {protein_file}"
+    )
 
 
 # --- Stage 12: UniProt mapping ---
+
 
 def gbk2uniprot_cmd(working_dir, genome, folder_path):
     unips_lst = os.path.join(folder_path, genome + "_unips.lst")
@@ -119,15 +129,25 @@ def gbk2uniprot_cmd(working_dir, genome, folder_path):
 
 # --- Stage 13: Fetch UniProt annotations ---
 
+
 def fetch_annotations_cmd(working_dir, genome, folder_path):
     lst_path = os.path.join(folder_path, genome + "_unips.lst")
     return f"{PYTHON_BIN} {working_dir}/manage.py fetch_uniprot_annotations {genome} --datadir {working_dir}/data --lst {lst_path}"
 
 
+def load_uniprot_sites_cmd(working_dir, genome, folder_path):
+    """Attach UniProt functional sites after AF/CF structures are loaded."""
+    lst_path = os.path.join(folder_path, genome + "_unips.lst")
+    return (
+        f"{PYTHON_BIN} {working_dir}/manage.py load_uniprot_sites {genome}"
+        f" --datadir {_data_dir(working_dir)} --lst {lst_path} --overwrite"
+    )
+
+
 # --- Stage 14b: Experimental structures from PDB ---
 
+
 def fetch_exp_structures_cmd(working_dir, genome, folder_path):
-    lst_path = os.path.join(folder_path, genome + "_unips.lst")
     return (
         f"{PYTHON_BIN} {working_dir}/manage.py fetch_experimental_structures {genome}"
         f" --datadir {_data_dir(working_dir)}"
@@ -135,6 +155,7 @@ def fetch_exp_structures_cmd(working_dir, genome, folder_path):
 
 
 # --- Stage 15: AlphaFold per-protein ---
+
 
 def alphafold_cmd(protein_list_line, folder_path, genome):
     alphafold_folder = os.path.join(folder_path, "alphafold")
@@ -148,17 +169,20 @@ def alphafold_cmd(protein_list_line, folder_path, genome):
 
 # --- Stage 16: ESMFold (legacy, kept as fallback) ---
 
+
 def esmfold_cmd(working_dir, genome):
     return f"{PYTHON_BIN} {working_dir}/manage.py esmfold_predict {genome} --datadir {working_dir}/data"
 
 
 # --- Stage 16: ColabFold (replaces ESMFold — no size limit, no external API dependency) ---
 
+
 def colabfold_cmd(working_dir, genome):
     return f"{PYTHON_BIN} {working_dir}/manage.py colabfold_predict {genome} --datadir {working_dir}/data"
 
 
 # --- Stage 17: Structure loading sub-stages ---
+
 
 def load_af_model_cmd(locus_tag, working_dir, folder_path):
     protein_pdb = os.path.join(folder_path, "alphafold", locus_tag, f"{locus_tag}_af.pdb")
@@ -196,10 +220,42 @@ def fpocket2json_cmd(folder_path, locus_tag):
 
 
 def load_pocket_cmd(folder_path, locus_tag, working_dir):
-    locustag_af = os.path.join(folder_path, "alphafold", locus_tag, f"{locus_tag}_af_out", "fpocket.json.gz")
+    locustag_af = os.path.join(
+        folder_path, "alphafold", locus_tag, f"{locus_tag}_af_out", "fpocket.json.gz"
+    )
     if os.path.exists(locustag_af):
         return f"{PYTHON_BIN} {working_dir}/manage.py load_fpocket --pocket_json {locustag_af} {locus_tag} --datadir {_data_dir(working_dir)}"
     return f"echo 'No fpocket data for {locus_tag}, skipping'"
+
+
+def run_p2rank_cmd(genome, locus_tag, working_dir, cpus=2):
+    from bioseq.io.SeqStore import SeqStore
+
+    data_dir = _data_dir(working_dir)
+    ss = SeqStore(data_dir)
+    pdb_path = ss.structure_dir(genome, locus_tag) + f"/{locus_tag}_af.pdb"
+    output_dir = ss.p2rank_folder(genome, locus_tag)
+    predictions_csv = ss.p2rank_pdb_predictions(genome, locus_tag)
+    host_data_dir = _host_bind_path(
+        data_dir,
+        env_name="TPW_DATA_DIR",
+        container_base="/app/targetpathogenweb/data",
+    )
+    if os.path.exists(predictions_csv):
+        return f"echo 'P2Rank output already exists for {locus_tag}'"
+    if not os.path.exists(pdb_path):
+        return f"echo 'No structure PDB for {locus_tag}, skipping p2rank'"
+    return (
+        f"mkdir -p {shlex.quote(output_dir)}; "
+        f"if command -v docker >/dev/null 2>&1; then "
+        f"docker run --user $(id -u):$(id -g) --rm -i "
+        f"-v {shlex.quote(host_data_dir)}:{shlex.quote(data_dir)} "
+        f"mcpalumbo/p2rank:latest prank predict "
+        f"-f {shlex.quote(pdb_path)} "
+        f"-o {shlex.quote(output_dir)} "
+        f"-threads {int(cpus)}; "
+        f"else echo 'Docker not available for p2rank on {locus_tag}, skipping'; fi"
+    )
 
 
 def p2rank2json_cmd(genome, locus_tag, working_dir):
@@ -208,6 +264,7 @@ def p2rank2json_cmd(genome, locus_tag, working_dir):
 
 def load_p2pocket_cmd(genome, locus_tag, working_dir):
     from bioseq.io.SeqStore import SeqStore
+
     ss = SeqStore(_data_dir(working_dir))
     p2pocket_json = ss.p2rank_json(genome, locus_tag)
     return f"{PYTHON_BIN} {working_dir}/manage.py load_fpocket --pocket_json {p2pocket_json} {locus_tag} --datadir {_data_dir(working_dir)} --P2rank_pocket"
@@ -215,14 +272,16 @@ def load_p2pocket_cmd(genome, locus_tag, working_dir):
 
 # --- Stage 18: Druggability ---
 
+
 def druggability_cmd(working_dir, genome):
     return f"{PYTHON_BIN} {working_dir}/manage.py druggability_2_csv {genome} --datadir {_data_dir(working_dir)}"
 
 
 # --- Stage 20: PSORT ---
 
+
 def psort_cmd(genome, gram):
-    folder_name = genome[int(len(genome) / 2 - 1):int(len(genome) / 2 + 2)]
+    folder_name = genome[int(len(genome) / 2 - 1) : int(len(genome) / 2 + 2)]
     container_folder_path = os.path.join("/app/targetpathogenweb/data", folder_name, genome)
     host_folder_path = _host_bind_path(
         container_folder_path,
@@ -236,15 +295,15 @@ def psort_cmd(genome, gram):
     psort_script = (
         "set -e; "
         f"GENOME={shlex.quote(genome)}; "
-        "if [ ! -s \"/work/$GENOME.faa\" ] && [ -s \"/work/$GENOME.faa.gz\" ]; then "
-        "gzip -dc \"/work/$GENOME.faa.gz\" > \"/work/$GENOME.faa\"; "
+        'if [ ! -s "/work/$GENOME.faa" ] && [ -s "/work/$GENOME.faa.gz" ]; then '
+        'gzip -dc "/work/$GENOME.faa.gz" > "/work/$GENOME.faa"; '
         "fi; "
         "rm -f /work/*_psortb_*.txt /work/psort.tsv; "
-        f"/usr/local/psortb/bin/psort -{shlex.quote(gram)} -o terse -i \"/work/$GENOME.faa\"; "
+        f'/usr/local/psortb/bin/psort -{shlex.quote(gram)} -o terse -i "/work/$GENOME.faa"; '
         "cp /tmp/results/*_psortb_*.txt /work/; "
         "RAW=$(ls -1 /work/*_psortb_*.txt | tail -n 1); "
-        "awk -F '\\t' 'BEGIN{OFS=\"\\t\"; print \"gene\",\"Localization\"} "
-        "NR>1 && NF>=2 {split($1,a,\" \"); print a[1],$2}' \"$RAW\" > /work/psort.tsv; "
+        'awk -F \'\\t\' \'BEGIN{OFS="\\t"; print "gene","Localization"} '
+        'NR>1 && NF>=2 {split($1,a," "); print a[1],$2}\' "$RAW" > /work/psort.tsv; '
         "chmod 0644 /work/psort.tsv"
     )
     return (
@@ -253,7 +312,7 @@ def psort_cmd(genome, gram):
         f"-v {shlex.quote(host_folder_path)}:/work "
         f"brinkmanlab/psortb_commandline:1.0.2 "
         f"-lc {shlex.quote(psort_script)}; "
-        f"elif [ \"${{TPW_PSORT_ALLOW_FALLBACK:-0}}\" = \"1\" ]; then "
+        f'elif [ "${{TPW_PSORT_ALLOW_FALLBACK:-0}}" = "1" ]; then '
         f"{fallback}; "
         f"else echo 'Docker is required for PSORT; set TPW_PSORT_ALLOW_FALLBACK=1 to generate Unknown localization fallback.' >&2; exit 1; "
         f"fi"
@@ -261,6 +320,7 @@ def psort_cmd(genome, gram):
 
 
 # --- Stages 22-23: Binders ---
+
 
 def get_binders_cmd(working_dir, genome):
     return f"{PYTHON_BIN} {working_dir}/manage.py get_binders {genome} --datadir {_data_dir(working_dir)}"

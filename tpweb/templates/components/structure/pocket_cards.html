@@ -1,25 +1,52 @@
 {% load i18n %}
 
-{% if structure_data.pockets %}
+{% if structure_data.p2_pockets %}
     <div class="mini-section js-structure-annotations" data-structure-key="{{ structure_key }}" {% if hidden %}hidden{% endif %}>
-        <h3>{% trans "Binding pockets" %} · FPocket</h3>
-        <p class="table-hint">{% trans "Druggability: high ≥ 0.7 · medium 0.4–0.69 · low < 0.4" %}</p>
+        <h3 class="mini-section-title--p2rank">{% trans "Binding pockets" %} · P2Rank</h3>
+        <p class="table-hint">{% trans "Druggability (P2Rank): high ≥ 0.5 · medium 0.2–0.49 · low < 0.2" %}</p>
         <div class="pocket-cards">
-            {% for p in structure_data.pockets %}
-                <div class="pocket-card">
-                    <div class="pocket-card-head">
-                        <strong class="pocket-card-name">{{ p.name }}</strong>
-                        <span class="tp-score-tag js-score-tag" data-score="{{ p.druggability }}">{{ p.druggability }}</span>
+            {% for p2 in structure_data.p2_pockets %}
+                <div class="pocket-card pocket-card--p2rank"
+                     data-pocket-method="P2Rank"
+                     data-pocket-title="{% trans 'Pocket' %} {{ forloop.counter }}"
+                     data-pocket-id="P2Rank #{{ p2.name }}"
+                     data-pocket-score="{{ p2.probability }}"
+                     data-pocket-residues="{{ p2.residues|join:' ' }}"
+                     data-pocket-properties="{{ p2.inspector_properties }}"
+                     data-pocket-core-note="{{ p2.core_note }}"
+                     data-pocket-core-repr="p2_{{p2.name}}_sph"
+                     data-pocket-zoom="p2_{{p2.name}}_sph">
+                    <div class="pocket-card-head js-inspect-pocket" role="button" tabindex="0" title="{% trans 'Select this pocket: center the view, show its core layer if no layer is active, and open the detail panel.' %}">
+                        <div class="pocket-card-label">
+                            <strong class="pocket-card-name">{% trans "Pocket" %} {{ forloop.counter }}</strong>
+                            <span class="pocket-card-id">P2Rank #{{ p2.name }}</span>
+                        </div>
+                        <span class="tp-score-tag js-score-tag" data-score="{{ p2.probability }}" data-score-type="p2rank-prob">{{ p2.probability }}</span>
                     </div>
-                    <div class="pocket-card-reprs">
-                        <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="{{p.name}}_atm" aria-pressed="false">{% trans "Ball & stick" %}</button>
-                        <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="{{p.name}}_sph" aria-pressed="false">{% trans "Space-fill" %}</button>
-                        <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="{{p.name}}_pol {{p.name}}_apol" aria-pressed="false">{% trans "Surface" %}</button>
-                        <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="{{p.name}}_lbl" aria-pressed="false">{% trans "Labels" %}</button>
+                    {% if p2.consensus_label %}
+                    <div class="pocket-consensus"
+                         title="{% trans 'The FPocket and P2Rank pocket centers are within the 8 Å same-site threshold.' %}">
+                        <span class="pocket-consensus-status">{% blocktrans with site=p2.consensus_label %}Likely same site as {{ site }}{% endblocktrans %}</span>
+                        <span>{{ p2.consensus_distance }} Å</span>
+                        <span>{% blocktrans count shared=p2.consensus_shared_residues %}{{ shared }} shared residue{% plural %}{{ shared }} shared residues{% endblocktrans %}</span>
+                        <span>{{ p2.consensus_smaller_coverage|floatformat:0 }}% {% trans "of smaller site" %}</span>
+                    </div>
+                    {% endif %}
+                    <span class="pocket-card-layer-label">{% trans "Show in viewer" %}</span>
+                    <div class="pocket-card-reprs" aria-label="{% trans 'Pocket visual layers' %}">
+                        <button type="button" class="pocket-repr-btn pocket-repr-btn--core js-repr-toggle" data-repr="p2_{{p2.name}}_sph" data-layer-label="{{ p2.core_layer_label|default:"Predicted site atoms / pocket residues" }}" aria-pressed="false" title="{{ p2.core_note|default:"Show the specific P2Rank predicted binding site using imported surface atoms." }}">{{ p2.core_button_label|default:"Predicted site atoms" }}</button>
+                        <span class="pocket-card-repr-group">{% trans "Surrounding area" %}</span>
+                        <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="p2_{{p2.name}}_atm" data-layer-label="{% trans 'Surrounding residues' %}" aria-pressed="false" title="{% trans 'Show atoms/residues around this predicted site.' %}">{% trans "Nearby residues" %}</button>
+                        <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="p2_{{p2.name}}_pol p2_{{p2.name}}_apol" data-layer-label="{% trans 'Surrounding surface' %}" aria-pressed="false" title="{% trans 'Show the wider residue surface around this site.' %}">{% trans "Residue surface" %}</button>
+                        <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="p2_{{p2.name}}_lbl" data-layer-label="{% trans 'Residue labels' %}" aria-pressed="false" title="{% trans 'Show residue labels for this pocket.' %}">{% trans "Residue labels" %}</button>
                     </div>
                     <div class="pocket-card-actions">
-                        <button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm" onclick="ngl_zoom_to('{{p.name}}_zoom')">{% trans "Zoom" %}</button>
-                        <button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm js-show-residues" data-residues="{{ p.residues|join:' ' }}">{% trans "Positions" %}</button>
+                        <button type="button" class="btn tp-btn tp-btn--clear tp-btn--sm tp-btn-with-icon" onclick="ngl_zoom_to('p2_{{p2.name}}_zoom')" title="{% trans 'Center the 3D view on this pocket.' %}">
+                            <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/target.html" %}</span><span>{% trans "Center view" %}</span>
+                        </button>
+                        <button type="button" class="btn tp-btn tp-btn--clear tp-btn--sm tp-btn-with-icon js-show-residues" data-residues="{{ p2.residues|join:' ' }}" title="{% trans 'List residues assigned to this pocket.' %}">
+                            <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/list.html" %}</span><span>{% trans "List residues" %}</span>
+                        </button>
                     </div>
                 </div>
             {% endfor %}
@@ -27,27 +54,60 @@
     </div>
 {% endif %}
 
-{% if structure_data.p2_pockets %}
+{% if structure_data.pockets %}
     <div class="mini-section js-structure-annotations" data-structure-key="{{ structure_key }}" {% if hidden %}hidden{% endif %}>
-        <h3>{% trans "Binding pockets" %} · P2Rank</h3>
-        <p class="table-hint">{% trans "Probability: high ≥ 0.5 · medium 0.2–0.49 · low < 0.2" %}</p>
+        <h3 class="mini-section-title--fpocket">{% trans "Binding pockets" %} · FPocket</h3>
+        <p class="table-hint">{% trans "Druggability (FPocket): high ≥ 0.7 · medium 0.4–0.69 · low < 0.4" %}</p>
         <div class="pocket-cards">
-            {% for p2 in structure_data.p2_pockets %}
-                <div class="pocket-card">
-                    <div class="pocket-card-head">
-                        <strong class="pocket-card-name">{{ p2.name }}</strong>
-                        <span class="tp-score-tag js-score-tag" data-score="{{ p2.p2score }}">{{ p2.p2score }}</span>
-                        <span class="tp-score-tag js-score-tag" data-score="{{ p2.probability }}" data-score-type="p2rank-prob">{{ p2.probability }}</span>
+            {% for p in structure_data.pockets %}
+                <div class="pocket-card pocket-card--fpocket"
+                     data-pocket-method="FPocket"
+                     data-pocket-title="{% trans 'Pocket' %} {{ forloop.counter }}"
+                     data-pocket-id="FPocket #{{ p.name }}"
+                     data-pocket-score="{{ p.druggability }}"
+                     data-pocket-residues="{{ p.residues|join:' ' }}"
+                     data-pocket-properties="{{ p.inspector_properties }}"
+                     data-pocket-core-note="{{ p.core_note }}"
+                     data-pocket-core-repr="{{p.name}}_sph"
+                     data-pocket-zoom="{{p.name}}_sph">
+                    <div class="pocket-card-head js-inspect-pocket" role="button" tabindex="0" title="{% trans 'Select this pocket: center the view, show its core layer if no layer is active, and open the detail panel.' %}">
+                        <div class="pocket-card-label">
+                            <strong class="pocket-card-name">{% trans "Pocket" %} {{ forloop.counter }}</strong>
+                            <span class="pocket-card-id">FPocket #{{ p.name }}</span>
+                        </div>
+                        <div class="pocket-card-badges">
+                            <span class="tp-score-tag js-score-tag" data-score="{{ p.druggability }}">{{ p.druggability }}</span>
+                            {% if p.size_outlier %}
+                                <span class="tp-chip tp-chip--warning tp-chip--sm" title="{{ p.size_outlier_note }}">{% trans "Unusual size" %}</span>
+                            {% else %}
+                                <span class="tp-chip tp-chip--warning tp-chip--sm pocket-card-badge-placeholder" aria-hidden="true">{% trans "Unusual size" %}</span>
+                            {% endif %}
+                        </div>
                     </div>
-                    <div class="pocket-card-reprs">
-                        <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="p2_{{p2.name}}_atm" aria-pressed="false">{% trans "Ball & stick" %}</button>
-                        <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="p2_{{p2.name}}_sph" aria-pressed="false">{% trans "Space-fill" %}</button>
-                        <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="p2_{{p2.name}}_pol p2_{{p2.name}}_apol" aria-pressed="false">{% trans "Surface" %}</button>
-                        <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="p2_{{p2.name}}_lbl" aria-pressed="false">{% trans "Labels" %}</button>
+                    {% if p.consensus_label %}
+                    <div class="pocket-consensus"
+                         title="{% trans 'The FPocket and P2Rank pocket centers are within the 8 Å same-site threshold.' %}">
+                        <span class="pocket-consensus-status">{% blocktrans with site=p.consensus_label %}Likely same site as {{ site }}{% endblocktrans %}</span>
+                        <span>{{ p.consensus_distance }} Å</span>
+                        <span>{% blocktrans count shared=p.consensus_shared_residues %}{{ shared }} shared residue{% plural %}{{ shared }} shared residues{% endblocktrans %}</span>
+                        <span>{{ p.consensus_smaller_coverage|floatformat:0 }}% {% trans "of smaller site" %}</span>
+                    </div>
+                    {% endif %}
+                    <span class="pocket-card-layer-label">{% trans "Show in viewer" %}</span>
+                    <div class="pocket-card-reprs" aria-label="{% trans 'Pocket visual layers' %}">
+                        <button type="button" class="pocket-repr-btn pocket-repr-btn--core js-repr-toggle" data-repr="{{p.name}}_sph" data-layer-label="{{ p.core_layer_label|default:"Pocket core" }}" aria-pressed="false" title="{{ p.core_note|default:"Show the specific FPocket cavity." }}">{{ p.core_button_label|default:"Pocket core" }}</button>
+                        <span class="pocket-card-repr-group">{% trans "Surrounding area" %}</span>
+                        <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="{{p.name}}_atm" data-layer-label="{% trans 'Surrounding residues' %}" aria-pressed="false" title="{% trans 'Show atoms/residues around this predicted pocket.' %}">{% trans "Nearby residues" %}</button>
+                        <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="{{p.name}}_pol {{p.name}}_apol" data-layer-label="{% trans 'Surrounding surface' %}" aria-pressed="false" title="{% trans 'Show the wider residue surface around this pocket.' %}">{% trans "Residue surface" %}</button>
+                        <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="{{p.name}}_lbl" data-layer-label="{% trans 'Residue labels' %}" aria-pressed="false" title="{% trans 'Show residue labels for this pocket.' %}">{% trans "Residue labels" %}</button>
                     </div>
                     <div class="pocket-card-actions">
-                        <button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm" onclick="ngl_zoom_to('p2_{{p2.name}}_zoom')">{% trans "Zoom" %}</button>
-                        <button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm js-show-residues" data-residues="{{ p2.residues|join:' ' }}">{% trans "Positions" %}</button>
+                        <button type="button" class="btn tp-btn tp-btn--clear tp-btn--sm tp-btn-with-icon" onclick="ngl_zoom_to('{{p.name}}_zoom')" title="{% trans 'Center the 3D view on this pocket.' %}">
+                            <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/target.html" %}</span><span>{% trans "Center view" %}</span>
+                        </button>
+                        <button type="button" class="btn tp-btn tp-btn--clear tp-btn--sm tp-btn-with-icon js-show-residues" data-residues="{{ p.residues|join:' ' }}" title="{% trans 'List residues assigned to this pocket.' %}">
+                            <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/list.html" %}</span><span>{% trans "List residues" %}</span>
+                        </button>
                     </div>
                 </div>
             {% endfor %}
@@ -57,19 +117,25 @@
 
 {% if structure_data.residuesets %}
     <div class="mini-section js-structure-annotations" data-structure-key="{{ structure_key }}" {% if hidden %}hidden{% endif %}>
-        <details class="data-details">
+        <details class="data-details js-smooth-details">
             <summary>{% trans "Residue sets" %}</summary>
             <div class="residueset-list">
                 {% for rs in structure_data.residuesets %}
                     <div class="residueset-row">
                         <div class="residueset-row-info">
-                            <span class="residueset-type">{{ rs.rs_name }}</span>
-                            <span class="residueset-name" title="{{ rs.description }}">{{ rs.description }}</span>
+                            <span class="residueset-type">{{ rs.display_label }}</span>
+                            {% if rs.description %}
+                                <span class="residueset-name">{{ rs.description }}</span>
+                            {% endif %}
                         </div>
                         <div class="residueset-row-actions">
-                            <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="{{rs.name}}" aria-pressed="false">{% trans "Show" %}</button>
-                            <button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm" onclick="ngl_zoom_to('{{rs.name}}_zoom')">{% trans "Zoom" %}</button>
-                            <button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm js-show-residues" data-residues="{{ rs.residues|join:' ' }}">{% trans "Positions" %}</button>
+                            <button type="button" class="pocket-repr-btn js-repr-toggle" data-repr="{{rs.name}}" aria-pressed="false" title="{% trans 'Show or hide this residue set in the 3D view.' %}">{% trans "Show" %}</button>
+                            <button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm tp-btn-with-icon" onclick="ngl_zoom_to('{{rs.name}}_zoom')" title="{% trans 'Center the 3D view on this residue set.' %}">
+                                <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/target.html" %}</span><span>{% trans "Zoom" %}</span>
+                            </button>
+                            <button type="button" class="btn tp-btn tp-btn--outline tp-btn--sm tp-btn-with-icon js-show-residues" data-residues="{{ rs.residues|join:' ' }}" title="{% trans 'List residues in this set.' %}">
+                                <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/list.html" %}</span><span>{% trans "Residues" %}</span>
+                            </button>
                         </div>
                     </div>
                 {% endfor %}

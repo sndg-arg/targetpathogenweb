@@ -19,8 +19,8 @@ from tpweb.services.pipeline_status import (
 )
 from tpweb.services.assembly_workspace import (
     build_assembly_workspace_metrics,
-    get_top_targets_by_binders,
-    get_top_targets_by_score,
+    export_composite_ranking_rows,
+    get_overview_target_rankings,
 )
 from tpweb.services.assembly_overview import build_assembly_overview
 from tpweb.services.genome_metadata import build_genome_metadata_rows
@@ -31,19 +31,12 @@ from tpweb.services.genome_workspace import (
     user_can_delete_genome_name,
 )
 from tpweb.services.genome_uploads import delete_genome_workspace, workspace_has_active_upload
-from tpweb.services.csv_exports import xlsx_sections_response
+from tpweb.services.csv_exports import build_view_export_url, csv_response, xlsx_sections_response
 
 
 class AssemblyView(View):
-    template_name = 'genomic/assembly.html'
+    template_name = "genomic/assembly.html"
     ACTION_DELETE_WORKSPACE = "delete_workspace"
-
-    @staticmethod
-    def _build_view_export_url(request):
-        params = request.GET.copy()
-        params["export"] = "view_csv"
-        encoded = params.urlencode()
-        return f"?{encoded}" if encoded else "?export=view_csv"
 
     def _resolve_jbrowse_base_url(self, request):
         configured = str(settings.JBROWSE_BASE_URL or "").strip()
@@ -70,8 +63,10 @@ class AssemblyView(View):
             raise Http404("Genome not found") from exc
 
     def _build_context(self, request, biodb, error_message=""):
-        props = {bqv.term.identifier: bqv.value
-                 for bqv in BiodatabaseQualifierValue.objects.filter(biodatabase=biodb)}
+        props = {
+            bqv.term.identifier: bqv.value
+            for bqv in BiodatabaseQualifierValue.objects.filter(biodatabase=biodb)
+        }
         reference_entry = Bioentry.objects.filter(biodatabase=biodb).only("accession").first()
         reference_accession = str(getattr(reference_entry, "accession", "") or "").strip()
         assembly = {
@@ -83,8 +78,9 @@ class AssemblyView(View):
             "prop_rows": build_genome_metadata_rows(props),
         }
         workspace_metrics = build_assembly_workspace_metrics(biodb.name)
-        top_targets_by_binders = get_top_targets_by_binders(biodb.name, limit=5)
-        top_targets_by_score = get_top_targets_by_score(biodb.name, request.user, limit=5)
+        top_targets_by_score, unexplored_targets = get_overview_target_rankings(
+            biodb.name, request.user, limit=5
+        )
         overview = build_assembly_overview(
             request.user,
             biodb.name,
@@ -95,6 +91,7 @@ class AssemblyView(View):
         slug = genome_url_slug(biodb.name)
         workspace_links = {
             "proteins_url": reverse("tpwebapp:protein_list", kwargs={"genome": slug}),
+            "metabolism_url": reverse("tpwebapp:genome_metabolism", kwargs={"genome": slug}),
             "custom_scores_url": reverse("tpwebapp:customparam", kwargs={"genome": slug}),
             "formula_url": reverse("tpwebapp:formula_form", kwargs={"genome": slug}),
             "ec_explorer_url": reverse(
@@ -102,6 +99,7 @@ class AssemblyView(View):
                 kwargs={"genome": slug, "annotation_kind": "ec"},
             ),
             "blast_url": f"{reverse('tpwebapp:form')}?genome={biodb.name}",
+            "protein_blast_url": reverse("tpwebapp:protein_blast", kwargs={"genome": slug}),
         }
 
         media_root = Path(settings.MEDIA_ROOT)
@@ -139,10 +137,10 @@ class AssemblyView(View):
             "assembly": assembly,
             "overview": overview,
             "workspace_metrics": workspace_metrics,
-            "top_targets_by_binders": top_targets_by_binders,
+            "unexplored_targets": unexplored_targets,
             "top_targets_by_score": top_targets_by_score,
             "workspace_links": workspace_links,
-            "view_export_url": self._build_view_export_url(request),
+            "view_export_url": build_view_export_url(request),
             "jbrowse_url": jbrowse_url,
             "jbrowse_embed": jbrowse_embed,
             "pipeline_status": pipeline_status,
@@ -152,6 +150,9 @@ class AssemblyView(View):
 
     def get(self, request, *args, **kwargs):
         biodb = self._get_biodatabase(request, kwargs["genome"])
+        if request.GET.get("export") == "ranking_csv":
+            headers, rows = export_composite_ranking_rows(biodb.name)
+            return csv_response(f"{display_genome_name(biodb.name)}-ranking", headers, rows)
         if request.GET.get("export") == "view_csv":
             context = self._build_context(request, biodb)
             assembly = context["assembly"]
@@ -165,8 +166,28 @@ class AssemblyView(View):
                         ["Genome", assembly["name"]],
                         ["Description", assembly["description"]],
                         ["Source", (overview.get("scope") or {}).get("label", "")],
-                        ["Organism", next((fact["value"] for fact in overview.get("hero_facts", []) if fact.get("label") == "Organism"), "")],
-                        ["Sequence length", next((fact["value"] for fact in overview.get("hero_facts", []) if fact.get("label") == "Sequence length"), "")],
+                        [
+                            "Organism",
+                            next(
+                                (
+                                    fact["value"]
+                                    for fact in overview.get("hero_facts", [])
+                                    if fact.get("label") == "Organism"
+                                ),
+                                "",
+                            ),
+                        ],
+                        [
+                            "Sequence length",
+                            next(
+                                (
+                                    fact["value"]
+                                    for fact in overview.get("hero_facts", [])
+                                    if fact.get("label") == "Sequence length"
+                                ),
+                                "",
+                            ),
+                        ],
                         ["Strain", overview.get("strain_display") or ""],
                         ["Record", overview.get("record_display") or ""],
                         ["Completion", overview.get("completion_display") or ""],
@@ -177,14 +198,32 @@ class AssemblyView(View):
                     "title": "Genome composition",
                     "headers": ["Metric", "Value"],
                     "rows": [
-                        ["Proteins available for analysis", workspace_metrics.get("total_proteins")],
+                        [
+                            "Proteins available for analysis",
+                            workspace_metrics.get("total_proteins"),
+                        ],
                         [
                             "Structures loaded",
                             (
                                 f"{workspace_metrics.get('proteins_with_structure')} total "
                                 f"(Experimental {workspace_metrics.get('experimental_structures')}, "
-                                f"AlphaFold {workspace_metrics.get('alphafold_structures')}, "
+                                f"AlphaFold DB models {workspace_metrics.get('alphafold_structures')}, "
                                 f"ColabFold {workspace_metrics.get('colabfold_structures')})"
+                            ),
+                        ],
+                        [
+                            "Metabolic model",
+                            (
+                                f"{workspace_metrics.get('metabolic_protein_count')} mapped proteins, "
+                                f"{workspace_metrics.get('metabolic_reaction_count')} reactions, "
+                                f"{workspace_metrics.get('metabolic_pathway_count')} pathways"
+                            ),
+                        ],
+                        [
+                            "Metabolic target signal",
+                            (
+                                f"{workspace_metrics.get('metabolic_chokepoint_gene_count')} chokepoint genes; "
+                                f"{workspace_metrics.get('metabolic_druggable_target_count')} chokepoint proteins with FPocket >= 0.4"
                             ),
                         ],
                         [
@@ -192,7 +231,10 @@ class AssemblyView(View):
                             f"{workspace_metrics.get('functional_annotated')} annotated proteins (EC {workspace_metrics.get('ec_annotated')}, GO {workspace_metrics.get('go_annotated')})",
                         ],
                         ["Annotated coding sequences", overview.get("source_cds_display") or ""],
-                        ["Coding sequences without translated protein", overview.get("untranslated_cds_display") or ""],
+                        [
+                            "Coding sequences without translated protein",
+                            overview.get("untranslated_cds_display") or "",
+                        ],
                         ["RNA features", overview.get("rna_total_display") or ""],
                     ],
                 },

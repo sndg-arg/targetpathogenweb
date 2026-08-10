@@ -4,8 +4,12 @@ from django.views import View
 
 from bioseq.models.Bioentry import Bioentry
 from bioseq.models.Biodatabase import Biodatabase
-from tpweb.services.csv_exports import csv_response, xlsx_sections_response
-from tpweb.services.genome_workspace import display_genome_name, genome_url_slug, resolve_genome_from_slug
+from tpweb.services.csv_exports import build_view_export_url, csv_response, xlsx_sections_response
+from tpweb.services.genome_workspace import (
+    display_genome_name,
+    genome_url_slug,
+    resolve_genome_from_slug,
+)
 from tpweb.services.pipeline_status import annotate_pipeline_status_for_genome, get_pipeline_status
 from tpweb.services.protein_annotations import build_annotation_explorer, normalize_annotation_kind
 
@@ -20,13 +24,6 @@ class AnnotationExplorerView(View):
         encoded = params.urlencode()
         return f"?{encoded}" if encoded else "?export=csv"
 
-    @staticmethod
-    def _build_view_export_url(request):
-        params = request.GET.copy()
-        params["export"] = "view_csv"
-        encoded = params.urlencode()
-        return f"?{encoded}" if encoded else "?export=view_csv"
-
     def get(self, request, genome, annotation_kind, *args, **kwargs):
         assembly_name = resolve_genome_from_slug(request.user, genome)
         if not assembly_name:
@@ -34,17 +31,13 @@ class AnnotationExplorerView(View):
 
         normalized_kind = normalize_annotation_kind(annotation_kind)
         proteins = (
-            Bioentry.objects.filter(
-                biodatabase__name=assembly_name + Biodatabase.PROT_POSTFIX
-            )
+            Bioentry.objects.filter(biodatabase__name=assembly_name + Biodatabase.PROT_POSTFIX)
             .prefetch_related("dbxrefs__dbxref__terms__term")
             .order_by("accession")
         )
 
         explorer = build_annotation_explorer(proteins, normalized_kind)
-        pipeline_status = annotate_pipeline_status_for_genome(
-            get_pipeline_status(), assembly_name
-        )
+        pipeline_status = annotate_pipeline_status_for_genome(get_pipeline_status(), assembly_name)
 
         export_headers = ["Annotation", "Name", "Proteins"]
         export_rows = [
@@ -93,6 +86,6 @@ class AnnotationExplorerView(View):
                 "explorer": explorer,
                 "pipeline_status": pipeline_status,
                 "export_url": self._build_export_url(request),
-                "view_export_url": self._build_view_export_url(request),
+                "view_export_url": build_view_export_url(request),
             },
         )

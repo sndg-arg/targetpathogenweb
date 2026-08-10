@@ -6,6 +6,7 @@ import gzip
 import tempfile
 
 from Bio.PDB.PDBParser import PDBParser
+from Bio.PDB.MMCIFParser import MMCIFParser
 from Bio.PDB.Polypeptide import is_aa
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
@@ -34,24 +35,26 @@ def store_structure_file(pdb_file, destination):
 
 
 class Command(BaseCommand):
-    help = 'Imports a PDB'
+    help = "Imports a PDB"
 
     def add_arguments(self, parser):
-        parser.add_argument('struct_name')
-        parser.add_argument('pdb_file')
-        parser.add_argument('seq_name')
-        parser.add_argument('--tmp', default="/tmp/load_pdb")
-        parser.add_argument('--overwrite', action="store_true")
-        parser.add_argument('--datadir', default="./data")
-        parser.add_argument('--experiment', default=None,
-                            help="Force experiment type (AF, CF, EX). Auto-detected if not set.")
+        parser.add_argument("struct_name")
+        parser.add_argument("pdb_file")
+        parser.add_argument("seq_name")
+        parser.add_argument("--tmp", default="/tmp/load_pdb")
+        parser.add_argument("--overwrite", action="store_true")
+        parser.add_argument("--datadir", default="./data")
+        parser.add_argument(
+            "--experiment",
+            default=None,
+            help="Force experiment type (AF, CF, EX). Auto-detected if not set.",
+        )
 
     def handle(self, *args, **options):
-        seqstore = SeqStore(options['datadir'])
+        seqstore = SeqStore(options["datadir"])
         code = options["struct_name"]
 
         be = Bioentry.objects.filter(accession=options["seq_name"])
-
 
         if not os.path.exists(options["pdb_file"]):
             self.stderr.write(f"path pdb {code} does not exists")
@@ -81,20 +84,19 @@ class Command(BaseCommand):
                 uniprot_file = os.path.join(pdb_dir, f"{code}_uniprot.txt")
                 experiment = "AF" if os.path.exists(uniprot_file) else "CF"
             try:
-                pdb_model = PDB(code=code,
-                                experiment=experiment)
+                pdb_model = PDB(code=code, experiment=experiment)
                 pdb_model.save()
                 self.load_pdb_file(pdb_model, options["pdb_file"])
                 BioentryStructure(bioentry=be, pdb=pdb_model).save()
 
-            except IOError as ex:
+            except OSError as ex:
                 traceback.print_exc()
-                self.stderr.write("error processing pockets from %s: %s" % (options["struct_name"], str(ex)))
+                self.stderr.write(f"error processing pockets from {options['struct_name']}: {ex}")
             except Exception as ex:
                 traceback.print_exc()
-                raise CommandError(ex)
+                raise CommandError(ex) from ex
 
-            #if not os.path.exists(seqstore.structure_dir(genome, be.accession)):
+            # if not os.path.exists(seqstore.structure_dir(genome, be.accession)):
             #    os.makedirs(seqstore.structure_dir(genome, be.accession))
 
             store_structure_file(
@@ -109,11 +111,15 @@ class Command(BaseCommand):
         with transaction.atomic():
             residues = []
             for residue in chain.get_residues():
-                residue_model = Residue(pdb=pdb_model, chain=chain.id, resid=residue.id[1],
-                                        icode=residue.id[2],
-                                        type="R" if not residue.id[0].strip() else residue.id[
-                                            0].strip(),
-                                        resname=residue.resname.strip(), disordered=residue.is_disordered())
+                residue_model = Residue(
+                    pdb=pdb_model,
+                    chain=chain.id,
+                    resid=residue.id[1],
+                    icode=residue.id[2],
+                    type="R" if not residue.id[0].strip() else residue.id[0].strip(),
+                    resname=residue.resname.strip(),
+                    disordered=residue.is_disordered(),
+                )
                 if is_aa(residue, standard=True):
                     residue_model.seq_order = idx
                     idx += 1
@@ -122,9 +128,27 @@ class Command(BaseCommand):
 
     def _process_chain_atoms(self, code, chain):
         with transaction.atomic():
-            residues = {"_".join([str(x.resid), x.icode, x.resname]): x
-                        for x in Residue.objects.filter(pdb__code=code, chain=chain.id)}
+            residues = {
+                "_".join([str(x.resid), x.icode, x.resname]): x
+                for x in Residue.objects.filter(pdb__code=code, chain=chain.id)
+            }
             atoms = []
+            # MMCIFParser (unlike PDBParser) leaves Atom.serial_number unset --
+            # Atom.serial is NOT NULL, so synthesize a stable per-chain counter
+            # for those. Classic .pdb files already carry a real serial_number
+            # from PDBParser, so this fallback never fires on that path and
+            # existing (bacteria) ingestion is unaffected.
+            next_serial = 1
+
+            def _resolve_serial(real_serial):
+                nonlocal next_serial
+                if real_serial is not None:
+                    next_serial = max(next_serial, real_serial + 1)
+                    return real_serial
+                serial = next_serial
+                next_serial += 1
+                return serial
+
             for residue in chain.get_residues():
                 resid = "_".join([str(residue.id[1]), residue.id[2], residue.resname])
                 if resid in residues:
@@ -132,32 +156,87 @@ class Command(BaseCommand):
                     for atom in list(residue):
                         if atom.is_disordered():
                             for altLoc, a in atom.child_dict.items():
-                                atm = Atom(residue=residue_model, serial=a.serial_number, name=a.id,
-                                           x=float(a.coord[0]), y=float(a.coord[1]),
-                                           z=float(a.coord[2]), altLoc=altLoc,
-                                           occupancy=float(a.occupancy), bfactor=float(a.bfactor),
-                                           element=a.element)
+                                atm = Atom(
+                                    residue=residue_model,
+                                    serial=_resolve_serial(a.serial_number),
+                                    name=a.id,
+                                    x=float(a.coord[0]),
+                                    y=float(a.coord[1]),
+                                    z=float(a.coord[2]),
+                                    altLoc=altLoc,
+                                    occupancy=float(a.occupancy),
+                                    bfactor=float(a.bfactor),
+                                    element=a.element,
+                                )
                                 atoms.append(atm)
                         else:
-                            atm = Atom(residue=residue_model, serial=atom.serial_number, name=atom.id,
-                                       x=float(atom.coord[0]), y=float(atom.coord[1]),
-                                       z=float(atom.coord[2]), altLoc=" ",
-                                       occupancy=float(atom.occupancy), bfactor=float(atom.bfactor),
-                                       element=atom.element)
+                            atm = Atom(
+                                residue=residue_model,
+                                serial=_resolve_serial(atom.serial_number),
+                                name=atom.id,
+                                x=float(atom.coord[0]),
+                                y=float(atom.coord[1]),
+                                z=float(atom.coord[2]),
+                                altLoc=" ",
+                                occupancy=float(atom.occupancy),
+                                bfactor=float(atom.bfactor),
+                                element=atom.element,
+                            )
                             atoms.append(atm)
-            Atom.objects.bulk_create(sorted(atoms, key=lambda x: x.serial))
+            Atom.objects.bulk_create(
+                sorted(
+                    atoms,
+                    key=lambda x: (
+                        x.serial is None,
+                        x.serial or 0,
+                        x.residue.resid,
+                        x.name,
+                        x.x,
+                        x.y,
+                        x.z,
+                    ),
+                )
+            )
 
     def load_pdb_file(self, pdb_model, pdb_path):
 
-        p = PDBParser(PERMISSIVE=True, QUIET=True)
+        is_cif = pdb_path.lower().endswith((".cif", ".cif.gz"))
+        parser = MMCIFParser(QUIET=True) if is_cif else PDBParser(PERMISSIVE=True, QUIET=True)
         if pdb_path.endswith(".gz"):
-            th = tempfile.NamedTemporaryFile(dir='/tmp', delete=False)
+            th = tempfile.NamedTemporaryFile(dir="/tmp", delete=False)
             with gzip.open(pdb_path) as h:
                 th.write(h.read())
                 pdb_path = th.name
             th.close()
 
-        chains = list(p.get_structure("X", pdb_path)[0].get_chains())
+        if is_cif:
+            pdb_path = self._sanitize_cif(pdb_path)
+
+        chains = list(parser.get_structure("X", pdb_path)[0].get_chains())
         for chain in tqdm(chains):
             self._process_chain_residues(pdb_model, chain)
             self._process_chain_atoms(pdb_model, chain)
+
+    @staticmethod
+    def _sanitize_cif(pdb_path):
+        """Biopython's MMCIF2Dict tokenizer raises "Opening quote in middle of
+        word" on a bare apostrophe it can't resolve as a matched quote pair --
+        seen both in ATOM/HETATM rows (nucleotide prime-notation atom names
+        like O5', C1', common in ATP/nucleotide ligands) and in plain
+        _chem_comp-style name fields (e.g. "ADENOSINE-5'-TRIPHOSPHATE").
+        target-human-web's own 3Dmol.js viewer hit the identical parser bug
+        client-side and works around it the same way (sanitizeCif(): swap '
+        for *). Applied file-wide rather than only on ATOM/HETATM rows, since
+        the offending apostrophe can appear in other single-line data items
+        too and we don't read compound names/titles back out of these files
+        for anything -- losing the literal apostrophe there is harmless."""
+        with open(pdb_path, encoding="utf-8", errors="replace") as fh:
+            content = fh.read()
+        if "'" not in content:
+            return pdb_path
+        th = tempfile.NamedTemporaryFile(
+            mode="w", suffix=".cif", dir="/tmp", delete=False, encoding="utf-8"
+        )
+        th.write(content.replace("'", "*"))
+        th.close()
+        return th.name

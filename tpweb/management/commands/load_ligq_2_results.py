@@ -10,23 +10,87 @@ from bioseq.models.Bioentry import Bioentry
 from tpweb.models.Binders import Binders
 
 
-HET_DENYLIST = frozenset({
-    "ALA", "ARG", "ASN", "ASP", "CYS", "GLN", "GLU", "GLY", "HIS", "ILE",
-    "LEU", "LYS", "MET", "PHE", "PRO", "SER", "THR", "TRP", "TYR", "VAL",
-    "HOH", "DOD", "WAT",
-    "NA", "K", "MG", "CA", "CL", "ZN", "FE", "CU", "MN", "CO", "NI", "CD",
-    "HG", "FE2", "BR", "IOD", "LI", "BA", "CS", "SR", "AL", "RB", "PT",
-    "GOL", "EDO", "MPD", "PEG", "PG4", "PGE", "P6G", "1PE",
-    "FMT", "ACT", "CIT", "TRS", "IMD", "DMS", "BME", "EPE", "MES", "BCN",
-    "SO4", "PO4", "NO3", "CO3", "SCN", "ACE",
-})
+HET_DENYLIST = frozenset(
+    {
+        "ALA",
+        "ARG",
+        "ASN",
+        "ASP",
+        "CYS",
+        "GLN",
+        "GLU",
+        "GLY",
+        "HIS",
+        "ILE",
+        "LEU",
+        "LYS",
+        "MET",
+        "PHE",
+        "PRO",
+        "SER",
+        "THR",
+        "TRP",
+        "TYR",
+        "VAL",
+        "HOH",
+        "DOD",
+        "WAT",
+        "NA",
+        "K",
+        "MG",
+        "CA",
+        "CL",
+        "ZN",
+        "FE",
+        "CU",
+        "MN",
+        "CO",
+        "NI",
+        "CD",
+        "HG",
+        "FE2",
+        "BR",
+        "IOD",
+        "LI",
+        "BA",
+        "CS",
+        "SR",
+        "AL",
+        "RB",
+        "PT",
+        "GOL",
+        "EDO",
+        "MPD",
+        "PEG",
+        "PG4",
+        "PGE",
+        "P6G",
+        "1PE",
+        "FMT",
+        "ACT",
+        "CIT",
+        "TRS",
+        "IMD",
+        "DMS",
+        "BME",
+        "EPE",
+        "MES",
+        "BCN",
+        "SO4",
+        "PO4",
+        "NO3",
+        "CO3",
+        "SCN",
+        "ACE",
+    }
+)
 
 
 def _parse_first_token(value):
     if value is None or (isinstance(value, float) and pd.isna(value)):
         return ""
     s = str(value).strip()
-    if not s or s in ("[]", "['']", "[\"\"]"):
+    if not s or s in ("[]", "['']", '[""]'):
         return ""
     match = re.search(r"['\"]([^'\"]+)['\"]", s)
     return match.group(1) if match else ""
@@ -65,8 +129,8 @@ def _short(value, limit=200):
 class Command(BaseCommand):
     help = (
         "Load ligands predicted by LigQ_2 (known + zinc) into the Binders table. "
-        "Expects the LigQ_2 output layout: <output_dir>/search_results/<qseqid>/{known,zinc}_ligands.tsv. "
-        "Also accepts a flat layout with known_ligands.tsv / zinc_ligands.tsv at the root."
+        "Expects the LigQ_2 output layout: <output_dir>/search_results/<qseqid>/known_ligands.tsv "
+        "plus zinc_ligands.tsv or predicted_ligands.tsv. Also accepts a flat layout at the root."
     )
 
     def add_arguments(self, parser):
@@ -137,7 +201,7 @@ class Command(BaseCommand):
 
         if known_df is None and zinc_df is None:
             raise CommandError(
-                f"No known_ligands.tsv or zinc_ligands.tsv found under {out_dir}. "
+                f"No known_ligands.tsv, zinc_ligands.tsv, or predicted_ligands.tsv found under {out_dir}. "
                 "Expected layout: <output_dir>/search_results/<qseqid>/*.tsv or flat at root."
             )
 
@@ -165,7 +229,9 @@ class Command(BaseCommand):
                 stats=zinc_stats,
             )
         else:
-            self.stdout.write(self.style.WARNING("No zinc_ligands.tsv files found"))
+            self.stdout.write(
+                self.style.WARNING("No zinc_ligands.tsv/predicted_ligands.tsv files found")
+            )
 
         self.stdout.write("")
         self.stdout.write(self.style.SUCCESS("=== LigQ_2 load summary ==="))
@@ -200,6 +266,8 @@ class Command(BaseCommand):
         known_pre_cap = (max_known_per_protein or 100) * 2 if max_known_per_protein else None
         zinc_pre_cap = (max_zinc_per_protein or 50) * 2 if max_zinc_per_protein else None
 
+        zinc_like_names = ("zinc_ligands.tsv", "predicted_ligands.tsv")
+
         search_root = out_dir / "search_results"
         if search_root.is_dir():
             per_protein_dirs = sorted(p for p in search_root.iterdir() if p.is_dir())
@@ -216,8 +284,14 @@ class Command(BaseCommand):
                             )
                             pdb_df = df[df["_inner_source"] == "pdb"].copy()
                             other_df = df[df["_inner_source"] != "pdb"].copy()
-                            if known_pre_cap and len(other_df) > known_pre_cap and "pchembl" in other_df.columns:
-                                other_df["_pchembl_sort"] = pd.to_numeric(other_df["pchembl"], errors="coerce")
+                            if (
+                                known_pre_cap
+                                and len(other_df) > known_pre_cap
+                                and "pchembl" in other_df.columns
+                            ):
+                                other_df["_pchembl_sort"] = pd.to_numeric(
+                                    other_df["pchembl"], errors="coerce"
+                                )
                                 other_df = other_df.sort_values(
                                     "_pchembl_sort", ascending=False, na_position="last"
                                 ).head(known_pre_cap)
@@ -226,12 +300,16 @@ class Command(BaseCommand):
                             df = df.drop(columns=["_inner_source"], errors="ignore")
                         elif known_pre_cap and len(df) > known_pre_cap and "pchembl" in df.columns:
                             df["_pchembl_sort"] = pd.to_numeric(df["pchembl"], errors="coerce")
-                            df = df.sort_values("_pchembl_sort", ascending=False, na_position="last").head(known_pre_cap)
+                            df = df.sort_values(
+                                "_pchembl_sort", ascending=False, na_position="last"
+                            ).head(known_pre_cap)
                             df = df.drop(columns=["_pchembl_sort"])
                         df["_locustag"] = qseqid
                         known_frames.append(df)
-                zf = prot_dir / "zinc_ligands.tsv"
-                if zf.exists() and zf.stat().st_size > 0:
+                for zinc_name in zinc_like_names:
+                    zf = prot_dir / zinc_name
+                    if not zf.exists() or zf.stat().st_size <= 0:
+                        continue
                     df = pd.read_csv(zf, sep="\t")
                     if not df.empty:
                         if "tanimoto" in df.columns:
@@ -245,6 +323,7 @@ class Command(BaseCommand):
                         if not df.empty:
                             df["_locustag"] = qseqid
                             zinc_frames.append(df)
+                    break
             self.stdout.write(
                 self.style.NOTICE(
                     f"Walked search_results/: {protein_count} protein dirs, "
@@ -271,8 +350,15 @@ class Command(BaseCommand):
             if not df.empty:
                 known_frames.append(df)
 
-        flat_zinc = out_dir / "zinc_ligands.tsv"
-        if flat_zinc.exists() and flat_zinc.stat().st_size > 0:
+        flat_zinc = next(
+            (
+                out_dir / name
+                for name in zinc_like_names
+                if (out_dir / name).exists() and (out_dir / name).stat().st_size > 0
+            ),
+            None,
+        )
+        if flat_zinc is not None:
             df = pd.read_csv(flat_zinc, sep="\t")
             if "qseqid" in df.columns:
                 df["_locustag"] = df["qseqid"].astype(str)
@@ -290,7 +376,9 @@ class Command(BaseCommand):
         zinc_df = pd.concat(zinc_frames, ignore_index=True) if zinc_frames else None
         return known_df, zinc_df
 
-    def _load_known(self, df, *, max_per_protein, max_pdb_per_protein=0, dry_run, stats, skip_noise_het=True):
+    def _load_known(
+        self, df, *, max_per_protein, max_pdb_per_protein=0, dry_run, stats, skip_noise_het=True
+    ):
         stats["raw"] = len(df)
         self.stdout.write(self.style.NOTICE(f"known: {len(df)} raw rows"))
 
@@ -489,26 +577,21 @@ class Command(BaseCommand):
         clean = list({str(a) for a in accessions if a and str(a).strip()})
         if not clean:
             return {}
-        return {
-            be.accession: be
-            for be in Bioentry.objects.filter(accession__in=clean)
-        }
+        return {be.accession: be for be in Bioentry.objects.filter(accession__in=clean)}
 
     @staticmethod
     def _uniprot_map(accessions):
         """Returns {protein_accession: frozenset_of_uniprot_ids} from BioentryDbxref."""
         from bioseq.models.BioentryDbxref import BioentryDbxref
+
         clean = list({str(a) for a in accessions if a and str(a).strip()})
         if not clean:
             return {}
         result = {}
-        qs = (
-            BioentryDbxref.objects.filter(
-                bioentry__accession__in=clean,
-                dbxref__dbname__in=["UnipSp", "UnipTr"],
-            )
-            .values("bioentry__accession", "dbxref__accession")
-        )
+        qs = BioentryDbxref.objects.filter(
+            bioentry__accession__in=clean,
+            dbxref__dbname__in=["UnipSp", "UnipTr"],
+        ).values("bioentry__accession", "dbxref__accession")
         for row in qs:
             acc = row["bioentry__accession"]
             xref = row["dbxref__accession"]

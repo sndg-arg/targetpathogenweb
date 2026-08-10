@@ -1,0 +1,205 @@
+{% extends '../base/masterpage.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block head %}
+    <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20260808-scrollmargin-fix">
+    <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20260809-drop-leftover-shadow">
+    <link rel="stylesheet" href="{% static 'css/pages/metabolic-network-genome.css' %}?v=20260809-chokepoint-dt-width">
+{% endblock %}
+
+{% block body %}
+<div class="genome-page metabolism-page metabolism-pathway-detail-page">
+    <section class="genome-hero metabolism-hero">
+        <div class="genome-hero-top tp-view-head">
+            <div class="genome-hero-content tp-view-head-copy">
+                {% trans "Genomes" as crumb_genomes %}
+                {% url 'tpwebapp:index' as index_url %}
+                {% url 'tpwebapp:genomes_list' as genomes_url %}
+                {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=assembly.name crumb_3_url=assembly_url crumb_4_label="Metabolism" crumb_4_url=metabolism_url crumb_5_label=pathway.name %}
+                <p class="genome-hero-eyebrow">{{ pathway.source }}:{{ pathway.external_id }}</p>
+                <h1>{{ pathway.name }}</h1>
+                <p class="genome-description">{{ assembly.name }}{% if assembly.description %} - {{ assembly.description }}{% endif %}</p>
+                <div class="genome-hero-actions">
+                    <a href="{{ metabolism_url }}" class="btn tp-btn tp-btn--outline">{% trans "All pathways" %}</a>
+                    <a href="{{ proteins_url }}" class="btn tp-btn tp-btn--outline">{% trans "Protein ranking" %}</a>
+                    <form method="post" action="{{ proteins_url }}" class="metabolism-pathway-filter-form">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="add_special_filter">
+                        <input type="hidden" name="special_kind" value="pathway">
+                        <input type="hidden" name="special_value" value="{{ pathway.source }}:{{ pathway.external_id }}">
+                        <button type="submit" class="btn tp-btn tp-btn--primary tp-btn-with-icon" title="{% trans "Show only proteins with a reaction in this pathway on the protein list." %}">
+                            <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/filter.html" %}</span>
+                            <span>{% trans "Filter protein list by this pathway" %}</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="genome-metrics" aria-label="{% trans 'Pathway summary' %}">
+            <div class="metric-pill">
+                <span class="metric-label">{% trans "Reactions" %}</span>
+                <span class="metric-value">{{ stats.reaction_count }}</span>
+            </div>
+            <div class="metric-pill">
+                <span class="metric-label">{% trans "Proteins" %}</span>
+                <span class="metric-value">{{ stats.protein_count }}</span>
+            </div>
+            <div class="metric-pill">
+                <span class="metric-label">{% trans "Metabolites" %}</span>
+                <span class="metric-value">{{ stats.metabolite_count }}</span>
+            </div>
+            <div class="metric-pill metric-pill--warm">
+                <span class="metric-label">{% trans "Chokepoints" %}</span>
+                <span class="metric-value">{{ stats.chokepoint_count }}</span>
+            </div>
+        </div>
+    </section>
+
+    <section class="genome-card metabolism-panel metabolism-pathway-map-panel">
+        <div class="section-head tp-ui-panel-head">
+            <div>
+                <h2>{% trans "Pathway map" %}</h2>
+                <p class="section-subtitle">{% trans "Reaction-to-metabolite flow reconstructed from the imported SBML participants." %}</p>
+            </div>
+        </div>
+        <div class="metabolic-network-genome-shell">
+            <div class="metabolic-network-genome-toolbar">
+                <div class="metabolic-network-genome-legend">
+                    <span><i class="metabolic-network-genome-dot metabolic-network-genome-dot--density-4"></i>{% trans "Chokepoint reaction" %}</span>
+                    <span><i class="metabolic-network-genome-dot metabolic-network-genome-dot--density-1"></i>{% trans "Metabolite" %}</span>
+                    <span title="{% trans "Reactions marked reversible in the imported SBML get an arrowhead on both ends." %}">&#8652; {% trans "Reversible reaction" %}</span>
+                    <span title="{% trans "Ubiquitous cofactors (ATP, water, NAD+, etc.) are left out of the diagram to keep it readable." %}">{% trans "Currency metabolites hidden" %}</span>
+                </div>
+                <div class="metabolic-network-genome-actions" aria-label="{% trans 'Pathway map controls' %}">
+                    <button type="button" class="metabolic-map-btn" data-pathway-graph-action="fit" title="{% trans 'Fit to view' %}" aria-label="{% trans 'Fit to view' %}">
+                        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6V2h4M14 6V2h-4M2 10v4h4M14 10v4h-4"/></svg>
+                    </button>
+                    <button type="button" class="metabolic-map-btn" data-pathway-graph-action="zoom-in" title="{% trans 'Zoom in' %}" aria-label="{% trans 'Zoom in' %}">
+                        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="7" cy="7" r="4"/><path d="M10.2 10.2L14 14M7 5v4M5 7h4"/></svg>
+                    </button>
+                    <button type="button" class="metabolic-map-btn" data-pathway-graph-action="zoom-out" title="{% trans 'Zoom out' %}" aria-label="{% trans 'Zoom out' %}">
+                        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="7" cy="7" r="4"/><path d="M10.2 10.2L14 14M5 7h4"/></svg>
+                    </button>
+                </div>
+            </div>
+            <div class="metabolic-network-genome-canvas-wrap">
+                <div class="metabolic-network-genome-glow" aria-hidden="true"></div>
+                <div id="metabolic-pathway-graph-cy"></div>
+                <div class="metabolic-network-genome-loading" id="metabolic-pathway-graph-loading">
+                    <span class="metabolic-network-genome-spinner" aria-hidden="true"></span>
+                    {% trans "Computing layout…" %}
+                </div>
+            </div>
+        </div>
+        {% if omitted_reactions %}
+        <p class="metabolic-provenance">{% blocktrans with count=omitted_reactions %}Graph capped for readability; {{ count }} additional reactions are listed below.{% endblocktrans %}</p>
+        {% endif %}
+    </section>
+
+    {% if connected_pathways %}
+    <section class="genome-card metabolism-panel">
+        <div class="section-head tp-ui-panel-head">
+            <div>
+                <h2>{% trans "Connected pathways" %}</h2>
+                <p class="section-subtitle">{% trans "Other pathways in this genome that share reactions with this one." %}</p>
+            </div>
+        </div>
+        <div class="metabolism-connected-pathways">
+            {% for neighbor in connected_pathways %}
+            <a href="{{ neighbor.url }}" class="metabolism-connected-pathway-chip" title="{% blocktrans with count=neighbor.shared_weight %}Shares {{ count }} reaction-reaction connection(s) with this pathway{% endblocktrans %}">
+                <span class="metabolism-source{% if neighbor.source == 'MODEL' %} metabolism-source--model{% endif %}">{{ neighbor.source }}</span>
+                <span class="metabolism-connected-pathway-name">{{ neighbor.name }}</span>
+                <span class="metabolism-connected-pathway-weight">{{ neighbor.shared_weight }} {% trans "shared" %}</span>
+            </a>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <section class="genome-card metabolism-panel">
+        <div class="section-head tp-ui-panel-head">
+            <div>
+                <h2>{% trans "Reaction table" %}</h2>
+                <p class="section-subtitle">{% trans "Catalyzed reactions, mapped genes, and SBML substrates/products." %}</p>
+            </div>
+        </div>
+        <div class="metabolism-reaction-table">
+            {% for reaction in reaction_rows %}
+            <article class="pathway-reaction-row{% if reaction.is_chokepoint %} pathway-reaction-row--chokepoint{% endif %}" data-reaction-id="{{ reaction.id }}" title="{% trans 'Click to locate this reaction in the graph above' %}">
+                <div class="pathway-reaction-main">
+                    <div>
+                        <h3 title="{% trans 'Reaction' %}: {{ reaction.name }}">{{ reaction.name }}</h3>
+                        <p>
+                            {% if reaction.ec_numbers %}EC {{ reaction.ec_numbers|join:", " }}{% else %}EC -{% endif %}
+                            {% if reaction.kegg_reaction_id and reaction.kegg_url %}
+                            &middot;
+                            <a class="reaction-external-link reaction-external-link--kegg" href="{{ reaction.kegg_url }}" target="_blank" rel="noopener noreferrer" title="{% trans 'Open reaction in KEGG' %}">{{ reaction.kegg_reaction_id }}</a>
+                            {% endif %}
+                            &middot;
+                            <a class="reaction-external-link reaction-external-link--metacyc" href="{{ reaction.metacyc_url }}" target="_blank" rel="noopener noreferrer" title="{% trans 'Open reaction in MetaCyc' %}">{{ reaction.id }}</a>
+                            &middot; {% if reaction.reversible %}{% trans "reversible" %}{% else %}{% trans "not reversible" %}{% endif %}
+                        </p>
+                    </div>
+                    {% if reaction.is_chokepoint %}
+                    <span class="target-evidence-accessory-badge">{{ reaction.chokepoint_role }}</span>
+                    {% endif %}
+                </div>
+                <div class="pathway-reaction-equation">
+                    <div>
+                        {% for item in reaction.substrates %}
+                        <span class="metabolite-chip{% if item.is_currency %} is-currency{% endif %}" title="{% trans 'Substrate metabolite' %}: {{ item.name }}"><span class="metabolite-chip-label">{{ item.name }}</span></span>
+                        {% empty %}
+                        <span class="annotation-empty">-</span>
+                        {% endfor %}
+                        {% if reaction.substrate_hidden %}<span class="metabolite-chip is-currency" title="{{ reaction.substrate_hidden }} additional substrate{{ reaction.substrate_hidden|pluralize }}"><span class="metabolite-chip-label">+{{ reaction.substrate_hidden }}</span></span>{% endif %}
+                    </div>
+                    <span class="metabolite-arrow{% if reaction.reversible %} metabolite-arrow--reversible{% endif %}" title="{% if reaction.reversible %}{% trans "Reversible reaction" %}{% else %}{% trans "Not reversible" %}{% endif %}">{% if reaction.reversible %}&#8652;{% else %}&rarr;{% endif %}</span>
+                    <div>
+                        {% for item in reaction.products %}
+                        <span class="metabolite-chip{% if item.is_currency %} is-currency{% endif %}" title="{% trans 'Product metabolite' %}: {{ item.name }}"><span class="metabolite-chip-label">{{ item.name }}</span></span>
+                        {% empty %}
+                        <span class="annotation-empty">-</span>
+                        {% endfor %}
+                        {% if reaction.product_hidden %}<span class="metabolite-chip is-currency" title="{{ reaction.product_hidden }} additional product{{ reaction.product_hidden|pluralize }}"><span class="metabolite-chip-label">+{{ reaction.product_hidden }}</span></span>{% endif %}
+                    </div>
+                </div>
+                <div class="pathway-reaction-genes">
+                    {% for gene in reaction.genes %}
+                    <a href="{{ gene.url }}" class="metabolism-target-chip">{{ gene.accession }}</a>
+                    {% empty %}
+                    <span class="metabolism-target-chip metabolism-target-chip--empty">{% trans "No mapped protein" %}</span>
+                    {% endfor %}
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+    </section>
+</div>
+
+{{ graph_payload|json_script:"metabolic-pathway-graph-data" }}
+<script src="{% static 'js/pages/metabolic-reaction-graph.js' %}?v=20260809-hover-highlight"></script>
+<script src="{% static 'js/pages/metabolic-pathway-graph.js' %}?v=20260807-rxnrow-click"></script>
+<script>
+(function () {
+    var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var nodes = Array.prototype.slice.call(document.querySelectorAll(".genome-metrics .metric-value"));
+    nodes.forEach(function (el) {
+        var target = parseInt((el.textContent || "").replace(/[^0-9]/g, ""), 10);
+        if (isNaN(target)) return;
+        if (reduceMotion || !target) return;
+        var duration = 650;
+        var start = null;
+        el.textContent = "0";
+        function tick(ts) {
+            if (start === null) start = ts;
+            var progress = Math.min(1, (ts - start) / duration);
+            var eased = 1 - Math.pow(1 - progress, 3);
+            el.textContent = Math.round(eased * target).toString();
+            if (progress < 1) requestAnimationFrame(tick);
+        }
+        requestAnimationFrame(tick);
+    });
+})();
+</script>
+{% endblock %}

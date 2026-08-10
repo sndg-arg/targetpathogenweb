@@ -1,0 +1,710 @@
+/* ============================================================
+   Data Sources / Methodology page
+   ============================================================ */
+
+.ds-page {
+    font-family: "Source Sans 3", "Segoe UI", sans-serif;
+    color: var(--tp-ink);
+    margin: 0;
+    display: grid;
+    gap: var(--tp-space-4);
+    --ds-accent: var(--tp-color-brand-800);
+    --ds-accent-deep: var(--tp-color-brand-900);
+    --ds-accent-soft: var(--tp-color-brand-050);
+    --ds-accent-border: var(--tp-color-brand-200);
+}
+
+/* .ds-panel sections sit directly on the page background, no card
+   boxing (see tpw-editorial-redesign). Shared by about_us.html (3
+   panels) and data_sources.html (10 panels) -- the latter has enough
+   sections, each with its own bold h2, that a divider before every one
+   would read as a ruled form, so spacing only, same call as
+   genome-overview.css's .genome-grid. Extra margin here is additive on
+   top of .ds-page's own grid gap, and only between consecutive panels
+   (not hero->quick-nav or quick-nav->first panel, which keep the
+   tighter base gap). */
+.ds-panel ~ .ds-panel {
+    margin-top: 24px;
+}
+
+.ds-page h1,
+.ds-page h2,
+.ds-page h3,
+.ds-page h4 {
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+}
+
+/* ── Hero ── */
+/* No longer boxed via .tp-page-hero -- sits directly on the page
+   background (see tpw-editorial-redesign), so it needs its own padding
+   now instead of inheriting that shared class's. */
+.ds-hero {
+    padding: 20px 18px;
+}
+
+.ds-eyebrow {
+    margin: 6px 0 10px;
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-label);
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.ds-hero-title {
+    margin: 0;
+    font-size: var(--tp-heading-lg);
+    font-weight: 700;
+    line-height: 1.1;
+    color: var(--ds-accent-deep);
+}
+
+.ds-hero-description {
+    margin: 10px 0 0;
+    color: var(--tp-color-text-secondary);
+    font-size: 1rem;
+    line-height: 1.42;
+    max-width: 920px;
+}
+
+/* ── Sticky section nav ── */
+.ds-quick-nav {
+    position: sticky;
+    top: -2px;
+    z-index: 25;
+    align-self: stretch;
+    width: 100%;
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 6px;
+    overflow-x: auto;
+    /* Horizontal padding matches .ds-hero/.ds-panel's 18px so the first
+       nav link lines up with the hero/panel text above and below it. */
+    padding: 8px 18px;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 12px;
+    background: var(--tp-color-surface-soft);
+    scrollbar-width: none;
+}
+.ds-quick-nav::-webkit-scrollbar { display: none; }
+
+.ds-quick-nav-link {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+    padding: 0.38rem 0.9rem;
+    font-size: 0.82rem;
+    font-weight: 500;
+    border-radius: 999px;
+    border: 1px solid var(--tp-color-border);
+    background: var(--tp-color-surface);
+    color: var(--tp-color-text-secondary);
+    text-decoration: none;
+    transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+.ds-quick-nav-link:hover {
+    color: var(--tp-color-text-primary);
+    border-color: var(--tp-color-border-strong);
+    background: var(--tp-color-surface-muted);
+    text-decoration: none;
+}
+.ds-quick-nav-link.is-active {
+    color: var(--tp-color-link-hover);
+    border-color: var(--ds-accent-border);
+    border-width: 2px;
+    background: var(--tp-color-brand-100);
+    text-decoration: none;
+}
+.tp-dark .ds-quick-nav-link.is-active {
+    background: var(--tp-color-brand-200);
+    border-color: var(--tp-color-brand-300);
+    color: var(--tp-color-brand-900);
+}
+
+/* ── Panel common ── */
+.ds-panel { padding: 20px 18px; }
+
+.ds-panel-title {
+    margin: 2px 0 0;
+    font-size: 1.12rem;
+    font-weight: 600;
+    color: var(--ds-accent-deep);
+    letter-spacing: -0.02em;
+}
+
+.ds-panel-subtitle {
+    margin: 4px 0 0;
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 0.76rem;
+    color: var(--tp-color-text-muted);
+}
+
+.ds-body {
+    margin: 16px 0 0;
+    color: var(--tp-color-text-secondary);
+    font-size: 0.94rem;
+    line-height: 1.65;
+}
+
+.ds-subsection {
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--tp-color-border-soft);
+}
+
+.ds-subsection h3 {
+    margin: 0 0 8px;
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--tp-color-text-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* ── Pipeline grid ── */
+.ds-pipeline-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.ds-pipeline-card {
+    padding: 16px 17px;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 10px;
+    background: var(--tp-color-surface);
+    display: grid;
+    gap: 9px;
+    align-content: start;
+    box-shadow: var(--tp-shadow-xs);
+    transition: box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard), transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.ds-pipeline-card:hover {
+    box-shadow: var(--tp-shadow-sm);
+    transform: translateY(-1px);
+}
+
+.ds-pipeline-card-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.ds-pipeline-card-head strong {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--tp-color-text-primary);
+}
+
+.ds-pipeline-card p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--tp-color-text-secondary);
+    line-height: 1.58;
+}
+
+.ds-pipeline-card-role {
+    color: var(--tp-color-text-secondary) !important;
+}
+
+.ds-pipeline-card-role--doctor {
+    color: var(--tp-color-text-primary) !important;
+    font-weight: 650;
+}
+
+.ds-pipeline-card-role--candidate {
+    color: var(--tp-color-text-primary) !important;
+    font-weight: 610;
+}
+
+.ds-pipeline-card-role--engineering {
+    color: var(--tp-color-text-primary) !important;
+    font-weight: 610;
+}
+
+.ds-pipeline-card-faculty {
+    font-size: 0.78rem;
+    color: var(--tp-color-text-muted);
+    margin-top: -4px !important;
+}
+
+.ds-pipeline-card-previous-degree {
+    padding-top: 8px;
+    border-top: 1px solid var(--tp-color-border-soft);
+}
+
+.ds-pipeline-card-previous-degree {
+    color: var(--tp-color-text-muted) !important;
+}
+
+.ds-pipeline-card-previous-degree > span:first-child {
+    display: block;
+    margin-bottom: 2px;
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 0.66rem;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--tp-color-text-muted);
+}
+
+.ds-stage-tag {
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 0.73rem;
+    font-weight: 600;
+    color: var(--ds-accent);
+    background: var(--ds-accent-soft);
+    border: 1px solid var(--ds-accent-border);
+    border-radius: 5px;
+    padding: 2px 7px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+/* ── Field list (protein data) ── */
+.ds-field-list {
+    margin-top: 16px;
+    display: grid;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.ds-field-row {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    gap: 16px;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--tp-color-border-soft);
+    align-items: baseline;
+}
+
+.ds-field-row:last-child { border-bottom: none; }
+.ds-field-row:nth-child(even) { background: var(--tp-color-surface-soft); }
+
+.ds-field-name {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--tp-color-text-primary);
+}
+
+.ds-field-desc {
+    font-size: 0.85rem;
+    color: var(--tp-color-text-secondary);
+    line-height: 1.5;
+}
+
+/* ── Callout ── */
+.ds-callout {
+    margin-top: 16px;
+    padding: 13px 15px;
+    border-radius: 9px;
+    border: 1px solid var(--tp-color-border-soft);
+    background: var(--tp-color-surface-muted);
+    font-size: 0.875rem;
+    color: var(--tp-color-text-secondary);
+    line-height: 1.62;
+}
+
+/* ── Priority stack ── */
+.ds-priority-stack {
+    margin-top: 16px;
+    display: grid;
+    gap: 1px;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.ds-priority-row {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    padding: 16px 18px;
+    background: var(--tp-color-surface);
+    border-bottom: 1px solid var(--tp-color-border-soft);
+}
+
+.ds-priority-row:last-child { border-bottom: none; }
+.ds-priority-row:nth-child(even) { background: var(--tp-color-surface-soft); }
+
+.ds-priority-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    font-size: 0.8rem;
+    font-weight: 600;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+.ds-priority-badge--1 {
+    background: var(--tp-color-success-bg);
+    color: var(--tp-color-success-ink);
+    border: 1.5px solid var(--tp-color-success-border);
+}
+
+.ds-priority-badge--2 {
+    background: var(--tp-color-warning-bg);
+    color: var(--tp-color-warning-ink);
+    border: 1.5px solid var(--tp-color-warning-border);
+}
+
+.ds-priority-badge--3 {
+    background: var(--tp-color-surface-muted);
+    color: var(--tp-color-text-muted);
+    border: 1.5px solid var(--tp-color-border);
+}
+
+.ds-priority-body {
+    display: grid;
+    gap: 3px;
+}
+
+.ds-priority-body strong {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--tp-color-text-primary);
+}
+
+.ds-priority-source {
+    font-size: 0.76rem;
+    color: var(--tp-color-text-muted);
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+}
+
+.ds-priority-body p {
+    margin: 4px 0 0;
+    font-size: 0.875rem;
+    color: var(--tp-color-text-secondary);
+    line-height: 1.58;
+}
+
+/* ── Score table ── */
+.ds-score-table {
+    display: grid;
+    gap: 4px;
+    margin-top: 12px;
+}
+
+.ds-score-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 6px 10px;
+    border-radius: 7px;
+    font-size: 0.84rem;
+}
+
+.ds-score-row--high   { background: var(--tp-color-success-bg); color: var(--tp-color-success-ink); }
+.ds-score-row--medium { background: var(--tp-color-warning-bg); color: var(--tp-color-warning-ink); }
+.ds-score-row--low    { background: var(--tp-color-danger-bg);  color: var(--tp-color-danger-ink); }
+.ds-score-row--none   { background: var(--tp-color-surface-muted); color: var(--tp-color-text-secondary); }
+
+.ds-score-range {
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 0.78rem;
+    font-weight: 600;
+    min-width: 64px;
+    flex-shrink: 0;
+}
+
+/* ── Tool columns (binding sites) ── */
+.ds-tool-cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-top: 16px;
+}
+
+.ds-tool-block {
+    padding: 16px;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 10px;
+    background: var(--tp-color-surface);
+    display: grid;
+    gap: 10px;
+    align-content: start;
+}
+
+.ds-tool-head {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.ds-tool-name {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--ds-accent-deep);
+    letter-spacing: -0.01em;
+}
+
+.ds-tool-ver {
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 0.73rem;
+    color: var(--tp-color-text-muted);
+}
+
+/* ── DB grid (InterProScan) ── */
+.ds-db-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    margin-top: 12px;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.ds-db-row {
+    display: flex;
+    gap: 10px;
+    align-items: baseline;
+    padding: 9px 12px;
+    background: var(--tp-color-surface);
+    border-bottom: 1px solid var(--tp-color-border-soft);
+}
+
+.ds-db-row:nth-child(odd):last-child,
+.ds-db-row:last-child,
+.ds-db-row:nth-last-child(2):nth-child(odd) { border-bottom: none; }
+
+.ds-db-name {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--tp-color-text-primary);
+    white-space: nowrap;
+    flex-shrink: 0;
+    min-width: 110px;
+}
+
+.ds-db-desc {
+    font-size: 0.80rem;
+    color: var(--tp-color-text-muted);
+    line-height: 1.4;
+}
+
+/* ── Target profile grid ── */
+.ds-profile-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.ds-profile-card {
+    padding: 15px 16px;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 10px;
+    background: var(--tp-color-surface);
+    display: grid;
+    gap: 8px;
+    align-content: start;
+}
+
+.ds-profile-card-head {
+    display: grid;
+    gap: 2px;
+}
+
+.ds-profile-label {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--tp-color-text-primary);
+}
+
+.ds-profile-tool {
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 0.72rem;
+    color: var(--tp-color-text-muted);
+}
+
+.ds-profile-card > p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--tp-color-text-secondary);
+    line-height: 1.58;
+}
+
+.ds-desirable {
+    font-size: 0.82rem !important;
+    color: var(--tp-color-text-muted) !important;
+    padding-top: 6px;
+    border-top: 1px solid var(--tp-color-border-soft);
+}
+
+/* ── Ligands table ── */
+.ds-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+    margin-top: 16px;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.ds-table th {
+    background: var(--tp-color-surface-muted);
+    color: var(--tp-color-text-muted);
+    font-size: 0.73rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    padding: 9px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--tp-color-border-soft);
+}
+
+.ds-table td {
+    padding: 9px 12px;
+    color: var(--tp-color-text-secondary);
+    border-bottom: 1px solid var(--tp-color-border-soft);
+    line-height: 1.45;
+    vertical-align: top;
+}
+
+.ds-table tr:last-child td { border-bottom: none; }
+.ds-table tr:nth-child(even) td { background: var(--tp-color-surface-soft); }
+
+/* ── Definitions (pChEMBL, Tanimoto) ── */
+.ds-def-list {
+    margin-top: 14px;
+    display: grid;
+    gap: 1px;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.ds-def-row {
+    display: grid;
+    grid-template-columns: 100px 1fr;
+    gap: 16px;
+    padding: 10px 14px;
+    background: var(--tp-color-surface);
+    border-bottom: 1px solid var(--tp-color-border-soft);
+    align-items: baseline;
+}
+
+.ds-def-row:last-child { border-bottom: none; }
+.ds-def-row:nth-child(even) { background: var(--tp-color-surface-soft); }
+
+.ds-def-term {
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--ds-accent);
+}
+
+.ds-def-body {
+    font-size: 0.85rem;
+    color: var(--tp-color-text-secondary);
+    line-height: 1.55;
+}
+
+/* ── Drug-likeness list ── */
+.ds-dl-list {
+    margin-top: 8px;
+}
+
+.ds-dl-row {
+    padding: 16px 0;
+    border-bottom: 1px solid var(--tp-color-border-soft);
+    display: grid;
+    gap: 8px;
+}
+
+.ds-dl-row:last-child { border-bottom: none; }
+
+.ds-dl-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.ds-dl-tag {
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: var(--ds-accent);
+    background: var(--ds-accent-soft);
+    border: 1px solid var(--ds-accent-border);
+    border-radius: 5px;
+    padding: 2px 8px;
+    flex-shrink: 0;
+}
+
+.ds-dl-name {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--tp-color-text-primary);
+}
+
+.ds-dl-row > p {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--tp-color-text-secondary);
+    line-height: 1.62;
+}
+
+/* ── Caveats ── */
+.ds-caveats {
+    padding: 0;
+    margin: 16px 0 0;
+    list-style: none;
+    display: grid;
+}
+
+.ds-caveats li {
+    padding: 14px 0;
+    border-bottom: 1px solid var(--tp-color-border-soft);
+    color: var(--tp-color-text-secondary);
+    font-size: 0.93rem;
+    line-height: 1.65;
+}
+
+.ds-caveats li:last-child { border-bottom: none; }
+.ds-caveats strong { color: var(--tp-color-text-primary); }
+
+/* ── Responsive ── */
+@media (max-width: 880px) {
+    .ds-pipeline-grid { grid-template-columns: 1fr 1fr; }
+    .ds-tool-cols,
+    .ds-profile-grid,
+    .ds-db-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 600px) {
+    .ds-pipeline-grid { grid-template-columns: 1fr; }
+    .ds-field-row { grid-template-columns: 1fr; gap: 3px; }
+    .ds-def-row { grid-template-columns: 1fr; gap: 4px; }
+    .ds-hero-title { font-size: 1.8rem; }
+}
+
+/* ── Dark mode ── */
+.tp-dark .ds-pipeline-card,
+.tp-dark .ds-tool-block,
+.tp-dark .ds-profile-card,
+.tp-dark .ds-priority-row,
+.tp-dark .ds-db-row {
+    background: var(--tp-color-surface-soft);
+}
+
+.tp-dark .ds-priority-row:nth-child(even),
+.tp-dark .ds-db-row:nth-child(odd),
+.tp-dark .ds-field-row:nth-child(even),
+.tp-dark .ds-table tr:nth-child(even) td,
+.tp-dark .ds-def-row:nth-child(even) {
+    background: var(--tp-color-surface-muted);
+}

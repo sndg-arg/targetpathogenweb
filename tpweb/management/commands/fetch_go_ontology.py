@@ -6,7 +6,12 @@ from bioseq.models.Dbxref import Dbxref
 from bioseq.models.Ontology import Ontology
 from bioseq.models.Term import Term
 from bioseq.models.TermDbxref import TermDbxref
-from tpweb.services.go_ontology import GO_BASIC_OBO_URL, download_go_obo, expand_go_records, parse_go_obo
+from tpweb.services.go_ontology import (
+    GO_BASIC_OBO_URL,
+    download_go_obo,
+    expand_go_records,
+    parse_go_obo,
+)
 
 
 class Command(BaseCommand):
@@ -67,7 +72,9 @@ class Command(BaseCommand):
             f"Parsed {len(records):,} primary GO terms and {len(resolved_terms):,} total identifiers including alt_id aliases"
         )
 
-        go_ontology, _ = Ontology.objects.get_or_create(name=Ontology.GO, defaults={"definition": ""})
+        go_ontology, _ = Ontology.objects.get_or_create(
+            name=Ontology.GO, defaults={"definition": ""}
+        )
 
         incoming_by_id = {term.identifier: term for term in resolved_terms}
         incoming_ids = list(incoming_by_id.keys())
@@ -117,7 +124,9 @@ class Command(BaseCommand):
         if terms_to_create:
             Term.objects.bulk_create(terms_to_create, batch_size=batch_size)
         if terms_to_update:
-            Term.objects.bulk_update(terms_to_update, ["name", "definition", "is_obsolete"], batch_size=batch_size)
+            Term.objects.bulk_update(
+                terms_to_update, ["name", "definition", "is_obsolete"], batch_size=batch_size
+            )
 
         term_id_map = {
             term.identifier: term

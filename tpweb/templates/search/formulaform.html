@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/formula-form.css' %}?v=20260521-score-builder">
+    <link rel="stylesheet" href="{% static 'css/pages/formula-form.css' %}?v=20260804-fusion2">
 {% endblock %}
 
 {% block body %}
@@ -158,6 +158,7 @@
                         <div>
                             <h2>{% trans "Variables" %}</h2>
                             <p class="formula-card-note">{% trans "Click any variable to insert it. Numeric variables keep their raw value; categorical variables are 1.0 when true and 0.0 otherwise." %}</p>
+                            <p class="formula-card-note">{% trans "Large text categories, such as individual structure IDs, are hidden here because they are better used as filters than score terms." %}</p>
                         </div>
                     </div>
 
@@ -206,13 +207,14 @@
             </div>
             <div class="formula-footer-actions">
                 <button id="formula-save-btn" type="submit" form="formula-form" name="save_formula" value="1"
-                        class="btn tp-btn tp-btn--primary" disabled>
-                    {% trans "Save scoring formula" %}
+                        class="btn tp-btn tp-btn--primary tp-btn-with-icon" disabled>
+                    <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/save.html" %}</span>
+                    <span>{% trans "Save scoring formula" %}</span>
                 </button>
                 <button type="submit" form="formula-form" name="reset_process" value="true"
                         class="btn tp-btn tp-btn--clear tp-btn--clear-caution tp-btn-with-icon">
-                    {% include "components/icons/trash.html" %}
-                    {% trans "Reset" %}
+                    <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/trash.html" %}</span>
+                    <span>{% trans "Reset" %}</span>
                 </button>
             </div>
         </section>

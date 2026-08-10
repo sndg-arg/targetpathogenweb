@@ -3,12 +3,12 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/binder-detail.css' %}?v=20260511-rich">
+    <link rel="stylesheet" href="{% static 'css/pages/binder-detail.css' %}?v=20260804-fusion1">
 {% endblock %}
 
 {% block body %}
     <div class="binder-page">
-        <section class="binder-hero tp-page-hero" id="section-overview">
+        <section class="binder-hero" id="section-overview">
             <div class="binder-hero-top tp-view-head">
                 <div class="binder-hero-content tp-view-head-copy">
                     {% trans "Genomes" as crumb_genomes %}
@@ -18,12 +18,12 @@
                     {% url 'tpwebapp:assembly' genome as assembly_url %}
                     {% with crumb_genome="Genome: "|add:assembly_label %}
                     {% with crumb_protein="Protein: "|add:protein.accession %}
-                    {% with crumb_binder="Binder: "|add:binder.name %}
+                    {% with crumb_binder="Ligand: "|add:binder.name %}
                     {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_genome crumb_3_url=assembly_url crumb_4_label=crumb_proteins crumb_4_url=proteins_url crumb_5_label=crumb_protein crumb_5_url=protein_url crumb_6_label=crumb_binder %}
                     {% endwith %}
                     {% endwith %}
                     {% endwith %}
-                    <p class="binder-hero-eyebrow">{% trans "Binder profile" %}</p>
+                    <p class="binder-hero-eyebrow">{% trans "Ligand profile" %}</p>
                     <h1>{{ binder.name }}</h1>
                     <p class="binder-description">
                         {% if binder.is_pdb %}
@@ -60,12 +60,14 @@
                             </span>
                         {% endif %}
                         {% if properties.formula %}
-                            <span class="hero-chip tp-chip tp-chip--meta tp-chip--sm binder-formula-chip">{{ properties.formula }}</span>
+                            <span class="hero-chip tp-chip tp-chip--meta tp-chip--sm binder-formula-chip">
+                                <strong>{% trans "Formula" %}</strong>&thinsp;<span>{{ properties.formula }}</span>
+                            </span>
                         {% endif %}
                     </div>
                 </div>
             </div>
-            <div class="binder-metrics" aria-label="{% trans 'Binder summary' %}">
+            <div class="binder-metrics" aria-label="{% trans 'Ligand summary' %}">
                 {% if binder.score is not None %}
                     <div class="metric-pill">
                         <span class="metric-label">
@@ -74,6 +76,7 @@
                             {% else %}{% trans "Score" %}{% endif %}
                         </span>
                         <span class="metric-value">{{ binder.score|stringformat:".2f" }}</span>
+                        {% if binder.potency_estimate %}<span class="metric-unit" title="{% trans 'Estimated experimental potency, converted from pchembl.' %}">{{ binder.potency_estimate }}</span>{% endif %}
                     </div>
                 {% endif %}
                 {% if properties.mw %}
@@ -95,7 +98,7 @@
             </div>
         </section>
 
-        <nav class="quick-nav" aria-label="{% trans 'Binder sections' %}">
+        <nav class="quick-nav" aria-label="{% trans 'Ligand sections' %}">
             <a href="#section-overview" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Overview" %}</a>
             {% if binder.svg %}
                 <a href="#section-structure" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Structure" %}</a>
@@ -112,13 +115,13 @@
                 <a href="#section-external" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "External" %}</a>
             {% endif %}
             {% if siblings.pdb or siblings.chembl or siblings.proposed %}
-                <a href="#section-siblings" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Other binders" %}</a>
+                <a href="#section-siblings" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Other ligands" %}</a>
             {% endif %}
         </nav>
 
         <div class="binder-grid">
             <!-- Identifiers -->
-            <section class="binder-card tp-ui-panel binder-card--identifiers">
+            <section class="binder-card binder-card--identifiers">
                 <div class="section-head tp-ui-panel-head">
                     <div>
                         <h2>{% trans "Identifiers" %}</h2>
@@ -151,7 +154,7 @@
                                 {% elif binder.source == 'chembl' %}pchembl
                                 {% else %}Tanimoto{% endif %}
                             </dt>
-                            <dd>{{ binder.score|stringformat:".3f" }}</dd>
+                            <dd>{{ binder.score|stringformat:".3f" }}{% if binder.potency_estimate %} <span class="binder-id-row-sub">({{ binder.potency_estimate }})</span>{% endif %}</dd>
                         </div>
                     {% endif %}
                     <div class="binder-id-row">
@@ -162,7 +165,7 @@
             </section>
 
             {% if binder.svg %}
-                <section class="binder-card tp-ui-panel binder-card--structure" id="section-structure">
+                <section class="binder-card binder-card--structure" id="section-structure">
                     <div class="section-head tp-ui-panel-head">
                         <div>
                             <h2>{% trans "Structure" %}</h2>
@@ -174,7 +177,7 @@
             {% endif %}
 
             {% if properties %}
-                <section class="binder-card tp-ui-panel binder-card--properties" id="section-properties">
+                <section class="binder-card binder-card--properties" id="section-properties">
                     <div class="section-head tp-ui-panel-head">
                         <div>
                             <h2>{% trans "Physicochemical properties" %}</h2>
@@ -225,7 +228,7 @@
                     </div>
                 </section>
 
-                <section class="binder-card tp-ui-panel binder-card--druglikeness" id="section-druglikeness">
+                <section class="binder-card binder-card--druglikeness" id="section-druglikeness">
                     <div class="section-head tp-ui-panel-head">
                         <div>
                             <h2>{% trans "Drug-likeness" %}</h2>
@@ -243,6 +246,15 @@
                             <p class="druglike-note">
                                 {% trans "Estimated from TPSA and LogP only: TPSA ≤ 90 Å² and −1 ≤ LogP ≤ 5 are treated as a favorable small-molecule permeability screen." %}
                             </p>
+                            <ul class="druglike-checks">
+                                {% for c in properties.permeability_checks %}
+                                    <li class="{% if c.ok %}is-ok{% else %}is-bad{% endif %}">
+                                        <span class="check-icon" aria-hidden="true">{% if c.ok %}{% include "components/icons/check.html" %}{% else %}✗{% endif %}</span>
+                                        <span class="check-name">{{ c.name }}</span>
+                                        <span class="check-value">{{ c.value }}</span>
+                                    </li>
+                                {% endfor %}
+                            </ul>
                         </div>
 
                         <div class="druglike-block">
@@ -256,7 +268,7 @@
                             <ul class="druglike-checks">
                                 {% for c in properties.lipinski_checks %}
                                     <li class="{% if c.ok %}is-ok{% else %}is-bad{% endif %}">
-                                        <span class="check-icon" aria-hidden="true">{% if c.ok %}✓{% else %}✗{% endif %}</span>
+                                        <span class="check-icon" aria-hidden="true">{% if c.ok %}{% include "components/icons/check.html" %}{% else %}✗{% endif %}</span>
                                         <span class="check-name">{{ c.name }}</span>
                                         <span class="check-value">{{ c.value }}</span>
                                     </li>
@@ -274,7 +286,7 @@
                             <ul class="druglike-checks">
                                 {% for c in properties.veber_checks %}
                                     <li class="{% if c.ok %}is-ok{% else %}is-bad{% endif %}">
-                                        <span class="check-icon" aria-hidden="true">{% if c.ok %}✓{% else %}✗{% endif %}</span>
+                                        <span class="check-icon" aria-hidden="true">{% if c.ok %}{% include "components/icons/check.html" %}{% else %}✗{% endif %}</span>
                                         <span class="check-name">{{ c.name }}</span>
                                         <span class="check-value">{{ c.value }}</span>
                                     </li>
@@ -301,7 +313,7 @@
                 </section>
             {% endif %}
 
-            <section class="binder-card tp-ui-panel binder-card--strings" id="section-strings">
+            <section class="binder-card binder-card--strings" id="section-strings">
                 <div class="section-head tp-ui-panel-head">
                     <div>
                         <h2>{% trans "Chemical representations" %}</h2>
@@ -312,8 +324,11 @@
                     <div class="binder-string-head">
                         <span class="binder-string-label">SMILES</span>
                         <button type="button"
-                                class="btn tp-btn tp-btn--neutral tp-btn--sm binder-copy-btn"
-                                data-copy-target="binder-smiles-text">{% trans "Copy" %}</button>
+                                class="btn tp-btn tp-btn--neutral tp-btn--sm tp-btn-with-icon binder-copy-btn"
+                                data-copy-target="binder-smiles-text">
+                            <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/copy.html" %}</span>
+                            <span data-copy-label>{% trans "Copy" %}</span>
+                        </button>
                     </div>
                     <pre class="binder-string-value">{{ binder.smiles }}</pre>
                     <span hidden id="binder-smiles-text">{{ binder.smiles }}</span>
@@ -323,8 +338,11 @@
                         <div class="binder-string-head">
                             <span class="binder-string-label">InChI</span>
                             <button type="button"
-                                    class="btn tp-btn tp-btn--neutral tp-btn--sm binder-copy-btn"
-                                    data-copy-target="binder-inchi-text">{% trans "Copy" %}</button>
+                                    class="btn tp-btn tp-btn--neutral tp-btn--sm tp-btn-with-icon binder-copy-btn"
+                                    data-copy-target="binder-inchi-text">
+                                <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/copy.html" %}</span>
+                                <span data-copy-label>{% trans "Copy" %}</span>
+                            </button>
                         </div>
                         <pre class="binder-string-value">{{ properties.inchi }}</pre>
                         <span hidden id="binder-inchi-text">{{ properties.inchi }}</span>
@@ -335,8 +353,11 @@
                         <div class="binder-string-head">
                             <span class="binder-string-label">InChIKey</span>
                             <button type="button"
-                                    class="btn tp-btn tp-btn--neutral tp-btn--sm binder-copy-btn"
-                                    data-copy-target="binder-inchikey-text">{% trans "Copy" %}</button>
+                                    class="btn tp-btn tp-btn--neutral tp-btn--sm tp-btn-with-icon binder-copy-btn"
+                                    data-copy-target="binder-inchikey-text">
+                                <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/copy.html" %}</span>
+                                <span data-copy-label>{% trans "Copy" %}</span>
+                            </button>
                         </div>
                         <pre class="binder-string-value binder-string-value--short">{{ properties.inchi_key }}</pre>
                         <span hidden id="binder-inchikey-text">{{ properties.inchi_key }}</span>
@@ -345,11 +366,11 @@
             </section>
 
             {% if binder.notes_items %}
-                <section class="binder-card tp-ui-panel binder-card--provenance" id="section-provenance">
+                <section class="binder-card binder-card--provenance" id="section-provenance">
                     <div class="section-head tp-ui-panel-head">
                         <div>
                             <h2>{% trans "Provenance" %}</h2>
-                            <p class="section-subtitle">{% trans "Annotation context from LigQ_2 search." %}</p>
+                            <p class="section-subtitle">{% trans "Annotation context from LigQ_2, the internal Target step that collects PDB, ChEMBL, and ZINC ligand evidence." %}</p>
                         </div>
                     </div>
                     <dl class="binder-identifiers">
@@ -364,7 +385,7 @@
             {% endif %}
 
             {% if external_links %}
-                <section class="binder-card tp-ui-panel binder-card--external" id="section-external">
+                <section class="binder-card binder-card--external" id="section-external">
                     <div class="section-head tp-ui-panel-head">
                         <div>
                             <h2>{% trans "External resources" %}</h2>
@@ -383,10 +404,10 @@
             {% endif %}
 
             {% if siblings.pdb or siblings.chembl or siblings.proposed %}
-                <section class="binder-card tp-ui-panel binder-card--siblings" id="section-siblings">
+                <section class="binder-card binder-card--siblings" id="section-siblings">
                     <div class="section-head tp-ui-panel-head">
                         <div>
-                            <h2>{% trans "Other binders for this protein" %}</h2>
+                            <h2>{% trans "Other ligands for this protein" %}</h2>
                             <p class="section-subtitle">{% blocktrans with prot=protein.accession %}Quick navigation to other ligands bound to {{ prot }}.{% endblocktrans %}</p>
                         </div>
                     </div>
@@ -394,9 +415,10 @@
                         {% if siblings.pdb %}
                             <div class="siblings-group">
                                 <h3 class="siblings-group-title">PDB <span class="siblings-group-count">{{ siblings.pdb_total }}</span></h3>
+                                <p class="siblings-group-desc">{% trans "Ligands co-crystallized with this protein (structural evidence)." %}</p>
                                 <div class="siblings-col-head">
                                     <span>{% trans "Ligand" %}</span>
-                                    <span>{% trans "Structure" %}</span>
+                                    <span>{% trans "PDB entry" %}</span>
                                 </div>
                                 <ul class="siblings-list siblings-list--two-col">
                                     {% for s in siblings.pdb %}
@@ -408,9 +430,14 @@
                         {% if siblings.chembl %}
                             <div class="siblings-group">
                                 <h3 class="siblings-group-title">ChEMBL <span class="siblings-group-count">{{ siblings.chembl_total }}</span></h3>
-                                <ul class="siblings-list">
+                                <p class="siblings-group-desc">{% trans "Compounds with measured inhibitory activity on this target (higher pchembl = more potent)." %}</p>
+                                <div class="siblings-col-head">
+                                    <span>{% trans "Compound" %}</span>
+                                    <span title="{% trans 'Standardized potency measure: −log10(IC50/Ki/Kd in M). Above 6 is considered active.' %}">{% trans "Potency" %} <span class="siblings-col-hint">(pchembl)</span></span>
+                                </div>
+                                <ul class="siblings-list siblings-list--two-col">
                                     {% for s in siblings.chembl %}
-                                        <li><a href="{% url 'tpwebapp:binder_detail' binder_id=s.id %}"><code>{{ s.name }}</code>{% if s.score is not None %} <span class="siblings-meta">pchembl {{ s.score|stringformat:".2f" }}</span>{% endif %}</a></li>
+                                        <li><a href="{% url 'tpwebapp:binder_detail' binder_id=s.id %}"><code>{{ s.name }}</code>{% if s.score is not None %} <span class="siblings-meta">{{ s.score|stringformat:".2f" }}</span>{% endif %}</a></li>
                                     {% endfor %}
                                 </ul>
                             </div>
@@ -418,9 +445,14 @@
                         {% if siblings.proposed %}
                             <div class="siblings-group">
                                 <h3 class="siblings-group-title">ZINC <span class="siblings-group-count">{{ siblings.proposed_total }}</span></h3>
-                                <ul class="siblings-list">
+                                <p class="siblings-group-desc">{% trans "Virtual screening candidates selected by structural similarity to known actives (Tanimoto ≥ 0.5)." %}</p>
+                                <div class="siblings-col-head">
+                                    <span>{% trans "Compound" %}</span>
+                                    <span title="{% trans 'Tanimoto coefficient — structural similarity to a known active compound. 1.0 = identical structure.' %}">{% trans "Similarity" %} <span class="siblings-col-hint">(Tanimoto)</span></span>
+                                </div>
+                                <ul class="siblings-list siblings-list--two-col">
                                     {% for s in siblings.proposed %}
-                                        <li><a href="{% url 'tpwebapp:binder_detail' binder_id=s.id %}"><code>{{ s.name }}</code>{% if s.score is not None %} <span class="siblings-meta">Tanimoto {{ s.score|stringformat:".2f" }}</span>{% endif %}</a></li>
+                                        <li><a href="{% url 'tpwebapp:binder_detail' binder_id=s.id %}"><code>{{ s.name }}</code>{% if s.score is not None %} <span class="siblings-meta">{{ s.score|stringformat:".3f" }}</span>{% endif %}</a></li>
                                     {% endfor %}
                                 </ul>
                             </div>
@@ -435,6 +467,38 @@
 {% block jsloaded %}
     <script>
         (function () {
+            // Scrollspy for quick-nav
+            var nav = document.querySelector(".quick-nav");
+            if (nav) {
+                var links = Array.from(nav.querySelectorAll("a[href^='#']"));
+                var targets = links.map(function (link) {
+                    var id = (link.getAttribute("href") || "").slice(1);
+                    var section = id ? document.getElementById(id) : null;
+                    return section ? { link: link, section: section } : null;
+                }).filter(Boolean);
+                if (targets.length) {
+                    function setActive(sectionId) {
+                        targets.forEach(function (e) {
+                            var on = e.section.id === sectionId;
+                            e.link.classList.toggle("is-active", on);
+                            e.link.setAttribute("aria-current", on ? "true" : "false");
+                        });
+                    }
+                    function updateActive() {
+                        var line = Math.round(window.innerHeight * 0.32);
+                        var active = targets[0];
+                        for (var i = targets.length - 1; i >= 0; i--) {
+                            if (targets[i].section.getBoundingClientRect().top <= line) { active = targets[i]; break; }
+                        }
+                        setActive(active.section.id);
+                    }
+                    window.addEventListener("scroll", updateActive, { passive: true });
+                    updateActive();
+                }
+            }
+        })();
+
+        (function () {
             const buttons = document.querySelectorAll('[data-copy-target]');
             buttons.forEach(function (button) {
                 button.addEventListener('click', function () {
@@ -444,9 +508,12 @@
                     if (!text) return;
                     if (navigator.clipboard && navigator.clipboard.writeText) {
                         navigator.clipboard.writeText(text).then(function () {
-                            const original = button.textContent;
-                            button.textContent = "{% trans 'Copied' %}";
-                            setTimeout(function () { button.textContent = original; }, 1400);
+                            const label = button.querySelector('[data-copy-label]');
+                            const original = label ? label.textContent : '';
+                            if (label) label.textContent = "{% trans 'Copied' %}";
+                            setTimeout(function () {
+                                if (label) label.textContent = original;
+                            }, 1400);
                         });
                     }
                 });

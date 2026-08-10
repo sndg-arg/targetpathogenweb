@@ -3,54 +3,39 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/home.css' %}?v=20260330-1">
+    <link rel="stylesheet" href="{% static 'css/pages/home.css' %}?v=20260804-onesheet7">
 {% endblock %}
 
 {% block body %}
     <div class="home-page">
-        <section class="home-hero tp-ui-panel">
+        <section class="home-hero">
             <div class="home-hero-copy">
                 <p class="tp-ui-field-label">{% trans "Drug Target Discovery Platform" %}</p>
                 <h1>{% trans "A bioinformatics platform for prioritizing protein targets in pathogens." %}</h1>
                 <p class="home-lead">
                     {% trans "Target Pathogen integrates genomic annotation, structural evidence, functional annotation, and project-specific scoring to support the identification and prioritization of candidate protein targets." %}
                 </p>
-                <div class="tp-ui-group home-hero-actions">
-                    {% url 'tpwebapp:genomes_list' as open_genomes_href %}
-                    {% trans "Browse genomes" as open_genomes_label %}
-                    {% include "components/buttons/action.html" with variant="primary" href=open_genomes_href label=open_genomes_label %}
-                    {% url 'tpwebapp:genome_upload' as upload_genome_href %}
-                    {% trans "Upload genome" as upload_genome_label %}
-                    {% include "components/buttons/action.html" with variant="neutral" href=upload_genome_href label=upload_genome_label classes="home-cta-neutral" %}
-                    {% url 'tpwebapp:form' as run_blast_href %}
-                    {% trans "Run BLAST" as run_blast_label %}
-                    {% include "components/buttons/action.html" with variant="outline" href=run_blast_href label=run_blast_label %}
-                </div>
-            </div>
-
-            <aside class="home-hero-side">
-                <div class="home-hero-side-copy">
-                    <p class="tp-ui-field-label">{% trans "Platform scope" %}</p>
-                    <h2>{% trans "Integrated evidence for target assessment" %}</h2>
-                    <p>{% trans "The platform is designed to consolidate protein-level evidence relevant to target selection, including structural coverage, annotation context, and customizable prioritization criteria." %}</p>
-                </div>
-                <p class="tp-state-note tp-state-note--empty home-hero-note">
-                    {% trans "It supports comparative exploration of pathogen proteomes and provides a reproducible environment for evaluating candidate therapeutic targets." %}
-                </p>
-                <div class="tp-chip-group" aria-label="{% trans "Genome counts" %}">
+                <div class="tp-chip-group home-hero-stats" aria-label="{% trans "Platform scope" %}">
                     <span class="tp-chip tp-chip--count tp-chip--sm">{{ total_genomes }} {% trans "genomes" %}</span>
                     <span class="tp-chip tp-chip--count tp-chip--sm">{{ total_proteins }} {% trans "proteins" %}</span>
                 </div>
-                <div class="tp-chip-group" aria-label="{% trans "Capabilities" %}">
-                    <span class="tp-chip tp-chip--meta tp-chip--sm">{% trans "Protein target prioritization" %}</span>
-                    <span class="tp-chip tp-chip--meta tp-chip--sm">{% trans "Structural and functional evidence" %}</span>
-                    <span class="tp-chip tp-chip--meta tp-chip--sm">{% trans "Custom bioinformatic scoring" %}</span>
+                <div class="tp-ui-group home-hero-actions">
+                    {% url 'tpwebapp:genomes_list' as open_genomes_href %}
+                    {% trans "Browse genomes" as open_genomes_label %}
+                    {% include "components/buttons/action.html" with variant="primary" href=open_genomes_href label=open_genomes_label icon_template="components/icons/arrow_right.html" %}
+                    {% url 'tpwebapp:genome_upload' as upload_genome_href %}
+                    {% trans "Upload genome" as upload_genome_label %}
+                    {% include "components/buttons/action.html" with variant="neutral" href=upload_genome_href label=upload_genome_label icon_template="components/icons/upload.html" classes="home-cta-neutral" %}
+                    {% url 'tpwebapp:form' as run_blast_href %}
+                    {% trans "Run BLAST" as run_blast_label %}
+                    {% include "components/buttons/action.html" with variant="outline" href=run_blast_href label=run_blast_label icon_template="components/icons/play.html" %}
                 </div>
-            </aside>
+            </div>
         </section>
 
+        {% if show_pipeline_panel %}
         <section
-            class="home-panel home-operations tp-ui-panel{% if pipeline_status.state_class == 'failed' %} is-failed{% endif %}"
+            class="home-panel home-operations{% if pipeline_status.state_class == 'failed' %} is-failed{% endif %}"
             data-pipeline-endpoint="{% url 'tpwebapp:health_pipeline' %}"
         >
             <div class="tp-ui-panel-head home-operations-head">
@@ -129,6 +114,8 @@
             </div>
         </section>
 
+        {{ pipeline_status|json_script:"home-pipeline-status-initial" }}
+
         <div class="pipeline-info-backdrop" id="pipeline-info-modal" aria-hidden="true">
             <div class="pipeline-info-panel" role="dialog" aria-modal="true" aria-labelledby="pipeline-info-title">
                 <div class="pipeline-info-head">
@@ -146,21 +133,138 @@
                 </div>
             </div>
         </div>
+        {% endif %}
 
-        <section class="home-panel home-post tp-ui-panel">
+        <section class="home-panel home-about">
             <div class="tp-ui-panel-head">
                 <div>
-                    <p class="tp-ui-field-label">{% trans "Project notes" %}</p>
-                    <h2>{% trans "Curated notes for this deployment" %}</h2>
+                    <p class="tp-ui-field-label">{% trans "Methodology" %}</p>
+                    <h2>{% trans "Data sources" %}</h2>
                 </div>
+                <a href="{% url 'tpwebapp:data_sources' %}" class="btn tp-btn tp-btn--outline tp-btn--sm tp-btn-with-icon home-about-view-btn">
+                    <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/arrow_right.html" %}</span>
+                    <span>{% trans "Full reference" %}</span>
+                </a>
             </div>
-            {% if has_project_notes %}
-                {% autoescape off %}
-                    {{ post.content|safe }}
-                {% endautoescape %}
-            {% else %}
-                <p class="tp-state-note tp-state-note--empty">{% trans "Curated project notes will appear here once they are published." %}</p>
-            {% endif %}
+            <p class="home-about-lead">{% trans "Evidence for each protein is assembled through a 24-stage bioinformatics pipeline, combining external databases, comparative genomics, structural modeling, and machine learning." %}</p>
+            <div class="home-about-grid">
+
+                <div class="home-about-card">
+                    <div class="home-about-card-head">
+                        <svg class="home-about-icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <circle cx="12" cy="12" r="9"/>
+                            <circle cx="12" cy="12" r="3"/>
+                            <path d="M12 3v3M12 18v3M3 12h3M18 12h3"/>
+                        </svg>
+                        <h3>{% trans "Target profile" %}</h3>
+                    </div>
+                    <p>{% trans "Proteins are assessed for selectivity against the human proteome and gut microbiome, and for essentiality using the Database of Essential Genes. Subcellular localization is predicted by PSORTb to evaluate target accessibility." %}</p>
+                    <div class="home-about-card-tools">
+                        <span class="tp-chip tp-chip--meta tp-chip--sm">FastTarget</span>
+                        <span class="tp-chip tp-chip--meta tp-chip--sm">DIAMOND BLASTP</span>
+                        <span class="tp-chip tp-chip--meta tp-chip--sm">DEG</span>
+                        <span class="tp-chip tp-chip--meta tp-chip--sm">PSORTb v3</span>
+                    </div>
+                </div>
+
+                <div class="home-about-card">
+                    <div class="home-about-card-head">
+                        <svg class="home-about-icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M12 3L2 8v8l10 5 10-5V8L12 3z"/>
+                            <path d="M2 8l10 5 10-5M12 13v8"/>
+                        </svg>
+                        <h3>{% trans "3D Structure" %}</h3>
+                    </div>
+                    <p>{% trans "Structures are assigned by priority: experimental PDB entries first, then AlphaFold Database models, then ColabFold predictions for proteins without other coverage. Per-residue pLDDT scores indicate model confidence." %}</p>
+                    <div class="home-about-card-tools">
+                        <span class="tp-chip tp-chip--meta tp-chip--sm">Protein Data Bank</span>
+                        <span class="tp-chip tp-chip--meta tp-chip--sm">AlphaFold DB</span>
+                        <span class="tp-chip tp-chip--meta tp-chip--sm">ColabFold</span>
+                    </div>
+                </div>
+
+                <div class="home-about-card">
+                    <div class="home-about-card-head">
+                        <svg class="home-about-icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <rect x="3" y="11" width="18" height="11" rx="2"/>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                            <circle cx="12" cy="16" r="1.5" fill="currentColor" stroke="none"/>
+                        </svg>
+                        <h3>{% trans "Binding sites" %}</h3>
+                    </div>
+                    <p>{% trans "FPocket detects surface cavities using Voronoi spheres and reports a druggability score from 0 to 1. P2Rank applies a random forest trained on ~15,000 PDB structures to rank predicted binding site probability." %}</p>
+                    <div class="home-about-card-tools">
+                        <span class="tp-chip tp-chip--meta tp-chip--sm">FPocket v4</span>
+                        <span class="tp-chip tp-chip--meta tp-chip--sm">P2Rank v2</span>
+                    </div>
+                </div>
+
+                <div class="home-about-card">
+                    <div class="home-about-card-head">
+                        <svg class="home-about-icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+                            <circle cx="7" cy="7" r="1.5" fill="currentColor" stroke="none"/>
+                        </svg>
+                        <h3>{% trans "Functional annotation" %}</h3>
+                    </div>
+                    <p>{% trans "InterProScan scans each protein against 20 databases including Pfam, HAMAP, and PANTHER to assign domains, GO terms, and EC numbers. UniProt provides additional curated GO and enzyme data for mapped accessions." %}</p>
+                    <div class="home-about-card-tools">
+                        <span class="tp-chip tp-chip--meta tp-chip--sm">InterProScan v5</span>
+                        <span class="tp-chip tp-chip--meta tp-chip--sm">UniProt</span>
+                        <span class="tp-chip tp-chip--meta tp-chip--sm">Gene Ontology</span>
+                    </div>
+                </div>
+
+                <div class="home-about-card">
+                    <div class="home-about-card-head">
+                        <svg class="home-about-icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M9 2h6v8l4 10H5L9 10V2z"/>
+                            <path d="M9 10h6"/>
+                            <circle cx="9.5" cy="16" r="1" fill="currentColor" stroke="none"/>
+                            <circle cx="14.5" cy="14" r="1" fill="currentColor" stroke="none"/>
+                        </svg>
+                        <h3>{% trans "Ligand evidence" %}</h3>
+                    </div>
+                    <p>{% trans "LigQ_2 is the internal ligand-evidence step. It retrieves co-crystallized ligands from PDB, measured bioactive compounds from ChEMBL, and proposed ZINC compounds by chemical similarity. Direct and homology-transferred evidence are distinguished." %}</p>
+                    <div class="home-about-card-tools">
+                        <span class="tp-chip tp-chip--meta tp-chip--sm">LigQ_2</span>
+                        <span class="tp-chip tp-chip--meta tp-chip--sm">PDB</span>
+                        <span class="tp-chip tp-chip--meta tp-chip--sm">ChEMBL</span>
+                        <span class="tp-chip tp-chip--meta tp-chip--sm">ZINC</span>
+                    </div>
+                </div>
+
+                <div class="home-about-card">
+                    <div class="home-about-card-head">
+                        <svg class="home-about-icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M19.14 4.86a4.43 4.43 0 0 0-6.28 0L4.86 12.86a4.44 4.44 0 1 0 6.28 6.28l8-8a4.43 4.43 0 0 0 0-6.28z"/>
+                            <line x1="15" y1="9" x2="9" y2="15"/>
+                        </svg>
+                        <h3>{% trans "Drug-likeness" %}</h3>
+                    </div>
+                    <p>{% trans "Physicochemical properties including MW, LogP, and TPSA are computed from SMILES using RDKit. Lipinski Rule of Five compliance and PAINS substructure filters are applied to flag compounds prone to assay interference." %}</p>
+                    <div class="home-about-card-tools">
+                        <span class="tp-chip tp-chip--meta tp-chip--sm">RDKit</span>
+                        <span class="tp-chip tp-chip--meta tp-chip--sm">Lipinski Ro5</span>
+                        <span class="tp-chip tp-chip--meta tp-chip--sm">PAINS</span>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <section class="home-panel home-team">
+            <div class="tp-ui-panel-head">
+                <div>
+                    <p class="tp-ui-field-label">{% trans "About us" %}</p>
+                    <h2>{% trans "Developed at FCEN-UBA" %}</h2>
+                </div>
+                <a href="{% url 'tpwebapp:about_us' %}" class="btn tp-btn tp-btn--outline tp-btn--sm tp-btn-with-icon home-about-view-btn">
+                    <span>{% trans "Read more" %}</span>
+                    <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/arrow_right.html" %}</span>
+                </a>
+            </div>
+            <p class="home-about-lead">{% trans "Target Pathogen is developed at the Facultad de Ciencias Exactas y Naturales, Universidad de Buenos Aires, within a public and tuition-free university ecosystem. The project brings biology, chemistry, bioinformatics, and software development together to make pathogen target prioritization traceable and reviewable." %}</p>
         </section>
     </div>
 {% endblock %}
@@ -177,6 +281,19 @@
             const liveRegion = operationsPanel.querySelector("[data-pipeline-live]");
             const endpoint = operationsPanel.getAttribute("data-pipeline-endpoint");
             if (!refreshButton || !refreshIcon || !chip || !liveRegion || !endpoint) return;
+
+            function readInitialPipelineStatus() {
+                const initialStatusNode = document.getElementById("home-pipeline-status-initial");
+                if (!initialStatusNode) return {};
+                try {
+                    return JSON.parse(initialStatusNode.textContent || "{}");
+                } catch (error) {
+                    console.error("Initial pipeline status parse failed", error);
+                    return {};
+                }
+            }
+
+            const initialPipelineStatus = readInitialPipelineStatus();
 
             const labels = {
                 pipelineInProgressFor: "Pipeline in progress for",
@@ -357,19 +474,20 @@
                             [12, "UniProt mapping"],
                             [13, "UniProt annotations"],
                             [14, "Protein list for structures"],
-                            [15, "AlphaFold models"],
+                            [15, "AlphaFold DB models"],
                             [16, "ColabFold predictions"],
                             [17, "Structure loading"],
-                            [18, "Druggability evidence"],
+                            [18, "Pocket druggability scores"],
                             [19, "Druggability score"],
                         ]},
                         { label: "Cell localization", description: "Prediction of probable subcellular location to support biological interpretation.", steps: [
                             [20, "PSORT prediction"],
                             [21, "PSORT score"],
                         ]},
-                        { label: "Ligand evidence", description: "Known or inferred binder evidence linked to proteins in the imported genome.", steps: [
-                            [22, "Binder candidate search"],
-                            [23, "Binder evidence loading"],
+                        { label: "Ligand evidence", description: "Experimental, measured, transferred, or proposed compound evidence linked to proteins in the imported genome.", steps: [
+                            [22, "Ligand candidate search"],
+                            [23, "Ligand evidence loading"],
+                            [24, "LigQ_2 ligand evidence"],
                         ]},
                     ],
                 };
@@ -412,23 +530,24 @@
                 function updateStepHighlights(status) {
                     var completed = status.stages_completed || [];
                     var active = status.stages_active || [];
+                    var currentStage = Number(status.stage_current || 0);
+                    var stageTotal = Number(status.stage_total || 0);
+                    var running = !!status.running;
+                    var finished = String(status.state_class || "") === "finished"
+                        || (!!stageTotal && !running && currentStage >= stageTotal);
                     var completedSet = {};
                     var activeSet = {};
                     completed.forEach(function (n) { completedSet[n] = true; });
                     active.forEach(function (n) { activeSet[n] = true; });
-                    // Fallback for when stage event data isn't available
-                    var useFallback = completed.length === 0 && active.length === 0 && status.stage_current;
 
                     var steps = infoModal.querySelectorAll(".pipeline-info-step");
                     steps.forEach(function (step) {
                         var num = parseInt(step.getAttribute("data-stage"), 10);
-                        if (useFallback) {
-                            step.classList.toggle("is-done", num <= Number(status.stage_current));
-                            step.classList.toggle("is-active", !!(status.running && Number(status.stage_current) === num));
-                        } else {
-                            step.classList.toggle("is-done", !!completedSet[num]);
-                            step.classList.toggle("is-active", !!activeSet[num]);
-                        }
+                        var reachedByCurrentStage = currentStage
+                            && (num < currentStage || (finished && num <= currentStage));
+                        var currentByStage = currentStage && num === currentStage;
+                        step.classList.toggle("is-done", !!completedSet[num] || !!reachedByCurrentStage);
+                        step.classList.toggle("is-active", !!activeSet[num] || !!(running && currentByStage));
                     });
                 }
 
@@ -466,6 +585,7 @@
                     originalRenderStatus(status);
                     updateStepHighlights(status);
                 };
+                updateStepHighlights(initialPipelineStatus);
             }
 
             // Genome list refresh: reload the page to pick up newly processed genomes.
@@ -475,6 +595,7 @@
                     const icon = genomesRefreshButton.querySelector(".home-pipeline-refresh-icon");
                     if (icon) icon.classList.add("is-spinning");
                     genomesRefreshButton.disabled = true;
+                    if (window.TPPageLoader) window.TPPageLoader.show();
                     window.location.reload();
                 });
             }

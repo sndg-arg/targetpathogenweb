@@ -14,7 +14,6 @@ The remote path:
 """
 
 import gzip
-import math
 import os
 import shlex
 import shutil
@@ -79,7 +78,7 @@ def _resolve_ssh_options(host, user=None, port=22):
 
     try:
         ssh_config = paramiko.SSHConfig()
-        with open(config_path, "r", encoding="utf-8") as handle:
+        with open(config_path, encoding="utf-8") as handle:
             ssh_config.parse(handle)
         entry = ssh_config.lookup(host)
     except Exception:
@@ -141,6 +140,7 @@ def _record_remote_info(run_id_raw, *, stage_number, message, payload=None):
 # Config
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class ColabFoldRemoteConfig:
     ssh_rootfolder: str
@@ -187,7 +187,10 @@ def _build_colabfold_config(cfg_dict):
     ssh_host = ssh_options["host"]
     ssh_user = ssh_options["user"]
     ssh_port = ssh_options["port"]
-    ssh_key_filename = ssh_options["key_filename"]
+    env_key_filename = _env_text("SSH_KEY_FILENAME")
+    ssh_key_filename = (
+        os.path.expanduser(env_key_filename) if env_key_filename else ssh_options["key_filename"]
+    )
 
     ssh_password = _env_text("SSH_PASSWORD")
     if ssh_password is None:
@@ -217,13 +220,16 @@ def _build_colabfold_config(cfg_dict):
         remote_poll_seconds=_env_int("TPW_COLABFOLD_REMOTE_POLL_SEC", default=60),
         remote_wait_seconds=_env_int("TPW_COLABFOLD_REMOTE_WAIT_SEC", default=43200),
         gpu_pending_wait_seconds=_env_int(
-            "TPW_COLABFOLD_GPU_PENDING_WAIT_SEC", default=0,
+            "TPW_COLABFOLD_GPU_PENDING_WAIT_SEC",
+            default=0,
         ),
         cpu_pending_wait_seconds=_env_int(
-            "TPW_COLABFOLD_CPU_PENDING_WAIT_SEC", default=0,
+            "TPW_COLABFOLD_CPU_PENDING_WAIT_SEC",
+            default=0,
         ),
         remote_completion_grace_seconds=_env_int(
-            "TPW_COLABFOLD_REMOTE_COMPLETION_GRACE_SEC", default=120,
+            "TPW_COLABFOLD_REMOTE_COMPLETION_GRACE_SEC",
+            default=120,
         ),
         conda_prefix=_env_text("TPW_COLABFOLD_CONDA_PREFIX", default="/home/shared/miniconda3.8"),
         conda_env=_env_text("TPW_COLABFOLD_CONDA_ENV", default="colabfold"),
@@ -237,7 +243,7 @@ def _build_colabfold_config(cfg_dict):
         gpu_slurm_cpus_per_task=_env_int("TPW_COLABFOLD_CPUS", default=4),
         gpu_slurm_exclude=os.getenv("TPW_COLABFOLD_EXCLUDE", "").strip(),
         strict_gpu=_env_text("TPW_COLABFOLD_STRICT", default="").strip().lower()
-            in ("1", "true", "yes"),
+        in ("1", "true", "yes"),
         max_parallel=_env_int("TPW_COLABFOLD_MAX_PARALLEL", default=8),
         gpu_retry_attempts=_env_int("TPW_COLABFOLD_GPU_RETRIES", default=1),
         cpu_slurm_partition=os.getenv("TPW_COLABFOLD_CPU_PARTITION", "cpu"),
@@ -264,6 +270,7 @@ def _config_text(cfg_dict, section, option, default=None):
 # ---------------------------------------------------------------------------
 # FASTA helpers
 # ---------------------------------------------------------------------------
+
 
 def _read_fasta_gz(faa_gz_path):
     """Read gzipped FASTA, return {locus_tag: sequence}."""
@@ -304,20 +311,16 @@ def _find_candidates(folder_path, genome):
             if os.path.exists(pdb_path) and os.path.getsize(pdb_path) > 0:
                 already_have.add(locus_tag)
 
-    return [
-        (tag, seq) for tag, seq in sequences.items()
-        if tag not in already_have
-    ]
+    return [(tag, seq) for tag, seq in sequences.items() if tag not in already_have]
 
 
 def _find_best_pdb(directory, locus_tag):
     """Find the rank_001 PDB produced by colabfold_batch for a locus_tag."""
     try:
         candidates = [
-            f for f in os.listdir(directory)
-            if f.startswith(locus_tag + "_")
-            and "rank_001" in f
-            and f.endswith(".pdb")
+            f
+            for f in os.listdir(directory)
+            if f.startswith(locus_tag + "_") and "rank_001" in f and f.endswith(".pdb")
         ]
     except FileNotFoundError:
         return None
@@ -424,41 +427,45 @@ def _run_remote_colabfold_candidate(
                     "export JAX_PLATFORM_NAME=cpu",
                 ]
 
-            runner_text = "\n".join([
-                "#!/bin/bash",
-                "set -eo pipefail",
-                f'eval "$({config.conda_prefix}/bin/conda shell.bash hook)"',
-                f"conda activate {shlex.quote(config.conda_env)}",
-                "set -u",
-                f"mkdir -p {shlex.quote(remote_output_dir)}",
-                *cpu_only_exports,
-                (
-                    f"colabfold_batch"
-                    f" {shlex.quote(remote_input)}"
-                    f" {shlex.quote(remote_output_dir)}"
-                    f" --num-recycle {config.num_recycles}"
-                    f" --num-models {config.num_models}"
-                    f" --model-type alphafold2_ptm"
-                ),
-                f"touch {shlex.quote(remote_done_marker)}",
-                "",
-            ])
+            runner_text = "\n".join(
+                [
+                    "#!/bin/bash",
+                    "set -eo pipefail",
+                    f'eval "$({config.conda_prefix}/bin/conda shell.bash hook)"',
+                    f"conda activate {shlex.quote(config.conda_env)}",
+                    "set -u",
+                    f"mkdir -p {shlex.quote(remote_output_dir)}",
+                    *cpu_only_exports,
+                    (
+                        f"colabfold_batch"
+                        f" {shlex.quote(remote_input)}"
+                        f" {shlex.quote(remote_output_dir)}"
+                        f" --num-recycle {config.num_recycles}"
+                        f" --num-models {config.num_models}"
+                        f" --model-type alphafold2_ptm"
+                    ),
+                    f"touch {shlex.quote(remote_done_marker)}",
+                    "",
+                ]
+            )
 
-            slurm_text = "\n".join([
-                "#!/bin/bash",
-                f"#SBATCH --job-name={job_prefix}_{safe_locus[:20]}",
-                f"#SBATCH -p {slurm_partition}",
-                *((f"#SBATCH --gres={slurm_gres}",) if slurm_gres else ()),
-                *((f"#SBATCH --exclude={slurm_exclude}",) if slurm_exclude else ()),
-                f"#SBATCH --cpus-per-task={slurm_cpus}",
-                f"#SBATCH --time={slurm_time}",
-                f"#SBATCH --mem={slurm_mem}",
-                f"#SBATCH -o {remote_stdout_pattern}",
-                f"#SBATCH -e {remote_stderr_pattern}",
-                f"#SBATCH --chdir={remote_job_dir}",
-                f"bash {remote_script}",
-                "",
-            ])
+            slurm_text = "\n".join(
+                [
+                    "#!/bin/bash",
+                    f"#SBATCH --job-name={job_prefix}_{safe_locus[:20]}",
+                    f"#SBATCH -p {slurm_partition}",
+                    *((f"#SBATCH --gres={slurm_gres}",) if slurm_gres else ()),
+                    *((f"#SBATCH --exclude={slurm_exclude}",) if slurm_exclude else ()),
+                    f"#SBATCH --cpus-per-task={slurm_cpus}",
+                    f"#SBATCH --time={slurm_time}",
+                    f"#SBATCH --mem={slurm_mem}",
+                    f"#SBATCH -o {remote_stdout_pattern}",
+                    f"#SBATCH -e {remote_stderr_pattern}",
+                    f"#SBATCH --chdir={remote_job_dir}",
+                    f"bash {remote_script}",
+                    "",
+                ]
+            )
 
             with sftp.file(remote_script, "w") as handle:
                 handle.write(runner_text)
@@ -567,7 +574,9 @@ def _run_remote_colabfold_candidate(
                         _, slurm_err_text, _ = _run_remote(
                             f"tail -n 120 {shlex.quote(remote_stderr)} 2>/dev/null || true"
                         )
-                        details = slurm_err_text or slurm_out_text or state_err or "no remote output"
+                        details = (
+                            slurm_err_text or slurm_out_text or state_err or "no remote output"
+                        )
                         friendly = classify_slurm_resource_message(details)
                         if friendly:
                             details = f"{friendly} SLURM details: {details}"
@@ -579,7 +588,9 @@ def _run_remote_colabfold_candidate(
                     if normalized.startswith("COMPLETED"):
                         if completion_seen_at is None:
                             completion_seen_at = waited_seconds
-                        elif (waited_seconds - completion_seen_at) >= config.remote_completion_grace_seconds:
+                        elif (
+                            waited_seconds - completion_seen_at
+                        ) >= config.remote_completion_grace_seconds:
                             _, slurm_out_text, _ = _run_remote(
                                 f"tail -n 120 {shlex.quote(remote_stdout)} 2>/dev/null || true"
                             )
@@ -628,6 +639,7 @@ def _run_remote_colabfold_candidate(
 # Main entry point
 # ---------------------------------------------------------------------------
 
+
 def run_remote_colabfold(cfg_dict, folder_path, genome):
     """
     Run ColabFold on a remote SLURM GPU node.
@@ -659,10 +671,19 @@ def run_remote_colabfold(cfg_dict, folder_path, genome):
 
     if workers == 1:
         return _run_remote_colabfold_sequential(
-            config, candidates, folder_path, genome, run_id_raw,
+            config,
+            candidates,
+            folder_path,
+            genome,
+            run_id_raw,
         )
     return _run_remote_colabfold_parallel(
-        config, candidates, folder_path, genome, run_id_raw, workers,
+        config,
+        candidates,
+        folder_path,
+        genome,
+        run_id_raw,
+        workers,
     )
 
 
@@ -710,9 +731,7 @@ def _candidate_pdb_path(folder_path, locus_tag):
 
 
 def _format_attempt_error(mode_label, attempt, total_attempts, exc):
-    return (
-        f"{mode_label} attempt {attempt}/{total_attempts} failed: {exc}"
-    )[:1000]
+    return (f"{mode_label} attempt {attempt}/{total_attempts} failed: {exc}")[:1000]
 
 
 def _record_retry(run_id_raw, locus_tag, message, payload=None):
@@ -874,7 +893,12 @@ def _run_remote_colabfold_parallel(config, candidates, folder_path, genome, run_
         futures = {
             ex.submit(
                 _process_one_candidate,
-                config, locus_tag, sequence, folder_path, genome, run_id_raw,
+                config,
+                locus_tag,
+                sequence,
+                folder_path,
+                genome,
+                run_id_raw,
             ): locus_tag
             for locus_tag, sequence in candidates
         }

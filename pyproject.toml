@@ -3,8 +3,12 @@ line-length = 100
 target-version = "py310"
 extend-exclude = [
   "tpweb/migrations",
-  "parsl/output",
-  "parsl/runinfo",
+  "parsl",
+  "fasttarget",
+  "pipeline/apps.py",
+  "pipeline/config.py",
+  "pipeline/run_pipeline.py",
+  ".claude",
 ]
 
 [tool.ruff.lint]
@@ -24,3 +28,25 @@ ignore = [
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
+
+[tool.coverage.run]
+branch = true
+omit = [
+  "*/migrations/*",
+  "*/__pycache__/*",
+  "parsl/*",
+  "fasttarget/*",
+  "*/tests/*",
+  "manage.py",
+  "scripts/run_tests.py",
+  "pipeline/apps.py",
+  "pipeline/config.py",
+  "pipeline/run_pipeline.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+  "pragma: no cover",
+  "raise NotImplementedError",
+  "if __name__ == .__main__.:",
+]

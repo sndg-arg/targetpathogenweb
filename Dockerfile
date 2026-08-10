@@ -42,7 +42,7 @@ RUN conda create -n tpv2 -c conda-forge -c bioconda \
     && conda clean -afy
 
 # Pip deps inside conda env
-COPY requirements.txt /tmp/requirements.txt
+COPY requirements/base.txt /tmp/requirements.txt
 SHELL ["conda", "run", "-n", "tpv2", "/bin/bash", "-c"]
 RUN pip install --no-cache-dir "setuptools==68.2.2" \
     && pip install --no-cache-dir -r /tmp/requirements.txt

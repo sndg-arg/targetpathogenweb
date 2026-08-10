@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/genome-upload.css' %}?v=20260511-upload2">
+    <link rel="stylesheet" href="{% static 'css/pages/genome-upload.css' %}?v=20260804-fusion1">
 {% endblock %}
 
 {% block body %}
@@ -14,7 +14,7 @@
             {% url 'tpwebapp:index' as index_url %}
             {% url 'tpwebapp:genomes_list' as genomes_url %}
             {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_upload %}
-            <span class="genome-upload-eyebrow">{% trans "Genome submission · Workspace pipeline" %}</span>
+            <span class="genome-upload-eyebrow">{% trans "Genome submission - Workspace pipeline" %}</span>
             <h1>{% trans "Add your own data" %}</h1>
             <p class="genome-upload-subtitle">{% trans "Upload a compressed GenBank record to create a genome workspace and queue a new target-prioritization run." %}</p>
             <div class="genome-upload-chip-group tp-chip-group">
@@ -39,36 +39,16 @@
                         {% blocktrans with accession=test_genome_accession %}Use test genome {{ accession }}{% endblocktrans %}
                     </button>
                 </form>
-                <a href="{% url 'tpwebapp:genomes_list' %}" class="btn tp-btn tp-btn--outline">{% trans "Browse genomes" %}</a>
-            </div>
-            <div class="genome-upload-metrics" aria-label="{% trans 'Submission summary' %}">
-                <div class="metric-pill">
-                    <span class="metric-label">{% trans "Recent submissions" %}</span>
-                    <span class="metric-value">{{ jobs|length }}</span>
-                </div>
-                <div class="metric-pill">
-                    <span class="metric-label">{% trans "Pipeline" %}</span>
-                    <span class="metric-value">
-                        {% if pipeline_status.running %}{% trans "Busy" %}{% else %}{% trans "Ready" %}{% endif %}
-                    </span>
-                </div>
-                <div class="metric-pill">
-                    <span class="metric-label">{% trans "Queue state" %}</span>
-                    <span class="metric-value">
-                        {% if has_active_jobs %}{% trans "Tracking jobs" %}{% else %}{% trans "No active jobs" %}{% endif %}
-                    </span>
-                </div>
+                <a href="{% url 'tpwebapp:genomes_list' %}" class="btn tp-btn tp-btn--outline tp-btn-with-icon">
+                    <span>{% trans "Browse genomes" %}</span>
+                    <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/arrow_right.html" %}</span>
+                </a>
             </div>
         </section>
 
         <section class="genome-upload-layout">
-            <article class="genome-upload-card genome-upload-card--form tp-ui-panel">
-                <div class="genome-upload-card-head tp-ui-panel-head">
-                    <div>
-                        <h2>{% trans "Submit a genome dataset" %}</h2>
-                        <p class="genome-upload-card-note">{% trans "Each submission is stored in this workspace and processed automatically through the full annotation and prioritization pipeline." %}</p>
-                    </div>
-                </div>
+            <article class="genome-upload-card genome-upload-card--form">
+                <h2>{% trans "Submit a genome dataset" %}</h2>
                 {% if pipeline_status.running %}
                     <p class="tp-state-note tp-state-note--loading genome-upload-form-state">
                         {% if pipeline_status.running_for_other_workspace %}
@@ -92,7 +72,7 @@
                             <div class="genome-upload-field tp-ui-field">
                                 <label class="tp-ui-field-label" for="{{ form.gram.id_for_label }}">{{ form.gram.label }}</label>
                                 {{ form.gram }}
-                                <p class="genome-upload-field-help">{% trans "This selects the default scoring context for the imported proteome." %}</p>
+                                <p class="genome-upload-field-help">{% trans "Sets the scoring context for the proteome." %}</p>
                                 {% if form.gram.errors %}<p class="genome-upload-field-error">{{ form.gram.errors|striptags }}</p>{% endif %}
                             </div>
                         </div>
@@ -104,62 +84,50 @@
                             {% if form.gbk_file.errors %}<p class="genome-upload-field-error">{{ form.gbk_file.errors|striptags }}</p>{% endif %}
                         </div>
 
-                        <div class="genome-upload-submit-row">
-                            <div class="genome-upload-submit-copy">
-                                <p class="genome-upload-submit-title">{% trans "What happens next" %}</p>
-                                <p class="genome-upload-submit-note">{% trans "The dataset is queued, processed automatically, and then linked here as a finished protein ranking." %}</p>
-                            </div>
-                            <div class="tp-ui-actions genome-upload-actions">
-                                <button type="submit" class="btn tp-btn tp-btn--primary tp-btn-with-icon">
-                                    <span class="tp-btn-icon" aria-hidden="true">
-                                        {% include "components/icons/upload.html" %}
-                                    </span>
-                                    {% trans "Add to queue" %}
-                                </button>
-                            </div>
+                        <div class="tp-ui-actions genome-upload-actions">
+                            <button type="submit" class="btn tp-btn tp-btn--primary tp-btn-with-icon">
+                                <span class="tp-btn-icon" aria-hidden="true">
+                                    {% include "components/icons/upload.html" %}
+                                </span>
+                                {% trans "Add to queue" %}
+                            </button>
                         </div>
                     </fieldset>
                 </form>
             </article>
 
-            <aside class="genome-upload-card genome-upload-card--guide tp-ui-panel">
-                <div class="genome-upload-card-head tp-ui-panel-head">
-                    <div>
-                        <h2>{% trans "Before you submit" %}</h2>
-                        <p class="genome-upload-card-note">{% trans "A few practical checks help the pipeline run smoothly and make the resulting workspace easier to interpret." %}</p>
-                    </div>
-                </div>
+            <aside class="genome-upload-card genome-upload-card--guide">
+                <h2>{% trans "Before you submit" %}</h2>
                 <div class="genome-upload-guide">
                     <div class="genome-upload-guide-item">
                         <span class="genome-upload-guide-step">1</span>
                         <div>
                             <h3>{% trans "Use a stable accession" %}</h3>
-                            <p>{% trans "Pick the accession you want to recognize later in genome lists, scoring tables, and exported files." %}</p>
+                            <p>{% trans "Appears in genome lists, ranking tables, and exports." %}</p>
                         </div>
                     </div>
                     <div class="genome-upload-guide-item">
                         <span class="genome-upload-guide-step">2</span>
                         <div>
                             <h3>{% trans "Upload the annotated record" %}</h3>
-                            <p>{% trans "Provide the compressed GenBank record (`.gbk.gz`), not only a FASTA, so the pipeline can preserve feature structure and metadata." %}</p>
+                            <p>{% trans "Compressed GenBank (.gbk.gz) with feature annotations — not a plain FASTA." %}</p>
                         </div>
                     </div>
                     <div class="genome-upload-guide-item">
                         <span class="genome-upload-guide-step">3</span>
                         <div>
                             <h3>{% trans "Track the run here" %}</h3>
-                            <p>{% trans "Queued, running, finished, and failed submissions remain visible below, together with direct links to successful results." %}</p>
+                            <p>{% trans "Queued and finished submissions appear in the history below." %}</p>
                         </div>
                     </div>
                 </div>
                 <div class="genome-upload-guide-note">
-                    <strong>{% trans "Tip" %}:</strong>
-                    {% blocktrans with accession=test_genome_accession %}If you want to inspect the workflow first, start with the test genome {{ accession }} and review the generated workspace before uploading your own dataset.{% endblocktrans %}
+                    {% blocktrans with accession=test_genome_accession %}To preview the workflow, use the test genome {{ accession }} before uploading your own.{% endblocktrans %}
                 </div>
             </aside>
         </section>
 
-        <section class="genome-upload-history tp-ui-panel">
+        <section class="genome-upload-history">
             <div class="genome-upload-card-head tp-ui-panel-head">
                 <div>
                     <h2>{% trans "Recent submissions" %}</h2>
@@ -237,6 +205,303 @@
                 <p class="tp-state-note tp-state-note--empty genome-upload-empty-note mb-0">{% trans "Queued, running, and finished genome submissions will appear here." %}</p>
             {% endif %}
         </section>
+
+        {% if user.is_staff %}
+        <section class="genome-upload-history" id="curated-external-import-panel">
+            <div class="genome-upload-card-head tp-ui-panel-head">
+                <div>
+                    <h2 class="tp-ui-panel-title">{% trans "Curated external import" %}</h2>
+                    <p class="genome-upload-card-note">{% trans "Staff-only assisted import for reviewed Gates results already staged on the server." %}</p>
+                </div>
+            </div>
+            <div class="genome-upload-staff-body">
+                <form method="post" class="genome-upload-form" novalidate>
+                    {% csrf_token %}
+                    <input type="hidden" name="action" id="external-import-action" value="validate_external_import">
+                    <fieldset class="genome-upload-fieldset">
+                        <div class="genome-upload-form-grid">
+                            <div class="genome-upload-field tp-ui-field">
+                                <label class="tp-ui-field-label" for="{{ external_import_form.genome_name.id_for_label }}">{{ external_import_form.genome_name.label }}</label>
+                                {{ external_import_form.genome_name }}
+                                <p class="genome-upload-field-help">{% trans "Use the internal Target genome name created after the GenBank load, usually workspace plus accession." %}</p>
+                                {% if external_import_form.genome_name.errors %}<p class="genome-upload-field-error">{{ external_import_form.genome_name.errors|striptags }}</p>{% endif %}
+                            </div>
+
+                            <div class="genome-upload-field tp-ui-field">
+                                <label class="tp-ui-field-label" for="{{ external_import_form.datadir.id_for_label }}">{{ external_import_form.datadir.label }}</label>
+                                {{ external_import_form.datadir }}
+                                <p class="genome-upload-field-help">{% trans "Root data directory used by Target management commands in this deployment." %}</p>
+                                {% if external_import_form.datadir.errors %}<p class="genome-upload-field-error">{{ external_import_form.datadir.errors|striptags }}</p>{% endif %}
+                            </div>
+                        </div>
+
+                        <div class="genome-upload-field tp-ui-field">
+                            <label class="tp-ui-field-label" for="{{ external_import_form.results_tsv.id_for_label }}">{{ external_import_form.results_tsv.label }}</label>
+                            {{ external_import_form.results_tsv }}
+                            <p class="genome-upload-field-help">{% trans "Server-side path to the reviewed TSV. It must include a gene column with locus tags." %}</p>
+                            {% if external_import_form.results_tsv.errors %}<p class="genome-upload-field-error">{{ external_import_form.results_tsv.errors|striptags }}</p>{% endif %}
+                        </div>
+
+                        <div class="genome-upload-field tp-ui-field">
+                            <label class="tp-ui-field-label" for="{{ external_import_form.structures_dir.id_for_label }}">{{ external_import_form.structures_dir.label }}</label>
+                            {{ external_import_form.structures_dir }}
+                            <p class="genome-upload-field-help">{% trans "Optional server-side directory extracted from the structures archive. Leave empty to import scores only." %}</p>
+                            {% if external_import_form.structures_dir.errors %}<p class="genome-upload-field-error">{{ external_import_form.structures_dir.errors|striptags }}</p>{% endif %}
+                        </div>
+
+                        <div class="genome-upload-form-grid">
+                            <div class="genome-upload-field tp-ui-field">
+                                <label class="tp-ui-field-label" for="{{ external_import_form.archive.id_for_label }}">{{ external_import_form.archive.label }}</label>
+                                {{ external_import_form.archive }}
+                                <p class="genome-upload-field-help">{% trans "Optional server-side tar/tar.gz containing genome files, structure files, off-target tables, essentiality tables, or LigQ_2 ligand-evidence outputs." %}</p>
+                                {% if external_import_form.archive.errors %}<p class="genome-upload-field-error">{{ external_import_form.archive.errors|striptags }}</p>{% endif %}
+                            </div>
+
+                            <div class="genome-upload-field tp-ui-field">
+                                <label class="tp-ui-field-label" for="{{ external_import_form.archive_root.id_for_label }}">{{ external_import_form.archive_root.label }}</label>
+                                {{ external_import_form.archive_root }}
+                                <p class="genome-upload-field-help">{% trans "Optional top-level folder inside the archive. Leave empty to auto-detect." %}</p>
+                                {% if external_import_form.archive_root.errors %}<p class="genome-upload-field-error">{{ external_import_form.archive_root.errors|striptags }}</p>{% endif %}
+                            </div>
+                        </div>
+
+                        <div class="genome-upload-field tp-ui-field">
+                            <label class="tp-ui-field-label" for="{{ external_import_form.ligq_output_dir.id_for_label }}">{{ external_import_form.ligq_output_dir.label }}</label>
+                            {{ external_import_form.ligq_output_dir }}
+                            <p class="genome-upload-field-help">{% trans "Optional existing LigQ_2 output directory. LigQ_2 is the internal Target step that collects PDB, ChEMBL, and ZINC ligand evidence. Leave empty if it should be detected from the archive." %}</p>
+                            {% if external_import_form.ligq_output_dir.errors %}<p class="genome-upload-field-error">{{ external_import_form.ligq_output_dir.errors|striptags }}</p>{% endif %}
+                        </div>
+
+                        <div class="genome-upload-form-grid">
+                            <label class="tp-ui-field-label genome-upload-checkbox-label">
+                                {{ external_import_form.overwrite }}
+                                <span>{{ external_import_form.overwrite.label }}</span>
+                            </label>
+                            <label class="tp-ui-field-label genome-upload-checkbox-label">
+                                {{ external_import_form.load_ligq_output }}
+                                <span>{{ external_import_form.load_ligq_output.label }}</span>
+                            </label>
+                        </div>
+
+                        <div class="genome-upload-submit-row">
+                            <div class="genome-upload-submit-copy">
+                                <p class="genome-upload-submit-title">{% trans "Recommended flow" %}</p>
+                                <p class="genome-upload-submit-note">{% trans "Validate first to confirm the genome, TSV columns, archive layout, protein matching, structure directory, and LigQ_2 ligand-evidence output before writing anything." %}</p>
+                            </div>
+                            <div class="tp-ui-actions genome-upload-actions">
+                                <button type="submit" class="btn tp-btn tp-btn--outline tp-btn-with-icon" onclick="document.getElementById('external-import-action').value='validate_external_import';">
+                                    <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/check.html" %}</span>
+                                    <span>{% trans "Validate import" %}</span>
+                                </button>
+                                <button type="submit" class="btn tp-btn tp-btn--secondary tp-btn-with-icon" onclick="document.getElementById('external-import-action').value='run_external_import';">
+                                    <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/play.html" %}</span>
+                                    <span>{% trans "Run import" %}</span>
+                                </button>
+                                <button type="submit" class="btn tp-btn tp-btn--primary tp-btn-with-icon" onclick="document.getElementById('external-import-action').value='run_curated_file_pipeline';">
+                                    <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/play.html" %}</span>
+                                    <span>{% trans "Run curated flow" %}</span>
+                                </button>
+                            </div>
+                        </div>
+                    </fieldset>
+                </form>
+
+                {% if external_import_result %}
+                    <div class="tp-state-note genome-upload-import-result {% if external_import_result.status == 'error' %}tp-state-note--error{% elif external_import_result.status == 'imported' %}tp-state-note--success{% else %}tp-state-note--info{% endif %}">
+                        {% if external_import_result.message %}
+                            <p class="genome-upload-import-msg">{{ external_import_result.message }}</p>
+                        {% endif %}
+                        {% if external_import_result.job %}
+                            <div class="genome-upload-form-grid genome-upload-import-grid">
+                                <div>
+                                    <strong>{% trans "Curated job" %}</strong><br>
+                                    #{{ external_import_result.job.id }} - {{ external_import_result.job.status_label }}
+                                </div>
+                                <div>
+                                    <strong>{% trans "Phase" %}</strong><br>
+                                    {{ external_import_result.job.phase }}
+                                </div>
+                                <div>
+                                    <strong>{% trans "Report" %}</strong><br>
+                                    {% if external_import_result.job.report_path %}<code>{{ external_import_result.job.report_path }}</code>{% else %}<span class="text-muted">{% trans "Not generated yet" %}</span>{% endif %}
+                                </div>
+                            </div>
+                        {% endif %}
+                        {% if external_import_result.summary %}
+                            {% with summary=external_import_result.summary structures=external_import_result.summary.structures %}
+                                <div class="genome-upload-form-grid genome-upload-import-grid">
+                                    <div>
+                                        <strong>{% trans "Genome" %}</strong><br>
+                                        <code>{{ summary.genome_name }}</code>
+                                    </div>
+                                    <div>
+                                        <strong>{% trans "Protein database" %}</strong><br>
+                                        <code>{{ summary.protein_database }}</code>
+                                    </div>
+                                    <div>
+                                        <strong>{% trans "Proteins in Target" %}</strong><br>
+                                        {{ summary.protein_total }}
+                                    </div>
+                                    <div>
+                                        <strong>{% trans "TSV rows" %}</strong><br>
+                                        {{ summary.tsv_rows }}
+                                    </div>
+                                    <div>
+                                        <strong>{% trans "Unique TSV genes" %}</strong><br>
+                                        {{ summary.tsv_unique_genes }}
+                                    </div>
+                                    <div>
+                                        <strong>{% trans "Matched proteins" %}</strong><br>
+                                        {{ summary.matched_proteins }}
+                                    </div>
+                                    <div>
+                                        <strong>{% trans "Unmatched TSV genes" %}</strong><br>
+                                        {{ summary.missing_from_tpw }}
+                                    </div>
+                                    <div>
+                                        <strong>{% trans "Structure PDB files" %}</strong><br>
+                                        {% if structures.provided %}
+                                            {% if structures.exists %}
+                                                {{ structures.pdb_files }} {% trans "files across" %} {{ structures.protein_dirs }} {% trans "protein folders" %}
+                                            {% else %}
+                                                {% trans "Directory not found" %}
+                                            {% endif %}
+                                        {% else %}
+                                            {% trans "Not provided" %}
+                                        {% endif %}
+                                    </div>
+                                    <div>
+                                        <strong title="{% trans 'Internal Target ligand-evidence output: PDB, ChEMBL, and ZINC compound records.' %}">{% trans "LigQ_2 ligand evidence" %}</strong><br>
+                                        {% with ligq=external_import_result.summary.ligq_output %}
+                                            {% if ligq.provided %}
+                                                {% if ligq.exists %}
+                                                    {{ ligq.known_files }} {% trans "known" %}, {{ ligq.predicted_files }} {% trans "predicted" %}, {{ ligq.zinc_files }} {% trans "zinc" %}
+                                                {% else %}
+                                                    {% trans "Directory not found" %}
+                                                {% endif %}
+                                            {% else %}
+                                                {% trans "Not provided" %}
+                                            {% endif %}
+                                        {% endwith %}
+                                    </div>
+                                    <div>
+                                        <strong>{% trans "Curated archive" %}</strong><br>
+                                        {% with archive=external_import_result.summary.archive %}
+                                            {% if archive.provided %}
+                                                {% if archive.exists %}
+                                                    {% trans "root" %}: <code>{{ archive.root|default:"-" }}</code>; {% trans "folders" %}: {{ archive.folders|join:", "|default:"-" }}; GBK {{ archive.gbk_candidates }}; LigQ {{ archive.ligq_like_files }}
+                                                {% else %}
+                                                    {% trans "Archive not found" %}
+                                                {% endif %}
+                                            {% else %}
+                                                {% trans "Not provided" %}
+                                            {% endif %}
+                                        {% endwith %}
+                                    </div>
+                                </div>
+                                <p class="genome-upload-import-cols"><span class="genome-upload-import-key">{% trans "Recognized columns" %}:</span> {{ summary.tsv_columns|join:", " }}</p>
+                                <p class="genome-upload-import-cols"><span class="genome-upload-import-key">{% trans "Gene preview" %}:</span> {{ summary.tsv_preview|join:", " }}</p>
+                            {% endwith %}
+                        {% endif %}
+                        {% if external_import_result.command %}
+                            <p class="genome-upload-import-key">{% trans "Equivalent command" %}</p>
+                            <code class="genome-upload-import-code">{{ external_import_result.command }}</code>
+                        {% endif %}
+                        {% if external_import_result.stdout %}
+                            <p class="genome-upload-import-key">{% trans "Command output" %}</p>
+                            <pre class="genome-upload-import-pre">{{ external_import_result.stdout }}</pre>
+                        {% endif %}
+                        {% if external_import_result.stderr %}
+                            <p class="genome-upload-import-key">{% trans "Command warnings" %}</p>
+                            <pre class="genome-upload-import-pre">{{ external_import_result.stderr }}</pre>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </section>
+
+        {% if curated_import_jobs %}
+        <section class="genome-upload-history" id="curated-import-jobs-panel">
+            <div class="genome-upload-card-head tp-ui-panel-head">
+                <div>
+                    <h2 class="tp-ui-panel-title">{% trans "Recent curated imports" %}</h2>
+                    <p class="genome-upload-card-note">{% trans "Saved validations and curated-flow runs, including report paths and controlled retries." %}</p>
+                </div>
+            </div>
+            <div class="tp-table-shell">
+                <table class="table table-striped table-hover mb-0 tp-table tp-table--plain tp-table--premium">
+                    <thead>
+                    <tr>
+                        <th>{% trans "Genome" %}</th>
+                        <th>{% trans "Created" %}</th>
+                        <th>{% trans "Status" %}</th>
+                        <th>{% trans "Report" %}</th>
+                        <th>{% trans "Action" %}</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for job in curated_import_jobs %}
+                        <tr>
+                            <td><code>{{ job.genome_name }}</code></td>
+                            <td>{{ job.created_at_label }}</td>
+                            <td><span class="genome-upload-status tp-chip tp-chip--sm genome-upload-status--{{ job.status }}">{{ job.status_label }}</span></td>
+                            <td>{% if job.report_path %}<code>{{ job.report_path }}</code>{% else %}<span class="text-muted">{% trans "No report" %}</span>{% endif %}</td>
+                            <td>
+                                {% if job.can_retry %}
+                                    <form method="post" class="genome-upload-history-clear-form">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="retry_curated_import">
+                                        <input type="hidden" name="curated_import_job_id" value="{{ job.id }}">
+                                        <button type="submit" class="btn tp-btn tp-btn--outline btn-sm tp-btn-with-icon">
+                                            <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/refresh.html" %}</span>
+                                            <span>{% trans "Retry" %}</span>
+                                        </button>
+                                    </form>
+                                {% else %}
+                                    <span class="text-muted">{% trans "None" %}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% if job.error_message %}
+                            <tr>
+                                <td colspan="5"><p class="tp-state-note tp-state-note--error mt-2 mb-0">{{ job.error_message }}</p></td>
+                            </tr>
+                        {% endif %}
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+        {% endif %}
+        <section class="genome-upload-history" id="data-file-upload-panel">
+            <div class="genome-upload-card-head tp-ui-panel-head">
+                <div>
+                    <h2 class="tp-ui-panel-title">{% trans "Upload a data file" %}</h2>
+                    <p class="genome-upload-card-note">{% trans "Upload a results TSV or structure archive to the server so it can be used with management commands." %}</p>
+                </div>
+            </div>
+            <div class="genome-upload-staff-body">
+                <form id="data-file-upload-form" enctype="multipart/form-data" data-tp-loader="off">
+                    {% csrf_token %}
+                    <div class="genome-upload-field tp-ui-field genome-upload-field--narrow">
+                        <label class="tp-ui-field-label" for="data_file_input">{% trans "File" %}</label>
+                        <input class="tp-ui-field-input" type="file" id="data_file_input" name="data_file"
+                               accept=".tsv,.csv,.tar.gz,.gz,.tar,.txt,.json">
+                        <p class="genome-upload-field-help">{% trans "Accepted: .tsv, .csv, .tar.gz, .json" %}</p>
+                    </div>
+                    <button class="btn tp-btn tp-btn--primary tp-btn-with-icon" type="submit" id="data-file-upload-btn">
+                        <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/upload.html" %}</span>
+                        <span>{% trans "Upload file" %}</span>
+                    </button>
+                </form>
+                <div id="data-file-upload-result" class="genome-upload-import-result genome-upload-import-result--hidden">
+                    <p class="genome-upload-import-key">{% trans "File saved. Use this path in the management command:" %}</p>
+                    <code id="data-file-upload-path" class="genome-upload-import-code"></code>
+                </div>
+                <div id="data-file-upload-error" class="tp-state-note tp-state-note--error genome-upload-import-result--hidden"></div>
+            </div>
+        </section>
+        {% endif %}
     </div>
 {% endblock %}
 
@@ -249,6 +514,7 @@
                 var icon = btn.querySelector(".genome-upload-refresh-icon");
                 if (icon) icon.classList.add("is-spinning");
                 btn.disabled = true;
+                if (window.TPPageLoader) window.TPPageLoader.show();
                 window.location.assign(window.location.pathname);
             });
         }
@@ -260,6 +526,63 @@
                 submits.forEach(function (b) { b.disabled = true; });
             });
         });
+
+        // Data file upload (async)
+        var dataFileForm = document.getElementById("data-file-upload-form");
+        if (dataFileForm) {
+            dataFileForm.addEventListener("submit", function (e) {
+                e.preventDefault();
+                var btn = document.getElementById("data-file-upload-btn");
+                var result = document.getElementById("data-file-upload-result");
+                var pathEl = document.getElementById("data-file-upload-path");
+                var errEl = document.getElementById("data-file-upload-error");
+                result.classList.add("genome-upload-import-result--hidden");
+                errEl.classList.add("genome-upload-import-result--hidden");
+                btn.disabled = true;
+                btn.textContent = "Uploading…";
+
+                var formData = new FormData(dataFileForm);
+                fetch("{% url 'tpwebapp:data_file_upload' %}", {
+                    method: "POST",
+                    body: formData,
+                    headers: {"X-CSRFToken": formData.get("csrfmiddlewaretoken")}
+                })
+                .then(function (r) {
+                    return r.text().then(function (text) {
+                        var data = null;
+                        try {
+                            data = text ? JSON.parse(text) : {};
+                        } catch (e) {
+                            data = {
+                                error: "Upload failed with HTTP " + r.status + ". " +
+                                    (text ? text.slice(0, 240) : "The server returned an empty response.")
+                            };
+                        }
+                        if (!r.ok && !data.error) {
+                            data.error = "Upload failed with HTTP " + r.status + ".";
+                        }
+                        return data;
+                    });
+                })
+                .then(function (data) {
+                    btn.disabled = false;
+                    btn.textContent = "Upload file";
+                    if (data.error) {
+                        errEl.textContent = data.error;
+                        errEl.classList.remove("genome-upload-import-result--hidden");
+                    } else {
+                        pathEl.textContent = data.path;
+                        result.classList.remove("genome-upload-import-result--hidden");
+                    }
+                })
+                .catch(function () {
+                    btn.disabled = false;
+                    btn.textContent = "Upload file";
+                    errEl.textContent = "Upload failed. Check the server logs.";
+                    errEl.classList.remove("genome-upload-import-result--hidden");
+                });
+            });
+        }
     }
     $(document).ready(jsloaded);
 </script>

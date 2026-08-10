@@ -14,11 +14,11 @@
 
     <tbody>
     <tr>
-        <td>{% trans 'Proteína' %}</td>
+        <td>{% trans 'Protein' %}</td>
         <td>{{ protein.description }}</td>
     </tr>
     <tr>
-        <td>{% trans 'Gen' %}</td>
+        <td>{% trans 'Gene' %}</td>
         <td>{{ protein.gene }}</td>
     </tr>
     <tr>
@@ -26,12 +26,12 @@
         <td>{{ protein.size }}</td>
     </tr>
     <tr>
-        <td>{% trans 'Estado' %}</td>
+        <td>{% trans 'Status' %}</td>
         <td>{{ protein.status }}</td>
     </tr>
 
     <tr>
-        <td>{% trans 'Ensamblado' %}</td>
+        <td>{% trans 'Assembly' %}</td>
         <td><a href="{% url 'tpwebapp:assembly' protein.genome %}">{{ protein.assembly_name }}</a></td>
     </tr>
     </tbody>
@@ -40,27 +40,27 @@
 
 <div class="input-group">
     <select class="form-select" id="inputGroupSelect04" aria-label="Example select with button addon">
-        <option selected>{% trans 'elegir ...' %}</option>
+        <option selected>{% trans 'choose...' %}</option>
         <option value="2">{% trans 'Fasta nt' %}</option>
         <option value="2">{% trans 'Fasta aa' %}</option>
         <option value="3">{% trans 'GFF' %}</option>
 
     </select>
-    <button class="btn tp-btn tp-btn--neutral" type="button">{% trans 'Descargar' %}</button>
+    <button class="btn tp-btn tp-btn--neutral" type="button">{% trans 'Download' %}</button>
 </div>
 
 
 <hr class="col-3 col-md-2 mb-5"/>
 
-<h2>{% trans 'Anotaciones generales' %}</h2>
+<h2>{% trans 'General annotations' %}</h2>
 {% if annotations %}
 <table class="table table-striped">
     <thead>
     <tr>
         <th scope="col"> {% trans 'DB' %}</th>
-        <th scope="col"> {% trans 'Familia' %}</th>
-        <th scope="col"> {% trans 'Término' %}</th>
-        <th scope="col"> {% trans 'Nombre' %}</th>
+        <th scope="col"> {% trans 'Family' %}</th>
+        <th scope="col"> {% trans 'Term' %}</th>
+        <th scope="col"> {% trans 'Name' %}</th>
     </tr>
     </thead>
     <tbody>
@@ -76,13 +76,13 @@
 </table>
 {% else %}
 
-{% trans 'No se cuenta con esta información' %}
+{% trans 'No data available' %}
 
 {% endif %}
 
 <hr class="col-3 col-md-2 mb-5"/>
 
-<h2>{% trans 'Anotaciones sobre secuencia' %}</h2>
+<h2>{% trans 'Sequence annotations' %}</h2>
 
 {% if features %}
 
@@ -91,12 +91,12 @@
 <table class="table table-striped">
     <thead>
     <tr>
-        <th scope="col"> {% trans 'Inicio' %}</th>
-        <th scope="col"> {% trans 'Fin' %}</th>
+        <th scope="col"> {% trans 'Start' %}</th>
+        <th scope="col"> {% trans 'End' %}</th>
         <th scope="col"> {% trans 'DB' %}</th>
-        <th scope="col"> {% trans 'Familia' %}</th>
-        <th scope="col"> {% trans 'Término' %}</th>
-        <th scope="col"> {% trans 'Nombre' %}</th>
+        <th scope="col"> {% trans 'Family' %}</th>
+        <th scope="col"> {% trans 'Term' %}</th>
+        <th scope="col"> {% trans 'Name' %}</th>
     </tr>
     </thead>
     <tbody>
@@ -114,23 +114,23 @@
 </table>
 {% else %}
 
-{% trans 'No se cuenta con esta información' %}
+{% trans 'No data available' %}
 
 {% endif %}
 
 
 <hr class="col-3 col-md-2 mb-5"/>
 
-<h2>{% trans 'Relaciones' %}</h2>
+<h2>{% trans 'Relations' %}</h2>
 <div id="protein-sequence-viewer"></div>
 
 
 <hr class="col-3 col-md-2 mb-5"/>
-<h2>{% trans 'Relaciones' %}</h2>
-<p>{% trans 'Datos relacionados con este recurso' %}</p>
+<h2>{% trans 'Relations' %}</h2>
+<p>{% trans 'Data related to this resource' %}</p>
 <ul class="icon-list">
     <li>{% trans 'Tax' %}: {{assemblt.tax_id}}</li>
-    <li>{% trans 'bioproyecto' %}: {{bioproject.id}}</li>
+    <li>{% trans 'Bioproject' %}: {{bioproject.id}}</li>
 </ul>
 
 <div id="viewport" style="height: 200px;width: 200px;background-color: white"></div>

@@ -1,0 +1,17 @@
+{% load i18n %}
+{% if score or structure or pocket %}
+<div class="target-evidence-card target-evidence-card--{{ tool_key }}" title="{{ tool_tooltip }}">
+    <span class="target-evidence-label">{{ tool_label }}</span>
+    {% if score %}<strong class="target-evidence-value">{{ score }}</strong>{% endif %}
+    <div class="target-evidence-meta">
+        <div class="target-evidence-meta-row">
+            <span class="target-evidence-meta-key" title="{{ structure_tooltip }}">{% trans "Structure" %}</span>
+            <span class="target-evidence-meta-val">{{ structure|default:"–" }}{% if selected_pocket_evidence.selected_source_status_tone == "warning" %}<span class="target-evidence-source-status target-evidence-source-status--warn" title="{% trans "This structure is not currently loaded in the 3D viewer. Pockets shown in the viewer belong to a different structure." %}"><svg viewBox="0 0 16 16" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.5L13.8 12.5H2.2L8 2.5Z"/><line x1="8" y1="6.5" x2="8" y2="9"/><circle cx="8" cy="11" r="0.6" fill="currentColor" stroke="none"/></svg></span>{% elif selected_pocket_evidence.selected_source_status_tone == "meta" %}<span class="target-evidence-source-status target-evidence-source-status--info" title="{% trans "Structure is loaded but not currently shown in the viewer." %}"><svg viewBox="0 0 16 16" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="8" r="6"/><line x1="8" y1="7" x2="8" y2="11"/><circle cx="8" cy="5.2" r="0.6" fill="currentColor" stroke="none"/></svg></span>{% endif %}</span>
+        </div>
+        <div class="target-evidence-meta-row">
+            <span class="target-evidence-meta-key" title="{{ pocket_tooltip }}">{% trans "Pocket" %}</span>
+            <span class="target-evidence-meta-val">{{ pocket|default:"–" }}</span>
+        </div>
+    </div>
+</div>
+{% endif %}

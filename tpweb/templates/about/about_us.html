@@ -1,0 +1,163 @@
+{% extends '../base/masterpage.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block head %}
+    <link rel="stylesheet" href="{% static 'css/pages/data-sources.css' %}?v=20260804-fusion1">
+{% endblock %}
+
+{% block body %}
+<div class="ds-page">
+
+    <section class="ds-hero">
+        <div class="tp-view-head">
+            <div class="tp-view-head-copy">
+                {% url 'tpwebapp:index' as index_url %}
+                {% trans "About us" as crumb_about %}
+                {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_about %}
+                <p class="ds-eyebrow">{% trans "Project and team" %}</p>
+                <h1 class="ds-hero-title">{% trans "About Target Pathogen" %}</h1>
+                <p class="ds-hero-description">{% trans "Target Pathogen is a bioinformatics platform developed to support transparent, evidence-based prioritization of protein targets in pathogenic organisms." %}</p>
+            </div>
+        </div>
+    </section>
+
+    <nav class="ds-quick-nav" aria-label="{% trans 'Sections' %}">
+        <a class="ds-quick-nav-link" href="#purpose">{% trans "Purpose" %}</a>
+        <a class="ds-quick-nav-link" href="#institution">{% trans "Institution" %}</a>
+        <a class="ds-quick-nav-link" href="#team">{% trans "Team" %}</a>
+    </nav>
+
+    <section class="ds-panel" id="purpose">
+        <div class="section-head tp-ui-panel-head">
+            <div>
+                <p class="tp-ui-field-label">{% trans "Why it exists" %}</p>
+                <h2 class="ds-panel-title">{% trans "A shared workspace for target prioritization" %}</h2>
+                <p class="ds-panel-subtitle">{% trans "From genome-scale evidence to focused biological review." %}</p>
+            </div>
+        </div>
+        <p class="ds-body">{% trans "The platform brings together genome annotation, off-target analysis, essentiality, structural models, pocket predictions, ligand evidence, drug-likeness descriptors, and curated project data. The goal is to help biology and bioinformatics teams move from thousands of proteins to a smaller set of target candidates that can be discussed, filtered, ranked, and inspected with their evidence trail visible." %}</p>
+    </section>
+
+    <section class="ds-panel" id="institution">
+        <div class="section-head tp-ui-panel-head">
+            <div>
+                <p class="tp-ui-field-label">{% trans "Institutional context" %}</p>
+                <h2 class="ds-panel-title">{% trans "Facultad de Ciencias Exactas y Naturales, UBA" %}</h2>
+                <p class="ds-panel-subtitle">{% trans "Public university, public research, interdisciplinary work." %}</p>
+            </div>
+        </div>
+        <div class="ds-def-list">
+            <div class="ds-def-row">
+                <span class="ds-def-term">{% trans "Institution" %}</span>
+                <span class="ds-def-body">{% trans "Facultad de Ciencias Exactas y Naturales, Universidad de Buenos Aires (UBA)." %}</span>
+            </div>
+            <div class="ds-def-row">
+                <span class="ds-def-term">{% trans "University" %}</span>
+                <span class="ds-def-body">{% trans "Universidad de Buenos Aires, a public and tuition-free university." %}</span>
+            </div>
+            <div class="ds-def-row">
+                <span class="ds-def-term">{% trans "Focus" %}</span>
+                <span class="ds-def-body">{% trans "Scientific software for pathogen target discovery, built in dialogue with domain experts and intended to make computational evidence easier to review." %}</span>
+            </div>
+        </div>
+    </section>
+
+    <section class="ds-panel" id="team">
+        <div class="section-head tp-ui-panel-head">
+            <div>
+                <p class="tp-ui-field-label">{% trans "People" %}</p>
+                <h2 class="ds-panel-title">{% trans "Team" %}</h2>
+                <p class="ds-panel-subtitle">{% trans "Biology, chemistry, bioinformatics, and software working together." %}</p>
+            </div>
+        </div>
+        <div class="ds-pipeline-grid">
+            <div class="ds-pipeline-card">
+                <div class="ds-pipeline-card-head">
+                    <strong>Darío Do Porto</strong>
+                </div>
+                <p class="ds-pipeline-card-role ds-pipeline-card-role--doctor">{% trans "PhD in Biological Sciences" %} <span class="ds-pipeline-card-faculty">(FCEyN, UBA)</span></p>
+                <p class="ds-pipeline-card-previous-degree"><span>{% trans "Undergraduate degree" %}</span>{% trans "Bachelor's in Biological Sciences" %} <span class="ds-pipeline-card-faculty">(FCEyN, UBA)</span></p>
+            </div>
+            <div class="ds-pipeline-card">
+                <div class="ds-pipeline-card-head">
+                    <strong>Adrián Turjanski</strong>
+                </div>
+                <p class="ds-pipeline-card-role ds-pipeline-card-role--doctor">{% trans "PhD in Chemical Sciences" %} <span class="ds-pipeline-card-faculty">(FCEyN, UBA)</span></p>
+                <p class="ds-pipeline-card-previous-degree"><span>{% trans "Undergraduate degree" %}</span>{% trans "Bachelor's in Chemical Sciences" %} <span class="ds-pipeline-card-faculty">(UBA)</span></p>
+            </div>
+            <div class="ds-pipeline-card">
+                <div class="ds-pipeline-card-head">
+                    <strong>Lucas Gabriel García</strong>
+                </div>
+                <p class="ds-pipeline-card-role ds-pipeline-card-role--candidate">{% trans "PhD candidate in Biological Chemistry" %} <span class="ds-pipeline-card-faculty">(FCEyN, UBA)</span></p>
+                <p class="ds-pipeline-card-previous-degree"><span>{% trans "Undergraduate degree" %}</span>{% trans "Bachelor's in Biological Sciences" %} <span class="ds-pipeline-card-faculty">(FCEyN, UBA)</span></p>
+            </div>
+            <div class="ds-pipeline-card">
+                <div class="ds-pipeline-card-head">
+                    <strong>Miranda Palumbo</strong>
+                </div>
+                <p class="ds-pipeline-card-role ds-pipeline-card-role--candidate">{% trans "PhD candidate in Biological Chemistry" %} <span class="ds-pipeline-card-faculty">(FCEyN, UBA)</span></p>
+                <p class="ds-pipeline-card-previous-degree"><span>{% trans "Undergraduate degree" %}</span>{% trans "Bachelor's in Biological Sciences" %} <span class="ds-pipeline-card-faculty">(FCEyN, UBA)</span></p>
+            </div>
+            <div class="ds-pipeline-card">
+                <div class="ds-pipeline-card-head">
+                    <strong>Sol Varela Gamarnik</strong>
+                </div>
+                <p class="ds-pipeline-card-role ds-pipeline-card-role--candidate">{% trans "PhD candidate in Biological Chemistry" %} <span class="ds-pipeline-card-faculty">(FCEyN, UBA)</span></p>
+                <p class="ds-pipeline-card-previous-degree"><span>{% trans "Undergraduate degree" %}</span>{% trans "Bachelor's in Chemical Sciences" %} <span class="ds-pipeline-card-faculty">(FCEyN, UBA)</span></p>
+            </div>
+            <div class="ds-pipeline-card">
+                <div class="ds-pipeline-card-head">
+                    <strong>Ana Gabriela Gutson</strong>
+                </div>
+                <p class="ds-pipeline-card-role ds-pipeline-card-role--engineering">{% trans "Computer Engineer" %} <span class="ds-pipeline-card-faculty">(FIUBA, UBA)</span></p>
+            </div>
+            <div class="ds-pipeline-card">
+                <div class="ds-pipeline-card-head">
+                    <strong>Joaquín Messano</strong>
+                </div>
+                <p class="ds-pipeline-card-role">{% trans "Undergraduate student in Biological Sciences" %} <span class="ds-pipeline-card-faculty">(FCEyN, UBA)</span></p>
+            </div>
+        </div>
+    </section>
+
+</div>
+
+<script>
+(function () {
+    var nav = document.querySelector('.ds-quick-nav');
+    if (!nav) return;
+    var links = Array.from(nav.querySelectorAll('a[href^="#"]'));
+    if (!links.length) return;
+    var targets = links.map(function (link) {
+        var section = document.getElementById(link.getAttribute('href').slice(1));
+        return section ? { link: link, section: section } : null;
+    }).filter(Boolean);
+    if (!targets.length) return;
+
+    function updateActive() {
+        var triggerLine = Math.round(window.innerHeight * 0.32);
+        var active = targets[0];
+        for (var i = targets.length - 1; i >= 0; i--) {
+            if (targets[i].section.getBoundingClientRect().top <= triggerLine) {
+                active = targets[i];
+                break;
+            }
+        }
+        targets.forEach(function (t) {
+            t.link.classList.toggle('is-active', t === active);
+        });
+    }
+
+    links.forEach(function (link) {
+        link.addEventListener('click', function () {
+            setTimeout(updateActive, 120);
+        });
+    });
+    window.addEventListener('scroll', updateActive, { passive: true });
+    window.addEventListener('resize', updateActive);
+    updateActive();
+})();
+</script>
+{% endblock %}

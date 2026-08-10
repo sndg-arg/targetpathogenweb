@@ -36,5 +36,8 @@ class Command(BaseCommand):
         self.stdout.write(
             f"UniProt annotations for {options['assembly_name']}: "
             f"EC +{stats['ec_created']}, GO +{stats['go_created']}, "
+            f"sites +{stats['sites_created']} (AlphaFold/ColabFold structures only — "
+            f"none yet if this ran before alphafold/colabfold; re-run via "
+            f"load_uniprot_sites once structures are loaded), "
             f"proteins annotated {stats['proteins_annotated']}/{stats['proteins_total']}"
         )

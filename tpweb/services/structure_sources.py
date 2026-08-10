@@ -1,3 +1,7 @@
+import re
+
+from tpweb.services.structure_files import CHAIN_SUFFIX_RE
+
 STRUCTURE_SOURCE_NONE = "none"
 STRUCTURE_SOURCE_EXPERIMENTAL = "experimental"
 STRUCTURE_SOURCE_ALPHAFOLD = "alphafold"
@@ -15,26 +19,26 @@ PDB_MODEL_EXPERIMENTS = (
 STRUCTURE_SOURCE_LABELS = {
     STRUCTURE_SOURCE_NONE: "Unavailable",
     STRUCTURE_SOURCE_EXPERIMENTAL: "Experimental",
-    STRUCTURE_SOURCE_ALPHAFOLD: "AlphaFold",
-    STRUCTURE_SOURCE_COLABFOLD: "ColabFold",
+    STRUCTURE_SOURCE_ALPHAFOLD: "AlphaFold DB model",
+    STRUCTURE_SOURCE_COLABFOLD: "ColabFold model",
     STRUCTURE_SOURCE_MODEL: "Model",
-    STRUCTURE_SOURCE_MIXED: "Experimental + AlphaFold",
+    STRUCTURE_SOURCE_MIXED: "Experimental + predicted",
 }
 
 STRUCTURE_SOURCE_CHOICES = (
     (STRUCTURE_SOURCE_NONE, "No structure"),
     (STRUCTURE_SOURCE_EXPERIMENTAL, "Experimental"),
-    (STRUCTURE_SOURCE_ALPHAFOLD, "AlphaFold"),
-    (STRUCTURE_SOURCE_COLABFOLD, "ColabFold"),
+    (STRUCTURE_SOURCE_ALPHAFOLD, "AlphaFold DB model"),
+    (STRUCTURE_SOURCE_COLABFOLD, "ColabFold model"),
     (STRUCTURE_SOURCE_MODEL, "Model"),
-    (STRUCTURE_SOURCE_MIXED, "Experimental + AlphaFold"),
+    (STRUCTURE_SOURCE_MIXED, "Experimental + predicted"),
 )
 
 
 _STRUCTURE_PREFERENCE = {"EX": 0, "AF": 1, "CF": 2}
 _STRUCTURE_TOGGLE_LABELS = {
     "EX": "Crystal structure",
-    "AF": "AlphaFold model",
+    "AF": "AlphaFold DB model",
     "CF": "ColabFold model",
 }
 
@@ -43,9 +47,88 @@ def structure_toggle_label(experiment):
     return _STRUCTURE_TOGGLE_LABELS.get((experiment or "").upper(), "Model")
 
 
+def chain_parts(chain):
+    """Split a possibly multi-chain field (e.g. 'A,B,C' for a homooligomer
+    or fragmented/heteromeric structure) into its individual chain letters.
+    Empty list when `chain` is blank."""
+    return [part.strip() for part in re.split(r"[,;]", chain or "") if part.strip()]
+
+
+def chain_selector(chain):
+    """NGL selector fragment for one or more chains, e.g. ':A', '(:A OR :B
+    OR :C)' for a multi-chain (homooligomer or fragmented/heteromeric)
+    structure, or 'polymer' when no chain is set. Was copy-pasted
+    identically in ProteinView.py and StructureView.py; lives here since
+    both views already depend on this module."""
+    parts = chain_parts(chain)
+    if not parts:
+        return "polymer"
+    if len(parts) == 1:
+        return f":{parts[0]}"
+    return "(" + " OR ".join(f":{part}" for part in parts) + ")"
+
+
+def is_multichain(chain, structure_data=None):
+    """True when coloring 'by chain' would actually show more than one
+    color -- i.e. there's a real choice to offer the user.
+
+    When `chain` names specific chain letter(s) for this protein, that
+    count is authoritative (an unrestricted co-crystallized chain
+    belonging to a different protein is never included -- see
+    _parse_pdb_chain_mapping in functional_annotations.py, which only
+    reports chains that map to the protein being annotated). When `chain`
+    is blank (selector falls back to 'polymer', i.e. the whole file is
+    shown unrestricted), fall back to counting distinct chains actually
+    present in the loaded structure (`structure_data["chains"]`, already
+    computed by StructureView.pdb_structure from real residue data).
+    """
+    parts = chain_parts(chain)
+    if parts:
+        return len(parts) > 1
+    chains_in_file = (structure_data or {}).get("chains") or []
+    return len(chains_in_file) > 1
+
+
+def _structure_coverage_span(link):
+    start = getattr(link, "uniprot_start", None)
+    end = getattr(link, "uniprot_end", None)
+    if start is None or end is None:
+        return 0
+    return max(0, end - start + 1)
+
+
+def _structure_resolution_value(link):
+    pdb = getattr(link, "pdb", None)
+    value = getattr(link, "resolution", None) or getattr(pdb, "resolution", None)
+    try:
+        resolution = float(value)
+        return 999.0 if resolution == 20 else resolution
+    except (TypeError, ValueError):
+        return 999.0
+
+
+def _is_chain_isolated(pdb):
+    """True for a PDB row that was extracted to a single chain before pocket
+    detection ran (code like "6E85_CHAIN_A"), as opposed to a whole-file PDB
+    row sharing the same base code. Preferred as the default when both exist
+    for the same protein -- see sort_structures_by_preference below."""
+    code = str(getattr(pdb, "code", "") or "")
+    return bool(CHAIN_SUFFIX_RE.search(code))
+
+
 def sort_structures_by_preference(structures):
-    return sorted(structures, key=lambda s: _STRUCTURE_PREFERENCE.get(
-        (getattr(s.pdb, "experiment", "") or "").upper(), 9))
+    def key(link):
+        pdb = getattr(link, "pdb", None)
+        experiment = (getattr(pdb, "experiment", "") or "").upper()
+        return (
+            _STRUCTURE_PREFERENCE.get(experiment, 9),
+            -_structure_coverage_span(link),
+            _structure_resolution_value(link),
+            not _is_chain_isolated(pdb),
+            str(getattr(pdb, "code", "") or ""),
+        )
+
+    return sorted(structures, key=key)
 
 
 def _normalize_experiment(experiment):
@@ -80,7 +163,7 @@ def summarize_structure_sources(structures):
         primary_source = STRUCTURE_SOURCE_NONE
     elif len(source_keys) == 1:
         primary_source = next(iter(source_keys))
-    elif source_keys == {STRUCTURE_SOURCE_EXPERIMENTAL, STRUCTURE_SOURCE_ALPHAFOLD}:
+    elif STRUCTURE_SOURCE_EXPERIMENTAL in source_keys:
         primary_source = STRUCTURE_SOURCE_MIXED
     else:
         primary_source = STRUCTURE_SOURCE_MODEL
@@ -97,7 +180,11 @@ def summarize_structure_sources(structures):
     ]
 
     source_labels = [structure_source_label(source) for source in ordered_sources]
-    combined_label = " + ".join(source_labels) if source_labels else structure_source_label(STRUCTURE_SOURCE_NONE)
+    combined_label = (
+        " + ".join(source_labels)
+        if source_labels
+        else structure_source_label(STRUCTURE_SOURCE_NONE)
+    )
 
     return {
         "source": primary_source,
@@ -106,3 +193,36 @@ def summarize_structure_sources(structures):
         "has_structure": bool(source_keys),
         "count": total_structures,
     }
+
+
+def structure_identifier_candidates(identifier):
+    """Expand a bare structure identifier into the code variants it may appear as.
+
+    An imported score value like "A0A0H3GWB0" may match a PDB.code of
+    "AF_A0A0H3GWB0" or "CB_A0A0H3GWB0" (or the reverse: a stored "AF_..."
+    identifier should still match the bare accession). Shared by ProteinView's
+    "selected pocket evidence" display and the pocket-size-outlier indexer, so
+    both resolve a curated structure identifier the same way.
+    """
+    ident = (identifier or "").strip().upper()
+    if not ident:
+        return set()
+    candidates = {ident}
+    for prefix in ("AF_", "CB_"):
+        if ident.startswith(prefix):
+            candidates.add(ident[len(prefix) :])
+    candidates.add(f"AF_{ident}")
+    candidates.add(f"CB_{ident}")
+    return candidates
+
+
+def structure_matches_identifier(link, identifier):
+    """Does `link` (a BioentryStructure, or a PDB itself) refer to `identifier`?"""
+    if link is None:
+        return False
+    pdb = getattr(link, "pdb", link)
+    code = (getattr(pdb, "code", "") or "").strip().upper()
+    return any(
+        code == candidate or code.startswith(f"{candidate}_") or code.startswith(f"{candidate}-")
+        for candidate in structure_identifier_candidates(identifier)
+    )

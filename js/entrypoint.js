@@ -3,8 +3,7 @@ window.$ = $;
 import Popper from "popper.js";
 window.Popper = Popper;
 
-import 'bootstrap/dist/css/bootstrap.css';
-import "msa/css/msa.css";
+import 'bootstrap';
 
 
 
@@ -39,8 +38,17 @@ import FeatureViewer from 'feature-viewer';
 
 window.FeatureViewer = FeatureViewer;
 
-import {Stage as NGL} from 'ngl'
+import {Stage as NGL, Shape as NGLShape} from 'ngl'
 window.NGL = NGL;
+window.NGL.Shape = NGLShape;
+
+import cytoscape from 'cytoscape';
+import dagre from 'cytoscape-dagre';
+import fcose from 'cytoscape-fcose';
+cytoscape.use(dagre);
+cytoscape.use(fcose);
+window.cytoscape = cytoscape;
+window.TP_CYTOSCAPE_DAGRE_AVAILABLE = true;
 
 import initRDKitModule from "@rdkit/rdkit";
 
@@ -81,7 +89,4 @@ export default (name, constructor) => {
 };
 
 * */
-
-
-
 
