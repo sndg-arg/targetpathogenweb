@@ -341,6 +341,13 @@ class FormulaFormViewTests(TestCase):
         )
         self.assertEqual(response.status_code, 404)
 
+    def test_get_renders_form_for_existing_genome(self):
+        Biodatabase.objects.create(name="TEST")
+
+        response = self.client.get(reverse("tpwebapp:formula_form", kwargs={"genome": "TEST"}))
+
+        self.assertEqual(response.status_code, 200)
+
 
 class AgentChatViewTests(TestCase):
     def test_get_returns_empty_history_for_new_session(self):
@@ -356,6 +363,14 @@ class MetabolismPathwayViewTests(TestCase):
             reverse("tpwebapp:genome_metabolism", kwargs={"genome": "does-not-exist"})
         )
         self.assertEqual(response.status_code, 404)
+
+    def test_get_renders_for_genome_with_no_metabolic_reactions(self):
+        Biodatabase.objects.create(name="TEST", description="Genome workspace")
+        Biodatabase.objects.create(name="TEST_prots")
+
+        response = self.client.get(reverse("tpwebapp:genome_metabolism", kwargs={"genome": "TEST"}))
+
+        self.assertEqual(response.status_code, 200)
 
 
 class MetabolismNetworkViewTests(TestCase):
