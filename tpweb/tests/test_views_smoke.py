@@ -399,3 +399,13 @@ class GenomeUploadViewTests(TestCase):
         response = self.client.get(reverse("tpwebapp:genome_upload"))
 
         self.assertEqual(response.status_code, 200)
+
+
+class ProteinListViewTests(TestCase):
+    def test_renders_for_genome_with_no_proteins(self):
+        Biodatabase.objects.create(name="TEST", description="Genome workspace")
+        Biodatabase.objects.create(name="TEST_prots")
+
+        response = self.client.get(reverse("tpwebapp:protein_list", kwargs={"genome": "TEST"}))
+
+        self.assertEqual(response.status_code, 200)
