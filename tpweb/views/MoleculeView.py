@@ -10,13 +10,13 @@ class MoleculeView(View):
             mol = Chem.MolFromSmiles(smiles)
             canvas_width_pixels = 300
             canvas_height_pixels = 300
-            
+
             drawer = rdMolDraw2D.MolDraw2DSVG(canvas_width_pixels, canvas_height_pixels)
             drawer.DrawMolecule(mol)
             drawer.FinishDrawing()
-            
+
             svg_data = drawer.GetDrawingText()
-            
+
             return render(request, 'molecule/molecule.html', {'svg': svg_data})
         except Exception as e:
             return render(request, 'molecule/error.html', {'message': f"Error rendering molecule: {str(e)}"})

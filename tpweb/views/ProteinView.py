@@ -1,7 +1,6 @@
 from django.db.models import Prefetch
 from django.shortcuts import render
 from django.http import Http404
-from django.urls import reverse
 from django.views import View
 
 import itertools
@@ -14,7 +13,6 @@ from .StructureView import pdb_structure
 from tpweb.services.protein_annotations import (
     annotation_dbnames,
     annotation_name as _annotation_name,
-    protein_annotation_badges,
     iter_protein_annotations,
 )
 from tpweb.services.csv_exports import build_view_export_url, xlsx_sections_response

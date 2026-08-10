@@ -220,7 +220,7 @@ def _residue_identity(residue):
     """Stable residue identity for cross-method pocket comparisons."""
     return (
         str(getattr(residue, "chain", "") or "").strip(),
-        int(getattr(residue, "resid")),
+        int(residue.resid),
         str(getattr(residue, "icode", "") or "").strip(),
     )
 
@@ -807,5 +807,5 @@ def generar_color_aleatorio():
     red = random.randint(0, 255)
     green = random.randint(0, 255)
     blue = random.randint(0, 255)
-    color_hex = "#{:02X}{:02X}{:02X}".format(red, green, blue)
+    color_hex = f"#{red:02X}{green:02X}{blue:02X}"
     return color_hex

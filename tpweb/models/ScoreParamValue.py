@@ -1,6 +1,5 @@
-from ckeditor_uploader.fields import RichTextUploadingField
 from django.db import models
-from django.db.models import SmallIntegerField, CharField, FloatField
+from django.db.models import CharField, FloatField
 
 from bioseq.models.Bioentry import Bioentry
 from tpweb.models.ScoreParam import ScoreParam

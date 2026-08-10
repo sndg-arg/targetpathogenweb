@@ -1,11 +1,9 @@
 
-import gzip
-import io
 import re
 import shutil
 import warnings
 import os
-from Bio import BiopythonWarning, BiopythonParserWarning, BiopythonDeprecationWarning, BiopythonExperimentalWarning, SeqIO
+from Bio import BiopythonWarning, BiopythonParserWarning, BiopythonDeprecationWarning, BiopythonExperimentalWarning
 from django.core.management.base import BaseCommand
 from django.core.exceptions import ValidationError
 from bioseq.io.GenebankIO import GenebankIO

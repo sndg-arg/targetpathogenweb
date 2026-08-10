@@ -48,7 +48,7 @@ def upload_form(request, genome):
                 tsv__endswith=form.cleaned_data['tsv'].name,
             )
             existing_file = existing_params.exists()
-            
+
             # Check if file exists and overwrite flag is set to true
             if existing_file and request.POST.get('overwrite') == 'true':
                 # Overwrite is confirmed, proceed with saving

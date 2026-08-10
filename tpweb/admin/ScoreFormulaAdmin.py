@@ -1,7 +1,4 @@
 from tpweb.models.ScoreFormula import ScoreFormulaParam, ScoreFormula
-from tpweb.models.ScoreParam import ScoreParam, ScoreParamOptions
-from tpweb.models.ScoreParamValue import ScoreParamValue
-from tpweb.models.pdb import PDB
 
 from django.contrib import admin
 
@@ -18,9 +15,6 @@ class ScoreFormulaAdmin(admin.ModelAdmin):
 
 admin.site.register(ScoreFormula, ScoreFormulaAdmin)
 
-from tpweb.models.ScoreParam import ScoreParam, ScoreParamOptions
-from tpweb.models.ScoreParamValue import ScoreParamValue
-from tpweb.models.pdb import PDB
 
 from django.contrib import admin
 

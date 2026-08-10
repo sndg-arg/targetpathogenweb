@@ -11,7 +11,6 @@ Resolution is pre-ranked during UniProt fetch: rank = int(resolution * 100).
 """
 
 import logging
-import math
 import os
 import time
 

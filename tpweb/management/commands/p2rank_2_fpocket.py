@@ -1,12 +1,9 @@
 import os
-import argparse
 import subprocess as sp
 from tqdm import tqdm
 import pandas as pd
 from SNDG.Structure.FPocket import FpocketOutput
-from SNDG import mkdir
-import json
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 from bioseq.io.SeqStore import SeqStore
 from glob import glob
 
@@ -18,10 +15,10 @@ class Command(BaseCommand):
         parser.add_argument('locus_tag')
         parser.add_argument('--overwrite', action="store_true")
         parser.add_argument('--datadir', default="./data")
-    
+
     def handle(self, *args, **options):
         def replace_first_line(src_filename, target_filename, replacement_line):
-            with open(src_filename, 'r') as f:
+            with open(src_filename) as f:
                 first_line, remainder = f.readline(), f.read()
             with open(target_filename, "w") as t:
                 t.write(replacement_line + "\n")
@@ -71,7 +68,7 @@ class Command(BaseCommand):
                 # Construct the source and target filenames
                 src_filename = os.path.join(folder, f'pocket{i}_info.txt')
                 target_filename = os.path.join(fpocket_folder, f'pocket{i}_info_fixed.txt')
-                
+
                 # Modify the first line of the source file
                 replacement_line = f"Pocket {i} :"
                 replace_first_line(src_filename, target_filename, replacement_line)
@@ -80,7 +77,7 @@ class Command(BaseCommand):
             fixed_files = [os.path.join(fpocket_folder, f'pocket{i}_info_fixed.txt') for i in range(1, len(_out_folders)+1)]
             concatenated_content = ''
             for file in fixed_files:
-                with open(file, 'r') as f:
+                with open(file) as f:
                     content = f.read()
                     concatenated_content += content
 

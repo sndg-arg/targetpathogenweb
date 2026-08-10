@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
 import os
 import warnings
 
@@ -16,7 +14,7 @@ from pdbdb.io.FPocket2SQL import FPocket2SQL
 from pdbdb.io.PDB2SQL import PDB2SQL
 
 
-class PDBIO():
+class PDBIO:
 
     def __init__(self, pdbs_dir="/data/databases/pdb/divided/",
                  entries_path="/data/databases/pdb/entries.idx",

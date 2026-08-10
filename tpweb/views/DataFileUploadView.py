@@ -36,7 +36,7 @@ class DataFileUploadView(View):
         if not (uploaded.name.lower().endswith(".tar.gz") or
                 os.path.splitext(uploaded.name.lower())[1] in ALLOWED_EXTENSIONS):
             return JsonResponse(
-                {"error": f"File type not allowed. Accepted: .tsv, .csv, .tar.gz, .json, .txt"},
+                {"error": "File type not allowed. Accepted: .tsv, .csv, .tar.gz, .json, .txt"},
                 status=400,
             )
 

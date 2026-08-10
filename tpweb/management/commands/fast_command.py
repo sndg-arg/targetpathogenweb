@@ -85,7 +85,7 @@ class Command(BaseCommand):
                 "Check that /app/fasttarget is mounted and initialized."
             )
 
-        with open(input_filename, 'r') as file:
+        with open(input_filename) as file:
             config = yaml.safe_load(file)
 
         if config is None:
@@ -231,7 +231,7 @@ class Command(BaseCommand):
             faa = os.path.join(folder_path, f"{genome}.faa")
             faa_gz = os.path.join(folder_path, f"{genome}.faa.gz")
             if os.path.exists(faa):
-                with open(faa, "r") as fh:
+                with open(faa) as fh:
                     for line in fh:
                         if line.startswith(">"):
                             genes.append(line[1:].split()[0].strip())
@@ -407,7 +407,7 @@ class Command(BaseCommand):
                     path = os.path.join(root, filename)
                     if os.path.getsize(path) <= 0:
                         continue
-                    with open(path, "r") as handle:
+                    with open(path) as handle:
                         for line in handle:
                             parts = line.strip().split("\t")
                             if parts and parts[0]:

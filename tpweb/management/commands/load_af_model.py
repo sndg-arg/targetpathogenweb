@@ -88,7 +88,7 @@ class Command(BaseCommand):
                 self.load_pdb_file(pdb_model, options["pdb_file"])
                 BioentryStructure(bioentry=be, pdb=pdb_model).save()
 
-            except IOError as ex:
+            except OSError as ex:
                 traceback.print_exc()
                 self.stderr.write("error processing pockets from %s: %s" % (options["struct_name"], str(ex)))
             except Exception as ex:
@@ -207,7 +207,7 @@ class Command(BaseCommand):
         the offending apostrophe can appear in other single-line data items
         too and we don't read compound names/titles back out of these files
         for anything -- losing the literal apostrophe there is harmless."""
-        with open(pdb_path, "r", encoding="utf-8", errors="replace") as fh:
+        with open(pdb_path, encoding="utf-8", errors="replace") as fh:
             content = fh.read()
         if "'" not in content:
             return pdb_path

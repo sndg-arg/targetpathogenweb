@@ -1,6 +1,5 @@
 import contextlib
 import io
-import math
 import os
 import shlex
 import tarfile

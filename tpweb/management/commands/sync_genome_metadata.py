@@ -25,7 +25,7 @@ METADATA_KEYS = (
 def _open_gbk(path):
     if path.endswith(".gz"):
         return gzip.open(path, "rt")
-    return open(path, "rt")
+    return open(path)
 
 
 class Command(BaseCommand):

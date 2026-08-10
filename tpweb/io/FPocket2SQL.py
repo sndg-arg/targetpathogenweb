@@ -1,6 +1,3 @@
-import json
-import os
-import sys
 import warnings
 
 from Bio import BiopythonWarning, BiopythonParserWarning, BiopythonDeprecationWarning, BiopythonExperimentalWarning
@@ -84,7 +81,7 @@ class FPocket2SQL:
                 else:
                      r = Residue(pdb=self.pdb, chain=stp_line[22:23], resid=resid,
                                 type="",
-                                resname="STP2", disordered=1)                   
+                                resname="STP2", disordered=1)
                 r.save()
                 res_alpha[resid] = r
             Atom(residue=r, serial=nro_atm, name=stp_line[12:16],

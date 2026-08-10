@@ -27,7 +27,6 @@ from .views.BinderDetailView import BinderDetailView
 from .views.FormulaFormView import FormulaFormView
 from .views.ValidateExpressionView import validate_expression_view
 from .views.DeleteFormulaView import delete_formula_view
-from .views.TestCelery import test_celery
 #from debug_toolbar.toolbar import debug_toolbar_urls
 from .views.CustomParamView import upload_form
 from .views.GenomeUploadView import GenomeUploadView
@@ -41,13 +40,7 @@ from .views.HumanProteinListView import HumanProteinListView
 from .views.HumanProteinView import HumanProteinView
 from django.conf.urls.static import static
 from django.conf import settings
-from django.contrib.auth.decorators import login_required
 
-from tpweb.views.UserViews import (
-    user_detail_view,
-    user_redirect_view,
-    user_update_view,
-)
 
 from .admin import *
 

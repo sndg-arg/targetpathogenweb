@@ -1,11 +1,9 @@
-from ckeditor_uploader.fields import RichTextUploadingField
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models import CharField, FloatField
 
 from bioseq.models.Bioentry import Bioentry
 from tpweb.models.ScoreParam import ScoreParam
-from tpweb.models.ScoreParamValue import ScoreParamValue
 
 User = get_user_model()
 

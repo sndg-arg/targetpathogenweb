@@ -28,7 +28,7 @@ class Command(BaseCommand):
         self.stderr.write(
             f"P2Rank output missing or invalid for {genome}/{locus_tag}; wrote empty pocket set ({reason})."
         )
-    
+
     def handle(self, *args, **options):
         genome = options["genome"]
         locus_tag = options["locus_tag"]

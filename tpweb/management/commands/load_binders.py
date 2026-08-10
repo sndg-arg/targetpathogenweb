@@ -4,7 +4,6 @@ from django.db import IntegrityError
 import os
 from bioseq.io.SeqStore import SeqStore
 from bioseq.models.Bioentry import Bioentry
-import subprocess as sp
 from django.core.management.base import BaseCommand, CommandError
 from tqdm import tqdm
 

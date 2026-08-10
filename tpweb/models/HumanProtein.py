@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Human Targets — per-protein content for the human curated-protein set.
 
 Unlike the bacteria side, human proteins are NOT genome-upload/pipeline

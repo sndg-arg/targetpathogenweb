@@ -1,6 +1,5 @@
 from tpweb.models.ScoreParam import ScoreParam, ScoreParamOptions
 from tpweb.models.ScoreParamValue import ScoreParamValue
-from tpweb.models.pdb import PDB
 
 from django.contrib import admin
 

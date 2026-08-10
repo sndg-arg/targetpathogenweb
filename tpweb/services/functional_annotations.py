@@ -65,7 +65,7 @@ def _read_uniprot_mapping(lst_path):
     path = Path(lst_path)
     if not path.exists():
         return mapping
-    with open(path, "r") as fh:
+    with open(path) as fh:
         for line in fh:
             parts = line.strip().split()
             if len(parts) >= 2:

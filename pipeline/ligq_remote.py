@@ -83,7 +83,7 @@ def _resolve_ssh_options(host, user=None, port=22):
         return resolved
     try:
         ssh_config = paramiko.SSHConfig()
-        with open(config_path, "r", encoding="utf-8") as handle:
+        with open(config_path, encoding="utf-8") as handle:
             ssh_config.parse(handle)
         entry = ssh_config.lookup(host)
     except Exception:

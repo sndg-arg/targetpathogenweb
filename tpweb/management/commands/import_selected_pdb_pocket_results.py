@@ -161,7 +161,7 @@ def parse_fpocket_info(path):
     if not os.path.exists(path):
         return pockets
 
-    with open(path, "rt", encoding="utf-8", errors="replace") as handle:
+    with open(path, encoding="utf-8", errors="replace") as handle:
         for line in handle:
             match = re.match(r"Pocket\s+(\d+)\s*:", line)
             if match:
@@ -187,7 +187,7 @@ def parse_fpocket_alpha_lines(path):
     if not os.path.exists(path):
         return pockets
 
-    with open(path, "rt", encoding="utf-8", errors="replace") as handle:
+    with open(path, encoding="utf-8", errors="replace") as handle:
         for line in handle:
             if not (line.startswith("ATOM") or line.startswith("HETATM")) or "STP" not in line:
                 continue
@@ -257,7 +257,7 @@ def parse_fpocket_vert_files(fpocket_dir):
         if not match:
             continue
         pocket_number = int(match.group(1))
-        with open(os.path.join(pockets_dir, filename), "rt", encoding="utf-8", errors="replace") as handle:
+        with open(os.path.join(pockets_dir, filename), encoding="utf-8", errors="replace") as handle:
             for line in handle:
                 alpha_line = _alpha_line_from_vert_line(line, pocket_number, serial)
                 if alpha_line:
@@ -272,7 +272,7 @@ def parse_fpocket_atom_pdb(path):
     if not os.path.exists(path):
         return atoms, residues
 
-    with open(path, "rt", encoding="utf-8", errors="replace") as handle:
+    with open(path, encoding="utf-8", errors="replace") as handle:
         for line in handle:
             if not (line.startswith("ATOM") or line.startswith("HETATM")):
                 continue

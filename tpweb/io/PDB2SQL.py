@@ -21,7 +21,7 @@ import subprocess as sp
 
 
 
-class PDB2SQL():
+class PDB2SQL:
     def __init__(self, base_dir="/data/databases/pdb/divided/", entries_path="/data/databases/pdb/entries.idx"):
         self.base_dir = base_dir
         self.entries_path = entries_path

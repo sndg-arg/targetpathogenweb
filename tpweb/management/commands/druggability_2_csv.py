@@ -3,21 +3,14 @@ from Bio import BiopythonWarning, BiopythonParserWarning, BiopythonDeprecationWa
 from django.core.management.base import BaseCommand
 from tqdm import tqdm
 
-from bioseq.io.BioIO import BioIO
-from bioseq.io.IndexerIO import IndexerIO
 from bioseq.io.SeqStore import SeqStore
 from bioseq.models.Biodatabase import Biodatabase
 from bioseq.models.Bioentry import Bioentry
-from bioseq.models.BiodatabaseQualifierValue import BiodatabaseQualifierValue
-from bioseq.models.BioentryQualifierValue import BioentryQualifierValue
-from tpweb.models.pdb import ResidueSetProperty, PDB, PDBResidueSet, Property
+from tpweb.models.pdb import ResidueSetProperty, Property
 from tpweb.models.BioentryStructure import BioentryStructure
-from tpweb.models.ScoreParamValue import ScoreParamValue
-from tpweb.models.ScoreParam import ScoreParam
 from tpweb.services.structure_sources import classify_structure_experiment, STRUCTURE_SOURCE_EXPERIMENTAL
 from tpweb.services.pocket_geometry import filter_residuesetproperty_by_chain
 import pandas as pd
-from django.db import IntegrityError
 
 warnings.simplefilter('ignore', RuntimeWarning)
 warnings.simplefilter('ignore', BiopythonWarning)
@@ -39,7 +32,7 @@ class Command(BaseCommand):
         accession = options['accession']
         proteins = Bioentry.objects.filter(biodatabase__name=accession + Biodatabase.PROT_POSTFIX)
         property_instance = Property.objects.get(name='druggability_score')
-        
+
         df = pd.DataFrame(columns=['gene', 'Druggability'])
 
 
@@ -47,7 +40,7 @@ class Command(BaseCommand):
         # Iterate over each protein
 
         for protein in tqdm(proteins, total=len(proteins)):
-            
+
             # Get the bioentry_id for the current protein
             bioentry_id = protein.bioentry_id
             bioentry_name = protein.accession
@@ -79,8 +72,8 @@ class Command(BaseCommand):
 
         seqstore = SeqStore(options['datadir'])
         db_dir = seqstore.db_dir(accession)
-        csv_filename = 'druggability.tsv' 
-        
+        csv_filename = 'druggability.tsv'
+
         os.makedirs(db_dir, exist_ok=True)
         csv_path = os.path.join(db_dir,csv_filename)
         df.to_csv(csv_path, sep='\t', index=False)  # Save the DataFrame to a CSV file without including the index column

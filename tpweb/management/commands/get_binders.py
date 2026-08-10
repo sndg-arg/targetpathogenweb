@@ -45,7 +45,7 @@ class Command(BaseCommand):
         def load_uniprot_to_locus(folder_path, genome):
             path = os.path.join(folder_path, f"{genome}_unips.lst")
             mapping = {}
-            with open(path, "r") as handle:
+            with open(path) as handle:
                 for raw in handle:
                     parts = raw.strip().split()
                     if len(parts) >= 2:
@@ -137,7 +137,7 @@ class Command(BaseCommand):
             result = {}
             current_block = None
             block_lines = []
-            with open(ccd_cif_path, "r", errors="replace") as handle:
+            with open(ccd_cif_path, errors="replace") as handle:
                 for raw in handle:
                     if raw.startswith("data_"):
                         if current_block in ligands and current_block not in result:
@@ -188,4 +188,4 @@ class Command(BaseCommand):
 
 
 
-    
+

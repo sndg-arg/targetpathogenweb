@@ -1,26 +1,13 @@
 import os
-import shutil
 import sys
-import traceback
-import gzip
-import tempfile
 
 import numpy as np
 import pandas as pd
-from Bio.PDB.PDBParser import PDBParser
-from Bio.PDB.Polypeptide import is_aa
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 from django.db import transaction
-from tqdm import tqdm
 
-from bioseq.io.BioIO import BioIO
-from bioseq.io.SeqStore import SeqStore
-from bioseq.models.Bioentry import Bioentry
-from tpweb.models.BioentryStructure import BioentryStructure
-from tpweb.models.pdb import PDB, Residue, Atom, ResidueSet, ResidueSetResidue, PDBResidueSet, Property, \
-    ResidueProperty, ResidueSetProperty
-import subprocess as sp
-from django.db import transaction
+from tpweb.models.pdb import PDB, ResidueSet, ResidueSetResidue, PDBResidueSet, Property, \
+    ResidueSetProperty
 
 def mkdir(dirpath):
     if not os.path.exists(dirpath):

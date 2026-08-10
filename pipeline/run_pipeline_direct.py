@@ -15,11 +15,9 @@ import shutil
 import subprocess
 import sys
 import time
-from datetime import datetime, timezone
 
 # Reuse helpers from the existing run_pipeline module.
 from run_pipeline import (
-    _pipeline_shared_dir,
     _write_last_run_marker,
     _safe_error_text,
     _pipeline_run_id,
@@ -166,7 +164,7 @@ def _compute_folder_path(working_dir, genome):
 
 
 def _read_unips(folder_path, genome):
-    with open(os.path.join(folder_path, genome + "_unips.lst"), "r") as f:
+    with open(os.path.join(folder_path, genome + "_unips.lst")) as f:
         return f.read()
 
 

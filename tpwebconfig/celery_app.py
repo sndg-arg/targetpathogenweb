@@ -3,7 +3,6 @@ import os
 from celery import Celery
 from django.conf import settings
 
-import pkgutil
 # import sndgwebapp.tasks as wtasks
 # from inspect import getmembers, isfunction
 

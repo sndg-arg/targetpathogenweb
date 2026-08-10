@@ -1,7 +1,7 @@
 import os
 import sys
 import pandas as pd
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 from tpweb.models.Pathways import Pathway
 from bioseq.models.Bioentry import Bioentry
 from bioseq.io.SeqStore import SeqStore
@@ -19,16 +19,16 @@ class Command(BaseCommand):
         if len(sys.argv) < 2:
             print("Usage: python manage.py load_patho <path_to_directory>")
             sys.exit(1)
-        
+
         # The path provided by the user
         accession = options['accession']
         seqstore = SeqStore(options['datadir'])
         path = seqstore.pwtools_out(accession)
         print(path)
-        
+
         # Construct the full path to the genes.tsv file
         file_path = os.path.join(path, 'genes.tsv')
-        
+
         # Open the file with pandas
         try:
             df = pd.read_csv(file_path, sep='\t')

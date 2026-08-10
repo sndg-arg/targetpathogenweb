@@ -70,7 +70,7 @@ def _resolve_ssh_options(host, user=None, port=22):
 
     try:
         ssh_config = paramiko.SSHConfig()
-        with open(config_path, "r", encoding="utf-8") as handle:
+        with open(config_path, encoding="utf-8") as handle:
             ssh_config.parse(handle)
         entry = ssh_config.lookup(host)
     except Exception:
@@ -128,7 +128,7 @@ def _record_remote_info(run_id_raw, *, message, payload=None):
 
 
 def _gzip_tsv_output(tsv_path, tsv_gz_path):
-    with open(tsv_path, "r", encoding="utf-8") as handle:
+    with open(tsv_path, encoding="utf-8") as handle:
         zipped_content = gzip.compress(handle.read().encode("utf-8"))
     with open(tsv_gz_path, "wb") as handle:
         handle.write(zipped_content)

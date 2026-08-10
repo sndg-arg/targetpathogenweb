@@ -1,7 +1,6 @@
-from ckeditor_uploader.fields import RichTextUploadingField
 from django.conf import settings
 from django.db import models
-from django.db.models import SmallIntegerField, CharField, TextField
+from django.db.models import CharField, TextField
 
 
 from tpweb.models import TPUser
@@ -271,12 +270,12 @@ class ScoreParam(models.Model):
             if drug_formula.default:
                 drug_formula.default = False
                 drug_formula.save(update_fields=["default"])
-            
+
         sp = ScoreParam.objects.get_or_create(
             category="Localization", name="Localization", type="CATEGORICAL",
             description="Celular localization of the protein",
             default_operation="=", default_value="Unknown", user=None)[0]
-        
+
         ScoreParamOptions.objects.get_or_create(score_param=sp, name="Cellwall", defaults={"description": "Protein located in the cellwall"})
         ScoreParamOptions.objects.get_or_create(score_param=sp, name="Cytoplasmic", defaults={"description": "Protein located in the cytoplasm"})
         ScoreParamOptions.objects.get_or_create(score_param=sp, name="CytoplasmicMembrane", defaults={"description": "Protein located in the cytoplasmic membrane"})

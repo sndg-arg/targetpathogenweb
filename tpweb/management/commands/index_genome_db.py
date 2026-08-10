@@ -7,8 +7,6 @@ from bioseq.io.BioIO import BioIO
 from bioseq.io.IndexerIO import IndexerIO
 from bioseq.io.SeqStore import SeqStore
 from bioseq.models.Biodatabase import Biodatabase
-from bioseq.models.BiodatabaseQualifierValue import BiodatabaseQualifierValue
-from bioseq.models.BioentryQualifierValue import BioentryQualifierValue
 
 warnings.simplefilter('ignore', RuntimeWarning)
 warnings.simplefilter('ignore', BiopythonWarning)

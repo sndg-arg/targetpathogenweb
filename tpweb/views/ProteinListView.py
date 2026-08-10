@@ -20,7 +20,6 @@ from tpweb.services.protein_list import (
     apply_protein_search,
     apply_selected_parameter_filters,
     decode_selected_parameters_param,
-    empty_pagination_payload,
     encode_selected_parameters,
     filter_visible_selected_parameters,
     grouped_selected_parameters,
@@ -41,7 +40,6 @@ from tpweb.services.protein_formula import (
     resolve_formulas_for_user,
 )
 from tpweb.services.protein_annotations import (
-    ANNOTATION_KIND_CONFIG,
     annotation_dbnames,
     annotation_kind_label,
     annotation_supports_prefix,

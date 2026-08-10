@@ -4,13 +4,9 @@ from django.core.management.base import BaseCommand
 from tqdm import tqdm
 
 from bioseq.io.BioIO import BioIO
-from bioseq.io.IndexerIO import IndexerIO
 from bioseq.models.Biodatabase import Biodatabase
-from bioseq.models.BiodatabaseQualifierValue import BiodatabaseQualifierValue
-from bioseq.models.BioentryQualifierValue import BioentryQualifierValue
 from bioseq.models.Bioentry import Bioentry
 from bioseq.models.Ontology import Ontology
-from bioseq.models.Term import Term
 from tpweb.models.ScoreParam import ScoreParam
 
 warnings.simplefilter('ignore', RuntimeWarning)

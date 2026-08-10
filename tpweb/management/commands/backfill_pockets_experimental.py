@@ -60,7 +60,7 @@ def _filtered_pdb_for_chain(pdb_path, chain, locus_dir):
         return filtered_path
 
     kept = 0
-    with open(pdb_path, "rt", errors="replace") as src, open(filtered_path, "wt") as dst:
+    with open(pdb_path, errors="replace") as src, open(filtered_path, "w") as dst:
         for line in src:
             record = line[:6].strip()
             if record in {"ATOM", "ANISOU", "TER"}:
@@ -404,16 +404,16 @@ class Command(BaseCommand):
                                     datadir=datadir,
                                     verbosity=0,
                                 )
-                                self.stdout.write(f"      FPocket loaded")
+                                self.stdout.write("      FPocket loaded")
                             except SystemExit as exc:
                                 if exc.code != 0:
                                     self.stderr.write(f"      load_fpocket (FP) exited {exc.code}")
                             except Exception as exc:
                                 self.stderr.write(f"      load_fpocket (FP) error: {exc}")
                         else:
-                            self.stdout.write(f"      FPocket JSON conversion failed — skipping load")
+                            self.stdout.write("      FPocket JSON conversion failed — skipping load")
                     else:
-                        self.stdout.write(f"      FPocket run failed — skipping")
+                        self.stdout.write("      FPocket run failed — skipping")
 
                 # --- P2Rank ---
                 if not skip_p2rank:
@@ -431,16 +431,16 @@ class Command(BaseCommand):
                                     datadir=datadir,
                                     verbosity=0,
                                 )
-                                self.stdout.write(f"      P2Rank loaded")
+                                self.stdout.write("      P2Rank loaded")
                             except SystemExit as exc:
                                 if exc.code != 0:
                                     self.stderr.write(f"      load_fpocket (P2) exited {exc.code}")
                             except Exception as exc:
                                 self.stderr.write(f"      load_fpocket (P2) error: {exc}")
                         else:
-                            self.stdout.write(f"      P2Rank JSON failed — skipping load")
+                            self.stdout.write("      P2Rank JSON failed — skipping load")
                     else:
-                        self.stdout.write(f"      P2Rank run failed — skipping")
+                        self.stdout.write("      P2Rank run failed — skipping")
 
                 processed += 1
 
@@ -453,7 +453,7 @@ class Command(BaseCommand):
                 self.stdout.write(f"  Running druggability_2_csv for {assembly_name}...")
                 try:
                     call_command("druggability_2_csv", assembly_name, datadir=datadir, verbosity=0)
-                    self.stdout.write(f"  Druggability done.")
+                    self.stdout.write("  Druggability done.")
                 except SystemExit as exc:
                     if exc.code != 0:
                         self.stderr.write(f"  druggability_2_csv exited {exc.code}")
