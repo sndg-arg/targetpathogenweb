@@ -68,21 +68,30 @@
     line-height: 1.42;
 }
 
+/* Which genome you're standing on is the thing that actually changes between
+   visits to this page ("Proteins" as the h1 never does) -- label small and
+   muted like an eyebrow, genome id itself sized closer to a heading so it
+   reads as unmistakable at a glance instead of a footnote under the h1. */
 .hero-context {
     margin: 10px 0 0;
-    color: var(--tp-color-text-secondary);
-    font-size: 1rem;
-    line-height: 1.42;
     overflow-wrap: anywhere;
 }
 
 .hero-context strong {
-    color: var(--tp-color-text-secondary);
+    display: block;
+    margin-bottom: 2px;
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-label);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
 }
 
 .hero-context-id {
     font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
-    font-size: 1em;
+    font-size: var(--tp-heading-md);
+    font-weight: 700;
+    line-height: 1.2;
     color: var(--view-accent-ink);
 }
 
