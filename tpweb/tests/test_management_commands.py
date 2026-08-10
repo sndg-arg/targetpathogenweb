@@ -16,6 +16,35 @@ from tpweb.management.commands.fetch_ec_nomenclature import (
     parse_enzclass_txt,
     parse_enzyme_dat,
 )
+from tpweb.management.commands.run_curated_file_import import (
+    _detect_archive_root,
+    _is_within,
+    _quote_join,
+    _resolve_workdir,
+    _strip_root,
+    _unsafe_member,
+)
+from tpweb.management.commands.curated_selected_source_report import (
+    code_matches,
+    format_percent,
+    identifier_candidates,
+    raw_score,
+    structure_kind,
+)
+from tpweb.management.commands.dedup_features import _location_key
+from tpweb.management.commands.import_gates_pocket_outputs import (
+    clean as gates_clean,
+    colabfold_sources,
+    is_no_pocket,
+    is_pdb_code as gates_is_pdb_code,
+    parse_pdb_chain_source,
+    selected_sources,
+)
+from tpweb.management.commands.selected_pdb_pocket_report import (
+    _clean as pdb_report_clean,
+    _is_expected_no_pockets,
+    _is_pdb_code as pdb_report_is_pdb_code,
+)
 
 
 class ClearOldAgentChatsTests(TestCase):
@@ -124,3 +153,215 @@ class BuildHierarchyLabelsTests(TestCase):
         self.assertEqual(result["subclass_labels"], {"1.1": "Oxidoreductases acting on donors"})
         self.assertIn("class_labels", result)
         self.assertEqual(result["class_labels"]["1"], "Oxidoreductases")
+
+
+class RunCuratedFileImportHelperTests(TestCase):
+    """run_curated_file_import.py extracts a tarball of curated results onto
+    the filesystem -- these helpers are the path-safety layer (reject
+    absolute paths and ../ escapes) plus archive-root detection, so gaps here
+    are directory-traversal bugs, not just cosmetic ones."""
+
+    def test_resolve_workdir_prefers_explicit_value(self):
+        self.assertEqual(_resolve_workdir("/explicit", "/app/data"), "/explicit")
+
+    def test_resolve_workdir_strips_trailing_data_segment(self):
+        self.assertEqual(
+            _resolve_workdir(None, "/app/targetpathogenweb/data/"), "/app/targetpathogenweb"
+        )
+
+    def test_resolve_workdir_falls_back_to_cwd_marker(self):
+        self.assertEqual(_resolve_workdir(None, "/app/targetpathogenweb/other"), ".")
+
+    def test_quote_join_quotes_parts_with_spaces_and_drops_empty(self):
+        self.assertEqual(_quote_join(["a", "b c", ""]), "a 'b c'")
+
+    def test_detect_archive_root_returns_common_first_segment(self):
+        names = ["curated/results.tsv", "curated/structures/1abc.pdb"]
+        self.assertEqual(_detect_archive_root(names), "curated")
+
+    def test_detect_archive_root_returns_empty_when_multiple_roots(self):
+        names = ["curated/results.tsv", "other/structures/1abc.pdb"]
+        self.assertEqual(_detect_archive_root(names), "")
+
+    def test_strip_root_removes_matching_prefix(self):
+        self.assertEqual(
+            _strip_root("curated/structures/1abc.pdb", "curated"), "structures/1abc.pdb"
+        )
+
+    def test_strip_root_normalizes_backslashes(self):
+        self.assertEqual(
+            _strip_root("curated\\structures\\1abc.pdb", "curated"), "structures/1abc.pdb"
+        )
+
+    def test_strip_root_leaves_non_matching_name_untouched(self):
+        self.assertEqual(_strip_root("other/file.txt", "curated"), "other/file.txt")
+
+    def test_unsafe_member_flags_absolute_and_traversal_paths(self):
+        self.assertTrue(_unsafe_member("/etc/passwd"))
+        self.assertTrue(_unsafe_member("../etc/passwd"))
+        self.assertTrue(_unsafe_member("curated/../../etc/passwd"))
+        self.assertTrue(_unsafe_member(".."))
+
+    def test_unsafe_member_allows_normal_relative_paths(self):
+        self.assertFalse(_unsafe_member("curated/structures/1abc.pdb"))
+
+    def test_is_within_true_for_nested_path(self):
+        self.assertTrue(_is_within("/tmp/workdir", "/tmp/workdir/sub/file.txt"))
+
+    def test_is_within_false_for_sibling_path(self):
+        self.assertFalse(_is_within("/tmp/workdir", "/tmp/other/file.txt"))
+
+
+class CuratedSelectedSourceReportTests(TestCase):
+    def test_raw_score_normalizes_missing_markers_to_empty_string(self):
+        self.assertEqual(raw_score(None), "")
+        self.assertEqual(raw_score("  nan  "), "")
+        self.assertEqual(raw_score("1abc"), "1abc")
+
+    def test_structure_kind_classifies_missing_identifier(self):
+        self.assertEqual(structure_kind(""), "missing")
+
+    def test_structure_kind_classifies_pdb_code(self):
+        self.assertEqual(structure_kind("1ABC"), "PDB")
+
+    def test_structure_kind_classifies_colabfold_curated(self):
+        self.assertEqual(structure_kind("CB_LOCUS1"), "ColabFold/curated")
+
+    def test_structure_kind_classifies_alphafold_uniprot(self):
+        self.assertEqual(structure_kind("AF_P12345"), "AlphaFold/UniProt")
+        self.assertEqual(structure_kind("P12345"), "AlphaFold/UniProt")
+
+    def test_structure_kind_falls_back_to_curated_model(self):
+        self.assertEqual(structure_kind("FOOBAR"), "Curated/model")
+
+    def test_identifier_candidates_strips_known_prefixes(self):
+        candidates = identifier_candidates("AF_P12345")
+        self.assertIn("P12345", candidates)
+        self.assertIn("AF_P12345", candidates)
+
+    def test_code_matches_accepts_chain_suffixed_code(self):
+        self.assertTrue(code_matches("1ABC_A", "1ABC"))
+
+    def test_code_matches_rejects_unrelated_code(self):
+        self.assertFalse(code_matches("1ABCX", "1ABC"))
+
+    def test_code_matches_rejects_empty_code(self):
+        self.assertFalse(code_matches("", "1ABC"))
+
+    def test_format_percent_formats_ratio(self):
+        self.assertEqual(format_percent(1, 4), "25.0%")
+
+    def test_format_percent_handles_zero_total(self):
+        self.assertEqual(format_percent(0, 0), "0.0%")
+
+
+class DedupFeaturesLocationKeyTests(TestCase):
+    """_location_key feeds a dict used to detect duplicate SeqFeature rows --
+    it must be order-independent so re-running load_interpro against features
+    saved in a different iteration order still dedupes correctly."""
+
+    class _FakeLocation:
+        def __init__(self, start_pos, end_pos, strand):
+            self.start_pos = start_pos
+            self.end_pos = end_pos
+            self.strand = strand
+
+    class _FakeLocationManager:
+        def __init__(self, locations):
+            self._locations = locations
+
+        def all(self):
+            return self._locations
+
+    class _FakeFeature:
+        def __init__(self, locations):
+            self.locations = DedupFeaturesLocationKeyTests._FakeLocationManager(locations)
+
+    def test_location_key_sorts_locations_regardless_of_input_order(self):
+        forward_order = self._FakeFeature(
+            [self._FakeLocation(10, 20, 1), self._FakeLocation(1, 5, 1)]
+        )
+        reverse_order = self._FakeFeature(
+            [self._FakeLocation(1, 5, 1), self._FakeLocation(10, 20, 1)]
+        )
+
+        self.assertEqual(_location_key(forward_order), _location_key(reverse_order))
+        self.assertEqual(_location_key(forward_order), ((1, 5, 1), (10, 20, 1)))
+
+
+class ImportGatesPocketOutputsTests(TestCase):
+    def test_clean_normalizes_missing_markers(self):
+        self.assertEqual(gates_clean(None), "")
+        self.assertEqual(gates_clean("nan"), "")
+        self.assertEqual(gates_clean("  1ABC  "), "1ABC")
+
+    def test_is_pdb_code_requires_leading_digit_and_length_four(self):
+        self.assertTrue(gates_is_pdb_code("1abc"))
+        self.assertFalse(gates_is_pdb_code("abcd"))
+        self.assertFalse(gates_is_pdb_code("1ab"))
+
+    def test_parse_pdb_chain_source_extracts_code_and_chain(self):
+        self.assertEqual(parse_pdb_chain_source("1ABC_CHAIN_A"), ("1ABC", "A"))
+        self.assertEqual(parse_pdb_chain_source("PDB_1ABC_CHAIN_B"), ("1ABC", "B"))
+
+    def test_parse_pdb_chain_source_returns_none_for_non_matching_value(self):
+        self.assertIsNone(parse_pdb_chain_source("not-a-chain-source"))
+
+    def test_is_no_pocket_matches_known_spellings(self):
+        self.assertTrue(is_no_pocket("no_pockets"))
+        self.assertTrue(is_no_pocket("NO POCKETS"))
+        self.assertFalse(is_no_pocket("1ABC"))
+
+    def test_selected_sources_reads_fpocket_and_p2rank_columns(self):
+        row = {
+            "best_fpocket_structure": "1ABC",
+            "fpocket_pocket": "Pocket1",
+            "best_p2rank_structure": "1ABC",
+            "p2rank_pocket": "pocket1",
+        }
+
+        sources = selected_sources(row)
+
+        self.assertEqual(
+            sources,
+            [
+                {
+                    "method": "fpocket",
+                    "source": "1ABC",
+                    "pocket": "Pocket1",
+                    "residue_set": "FPocketPocket",
+                },
+                {
+                    "method": "p2rank",
+                    "source": "1ABC",
+                    "pocket": "pocket1",
+                    "residue_set": "P2RankPocket",
+                },
+            ],
+        )
+
+    def test_colabfold_sources_prefixes_locus_with_cb(self):
+        row = {"colabfold_fpocket_pocket": "Pocket1", "colabfold_p2rank_pocket": "pocket1"}
+
+        sources = colabfold_sources(row, "LOCUS1")
+
+        self.assertEqual(sources[0]["source"], "CB_LOCUS1")
+        self.assertEqual(sources[1]["source"], "CB_LOCUS1")
+
+
+class SelectedPdbPocketReportTests(TestCase):
+    def test_clean_normalizes_missing_markers(self):
+        self.assertEqual(pdb_report_clean(None), "")
+        self.assertEqual(pdb_report_clean("null"), "")
+
+    def test_is_pdb_code_only_checks_length_and_alnum(self):
+        # Unlike import_gates_pocket_outputs.is_pdb_code, this variant does
+        # not require the code to start with a digit.
+        self.assertTrue(pdb_report_is_pdb_code("ABCD"))
+        self.assertTrue(pdb_report_is_pdb_code("1ABC"))
+        self.assertFalse(pdb_report_is_pdb_code("AB"))
+
+    def test_is_expected_no_pockets_only_applies_to_p2rank(self):
+        self.assertTrue(_is_expected_no_pockets("P2Rank", "no_pockets"))
+        self.assertFalse(_is_expected_no_pockets("FPocket", "no_pockets"))
+        self.assertFalse(_is_expected_no_pockets("P2Rank", "some_pocket"))
