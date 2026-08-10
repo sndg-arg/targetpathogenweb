@@ -1453,10 +1453,19 @@
                 color: var(--tp-color-on-accent);
             }
 
+            /* Fallback stroke/fill for icon partials that ship with no
+               inline stroke of their own (e.g. upload.html, which relies on
+               a wrapper like .tp-btn-icon elsewhere) -- without this they
+               render with the SVG default (stroke: none), i.e. invisible. */
             .tp-side-link-icon svg {
                 display: block;
                 width: 100%;
                 height: 100%;
+                stroke: currentColor;
+                fill: none;
+                stroke-width: 1.6;
+                stroke-linecap: round;
+                stroke-linejoin: round;
             }
 
             .tp-side-link:hover {
