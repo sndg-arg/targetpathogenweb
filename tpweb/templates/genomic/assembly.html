@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20260809-targets-margin-fix">
+    <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20260810-blast-group">
 {% endblock %}
 
 {% block body %}
@@ -76,8 +76,11 @@
                         </a>
                         <a href="{{ workspace_links.formula_url }}" class="btn tp-btn tp-btn--neutral tp-btn--sm">{% trans "Custom score" %}</a>
                         <a href="{{ workspace_links.ec_explorer_url }}" class="btn tp-btn tp-btn--neutral tp-btn--sm">{% trans "EC tree" %}</a>
-                        <a href="{{ workspace_links.blast_url }}" class="btn tp-btn tp-btn--neutral tp-btn--sm" title="{% trans 'Nucleotide BLAST (blastn) against this genome.' %}">BLAST</a>
-                        <a href="{{ workspace_links.protein_blast_url }}" class="btn tp-btn tp-btn--neutral tp-btn--sm" title="{% trans 'Amino acid BLAST (blastp) against every protein loaded for this genome.' %}">{% trans "Protein BLAST" %}</a>
+                        <div class="genome-blast-group" role="group" aria-label="{% trans 'BLAST' %}">
+                            <span class="genome-blast-group-label" aria-hidden="true">{% trans "BLAST" %}</span>
+                            <a href="{{ workspace_links.blast_url }}" class="genome-blast-group-option" title="{% trans 'Nucleotide sequence (blastn) against this genome.' %}">{% trans "Genome" %}</a>
+                            <a href="{{ workspace_links.protein_blast_url }}" class="genome-blast-group-option" title="{% trans 'Amino acid sequence (blastp) against every protein loaded for this genome.' %}">{% trans "Protein" %}</a>
+                        </div>
                     </div>
                 </div>
                 <div class="tp-view-head-actions">

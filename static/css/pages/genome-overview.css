@@ -159,6 +159,57 @@
     margin-top: 10px;
 }
 
+/* Genome vs. Protein BLAST as one segmented group instead of two plain
+   buttons that only differed by "BLAST" vs. "Protein BLAST" text -- easy
+   to misread as unrelated actions rather than "same tool, two sequence
+   types". The "BLAST" label up front plus "Genome"/"Protein" segments
+   reads as one decision with two options. */
+.genome-blast-group {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+    padding: 0 4px 0 12px;
+    gap: 2px;
+    border: 1px solid var(--tp-color-border-strong);
+    border-radius: 11px;
+    background: var(--tp-color-surface);
+}
+
+.genome-blast-group-label {
+    font-size: var(--tp-font-size-xs);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--tp-color-text-muted);
+    margin-right: 6px;
+}
+
+.genome-blast-group-option {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 32px;
+    padding: 0 12px;
+    border-radius: 8px;
+    font-size: var(--tp-font-size-sm);
+    font-weight: 600;
+    color: var(--tp-color-text-secondary);
+    text-decoration: none;
+    transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.genome-blast-group-option + .genome-blast-group-option {
+    border-left: 1px solid var(--tp-color-border-soft);
+}
+
+.genome-blast-group-option:hover,
+.genome-blast-group-option:focus-visible {
+    background: var(--tp-color-surface-soft);
+    color: var(--tp-color-text-primary);
+    outline: none;
+}
+
 /* ── Metric pills ─────────────────────────────────────────────────── */
 
 .genome-metrics {
