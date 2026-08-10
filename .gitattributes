@@ -1,0 +1,5 @@
+# Normalize line endings regardless of the committer's OS/git config.
+# Without this, a Windows checkout with core.autocrlf misconfigured can
+# commit CRLF into a repo that CI (Linux) and ruff format both expect LF,
+# and `ruff format --check` fails on CI with no visible diff locally.
+* text=auto eol=lf
