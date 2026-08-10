@@ -297,13 +297,13 @@ class LoginRequiredRedirectTests(SimpleTestCase):
         self.assertEqual(response.status_code, 302)
 
 
-class StructureRawViewTests(SimpleTestCase):
+class StructureRawViewTests(TestCase):
     def test_unknown_structure_id_is_not_found(self):
         response = self.client.get(reverse("tpwebapp:structure_raw", kwargs={"struct_id": 999999}))
         self.assertEqual(response.status_code, 404)
 
 
-class StructureExportViewTests(SimpleTestCase):
+class StructureExportViewTests(TestCase):
     def test_unknown_structure_id_is_not_found(self):
         response = self.client.get(
             reverse("tpwebapp:structure_export", kwargs={"struct_id": 999999})
@@ -311,7 +311,7 @@ class StructureExportViewTests(SimpleTestCase):
         self.assertEqual(response.status_code, 404)
 
 
-class HumanProteinViewTests(SimpleTestCase):
+class HumanProteinViewTests(TestCase):
     def test_unknown_accession_is_not_found(self):
         response = self.client.get(
             reverse("tpwebapp:human_protein", kwargs={"accession": "DOES-NOT-EXIST"})
