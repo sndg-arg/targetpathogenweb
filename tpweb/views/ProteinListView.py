@@ -1101,10 +1101,16 @@ class ProteinListView(View):
             score_param.name for score_param in ordered_score_params(formula_term_list)
         ]
         if not default_column_names:
-            # No formula active — default to Druggability column if it exists
+            # No formula active -- default to Druggability + p2rank_probability columns
+            # if they exist. p2rank_probability listed first: the default ranking below
+            # (_drugg_default) sorts by it when present, falling back to Druggability's
+            # FPocket score only for proteins with no P2Rank value -- showing both
+            # columns, in that order, is what actually explains the resulting row order
+            # instead of the FPocket column alone looking unsorted.
             default_column_names = [
                 name
                 for name in [
+                    "p2rank_probability",
                     "Druggability",
                     "human_offtarget",
                     "human_identity",
