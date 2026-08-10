@@ -1718,6 +1718,31 @@
                 };
 
                 function initStructureComponent(component) {
+                    // NGL 0.10.4's own secondary-structure calc emits 's' for beta-sheet
+                    // residues, but its SstrucColormaker only recognizes 'e'/'b' as sheet --
+                    // remap through the structure's own public proxy setter. Same fix as
+                    // structure.html.
+                    component.structure.eachResidue(function (rp) {
+                        if (rp.sstruc === "s") rp.sstruc = "e";
+                    });
+
+                    // "Asp42"-style residue-label text, keyed by NGL's own atom index --
+                    // required by ngl_pocket_representations.js's "_lbl" representations
+                    // below (labelText param). This embedded viewer shares that same
+                    // component template with structure.html, which already builds this
+                    // map -- protein.html never did, so every load here threw a
+                    // ReferenceError partway through this function (residueLabelTextByAtomIndex
+                    // is not defined), silently aborting before reaching the representations,
+                    // theme, and camera-centering code below it. That's what made the 3D
+                    // viewer look stuck/uncentered -- it wasn't a resize-timing issue at all.
+                    var residueLabelTextByAtomIndex = {};
+                    component.structure.eachAtom(function (ap) {
+                        var resname = (ap.resname || "").toLowerCase();
+                        residueLabelTextByAtomIndex[ap.index] = resname
+                            ? resname.charAt(0).toUpperCase() + resname.slice(1) + ap.resno
+                            : String(ap.resno);
+                    });
+
                     const activeChainSelector = chainSelectors[activeStructureKey] || "polymer";
                     const mainStructureSelector = mainSelectors[activeStructureKey] || activeChainSelector;
                     const mainStructureColor = chainColorModes[activeStructureKey]
