@@ -36,7 +36,7 @@ from .views.DataFileUploadView import DataFileUploadView
 from .views.AnnotationExplorerView import AnnotationExplorerView
 from .views.DataSourcesView import DataSourcesView
 from .views.AboutUsView import AboutUsView
-from .views.AgentChatView import AgentChatSessionsView, AgentChatView
+from .views.AgentChatView import AgentChatSessionDetailView, AgentChatSessionsView, AgentChatView
 from .views.RobotsView import RobotsView
 from .views.SitemapView import SitemapView
 from .views.HumanProteinListView import HumanProteinListView
@@ -129,6 +129,11 @@ urlpatterns = [
     path("human/protein/<str:accession>", view=HumanProteinView.as_view(), name="human_protein"),
     path("agent-chat", view=AgentChatView.as_view(), name="agent_chat"),
     path("agent-chat/sessions", view=AgentChatSessionsView.as_view(), name="agent_chat_sessions"),
+    path(
+        "agent-chat/sessions/<int:conversation_id>",
+        view=AgentChatSessionDetailView.as_view(),
+        name="agent_chat_session_detail",
+    ),
     path("molecule", view=MoleculeView.as_view(), name="molecules"),
     path("structure_raw/<int:struct_id>", view=StructureRawView.as_view(), name="structure_raw"),
     path(

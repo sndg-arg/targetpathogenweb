@@ -26,7 +26,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
     <link rel="stylesheet" href="{% static 'css/components/ui-system.css' %}?v=20260808-table-scroll-host-fix">
-    <link rel="stylesheet" href="{% static 'css/components/agent-drawer.css' %}?v=20260810-multisession1">
+    <link rel="stylesheet" href="{% static 'css/components/agent-drawer.css' %}?v=20260810-rename-delete1">
     <style>
         :root {
             --tp-color-text-primary: #132f3d;
@@ -2357,7 +2357,13 @@
 </footer>
 
 <div id="tp-agent-drawer-backdrop" class="tp-agent-drawer-backdrop" hidden></div>
-<aside id="tp-agent-drawer" class="tp-agent-drawer" aria-hidden="true" aria-label="{% trans 'Assistant' %}">
+<aside id="tp-agent-drawer" class="tp-agent-drawer" aria-hidden="true" aria-label="{% trans 'Assistant' %}"
+       data-announce-renamed="{% trans 'Conversation renamed.' %}"
+       data-announce-deleted="{% trans 'Conversation deleted.' %}"
+       data-announce-reset-after-delete="{% trans 'That conversation was deleted. Started a new conversation.' %}"
+       data-announce-conversation-reset="{% trans 'That conversation was deleted elsewhere. Started a new conversation.' %}"
+       data-announce-new-conversation="{% trans 'Started a new conversation.' %}"
+       data-announce-error="{% trans 'Something went wrong. Try again.' %}">
     <header class="tp-agent-drawer-header">
         <span class="tp-agent-drawer-heading">
             <span class="tp-agent-drawer-avatar" aria-hidden="true">
@@ -2372,6 +2378,16 @@
             <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" width="14" height="14" aria-hidden="true"><path d="M3 3l10 10M13 3L3 13"/></svg>
         </button>
     </header>
+    <p id="tp-agent-drawer-status" class="sr-only" role="status" aria-live="polite"></p>
+    <div id="tp-agent-drawer-current-title-bar" class="tp-agent-drawer-current-title-bar" hidden>
+        <span id="tp-agent-drawer-current-title-text" class="tp-agent-drawer-current-title-text"></span>
+        <button type="button" id="tp-agent-drawer-current-title-rename" class="tp-agent-drawer-icon-btn tp-agent-drawer-icon-btn--sm" aria-label="{% trans 'Rename conversation' %}" title="{% trans 'Rename conversation' %}">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" width="12" height="12" aria-hidden="true">
+                <path d="M11 2.5 13.5 5 5.5 13 2 13.5 2.5 10Z"/>
+                <path d="M9.5 4 12 6.5"/>
+            </svg>
+        </button>
+    </div>
     <div class="tp-agent-drawer-toolbar">
         <button type="button" id="tp-agent-drawer-biologist-toggle" class="tp-agent-drawer-mode-toggle"
                 aria-pressed="false"
@@ -2393,7 +2409,12 @@
                 </svg>
             </button>
             <div id="tp-agent-drawer-history-panel" class="tp-agent-drawer-history-panel" hidden
-                 data-untitled-label="{% trans 'New conversation' %}">
+                 data-untitled-label="{% trans 'New conversation' %}"
+                 data-message-count-label="{% trans 'messages' %}"
+                 data-rename-label="{% trans 'Rename' %}"
+                 data-delete-label="{% trans 'Delete' %}"
+                 data-delete-confirm-label="{% trans 'Delete this conversation?' %}"
+                 data-cancel-label="{% trans 'Cancel' %}">
                 <p class="tp-agent-drawer-history-panel-title">{% trans "Previous conversations" %}</p>
                 <div id="tp-agent-drawer-history-list" class="tp-agent-drawer-history-list"></div>
                 <p id="tp-agent-drawer-history-empty" class="tp-agent-drawer-history-empty" hidden>{% trans "No previous conversations yet." %}</p>
@@ -2433,7 +2454,7 @@
 </aside>
 
 <script src="{% static 'bundle.js' %}?v=20260722-dagre1"></script>
-<script src="{% static 'js/global/agent-drawer.js' %}?v=20260810-multisession1"></script>
+<script src="{% static 'js/global/agent-drawer.js' %}?v=20260810-rename-delete1"></script>
 <script src="{% static 'js/global/nav-toggle.js' %}?v=20260804-navtoggle1"></script>
 <script src="{% static 'js/global/smooth-details.js' %}?v=20260804-smoothdetails1"></script>
 

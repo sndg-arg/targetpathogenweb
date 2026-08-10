@@ -6,6 +6,7 @@ otherwise have zero test coverage. Deeper behavioral tests belong next to
 the service functions each view delegates to.
 """
 
+import json
 import os
 import tempfile
 from unittest.mock import patch
@@ -447,7 +448,7 @@ class AgentChatViewTests(TestCase):
         response = self.client.get(reverse("tpwebapp:agent_chat"))
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json(), {"history": [], "conversation_id": None})
+        self.assertEqual(response.json(), {"history": [], "conversation_id": None, "title": None})
 
 
 class AgentChatSessionsViewTests(TestCase):
@@ -474,6 +475,104 @@ class AgentChatSessionsViewTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), {"sessions": []})
+
+
+class AgentChatSessionDetailViewTests(TestCase):
+    def _create_conversation(self, client, title=""):
+        from tpweb.models.AgentChatSession import AgentChatSession
+
+        client.get(reverse("tpwebapp:agent_chat"))  # mints a session_key
+        session_key = client.session.session_key
+        return AgentChatSession.objects.create(
+            session_key=session_key, title=title, history_json=[]
+        )
+
+    def test_patch_renames_and_returns_the_new_title(self):
+        row = self._create_conversation(self.client, title="Old title")
+
+        response = self.client.patch(
+            reverse("tpwebapp:agent_chat_session_detail", args=[row.pk]),
+            data=json.dumps({"title": "New title"}),
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {"id": row.pk, "title": "New title"})
+        row.refresh_from_db()
+        self.assertEqual(row.title, "New title")
+
+    def test_patch_with_blank_title_is_bad_request(self):
+        row = self._create_conversation(self.client, title="Keep me")
+
+        response = self.client.patch(
+            reverse("tpwebapp:agent_chat_session_detail", args=[row.pk]),
+            data=json.dumps({"title": "   "}),
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 400)
+        row.refresh_from_db()
+        self.assertEqual(row.title, "Keep me")
+
+    def test_patch_on_another_session_s_conversation_is_not_found(self):
+        from django.test import Client
+
+        other_client = Client()
+        row = self._create_conversation(other_client, title="Not yours")
+
+        response = self.client.patch(
+            reverse("tpwebapp:agent_chat_session_detail", args=[row.pk]),
+            data=json.dumps({"title": "Hijacked"}),
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 404)
+        row.refresh_from_db()
+        self.assertEqual(row.title, "Not yours")
+
+    def test_patch_on_nonexistent_id_is_not_found(self):
+        self.client.get(reverse("tpwebapp:agent_chat"))
+
+        response = self.client.patch(
+            reverse("tpwebapp:agent_chat_session_detail", args=[999999]),
+            data=json.dumps({"title": "Anything"}),
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_delete_removes_the_conversation(self):
+        from tpweb.models.AgentChatSession import AgentChatSession
+
+        row = self._create_conversation(self.client, title="Bye")
+
+        response = self.client.delete(reverse("tpwebapp:agent_chat_session_detail", args=[row.pk]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {"deleted": True})
+        self.assertFalse(AgentChatSession.objects.filter(pk=row.pk).exists())
+
+    def test_delete_is_not_found_the_second_time(self):
+        row = self._create_conversation(self.client, title="Bye")
+        url = reverse("tpwebapp:agent_chat_session_detail", args=[row.pk])
+
+        self.client.delete(url)
+        response = self.client.delete(url)
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_delete_on_another_session_s_conversation_is_not_found(self):
+        from django.test import Client
+
+        from tpweb.models.AgentChatSession import AgentChatSession
+
+        other_client = Client()
+        row = self._create_conversation(other_client, title="Not yours")
+
+        response = self.client.delete(reverse("tpwebapp:agent_chat_session_detail", args=[row.pk]))
+
+        self.assertEqual(response.status_code, 404)
+        self.assertTrue(AgentChatSession.objects.filter(pk=row.pk).exists())
 
 
 class MetabolismPathwayViewTests(TestCase):

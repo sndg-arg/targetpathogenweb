@@ -23,8 +23,10 @@ from tpweb.models.Binders import Binders
 from tpweb.services.agent_chat_sessions import (
     SESSION_IDLE_GAP,
     default_conversation,
+    delete_conversation,
     find_conversation,
     list_conversations,
+    rename_conversation,
     resolve_active_conversation,
     set_title_if_blank,
 )
@@ -1627,3 +1629,65 @@ class AgentChatSessionsServiceTests(TestCase):
         self.assertEqual([entry["title"] for entry in result], ["Mine", "Idle but retained"])
         self.assertEqual(result[0]["id"], mine.pk)
         self.assertEqual(result[0]["message_count"], 0)
+
+    def test_rename_conversation_updates_and_normalizes_title(self):
+        row = AgentChatSession.objects.create(
+            session_key="session-i", title="Old title", history_json=[]
+        )
+
+        renamed = rename_conversation("session-i", row.pk, "  New   title  ")
+
+        self.assertEqual(renamed.pk, row.pk)
+        self.assertEqual(renamed.title, "New title")
+        row.refresh_from_db()
+        self.assertEqual(row.title, "New title")
+
+    def test_rename_conversation_truncates_long_titles(self):
+        row = AgentChatSession.objects.create(session_key="session-j", history_json=[])
+
+        renamed = rename_conversation("session-j", row.pk, "x" * 100)
+
+        self.assertEqual(len(renamed.title), 60)
+        self.assertTrue(renamed.title.endswith("…"))
+
+    def test_rename_conversation_returns_none_for_another_session(self):
+        row = AgentChatSession.objects.create(
+            session_key="session-k", title="Mine", history_json=[]
+        )
+
+        self.assertIsNone(rename_conversation("someone-else", row.pk, "Hijacked"))
+        row.refresh_from_db()
+        self.assertEqual(row.title, "Mine")
+
+    def test_rename_conversation_returns_none_for_blank_title(self):
+        row = AgentChatSession.objects.create(
+            session_key="session-l", title="Keep me", history_json=[]
+        )
+
+        self.assertIsNone(rename_conversation("session-l", row.pk, "   "))
+        row.refresh_from_db()
+        self.assertEqual(row.title, "Keep me")
+
+    def test_delete_conversation_removes_the_row_and_returns_true(self):
+        row = AgentChatSession.objects.create(session_key="session-m", history_json=[])
+
+        result = delete_conversation("session-m", row.pk)
+
+        self.assertTrue(result)
+        self.assertFalse(AgentChatSession.objects.filter(pk=row.pk).exists())
+
+    def test_delete_conversation_returns_false_for_another_session(self):
+        row = AgentChatSession.objects.create(session_key="session-n", history_json=[])
+
+        result = delete_conversation("someone-else", row.pk)
+
+        # Must reflect the actual deleted count, not QuerySet.delete()'s
+        # always-truthy 2-tuple -- a naive bool(qs.delete()) would return
+        # True here even though nothing was deleted.
+        self.assertFalse(result)
+        self.assertTrue(AgentChatSession.objects.filter(pk=row.pk).exists())
+
+    def test_delete_conversation_returns_false_for_nonexistent_id(self):
+        result = delete_conversation("session-o", 999999)
+
+        self.assertFalse(result)

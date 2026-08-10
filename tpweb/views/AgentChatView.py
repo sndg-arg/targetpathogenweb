@@ -37,8 +37,10 @@ from bioseq.models.Biodatabase import Biodatabase
 from bioseq.models.Bioentry import Bioentry
 from tpweb.services.agent_chat_sessions import (
     default_conversation,
+    delete_conversation,
     find_conversation,
     list_conversations,
+    rename_conversation,
     resolve_active_conversation,
     set_title_if_blank,
 )
@@ -226,8 +228,11 @@ def _history_from_row(row):
 
 
 def _save_persisted_history(row, messages):
+    # Deliberately doesn't touch "title" -- set_title_if_blank/rename_conversation
+    # persist that field themselves, so a rename committed mid-request can never
+    # get clobbered by this save re-writing a stale in-memory title.
     row.history_json = [_message_to_json(item) for item in messages]
-    row.save(update_fields=["history_json", "updated_at", "title"])
+    row.save(update_fields=["history_json", "updated_at"])
 
 
 class AgentChatView(View):
@@ -251,6 +256,7 @@ class AgentChatView(View):
             {
                 "history": [_message_to_json(item) for item in history],
                 "conversation_id": row.pk if row else None,
+                "title": row.title if row else None,
             }
         )
 
@@ -282,10 +288,18 @@ class AgentChatView(View):
         biologist_mode = bool(payload.get("biologist_mode"))
 
         session_key = _ensure_session_key(request)
+        requested_conversation_id = payload.get("conversation_id")
         row = resolve_active_conversation(
             session_key,
-            conversation_id=payload.get("conversation_id"),
+            conversation_id=requested_conversation_id,
             force_new=bool(payload.get("force_new")),
+        )
+        # True when the client explicitly pointed at a conversation that no longer
+        # resolves to one it owns (e.g. deleted from another tab) -- the response
+        # still succeeds (against a freshly resolved/created conversation instead),
+        # but the client should tell the user rather than silently reattaching.
+        conversation_reset = bool(requested_conversation_id) and str(row.pk) != str(
+            requested_conversation_id
         )
         set_title_if_blank(row, message)
         history = _history_from_row(row)
@@ -314,6 +328,8 @@ class AgentChatView(View):
                     "reply": reply,
                     "history": [_message_to_json(item) for item in history],
                     "conversation_id": row.pk,
+                    "title": row.title,
+                    "conversation_reset": conversation_reset,
                     "reload": True,
                     "redirect_url": self._reload_url_without_query(
                         str(payload.get("page_url") or payload.get("page_path") or "")
@@ -388,6 +404,8 @@ class AgentChatView(View):
             "reply": reply,
             "history": [_message_to_json(item) for item in persisted_history],
             "conversation_id": row.pk,
+            "title": row.title,
+            "conversation_reset": conversation_reset,
         }
         if _tool_was_called(agent.last_messages, "clear_filters") or _tool_was_called(
             agent.last_messages, "apply_filters"
@@ -516,3 +534,32 @@ class AgentChatSessionsView(View):
         list_conversations always filters by this request's own session_key."""
         session_key = _ensure_session_key(request)
         return JsonResponse({"sessions": list_conversations(session_key)})
+
+
+class AgentChatSessionDetailView(View):
+    """Rename/delete a single conversation -- always scoped to the
+    requesting browser's own session_key (via rename_conversation/
+    delete_conversation), so a conversation_id from another session can
+    never be renamed or deleted, only 404."""
+
+    def patch(self, request, conversation_id, *args, **kwargs):
+        session_key = _ensure_session_key(request)
+        try:
+            payload = json.loads(request.body or b"{}")
+        except (TypeError, ValueError):
+            return JsonResponse({"error": "Invalid JSON body."}, status=400)
+
+        title = str(payload.get("title") or "").strip()
+        if not title:
+            return JsonResponse({"error": "title is required."}, status=400)
+
+        row = rename_conversation(session_key, conversation_id, title)
+        if row is None:
+            return JsonResponse({"error": "Conversation not found."}, status=404)
+        return JsonResponse({"id": row.pk, "title": row.title})
+
+    def delete(self, request, conversation_id, *args, **kwargs):
+        session_key = _ensure_session_key(request)
+        if not delete_conversation(session_key, conversation_id):
+            return JsonResponse({"error": "Conversation not found."}, status=404)
+        return JsonResponse({"deleted": True})

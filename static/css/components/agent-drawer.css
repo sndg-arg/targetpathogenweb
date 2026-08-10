@@ -45,6 +45,26 @@
     flex-shrink: 0;
 }
 
+.tp-agent-drawer-current-title-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px var(--tp-space-5);
+    border-bottom: 1px solid var(--tp-color-border-soft);
+    flex-shrink: 0;
+}
+
+.tp-agent-drawer-current-title-text {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--tp-color-text-muted);
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+
 .tp-agent-drawer-toolbar {
     position: relative;
     display: flex;
@@ -83,11 +103,28 @@
     color: var(--tp-color-text-primary);
 }
 
+.tp-agent-drawer-icon-btn:disabled,
+.tp-agent-drawer-history-item-open:disabled {
+    opacity: 0.45;
+    cursor: default;
+    pointer-events: none;
+}
+
+/* While a message is in flight, switching/renaming/deleting a conversation
+   could land the response against the wrong one -- block it visually and
+   functionally rather than relying only on each handler's own pending
+   check. */
+.tp-agent-drawer.is-busy .tp-agent-drawer-history-list {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
 .tp-agent-drawer-history-panel {
     position: absolute;
     top: calc(100% + 6px);
     right: var(--tp-space-5);
-    width: min(300px, calc(100% - 2 * var(--tp-space-5)));
+    width: min(320px, calc(100% - 2 * var(--tp-space-4)));
+    max-width: 92vw;
     max-height: 360px;
     overflow-y: auto;
     background: var(--tp-color-surface);
@@ -96,6 +133,21 @@
     box-shadow: var(--tp-shadow-md);
     padding: var(--tp-space-2);
     z-index: 5;
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+    transition: opacity var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.tp-agent-drawer-history-panel.is-open {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .tp-agent-drawer-history-panel {
+        transition: none;
+    }
 }
 
 .tp-agent-drawer-history-panel-title {
@@ -114,30 +166,51 @@
 }
 
 .tp-agent-drawer-history-item {
-    appearance: none;
     display: flex;
-    flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
     gap: 2px;
     width: 100%;
     border: 1px solid transparent;
     background: transparent;
     border-radius: 10px;
-    padding: 6px 8px;
-    text-align: left;
-    cursor: pointer;
+    padding: 4px;
     transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
-        border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+        border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        opacity var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
 }
 
-.tp-agent-drawer-history-item:hover,
-.tp-agent-drawer-history-item:focus-visible {
+.tp-agent-drawer-history-item:hover {
     background: var(--tp-color-surface-soft);
 }
 
 .tp-agent-drawer-history-item.is-active {
     background: color-mix(in srgb, var(--tp-color-brand-500) 12%, var(--tp-color-surface));
     border-color: var(--tp-color-brand-300);
+}
+
+.tp-agent-drawer-history-item--removing {
+    opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .tp-agent-drawer-history-item {
+        transition: none;
+    }
+}
+
+.tp-agent-drawer-history-item-open {
+    appearance: none;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    flex: 1 1 auto;
+    min-width: 0;
+    border: none;
+    background: transparent;
+    padding: 2px 4px;
+    text-align: left;
+    cursor: pointer;
 }
 
 .tp-agent-drawer-history-item-title {
@@ -150,9 +223,42 @@
     font-weight: 600;
 }
 
+.tp-agent-drawer-rename-input,
+.tp-agent-drawer-current-title-bar .tp-agent-drawer-rename-input {
+    width: 100%;
+    border: 1px solid var(--tp-color-brand-300);
+    border-radius: 6px;
+    padding: 1px 5px;
+    font: inherit;
+    font-size: inherit;
+    font-weight: inherit;
+    color: var(--tp-color-text-primary);
+    background: var(--tp-color-surface);
+}
+
+.tp-agent-drawer-rename-input:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--tp-color-brand-100);
+}
+
 .tp-agent-drawer-history-item-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-label);
+}
+
+.tp-agent-drawer-history-item-count {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.tp-agent-drawer-icon-btn--sm {
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
 }
 
 .tp-agent-drawer-history-empty {
@@ -160,6 +266,54 @@
     color: var(--tp-color-text-muted);
     font-size: 0.85rem;
     text-align: center;
+}
+
+.tp-agent-drawer-history-item--confirm {
+    align-items: center;
+    gap: var(--tp-space-2);
+    padding: 8px;
+}
+
+.tp-agent-drawer-history-confirm-text {
+    flex: 1 1 auto;
+    min-width: 0;
+    color: var(--tp-color-text-secondary);
+    font-size: 0.8rem;
+}
+
+.tp-agent-drawer-history-confirm-cancel,
+.tp-agent-drawer-history-confirm-delete {
+    appearance: none;
+    flex-shrink: 0;
+    border-radius: 999px;
+    padding: 0.25rem 0.6rem;
+    font: inherit;
+    font-size: 0.76rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.tp-agent-drawer-history-confirm-cancel {
+    border: 1px solid var(--tp-color-border-soft);
+    background: transparent;
+    color: var(--tp-color-text-secondary);
+}
+
+.tp-agent-drawer-history-confirm-cancel:hover,
+.tp-agent-drawer-history-confirm-cancel:focus-visible {
+    background: var(--tp-color-surface-soft);
+}
+
+.tp-agent-drawer-history-confirm-delete {
+    border: 1px solid transparent;
+    background: var(--tp-color-danger-bg);
+    color: var(--tp-color-danger-ink);
+}
+
+.tp-agent-drawer-history-confirm-delete:hover,
+.tp-agent-drawer-history-confirm-delete:focus-visible {
+    background: color-mix(in srgb, var(--tp-color-danger-ink) 16%, var(--tp-color-danger-bg));
 }
 
 .tp-agent-drawer-mode-toggle {

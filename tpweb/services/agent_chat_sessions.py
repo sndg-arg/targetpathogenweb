@@ -82,14 +82,57 @@ def list_conversations(session_key, limit=CONVERSATION_LIST_LIMIT):
 
 
 def set_title_if_blank(row, message_text):
+    """Auto-titles a conversation from its first message, once.
+
+    Saves immediately (its own write, scoped to just the title field) rather
+    than leaving the caller to persist it later alongside history_json --
+    keeping this decoupled from _save_persisted_history's own save is what
+    makes a concurrent rename_conversation() call safe: neither write can
+    clobber the other's field.
+    """
     if row.title:
         return
-    text = " ".join((message_text or "").split())
+    text = _normalize_title(message_text)
     if not text:
         return
+    row.title = text
+    row.save(update_fields=["title"])
+
+
+def rename_conversation(session_key, conversation_id, title):
+    """Renames a conversation. None if it doesn't exist or isn't this
+    session's -- the caller (the view) is responsible for rejecting a blank
+    title before calling this, so a None return here means "not found/not
+    owned," with a single unambiguous meaning."""
+    row = find_conversation(session_key, conversation_id)
+    if row is None:
+        return None
+    text = _normalize_title(title)
+    if not text:
+        return None
+    row.title = text
+    row.save(update_fields=["title"])
+    return row
+
+
+def delete_conversation(session_key, conversation_id):
+    """True if a conversation was deleted, False if it didn't exist or
+    wasn't this session's. QuerySet.delete() returns a 2-tuple (truthy
+    regardless of count), so this checks the actual deleted count rather
+    than the tuple itself."""
+    deleted_count, _ = AgentChatSession.objects.filter(
+        session_key=session_key, pk=conversation_id
+    ).delete()
+    return deleted_count > 0
+
+
+def _normalize_title(text):
+    text = " ".join((text or "").split())
+    if not text:
+        return ""
     if len(text) > TITLE_MAX_LENGTH:
         text = text[:TITLE_MAX_LENGTH].rstrip() + "…"
-    row.title = text
+    return text
 
 
 def _recent_conversation(session_key):
