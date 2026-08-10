@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260809-merge-main">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260810-export-premium">
 {% endblock %}
 
 {% block body %}
@@ -67,10 +67,13 @@
                     {% endif %}
                 </div>
                 <div class="tp-view-head-actions">
-                    <a href="{{ view_export_url }}" class="btn tp-btn tp-btn--neutral tp-btn-with-icon tp-view-export-link">
-                        <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/download.html" %}</span>
-                        {% trans "Export view" %}
-                    </a>
+                    <div class="protein-hero-export-group">
+                        <a href="{{ view_export_url }}" class="btn tp-btn tp-btn--neutral tp-btn-with-icon tp-view-export-link">
+                            <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/download.html" %}</span>
+                            {% trans "Export view" %}
+                        </a>
+                        <p class="protein-hero-export-caption">{% trans "Full evidence report" %}</p>
+                    </div>
                 </div>
             </div>
             <div class="protein-metrics" aria-label="{% trans "Protein summary" %}">

@@ -27,12 +27,44 @@
     display: flex;
     justify-content: space-between;
     gap: 18px;
-    align-items: flex-start;
+    /* Centered against the whole header height (not pinned to the short
+       breadcrumb line at the top) -- flex-start anchored "Export view" to
+       the shortest line in the left column instead of the header's actual
+       visual weight (genome chip, title, accession) several lines down,
+       which read as the button being randomly placed. */
+    align-items: center;
     margin-top: 8px;
 }
 
-.protein-hero .tp-view-head-actions {
-    padding-top: 6px;
+/* Export view: elevated + captioned so it reads as a considered action,
+   not a stray metadata chip. Scoped to .protein-hero specifically --
+   .tp-view-export-link's own base style in ui-system.css is shared by 6
+   other pages that didn't ask for this treatment. */
+.protein-hero .tp-view-export-link {
+    border-color: var(--tp-color-border-accent);
+    box-shadow: var(--tp-shadow-sm);
+    transition: transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.protein-hero .tp-view-export-link:hover,
+.protein-hero .tp-view-export-link:focus-visible {
+    transform: translateY(-1px);
+    box-shadow: var(--tp-shadow-md);
+}
+
+.protein-hero-export-group {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.protein-hero-export-caption {
+    margin: 6px 2px 0;
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-label);
 }
 
 .protein-hero-content {
