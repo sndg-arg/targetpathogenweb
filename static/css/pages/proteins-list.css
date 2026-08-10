@@ -13,12 +13,17 @@
     --view-accent-border: var(--tp-color-brand-300);
 }
 
-/* .filter-tray excluded on both sides -- it already carries its own
-   border + left-accent stripe as a contextual "active filters" callout,
-   so a hairline on top of that would be two boundary signals for the
-   same seam. Its own margin provides the spacing instead. */
+/* No hairline between top-level sections here -- like genomes-list.css
+   (same rationale, same fix): the toolbar is fundamentally a search bar
+   (plus a filter/scoring workbench), close enough to the hero above and
+   the results table below that a line read as stuck to the search input
+   rather than as a real section boundary. Margin only.
+   .filter-tray excluded on both sides -- it already carries its own
+   border + left-accent stripe + margin as a contextual "active filters"
+   callout, so a line on top of that would be two boundary signals for
+   the same seam. */
 .proteins-page > section:not(.filter-tray) ~ section:not(.filter-tray) {
-    border-top: 1px solid var(--tp-color-border-soft);
+    margin-top: 20px;
 }
 
 .proteins-page h1,
