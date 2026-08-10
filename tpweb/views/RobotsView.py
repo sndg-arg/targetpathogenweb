@@ -3,6 +3,8 @@ from django.views import View
 
 ROBOTS_TXT = """User-agent: GPTBot
 Disallow: /
+
+Sitemap: https://target2.infra.cluster.qb.fcen.uba.ar/sitemap.xml
 """
 
 
