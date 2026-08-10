@@ -168,8 +168,8 @@
     display: inline-flex;
     align-items: center;
     min-height: 40px;
-    padding: 0 4px 0 12px;
-    gap: 2px;
+    padding: 0 6px;
+    gap: 4px;
     border: 1px solid var(--tp-color-border-strong);
     border-radius: 11px;
     background: var(--tp-color-surface);
@@ -197,10 +197,6 @@
     text-decoration: none;
     transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
         color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
-}
-
-.genome-blast-group-option + .genome-blast-group-option {
-    border-left: 1px solid var(--tp-color-border-soft);
 }
 
 .genome-blast-group-option:hover,
