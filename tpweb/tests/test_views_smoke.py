@@ -6,9 +6,12 @@ otherwise have zero test coverage. Deeper behavioral tests belong next to
 the service functions each view delegates to.
 """
 
+import os
+import tempfile
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db.utils import InterfaceError
 from django.test import SimpleTestCase, TestCase
 from django.urls import reverse
@@ -350,6 +353,48 @@ class DataFileUploadViewTests(TestCase):
         response = self.client.post(reverse("tpwebapp:data_file_upload"))
         self.assertEqual(response.status_code, 403)
 
+    def test_post_without_file_is_bad_request_for_staff_user(self):
+        user = get_user_model().objects.create_user(
+            username="upload-staff-nofile", password="test-pass", is_staff=True
+        )
+        self.client.force_login(user)
+
+        response = self.client.post(reverse("tpwebapp:data_file_upload"))
+
+        self.assertEqual(response.status_code, 400)
+
+    def test_post_rejects_disallowed_extension(self):
+        user = get_user_model().objects.create_user(
+            username="upload-staff-badext", password="test-pass", is_staff=True
+        )
+        self.client.force_login(user)
+        upload = SimpleUploadedFile("model.exe", b"binary", content_type="application/octet-stream")
+
+        response = self.client.post(reverse("tpwebapp:data_file_upload"), {"data_file": upload})
+
+        self.assertEqual(response.status_code, 400)
+
+    def test_post_saves_allowed_file_and_returns_its_path(self):
+        user = get_user_model().objects.create_user(
+            username="upload-staff-ok", password="test-pass", is_staff=True
+        )
+        self.client.force_login(user)
+
+        with tempfile.TemporaryDirectory() as tmp:
+            upload = SimpleUploadedFile(
+                "results.tsv", b"col1\tcol2\n1\t2\n", content_type="text/tab-separated-values"
+            )
+            with patch.dict(os.environ, {"TPW_UPLOADS_DIR": tmp}):
+                response = self.client.post(
+                    reverse("tpwebapp:data_file_upload"), {"data_file": upload}
+                )
+
+            self.assertEqual(response.status_code, 200)
+            payload = response.json()
+            self.assertEqual(payload["filename"], "results.tsv")
+            self.assertEqual(payload["path"], os.path.join(tmp, "results.tsv"))
+            self.assertTrue(os.path.exists(payload["path"]))
+
 
 class CustomParamViewTests(SimpleTestCase):
     def test_get_requires_login(self):
@@ -357,6 +402,19 @@ class CustomParamViewTests(SimpleTestCase):
             reverse("tpwebapp:customparam", kwargs={"genome": "NZ_AP023069.1"})
         )
         self.assertEqual(response.status_code, 302)
+
+
+class CustomParamViewRenderTests(TestCase):
+    def test_get_renders_form_for_authenticated_user_with_existing_genome(self):
+        Biodatabase.objects.create(name="TEST")
+        user = get_user_model().objects.create_user(
+            username="customparam-user", password="test-pass"
+        )
+        self.client.force_login(user)
+
+        response = self.client.get(reverse("tpwebapp:customparam", kwargs={"genome": "TEST"}))
+
+        self.assertEqual(response.status_code, 200)
 
 
 class FormulaFormViewTests(TestCase):
