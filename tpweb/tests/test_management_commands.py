@@ -68,6 +68,7 @@ from tpweb.management.commands.import_curated_uniprot import (
     _compute_folder_path as curated_uniprot_folder_path,
     _parse_uniprot_accessions,
 )
+from tpweb.management.commands.selected_alphafold_source_report import is_loaded
 
 
 class ClearOldAgentChatsTests(TestCase):
@@ -516,3 +517,20 @@ class ImportCuratedUniprotHelperTests(TestCase):
             curated_uniprot_folder_path("/app/tp/data", "NZ_AP023069.1"),
             "/app/tp/data/023/NZ_AP023069.1",
         )
+
+
+class SelectedAlphafoldSourceReportIsLoadedTests(TestCase):
+    def test_exact_af_prefixed_code_matches(self):
+        self.assertTrue(is_loaded("P12345", ["AF_P12345"]))
+
+    def test_bare_accession_code_matches(self):
+        self.assertTrue(is_loaded("P12345", ["P12345"]))
+
+    def test_chain_suffixed_af_code_matches(self):
+        self.assertTrue(is_loaded("P12345", ["AF_P12345_CHAIN_A"]))
+
+    def test_unrelated_code_does_not_match(self):
+        self.assertFalse(is_loaded("P12345", ["AF_P99999"]))
+
+    def test_no_loaded_codes_does_not_match(self):
+        self.assertFalse(is_loaded("P12345", []))
