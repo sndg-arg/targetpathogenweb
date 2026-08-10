@@ -45,6 +45,20 @@ from tpweb.management.commands.selected_pdb_pocket_report import (
     _is_expected_no_pockets,
     _is_pdb_code as pdb_report_is_pdb_code,
 )
+from tpweb.management.commands.export_selected_alphafold_pocket_jobs import (
+    clean as af_clean,
+    folder_path as af_folder_path,
+    is_alphafold_uniprot_source,
+    is_pdb_code as af_is_pdb_code,
+    norm_source,
+    structure_code,
+)
+from tpweb.management.commands.export_selected_pdb_pocket_jobs import (
+    _clean as pdb_export_clean,
+    _folder_path as pdb_export_folder_path,
+    _is_pdb_code as pdb_export_is_pdb_code,
+    _parse_structure_candidates,
+)
 
 
 class ClearOldAgentChatsTests(TestCase):
@@ -365,3 +379,74 @@ class SelectedPdbPocketReportTests(TestCase):
         self.assertTrue(_is_expected_no_pockets("P2Rank", "no_pockets"))
         self.assertFalse(_is_expected_no_pockets("FPocket", "no_pockets"))
         self.assertFalse(_is_expected_no_pockets("P2Rank", "some_pocket"))
+
+
+class ExportSelectedAlphafoldPocketJobsTests(TestCase):
+    def test_clean_normalizes_missing_markers(self):
+        self.assertEqual(af_clean(None), "")
+        self.assertEqual(af_clean("nan"), "")
+
+    def test_norm_source_strips_known_prefixes(self):
+        self.assertEqual(norm_source("AF_P12345"), "P12345")
+        self.assertEqual(norm_source("CB_LOCUS1"), "LOCUS1")
+        self.assertEqual(norm_source("P12345"), "P12345")
+
+    def test_is_pdb_code_does_not_require_leading_digit(self):
+        self.assertTrue(af_is_pdb_code("1ABC"))
+        self.assertTrue(af_is_pdb_code("ABCD"))
+        self.assertFalse(af_is_pdb_code("AB"))
+
+    def test_is_alphafold_uniprot_source_accepts_af_and_uniprot_shaped_codes(self):
+        self.assertTrue(is_alphafold_uniprot_source("AF_P12345"))
+        self.assertTrue(is_alphafold_uniprot_source("A0A123456"))
+        self.assertTrue(is_alphafold_uniprot_source("P12345"))
+
+    def test_is_alphafold_uniprot_source_rejects_pdb_and_colabfold_codes(self):
+        self.assertFalse(is_alphafold_uniprot_source("1ABC"))
+        self.assertFalse(is_alphafold_uniprot_source("CB_LOCUS1"))
+        self.assertFalse(is_alphafold_uniprot_source(""))
+
+    def test_structure_code_uppercases_and_prefixes(self):
+        self.assertEqual(structure_code("p12345"), "AF_P12345")
+
+    def test_folder_path_splits_genome_accession_into_middle_bucket_directory(self):
+        # Same bucket-math bug class documented in pipeline/tests -- the
+        # InterProScan -b/-o mixup and a prior folder_path off-by-one both
+        # came from guessing this arithmetic instead of reading it.
+        self.assertEqual(
+            af_folder_path("/app/tp/data", "NZ_AP023069.1"),
+            "/app/tp/data/023/NZ_AP023069.1",
+        )
+
+
+class ExportSelectedPdbPocketJobsTests(TestCase):
+    def test_clean_normalizes_missing_markers(self):
+        self.assertEqual(pdb_export_clean(None), "")
+        self.assertEqual(pdb_export_clean("null"), "")
+
+    def test_is_pdb_code_requires_leading_digit(self):
+        self.assertTrue(pdb_export_is_pdb_code("1abc"))
+        self.assertFalse(pdb_export_is_pdb_code("abcd"))
+
+    def test_folder_path_splits_genome_accession_into_middle_bucket_directory(self):
+        self.assertEqual(
+            pdb_export_folder_path("/app/tp/data", "NZ_AP023069.1"),
+            "/app/tp/data/023/NZ_AP023069.1",
+        )
+
+    def test_parse_structure_candidates_reads_python_set_literal(self):
+        candidates = _parse_structure_candidates("{'1ABC', '2XYZ'}")
+        self.assertEqual(candidates, ["1ABC", "2XYZ"])
+
+    def test_parse_structure_candidates_filters_out_non_pdb_codes(self):
+        candidates = _parse_structure_candidates("{'1ABC', 'nothing'}")
+        self.assertEqual(candidates, ["1ABC"])
+
+    def test_parse_structure_candidates_falls_back_to_brace_stripping_on_bad_literal(self):
+        # Not a valid Python literal (unquoted identifiers) -- ast.literal_eval
+        # raises, so this exercises the comma-split fallback branch instead.
+        candidates = _parse_structure_candidates("{1ABC, 2XYZ}")
+        self.assertEqual(candidates, ["1ABC", "2XYZ"])
+
+    def test_parse_structure_candidates_empty_value_returns_empty_list(self):
+        self.assertEqual(_parse_structure_candidates(""), [])
