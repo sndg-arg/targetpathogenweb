@@ -1417,7 +1417,9 @@
             }
 
             .tp-side-link {
-                display: block;
+                display: flex;
+                align-items: center;
+                gap: 10px;
                 border-radius: 10px;
                 color: rgba(232, 245, 250, 0.94);
                 text-decoration: none;
@@ -1436,19 +1438,25 @@
                 background: rgba(255, 255, 255, 0.09);
             }
 
-            /* Plain centered text, no background/radius of its own -- the
-               parent .tp-side-link already carries the single hover/active
-               box (background + border below). A second rounded box here
-               nested inside that one read as "button inside a card". */
-            .tp-side-link::before {
-                content: attr(data-short);
-                display: none;
-                width: 24px;
-                line-height: 24px;
-                text-align: center;
-                font-size: 0.73rem;
-                font-weight: 600;
+            /* Real icon glyph instead of the old attr(data-short) 2-letter
+               code -- "MT"/"HT"/"AB" etc. read as meaningless shorthand,
+               especially once the sidebar collapses to icon-only. Shown in
+               both expanded (icon + label) and collapsed (icon only) states
+               so collapsing never changes *which* glyph represents a page. */
+            .tp-side-link-icon {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex: 0 0 18px;
+                width: 18px;
+                height: 18px;
                 color: var(--tp-color-on-accent);
+            }
+
+            .tp-side-link-icon svg {
+                display: block;
+                width: 100%;
+                height: 100%;
             }
 
             .tp-side-link:hover {
@@ -1547,10 +1555,6 @@
                 box-sizing: border-box;
                 padding: 9px 6px;
                 max-width: 100%;
-            }
-
-            body.tp-sidebar-collapsed .tp-side-link::before {
-                display: block;
             }
 
             body.tp-sidebar-collapsed .tp-side-footer {
@@ -2195,24 +2199,31 @@
         <div class="tp-side-section">
             <p class="tp-side-section-label">{% trans "Analysis" %}</p>
             <a class="tp-side-link tp-side-link--primary {% if request.resolver_match.url_name == 'index' %}active{% endif %}" data-short="HM" data-label="Home" aria-label="Home" href="{% url 'tpwebapp:index' %}">
+                <span class="tp-side-link-icon" aria-hidden="true">{% include "components/icons/home.html" %}</span>
                 <span class="tp-side-text">Home</span>
             </a>
             <a class="tp-side-link tp-side-link--primary {% if request.resolver_match.url_name == 'genomes_list' or request.resolver_match.url_name == 'assembly' or request.resolver_match.url_name == 'protein_list' or request.resolver_match.url_name == 'protein' or request.resolver_match.url_name == 'annotation_explorer' %}active{% endif %}" data-short="GE" data-label="{% trans 'Genomes' %}" aria-label="{% trans 'Genomes' %}" href="{% url 'tpwebapp:genomes_list' %}">
+                <span class="tp-side-link-icon" aria-hidden="true">{% include "components/icons/dna.html" %}</span>
                 <span class="tp-side-text">{% trans "Genomes" %}</span>
             </a>
             <a class="tp-side-link tp-side-link--primary {% if request.resolver_match.url_name == 'human_protein_list' or request.resolver_match.url_name == 'human_protein' %}active{% endif %}" data-short="HT" data-label="{% trans 'Human Targets' %}" aria-label="{% trans 'Human Targets' %}" href="{% url 'tpwebapp:human_protein_list' %}">
+                <span class="tp-side-link-icon" aria-hidden="true">{% include "components/icons/user.html" %}</span>
                 <span class="tp-side-text">{% trans "Human Targets" %}</span>
             </a>
             <a class="tp-side-link tp-side-link--primary {% if request.resolver_match.url_name == 'genome_upload' or request.resolver_match.url_name == 'customparam' %}active{% endif %}" data-short="UP" data-label="{% trans 'Upload' %}" aria-label="{% trans 'Upload' %}" href="{% url 'tpwebapp:genome_upload' %}">
+                <span class="tp-side-link-icon" aria-hidden="true">{% include "components/icons/upload.html" %}</span>
                 <span class="tp-side-text">{% trans "Upload" %}</span>
             </a>
             <a class="tp-side-link tp-side-link--primary {% if '/form' in request.path or '/result/' in request.path %}active{% endif %}" data-short="BL" data-label="{% trans 'BLAST' %}" aria-label="{% trans 'BLAST' %}" href="{% url 'tpwebapp:form' %}">
+                <span class="tp-side-link-icon" aria-hidden="true">{% include "components/icons/search.html" %}</span>
                 <span class="tp-side-text">{% trans "BLAST" %}</span>
             </a>
             <a class="tp-side-link tp-side-link--primary {% if request.resolver_match.url_name == 'data_sources' %}active{% endif %}" data-short="MT" data-label="{% trans 'Methodology' %}" aria-label="{% trans 'Methodology' %}" href="{% url 'tpwebapp:data_sources' %}">
+                <span class="tp-side-link-icon" aria-hidden="true">{% include "components/icons/flask.html" %}</span>
                 <span class="tp-side-text">{% trans "Methodology" %}</span>
             </a>
             <a class="tp-side-link tp-side-link--primary {% if request.resolver_match.url_name == 'about_us' %}active{% endif %}" data-short="AB" data-label="{% trans 'About us' %}" aria-label="{% trans 'About us' %}" href="{% url 'tpwebapp:about_us' %}">
+                <span class="tp-side-link-icon" aria-hidden="true">{% include "components/icons/info.html" %}</span>
                 <span class="tp-side-text">{% trans "About us" %}</span>
             </a>
         </div>
@@ -2220,6 +2231,7 @@
         <div class="tp-side-section">
             <p class="tp-side-section-label">{% trans "Support" %}</p>
             <a class="tp-side-link {% if '/admin' in request.path %}active{% endif %}" data-short="AD" data-label="{% trans 'Admin' %}" aria-label="{% trans 'Admin' %}" href="{% url 'admin:index' %}">
+                <span class="tp-side-link-icon" aria-hidden="true">{% include "components/icons/settings.html" %}</span>
                 <span class="tp-side-text">{% trans "Admin" %}</span>
             </a>
         </div>
