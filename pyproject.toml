@@ -8,6 +8,7 @@ extend-exclude = [
   "pipeline/apps.py",
   "pipeline/config.py",
   "pipeline/run_pipeline.py",
+  ".claude",
 ]
 
 [tool.ruff.lint]
