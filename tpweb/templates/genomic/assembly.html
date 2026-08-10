@@ -128,11 +128,11 @@
             {% endif %}
             <a href="#section-downloads" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Downloads" %}</a>
             <a href="#section-details" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Details" %}</a>
-            {% if can_delete_workspace %}
-                <a href="#section-dataset" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Dataset" %}</a>
-            {% endif %}
             {% if top_targets_by_score.items or unexplored_targets.items %}
                 <a href="#section-targets" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Top targets" %}</a>
+            {% endif %}
+            {% if can_delete_workspace %}
+                <a href="#section-dataset" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Dataset" %}</a>
             {% endif %}
         </nav>
 
@@ -337,44 +337,6 @@
                 </details>
             </section>
 
-            {% if can_delete_workspace %}
-                <section class="genome-card genome-card--danger" id="section-dataset">
-                    <div class="section-head tp-ui-panel-head">
-                        <div>
-                            <h2>{% trans "Dataset removal" %}</h2>
-                            <p class="section-subtitle">{% trans "Delete this uploaded genome dataset and all derived records." %}</p>
-                        </div>
-                    </div>
-                    <details class="genome-delete-summary js-smooth-details">
-                        <summary>{% trans "Show deletion controls" %}</summary>
-                        <form method="post" class="genome-delete-form">
-                            {% csrf_token %}
-                            <input type="hidden" name="action" value="delete_workspace">
-                            <p class="genome-delete-copy">
-                                {% trans "This removes the uploaded genome dataset, protein records, upload history, and generated analysis artifacts for this genome. This cannot be undone." %}
-                            </p>
-                            <div class="tp-ui-field">
-                                <label class="tp-ui-field-label" for="delete-workspace-confirm">{% trans "Type the accession to confirm" %}</label>
-                                <input
-                                    id="delete-workspace-confirm"
-                                    name="confirm_accession"
-                                    type="text"
-                                    class="form-control tp-ui-control"
-                                    placeholder="{{ assembly.name }}"
-                                    autocomplete="off"
-                                >
-                            </div>
-                            <div class="genome-delete-actions">
-                                <button type="submit" class="btn tp-btn tp-btn--clear tp-btn--clear-caution tp-btn-with-icon">
-                                    <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/trash.html" %}</span>
-                                    <span>{% trans "Delete dataset" %}</span>
-                                </button>
-                            </div>
-                        </form>
-                    </details>
-                </section>
-            {% endif %}
-
             {% if top_targets_by_score.items or unexplored_targets.items %}
                 <section class="genome-targets-wrap" id="section-targets">
                     {% if top_targets_by_score.items %}
@@ -475,6 +437,44 @@
                             </p>
                         </div>
                     {% endif %}
+                </section>
+            {% endif %}
+
+            {% if can_delete_workspace %}
+                <section class="genome-card genome-card--danger" id="section-dataset">
+                    <div class="section-head tp-ui-panel-head">
+                        <div>
+                            <h2>{% trans "Dataset removal" %}</h2>
+                            <p class="section-subtitle">{% trans "Delete this uploaded genome dataset and all derived records." %}</p>
+                        </div>
+                    </div>
+                    <details class="genome-delete-summary js-smooth-details">
+                        <summary>{% trans "Show deletion controls" %}</summary>
+                        <form method="post" class="genome-delete-form">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="delete_workspace">
+                            <p class="genome-delete-copy">
+                                {% trans "This removes the uploaded genome dataset, protein records, upload history, and generated analysis artifacts for this genome. This cannot be undone." %}
+                            </p>
+                            <div class="tp-ui-field">
+                                <label class="tp-ui-field-label" for="delete-workspace-confirm">{% trans "Type the accession to confirm" %}</label>
+                                <input
+                                    id="delete-workspace-confirm"
+                                    name="confirm_accession"
+                                    type="text"
+                                    class="form-control tp-ui-control"
+                                    placeholder="{{ assembly.name }}"
+                                    autocomplete="off"
+                                >
+                            </div>
+                            <div class="genome-delete-actions">
+                                <button type="submit" class="btn tp-btn tp-btn--clear tp-btn--clear-caution tp-btn-with-icon">
+                                    <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/trash.html" %}</span>
+                                    <span>{% trans "Delete dataset" %}</span>
+                                </button>
+                            </div>
+                        </form>
+                    </details>
                 </section>
             {% endif %}
         </div>
