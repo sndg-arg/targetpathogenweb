@@ -461,6 +461,22 @@
     line-height: 1.5;
 }
 
+.targets-methodology p strong {
+    color: var(--tp-color-text-secondary);
+}
+
+.targets-methodology ul {
+    margin: 4px 0 0;
+    padding-left: 18px;
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-sm);
+    line-height: 1.5;
+}
+
+.targets-methodology li {
+    margin: 2px 0;
+}
+
 .targets-list {
     list-style: none;
     margin: 0;

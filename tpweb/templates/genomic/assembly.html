@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20260808-scrollmargin-fix">
+    <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20260809-targets-move">
 {% endblock %}
 
 {% block body %}
@@ -122,9 +122,6 @@
 
         <nav class="quick-nav" aria-label="{% trans 'Genome sections' %}">
             <a href="#section-overview" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Overview" %}</a>
-            {% if top_targets_by_score.items or unexplored_targets.items %}
-                <a href="#section-targets" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Top targets" %}</a>
-            {% endif %}
             <a href="#section-evidence" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Evidence" %}</a>
             {% if jbrowse_embed.enabled %}
                 <a href="#section-browse" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Genome browser" %}</a>
@@ -134,84 +131,12 @@
             {% if can_delete_workspace %}
                 <a href="#section-dataset" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Dataset" %}</a>
             {% endif %}
+            {% if top_targets_by_score.items or unexplored_targets.items %}
+                <a href="#section-targets" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Top targets" %}</a>
+            {% endif %}
         </nav>
 
         <div class="genome-grid">
-            {% if top_targets_by_score.items or unexplored_targets.items %}
-                <section class="genome-targets-wrap" id="section-targets">
-                    {% if top_targets_by_score.items %}
-                        <div class="genome-card genome-card--ranking">
-                            <div class="section-head tp-ui-panel-head">
-                                <div>
-                                    <!-- Invisible spacer matching the secondary ranking's "No ligand evidence
-                                         yet" eyebrow -- without it, that card's header is one line taller and
-                                         the two lists start at different heights. Same technique as the
-                                         invisible "How is this calculated?" spacer below, mirrored the other
-                                         direction. -->
-                                    <span class="targets-eyebrow" style="visibility: hidden;" aria-hidden="true">{% trans "No ligand evidence yet" %}</span>
-                                    <h2>{% trans "Top-ranked candidates" %}</h2>
-                                    <p class="section-subtitle">
-                                        {% trans "Composite score (0-100%) weighing druggability, ligand evidence, and five other independent signals." %}
-                                    </p>
-                                    <details class="targets-methodology js-smooth-details">
-                                        <summary>{% trans "How is this calculated?" %}</summary>
-                                        <p>
-                                            {% trans "FPocket druggability, P2Rank pocket support, ligand evidence type, selectivity/off-target screens, essentiality, conservation, structure, and metabolic context each contribute independently. Ligand counts are context, not a linear score multiplier - direct PDB ligand, measured ChEMBL activity, homolog-transferred evidence, and ZINC proposals are capped separately. Use the ligand-support ranking alongside this one when the raw count itself matters." %}
-                                        </p>
-                                    </details>
-                                </div>
-                                <a href="?export=ranking_csv" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-btn-with-icon targets-export-btn" title="{% trans "Export every scored protein with its full score breakdown, not just the top candidates shown here." %}">
-                                    <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/download.html" %}</span>
-                                    {% trans "Export CSV" %}
-                                </a>
-                            </div>
-                            <ol class="targets-list">
-                                {% for t in top_targets_by_score.items %}
-                                    {% blocktrans with percent=t.score_percent asvar score_tooltip %}Composite score: {{ percent }}% of the maximum weighted evidence. Strong means several independent evidence types agree; it is still only a first-pass triage score.{% endblocktrans %}
-                                    {% include "components/targets/ranking_item.html" %}
-                                {% endfor %}
-                            </ol>
-                            <p class="targets-footnote">
-                                {% trans "Strong is at least 65% of the maximum weighted evidence; Moderate is 40-65%; Limited is below 40%. This ranking is only a first-pass triage." %}
-                                <a href="{{ workspace_links.custom_scores_url }}">{% trans "Create your own score" %} &rarr;</a>
-                            </p>
-                        </div>
-                    {% endif %}
-
-                    {% if unexplored_targets.items %}
-                        <div class="genome-card genome-card--ranking genome-card--ranking-secondary">
-                            <div class="section-head tp-ui-panel-head">
-                                <div>
-                                    <span class="targets-eyebrow">{% trans "No ligand evidence yet" %}</span>
-                                    <h2>{% trans "Worth a fresh look" %}</h2>
-                                    <p class="section-subtitle">
-                                        {% trans "Same composite score, restricted to proteins with zero ligand records - promising candidates nobody has drugged yet, instead of the ones already best-studied." %}
-                                    </p>
-                                    <!-- Invisible spacer matching the primary ranking's "How is this calculated?"
-                                         details/summary line -- that card's header is one line taller, so without
-                                         this the two lists start at different heights even though the outer
-                                         cards are the same overall height. visibility:hidden removes it from the
-                                         tab order and the accessibility tree, unlike display:none it still holds
-                                         its layout space. -->
-                                    <details class="targets-methodology" style="visibility: hidden;" aria-hidden="true">
-                                        <summary>{% trans "How is this calculated?" %}</summary>
-                                    </details>
-                                </div>
-                            </div>
-                            <ol class="targets-list">
-                                {% for t in unexplored_targets.items %}
-                                    {% blocktrans with percent=t.score_percent asvar score_tooltip %}Composite score: {{ percent }}% of the maximum weighted evidence, computed without any ligand-evidence signal.{% endblocktrans %}
-                                    {% include "components/targets/ranking_item.html" %}
-                                {% endfor %}
-                            </ol>
-                            <p class="targets-footnote">
-                                {% trans "Ranked by the same non-chemical evidence as the main ranking: druggability, selectivity, essentiality, conservation, structure, and metabolic role. Once real ligand evidence appears for one of these, it will move to the main ranking instead." %}
-                            </p>
-                        </div>
-                    {% endif %}
-                </section>
-            {% endif %}
-
             <!-- Evidence available -->
             <section class="genome-card genome-card--evidence" id="section-evidence">
                 <div class="section-head tp-ui-panel-head">
@@ -447,6 +372,109 @@
                             </div>
                         </form>
                     </details>
+                </section>
+            {% endif %}
+
+            {% if top_targets_by_score.items or unexplored_targets.items %}
+                <section class="genome-targets-wrap" id="section-targets">
+                    {% if top_targets_by_score.items %}
+                        <div class="genome-card genome-card--ranking">
+                            <div class="section-head tp-ui-panel-head">
+                                <div>
+                                    <!-- Invisible spacer matching the secondary ranking's "No ligand evidence
+                                         yet" eyebrow -- without it, that card's header is one line taller and
+                                         the two lists start at different heights. Same technique as the
+                                         invisible "How is this calculated?" spacer below, mirrored the other
+                                         direction. -->
+                                    <span class="targets-eyebrow" style="visibility: hidden;" aria-hidden="true">{% trans "No ligand evidence yet" %}</span>
+                                    <h2>{% trans "Example of Top Targets" %}</h2>
+                                    <p class="section-subtitle">
+                                        {% trans "A worked example, not a definitive ranking: composite score (0-100%) weighing druggability, ligand evidence, and five other independent signals. Read the full breakdown below before treating this order as a recommendation." %}
+                                    </p>
+                                    <details class="targets-methodology js-smooth-details">
+                                        <summary>{% trans "How is this calculated?" %}</summary>
+                                        <p>
+                                            {% trans "This is a fixed, built-in heuristic (labeled Evidence convergence in the CSV export) -- not a customizable ScoreFormula. It adds points for independent supporting evidence and subtracts them for red flags, up to a maximum of 15 points; the percentage shown for each protein is its score divided by 15." %}
+                                        </p>
+                                        <p><strong>{% trans "Points added:" %}</strong></p>
+                                        <ul>
+                                            <li>{% trans "P2Rank pocket support, probability at or above 0.5: +1" %}</li>
+                                            <li>{% trans "High FPocket druggability, at or above 0.7: +2 (only +1 if the best pocket has an outlier size/shape for that structure)" %}</li>
+                                            <li>{% trans "Moderate FPocket druggability, 0.4 to 0.69: +1 (0 if the best pocket has an outlier size/shape)" %}</li>
+                                            <li>{% trans "Experimental PDB ligand co-crystallized with this exact protein: +2" %}</li>
+                                            <li>{% trans "Measured ChEMBL bioactivity on this exact protein: +2" %}</li>
+                                            <li>{% trans "Ligand evidence transferred from a similar protein, PDB or ChEMBL homolog: +0.75" %}</li>
+                                            <li>{% trans "Proposed ZINC compounds by chemical similarity only, no measured activity: +0.25" %}</li>
+                                            <li>{% trans "No significant human protein similarity in the off-target screen: +1.5" %}</li>
+                                            <li>{% trans "No significant gut microbiome similarity in the off-target screen: +1" %}</li>
+                                            <li>{% trans "Homolog found in the Database of Essential Genes (DEG): +1" %}</li>
+                                            <li>{% trans "Core gene across strains, agreed by both Roary and CoreCruncher: +1" %}</li>
+                                            <li>{% trans "Catalyzes a metabolic chokepoint reaction: +1.5 (or +0.25 for any other mapped metabolic reaction that is not a chokepoint)" %}</li>
+                                            <li>{% trans "Experimental 3D structure loaded: +1 (or +0.5 for a predicted AlphaFold/ColabFold model only)" %}</li>
+                                        </ul>
+                                        <p><strong>{% trans "Points subtracted:" %}</strong></p>
+                                        <ul>
+                                            <li>{% trans "Weak FPocket druggability, above 0 but below 0.4: -0.5" %}</li>
+                                            <li>{% trans "Significant human protein similarity detected: -2" %}</li>
+                                            <li>{% trans "Significant gut microbiome similarity detected: -1" %}</li>
+                                        </ul>
+                                        <p>
+                                            {% trans "Proteins scoring at or below zero with no positive signal at all are left out of both lists entirely. Ties are broken first by FPocket druggability, then by direct ligand count, then by total ligand record count. Strong means at least 65% of the maximum score; Moderate is 40-65%; Limited is below 40%." %}
+                                        </p>
+                                        <p>
+                                            {% trans "This heuristic only orders candidates for a first look. It is independent from any custom ScoreFormula you build yourself, and it is not a substitute for reviewing the underlying evidence for each protein." %}
+                                        </p>
+                                    </details>
+                                </div>
+                                <a href="?export=ranking_csv" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-btn-with-icon targets-export-btn" title="{% trans "Export every scored protein with its full score breakdown, not just the top candidates shown here." %}">
+                                    <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/download.html" %}</span>
+                                    {% trans "Export CSV" %}
+                                </a>
+                            </div>
+                            <ol class="targets-list">
+                                {% for t in top_targets_by_score.items %}
+                                    {% blocktrans with percent=t.score_percent asvar score_tooltip %}Composite score: {{ percent }}% of the maximum weighted evidence. Strong means several independent evidence types agree; it is still only a first-pass triage score.{% endblocktrans %}
+                                    {% include "components/targets/ranking_item.html" %}
+                                {% endfor %}
+                            </ol>
+                            <p class="targets-footnote">
+                                {% trans "Strong is at least 65% of the maximum weighted evidence; Moderate is 40-65%; Limited is below 40%. This ranking is only a first-pass triage." %}
+                                <a href="{{ workspace_links.custom_scores_url }}">{% trans "Create your own score" %} &rarr;</a>
+                            </p>
+                        </div>
+                    {% endif %}
+
+                    {% if unexplored_targets.items %}
+                        <div class="genome-card genome-card--ranking genome-card--ranking-secondary">
+                            <div class="section-head tp-ui-panel-head">
+                                <div>
+                                    <span class="targets-eyebrow">{% trans "No ligand evidence yet" %}</span>
+                                    <h2>{% trans "Worth a fresh look" %}</h2>
+                                    <p class="section-subtitle">
+                                        {% trans "Same composite score, restricted to proteins with zero ligand records - promising candidates nobody has drugged yet, instead of the ones already best-studied." %}
+                                    </p>
+                                    <!-- Invisible spacer matching the primary ranking's "How is this calculated?"
+                                         details/summary line -- that card's header is one line taller, so without
+                                         this the two lists start at different heights even though the outer
+                                         cards are the same overall height. visibility:hidden removes it from the
+                                         tab order and the accessibility tree, unlike display:none it still holds
+                                         its layout space. -->
+                                    <details class="targets-methodology" style="visibility: hidden;" aria-hidden="true">
+                                        <summary>{% trans "How is this calculated?" %}</summary>
+                                    </details>
+                                </div>
+                            </div>
+                            <ol class="targets-list">
+                                {% for t in unexplored_targets.items %}
+                                    {% blocktrans with percent=t.score_percent asvar score_tooltip %}Composite score: {{ percent }}% of the maximum weighted evidence, computed without any ligand-evidence signal.{% endblocktrans %}
+                                    {% include "components/targets/ranking_item.html" %}
+                                {% endfor %}
+                            </ol>
+                            <p class="targets-footnote">
+                                {% trans "Ranked by the same non-chemical evidence as the main ranking: druggability, selectivity, essentiality, conservation, structure, and metabolic role. Once real ligand evidence appears for one of these, it will move to the main ranking instead." %}
+                            </p>
+                        </div>
+                    {% endif %}
                 </section>
             {% endif %}
         </div>
