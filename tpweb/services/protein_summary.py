@@ -22,7 +22,9 @@ from tpweb.services.genome_workspace import genome_url_slug
 from tpweb.services.structure_sources import (
     STRUCTURE_SOURCE_EXPERIMENTAL,
     STRUCTURE_SOURCE_MIXED,
+    classify_structure_experiment,
     structure_matches_identifier,
+    structure_source_label,
     summarize_structure_sources,
 )
 
@@ -270,6 +272,68 @@ def _structure_source_kind(identifier):
     if upper.startswith("A0A") or (any(ch.isdigit() for ch in ident) and any(ch.isalpha() for ch in ident)):
         return "AlphaFold DB / UniProt model"
     return "Curated structure"
+
+
+def _resolve_structure_source_label(identifier, structures):
+    """Authoritative {"code", "source", "label"} for a best_fpocket_structure/
+    best_p2rank_structure identifier, resolved against the protein's own linked
+    structures (real pdb.experiment) rather than trusting the string-heuristic
+    _structure_source_kind. Falls back to that heuristic, with the raw identifier as
+    the code, only when nothing currently linked matches it."""
+    if not identifier:
+        return None
+    for link in structures or []:
+        if structure_matches_identifier(link, identifier):
+            pdb = getattr(link, "pdb", None)
+            if pdb is None:
+                continue
+            source_key = classify_structure_experiment(getattr(pdb, "experiment", ""))
+            return {"code": pdb.code, "source": source_key, "label": structure_source_label(source_key)}
+    return {"code": identifier, "source": "", "label": _structure_source_kind(identifier)}
+
+
+_pocket_reference_cache = None
+
+
+def _pocket_reference_rows():
+    """Cached module-level lookup for the FPocket druggability Property/ResidueSet rows
+    used by _resolve_fpocket_structure_by_max_score -- same always-the-same-rows
+    rationale as StructureView._pdb_reference_rows, kept local to this module rather
+    than imported from a view (CLAUDE.md: views delegate to services, not the reverse)."""
+    global _pocket_reference_cache
+    if _pocket_reference_cache is None:
+        from tpweb.models.pdb import Property, ResidueSet
+        _pocket_reference_cache = {
+            "druggability_score": Property.objects.get(name="druggability_score"),
+            "FPocketPocket": ResidueSet.objects.get(name="FPocketPocket"),
+        }
+    return _pocket_reference_cache
+
+
+def _resolve_fpocket_structure_by_max_score(structures):
+    """Fallback for genomes processed by the classic in-app pipeline, which never
+    records which structure produced the max FPocket score it loads as the
+    genome-wide "Druggability" ScoreParamValue (unlike the curated/Gates pipeline's
+    best_fpocket_structure). Re-derives it live: the same max-druggability pocket
+    lookup index_pocket_size_outlier.py's auto-resolve fallback already uses, just
+    for structure identity instead of pocket geometry."""
+    from tpweb.models.pdb import PDBResidueSet
+
+    pdb_ids = [link.pdb_id for link in (structures or [])]
+    if not pdb_ids:
+        return None
+    ref = _pocket_reference_rows()
+    best_rs = (
+        PDBResidueSet.objects
+        .filter(pdb_id__in=pdb_ids, residue_set=ref["FPocketPocket"], properties__property=ref["druggability_score"])
+        .select_related("pdb")
+        .order_by("-properties__value")
+        .first()
+    )
+    if best_rs is None or best_rs.pdb is None:
+        return None
+    source_key = classify_structure_experiment(getattr(best_rs.pdb, "experiment", ""))
+    return {"code": best_rs.pdb.code, "source": source_key, "label": structure_source_label(source_key)}
 
 
 def _format_pocket_label(value):
@@ -882,10 +946,16 @@ def build_protein_executive_context(
         )
         for spv in score_param_values
     }
+    if structures is None:
+        structures = list(BioentryStructure.objects.filter(bioentry=protein).select_related("pdb"))
+    if structure_summary is None:
+        structure_summary = summarize_structure_sources(structures)
+
     # P2Rank is the primary druggability signal shown across the app (roadmap 6/08) --
     # prefer it here too, falling back to FPocket's score when no P2Rank value is loaded.
-    # 3-tuple (label, tone, source) instead of druggability_label's bare 2-tuple, so the
-    # template can say which tool the shown value actually came from.
+    # 4-tuple (label, tone, tool_source, structure_source) instead of druggability_label's
+    # bare 2-tuple, so the template can say which tool AND which structure (PDB/AlphaFold/
+    # ColabFold) the shown value actually came from.
     p2rank_spv = next(
         (spv for spv in score_param_values if spv.score_param.name == "p2rank_probability"), None
     )
@@ -903,16 +973,16 @@ def build_protein_executive_context(
     fpocket_druggability = druggability_label(drugg_raw)
 
     if p2rank_druggability:
-        druggability = (p2rank_druggability[0], p2rank_druggability[1], "P2Rank")
+        structure_source = _resolve_structure_source_label(raw_scores.get("best_p2rank_structure"), structures)
+        druggability = (p2rank_druggability[0], p2rank_druggability[1], "P2Rank", structure_source)
     elif fpocket_druggability:
-        druggability = (fpocket_druggability[0], fpocket_druggability[1], "FPocket")
+        structure_source = _resolve_structure_source_label(raw_scores.get("best_fpocket_structure"), structures)
+        if structure_source is None:
+            # Classic in-app pipeline never recorded which structure won -- re-derive it.
+            structure_source = _resolve_fpocket_structure_by_max_score(structures)
+        druggability = (fpocket_druggability[0], fpocket_druggability[1], "FPocket", structure_source)
     else:
         druggability = None
-
-    if structures is None:
-        structures = list(BioentryStructure.objects.filter(bioentry=protein).select_related("pdb"))
-    if structure_summary is None:
-        structure_summary = summarize_structure_sources(structures)
 
     selected_pocket_evidence = build_selected_pocket_evidence(raw_scores)
     annotate_selected_source_status(selected_pocket_evidence, structures)

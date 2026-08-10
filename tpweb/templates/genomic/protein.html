@@ -80,7 +80,11 @@
                 </div>
                 {% if druggability %}
                 <div class="metric-pill metric-pill--drugg metric-pill--drugg-{{ druggability.1 }}">
+                    {% if druggability.3.label %}
+                    <span class="metric-label" title="{% blocktrans with source=druggability.2 structure=druggability.3.label code=druggability.3.code %}{{ source }} pocket score on {{ structure }} {{ code }}. Higher values suggest a more druggable binding pocket.{% endblocktrans %}">{% blocktrans with source=druggability.2 structure=druggability.3.label %}Pocket druggability ({{ source }} · {{ structure }}){% endblocktrans %}</span>
+                    {% else %}
                     <span class="metric-label" title="{% blocktrans with source=druggability.2 %}{{ source }} pocket score on the selected structure. Higher values suggest a more druggable binding pocket.{% endblocktrans %}">{% blocktrans with source=druggability.2 %}Pocket druggability ({{ source }}){% endblocktrans %}</span>
+                    {% endif %}
                     <span class="metric-value">{{ druggability.0 }}</span>
                 </div>
                 {% endif %}
