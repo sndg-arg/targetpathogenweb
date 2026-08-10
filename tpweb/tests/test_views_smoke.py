@@ -15,6 +15,8 @@ from django.urls import reverse
 
 import tpweb.services.pipeline_status as pipeline_status_service
 from bioseq.models.Biodatabase import Biodatabase
+from bioseq.models.Bioentry import Bioentry
+from tpweb.models.Binders import Binders
 from tpweb.services.workspace import PUBLIC_WORKSPACE_USERNAME
 
 
@@ -192,6 +194,47 @@ class FormViewAuthTests(TestCase):
         self.client.force_login(user)
 
         response = self.client.get(reverse("tpwebapp:form"))
+
+        self.assertEqual(response.status_code, 200)
+
+
+class AnnotationExplorerViewTests(TestCase):
+    def test_renders_for_genome_with_no_annotations(self):
+        Biodatabase.objects.create(
+            name=f"{PUBLIC_WORKSPACE_USERNAME}__NZ_AP023069.1",
+            description="Genome workspace",
+        )
+
+        response = self.client.get(
+            reverse(
+                "tpwebapp:annotation_explorer",
+                kwargs={"genome": "NZ_AP023069.1", "annotation_kind": "ec"},
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+
+class BinderDetailViewTests(TestCase):
+    def test_renders_for_pdb_binder_with_no_smiles(self):
+        proteome = Biodatabase.objects.create(name="TEST_protein")
+        protein = Bioentry.objects.create(
+            biodatabase=proteome,
+            name="protA",
+            accession="LOCUS_A",
+            identifier="LOCUS_A",
+        )
+        binder = Binders.objects.create(
+            ccd_id="ATP",
+            pdb_id="1ABC",
+            uniprot="P12345",
+            locustag=protein,
+            smiles="",
+        )
+
+        response = self.client.get(
+            reverse("tpwebapp:binder_detail", kwargs={"binder_id": binder.id})
+        )
 
         self.assertEqual(response.status_code, 200)
 
