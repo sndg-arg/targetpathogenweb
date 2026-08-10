@@ -12,11 +12,13 @@ class Binders(models.Model):
         (SOURCE_PROPOSED, "ZINC"),
     )
 
-    id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
+    id = models.BigAutoField(
+        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+    )
     ccd_id = models.CharField(max_length=255)
     pdb_id = models.CharField(max_length=255, blank=True, default="")
     uniprot = models.CharField(max_length=255, blank=True, default="")
-    locustag = models.ForeignKey(Bioentry, on_delete=models.CASCADE, to_field='accession')
+    locustag = models.ForeignKey(Bioentry, on_delete=models.CASCADE, to_field="accession")
     smiles = models.TextField()
     source = models.CharField(
         max_length=16,

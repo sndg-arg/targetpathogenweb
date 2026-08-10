@@ -54,12 +54,15 @@ class GeneReactionLink(models.Model):
     )
 
     bioentry = models.ForeignKey(
-        Bioentry, on_delete=models.CASCADE,
+        Bioentry,
+        on_delete=models.CASCADE,
         related_name="metabolic_reactions",
     )
     reaction = models.ForeignKey(MetabolicReaction, on_delete=models.CASCADE, related_name="genes")
     chokepoint_role = models.CharField(
-        max_length=16, choices=CHOKEPOINT_CHOICES, default=CHOKEPOINT_NONE,
+        max_length=16,
+        choices=CHOKEPOINT_CHOICES,
+        default=CHOKEPOINT_NONE,
     )
 
     class Meta:
@@ -71,8 +74,12 @@ class GeneReactionLink(models.Model):
 
 class MetabolicReactionEdge(models.Model):
     genome_accession = models.CharField(max_length=128, db_index=True)
-    reaction_a = models.ForeignKey(MetabolicReaction, on_delete=models.CASCADE, related_name="edges_a")
-    reaction_b = models.ForeignKey(MetabolicReaction, on_delete=models.CASCADE, related_name="edges_b")
+    reaction_a = models.ForeignKey(
+        MetabolicReaction, on_delete=models.CASCADE, related_name="edges_a"
+    )
+    reaction_b = models.ForeignKey(
+        MetabolicReaction, on_delete=models.CASCADE, related_name="edges_b"
+    )
 
     class Meta:
         unique_together = ("genome_accession", "reaction_a", "reaction_b")
@@ -85,6 +92,7 @@ class MetabolicSpecies(models.Model):
     """A metabolite (SBML species). `species_id` is the raw SBML species id — it's what
     `ReactionParticipant`/the source SBML's `speciesReference@species` actually reference,
     so we key on it directly rather than re-deriving a "clean" BioCyc frame id."""
+
     genome_accession = models.CharField(max_length=128, db_index=True)
     species_id = models.CharField(max_length=255)
     display_name = models.CharField(max_length=255, blank=True, default="")
@@ -107,8 +115,12 @@ class ReactionParticipant(models.Model):
         (ROLE_PRODUCT, "Product"),
     )
 
-    reaction = models.ForeignKey(MetabolicReaction, on_delete=models.CASCADE, related_name="participants")
-    species = models.ForeignKey(MetabolicSpecies, on_delete=models.CASCADE, related_name="reactions")
+    reaction = models.ForeignKey(
+        MetabolicReaction, on_delete=models.CASCADE, related_name="participants"
+    )
+    species = models.ForeignKey(
+        MetabolicSpecies, on_delete=models.CASCADE, related_name="reactions"
+    )
     role = models.CharField(max_length=16, choices=ROLE_CHOICES)
     stoichiometry = models.FloatField(default=1.0)
 
@@ -122,13 +134,17 @@ class ReactionParticipant(models.Model):
 class MetabolicImportRun(models.Model):
     """One row per `load_metabolism` run for a genome (re-running replaces it) — provenance
     for the thesis write-up and for debugging stale/mismatched data."""
+
     genome_accession = models.CharField(max_length=128, unique=True, db_index=True)
     sbml_filename = models.CharField(max_length=255, blank=True, default="")
     results_filename = models.CharField(max_length=255, blank=True, default="")
     sif_filename = models.CharField(max_length=255, blank=True, default="")
     imported_at = models.DateTimeField(auto_now=True)
     imported_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL,
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
     )
 
     def __str__(self):

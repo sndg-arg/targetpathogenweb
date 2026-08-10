@@ -56,10 +56,8 @@ class Command(BaseCommand):
         for assembly_name in assemblies:
             proteome_name = f"{assembly_name}{Biodatabase.PROT_POSTFIX}"
 
-            links = (
-                BioentryStructure.objects
-                .select_related("bioentry", "pdb")
-                .filter(bioentry__biodatabase__name=proteome_name, pdb__experiment="EX")
+            links = BioentryStructure.objects.select_related("bioentry", "pdb").filter(
+                bioentry__biodatabase__name=proteome_name, pdb__experiment="EX"
             )
             if not links:
                 continue
@@ -73,7 +71,9 @@ class Command(BaseCommand):
 
             updated = 0
             for link in links:
-                xref = xrefs_by_key.get((link.bioentry_id, str(link.pdb.code or "").strip().upper()))
+                xref = xrefs_by_key.get(
+                    (link.bioentry_id, str(link.pdb.code or "").strip().upper())
+                )
                 if xref is None:
                     continue
                 full_chain = (xref.chains or "").strip()

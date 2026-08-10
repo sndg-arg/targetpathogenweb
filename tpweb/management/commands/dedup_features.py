@@ -5,10 +5,9 @@ from bioseq.models.Bioentry import Bioentry
 
 
 def _location_key(feature):
-    return tuple(sorted(
-        (loc.start_pos, loc.end_pos, loc.strand)
-        for loc in feature.locations.all()
-    ))
+    return tuple(
+        sorted((loc.start_pos, loc.end_pos, loc.strand) for loc in feature.locations.all())
+    )
 
 
 def _dedup_genome(db, fix=False, verbose=False):
@@ -16,9 +15,7 @@ def _dedup_genome(db, fix=False, verbose=False):
     affected_proteins = 0
 
     for entry in Bioentry.objects.filter(biodatabase=db).iterator(chunk_size=200):
-        features = list(
-            entry.features.prefetch_related("locations").order_by("seqfeature_id")
-        )
+        features = list(entry.features.prefetch_related("locations").order_by("seqfeature_id"))
         seen = {}
         to_delete = []
 
@@ -76,7 +73,9 @@ class Command(BaseCommand):
             dbs = list(Biodatabase.objects.filter(name__endswith="_prots"))
 
         if not fix:
-            self.stdout.write(self.style.WARNING("Dry-run mode — pass --fix to delete duplicates.\n"))
+            self.stdout.write(
+                self.style.WARNING("Dry-run mode — pass --fix to delete duplicates.\n")
+            )
 
         grand_proteins = 0
         grand_deleted = 0

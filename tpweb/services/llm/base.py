@@ -6,6 +6,7 @@ LLMProvider interface, never against a provider SDK (anthropic, openai, ...)
 directly. Swapping TPW_LLM_PROVIDER swaps which adapter is instantiated;
 callers don't change.
 """
+
 from __future__ import annotations
 
 import abc
@@ -89,5 +90,4 @@ class LLMProvider(abc.ABC):
         messages: list[Message],
         tools: list[ToolDefinition],
         system: str = "",
-    ) -> LLMResponse:
-        ...
+    ) -> LLMResponse: ...

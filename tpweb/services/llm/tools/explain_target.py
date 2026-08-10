@@ -8,6 +8,7 @@ than a raw dict it might invent details from.
 Bound to a single genome per request via build_explain_target_entry's
 closure -- the model only ever supplies an accession, never a genome.
 """
+
 from __future__ import annotations
 
 from bioseq.models.Biodatabase import Biodatabase
@@ -59,7 +60,9 @@ def build_explain_target_entry(assembly_name, default_accession=None):
     def run(input):
         accession = (input.get("accession") or default_accession or "").strip()
         if not accession:
-            return "No accession was given, and there is no protein currently in view to default to."
+            return (
+                "No accession was given, and there is no protein currently in view to default to."
+            )
 
         protein = get_protein_for_accession(assembly_name, accession)
         if protein is None:

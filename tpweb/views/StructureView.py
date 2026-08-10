@@ -1,5 +1,5 @@
-
 import math
+import random
 
 from django.shortcuts import render
 from django.http import Http404
@@ -9,8 +9,16 @@ from tpweb.models.BioentryStructure import BioentryStructure
 from tpweb.models.pdb import PDB, Residue, Property, ResidueSet, PDBResidueSet, ResidueSetProperty
 from django.db.models import FilteredRelation, Q
 from tpweb.services.genome_workspace import user_can_access_genome_name, genome_url_slug
-from tpweb.services.structure_files import detect_structure_format, disambiguate_display_codes, display_code, structure_file_path
-from tpweb.services.structure_sources import chain_selector as _chain_selector, is_multichain as _is_multichain
+from tpweb.services.structure_files import (
+    detect_structure_format,
+    disambiguate_display_codes,
+    display_code,
+    structure_file_path,
+)
+from tpweb.services.structure_sources import (
+    chain_selector as _chain_selector,
+    is_multichain as _is_multichain,
+)
 from tpweb.services.pocket_geometry import volume_outlier_map, filter_pdbresidueset_by_chain
 
 
@@ -111,18 +119,20 @@ def _atom_points(atoms, use_bfactor_radius=False):
             radius = min(max(atom.bfactor, _ALPHA_SPHERE_MIN_RADIUS), _ALPHA_SPHERE_MAX_RADIUS)
         else:
             radius = _ALPHA_SPHERE_FALLBACK_RADIUS if use_bfactor_radius else 1.0
-        points.append({
-            "x": f"{atom.x:.4f}",
-            "y": f"{atom.y:.4f}",
-            "z": f"{atom.z:.4f}",
-            # FPocket writes each alpha sphere's real radius into the STP
-            # pseudo-atom's B-factor column. Only meaningful for FPocket
-            # alpha-sphere atoms -- callers rendering real residue atoms
-            # (e.g. P2Rank's core_points) must not use this as a radius,
-            # since bfactor there is a genuine crystallographic/predicted
-            # B-factor, not a sphere size.
-            "radius": f"{radius:.3f}",
-        })
+        points.append(
+            {
+                "x": f"{atom.x:.4f}",
+                "y": f"{atom.y:.4f}",
+                "z": f"{atom.z:.4f}",
+                # FPocket writes each alpha sphere's real radius into the STP
+                # pseudo-atom's B-factor column. Only meaningful for FPocket
+                # alpha-sphere atoms -- callers rendering real residue atoms
+                # (e.g. P2Rank's core_points) must not use this as a radius,
+                # since bfactor there is a genuine crystallographic/predicted
+                # B-factor, not a sphere size.
+                "radius": f"{radius:.3f}",
+            }
+        )
     return points
 
 
@@ -265,7 +275,7 @@ def _annotated_site_label(residue_set):
 
 
 class StructureView(View):
-    template_name = 'genomic/structure.html'
+    template_name = "genomic/structure.html"
 
     def get(self, request, struct_id, *args, **kwargs):
         structure = PDB.objects.filter(id=struct_id).get()
@@ -292,8 +302,7 @@ class StructureView(View):
 
             # Collect ALL structures linked to this protein
             all_links = (
-                BioentryStructure.objects
-                .select_related("pdb")
+                BioentryStructure.objects.select_related("pdb")
                 .filter(bioentry=source_bioentry)
                 .order_by("pdb__experiment", "pdb__code")
             )
@@ -306,24 +315,30 @@ class StructureView(View):
                     continue
                 seen_ids.add(pdb.id)
                 link_chain = (link.chain or "").strip()
-                s_data = primary_data if pdb.id == structure.id else pdb_structure(pdb, [], target_chain=link_chain or None)
+                s_data = (
+                    primary_data
+                    if pdb.id == structure.id
+                    else pdb_structure(pdb, [], target_chain=link_chain or None)
+                )
                 exp = (pdb.experiment or "").upper()
                 multichain = _is_multichain(link.chain, s_data)
-                all_structures.append({
-                    "id": pdb.id,
-                    "code": pdb.code,
-                    "display_code": display_code(pdb.code),
-                    "experiment": exp,
-                    "method": s_data["method"],
-                    "short_method": _SHORT_METHOD.get(exp, s_data["method"]),
-                    "resolution": s_data.get("resolution"),
-                    "chain_selector": _chain_selector(link.chain),
-                    "is_multichain": multichain,
-                    "chain_color_default": exp == "EX" and multichain,
-                    "file_format": self._structure_file_format(link.bioentry, pdb),
-                    "structure_data": s_data,
-                    "is_active": pdb.id == structure.id,
-                })
+                all_structures.append(
+                    {
+                        "id": pdb.id,
+                        "code": pdb.code,
+                        "display_code": display_code(pdb.code),
+                        "experiment": exp,
+                        "method": s_data["method"],
+                        "short_method": _SHORT_METHOD.get(exp, s_data["method"]),
+                        "resolution": s_data.get("resolution"),
+                        "chain_selector": _chain_selector(link.chain),
+                        "is_multichain": multichain,
+                        "chain_color_default": exp == "EX" and multichain,
+                        "file_format": self._structure_file_format(link.bioentry, pdb),
+                        "structure_data": s_data,
+                        "is_active": pdb.id == structure.id,
+                    }
+                )
 
             # Ensure the requested structure is always in the list
             if not any(s["id"] == structure.id for s in all_structures):
@@ -331,7 +346,38 @@ class StructureView(View):
                 chain_sel = _chain_selector(primary_chain_value)
                 exp = (structure.experiment or "").upper()
                 multichain = _is_multichain(primary_chain_value, primary_data)
-                all_structures.insert(0, {
+                all_structures.insert(
+                    0,
+                    {
+                        "id": structure.id,
+                        "code": structure.code,
+                        "display_code": display_code(structure.code),
+                        "experiment": exp,
+                        "method": primary_data["method"],
+                        "short_method": _SHORT_METHOD.get(exp, primary_data["method"]),
+                        "resolution": primary_data.get("resolution"),
+                        "chain_selector": chain_sel,
+                        "is_multichain": multichain,
+                        "chain_color_default": exp == "EX" and multichain,
+                        "file_format": self._structure_file_format(source_bioentry, structure),
+                        "structure_data": primary_data,
+                        "is_active": True,
+                    },
+                )
+
+            disambiguate_display_codes(all_structures)
+            dto["all_structures"] = all_structures
+            active = next(
+                (s for s in all_structures if s["is_active"]),
+                all_structures[0] if all_structures else None,
+            )
+            if active:
+                dto["viewer_chain_selector"] = active["chain_selector"]
+        else:
+            exp = (structure.experiment or "").upper()
+            multichain = _is_multichain("", primary_data)
+            dto["all_structures"] = [
+                {
                     "id": structure.id,
                     "code": structure.code,
                     "display_code": display_code(structure.code),
@@ -339,37 +385,14 @@ class StructureView(View):
                     "method": primary_data["method"],
                     "short_method": _SHORT_METHOD.get(exp, primary_data["method"]),
                     "resolution": primary_data.get("resolution"),
-                    "chain_selector": chain_sel,
+                    "chain_selector": "polymer",
                     "is_multichain": multichain,
                     "chain_color_default": exp == "EX" and multichain,
-                    "file_format": self._structure_file_format(source_bioentry, structure),
+                    "file_format": self._structure_file_format(None, structure),
                     "structure_data": primary_data,
                     "is_active": True,
-                })
-
-            disambiguate_display_codes(all_structures)
-            dto["all_structures"] = all_structures
-            active = next((s for s in all_structures if s["is_active"]), all_structures[0] if all_structures else None)
-            if active:
-                dto["viewer_chain_selector"] = active["chain_selector"]
-        else:
-            exp = (structure.experiment or "").upper()
-            multichain = _is_multichain("", primary_data)
-            dto["all_structures"] = [{
-                "id": structure.id,
-                "code": structure.code,
-                "display_code": display_code(structure.code),
-                "experiment": exp,
-                "method": primary_data["method"],
-                "short_method": _SHORT_METHOD.get(exp, primary_data["method"]),
-                "resolution": primary_data.get("resolution"),
-                "chain_selector": "polymer",
-                "is_multichain": multichain,
-                "chain_color_default": exp == "EX" and multichain,
-                "file_format": self._structure_file_format(None, structure),
-                "structure_data": primary_data,
-                "is_active": True,
-            }]
+                }
+            ]
             dto["viewer_chain_selector"] = "polymer"
 
         return render(request, self.template_name, dto)
@@ -377,9 +400,11 @@ class StructureView(View):
     @staticmethod
     def _structure_file_format(source_bioentry, structure):
         if source_bioentry is None:
-            source_link = BioentryStructure.objects.select_related("bioentry__biodatabase").filter(
-                pdb=structure
-            ).first()
+            source_link = (
+                BioentryStructure.objects.select_related("bioentry__biodatabase")
+                .filter(pdb=structure)
+                .first()
+            )
             source_bioentry = source_link.bioentry if source_link else None
         if source_bioentry is None:
             return "pdb"
@@ -389,18 +414,24 @@ class StructureView(View):
             return detect_structure_format(path)
         except (FileNotFoundError, OSError, AttributeError):
             return "pdb"
+
     @staticmethod
     def _resolve_source_bioentry(request, structure):
         requested_protein_id = str(request.GET.get("protein_id") or "").strip()
         if requested_protein_id.isdigit():
-            link = BioentryStructure.objects.select_related("bioentry__biodatabase").filter(
-                pdb=structure,
-                bioentry_id=int(requested_protein_id)
-            ).first()
+            link = (
+                BioentryStructure.objects.select_related("bioentry__biodatabase")
+                .filter(pdb=structure, bioentry_id=int(requested_protein_id))
+                .first()
+            )
             if link and link.bioentry:
                 return link.bioentry
 
-        first_link = BioentryStructure.objects.select_related("bioentry__biodatabase").filter(pdb=structure).first()
+        first_link = (
+            BioentryStructure.objects.select_related("bioentry__biodatabase")
+            .filter(pdb=structure)
+            .first()
+        )
         if first_link and first_link.bioentry:
             return first_link.bioentry
         return None
@@ -410,7 +441,7 @@ class StructureView(View):
         biodb_name = getattr(getattr(source_bioentry, "biodatabase", None), "name", "") or ""
         prot_postfix = getattr(Biodatabase, "PROT_POSTFIX", "")
         if prot_postfix and biodb_name.endswith(prot_postfix):
-            return biodb_name[:-len(prot_postfix)]
+            return biodb_name[: -len(prot_postfix)]
         if prot_postfix:
             return biodb_name.replace(prot_postfix, "")
         return biodb_name
@@ -426,7 +457,9 @@ def _ranked_pocket_ids(pdbobj, residue_set, property_obj, limit, min_value=None,
     # count, ...) regardless of its real druggability/p2rank score.
     qs = (
         PDBResidueSet.objects.filter(pdb=pdbobj, residue_set=residue_set)
-        .annotate(rank_prop=FilteredRelation("properties", condition=Q(properties__property=property_obj)))
+        .annotate(
+            rank_prop=FilteredRelation("properties", condition=Q(properties__property=property_obj))
+        )
         .filter(rank_prop__isnull=False)
     )
     if min_value is not None:
@@ -449,21 +482,30 @@ def pdb_structure(
     context = {"code": pdbobj.code, "display_code": display_code(pdbobj.code), "id": pdbobj.id}
 
     chain_names = (
-        Residue.objects.filter(pdb=pdbobj).exclude(chain="").values_list("chain", flat=True).distinct()
+        Residue.objects.filter(pdb=pdbobj)
+        .exclude(chain="")
+        .values_list("chain", flat=True)
+        .distinct()
     )
     context["chains"] = [{"name": chain} for chain in chain_names if chain.strip()]
     context["layers"] = []
 
-    resnames = list(Residue.objects.filter(pdb=pdbobj, type=Residue.HETATOM).values("resname").distinct())
+    resnames = list(
+        Residue.objects.filter(pdb=pdbobj, type=Residue.HETATOM).values("resname").distinct()
+    )
     if "HOH" in resnames or "WAT" in resnames:
         context["layers"].append("water")
     elif len([x for x in resnames if resnames not in ["HOH", "WAT"]]):
         context["layers"].append("hetero")
 
     from collections import defaultdict
+
     dna_data = defaultdict(lambda: [])
-    for chain_resname in Residue.objects.filter(
-            pdb=pdbobj, type="R", resname__in=["DA", "DC", "DG", "DT"]).values("chain", "resname").distinct():
+    for chain_resname in (
+        Residue.objects.filter(pdb=pdbobj, type="R", resname__in=["DA", "DC", "DG", "DT"])
+        .values("chain", "resname")
+        .distinct()
+    ):
         dna_data[chain_resname["chain"]].append(chain_resname["resname"])
     context["dna"] = []
     for chain, residues in dna_data.items():
@@ -492,7 +534,9 @@ def pdb_structure(
         ).values_list("pdbresidue_set_id", "value")
         size_outlier_map = volume_outlier_map(all_volumes)
 
-    pocket_ids = _ranked_pocket_ids(pdbobj, rs, ds, pocket_limit, min_value=0.2, target_chain=target_chain)
+    pocket_ids = _ranked_pocket_ids(
+        pdbobj, rs, ds, pocket_limit, min_value=0.2, target_chain=target_chain
+    )
     p2_pocket_ids = _ranked_pocket_ids(pdbobj, p2_rs, p2p, p2rank_limit, target_chain=target_chain)
 
     # pocket_ids/p2_pocket_ids come from two different residue-set kinds
@@ -538,9 +582,12 @@ def pdb_structure(
             pocket_resid = None
         alpha_core_points = (
             _atom_points(alpha_atoms_by_resid.get(pocket_resid, []), use_bfactor_radius=True)
-            if pocket_resid is not None else []
+            if pocket_resid is not None
+            else []
         )
-        if alpha_core_points and _points_are_near_residue_cloud(alpha_core_points, residue_core_points):
+        if alpha_core_points and _points_are_near_residue_cloud(
+            alpha_core_points, residue_core_points
+        ):
             p.core_points = alpha_core_points
             p.core_geometry = "alpha_spheres"
             p.core_button_label = "Alpha spheres"
@@ -557,12 +604,14 @@ def pdb_structure(
             p.core_geometry = "none"
             p.core_button_label = "No pocket geometry"
             p.core_layer_label = "No pocket-specific geometry available"
-            p.core_note = "No alpha-sphere or residue-position data is available for this pocket; this layer just highlights the same residue selection as \"Nearby residues\"."
+            p.core_note = 'No alpha-sphere or residue-position data is available for this pocket; this layer just highlights the same residue selection as "Nearby residues".'
 
         is_outlier, median_volume, _mad = size_outlier_map.get(p.id, (False, None, None))
         p.size_outlier = is_outlier
         if is_outlier:
-            pocket_volume = next((x.value for x in p.properties.all() if x.property == volume_prop), None)
+            pocket_volume = next(
+                (x.value for x in p.properties.all() if x.property == volume_prop), None
+            )
             p.size_outlier_note = (
                 f"This pocket's volume ({pocket_volume:.0f} Å³) is unusually large/diffuse compared to "
                 f"this structure's other pockets (typical volume ~{median_volume:.0f} Å³) — may reflect a "
@@ -586,9 +635,14 @@ def pdb_structure(
         data = []
 
         for rsr in p.residue_set_residue.all():
-            data.append({"x": rsr.residue.resid,
-                         "y": rsr.residue.resid,
-                         "description": p.name, "id": p.name})
+            data.append(
+                {
+                    "x": rsr.residue.resid,
+                    "y": rsr.residue.resid,
+                    "description": p.name,
+                    "id": p.name,
+                }
+            )
             p.residues.append(_residue_display_label(rsr.residue))
             p.residue_ids.append(rsr.residue.resid)
             p.comparison_residues.append(rsr.residue)
@@ -601,7 +655,7 @@ def pdb_structure(
                 "className": "test2",
                 "color": generar_color_aleatorio(),
                 "type": "rect",
-                "filter": "type2"
+                "filter": "type2",
             }
             graphic_features.append(gf)
 
@@ -622,7 +676,7 @@ def pdb_structure(
             p2.core_geometry = "none"
             p2.core_button_label = "No pocket geometry"
             p2.core_layer_label = "No pocket-specific geometry available"
-            p2.core_note = "No residue-position data is available for this predicted site; this layer just highlights the same residue selection as \"Nearby residues\"."
+            p2.core_note = 'No residue-position data is available for this predicted site; this layer just highlights the same residue selection as "Nearby residues".'
         p2.geometric_center = _pocket_center(p2.core_points)
         p2.residues = []
         # See p.residue_ids above -- same reason, same fix.
@@ -631,9 +685,14 @@ def pdb_structure(
         data = []
 
         for rsr in p2.residue_set_residue.all():
-            data.append({"x": rsr.residue.resid,
-                         "y": rsr.residue.resid,
-                         "description": p2.name, "id": p2.name})
+            data.append(
+                {
+                    "x": rsr.residue.resid,
+                    "y": rsr.residue.resid,
+                    "description": p2.name,
+                    "id": p2.name,
+                }
+            )
             p2.residues.append(_residue_display_label(rsr.residue))
             p2.residue_ids.append(rsr.residue.resid)
             p2.comparison_residues.append(rsr.residue)
@@ -646,34 +705,40 @@ def pdb_structure(
                 "className": "test2",
                 "color": p2rank_probability_color(p2.probability),
                 "type": "rect",
-                "filter": "type2"
+                "filter": "type2",
             }
             graphic_features.append(gf_p2)
 
     context["p2_pockets"].sort(key=lambda p: p.probability or 0, reverse=True)
 
     rss = PDBResidueSet.objects.prefetch_related(
-        "properties__property",
-        "residue_set_residue__residue").filter(
-        Q(pdb=pdbobj) &
-        (~Q(residue_set__name="FPocketPocket")) &
-        (~Q(residue_set__name="P2RankPocket")))
+        "properties__property", "residue_set_residue__residue"
+    ).filter(
+        Q(pdb=pdbobj)
+        & (~Q(residue_set__name="FPocketPocket"))
+        & (~Q(residue_set__name="P2RankPocket"))
+    )
     context["residuesets"] = []
     for rs_obj in rss:
-        context["residuesets"].append({"rs_name": rs_obj.residue_set.name,
-                                       "name": rs_obj.name,
-                                       "description": rs_obj.description,
-                                       "residues": [x.residue.resid
-                                                    for x in rs_obj.residue_set_residue.all()],
-                                       "center": _pocket_center(_residue_set_core_points(rs_obj))})
+        context["residuesets"].append(
+            {
+                "rs_name": rs_obj.residue_set.name,
+                "name": rs_obj.name,
+                "description": rs_obj.description,
+                "residues": [x.residue.resid for x in rs_obj.residue_set_residue.all()],
+                "center": _pocket_center(_residue_set_core_points(rs_obj)),
+            }
+        )
         gf = {
-            "data": [{"x": x.residue.resid, "y": x.residue.resid}
-                     for x in rs_obj.residue_set_residue.all()],
+            "data": [
+                {"x": x.residue.resid, "y": x.residue.resid}
+                for x in rs_obj.residue_set_residue.all()
+            ],
             "name": "P2Rank",
             "className": "test3",
             "color": generar_color_aleatorio(),
             "type": "rect",
-            "filter": "type2"
+            "filter": "type2",
         }
         graphic_features.append(gf)
     context["pdbid"] = pdbobj.code.lower()
@@ -726,16 +791,23 @@ def pdb_structure(
             f"Same-site prediction: {p.consensus_label} ({p.consensus_distance:.1f} Å center distance, "
             f"{p.consensus_shared_residues} shared residues, "
             f"{p.consensus_smaller_coverage:.0f}% of the smaller site)"
-            if p.consensus_label else ""
+            if p.consensus_label
+            else ""
         )
         nearest_site = _nearest_named_center(p.geometric_center, site_centers)
-        site_note = f"Nearest annotated site: {nearest_site[0]} (Δ {nearest_site[1]:.1f} Å)" if nearest_site else ""
-        p.inspector_properties = _join_nonempty([
-            _inspector_property_summary(p, _FPOCKET_INSPECTOR_PROPERTIES),
-            _format_pocket_center(p.geometric_center),
-            consensus_note,
-            site_note,
-        ])
+        site_note = (
+            f"Nearest annotated site: {nearest_site[0]} (Δ {nearest_site[1]:.1f} Å)"
+            if nearest_site
+            else ""
+        )
+        p.inspector_properties = _join_nonempty(
+            [
+                _inspector_property_summary(p, _FPOCKET_INSPECTOR_PROPERTIES),
+                _format_pocket_center(p.geometric_center),
+                consensus_note,
+                site_note,
+            ]
+        )
 
     for p2 in context["p2_pockets"]:
         consensus = _nearest_named_center(p2.geometric_center, fpocket_centers)
@@ -767,16 +839,23 @@ def pdb_structure(
             f"Same-site prediction: {p2.consensus_label} ({p2.consensus_distance:.1f} Å center distance, "
             f"{p2.consensus_shared_residues} shared residues, "
             f"{p2.consensus_smaller_coverage:.0f}% of the smaller site)"
-            if p2.consensus_label else ""
+            if p2.consensus_label
+            else ""
         )
         nearest_site = _nearest_named_center(p2.geometric_center, site_centers)
-        site_note = f"Nearest annotated site: {nearest_site[0]} (Δ {nearest_site[1]:.1f} Å)" if nearest_site else ""
-        p2.inspector_properties = _join_nonempty([
-            _inspector_property_summary(p2, _P2RANK_INSPECTOR_PROPERTIES),
-            _format_pocket_center(p2.geometric_center),
-            consensus_note,
-            site_note,
-        ])
+        site_note = (
+            f"Nearest annotated site: {nearest_site[0]} (Δ {nearest_site[1]:.1f} Å)"
+            if nearest_site
+            else ""
+        )
+        p2.inspector_properties = _join_nonempty(
+            [
+                _inspector_property_summary(p2, _P2RANK_INSPECTOR_PROPERTIES),
+                _format_pocket_center(p2.geometric_center),
+                consensus_note,
+                site_note,
+            ]
+        )
 
     context["method"] = _METHOD_MAP.get((pdbobj.experiment or "").upper(), "Structure model")
     try:
@@ -786,9 +865,6 @@ def pdb_structure(
         context["resolution"] = None
 
     return {**context}
-
-
-import random
 
 
 def p2rank_probability_color(probability):

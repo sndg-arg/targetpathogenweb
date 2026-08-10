@@ -4,16 +4,13 @@ from django.contrib import admin
 from tpweb.models.pdb import PDB, PDBResidueSet, ResidueSet
 
 
-
-
 class PDBAdmin(admin.ModelAdmin):
-
-    list_display = ["code", "bioentry_name", "chains_list","residues_count"]
+    list_display = ["code", "bioentry_name", "chains_list", "residues_count"]
     search_fields = ["name"]
 
     @admin.display(description="Chains List")
     def chains_list(self, obj):
-        return " ".join({x.chain for x in obj.residues.all() })
+        return " ".join({x.chain for x in obj.residues.all()})
 
     @admin.display(description="Total Residues")
     def residues_count(self, obj):
@@ -27,16 +24,17 @@ class PDBAdmin(admin.ModelAdmin):
         else:
             return "-"
 
+
 admin.site.register(PDB, PDBAdmin)
 
-class PDBResidueSetAdmin(admin.ModelAdmin):
 
+class PDBResidueSetAdmin(admin.ModelAdmin):
     list_display = ["name", "pdb_name", "residue_set_name"]
-    search_fields = ["name","residue_set__name","pdb__code"]
+    search_fields = ["name", "residue_set__name", "pdb__code"]
 
     @admin.display(description="residues")
     def chains_list(self, obj):
-        return " ".join({x.chain for x in obj.residues.all() })
+        return " ".join({x.chain for x in obj.residues.all()})
 
     @admin.display(description="Total Residues")
     def residue_set_name(self, obj):
@@ -46,13 +44,13 @@ class PDBResidueSetAdmin(admin.ModelAdmin):
     def pdb_name(self, obj):
         return obj.pdb.code
 
+
 admin.site.register(PDBResidueSet, PDBResidueSetAdmin)
 
+
 class ResidueSetAdmin(admin.ModelAdmin):
-
     list_display = ["name", "description"]
-    search_fields = ["name","description"]
-
+    search_fields = ["name", "description"]
 
 
 admin.site.register(ResidueSet, ResidueSetAdmin)

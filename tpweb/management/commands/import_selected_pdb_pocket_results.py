@@ -43,6 +43,7 @@ INFO_TO_TPW_PROPERTY = {
     "Flexibility": "Flexibility",
 }
 
+
 def clean(value):
     return str(value or "").strip()
 
@@ -55,7 +56,7 @@ def genome_folder(datadir, genome_name):
     import math
 
     n = len(genome_name)
-    folder = genome_name[math.floor(n / 2 - 1):math.floor(n / 2 + 2)]
+    folder = genome_name[math.floor(n / 2 - 1) : math.floor(n / 2 + 2)]
     return os.path.join(datadir, folder, genome_name)
 
 
@@ -124,7 +125,9 @@ def find_p2rank_dir(job_dir, pdb_code):
             return candidate
 
     for dirpath, dirnames, filenames in os.walk(job_dir):
-        if any(name.endswith("_predictions.csv") or name == "p2pocket.json.gz" for name in filenames):
+        if any(
+            name.endswith("_predictions.csv") or name == "p2pocket.json.gz" for name in filenames
+        ):
             return dirpath
         for dirname in dirnames:
             if "p2rank" in dirname.lower():
@@ -134,8 +137,7 @@ def find_p2rank_dir(job_dir, pdb_code):
 
 def has_residue_set(pdb_code, residue_set_name):
     pdb_ids = list(
-        PDB.objects.filter(code__iexact=pdb_code, deprecated=False)
-        .values_list("id", flat=True)
+        PDB.objects.filter(code__iexact=pdb_code, deprecated=False).values_list("id", flat=True)
     )
     if not pdb_ids:
         return False
@@ -257,7 +259,9 @@ def parse_fpocket_vert_files(fpocket_dir):
         if not match:
             continue
         pocket_number = int(match.group(1))
-        with open(os.path.join(pockets_dir, filename), encoding="utf-8", errors="replace") as handle:
+        with open(
+            os.path.join(pockets_dir, filename), encoding="utf-8", errors="replace"
+        ) as handle:
             for line in handle:
                 alpha_line = _alpha_line_from_vert_line(line, pocket_number, serial)
                 if alpha_line:
@@ -414,9 +418,9 @@ class Command(BaseCommand):
             p2_loaded = p2_skipped = p2_failed = 0
             missing_jobs = 0
 
-            self.stdout.write(self.style.MIGRATE_HEADING(
-                f"Selected PDB pocket import for {genome_name}"
-            ))
+            self.stdout.write(
+                self.style.MIGRATE_HEADING(f"Selected PDB pocket import for {genome_name}")
+            )
             self.stdout.write(f"Rows in manifest: {len(rows)}")
             self.stdout.write(f"Results: {extract_root}")
             self.stdout.write(f"Manifest: {manifest_path}")
@@ -449,7 +453,9 @@ class Command(BaseCommand):
                             if not pocket_json or fpocket_json_is_empty(pocket_json):
                                 fallback_json = fallback_fpocket_to_json(fpocket_dir)
                                 if fallback_json:
-                                    self.stdout.write(f"FPocket fallback JSON used: {locus} {pdb_code}")
+                                    self.stdout.write(
+                                        f"FPocket fallback JSON used: {locus} {pdb_code}"
+                                    )
                                     pocket_json = fallback_json
                             if not pocket_json:
                                 fp_failed += 1
@@ -466,7 +472,9 @@ class Command(BaseCommand):
                                     fp_loaded += 1
                                 except Exception as exc:
                                     fp_failed += 1
-                                    self.stderr.write(f"FPocket load failed: {locus} {pdb_code}: {exc}")
+                                    self.stderr.write(
+                                        f"FPocket load failed: {locus} {pdb_code}: {exc}"
+                                    )
 
                 if as_bool(row.get("need_p2rank")):
                     if not force and has_residue_set(pdb_code, P2_RESIDUE_SET):
@@ -494,7 +502,9 @@ class Command(BaseCommand):
                                     p2_loaded += 1
                                 except Exception as exc:
                                     p2_failed += 1
-                                    self.stderr.write(f"P2Rank load failed: {locus} {pdb_code}: {exc}")
+                                    self.stderr.write(
+                                        f"P2Rank load failed: {locus} {pdb_code}: {exc}"
+                                    )
 
             self.stdout.write("")
             self.stdout.write(f"Missing job dirs: {missing_jobs}")

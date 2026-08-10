@@ -5,6 +5,7 @@ Messages API shape. This is the only file in the package that imports
 `anthropic` -- tpweb/services/llm/agent.py and every tool implementation
 stay provider-neutral.
 """
+
 from __future__ import annotations
 
 import os
@@ -57,7 +58,9 @@ class AnthropicProvider(LLMProvider):
             output_tokens=getattr(response.usage, "output_tokens", 0) or 0,
         )
 
-        return LLMResponse(text=text, tool_calls=tool_calls, stop_reason=stop_reason, usage=usage, raw=response)
+        return LLMResponse(
+            text=text, tool_calls=tool_calls, stop_reason=stop_reason, usage=usage, raw=response
+        )
 
     @staticmethod
     def _to_anthropic_tool(tool: ToolDefinition) -> dict:

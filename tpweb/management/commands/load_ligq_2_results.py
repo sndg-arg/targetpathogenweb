@@ -10,23 +10,87 @@ from bioseq.models.Bioentry import Bioentry
 from tpweb.models.Binders import Binders
 
 
-HET_DENYLIST = frozenset({
-    "ALA", "ARG", "ASN", "ASP", "CYS", "GLN", "GLU", "GLY", "HIS", "ILE",
-    "LEU", "LYS", "MET", "PHE", "PRO", "SER", "THR", "TRP", "TYR", "VAL",
-    "HOH", "DOD", "WAT",
-    "NA", "K", "MG", "CA", "CL", "ZN", "FE", "CU", "MN", "CO", "NI", "CD",
-    "HG", "FE2", "BR", "IOD", "LI", "BA", "CS", "SR", "AL", "RB", "PT",
-    "GOL", "EDO", "MPD", "PEG", "PG4", "PGE", "P6G", "1PE",
-    "FMT", "ACT", "CIT", "TRS", "IMD", "DMS", "BME", "EPE", "MES", "BCN",
-    "SO4", "PO4", "NO3", "CO3", "SCN", "ACE",
-})
+HET_DENYLIST = frozenset(
+    {
+        "ALA",
+        "ARG",
+        "ASN",
+        "ASP",
+        "CYS",
+        "GLN",
+        "GLU",
+        "GLY",
+        "HIS",
+        "ILE",
+        "LEU",
+        "LYS",
+        "MET",
+        "PHE",
+        "PRO",
+        "SER",
+        "THR",
+        "TRP",
+        "TYR",
+        "VAL",
+        "HOH",
+        "DOD",
+        "WAT",
+        "NA",
+        "K",
+        "MG",
+        "CA",
+        "CL",
+        "ZN",
+        "FE",
+        "CU",
+        "MN",
+        "CO",
+        "NI",
+        "CD",
+        "HG",
+        "FE2",
+        "BR",
+        "IOD",
+        "LI",
+        "BA",
+        "CS",
+        "SR",
+        "AL",
+        "RB",
+        "PT",
+        "GOL",
+        "EDO",
+        "MPD",
+        "PEG",
+        "PG4",
+        "PGE",
+        "P6G",
+        "1PE",
+        "FMT",
+        "ACT",
+        "CIT",
+        "TRS",
+        "IMD",
+        "DMS",
+        "BME",
+        "EPE",
+        "MES",
+        "BCN",
+        "SO4",
+        "PO4",
+        "NO3",
+        "CO3",
+        "SCN",
+        "ACE",
+    }
+)
 
 
 def _parse_first_token(value):
     if value is None or (isinstance(value, float) and pd.isna(value)):
         return ""
     s = str(value).strip()
-    if not s or s in ("[]", "['']", "[\"\"]"):
+    if not s or s in ("[]", "['']", '[""]'):
         return ""
     match = re.search(r"['\"]([^'\"]+)['\"]", s)
     return match.group(1) if match else ""
@@ -165,7 +229,9 @@ class Command(BaseCommand):
                 stats=zinc_stats,
             )
         else:
-            self.stdout.write(self.style.WARNING("No zinc_ligands.tsv/predicted_ligands.tsv files found"))
+            self.stdout.write(
+                self.style.WARNING("No zinc_ligands.tsv/predicted_ligands.tsv files found")
+            )
 
         self.stdout.write("")
         self.stdout.write(self.style.SUCCESS("=== LigQ_2 load summary ==="))
@@ -218,8 +284,14 @@ class Command(BaseCommand):
                             )
                             pdb_df = df[df["_inner_source"] == "pdb"].copy()
                             other_df = df[df["_inner_source"] != "pdb"].copy()
-                            if known_pre_cap and len(other_df) > known_pre_cap and "pchembl" in other_df.columns:
-                                other_df["_pchembl_sort"] = pd.to_numeric(other_df["pchembl"], errors="coerce")
+                            if (
+                                known_pre_cap
+                                and len(other_df) > known_pre_cap
+                                and "pchembl" in other_df.columns
+                            ):
+                                other_df["_pchembl_sort"] = pd.to_numeric(
+                                    other_df["pchembl"], errors="coerce"
+                                )
                                 other_df = other_df.sort_values(
                                     "_pchembl_sort", ascending=False, na_position="last"
                                 ).head(known_pre_cap)
@@ -228,7 +300,9 @@ class Command(BaseCommand):
                             df = df.drop(columns=["_inner_source"], errors="ignore")
                         elif known_pre_cap and len(df) > known_pre_cap and "pchembl" in df.columns:
                             df["_pchembl_sort"] = pd.to_numeric(df["pchembl"], errors="coerce")
-                            df = df.sort_values("_pchembl_sort", ascending=False, na_position="last").head(known_pre_cap)
+                            df = df.sort_values(
+                                "_pchembl_sort", ascending=False, na_position="last"
+                            ).head(known_pre_cap)
                             df = df.drop(columns=["_pchembl_sort"])
                         df["_locustag"] = qseqid
                         known_frames.append(df)
@@ -277,7 +351,11 @@ class Command(BaseCommand):
                 known_frames.append(df)
 
         flat_zinc = next(
-            (out_dir / name for name in zinc_like_names if (out_dir / name).exists() and (out_dir / name).stat().st_size > 0),
+            (
+                out_dir / name
+                for name in zinc_like_names
+                if (out_dir / name).exists() and (out_dir / name).stat().st_size > 0
+            ),
             None,
         )
         if flat_zinc is not None:
@@ -298,7 +376,9 @@ class Command(BaseCommand):
         zinc_df = pd.concat(zinc_frames, ignore_index=True) if zinc_frames else None
         return known_df, zinc_df
 
-    def _load_known(self, df, *, max_per_protein, max_pdb_per_protein=0, dry_run, stats, skip_noise_het=True):
+    def _load_known(
+        self, df, *, max_per_protein, max_pdb_per_protein=0, dry_run, stats, skip_noise_het=True
+    ):
         stats["raw"] = len(df)
         self.stdout.write(self.style.NOTICE(f"known: {len(df)} raw rows"))
 
@@ -497,26 +577,21 @@ class Command(BaseCommand):
         clean = list({str(a) for a in accessions if a and str(a).strip()})
         if not clean:
             return {}
-        return {
-            be.accession: be
-            for be in Bioentry.objects.filter(accession__in=clean)
-        }
+        return {be.accession: be for be in Bioentry.objects.filter(accession__in=clean)}
 
     @staticmethod
     def _uniprot_map(accessions):
         """Returns {protein_accession: frozenset_of_uniprot_ids} from BioentryDbxref."""
         from bioseq.models.BioentryDbxref import BioentryDbxref
+
         clean = list({str(a) for a in accessions if a and str(a).strip()})
         if not clean:
             return {}
         result = {}
-        qs = (
-            BioentryDbxref.objects.filter(
-                bioentry__accession__in=clean,
-                dbxref__dbname__in=["UnipSp", "UnipTr"],
-            )
-            .values("bioentry__accession", "dbxref__accession")
-        )
+        qs = BioentryDbxref.objects.filter(
+            bioentry__accession__in=clean,
+            dbxref__dbname__in=["UnipSp", "UnipTr"],
+        ).values("bioentry__accession", "dbxref__accession")
         for row in qs:
             acc = row["bioentry__accession"]
             xref = row["dbxref__accession"]

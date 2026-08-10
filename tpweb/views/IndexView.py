@@ -7,7 +7,11 @@ from django.utils.html import strip_tags
 
 from tpweb.models.TPPost import TPPost
 from tpweb.services.genomes import build_genomes_dto, build_genomes_queryset, summarize_genomes
-from tpweb.services.pipeline_status import get_pipeline_status, sanitize_pipeline_status_for_user, STAGE_LABELS
+from tpweb.services.pipeline_status import (
+    get_pipeline_status,
+    sanitize_pipeline_status_for_user,
+    STAGE_LABELS,
+)
 
 PIPELINE_HOME_RECENT_WINDOW = timedelta(days=1)
 PIPELINE_STATUS_DISPLAY_TZ = datetime_timezone(timedelta(hours=-3))
@@ -49,6 +53,7 @@ def should_show_home_pipeline_panel(pipeline_status, now=None):
         now = now.replace(tzinfo=datetime_timezone.utc)
     return now - last_updated <= PIPELINE_HOME_RECENT_WINDOW
 
+
 class IndexView(View):
     template_name = "index.html"
 
@@ -70,13 +75,10 @@ class IndexView(View):
             has_project_notes = bool(strip_tags(post.content).strip())
 
         pipeline_stages = [
-            {"number": num, "label": label}
-            for num, label in sorted(STAGE_LABELS.items())
+            {"number": num, "label": label} for num, label in sorted(STAGE_LABELS.items())
         ]
 
-        pipeline_status = sanitize_pipeline_status_for_user(
-            get_pipeline_status(), request.user
-        )
+        pipeline_status = sanitize_pipeline_status_for_user(get_pipeline_status(), request.user)
 
         context = {
             "post": post,

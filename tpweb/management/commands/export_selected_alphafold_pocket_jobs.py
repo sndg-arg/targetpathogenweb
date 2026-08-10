@@ -23,8 +23,17 @@ SELECTED_FIELDS = (
     ("p2rank", "best_p2rank_structure", "p2rank_probability", "p2rank_pocket", "P2RankPocket"),
 )
 MANIFEST_COLUMNS = [
-    "genome", "locus", "pdb_code", "chain", "need_fpocket", "need_p2rank",
-    "fpocket_score", "fpocket_pocket", "p2rank_score", "p2rank_pocket", "input_pdb",
+    "genome",
+    "locus",
+    "pdb_code",
+    "chain",
+    "need_fpocket",
+    "need_p2rank",
+    "fpocket_score",
+    "fpocket_pocket",
+    "p2rank_score",
+    "p2rank_pocket",
+    "input_pdb",
 ]
 
 
@@ -41,7 +50,7 @@ def norm_source(value):
     value = clean(value).upper()
     for prefix in ("AF_", "CB_"):
         if value.startswith(prefix):
-            return value[len(prefix):]
+            return value[len(prefix) :]
     return value
 
 
@@ -67,7 +76,7 @@ def structure_code(accession):
 
 def folder_path(datadir, genome_name):
     acclen = len(genome_name)
-    folder_name = genome_name[math.floor(acclen / 2 - 1):math.floor(acclen / 2 + 2)]
+    folder_name = genome_name[math.floor(acclen / 2 - 1) : math.floor(acclen / 2 + 2)]
     return os.path.join(datadir, folder_name, genome_name)
 
 
@@ -138,8 +147,10 @@ class Command(BaseCommand):
             bioentry_id__in=protein_ids,
             score_param__name__in=score_names,
         ).select_related("score_param"):
-            value = spv.value if spv.value else (
-                str(spv.numeric_value) if spv.numeric_value is not None else ""
+            value = (
+                spv.value
+                if spv.value
+                else (str(spv.numeric_value) if spv.numeric_value is not None else "")
             )
             scores[spv.bioentry_id][spv.score_param.name] = clean(value)
         loaded = {}
@@ -167,7 +178,13 @@ class Command(BaseCommand):
 
         for protein_id, locus in protein_accessions.items():
             row_scores = scores.get(protein_id, {})
-            for method, source_field, score_field, pocket_field, residue_set_name in SELECTED_FIELDS:
+            for (
+                method,
+                source_field,
+                score_field,
+                pocket_field,
+                residue_set_name,
+            ) in SELECTED_FIELDS:
                 source = row_scores.get(source_field, "")
                 if not is_alphafold_uniprot_source(source):
                     continue
@@ -187,18 +204,21 @@ class Command(BaseCommand):
 
                 has_pockets = link.pdb_id in pockets_by_type[residue_set_name]
                 key = (protein_id, code)
-                job = jobs.setdefault(key, {
-                    "genome": genome_name,
-                    "locus": locus,
-                    "pdb_code": code,
-                    "chain": link.chain or "",
-                    "need_fpocket": False,
-                    "need_p2rank": False,
-                    "fpocket_score": "",
-                    "fpocket_pocket": "",
-                    "p2rank_score": "",
-                    "p2rank_pocket": "",
-                })
+                job = jobs.setdefault(
+                    key,
+                    {
+                        "genome": genome_name,
+                        "locus": locus,
+                        "pdb_code": code,
+                        "chain": link.chain or "",
+                        "need_fpocket": False,
+                        "need_p2rank": False,
+                        "fpocket_score": "",
+                        "fpocket_pocket": "",
+                        "p2rank_score": "",
+                        "p2rank_pocket": "",
+                    },
+                )
                 if method == "fpocket":
                     job["fpocket_score"] = row_scores.get(score_field, "")
                     job["fpocket_pocket"] = pocket
@@ -250,7 +270,9 @@ class Command(BaseCommand):
                         "need_p2rank": "1" if job["need_p2rank"] else "0",
                         "input_pdb": f"input/{job_dir_name}/{pdb_code}.pdb",
                     }
-                    manifest.write("\t".join(str(row.get(col, "")) for col in MANIFEST_COLUMNS) + "\n")
+                    manifest.write(
+                        "\t".join(str(row.get(col, "")) for col in MANIFEST_COLUMNS) + "\n"
+                    )
                     exported += 1
 
             with tarfile.open(tar_path, "w:gz") as tar:

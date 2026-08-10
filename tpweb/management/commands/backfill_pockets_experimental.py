@@ -40,7 +40,9 @@ HOST_DATA_PREFIX = "/data/targetpathogen/data"
 
 
 def _chain_tokens(chain):
-    return [token.strip() for token in str(chain or "").replace("/", ",").split(",") if token.strip()]
+    return [
+        token.strip() for token in str(chain or "").replace("/", ",").split(",") if token.strip()
+    ]
 
 
 def _pdb_chain_id(line):
@@ -76,7 +78,11 @@ def _filtered_pdb_for_chain(pdb_path, chain, locus_dir):
             elif record in {"MODEL", "ENDMDL", "END"}:
                 dst.write(line)
     if kept == 0:
-        logger.warning("Chain filter %s kept no atoms for %s; using full PDB", ",".join(sorted(chains)), pdb_path)
+        logger.warning(
+            "Chain filter %s kept no atoms for %s; using full PDB",
+            ",".join(sorted(chains)),
+            pdb_path,
+        )
         try:
             os.remove(filtered_path)
         except OSError:
@@ -109,12 +115,17 @@ def _docker_mount_source(path):
 def _docker_chmod_work_path(locus_dir, work_path):
     """Use the host Docker daemon to chmod files created by tool containers."""
     cmd = [
-        "docker", "run",
+        "docker",
+        "run",
         "--rm",
-        "--entrypoint", "chmod",
-        "-v", f"{_docker_mount_source(locus_dir)}:/work",
+        "--entrypoint",
+        "chmod",
+        "-v",
+        f"{_docker_mount_source(locus_dir)}:/work",
         "ezequieljsosa/fpocket",
-        "-R", "a+rwX", work_path,
+        "-R",
+        "a+rwX",
+        work_path,
     ]
     return subprocess.run(cmd, capture_output=True, cwd=locus_dir)
 
@@ -131,22 +142,31 @@ def _run_fpocket(locus_dir, pdb_path):
 
     pdb_basename_only = os.path.basename(pdb_path)
     cmd = [
-        "docker", "run",
-        "--rm", "-i",
-        "-v", f"{_docker_mount_source(locus_dir)}:/work",
+        "docker",
+        "run",
+        "--rm",
+        "-i",
+        "-v",
+        f"{_docker_mount_source(locus_dir)}:/work",
         "ezequieljsosa/fpocket",
-        "fpocket", "-f", f"/work/{pdb_basename_only}",
+        "fpocket",
+        "-f",
+        f"/work/{pdb_basename_only}",
     ]
     logger.info("Running FPocket for %s", pdb_basename)
     result = subprocess.run(cmd, capture_output=True, cwd=locus_dir)
     if result.returncode != 0:
-        logger.error("FPocket failed for %s: %s", pdb_basename, result.stderr.decode(errors="replace")[:500])
+        logger.error(
+            "FPocket failed for %s: %s", pdb_basename, result.stderr.decode(errors="replace")[:500]
+        )
         return None
 
     if not os.path.isdir(out_dir):
         stdout = result.stdout.decode(errors="replace")[:500]
         stderr = result.stderr.decode(errors="replace")[:500]
-        logger.error("FPocket produced no output for %s. stdout=%s stderr=%s", pdb_basename, stdout, stderr)
+        logger.error(
+            "FPocket produced no output for %s. stdout=%s stderr=%s", pdb_basename, stdout, stderr
+        )
         return None
 
     _docker_chmod_work_path(locus_dir, f"/work/{os.path.basename(out_dir)}")
@@ -169,7 +189,11 @@ def _fpocket_to_json(fpocket_dir, python_bin=PYTHON_BIN):
     )
     result = subprocess.run(["bash", "-lc", cmd], capture_output=True)
     if result.returncode != 0 or not os.path.exists(json_gz) or os.path.getsize(json_gz) == 0:
-        logger.error("fpocket2json failed for %s: %s", fpocket_dir, result.stderr.decode(errors="replace")[:500])
+        logger.error(
+            "fpocket2json failed for %s: %s",
+            fpocket_dir,
+            result.stderr.decode(errors="replace")[:500],
+        )
         try:
             os.remove(json_gz)
         except OSError:
@@ -209,14 +233,21 @@ def _run_p2rank(locus_dir, pdb_path, cpus=2):
     out_rel = os.path.relpath(out_dir, locus_dir)
 
     cmd = [
-        "docker", "run",
-        "--rm", "-i",
-        "-v", f"{_docker_mount_source(locus_dir)}:/work",
+        "docker",
+        "run",
+        "--rm",
+        "-i",
+        "-v",
+        f"{_docker_mount_source(locus_dir)}:/work",
         "mcpalumbo/p2rank:latest",
-        "prank", "predict",
-        "-f", f"/work/{pdb_basename_only}",
-        "-o", f"/work/{out_rel}",
-        "-threads", str(cpus),
+        "prank",
+        "predict",
+        "-f",
+        f"/work/{pdb_basename_only}",
+        "-o",
+        f"/work/{out_rel}",
+        "-threads",
+        str(cpus),
     ]
     logger.info("Running P2Rank for %s", pdb_basename)
     result = subprocess.run(cmd, capture_output=True, cwd=locus_dir)
@@ -267,15 +298,17 @@ def _p2rank_to_json(p2rank_dir, pdb_basename):
             name = int(str(row["name"])[6:].replace(" ", ""))
             residues = str(row["residue_ids"]).replace("_", "").split()
             atoms = str(row["surf_atom_ids"]).split()
-            data_list.append({
-                "number": name,
-                "residues": residues,
-                "atoms": atoms,
-                "properties": {
-                    "P2Rank score": row["score"],
-                    "P2Rrank probability": row["probability"],
-                },
-            })
+            data_list.append(
+                {
+                    "number": name,
+                    "residues": residues,
+                    "atoms": atoms,
+                    "properties": {
+                        "P2Rank score": row["score"],
+                        "P2Rrank probability": row["probability"],
+                    },
+                }
+            )
         except Exception as exc:
             logger.warning("Skipping malformed P2Rank row: %s", exc)
 
@@ -350,7 +383,7 @@ class Command(BaseCommand):
 
         for assembly_name in assemblies:
             acclen = len(assembly_name)
-            folder_name = assembly_name[math.floor(acclen / 2 - 1):math.floor(acclen / 2 + 2)]
+            folder_name = assembly_name[math.floor(acclen / 2 - 1) : math.floor(acclen / 2 + 2)]
             folder_path = f"{datadir}/{folder_name}/{assembly_name}"
             exp_dir = os.path.join(folder_path, "experimental")
 
@@ -363,13 +396,9 @@ class Command(BaseCommand):
 
             # Find all EX PDB structures associated with proteins from this genome
             proteome_name = f"{assembly_name}{Biodatabase.PROT_POSTFIX}"
-            links = (
-                BioentryStructure.objects
-                .select_related("pdb", "bioentry")
-                .filter(
-                    bioentry__biodatabase__name=proteome_name,
-                    pdb__experiment="EX",
-                )
+            links = BioentryStructure.objects.select_related("pdb", "bioentry").filter(
+                bioentry__biodatabase__name=proteome_name,
+                pdb__experiment="EX",
             )
 
             for link in links:
@@ -411,7 +440,9 @@ class Command(BaseCommand):
                             except Exception as exc:
                                 self.stderr.write(f"      load_fpocket (FP) error: {exc}")
                         else:
-                            self.stdout.write("      FPocket JSON conversion failed — skipping load")
+                            self.stdout.write(
+                                "      FPocket JSON conversion failed — skipping load"
+                            )
                     else:
                         self.stdout.write("      FPocket run failed — skipping")
 
@@ -444,9 +475,7 @@ class Command(BaseCommand):
 
                 processed += 1
 
-            self.stdout.write(
-                f"  Done: {processed} processed, {skipped} skipped."
-            )
+            self.stdout.write(f"  Done: {processed} processed, {skipped} skipped.")
 
             # --- Druggability ---
             if not skip_druggability and processed > 0:

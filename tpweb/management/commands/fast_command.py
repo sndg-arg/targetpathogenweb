@@ -13,15 +13,16 @@ import shutil
 
 from tpweb.services.genome_workspace import display_genome_name
 
+
 class Command(BaseCommand):
-    help = '''Takes genome genkbak indentifier, modify the config.py
-              of fasttarget and runs the pipeline.'''
+    help = """Takes genome genkbak indentifier, modify the config.py
+              of fasttarget and runs the pipeline."""
 
     def add_arguments(self, parser):
-        parser.add_argument('genome')
-        parser.add_argument('folder_path')
-        parser.add_argument('--overwrite', action="store_true")
-        parser.add_argument('--datadir', default="./data")
+        parser.add_argument("genome")
+        parser.add_argument("folder_path")
+        parser.add_argument("--overwrite", action="store_true")
+        parser.add_argument("--datadir", default="./data")
 
     def handle(self, *args, **options):
         def _flag_enabled(name, default=False):
@@ -30,9 +31,9 @@ class Command(BaseCommand):
                 return default
             return raw.strip().lower() in {"1", "true", "yes", "on"}
 
-        genome = options['genome']
-        folder_path = options['folder_path']
-        datadir = options['datadir']
+        genome = options["genome"]
+        folder_path = options["folder_path"]
+        datadir = options["datadir"]
         gbk_path = os.path.join(folder_path, f"{genome}.gbk")
         gbk_path_gz = os.path.join(folder_path, f"{genome}.gbk.gz")
         bioentry = (
@@ -48,7 +49,7 @@ class Command(BaseCommand):
                 "Expected a Bioentry in the imported biodatabase before running FastTarget."
             )
         taxon = bioentry.taxon
-        name = options['genome']
+        name = options["genome"]
         taxon_id = taxon.ncbi_taxon_id
         input_filename = "/app/fasttarget/config.yml"
         ss = SeqStore(datadir)
@@ -62,7 +63,7 @@ class Command(BaseCommand):
             raise CommandError(
                 f"Invalid TPW_FASTTARGET_MIN_FREE_GB='{min_free_gb_raw}'. Expected number."
             ) from exc
-        free_gb = shutil.disk_usage("/app/fasttarget").free / (1024 ** 3)
+        free_gb = shutil.disk_usage("/app/fasttarget").free / (1024**3)
         if min_free_gb > 0 and free_gb < min_free_gb:
             if not allow_fallback:
                 raise CommandError(
@@ -70,13 +71,15 @@ class Command(BaseCommand):
                     "Enable fallback mode with TPW_FASTTARGET_ALLOW_FALLBACK=1 to continue safely."
                 )
             skip_exec = True
-            self.stderr.write(self.style.WARNING(
-                f"Low disk space detected (free={free_gb:.1f}GB). Skipping fasttarget.py and using fallback tables."
-            ))
+            self.stderr.write(
+                self.style.WARNING(
+                    f"Low disk space detected (free={free_gb:.1f}GB). Skipping fasttarget.py and using fallback tables."
+                )
+            )
 
         if not os.path.exists(gbk_path):
-            with gzip.open(gbk_path_gz, 'rb') as f_in:
-                with open(gbk_path, 'wb') as f_out:
+            with gzip.open(gbk_path_gz, "rb") as f_in:
+                with open(gbk_path, "wb") as f_out:
                     shutil.copyfileobj(f_in, f_out)
 
         if not os.path.exists(input_filename):
@@ -91,26 +94,26 @@ class Command(BaseCommand):
         if config is None:
             print("Error: Unable to parse the YAML file.")
         else:
-            config.setdefault('organism', {})
-            config['organism']['name'] = name
-            config['organism']['tax_id'] = taxon_id
-            config['organism']['strain_taxid'] = taxon_id
-            config['organism']['gbk_file'] = gbk_path
+            config.setdefault("organism", {})
+            config["organism"]["name"] = name
+            config["organism"]["tax_id"] = taxon_id
+            config["organism"]["strain_taxid"] = taxon_id
+            config["organism"]["gbk_file"] = gbk_path
 
-            config.setdefault('container_engine', 'docker')
+            config.setdefault("container_engine", "docker")
 
-            config.setdefault('offtarget', {})
-            config['offtarget']['enabled'] = True
-            config['offtarget']['human'] = True
-            config['offtarget']['microbiome'] = True
-            config['offtarget'].setdefault('microbiome_identity_filter', 40)
-            config['offtarget'].setdefault('microbiome_coverage_filter', 70)
-            config['offtarget'].setdefault('foldseek_human', False)
+            config.setdefault("offtarget", {})
+            config["offtarget"]["enabled"] = True
+            config["offtarget"]["human"] = True
+            config["offtarget"]["microbiome"] = True
+            config["offtarget"].setdefault("microbiome_identity_filter", 40)
+            config["offtarget"].setdefault("microbiome_coverage_filter", 70)
+            config["offtarget"].setdefault("foldseek_human", False)
 
-            config.setdefault('deg', {})
-            config['deg']['enabled'] = True
-            config['deg'].setdefault('deg_identity_filter', 40)
-            config['deg'].setdefault('deg_coverage_filter', 70)
+            config.setdefault("deg", {})
+            config["deg"]["enabled"] = True
+            config["deg"].setdefault("deg_identity_filter", 40)
+            config["deg"].setdefault("deg_coverage_filter", 70)
 
             ft_cpus_raw = os.getenv("TPW_FASTTARGET_CPUS", "").strip()
             if ft_cpus_raw:
@@ -124,8 +127,8 @@ class Command(BaseCommand):
                     raise CommandError(
                         f"Invalid TPW_FASTTARGET_CPUS='{ft_cpus_raw}'. Expected integer > 0."
                     )
-                config['cpus'] = ft_cpus
-        with open(input_filename, 'w') as file:
+                config["cpus"] = ft_cpus
+        with open(input_filename, "w") as file:
             yaml.safe_dump(config, file)
 
         # mcpalumbo's fasttarget does NOT auto-download DBs from fasttarget.py.
@@ -143,14 +146,18 @@ class Command(BaseCommand):
             if not os.path.isdir(species_dir) or not os.listdir(species_dir):
                 downloads.append("microbiome")
             for db_name in downloads:
-                self.stderr.write(self.style.WARNING(
-                    f"FastTarget DB missing: bootstrapping '{db_name}' into {db_dir}"
-                ))
+                self.stderr.write(
+                    self.style.WARNING(
+                        f"FastTarget DB missing: bootstrapping '{db_name}' into {db_dir}"
+                    )
+                )
                 boot_cmd = [
                     sys.executable,
                     "/app/fasttarget/databases.py",
-                    "--download", db_name,
-                    "--database-path", db_dir,
+                    "--download",
+                    db_name,
+                    "--database-path",
+                    db_dir,
                 ]
                 boot = sp.run(boot_cmd, capture_output=True, text=True)
                 print(boot.stdout, boot.stderr)
@@ -169,10 +176,12 @@ class Command(BaseCommand):
             ) from exc
         if skip_exec:
             results = sp.CompletedProcess(command, 0, stdout="", stderr="")
-            self.stderr.write(self.style.WARNING(
-                "Skipping fasttarget.py execution by TPW_FASTTARGET_SKIP_EXEC=1. "
-                "Only existing FastTarget output files will be post-processed."
-            ))
+            self.stderr.write(
+                self.style.WARNING(
+                    "Skipping fasttarget.py execution by TPW_FASTTARGET_SKIP_EXEC=1. "
+                    "Only existing FastTarget output files will be post-processed."
+                )
+            )
         else:
             try:
                 if timeout_sec > 0:
@@ -192,8 +201,12 @@ class Command(BaseCommand):
                         except sp.TimeoutExpired:
                             os.killpg(proc.pid, signal.SIGKILL)
                             stdout, stderr = proc.communicate()
-                        raise sp.TimeoutExpired(command, timeout_sec, output=stdout, stderr=stderr) from exc
-                    results = sp.CompletedProcess(command, proc.returncode, stdout=stdout, stderr=stderr)
+                        raise sp.TimeoutExpired(
+                            command, timeout_sec, output=stdout, stderr=stderr
+                        ) from exc
+                    results = sp.CompletedProcess(
+                        command, proc.returncode, stdout=stdout, stderr=stderr
+                    )
                 else:
                     results = sp.run(command, capture_output=True, text=True)
             except sp.TimeoutExpired as exc:
@@ -201,11 +214,15 @@ class Command(BaseCommand):
                     raise CommandError(
                         f"fasttarget.py timed out after {timeout_sec}s and fallback is disabled "
                         "(set TPW_FASTTARGET_ALLOW_FALLBACK=1 to allow fallback tables)."
+                    ) from exc
+                results = sp.CompletedProcess(
+                    command, 124, stdout=exc.stdout or "", stderr=exc.stderr or ""
+                )
+                self.stderr.write(
+                    self.style.WARNING(
+                        f"fasttarget.py timed out after {timeout_sec}s. Using fallback score tables when needed."
                     )
-                results = sp.CompletedProcess(command, 124, stdout=exc.stdout or "", stderr=exc.stderr or "")
-                self.stderr.write(self.style.WARNING(
-                    f"fasttarget.py timed out after {timeout_sec}s. Using fallback score tables when needed."
-                ))
+                )
         print(results.stdout, results.stderr)
         if results.returncode != 0:
             if not allow_fallback:
@@ -213,9 +230,11 @@ class Command(BaseCommand):
                     f"fasttarget.py exited with code {results.returncode} and fallback is disabled "
                     "(set TPW_FASTTARGET_ALLOW_FALLBACK=1 to allow fallback tables)."
                 )
-            self.stderr.write(self.style.WARNING(
-                f"fasttarget.py exited with code {results.returncode}. Using fallback score tables when needed."
-            ))
+            self.stderr.write(
+                self.style.WARNING(
+                    f"fasttarget.py exited with code {results.returncode}. Using fallback score tables when needed."
+                )
+            )
 
         def _all_genes():
             proteome_name = f"{genome}{Biodatabase.PROT_POSTFIX}"
@@ -251,9 +270,7 @@ class Command(BaseCommand):
             )
             if not genes:
                 genes = list(
-                    Bioentry.objects.filter(
-                        taxon=taxon
-                    ).values_list("accession", flat=True)
+                    Bioentry.objects.filter(taxon=taxon).values_list("accession", flat=True)
                 )
             return sorted({g for g in genes if g})
 
@@ -288,17 +305,28 @@ class Command(BaseCommand):
             if not path or not os.path.exists(path) or os.path.getsize(path) <= 0:
                 return pd.DataFrame(columns=["gene", "identity", "evalue"])
             blast_columns = [
-                "qseqid", "sseqid", "pident", "length", "mismatch", "gapopen",
-                "qstart", "qend", "sstart", "send", "evalue", "bitscore",
-                "qcovhsp", "qcovs",
+                "qseqid",
+                "sseqid",
+                "pident",
+                "length",
+                "mismatch",
+                "gapopen",
+                "qstart",
+                "qend",
+                "sstart",
+                "send",
+                "evalue",
+                "bitscore",
+                "qcovhsp",
+                "qcovs",
             ]
             blast = pd.read_csv(path, sep="\t", header=None)
             if blast.empty:
                 return pd.DataFrame(columns=["gene", "identity", "evalue"])
             if str(blast.iloc[0, 0]).strip().lower() == "qseqid":
                 blast = blast.iloc[1:].reset_index(drop=True)
-            blast = blast.iloc[:, :min(len(blast.columns), len(blast_columns))]
-            blast.columns = blast_columns[:len(blast.columns)]
+            blast = blast.iloc[:, : min(len(blast.columns), len(blast_columns))]
+            blast.columns = blast_columns[: len(blast.columns)]
             required = {"qseqid", "pident", "evalue"}
             if not required.issubset(set(blast.columns)):
                 return pd.DataFrame(columns=["gene", "identity", "evalue"])
@@ -317,7 +345,11 @@ class Command(BaseCommand):
             return pd.to_numeric(df[column], errors="coerce").fillna(default_value)
 
         organism_dir_override = os.getenv("TPW_FASTTARGET_ORGANISM_DIR", "").strip()
-        organism_dir = organism_dir_override if skip_exec and organism_dir_override else f"/app/fasttarget/organism/{name}"
+        organism_dir = (
+            organism_dir_override
+            if skip_exec and organism_dir_override
+            else f"/app/fasttarget/organism/{name}"
+        )
         tables_dir = os.path.join(organism_dir, "tables_for_TP")
         offtarget_dir = os.path.join(organism_dir, "offtarget")
         essentiality_dir = os.path.join(organism_dir, "essentiality")
@@ -334,14 +366,19 @@ class Command(BaseCommand):
         if human_src:
             human = pd.read_csv(human_src, sep="\t")
             if "gene" not in human.columns or "human_offtarget" not in human.columns:
-                raise CommandError(f"Unexpected schema in {human_src}: expected gene,human_offtarget.")
+                raise CommandError(
+                    f"Unexpected schema in {human_src}: expected gene,human_offtarget."
+                )
             human = human.copy()
             blast_metrics = _best_blast_metrics(human_blast_src).rename(
                 columns={"identity": "human_identity", "evalue": "human_evalue"}
             )
             if not blast_metrics.empty:
                 human = human.merge(blast_metrics, on="gene", how="left", suffixes=("", "_blast"))
-                if "human_identity_blast" in human.columns and "human_identity" not in human.columns:
+                if (
+                    "human_identity_blast" in human.columns
+                    and "human_identity" not in human.columns
+                ):
                     human["human_identity"] = human["human_identity_blast"]
                 if "human_evalue_blast" in human.columns and "human_evalue" not in human.columns:
                     human["human_evalue"] = human["human_evalue_blast"]
@@ -351,7 +388,9 @@ class Command(BaseCommand):
                 human["human_identity"] = _numeric_column(human, "human_identity", 0)
             human["human_evalue"] = _numeric_column(human, "human_evalue", 1)
             human["human_offtarget"] = human["human_offtarget"].apply(_as_hit_no_hit)
-            human[["gene", "human_offtarget", "human_identity", "human_evalue"]].to_csv(human_out, index=False, sep="\t")
+            human[["gene", "human_offtarget", "human_identity", "human_evalue"]].to_csv(
+                human_out, index=False, sep="\t"
+            )
         else:
             if not allow_fallback:
                 raise CommandError(
@@ -396,7 +435,9 @@ class Command(BaseCommand):
                 raise CommandError(
                     f"Unexpected schema in {micro_legacy_src}: expected gene,gut_microbiome_offtarget."
                 )
-            micro["gut_microbiome_offtarget"] = micro["gut_microbiome_offtarget"].apply(_as_hit_no_hit)
+            micro["gut_microbiome_offtarget"] = micro["gut_microbiome_offtarget"].apply(
+                _as_hit_no_hit
+            )
             micro[["gene", "gut_microbiome_offtarget"]].to_csv(micro_out, index=False, sep="\t")
         elif os.path.isdir(micro_species_dir):
             hit_genes = set()
@@ -413,12 +454,14 @@ class Command(BaseCommand):
                             if parts and parts[0]:
                                 hit_genes.add(parts[0])
             genes = _all_genes()
-            micro = pd.DataFrame({
-                "gene": genes,
-                "gut_microbiome_offtarget": [
-                    "hit" if gene in hit_genes else "no_hit" for gene in genes
-                ],
-            })
+            micro = pd.DataFrame(
+                {
+                    "gene": genes,
+                    "gut_microbiome_offtarget": [
+                        "hit" if gene in hit_genes else "no_hit" for gene in genes
+                    ],
+                }
+            )
             micro.to_csv(micro_out, index=False, sep="\t")
         else:
             if not allow_fallback:
@@ -456,7 +499,9 @@ class Command(BaseCommand):
             deg["deg_identity"] = _numeric_column(deg, "deg_identity", 0)
             deg["deg_evalue"] = _numeric_column(deg, "deg_evalue", 1)
             deg["hit_in_deg"] = deg["hit_in_deg"].apply(_as_yes_no)
-            deg[["gene", "hit_in_deg", "deg_identity", "deg_evalue"]].to_csv(deg_out, index=False, sep="\t")
+            deg[["gene", "hit_in_deg", "deg_identity", "deg_evalue"]].to_csv(
+                deg_out, index=False, sep="\t"
+            )
         else:
             if not allow_fallback:
                 raise CommandError(

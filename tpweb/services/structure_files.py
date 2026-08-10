@@ -57,7 +57,7 @@ def _mid_shard(name):
     (backfill_experimental_structures.py, import_external_results.py, etc.)
     to spread genome directories across the data volume."""
     n = len(name)
-    return name[math.floor(n / 2 - 1):math.floor(n / 2 + 2)]
+    return name[math.floor(n / 2 - 1) : math.floor(n / 2 + 2)]
 
 
 def _candidate_seqstore_dirs():
@@ -79,12 +79,14 @@ def _candidate_seqstore_dirs():
 
     return candidates
 
+
 def _structure_opener(structure_path):
     """Most stored structures are gzip (SeqStore's own convention), but the
     experimental-structures backfill fallback above writes plain text -- pick
     the right opener from the extension instead of assuming either one."""
     if str(structure_path).lower().endswith(".gz"):
         import gzip
+
         return gzip.open
     return open
 
@@ -126,10 +128,10 @@ def detect_structure_format_from_text(text):
 
 def display_code(code):
     """Strip pipeline suffixes like _chain_A from PDB codes for user-facing display."""
-    return re.sub(r'_chain_\w+$', '', str(code or ''), flags=re.IGNORECASE).upper()
+    return re.sub(r"_chain_\w+$", "", str(code or ""), flags=re.IGNORECASE).upper()
 
 
-CHAIN_SUFFIX_RE = re.compile(r'_chain_(\w+)$', re.IGNORECASE)
+CHAIN_SUFFIX_RE = re.compile(r"_chain_(\w+)$", re.IGNORECASE)
 
 
 def disambiguate_display_codes(structures):
@@ -148,4 +150,6 @@ def disambiguate_display_codes(structures):
             continue
         for s in group:
             match = CHAIN_SUFFIX_RE.search(s["code"])
-            s["display_code"] = f"{s['display_code']} (chain {match.group(1).upper()})" if match else s["code"]
+            s["display_code"] = (
+                f"{s['display_code']} (chain {match.group(1).upper()})" if match else s["code"]
+            )

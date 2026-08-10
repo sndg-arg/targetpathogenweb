@@ -1,6 +1,7 @@
 import os
 
 from celery import Celery
+from django.apps import apps
 from django.conf import settings
 
 # import sndgwebapp.tasks as wtasks
@@ -25,10 +26,8 @@ app.config_from_object("django.conf:settings", namespace="CELERY")
 # __import__("sndgwebapp.tasks." + taskmodule)
 # import importlib
 
-from django.apps import apps
-
 app.config_from_object(settings)
 app.autodiscover_tasks(lambda: [n.name for n in apps.get_app_configs()])
 
 app.autodiscover_tasks(packages=["tpweb.tasks.testtask"])
-#app.autodiscover_tasks(packages=["sndgjobs.tasks.submit_job_task"])
+# app.autodiscover_tasks(packages=["sndgjobs.tasks.submit_job_task"])

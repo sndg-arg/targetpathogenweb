@@ -158,15 +158,12 @@ def _score_proteins(assembly_name):
     from tpweb.services.protein_serializer import score_param_value_map
 
     proteome_name = assembly_name + Biodatabase.PROT_POSTFIX
-    proteins = (
-        Bioentry.objects.filter(biodatabase__name=proteome_name)
-        .prefetch_related(
-            Prefetch(
-                "score_params",
-                queryset=ScoreParamValue.objects
-                    .filter(score_param__name__in=_SCORE_PROTEINS_PARAM_NAMES)
-                    .select_related("score_param"),
-            )
+    proteins = Bioentry.objects.filter(biodatabase__name=proteome_name).prefetch_related(
+        Prefetch(
+            "score_params",
+            queryset=ScoreParamValue.objects.filter(
+                score_param__name__in=_SCORE_PROTEINS_PARAM_NAMES
+            ).select_related("score_param"),
         )
     )
 
@@ -179,13 +176,16 @@ def _score_proteins(assembly_name):
         gene_id = row["locustag__bioentry_id"]
         source = row["source"]
         direct_key = "direct" if row["is_direct"] else "homolog"
-        counts = binder_counts_by_gene.setdefault(gene_id, {
-            "pdb_direct": 0,
-            "pdb_homolog": 0,
-            "chembl_direct": 0,
-            "chembl_homolog": 0,
-            "zinc": 0,
-        })
+        counts = binder_counts_by_gene.setdefault(
+            gene_id,
+            {
+                "pdb_direct": 0,
+                "pdb_homolog": 0,
+                "chembl_direct": 0,
+                "chembl_homolog": 0,
+                "zinc": 0,
+            },
+        )
         if source == Binders.SOURCE_PDB:
             counts[f"pdb_{direct_key}"] += row["count"]
         elif source == Binders.SOURCE_CHEMBL:
@@ -254,10 +254,16 @@ def _score_proteins(assembly_name):
                     )
                 else:
                     score += 1.0
-                    _add_signal(signals, f"Moderate FPocket druggability {_format_decimal(fpocket)}", "neutral")
+                    _add_signal(
+                        signals,
+                        f"Moderate FPocket druggability {_format_decimal(fpocket)}",
+                        "neutral",
+                    )
             elif fpocket > 0:
                 score -= 0.5
-                _add_signal(cautions, f"Weak FPocket druggability {_format_decimal(fpocket)}", "bad")
+                _add_signal(
+                    cautions, f"Weak FPocket druggability {_format_decimal(fpocket)}", "bad"
+                )
 
         binder_counts = binder_counts_by_gene.get(gene_id, {})
         pdb_direct = binder_counts.get("pdb_direct", 0)
@@ -300,7 +306,9 @@ def _score_proteins(assembly_name):
             score += 1.0
             _add_signal(signals, "Essential-gene similarity")
 
-        if _is_core_call(param_values.get("core_roary")) and _is_core_call(param_values.get("core_corecruncher")):
+        if _is_core_call(param_values.get("core_roary")) and _is_core_call(
+            param_values.get("core_corecruncher")
+        ):
             score += 1.0
             _add_signal(signals, "Core across strains")
 
@@ -329,31 +337,33 @@ def _score_proteins(assembly_name):
         # "factors" is what always renders inline (comfortably inside the
         # clamp); anything past that is surfaced explicitly via a "+N" chip
         # instead of being clipped invisibly.
-        scored.append({
-            # Plain primitives, not the Bioentry instance itself -- these rows
-            # get cached (see _cached_score_proteins below), and a live model
-            # instance pickled into a shared cache is more fragile than it
-            # needs to be (schema drift across a rolling deploy landing inside
-            # the TTL window, larger payload). Nothing downstream needs more
-            # than these three fields off the protein.
-            "bioentry_id": p.bioentry_id,
-            "accession": p.accession,
-            "description": p.description,
-            "score": score,
-            "fpocket": fpocket or 0.0,
-            "direct_count": direct_count,
-            "binder_count": binder_count,
-            "factors": combined_factors[:4],
-            "extra_factors": combined_factors[4:],
-            # Full, uncapped breakdown -- "factors" above is capped to 6 for the overview
-            # card UI, but the CSV export (export_composite_ranking_rows) needs every
-            # contribution, not just the ones that fit on a card.
-            "signals": signals,
-            "cautions": cautions,
-            "pdb_count": pdb_direct + pdb_homolog,
-            "chembl_count": chembl_direct + chembl_homolog,
-            "zinc_count": zinc_count,
-        })
+        scored.append(
+            {
+                # Plain primitives, not the Bioentry instance itself -- these rows
+                # get cached (see _cached_score_proteins below), and a live model
+                # instance pickled into a shared cache is more fragile than it
+                # needs to be (schema drift across a rolling deploy landing inside
+                # the TTL window, larger payload). Nothing downstream needs more
+                # than these three fields off the protein.
+                "bioentry_id": p.bioentry_id,
+                "accession": p.accession,
+                "description": p.description,
+                "score": score,
+                "fpocket": fpocket or 0.0,
+                "direct_count": direct_count,
+                "binder_count": binder_count,
+                "factors": combined_factors[:4],
+                "extra_factors": combined_factors[4:],
+                # Full, uncapped breakdown -- "factors" above is capped to 6 for the overview
+                # card UI, but the CSV export (export_composite_ranking_rows) needs every
+                # contribution, not just the ones that fit on a card.
+                "signals": signals,
+                "cautions": cautions,
+                "pdb_count": pdb_direct + pdb_homolog,
+                "chembl_count": chembl_direct + chembl_homolog,
+                "zinc_count": zinc_count,
+            }
+        )
 
     return scored
 
@@ -391,24 +401,26 @@ def _format_score_items(scored_rows):
     items = []
     for row in scored_rows:
         tier_label, tier_tone = _evidence_convergence_tier(row["score"])
-        items.append({
-            "bioentry_id": row["bioentry_id"],
-            "accession": row["accession"],
-            "description": row["description"],
-            "score": round(row["score"], 1),
-            "score_max": int(EVIDENCE_CONVERGENCE_MAX_SCORE),
-            "score_percent": round((row["score"] / EVIDENCE_CONVERGENCE_MAX_SCORE) * 100),
-            "tier_label": tier_label,
-            "tier_tone": tier_tone,
-            "factors": row["factors"],
-            "extra_factors": row["extra_factors"],
-            "binder_count": row["binder_count"],
-            "direct_count": row["direct_count"],
-            "druggability": row["fpocket"],
-            "pdb_count": row["pdb_count"],
-            "chembl_count": row["chembl_count"],
-            "zinc_count": row["zinc_count"],
-        })
+        items.append(
+            {
+                "bioentry_id": row["bioentry_id"],
+                "accession": row["accession"],
+                "description": row["description"],
+                "score": round(row["score"], 1),
+                "score_max": int(EVIDENCE_CONVERGENCE_MAX_SCORE),
+                "score_percent": round((row["score"] / EVIDENCE_CONVERGENCE_MAX_SCORE) * 100),
+                "tier_label": tier_label,
+                "tier_tone": tier_tone,
+                "factors": row["factors"],
+                "extra_factors": row["extra_factors"],
+                "binder_count": row["binder_count"],
+                "direct_count": row["direct_count"],
+                "druggability": row["fpocket"],
+                "pdb_count": row["pdb_count"],
+                "chembl_count": row["chembl_count"],
+                "zinc_count": row["zinc_count"],
+            }
+        )
     return items
 
 
@@ -421,7 +433,11 @@ def get_top_targets_by_score(assembly_name, user, limit=5, scored=None):
     """
     if scored is None:
         scored = _cached_score_proteins(assembly_name)
-    ranked = sorted(scored, key=lambda r: (r["score"], r["fpocket"], r["direct_count"], r["binder_count"]), reverse=True)
+    ranked = sorted(
+        scored,
+        key=lambda r: (r["score"], r["fpocket"], r["direct_count"], r["binder_count"]),
+        reverse=True,
+    )
     return {"formula_name": "Evidence convergence", "items": _format_score_items(ranked[:limit])}
 
 
@@ -439,7 +455,10 @@ def get_unexplored_targets(assembly_name, user, limit=5, scored=None):
         scored = _cached_score_proteins(assembly_name)
     unexplored = [r for r in scored if r["binder_count"] == 0]
     unexplored.sort(key=lambda r: (r["score"], r["fpocket"]), reverse=True)
-    return {"formula_name": "Unexplored candidates", "items": _format_score_items(unexplored[:limit])}
+    return {
+        "formula_name": "Unexplored candidates",
+        "items": _format_score_items(unexplored[:limit]),
+    }
 
 
 def get_overview_target_rankings(assembly_name, user, limit=5):
@@ -469,7 +488,9 @@ def export_composite_ranking_rows(assembly_name):
     breakdown, for the CSV export named in the roadmap. Returns
     (headers, rows) ready for csv_exports.csv_response."""
     scored = _cached_score_proteins(assembly_name)
-    scored.sort(key=lambda r: (r["score"], r["fpocket"], r["direct_count"], r["binder_count"]), reverse=True)
+    scored.sort(
+        key=lambda r: (r["score"], r["fpocket"], r["direct_count"], r["binder_count"]), reverse=True
+    )
 
     headers = [
         "Accession",
@@ -488,20 +509,22 @@ def export_composite_ranking_rows(assembly_name):
     rows = []
     for row in scored:
         tier_label, _tone = _evidence_convergence_tier(row["score"])
-        rows.append([
-            row["accession"],
-            row["description"],
-            round(row["score"], 1),
-            int(EVIDENCE_CONVERGENCE_MAX_SCORE),
-            tier_label,
-            row["fpocket"],
-            row["direct_count"],
-            row["pdb_count"],
-            row["chembl_count"],
-            row["zinc_count"],
-            "; ".join(s["label"] for s in row["signals"]),
-            "; ".join(c["label"] for c in row["cautions"]),
-        ])
+        rows.append(
+            [
+                row["accession"],
+                row["description"],
+                round(row["score"], 1),
+                int(EVIDENCE_CONVERGENCE_MAX_SCORE),
+                tier_label,
+                row["fpocket"],
+                row["direct_count"],
+                row["pdb_count"],
+                row["chembl_count"],
+                row["zinc_count"],
+                "; ".join(s["label"] for s in row["signals"]),
+                "; ".join(c["label"] for c in row["cautions"]),
+            ]
+        )
     return headers, rows
 
 
@@ -541,9 +564,13 @@ def _build_assembly_workspace_metrics(assembly_name):
     )
     ec_annotated = proteins.filter(dbxrefs__dbxref__dbname__in=EC_DBNAMES).distinct().count()
     go_annotated = proteins.filter(dbxrefs__dbxref__dbname=Ontology.GO).distinct().count()
-    functional_annotated = proteins.filter(
-        Q(dbxrefs__dbxref__dbname__in=EC_DBNAMES) | Q(dbxrefs__dbxref__dbname=Ontology.GO)
-    ).distinct().count()
+    functional_annotated = (
+        proteins.filter(
+            Q(dbxrefs__dbxref__dbname__in=EC_DBNAMES) | Q(dbxrefs__dbxref__dbname=Ontology.GO)
+        )
+        .distinct()
+        .count()
+    )
 
     spv_qs = ScoreParamValue.objects.filter(bioentry__biodatabase__name=proteome_name)
     proteins_with_druggability = (
@@ -612,10 +639,14 @@ def _build_assembly_workspace_metrics(assembly_name):
         pathway_count=Count("pathways", filter=Q(pathways__isnull=False), distinct=True),
     )
     metabolic_reaction_count = metabolic_reaction_totals["reaction_count"]
-    metabolic_pathway_count = metabolic_reaction_totals["pathway_count"] if metabolic_reaction_count else 0
+    metabolic_pathway_count = (
+        metabolic_reaction_totals["pathway_count"] if metabolic_reaction_count else 0
+    )
 
     metabolic_links_qs = GeneReactionLink.objects.filter(reaction__genome_accession=assembly_name)
-    chokepoint_links_qs = metabolic_links_qs.exclude(chokepoint_role=GeneReactionLink.CHOKEPOINT_NONE)
+    chokepoint_links_qs = metabolic_links_qs.exclude(
+        chokepoint_role=GeneReactionLink.CHOKEPOINT_NONE
+    )
     if metabolic_reaction_count:
         # protein_count + chokepoint_reaction_count in one aggregate over the
         # same base queryset (chokepoint_role is a plain field, not a
@@ -625,7 +656,9 @@ def _build_assembly_workspace_metrics(assembly_name):
         link_totals = metabolic_links_qs.aggregate(
             protein_count=Count("bioentry_id", distinct=True),
             chokepoint_reaction_count=Count(
-                "reaction_id", filter=~Q(chokepoint_role=GeneReactionLink.CHOKEPOINT_NONE), distinct=True
+                "reaction_id",
+                filter=~Q(chokepoint_role=GeneReactionLink.CHOKEPOINT_NONE),
+                distinct=True,
             ),
         )
         metabolic_protein_count = link_totals["protein_count"]
@@ -645,21 +678,23 @@ def _build_assembly_workspace_metrics(assembly_name):
     # protein (its own >= 0.5 "high" threshold, not FPocket's 0.4), falling back to
     # FPocket's score only for proteins with no P2Rank value loaded at all.
     p2rank_druggable_gene_ids = set(
-        spv_qs
-        .filter(score_param__name="p2rank_probability", numeric_value__gte=0.5)
-        .values_list("bioentry_id", flat=True)
+        spv_qs.filter(score_param__name="p2rank_probability", numeric_value__gte=0.5).values_list(
+            "bioentry_id", flat=True
+        )
     )
     p2rank_covered_gene_ids = set(
-        spv_qs
-        .filter(score_param__name="p2rank_probability", numeric_value__isnull=False)
-        .values_list("bioentry_id", flat=True)
+        spv_qs.filter(
+            score_param__name="p2rank_probability", numeric_value__isnull=False
+        ).values_list("bioentry_id", flat=True)
     )
     fpocket_druggable_gene_ids = set(
-        spv_qs
-        .filter(score_param__name="Druggability", numeric_value__gte=0.4)
-        .values_list("bioentry_id", flat=True)
+        spv_qs.filter(score_param__name="Druggability", numeric_value__gte=0.4).values_list(
+            "bioentry_id", flat=True
+        )
     )
-    druggable_gene_ids = p2rank_druggable_gene_ids | (fpocket_druggable_gene_ids - p2rank_covered_gene_ids)
+    druggable_gene_ids = p2rank_druggable_gene_ids | (
+        fpocket_druggable_gene_ids - p2rank_covered_gene_ids
+    )
     metabolic_druggable_target_count = len(chokepoint_gene_ids & druggable_gene_ids)
 
     return {

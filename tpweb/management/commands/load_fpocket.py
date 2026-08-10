@@ -18,18 +18,18 @@ def mkdir(dirpath):
 
 
 class Command(BaseCommand):
-    help = 'Imports a PDB'
+    help = "Imports a PDB"
 
     def add_arguments(self, parser):
-        parser.add_argument('struct_name')
-        parser.add_argument('--P2rank_pocket', action="store_true")
-        parser.add_argument('--pocket_json')
-        parser.add_argument('--tmp', default="/tmp/load_pdb")
-        parser.add_argument('--overwrite', action="store_true")
-        parser.add_argument('--datadir', default="./data")
+        parser.add_argument("struct_name")
+        parser.add_argument("--P2rank_pocket", action="store_true")
+        parser.add_argument("--pocket_json")
+        parser.add_argument("--tmp", default="/tmp/load_pdb")
+        parser.add_argument("--overwrite", action="store_true")
+        parser.add_argument("--datadir", default="./data")
 
     def handle(self, *args, **options):
-        seqstore = SeqStore(options['datadir'])
+        seqstore = SeqStore(options["datadir"])
         code = options["struct_name"]
         pdb = PDB.objects.filter(code=code)
 
@@ -39,7 +39,9 @@ class Command(BaseCommand):
         pdb = pdb.get()
 
         if not options["pocket_json"]:
-            biodbname = pdb.sequences.all()[0].bioentry.biodatabase.name.replace(Biodatabase.PROT_POSTFIX, "")
+            biodbname = pdb.sequences.all()[0].bioentry.biodatabase.name.replace(
+                Biodatabase.PROT_POSTFIX, ""
+            )
             seqname = pdb.sequences.all()[0].bioentry.accession
             pocket_json = seqstore.structure_dir(biodbname, seqname) + "/fpocket.json.gz"
         else:

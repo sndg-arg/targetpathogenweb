@@ -10,6 +10,7 @@ at this scale (10 curated proteins) -- same pattern as
 `CuratedImportJob.summary_json` / `PipelineRun.payload` elsewhere in this
 app for irregular per-record data.
 """
+
 from django.db import models
 
 from bioseq.models.Bioentry import Bioentry

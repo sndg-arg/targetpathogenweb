@@ -10,7 +10,6 @@ from tpweb.services.genome_workspace import resolve_genome_from_slug
 
 
 class DownloadView(View):
-
     def get(self, request, *args, **kwargs):
         allowed_formats = {"genome", "genes", "proteins", "gff", "gbk"}
         if "accession" not in request.GET:
@@ -38,7 +37,9 @@ class DownloadView(View):
             return HttpResponseNotFound(f'Accession: "{request.GET["accession"]}" does not exist')
 
         response = HttpResponse(open(path_to_file, "rb"), content_type="application/force-download")
-        response["Content-Disposition"] = "attachment; filename=%s" % smart_str(os.path.basename(path_to_file))
+        response["Content-Disposition"] = (
+            f"attachment; filename={smart_str(os.path.basename(path_to_file))}"
+        )
         response["X-Sendfile"] = smart_str(path_to_file)
         return response
 

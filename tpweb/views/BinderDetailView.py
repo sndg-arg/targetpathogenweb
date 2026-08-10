@@ -41,7 +41,7 @@ def _format_molecular_formula(formula):
     charge = re.search(r"([+-])(\d*)$", formula)
     if not charge:
         return formula.translate(_SUBSCRIPT)
-    base = formula[:charge.start()].translate(_SUBSCRIPT)
+    base = formula[: charge.start()].translate(_SUBSCRIPT)
     # Chemistry convention writes the charge digit(s) before the sign when
     # superscripted (e.g. "2-" -> "²⁻"), the reverse of RDKit's raw order.
     magnitude, sign = charge.group(2), charge.group(1)
@@ -192,77 +192,99 @@ def _build_external_links(binder, props):
     inchi_key = (props or {}).get("inchi_key", "")
 
     if binder.source == Binders.SOURCE_PDB and ccd_id and not ccd_upper.startswith("CHEMBL"):
-        links.append({
-            "category": "PDB",
-            "label": f"RCSB ligand {ccd_id}",
-            "url": f"https://www.rcsb.org/ligand/{ccd_id}",
-        })
+        links.append(
+            {
+                "category": "PDB",
+                "label": f"RCSB ligand {ccd_id}",
+                "url": f"https://www.rcsb.org/ligand/{ccd_id}",
+            }
+        )
     if pdb_id:
-        links.append({
-            "category": "PDB",
-            "label": f"RCSB structure {pdb_id}",
-            "url": f"https://www.rcsb.org/structure/{pdb_id}",
-        })
+        links.append(
+            {
+                "category": "PDB",
+                "label": f"RCSB structure {pdb_id}",
+                "url": f"https://www.rcsb.org/structure/{pdb_id}",
+            }
+        )
 
     if ccd_upper.startswith("CHEMBL"):
-        links.append({
-            "category": "ChEMBL",
-            "label": f"ChEMBL compound {ccd_id}",
-            "url": f"https://www.ebi.ac.uk/chembl/compound_report_card/{ccd_id}/",
-        })
+        links.append(
+            {
+                "category": "ChEMBL",
+                "label": f"ChEMBL compound {ccd_id}",
+                "url": f"https://www.ebi.ac.uk/chembl/compound_report_card/{ccd_id}/",
+            }
+        )
 
     if ccd_upper.startswith("ZINC"):
-        links.append({
-            "category": "ZINC",
-            "label": f"ZINC15 {ccd_id}",
-            "url": f"https://zinc15.docking.org/substances/{ccd_id}",
-        })
-        links.append({
-            "category": "ZINC",
-            "label": f"ZINC20 {ccd_id}",
-            "url": f"https://zinc20.docking.org/substances/{ccd_id}",
-        })
+        links.append(
+            {
+                "category": "ZINC",
+                "label": f"ZINC15 {ccd_id}",
+                "url": f"https://zinc15.docking.org/substances/{ccd_id}",
+            }
+        )
+        links.append(
+            {
+                "category": "ZINC",
+                "label": f"ZINC20 {ccd_id}",
+                "url": f"https://zinc20.docking.org/substances/{ccd_id}",
+            }
+        )
 
     if binder.uniprot:
         uniprot_role = "same protein" if binder.is_direct else "homolog"
-        links.append({
-            "category": "UniProt",
-            "label": f"UniProt {binder.uniprot} ({uniprot_role})",
-            "url": f"https://www.uniprot.org/uniprotkb/{binder.uniprot}",
-        })
+        links.append(
+            {
+                "category": "UniProt",
+                "label": f"UniProt {binder.uniprot} ({uniprot_role})",
+                "url": f"https://www.uniprot.org/uniprotkb/{binder.uniprot}",
+            }
+        )
 
     if inchi_key:
-        links.append({
-            "category": "PubChem",
-            "label": "PubChem (by InChIKey)",
-            "url": f"https://pubchem.ncbi.nlm.nih.gov/#query={quote(inchi_key)}",
-        })
+        links.append(
+            {
+                "category": "PubChem",
+                "label": "PubChem (by InChIKey)",
+                "url": f"https://pubchem.ncbi.nlm.nih.gov/#query={quote(inchi_key)}",
+            }
+        )
     elif smiles:
-        links.append({
-            "category": "PubChem",
-            "label": "PubChem (by SMILES)",
-            "url": f"https://pubchem.ncbi.nlm.nih.gov/#query={quote(smiles)}",
-        })
+        links.append(
+            {
+                "category": "PubChem",
+                "label": "PubChem (by SMILES)",
+                "url": f"https://pubchem.ncbi.nlm.nih.gov/#query={quote(smiles)}",
+            }
+        )
 
     if smiles:
-        links.append({
-            "category": "Cheminformatics",
-            "label": "SwissADME prediction",
-            "url": f"http://www.swissadme.ch/index.php?smiles={quote(smiles)}",
-        })
-        links.append({
-            "category": "Cheminformatics",
-            "label": "SwissTargetPrediction",
-            "url": f"http://www.swisstargetprediction.ch/result.php?smiles={quote(smiles)}&organism=Homo_sapiens",
-        })
+        links.append(
+            {
+                "category": "Cheminformatics",
+                "label": "SwissADME prediction",
+                "url": f"http://www.swissadme.ch/index.php?smiles={quote(smiles)}",
+            }
+        )
+        links.append(
+            {
+                "category": "Cheminformatics",
+                "label": "SwissTargetPrediction",
+                "url": f"http://www.swisstargetprediction.ch/result.php?smiles={quote(smiles)}&organism=Homo_sapiens",
+            }
+        )
 
     if ccd_id:
         query = ccd_id
-        links.append({
-            "category": "Web",
-            "label": f"Google Scholar (search “{ccd_id}”)",
-            "url": f"https://scholar.google.com/scholar?q={quote(query)}",
-        })
+        links.append(
+            {
+                "category": "Web",
+                "label": f"Google Scholar (search “{ccd_id}”)",
+                "url": f"https://scholar.google.com/scholar?q={quote(query)}",
+            }
+        )
 
     return links
 
@@ -289,11 +311,15 @@ def _get_siblings(binder, limit_per_source=8):
         ],
         "chembl": [
             _binder_card_dto(b)
-            for b in base_qs.filter(source=Binders.SOURCE_CHEMBL).order_by("-score", "id")[:limit_per_source]
+            for b in base_qs.filter(source=Binders.SOURCE_CHEMBL).order_by("-score", "id")[
+                :limit_per_source
+            ]
         ],
         "proposed": [
             _binder_card_dto(b)
-            for b in base_qs.filter(source=Binders.SOURCE_PROPOSED).order_by("-score", "id")[:limit_per_source]
+            for b in base_qs.filter(source=Binders.SOURCE_PROPOSED).order_by("-score", "id")[
+                :limit_per_source
+            ]
         ],
         "pdb_total": base_qs.filter(source=Binders.SOURCE_PDB).count(),
         "chembl_total": base_qs.filter(source=Binders.SOURCE_CHEMBL).count(),
@@ -307,8 +333,8 @@ class BinderDetailView(View):
     def get(self, request, binder_id, *args, **kwargs):
         try:
             binder = Binders.objects.select_related("locustag__biodatabase").get(pk=binder_id)
-        except Binders.DoesNotExist:
-            raise Http404("Binder not found")
+        except Binders.DoesNotExist as exc:
+            raise Http404("Binder not found") from exc
 
         protein = binder.locustag
         biodb_name = protein.biodatabase.name
@@ -325,7 +351,9 @@ class BinderDetailView(View):
         if binder.source == Binders.SOURCE_PDB:
             evidence_label = "PDB: this protein" if binder.is_direct else "PDB: similar protein"
         elif binder.source == Binders.SOURCE_CHEMBL:
-            evidence_label = "ChEMBL: this protein" if binder.is_direct else "ChEMBL: similar protein"
+            evidence_label = (
+                "ChEMBL: this protein" if binder.is_direct else "ChEMBL: similar protein"
+            )
         else:
             evidence_label = "ZINC: proposed compound"
         properties = _compute_properties(binder.smiles)

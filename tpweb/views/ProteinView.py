@@ -25,7 +25,11 @@ from tpweb.services.genome_workspace import (
     genome_url_slug,
     user_can_access_genome_name,
 )
-from tpweb.services.structure_files import detect_structure_format, display_code, structure_file_path
+from tpweb.services.structure_files import (
+    detect_structure_format,
+    display_code,
+    structure_file_path,
+)
 from tpweb.services.structure_sources import (
     PDB_MODEL_EXPERIMENTS,
     chain_selector as _chain_selector,
@@ -124,7 +128,9 @@ def _coverage_payload(start, end, protein_length):
     }
 
 
-def _experimental_structure_entry(pdb_id, method, resolution, chains, start, end, protein_length, loaded_link=None):
+def _experimental_structure_entry(
+    pdb_id, method, resolution, chains, start, end, protein_length, loaded_link=None
+):
     coverage = _coverage_payload(start, end, protein_length)
     chain_sel = _chain_selector(getattr(loaded_link, "chain", None)) if loaded_link else ""
     return {
@@ -161,6 +167,7 @@ def _structure_file_format_for_link(link):
     except (FileNotFoundError, OSError, AttributeError):
         return "pdb"
 
+
 def _viewer_structure_payload(link, protein_length):
     pdb = getattr(link, "pdb", None)
     experiment = str(getattr(pdb, "experiment", "") or "").strip().upper()
@@ -172,7 +179,9 @@ def _viewer_structure_payload(link, protein_length):
         getattr(link, "uniprot_end", None),
         protein_length,
     )
-    resolution = _format_resolution(getattr(link, "resolution", None) or getattr(pdb, "resolution", None))
+    resolution = _format_resolution(
+        getattr(link, "resolution", None) or getattr(pdb, "resolution", None)
+    )
 
     if source_name == "PDB" and clean_code:
         short_label = f"PDB {clean_code}"
@@ -199,7 +208,9 @@ def _viewer_structure_payload(link, protein_length):
 
 
 def _build_predicted_structures(links, protein_length, primary_link=None, alt_link=None):
-    primary_pdb_id = getattr(getattr(primary_link, "pdb", None), "id", None) if primary_link else None
+    primary_pdb_id = (
+        getattr(getattr(primary_link, "pdb", None), "id", None) if primary_link else None
+    )
     alt_pdb_id = getattr(getattr(alt_link, "pdb", None), "id", None) if alt_link else None
     entries = []
     for link in links:
@@ -212,8 +223,8 @@ def _build_predicted_structures(links, protein_length, primary_link=None, alt_li
             source_name = "AlphaFold DB"
         else:
             source_name = _structure_toggle_label(experiment) or "Predicted"
-        is_primary = (pdb.id == primary_pdb_id)
-        is_alt = (pdb.id == alt_pdb_id)
+        is_primary = pdb.id == primary_pdb_id
+        is_alt = pdb.id == alt_pdb_id
         if is_primary:
             slot_key = "primary"
         elif is_alt:
@@ -226,21 +237,23 @@ def _build_predicted_structures(links, protein_length, primary_link=None, alt_li
             protein_length,
         )
         chain_sel = _chain_selector(getattr(link, "chain", None))
-        entries.append({
-            "pdb_id": code,
-            "source_name": source_name,
-            "method": source_name,
-            "resolution": "—",
-            "chains": getattr(link, "chain", "") or "—",
-            "links": {},
-            "loaded": True,
-            "loaded_structure_id": pdb.id,
-            "chain_selector": chain_sel,
-            "file_format": _structure_file_format_for_link(link),
-            "slot_key": slot_key,
-            "viewer_key": "primary" if is_primary else ("alt" if is_alt else None),
-            **coverage,
-        })
+        entries.append(
+            {
+                "pdb_id": code,
+                "source_name": source_name,
+                "method": source_name,
+                "resolution": "—",
+                "chains": getattr(link, "chain", "") or "—",
+                "links": {},
+                "loaded": True,
+                "loaded_structure_id": pdb.id,
+                "chain_selector": chain_sel,
+                "file_format": _structure_file_format_for_link(link),
+                "slot_key": slot_key,
+                "viewer_key": "primary" if is_primary else ("alt" if is_alt else None),
+                **coverage,
+            }
+        )
     return entries
 
 
@@ -266,16 +279,18 @@ def _build_experimental_structures(protein, structures):
         if not pdb_id:
             continue
         seen_codes.add(pdb_id)
-        entries.append(_experimental_structure_entry(
-            pdb_id=pdb_id,
-            method=xref.method,
-            resolution=xref.resolution,
-            chains=xref.chains,
-            start=xref.uniprot_start,
-            end=xref.uniprot_end,
-            protein_length=protein_length,
-            loaded_link=loaded_by_code.get(pdb_id),
-        ))
+        entries.append(
+            _experimental_structure_entry(
+                pdb_id=pdb_id,
+                method=xref.method,
+                resolution=xref.resolution,
+                chains=xref.chains,
+                start=xref.uniprot_start,
+                end=xref.uniprot_end,
+                protein_length=protein_length,
+                loaded_link=loaded_by_code.get(pdb_id),
+            )
+        )
 
     for link in fallback_links:
         pdb = link.pdb
@@ -286,16 +301,18 @@ def _build_experimental_structures(protein, structures):
         if str(method).strip().upper() == "EX":
             method = "X-ray"
         seen_codes.add(pdb_id)
-        entries.append(_experimental_structure_entry(
-            pdb_id=pdb_id,
-            method=method,
-            resolution=link.resolution or pdb.resolution,
-            chains=link.chain,
-            start=link.uniprot_start,
-            end=link.uniprot_end,
-            protein_length=protein_length,
-            loaded_link=link,
-        ))
+        entries.append(
+            _experimental_structure_entry(
+                pdb_id=pdb_id,
+                method=method,
+                resolution=link.resolution or pdb.resolution,
+                chains=link.chain,
+                start=link.uniprot_start,
+                end=link.uniprot_end,
+                protein_length=protein_length,
+                loaded_link=link,
+            )
+        )
 
     def sort_key(entry):
         try:
@@ -311,25 +328,29 @@ def _build_experimental_structures(protein, structures):
     return sorted(entries, key=sort_key)
 
 
-
 def serialize_prot(protein: Bioentry):
-    bdb = Biodatabase.objects.filter(name=protein.biodatabase.name.split(Biodatabase.PROT_POSTFIX)[0]).get()
-    protein2 = {"id": protein.bioentry_id,
-                "accession": protein.accession,
-                "description": protein.description,
-                "gene": " ".join(
-                    g for g in protein.genes()
-                    if not g.startswith(("NP_", "WP_", "XP_", "YP_", "AP_"))
-                ) or " ".join(protein.genes()),
-                "size": protein.seq.length,
-                "assembly_id": bdb.biodatabase_id,
-                "assembly_name":   bdb.name,
-                "genome": genome_url_slug(bdb.name),
-                "assembly_label": display_genome_name(bdb.name),
-                "assembly_description": bdb.description if bdb.description else  display_genome_name(bdb.name),
-                "status": "annotated",
-                "seq": protein.seq.seq
-                }
+    bdb = Biodatabase.objects.filter(
+        name=protein.biodatabase.name.split(Biodatabase.PROT_POSTFIX)[0]
+    ).get()
+    protein2 = {
+        "id": protein.bioentry_id,
+        "accession": protein.accession,
+        "description": protein.description,
+        "gene": " ".join(
+            g for g in protein.genes() if not g.startswith(("NP_", "WP_", "XP_", "YP_", "AP_"))
+        )
+        or " ".join(protein.genes()),
+        "size": protein.seq.length,
+        "assembly_id": bdb.biodatabase_id,
+        "assembly_name": bdb.name,
+        "genome": genome_url_slug(bdb.name),
+        "assembly_label": display_genome_name(bdb.name),
+        "assembly_description": bdb.description
+        if bdb.description
+        else display_genome_name(bdb.name),
+        "status": "annotated",
+        "seq": protein.seq.seq,
+    }
 
     features = []
     _seen_features = set()
@@ -361,16 +382,22 @@ def serialize_prot(protein: Bioentry):
 
     graphic_features = []
     for key, group in itertools.groupby(
-            sorted(protein.features.all(), key=lambda f: f.type_term.ontology.name)
-            , lambda f: f.type_term.ontology.name):
+        sorted(protein.features.all(), key=lambda f: f.type_term.ontology.name),
+        lambda f: f.type_term.ontology.name,
+    ):
         data = []
         for f in group:
             location = _first_location(f)
             if location is None:
                 continue
-            data.append({"x": location.start_pos,
-                         "y": location.end_pos,
-                         "description": f.type_term.identifier, "id": f.type_term.identifier})
+            data.append(
+                {
+                    "x": location.start_pos,
+                    "y": location.end_pos,
+                    "description": f.type_term.identifier,
+                    "id": f.type_term.identifier,
+                }
+            )
         if not data:
             continue
         display_name = _TRACK_LABEL_ABBREV.get(key, key)
@@ -380,7 +407,7 @@ def serialize_prot(protein: Bioentry):
             "className": "test6",
             "color": "#81BEAA",
             "type": "rect",
-            "filter": "type2"
+            "filter": "type2",
         }
         graphic_features.append(gf)
 
@@ -407,22 +434,29 @@ def serialize_prot(protein: Bioentry):
         )
     return protein2, features, annotations, graphic_features
 
+
 class ProteinView(View):
-    template_name = 'genomic/protein.html'
+    template_name = "genomic/protein.html"
 
     def get(self, request, protein_id, *args, **kwargs):
         # form = self.form_class(initial=self.initial)
 
-        protein = Bioentry.objects.filter(
-            bioentry_id=protein_id
-        ).prefetch_related("seq", "biodatabase",
-                           "dbxrefs__dbxref__terms__term",
-                           "features__type_term__ontology", "features__locations",
-                           Prefetch(
-                               "experimental_structure_xrefs",
-                               queryset=ExperimentalStructureXref.objects.order_by("resolution"),
-                           ),
-                           "structures__pdb__residue_sets__properties__property").get()
+        protein = (
+            Bioentry.objects.filter(bioentry_id=protein_id)
+            .prefetch_related(
+                "seq",
+                "biodatabase",
+                "dbxrefs__dbxref__terms__term",
+                "features__type_term__ontology",
+                "features__locations",
+                Prefetch(
+                    "experimental_structure_xrefs",
+                    queryset=ExperimentalStructureXref.objects.order_by("resolution"),
+                ),
+                "structures__pdb__residue_sets__properties__property",
+            )
+            .get()
+        )
         # bioentry_id is shared across a genome's <name>, <name>_prots, and
         # <name>_rnas biodatabases (same numeric id space, different rows) --
         # nothing else guarantees the requested id actually landed in the
@@ -449,7 +483,9 @@ class ProteinView(View):
         structures = _sort_structures_by_preference(structures)
         experimental_structures = _build_experimental_structures(protein, structures)
         binders_search_query = request.GET.get("binder_search", "").strip()
-        binders = create_binders_dict(protein, search_query=binders_search_query, structures=structures)
+        binders = create_binders_dict(
+            protein, search_query=binders_search_query, structures=structures
+        )
         structure_summary = summarize_structure_sources(structures)
 
         # Reuses the ordered prefetch on `protein` set up above -- .all() on an
@@ -525,7 +561,12 @@ class ProteinView(View):
                         "title": "Functional annotations",
                         "headers": ["DB", "Family", "Accession", "Name"],
                         "rows": [
-                            [annotation["db"], annotation["fam"], annotation["term"], annotation["name"]]
+                            [
+                                annotation["db"],
+                                annotation["fam"],
+                                annotation["term"],
+                                annotation["name"],
+                            ]
                             for annotation in annotations
                         ],
                     }
@@ -537,7 +578,13 @@ class ProteinView(View):
                         "title": "Sequence features",
                         "headers": ["Start", "End", "DB", "Term", "Name"],
                         "rows": [
-                            [feature["start"], feature["end"], feature["db"], feature["term"], feature["name"]]
+                            [
+                                feature["start"],
+                                feature["end"],
+                                feature["db"],
+                                feature["term"],
+                                feature["name"],
+                            ]
                             for feature in features
                         ],
                     }
@@ -548,8 +595,13 @@ class ProteinView(View):
                     {
                         "title": "Experimental structures",
                         "headers": [
-                            "PDB", "Method", "Resolution", "Chains", "Positions",
-                            "Coverage", "Loaded in Target",
+                            "PDB",
+                            "Method",
+                            "Resolution",
+                            "Chains",
+                            "Positions",
+                            "Coverage",
+                            "Loaded in Target",
                         ],
                         "rows": [
                             [
@@ -570,7 +622,17 @@ class ProteinView(View):
                 sections.append(
                     {
                         "title": "Binders",
-                        "headers": ["Source", "Direct", "ID", "Name", "PDB", "UniProt", "SMILES", "Score", "Notes"],
+                        "headers": [
+                            "Source",
+                            "Direct",
+                            "ID",
+                            "Name",
+                            "PDB",
+                            "UniProt",
+                            "SMILES",
+                            "Score",
+                            "Notes",
+                        ],
                         "rows": [
                             [
                                 binder["source"],
@@ -584,8 +646,10 @@ class ProteinView(View):
                                 binder["notes"],
                             ]
                             for binder in (
-                                *binders["pdb_direct"], *binders["pdb_homolog"],
-                                *binders["chembl_direct"], *binders["chembl_homolog"],
+                                *binders["pdb_direct"],
+                                *binders["pdb_homolog"],
+                                *binders["chembl_direct"],
+                                *binders["chembl_homolog"],
                                 *binders["zinc"],
                             )
                         ],
@@ -605,47 +669,53 @@ class ProteinView(View):
             and dbx.dbxref.accession
         ]
 
-        dto = {"protein": proteinDTO,
-               "predicted_structures": [],
-               "features": features,
-               "annotations": annotations,
-               "ec_annotations": ec_all,
-               "go_annotations": go_all,
-               "graphic_features": graphic_features,
-               "binders": binders,
-               "structure_summary": structure_summary,
-               "experimental_structures": experimental_structures,
-               "target_profile": target_profile,
-               "target_summary": target_summary,
-               "score_breakdown": score_breakdown,
-               "selected_pocket_evidence": selected_pocket_evidence,
-               "conservation_profile": conservation_profile,
-               "microbiome_context": microbiome_context,
-               "metabolic_context": metabolic_context,
-               "experimental_xrefs": experimental_xrefs,
-               "ec_badges": ec_badges,
-               "go_badges": go_badges,
-               "pipeline_status": pipeline_status,
-               "druggability": druggability,
-               "uniprot_accessions": uniprot_accessions,
-               "view_export_url": build_view_export_url(request)}
+        dto = {
+            "protein": proteinDTO,
+            "predicted_structures": [],
+            "features": features,
+            "annotations": annotations,
+            "ec_annotations": ec_all,
+            "go_annotations": go_all,
+            "graphic_features": graphic_features,
+            "binders": binders,
+            "structure_summary": structure_summary,
+            "experimental_structures": experimental_structures,
+            "target_profile": target_profile,
+            "target_summary": target_summary,
+            "score_breakdown": score_breakdown,
+            "selected_pocket_evidence": selected_pocket_evidence,
+            "conservation_profile": conservation_profile,
+            "microbiome_context": microbiome_context,
+            "metabolic_context": metabolic_context,
+            "experimental_xrefs": experimental_xrefs,
+            "ec_badges": ec_badges,
+            "go_badges": go_badges,
+            "pipeline_status": pipeline_status,
+            "druggability": druggability,
+            "uniprot_accessions": uniprot_accessions,
+            "view_export_url": build_view_export_url(request),
+        }
         if structures:
             # Opción B: primary = best experimental (EX), alt = best predicted (CF/AF).
             # Ensures ColabFold is accessible even when multiple experimental PDBs
             # are loaded — the most useful comparison for biologists.
             experimental = [
-                s for s in structures
+                s
+                for s in structures
                 if (getattr(s.pdb, "experiment", "") or "").upper() not in _PDB_MODEL_EXPERIMENTS
             ]
             predicted = [
-                s for s in structures
+                s
+                for s in structures
                 if (getattr(s.pdb, "experiment", "") or "").upper() in _PDB_MODEL_EXPERIMENTS
             ]
 
             if experimental:
                 primary_link = experimental[0]
-                alt_link = predicted[0] if predicted else (
-                    experimental[1] if len(experimental) > 1 else None
+                alt_link = (
+                    predicted[0]
+                    if predicted
+                    else (experimental[1] if len(experimental) > 1 else None)
                 )
             else:
                 primary_link = predicted[0] if predicted else structures[0]
@@ -658,7 +728,8 @@ class ProteinView(View):
             # the viewer. If EX has no pockets yet, show the crystal structure
             # without pocket overlays instead of mixing AF/CF pockets onto it.
             dto["structure"] = pdb_structure(
-                primary_display, graphic_features,
+                primary_display,
+                graphic_features,
                 target_chain=(primary_link.chain or "").strip() or None,
             )
             dto["viewer_structure_id"] = primary_display.id
@@ -668,7 +739,9 @@ class ProteinView(View):
             dto["viewer_chain"] = primary_link.chain or ""
             dto["viewer_chain_selector"] = _chain_selector(primary_link.chain)
             dto["pocket_structure_label"] = primary_viewer["short_label"]
-            dto["pocket_structure_has_pockets"] = bool(dto["structure"]["pockets"]) or bool(dto["structure"]["p2_pockets"])
+            dto["pocket_structure_has_pockets"] = bool(dto["structure"]["pockets"]) or bool(
+                dto["structure"]["p2_pockets"]
+            )
             if alt_link is not None:
                 alt_viewer = _viewer_structure_payload(alt_link, protein_length)
                 dto["alt_structure_id"] = alt_link.pdb.id
@@ -676,14 +749,19 @@ class ProteinView(View):
                 dto["alt_structure_detail_label"] = alt_viewer["detail_label"]
                 dto["alt_structure_source_name"] = alt_viewer["source_name"]
                 dto["alt_structure"] = pdb_structure(
-                    alt_link.pdb, [],
+                    alt_link.pdb,
+                    [],
                     target_chain=(alt_link.chain or "").strip() or None,
                 )
                 dto["alt_viewer_chain"] = alt_link.chain or ""
                 dto["alt_viewer_chain_selector"] = _chain_selector(alt_link.chain)
-                dto["alt_structure_has_pockets"] = bool(dto["alt_structure"]["pockets"]) or bool(dto["alt_structure"]["p2_pockets"])
+                dto["alt_structure_has_pockets"] = bool(dto["alt_structure"]["pockets"]) or bool(
+                    dto["alt_structure"]["p2_pockets"]
+                )
 
-            _annotate_selected_source_status(selected_pocket_evidence, structures, [primary_link, alt_link])
+            _annotate_selected_source_status(
+                selected_pocket_evidence, structures, [primary_link, alt_link]
+            )
 
             visible_structure_ids = {
                 primary_display.id: "primary",
@@ -703,11 +781,16 @@ class ProteinView(View):
                 else:
                     entry["slot_key"] = ""
 
-            predicted_structures = _build_predicted_structures(predicted, protein_length, primary_link=primary_link, alt_link=alt_link)
+            predicted_structures = _build_predicted_structures(
+                predicted, protein_length, primary_link=primary_link, alt_link=alt_link
+            )
             dto["predicted_structures"] = predicted_structures
 
         dto["cross_references"] = build_protein_cross_references(
-            dto["uniprot_accessions"], dto["experimental_structures"], dto["binders"], dto["metabolic_context"],
+            dto["uniprot_accessions"],
+            dto["experimental_structures"],
+            dto["binders"],
+            dto["metabolic_context"],
         )
 
         return render(request, self.template_name, dto)

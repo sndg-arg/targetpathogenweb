@@ -26,8 +26,17 @@ SELECTED_FIELDS = (
     ("p2rank", "best_p2rank_structure", "p2rank_probability", "p2rank_pocket", "P2RankPocket"),
 )
 MANIFEST_COLUMNS = [
-    "genome", "locus", "pdb_code", "chain", "need_fpocket", "need_p2rank",
-    "fpocket_score", "fpocket_pocket", "p2rank_score", "p2rank_pocket", "input_pdb",
+    "genome",
+    "locus",
+    "pdb_code",
+    "chain",
+    "need_fpocket",
+    "need_p2rank",
+    "fpocket_score",
+    "fpocket_pocket",
+    "p2rank_score",
+    "p2rank_pocket",
+    "input_pdb",
 ]
 
 
@@ -53,16 +62,14 @@ def _parse_structure_candidates(value):
         parsed = ast.literal_eval(value)
     except (SyntaxError, ValueError):
         parsed = value.replace("{", "").replace("}", "").split(",")
-    return sorted({
-        _clean(candidate).strip("'\"").upper()
-        for candidate in parsed
-        if _is_pdb_code(candidate)
-    })
+    return sorted(
+        {_clean(candidate).strip("'\"").upper() for candidate in parsed if _is_pdb_code(candidate)}
+    )
 
 
 def _folder_path(datadir, genome_name):
     acclen = len(genome_name)
-    folder_name = genome_name[math.floor(acclen / 2 - 1):math.floor(acclen / 2 + 2)]
+    folder_name = genome_name[math.floor(acclen / 2 - 1) : math.floor(acclen / 2 + 2)]
     return os.path.join(datadir, folder_name, genome_name)
 
 
@@ -90,7 +97,9 @@ def _fallback_structure_path(folder_path, locus, pdb_code):
 
 
 class Command(BaseCommand):
-    help = "Export selected PDB structures missing FPocket/P2Rank pockets for remote SLURM processing."
+    help = (
+        "Export selected PDB structures missing FPocket/P2Rank pockets for remote SLURM processing."
+    )
 
     def add_arguments(self, parser):
         parser.add_argument("genome_name")
@@ -156,7 +165,9 @@ class Command(BaseCommand):
 
         proteins = Bioentry.objects.filter(biodatabase=db).only("bioentry_id", "accession")
         protein_accessions = dict(proteins.values_list("bioentry_id", "accession"))
-        protein_by_accession = {accession: protein_id for protein_id, accession in protein_accessions.items()}
+        protein_by_accession = {
+            accession: protein_id for protein_id, accession in protein_accessions.items()
+        }
         protein_ids = set(protein_accessions)
         if not protein_ids:
             self.stdout.write("No proteins found.")
@@ -171,8 +182,10 @@ class Command(BaseCommand):
             bioentry_id__in=protein_ids,
             score_param__name__in=score_names,
         ).select_related("score_param"):
-            value = spv.value if spv.value else (
-                str(spv.numeric_value) if spv.numeric_value is not None else ""
+            value = (
+                spv.value
+                if spv.value
+                else (str(spv.numeric_value) if spv.numeric_value is not None else "")
             )
             scores[spv.bioentry_id][spv.score_param.name] = _clean(value)
 
@@ -197,7 +210,13 @@ class Command(BaseCommand):
         jobs = {}
         for protein_id, accession in protein_accessions.items():
             row_scores = scores.get(protein_id, {})
-            for method, source_field, score_field, pocket_field, residue_set_name in SELECTED_FIELDS:
+            for (
+                method,
+                source_field,
+                score_field,
+                pocket_field,
+                residue_set_name,
+            ) in SELECTED_FIELDS:
                 source = row_scores.get(source_field, "")
                 if not _is_pdb_code(source):
                     continue
@@ -208,18 +227,21 @@ class Command(BaseCommand):
 
                 has_pockets = link.pdb_id in pockets_by_type[residue_set_name]
                 key = (protein_id, pdb_code)
-                job = jobs.setdefault(key, {
-                    "genome": genome_name,
-                    "locus": accession,
-                    "pdb_code": pdb_code,
-                    "chain": link.chain or "",
-                    "need_fpocket": False,
-                    "need_p2rank": False,
-                    "fpocket_score": "",
-                    "fpocket_pocket": "",
-                    "p2rank_score": "",
-                    "p2rank_pocket": "",
-                })
+                job = jobs.setdefault(
+                    key,
+                    {
+                        "genome": genome_name,
+                        "locus": accession,
+                        "pdb_code": pdb_code,
+                        "chain": link.chain or "",
+                        "need_fpocket": False,
+                        "need_p2rank": False,
+                        "fpocket_score": "",
+                        "fpocket_pocket": "",
+                        "p2rank_score": "",
+                        "p2rank_pocket": "",
+                    },
+                )
                 if method == "fpocket":
                     job["fpocket_score"] = row_scores.get(score_field, "")
                     job["fpocket_pocket"] = row_scores.get(pocket_field, "")
@@ -251,18 +273,21 @@ class Command(BaseCommand):
                         if link is None:
                             continue
                         key = (protein_id, pdb_code)
-                        job = jobs.setdefault(key, {
-                            "genome": genome_name,
-                            "locus": accession,
-                            "pdb_code": pdb_code,
-                            "chain": link.chain or "",
-                            "need_fpocket": False,
-                            "need_p2rank": False,
-                            "fpocket_score": "",
-                            "fpocket_pocket": "",
-                            "p2rank_score": "",
-                            "p2rank_pocket": "",
-                        })
+                        job = jobs.setdefault(
+                            key,
+                            {
+                                "genome": genome_name,
+                                "locus": accession,
+                                "pdb_code": pdb_code,
+                                "chain": link.chain or "",
+                                "need_fpocket": False,
+                                "need_p2rank": False,
+                                "fpocket_score": "",
+                                "fpocket_pocket": "",
+                                "p2rank_score": "",
+                                "p2rank_pocket": "",
+                            },
+                        )
                         job["need_fpocket"] = (
                             job["need_fpocket"]
                             or include_complete
@@ -307,14 +332,18 @@ class Command(BaseCommand):
             with open(manifest_path, "w", encoding="utf-8") as handle:
                 handle.write("\t".join(MANIFEST_COLUMNS) + "\n")
                 for job in export_jobs:
-                    handle.write("\t".join(str(job.get(column, "")) for column in MANIFEST_COLUMNS) + "\n")
+                    handle.write(
+                        "\t".join(str(job.get(column, "")) for column in MANIFEST_COLUMNS) + "\n"
+                    )
 
             shutil.copyfile(manifest_path, os.path.join(tmp_dir, "manifest.tsv"))
             with tarfile.open(tar_path, "w:gz") as tar:
                 tar.add(os.path.join(tmp_dir, "manifest.tsv"), arcname="manifest.tsv")
                 tar.add(input_root, arcname="input")
 
-        self.stdout.write(self.style.MIGRATE_HEADING(f"Selected PDB pocket export for {genome_name}"))
+        self.stdout.write(
+            self.style.MIGRATE_HEADING(f"Selected PDB pocket export for {genome_name}")
+        )
         if include_structure_column:
             self.stdout.write(f"Included curated TSV column: {structure_column}")
             if missing_tsv_genes:

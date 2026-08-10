@@ -17,7 +17,6 @@ def _uploads_dir():
 
 
 class DataFileUploadView(View):
-
     def post(self, request, *args, **kwargs):
         if not request.user.is_staff:
             return JsonResponse({"error": "Staff access required."}, status=403)
@@ -26,15 +25,19 @@ class DataFileUploadView(View):
         if not uploaded:
             return JsonResponse({"error": "No file provided."}, status=400)
 
-        max_size = int(os.environ.get("TPW_DATA_FILE_UPLOAD_MAX_BYTES", str(5 * 1024 * 1024 * 1024)))
+        max_size = int(
+            os.environ.get("TPW_DATA_FILE_UPLOAD_MAX_BYTES", str(5 * 1024 * 1024 * 1024))
+        )
         if getattr(uploaded, "size", 0) > max_size:
             return JsonResponse(
                 {"error": f"File too large. Limit: {max_size // (1024 * 1024)} MB."},
                 status=400,
             )
 
-        if not (uploaded.name.lower().endswith(".tar.gz") or
-                os.path.splitext(uploaded.name.lower())[1] in ALLOWED_EXTENSIONS):
+        if not (
+            uploaded.name.lower().endswith(".tar.gz")
+            or os.path.splitext(uploaded.name.lower())[1] in ALLOWED_EXTENSIONS
+        ):
             return JsonResponse(
                 {"error": "File type not allowed. Accepted: .tsv, .csv, .tar.gz, .json, .txt"},
                 status=400,

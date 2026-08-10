@@ -26,7 +26,14 @@ from bioseq.models.Ontology import Ontology
 from bioseq.models.Term import Term
 from bioseq.models.TermDbxref import TermDbxref
 from tpweb.models.BioentryStructure import BioentryStructure, ExperimentalStructureXref
-from tpweb.models.pdb import Atom, PDBResidueSet, Residue, ResidueSet, ResidueSetResidue, AtomResidueSet
+from tpweb.models.pdb import (
+    Atom,
+    PDBResidueSet,
+    Residue,
+    ResidueSet,
+    ResidueSetResidue,
+    AtomResidueSet,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -107,7 +114,9 @@ def _fetch_uniprot_batch(accessions):
             return _parse_uniprot_response(resp.json())
         except requests.RequestException as exc:
             if attempt < MAX_RETRIES:
-                logger.warning("UniProt request failed (attempt %d/%d): %s", attempt, MAX_RETRIES, exc)
+                logger.warning(
+                    "UniProt request failed (attempt %d/%d): %s", attempt, MAX_RETRIES, exc
+                )
                 time.sleep(RETRY_WAIT * attempt)
             else:
                 raise
@@ -123,11 +132,7 @@ def _parse_pdb_chain_mapping(value):
     if not value:
         return "", None, None
     chain_part, _, range_part = value.partition("=")
-    chains = ",".join(
-        token.strip()
-        for token in re.split(r"[/,; ]+", chain_part)
-        if token.strip()
-    )
+    chains = ",".join(token.strip() for token in re.split(r"[/,; ]+", chain_part) if token.strip())
     starts = []
     ends = []
     for start, end in re.findall(r"(\d+)\s*-\s*(\d+)", range_part):
@@ -156,12 +161,14 @@ def _parse_uniprot_site_features(entry):
         end = location.get("end", {}).get("value")
         if start is None or end is None:
             continue
-        sites.append({
-            "type": feature_type,
-            "start": int(start),
-            "end": int(end),
-            "description": (feature.get("description") or "").strip(),
-        })
+        sites.append(
+            {
+                "type": feature_type,
+                "start": int(start),
+                "end": int(end),
+                "description": (feature.get("description") or "").strip(),
+            }
+        )
     return sites
 
 
@@ -174,7 +181,9 @@ def _parse_uniprot_response(data):
         # EC numbers — from proteinDescription.recommendedName.ecNumbers
         ec_numbers = []
         protein_desc = entry.get("proteinDescription", {})
-        for name_block in [protein_desc.get("recommendedName", {})] + protein_desc.get("alternativeNames", []):
+        for name_block in [protein_desc.get("recommendedName", {})] + protein_desc.get(
+            "alternativeNames", []
+        ):
             for ec in name_block.get("ecNumbers", []):
                 ec_val = ec.get("value", "").strip()
                 if ec_val:
@@ -226,31 +235,39 @@ def _parse_uniprot_response(data):
                     elif key == "Chains":
                         chains, uniprot_start, uniprot_end = _parse_pdb_chain_mapping(val)
                 # Accept X-ray and cryo-EM; skip NMR and unknown
-                if any(m in method for m in ("X-RAY", "DIFFRACTION", "ELECTRON", "MICROSCOPY", "CRYO")):
-                    pdb_xrefs.append({
-                        "id": pdb_id,
-                        "method": method,
-                        "resolution": resolution,
-                        "chains": chains,
-                        "uniprot_start": uniprot_start,
-                        "uniprot_end": uniprot_end,
-                    })
+                if any(
+                    m in method for m in ("X-RAY", "DIFFRACTION", "ELECTRON", "MICROSCOPY", "CRYO")
+                ):
+                    pdb_xrefs.append(
+                        {
+                            "id": pdb_id,
+                            "method": method,
+                            "resolution": resolution,
+                            "chains": chains,
+                            "uniprot_start": uniprot_start,
+                            "uniprot_end": uniprot_end,
+                        }
+                    )
 
         # Sort best resolution first, then largest mapped span.
-        pdb_xrefs.sort(key=lambda x: (
-            x["resolution"] is None,
-            x["resolution"] or 999,
-            -((x.get("uniprot_end") or 0) - (x.get("uniprot_start") or 0)),
-        ))
+        pdb_xrefs.sort(
+            key=lambda x: (
+                x["resolution"] is None,
+                x["resolution"] or 999,
+                -((x.get("uniprot_end") or 0) - (x.get("uniprot_start") or 0)),
+            )
+        )
 
-        results.append({
-            "accession": accession,
-            "sequence": (entry.get("sequence", {}).get("value") or "").strip(),
-            "ec_numbers": ec_numbers,
-            "go_terms": go_terms,
-            "pdb_xrefs": pdb_xrefs,
-            "sites": _parse_uniprot_site_features(entry),
-        })
+        results.append(
+            {
+                "accession": accession,
+                "sequence": (entry.get("sequence", {}).get("value") or "").strip(),
+                "ec_numbers": ec_numbers,
+                "go_terms": go_terms,
+                "pdb_xrefs": pdb_xrefs,
+                "sites": _parse_uniprot_site_features(entry),
+            }
+        )
     return results
 
 
@@ -365,7 +382,7 @@ def _sequence_position_map(source_sequence, target_sequence):
 
     mapping = {}
     matches = 0
-    for source_block, target_block in zip(alignment.aligned[0], alignment.aligned[1]):
+    for source_block, target_block in zip(alignment.aligned[0], alignment.aligned[1], strict=True):
         source_start, source_end = (int(value) for value in source_block)
         target_start, target_end = (int(value) for value in target_block)
         block_length = min(source_end - source_start, target_end - target_start)
@@ -394,11 +411,7 @@ def _model_residue_lookup(pdb_obj, chain):
         if str(residue.icode or "").strip():
             continue
         by_number[residue.resid].append(residue)
-    return {
-        resid: residues[0]
-        for resid, residues in by_number.items()
-        if len(residues) == 1
-    }
+    return {resid: residues[0] for resid, residues in by_number.items() if len(residues) == 1}
 
 
 def _persist_uniprot_sites(
@@ -528,15 +541,13 @@ def load_uniprot_sites_for_genome(
 
     proteins_by_locus = {
         protein.accession: protein
-        for protein in Bioentry.objects.filter(
-            biodatabase__name=_proteome_name(assembly_name)
-        )
+        for protein in Bioentry.objects.filter(biodatabase__name=_proteome_name(assembly_name))
     }
     accessions = list(uniprot_mapping)
     sites_mapped = 0
     proteins_with_sites = 0
     for index in range(0, len(accessions), BATCH_SIZE):
-        entries = _fetch_uniprot_batch(accessions[index:index + BATCH_SIZE])
+        entries = _fetch_uniprot_batch(accessions[index : index + BATCH_SIZE])
         with transaction.atomic():
             for entry in entries:
                 locus_tag = uniprot_mapping.get(entry["accession"])
@@ -589,18 +600,23 @@ def fetch_and_load_uniprot_annotations(assembly_name, lst_path=None, datadir=Non
             raise ValueError("Either lst_path or datadir must be provided")
         datadir = Path(datadir)
         acclen = len(assembly_name)
-        folder_name = assembly_name[math.floor(acclen / 2 - 1):math.floor(acclen / 2 + 2)]
+        folder_name = assembly_name[math.floor(acclen / 2 - 1) : math.floor(acclen / 2 + 2)]
         lst_path = datadir / folder_name / assembly_name / f"{assembly_name}_unips.lst"
 
     uniprot_mapping = _read_uniprot_mapping(lst_path)
     if not uniprot_mapping:
         logger.warning("No UniProt mapping found at %s — skipping annotation fetch", lst_path)
-        return {"ec_created": 0, "go_created": 0, "sites_created": 0, "proteins_annotated": 0, "proteins_total": 0}
+        return {
+            "ec_created": 0,
+            "go_created": 0,
+            "sites_created": 0,
+            "proteins_annotated": 0,
+            "proteins_total": 0,
+        }
 
     proteome_name = _proteome_name(assembly_name)
     proteins_by_locus = {
-        p.accession: p
-        for p in Bioentry.objects.filter(biodatabase__name=proteome_name)
+        p.accession: p for p in Bioentry.objects.filter(biodatabase__name=proteome_name)
     }
 
     ec_ontology, _ = Ontology.objects.get_or_create(name=Ontology.EC, defaults={"definition": ""})
@@ -612,10 +628,12 @@ def fetch_and_load_uniprot_annotations(assembly_name, lst_path=None, datadir=Non
     proteins_annotated = 0
 
     for i in range(0, len(uniprot_accessions), BATCH_SIZE):
-        batch = uniprot_accessions[i:i + BATCH_SIZE]
+        batch = uniprot_accessions[i : i + BATCH_SIZE]
         logger.info(
             "Fetching UniProt batch %d–%d of %d",
-            i + 1, min(i + BATCH_SIZE, len(uniprot_accessions)), len(uniprot_accessions),
+            i + 1,
+            min(i + BATCH_SIZE, len(uniprot_accessions)),
+            len(uniprot_accessions),
         )
 
         try:
@@ -632,11 +650,17 @@ def fetch_and_load_uniprot_annotations(assembly_name, lst_path=None, datadir=Non
                     continue
                 protein = proteins_by_locus.get(locus_tag)
                 if not protein:
-                    logger.debug("Locus tag %s not found in DB for UniProt %s", locus_tag, uniprot_acc)
+                    logger.debug(
+                        "Locus tag %s not found in DB for UniProt %s", locus_tag, uniprot_acc
+                    )
                     continue
 
-                ec_created = persist_ec_go_annotations(protein, entry["ec_numbers"], "ec", ec_ontology)
-                go_created = persist_ec_go_annotations(protein, entry["go_terms"], Ontology.GO, go_ontology)
+                ec_created = persist_ec_go_annotations(
+                    protein, entry["ec_numbers"], "ec", ec_ontology
+                )
+                go_created = persist_ec_go_annotations(
+                    protein, entry["go_terms"], Ontology.GO, go_ontology
+                )
                 _persist_pdb_xrefs(protein, entry.get("pdb_xrefs", []))
                 total_ec += ec_created
                 total_go += go_created

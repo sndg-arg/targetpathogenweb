@@ -19,9 +19,18 @@ SELECTED_FIELDS = (
     ("P2Rank", "best_p2rank_structure", "p2rank_probability", "p2rank_pocket"),
 )
 MANIFEST_COLUMNS = [
-    "genome", "locus", "uniprot_accession", "selected_by",
-    "need_fpocket", "need_p2rank", "fpocket_score", "fpocket_pocket",
-    "p2rank_score", "p2rank_pocket", "model_url", "loaded_structure_codes",
+    "genome",
+    "locus",
+    "uniprot_accession",
+    "selected_by",
+    "need_fpocket",
+    "need_p2rank",
+    "fpocket_score",
+    "fpocket_pocket",
+    "p2rank_score",
+    "p2rank_pocket",
+    "model_url",
+    "loaded_structure_codes",
 ]
 
 
@@ -38,7 +47,7 @@ def norm_source(value):
     value = clean(value).upper()
     for prefix in ("AF_", "CB_"):
         if value.startswith(prefix):
-            return value[len(prefix):]
+            return value[len(prefix) :]
     return value
 
 
@@ -60,7 +69,7 @@ def is_alphafold_uniprot_source(value):
 
 def folder_path(datadir, genome_name):
     acclen = len(genome_name)
-    folder_name = genome_name[math.floor(acclen / 2 - 1):math.floor(acclen / 2 + 2)]
+    folder_name = genome_name[math.floor(acclen / 2 - 1) : math.floor(acclen / 2 + 2)]
     return os.path.join(datadir, folder_name, genome_name)
 
 
@@ -121,13 +130,17 @@ class Command(BaseCommand):
             bioentry_id__in=protein_ids,
             score_param__name__in=score_names,
         ).select_related("score_param"):
-            value = spv.value if spv.value else (
-                str(spv.numeric_value) if spv.numeric_value is not None else ""
+            value = (
+                spv.value
+                if spv.value
+                else (str(spv.numeric_value) if spv.numeric_value is not None else "")
             )
             scores[spv.bioentry_id][spv.score_param.name] = clean(value)
 
         loaded_codes = defaultdict(set)
-        for link in BioentryStructure.objects.filter(bioentry_id__in=protein_ids).select_related("pdb"):
+        for link in BioentryStructure.objects.filter(bioentry_id__in=protein_ids).select_related(
+            "pdb"
+        ):
             loaded_codes[link.bioentry_id].add(clean(link.pdb.code).upper())
 
         rows = {}
@@ -151,26 +164,39 @@ class Command(BaseCommand):
                 else:
                     missing_rows += 1
                     if len(examples) < examples_limit:
-                        examples.append((locus, method, accession, row_scores.get(score_field, ""), row_scores.get(pocket_field, "")))
+                        examples.append(
+                            (
+                                locus,
+                                method,
+                                accession,
+                                row_scores.get(score_field, ""),
+                                row_scores.get(pocket_field, ""),
+                            )
+                        )
 
                 if loaded and not include_loaded:
                     continue
 
                 key = (protein_id, accession)
-                row = rows.setdefault(key, {
-                    "genome": genome_name,
-                    "locus": locus,
-                    "uniprot_accession": accession,
-                    "selected_by": [],
-                    "need_fpocket": False,
-                    "need_p2rank": False,
-                    "fpocket_score": "",
-                    "fpocket_pocket": "",
-                    "p2rank_score": "",
-                    "p2rank_pocket": "",
-                    "model_url": AFDB_MODEL_URL.format(accession=accession),
-                    "loaded_structure_codes": ",".join(sorted(loaded_codes.get(protein_id, set()))),
-                })
+                row = rows.setdefault(
+                    key,
+                    {
+                        "genome": genome_name,
+                        "locus": locus,
+                        "uniprot_accession": accession,
+                        "selected_by": [],
+                        "need_fpocket": False,
+                        "need_p2rank": False,
+                        "fpocket_score": "",
+                        "fpocket_pocket": "",
+                        "p2rank_score": "",
+                        "p2rank_pocket": "",
+                        "model_url": AFDB_MODEL_URL.format(accession=accession),
+                        "loaded_structure_codes": ",".join(
+                            sorted(loaded_codes.get(protein_id, set()))
+                        ),
+                    },
+                )
                 row["selected_by"].append(method)
                 if method == "FPocket":
                     row["need_fpocket"] = True
@@ -199,13 +225,15 @@ class Command(BaseCommand):
             os.makedirs(os.path.dirname(os.path.abspath(output_tsv)), exist_ok=True)
 
         with open(output_tsv, "w", newline="", encoding="utf-8") as handle:
-            writer = csv.DictWriter(handle, fieldnames=MANIFEST_COLUMNS, delimiter="\t", extrasaction="ignore")
+            writer = csv.DictWriter(
+                handle, fieldnames=MANIFEST_COLUMNS, delimiter="\t", extrasaction="ignore"
+            )
             writer.writeheader()
             writer.writerows(export_rows)
 
-        self.stdout.write(self.style.MIGRATE_HEADING(
-            f"Selected AlphaFold/UniProt report for {genome_name}"
-        ))
+        self.stdout.write(
+            self.style.MIGRATE_HEADING(f"Selected AlphaFold/UniProt report for {genome_name}")
+        )
         self.stdout.write(f"Proteins: {len(protein_ids)}")
         self.stdout.write(f"Selected AlphaFold/UniProt rows: {selected_rows}")
         self.stdout.write(f"Unique AlphaFold/UniProt accessions: {len(unique_sources)}")
@@ -215,5 +243,7 @@ class Command(BaseCommand):
         if examples:
             self.stdout.write("Missing examples:")
             for locus, method, accession, score, pocket in examples:
-                self.stdout.write(f"  {locus} {method} {accession} score={score or '-'} pocket={pocket or '-'}")
+                self.stdout.write(
+                    f"  {locus} {method} {accession} score={score or '-'} pocket={pocket or '-'}"
+                )
         self.stdout.write(f"Manifest: {output_tsv}")

@@ -7,6 +7,7 @@ doesn't fail until the command actually runs against real data (e.g. the
 tests assert the literal command string per stage so a regression like that
 shows up in CI instead of on the cluster.
 """
+
 import os
 import sys
 import unittest
@@ -94,7 +95,9 @@ class LoadGbkCommandTests(unittest.TestCase):
         )
 
     def test_sync_genome_metadata_cmd(self):
-        cmd = pc.sync_genome_metadata_cmd("/app/tp", "/app/tp/data/ABC/NZ_AP023069.1", "NZ_AP023069.1")
+        cmd = pc.sync_genome_metadata_cmd(
+            "/app/tp", "/app/tp/data/ABC/NZ_AP023069.1", "NZ_AP023069.1"
+        )
         self.assertEqual(
             cmd,
             f"{pc.PYTHON_BIN} /app/tp/manage.py sync_genome_metadata NZ_AP023069.1 "
@@ -152,7 +155,9 @@ class SimpleManageCommandBuildersTests(unittest.TestCase):
         )
 
     def test_load_uniprot_sites_cmd_overwrites(self):
-        cmd = pc.load_uniprot_sites_cmd("/app/tp", "NZ_AP023069.1", "/app/tp/data/ABC/NZ_AP023069.1")
+        cmd = pc.load_uniprot_sites_cmd(
+            "/app/tp", "NZ_AP023069.1", "/app/tp/data/ABC/NZ_AP023069.1"
+        )
         self.assertIn("load_uniprot_sites NZ_AP023069.1", cmd)
         self.assertIn("--overwrite", cmd)
 

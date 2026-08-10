@@ -76,8 +76,17 @@ CURRENCY_METABOLITES_PATH = os.path.join("tpweb", "data", "currency_metabolites.
 # them dominate every reaction/protein's pathway list and any ranking by pathway size, drowning
 # out the specific, actionable pathways (e.g. "Lysine biosynthesis") we actually want to surface.
 KEGG_OVERVIEW_MAP_IDS = {
-    "map01100", "map01110", "map01120", "map01200", "map01210", "map01212",
-    "map01230", "map01232", "map01250", "map01240", "map01220",
+    "map01100",
+    "map01110",
+    "map01120",
+    "map01200",
+    "map01210",
+    "map01212",
+    "map01230",
+    "map01232",
+    "map01250",
+    "map01240",
+    "map01220",
 }
 
 CHOKEPOINT_COLUMNS = {
@@ -165,7 +174,10 @@ def parse_sbml(sbml_path):
         gp_id = gp.get(f"{{{SBML_NS['fbc']}}}id") or gp.get("metaid")
         label = gp.get(f"{{{SBML_NS['fbc']}}}label") or ""
         if gp_id and label:
-            gene_products[gp_id] = {"locus_tag": label, "gene_name": gp.get(f"{{{SBML_NS['fbc']}}}name") or ""}
+            gene_products[gp_id] = {
+                "locus_tag": label,
+                "gene_name": gp.get(f"{{{SBML_NS['fbc']}}}name") or "",
+            }
 
     species = {}
     for sp in root.iterfind(f".//{{{SBML_NS['sbml']}}}species"):
@@ -278,13 +290,17 @@ class Command(BaseCommand):
     help = "Import a genome-scale metabolic network (SBML + centrality/chokepoint TSV + network.sif) into Target."
 
     def add_arguments(self, parser):
-        parser.add_argument("genome_name", help="Internal genome name in Target (e.g. 'public__KpATCC43816').")
+        parser.add_argument(
+            "genome_name", help="Internal genome name in Target (e.g. 'public__KpATCC43816')."
+        )
         parser.add_argument("--sbml", required=True, metavar="PATH")
         parser.add_argument("--metabolic-results-tsv", required=True, metavar="PATH")
         parser.add_argument("--network-sif", required=True, metavar="PATH")
         parser.add_argument("--overwrite", action="store_true")
         parser.add_argument("--dry-run", action="store_true")
-        parser.add_argument("--username", default=None, help="Attribute this import to a user (provenance only).")
+        parser.add_argument(
+            "--username", default=None, help="Attribute this import to a user (provenance only)."
+        )
 
     def handle(self, *args, **options):
         genome_name = options["genome_name"]
@@ -308,9 +324,11 @@ class Command(BaseCommand):
 
         self.stdout.write(self.style.HTTP_INFO("Step 1/5 - Parsing SBML ..."))
         reactions_by_id, species_by_id = parse_sbml(sbml_path)
-        self.stdout.write(f"  {len(reactions_by_id)} reactions, "
-                           f"{sum(1 for r in reactions_by_id.values() if r['genes'])} with gene associations, "
-                           f"{len(species_by_id)} species.")
+        self.stdout.write(
+            f"  {len(reactions_by_id)} reactions, "
+            f"{sum(1 for r in reactions_by_id.values() if r['genes'])} with gene associations, "
+            f"{len(species_by_id)} species."
+        )
 
         self.stdout.write(self.style.HTTP_INFO("Step 2/5 - Parsing network.sif ..."))
         sif_edges = parse_network_sif(sif_path)
@@ -325,29 +343,39 @@ class Command(BaseCommand):
         self._validate_inputs(proteome, reactions_by_id, sif_nodes, results_df)
 
         if dry_run:
-            self.stdout.write(self.style.SUCCESS(
-                f"[dry-run] Would import {len(reactions_by_id)} reactions, "
-                f"{len(sif_edges)} edges, {len(results_df)} gene rows for {genome_accession}."
-            ))
+            self.stdout.write(
+                self.style.SUCCESS(
+                    f"[dry-run] Would import {len(reactions_by_id)} reactions, "
+                    f"{len(sif_edges)} edges, {len(results_df)} gene rows for {genome_accession}."
+                )
+            )
             return
 
         kegg_map = load_kegg_pathway_map()
         if kegg_map is None:
-            self.stderr.write(self.style.WARNING(
-                "  tpweb/data/kegg_reaction_pathways.json not found - reactions will be imported "
-                "without KEGG pathway names. Run `python manage.py fetch_kegg_pathway_map` "
-                "(requires internet access) to enable pathway membership."
-            ))
+            self.stderr.write(
+                self.style.WARNING(
+                    "  tpweb/data/kegg_reaction_pathways.json not found - reactions will be imported "
+                    "without KEGG pathway names. Run `python manage.py fetch_kegg_pathway_map` "
+                    "(requires internet access) to enable pathway membership."
+                )
+            )
         currency_set = load_currency_metabolite_set()
 
         if overwrite:
-            self.stdout.write("--overwrite is accepted for compatibility; metabolism imports now replace "
-                              "the existing rows for this genome on every run.")
+            self.stdout.write(
+                "--overwrite is accepted for compatibility; metabolism imports now replace "
+                "the existing rows for this genome on every run."
+            )
         self._clear_existing_metabolism(genome_accession)
 
-        self.stdout.write(self.style.HTTP_INFO("Step 4/5 - Writing reactions/edges/chokepoints ..."))
+        self.stdout.write(
+            self.style.HTTP_INFO("Step 4/5 - Writing reactions/edges/chokepoints ...")
+        )
         with transaction.atomic():
-            reaction_objs = self._save_reactions(genome_accession, reactions_by_id, sif_nodes, kegg_map)
+            reaction_objs = self._save_reactions(
+                genome_accession, reactions_by_id, sif_nodes, kegg_map
+            )
             self._save_gene_links(proteome, reaction_objs, reactions_by_id)
             self._save_edges(genome_accession, reaction_objs, sif_edges)
             self._apply_chokepoints(proteome, reaction_objs, results_df)
@@ -398,26 +426,32 @@ class Command(BaseCommand):
                     f"proteome (checked {len(tsv_genes)} genes) - wrong genome, or wrong TSV file."
                 )
             if unmatched:
-                self.stderr.write(self.style.WARNING(
-                    f"  Results TSV: {len(unmatched)}/{len(tsv_genes)} genes have no matching locus "
-                    f"tag in this genome, e.g. {sorted(unmatched)[:5]}"
-                ))
+                self.stderr.write(
+                    self.style.WARNING(
+                        f"  Results TSV: {len(unmatched)}/{len(tsv_genes)} genes have no matching locus "
+                        f"tag in this genome, e.g. {sorted(unmatched)[:5]}"
+                    )
+                )
 
         if sif_nodes:
             sbml_reaction_ids = set(reactions_by_id)
             orphan_sif_nodes = sif_nodes - sbml_reaction_ids
             if orphan_sif_nodes:
-                self.stderr.write(self.style.WARNING(
-                    f"  network.sif: {len(orphan_sif_nodes)}/{len(sif_nodes)} nodes have no matching "
-                    f"reaction in the SBML, e.g. {sorted(orphan_sif_nodes)[:5]} - these will still be "
-                    "created as bare MetabolicReaction rows with no SBML data (name/EC/genes/participants)."
-                ))
+                self.stderr.write(
+                    self.style.WARNING(
+                        f"  network.sif: {len(orphan_sif_nodes)}/{len(sif_nodes)} nodes have no matching "
+                        f"reaction in the SBML, e.g. {sorted(orphan_sif_nodes)[:5]} - these will still be "
+                        "created as bare MetabolicReaction rows with no SBML data (name/EC/genes/participants)."
+                    )
+                )
 
         if "PTOOLS_betweenness_centrality" not in results_df.columns:
-            self.stderr.write(self.style.WARNING(
-                "  Results TSV has no 'PTOOLS_betweenness_centrality' column - network centrality "
-                "will not be loaded for this genome at all (silently skipped otherwise)."
-            ))
+            self.stderr.write(
+                self.style.WARNING(
+                    "  Results TSV has no 'PTOOLS_betweenness_centrality' column - network centrality "
+                    "will not be loaded for this genome at all (silently skipped otherwise)."
+                )
+            )
 
     def _clear_existing_metabolism(self, genome_accession):
         existing_reactions = MetabolicReaction.objects.filter(genome_accession=genome_accession)
@@ -476,17 +510,21 @@ class Command(BaseCommand):
                 continue
             reaction_obj = reaction_objs[reaction_id]
             for locus_tag in genes:
-                bioentry = Bioentry.objects.filter(biodatabase=proteome, accession=locus_tag).first()
+                bioentry = Bioentry.objects.filter(
+                    biodatabase=proteome, accession=locus_tag
+                ).first()
                 if bioentry is None:
                     missing_genes.add(locus_tag)
                     continue
                 GeneReactionLink.objects.get_or_create(bioentry=bioentry, reaction=reaction_obj)
 
         if missing_genes:
-            self.stderr.write(self.style.WARNING(
-                f"  {len(missing_genes)} gene(s) referenced by the SBML were not found in this "
-                f"genome's proteome, e.g. {sorted(missing_genes)[:5]}"
-            ))
+            self.stderr.write(
+                self.style.WARNING(
+                    f"  {len(missing_genes)} gene(s) referenced by the SBML were not found in this "
+                    f"genome's proteome, e.g. {sorted(missing_genes)[:5]}"
+                )
+            )
 
     def _save_edges(self, genome_accession, reaction_objs, sif_edges):
         seen = set()
@@ -503,9 +541,13 @@ class Command(BaseCommand):
             a_id, b_id = key
             reaction_a = source_obj if source_obj.pk == a_id else target_obj
             reaction_b = target_obj if reaction_a is source_obj else source_obj
-            edge_objs.append(MetabolicReactionEdge(
-                genome_accession=genome_accession, reaction_a=reaction_a, reaction_b=reaction_b,
-            ))
+            edge_objs.append(
+                MetabolicReactionEdge(
+                    genome_accession=genome_accession,
+                    reaction_a=reaction_a,
+                    reaction_b=reaction_b,
+                )
+            )
 
         MetabolicReactionEdge.objects.bulk_create(edge_objs, ignore_conflicts=True, batch_size=1000)
 
@@ -528,7 +570,9 @@ class Command(BaseCommand):
     def _save_participants(self, reaction_objs, species_objs, reactions_by_id):
         missing_species = set()
         participant_objs = []
-        for reaction_id, data in tqdm(reactions_by_id.items(), desc="participants", file=sys.stderr):
+        for reaction_id, data in tqdm(
+            reactions_by_id.items(), desc="participants", file=sys.stderr
+        ):
             reaction_obj = reaction_objs.get(reaction_id)
             if reaction_obj is None:
                 continue
@@ -541,17 +585,25 @@ class Command(BaseCommand):
                     if species_obj is None:
                         missing_species.add(species_id)
                         continue
-                    participant_objs.append(ReactionParticipant(
-                        reaction=reaction_obj, species=species_obj,
-                        role=role, stoichiometry=stoichiometry,
-                    ))
+                    participant_objs.append(
+                        ReactionParticipant(
+                            reaction=reaction_obj,
+                            species=species_obj,
+                            role=role,
+                            stoichiometry=stoichiometry,
+                        )
+                    )
 
-        ReactionParticipant.objects.bulk_create(participant_objs, ignore_conflicts=True, batch_size=1000)
+        ReactionParticipant.objects.bulk_create(
+            participant_objs, ignore_conflicts=True, batch_size=1000
+        )
         if missing_species:
-            self.stderr.write(self.style.WARNING(
-                f"  {len(missing_species)} species referenced by reactions were not found in "
-                f"<listOfSpecies>, e.g. {sorted(missing_species)[:5]}"
-            ))
+            self.stderr.write(
+                self.style.WARNING(
+                    f"  {len(missing_species)} species referenced by reactions were not found in "
+                    f"<listOfSpecies>, e.g. {sorted(missing_species)[:5]}"
+                )
+            )
 
     def _apply_chokepoints(self, proteome, reaction_objs, results_df):
         for column, role in CHOKEPOINT_COLUMNS.items():
@@ -565,11 +617,14 @@ class Command(BaseCommand):
                 reaction_obj = reaction_objs.get(reaction_id)
                 if reaction_obj is None:
                     continue
-                bioentry = Bioentry.objects.filter(biodatabase=proteome, accession=locus_tag).first()
+                bioentry = Bioentry.objects.filter(
+                    biodatabase=proteome, accession=locus_tag
+                ).first()
                 if bioentry is None:
                     continue
                 GeneReactionLink.objects.update_or_create(
-                    bioentry=bioentry, reaction=reaction_obj,
+                    bioentry=bioentry,
+                    reaction=reaction_obj,
                     defaults={"chokepoint_role": role},
                 )
 
@@ -578,19 +633,28 @@ class Command(BaseCommand):
             return
 
         chokepoint_cols = [c for c in CHOKEPOINT_COLUMNS if c in results_df.columns]
-        is_chokepoint = results_df[chokepoint_cols].apply(
-            lambda row: any(_clean(v) for v in row), axis=1,
-        ) if chokepoint_cols else pd.Series(False, index=results_df.index)
+        is_chokepoint = (
+            results_df[chokepoint_cols].apply(
+                lambda row: any(_clean(v) for v in row),
+                axis=1,
+            )
+            if chokepoint_cols
+            else pd.Series(False, index=results_df.index)
+        )
 
-        scores_df = pd.DataFrame({
-            "gene": results_df["gene"],
-            "PTOOLS_betweenness_centrality": results_df["PTOOLS_betweenness_centrality"],
-            "metabolic_chokepoint": is_chokepoint.map({True: "Y", False: "N"}),
-        })
+        scores_df = pd.DataFrame(
+            {
+                "gene": results_df["gene"],
+                "PTOOLS_betweenness_centrality": results_df["PTOOLS_betweenness_centrality"],
+                "metabolic_chokepoint": is_chokepoint.map({True: "Y", False: "N"}),
+            }
+        )
         if "PTOOLS_edges" in results_df.columns:
             scores_df["PTOOLS_edges"] = results_df["PTOOLS_edges"]
 
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".tsv", delete=False, encoding="utf-8") as tmp:
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".tsv", delete=False, encoding="utf-8"
+        ) as tmp:
             scores_df.to_csv(tmp, sep="\t", index=False)
             tmp_path = tmp.name
 

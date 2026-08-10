@@ -15,7 +15,9 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("genome_name")
-        parser.add_argument("--results-tsv", required=True, help="Curated results TSV with gene/uniprot columns.")
+        parser.add_argument(
+            "--results-tsv", required=True, help="Curated results TSV with gene/uniprot columns."
+        )
         parser.add_argument("--datadir", default="./data", help="Target data directory.")
         parser.add_argument(
             "--dbname",
@@ -61,10 +63,14 @@ class Command(BaseCommand):
                 dry_run=options["dry_run"],
             )
         elif options["dry_run"]:
-            self.stdout.write("[dry-run] Existing UniProt list would be used; UniProt fetch is skipped.")
+            self.stdout.write(
+                "[dry-run] Existing UniProt list would be used; UniProt fetch is skipped."
+            )
 
         if options["dry_run"]:
-            self.stdout.write(self.style.SUCCESS("Dry-run complete. No UniProt API fetch was executed."))
+            self.stdout.write(
+                self.style.SUCCESS("Dry-run complete. No UniProt API fetch was executed.")
+            )
             return
 
         call_command(
@@ -87,19 +93,31 @@ def _annotation_counts(db):
         "uniprot": BioentryDbxref.objects.filter(
             bioentry__biodatabase=db,
             dbxref__dbname__in=("UnipSp", "UnipTr"),
-        ).values("bioentry_id").distinct().count(),
+        )
+        .values("bioentry_id")
+        .distinct()
+        .count(),
         "ec": BioentryDbxref.objects.filter(
             bioentry__biodatabase=db,
             dbxref__dbname__in=ec_dbnames,
-        ).values("bioentry_id").distinct().count(),
+        )
+        .values("bioentry_id")
+        .distinct()
+        .count(),
         "go": BioentryDbxref.objects.filter(
             bioentry__biodatabase=db,
             dbxref__dbname__in=go_dbnames,
-        ).values("bioentry_id").distinct().count(),
+        )
+        .values("bioentry_id")
+        .distinct()
+        .count(),
         "pdb_xref_proteins": BioentryDbxref.objects.filter(
             bioentry__biodatabase=db,
             dbxref__dbname="PDB",
-        ).values("bioentry_id").distinct().count(),
+        )
+        .values("bioentry_id")
+        .distinct()
+        .count(),
         "experimental_structure_xrefs": ExperimentalStructureXref.objects.filter(
             bioentry__biodatabase=db,
         ).count(),
@@ -111,4 +129,6 @@ def _write_counts(command, counts):
     command.stdout.write(f"  EC annotated proteins: {counts['ec']}")
     command.stdout.write(f"  GO annotated proteins: {counts['go']}")
     command.stdout.write(f"  Proteins with PDB xrefs: {counts['pdb_xref_proteins']}")
-    command.stdout.write(f"  Experimental structure xrefs: {counts['experimental_structure_xrefs']}")
+    command.stdout.write(
+        f"  Experimental structure xrefs: {counts['experimental_structure_xrefs']}"
+    )

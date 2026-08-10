@@ -14,11 +14,11 @@ import sys
 
 from pathlib import Path
 
+import environ
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-
-import environ
 
 env = environ.Env()
 
@@ -28,24 +28,27 @@ env = environ.Env()
 
 DEBUG = env.bool("DJANGO_DEBUG", True)
 
-DBTASK = any([x in sys.argv[1:] for x in ["makemigrations", "migrate", "createsuperuser", "shell_plus"]])
+DBTASK = any(
+    [x in sys.argv[1:] for x in ["makemigrations", "migrate", "createsuperuser", "shell_plus"]]
+)
 WORKERPROC = sys.argv[0].endswith("celery")
 
 ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=["localhost", "0.0.0.0", "127.0.0.1"])
-CSRF_TRUSTED_ORIGINS = env.list("DJANGO_CSRF_TRUSTED_ORIGINS", default=["https://" + x for x in ALLOWED_HOSTS])
+CSRF_TRUSTED_ORIGINS = env.list(
+    "DJANGO_CSRF_TRUSTED_ORIGINS", default=["https://" + x for x in ALLOWED_HOSTS]
+)
 # Application definition
 
 DJANGO_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'crispy_forms',
-    'crispy_bootstrap4',
-    'django.contrib.sites',
-
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+    "crispy_forms",
+    "crispy_bootstrap4",
+    "django.contrib.sites",
 ]
 
 THIRD_PARTY_APPS = []
@@ -54,18 +57,18 @@ ALLAUTHAPPS = []
 if not WORKERPROC:
     THIRD_PARTY_APPS = THIRD_PARTY_APPS + [
         "corsheaders",
-
-
-        'ckeditor',
-        'ckeditor_uploader',
+        "ckeditor",
+        "ckeditor_uploader",
         #'crispy_forms',
     ]
 
-    ALLAUTHAPPS = [ 'allauth',
-                    'allauth.account',
-                    'allauth.socialaccount',
-                    'allauth.socialaccount.providers.orcid',
-                    'allauth.socialaccount.providers.google',]
+    ALLAUTHAPPS = [
+        "allauth",
+        "allauth.account",
+        "allauth.socialaccount",
+        "allauth.socialaccount.providers.orcid",
+        "allauth.socialaccount.providers.google",
+    ]
 
 LOCAL_APPS = [
     "sndgjobs",
@@ -76,51 +79,51 @@ LOCAL_APPS = [
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS + ALLAUTHAPPS
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
+    "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "tpweb.middleware.observability.RequestTimingMiddleware",
     "corsheaders.middleware.CorsMiddleware",
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.common.BrokenLinkEmailsMiddleware",
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-ROOT_URLCONF = 'tpwebconfig.urls'
+ROOT_URLCONF = "tpwebconfig.urls"
 
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.debug",
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
             ],
         },
     },
 ]
 
-WSGI_APPLICATION = 'tpwebconfig.wsgi.application'
+WSGI_APPLICATION = "tpwebconfig.wsgi.application"
 SITE_ID = 1
 
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': env("DJANGO_DATABASE_NAME", default="tp"),
-        'USER': env("DJANGO_DATABASE_USER", default="postgres"),
-        'PASSWORD': env("DJANGO_DATABASE_PASSWORD", default="123"),
-        'HOST': env("DJANGO_DATABASE_HOST", default="db"),
-        'PORT': env("DJANGO_DATABASE_PORT", default="5432"),
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": env("DJANGO_DATABASE_NAME", default="tp"),
+        "USER": env("DJANGO_DATABASE_USER", default="postgres"),
+        "PASSWORD": env("DJANGO_DATABASE_PASSWORD", default="123"),
+        "HOST": env("DJANGO_DATABASE_HOST", default="db"),
+        "PORT": env("DJANGO_DATABASE_PORT", default="5432"),
     }
 }
 
@@ -129,25 +132,25 @@ DATABASES = {
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.1/topics/i18n/
 
-LANGUAGE_CODE = env("DJANGO_LANGUAGE_CODE", default='en-us')
+LANGUAGE_CODE = env("DJANGO_LANGUAGE_CODE", default="en-us")
 
-TIME_ZONE = env("DJANGO_TIME_ZONE", default='UTC')
+TIME_ZONE = env("DJANGO_TIME_ZONE", default="UTC")
 
 USE_I18N = True
 
@@ -156,12 +159,12 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = "static/"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # ---------------------------------------------
 
@@ -181,14 +184,14 @@ LOGIN_REDIRECT_URL = "tpwebapp:index"
 LOGIN_URL = "account_login"
 
 INTERNAL_IPS = env.list("DJANGO_INTERNAL_IPS", default=["127.0.0.1"])
-ADMIN_URL = env("DJANGO_ADMIN_URL", default='admin/')
+ADMIN_URL = env("DJANGO_ADMIN_URL", default="admin/")
 
 # MEDIA
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#media-root
-MEDIA_ROOT = env("DJANGO_MEDIA_ROOT", default='data/')
+MEDIA_ROOT = env("DJANGO_MEDIA_ROOT", default="data/")
 # https://docs.djangoproject.com/en/dev/ref/settings/#media-url
-MEDIA_URL = env("DJANGO_MEDIA_URL", default='data/')
+MEDIA_URL = env("DJANGO_MEDIA_URL", default="data/")
 
 # STATIC
 # ------------------------------------------------------------------------------
@@ -203,7 +206,7 @@ STATICFILES_FINDERS = [
     "django.contrib.staticfiles.finders.FileSystemFinder",
     "django.contrib.staticfiles.finders.AppDirectoriesFinder",
 ]
-CKEDITOR_UPLOAD_PATH="uploads/"
+CKEDITOR_UPLOAD_PATH = "uploads/"
 
 # Celery
 # ------------------------------------------------------------------------------
@@ -285,12 +288,12 @@ if DEBUG:
     JBROWSE_BASE_URL = env("JBROWSE_BASE_URL", default="http://localhost:3000/")
     SEQS_DATA_DIR = env("SEQS_DATA_DIR", default="./data/")
     SECRET_KEY = "123"
-    INSTALLED_APPS.append('django_extensions')
+    INSTALLED_APPS.append("django_extensions")
     """
     INSTALLED_APPS.append("debug_toolbar")
-    
+
     MIDDLEWARE.append("debug_toolbar.middleware.DebugToolbarMiddleware")
-    
+
     DEBUG_TOOLBAR_CONFIG = {
         "DISABLE_PANELS": ["debug_toolbar.panels.redirects.RedirectsPanel"],
         "SHOW_TEMPLATE_CONTEXT": True,
@@ -314,7 +317,7 @@ if DEBUG:
         CELERY_RESULT_BACKEND=redis://127.0.0.1:6379/6
         CELERY_BROKER_URL=amqp://user:password@localhost:5672/project1-celery
     """
-    STATICFILES_DIRS.append(env("DJANGO_ROOT",default="static/"))
+    STATICFILES_DIRS.append(env("DJANGO_ROOT", default="static/"))
     STATICFILES_DIRS.append(MEDIA_ROOT)
 
 
@@ -328,12 +331,14 @@ else:
     # REDIS_URL=rediscache://127.0.0.1:6379/1?client_class=django_redis.client.DefaultClient&password=ungithubbed-secret
 
     import logging
+
     try:
         import sentry_sdk
         from sentry_sdk.integrations.logging import LoggingIntegration
         from sentry_sdk.integrations.celery import CeleryIntegration
         from sentry_sdk.integrations.django import DjangoIntegration
         from sentry_sdk.integrations.redis import RedisIntegration
+
         _has_sentry = True
     except ImportError:
         _has_sentry = False
@@ -377,8 +382,7 @@ else:
         "disable_existing_loggers": True,
         "formatters": {
             "verbose": {
-                "format": "%(levelname)s %(asctime)s %(module)s "
-                          "%(process)d %(thread)d %(message)s"
+                "format": "%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s"
             }
         },
         "handlers": {
@@ -434,7 +438,7 @@ else:
 
 JBROWSE_EMBED_ENABLED = env.bool("JBROWSE_EMBED_ENABLED", default=True)
 # BLAST
-BLASTN_PATH = env('BLASTN_PATH', default = 'blastn')
-BLASTP_PATH = env('BLASTP_PATH', default = 'blastp')
+BLASTN_PATH = env("BLASTN_PATH", default="blastn")
+BLASTP_PATH = env("BLASTP_PATH", default="blastp")
 # CRISPY
-CRISPY_TEMPLATE_PACK = 'bootstrap4'
+CRISPY_TEMPLATE_PACK = "bootstrap4"

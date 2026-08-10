@@ -31,7 +31,11 @@ def structure_kind(identifier):
         return "PDB"
     if ident.startswith("CB_"):
         return "ColabFold/curated"
-    if ident.startswith("AF_") or ident.startswith("A0A") or (len(ident) == 6 and ident[0].isalpha() and ident[1].isdigit() and ident[-1].isdigit()):
+    if (
+        ident.startswith("AF_")
+        or ident.startswith("A0A")
+        or (len(ident) == 6 and ident[0].isalpha() and ident[1].isdigit() and ident[-1].isdigit())
+    ):
         return "AlphaFold/UniProt"
     return "Curated/model"
 
@@ -43,7 +47,7 @@ def identifier_candidates(identifier):
     candidates = {ident}
     for prefix in ("AF_", "CB_"):
         if ident.startswith(prefix):
-            candidates.add(ident[len(prefix):])
+            candidates.add(ident[len(prefix) :])
     candidates.add(f"AF_{ident}")
     candidates.add(f"CB_{ident}")
     return candidates
@@ -54,7 +58,11 @@ def code_matches(code, identifier):
     if not code:
         return False
     for candidate in identifier_candidates(identifier):
-        if code == candidate or code.startswith(f"{candidate}_") or code.startswith(f"{candidate}-"):
+        if (
+            code == candidate
+            or code.startswith(f"{candidate}_")
+            or code.startswith(f"{candidate}-")
+        ):
             return True
     return False
 
@@ -98,14 +106,18 @@ class Command(BaseCommand):
             bioentry_id__in=protein_ids,
             score_param__name__in=score_names,
         ).select_related("score_param"):
-            value = spv.value if spv.value else (
-                str(spv.numeric_value) if spv.numeric_value is not None else ""
+            value = (
+                spv.value
+                if spv.value
+                else (str(spv.numeric_value) if spv.numeric_value is not None else "")
             )
             scores[spv.bioentry_id][spv.score_param.name] = raw_score(value)
 
         loaded_codes = defaultdict(set)
         loaded_count = Counter()
-        for link in BioentryStructure.objects.filter(bioentry_id__in=protein_ids).select_related("pdb"):
+        for link in BioentryStructure.objects.filter(bioentry_id__in=protein_ids).select_related(
+            "pdb"
+        ):
             code = raw_score(getattr(link.pdb, "code", "")).upper()
             if code:
                 loaded_codes[link.bioentry_id].add(code)
@@ -117,9 +129,13 @@ class Command(BaseCommand):
             if code:
                 xref_codes[xref.bioentry_id].add(code)
 
-        self.stdout.write(self.style.MIGRATE_HEADING(f"Selected structure source report for {genome_name}"))
+        self.stdout.write(
+            self.style.MIGRATE_HEADING(f"Selected structure source report for {genome_name}")
+        )
         self.stdout.write(f"Proteins: {len(protein_ids)}")
-        self.stdout.write(f"Proteins with loaded structures: {sum(1 for pid in protein_ids if loaded_codes.get(pid))}")
+        self.stdout.write(
+            f"Proteins with loaded structures: {sum(1 for pid in protein_ids if loaded_codes.get(pid))}"
+        )
 
         combined_total = 0
         combined_loaded = 0
@@ -141,7 +157,9 @@ class Command(BaseCommand):
                 combined_total += 1
                 kind = structure_kind(source)
                 by_kind[kind] += 1
-                is_loaded = any(code_matches(code, source) for code in loaded_codes.get(protein_id, set()))
+                is_loaded = any(
+                    code_matches(code, source) for code in loaded_codes.get(protein_id, set())
+                )
                 if is_loaded:
                     loaded += 1
                     combined_loaded += 1
@@ -151,25 +169,33 @@ class Command(BaseCommand):
                 missing += 1
                 missing_by_kind[kind] += 1
                 combined_missing_by_kind[kind] += 1
-                is_xref_only = any(code_matches(code, source) for code in xref_codes.get(protein_id, set()))
+                is_xref_only = any(
+                    code_matches(code, source) for code in xref_codes.get(protein_id, set())
+                )
                 if is_xref_only:
                     xref_only += 1
                     xref_only_by_kind[kind] += 1
                 if len(missing_examples[kind]) < examples_limit:
-                    missing_examples[kind].append({
-                        "accession": accession,
-                        "source": source,
-                        "score": scores.get(protein_id, {}).get(score_field, ""),
-                        "pocket": scores.get(protein_id, {}).get(pocket_field, ""),
-                        "loaded_n": loaded_count.get(protein_id, 0),
-                        "xref_only": is_xref_only,
-                    })
+                    missing_examples[kind].append(
+                        {
+                            "accession": accession,
+                            "source": source,
+                            "score": scores.get(protein_id, {}).get(score_field, ""),
+                            "pocket": scores.get(protein_id, {}).get(pocket_field, ""),
+                            "loaded_n": loaded_count.get(protein_id, 0),
+                            "xref_only": is_xref_only,
+                        }
+                    )
 
             self.stdout.write("")
             self.stdout.write(self.style.HTTP_INFO(f"{method} selected source"))
             self.stdout.write(f"  with selected source: {total}")
-            self.stdout.write(f"  loaded in Target: {loaded}/{total} ({format_percent(loaded, total)})")
-            self.stdout.write(f"  missing from loaded structures: {missing}/{total} ({format_percent(missing, total)})")
+            self.stdout.write(
+                f"  loaded in Target: {loaded}/{total} ({format_percent(loaded, total)})"
+            )
+            self.stdout.write(
+                f"  missing from loaded structures: {missing}/{total} ({format_percent(missing, total)})"
+            )
             if xref_only:
                 self.stdout.write(f"  missing but present as experimental xref: {xref_only}")
 

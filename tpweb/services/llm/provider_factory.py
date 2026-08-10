@@ -5,6 +5,7 @@ prototype we also accept the simpler OPENAI_* variables used by the cluster
 smoke tests: if OPENAI_AGENT_ENABLED=true and OPENAI_API_KEY is present,
 OpenAI is selected without requiring an extra TPW_LLM_PROVIDER setting.
 """
+
 from __future__ import annotations
 
 import os
@@ -24,7 +25,9 @@ def llm_agent_enabled() -> bool:
 def get_provider() -> LLMProvider:
     provider_name = os.environ.get("TPW_LLM_PROVIDER", "").strip().lower()
     if not provider_name:
-        provider_name = "openai" if llm_agent_enabled() and os.environ.get("OPENAI_API_KEY") else "anthropic"
+        provider_name = (
+            "openai" if llm_agent_enabled() and os.environ.get("OPENAI_API_KEY") else "anthropic"
+        )
 
     if provider_name == "anthropic":
         from .anthropic_provider import AnthropicProvider

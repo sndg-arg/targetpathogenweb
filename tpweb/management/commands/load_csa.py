@@ -42,7 +42,15 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 from tqdm import tqdm
 
-from tpweb.models.pdb import PDB, Atom, PDBResidueSet, Residue, ResidueSet, ResidueSetResidue, AtomResidueSet
+from tpweb.models.pdb import (
+    PDB,
+    Atom,
+    PDBResidueSet,
+    Residue,
+    ResidueSet,
+    ResidueSetResidue,
+    AtomResidueSet,
+)
 
 RESIDUE_SET_NAME = "CSA"
 RESIDUE_SET_DESCRIPTION = "Catalytic Site Atlas / M-CSA catalytic residues"
@@ -53,7 +61,16 @@ DEFAULT_COLUMN_ALIASES = {
     "resid": ["resid", "residue_id", "residue id", "residue_number", "residue number", "pdb_resid"],
     "icode": ["icode", "insertion_code", "insertion code", "pdb_icode"],
     "resname": ["resname", "residue_name", "residue name", "three_letter_code"],
-    "site": ["m-csa id", "mcsa_id", "mcsa id", "csa_id", "csa id", "site_number", "site number", "site_id"],
+    "site": [
+        "m-csa id",
+        "mcsa_id",
+        "mcsa id",
+        "csa_id",
+        "csa id",
+        "site_number",
+        "site number",
+        "site_id",
+    ],
     "role": ["role", "roles", "function_location_abv", "residue_role"],
 }
 
@@ -117,22 +134,33 @@ class Command(BaseCommand):
         parser.add_argument("--resid-column", default=None, metavar="NAME")
         parser.add_argument("--icode-column", default=None, metavar="NAME")
         parser.add_argument("--resname-column", default=None, metavar="NAME")
-        parser.add_argument("--site-column", default=None, metavar="NAME",
-                             help="Column that groups residues into one catalytic site "
-                                  "(e.g. M-CSA ID). Required to avoid merging unrelated sites "
-                                  "that happen to share a PDB code.")
-        parser.add_argument("--role-column", default=None, metavar="NAME",
-                             help="Optional column with a human-readable role/description per "
-                                  "residue, stored on the imported site for display.")
-        parser.add_argument("--overwrite", action="store_true",
-                             help="Replace any previously-imported CSA sites for the PDB codes "
-                                  "found in this file. Without this flag, a PDB code that already "
-                                  "has CSA sites imported is left untouched.")
+        parser.add_argument(
+            "--site-column",
+            default=None,
+            metavar="NAME",
+            help="Column that groups residues into one catalytic site "
+            "(e.g. M-CSA ID). Required to avoid merging unrelated sites "
+            "that happen to share a PDB code.",
+        )
+        parser.add_argument(
+            "--role-column",
+            default=None,
+            metavar="NAME",
+            help="Optional column with a human-readable role/description per "
+            "residue, stored on the imported site for display.",
+        )
+        parser.add_argument(
+            "--overwrite",
+            action="store_true",
+            help="Replace any previously-imported CSA sites for the PDB codes "
+            "found in this file. Without this flag, a PDB code that already "
+            "has CSA sites imported is left untouched.",
+        )
         parser.add_argument(
             "--group-across-chains",
             action="store_true",
             help="Treat rows with the same PDB/site ID across chains as one site. "
-                 "By default each chain copy is kept separate.",
+            "By default each chain copy is kept separate.",
         )
         parser.add_argument("--dry-run", action="store_true")
 
@@ -175,13 +203,15 @@ class Command(BaseCommand):
         group_across_chains = options["group_across_chains"]
 
         parsed_residues = df[resid_col].apply(_parse_residue_identifier)
-        work = pd.DataFrame({
-            "pdb": df[pdb_col].apply(lambda value: _clean_optional_text(value, upper=True)),
-            "chain": df[chain_col].apply(_clean_optional_text),
-            "resid": parsed_residues.apply(lambda parsed: parsed[0]),
-            "parsed_icode": parsed_residues.apply(lambda parsed: parsed[1]),
-            "site": df[site_col].apply(_clean_optional_text),
-        })
+        work = pd.DataFrame(
+            {
+                "pdb": df[pdb_col].apply(lambda value: _clean_optional_text(value, upper=True)),
+                "chain": df[chain_col].apply(_clean_optional_text),
+                "resid": parsed_residues.apply(lambda parsed: parsed[0]),
+                "parsed_icode": parsed_residues.apply(lambda parsed: parsed[1]),
+                "site": df[site_col].apply(_clean_optional_text),
+            }
+        )
         work["icode"] = (
             df[icode_col].apply(lambda value: _clean_optional_text(value, upper=True))
             if icode_col
@@ -203,9 +233,11 @@ class Command(BaseCommand):
         work["resid"] = work["resid"].astype(int)
         dropped = before - len(work)
         if dropped:
-            self.stdout.write(self.style.WARNING(
-                f"  Skipped {dropped} row(s) missing PDB/chain/residue number/site id."
-            ))
+            self.stdout.write(
+                self.style.WARNING(
+                    f"  Skipped {dropped} row(s) missing PDB/chain/residue number/site id."
+                )
+            )
 
         pdb_codes_in_file = set(work["pdb"].unique())
         known_pdb_codes = set(
@@ -218,17 +250,16 @@ class Command(BaseCommand):
         if not group_across_chains:
             group_columns.append("chain")
         sites = list(matched.groupby(group_columns))
-        pdb_by_code = {
-            pdb.code: pdb
-            for pdb in PDB.objects.filter(code__in=known_pdb_codes)
-        }
+        pdb_by_code = {pdb.code: pdb for pdb in PDB.objects.filter(code__in=known_pdb_codes)}
 
-        self.stdout.write(self.style.HTTP_INFO(
-            f"{len(work)} residue row(s) across {len(pdb_codes_in_file)} PDB code(s) in the file; "
-            f"{len(known_pdb_codes)} of those are already loaded in Target "
-            f"({unmatched_pdb_count} PDB code(s) in the file are not loaded here and will be skipped) "
-            f"-> {len(sites)} catalytic site(s) to import."
-        ))
+        self.stdout.write(
+            self.style.HTTP_INFO(
+                f"{len(work)} residue row(s) across {len(pdb_codes_in_file)} PDB code(s) in the file; "
+                f"{len(known_pdb_codes)} of those are already loaded in Target "
+                f"({unmatched_pdb_count} PDB code(s) in the file are not loaded here and will be skipped) "
+                f"-> {len(sites)} catalytic site(s) to import."
+            )
+        )
 
         if dry_run:
             matched_residues = 0
@@ -250,12 +281,14 @@ class Command(BaseCommand):
                         missing_residues += 1
                 if site_has_match:
                     mappable_sites += 1
-            self.stdout.write(self.style.SUCCESS(
-                f"[dry-run] {mappable_sites}/{len(sites)} catalytic site(s) have at least "
-                f"one unambiguous loaded residue ({matched_residues} residue row(s) matched; "
-                f"{missing_residues} missing; {ambiguous_residues} ambiguous). "
-                "No database changes made."
-            ))
+            self.stdout.write(
+                self.style.SUCCESS(
+                    f"[dry-run] {mappable_sites}/{len(sites)} catalytic site(s) have at least "
+                    f"one unambiguous loaded residue ({matched_residues} residue row(s) matched; "
+                    f"{missing_residues} missing; {ambiguous_residues} ambiguous). "
+                    "No database changes made."
+                )
+            )
             return
 
         if not sites:
@@ -340,28 +373,36 @@ class Command(BaseCommand):
                     skipped_sites_no_match += 1
                     prs.delete()
 
-        self.stdout.write(self.style.SUCCESS(
-            f"Imported {created_sites} catalytic site(s) across "
-            f"{matched['pdb'].nunique()} PDB structure(s)."
-        ))
+        self.stdout.write(
+            self.style.SUCCESS(
+                f"Imported {created_sites} catalytic site(s) across "
+                f"{matched['pdb'].nunique()} PDB structure(s)."
+            )
+        )
         if skipped_sites_existing:
             self.stdout.write(
                 f"  {skipped_sites_existing} site(s) skipped (already imported; pass --overwrite to replace)."
             )
         if skipped_sites_no_match:
-            self.stdout.write(self.style.WARNING(
-                f"  {skipped_sites_no_match} site(s) had no residue that matched the loaded "
-                "structure (wrong chain/resid, or the structure only covers part of the chain) "
-                "and were not created."
-            ))
+            self.stdout.write(
+                self.style.WARNING(
+                    f"  {skipped_sites_no_match} site(s) had no residue that matched the loaded "
+                    "structure (wrong chain/resid, or the structure only covers part of the chain) "
+                    "and were not created."
+                )
+            )
         if skipped_residues_not_found:
-            self.stdout.write(self.style.WARNING(
-                f"  {skipped_residues_not_found} individual residue row(s) did not match any "
-                "loaded residue and were skipped within otherwise-created sites."
-            ))
+            self.stdout.write(
+                self.style.WARNING(
+                    f"  {skipped_residues_not_found} individual residue row(s) did not match any "
+                    "loaded residue and were skipped within otherwise-created sites."
+                )
+            )
         if skipped_residues_ambiguous:
-            self.stdout.write(self.style.WARNING(
-                f"  {skipped_residues_ambiguous} individual residue row(s) matched more than "
-                "one loaded residue and were skipped; provide insertion-code/residue-name "
-                "columns to disambiguate them."
-            ))
+            self.stdout.write(
+                self.style.WARNING(
+                    f"  {skipped_residues_ambiguous} individual residue row(s) matched more than "
+                    "one loaded residue and were skipped; provide insertion-code/residue-name "
+                    "columns to disambiguate them."
+                )
+            )

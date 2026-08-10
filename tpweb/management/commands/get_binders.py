@@ -9,14 +9,27 @@ from django.core.management.base import BaseCommand
 
 from bioseq.io.SeqStore import SeqStore
 
-class Command(BaseCommand):
 
+class Command(BaseCommand):
     def add_arguments(self, parser):
-        parser.add_argument('genome')
-        parser.add_argument('--datadir', default="./")
+        parser.add_argument("genome")
+        parser.add_argument("--datadir", default="./")
 
     def handle(self, *args, **options):
-        ubiquitous = {'ZN', 'ATP', 'LEU', 'CA', 'PO4', 'MN', 'PEPTIDE', 'DNA', 'MG', 'FE', 'FE2', 'HG'}
+        ubiquitous = {
+            "ZN",
+            "ATP",
+            "LEU",
+            "CA",
+            "PO4",
+            "MN",
+            "PEPTIDE",
+            "DNA",
+            "MG",
+            "FE",
+            "FE2",
+            "HG",
+        }
 
         def download_if_missing(url, output_filename, label):
             if os.path.exists(output_filename):
@@ -155,7 +168,9 @@ class Command(BaseCommand):
 
         def get_binders(df, ccd_cif_path):
             if df.empty:
-                return pd.DataFrame(columns=["Uniprot", "Locustag", "PDB ID", "Ligand ID", "Name", "Smiles"])
+                return pd.DataFrame(
+                    columns=["Uniprot", "Locustag", "PDB ID", "Ligand ID", "Name", "Smiles"]
+                )
             ligands = set(df["Ligand ID"].dropna().astype(str))
             smiles_map = parse_components_for_ligands(ccd_cif_path, ligands)
             smiles_rows = []
@@ -184,8 +199,3 @@ class Command(BaseCommand):
         binders.to_csv(f"{folder_path}/binders.csv", index=False)
         execution_time = time.time() - start_time
         print(f"Execution time: {execution_time:.2f} seconds")
-
-
-
-
-

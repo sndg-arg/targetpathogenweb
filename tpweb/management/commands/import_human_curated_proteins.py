@@ -26,6 +26,7 @@ the whole ingestion -- verify field-by-field against one real file before
 trusting this in production, per CLAUDE.md's "no local execution
 environment" note.
 """
+
 import json
 from pathlib import Path
 
@@ -80,12 +81,14 @@ def _extract_comments(entry):
                 out[_COMMENT_TEXT_TYPES[ctype]] = " ".join(texts)
         elif ctype == "DISEASE":
             disease = comment.get("disease") or {}
-            diseases.append({
-                "name": disease.get("diseaseId", ""),
-                "acronym": disease.get("acronym", ""),
-                "description": disease.get("description", ""),
-                "mim": disease.get("diseaseCrossReference", {}).get("id", ""),
-            })
+            diseases.append(
+                {
+                    "name": disease.get("diseaseId", ""),
+                    "acronym": disease.get("acronym", ""),
+                    "description": disease.get("description", ""),
+                    "mim": disease.get("diseaseCrossReference", {}).get("id", ""),
+                }
+            )
     return out, diseases
 
 
@@ -100,11 +103,13 @@ def _extract_catalytic_activity(entry):
             if xref.get("database") == "Rhea":
                 rhea_id = xref.get("id", "")
                 break
-        catalytic.append({
-            "ec": reaction.get("ecNumber", ""),
-            "rhea": rhea_id,
-            "reaction": reaction.get("name", ""),
-        })
+        catalytic.append(
+            {
+                "ec": reaction.get("ecNumber", ""),
+                "rhea": rhea_id,
+                "reaction": reaction.get("name", ""),
+            }
+        )
     return catalytic
 
 
@@ -159,12 +164,14 @@ def _extract_features(entry):
         end = (location.get("end") or {}).get("value")
         if start is None:
             continue
-        features.append({
-            "type": feature.get("type", ""),
-            "description": feature.get("description", ""),
-            "start": start,
-            "end": end if end is not None else start,
-        })
+        features.append(
+            {
+                "type": feature.get("type", ""),
+                "description": feature.get("description", ""),
+                "start": start,
+                "end": end if end is not None else start,
+            }
+        )
     return features
 
 
@@ -248,9 +255,13 @@ class Command(BaseCommand):
     help = "Ingest curated human proteins (Human Targets section) from a local new_data/ tree."
 
     def add_arguments(self, parser):
-        parser.add_argument("data_dir", help="Local root containing <ACC>/ folders (downloaded from Zenodo).")
         parser.add_argument(
-            "--accession", action="append", default=None,
+            "data_dir", help="Local root containing <ACC>/ folders (downloaded from Zenodo)."
+        )
+        parser.add_argument(
+            "--accession",
+            action="append",
+            default=None,
             help="Restrict ingestion to this accession. Repeatable. Default: the 10 demo accessions.",
         )
         parser.add_argument("--overwrite", action="store_true")
@@ -274,8 +285,12 @@ class Command(BaseCommand):
 
         ec_ontology = go_ontology = None
         if not dry_run:
-            ec_ontology, _ = Ontology.objects.get_or_create(name=Ontology.EC, defaults={"definition": ""})
-            go_ontology, _ = Ontology.objects.get_or_create(name=Ontology.GO, defaults={"definition": ""})
+            ec_ontology, _ = Ontology.objects.get_or_create(
+                name=Ontology.EC, defaults={"definition": ""}
+            )
+            go_ontology, _ = Ontology.objects.get_or_create(
+                name=Ontology.GO, defaults={"definition": ""}
+            )
 
         for accession in accessions:
             protein_dir = data_dir / accession
@@ -317,15 +332,21 @@ class Command(BaseCommand):
                 defaults={"uniprot_accession": accession, **fields},
             )
 
-            ec_created = persist_ec_go_annotations(bioentry, _extract_ec_numbers(entry), "ec", ec_ontology)
-            go_created = persist_ec_go_annotations(bioentry, fields["go_terms"], Ontology.GO, go_ontology)
+            ec_created = persist_ec_go_annotations(
+                bioentry, _extract_ec_numbers(entry), "ec", ec_ontology
+            )
+            go_created = persist_ec_go_annotations(
+                bioentry, fields["go_terms"], Ontology.GO, go_ontology
+            )
             self.stdout.write(f"  EC created: {ec_created}, GO created: {go_created}")
 
             if not options["skip_ligands"]:
                 self._load_ligands(protein_dir, accession)
 
             if not options["skip_structures"]:
-                self._load_structures(protein_dir, accession, bioentry, options["datadir"], overwrite)
+                self._load_structures(
+                    protein_dir, accession, bioentry, options["datadir"], overwrite
+                )
 
     def _load_ligands(self, protein_dir, accession):
         ligq_dir = protein_dir / "ligq"
@@ -364,7 +385,14 @@ class Command(BaseCommand):
                 continue
             for cif_file in sorted(folder.glob(f"{accession}_*.cif")):
                 pdb_id = cif_file.stem.split(f"{accession}_", 1)[-1].upper()
-                jobs.append((pdb_id, cif_file, "EX", method_by_pdb_id.get(pdb_id, "NMR" if is_nmr else "X-RAY")))
+                jobs.append(
+                    (
+                        pdb_id,
+                        cif_file,
+                        "EX",
+                        method_by_pdb_id.get(pdb_id, "NMR" if is_nmr else "X-RAY"),
+                    )
+                )
 
         for code, path, experiment, method in jobs:
             try:

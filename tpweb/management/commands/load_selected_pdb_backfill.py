@@ -49,17 +49,14 @@ def _parse_structure_candidates(value):
     except (SyntaxError, ValueError):
         parsed = value.replace("{", "").replace("}", "").split(",")
     return [
-        _clean(candidate).strip("'\"").upper()
-        for candidate in parsed
-        if _is_pdb_code(candidate)
+        _clean(candidate).strip("'\"").upper() for candidate in parsed if _is_pdb_code(candidate)
     ]
 
 
 def _folder_path(datadir, genome_name):
     acclen = len(genome_name)
-    folder_name = genome_name[math.floor(acclen / 2 - 1):math.floor(acclen / 2 + 2)]
+    folder_name = genome_name[math.floor(acclen / 2 - 1) : math.floor(acclen / 2 + 2)]
     return os.path.join(datadir, folder_name, genome_name)
-
 
 
 def _download_cif_as_pdb(pdb_id, dest_path):
@@ -86,6 +83,7 @@ def _download_cif_as_pdb(pdb_id, dest_path):
         except Exception:
             continue
     return False
+
 
 class Command(BaseCommand):
     help = (
@@ -173,8 +171,7 @@ class Command(BaseCommand):
         missing_tsv_genes = 0
         if include_structure_column:
             protein_by_accession = {
-                protein.accession: protein
-                for protein in protein_by_id.values()
+                protein.accession: protein for protein in protein_by_id.values()
             }
             with open(results_tsv, newline="", encoding="utf-8") as handle:
                 reader = csv.DictReader(handle, delimiter="\t")
@@ -236,7 +233,9 @@ class Command(BaseCommand):
         if dry_run:
             for protein_id, pdb_id, fields in to_process[:50]:
                 protein = protein_by_id[protein_id]
-                self.stdout.write(f"  would load {protein.accession} {pdb_id} ({', '.join(fields)})")
+                self.stdout.write(
+                    f"  would load {protein.accession} {pdb_id} ({', '.join(fields)})"
+                )
             if len(to_process) > 50:
                 self.stdout.write(f"  ... {len(to_process) - 50} more")
             return
@@ -282,7 +281,9 @@ class Command(BaseCommand):
                 if xref is None:
                     xref = ExperimentalStructureXref(bioentry=protein, pdb_id=pdb_id)
                 _update_structure_link(xref, pdb_obj)
-                store_structure_file(dest_path, seqstore.structure(genome_name, locus_tag, pdb_obj.code))
+                store_structure_file(
+                    dest_path, seqstore.structure(genome_name, locus_tag, pdb_obj.code)
+                )
                 linked += 1
             except SystemExit as exc:
                 if exc.code == 0:
@@ -299,6 +300,7 @@ class Command(BaseCommand):
         self.stdout.write(f"Loaded/linked: {linked}")
         self.stdout.write(f"Skipped: {skipped}")
         self.stdout.write(f"Failed: {failed}")
+
 
 def _sanitize_for_pdbio(structure):
     chain_ids = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
@@ -321,5 +323,9 @@ def _sanitize_for_pdbio(structure):
 
                 for atom in residue:
                     altloc = atom.altloc
-                    if altloc in (None, "?", ".") or not isinstance(altloc, str) or len(altloc) != 1:
+                    if (
+                        altloc in (None, "?", ".")
+                        or not isinstance(altloc, str)
+                        or len(altloc) != 1
+                    ):
                         atom.altloc = " "

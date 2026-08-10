@@ -180,7 +180,11 @@ def summarize_structure_sources(structures):
     ]
 
     source_labels = [structure_source_label(source) for source in ordered_sources]
-    combined_label = " + ".join(source_labels) if source_labels else structure_source_label(STRUCTURE_SOURCE_NONE)
+    combined_label = (
+        " + ".join(source_labels)
+        if source_labels
+        else structure_source_label(STRUCTURE_SOURCE_NONE)
+    )
 
     return {
         "source": primary_source,
@@ -206,7 +210,7 @@ def structure_identifier_candidates(identifier):
     candidates = {ident}
     for prefix in ("AF_", "CB_"):
         if ident.startswith(prefix):
-            candidates.add(ident[len(prefix):])
+            candidates.add(ident[len(prefix) :])
     candidates.add(f"AF_{ident}")
     candidates.add(f"CB_{ident}")
     return candidates

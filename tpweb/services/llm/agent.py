@@ -6,6 +6,7 @@ answer or max_turns is hit. Only talks to the LLMProvider interface in
 base.py, so it works unchanged regardless of which provider TPW_LLM_PROVIDER
 selects.
 """
+
 from __future__ import annotations
 
 from collections.abc import Callable
@@ -120,9 +121,13 @@ class Agent:
     def _execute(self, call: ToolCall) -> ToolResult:
         entry = self.tools.get(call.name)
         if entry is None:
-            return ToolResult(tool_call_id=call.id, content=f"Unknown tool: {call.name}", is_error=True)
+            return ToolResult(
+                tool_call_id=call.id, content=f"Unknown tool: {call.name}", is_error=True
+            )
         if self._tool_result_chars_used >= _MAX_TOTAL_TOOL_RESULT_CHARS:
-            return ToolResult(tool_call_id=call.id, content=_TOOL_BUDGET_EXHAUSTED_MESSAGE, is_error=True)
+            return ToolResult(
+                tool_call_id=call.id, content=_TOOL_BUDGET_EXHAUSTED_MESSAGE, is_error=True
+            )
         try:
             result = _cap_tool_result(str(entry.run(call.input)))
             self._tool_result_chars_used += len(result)

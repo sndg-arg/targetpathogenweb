@@ -4,6 +4,7 @@ apply_filters.py) so there is one shared natural-language-to-filter-dict
 path -- this tool just applies the changes to a throwaway, session-free
 list instead of persisting them, then runs the resulting filter.
 """
+
 from __future__ import annotations
 
 from ..agent import ToolEntry
@@ -53,7 +54,11 @@ def build_search_proteins_entry(assembly_name):
 
         lines = [
             f"- {row['accession']}: {row['description'] or 'no description'}"
-            + (f" (druggability {row['druggability']:.2f})" if row["druggability"] is not None else "")
+            + (
+                f" (druggability {row['druggability']:.2f})"
+                if row["druggability"] is not None
+                else ""
+            )
             for row in results
         ]
         return f"{len(results)} matching protein(s):\n" + "\n".join(lines)

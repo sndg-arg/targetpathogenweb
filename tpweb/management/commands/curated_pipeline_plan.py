@@ -47,7 +47,9 @@ class Command(BaseCommand):
             structure_completion_ratio=options["structure_completion_ratio"],
         )
 
-        self.stdout.write(self.style.MIGRATE_HEADING(f"Curated pipeline plan for {plan.genome_name}"))
+        self.stdout.write(
+            self.style.MIGRATE_HEADING(f"Curated pipeline plan for {plan.genome_name}")
+        )
         self.stdout.write(f"Data folder: {plan.folder_path}")
         self.stdout.write(f"Proteins in Target: {plan.protein_total}")
         if plan.tsv_columns:
@@ -60,17 +62,31 @@ class Command(BaseCommand):
 
         self.stdout.write("")
         self.stdout.write(self.style.HTTP_INFO("Loaded structure/annotation coverage"))
-        self.stdout.write(f"  BioentryStructure proteins: {plan.protein_structures}/{plan.protein_total}")
+        self.stdout.write(
+            f"  BioentryStructure proteins: {plan.protein_structures}/{plan.protein_total}"
+        )
         self.stdout.write(f"  PDB records: {plan.pdb_count}")
         self.stdout.write(f"  FPocket pocket sets: {plan.fpocket_sets}")
         self.stdout.write(f"  P2Rank pocket sets: {plan.p2rank_sets}")
         self.stdout.write(f"  InterPro TSV exists: {plan.interpro_output_exists}")
-        self.stdout.write(f"  Proteins with sequence features: {plan.feature_proteins}/{plan.protein_total}")
-        self.stdout.write(f"  Proteins with UniProt mapping: {plan.uniprot_mapped_proteins}/{plan.protein_total}")
-        self.stdout.write(f"  Proteins with GO/EC annotations: {plan.annotation_proteins}/{plan.protein_total}")
-        self.stdout.write(f"  Proteins with EC annotations: {plan.ec_annotation_proteins}/{plan.protein_total}")
-        self.stdout.write(f"  Proteins with GO annotations: {plan.go_annotation_proteins}/{plan.protein_total}")
-        self.stdout.write(f"  Proteins with PDB xrefs: {plan.pdb_xref_proteins}/{plan.protein_total}")
+        self.stdout.write(
+            f"  Proteins with sequence features: {plan.feature_proteins}/{plan.protein_total}"
+        )
+        self.stdout.write(
+            f"  Proteins with UniProt mapping: {plan.uniprot_mapped_proteins}/{plan.protein_total}"
+        )
+        self.stdout.write(
+            f"  Proteins with GO/EC annotations: {plan.annotation_proteins}/{plan.protein_total}"
+        )
+        self.stdout.write(
+            f"  Proteins with EC annotations: {plan.ec_annotation_proteins}/{plan.protein_total}"
+        )
+        self.stdout.write(
+            f"  Proteins with GO annotations: {plan.go_annotation_proteins}/{plan.protein_total}"
+        )
+        self.stdout.write(
+            f"  Proteins with PDB xrefs: {plan.pdb_xref_proteins}/{plan.protein_total}"
+        )
         self.stdout.write(f"  Experimental structure xrefs: {plan.experimental_structure_xrefs}")
         self.stdout.write(f"  Binder rows: {plan.binder_count}")
         self.stdout.write(f"  LigQ/ZINC binder rows: {plan.ligq_binder_count}")
@@ -82,16 +98,24 @@ class Command(BaseCommand):
         self.stdout.write(self.style.HTTP_INFO("FastTarget status"))
         if plan.fasttarget_org_dir:
             self.stdout.write(f"  Pre-computed output found: {plan.fasttarget_org_dir}")
-            self.stdout.write(f"  human_offtarget rows: {plan.fasttarget_human_rows}/{plan.protein_total}")
+            self.stdout.write(
+                f"  human_offtarget rows: {plan.fasttarget_human_rows}/{plan.protein_total}"
+            )
             self.stdout.write(f"  hit_in_deg rows: {plan.fasttarget_deg_rows}/{plan.protein_total}")
             self.stdout.write(f"  Skip-exec possible: {plan.fasttarget_skip_exec_possible}")
         else:
-            self.stdout.write("  No pre-computed FastTarget output found in /app/fasttarget/organism/")
+            self.stdout.write(
+                "  No pre-computed FastTarget output found in /app/fasttarget/organism/"
+            )
 
         self.stdout.write("")
         self.stdout.write(self.style.HTTP_INFO("Pipeline decision"))
-        self.stdout.write(f"  Skip stages covered by curated/imported data: {plan.skip_stages_text or '-'}")
-        self.stdout.write(f"  Heavy stages that still require SLURM: {plan.required_remote_stages_text or '-'}")
+        self.stdout.write(
+            f"  Skip stages covered by curated/imported data: {plan.skip_stages_text or '-'}"
+        )
+        self.stdout.write(
+            f"  Heavy stages that still require SLURM: {plan.required_remote_stages_text or '-'}"
+        )
 
         if plan.notes:
             self.stdout.write("")
@@ -133,10 +157,12 @@ class Command(BaseCommand):
 
         if plan.required_remote_stages:
             self.stdout.write("")
-            self.stdout.write(self.style.WARNING(
-                "  Pipeline will pause at the first SLURM-required stage. "
-                "Ensure the env vars for each remote stage are configured before launching."
-            ))
+            self.stdout.write(
+                self.style.WARNING(
+                    "  Pipeline will pause at the first SLURM-required stage. "
+                    "Ensure the env vars for each remote stage are configured before launching."
+                )
+            )
 
         if os.getenv("TPW_FORBID_LOCAL_HEAVY", "").strip() != "1":
             self.stdout.write(

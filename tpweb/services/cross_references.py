@@ -5,10 +5,13 @@ page (uniprot_accessions in ProteinView.py, experimental_structures' pdb_id,
 binders' chembl entries, metabolic_context's per-reaction kegg_url/metacyc_url) --
 this module only regroups what's already in context, it never queries the DB itself.
 """
+
 from __future__ import annotations
 
 
-def build_protein_cross_references(uniprot_accessions, experimental_structures, binders, metabolic_context):
+def build_protein_cross_references(
+    uniprot_accessions, experimental_structures, binders, metabolic_context
+):
     sequence = [
         {"source": "UniProt", "id": acc, "url": f"https://www.uniprot.org/uniprotkb/{acc}"}
         for acc in (uniprot_accessions or [])
@@ -16,16 +19,18 @@ def build_protein_cross_references(uniprot_accessions, experimental_structures, 
 
     structure = []
     seen_pdb_ids = set()
-    for entry in (experimental_structures or []):
+    for entry in experimental_structures or []:
         pdb_id = entry.get("pdb_id")
         if not pdb_id or pdb_id in seen_pdb_ids:
             continue
         seen_pdb_ids.add(pdb_id)
-        structure.append({
-            "source": "PDB",
-            "id": pdb_id,
-            "url": f"https://www.rcsb.org/structure/{pdb_id}",
-        })
+        structure.append(
+            {
+                "source": "PDB",
+                "id": pdb_id,
+                "url": f"https://www.rcsb.org/structure/{pdb_id}",
+            }
+        )
 
     chemistry = []
     seen_chembl_ids = set()
@@ -54,7 +59,9 @@ def build_protein_cross_references(uniprot_accessions, experimental_structures, 
             biocyc_id = reaction.get("reaction_id")
             if biocyc_id and biocyc_id not in seen_biocyc_ids:
                 seen_biocyc_ids.add(biocyc_id)
-                pathways.append({"source": "BioCyc", "id": biocyc_id, "url": reaction.get("metacyc_url")})
+                pathways.append(
+                    {"source": "BioCyc", "id": biocyc_id, "url": reaction.get("metacyc_url")}
+                )
 
     return {
         "sequence": sequence,

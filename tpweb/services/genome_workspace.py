@@ -100,7 +100,9 @@ def resolve_genome_from_slug(user, slug):
         cleaned,
     ]
     for name in candidates:
-        if Biodatabase.objects.filter(name=name).exists() and user_can_access_genome_name(user, name):
+        if Biodatabase.objects.filter(name=name).exists() and user_can_access_genome_name(
+            user, name
+        ):
             return name
     return None
 
@@ -110,4 +112,7 @@ def user_can_delete_genome_name(user, genome_name):
         return False
     workspace_slug, _ = split_workspace_genome_name(genome_name)
     workspace_slug = str(workspace_slug or "").strip().lower()
-    return workspace_slug not in {"", PUBLIC_WORKSPACE_USERNAME} and workspace_slug == workspace_slug_for_user(user)
+    return workspace_slug not in {
+        "",
+        PUBLIC_WORKSPACE_USERNAME,
+    } and workspace_slug == workspace_slug_for_user(user)

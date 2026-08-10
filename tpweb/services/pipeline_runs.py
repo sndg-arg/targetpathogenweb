@@ -261,9 +261,7 @@ def cancel_pipeline_run(run):
     run.finished_at = timezone.now()
     run.launch_pid = None
     run.updated_at = timezone.now()
-    run.save(
-        update_fields=["status", "error_message", "finished_at", "launch_pid", "updated_at"]
-    )
+    run.save(update_fields=["status", "error_message", "finished_at", "launch_pid", "updated_at"])
 
     record_pipeline_stage_event(
         run.id,

@@ -57,7 +57,10 @@ class Command(BaseCommand):
         output_file_path = os.path.join(test_folder, f"{target_accession}.gbk")
         SeqIO.write(record, output_file_path, "genbank")
 
-        with open(output_file_path, "rb") as f_in, gzip.open(f"{output_file_path}.gz", "wb") as f_out:
+        with (
+            open(output_file_path, "rb") as f_in,
+            gzip.open(f"{output_file_path}.gz", "wb") as f_out,
+        ):
             shutil.copyfileobj(f_in, f_out)
 
         self.stderr.write("genome imported!")

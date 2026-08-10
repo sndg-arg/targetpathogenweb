@@ -251,9 +251,7 @@ def ensure_system_score_param(name, source_df=None):
     if definition is None:
         return None
 
-    score_param = (
-        ScoreParam.objects.filter(name=name, user__isnull=True).order_by("id").first()
-    )
+    score_param = ScoreParam.objects.filter(name=name, user__isnull=True).order_by("id").first()
     if score_param is None:
         score_param = ScoreParam.objects.create(
             category=definition["category"],
@@ -332,7 +330,11 @@ def visible_score_params_queryset(user):
 
 
 def visible_categorical_score_params_queryset(user):
-    return [score_param.pk for score_param in visible_score_params_queryset(user) if is_categorical_score_param(score_param)]
+    return [
+        score_param.pk
+        for score_param in visible_score_params_queryset(user)
+        if is_categorical_score_param(score_param)
+    ]
 
 
 def visible_score_param_options_queryset(user, param_id):

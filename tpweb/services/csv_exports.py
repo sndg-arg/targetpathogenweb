@@ -10,7 +10,7 @@ from django.http import HttpResponse
 # Design system brand colors (from masterpage.html :root)
 _XLSX_HEADER_BG = "EAF7FB"  # --tp-color-brand-050
 _XLSX_HEADER_FG = "0B4A61"  # --tp-color-brand-900
-_XLSX_ALT_ROW   = "F4FAF7"  # --tp-color-surface-soft
+_XLSX_ALT_ROW = "F4FAF7"  # --tp-color-surface-soft
 
 
 def build_view_export_url(request, strip_params=()):
@@ -59,16 +59,16 @@ def xlsx_sections_response(filename_stem, sections):
 
     header_font = Font(bold=True, color=_XLSX_HEADER_FG)
     header_fill = PatternFill("solid", fgColor=_XLSX_HEADER_BG)
-    alt_fill    = PatternFill("solid", fgColor=_XLSX_ALT_ROW)
+    alt_fill = PatternFill("solid", fgColor=_XLSX_ALT_ROW)
     center_align = Alignment(vertical="center")
 
     wb = openpyxl.Workbook()
     wb.remove(wb.active)
 
     for section in sections:
-        title   = str(section.get("title") or "Data").strip() or "Data"
+        title = str(section.get("title") or "Data").strip() or "Data"
         headers = list(section.get("headers") or [])
-        rows    = list(section.get("rows") or [])
+        rows = list(section.get("rows") or [])
 
         ws = wb.create_sheet(title=title[:31])
 
@@ -77,8 +77,8 @@ def xlsx_sections_response(filename_stem, sections):
         if headers:
             ws.append(headers)
             for cell in ws[1]:
-                cell.font      = header_font
-                cell.fill      = header_fill
+                cell.font = header_font
+                cell.fill = header_fill
                 cell.alignment = center_align
             ws.row_dimensions[1].height = 22
             ws.freeze_panes = "A2"

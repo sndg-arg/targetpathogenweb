@@ -39,9 +39,7 @@ class Command(BaseCommand):
         genome_folder = ss.db_dir(options["accession"])
 
         source = options["source"]
-        default_filename = (
-            "binders.csv" if source == Binders.SOURCE_PDB else "proposed_binders.csv"
-        )
+        default_filename = "binders.csv" if source == Binders.SOURCE_PDB else "proposed_binders.csv"
         filename = options["filename"] or default_filename
         binders_path = os.path.abspath(f"{genome_folder}/{filename}")
 
@@ -51,8 +49,7 @@ class Command(BaseCommand):
         df = pd.read_csv(binders_path)
         locustags = df["Locustag"].unique()
         bioentry_map = {
-            be.accession: be
-            for be in Bioentry.objects.filter(accession__in=list(locustags))
+            be.accession: be for be in Bioentry.objects.filter(accession__in=list(locustags))
         }
 
         has_score_col = "Score" in df.columns

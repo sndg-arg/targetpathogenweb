@@ -5,6 +5,7 @@ These are not behavioral tests -- they exist to catch the obvious stuff
 otherwise have zero test coverage. Deeper behavioral tests belong next to
 the service functions each view delegates to.
 """
+
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
@@ -66,7 +67,9 @@ class HealthViewTests(SimpleTestCase):
         self.assertIn("X-Request-Duration-Ms", response.headers)
 
     @patch("tpweb.services.pipeline_status.latest_active_pipeline_run")
-    def test_get_pipeline_status_falls_back_to_idle_on_database_error(self, latest_active_pipeline_run):
+    def test_get_pipeline_status_falls_back_to_idle_on_database_error(
+        self, latest_active_pipeline_run
+    ):
         latest_active_pipeline_run.side_effect = InterfaceError("connection already closed")
 
         payload = pipeline_status_service.get_pipeline_status()

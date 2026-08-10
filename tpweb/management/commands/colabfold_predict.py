@@ -70,7 +70,7 @@ class Command(BaseCommand):
 
         # Resolve folder path (same convention as run_pipeline_direct.py)
         acclen = len(genome)
-        folder_name = genome[math.floor(acclen / 2 - 1):math.floor(acclen / 2 + 2)]
+        folder_name = genome[math.floor(acclen / 2 - 1) : math.floor(acclen / 2 + 2)]
         folder_path = os.path.join(datadir, folder_name, genome)
         alphafold_dir = os.path.join(folder_path, "alphafold")
 
@@ -94,11 +94,7 @@ class Command(BaseCommand):
         self.stdout.write(f"Proteins with existing structure: {len(already_have)}")
 
         # Candidates: everything without a structure — no size limit
-        candidates = [
-            (tag, seq)
-            for tag, seq in sequences.items()
-            if tag not in already_have
-        ]
+        candidates = [(tag, seq) for tag, seq in sequences.items() if tag not in already_have]
 
         self.stdout.write(f"Candidates for ColabFold: {len(candidates)}")
 
@@ -123,8 +119,11 @@ class Command(BaseCommand):
             )
 
             success = self._run_colabfold(
-                colabfold_bin, input_fasta, output_dir,
-                num_recycles, num_models,
+                colabfold_bin,
+                input_fasta,
+                output_dir,
+                num_recycles,
+                num_models,
             )
 
             if not success:
@@ -150,9 +149,7 @@ class Command(BaseCommand):
                 self.stdout.write(f"  Saved structure: {locus_tag}")
                 predicted += 1
 
-        self.stdout.write(
-            f"ColabFold done: {predicted} predicted, {failed} failed"
-        )
+        self.stdout.write(f"ColabFold done: {predicted} predicted, {failed} failed")
         if not success:
             raise RuntimeError(
                 "colabfold_batch failed; no reliable ColabFold predictions were produced."
@@ -182,8 +179,7 @@ class Command(BaseCommand):
 
         return sequences
 
-    def _run_colabfold(self, colabfold_bin, input_fasta, output_dir,
-                       num_recycles, num_models):
+    def _run_colabfold(self, colabfold_bin, input_fasta, output_dir, num_recycles, num_models):
         """
         Invoke colabfold_batch and stream its stdout/stderr to our stdout.
         Returns True if exit code == 0.
@@ -192,10 +188,13 @@ class Command(BaseCommand):
             colabfold_bin,
             input_fasta,
             output_dir,
-            "--num-recycle", str(num_recycles),
-            "--num-models", str(num_models),
+            "--num-recycle",
+            str(num_recycles),
+            "--num-models",
+            str(num_models),
             # --use-gpu-relax is intentionally omitted: GPU relaxation unavailable on CPU-only
-            "--model-type", "alphafold2_ptm",
+            "--model-type",
+            "alphafold2_ptm",
         ]
 
         self.stdout.write("CMD: " + " ".join(cmd))
@@ -206,9 +205,7 @@ class Command(BaseCommand):
         if os.path.isdir(colabfold_lib):
             current_ld_path = env.get("LD_LIBRARY_PATH", "").strip()
             env["LD_LIBRARY_PATH"] = (
-                f"{colabfold_lib}:{current_ld_path}"
-                if current_ld_path
-                else colabfold_lib
+                f"{colabfold_lib}:{current_ld_path}" if current_ld_path else colabfold_lib
             )
 
         proc = subprocess.Popen(
@@ -233,10 +230,9 @@ class Command(BaseCommand):
         """
         try:
             candidates = [
-                f for f in os.listdir(output_dir)
-                if f.startswith(locus_tag + "_")
-                and "rank_001" in f
-                and f.endswith(".pdb")
+                f
+                for f in os.listdir(output_dir)
+                if f.startswith(locus_tag + "_") and "rank_001" in f and f.endswith(".pdb")
             ]
         except FileNotFoundError:
             return None

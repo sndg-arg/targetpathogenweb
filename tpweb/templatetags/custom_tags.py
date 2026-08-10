@@ -5,13 +5,15 @@ from tpweb.services.protein_summary import druggability_label
 
 register = template.Library()
 
+
 @register.filter
 def dictkey(diccionario, key):
     return diccionario.get(key)
 
+
 @register.filter
 def replace_char(value, old_char_coma_new_char):
-    old_char,new_char = old_char_coma_new_char.split(",")
+    old_char, new_char = old_char_coma_new_char.split(",")
     return value.replace(old_char, new_char)
 
 
@@ -97,7 +99,7 @@ def score_metric_display(value, column_name):
             if text == "No_pockets":
                 return "No pockets"
             if text.lower().startswith("pocket pocket"):
-                suffix = text[len("Pocket pocket"):].strip()
+                suffix = text[len("Pocket pocket") :].strip()
                 return f"Pocket {suffix}" if suffix else "Pocket"
             return text
         return humanize_identifier(text) or text
@@ -108,7 +110,11 @@ def score_metric_display(value, column_name):
         return f"{numeric:.1f}%"
     if column_key in {"core_roary", "core_corecruncher"}:
         return "Core" if numeric >= 0.5 else "Accessory"
-    if column_key.endswith("_probability") or column_key.endswith("_score") or column_key.endswith("_norm"):
+    if (
+        column_key.endswith("_probability")
+        or column_key.endswith("_score")
+        or column_key.endswith("_norm")
+    ):
         return f"{numeric:.3f}"
     return f"{numeric:g}"
 
@@ -165,7 +171,13 @@ def score_metric_tone(value, column_name):
         return ""
 
     if column_key == "localization":
-        if text in {"extracellular", "outer membrane", "cellwall", "periplasmic", "cytoplasmic membrane"}:
+        if text in {
+            "extracellular",
+            "outer membrane",
+            "cellwall",
+            "periplasmic",
+            "cytoplasmic membrane",
+        }:
             return "favorable"
         if text == "cytoplasmic":
             return "risk"

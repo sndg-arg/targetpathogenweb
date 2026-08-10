@@ -6,9 +6,18 @@ from django.views import View
 
 from bioseq.models.Bioentry import Bioentry
 from bioseq.models.Biodatabase import Biodatabase
-from tpweb.models.Metabolism import GeneReactionLink, MetabolicReaction, MetabolicReactionEdge, ReactionParticipant
+from tpweb.models.Metabolism import (
+    GeneReactionLink,
+    MetabolicReaction,
+    MetabolicReactionEdge,
+    ReactionParticipant,
+)
 from tpweb.models.ScoreParamValue import ScoreParamValue
-from tpweb.services.genome_workspace import display_genome_name, genome_url_slug, user_can_access_genome_name
+from tpweb.services.genome_workspace import (
+    display_genome_name,
+    genome_url_slug,
+    user_can_access_genome_name,
+)
 from tpweb.services.protein_summary import build_metabolic_context
 
 MAX_HOPS = 2
@@ -37,9 +46,15 @@ def _resolve_edge_direction(a_id, b_id, participant_roles):
     for sid in candidates:
         role_a, _ = roles_a[sid]
         role_b, _ = roles_b[sid]
-        if role_a == ReactionParticipant.ROLE_PRODUCT and role_b == ReactionParticipant.ROLE_REACTANT:
+        if (
+            role_a == ReactionParticipant.ROLE_PRODUCT
+            and role_b == ReactionParticipant.ROLE_REACTANT
+        ):
             forward += 1
-        elif role_a == ReactionParticipant.ROLE_REACTANT and role_b == ReactionParticipant.ROLE_PRODUCT:
+        elif (
+            role_a == ReactionParticipant.ROLE_REACTANT
+            and role_b == ReactionParticipant.ROLE_PRODUCT
+        ):
             backward += 1
     if forward and not backward:
         return (a_id, b_id)
@@ -53,7 +68,9 @@ class MetabolismNetworkView(View):
     on the protein detail page."""
 
     def get(self, request, protein_id, *args, **kwargs):
-        protein = Bioentry.objects.filter(bioentry_id=protein_id).select_related("biodatabase").first()
+        protein = (
+            Bioentry.objects.filter(bioentry_id=protein_id).select_related("biodatabase").first()
+        )
         if protein is None:
             raise Http404("Protein not found")
 
@@ -68,7 +85,9 @@ class MetabolismNetworkView(View):
             return JsonResponse({"nodes": [], "edges": []})
 
         genome_accession = assembly_name
-        node_ids, edge_pairs, truncated = self._expand_neighborhood(genome_accession, focal_reaction_ids)
+        node_ids, edge_pairs, truncated = self._expand_neighborhood(
+            genome_accession, focal_reaction_ids
+        )
 
         reactions = {
             r.id: r
@@ -77,38 +96,55 @@ class MetabolismNetworkView(View):
         edge_pairs = {(a, b) for a, b in edge_pairs if a in reactions and b in reactions}
 
         genes_by_reaction = {}
-        for link in GeneReactionLink.objects.filter(reaction_id__in=reactions.keys()).select_related("bioentry"):
+        for link in GeneReactionLink.objects.filter(
+            reaction_id__in=reactions.keys()
+        ).select_related("bioentry"):
             genes_by_reaction.setdefault(link.reaction_id, []).append(link)
 
         participant_roles = {}
-        for p in ReactionParticipant.objects.filter(reaction_id__in=reactions.keys()).select_related("species"):
-            participant_roles.setdefault(p.reaction_id, {})[p.species_id] = (p.role, p.species.is_currency)
+        for p in ReactionParticipant.objects.filter(
+            reaction_id__in=reactions.keys()
+        ).select_related("species"):
+            participant_roles.setdefault(p.reaction_id, {})[p.species_id] = (
+                p.role,
+                p.species.is_currency,
+            )
 
         nodes = [
-            self._serialize_node(reaction_id, reaction, genes_by_reaction.get(reaction_id, []),
-                                  edge_pairs, focal_reaction_ids, protein.bioentry_id)
+            self._serialize_node(
+                reaction_id,
+                reaction,
+                genes_by_reaction.get(reaction_id, []),
+                edge_pairs,
+                focal_reaction_ids,
+                protein.bioentry_id,
+            )
             for reaction_id, reaction in reactions.items()
         ]
         edges = []
         for a, b in edge_pairs:
             direction = _resolve_edge_direction(a, b, participant_roles)
             src_id, tgt_id = direction if direction else (a, b)
-            edges.append({
-                "source": reactions[src_id].reaction_id,
-                "target": reactions[tgt_id].reaction_id,
-                "directed": direction is not None,
-                "reversible": reactions[a].reversible or reactions[b].reversible,
-            })
-        return JsonResponse({
-            "nodes": nodes,
-            "edges": edges,
-            "meta": {
-                "max_hops": MAX_HOPS,
-                "max_nodes": MAX_NODES,
-                "is_truncated": truncated,
-                "genome_slug": genome_url_slug(assembly_name),
-            },
-        })
+            edges.append(
+                {
+                    "source": reactions[src_id].reaction_id,
+                    "target": reactions[tgt_id].reaction_id,
+                    "directed": direction is not None,
+                    "reversible": reactions[a].reversible or reactions[b].reversible,
+                }
+            )
+        return JsonResponse(
+            {
+                "nodes": nodes,
+                "edges": edges,
+                "meta": {
+                    "max_hops": MAX_HOPS,
+                    "max_nodes": MAX_NODES,
+                    "is_truncated": truncated,
+                    "genome_slug": genome_url_slug(assembly_name),
+                },
+            }
+        )
 
     @staticmethod
     def _expand_neighborhood(genome_accession, focal_reaction_ids):
@@ -121,11 +157,13 @@ class MetabolismNetworkView(View):
             if not frontier or len(node_ids) >= MAX_NODES:
                 truncated = bool(frontier and len(node_ids) >= MAX_NODES)
                 break
-            neighbor_edges = MetabolicReactionEdge.objects.filter(
-                genome_accession=genome_accession,
-            ).filter(
-                Q(reaction_a_id__in=frontier) | Q(reaction_b_id__in=frontier)
-            ).values_list("reaction_a_id", "reaction_b_id")
+            neighbor_edges = (
+                MetabolicReactionEdge.objects.filter(
+                    genome_accession=genome_accession,
+                )
+                .filter(Q(reaction_a_id__in=frontier) | Q(reaction_b_id__in=frontier))
+                .values_list("reaction_a_id", "reaction_b_id")
+            )
 
             next_frontier = set()
             for a_id, b_id in neighbor_edges:
@@ -141,9 +179,15 @@ class MetabolismNetworkView(View):
         return node_ids, edge_pairs, truncated
 
     @staticmethod
-    def _serialize_node(reaction_id, reaction, links, edge_pairs, focal_reaction_ids, current_protein_id):
+    def _serialize_node(
+        reaction_id, reaction, links, edge_pairs, focal_reaction_ids, current_protein_id
+    ):
         chokepoint_role = next(
-            (l.chokepoint_role for l in links if l.chokepoint_role != GeneReactionLink.CHOKEPOINT_NONE),
+            (
+                link.chokepoint_role
+                for link in links
+                if link.chokepoint_role != GeneReactionLink.CHOKEPOINT_NONE
+            ),
             GeneReactionLink.CHOKEPOINT_NONE,
         )
         return {
@@ -162,12 +206,14 @@ class MetabolismNetworkView(View):
             "degree": sum(1 for a, b in edge_pairs if reaction_id in (a, b)),
             "genes": [
                 {
-                    "locus_tag": l.bioentry.accession,
-                    "protein_id": l.bioentry.bioentry_id,
-                    "is_current_protein": l.bioentry.bioentry_id == current_protein_id,
-                    "url": reverse("tpwebapp:protein", kwargs={"protein_id": l.bioentry.bioentry_id}),
+                    "locus_tag": link.bioentry.accession,
+                    "protein_id": link.bioentry.bioentry_id,
+                    "is_current_protein": link.bioentry.bioentry_id == current_protein_id,
+                    "url": reverse(
+                        "tpwebapp:protein", kwargs={"protein_id": link.bioentry.bioentry_id}
+                    ),
                 }
-                for l in links
+                for link in links
             ],
         }
 
@@ -181,7 +227,9 @@ class ProteinMetabolicNetworkPageView(View):
     template_name = "genomic/protein_metabolic_network.html"
 
     def get(self, request, protein_id, *args, **kwargs):
-        protein = Bioentry.objects.filter(bioentry_id=protein_id).select_related("biodatabase").first()
+        protein = (
+            Bioentry.objects.filter(bioentry_id=protein_id).select_related("biodatabase").first()
+        )
         if protein is None:
             raise Http404("Protein not found")
 
@@ -190,20 +238,28 @@ class ProteinMetabolicNetworkPageView(View):
             raise Http404("Protein not found")
 
         raw_scores = {
-            spv.score_param.name: spv.value if spv.value else (
-                str(round(spv.numeric_value, 4)) if spv.numeric_value is not None else ""
+            spv.score_param.name: spv.value
+            if spv.value
+            else (str(round(spv.numeric_value, 4)) if spv.numeric_value is not None else "")
+            for spv in ScoreParamValue.objects.filter(bioentry=protein).select_related(
+                "score_param"
             )
-            for spv in ScoreParamValue.objects.filter(bioentry=protein).select_related("score_param")
         }
         metabolic_context = build_metabolic_context(protein, raw_scores)
         if metabolic_context is None:
             raise Http404("No metabolic data for this protein")
 
         slug = genome_url_slug(assembly_name)
-        return render(request, self.template_name, {
-            "protein": protein,
-            "metabolic_context": metabolic_context,
-            "assembly_name": display_genome_name(assembly_name),
-            "assembly_url": reverse("tpwebapp:assembly", kwargs={"genome": slug}),
-            "protein_url": reverse("tpwebapp:protein", kwargs={"protein_id": protein.bioentry_id}),
-        })
+        return render(
+            request,
+            self.template_name,
+            {
+                "protein": protein,
+                "metabolic_context": metabolic_context,
+                "assembly_name": display_genome_name(assembly_name),
+                "assembly_url": reverse("tpwebapp:assembly", kwargs={"genome": slug}),
+                "protein_url": reverse(
+                    "tpwebapp:protein", kwargs={"protein_id": protein.bioentry_id}
+                ),
+            },
+        )

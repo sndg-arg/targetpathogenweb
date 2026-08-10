@@ -53,6 +53,7 @@ def compute_score_value(param_values, coefficient_by_param):
 
 def compute_expression_score(protein, expression, zero_cache):
     from tpweb.services.formula_evaluator import build_expression_variables, safe_eval_expression
+
     variables = build_expression_variables(protein, zero_cache)
     try:
         return float(safe_eval_expression(expression, variables)), {}
@@ -60,8 +61,9 @@ def compute_expression_score(protein, expression, zero_cache):
         return 0.0, {}
 
 
-def build_protein_table_row(protein, visible_columns, coefficient_by_param,
-                             expression=None, zero_cache=None):
+def build_protein_table_row(
+    protein, visible_columns, coefficient_by_param, expression=None, zero_cache=None
+):
     param_values = score_param_value_map(protein)
     table_data = {
         name: _display_table_value(value, name)
@@ -70,7 +72,7 @@ def build_protein_table_row(protein, visible_columns, coefficient_by_param,
     }
     _EVALUE_NO_HIT_GUARDS = {
         "human_evalue": ("human_offtarget", {"no_hit", "no hit"}),
-        "deg_evalue":   ("hit_in_deg",      {"n"}),
+        "deg_evalue": ("hit_in_deg", {"n"}),
     }
     for evalue_col, (guard_col, no_hit_vals) in _EVALUE_NO_HIT_GUARDS.items():
         if evalue_col in table_data:
@@ -97,9 +99,8 @@ def build_protein_table_row(protein, visible_columns, coefficient_by_param,
     metabolic_reaction_count = int(getattr(protein, "metabolic_reaction_count", 0) or 0)
     metabolic_chokepoint_count = int(getattr(protein, "metabolic_chokepoint_count", 0) or 0)
     if metabolic_reaction_count:
-        metabolism_text = (
-            f"{metabolic_reaction_count} reactions"
-            + (f", {metabolic_chokepoint_count} chokepoints" if metabolic_chokepoint_count else "")
+        metabolism_text = f"{metabolic_reaction_count} reactions" + (
+            f", {metabolic_chokepoint_count} chokepoints" if metabolic_chokepoint_count else ""
         )
     else:
         metabolism_text = "No metabolic model"

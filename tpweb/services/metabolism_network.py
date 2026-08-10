@@ -10,6 +10,7 @@ are deliberately separate functions/files rather than one parametrized function,
 future change to the ranking list's scoring logic doesn't have to reason about graph
 correctness, and vice versa.
 """
+
 from collections import Counter, defaultdict
 
 from bioseq.models.Biodatabase import Biodatabase
@@ -23,10 +24,8 @@ def _primary_pathway_buckets(assembly_name):
     {reaction_id: (source, external_id, name)}. Shared by build_genome_metabolism_network
     and MetabolismNetworkExpandView so a node's stats and its expansion always agree."""
     buckets = {}
-    reactions = (
-        MetabolicReaction.objects
-        .filter(genome_accession=assembly_name)
-        .prefetch_related("pathways")
+    reactions = MetabolicReaction.objects.filter(genome_accession=assembly_name).prefetch_related(
+        "pathways"
     )
     for reaction in reactions:
         pathways = sorted(reaction.pathways.all(), key=lambda p: (p.source, p.external_id))
@@ -38,7 +37,9 @@ def _primary_pathway_buckets(assembly_name):
     return buckets
 
 
-def build_genome_metabolism_network(assembly_name, user=None, formula_name=None, top_target_limit=5):
+def build_genome_metabolism_network(
+    assembly_name, user=None, formula_name=None, top_target_limit=5
+):
     """{"nodes": [...one per pathway bucket...], "edges": [...weighted pathway-pair edges...],
     "active_formula_name"}. Node stats mirror build_genome_metabolism_summary's per-pathway
     fields (reaction/protein/chokepoint counts, best/mean target score, top_targets) but
@@ -52,19 +53,22 @@ def build_genome_metabolism_network(assembly_name, user=None, formula_name=None,
     score_fn, active_formula = _resolve_scorer(user, formula_name)
 
     links = (
-        GeneReactionLink.objects
-        .filter(bioentry__biodatabase__name=proteome_name, reaction_id__in=reaction_bucket.keys())
+        GeneReactionLink.objects.filter(
+            bioentry__biodatabase__name=proteome_name, reaction_id__in=reaction_bucket.keys()
+        )
         .select_related("bioentry", "reaction")
         .prefetch_related("bioentry__score_params__score_param")
     )
 
-    buckets = defaultdict(lambda: {
-        "name": "",
-        "reaction_ids": set(),
-        "protein_ids": set(),
-        "chokepoint_reaction_ids": set(),
-        "target_rows": {},
-    })
+    buckets = defaultdict(
+        lambda: {
+            "name": "",
+            "reaction_ids": set(),
+            "protein_ids": set(),
+            "chokepoint_reaction_ids": set(),
+            "target_rows": {},
+        }
+    )
 
     for link in links:
         reaction = link.reaction
@@ -81,7 +85,9 @@ def build_genome_metabolism_network(assembly_name, user=None, formula_name=None,
         if score_fn is not None:
             target_score = score_fn(protein)
         else:
-            target_score = druggability + (0.15 if is_chokepoint else 0.0) + min(centrality, 1.0) * 0.1
+            target_score = (
+                druggability + (0.15 if is_chokepoint else 0.0) + min(centrality, 1.0) * 0.1
+            )
 
         bucket["reaction_ids"].add(reaction.id)
         bucket["protein_ids"].add(protein.bioentry_id)
@@ -116,19 +122,21 @@ def build_genome_metabolism_network(assembly_name, user=None, formula_name=None,
         mean_score = sum(target_scores) / len(target_scores) if target_scores else 0.0
         node_id = f"{key[0]}__{key[1]}"
         node_ids.add(node_id)
-        nodes.append({
-            "id": node_id,
-            "source": key[0],
-            "external_id": key[1],
-            "name": bucket["name"],
-            "reaction_count": reaction_count,
-            "protein_count": len(bucket["protein_ids"]),
-            "chokepoint_count": chokepoint_count,
-            "chokepoint_density_pct": round(100 * chokepoint_density, 1),
-            "best_target_score": round(best_score, 3),
-            "mean_target_score": round(mean_score, 3),
-            "top_targets": top_targets,
-        })
+        nodes.append(
+            {
+                "id": node_id,
+                "source": key[0],
+                "external_id": key[1],
+                "name": bucket["name"],
+                "reaction_count": reaction_count,
+                "protein_count": len(bucket["protein_ids"]),
+                "chokepoint_count": chokepoint_count,
+                "chokepoint_density_pct": round(100 * chokepoint_density, 1),
+                "best_target_score": round(best_score, 3),
+                "mean_target_score": round(mean_score, 3),
+                "top_targets": top_targets,
+            }
+        )
 
     edge_counter = Counter()
     edge_rows = MetabolicReactionEdge.objects.filter(
@@ -186,12 +194,14 @@ def pathway_neighbors(assembly_name, source, external_id, user=None, formula_nam
         other = nodes_by_id.get(other_id)
         if not other:
             continue
-        neighbors.append({
-            "source": other["source"],
-            "external_id": other["external_id"],
-            "name": other["name"],
-            "reaction_count": other["reaction_count"],
-            "shared_weight": edge["weight"],
-        })
+        neighbors.append(
+            {
+                "source": other["source"],
+                "external_id": other["external_id"],
+                "name": other["name"],
+                "reaction_count": other["reaction_count"],
+                "shared_weight": edge["weight"],
+            }
+        )
     neighbors.sort(key=lambda n: n["shared_weight"], reverse=True)
     return neighbors

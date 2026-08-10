@@ -157,9 +157,7 @@ def _build_structures_config(cfg_dict):
     ssh_port = ssh_options["port"]
     env_key_filename = _env_text("SSH_KEY_FILENAME")
     ssh_key_filename = (
-        os.path.expanduser(env_key_filename)
-        if env_key_filename
-        else ssh_options["key_filename"]
+        os.path.expanduser(env_key_filename) if env_key_filename else ssh_options["key_filename"]
     )
 
     ssh_password = _env_text("SSH_PASSWORD")
@@ -308,16 +306,16 @@ def _build_slurm_script(config, remote_input_tar, remote_output_tar, remote_work
             "  exit 0",
             "fi",
             'tar xf "${INPUT_TAR}" -C "${WORK_ROOT}"',
-            'total=0; fpocket_ok=0; p2rank_ok=0',
+            "total=0; fpocket_ok=0; p2rank_ok=0",
             'while IFS= read -r -d "" pdb; do',
-            '  total=$((total + 1))',
+            "  total=$((total + 1))",
             '  locus="$(basename "$(dirname "${pdb}")")"',
             '  locus_dir="$(dirname "${pdb}")"',
             '  out_locus="${OUTPUT_ROOT}/alphafold/${locus}"',
             '  mkdir -p "${out_locus}"',
             '  echo "[$(date)] ${locus}"',
             '  if (cd "${locus_dir}" && "${FPOCKET_BIN}" -f "${locus}_af.pdb"); then',
-            '    fpocket_ok=$((fpocket_ok + 1))',
+            "    fpocket_ok=$((fpocket_ok + 1))",
             '    if [ -d "${locus_dir}/${locus}_af_out" ]; then',
             '      cp -a "${locus_dir}/${locus}_af_out" "${out_locus}/"',
             "    fi",
@@ -327,7 +325,7 @@ def _build_slurm_script(config, remote_input_tar, remote_output_tar, remote_work
             '  p2rank_dir="${locus_dir}/p2rank"',
             '  mkdir -p "${p2rank_dir}"',
             '  if "${P2RANK_BIN}" predict -f "${pdb}" -o "${p2rank_dir}" -threads "${THREADS}"; then',
-            '    p2rank_ok=$((p2rank_ok + 1))',
+            "    p2rank_ok=$((p2rank_ok + 1))",
             '    cp -a "${p2rank_dir}" "${out_locus}/"',
             "  else",
             '    printf "%s\\tp2rank\\tfailed\\n" "${locus}" >> "${FAILURES}"',

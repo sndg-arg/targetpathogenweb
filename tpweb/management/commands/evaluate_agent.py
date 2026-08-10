@@ -19,6 +19,7 @@ that needs a human reading the printed reply, same as test_llm_agent.py's
 reasonable next step if this gets used often enough to be worth automating
 further.
 """
+
 from __future__ import annotations
 
 from django.core.management.base import BaseCommand, CommandError
@@ -57,7 +58,8 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument(
-            "genome", help="Genome slug or internal accession, as resolvable by resolve_genome_from_slug."
+            "genome",
+            help="Genome slug or internal accession, as resolvable by resolve_genome_from_slug.",
         )
         parser.add_argument(
             "--accession",
@@ -84,7 +86,9 @@ class Command(BaseCommand):
             accession = accession or (autofill[0] if autofill else None)
             accession_b = accession_b or (autofill[1] if len(autofill) > 1 else None)
         if not accession:
-            raise CommandError(f"Genome '{assembly_name}' has no proteins loaded to evaluate against.")
+            raise CommandError(
+                f"Genome '{assembly_name}' has no proteins loaded to evaluate against."
+            )
 
         fake_request = _FakeRequest()
         tools = build_scoped_tools(fake_request, assembly_name, accession, user, user)
@@ -127,7 +131,9 @@ class Command(BaseCommand):
             if expected_tool is None:
                 self.stdout.write(f"\n=== {prompt}")
                 self.stdout.write(
-                    self.style.WARNING("SCOPE GUARDRAIL CHECK -- read reply below: should be a short decline")
+                    self.style.WARNING(
+                        "SCOPE GUARDRAIL CHECK -- read reply below: should be a short decline"
+                    )
                 )
                 self.stdout.write(f"tools called: {agent.last_tool_calls or '-'}")
                 self.stdout.write("reply:")
@@ -137,10 +143,16 @@ class Command(BaseCommand):
             total += 1
             called = expected_tool in agent.last_tool_calls
             passed += 1 if called else 0
-            status = self.style.SUCCESS("OK") if called else self.style.ERROR("MISSING EXPECTED TOOL CALL")
+            status = (
+                self.style.SUCCESS("OK")
+                if called
+                else self.style.ERROR("MISSING EXPECTED TOOL CALL")
+            )
 
             self.stdout.write(f"\n=== {prompt}")
-            self.stdout.write(f"expected tool: {expected_tool} -- {status} (tools called: {agent.last_tool_calls or '-'})")
+            self.stdout.write(
+                f"expected tool: {expected_tool} -- {status} (tools called: {agent.last_tool_calls or '-'})"
+            )
             self.stdout.write(
                 f"tokens: input={agent.last_usage.input_tokens} output={agent.last_usage.output_tokens} turns={agent.last_turns}"
             )

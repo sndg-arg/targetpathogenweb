@@ -1,4 +1,5 @@
 """Shared evidence formatting for target-assistant tools."""
+
 from __future__ import annotations
 
 from bioseq.models.Biodatabase import Biodatabase
@@ -54,7 +55,9 @@ def build_target_evidence_record(assembly_name, accession):
 
     reactions = metabolic.get("reactions") or []
     reaction_names = [r.get("reaction_id") for r in reactions[:4] if r.get("reaction_id")]
-    pathway_names = [p.get("name") or p.get("external_id") for p in (metabolic.get("pathways") or [])[:4]]
+    pathway_names = [
+        p.get("name") or p.get("external_id") for p in (metabolic.get("pathways") or [])[:4]
+    ]
 
     return {
         "protein": protein,
@@ -75,12 +78,15 @@ def build_target_evidence_record(assembly_name, accession):
         "human_identity": _value(raw_scores, "human_identity"),
         "human_evalue": _value(raw_scores, "human_evalue"),
         "microbiome_offtarget": _value(raw_scores, "gut_microbiome_offtarget"),
-        "microbiome_count": microbiome.get("count") or _value(raw_scores, "gut_microbiome_offtarget_counts"),
-        "microbiome_total": microbiome.get("total") or _value(raw_scores, "gut_microbiome_genomes_analyzed"),
+        "microbiome_count": microbiome.get("count")
+        or _value(raw_scores, "gut_microbiome_offtarget_counts"),
+        "microbiome_total": microbiome.get("total")
+        or _value(raw_scores, "gut_microbiome_genomes_analyzed"),
         "deg": _value(raw_scores, "hit_in_deg"),
         "deg_identity": _value(raw_scores, "deg_identity"),
         "core_roary": conservation.get("roary") or _value(raw_scores, "core_roary"),
-        "core_corecruncher": conservation.get("corecruncher") or _value(raw_scores, "core_corecruncher"),
+        "core_corecruncher": conservation.get("corecruncher")
+        or _value(raw_scores, "core_corecruncher"),
         # build_metabolic_context returns None (not an empty dict) when the protein has no
         # GeneReactionLink rows at all -- distinguish that "no metabolic data loaded" case
         # from a real, computed "confirmed not a chokepoint" result. Both used to collapse
@@ -88,7 +94,8 @@ def build_target_evidence_record(assembly_name, accession):
         # the system prompt tells the model never to make -- except the ambiguity was baked
         # into the tool output itself, not something the model invented.
         "is_chokepoint": (
-            "not loaded" if metabolic_context is None
+            "not loaded"
+            if metabolic_context is None
             else ("yes" if metabolic.get("is_chokepoint") else "no")
         ),
         # Same cross-pipeline ambiguity as is_chokepoint: PTOOLS_betweenness_centrality is a
@@ -96,11 +103,15 @@ def build_target_evidence_record(assembly_name, accession):
         # GeneReactionLink rows at all, so falling straight through to raw_scores here would
         # silently paper over "no metabolic data for this protein" with an unrelated number.
         "centrality": (
-            "not loaded" if metabolic_context is None
-            else (metabolic.get("centrality") or _value(raw_scores, "PTOOLS_betweenness_centrality"))
+            "not loaded"
+            if metabolic_context is None
+            else (
+                metabolic.get("centrality") or _value(raw_scores, "PTOOLS_betweenness_centrality")
+            )
         ),
         "centrality_percentile": metabolic.get("centrality_percentile"),
-        "metabolic_sentence": metabolic.get("summary_sentence") or "No metabolic context loaded for this protein.",
+        "metabolic_sentence": metabolic.get("summary_sentence")
+        or "No metabolic context loaded for this protein.",
         "reactions": reaction_names,
         "pathways": pathway_names,
         "direct_ligands": binder_summary.get("direct_count", 0),
@@ -123,46 +134,91 @@ def format_target_audit(record):
         f"Evidence-convergence score: {record['evidence_score']} / {record['evidence_max']} (internal overview heuristic, not an experimental measurement).",
     ]
 
-    lines.extend(_section_items("Pocket / structure evidence", [
-        ("FPocket druggability", record["fpocket"]),
-        ("P2Rank probability", record["p2rank"]),
-        ("Pocket-size outlier warning", record["pocket_outlier"]),
-    ]))
-    lines.extend(_section_items("Selectivity / off-target evidence", [
-        ("Human off-target screen", record["human_offtarget"]),
-        ("Best human identity", record["human_identity"]),
-        ("Best human E-value", record["human_evalue"]),
-        ("Gut microbiome screen", record["microbiome_offtarget"]),
-        ("Gut microbiome hits", f"{record['microbiome_count']} / {record['microbiome_total']} screened genomes"),
-    ]))
-    lines.extend(_section_items("Essentiality / conservation", [
-        ("Hit in DEG", record["deg"]),
-        ("DEG identity", record["deg_identity"]),
-        ("Roary core call", record["core_roary"]),
-        ("CoreCruncher core call", record["core_corecruncher"]),
-    ]))
-    lines.extend(_section_items("Metabolic context", [
-        ("Chokepoint reaction", record["is_chokepoint"]),
-        ("Network centrality", record["centrality"]),
-        ("Centrality percentile", record["centrality_percentile"] if record["centrality_percentile"] is not None else "not loaded"),
-        ("Interpretation", record["metabolic_sentence"]),
-        ("Reactions", ", ".join(record["reactions"]) if record["reactions"] else "not loaded"),
-        ("Pathways", ", ".join(record["pathways"]) if record["pathways"] else "not assigned"),
-    ]))
-    lines.extend(_section_items("Ligand evidence", [
-        ("Direct ligand records", record["direct_ligands"]),
-        ("Structural ligand records", record["structural_ligands"]),
-        ("Measured ChEMBL records", record["bioactive_ligands"]),
-        ("Proposed ZINC/similarity records", record["proposed_ligands"]),
-    ]))
+    lines.extend(
+        _section_items(
+            "Pocket / structure evidence",
+            [
+                ("FPocket druggability", record["fpocket"]),
+                ("P2Rank probability", record["p2rank"]),
+                ("Pocket-size outlier warning", record["pocket_outlier"]),
+            ],
+        )
+    )
+    lines.extend(
+        _section_items(
+            "Selectivity / off-target evidence",
+            [
+                ("Human off-target screen", record["human_offtarget"]),
+                ("Best human identity", record["human_identity"]),
+                ("Best human E-value", record["human_evalue"]),
+                ("Gut microbiome screen", record["microbiome_offtarget"]),
+                (
+                    "Gut microbiome hits",
+                    f"{record['microbiome_count']} / {record['microbiome_total']} screened genomes",
+                ),
+            ],
+        )
+    )
+    lines.extend(
+        _section_items(
+            "Essentiality / conservation",
+            [
+                ("Hit in DEG", record["deg"]),
+                ("DEG identity", record["deg_identity"]),
+                ("Roary core call", record["core_roary"]),
+                ("CoreCruncher core call", record["core_corecruncher"]),
+            ],
+        )
+    )
+    lines.extend(
+        _section_items(
+            "Metabolic context",
+            [
+                ("Chokepoint reaction", record["is_chokepoint"]),
+                ("Network centrality", record["centrality"]),
+                (
+                    "Centrality percentile",
+                    record["centrality_percentile"]
+                    if record["centrality_percentile"] is not None
+                    else "not loaded",
+                ),
+                ("Interpretation", record["metabolic_sentence"]),
+                (
+                    "Reactions",
+                    ", ".join(record["reactions"]) if record["reactions"] else "not loaded",
+                ),
+                (
+                    "Pathways",
+                    ", ".join(record["pathways"]) if record["pathways"] else "not assigned",
+                ),
+            ],
+        )
+    )
+    lines.extend(
+        _section_items(
+            "Ligand evidence",
+            [
+                ("Direct ligand records", record["direct_ligands"]),
+                ("Structural ligand records", record["structural_ligands"]),
+                ("Measured ChEMBL records", record["bioactive_ligands"]),
+                ("Proposed ZINC/similarity records", record["proposed_ligands"]),
+            ],
+        )
+    )
 
-    for title, key in (("Strengths", "strengths"), ("Risks", "risks"), ("Missing evidence", "missing")):
+    for title, key in (
+        ("Strengths", "strengths"),
+        ("Risks", "risks"),
+        ("Missing evidence", "missing"),
+    ):
         items = record.get(key) or []
         if items:
             lines.append(f"{title}:")
             lines.extend(f"  - {item.get('label')}: {item.get('detail')}" for item in items)
 
-    lines.append("Use only the fields above. If a field says 'not loaded', treat it as unavailable evidence, not as negative evidence.")
+    lines.append(
+        "Use only the fields above. If a field says 'not loaded', treat it as unavailable evidence, not as negative evidence."
+    )
     return "\n".join(lines)
 
 
@@ -178,7 +234,10 @@ def format_target_comparison(records):
     sep = "--- | ---: | --- | --- | --- | --- | --- | ---: | ---"
     rows = []
     for record in records:
-        risks = "; ".join(item.get("label", "") for item in (record.get("risks") or [])[:3]) or "none flagged"
+        risks = (
+            "; ".join(item.get("label", "") for item in (record.get("risks") or [])[:3])
+            or "none flagged"
+        )
         metabolism = {
             "yes": "chokepoint",
             "no": "not chokepoint",

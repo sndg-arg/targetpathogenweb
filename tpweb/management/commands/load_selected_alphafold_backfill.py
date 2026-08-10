@@ -33,7 +33,7 @@ def as_bool(value):
 
 def folder_path(datadir, genome_name):
     acclen = len(genome_name)
-    folder_name = genome_name[math.floor(acclen / 2 - 1):math.floor(acclen / 2 + 2)]
+    folder_name = genome_name[math.floor(acclen / 2 - 1) : math.floor(acclen / 2 + 2)]
     return os.path.join(datadir, folder_name, genome_name)
 
 
@@ -164,7 +164,10 @@ class Command(BaseCommand):
         except Biodatabase.DoesNotExist as exc:
             raise CommandError(f"Protein database not found: {db_name}") from exc
 
-        proteins = {p.accession: p for p in Bioentry.objects.filter(biodatabase=db).only("bioentry_id", "accession")}
+        proteins = {
+            p.accession: p
+            for p in Bioentry.objects.filter(biodatabase=db).only("bioentry_id", "accession")
+        }
         rows = read_manifest(manifest_path)
 
         jobs = {}
@@ -180,15 +183,18 @@ class Command(BaseCommand):
                 missing_loci += 1
                 continue
             key = (locus, accession)
-            job = jobs.setdefault(key, {
-                "locus": locus,
-                "accession": accession,
-                "code": structure_code(accession),
-                "url": clean(row.get("model_url")),
-                "need_fpocket": False,
-                "need_p2rank": False,
-                "selected_by": set(),
-            })
+            job = jobs.setdefault(
+                key,
+                {
+                    "locus": locus,
+                    "accession": accession,
+                    "code": structure_code(accession),
+                    "url": clean(row.get("model_url")),
+                    "need_fpocket": False,
+                    "need_p2rank": False,
+                    "selected_by": set(),
+                },
+            )
             if as_bool(row.get("need_fpocket")):
                 job["need_fpocket"] = True
                 job["selected_by"].add("FPocket")
@@ -198,12 +204,13 @@ class Command(BaseCommand):
 
         all_jobs = sorted(jobs.values(), key=lambda item: (item["locus"], item["accession"]))
         pending_jobs = [
-            job for job in all_jobs
-            if include_loaded or not job_is_linked(job, proteins)
+            job for job in all_jobs if include_loaded or not job_is_linked(job, proteins)
         ]
         job_list = pending_jobs[:limit] if limit is not None else pending_jobs
 
-        self.stdout.write(self.style.MIGRATE_HEADING(f"Selected AlphaFold model backfill for {genome_name}"))
+        self.stdout.write(
+            self.style.MIGRATE_HEADING(f"Selected AlphaFold model backfill for {genome_name}")
+        )
         self.stdout.write(f"Manifest rows: {len(rows)}")
         self.stdout.write(f"Unique locus/accession jobs: {len(jobs)}")
         self.stdout.write(f"Pending jobs: {len(pending_jobs)}")
@@ -228,14 +235,18 @@ class Command(BaseCommand):
             self.stdout.write("Examples:")
             for job in job_list[:25]:
                 methods = ",".join(sorted(job["selected_by"])) or "-"
-                self.stdout.write(f"  would load {job['locus']} {job['code']} ({methods}) {job['url']}")
+                self.stdout.write(
+                    f"  would load {job['locus']} {job['code']} ({methods}) {job['url']}"
+                )
             if len(job_list) > 25:
                 self.stdout.write(f"  ... {len(job_list) - 25} more")
             return
 
         os.makedirs(model_dir, exist_ok=True)
         seqstore = SeqStore(datadir)
-        downloaded = reused_file = unavailable = download_failed = loaded = linked = copied = skipped_existing = failed = 0
+        downloaded = reused_file = unavailable = download_failed = loaded = linked = copied = (
+            skipped_existing
+        ) = failed = 0
 
         for job in job_list:
             locus = job["locus"]
@@ -281,7 +292,9 @@ class Command(BaseCommand):
                     loaded += 1
                 except SystemExit as exc:
                     if exc.code == 0:
-                        pdb_obj = PDB.objects.filter(code=code, experiment="AF", deprecated=False).first()
+                        pdb_obj = PDB.objects.filter(
+                            code=code, experiment="AF", deprecated=False
+                        ).first()
                         loaded += 1
                     else:
                         failed += 1

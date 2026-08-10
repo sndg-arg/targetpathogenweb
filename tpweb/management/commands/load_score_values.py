@@ -21,16 +21,16 @@ def mkdir(dirpath):
 
 
 class Command(BaseCommand):
-    help = 'Imports a PDB'
+    help = "Imports a PDB"
 
     def add_arguments(self, parser):
 
-        parser.add_argument('genome_name')
-        parser.add_argument('score_tsv', help="tsv with: gene prop1 prop2 ... ")
-        parser.add_argument('--separator', default="\t")
-        parser.add_argument('--overwrite', action="store_true")
-        parser.add_argument('--datadir', default="./data")
-        parser.add_argument('--username', default=None)
+        parser.add_argument("genome_name")
+        parser.add_argument("score_tsv", help="tsv with: gene prop1 prop2 ... ")
+        parser.add_argument("--separator", default="\t")
+        parser.add_argument("--overwrite", action="store_true")
+        parser.add_argument("--datadir", default="./data")
+        parser.add_argument("--username", default=None)
 
     def handle(self, *args, **options):
 
@@ -55,9 +55,7 @@ class Command(BaseCommand):
         ScoreParam.Initialize_druggability()
         ScoreParam.Initialize_celular_localization()
 
-
         columns = set(df.columns) - set(["gene"])
-
 
         score_params = {}
         for c in columns:
@@ -72,9 +70,13 @@ class Command(BaseCommand):
                 invalid_values = []
                 raw_series = df[c]
                 coerced_values = pd.to_numeric(raw_series, errors="coerce")
-                for raw_value, numeric_value in zip(df[c], coerced_values):
+                for raw_value, numeric_value in zip(df[c], coerced_values, strict=True):
                     raw_text = str(raw_value).strip()
-                    if pd.isna(numeric_value) and raw_text and raw_text.lower() not in {"none", "nan", "null"}:
+                    if (
+                        pd.isna(numeric_value)
+                        and raw_text
+                        and raw_text.lower() not in {"none", "nan", "null"}
+                    ):
                         invalid_values.append(str(raw_value))
                 if invalid_values:
                     sys.stderr.write(
@@ -88,7 +90,9 @@ class Command(BaseCommand):
                             continue
                         value = str(raw_value).strip()
                         if value and value.lower() not in {"none", "nan", "null"}:
-                            ScoreParamOptions.objects.get_or_create(score_param=sp, name=value, defaults={"description": ""})
+                            ScoreParamOptions.objects.get_or_create(
+                                score_param=sp, name=value, defaults={"description": ""}
+                            )
 
                 valid_values = {x.name for x in sp.choices.all()}
                 invalid_values = {
@@ -101,7 +105,7 @@ class Command(BaseCommand):
                 if invalid_values:
                     sys.stderr.write(
                         f'Column "{c}" has some invalid values: {",".join(sorted(invalid_values))} '
-                        f'valid values are {",".join(sorted(valid_values))}\n'
+                        f"valid values are {','.join(sorted(valid_values))}\n"
                     )
                     continue
 
@@ -119,7 +123,7 @@ class Command(BaseCommand):
 
         assert score_params, "no valid score parameters were found in the file"
 
-        for _, r in tqdm(df.iterrows(),file=sys.stderr,total=len(df)):
+        for _, r in tqdm(df.iterrows(), file=sys.stderr, total=len(df)):
             with transaction.atomic():
                 for c, sp in score_params.items():
                     be = Bioentry.objects.filter(accession=r.gene, biodatabase=genome)

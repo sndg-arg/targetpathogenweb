@@ -13,7 +13,11 @@ from bioseq.models.Biodatabase import Biodatabase
 from tpweb.models import GenomeUpload
 from tpweb.models.Metabolism import MetabolicImportRun, MetabolicReaction, MetabolicSpecies
 from tpweb.services.pipeline_status import clear_pipeline_activity_state
-from tpweb.services.pipeline_runs import cancel_pipeline_run, latest_pipeline_run_for_accession, latest_pipeline_run_for_upload
+from tpweb.services.pipeline_runs import (
+    cancel_pipeline_run,
+    latest_pipeline_run_for_accession,
+    latest_pipeline_run_for_upload,
+)
 
 
 TEST_GENOME_ACCESSION = "NZ_AP023069.1"
@@ -39,7 +43,11 @@ def _build_pipeline_runtime(upload, command_suffix):
     env["TPW_GENOME_UPLOAD_ID"] = str(upload.id)
     env["TPW_PIPELINE_LOG_PATH"] = str(log_path)
 
-    use_direct = os.environ.get("TPW_USE_DIRECT_PIPELINE", "").strip().lower() in {"1", "true", "yes"}
+    use_direct = os.environ.get("TPW_USE_DIRECT_PIPELINE", "").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+    }
     script = "run_pipeline_direct.py" if use_direct else "run_pipeline.py"
     command = [
         "bash",
@@ -65,7 +73,16 @@ def _mark_upload_running(upload, process_pid, log_path):
     upload.status = upload.STATUS_RUNNING
     upload.launched_at = timezone.now()
     upload.error_message = ""
-    upload.save(update_fields=["launch_pid", "run_log_path", "status", "launched_at", "error_message", "updated_at"])
+    upload.save(
+        update_fields=[
+            "launch_pid",
+            "run_log_path",
+            "status",
+            "launched_at",
+            "error_message",
+            "updated_at",
+        ]
+    )
     return process_pid
 
 
@@ -159,9 +176,9 @@ def _finalize_upload(upload, returncode, error_message=None):
         upload.error_message = ""
     else:
         upload.status = upload.STATUS_FAILED
-        upload.error_message = str(
-            error_message or _extract_error_message(upload.run_log_path)
-        )[:1000]
+        upload.error_message = str(error_message or _extract_error_message(upload.run_log_path))[
+            :1000
+        ]
         _delete_workspace_biodatabases(upload.internal_accession)
     upload.launch_pid = None
     upload.save(update_fields=["status", "error_message", "launch_pid", "updated_at"])
@@ -226,8 +243,7 @@ def run_genome_upload_pipeline(upload):
             returncode = process.wait(timeout=timeout_seconds)
         except subprocess.TimeoutExpired:
             error_message = (
-                f"Pipeline exceeded timeout of {timeout_seconds} seconds "
-                f"during genome processing."
+                f"Pipeline exceeded timeout of {timeout_seconds} seconds during genome processing."
             )
             log_handle.write((error_message + "\n").encode("utf-8", errors="ignore"))
             log_handle.flush()

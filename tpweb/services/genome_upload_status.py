@@ -5,7 +5,10 @@ from django.utils import timezone
 
 from bioseq.models.Biodatabase import Biodatabase
 from tpweb.models import GenomeUpload, PipelineRun
-from tpweb.services.pipeline_runs import latest_pipeline_run_for_accession, latest_pipeline_run_for_upload
+from tpweb.services.pipeline_runs import (
+    latest_pipeline_run_for_accession,
+    latest_pipeline_run_for_upload,
+)
 
 
 ARGENTINA_UPLOAD_TZ = timezone.get_fixed_timezone(-180)
@@ -132,6 +135,7 @@ def reconcile_genome_uploads(pipeline_status=None, owner=None):
     # the highest ID is the active run. Older ones must not be promoted to
     # RUNNING just because the accession is processing.
     from django.db.models import Max
+
     latest_id_by_accession = dict(
         GenomeUpload.objects.values("internal_accession")
         .annotate(max_id=Max("id"))
@@ -148,7 +152,11 @@ def reconcile_genome_uploads(pipeline_status=None, owner=None):
         pipeline_run = _latest_run_for_upload(job)
         if pipeline_run is not None and pipeline_run.genome_upload_id not in {None, job.id}:
             pipeline_run = None
-        if pipeline_run is not None and pipeline_run.genome_upload_id is None and not is_latest_for_accession:
+        if (
+            pipeline_run is not None
+            and pipeline_run.genome_upload_id is None
+            and not is_latest_for_accession
+        ):
             pipeline_run = None
 
         if pipeline_run is not None:

@@ -174,9 +174,7 @@ def _build_ligq_config(cfg_dict):
     ssh_port = ssh_options["port"]
     env_key_filename = _env_text("SSH_KEY_FILENAME")
     ssh_key_filename = (
-        os.path.expanduser(env_key_filename)
-        if env_key_filename
-        else ssh_options["key_filename"]
+        os.path.expanduser(env_key_filename) if env_key_filename else ssh_options["key_filename"]
     )
 
     ssh_password = _env_text("SSH_PASSWORD")
@@ -317,36 +315,38 @@ def _write_excluded_loci_report(local_ligq_dir, skipped_loci):
 
 
 def _build_slurm_script(config, remote_input, remote_output_dir, remote_workdir):
-    return "\n".join([
-        "#!/bin/bash",
-        "#SBATCH --job-name=ligq2",
-        f"#SBATCH -p {config.slurm_partition}",
-        *((f"#SBATCH --exclude={config.slurm_exclude}",) if config.slurm_exclude else ()),
-        f"#SBATCH --cpus-per-task={config.slurm_cpus_per_task}",
-        f"#SBATCH --time={config.slurm_time}",
-        f"#SBATCH --mem={config.slurm_mem}",
-        f"#SBATCH -o {remote_workdir}/slurm-%j.out",
-        f"#SBATCH -e {remote_workdir}/slurm-%j.err",
-        f"#SBATCH --chdir={remote_workdir}",
-        "",
-        "set -euo pipefail",
-        f'source "{config.conda_prefix}/etc/profile.d/conda.sh"',
-        f'conda activate "{config.conda_env}"',
-        f'mkdir -p "{remote_output_dir}"',
-        'WORKDIR="$(mktemp -d -p /tmp ligq2_run.XXXXXX)"',
-        'trap "rm -rf ${WORKDIR}" EXIT',
-        'cd "${WORKDIR}"',
-        f'ln -s "{config.ligq_data_dir}" databases',
-        'echo "[$(date)] starting LigQ_2"',
-        (
-            f'python "{config.ligq_dir}/run_ligq_2.py" '
-            f'--input-fasta "{remote_input}" '
-            f'--output-dir "{remote_output_dir}"'
-        ),
-        'echo "[$(date)] LigQ_2 done"',
-        f'touch "{remote_workdir}/DONE"',
-        "",
-    ])
+    return "\n".join(
+        [
+            "#!/bin/bash",
+            "#SBATCH --job-name=ligq2",
+            f"#SBATCH -p {config.slurm_partition}",
+            *((f"#SBATCH --exclude={config.slurm_exclude}",) if config.slurm_exclude else ()),
+            f"#SBATCH --cpus-per-task={config.slurm_cpus_per_task}",
+            f"#SBATCH --time={config.slurm_time}",
+            f"#SBATCH --mem={config.slurm_mem}",
+            f"#SBATCH -o {remote_workdir}/slurm-%j.out",
+            f"#SBATCH -e {remote_workdir}/slurm-%j.err",
+            f"#SBATCH --chdir={remote_workdir}",
+            "",
+            "set -euo pipefail",
+            f'source "{config.conda_prefix}/etc/profile.d/conda.sh"',
+            f'conda activate "{config.conda_env}"',
+            f'mkdir -p "{remote_output_dir}"',
+            'WORKDIR="$(mktemp -d -p /tmp ligq2_run.XXXXXX)"',
+            'trap "rm -rf ${WORKDIR}" EXIT',
+            'cd "${WORKDIR}"',
+            f'ln -s "{config.ligq_data_dir}" databases',
+            'echo "[$(date)] starting LigQ_2"',
+            (
+                f'python "{config.ligq_dir}/run_ligq_2.py" '
+                f'--input-fasta "{remote_input}" '
+                f'--output-dir "{remote_output_dir}"'
+            ),
+            'echo "[$(date)] LigQ_2 done"',
+            f'touch "{remote_workdir}/DONE"',
+            "",
+        ]
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -384,9 +384,7 @@ def run_remote_ligq(cfg_dict, folder_path, genome):
 
     safe_genome = "".join(c if c.isalnum() or c in ("_", "-") else "_" for c in genome)
     run_label = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
-    remote_workdir = (
-        f"{config.ssh_rootfolder.rstrip('/')}/tpw_ligq/{safe_genome}_{run_label}"
-    )
+    remote_workdir = f"{config.ssh_rootfolder.rstrip('/')}/tpw_ligq/{safe_genome}_{run_label}"
     remote_input = f"{remote_workdir}/proteins.fasta"
     remote_output_dir = f"{remote_workdir}/output"
     remote_slurm = f"{remote_workdir}/ligq_batch.slurm"
@@ -403,9 +401,7 @@ def run_remote_ligq(cfg_dict, folder_path, genome):
 
         scp_client.put(local_fasta, remote_input)
 
-        slurm_text = _build_slurm_script(
-            config, remote_input, remote_output_dir, remote_workdir
-        )
+        slurm_text = _build_slurm_script(config, remote_input, remote_output_dir, remote_workdir)
         with sftp.file(remote_slurm, "w") as handle:
             handle.write(slurm_text)
 
@@ -465,9 +461,7 @@ def run_remote_ligq(cfg_dict, folder_path, genome):
             waited += config.remote_poll_seconds
 
         if not finished:
-            raise TimeoutError(
-                f"LigQ_2 did not finish in {waited}s (last state: {last_state})"
-            )
+            raise TimeoutError(f"LigQ_2 did not finish in {waited}s (last state: {last_state})")
 
         print("LigQ_2 remote: pulling output via tar stream")
         os.makedirs(local_output_dir, exist_ok=True)

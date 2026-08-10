@@ -9,7 +9,15 @@ from bioseq.models.Biodatabase import Biodatabase
 from django.core.management import CommandError, call_command
 
 
-KNOWN_ARCHIVE_DIRS = {"genome", "structures", "offtarget", "essentiality", "ligq2", "LigQ_2", "ligq_2"}
+KNOWN_ARCHIVE_DIRS = {
+    "genome",
+    "structures",
+    "offtarget",
+    "essentiality",
+    "ligq2",
+    "LigQ_2",
+    "ligq_2",
+}
 GBK_SUFFIXES = (".gbk", ".gbk.gz", ".gbff", ".gbff.gz")
 
 

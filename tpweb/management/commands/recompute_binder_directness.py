@@ -117,11 +117,7 @@ def _protein_uniprot_map(db):
 
 
 def _source_counts(qs):
-    rows = (
-        qs.values("source", "is_direct")
-        .annotate(n=Count("id"))
-        .order_by("source", "is_direct")
-    )
+    rows = qs.values("source", "is_direct").annotate(n=Count("id")).order_by("source", "is_direct")
     result = {
         Binders.SOURCE_PDB: {True: 0, False: 0},
         Binders.SOURCE_CHEMBL: {True: 0, False: 0},

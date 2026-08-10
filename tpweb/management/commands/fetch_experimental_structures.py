@@ -23,9 +23,11 @@ class Command(BaseCommand):
 
         # Derive folder_path the same way the pipeline does
         acclen = len(genome)
-        folder_name = genome[math.floor(acclen / 2 - 1):math.floor(acclen / 2 + 2)]
+        folder_name = genome[math.floor(acclen / 2 - 1) : math.floor(acclen / 2 + 2)]
         folder_path = f"{datadir}/{folder_name}/{genome}"
-        working_dir = datadir.rstrip("/").removesuffix("/data") if datadir.endswith("/data") else datadir
+        working_dir = (
+            datadir.rstrip("/").removesuffix("/data") if datadir.endswith("/data") else datadir
+        )
 
         stats = fetch_and_load_experimental_structures(
             genome,

@@ -56,7 +56,10 @@ from tpweb.services.pipeline_status import (
     annotate_pipeline_status_for_genome,
     sanitize_pipeline_status_for_user,
 )
-from tpweb.services.structure_files import _candidate_seqstore_dirs, detect_structure_format_from_text
+from tpweb.services.structure_files import (
+    _candidate_seqstore_dirs,
+    detect_structure_format_from_text,
+)
 from tpweb.services.structure_sources import summarize_structure_sources
 from tpweb.management.commands.load_af_model import store_structure_file
 from tpweb.management.commands.load_csa import (
@@ -242,9 +245,7 @@ class GenomeServiceTests(SimpleTestCase):
         self.assertEqual(metrics["experimental_structures"], 0)
         self.assertEqual(metrics["alphafold_structures"], 10)
         self.assertEqual(metrics["colabfold_structures"], 1)
-        structure_filtered.exclude.assert_called_once_with(
-            pdb__experiment__in=("AF", "CF")
-        )
+        structure_filtered.exclude.assert_called_once_with(pdb__experiment__in=("AF", "CF"))
 
     def test_genome_metadata_labels_are_human_readable(self):
         self.assertEqual(genome_metadata_label("EntryLength"), "Sequence length [bp]")
@@ -561,6 +562,7 @@ class StructureAndAnnotationServiceTests(SimpleTestCase):
             detect_structure_format_from_text("data_8ORR\n#\nloop_\n_atom_site.group_PDB\n"),
             "cif",
         )
+
     def test_store_structure_file_writes_world_readable_gzip(self):
         with TemporaryDirectory() as tmpdir:
             source = Path(tmpdir) / "model.pdb"
@@ -639,7 +641,11 @@ class StructureAndAnnotationServiceTests(SimpleTestCase):
             (),
             {
                 "bioentry_id": 1,
-                "dbxrefs": type("Manager", (), {"all": lambda self: [dbxref_relation("1.2.3.4", "Example enzyme")]})(),
+                "dbxrefs": type(
+                    "Manager",
+                    (),
+                    {"all": lambda self: [dbxref_relation("1.2.3.4", "Example enzyme")]},
+                )(),
             },
         )()
         protein_b = type(
@@ -647,7 +653,11 @@ class StructureAndAnnotationServiceTests(SimpleTestCase):
             (),
             {
                 "bioentry_id": 2,
-                "dbxrefs": type("Manager", (), {"all": lambda self: [dbxref_relation("1.2.3.5", "Sibling enzyme")]})(),
+                "dbxrefs": type(
+                    "Manager",
+                    (),
+                    {"all": lambda self: [dbxref_relation("1.2.3.5", "Sibling enzyme")]},
+                )(),
             },
         )()
 
@@ -655,7 +665,9 @@ class StructureAndAnnotationServiceTests(SimpleTestCase):
 
         self.assertEqual(explorer["annotation_count"], 2)
         self.assertIn("ec:1.2", explorer["chart"]["ids"])
-        self.assertIn("1.2 Acting on the aldehyde or oxo group of donors", explorer["chart"]["labels"])
+        self.assertIn(
+            "1.2 Acting on the aldehyde or oxo group of donors", explorer["chart"]["labels"]
+        )
         self.assertIn("1.2.3.4 — oxalate oxidase", explorer["chart"]["hover_labels"])
         self.assertEqual(explorer["rows"][0]["protein_count"], 1)
 
@@ -682,7 +694,9 @@ class StructureAndAnnotationServiceTests(SimpleTestCase):
             (),
             {
                 "bioentry_id": 1,
-                "dbxrefs": type("Manager", (), {"all": lambda self: [dbxref_relation("2.4.1.1")]})(),
+                "dbxrefs": type(
+                    "Manager", (), {"all": lambda self: [dbxref_relation("2.4.1.1")]}
+                )(),
             },
         )()
 
@@ -717,15 +731,21 @@ class StructureAndAnnotationServiceTests(SimpleTestCase):
             (),
             {
                 "bioentry_id": 1,
-                "dbxrefs": type("Manager", (), {"all": lambda self: [dbxref_relation("7.1.1.-")]})(),
+                "dbxrefs": type(
+                    "Manager", (), {"all": lambda self: [dbxref_relation("7.1.1.-")]}
+                )(),
             },
         )()
 
         explorer = build_annotation_explorer([protein], "ec")
         partial_index = explorer["chart"]["ids"].index("ec:7.1.1.-")
 
-        self.assertEqual(explorer["chart"]["labels"][partial_index], "7.1.1.- partial EC assignment")
-        self.assertEqual(explorer["chart"]["hover_labels"][partial_index], "7.1.1.- — partial EC assignment")
+        self.assertEqual(
+            explorer["chart"]["labels"][partial_index], "7.1.1.- partial EC assignment"
+        )
+        self.assertEqual(
+            explorer["chart"]["hover_labels"][partial_index], "7.1.1.- — partial EC assignment"
+        )
 
 
 class WorkspaceIsolationTests(TestCase):
@@ -776,9 +796,7 @@ class WorkspaceIsolationTests(TestCase):
         anonymous_names = list(
             visible_score_params_queryset(AnonymousUser()).values_list("name", flat=True)
         )
-        alice_names = list(
-            visible_score_params_queryset(self.alice).values_list("name", flat=True)
-        )
+        alice_names = list(visible_score_params_queryset(self.alice).values_list("name", flat=True))
 
         self.assertIn("GlobalBuiltin", anonymous_names)
         self.assertIn("PublicCustom", anonymous_names)
@@ -795,7 +813,9 @@ class WorkspaceIsolationTests(TestCase):
         ScoreFormula.objects.create(name="AliceFormula", user=self.alice, default=True)
         ScoreFormula.objects.create(name="BobFormula", user=self.bob, default=True)
 
-        anonymous_formulas = [formula.name for formula in resolve_formulas_for_user(AnonymousUser())]
+        anonymous_formulas = [
+            formula.name for formula in resolve_formulas_for_user(AnonymousUser())
+        ]
         alice_formulas = [formula.name for formula in resolve_formulas_for_user(self.alice)]
 
         self.assertEqual(anonymous_formulas, ["PublicFormula"])
@@ -815,8 +835,12 @@ class WorkspaceIsolationTests(TestCase):
 
     def test_expression_variable_helpers_use_public_workspace_for_anonymous_user(self):
         global_param = self.create_score_param(name="GlobalBuiltin", category="Protein", user=None)
-        public_param = self.create_score_param(name="PublicCustom", category="Custom", user=self.public_user)
-        alice_param = self.create_score_param(name="AliceCustom", category="Custom", user=self.alice)
+        public_param = self.create_score_param(
+            name="PublicCustom", category="Custom", user=self.public_user
+        )
+        alice_param = self.create_score_param(
+            name="AliceCustom", category="Custom", user=self.alice
+        )
 
         ScoreParamOptions.objects.create(score_param=global_param, name="High", description="")
         ScoreParamOptions.objects.create(score_param=public_param, name="Y", description="")
@@ -828,11 +852,7 @@ class WorkspaceIsolationTests(TestCase):
         self.assertNotIn("alicecustom_private", zero_cache)
 
         grouped = available_variables_grouped(AnonymousUser())
-        flattened = {
-            entry["var"]
-            for entries in grouped.values()
-            for entry in entries
-        }
+        flattened = {entry["var"] for entries in grouped.values() for entry in entries}
         self.assertIn("globalbuiltin_high", flattened)
         self.assertIn("publiccustom_y", flattened)
         self.assertNotIn("alicecustom_private", flattened)
@@ -854,22 +874,21 @@ class WorkspaceIsolationTests(TestCase):
                 name=f"CB_VK055_{index:04d}",
                 description="",
             )
-        ScoreParamOptions.objects.create(score_param=low_cardinality_param, name="core", description="")
-        ScoreParamOptions.objects.create(score_param=low_cardinality_param, name="accessory", description="")
+        ScoreParamOptions.objects.create(
+            score_param=low_cardinality_param, name="core", description=""
+        )
+        ScoreParamOptions.objects.create(
+            score_param=low_cardinality_param, name="accessory", description=""
+        )
 
         zero_cache = build_all_options_zero(AnonymousUser())
         self.assertIn("best_fpocket_structure_cb_vk055_0000", zero_cache)
 
         grouped = available_variables_grouped(AnonymousUser())
-        flattened = {
-            entry["var"]
-            for entries in grouped.values()
-            for entry in entries
-        }
+        flattened = {entry["var"] for entries in grouped.values() for entry in entries}
         self.assertNotIn("best_fpocket_structure_cb_vk055_0000", flattened)
         self.assertIn("core_roary_core", flattened)
         self.assertIn("core_roary_accessory", flattened)
-
 
     def test_expression_variable_helpers_include_numeric_values(self):
         proteome = Biodatabase.objects.create(name="TEST_protein")
@@ -1144,7 +1163,9 @@ class GenomeUploadQueueTests(TestCase):
 
         self.assertTrue(status["genome_visible_to_user"])
         self.assertFalse(status["running_for_other_workspace"])
-        self.assertEqual(status["genome_accession"], build_workspace_genome_name("NZ_AP023069.1", self.alice))
+        self.assertEqual(
+            status["genome_accession"], build_workspace_genome_name("NZ_AP023069.1", self.alice)
+        )
 
 
 class ProteinSerializerServiceTests(SimpleTestCase):
@@ -1153,7 +1174,9 @@ class ProteinSerializerServiceTests(SimpleTestCase):
         score_param_b = type("SP", (), {"name": "ParamB"})()
         score_value_a = type("SV", (), {"score_param": score_param_a, "value": "High"})()
         score_value_b = type("SV", (), {"score_param": score_param_b, "value": "Low"})()
-        score_params = type("ScoreParams", (), {"all": lambda self: [score_value_a, score_value_b]})()
+        score_params = type(
+            "ScoreParams", (), {"all": lambda self: [score_value_a, score_value_b]}
+        )()
         empty_manager = type("EmptyManager", (), {"all": lambda self: []})()
         protein = type(
             "Protein",
@@ -1248,7 +1271,9 @@ class PipelineStatusTests(SimpleTestCase):
         self.assertEqual(status.genome_display_accession, "NZ_AP023069.1")
 
     @patch("tpweb.services.pipeline_status.Biodatabase")
-    def test_sanitize_pipeline_status_for_user_hides_deleted_workspace_status(self, biodatabase_model):
+    def test_sanitize_pipeline_status_for_user_hides_deleted_workspace_status(
+        self, biodatabase_model
+    ):
         biodatabase_model.objects.filter.return_value.exists.return_value = False
 
         status = sanitize_pipeline_status_for_user(
@@ -1292,14 +1317,10 @@ class PipelineStatusTests(SimpleTestCase):
 
 class HomePipelinePanelVisibilityTests(SimpleTestCase):
     def test_hides_idle_pipeline_panel(self):
-        self.assertFalse(
-            should_show_home_pipeline_panel({"available": False, "running": False})
-        )
+        self.assertFalse(should_show_home_pipeline_panel({"available": False, "running": False}))
 
     def test_shows_running_pipeline_panel(self):
-        self.assertTrue(
-            should_show_home_pipeline_panel({"available": True, "running": True})
-        )
+        self.assertTrue(should_show_home_pipeline_panel({"available": True, "running": True}))
 
     def test_shows_recent_finished_pipeline_panel(self):
         now = datetime(2026, 7, 1, 12, 0, tzinfo=timezone.utc)
@@ -1326,6 +1347,7 @@ class HomePipelinePanelVisibilityTests(SimpleTestCase):
                 now=now,
             )
         )
+
 
 class FPocketFallbackConversionTests(SimpleTestCase):
     def test_fallback_fpocket_to_json_reads_native_fpocket_output(self):
@@ -1434,7 +1456,11 @@ class OpenAIProviderTranslationTests(SimpleTestCase):
         with patch.object(provider, "_post", return_value=fake_response):
             result = provider.generate(
                 messages=[Message(role="user", text="apply high druggability filter")],
-                tools=[ToolDefinition(name="apply_filters", description="...", input_schema={"type": "object"})],
+                tools=[
+                    ToolDefinition(
+                        name="apply_filters", description="...", input_schema={"type": "object"}
+                    )
+                ],
                 system="You are a test agent.",
             )
 
@@ -1481,9 +1507,7 @@ class OpenAIProviderTranslationTests(SimpleTestCase):
     def test_generate_maps_usage_tokens(self):
         fake_response = {
             "status": "completed",
-            "output": [
-                {"type": "message", "content": [{"type": "output_text", "text": "hi"}]}
-            ],
+            "output": [{"type": "message", "content": [{"type": "output_text", "text": "hi"}]}],
             "usage": {"input_tokens": 120, "output_tokens": 34},
         }
 
@@ -1497,9 +1521,7 @@ class OpenAIProviderTranslationTests(SimpleTestCase):
     def test_generate_defaults_usage_when_missing_from_response(self):
         fake_response = {
             "status": "completed",
-            "output": [
-                {"type": "message", "content": [{"type": "output_text", "text": "hi"}]}
-            ],
+            "output": [{"type": "message", "content": [{"type": "output_text", "text": "hi"}]}],
         }
 
         provider = self._provider()

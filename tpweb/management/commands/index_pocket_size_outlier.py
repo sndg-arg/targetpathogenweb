@@ -13,6 +13,7 @@ relative to its own structure's other FPocket pockets
 tpweb.services.assembly_workspace._score_proteins and ProteinView's target
 executive summary to read.
 """
+
 import re
 
 from django.core.management.base import BaseCommand, CommandError
@@ -32,7 +33,9 @@ _POCKET_NUMBER_RE = re.compile(r"(\d+)")
 
 def _raw_score_value(bioentry, score_param_name):
     spv = ScoreParamValue.objects.filter(
-        bioentry=bioentry, score_param__name=score_param_name, score_param__user__isnull=True,
+        bioentry=bioentry,
+        score_param__name=score_param_name,
+        score_param__user__isnull=True,
     ).first()
     return (spv.value if spv else "") or ""
 
@@ -56,7 +59,9 @@ def _resolve_curated_pocket(bioentry, links, fpocket_rs):
         return None
 
     return PDBResidueSet.objects.filter(
-        pdb_id__in=matching_pdb_ids, residue_set=fpocket_rs, name=pocket_number,
+        pdb_id__in=matching_pdb_ids,
+        residue_set=fpocket_rs,
+        name=pocket_number,
     ).first()
 
 
@@ -67,7 +72,9 @@ def _resolve_auto_pocket(links, fpocket_rs, druggability_prop):
         return None
     return (
         PDBResidueSet.objects.filter(
-            pdb_id__in=pdb_ids, residue_set=fpocket_rs, properties__property=druggability_prop,
+            pdb_id__in=pdb_ids,
+            residue_set=fpocket_rs,
+            properties__property=druggability_prop,
         )
         .order_by("-properties__value")
         .first()
@@ -94,7 +101,7 @@ class Command(BaseCommand):
             fpocket_rs = ResidueSet.objects.get(name="FPocketPocket")
             druggability_prop = Property.objects.get(name="druggability_score")
         except (ResidueSet.DoesNotExist, Property.DoesNotExist) as exc:
-            raise CommandError(f"required pocket reference data missing: {exc}")
+            raise CommandError(f"required pocket reference data missing: {exc}") from exc
 
         volume_prop = Property.objects.filter(name="volume").first()
         if volume_prop is None:
@@ -105,7 +112,9 @@ class Command(BaseCommand):
 
         score_param = ensure_system_score_param("pocket_size_outlier")
         if score_param is None:
-            raise CommandError("pocket_size_outlier is not registered in SYSTEM_SCORE_PARAM_DEFINITIONS")
+            raise CommandError(
+                "pocket_size_outlier is not registered in SYSTEM_SCORE_PARAM_DEFINITIONS"
+            )
 
         # Cache the volume-outlier verdict per structure -- many proteins share one.
         outlier_cache = {}
@@ -136,7 +145,9 @@ class Command(BaseCommand):
                 skipped += 1
                 continue
 
-            is_outlier, _median, _mad = outlier_map_for(pocket.pdb_id).get(pocket.id, (False, None, None))
+            is_outlier, _median, _mad = outlier_map_for(pocket.pdb_id).get(
+                pocket.id, (False, None, None)
+            )
             ScoreParamValue.objects.update_or_create(
                 bioentry=protein,
                 score_param=score_param,

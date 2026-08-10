@@ -3,8 +3,16 @@ from collections import defaultdict
 from bioseq.models.Biodatabase import Biodatabase
 from tpweb.models.Metabolism import GeneReactionLink
 from tpweb.models.ScoreParamValue import ScoreParamValue
-from tpweb.services.protein_formula import choose_formula, coefficient_map, resolve_formulas_for_user
-from tpweb.services.protein_serializer import compute_expression_score, compute_score_value, score_param_value_map
+from tpweb.services.protein_formula import (
+    choose_formula,
+    coefficient_map,
+    resolve_formulas_for_user,
+)
+from tpweb.services.protein_serializer import (
+    compute_expression_score,
+    compute_score_value,
+    score_param_value_map,
+)
 
 
 _CHOKEPOINT_PHRASES = {
@@ -19,7 +27,9 @@ def build_target_metabolic_sentence(metabolic_context, human_offtarget_no_hit=Fa
     computed (chokepoint role, pathway, centrality percentile, isoenzyme redundancy, human
     off-target) — the "so what" for a target, not just the raw network. No LLM involved."""
     chokepoint_reactions = [
-        r for r in metabolic_context["reactions"] if r["chokepoint_role"] != GeneReactionLink.CHOKEPOINT_NONE
+        r
+        for r in metabolic_context["reactions"]
+        if r["chokepoint_role"] != GeneReactionLink.CHOKEPOINT_NONE
     ]
     parts = []
 
@@ -66,10 +76,13 @@ def _progress_width(value, min_value, max_value):
 
 def _score_maps(proteome_name):
     score_rows = (
-        ScoreParamValue.objects
-        .filter(
+        ScoreParamValue.objects.filter(
             bioentry__biodatabase__name=proteome_name,
-            score_param__name__in=["Druggability", "p2rank_probability", "PTOOLS_betweenness_centrality"],
+            score_param__name__in=[
+                "Druggability",
+                "p2rank_probability",
+                "PTOOLS_betweenness_centrality",
+            ],
         )
         .select_related("score_param")
         .values("bioentry_id", "score_param__name", "numeric_value", "value")
@@ -90,7 +103,9 @@ def _score_maps(proteome_name):
             drugg_source = values.get("Druggability")
         scores[gene_id]["Druggability"] = _to_float(drugg_source)
         if "PTOOLS_betweenness_centrality" in values:
-            scores[gene_id]["PTOOLS_betweenness_centrality"] = _to_float(values["PTOOLS_betweenness_centrality"])
+            scores[gene_id]["PTOOLS_betweenness_centrality"] = _to_float(
+                values["PTOOLS_betweenness_centrality"]
+            )
     return scores
 
 
@@ -107,6 +122,7 @@ def _resolve_scorer(user, formula_name):
     formula_expression = (formula.expression or "").strip()
     if formula_expression:
         from tpweb.services.formula_evaluator import build_all_options_zero
+
         zero_cache = build_all_options_zero(user)
 
         def score_fn(protein):
@@ -124,14 +140,15 @@ def _resolve_scorer(user, formula_name):
     return score_fn, formula
 
 
-def build_genome_metabolism_summary(assembly_name, user=None, formula_name=None, top_target_limit=5):
+def build_genome_metabolism_summary(
+    assembly_name, user=None, formula_name=None, top_target_limit=5
+):
     proteome_name = assembly_name + Biodatabase.PROT_POSTFIX
     scores_by_protein = _score_maps(proteome_name)
     score_fn, active_formula = _resolve_scorer(user, formula_name)
 
     links = (
-        GeneReactionLink.objects
-        .filter(bioentry__biodatabase__name=proteome_name)
+        GeneReactionLink.objects.filter(bioentry__biodatabase__name=proteome_name)
         .select_related("bioentry", "reaction")
         .prefetch_related(
             "reaction__pathways",
@@ -158,15 +175,18 @@ def build_genome_metabolism_summary(assembly_name, user=None, formula_name=None,
                 bucket = unassigned
             else:
                 key = (pathway.source, pathway.external_id)
-                bucket = pathway_map.setdefault(key, {
-                    "source": pathway.source,
-                    "external_id": pathway.external_id,
-                    "name": pathway.name,
-                    "reaction_ids": set(),
-                    "protein_ids": set(),
-                    "chokepoint_reaction_ids": set(),
-                    "target_rows": {},
-                })
+                bucket = pathway_map.setdefault(
+                    key,
+                    {
+                        "source": pathway.source,
+                        "external_id": pathway.external_id,
+                        "name": pathway.name,
+                        "reaction_ids": set(),
+                        "protein_ids": set(),
+                        "chokepoint_reaction_ids": set(),
+                        "target_rows": {},
+                    },
+                )
 
             protein = link.bioentry
             protein_scores = scores_by_protein.get(protein.bioentry_id, {})
@@ -178,7 +198,9 @@ def build_genome_metabolism_summary(assembly_name, user=None, formula_name=None,
             else:
                 # No formula selected/available: fall back to a fixed heuristic so the
                 # page still ranks something sensible.
-                target_score = druggability + (0.15 if is_chokepoint else 0.0) + min(centrality, 1.0) * 0.1
+                target_score = (
+                    druggability + (0.15 if is_chokepoint else 0.0) + min(centrality, 1.0) * 0.1
+                )
 
             bucket["reaction_ids"].add(reaction.id)
             bucket["protein_ids"].add(protein.bioentry_id)
@@ -224,24 +246,28 @@ def build_genome_metabolism_summary(assembly_name, user=None, formula_name=None,
         # Full protein list (not just top_targets, which is capped to top_target_limit) so
         # client-side search can match any protein in the pathway, not only the handful
         # shown as chips.
-        protein_search_blob = " ".join(sorted(
-            f"{t['accession']} {t['description']}".lower()
-            for t in bucket["target_rows"].values()
-        ))
-        pathways.append({
-            "source": bucket["source"],
-            "external_id": bucket["external_id"],
-            "name": bucket["name"],
-            "reaction_count": reaction_count,
-            "protein_count": protein_count,
-            "chokepoint_count": chokepoint_count,
-            "chokepoint_density": round(chokepoint_density, 3),
-            "chokepoint_density_pct": round(100 * chokepoint_density, 1),
-            "best_target_score": round(best_score, 3),
-            "mean_target_score": round(mean_score, 3),
-            "top_targets": top_targets,
-            "protein_search_blob": protein_search_blob,
-        })
+        protein_search_blob = " ".join(
+            sorted(
+                f"{t['accession']} {t['description']}".lower()
+                for t in bucket["target_rows"].values()
+            )
+        )
+        pathways.append(
+            {
+                "source": bucket["source"],
+                "external_id": bucket["external_id"],
+                "name": bucket["name"],
+                "reaction_count": reaction_count,
+                "protein_count": protein_count,
+                "chokepoint_count": chokepoint_count,
+                "chokepoint_density": round(chokepoint_density, 3),
+                "chokepoint_density_pct": round(100 * chokepoint_density, 1),
+                "best_target_score": round(best_score, 3),
+                "mean_target_score": round(mean_score, 3),
+                "top_targets": top_targets,
+                "protein_search_blob": protein_search_blob,
+            }
+        )
 
     pathways.sort(
         key=lambda p: (

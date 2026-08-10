@@ -55,7 +55,9 @@ class ProteinBlastView(LoginRequiredMixin, View):
         context["sequence_value"] = sequence
 
         if not sequence:
-            context["error_message"] = "Please provide a valid amino acid sequence. The query is empty!"
+            context["error_message"] = (
+                "Please provide a valid amino acid sequence. The query is empty!"
+            )
             return render(request, self.form_template_name, context)
         if len(sequence) > max_chars:
             context["error_message"] = f"Query is too large. Limit: {max_chars} characters."
@@ -76,13 +78,20 @@ class ProteinBlastView(LoginRequiredMixin, View):
             query_path.write_text(query_text, encoding="utf-8")
             cmd = [
                 blast_bin,
-                "-query", str(query_path),
-                "-db", db_location,
-                "-evalue", "1e-5",
-                "-num_threads", "2",
-                "-max_target_seqs", "20",
-                "-out", str(output_path),
-                "-outfmt", "6 qseqid sseqid pident length mismatch evalue bitscore",
+                "-query",
+                str(query_path),
+                "-db",
+                db_location,
+                "-evalue",
+                "1e-5",
+                "-num_threads",
+                "2",
+                "-max_target_seqs",
+                "20",
+                "-out",
+                str(output_path),
+                "-outfmt",
+                "6 qseqid sseqid pident length mismatch evalue bitscore",
             ]
             sp.check_output(cmd, stderr=sp.STDOUT, timeout=timeout_seconds)
         except sp.TimeoutExpired:
@@ -107,15 +116,17 @@ class ProteinBlastView(LoginRequiredMixin, View):
                 if len(fields) < 7:
                     continue
                 qseqid, sseqid, pident, length, mismatch, evalue, bitscore = fields[:7]
-                hits.append({
-                    "query": qseqid,
-                    "subject_id": sseqid,
-                    "identity": pident,
-                    "length": length,
-                    "mismatch": mismatch,
-                    "evalue": evalue,
-                    "bitscore": bitscore,
-                })
+                hits.append(
+                    {
+                        "query": qseqid,
+                        "subject_id": sseqid,
+                        "identity": pident,
+                        "length": length,
+                        "mismatch": mismatch,
+                        "evalue": evalue,
+                        "bitscore": bitscore,
+                    }
+                )
 
         # Best-effort mapping of the BLAST subject id back to a clickable protein --
         # the protein FASTA headers written by index_genome_seq_clean are keyed by

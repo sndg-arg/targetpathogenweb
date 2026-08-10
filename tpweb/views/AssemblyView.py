@@ -35,7 +35,7 @@ from tpweb.services.csv_exports import build_view_export_url, csv_response, xlsx
 
 
 class AssemblyView(View):
-    template_name = 'genomic/assembly.html'
+    template_name = "genomic/assembly.html"
     ACTION_DELETE_WORKSPACE = "delete_workspace"
 
     def _resolve_jbrowse_base_url(self, request):
@@ -63,8 +63,10 @@ class AssemblyView(View):
             raise Http404("Genome not found") from exc
 
     def _build_context(self, request, biodb, error_message=""):
-        props = {bqv.term.identifier: bqv.value
-                 for bqv in BiodatabaseQualifierValue.objects.filter(biodatabase=biodb)}
+        props = {
+            bqv.term.identifier: bqv.value
+            for bqv in BiodatabaseQualifierValue.objects.filter(biodatabase=biodb)
+        }
         reference_entry = Bioentry.objects.filter(biodatabase=biodb).only("accession").first()
         reference_accession = str(getattr(reference_entry, "accession", "") or "").strip()
         assembly = {
@@ -76,7 +78,9 @@ class AssemblyView(View):
             "prop_rows": build_genome_metadata_rows(props),
         }
         workspace_metrics = build_assembly_workspace_metrics(biodb.name)
-        top_targets_by_score, unexplored_targets = get_overview_target_rankings(biodb.name, request.user, limit=5)
+        top_targets_by_score, unexplored_targets = get_overview_target_rankings(
+            biodb.name, request.user, limit=5
+        )
         overview = build_assembly_overview(
             request.user,
             biodb.name,
@@ -162,8 +166,28 @@ class AssemblyView(View):
                         ["Genome", assembly["name"]],
                         ["Description", assembly["description"]],
                         ["Source", (overview.get("scope") or {}).get("label", "")],
-                        ["Organism", next((fact["value"] for fact in overview.get("hero_facts", []) if fact.get("label") == "Organism"), "")],
-                        ["Sequence length", next((fact["value"] for fact in overview.get("hero_facts", []) if fact.get("label") == "Sequence length"), "")],
+                        [
+                            "Organism",
+                            next(
+                                (
+                                    fact["value"]
+                                    for fact in overview.get("hero_facts", [])
+                                    if fact.get("label") == "Organism"
+                                ),
+                                "",
+                            ),
+                        ],
+                        [
+                            "Sequence length",
+                            next(
+                                (
+                                    fact["value"]
+                                    for fact in overview.get("hero_facts", [])
+                                    if fact.get("label") == "Sequence length"
+                                ),
+                                "",
+                            ),
+                        ],
                         ["Strain", overview.get("strain_display") or ""],
                         ["Record", overview.get("record_display") or ""],
                         ["Completion", overview.get("completion_display") or ""],
@@ -174,7 +198,10 @@ class AssemblyView(View):
                     "title": "Genome composition",
                     "headers": ["Metric", "Value"],
                     "rows": [
-                        ["Proteins available for analysis", workspace_metrics.get("total_proteins")],
+                        [
+                            "Proteins available for analysis",
+                            workspace_metrics.get("total_proteins"),
+                        ],
                         [
                             "Structures loaded",
                             (
@@ -204,7 +231,10 @@ class AssemblyView(View):
                             f"{workspace_metrics.get('functional_annotated')} annotated proteins (EC {workspace_metrics.get('ec_annotated')}, GO {workspace_metrics.get('go_annotated')})",
                         ],
                         ["Annotated coding sequences", overview.get("source_cds_display") or ""],
-                        ["Coding sequences without translated protein", overview.get("untranslated_cds_display") or ""],
+                        [
+                            "Coding sequences without translated protein",
+                            overview.get("untranslated_cds_display") or "",
+                        ],
                         ["RNA features", overview.get("rna_total_display") or ""],
                     ],
                 },

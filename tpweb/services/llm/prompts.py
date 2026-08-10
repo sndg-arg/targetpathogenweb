@@ -6,6 +6,7 @@ doesn't need to import from tpweb.views, matching the same "views delegate
 to services, not the other way around" rule the rest of this package
 already follows for tool_registry.py.
 """
+
 from __future__ import annotations
 
 from bioseq.models.Biodatabase import Biodatabase

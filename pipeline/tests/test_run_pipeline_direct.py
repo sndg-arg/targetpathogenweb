@@ -4,6 +4,7 @@ handling) and the heavy-stage guard rail. Zero coverage before this file,
 despite being the part of the app most likely to silently drop a failed
 stage as a success (or vice versa) if the event bookkeeping regresses.
 """
+
 import sys
 import unittest
 from pathlib import Path
@@ -26,7 +27,9 @@ class FakeCompletedProcess:
 class RunStageTests(unittest.TestCase):
     @patch("run_pipeline_direct._record_pipeline_stage")
     @patch("run_pipeline_direct.subprocess.run")
-    def test_successful_command_records_submitted_then_completed(self, subprocess_run, record_stage):
+    def test_successful_command_records_submitted_then_completed(
+        self, subprocess_run, record_stage
+    ):
         subprocess_run.return_value = FakeCompletedProcess(returncode=0, stdout="ok")
 
         result = rpd._run_stage(3, "load_gbk", "echo hi")
@@ -55,8 +58,12 @@ class RunStageTests(unittest.TestCase):
 
     @patch("run_pipeline_direct._record_pipeline_stage")
     @patch("run_pipeline_direct.subprocess.run")
-    def test_failure_message_falls_back_to_stdout_when_stderr_empty(self, subprocess_run, record_stage):
-        subprocess_run.return_value = FakeCompletedProcess(returncode=2, stdout="stdout details", stderr="")
+    def test_failure_message_falls_back_to_stdout_when_stderr_empty(
+        self, subprocess_run, record_stage
+    ):
+        subprocess_run.return_value = FakeCompletedProcess(
+            returncode=2, stdout="stdout details", stderr=""
+        )
 
         with self.assertRaises(RuntimeError):
             rpd._run_stage(4, "fasttarget", "false")
@@ -68,7 +75,9 @@ class RunStageTests(unittest.TestCase):
 
 class RunPythonStageTests(unittest.TestCase):
     @patch("run_pipeline_direct._record_pipeline_stage")
-    def test_successful_callable_records_submitted_then_completed_and_returns_value(self, record_stage):
+    def test_successful_callable_records_submitted_then_completed_and_returns_value(
+        self, record_stage
+    ):
         result = rpd._run_python_stage(15, "alphafold", lambda x: x + 1, 41)
 
         self.assertEqual(result, 42)

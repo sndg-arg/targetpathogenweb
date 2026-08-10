@@ -8,6 +8,7 @@ coupling. `AFILL` (AlphaFill) is a new `PDB.experiment` value introduced by
 `import_human_curated_proteins`; bacteria code never scans/assumes only
 AF/CF/EX exist, so this doesn't collide with anything there.
 """
+
 from django.urls import reverse
 
 EXPERIMENT_ALPHAFOLD = "AF"
@@ -65,11 +66,27 @@ def build_human_structure_context(bioentry):
 
     sub_tabs = []
     if alphafold:
-        sub_tabs.append({"key": "alphafold", "label": "AlphaFold", "count": len(alphafold), "entries": alphafold})
+        sub_tabs.append(
+            {
+                "key": "alphafold",
+                "label": "AlphaFold",
+                "count": len(alphafold),
+                "entries": alphafold,
+            }
+        )
     if alphafill:
-        sub_tabs.append({"key": "alphafill", "label": "AlphaFill", "count": len(alphafill), "entries": alphafill})
+        sub_tabs.append(
+            {
+                "key": "alphafill",
+                "label": "AlphaFill",
+                "count": len(alphafill),
+                "entries": alphafill,
+            }
+        )
     if xray:
-        sub_tabs.append({"key": "xray", "label": "PDB · X-ray", "count": len(xray), "entries": xray})
+        sub_tabs.append(
+            {"key": "xray", "label": "PDB · X-ray", "count": len(xray), "entries": xray}
+        )
     if nmr:
         sub_tabs.append({"key": "nmr", "label": "PDB · NMR", "count": len(nmr), "entries": nmr})
 

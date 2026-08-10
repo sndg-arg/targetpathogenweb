@@ -4,6 +4,7 @@ The cluster smoke test validates /v1/responses directly, so this adapter uses
 the same API instead of Chat Completions. It intentionally avoids printing or
 persisting API keys; OPENAI_API_KEY is read from the process environment.
 """
+
 from __future__ import annotations
 
 import json
@@ -20,7 +21,12 @@ RESPONSES_URL = "https://api.openai.com/v1/responses"
 
 class OpenAIProvider(LLMProvider):
     def __init__(self, model: str | None = None, api_key: str | None = None, timeout: int = 60):
-        self.model = model or os.environ.get("TPW_LLM_MODEL") or os.environ.get("OPENAI_MODEL") or DEFAULT_MODEL
+        self.model = (
+            model
+            or os.environ.get("TPW_LLM_MODEL")
+            or os.environ.get("OPENAI_MODEL")
+            or DEFAULT_MODEL
+        )
         self.api_key = api_key or os.environ.get("OPENAI_API_KEY", "")
         self.timeout = timeout
         if not self.api_key:

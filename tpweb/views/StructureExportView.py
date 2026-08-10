@@ -14,8 +14,8 @@ from django.utils.encoding import smart_str
 from tpweb.services.genome_workspace import user_can_access_genome_name
 from tpweb.services.structure_files import structure_file_path
 
-class StructureExportView(View):
 
+class StructureExportView(View):
     def get(self, request, struct_id, *args, **kwargs):
         pdbqs = PDB.objects.filter(id=struct_id)
 
@@ -37,11 +37,13 @@ class StructureExportView(View):
             vmd_txt = vmd_style(pdb_dto["pockets"])
             stream = io.BytesIO()
             with zipfile.ZipFile(stream, mode="w", compression=zipfile.ZIP_DEFLATED) as zip_file:
-                zip_file.writestr(f'{pdb.code}.tcl', vmd_txt)
-                zip_file.writestr(f'{pdb.code}.pdb', data)
+                zip_file.writestr(f"{pdb.code}.tcl", vmd_txt)
+                zip_file.writestr(f"{pdb.code}.pdb", data)
             payload = stream.getvalue()
             response = HttpResponse(payload, content_type="application/zip")
-            response["Content-Disposition"] = "attachment; filename=%s" % smart_str(be.accession + ".zip")
+            response["Content-Disposition"] = (
+                f"attachment; filename={smart_str(be.accession + '.zip')}"
+            )
             response["Content-Length"] = str(len(payload))
 
             return response
@@ -51,19 +53,19 @@ class StructureExportView(View):
 
 def vmd_style(pockets):
     """str_variants = " or ".join([ "(" + ("chain " + x.split("_")[1] + "
-                                         // and " if x.split("_")[1].strip() else "") + "resid " +
-                                         // x.split("_")[2] + ")" for x in variant_list if x])"""
+    // and " if x.split("_")[1].strip() else "") + "resid " +
+    // x.split("_")[2] + ")" for x in variant_list if x])"""
 
     tcl = """set id [[atomselect 0 "protein"] molid]
-mol delrep 0 $id    
+mol delrep 0 $id
 mol representation "NewRibbons"
 mol material "Opaque"
 mol color Chain
 mol selection "protein"
 mol addrep $id
-                     
+
 mol representation "VDW"
-mol color Element                     
+mol color Element
 mol selection "not protein and not resname HOH and not resname STP"
 mol addrep $id
 """
@@ -73,7 +75,7 @@ mol addrep $id
 mol color Element
 mol selection "resname  STP and resid  {p.name}"
 mol addrep $id
-        
+
         """
         """mol representation "Bonds"
         mol color Element

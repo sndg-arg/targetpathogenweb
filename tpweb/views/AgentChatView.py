@@ -15,6 +15,7 @@ access-checked, exactly like every other view in this app. This means the
 model can never be tricked into acting on a genome the requesting user
 doesn't have access to.
 """
+
 from __future__ import annotations
 
 import json
@@ -58,11 +59,14 @@ def _message_to_json(message: Message) -> dict:
         "role": message.role,
         "text": message.text,
         "tool_calls": [
-            {"id": call.id, "name": call.name, "input": call.input}
-            for call in message.tool_calls
+            {"id": call.id, "name": call.name, "input": call.input} for call in message.tool_calls
         ],
         "tool_results": [
-            {"tool_call_id": result.tool_call_id, "content": result.content, "is_error": result.is_error}
+            {
+                "tool_call_id": result.tool_call_id,
+                "content": result.content,
+                "is_error": result.is_error,
+            }
             for result in message.tool_results
         ],
     }
@@ -280,16 +284,24 @@ class AgentChatView(View):
                 "Listo, borre todos los filtros de la lista de proteinas para esta sesion. "
                 "Recargo la lista para que lo veas aplicado."
             )
-            history = _compact_history([*history, Message(role="user", text=message), Message(role="assistant", text=reply)])
+            history = _compact_history(
+                [
+                    *history,
+                    Message(role="user", text=message),
+                    Message(role="assistant", text=reply),
+                ]
+            )
             _save_persisted_history(session_key, history)
-            return JsonResponse({
-                "reply": reply,
-                "history": [_message_to_json(item) for item in history],
-                "reload": True,
-                "redirect_url": self._reload_url_without_query(
-                    str(payload.get("page_url") or payload.get("page_path") or "")
-                ),
-            })
+            return JsonResponse(
+                {
+                    "reply": reply,
+                    "history": [_message_to_json(item) for item in history],
+                    "reload": True,
+                    "redirect_url": self._reload_url_without_query(
+                        str(payload.get("page_url") or payload.get("page_path") or "")
+                    ),
+                }
+            )
 
         system = SYSTEM_PROMPT
         if biologist_mode:
@@ -299,7 +311,9 @@ class AgentChatView(View):
             system += self._page_state_prompt(page_state)
         else:
             system += NO_GENOME_SCOPE_NOTE
-        tools = build_scoped_tools(request, assembly_name, default_accession, workspace_user, session_user)
+        tools = build_scoped_tools(
+            request, assembly_name, default_accession, workspace_user, session_user
+        )
 
         started_at = time.perf_counter()
         try:
@@ -356,7 +370,9 @@ class AgentChatView(View):
             "reply": reply,
             "history": [_message_to_json(item) for item in persisted_history],
         }
-        if _tool_was_called(agent.last_messages, "clear_filters") or _tool_was_called(agent.last_messages, "apply_filters"):
+        if _tool_was_called(agent.last_messages, "clear_filters") or _tool_was_called(
+            agent.last_messages, "apply_filters"
+        ):
             response["reload"] = True
             response["redirect_url"] = self._reload_url_without_query(
                 str(payload.get("page_url") or payload.get("page_path") or "")
@@ -411,7 +427,7 @@ class AgentChatView(View):
             or str(getattr(settings, "FORCE_SCRIPT_NAME", "") or "").strip()
         )
         if force_script_name and path.startswith(force_script_name + "/"):
-            candidates.append(path[len(force_script_name):] or "/")
+            candidates.append(path[len(force_script_name) :] or "/")
 
         for marker in ("/protein/", "/genome/"):
             index = path.find(marker)
@@ -435,9 +451,7 @@ class AgentChatView(View):
     @staticmethod
     def _scope_from_protein_id(user, protein_id):
         protein = (
-            Bioentry.objects.filter(bioentry_id=protein_id)
-            .select_related("biodatabase")
-            .first()
+            Bioentry.objects.filter(bioentry_id=protein_id).select_related("biodatabase").first()
         )
         if protein is None:
             return None, None

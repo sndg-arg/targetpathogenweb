@@ -12,6 +12,7 @@ functions below, closing over the already-resolved, access-checked
 request/user, so the model can never spoof which workspace/session it is
 filtering.
 """
+
 from __future__ import annotations
 
 from ..agent import ToolEntry
@@ -120,7 +121,9 @@ def build_list_available_filters_entry(user):
                 options = ", ".join(option_parts)
                 if not options:
                     continue
-                lines.append(f"- {score_param.name} [{score_param.category}, categorical]: {options}")
+                lines.append(
+                    f"- {score_param.name} [{score_param.category}, categorical]: {options}"
+                )
             else:
                 lines.append(
                     f"- {score_param.name} [{score_param.category}, numeric, "
@@ -148,7 +151,9 @@ def build_apply_filters_entry(request, user):
             get_workspace_session_value(request.session, user, "selected_parameters", [])
         )
         selected_parameters = apply_filter_changes(selected_parameters, changes)
-        set_workspace_session_value(request.session, user, "selected_parameters", selected_parameters)
+        set_workspace_session_value(
+            request.session, user, "selected_parameters", selected_parameters
+        )
 
         if not selected_parameters:
             return "All filters cleared. The protein list currently shows every protein in this genome."

@@ -60,7 +60,7 @@ class Command(BaseCommand):
 
         # Resolve folder path (same convention as run_pipeline.py)
         acclen = len(genome)
-        folder_name = genome[math.floor(acclen / 2 - 1):math.floor(acclen / 2 + 2)]
+        folder_name = genome[math.floor(acclen / 2 - 1) : math.floor(acclen / 2 + 2)]
         folder_path = os.path.join(datadir, folder_name, genome)
         alphafold_dir = os.path.join(folder_path, "alphafold")
 

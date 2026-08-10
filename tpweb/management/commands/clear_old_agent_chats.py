@@ -40,7 +40,9 @@ class Command(BaseCommand):
         count = qs.count()
 
         if options["dry_run"]:
-            self.stdout.write(f"[dry-run] Would delete {count} chat session(s) older than {options['days']} day(s)")
+            self.stdout.write(
+                f"[dry-run] Would delete {count} chat session(s) older than {options['days']} day(s)"
+            )
             return
 
         deleted, _details = qs.delete()

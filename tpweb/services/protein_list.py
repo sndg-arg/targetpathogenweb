@@ -248,7 +248,8 @@ def add_selected_parameter(selected_parameters, option_dict):
         if option_param_id is None:
             return selected_parameters
         selected_parameters = [
-            item for item in selected_parameters
+            item
+            for item in selected_parameters
             if _selected_parameter_kind(item) != "numeric"
             or _coerce_score_param_id(item.get("score_param_id")) != option_param_id
         ]
@@ -495,9 +496,13 @@ def apply_selected_parameter_filters(queryset, selected_parameters):
         if param_name in CORE_GENOME_PARAM_NAMES:
             core_q = Q()
             if "Core" in values:
-                core_q |= Q(score_params__score_param_id=param_id, score_params__numeric_value__gte=0.5)
+                core_q |= Q(
+                    score_params__score_param_id=param_id, score_params__numeric_value__gte=0.5
+                )
             if "Accessory" in values:
-                core_q |= Q(score_params__score_param_id=param_id, score_params__numeric_value__lt=0.5)
+                core_q |= Q(
+                    score_params__score_param_id=param_id, score_params__numeric_value__lt=0.5
+                )
             if core_q:
                 filtered_queryset = filtered_queryset.filter(core_q)
             continue
@@ -520,9 +525,8 @@ def apply_selected_parameter_filters(queryset, selected_parameters):
         if "none" in structure_values:
             structure_query |= Q(structures__isnull=True)
         if "experimental" in structure_values:
-            structure_query |= (
-                Q(structures__isnull=False)
-                & ~Q(structures__pdb__experiment__in=PDB_MODEL_EXPERIMENTS)
+            structure_query |= Q(structures__isnull=False) & ~Q(
+                structures__pdb__experiment__in=PDB_MODEL_EXPERIMENTS
             )
         if "alphafold" in structure_values:
             structure_query |= Q(structures__pdb__experiment=PDB_EXPERIMENT_ALPHAFOLD)
@@ -561,7 +565,9 @@ def apply_selected_parameter_filters(queryset, selected_parameters):
             )
         filtered_queryset = filtered_queryset.filter(go_query)
 
-    pathway_values = [value for value in special_groups.get("pathway_filter", []) if value and ":" in value]
+    pathway_values = [
+        value for value in special_groups.get("pathway_filter", []) if value and ":" in value
+    ]
     if pathway_values:
         pathway_query = Q()
         for pathway_value in pathway_values:

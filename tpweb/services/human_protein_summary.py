@@ -7,6 +7,7 @@ dict, delegate the shaping" style of `protein_summary.py`, but has no
 pipeline/genome-workspace/druggability inputs -- those are bacteria-pipeline
 concepts that don't apply here (see CLAUDE.md "Human Targets").
 """
+
 from __future__ import annotations
 
 # UniProt cross-reference database name -> display bucket. Anything not
@@ -16,27 +17,52 @@ from __future__ import annotations
 XREF_GROUPS = {
     "Structure": {"PDB", "PDBsum", "SMR", "AlphaFoldDB", "BMRB", "EMDB", "ModBase"},
     "Family & domains": {
-        "Pfam", "InterPro", "PROSITE", "SUPFAM", "Gene3D", "PANTHER",
-        "PRINTS", "SMART", "CDD", "HAMAP", "PIRSF",
+        "Pfam",
+        "InterPro",
+        "PROSITE",
+        "SUPFAM",
+        "Gene3D",
+        "PANTHER",
+        "PRINTS",
+        "SMART",
+        "CDD",
+        "HAMAP",
+        "PIRSF",
     },
     "Sequence": {"EMBL", "RefSeq", "CCDS", "PIR", "UniGene"},
     "Genome annotation": {
-        "Ensembl", "GeneID", "KEGG", "UCSC", "MANE-Select", "GenomeRNAi",
+        "Ensembl",
+        "GeneID",
+        "KEGG",
+        "UCSC",
+        "MANE-Select",
+        "GenomeRNAi",
     },
     "Organism databases": {"HGNC", "MIM", "neXtProt", "CTD", "DisGeNET", "GeneCards"},
     "Expression": {"Bgee", "ExpressionAtlas", "CleanEx", "Genevisible"},
     "Phylogenomics": {
-        "eggNOG", "InParanoid", "OMA", "OrthoDB", "PhylomeDB", "TreeFam",
-        "GeneTree", "HOGENOM",
+        "eggNOG",
+        "InParanoid",
+        "OMA",
+        "OrthoDB",
+        "PhylomeDB",
+        "TreeFam",
+        "GeneTree",
+        "HOGENOM",
     },
     "Proteomic": {"PaxDb", "PRIDE", "ProteomicsDB", "EPD", "jPOST", "MassIVE"},
 }
-_XREF_DB_TO_GROUP = {
-    db: group for group, dbs in XREF_GROUPS.items() for db in dbs
-}
+_XREF_DB_TO_GROUP = {db: group for group, dbs in XREF_GROUPS.items() for db in dbs}
 XREF_GROUP_ORDER = [
-    "Structure", "Family & domains", "Sequence", "Genome annotation",
-    "Organism databases", "Expression", "Phylogenomics", "Proteomic", "Other",
+    "Structure",
+    "Family & domains",
+    "Sequence",
+    "Genome annotation",
+    "Organism databases",
+    "Expression",
+    "Phylogenomics",
+    "Proteomic",
+    "Other",
 ]
 
 _GO_ASPECT_LABELS = {
@@ -64,7 +90,10 @@ def build_human_overview_context(human_protein):
         "quick_facts": [
             {"label": "Length", "value": f"{hp.sequence_length} aa" if hp.sequence_length else "—"},
             {"label": "Mass", "value": f"{hp.mass_da:,} Da" if hp.mass_da else "—"},
-            {"label": "Annotation score", "value": f"{score:.0f}/5" if hp.annotation_score is not None else "—"},
+            {
+                "label": "Annotation score",
+                "value": f"{score:.0f}/5" if hp.annotation_score is not None else "—",
+            },
             {"label": "Entry version", "value": hp.entry_version or "—"},
         ],
         "caution_text": hp.caution_text,
@@ -116,9 +145,7 @@ def build_human_sequence_context(human_protein):
         "sequence": hp.sequence,
         "sequence_length": hp.sequence_length,
         "feature_lanes": [
-            {"type": ftype, "features": features}
-            for ftype, features in lanes.items()
-            if features
+            {"type": ftype, "features": features} for ftype, features in lanes.items() if features
         ],
         "features_raw": hp.features_raw or [],
     }

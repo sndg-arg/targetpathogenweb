@@ -137,9 +137,7 @@ def build_score_dict_and_columns(ordered_params):
 def coefficient_map(formula_term_list):
     coefficient_by_param = {}
     for term in formula_term_list:
-        coefficient_by_param.setdefault(term.score_param.name, {})[
-            term.value
-        ] = term.coefficient
+        coefficient_by_param.setdefault(term.score_param.name, {})[term.value] = term.coefficient
     return coefficient_by_param
 
 
@@ -161,9 +159,7 @@ def formula_to_dto(formula, description_by_param):
             )
             continue
 
-        multi_desc = " ".join(
-            [f"{term.coefficient} if {term.value} " for term in param_terms]
-        )
+        multi_desc = " ".join([f"{term.coefficient} if {term.value} " for term in param_terms])
         dto_terms.append(
             {
                 "coefficient": 1,

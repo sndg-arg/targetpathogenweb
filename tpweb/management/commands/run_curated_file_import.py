@@ -43,14 +43,39 @@ class Command(BaseCommand):
     )
 
     def add_arguments(self, parser):
-        parser.add_argument("--genome", required=True, help="Internal Target genome name, e.g. public__KpKP13.")
-        parser.add_argument("--display-name", default=None, help="Human-readable name used only in reports.")
-        parser.add_argument("--gram", default="n", choices=("n", "p"), help="Gram stain flag for generated pipeline commands.")
+        parser.add_argument(
+            "--genome", required=True, help="Internal Target genome name, e.g. public__KpKP13."
+        )
+        parser.add_argument(
+            "--display-name", default=None, help="Human-readable name used only in reports."
+        )
+        parser.add_argument(
+            "--gram",
+            default="n",
+            choices=("n", "p"),
+            help="Gram stain flag for generated pipeline commands.",
+        )
         parser.add_argument("--results-tsv", required=True, help="Curated results_table.tsv.")
-        parser.add_argument("--archive", default=None, help="Optional tar/tar.gz archive with genome/structures/results folders.")
-        parser.add_argument("--structures-dir", default=None, help="Optional already-extracted structures directory.")
-        parser.add_argument("--ligq-output-dir", default=None, help="Optional already-existing LigQ_2 output directory.")
-        parser.add_argument("--archive-root", default=None, help="Expected top-level archive directory. Auto-detected if omitted.")
+        parser.add_argument(
+            "--archive",
+            default=None,
+            help="Optional tar/tar.gz archive with genome/structures/results folders.",
+        )
+        parser.add_argument(
+            "--structures-dir",
+            default=None,
+            help="Optional already-extracted structures directory.",
+        )
+        parser.add_argument(
+            "--ligq-output-dir",
+            default=None,
+            help="Optional already-existing LigQ_2 output directory.",
+        )
+        parser.add_argument(
+            "--archive-root",
+            default=None,
+            help="Expected top-level archive directory. Auto-detected if omitted.",
+        )
         parser.add_argument("--datadir", default="./data", help="Target data directory.")
         parser.add_argument(
             "--workdir",
@@ -179,8 +204,12 @@ class Command(BaseCommand):
 
         self._validate_locus_compatibility(db, tsv_info["genes"], report_lines)
 
-        structures_dir = options.get("structures_dir") or (self._detected_path(layout, extract_root, "structures") if layout else None)
-        ligq_dir = options.get("ligq_output_dir") or (self._detect_ligq_path(layout, extract_root) if layout else None)
+        structures_dir = options.get("structures_dir") or (
+            self._detected_path(layout, extract_root, "structures") if layout else None
+        )
+        ligq_dir = options.get("ligq_output_dir") or (
+            self._detect_ligq_path(layout, extract_root) if layout else None
+        )
         gbk_path = self._first_gbk_path(layout, extract_root) if layout else None
 
         self._line(report_lines, "")
@@ -191,22 +220,46 @@ class Command(BaseCommand):
 
         self._line(report_lines, "")
         self._line(report_lines, "Safe local steps")
-        self._line(report_lines, f"  import_external_results: {'will run' if options['execute'] else 'would run'}")
-        self._line(report_lines, f"  sync_genome_metadata: {'will run' if options['execute'] and gbk_path else 'would run' if gbk_path else 'not available'}")
+        self._line(
+            report_lines,
+            f"  import_external_results: {'will run' if options['execute'] else 'would run'}",
+        )
+        self._line(
+            report_lines,
+            f"  sync_genome_metadata: {'will run' if options['execute'] and gbk_path else 'would run' if gbk_path else 'not available'}",
+        )
         self._line(
             report_lines,
             "  backfill_curated_uniprot_annotations: "
-            + ("skipped by option" if options["skip_uniprot_backfill"] else "will run" if options["execute"] else "would run"),
+            + (
+                "skipped by option"
+                if options["skip_uniprot_backfill"]
+                else "will run"
+                if options["execute"]
+                else "would run"
+            ),
         )
         self._line(
             report_lines,
             "  fetch_experimental_structures --all-xrefs: "
-            + ("skipped by option" if options["skip_experimental_fetch"] else "will run" if options["execute"] else "would run"),
+            + (
+                "skipped by option"
+                if options["skip_experimental_fetch"]
+                else "will run"
+                if options["execute"]
+                else "would run"
+            ),
         )
         self._line(
             report_lines,
             "  load_ligq_2_results: "
-            + ("skipped" if options["skip_ligq"] or not ligq_dir else "will run" if options["execute"] else "would run"),
+            + (
+                "skipped"
+                if options["skip_ligq"] or not ligq_dir
+                else "will run"
+                if options["execute"]
+                else "would run"
+            ),
         )
 
         if options["execute"]:
@@ -224,7 +277,9 @@ class Command(BaseCommand):
                 report_lines=report_lines,
             )
 
-        plan = build_curated_pipeline_plan(genome, results_tsv=options["results_tsv"], datadir=datadir)
+        plan = build_curated_pipeline_plan(
+            genome, results_tsv=options["results_tsv"], datadir=datadir
+        )
         self._append_plan_summary(plan, workdir, options["gram"], report_lines)
 
         self._write_report(options["report"], report_lines)
@@ -265,7 +320,11 @@ class Command(BaseCommand):
         if not members:
             raise CommandError(f"Archive has no safe members: {archive_path}")
 
-        root = requested_root.strip("/\\") if requested_root else _detect_archive_root(m.name for m in members)
+        root = (
+            requested_root.strip("/\\")
+            if requested_root
+            else _detect_archive_root(m.name for m in members)
+        )
         layout = ArchiveLayout(root=root)
 
         for member in members:
@@ -302,7 +361,9 @@ class Command(BaseCommand):
         wanted_prefixes = set(layout.dirs.values())
         wanted_prefixes.update(member.split("/", 1)[0] for member in layout.gbk_members)
         if not wanted_prefixes:
-            raise CommandError("Archive contains no supported folders or GBK/GBFF files to extract.")
+            raise CommandError(
+                "Archive contains no supported folders or GBK/GBFF files to extract."
+            )
 
         extracted = 0
         with tarfile.open(archive_path, "r:*") as tar:
@@ -344,9 +405,13 @@ class Command(BaseCommand):
         self._line(report_lines, f"  TSV genes missing in DB: {missing_in_db}")
         self._line(report_lines, f"  DB proteins missing in TSV: {missing_in_tsv}")
         if overlap == 0:
-            raise CommandError("No overlap between TSV gene values and loaded Target protein accessions.")
+            raise CommandError(
+                "No overlap between TSV gene values and loaded Target protein accessions."
+            )
         if overlap < min(len(db_genes), len(tsv_genes)) * 0.8:
-            raise CommandError("Low TSV/DB locus overlap. Refusing to continue; check genome name and TSV.")
+            raise CommandError(
+                "Low TSV/DB locus overlap. Refusing to continue; check genome name and TSV."
+            )
 
     def _run_safe_steps(
         self,
@@ -385,7 +450,13 @@ class Command(BaseCommand):
                 datadir=datadir,
             )
         if not skip_experimental_fetch:
-            self._call(report_lines, "fetch_experimental_structures", genome, datadir=datadir, all_xrefs=True)
+            self._call(
+                report_lines,
+                "fetch_experimental_structures",
+                genome,
+                datadir=datadir,
+                all_xrefs=True,
+            )
         if ligq_dir and not skip_ligq:
             self._call(report_lines, "load_ligq_2_results", ligq_dir)
 
@@ -405,14 +476,25 @@ class Command(BaseCommand):
         self._line(report_lines, "Final curated pipeline audit")
         self._line(report_lines, f"  proteins: {plan.protein_total}")
         self._line(report_lines, f"  structures: {plan.protein_structures}/{plan.protein_total}")
-        self._line(report_lines, f"  UniProt mapped proteins: {plan.uniprot_mapped_proteins}/{plan.protein_total}")
-        self._line(report_lines, f"  GO/EC annotated proteins: {plan.annotation_proteins}/{plan.protein_total}")
-        self._line(report_lines, f"  PDB xref proteins: {plan.pdb_xref_proteins}/{plan.protein_total}")
+        self._line(
+            report_lines,
+            f"  UniProt mapped proteins: {plan.uniprot_mapped_proteins}/{plan.protein_total}",
+        )
+        self._line(
+            report_lines,
+            f"  GO/EC annotated proteins: {plan.annotation_proteins}/{plan.protein_total}",
+        )
+        self._line(
+            report_lines, f"  PDB xref proteins: {plan.pdb_xref_proteins}/{plan.protein_total}"
+        )
         self._line(report_lines, f"  FPocket pocket sets: {plan.fpocket_sets}")
         self._line(report_lines, f"  P2Rank pocket sets: {plan.p2rank_sets}")
         self._line(report_lines, f"  Binder rows: {plan.binder_count}")
         self._line(report_lines, f"  Skip stages: {plan.skip_stages_text or '-'}")
-        self._line(report_lines, f"  Heavy stages that still require SLURM: {plan.required_remote_stages_text or '-'}")
+        self._line(
+            report_lines,
+            f"  Heavy stages that still require SLURM: {plan.required_remote_stages_text or '-'}",
+        )
         if plan.warnings:
             self._line(report_lines, "  Warnings:")
             for warning in plan.warnings:
@@ -515,4 +597,3 @@ def _is_within(base, target):
     except ValueError:
         return False
     return True
-

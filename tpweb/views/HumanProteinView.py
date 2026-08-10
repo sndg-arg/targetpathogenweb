@@ -26,7 +26,9 @@ class HumanProteinView(View):
 
         structures = list(bioentry.structures.select_related("pdb").all())
         binders_search_query = request.GET.get("binder_search", "").strip()
-        binders = create_binders_dict(bioentry, search_query=binders_search_query, structures=structures)
+        binders = create_binders_dict(
+            bioentry, search_query=binders_search_query, structures=structures
+        )
 
         context = {
             "bioentry": bioentry,

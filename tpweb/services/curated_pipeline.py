@@ -82,7 +82,7 @@ class CuratedPipelinePlan:
 
 def compute_folder_path(datadir, genome_name):
     acclen = len(genome_name)
-    folder_name = genome_name[math.floor(acclen / 2 - 1):math.floor(acclen / 2 + 2)]
+    folder_name = genome_name[math.floor(acclen / 2 - 1) : math.floor(acclen / 2 + 2)]
     return os.path.join(datadir, folder_name, genome_name)
 
 
@@ -246,23 +246,38 @@ def build_curated_pipeline_plan(
         uniprot_mapped_proteins=BioentryDbxref.objects.filter(
             bioentry__biodatabase=db,
             dbxref__dbname__in=uniprot_dbnames,
-        ).values("bioentry_id").distinct().count(),
+        )
+        .values("bioentry_id")
+        .distinct()
+        .count(),
         annotation_proteins=BioentryDbxref.objects.filter(
             bioentry__biodatabase=db,
             dbxref__dbname__in=annotation_dbname_set,
-        ).values("bioentry_id").distinct().count(),
+        )
+        .values("bioentry_id")
+        .distinct()
+        .count(),
         ec_annotation_proteins=BioentryDbxref.objects.filter(
             bioentry__biodatabase=db,
             dbxref__dbname__in=ec_dbname_set,
-        ).values("bioentry_id").distinct().count(),
+        )
+        .values("bioentry_id")
+        .distinct()
+        .count(),
         go_annotation_proteins=BioentryDbxref.objects.filter(
             bioentry__biodatabase=db,
             dbxref__dbname__in=go_dbname_set,
-        ).values("bioentry_id").distinct().count(),
+        )
+        .values("bioentry_id")
+        .distinct()
+        .count(),
         pdb_xref_proteins=BioentryDbxref.objects.filter(
             bioentry__biodatabase=db,
             dbxref__dbname="PDB",
-        ).values("bioentry_id").distinct().count(),
+        )
+        .values("bioentry_id")
+        .distinct()
+        .count(),
         experimental_structure_xrefs=ExperimentalStructureXref.objects.filter(
             bioentry__biodatabase=db,
         ).count(),
@@ -377,16 +392,29 @@ def build_curated_pipeline_plan(
                 f"Stage {stage} requires SLURM but {use_remote_var}=1 and {command_var} are not both configured."
             )
 
-    if 10 in plan.required_remote_stages and os.getenv("TPW_INTERPRO_USE_REMOTE", "1").strip() == "0":
+    if (
+        10 in plan.required_remote_stages
+        and os.getenv("TPW_INTERPRO_USE_REMOTE", "1").strip() == "0"
+    ):
         plan.warnings.append("Stage 10 requires SLURM but TPW_INTERPRO_USE_REMOTE=0 is configured.")
     if 15 in plan.required_remote_stages:
         plan.warnings.append(
             "Stage 15 has no dedicated SLURM wrapper. Provide curated structures or add a remote AlphaFold hook."
         )
-    if 16 in plan.required_remote_stages and os.getenv("TPW_COLABFOLD_USE_REMOTE", "").strip() != "1":
-        plan.warnings.append("Stage 16 requires SLURM but TPW_COLABFOLD_USE_REMOTE=1 is not configured.")
-    if 17 in plan.required_remote_stages and os.getenv("TPW_STRUCTURES_USE_REMOTE", "").strip() != "1":
-        plan.warnings.append("Stage 17 requires SLURM but TPW_STRUCTURES_USE_REMOTE=1 is not configured.")
+    if (
+        16 in plan.required_remote_stages
+        and os.getenv("TPW_COLABFOLD_USE_REMOTE", "").strip() != "1"
+    ):
+        plan.warnings.append(
+            "Stage 16 requires SLURM but TPW_COLABFOLD_USE_REMOTE=1 is not configured."
+        )
+    if (
+        17 in plan.required_remote_stages
+        and os.getenv("TPW_STRUCTURES_USE_REMOTE", "").strip() != "1"
+    ):
+        plan.warnings.append(
+            "Stage 17 requires SLURM but TPW_STRUCTURES_USE_REMOTE=1 is not configured."
+        )
     if 24 in plan.required_remote_stages and os.getenv("TPW_LIGQ_USE_REMOTE", "").strip() != "1":
         plan.warnings.append("Stage 24 requires SLURM but TPW_LIGQ_USE_REMOTE=1 is not configured.")
 

@@ -80,7 +80,7 @@ class Command(BaseCommand):
                 self.stdout.write(f"  PDB xrefs stored for {fetched} protein(s).")
 
             acclen = len(assembly_name)
-            folder_name = assembly_name[math.floor(acclen / 2 - 1):math.floor(acclen / 2 + 2)]
+            folder_name = assembly_name[math.floor(acclen / 2 - 1) : math.floor(acclen / 2 + 2)]
             folder_path = f"{datadir}/{folder_name}/{assembly_name}"
             working_dir = datadir[: -len("/data")] if datadir.endswith("/data") else datadir
 
@@ -110,7 +110,9 @@ class Command(BaseCommand):
                 acc_to_protein[acc] = link.bioentry
 
         if not acc_to_protein:
-            self.stdout.write(f"  No UniProt mappings found for {assembly_name} — skipping xref fetch.")
+            self.stdout.write(
+                f"  No UniProt mappings found for {assembly_name} — skipping xref fetch."
+            )
             return 0
 
         accessions = list(acc_to_protein.keys())

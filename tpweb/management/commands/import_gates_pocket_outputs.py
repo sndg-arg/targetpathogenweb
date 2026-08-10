@@ -136,9 +136,9 @@ class Command(BaseCommand):
         planned = planned_structure_loads = structure_loads = 0
         examples = []
 
-        self.stdout.write(self.style.MIGRATE_HEADING(
-            f"Gates pocket output import for {genome_name}"
-        ))
+        self.stdout.write(
+            self.style.MIGRATE_HEADING(f"Gates pocket output import for {genome_name}")
+        )
         self.stdout.write(f"Rows in TSV: {len(rows)}")
         self.stdout.write(f"Scope: {scope}")
 
@@ -249,7 +249,9 @@ class Command(BaseCommand):
 
         if dry_run:
             self.stdout.write(f"[dry-run] Would load pocket sets: {planned}")
-            self.stdout.write(f"[dry-run] Would load missing structures first: {planned_structure_loads}")
+            self.stdout.write(
+                f"[dry-run] Would load missing structures first: {planned_structure_loads}"
+            )
         else:
             self.stdout.write(f"Loaded pocket sets: {loaded}")
             self.stdout.write(f"Loaded missing structures: {structure_loads}")
@@ -296,18 +298,28 @@ class Command(BaseCommand):
             candidates = []
             for chain in chains:
                 if chain:
-                    candidates.append((chain, os.path.join(
-                        pockets_dir,
-                        f"PDB_{pdb_code}_chain_{chain}{suffix}",
-                    )))
+                    candidates.append(
+                        (
+                            chain,
+                            os.path.join(
+                                pockets_dir,
+                                f"PDB_{pdb_code}_chain_{chain}{suffix}",
+                            ),
+                        )
+                    )
             candidates.extend(
-                (self._chain_from_pocket_dir(pdb_code, method, name), os.path.join(pockets_dir, name))
+                (
+                    self._chain_from_pocket_dir(pdb_code, method, name),
+                    os.path.join(pockets_dir, name),
+                )
                 for name in sorted(os.listdir(pockets_dir))
                 if name.startswith(f"PDB_{pdb_code}_chain_") and name.endswith(suffix)
             )
             for chain, candidate in candidates:
                 if os.path.isdir(candidate):
-                    struct_code = self._pdb_chain_struct_code(pdb_code, chain) if chain else pdb_code
+                    struct_code = (
+                        self._pdb_chain_struct_code(pdb_code, chain) if chain else pdb_code
+                    )
                     return {
                         "struct_code": struct_code,
                         "output_dir": candidate,
@@ -414,7 +426,9 @@ class Command(BaseCommand):
             link.save(update_fields=update_fields)
         return link
 
-    def _load_structure(self, bioentry, struct_code, structure_file, experiment, datadir, chain=None):
+    def _load_structure(
+        self, bioentry, struct_code, structure_file, experiment, datadir, chain=None
+    ):
         if not structure_file or not os.path.isfile(structure_file):
             raise CommandError(f"Source structure file not found for {struct_code}")
 

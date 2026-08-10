@@ -191,11 +191,7 @@ def _ec_resolve_name(accession, exact_names):
         return ec_labels["prefix_labels"].get(accession, "")
 
     # Level 4: curated JSON first, then DB-derived name as fallback
-    return (
-        ec_labels["enzyme_names"].get(accession)
-        or exact_names.get(accession)
-        or ""
-    )
+    return ec_labels["enzyme_names"].get(accession) or exact_names.get(accession) or ""
 
 
 def _ec_display_label(prefix, exact_names):

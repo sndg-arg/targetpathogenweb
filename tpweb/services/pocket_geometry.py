@@ -4,6 +4,7 @@ Used by both the 3D viewer (StructureView.py, per-request, one structure at a
 time) and the genome-wide pocket-size-outlier indexer (offline management
 command) so the outlier definition never drifts between the two.
 """
+
 from __future__ import annotations
 
 import re
@@ -15,7 +16,9 @@ DEFAULT_Z_THRESHOLD = 3.5
 MIN_POPULATION = 4
 
 
-def volume_outlier_map(pdbresidueset_volumes, z_threshold=DEFAULT_Z_THRESHOLD, min_population=MIN_POPULATION):
+def volume_outlier_map(
+    pdbresidueset_volumes, z_threshold=DEFAULT_Z_THRESHOLD, min_population=MIN_POPULATION
+):
     """Flag pockets whose volume is unusually large relative to sibling pockets.
 
     `pdbresidueset_volumes` is an iterable of (pdbresidueset_id, volume) pairs

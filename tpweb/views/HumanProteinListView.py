@@ -21,14 +21,19 @@ class HumanProteinListView(View):
         if query:
             needle = query.lower()
             proteins = [
-                hp for hp in proteins
+                hp
+                for hp in proteins
                 if needle in hp.uniprot_accession.lower()
                 or needle in (hp.gene_symbol or "").lower()
                 or needle in (hp.protein_name or "").lower()
             ]
 
-        return render(request, self.template_name, {
-            "proteins": proteins,
-            "total_count": len(proteins),
-            "query": query,
-        })
+        return render(
+            request,
+            self.template_name,
+            {
+                "proteins": proteins,
+                "total_count": len(proteins),
+                "query": query,
+            },
+        )

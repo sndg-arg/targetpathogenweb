@@ -8,6 +8,7 @@ the LLM agent's explain_target tool without importing private view
 internals from a service module (CLAUDE.md: views delegate to services,
 not the other way around).
 """
+
 from django.core.cache import cache
 from django.urls import reverse
 
@@ -30,29 +31,83 @@ from tpweb.services.structure_sources import (
 
 _SCORE_META = [
     # (score_name, display_label, category, good_values, bad_values, tooltip)
-    ("human_offtarget",          "Human off-target",          "off_target",   ["no_hit"], ["hit"],
-     "Sequence similarity to human proteins (BLAST). 'No hit' is preferred — it means no significant human homolog was found."),
-    ("human_identity",           "Human identity (%)",        "off_target",   [],         [],
-     "% amino acid identity to the top human BLAST hit. Lower values indicate less similarity to human proteins."),
-    ("human_evalue",             "Human E-value",             "off_target",   [],         [],
-     "BLAST E-value for the top human proteome hit. Values below 1e-5 are considered significant. '> 1e-5' means no significant hit was found."),
-    ("gut_microbiome_offtarget", "Gut microbiome off-target", "off_target",   ["no_hit"], ["hit"],
-     "Sequence similarity to gut microbiome reference genomes. 'No hit' preferred to minimise risk of disrupting commensal bacteria."),
-    ("hit_in_deg",               "Essential (DEG)",           "essentiality", ["Y"],      ["N"],
-     "Predicted essential gene based on the Database of Essential Genes (DEG). 'Y' = essential in at least one related organism."),
-    ("deg_identity",             "DEG identity (%)",          "essentiality", [],         [],
-     "% amino acid identity to the top DEG essential-gene hit. Higher values strengthen the essentiality prediction."),
-    ("deg_evalue",               "DEG E-value",               "essentiality", [],         [],
-     "BLAST E-value for the top DEG hit. Values below 1e-5 are considered significant. '> 1e-5' means no essential-gene match was found."),
-    ("Localization",             "Localization",              "localization", [],         [],
-     "Predicted subcellular localization by PSORTb. Extracellular and outer-membrane proteins are preferred as drug targets."),
-    ("colabfold_plddt",          "ColabFold pLDDT",           "structure",    [],         [],
-     "Per-residue model confidence from ColabFold (0–100). Values >70 indicate reliable regions; >90 indicates high confidence."),
+    (
+        "human_offtarget",
+        "Human off-target",
+        "off_target",
+        ["no_hit"],
+        ["hit"],
+        "Sequence similarity to human proteins (BLAST). 'No hit' is preferred — it means no significant human homolog was found.",
+    ),
+    (
+        "human_identity",
+        "Human identity (%)",
+        "off_target",
+        [],
+        [],
+        "% amino acid identity to the top human BLAST hit. Lower values indicate less similarity to human proteins.",
+    ),
+    (
+        "human_evalue",
+        "Human E-value",
+        "off_target",
+        [],
+        [],
+        "BLAST E-value for the top human proteome hit. Values below 1e-5 are considered significant. '> 1e-5' means no significant hit was found.",
+    ),
+    (
+        "gut_microbiome_offtarget",
+        "Gut microbiome off-target",
+        "off_target",
+        ["no_hit"],
+        ["hit"],
+        "Sequence similarity to gut microbiome reference genomes. 'No hit' preferred to minimise risk of disrupting commensal bacteria.",
+    ),
+    (
+        "hit_in_deg",
+        "Essential (DEG)",
+        "essentiality",
+        ["Y"],
+        ["N"],
+        "Predicted essential gene based on the Database of Essential Genes (DEG). 'Y' = essential in at least one related organism.",
+    ),
+    (
+        "deg_identity",
+        "DEG identity (%)",
+        "essentiality",
+        [],
+        [],
+        "% amino acid identity to the top DEG essential-gene hit. Higher values strengthen the essentiality prediction.",
+    ),
+    (
+        "deg_evalue",
+        "DEG E-value",
+        "essentiality",
+        [],
+        [],
+        "BLAST E-value for the top DEG hit. Values below 1e-5 are considered significant. '> 1e-5' means no essential-gene match was found.",
+    ),
+    (
+        "Localization",
+        "Localization",
+        "localization",
+        [],
+        [],
+        "Predicted subcellular localization by PSORTb. Extracellular and outer-membrane proteins are preferred as drug targets.",
+    ),
+    (
+        "colabfold_plddt",
+        "ColabFold pLDDT",
+        "structure",
+        [],
+        [],
+        "Per-residue model confidence from ColabFold (0–100). Values >70 indicate reliable regions; >90 indicates high confidence.",
+    ),
 ]
 
 _NO_HIT_EVALUE_OVERRIDES = {
     "human_evalue": ("human_offtarget", "no_hit", "> 1e-5"),
-    "deg_evalue":   ("hit_in_deg",      "n",      "> 1e-5"),
+    "deg_evalue": ("hit_in_deg", "n", "> 1e-5"),
 }
 
 
@@ -139,19 +194,23 @@ def build_target_profile(raw_scores, microbiome_context=None):
             check_name, no_hit_val, _ = _NO_HIT_EVALUE_OVERRIDES[name]
             if str(raw_scores.get(check_name) or "").strip().lower() == no_hit_val:
                 continue
-        items.append({
-            "label": label,
-            "value": display,
-            "tone": tone,
-            "category": category,
-            "tooltip": tooltip,
-            "display_kind": display_kind,
-            "percentage": percentage,
-        })
+        items.append(
+            {
+                "label": label,
+                "value": display,
+                "tone": tone,
+                "category": category,
+                "tooltip": tooltip,
+                "display_kind": display_kind,
+                "percentage": percentage,
+            }
+        )
     return items
 
 
-_SCORE_META_CATEGORY_BY_NAME = {name: category for name, _label, category, _good, _bad, _tooltip in _SCORE_META}
+_SCORE_META_CATEGORY_BY_NAME = {
+    name: category for name, _label, category, _good, _bad, _tooltip in _SCORE_META
+}
 
 
 def build_score_breakdown(protein, score_param_values, user):
@@ -166,7 +225,11 @@ def build_score_breakdown(protein, score_param_values, user):
     ranking pass. Returns None when no formula resolves for this user (the
     template just omits the card, same pattern as the page's other optional
     evidence blocks)."""
-    from tpweb.services.protein_formula import choose_formula, coefficient_map, resolve_formulas_for_user
+    from tpweb.services.protein_formula import (
+        choose_formula,
+        coefficient_map,
+        resolve_formulas_for_user,
+    )
     from tpweb.services.protein_serializer import compute_expression_score, compute_score_value
     from tpweb.services.score_param_types import is_numeric_score_param
 
@@ -197,6 +260,7 @@ def build_score_breakdown(protein, score_param_values, user):
     expression = (formula.expression or "").strip()
     if expression:
         from tpweb.services.formula_evaluator import build_all_options_zero
+
         zero_cache = build_all_options_zero(user)
         score_value, _weights = compute_expression_score(protein, expression, zero_cache)
         return {
@@ -269,7 +333,9 @@ def _structure_source_kind(identifier):
         return "AlphaFold DB / UniProt model"
     if len(ident) == 4 and ident.isalnum():
         return "PDB experimental structure"
-    if upper.startswith("A0A") or (any(ch.isdigit() for ch in ident) and any(ch.isalpha() for ch in ident)):
+    if upper.startswith("A0A") or (
+        any(ch.isdigit() for ch in ident) and any(ch.isalpha() for ch in ident)
+    ):
         return "AlphaFold DB / UniProt model"
     return "Curated structure"
 
@@ -288,7 +354,11 @@ def _resolve_structure_source_label(identifier, structures):
             if pdb is None:
                 continue
             source_key = classify_structure_experiment(getattr(pdb, "experiment", ""))
-            return {"code": pdb.code, "source": source_key, "label": structure_source_label(source_key)}
+            return {
+                "code": pdb.code,
+                "source": source_key,
+                "label": structure_source_label(source_key),
+            }
     return {"code": identifier, "source": "", "label": _structure_source_kind(identifier)}
 
 
@@ -303,6 +373,7 @@ def _pocket_reference_rows():
     global _pocket_reference_cache
     if _pocket_reference_cache is None:
         from tpweb.models.pdb import Property, ResidueSet
+
         _pocket_reference_cache = {
             "druggability_score": Property.objects.get(name="druggability_score"),
             "FPocketPocket": ResidueSet.objects.get(name="FPocketPocket"),
@@ -324,8 +395,11 @@ def _resolve_fpocket_structure_by_max_score(structures):
         return None
     ref = _pocket_reference_rows()
     best_rs = (
-        PDBResidueSet.objects
-        .filter(pdb_id__in=pdb_ids, residue_set=ref["FPocketPocket"], properties__property=ref["druggability_score"])
+        PDBResidueSet.objects.filter(
+            pdb_id__in=pdb_ids,
+            residue_set=ref["FPocketPocket"],
+            properties__property=ref["druggability_score"],
+        )
         .select_related("pdb")
         .order_by("-properties__value")
         .first()
@@ -333,7 +407,11 @@ def _resolve_fpocket_structure_by_max_score(structures):
     if best_rs is None or best_rs.pdb is None:
         return None
     source_key = classify_structure_experiment(getattr(best_rs.pdb, "experiment", ""))
-    return {"code": best_rs.pdb.code, "source": source_key, "label": structure_source_label(source_key)}
+    return {
+        "code": best_rs.pdb.code,
+        "source": source_key,
+        "label": structure_source_label(source_key),
+    }
 
 
 def _format_pocket_label(value):
@@ -343,7 +421,7 @@ def _format_pocket_label(value):
     if label == "No_pockets":
         return "No pockets"
     if label.lower().startswith("pocket pocket"):
-        suffix = label[len("Pocket pocket"):].strip()
+        suffix = label[len("Pocket pocket") :].strip()
         return f"Pocket {suffix}" if suffix else "Pocket"
     return label
 
@@ -351,21 +429,16 @@ def _format_pocket_label(value):
 def annotate_selected_source_status(evidence, structures, visible_links=None):
     if not evidence:
         return
-    selected_identifier = (
-        evidence.get("fpocket", {}).get("structure")
-        or evidence.get("p2rank", {}).get("structure")
-    )
+    selected_identifier = evidence.get("fpocket", {}).get("structure") or evidence.get(
+        "p2rank", {}
+    ).get("structure")
     if not selected_identifier:
         return
 
     visible_links = [link for link in (visible_links or []) if link is not None]
-    visible = any(
-        structure_matches_identifier(link, selected_identifier)
-        for link in visible_links
-    )
+    visible = any(structure_matches_identifier(link, selected_identifier) for link in visible_links)
     loaded = visible or any(
-        structure_matches_identifier(link, selected_identifier)
-        for link in (structures or [])
+        structure_matches_identifier(link, selected_identifier) for link in (structures or [])
     )
 
     evidence["selected_source_visible"] = visible
@@ -388,17 +461,33 @@ def build_selected_pocket_evidence(raw_scores):
     p2rank_score = _format_score_value(_raw_score(raw_scores, "p2rank_probability"))
     p2rank_structure = _raw_score(raw_scores, "best_p2rank_structure")
     p2rank_pocket = _format_pocket_label(_raw_score(raw_scores, "p2rank_pocket"))
-    colabfold_fpocket_score = _format_score_value(_raw_score(raw_scores, "colabfold_druggability_score"))
-    colabfold_fpocket_pocket = _format_pocket_label(_raw_score(raw_scores, "colabfold_fpocket_pocket"))
-    colabfold_p2rank_score = _format_score_value(_raw_score(raw_scores, "colabfold_p2rank_probability"))
-    colabfold_p2rank_pocket = _format_pocket_label(_raw_score(raw_scores, "colabfold_p2rank_pocket"))
+    colabfold_fpocket_score = _format_score_value(
+        _raw_score(raw_scores, "colabfold_druggability_score")
+    )
+    colabfold_fpocket_pocket = _format_pocket_label(
+        _raw_score(raw_scores, "colabfold_fpocket_pocket")
+    )
+    colabfold_p2rank_score = _format_score_value(
+        _raw_score(raw_scores, "colabfold_p2rank_probability")
+    )
+    colabfold_p2rank_pocket = _format_pocket_label(
+        _raw_score(raw_scores, "colabfold_p2rank_pocket")
+    )
 
-    has_any = any([
-        fpocket_score, fpocket_structure, fpocket_pocket,
-        p2rank_score, p2rank_structure, p2rank_pocket,
-        colabfold_fpocket_score, colabfold_fpocket_pocket,
-        colabfold_p2rank_score, colabfold_p2rank_pocket,
-    ])
+    has_any = any(
+        [
+            fpocket_score,
+            fpocket_structure,
+            fpocket_pocket,
+            p2rank_score,
+            p2rank_structure,
+            p2rank_pocket,
+            colabfold_fpocket_score,
+            colabfold_fpocket_pocket,
+            colabfold_p2rank_score,
+            colabfold_p2rank_pocket,
+        ]
+    )
     if not has_any:
         return None
 
@@ -500,10 +589,9 @@ def _genome_centrality_values(biodatabase):
     if cached is not None:
         return cached
     values = list(
-        ScoreParamValue.objects
-        .filter(score_param__name="PTOOLS_betweenness_centrality",
-                bioentry__biodatabase=biodatabase)
-        .values_list("numeric_value", flat=True)
+        ScoreParamValue.objects.filter(
+            score_param__name="PTOOLS_betweenness_centrality", bioentry__biodatabase=biodatabase
+        ).values_list("numeric_value", flat=True)
     )
     values = [v for v in values if v is not None]
     cache.set(cache_key, values, OVERVIEW_CACHE_TTL_SECONDS)
@@ -539,29 +627,34 @@ def build_metabolic_context(protein, raw_scores):
         reaction = link.reaction
         kegg_url = (
             f"https://www.kegg.jp/entry/{reaction.kegg_reaction_id}"
-            if reaction.kegg_reaction_id else ""
+            if reaction.kegg_reaction_id
+            else ""
         )
         # reaction_id is already the BioCyc/MetaCyc frame id (load_metabolism.py prefers the
         # SBML name attribute, which MetaFlux/Pathway Tools exports use for the frame id), so
         # unlike kegg_url this is always buildable, no annotation dependency.
-        metacyc_url = f"https://metacyc.org/META/NEW-IMAGE?type=REACTION&object={reaction.reaction_id}"
+        metacyc_url = (
+            f"https://metacyc.org/META/NEW-IMAGE?type=REACTION&object={reaction.reaction_id}"
+        )
         substrates, products = _build_reaction_participants(reaction)
-        reactions.append({
-            "reaction_id": reaction.reaction_id,
-            "name": reaction.name or reaction.reaction_id,
-            "ec_numbers": [ec for ec in (reaction.ec_numbers or "").split(",") if ec],
-            "kegg_reaction_id": reaction.kegg_reaction_id,
-            "kegg_url": kegg_url,
-            "metacyc_url": metacyc_url,
-            "reversible": reaction.reversible,
-            "chokepoint_role": link.chokepoint_role,
-            "chokepoint_label": _CHOKEPOINT_LABELS.get(link.chokepoint_role),
-            "isoenzyme_count": reaction.isoenzyme_count,
-            "has_isoenzyme_backup": reaction.isoenzyme_count > 1,
-            "substrates": substrates,
-            "products": products,
-            "has_metabolites": bool(substrates or products),
-        })
+        reactions.append(
+            {
+                "reaction_id": reaction.reaction_id,
+                "name": reaction.name or reaction.reaction_id,
+                "ec_numbers": [ec for ec in (reaction.ec_numbers or "").split(",") if ec],
+                "kegg_reaction_id": reaction.kegg_reaction_id,
+                "kegg_url": kegg_url,
+                "metacyc_url": metacyc_url,
+                "reversible": reaction.reversible,
+                "chokepoint_role": link.chokepoint_role,
+                "chokepoint_label": _CHOKEPOINT_LABELS.get(link.chokepoint_role),
+                "isoenzyme_count": reaction.isoenzyme_count,
+                "has_isoenzyme_backup": reaction.isoenzyme_count > 1,
+                "substrates": substrates,
+                "products": products,
+                "has_metabolites": bool(substrates or products),
+            }
+        )
         for pathway in reaction.pathways.all():
             pathway_chips[(pathway.source, pathway.external_id)] = {
                 "source": pathway.source,
@@ -603,7 +696,8 @@ def build_metabolic_context(protein, raw_scores):
         "import_run": import_run,
     }
     context["summary_sentence"] = build_target_metabolic_sentence(
-        context, human_offtarget_no_hit=_raw_score(raw_scores, "human_offtarget") == "no_hit",
+        context,
+        human_offtarget_no_hit=_raw_score(raw_scores, "human_offtarget") == "no_hit",
     )
     return context
 
@@ -618,14 +712,18 @@ def _score_float(raw_scores, name):
         return None
 
 
-def _append_summary_item(items, label, detail, tone="neutral", anchor="#section-target-profile", priority=0):
-    items.append({
-        "label": label,
-        "detail": detail,
-        "tone": tone,
-        "anchor": anchor,
-        "priority": priority,
-    })
+def _append_summary_item(
+    items, label, detail, tone="neutral", anchor="#section-target-profile", priority=0
+):
+    items.append(
+        {
+            "label": label,
+            "detail": detail,
+            "tone": tone,
+            "anchor": anchor,
+            "priority": priority,
+        }
+    )
 
 
 def build_target_executive_summary(
@@ -712,8 +810,8 @@ def build_target_executive_summary(
     if human_offtarget == "no_hit":
         _append_summary_item(
             strengths,
-                "No similar human protein detected",
-                "The current BLAST sequence screen did not find a significant human match, lowering apparent off-target risk.",
+            "No similar human protein detected",
+            "The current BLAST sequence screen did not find a significant human match, lowering apparent off-target risk.",
             "good",
         )
         signal_score += 1
@@ -730,7 +828,11 @@ def build_target_executive_summary(
                 "#section-binders",
             )
         else:
-            detail = f"Top human hit identity: {identity}%.{druggability_clause}" if identity else f"A significant human homolog was found.{druggability_clause}"
+            detail = (
+                f"Top human hit identity: {identity}%.{druggability_clause}"
+                if identity
+                else f"A significant human homolog was found.{druggability_clause}"
+            )
             _append_summary_item(risks, "Human similarity", detail, "risk", "#section-binders")
 
     if microbiome_context:
@@ -755,7 +857,9 @@ def build_target_executive_summary(
             else:
                 detail = "Similarity to gut microbiome references was detected."
             detail += _pocket_signal_clause()
-            _append_summary_item(risks, "Microbiome similarity", detail, "watch", "#section-binders")
+            _append_summary_item(
+                risks, "Microbiome similarity", detail, "watch", "#section-binders"
+            )
 
     if conservation_profile:
         if conservation_profile.get("is_core"):
@@ -780,34 +884,90 @@ def build_target_executive_summary(
     if fpocket_score is not None:
         if fpocket_score >= 0.7:
             if pocket_size_outlier:
-                _append_summary_item(risks, "Best pocket may be a modeling artifact", f"FPocket selected-pocket score {fpocket_score:.2f}, but this pocket's geometry is unusually large/diffuse compared to this protein's other predicted pockets — may reflect a low-confidence or disordered model region rather than a real cavity.", "watch", "#section-target-profile")
+                _append_summary_item(
+                    risks,
+                    "Best pocket may be a modeling artifact",
+                    f"FPocket selected-pocket score {fpocket_score:.2f}, but this pocket's geometry is unusually large/diffuse compared to this protein's other predicted pockets — may reflect a low-confidence or disordered model region rather than a real cavity.",
+                    "watch",
+                    "#section-target-profile",
+                )
                 signal_score += 1
             else:
-                _append_summary_item(strengths, "Strong predicted binding pocket", f"FPocket selected-pocket score {fpocket_score:.2f}. This is a computational pocket signal, not binding validation.", "good", "#section-target-profile")
+                _append_summary_item(
+                    strengths,
+                    "Strong predicted binding pocket",
+                    f"FPocket selected-pocket score {fpocket_score:.2f}. This is a computational pocket signal, not binding validation.",
+                    "good",
+                    "#section-target-profile",
+                )
                 signal_score += 2
         elif fpocket_score >= 0.4:
             if pocket_size_outlier:
-                _append_summary_item(risks, "Best pocket may be a modeling artifact", f"FPocket selected-pocket score {fpocket_score:.2f}, but this pocket's geometry is unusually large/diffuse compared to this protein's other predicted pockets — may reflect a low-confidence or disordered model region rather than a real cavity.", "watch", "#section-target-profile")
+                _append_summary_item(
+                    risks,
+                    "Best pocket may be a modeling artifact",
+                    f"FPocket selected-pocket score {fpocket_score:.2f}, but this pocket's geometry is unusually large/diffuse compared to this protein's other predicted pockets — may reflect a low-confidence or disordered model region rather than a real cavity.",
+                    "watch",
+                    "#section-target-profile",
+                )
             else:
-                _append_summary_item(strengths, "Moderate predicted binding pocket", f"FPocket selected-pocket score {fpocket_score:.2f}. This supports review but is not experimental validation.", "neutral", "#section-target-profile")
+                _append_summary_item(
+                    strengths,
+                    "Moderate predicted binding pocket",
+                    f"FPocket selected-pocket score {fpocket_score:.2f}. This supports review but is not experimental validation.",
+                    "neutral",
+                    "#section-target-profile",
+                )
                 signal_score += 1
         elif fpocket_score > 0:
-            _append_summary_item(risks, "Weak predicted binding pocket", f"FPocket selected-pocket score {fpocket_score:.2f}.", "watch", "#section-target-profile")
+            _append_summary_item(
+                risks,
+                "Weak predicted binding pocket",
+                f"FPocket selected-pocket score {fpocket_score:.2f}.",
+                "watch",
+                "#section-target-profile",
+            )
     else:
-        _append_summary_item(missing, "No FPocket pocket score", "No selected computational pocket-druggability value is available.", "missing", "#section-target-profile")
+        _append_summary_item(
+            missing,
+            "No FPocket pocket score",
+            "No selected computational pocket-druggability value is available.",
+            "missing",
+            "#section-target-profile",
+        )
 
     if p2rank_score is not None:
         if p2rank_score >= 0.5:
-            _append_summary_item(strengths, "Second pocket predictor agrees", f"P2Rank predicted binding-site probability {p2rank_score:.2f}.", "good", "#section-target-profile")
+            _append_summary_item(
+                strengths,
+                "Second pocket predictor agrees",
+                f"P2Rank predicted binding-site probability {p2rank_score:.2f}.",
+                "good",
+                "#section-target-profile",
+            )
             signal_score += 1
         elif p2rank_score > 0:
-            _append_summary_item(risks, "Weak second pocket-predictor signal", f"P2Rank predicted binding-site probability {p2rank_score:.2f}.", "watch", "#section-target-profile")
+            _append_summary_item(
+                risks,
+                "Weak second pocket-predictor signal",
+                f"P2Rank predicted binding-site probability {p2rank_score:.2f}.",
+                "watch",
+                "#section-target-profile",
+            )
     elif not selected_pocket_evidence:
-        _append_summary_item(missing, "No P2Rank pocket score", "No second computational pocket-prediction value is available.", "missing", "#section-target-profile")
+        _append_summary_item(
+            missing,
+            "No P2Rank pocket score",
+            "No second computational pocket-prediction value is available.",
+            "missing",
+            "#section-target-profile",
+        )
 
     if (
-        fpocket_score is not None and fpocket_score >= 0.7
-        and p2rank_score is not None and p2rank_score >= 0.5
+        fpocket_score is not None
+        and fpocket_score >= 0.7
+        and p2rank_score is not None
+        and p2rank_score >= 0.5
         and not pocket_size_outlier
     ):
         _append_summary_item(
@@ -833,7 +993,10 @@ def build_target_executive_summary(
             "#section-structure",
         )
         signal_score += 1
-        if structure_summary.get("source") in (STRUCTURE_SOURCE_EXPERIMENTAL, STRUCTURE_SOURCE_MIXED):
+        if structure_summary.get("source") in (
+            STRUCTURE_SOURCE_EXPERIMENTAL,
+            STRUCTURE_SOURCE_MIXED,
+        ):
             _append_summary_item(
                 strengths,
                 "Experimental structure available",
@@ -859,16 +1022,41 @@ def build_target_executive_summary(
         bioactive_count = binder_summary.get("bioactive_count") or 0
         proposed_count = binder_summary.get("proposed_count") or 0
         if direct_count:
-            _append_summary_item(strengths, "Direct ligand evidence", f"{direct_count} direct ligand records.", "good", "#section-binders", priority=1)
+            _append_summary_item(
+                strengths,
+                "Direct ligand evidence",
+                f"{direct_count} direct ligand records.",
+                "good",
+                "#section-binders",
+                priority=1,
+            )
             signal_score += 2
         elif structural_count or bioactive_count:
             detail = f"{structural_count} structural and {bioactive_count} bioactivity records."
-            _append_summary_item(strengths, "Ligand evidence via structure/bioactivity", detail, "neutral", "#section-binders")
+            _append_summary_item(
+                strengths,
+                "Ligand evidence via structure/bioactivity",
+                detail,
+                "neutral",
+                "#section-binders",
+            )
             signal_score += 1
         elif proposed_count:
-            _append_summary_item(risks, "Only proposed compounds", f"{proposed_count} ZINC similarity-based candidates, no stronger ligand evidence.", "watch", "#section-binders")
+            _append_summary_item(
+                risks,
+                "Only proposed compounds",
+                f"{proposed_count} ZINC similarity-based candidates, no stronger ligand evidence.",
+                "watch",
+                "#section-binders",
+            )
     else:
-        _append_summary_item(missing, "No ligand evidence", "No experimental PDB ligands, measured ChEMBL bioactivity, or proposed ZINC compound records are available.", "missing", "#section-binders")
+        _append_summary_item(
+            missing,
+            "No ligand evidence",
+            "No experimental PDB ligands, measured ChEMBL bioactivity, or proposed ZINC compound records are available.",
+            "missing",
+            "#section-binders",
+        )
 
     pdb_direct = (binders or {}).get("pdb_direct") or []
     chembl_direct = (binders or {}).get("chembl_direct") or []
@@ -899,13 +1087,17 @@ def build_target_executive_summary(
         verdict = "Evidence is still sparse for this target."
         tone = "sparse"
     elif signal_score >= 8:
-        verdict = "Strong target candidate with converging metabolic, structural and chemical evidence."
+        verdict = (
+            "Strong target candidate with converging metabolic, structural and chemical evidence."
+        )
         tone = "strong"
     elif signal_score >= 5:
         verdict = "Promising target candidate with multiple supporting evidence streams."
         tone = "promising"
     else:
-        verdict = "Target candidate with partial support; inspect missing evidence before prioritizing."
+        verdict = (
+            "Target candidate with partial support; inspect missing evidence before prioritizing."
+        )
         tone = "partial"
 
     # Stable sort: higher-priority (more specific, e.g. direct ligand evidence,
@@ -926,7 +1118,12 @@ def build_target_executive_summary(
 
 
 def build_protein_executive_context(
-    protein, structures=None, structure_summary=None, search_query="", binders=None, user=None,
+    protein,
+    structures=None,
+    structure_summary=None,
+    search_query="",
+    binders=None,
+    user=None,
 ):
     """One-call bundle of everything explain_target (and ProteinView.get)
     need: the raw ScoreParamValue dict plus every derived context builder
@@ -941,9 +1138,9 @@ def build_protein_executive_context(
         ScoreParamValue.objects.filter(bioentry=protein).select_related("score_param")
     )
     raw_scores = {
-        spv.score_param.name: spv.value if spv.value else (
-            str(round(spv.numeric_value, 4)) if spv.numeric_value is not None else ""
-        )
+        spv.score_param.name: spv.value
+        if spv.value
+        else (str(round(spv.numeric_value, 4)) if spv.numeric_value is not None else "")
         for spv in score_param_values
     }
     if structures is None:
@@ -961,7 +1158,11 @@ def build_protein_executive_context(
     )
     p2rank_raw = None
     if p2rank_spv is not None:
-        p2rank_raw = p2rank_spv.numeric_value if p2rank_spv.numeric_value is not None else p2rank_spv.value or None
+        p2rank_raw = (
+            p2rank_spv.numeric_value
+            if p2rank_spv.numeric_value is not None
+            else p2rank_spv.value or None
+        )
     p2rank_druggability = p2rank_label(p2rank_raw)
 
     drugg_spv = next(
@@ -969,7 +1170,11 @@ def build_protein_executive_context(
     )
     drugg_raw = None
     if drugg_spv is not None:
-        drugg_raw = drugg_spv.numeric_value if drugg_spv.numeric_value is not None else drugg_spv.value or None
+        drugg_raw = (
+            drugg_spv.numeric_value
+            if drugg_spv.numeric_value is not None
+            else drugg_spv.value or None
+        )
     fpocket_druggability = druggability_label(drugg_raw)
 
     if p2rank_druggability:
@@ -984,7 +1189,12 @@ def build_protein_executive_context(
         if structure_source is None:
             # Classic in-app pipeline never recorded which structure won -- re-derive it.
             structure_source = _resolve_fpocket_structure_by_max_score(structures)
-        druggability = (fpocket_druggability[0], fpocket_druggability[1], "FPocket", structure_source)
+        druggability = (
+            fpocket_druggability[0],
+            fpocket_druggability[1],
+            "FPocket",
+            structure_source,
+        )
     else:
         druggability = None
 
@@ -1008,7 +1218,9 @@ def build_protein_executive_context(
         binders,
     )
 
-    score_breakdown = build_score_breakdown(protein, score_param_values, user) if user is not None else None
+    score_breakdown = (
+        build_score_breakdown(protein, score_param_values, user) if user is not None else None
+    )
 
     return {
         "raw_scores": raw_scores,

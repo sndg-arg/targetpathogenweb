@@ -79,7 +79,9 @@ class Command(BaseCommand):
 
         bioentries = {
             be.accession: be
-            for be in Bioentry.objects.filter(biodatabase=db, accession__in=set(df["gene"].astype(str)))
+            for be in Bioentry.objects.filter(
+                biodatabase=db, accession__in=set(df["gene"].astype(str))
+            )
         }
 
         mappings = []
@@ -170,5 +172,5 @@ def _parse_uniprot_accessions(value):
 
 def _compute_folder_path(datadir, genome_name):
     acclen = len(genome_name)
-    mid = genome_name[math.floor(acclen / 2 - 1): math.floor(acclen / 2 + 2)]
+    mid = genome_name[math.floor(acclen / 2 - 1) : math.floor(acclen / 2 + 2)]
     return os.path.join(datadir, mid, genome_name)

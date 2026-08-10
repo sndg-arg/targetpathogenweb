@@ -7,6 +7,7 @@ Activated via TPW_USE_DIRECT_PIPELINE=1 environment variable.
 The DAG is the same 24-stage, 5-branch pipeline; branches run sequentially
 (matching the current Parsl behaviour with MaxWorkers=1).
 """
+
 import argparse
 import math
 import os
@@ -63,6 +64,7 @@ from structures_remote import run_remote_structures
 # ---------------------------------------------------------------------------
 # Stage runners
 # ---------------------------------------------------------------------------
+
 
 def _run_stage(stage_number, app_name, command_str):
     """Execute a bash command, recording stage events before/after."""
@@ -129,7 +131,9 @@ def _format_remote_command(template, *, genome, working_dir, folder_path):
     )
 
 
-def _run_configured_remote_stage(stage, app_name, env_prefix, cfg_dict, *, genome, working_dir, folder_path):
+def _run_configured_remote_stage(
+    stage, app_name, env_prefix, cfg_dict, *, genome, working_dir, folder_path
+):
     template = os.getenv(f"{env_prefix}_REMOTE_COMMAND", "").strip()
     if not template:
         raise RuntimeError(
@@ -157,9 +161,10 @@ def _run_configured_remote_stage(stage, app_name, env_prefix, cfg_dict, *, genom
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _compute_folder_path(working_dir, genome):
     acclen = len(genome)
-    folder_name = genome[math.floor(acclen / 2 - 1):math.floor(acclen / 2 + 2)]
+    folder_name = genome[math.floor(acclen / 2 - 1) : math.floor(acclen / 2 + 2)]
     return os.path.join(working_dir, f"data/{folder_name}/{genome}")
 
 
@@ -189,10 +194,12 @@ def _run_alphafold_parallel(stage, lines, folder_path, genome):
                 print(f"  alphafold done: {locus}")
             except Exception as exc:
                 errors.append((line, exc))
-                print(f"  alphafold FAILED: {line.split()[1] if len(line.split()) > 1 else line}: {exc}")
+                print(
+                    f"  alphafold FAILED: {line.split()[1] if len(line.split()) > 1 else line}: {exc}"
+                )
 
     if errors:
-        failed = ", ".join(l.split()[1] if len(l.split()) > 1 else l for l, _ in errors)
+        failed = ", ".join(line.split()[1] if len(line.split()) > 1 else line for line, _ in errors)
         raise RuntimeError(f"AlphaFold download failed for: {failed}")
 
 
@@ -261,6 +268,7 @@ def _run_structures_chain(stage, working_dir, folder_path, genome):
 # Main genome pipeline
 # ---------------------------------------------------------------------------
 
+
 def run_genome(
     genome,
     gram,
@@ -295,11 +303,17 @@ def run_genome(
         elif custom:
             _run_stage(2, "custom_gbk", custom_gbk_cmd(working_dir, genome, custom))
         else:
-            _run_stage(2, "download_gbk", download_gbk_cmd(working_dir, source_accession, target_accession=genome))
+            _run_stage(
+                2,
+                "download_gbk",
+                download_gbk_cmd(working_dir, source_accession, target_accession=genome),
+            )
 
     if not _skip(3):
         _run_stage(3, "load_gbk", load_gbk_cmd(working_dir, folder_path, genome))
-        _run_stage(3, "sync_genome_metadata", sync_genome_metadata_cmd(working_dir, folder_path, genome))
+        _run_stage(
+            3, "sync_genome_metadata", sync_genome_metadata_cmd(working_dir, folder_path, genome)
+        )
     if not _skip(4):
         if os.environ.get("TPW_FASTTARGET_USE_REMOTE", "").strip() == "1":
             _run_configured_remote_stage(
@@ -312,7 +326,9 @@ def run_genome(
                 folder_path=folder_path,
             )
         else:
-            fasttarget_skip_exec = os.environ.get("TPW_FASTTARGET_SKIP_EXEC", "").strip().lower() in {
+            fasttarget_skip_exec = os.environ.get(
+                "TPW_FASTTARGET_SKIP_EXEC", ""
+            ).strip().lower() in {
                 "1",
                 "true",
                 "yes",
@@ -334,26 +350,44 @@ def run_genome(
     if not _skip(10):
         if os.environ.get("TPW_INTERPRO_USE_REMOTE", "1").strip() != "1":
             _assert_heavy_stage_allowed(10, "interproscan", allow_local_heavy)
-        _run_python_stage(10, "interproscan", run_remote_interproscan,
-                          cfg_dict=cfg_dict, folder_path=folder_path, genome=genome)
+        _run_python_stage(
+            10,
+            "interproscan",
+            run_remote_interproscan,
+            cfg_dict=cfg_dict,
+            folder_path=folder_path,
+            genome=genome,
+        )
     if not _skip(11):
         _run_stage(11, "load_interpro", load_interpro_cmd(working_dir, genome, folder_path))
     if not _skip(12):
         _run_stage(12, "gbk2uniprot_map", gbk2uniprot_cmd(working_dir, genome, folder_path))
     if not _skip(13):
-        _run_stage(13, "fetch_uniprot_annotations", fetch_annotations_cmd(working_dir, genome, folder_path))
-        _run_stage(13, "fetch_experimental_structures", fetch_exp_structures_cmd(working_dir, genome, folder_path))
+        _run_stage(
+            13, "fetch_uniprot_annotations", fetch_annotations_cmd(working_dir, genome, folder_path)
+        )
+        _run_stage(
+            13,
+            "fetch_experimental_structures",
+            fetch_exp_structures_cmd(working_dir, genome, folder_path),
+        )
     if not _skip(14) or not _skip(15):
         protein_list = _run_python_stage(14, "get_unipslst", _read_unips, folder_path, genome)
         if not _skip(15):
             _assert_heavy_stage_allowed(15, "alphafold_unips", allow_local_heavy)
-            lines = [l.strip() for l in protein_list.strip().split("\n") if l.strip()]
+            lines = [line.strip() for line in protein_list.strip().split("\n") if line.strip()]
             if lines:
                 _run_alphafold_parallel(15, lines, folder_path, genome)
     if not _skip(16):
         if os.environ.get("TPW_COLABFOLD_USE_REMOTE", "").strip() == "1":
-            _run_python_stage(16, "colabfold_predict", run_remote_colabfold,
-                              cfg_dict=cfg_dict, folder_path=folder_path, genome=genome)
+            _run_python_stage(
+                16,
+                "colabfold_predict",
+                run_remote_colabfold,
+                cfg_dict=cfg_dict,
+                folder_path=folder_path,
+                genome=genome,
+            )
         else:
             _assert_heavy_stage_allowed(16, "colabfold_predict", allow_local_heavy)
             _run_stage(16, "colabfold_predict", colabfold_cmd(working_dir, genome))
@@ -402,8 +436,14 @@ def run_genome(
         _run_stage(23, "load_binders", load_binders_cmd(working_dir, genome))
     if not _skip(24):
         if os.environ.get("TPW_LIGQ_USE_REMOTE", "").strip() == "1":
-            _run_python_stage(24, "ligq_remote", run_remote_ligq,
-                              cfg_dict=cfg_dict, folder_path=folder_path, genome=genome)
+            _run_python_stage(
+                24,
+                "ligq_remote",
+                run_remote_ligq,
+                cfg_dict=cfg_dict,
+                folder_path=folder_path,
+                genome=genome,
+            )
         else:
             _assert_heavy_stage_allowed(24, "ligq_remote", allow_local_heavy)
             print("LigQ_2 stage 24 skipped: set TPW_LIGQ_USE_REMOTE=1 to enable.")
@@ -435,8 +475,12 @@ if __name__ == "__main__":
         default=None,
         help="Specify 'p' for Gram-positive or 'n' for Gram-negative bacteria, optional",
     )
-    parser.add_argument("--custom", "-c", default=None, help="Specify the path to the custom GBK file")
-    parser.add_argument("--genome-name", default=None, help="Internal genome accession to use for custom uploads")
+    parser.add_argument(
+        "--custom", "-c", default=None, help="Specify the path to the custom GBK file"
+    )
+    parser.add_argument(
+        "--genome-name", default=None, help="Internal genome accession to use for custom uploads"
+    )
     parser.add_argument(
         "--start-stage",
         type=int,
@@ -480,9 +524,7 @@ if __name__ == "__main__":
     if args.skip_stages.strip():
         try:
             skip_stages = {
-                int(part.strip())
-                for part in args.skip_stages.split(",")
-                if part.strip()
+                int(part.strip()) for part in args.skip_stages.split(",") if part.strip()
             }
         except ValueError as exc:
             parser.error(f"--skip-stages must be a comma-separated list of integers: {exc}")

@@ -40,7 +40,7 @@ class Command(BaseCommand):
             pathway_resp = requests.get(KEGG_PATHWAY_LIST_URL, timeout=60)
             pathway_resp.raise_for_status()
         except requests.RequestException as exc:
-            raise CommandError(f"Could not reach KEGG ({KEGG_PATHWAY_LIST_URL}): {exc}")
+            raise CommandError(f"Could not reach KEGG ({KEGG_PATHWAY_LIST_URL}): {exc}") from exc
 
         pathway_names = {}
         for line in pathway_resp.text.splitlines():
@@ -56,7 +56,7 @@ class Command(BaseCommand):
             link_resp = requests.get(KEGG_LINK_URL, timeout=120)
             link_resp.raise_for_status()
         except requests.RequestException as exc:
-            raise CommandError(f"Could not reach KEGG ({KEGG_LINK_URL}): {exc}")
+            raise CommandError(f"Could not reach KEGG ({KEGG_LINK_URL}): {exc}") from exc
 
         reaction_pathways = {}
         for line in link_resp.text.splitlines():

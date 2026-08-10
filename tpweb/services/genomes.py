@@ -44,11 +44,9 @@ def resolve_live_count(genome_name, live_counts_by_genome, qualifier_value):
 
 def build_genomes_queryset(user=None, search_query=""):
     genomes = (
-        Biodatabase.objects.exclude(
-            Q(name__endswith="_rnas") | Q(name__endswith="_prots")
-        ).filter(
-            visible_genome_name_filter(user)
-        ).prefetch_related("qualifiers__term")
+        Biodatabase.objects.exclude(Q(name__endswith="_rnas") | Q(name__endswith="_prots"))
+        .filter(visible_genome_name_filter(user))
+        .prefetch_related("qualifiers__term")
     )
     cleaned_query = (search_query or "").strip()
     if not cleaned_query:
@@ -250,9 +248,7 @@ def build_genomes_dto(genomes, user=None, columns=GENOME_TABLE_COLUMNS):
 def summarize_genomes(genomes_dto):
     total_genomes = len(genomes_dto)
     total_proteins = sum(safe_int(genome.get("COUNT_CDS")) for genome in genomes_dto)
-    total_experimental = sum(
-        safe_int(genome.get("COUNT_EXPERIMENTAL")) for genome in genomes_dto
-    )
+    total_experimental = sum(safe_int(genome.get("COUNT_EXPERIMENTAL")) for genome in genomes_dto)
     total_ec_annotated = sum(safe_int(genome.get("COUNT_EC")) for genome in genomes_dto)
     total_pdb_xrefs = sum(safe_int(genome.get("COUNT_PDB_XREFS")) for genome in genomes_dto)
     return {

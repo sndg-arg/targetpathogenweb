@@ -17,26 +17,37 @@ import operator
 import re
 
 SAFE_FUNCTIONS = {
-    "sqrt":   math.sqrt,
-    "log":    math.log,
-    "log2":   math.log2,
-    "log10":  math.log10,
-    "exp":    math.exp,
-    "abs":    abs,
-    "max":    max,
-    "min":    min,
-    "pow":    math.pow,
-    "floor":  math.floor,
-    "ceil":   math.ceil,
-    "round":  round,
+    "sqrt": math.sqrt,
+    "log": math.log,
+    "log2": math.log2,
+    "log10": math.log10,
+    "exp": math.exp,
+    "abs": abs,
+    "max": max,
+    "min": min,
+    "pow": math.pow,
+    "floor": math.floor,
+    "ceil": math.ceil,
+    "round": round,
 }
 
 _SAFE_NODES = (
-    ast.Expression, ast.BinOp, ast.UnaryOp, ast.Call,
-    ast.Constant, ast.Name, ast.Load,
-    ast.Add, ast.Sub, ast.Mult, ast.Div, ast.Pow,
-    ast.Mod, ast.FloorDiv,
-    ast.USub, ast.UAdd,
+    ast.Expression,
+    ast.BinOp,
+    ast.UnaryOp,
+    ast.Call,
+    ast.Constant,
+    ast.Name,
+    ast.Load,
+    ast.Add,
+    ast.Sub,
+    ast.Mult,
+    ast.Div,
+    ast.Pow,
+    ast.Mod,
+    ast.FloorDiv,
+    ast.USub,
+    ast.UAdd,
 )
 
 
@@ -78,12 +89,12 @@ def safe_eval_expression(expr_str: str, variables: dict) -> float:
             left = _eval(node.left)
             right = _eval(node.right)
             _ops = {
-                ast.Add:      operator.add,
-                ast.Sub:      operator.sub,
-                ast.Mult:     operator.mul,
-                ast.Div:      operator.truediv,
-                ast.Pow:      operator.pow,
-                ast.Mod:      operator.mod,
+                ast.Add: operator.add,
+                ast.Sub: operator.sub,
+                ast.Mult: operator.mul,
+                ast.Div: operator.truediv,
+                ast.Pow: operator.pow,
+                ast.Mod: operator.mod,
                 ast.FloorDiv: operator.floordiv,
             }
             op_fn = _ops.get(type(node.op))
@@ -178,7 +189,9 @@ def _is_numeric_option(name: str) -> bool:
         return False
 
 
-def available_variables_grouped(user=None, max_categorical_options=FORMULA_PALETTE_MAX_CATEGORICAL_OPTIONS):
+def available_variables_grouped(
+    user=None, max_categorical_options=FORMULA_PALETTE_MAX_CATEGORICAL_OPTIONS
+):
     """Return variables grouped by ScoreParam category for the UI palette.
 
     The evaluator still knows every visible categorical option through
@@ -193,13 +206,17 @@ def available_variables_grouped(user=None, max_categorical_options=FORMULA_PALET
 
     if user is not None:
         workspace_user = resolve_workspace_user(user)
-        param_qs = ScoreParam.objects.filter(
-            Q(user__isnull=True) | Q(user=workspace_user)
-        ).prefetch_related("choices").order_by("category", "name")
+        param_qs = (
+            ScoreParam.objects.filter(Q(user__isnull=True) | Q(user=workspace_user))
+            .prefetch_related("choices")
+            .order_by("category", "name")
+        )
     else:
-        param_qs = ScoreParam.objects.filter(
-            user__isnull=True
-        ).prefetch_related("choices").order_by("category", "name")
+        param_qs = (
+            ScoreParam.objects.filter(user__isnull=True)
+            .prefetch_related("choices")
+            .order_by("category", "name")
+        )
 
     groups = {}
     for param in param_qs:

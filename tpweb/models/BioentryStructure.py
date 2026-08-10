@@ -1,8 +1,8 @@
-
 from django.db import models
 
 from bioseq.models.Bioentry import Bioentry
 from .pdb import PDB
+
 
 class BioentryStructure(models.Model):
     bioentry = models.ForeignKey(Bioentry, models.CASCADE, related_name="structures")

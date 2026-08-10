@@ -1,4 +1,5 @@
 """Agent tools for auditable target evidence and target-vs-target comparison."""
+
 from __future__ import annotations
 
 from ..agent import ToolEntry
@@ -75,7 +76,9 @@ def build_compare_targets_entry(assembly_name):
                 accessions.append(accession)
         if len(accessions) < 2:
             return "Give at least two protein accessions to compare."
-        records = [build_target_evidence_record(assembly_name, accession) for accession in accessions[:5]]
+        records = [
+            build_target_evidence_record(assembly_name, accession) for accession in accessions[:5]
+        ]
         missing = [accessions[idx] for idx, record in enumerate(records) if record is None]
         text = format_target_comparison(records)
         if missing:

@@ -9,6 +9,7 @@ Moving the whole self-contained binder cluster here removes that workaround
 entirely; ProteinView.py and BinderDetailView.py now import from this
 module instead of from each other.
 """
+
 from __future__ import annotations
 
 import re
@@ -71,12 +72,14 @@ def _binder_table_properties(smiles):
     rotb = Lipinski.NumRotatableBonds(mol)
     hbd = Lipinski.NumHDonors(mol)
     hba = Lipinski.NumHAcceptors(mol)
-    lipinski_violations = sum([
-        mw > 500,
-        logp > 5,
-        hbd > 5,
-        hba > 10,
-    ])
+    lipinski_violations = sum(
+        [
+            mw > 500,
+            logp > 5,
+            hbd > 5,
+            hba > 10,
+        ]
+    )
     if lipinski_violations == 0:
         lipinski_label, lipinski_class = "✓ Ro5", "ok"
     elif lipinski_violations == 1:
@@ -283,11 +286,13 @@ def _build_binder_summary(tab_data):
     bioactive_count = len(tab_data["chembl_direct"]) + len(tab_data["chembl_homolog"])
     proposed_count = len(tab_data["zinc"])
     loaded_crystal_count = sum(
-        1 for item in tab_data["pdb_direct"] + tab_data["pdb_homolog"]
+        1
+        for item in tab_data["pdb_direct"] + tab_data["pdb_homolog"]
         if item.get("crystal", {}).get("loaded")
     )
     clean_druglike_count = sum(
-        1 for item in all_items
+        1
+        for item in all_items
         if item.get("props", {}).get("lipinski_violations") == 0
         and not item.get("props", {}).get("pains_alert")
     )
@@ -306,16 +311,18 @@ def _build_binder_summary(tab_data):
         if key in seen:
             continue
         seen.add(key)
-        preview.append({
-            "id": item.get("id"),
-            "name": name,
-            "source_label": _binder_source_label(item),
-            "score_label": _binder_score_label(item),
-            "external_url": item.get("external_url"),
-            "external_label": item.get("external_label"),
-            "svg": make_binder_svg(smiles) if smiles else "",
-            "props": item.get("props") or {},
-        })
+        preview.append(
+            {
+                "id": item.get("id"),
+                "name": name,
+                "source_label": _binder_source_label(item),
+                "score_label": _binder_score_label(item),
+                "external_url": item.get("external_url"),
+                "external_label": item.get("external_label"),
+                "svg": make_binder_svg(smiles) if smiles else "",
+                "props": item.get("props") or {},
+            }
+        )
         if len(preview) >= 4:
             break
 
@@ -364,7 +371,9 @@ def create_binders_dict(protein, search_query="", structures=None):
     - chembl_homolog→ ChEMBL hit brought in by homology.
     - zinc          → ZINC virtual-screening candidate (tanimoto-scored).
     """
-    binders_qs = Binders.objects.filter(locustag=protein).order_by("source", "is_direct", "ccd_id", "id")
+    binders_qs = Binders.objects.filter(locustag=protein).order_by(
+        "source", "is_direct", "ccd_id", "id"
+    )
     loaded_ex_structures = _loaded_experimental_structure_map(structures)
     pdb_resolution_map = {
         str(xref.pdb_id or "").strip().upper(): xref.resolution
@@ -401,7 +410,9 @@ def create_binders_dict(protein, search_query="", structures=None):
         else:
             zinc.append(dto)
 
-    score_sort = lambda e: (e["score"] is None, -(e["score"] or 0))
+    def score_sort(e):
+        return (e["score"] is None, -(e["score"] or 0))
+
     chembl_direct.sort(key=score_sort)
     chembl_homolog.sort(key=score_sort)
     zinc.sort(key=score_sort)

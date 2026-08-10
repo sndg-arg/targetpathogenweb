@@ -78,7 +78,7 @@ class Command(BaseCommand):
         if lst_path is None:
             datadir = Path(options["datadir"])
             acclen = len(assembly_name)
-            folder_name = assembly_name[math.floor(acclen / 2 - 1):math.floor(acclen / 2 + 2)]
+            folder_name = assembly_name[math.floor(acclen / 2 - 1) : math.floor(acclen / 2 + 2)]
             lst_path = datadir / folder_name / assembly_name / f"{assembly_name}_unips.lst"
 
         stats = load_uniprot_sites_for_genome(
@@ -88,14 +88,16 @@ class Command(BaseCommand):
             overwrite=options["overwrite"],
         )
         if not stats["mapped_accessions"]:
-            self.stdout.write(self.style.WARNING(
-                f"No UniProt mapping found at {lst_path}; site loading skipped."
-            ))
+            self.stdout.write(
+                self.style.WARNING(f"No UniProt mapping found at {lst_path}; site loading skipped.")
+            )
             return
 
         prefix = "[dry-run] Would map" if options["dry_run"] else "Imported"
-        self.stdout.write(self.style.SUCCESS(
-            f"{prefix} {stats['sites_mapped']} UniProt site(s) across "
-            f"{stats['proteins_with_sites']} protein(s), from "
-            f"{stats['mapped_accessions']} mapped accession(s)."
-        ))
+        self.stdout.write(
+            self.style.SUCCESS(
+                f"{prefix} {stats['sites_mapped']} UniProt site(s) across "
+                f"{stats['proteins_with_sites']} protein(s), from "
+                f"{stats['mapped_accessions']} mapped accession(s)."
+            )
+        )

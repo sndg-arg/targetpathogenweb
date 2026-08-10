@@ -5,6 +5,7 @@ management command (one call per eval case), so the set of tools wired up
 for a given scope can never silently drift between the real endpoint and
 the eval harness that is supposed to be testing it.
 """
+
 from __future__ import annotations
 
 from .tools.apply_filters import (
@@ -36,6 +37,8 @@ def build_scoped_tools(request, assembly_name, default_accession, workspace_user
     tools["clear_filters"] = build_clear_filters_entry(request, session_user)
     tools["search_proteins"] = build_search_proteins_entry(assembly_name)
     tools["explain_target"] = build_explain_target_entry(assembly_name, default_accession)
-    tools["audit_target_evidence"] = build_audit_target_evidence_entry(assembly_name, default_accession)
+    tools["audit_target_evidence"] = build_audit_target_evidence_entry(
+        assembly_name, default_accession
+    )
     tools["compare_targets"] = build_compare_targets_entry(assembly_name)
     return tools

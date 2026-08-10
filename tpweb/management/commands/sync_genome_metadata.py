@@ -36,10 +36,7 @@ class Command(BaseCommand):
         parser.add_argument("gbk_path")
 
     def _resolve_term(self, key):
-        term = (
-            Term.objects.filter(identifier=key).first()
-            or Term.objects.filter(name=key).first()
-        )
+        term = Term.objects.filter(identifier=key).first() or Term.objects.filter(name=key).first()
         if term is not None:
             return term
 
@@ -48,7 +45,9 @@ class Command(BaseCommand):
         if sample_qv and sample_qv.term:
             ontology = sample_qv.term.ontology
         if ontology is None:
-            ontology, _ = Ontology.objects.get_or_create(name="bioindex", defaults={"definition": ""})
+            ontology, _ = Ontology.objects.get_or_create(
+                name="bioindex", defaults={"definition": ""}
+            )
 
         return Term.objects.create(
             name=key,

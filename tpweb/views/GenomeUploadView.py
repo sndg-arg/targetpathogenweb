@@ -75,7 +75,9 @@ class GenomeUploadView(LoginRequiredMixin, View):
             "status_label": job.get_status_display(),
             "phase": job.phase,
             "created_at_label": format_upload_timestamp(job.created_at),
-            "finished_at_label": format_upload_timestamp(job.finished_at) if job.finished_at else "",
+            "finished_at_label": format_upload_timestamp(job.finished_at)
+            if job.finished_at
+            else "",
             "command": job.command,
             "report_path": job.report_path,
             "error_message": str(job.error_message or "").strip(),
@@ -105,7 +107,9 @@ class GenomeUploadView(LoginRequiredMixin, View):
             "job": self._curated_job_dto(job),
         }
 
-    def _build_context(self, request, form=None, external_import_form=None, external_import_result=None):
+    def _build_context(
+        self, request, form=None, external_import_form=None, external_import_result=None
+    ):
         workspace_user = resolve_workspace_user(request.user)
         pipeline_status = sanitize_pipeline_status_for_user(get_pipeline_status(), request.user)
         reconcile_genome_uploads(pipeline_status, owner=workspace_user)
@@ -130,7 +134,9 @@ class GenomeUploadView(LoginRequiredMixin, View):
 
         jobs_dto = []
         for job in jobs:
-            state = self._job_state(job, pipeline_status, queue_positions, running_job_id=running_job_id)
+            state = self._job_state(
+                job, pipeline_status, queue_positions, running_job_id=running_job_id
+            )
             assembly_url = ""
             if Biodatabase.objects.filter(name=job.internal_accession).exists():
                 assembly_url = reverse(
@@ -244,7 +250,8 @@ class GenomeUploadView(LoginRequiredMixin, View):
                 datadir=cleaned["datadir"],
                 overwrite=cleaned["overwrite"],
                 ligq_output_dir=cleaned.get("ligq_output_dir") or "",
-                load_ligq_output=cleaned.get("load_ligq_output") and action == self.ACTION_RUN_CURATED_FILE_PIPELINE,
+                load_ligq_output=cleaned.get("load_ligq_output")
+                and action == self.ACTION_RUN_CURATED_FILE_PIPELINE,
                 include_plan=action == self.ACTION_RUN_CURATED_FILE_PIPELINE,
                 archive=cleaned.get("archive") or "",
                 archive_root=cleaned.get("archive_root") or "",
@@ -363,11 +370,15 @@ class GenomeUploadView(LoginRequiredMixin, View):
                 return redirect(upload_url)
 
             with transaction.atomic():
-                if GenomeUpload.objects.select_for_update().filter(
-                    owner=workspace_user,
-                    internal_accession=internal_accession,
-                    status__in=[GenomeUpload.STATUS_SUBMITTED, GenomeUpload.STATUS_RUNNING],
-                ).exists():
+                if (
+                    GenomeUpload.objects.select_for_update()
+                    .filter(
+                        owner=workspace_user,
+                        internal_accession=internal_accession,
+                        status__in=[GenomeUpload.STATUS_SUBMITTED, GenomeUpload.STATUS_RUNNING],
+                    )
+                    .exists()
+                ):
                     messages.error(
                         request,
                         f"Genome {TEST_GENOME_ACCESSION} is already queued or running for this account.",
@@ -382,7 +393,9 @@ class GenomeUploadView(LoginRequiredMixin, View):
                     gbk_file="",
                     status=GenomeUpload.STATUS_SUBMITTED,
                 )
-            messages.success(request, f"Test genome {TEST_GENOME_ACCESSION} was added to the queue.")
+            messages.success(
+                request, f"Test genome {TEST_GENOME_ACCESSION} was added to the queue."
+            )
             return redirect(upload_url)
 
         form = GenomeUploadForm(request.POST, request.FILES)
@@ -400,11 +413,15 @@ class GenomeUploadView(LoginRequiredMixin, View):
             return redirect(upload_url)
 
         with transaction.atomic():
-            if GenomeUpload.objects.select_for_update().filter(
-                owner=workspace_user,
-                internal_accession=internal_accession,
-                status__in=[GenomeUpload.STATUS_SUBMITTED, GenomeUpload.STATUS_RUNNING],
-            ).exists():
+            if (
+                GenomeUpload.objects.select_for_update()
+                .filter(
+                    owner=workspace_user,
+                    internal_accession=internal_accession,
+                    status__in=[GenomeUpload.STATUS_SUBMITTED, GenomeUpload.STATUS_RUNNING],
+                )
+                .exists()
+            ):
                 messages.error(
                     request,
                     f"Genome {display_accession} is already queued or running for this account.",

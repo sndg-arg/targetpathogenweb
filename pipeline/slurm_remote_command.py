@@ -111,9 +111,7 @@ def _build_config(cfg_dict, prefix):
     ssh_port = ssh_options["port"]
     env_key_filename = _env_text("SSH_KEY_FILENAME")
     ssh_key_filename = (
-        os.path.expanduser(env_key_filename)
-        if env_key_filename
-        else ssh_options["key_filename"]
+        os.path.expanduser(env_key_filename) if env_key_filename else ssh_options["key_filename"]
     )
 
     missing = []
@@ -124,9 +122,7 @@ def _build_config(cfg_dict, prefix):
     if not ssh_user:
         missing.append("SSH_USERNAME")
     if missing:
-        raise RuntimeError(
-            f"Remote SLURM configuration is incomplete. Set {', '.join(missing)}."
-        )
+        raise RuntimeError(f"Remote SLURM configuration is incomplete. Set {', '.join(missing)}.")
 
     return RemoteShellConfig(
         ssh_rootfolder=ssh_rootfolder,

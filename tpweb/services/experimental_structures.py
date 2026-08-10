@@ -44,13 +44,21 @@ def _download_pdb(pdb_id, dest_path):
                 for chunk in resp.iter_content(chunk_size=8192):
                     fh.write(chunk)
             if os.path.getsize(dest_path) < 100:
-                logger.warning("PDB %s download looks empty (%d bytes)", pdb_id, os.path.getsize(dest_path))
+                logger.warning(
+                    "PDB %s download looks empty (%d bytes)", pdb_id, os.path.getsize(dest_path)
+                )
                 os.remove(dest_path)
                 return False
             return True
         except requests.RequestException as exc:
             if attempt < MAX_RETRIES:
-                logger.warning("Download attempt %d/%d failed for PDB %s: %s", attempt, MAX_RETRIES, pdb_id, exc)
+                logger.warning(
+                    "Download attempt %d/%d failed for PDB %s: %s",
+                    attempt,
+                    MAX_RETRIES,
+                    pdb_id,
+                    exc,
+                )
                 time.sleep(RETRY_WAIT * attempt)
             else:
                 logger.error("All download attempts failed for PDB %s: %s", pdb_id, exc)
@@ -67,8 +75,7 @@ def _coverage_span(xref):
 
 def _xrefs_from_metadata(proteome_name, *, load_all=False):
     xrefs = (
-        ExperimentalStructureXref.objects
-        .select_related("bioentry")
+        ExperimentalStructureXref.objects.select_related("bioentry")
         .filter(bioentry__biodatabase__name=proteome_name)
         .order_by("bioentry_id", "resolution")
     )
@@ -85,10 +92,7 @@ def _xrefs_from_metadata(proteome_name, *, load_all=False):
         )
         if current is None or key < current[0]:
             best[xref.bioentry_id] = (key, xref)
-    return {
-        bioentry_id: xref
-        for bioentry_id, (_, xref) in best.items()
-    }
+    return {bioentry_id: xref for bioentry_id, (_, xref) in best.items()}
 
 
 def _best_xrefs_from_metadata(proteome_name):
@@ -97,8 +101,7 @@ def _best_xrefs_from_metadata(proteome_name):
 
 def _best_xrefs_from_legacy_dbxrefs(proteome_name):
     pdb_xrefs = (
-        BioentryDbxref.objects
-        .select_related("bioentry", "dbxref")
+        BioentryDbxref.objects.select_related("bioentry", "dbxref")
         .filter(bioentry__biodatabase__name=proteome_name, dbxref__dbname="PDB")
         .order_by("bioentry_id", "rank")
     )
@@ -139,7 +142,9 @@ def _update_structure_link(xref, pdb_obj):
     return link
 
 
-def fetch_and_load_experimental_structures(assembly_name, folder_path, working_dir, *, load_all=False):
+def fetch_and_load_experimental_structures(
+    assembly_name, folder_path, working_dir, *, load_all=False
+):
     """Download the best experimental PDB structure for each protein in the genome.
 
     Reads PDB xrefs from BioentryDbxref (dbname="PDB", rank=resolution*100).
@@ -160,7 +165,9 @@ def fetch_and_load_experimental_structures(assembly_name, folder_path, working_d
 
     total = len(xrefs_to_load)
     if not total:
-        logger.info("No PDB xrefs found for genome %s — skipping experimental structures", assembly_name)
+        logger.info(
+            "No PDB xrefs found for genome %s — skipping experimental structures", assembly_name
+        )
         return {"downloaded": 0, "loaded": 0, "skipped": 0, "total": 0}
 
     logger.info(
@@ -196,7 +203,9 @@ def fetch_and_load_experimental_structures(assembly_name, folder_path, working_d
             if pdb_obj is None:
                 call_command(
                     "load_af_model",
-                    pdb_id, dest_path, locus_tag,
+                    pdb_id,
+                    dest_path,
+                    locus_tag,
                     experiment="EX",
                     datadir=datadir,
                 )

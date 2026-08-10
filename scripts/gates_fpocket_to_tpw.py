@@ -22,27 +22,27 @@ from collections import defaultdict
 # Map from _info.txt property name → Target long name
 # (Target long names must match fpocket_properties_map values in FPocket2SQL.py)
 INFO_TO_TPW = {
-    "Score":                               "Score",
-    "Druggability Score":                  "Druggability Score",
-    "Number of Alpha Spheres":             "Number of Alpha Spheres",
-    "Total SASA":                          "Total SASA",
-    "Polar SASA":                          "Polar SASA",
-    "Apolar SASA":                         "Apolar SASA",
-    "Volume":                              "Volume",
-    "Mean local hydrophobic density":      "Mean local hydrophobic density",
-    "Mean alpha sphere radius":            "Mean alpha sphere radius",
-    "Mean alp. sph. solvent access":       "Mean alp sph solvent access",
-    "Mean alp sph solvent access":         "Mean alp sph solvent access",
-    "Apolar alpha sphere proportion":      "Apolar alpha sphere proportion",
-    "Hydrophobicity score":                "Hydrophobicity score",
-    "Volume score":                        "Volume score",
-    "Polarity score":                      "Polarity score",
-    "Charge score":                        "Charge score",
-    "Proportion of polar atoms":           "Proportion of polar atoms",
-    "Alpha sphere density":                "Alpha sphere density",
+    "Score": "Score",
+    "Druggability Score": "Druggability Score",
+    "Number of Alpha Spheres": "Number of Alpha Spheres",
+    "Total SASA": "Total SASA",
+    "Polar SASA": "Polar SASA",
+    "Apolar SASA": "Apolar SASA",
+    "Volume": "Volume",
+    "Mean local hydrophobic density": "Mean local hydrophobic density",
+    "Mean alpha sphere radius": "Mean alpha sphere radius",
+    "Mean alp. sph. solvent access": "Mean alp sph solvent access",
+    "Mean alp sph solvent access": "Mean alp sph solvent access",
+    "Apolar alpha sphere proportion": "Apolar alpha sphere proportion",
+    "Hydrophobicity score": "Hydrophobicity score",
+    "Volume score": "Volume score",
+    "Polarity score": "Polarity score",
+    "Charge score": "Charge score",
+    "Proportion of polar atoms": "Proportion of polar atoms",
+    "Alpha sphere density": "Alpha sphere density",
     "Cent. of mass - Alpha Sphere max dist": "Cent of mass - Alpha Sphere max dist",
-    "Cent of mass - Alpha Sphere max dist":  "Cent of mass - Alpha Sphere max dist",
-    "Flexibility":                         "Flexibility",
+    "Cent of mass - Alpha Sphere max dist": "Cent of mass - Alpha Sphere max dist",
+    "Flexibility": "Flexibility",
 }
 
 
@@ -88,12 +88,14 @@ def build_pocket_list(as_lines_by_pocket, props_by_pocket):
     pockets = []
     all_nums = sorted(set(as_lines_by_pocket) | set(props_by_pocket))
     for num in all_nums:
-        pockets.append({
-            "number": num,
-            "as_lines": as_lines_by_pocket.get(num, []),
-            "atoms": [],
-            "properties": props_by_pocket.get(num, {}),
-        })
+        pockets.append(
+            {
+                "number": num,
+                "as_lines": as_lines_by_pocket.get(num, []),
+                "atoms": [],
+                "properties": props_by_pocket.get(num, {}),
+            }
+        )
     return pockets
 
 
@@ -129,7 +131,7 @@ def main(src_tar, dst_tar):
 
     print(f"Found {len(data)} proteins with fpocket data.", flush=True)
 
-    converted = ok = skip = 0
+    ok = skip = 0
     with tarfile.open(dst_tar, "w:gz") as out_tf:
         for locus_tag, files in sorted(data.items()):
             if "out_pdb" not in files or "info_txt" not in files:
@@ -137,12 +139,12 @@ def main(src_tar, dst_tar):
                 continue
             try:
                 as_lines = parse_out_pdb(files["out_pdb"])
-                props    = parse_info_txt(files["info_txt"])
+                props = parse_info_txt(files["info_txt"])
                 if not as_lines and not props:
                     skip += 1
                     continue
                 pocket_list = build_pocket_list(as_lines, props)
-                gz_bytes    = make_fpocket_gz(pocket_list)
+                gz_bytes = make_fpocket_gz(pocket_list)
 
                 tarname = f"{locus_tag}/fpocket.json.gz"
                 info = tarfile.TarInfo(name=tarname)

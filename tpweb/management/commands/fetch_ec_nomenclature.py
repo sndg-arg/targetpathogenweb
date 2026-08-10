@@ -42,7 +42,9 @@ def parse_enzyme_dat(text):
                 name = " ".join(current_de_lines)
                 if name.endswith("."):
                     name = name[:-1]
-                if not name.startswith("Transferred entry") and not name.startswith("Deleted entry"):
+                if not name.startswith("Transferred entry") and not name.startswith(
+                    "Deleted entry"
+                ):
                     entries[current_id] = name
             current_id = None
             current_de_lines = []
@@ -62,9 +64,7 @@ def parse_enzclass_txt(text):
     subclass_labels = {}
     subsubclass_labels = {}
 
-    pattern = re.compile(
-        r"^\s*(\d+)\.\s*(\d+)\.\s*(\d+|-)\.\s*-\s+(.+?)\s*\.?\s*$"
-    )
+    pattern = re.compile(r"^\s*(\d+)\.\s*(\d+)\.\s*(\d+|-)\.\s*-\s+(.+?)\s*\.?\s*$")
 
     for line in text.splitlines():
         match = pattern.match(line)
