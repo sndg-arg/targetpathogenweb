@@ -292,7 +292,13 @@
         // Home, About Us, ...) neither applies. Detected the same way
         // getPageState() already reads the page generically: by the root
         // wrapper class each page template renders, not a Django context flag.
-        var TARGET_SCOPED_SELECTOR = ".protein-page, .genome-page, .sv-root, .proteins-page, .binder-page";
+        // .protein-page:not(.human-protein-page) -- human_protein.html reuses
+        // .protein-page purely for CSS (see that template's own comment), on a
+        // page whose accession is a human UniProt id, never a pathogen
+        // protein_id/genome the backend can resolve scope for. Treating it as
+        // target-scoped here would show "Explain target"/"Audit evidence"
+        // suggestions that can only ever fail with "no genome in scope."
+        var TARGET_SCOPED_SELECTOR = ".protein-page:not(.human-protein-page), .genome-page, .sv-root, .proteins-page, .binder-page";
         if (!document.querySelector(TARGET_SCOPED_SELECTOR)) {
             var targetText = document.querySelector(".tp-agent-drawer-empty-text--target");
             var genericText = document.querySelector(".tp-agent-drawer-empty-text--generic");
@@ -300,6 +306,22 @@
             if (genericText) genericText.hidden = false;
             var suggestionsEl = document.querySelector(".tp-agent-drawer-suggestions");
             if (suggestionsEl) suggestionsEl.hidden = true;
+        } else {
+            // Some suggestions only make sense on part of the target-scoped
+            // surface -- "Explain/Audit target" need one specific protein in
+            // view, "Clear filters" only means anything on the protein-list
+            // page's own filter tray. Unscoped buttons (e.g. "Find selective
+            // targets", a genome-wide search) show everywhere in this branch.
+            var hasProteinContext = !!document.querySelector(".protein-page:not(.human-protein-page), .sv-root");
+            var hasListContext = !!document.querySelector(".proteins-page");
+            Array.prototype.slice.call(document.querySelectorAll(".tp-agent-drawer-suggestion")).forEach(function (btn) {
+                var scope = btn.getAttribute("data-suggestion-scope");
+                if (scope === "protein" && !hasProteinContext) {
+                    btn.hidden = true;
+                } else if (scope === "list" && !hasListContext) {
+                    btn.hidden = true;
+                }
+            });
         }
 
         var messagesEl = document.getElementById("tp-agent-drawer-messages");

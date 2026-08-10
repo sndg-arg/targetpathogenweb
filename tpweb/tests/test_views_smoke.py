@@ -12,6 +12,7 @@ import tempfile
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import AnonymousUser
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db.utils import InterfaceError
 from django.test import SimpleTestCase, TestCase
@@ -22,7 +23,10 @@ from bioseq.models.Biodatabase import Biodatabase
 from bioseq.models.Bioentry import Bioentry
 from bioseq.models.Biosequence import Biosequence
 from tpweb.models.Binders import Binders
+from tpweb.models.BioentryStructure import BioentryStructure
+from tpweb.models.pdb import PDB
 from tpweb.services.workspace import PUBLIC_WORKSPACE_USERNAME
+from tpweb.views.AgentChatView import AgentChatView
 
 
 class HealthViewTests(SimpleTestCase):
@@ -573,6 +577,96 @@ class AgentChatSessionDetailViewTests(TestCase):
 
         self.assertEqual(response.status_code, 404)
         self.assertTrue(AgentChatSession.objects.filter(pk=row.pk).exists())
+
+
+class AgentChatPageScopeTests(TestCase):
+    """_resolve_page_scope/_is_protein_list_path -- the server-side re-derivation
+    that decides which genome/protein (if any) the assistant is allowed to act
+    on for a given page, independent of the client's own claims."""
+
+    # Biodatabase.PROT_POSTFIX is "_prots" (see the warning comment in
+    # ProteinViewTests below) -- assembly_name is whatever's left after
+    # stripping that suffix from the proteome biodatabase's own name, so the
+    # genome and proteome need two separate Biodatabase rows here, not one.
+
+    def test_resolves_scope_for_a_protein_page(self):
+        proteome = Biodatabase.objects.create(name="SCOPE_TEST_prots")
+        protein = Bioentry.objects.create(
+            biodatabase=proteome, name="protA", accession="LOCUS_A", identifier="LOCUS_A"
+        )
+
+        assembly_name, default_accession = AgentChatView._resolve_page_scope(
+            AnonymousUser(), f"/protein/{protein.bioentry_id}"
+        )
+
+        self.assertEqual(assembly_name, "SCOPE_TEST")
+        self.assertEqual(default_accession, "LOCUS_A")
+
+    def test_resolves_scope_for_a_structure_page_via_its_single_linked_protein(self):
+        proteome = Biodatabase.objects.create(name="STRUCT_TEST_prots")
+        protein = Bioentry.objects.create(
+            biodatabase=proteome, name="protB", accession="LOCUS_B", identifier="LOCUS_B"
+        )
+        pdb = PDB.objects.create(code="1ABC", text="")
+        BioentryStructure.objects.create(bioentry=protein, pdb=pdb)
+
+        assembly_name, default_accession = AgentChatView._resolve_page_scope(
+            AnonymousUser(), f"/structure/{pdb.id}"
+        )
+
+        self.assertEqual(assembly_name, "STRUCT_TEST")
+        self.assertEqual(default_accession, "LOCUS_B")
+
+    def test_structure_page_disambiguates_by_requested_protein_id_across_genomes(self):
+        # A widely-solved reference structure can legitimately be the "best PDB
+        # xref" for orthologous proteins in more than one genome -- the same
+        # pdb_id links to bioentries in two different biodatabases here.
+        genome_one = Biodatabase.objects.create(name="GENOME_ONE_prots")
+        protein_one = Bioentry.objects.create(
+            biodatabase=genome_one, name="p1", accession="ACC_ONE", identifier="ACC_ONE"
+        )
+        genome_two = Biodatabase.objects.create(name="GENOME_TWO_prots")
+        protein_two = Bioentry.objects.create(
+            biodatabase=genome_two, name="p2", accession="ACC_TWO", identifier="ACC_TWO"
+        )
+        pdb = PDB.objects.create(code="1SHARED", text="")
+        BioentryStructure.objects.create(bioentry=protein_one, pdb=pdb)
+        BioentryStructure.objects.create(bioentry=protein_two, pdb=pdb)
+
+        # Explicitly requesting protein_two's id must resolve to genome two, not
+        # whichever link happens to be "first" in the table.
+        assembly_name, default_accession = AgentChatView._resolve_page_scope(
+            AnonymousUser(),
+            f"/structure/{pdb.id}",
+            requested_protein_id=str(protein_two.bioentry_id),
+        )
+
+        self.assertEqual(assembly_name, "GENOME_TWO")
+        self.assertEqual(default_accession, "ACC_TWO")
+
+    def test_resolves_scope_for_a_binder_page(self):
+        proteome = Biodatabase.objects.create(name="BINDER_TEST_prots")
+        protein = Bioentry.objects.create(
+            biodatabase=proteome, name="protC", accession="LOCUS_C", identifier="LOCUS_C"
+        )
+        binder = Binders.objects.create(
+            ccd_id="ATP", pdb_id="1XYZ", uniprot="P99999", locustag=protein, smiles=""
+        )
+
+        assembly_name, default_accession = AgentChatView._resolve_page_scope(
+            AnonymousUser(), f"/binder/{binder.id}"
+        )
+
+        self.assertEqual(assembly_name, "BINDER_TEST")
+        self.assertEqual(default_accession, "LOCUS_C")
+
+    def test_is_protein_list_path_true_only_for_the_list_route(self):
+        # Pure URL-pattern matching, no DB lookup involved -- resolve() alone
+        # decides this, same mechanism _resolve_page_scope already trusts.
+        self.assertTrue(AgentChatView._is_protein_list_path("/genome/NZ_AP023069.1/proteins"))
+        self.assertFalse(AgentChatView._is_protein_list_path("/genome/NZ_AP023069.1"))
+        self.assertFalse(AgentChatView._is_protein_list_path("/protein/1"))
+        self.assertFalse(AgentChatView._is_protein_list_path(""))
 
 
 class MetabolismPathwayViewTests(TestCase):

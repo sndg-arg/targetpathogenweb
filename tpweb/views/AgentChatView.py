@@ -25,7 +25,7 @@ import logging
 import os
 import re
 import time
-from urllib.parse import urlparse
+from urllib.parse import parse_qs, urlparse
 
 from django.conf import settings
 from django.http import JsonResponse
@@ -35,6 +35,8 @@ from django.views import View
 
 from bioseq.models.Biodatabase import Biodatabase
 from bioseq.models.Bioentry import Bioentry
+from tpweb.models.Binders import Binders
+from tpweb.models.BioentryStructure import BioentryStructure
 from tpweb.services.agent_chat_sessions import (
     default_conversation,
     delete_conversation,
@@ -306,14 +308,22 @@ class AgentChatView(View):
 
         workspace_user = resolve_workspace_user(request.user)
         session_user = request.user
+        page_path = str(payload.get("page_path") or "")
+        page_url = str(payload.get("page_url") or "")
+        # Only used to disambiguate a PDB structure page that legitimately links to
+        # bioentries in more than one genome (see _scope_from_struct_id) -- the
+        # frontend already sends this in page_url, just unused until now.
+        requested_protein_id = parse_qs(urlparse(page_url).query).get("protein_id", [None])[0]
         assembly_name, default_accession = self._resolve_page_scope(
-            request.user, str(payload.get("page_path") or "")
+            request.user, page_path, requested_protein_id=requested_protein_id
         )
         if assembly_name and _looks_like_clear_filters(message):
             set_workspace_session_value(request.session, session_user, "selected_parameters", [])
-            reply = (
-                "Listo, borre todos los filtros de la lista de proteinas para esta sesion. "
+            on_list_page = self._is_protein_list_path(page_path)
+            reply = "Listo, borre todos los filtros de la lista de proteinas para esta sesion. " + (
                 "Recargo la lista para que lo veas aplicado."
+                if on_list_page
+                else "Se van a aplicar la proxima vez que abras la lista de proteinas."
             )
             history = _compact_history(
                 [
@@ -323,19 +333,17 @@ class AgentChatView(View):
                 ]
             )
             _save_persisted_history(row, history)
-            return JsonResponse(
-                {
-                    "reply": reply,
-                    "history": [_message_to_json(item) for item in history],
-                    "conversation_id": row.pk,
-                    "title": row.title,
-                    "conversation_reset": conversation_reset,
-                    "reload": True,
-                    "redirect_url": self._reload_url_without_query(
-                        str(payload.get("page_url") or payload.get("page_path") or "")
-                    ),
-                }
-            )
+            response = {
+                "reply": reply,
+                "history": [_message_to_json(item) for item in history],
+                "conversation_id": row.pk,
+                "title": row.title,
+                "conversation_reset": conversation_reset,
+            }
+            if on_list_page:
+                response["reload"] = True
+                response["redirect_url"] = self._reload_url_without_query(page_url or page_path)
+            return JsonResponse(response)
 
         system = SYSTEM_PROMPT
         if biologist_mode:
@@ -407,20 +415,25 @@ class AgentChatView(View):
             "title": row.title,
             "conversation_reset": conversation_reset,
         }
-        if _tool_was_called(agent.last_messages, "clear_filters") or _tool_was_called(
-            agent.last_messages, "apply_filters"
-        ):
+        if (
+            _tool_was_called(agent.last_messages, "clear_filters")
+            or _tool_was_called(agent.last_messages, "apply_filters")
+        ) and self._is_protein_list_path(page_path):
             response["reload"] = True
-            response["redirect_url"] = self._reload_url_without_query(
-                str(payload.get("page_url") or payload.get("page_path") or "")
-            )
+            response["redirect_url"] = self._reload_url_without_query(page_url or page_path)
         return JsonResponse(response)
 
     @staticmethod
-    def _resolve_page_scope(user, page_path):
+    def _resolve_page_scope(user, page_path, requested_protein_id=None):
         """Return (assembly_name, default_accession) for the given
         window.location.pathname, or (None, None) if it doesn't resolve to
-        an accessible genome/protein page."""
+        an accessible genome/protein page.
+
+        requested_protein_id (from the page's own ?protein_id= query param,
+        if any) only matters for _scope_from_struct_id -- a PDB structure
+        page can legitimately be linked from more than one genome's protein
+        (see that method's docstring), so page_path alone can be ambiguous.
+        """
         candidate_paths = AgentChatView._candidate_paths(page_path)
         if not candidate_paths:
             return None, None
@@ -435,13 +448,23 @@ class AgentChatView(View):
             if protein_id is not None:
                 return AgentChatView._scope_from_protein_id(user, protein_id)
 
+            struct_id = match.kwargs.get("struct_id")
+            if struct_id is not None:
+                return AgentChatView._scope_from_struct_id(user, struct_id, requested_protein_id)
+
+            binder_id = match.kwargs.get("binder_id")
+            if binder_id is not None:
+                return AgentChatView._scope_from_binder_id(user, binder_id)
+
             genome_slug = match.kwargs.get("genome")
             if genome_slug:
                 assembly_name = resolve_genome_from_slug(user, genome_slug)
                 if assembly_name:
                     return assembly_name, None
 
-        fallback = AgentChatView._fallback_scope_from_path(user, candidate_paths[0])
+        fallback = AgentChatView._fallback_scope_from_path(
+            user, candidate_paths[0], requested_protein_id
+        )
         if fallback:
             return fallback
 
@@ -466,7 +489,7 @@ class AgentChatView(View):
         if force_script_name and path.startswith(force_script_name + "/"):
             candidates.append(path[len(force_script_name) :] or "/")
 
-        for marker in ("/protein/", "/genome/"):
+        for marker in ("/protein/", "/genome/", "/structure/", "/binder/"):
             index = path.find(marker)
             if index > 0:
                 candidates.append(path[index:])
@@ -498,10 +521,57 @@ class AgentChatView(View):
         return assembly_name, protein.accession
 
     @staticmethod
-    def _fallback_scope_from_path(user, page_path):
+    def _scope_from_struct_id(user, struct_id, requested_protein_id=None):
+        """A PDB structure page's genome isn't always unambiguous: the same
+        experimental PDB code can be the "best structure" for orthologous
+        proteins across more than one target genome (the pipeline looks up
+        PDB rows by code alone, with no genome filter -- see
+        experimental_structures.py / load_selected_pdb_backfill.py), so more
+        than one BioentryStructure row can point at the same pdb_id. Mirrors
+        StructureView._resolve_source_bioentry's own disambiguation: prefer
+        the specific protein_id the page itself is showing (from its
+        ?protein_id= query param) and only fall back to "first link" if that
+        wasn't given -- never guess when we don't have to.
+        """
+        link = None
+        if requested_protein_id and str(requested_protein_id).isdigit():
+            link = (
+                BioentryStructure.objects.select_related("bioentry__biodatabase")
+                .filter(pdb_id=struct_id, bioentry_id=int(requested_protein_id))
+                .first()
+            )
+        if link is None:
+            link = (
+                BioentryStructure.objects.select_related("bioentry__biodatabase")
+                .filter(pdb_id=struct_id)
+                .first()
+            )
+        if link is None or link.bioentry is None:
+            return None, None
+        return AgentChatView._scope_from_protein_id(user, link.bioentry.bioentry_id)
+
+    @staticmethod
+    def _scope_from_binder_id(user, binder_id):
+        binder = Binders.objects.select_related("locustag").filter(pk=binder_id).first()
+        if binder is None or binder.locustag is None:
+            return None, None
+        return AgentChatView._scope_from_protein_id(user, binder.locustag.bioentry_id)
+
+    @staticmethod
+    def _fallback_scope_from_path(user, page_path, requested_protein_id=None):
         protein_match = re.search(r"/protein/(\d+)(?:/|$)", page_path)
         if protein_match:
             return AgentChatView._scope_from_protein_id(user, protein_match.group(1))
+
+        struct_match = re.search(r"/structure/(\d+)(?:/|$)", page_path)
+        if struct_match:
+            return AgentChatView._scope_from_struct_id(
+                user, struct_match.group(1), requested_protein_id
+            )
+
+        binder_match = re.search(r"/binder/(\d+)(?:/|$)", page_path)
+        if binder_match:
+            return AgentChatView._scope_from_binder_id(user, binder_match.group(1))
 
         genome_match = re.search(r"/genome/([^/]+)(?:/|$)", page_path)
         if genome_match:
@@ -510,6 +580,21 @@ class AgentChatView(View):
                 return assembly_name, None
 
         return None
+
+    @staticmethod
+    def _is_protein_list_path(page_path):
+        """True only for the actual proteins-list page -- the page the
+        clear_filters/apply_filters reload response should ever point at.
+        Reuses the same candidate-path normalization _resolve_page_scope
+        trusts, rather than a second, possibly-inconsistent derivation."""
+        for candidate in AgentChatView._candidate_paths(page_path):
+            try:
+                match = resolve(candidate)
+            except Resolver404:
+                continue
+            if match.url_name == "protein_list":
+                return True
+        return False
 
     @staticmethod
     def _page_state_prompt(page_state):

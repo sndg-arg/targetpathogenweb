@@ -2431,16 +2431,16 @@
         </p>
     </div>
     <div class="tp-agent-drawer-suggestions" aria-label="{% trans 'Suggested assistant prompts' %}">
-        <button type="button" class="tp-agent-drawer-suggestion" data-agent-prompt="{% trans 'Explain this target using only loaded evidence.' %}">
+        <button type="button" class="tp-agent-drawer-suggestion" data-suggestion-scope="protein" data-agent-prompt="{% trans 'Explain this target using only loaded evidence.' %}">
             {% trans "Explain target" %}
         </button>
-        <button type="button" class="tp-agent-drawer-suggestion" data-agent-prompt="{% trans 'Audit the evidence for this target and tell me where each conclusion comes from.' %}">
+        <button type="button" class="tp-agent-drawer-suggestion" data-suggestion-scope="protein" data-agent-prompt="{% trans 'Audit the evidence for this target and tell me where each conclusion comes from.' %}">
             {% trans "Audit evidence" %}
         </button>
         <button type="button" class="tp-agent-drawer-suggestion" data-agent-prompt="{% trans 'Find promising targets with no human off-target signal and good pocket evidence.' %}">
             {% trans "Find selective targets" %}
         </button>
-        <button type="button" class="tp-agent-drawer-suggestion" data-agent-prompt="{% trans 'Clear all active protein-list filters.' %}">
+        <button type="button" class="tp-agent-drawer-suggestion" data-suggestion-scope="list" data-agent-prompt="{% trans 'Clear all active protein-list filters.' %}">
             {% trans "Clear filters" %}
         </button>
     </div>
@@ -2454,7 +2454,7 @@
 </aside>
 
 <script src="{% static 'bundle.js' %}?v=20260722-dagre1"></script>
-<script src="{% static 'js/global/agent-drawer.js' %}?v=20260810-rename-delete2"></script>
+<script src="{% static 'js/global/agent-drawer.js' %}?v=20260810-scoped-suggestions"></script>
 <script src="{% static 'js/global/nav-toggle.js' %}?v=20260804-navtoggle1"></script>
 <script src="{% static 'js/global/smooth-details.js' %}?v=20260804-smoothdetails1"></script>
 
