@@ -59,6 +59,15 @@ from tpweb.management.commands.export_selected_pdb_pocket_jobs import (
     _is_pdb_code as pdb_export_is_pdb_code,
     _parse_structure_candidates,
 )
+from tpweb.management.commands.load_csa import (
+    _clean_optional_text,
+    _parse_residue_identifier,
+    _site_storage_name,
+)
+from tpweb.management.commands.import_curated_uniprot import (
+    _compute_folder_path as curated_uniprot_folder_path,
+    _parse_uniprot_accessions,
+)
 
 
 class ClearOldAgentChatsTests(TestCase):
@@ -450,3 +459,60 @@ class ExportSelectedPdbPocketJobsTests(TestCase):
 
     def test_parse_structure_candidates_empty_value_returns_empty_list(self):
         self.assertEqual(_parse_structure_candidates(""), [])
+
+
+class LoadCsaHelperTests(TestCase):
+    def test_clean_optional_text_normalizes_missing_markers(self):
+        self.assertEqual(_clean_optional_text(None), "")
+        self.assertEqual(_clean_optional_text("  nan  "), "")
+        self.assertEqual(_clean_optional_text("  Ser  "), "Ser")
+
+    def test_clean_optional_text_uppercases_when_requested(self):
+        self.assertEqual(_clean_optional_text("ser", upper=True), "SER")
+
+    def test_parse_residue_identifier_handles_plain_integer(self):
+        self.assertEqual(_parse_residue_identifier("42"), (42, ""))
+
+    def test_parse_residue_identifier_handles_float_like_string(self):
+        self.assertEqual(_parse_residue_identifier("42.0"), (42, ""))
+
+    def test_parse_residue_identifier_handles_insertion_code(self):
+        self.assertEqual(_parse_residue_identifier("42A"), (42, "A"))
+
+    def test_parse_residue_identifier_handles_negative_number(self):
+        self.assertEqual(_parse_residue_identifier("-5"), (-5, ""))
+
+    def test_parse_residue_identifier_returns_none_for_missing_value(self):
+        self.assertEqual(_parse_residue_identifier(None), (None, ""))
+
+    def test_parse_residue_identifier_returns_none_for_unparsable_text(self):
+        self.assertEqual(_parse_residue_identifier("not-a-number"), (None, ""))
+
+    def test_site_storage_name_uses_bare_id_when_grouped_across_chains(self):
+        self.assertEqual(_site_storage_name("SITE1", "A", True), "SITE1")
+
+    def test_site_storage_name_includes_chain_when_not_grouped(self):
+        self.assertEqual(_site_storage_name("SITE1", "A", False), "SITE1 | chain A")
+
+
+class ImportCuratedUniprotHelperTests(TestCase):
+    def test_parse_uniprot_accessions_whole_value_missing_marker_returns_empty(self):
+        self.assertEqual(_parse_uniprot_accessions("NA"), [])
+
+    def test_parse_uniprot_accessions_splits_on_comma_semicolon_and_whitespace(self):
+        self.assertEqual(
+            _parse_uniprot_accessions("P12345, P67890;P11111"),
+            ["P12345", "P67890", "P11111"],
+        )
+
+    def test_parse_uniprot_accessions_strips_swissprot_pipe_format(self):
+        self.assertEqual(_parse_uniprot_accessions("sp|P12345|GENE_HUMAN"), ["P12345"])
+
+    def test_parse_uniprot_accessions_drops_missing_tokens_within_a_list(self):
+        self.assertEqual(_parse_uniprot_accessions("P12345, NA, P67890"), ["P12345", "P67890"])
+
+    def test_compute_folder_path_splits_genome_accession_into_middle_bucket_directory(self):
+        self.assertEqual(
+            curated_uniprot_folder_path("/app/tp/data", "NZ_AP023069.1"),
+            "/app/tp/data/023/NZ_AP023069.1",
+        )
