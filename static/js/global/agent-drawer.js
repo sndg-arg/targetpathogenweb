@@ -561,7 +561,11 @@
             renameBtn.setAttribute("aria-label", renameLabel);
             renameBtn.title = renameLabel;
             renameBtn.innerHTML = PENCIL_ICON_SVG;
-            renameBtn.addEventListener("click", function () {
+            renameBtn.addEventListener("click", function (event) {
+                // Stop this from reaching the document-level "click outside
+                // the panel closes it" listener -- see the stopPropagation
+                // note on deleteBtn below for why that matters here too.
+                event.stopPropagation();
                 if (pending) return;
                 startRenameConversation(session.id, titleEl, function (newTitle) {
                     session.title = newTitle;
@@ -577,7 +581,14 @@
             deleteBtn.setAttribute("aria-label", deleteLabel);
             deleteBtn.title = deleteLabel;
             deleteBtn.innerHTML = TRASH_ICON_SVG;
-            deleteBtn.addEventListener("click", function () {
+            deleteBtn.addEventListener("click", function (event) {
+                // Must stop propagation: startDeleteConfirm() below detaches
+                // this very button from the DOM (itemEl.innerHTML = "") while
+                // this click is still bubbling. Without stopping it here, the
+                // document-level outside-click listener sees a target that's
+                // no longer inside historyPanel and immediately closes the
+                // panel it out from under the just-shown confirm row.
+                event.stopPropagation();
                 if (pending) return;
                 startDeleteConfirm(session.id, item, deleteBtn);
             });
@@ -684,8 +695,17 @@
                 if (triggerBtn) triggerBtn.focus();
             }
 
-            cancelBtn.addEventListener("click", revert);
-            confirmBtn.addEventListener("click", function () {
+            cancelBtn.addEventListener("click", function (event) {
+                event.stopPropagation();
+                revert();
+            });
+            confirmBtn.addEventListener("click", function (event) {
+                // Same reasoning as deleteBtn's own click handler: revert()/the
+                // success path below both remove this button from the DOM
+                // synchronously (or shortly after) while this click is still
+                // bubbling -- stop it here so the outside-click listener can't
+                // mistake it for a click outside the panel.
+                event.stopPropagation();
                 fetch(sessionsUrl + "/" + conversationId, {
                     method: "DELETE",
                     headers: { "X-CSRFToken": getCookie("csrftoken") },
