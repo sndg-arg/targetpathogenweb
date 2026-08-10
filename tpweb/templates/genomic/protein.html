@@ -1511,10 +1511,22 @@
                 }, { passive: false, capture: true });
             }
 
-            function syncNglViewportSize(stageInstance) {
+            function syncNglViewportSize(stageInstance, thenCenterComponent) {
                 if (!stageInstance || typeof stageInstance.handleResize !== "function") return;
+                // handleResize() must run before autoView() -- autoView() frames the
+                // camera using whatever canvas size the renderer currently thinks it
+                // has, and the #viewport div's actual on-screen size can still be
+                // settling (layout/scroll-into-view not finished) when a structure
+                // finishes loading. Calling autoView() first, then resizing after (the
+                // previous order here), centered the camera against a stale/smaller
+                // canvas -- the structure would then render high and cropped once the
+                // real, larger canvas caught up. Same fix already proven in
+                // structure.html's syncNglSize().
                 window.requestAnimationFrame(function () {
                     stageInstance.handleResize();
+                    if (thenCenterComponent && typeof thenCenterComponent.autoView === "function") {
+                        thenCenterComponent.autoView(0);
+                    }
                     window.setTimeout(function () {
                         stageInstance.handleResize();
                     }, 80);
@@ -1698,12 +1710,12 @@
                     const priorityPocketSurfaceKeys = [];
 
                     window.ngl_reset_zoom = function () {
-                        component.autoView();
+                        syncNglViewportSize(stage, component);
                         window.setTimeout(function () {
                             if (stage && stage.viewerControls && typeof stage.viewerControls.zoom === "function") {
                                 stage.viewerControls.zoom(0.40);
                             }
-                        }, 80);
+                        }, 160);
                         setStructureResetZoomEnabled(false);
                     };
 
@@ -1768,14 +1780,13 @@
                         checkbox.checked = false;
                     });
 
-                    component.autoView();
+                    applyStructureTheme();
+                    syncNglViewportSize(stage, component);
                     window.setTimeout(function () {
                         if (stage && stage.viewerControls && typeof stage.viewerControls.zoom === "function") {
                             stage.viewerControls.zoom(0.40);
                         }
-                    }, 80);
-                    applyStructureTheme();
-                    syncNglViewportSize(stage);
+                    }, 160);
                     setStructureResetZoomEnabled(false);
                     setStructureLoadingVisible(false);
                 }
