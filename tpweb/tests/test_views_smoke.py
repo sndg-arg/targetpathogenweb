@@ -317,3 +317,49 @@ class HumanProteinViewTests(TestCase):
             reverse("tpwebapp:human_protein", kwargs={"accession": "DOES-NOT-EXIST"})
         )
         self.assertEqual(response.status_code, 404)
+
+
+class DataFileUploadViewTests(TestCase):
+    def test_post_requires_staff(self):
+        response = self.client.post(reverse("tpwebapp:data_file_upload"))
+        self.assertEqual(response.status_code, 403)
+
+
+class CustomParamViewTests(SimpleTestCase):
+    def test_get_requires_login(self):
+        response = self.client.get(
+            reverse("tpwebapp:customparam", kwargs={"genome": "NZ_AP023069.1"})
+        )
+        self.assertEqual(response.status_code, 302)
+
+
+class FormulaFormViewTests(TestCase):
+    def test_get_for_unknown_genome_is_not_found(self):
+        response = self.client.get(
+            reverse("tpwebapp:formula_form", kwargs={"genome": "does-not-exist"})
+        )
+        self.assertEqual(response.status_code, 404)
+
+
+class AgentChatViewTests(TestCase):
+    def test_get_returns_empty_history_for_new_session(self):
+        response = self.client.get(reverse("tpwebapp:agent_chat"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {"history": []})
+
+
+class MetabolismPathwayViewTests(TestCase):
+    def test_get_for_unknown_genome_is_not_found(self):
+        response = self.client.get(
+            reverse("tpwebapp:genome_metabolism", kwargs={"genome": "does-not-exist"})
+        )
+        self.assertEqual(response.status_code, 404)
+
+
+class MetabolismNetworkViewTests(TestCase):
+    def test_get_for_unknown_protein_is_not_found(self):
+        response = self.client.get(
+            reverse("tpwebapp:protein_metabolic_network", kwargs={"protein_id": 999999})
+        )
+        self.assertEqual(response.status_code, 404)
