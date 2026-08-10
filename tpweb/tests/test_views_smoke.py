@@ -16,6 +16,7 @@ from django.urls import reverse
 import tpweb.services.pipeline_status as pipeline_status_service
 from bioseq.models.Biodatabase import Biodatabase
 from bioseq.models.Bioentry import Bioentry
+from bioseq.models.Biosequence import Biosequence
 from tpweb.models.Binders import Binders
 from tpweb.services.workspace import PUBLIC_WORKSPACE_USERNAME
 
@@ -363,3 +364,38 @@ class MetabolismNetworkViewTests(TestCase):
             reverse("tpwebapp:protein_metabolic_network", kwargs={"protein_id": 999999})
         )
         self.assertEqual(response.status_code, 404)
+
+
+class ProteinViewTests(TestCase):
+    def test_renders_for_protein_with_no_structures_or_annotations(self):
+        # ProteinView checks biodatabase.name against the real
+        # bioseq.models.Biodatabase.PROT_POSTFIX ("_prots") -- not "_protein"
+        # like a couple of older fixtures in this test suite assume. Those
+        # older tests happen to pass anyway because the views they exercise
+        # never check the suffix; ProteinView does, so getting it wrong here
+        # would 404 instead of rendering.
+        Biodatabase.objects.create(name="TEST", description="Genome workspace")
+        proteome = Biodatabase.objects.create(name="TEST_prots")
+        protein = Bioentry.objects.create(
+            biodatabase=proteome,
+            name="protA",
+            accession="LOCUS_A",
+            identifier="LOCUS_A",
+        )
+        Biosequence.objects.create(bioentry=protein, length=10, seq="MKTAYIAKQR")
+
+        response = self.client.get(
+            reverse("tpwebapp:protein", kwargs={"protein_id": protein.bioentry_id})
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+
+class GenomeUploadViewTests(TestCase):
+    def test_get_renders_for_authenticated_user_with_no_uploads(self):
+        user = get_user_model().objects.create_user(username="upload-user", password="test-pass")
+        self.client.force_login(user)
+
+        response = self.client.get(reverse("tpwebapp:genome_upload"))
+
+        self.assertEqual(response.status_code, 200)
