@@ -26,7 +26,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
     <link rel="stylesheet" href="{% static 'css/components/ui-system.css' %}?v=20260811-sticky-revert">
-    <link rel="stylesheet" href="{% static 'css/components/agent-drawer.css' %}?v=20260811-fab-peek">
+    <link rel="stylesheet" href="{% static 'css/components/agent-drawer.css' %}?v=20260811-fab-ring">
     <style>
         :root {
             --tp-color-text-primary: #132f3d;
@@ -2148,6 +2148,7 @@
     {% block footer %}{% endblock %}
 </footer>
 
+<div class="tp-agent-fab-ring" aria-hidden="true"></div>
 <button id="tp-agent-drawer-toggle" class="tp-agent-fab" type="button"
         aria-label="{% trans 'Open assistant' %}" title="{% trans 'Open assistant' %}"
         aria-expanded="false" aria-controls="tp-agent-drawer">

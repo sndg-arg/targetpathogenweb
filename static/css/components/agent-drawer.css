@@ -16,6 +16,42 @@
     pointer-events: auto;
 }
 
+/* A slowly rotating highlight sweeping around the FAB -- mostly
+   transparent, one bright arc, so it reads as a subtle spinning glint
+   rather than a loud rainbow ring. Sized a few px larger than the button
+   and sitting one z-index behind it: the button's own opaque fill covers
+   the ring's center, leaving only the rim visible, no masking needed. */
+.tp-agent-fab-ring {
+    position: fixed;
+    right: 18px;
+    bottom: 18px;
+    z-index: 1039;
+    width: 64px;
+    height: 64px;
+    border-radius: 999px;
+    background: conic-gradient(from 0deg,
+        transparent 0%,
+        transparent 78%,
+        var(--tp-color-brand-200) 88%,
+        var(--tp-color-on-accent) 93%,
+        var(--tp-color-brand-200) 98%,
+        transparent 100%);
+    animation: tp-agent-fab-ring-spin 3.6s linear infinite;
+    pointer-events: none;
+}
+
+@keyframes tp-agent-fab-ring-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .tp-agent-fab-ring {
+        animation: none;
+    }
+}
+
 /* Floating action button -- the single Assistant entry point at every
    breakpoint (replaces the old separate desktop-topbar pill and
    mobile-topbar icon). A circle at rest, expands into a labelled pill on
