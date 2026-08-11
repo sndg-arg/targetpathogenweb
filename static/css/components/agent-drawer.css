@@ -23,19 +23,19 @@
    the ring's center, leaving only the rim visible, no masking needed. */
 .tp-agent-fab-ring {
     position: fixed;
-    right: 19px;
-    bottom: 19px;
+    right: 20px;
+    bottom: 20px;
     z-index: 1039;
-    width: 66px;
-    height: 66px;
+    width: 60px;
+    height: 60px;
     border-radius: 999px;
+    /* Comet-tail fade, not a solid band -- a bright point at the head
+       trailing off smoothly to nothing, the way a premium loading spinner
+       draws its stroke, rather than a bright-in-the-middle highlight. */
     background: conic-gradient(from 0deg,
         transparent 0%,
-        transparent 85%,
-        var(--tp-color-brand-200) 90%,
-        var(--tp-color-on-accent) 94%,
-        var(--tp-color-brand-200) 98%,
-        transparent 100%);
+        transparent 55%,
+        var(--tp-color-on-accent) 100%);
     animation: tp-agent-fab-ring-spin 3.6s linear infinite;
     pointer-events: none;
 }
