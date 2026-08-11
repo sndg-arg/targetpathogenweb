@@ -3,15 +3,15 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/home.css' %}?v=20260811-hero-logo-radius">
+    <link rel="stylesheet" href="{% static 'css/pages/home.css' %}?v=20260811-hero-logo-fullbleed">
 {% endblock %}
 
 {% block body %}
+    <div class="home-hero-logo-badge">
+        <img src="{% static 'img/brand/tp-logo-full-white.png' %}" alt="{% trans 'Target Pathogen' %}" class="home-hero-logo">
+    </div>
     <div class="home-page">
         <section class="home-hero">
-            <div class="home-hero-logo-badge">
-                <img src="{% static 'img/brand/tp-logo-full-white.png' %}" alt="{% trans 'Target Pathogen' %}" class="home-hero-logo">
-            </div>
             <div class="home-hero-copy">
                 <p class="tp-ui-field-label">{% trans "Drug Target Discovery Platform" %}</p>
                 <h1>{% trans "A bioinformatics platform for prioritizing protein targets in pathogens." %}</h1>
