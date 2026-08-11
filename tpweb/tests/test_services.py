@@ -22,6 +22,7 @@ from tpweb.models.ScoreParamValue import ScoreParamValue
 from tpweb.models.Binders import Binders
 from tpweb.services.agent_chat_sessions import (
     SESSION_IDLE_GAP,
+    TITLE_MAX_LENGTH,
     default_conversation,
     delete_conversation,
     find_conversation,
@@ -1647,7 +1648,10 @@ class AgentChatSessionsServiceTests(TestCase):
 
         renamed = rename_conversation("session-j", row.pk, "x" * 100)
 
-        self.assertEqual(len(renamed.title), 60)
+        # TITLE_MAX_LENGTH (60) characters kept, plus the ellipsis appended
+        # on top -- 61 total, not 60.
+        self.assertEqual(len(renamed.title), TITLE_MAX_LENGTH + 1)
+        self.assertTrue(renamed.title.startswith("x" * TITLE_MAX_LENGTH))
         self.assertTrue(renamed.title.endswith("…"))
 
     def test_rename_conversation_returns_none_for_another_session(self):
