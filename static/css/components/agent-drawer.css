@@ -34,9 +34,9 @@
     padding: 0;
     border: 3px solid var(--tp-color-surface);
     border-radius: 30px;
-    background: var(--tp-color-brand-900);
+    background: var(--tp-color-nav-900);
     color: var(--tp-color-on-accent);
-    box-shadow: 0 8px 24px color-mix(in srgb, var(--tp-color-brand-900) 55%, transparent), var(--tp-shadow-lg);
+    box-shadow: 0 8px 24px color-mix(in srgb, var(--tp-color-nav-900) 55%, transparent), var(--tp-shadow-lg);
     cursor: pointer;
     overflow: hidden;
     white-space: nowrap;
@@ -47,7 +47,7 @@
 .tp-agent-fab:hover,
 .tp-agent-fab:focus-visible {
     width: 180px;
-    background: var(--tp-color-brand-800);
+    background: var(--tp-color-nav-700);
 }
 
 .tp-agent-fab-icon {
