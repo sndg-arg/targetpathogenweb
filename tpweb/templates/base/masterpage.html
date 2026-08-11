@@ -1259,6 +1259,11 @@
                 display: none !important;
             }
 
+            /* Flat/docked at the top of the page, gains a deeper shadow
+               once the page scrolls beneath it (body.tp-scrolled, toggled
+               by a small scroll listener) -- a bar that visibly "floats"
+               over content only once there's content to float over, rather
+               than a shadow that's always on regardless of scroll. */
             .tp-topbar-desktop {
                 position: fixed;
                 inset: 0 0 auto 0;
@@ -1267,9 +1272,14 @@
                 align-items: stretch;
                 background: var(--tp-color-nav-900);
                 border-bottom: 1px solid rgba(255, 255, 255, 0.09);
-                box-shadow: 0 4px 16px rgba(9, 23, 33, 0.18);
+                box-shadow: 0 1px 0 rgba(255, 255, 255, 0.08) inset;
                 color: var(--tp-color-selection);
                 z-index: 1030;
+                transition: box-shadow var(--tp-ui-motion-base) var(--tp-ui-ease-standard);
+            }
+
+            body.tp-scrolled .tp-topbar-desktop {
+                box-shadow: 0 1px 0 rgba(255, 255, 255, 0.08) inset, 0 10px 28px rgba(6, 16, 23, 0.32);
             }
 
             .tp-topbar-desktop-inner {
@@ -1306,7 +1316,7 @@
                 font-family: "Space Grotesk", "Segoe UI", sans-serif;
                 font-size: 1.5rem;
                 font-weight: 700;
-                letter-spacing: 0.015em;
+                letter-spacing: 0.03em;
                 color: var(--tp-color-on-accent);
                 white-space: nowrap;
             }
@@ -2671,6 +2681,15 @@
             return table;
         };
     }
+
+    /* ── Topbar scroll shadow ─────────────────────────── */
+    (function () {
+        function update() {
+            document.body.classList.toggle("tp-scrolled", window.scrollY > 2);
+        }
+        update();
+        window.addEventListener("scroll", update, { passive: true });
+    })();
 
     /* ── Theme toggle ──────────────────────────────── */
     (function () {
