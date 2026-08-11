@@ -50,8 +50,13 @@
 }
 
 .tp-agent-fab:hover,
-.tp-agent-fab:focus-visible {
+.tp-agent-fab:focus-visible,
+.tp-agent-fab.is-peeking {
     width: 178px;
+}
+
+.tp-agent-fab:hover,
+.tp-agent-fab:focus-visible {
     filter: brightness(0.9);
 }
 
@@ -74,7 +79,8 @@
 }
 
 .tp-agent-fab:hover .tp-agent-fab-label,
-.tp-agent-fab:focus-visible .tp-agent-fab-label {
+.tp-agent-fab:focus-visible .tp-agent-fab-label,
+.tp-agent-fab.is-peeking .tp-agent-fab-label {
     opacity: 1;
 }
 

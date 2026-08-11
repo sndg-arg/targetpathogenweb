@@ -26,7 +26,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
     <link rel="stylesheet" href="{% static 'css/components/ui-system.css' %}?v=20260811-sticky-revert">
-    <link rel="stylesheet" href="{% static 'css/components/agent-drawer.css' %}?v=20260811-fab-brand600">
+    <link rel="stylesheet" href="{% static 'css/components/agent-drawer.css' %}?v=20260811-fab-peek">
     <style>
         :root {
             --tp-color-text-primary: #132f3d;
@@ -2675,6 +2675,22 @@
         }
         update();
         window.addEventListener("scroll", update, { passive: true });
+    })();
+
+    /* ── Assistant FAB first-visit peek ───────────────── */
+    (function () {
+        var STORAGE_KEY = "tp.agentFabPeeked";
+        var fab = document.getElementById("tp-agent-drawer-toggle");
+        if (!fab || localStorage.getItem(STORAGE_KEY)) return;
+
+        localStorage.setItem(STORAGE_KEY, "1");
+        window.setTimeout(function () {
+            if (fab.getAttribute("aria-expanded") === "true") return;
+            fab.classList.add("is-peeking");
+            window.setTimeout(function () {
+                fab.classList.remove("is-peeking");
+            }, 2600);
+        }, 1200);
     })();
 
     /* ── Theme toggle ──────────────────────────────── */
