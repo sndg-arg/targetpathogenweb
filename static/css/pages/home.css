@@ -53,24 +53,48 @@
    sits flush against the edge would reveal the page background peeking
    through, which reads as a mistake, not a banner. */
 .home-hero-logo-badge {
+    position: relative;
     display: flex;
     align-items: center;
     margin: -18px -18px 24px;
-    padding: 22px 28px;
+    padding: 30px 32px;
     background: linear-gradient(96deg, var(--tp-color-nav-900) 0%, var(--tp-color-nav-800) 64%, var(--tp-color-nav-600) 100%);
-    box-shadow: var(--tp-shadow-sm);
+    box-shadow: var(--tp-shadow-md);
+}
+
+/* Reuses masterpage.html's own tp-masthead-shimmer keyframe (already global,
+   playing on .tp-main::after) instead of a second copy -- same one-time
+   "premium reveal" sweep the site's masthead accent bar already does on
+   load, now echoed here too. */
+.home-hero-logo-badge::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(100deg, transparent 0%, rgba(255, 255, 255, 0.22) 50%, transparent 100%);
+    background-size: 55% 100%;
+    background-repeat: no-repeat;
+    background-position: -55% 0;
+    animation: tp-masthead-shimmer 1.6s ease-out 450ms 1 forwards;
+    pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .home-hero-logo-badge::after {
+        animation: none;
+        display: none;
+    }
 }
 
 @media (max-width: 991px) {
     .home-hero-logo-badge {
         margin: -10px -10px 20px;
-        padding: 16px 20px;
+        padding: 20px 22px;
     }
 }
 
 .home-hero-logo {
     display: block;
-    height: 52px;
+    height: 64px;
     width: auto;
     max-width: 70vw;
 }
