@@ -52,7 +52,11 @@
     align-items: center;
     width: 100%;
     padding: 16px 22px;
-    border-radius: var(--tp-radius-md);
+    /* var(--tp-radius-md) (20px) on a ~90px-tall bar rounded every corner
+       enough that the ends read as pill/capsule-shaped instead of a clean
+       banner -- 12px (this codebase's established small-card radius) keeps
+       the site's rounded-corner language without that. */
+    border-radius: 12px;
     background: linear-gradient(96deg, var(--tp-color-nav-900) 0%, var(--tp-color-nav-800) 64%, var(--tp-color-nav-600) 100%);
     box-shadow: var(--tp-shadow-sm);
     margin-top: 4px;
