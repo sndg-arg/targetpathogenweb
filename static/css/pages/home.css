@@ -43,11 +43,16 @@
    itself never needs this since it's always a dark bar regardless of site
    theme, but the hero sits on the page's own light/dark background). */
 .home-hero-logo {
+    /* Sized by height, not width -- matches the sidebar's own cap
+       (max-height: 72px there) so this reads as the same small, quiet
+       brand mark, not a second, oversized one competing with the h1
+       below it for primary visual weight. */
     display: block;
-    width: 220px;
-    max-width: 60vw;
-    height: auto;
-    margin-bottom: 6px;
+    height: 48px;
+    width: auto;
+    max-width: 70vw;
+    margin-top: 4px;
+    margin-bottom: 14px;
 }
 
 .home-hero-logo--dark {
