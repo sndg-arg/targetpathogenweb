@@ -150,7 +150,7 @@
 
         <div class="ds-subsection" id="pipeline-stages">
             <h3>{% trans "Stage-by-stage breakdown" %}</h3>
-            <p class="ds-body">{% trans "Every stage below runs in order for every genome. Stages marked ★ are individually compute-heavy or delegated to a remote SLURM node — see the operator documentation for the exact toggles." %}</p>
+            <p class="ds-body">{% trans "Stages run in this exact order for every genome, and stop immediately on the first failure rather than continuing with incomplete data — with the sole exception of stage 24 (LigQ_2), which is disabled by default. Stages marked ★ here are individually compute-heavy or delegated to a remote SLURM node; the ★ on the grouped overview above marks the same thing at coarser, per-range granularity, so a range can be starred even when only one of its stages actually is." %}</p>
             <div class="ds-priority-stack">
                 <div class="ds-priority-row">
                     <span class="ds-priority-badge ds-priority-badge--3">1</span>
@@ -181,7 +181,7 @@
                     <div class="ds-priority-body">
                         <strong>{% trans "Target scoring" %} <span class="ds-stage-tag">★</span></strong>
                         <span class="ds-priority-source">fasttarget</span>
-                        <p>{% trans "Runs FastTarget's off-target and essentiality modules, both built on DIAMOND BLASTP (an accelerated BLAST-compatible aligner): every protein is searched against the complete human proteome, a curated set of human gut-commensal reference genomes, and the Database of Essential Genes (DEG). Compute-heavy; can be delegated to a SLURM node." %}</p>
+                        <p>{% trans "Runs FastTarget's off-target and essentiality modules, both built on DIAMOND BLASTP (an accelerated BLAST-compatible aligner): every protein is searched against the complete human proteome, a curated set of human gut-commensal reference genomes, and the Database of Essential Genes (DEG). Compute-heavy; can be delegated to a SLURM node. FastTarget itself also has structural-similarity, conservation (Roary/CoreCruncher), and foldseek-based modules — only off-target and essentiality are activated in this pipeline." %}</p>
                     </div>
                 </div>
                 <div class="ds-priority-row">
@@ -277,7 +277,7 @@
                     <div class="ds-priority-body">
                         <strong>{% trans "Structure prediction" %} <span class="ds-stage-tag">★</span></strong>
                         <span class="ds-priority-source">colabfold_predict</span>
-                        <p>{% trans "For proteins with neither an experimental structure nor an AlphaFold DB model (usually because UniProt mapping failed or AlphaFold DB hasn't processed that entry yet), predicts a structure locally with ColabFold — an accelerated AlphaFold2 implementation that builds its multiple sequence alignment via the MMseqs2 API instead of a slow classic homology search. Runs on CPU by default (~30–60 minutes per protein) or, when enabled, on a SLURM GPU node." %}</p>
+                        <p>{% trans "For proteins with neither an experimental structure nor an AlphaFold DB model (usually because UniProt mapping failed or AlphaFold DB hasn't processed that entry yet), predicts a structure locally with ColabFold — an accelerated AlphaFold2 implementation that builds its multiple sequence alignment via the MMseqs2 API instead of a slow classic homology search. Runs on CPU by default (~30–60 minutes per protein). When SLURM GPU mode is enabled, routing is per-protein, not all-or-nothing: sequences longer than a configured limit (800 aa by default, sized for 8 GB VRAM GPUs) still run on local CPU, and so does any individual protein whose GPU job fails." %}</p>
                     </div>
                 </div>
                 <div class="ds-priority-row">
@@ -325,7 +325,7 @@
                     <div class="ds-priority-body">
                         <strong>{% trans "Co-crystallized ligand mining" %}</strong>
                         <span class="ds-priority-source">get_binders</span>
-                        <p>{% trans "Cross-references every UniProt ID the genome maps to against BioLiP (a curated database of ligand-protein interactions extracted from the PDB) and the PDB Chemical Component Dictionary, collecting co-crystallized ligands while excluding a fixed list of crystallization noise (metal ions, buffer components, generic amino acids/peptide, water)." %}</p>
+                        <p>{% trans "Cross-references every UniProt ID the genome maps to against BioLiP (a curated database of ligand-protein interactions extracted from the PDB) and the PDB Chemical Component Dictionary, matching only the protein's own UniProt entry (not homologs) and collecting co-crystallized ligands while excluding a fixed list of crystallization noise (metal ions, buffer components, generic amino acids/peptide, water). Runs for every genome, independently of LigQ_2 below." %}</p>
                     </div>
                 </div>
                 <div class="ds-priority-row">
@@ -592,7 +592,7 @@
                     <span class="ds-profile-tool">PSORTb v3</span>
                 </div>
                 <p>{% trans "SVM classifier trained on experimentally characterized bacterial proteins. Predicts: Cytoplasmic, CytoplasmicMembrane, Periplasmic, OuterMembrane, Extracellular, or Unknown." %}</p>
-                <p class="ds-desirable">{% trans "Context: outer membrane and extracellular proteins are more accessible; cytoplasmic targets require compounds to cross both membranes." %}</p>
+                <p class="ds-desirable">{% trans "Context: outer membrane and extracellular proteins are more accessible; cytoplasmic targets require compounds to cross both membranes. If the containerized classifier is unavailable on the compute node, every protein for that genome falls back to Unknown rather than blocking the pipeline." %}</p>
             </div>
         </div>
     </section>
@@ -606,7 +606,8 @@
                 <p class="ds-panel-subtitle">{% trans "ligq_remote — LigQ_2" %}</p>
             </div>
         </div>
-        <p class="ds-body">{% trans "LigQ_2 is an internal Target Pathogen Web pipeline step. It exports all protein sequences, transfers them to a compute node, and searches multiple databases for known or candidate binders. Non-relevant compounds (amino acids, water, crystallization agents, common ions) are filtered out at load time." %}</p>
+        <p class="ds-body">{% trans "Every genome gets a baseline of ligand evidence for free: get_binders (stage 22) cross-references each protein's own UniProt entry against BioLiP and loads any co-crystallized PDB ligands, independently of everything below." %}</p>
+        <p class="ds-body">{% trans "LigQ_2 is an internal Target Pathogen Web pipeline step, disabled by default (stage 24 — see the stage-by-stage breakdown above). When enabled, it exports all protein sequences once per genome, transfers them to a compute node, and searches PDB, ChEMBL, and ZINC — including matches on homologous proteins, not just the protein itself — for known or candidate binders. Non-relevant compounds (amino acids, water, crystallization agents, common ions) are filtered out at load time. The five evidence categories below are specific to LigQ_2's output." %}</p>
         <table class="ds-table">
             <thead>
                 <tr>
