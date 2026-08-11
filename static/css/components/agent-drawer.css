@@ -23,18 +23,18 @@
    the ring's center, leaving only the rim visible, no masking needed. */
 .tp-agent-fab-ring {
     position: fixed;
-    right: 20px;
-    bottom: 20px;
+    right: 19px;
+    bottom: 19px;
     z-index: 1039;
-    width: 60px;
-    height: 60px;
+    width: 66px;
+    height: 66px;
     border-radius: 999px;
     background: conic-gradient(from 0deg,
         transparent 0%,
-        transparent 94%,
-        var(--tp-color-brand-200) 96.5%,
-        var(--tp-color-on-accent) 98%,
-        var(--tp-color-brand-200) 99.5%,
+        transparent 85%,
+        var(--tp-color-brand-200) 90%,
+        var(--tp-color-on-accent) 94%,
+        var(--tp-color-brand-200) 98%,
         transparent 100%);
     animation: tp-agent-fab-ring-spin 3.6s linear infinite;
     pointer-events: none;
