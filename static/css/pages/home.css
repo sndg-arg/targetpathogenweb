@@ -40,14 +40,14 @@
 /* The brand lockup (logo + "Target Pathogen") as the page's first visual
    impact -- previously the name only appeared in the sidebar, never on the
    page itself. Always the white logo (the sidebar's own mark) on its own
-   dark badge, in both themes -- rather than swapping logo assets by theme,
-   this keeps one consistent lockup and just carries its own dark surface
-   with it onto the page's light or dark background. */
+   full-width dark band, in both themes -- rather than swapping logo assets
+   by theme, this keeps one consistent lockup and just carries its own dark
+   surface with it onto the page's light or dark background. */
 .home-hero-logo-badge {
-    display: inline-flex;
+    display: flex;
     align-items: center;
-    width: fit-content;
-    padding: 12px 22px;
+    width: 100%;
+    padding: 16px 22px;
     border-radius: var(--tp-radius-md);
     background: linear-gradient(96deg, var(--tp-color-nav-900) 0%, var(--tp-color-nav-800) 64%, var(--tp-color-nav-600) 100%);
     box-shadow: var(--tp-shadow-sm);
