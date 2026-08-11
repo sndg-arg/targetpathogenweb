@@ -3,13 +3,15 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/home.css' %}?v=20260810-drop-hairline">
+    <link rel="stylesheet" href="{% static 'css/pages/home.css' %}?v=20260811-hero-logo">
 {% endblock %}
 
 {% block body %}
     <div class="home-page">
         <section class="home-hero">
             <div class="home-hero-copy">
+                <img src="{% static 'img/brand/tp-logo-full-color.png' %}" alt="{% trans 'Target Pathogen' %}" class="home-hero-logo home-hero-logo--light">
+                <img src="{% static 'img/brand/tp-logo-full-white.png' %}" alt="{% trans 'Target Pathogen' %}" class="home-hero-logo home-hero-logo--dark">
                 <p class="tp-ui-field-label">{% trans "Drug Target Discovery Platform" %}</p>
                 <h1>{% trans "A bioinformatics platform for prioritizing protein targets in pathogens." %}</h1>
                 <p class="home-lead">

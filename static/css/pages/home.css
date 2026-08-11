@@ -37,6 +37,31 @@
     max-width: 820px;
 }
 
+/* The brand lockup (logo + "Target Pathogen") as the page's first visual
+   impact -- previously the name only appeared in the sidebar, never on the
+   page itself. Two pre-existing logo assets swap by theme (the sidebar
+   itself never needs this since it's always a dark bar regardless of site
+   theme, but the hero sits on the page's own light/dark background). */
+.home-hero-logo {
+    display: block;
+    width: 220px;
+    max-width: 60vw;
+    height: auto;
+    margin-bottom: 6px;
+}
+
+.home-hero-logo--dark {
+    display: none;
+}
+
+.tp-dark .home-hero-logo--light {
+    display: none;
+}
+
+.tp-dark .home-hero-logo--dark {
+    display: block;
+}
+
 .home-hero-stats {
     margin-top: 16px;
 }
