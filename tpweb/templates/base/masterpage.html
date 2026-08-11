@@ -1415,28 +1415,49 @@
                 flex: 0 0 auto;
             }
 
+            /* One shared capsule instead of two separately-bordered pills --
+               Assistant and the theme switch read as one cohesive control
+               group, not two mismatched buttons next to Login's plain
+               text link. */
             .tp-topbar-desktop-toggles {
                 display: flex;
                 align-items: center;
-                gap: 8px;
+                gap: 2px;
+                padding: 3px;
+                background: rgba(255, 255, 255, 0.07);
+                border: 1px solid rgba(255, 255, 255, 0.14);
+                border-radius: 11px;
             }
 
             .tp-topbar-desktop-toggles .tp-theme-toggle {
                 flex: 0 0 auto;
+                border: none;
+                background: none;
+                border-radius: 8px;
             }
 
-            /* Icon-only ghost button -- no border, no label -- for the
-               theme switch, which doesn't need the Assistant entry
-               point's featured/labelled treatment. */
+            .tp-topbar-desktop-toggles .tp-theme-toggle:hover {
+                background: rgba(255, 255, 255, 0.12);
+            }
+
+            /* Featured brand tint, without its own border/box -- it lives
+               inside the shared capsule now, so only the tint carries the
+               "this one is special" signal. */
+            .tp-topbar-desktop-toggles #tp-agent-drawer-toggle {
+                color: rgba(148, 222, 236, 0.95);
+            }
+
+            .tp-topbar-desktop-toggles-divider {
+                width: 1px;
+                height: 18px;
+                background: rgba(255, 255, 255, 0.16);
+                flex: 0 0 auto;
+            }
+
+            /* Icon-only, no label -- the theme switch doesn't need the
+               Assistant entry point's labelled treatment. */
             .tp-topbar-desktop-toggles .tp-theme-toggle--icon-only {
-                border-color: transparent;
-                background: transparent;
                 padding: 8px;
-            }
-
-            .tp-topbar-desktop-toggles .tp-theme-toggle--icon-only:hover {
-                background: rgba(255, 255, 255, 0.1);
-                border-color: transparent;
             }
 
             .tp-topbar-desktop-toggles .tp-theme-toggle--icon-only .tp-theme-toggle-label {
@@ -2091,6 +2112,7 @@
                     </span>
                     <span class="tp-theme-toggle-label">{% trans "Assistant" %}</span>
                 </button>
+                <span class="tp-topbar-desktop-toggles-divider" aria-hidden="true"></span>
                 <button id="tp-theme-toggle" class="tp-theme-toggle tp-theme-toggle--icon-only" type="button" aria-label="{% trans 'Toggle theme' %}" title="{% trans 'Toggle theme' %}">
                     <span class="tp-theme-toggle-icon" aria-hidden="true"></span>
                     <span class="tp-theme-toggle-label"></span>
