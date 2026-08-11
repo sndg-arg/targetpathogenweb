@@ -180,7 +180,6 @@
         <nav class="quick-nav" aria-label="{% trans "Protein sections" %}">
             <a href="#section-overview" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Overview" %}</a>
             {% if target_profile or selected_pocket_evidence or conservation_profile or microbiome_context %}<a href="#section-target-profile" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Prioritization" %}</a>{% endif %}
-            {% if cross_references.sequence or cross_references.structure or cross_references.chemistry or cross_references.pathways %}<a href="#section-cross-references" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Cross-references" %}</a>{% endif %}
             {% if metabolic_context %}<a href="#section-metabolic-context" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Metabolism" %}</a>{% endif %}
             <a href="#section-sequence" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Sequence" %}</a>
             <a href="#section-annotations" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Annotations" %}</a>
@@ -189,6 +188,7 @@
             {% if binders.total %}
                 <a href="#section-binders" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Ligands" %}</a>
             {% endif %}
+            {% if cross_references.sequence or cross_references.structure or cross_references.chemistry or cross_references.pathways %}<a href="#section-cross-references" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-focusable quick-nav-link">{% trans "Cross-references" %}</a>{% endif %}
         </nav>
 
         <main class="protein-main" aria-label="{% trans 'Protein evidence sections' %}">
@@ -395,73 +395,6 @@
                         {% endif %}
                     </div>
                     {% endif %}
-                </div>
-                {% endif %}
-            </section>
-            {% endif %}
-
-            {% if cross_references.sequence or cross_references.structure or cross_references.chemistry or cross_references.pathways %}
-            <section class="protein-card" id="section-cross-references">
-                <div class="section-head tp-ui-panel-head">
-                    <div>
-                        <h2>{% trans "Cross-references" %}</h2>
-                        <p class="section-subtitle">{% trans "External database identifiers for this protein, its structures, ligands, and metabolic reactions." %}</p>
-                    </div>
-                </div>
-                {% if cross_references.sequence %}
-                <div class="cross-reference-group">
-                    <h3 class="cross-reference-group-label">{% trans "Sequence" %}</h3>
-                    <div class="cross-reference-chip-list">
-                        {% for item in cross_references.sequence %}
-                        <a class="hero-chip tp-chip tp-chip--sm tp-chip--link" href="{{ item.url }}" target="_blank" rel="noopener" title="{% trans 'View on' %} {{ item.source }}">
-                            <span class="tp-chip-db">{{ item.source }}</span>
-                            <span class="tp-chip-acc">{{ item.id }}</span>
-                            <span class="tp-chip-ext-icon" aria-hidden="true">↗</span>
-                        </a>
-                        {% endfor %}
-                    </div>
-                </div>
-                {% endif %}
-                {% if cross_references.structure %}
-                <div class="cross-reference-group">
-                    <h3 class="cross-reference-group-label">{% trans "Structure" %}</h3>
-                    <div class="cross-reference-chip-list">
-                        {% for item in cross_references.structure %}
-                        <a class="hero-chip tp-chip tp-chip--sm tp-chip--link" href="{{ item.url }}" target="_blank" rel="noopener" title="{% trans 'View on' %} {{ item.source }}">
-                            <span class="tp-chip-db">{{ item.source }}</span>
-                            <span class="tp-chip-acc">{{ item.id }}</span>
-                            <span class="tp-chip-ext-icon" aria-hidden="true">↗</span>
-                        </a>
-                        {% endfor %}
-                    </div>
-                </div>
-                {% endif %}
-                {% if cross_references.chemistry %}
-                <div class="cross-reference-group">
-                    <h3 class="cross-reference-group-label">{% trans "Chemistry" %}</h3>
-                    <div class="cross-reference-chip-list">
-                        {% for item in cross_references.chemistry %}
-                        <a class="hero-chip tp-chip tp-chip--sm tp-chip--link" href="{{ item.url }}" target="_blank" rel="noopener" title="{% trans 'View on' %} {{ item.source }}">
-                            <span class="tp-chip-db">{{ item.source }}</span>
-                            <span class="tp-chip-acc">{{ item.id }}</span>
-                            <span class="tp-chip-ext-icon" aria-hidden="true">↗</span>
-                        </a>
-                        {% endfor %}
-                    </div>
-                </div>
-                {% endif %}
-                {% if cross_references.pathways %}
-                <div class="cross-reference-group">
-                    <h3 class="cross-reference-group-label">{% trans "Pathways" %}</h3>
-                    <div class="cross-reference-chip-list">
-                        {% for item in cross_references.pathways %}
-                        <a class="hero-chip tp-chip tp-chip--sm tp-chip--link{% if item.source == "KEGG" %} tp-chip--kegg{% elif item.source == "BioCyc" %} tp-chip--biocyc{% endif %}" href="{{ item.url }}" target="_blank" rel="noopener" title="{% trans 'View on' %} {{ item.source }}">
-                            <span class="tp-chip-db">{{ item.source }}</span>
-                            <span class="tp-chip-acc">{{ item.id }}</span>
-                            <span class="tp-chip-ext-icon" aria-hidden="true">↗</span>
-                        </a>
-                        {% endfor %}
-                    </div>
                 </div>
                 {% endif %}
             </section>
@@ -1143,6 +1076,73 @@
                         {% blocktrans %}PDB and ChEMBL records on this protein are shown in full. ChEMBL records from similar proteins are capped at the top 100 per protein (by pchembl) and ZINC at the top 50 (Tanimoto ≥ 0.5). ADME columns are descriptor-based screening flags, not experimental toxicity results.{% endblocktrans %}
                     </p>
                 </section>
+            {% endif %}
+
+            {% if cross_references.sequence or cross_references.structure or cross_references.chemistry or cross_references.pathways %}
+            <section class="protein-card" id="section-cross-references">
+                <div class="section-head tp-ui-panel-head">
+                    <div>
+                        <h2>{% trans "Cross-references" %}</h2>
+                        <p class="section-subtitle">{% trans "External database identifiers for this protein, its structures, ligands, and metabolic reactions." %}</p>
+                    </div>
+                </div>
+                {% if cross_references.sequence %}
+                <div class="cross-reference-group">
+                    <h3 class="cross-reference-group-label">{% trans "Sequence" %}</h3>
+                    <div class="cross-reference-chip-list">
+                        {% for item in cross_references.sequence %}
+                        <a class="hero-chip tp-chip tp-chip--sm tp-chip--link" href="{{ item.url }}" target="_blank" rel="noopener" title="{% trans 'View on' %} {{ item.source }}">
+                            <span class="tp-chip-db">{{ item.source }}</span>
+                            <span class="tp-chip-acc">{{ item.id }}</span>
+                            <span class="tp-chip-ext-icon" aria-hidden="true">↗</span>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                {% if cross_references.structure %}
+                <div class="cross-reference-group">
+                    <h3 class="cross-reference-group-label">{% trans "Structure" %}</h3>
+                    <div class="cross-reference-chip-list">
+                        {% for item in cross_references.structure %}
+                        <a class="hero-chip tp-chip tp-chip--sm tp-chip--link" href="{{ item.url }}" target="_blank" rel="noopener" title="{% trans 'View on' %} {{ item.source }}">
+                            <span class="tp-chip-db">{{ item.source }}</span>
+                            <span class="tp-chip-acc">{{ item.id }}</span>
+                            <span class="tp-chip-ext-icon" aria-hidden="true">↗</span>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                {% if cross_references.chemistry %}
+                <div class="cross-reference-group">
+                    <h3 class="cross-reference-group-label">{% trans "Chemistry" %}</h3>
+                    <div class="cross-reference-chip-list">
+                        {% for item in cross_references.chemistry %}
+                        <a class="hero-chip tp-chip tp-chip--sm tp-chip--link" href="{{ item.url }}" target="_blank" rel="noopener" title="{% trans 'View on' %} {{ item.source }}">
+                            <span class="tp-chip-db">{{ item.source }}</span>
+                            <span class="tp-chip-acc">{{ item.id }}</span>
+                            <span class="tp-chip-ext-icon" aria-hidden="true">↗</span>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                {% if cross_references.pathways %}
+                <div class="cross-reference-group">
+                    <h3 class="cross-reference-group-label">{% trans "Pathways" %}</h3>
+                    <div class="cross-reference-chip-list">
+                        {% for item in cross_references.pathways %}
+                        <a class="hero-chip tp-chip tp-chip--sm tp-chip--link{% if item.source == "KEGG" %} tp-chip--kegg{% elif item.source == "BioCyc" %} tp-chip--biocyc{% endif %}" href="{{ item.url }}" target="_blank" rel="noopener" title="{% trans 'View on' %} {{ item.source }}">
+                            <span class="tp-chip-db">{{ item.source }}</span>
+                            <span class="tp-chip-acc">{{ item.id }}</span>
+                            <span class="tp-chip-ext-icon" aria-hidden="true">↗</span>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </section>
             {% endif %}
         </div>
         </main>
