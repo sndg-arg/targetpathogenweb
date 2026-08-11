@@ -23,20 +23,20 @@
    chrome icon. */
 .tp-agent-fab {
     position: fixed;
-    right: 20px;
-    bottom: 20px;
+    right: 22px;
+    bottom: 22px;
     z-index: 1040;
     display: inline-flex;
     align-items: center;
-    height: 56px;
-    width: 56px;
-    max-width: calc(100vw - 40px);
+    height: 60px;
+    width: 60px;
+    max-width: calc(100vw - 44px);
     padding: 0;
-    border: none;
-    border-radius: 28px;
-    background: var(--tp-color-brand-700);
+    border: 3px solid var(--tp-color-surface);
+    border-radius: 30px;
+    background: var(--tp-color-brand-900);
     color: var(--tp-color-on-accent);
-    box-shadow: var(--tp-shadow-lg);
+    box-shadow: 0 8px 24px color-mix(in srgb, var(--tp-color-brand-900) 55%, transparent), var(--tp-shadow-lg);
     cursor: pointer;
     overflow: hidden;
     white-space: nowrap;
@@ -46,14 +46,14 @@
 
 .tp-agent-fab:hover,
 .tp-agent-fab:focus-visible {
-    width: 176px;
+    width: 180px;
     background: var(--tp-color-brand-800);
 }
 
 .tp-agent-fab-icon {
-    flex: 0 0 56px;
-    width: 56px;
-    height: 56px;
+    flex: 0 0 54px;
+    width: 54px;
+    height: 54px;
     display: flex;
     align-items: center;
     justify-content: center;
