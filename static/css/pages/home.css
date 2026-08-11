@@ -39,32 +39,27 @@
 
 /* The brand lockup (logo + "Target Pathogen") as the page's first visual
    impact -- previously the name only appeared in the sidebar, never on the
-   page itself. Two pre-existing logo assets swap by theme (the sidebar
-   itself never needs this since it's always a dark bar regardless of site
-   theme, but the hero sits on the page's own light/dark background). */
+   page itself. Always the white logo (the sidebar's own mark) on its own
+   dark badge, in both themes -- rather than swapping logo assets by theme,
+   this keeps one consistent lockup and just carries its own dark surface
+   with it onto the page's light or dark background. */
+.home-hero-logo-badge {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    padding: 12px 22px;
+    border-radius: var(--tp-radius-md);
+    background: linear-gradient(96deg, var(--tp-color-nav-900) 0%, var(--tp-color-nav-800) 64%, var(--tp-color-nav-600) 100%);
+    box-shadow: var(--tp-shadow-sm);
+    margin-top: 4px;
+    margin-bottom: 16px;
+}
+
 .home-hero-logo {
-    /* Sized by height, not width -- matches the sidebar's own cap
-       (max-height: 72px there) so this reads as the same small, quiet
-       brand mark, not a second, oversized one competing with the h1
-       below it for primary visual weight. */
     display: block;
-    height: 48px;
+    height: 40px;
     width: auto;
     max-width: 70vw;
-    margin-top: 4px;
-    margin-bottom: 14px;
-}
-
-.home-hero-logo--dark {
-    display: none;
-}
-
-.tp-dark .home-hero-logo--light {
-    display: none;
-}
-
-.tp-dark .home-hero-logo--dark {
-    display: block;
 }
 
 .home-hero-stats {
