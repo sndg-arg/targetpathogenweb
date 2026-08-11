@@ -1077,56 +1077,6 @@
             padding: 18px 18px 36px;
         }
 
-        /* Site-wide masthead rule -- every page's content sits inside
-           .tp-main, so this is the one place to put it instead of a
-           per-page hero decoration. Used to live as .home-hero::before,
-           scoped to Home only, back when the hero had its own bordered
-           card to be "the top edge of"; now that Home's sections share one
-           continuous background instead of separate cards, anchoring it
-           here makes it a consistent site identity mark instead of an
-           orphaned line with nothing to attach to. */
-        .tp-main::before {
-            content: "";
-            position: absolute;
-            top: 0.5px;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, var(--tp-color-brand-800) 0%, var(--tp-color-sage-700) 58%, var(--tp-color-brand-600) 100%);
-            box-shadow: 0 2px 12px color-mix(in srgb, var(--tp-color-brand-700) 45%, transparent);
-        }
-
-        /* One-time shimmer sweep on page load -- same box as ::before
-           (position/size) so the highlight band is naturally clipped to
-           the same shape, no extra overflow trick needed. Plays once
-           (fill-mode forwards fades it to invisible), not a looping
-           animation. */
-        .tp-main::after {
-            content: "";
-            position: absolute;
-            top: 0.5px;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.85) 50%, transparent 100%);
-            background-size: 55% 100%;
-            background-repeat: no-repeat;
-            background-position: -55% 0;
-            animation: tp-masthead-shimmer 1.5s ease-out 350ms 1 forwards;
-            pointer-events: none;
-        }
-
-        @keyframes tp-masthead-shimmer {
-            from {
-                background-position: -55% 0;
-                opacity: 1;
-            }
-            to {
-                background-position: 155% 0;
-                opacity: 0;
-            }
-        }
-
         .tp-table-shell {
             border: 1px solid var(--tp-color-border);
             border-radius: calc(var(--tp-ui-radius-panel) - 2px);
@@ -1522,11 +1472,6 @@
             a,
             .tp-topbar-desktop-link {
                 transition: none;
-            }
-
-            .tp-main::after {
-                animation: none;
-                opacity: 0;
             }
         }
 

@@ -29,10 +29,8 @@
 /* ── Hero ── */
 
 /* No longer its own boxed card -- sits directly on the page background
-   (see tpw-editorial-redesign). Its own top accent bar is gone too: that
-   was a page-local duplicate of the site-wide masthead rule in
-   .tp-main::before, which now covers this. The workbench cards below
-   stay individually boxed -- a side-by-side editor/variable-picker tool
+   (see tpw-editorial-redesign). The workbench cards below stay
+   individually boxed -- a side-by-side editor/variable-picker tool
    layout, not sequential page sections (same call as customparam.html's
    form+guide pair). */
 .formula-hero {
