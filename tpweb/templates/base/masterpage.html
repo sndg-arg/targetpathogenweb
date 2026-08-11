@@ -26,7 +26,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
     <link rel="stylesheet" href="{% static 'css/components/ui-system.css' %}?v=20260811-sticky-revert">
-    <link rel="stylesheet" href="{% static 'css/components/agent-drawer.css' %}?v=20260810-rename-delete1">
+    <link rel="stylesheet" href="{% static 'css/components/agent-drawer.css' %}?v=20260811-fab">
     <style>
         :root {
             --tp-color-text-primary: #132f3d;
@@ -1415,52 +1415,22 @@
                 flex: 0 0 auto;
             }
 
-            /* One shared capsule instead of two separately-bordered pills --
-               Assistant and the theme switch read as one cohesive control
-               group, not two mismatched buttons next to Login's plain
-               text link. */
-            .tp-topbar-desktop-toggles {
-                display: flex;
-                align-items: center;
-                gap: 2px;
-                padding: 3px;
-                background: rgba(255, 255, 255, 0.07);
-                border: 1px solid rgba(255, 255, 255, 0.14);
-                border-radius: 11px;
-            }
-
-            .tp-topbar-desktop-toggles .tp-theme-toggle {
+            /* Icon-only ghost button -- Assistant now lives in its own
+               floating action button (see .tp-agent-fab), so this is just
+               the plain theme switch. */
+            .tp-topbar-desktop-utility .tp-theme-toggle--icon-only {
                 flex: 0 0 auto;
-                border: none;
-                background: none;
-                border-radius: 8px;
-            }
-
-            .tp-topbar-desktop-toggles .tp-theme-toggle:hover {
-                background: rgba(255, 255, 255, 0.12);
-            }
-
-            /* Featured brand tint, without its own border/box -- it lives
-               inside the shared capsule now, so only the tint carries the
-               "this one is special" signal. */
-            .tp-topbar-desktop-toggles #tp-agent-drawer-toggle {
-                color: rgba(148, 222, 236, 0.95);
-            }
-
-            .tp-topbar-desktop-toggles-divider {
-                width: 1px;
-                height: 18px;
-                background: rgba(255, 255, 255, 0.16);
-                flex: 0 0 auto;
-            }
-
-            /* Icon-only, no label -- the theme switch doesn't need the
-               Assistant entry point's labelled treatment. */
-            .tp-topbar-desktop-toggles .tp-theme-toggle--icon-only {
+                border-color: transparent;
+                background: transparent;
                 padding: 8px;
             }
 
-            .tp-topbar-desktop-toggles .tp-theme-toggle--icon-only .tp-theme-toggle-label {
+            .tp-topbar-desktop-utility .tp-theme-toggle--icon-only:hover {
+                background: rgba(255, 255, 255, 0.12);
+                border-color: transparent;
+            }
+
+            .tp-topbar-desktop-utility .tp-theme-toggle--icon-only .tp-theme-toggle-label {
                 display: none;
             }
 
@@ -2100,24 +2070,10 @@
                 <a class="tp-topbar-desktop-login" href="{% url 'account_login' %}">{% trans "Login" %}</a>
             {% endif %}
             <span class="tp-topbar-desktop-divider" aria-hidden="true"></span>
-            <div class="tp-topbar-desktop-toggles">
-                <button id="tp-agent-drawer-toggle" class="tp-theme-toggle" type="button"
-                        aria-label="{% trans 'Open assistant' %}" title="{% trans 'Open assistant' %}"
-                        aria-expanded="false" aria-controls="tp-agent-drawer">
-                    <span class="tp-theme-toggle-icon" aria-hidden="true">
-                        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true">
-                            <path d="M2 3.5h12v7H8.8L5.5 13v-2.5H2v-7Z"/>
-                            <path d="M5 6.5h6M5 8.5h4"/>
-                        </svg>
-                    </span>
-                    <span class="tp-theme-toggle-label">{% trans "Assistant" %}</span>
-                </button>
-                <span class="tp-topbar-desktop-toggles-divider" aria-hidden="true"></span>
-                <button id="tp-theme-toggle" class="tp-theme-toggle tp-theme-toggle--icon-only" type="button" aria-label="{% trans 'Toggle theme' %}" title="{% trans 'Toggle theme' %}">
-                    <span class="tp-theme-toggle-icon" aria-hidden="true"></span>
-                    <span class="tp-theme-toggle-label"></span>
-                </button>
-            </div>
+            <button id="tp-theme-toggle" class="tp-theme-toggle tp-theme-toggle--icon-only" type="button" aria-label="{% trans 'Toggle theme' %}" title="{% trans 'Toggle theme' %}">
+                <span class="tp-theme-toggle-icon" aria-hidden="true"></span>
+                <span class="tp-theme-toggle-label"></span>
+            </button>
         </div>
     </div>
 </nav>
@@ -2125,14 +2081,6 @@
 <nav id="main_header" class="navbar navbar-expand-lg navbar-dark fixed-top tp-topbar-mobile">
     <div class="container-fluid">
         <a class="navbar-brand" href="{% url 'tpwebapp:index' %}" aria-label="{% trans 'Target Pathogen' %}"><img class="tp-mobile-brand-img" src="{% static 'img/brand/tp-logo-full-white.png' %}" alt="{% trans 'Target Pathogen' %}" style="display:block;width:min(190px,56vw);height:auto;max-height:42px;object-fit:contain;object-position:left center;"></a>
-        <button id="tp-agent-drawer-toggle-mobile" class="tp-agent-drawer-toggle-mobile" type="button"
-                aria-label="{% trans 'Open assistant' %}" title="{% trans 'Open assistant' %}"
-                aria-expanded="false" aria-controls="tp-agent-drawer">
-            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" aria-hidden="true">
-                <path d="M2 3.5h12v7H8.8L5.5 13v-2.5H2v-7Z"/>
-                <path d="M5 6.5h6M5 8.5h4"/>
-            </svg>
-        </button>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse"
                 aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
@@ -2204,6 +2152,17 @@
     {% block footer %}{% endblock %}
 </footer>
 
+<button id="tp-agent-drawer-toggle" class="tp-agent-fab" type="button"
+        aria-label="{% trans 'Open assistant' %}" title="{% trans 'Open assistant' %}"
+        aria-expanded="false" aria-controls="tp-agent-drawer">
+    <span class="tp-agent-fab-icon" aria-hidden="true">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="20" height="20" aria-hidden="true">
+            <path d="M2 3.5h12v7H8.8L5.5 13v-2.5H2v-7Z"/>
+            <path d="M5 6.5h6M5 8.5h4"/>
+        </svg>
+    </span>
+    <span class="tp-agent-fab-label">{% trans "Assistant" %}</span>
+</button>
 <div id="tp-agent-drawer-backdrop" class="tp-agent-drawer-backdrop" hidden></div>
 <aside id="tp-agent-drawer" class="tp-agent-drawer" aria-hidden="true" aria-label="{% trans 'Assistant' %}"
        data-announce-renamed="{% trans 'Conversation renamed.' %}"
@@ -2302,7 +2261,7 @@
 </aside>
 
 <script src="{% static 'bundle.js' %}?v=20260722-dagre1"></script>
-<script src="{% static 'js/global/agent-drawer.js' %}?v=20260810-scoped-suggestions"></script>
+<script src="{% static 'js/global/agent-drawer.js' %}?v=20260811-fab"></script>
 <script src="{% static 'js/global/nav-toggle.js' %}?v=20260804-navtoggle1"></script>
 <script src="{% static 'js/global/smooth-details.js' %}?v=20260804-smoothdetails1"></script>
 

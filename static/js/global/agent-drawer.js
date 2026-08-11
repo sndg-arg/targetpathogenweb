@@ -328,7 +328,6 @@
         var inputEl = document.getElementById("tp-agent-drawer-input");
         var closeBtn = document.getElementById("tp-agent-drawer-close");
         var toggleBtn = document.getElementById("tp-agent-drawer-toggle");
-        var toggleBtnMobile = document.getElementById("tp-agent-drawer-toggle-mobile");
         var suggestionButtons = Array.prototype.slice.call(document.querySelectorAll(".tp-agent-drawer-suggestion"));
         var biologistToggle = document.getElementById("tp-agent-drawer-biologist-toggle");
         var newConversationBtn = document.getElementById("tp-agent-drawer-new");
@@ -446,23 +445,19 @@
                 backdrop.classList.toggle("is-visible", open);
                 backdrop.hidden = !open;
             }
-            [toggleBtn, toggleBtnMobile].forEach(function (btn) {
-                if (btn) {
-                    btn.setAttribute("aria-expanded", open ? "true" : "false");
-                }
-            });
+            if (toggleBtn) {
+                toggleBtn.setAttribute("aria-expanded", open ? "true" : "false");
+            }
             if (open && inputEl) {
                 inputEl.focus();
             }
         }
 
-        [toggleBtn, toggleBtnMobile].forEach(function (btn) {
-            if (btn) {
-                btn.addEventListener("click", function () {
-                    setOpen(!drawer.classList.contains("is-open"));
-                });
-            }
-        });
+        if (toggleBtn) {
+            toggleBtn.addEventListener("click", function () {
+                setOpen(!drawer.classList.contains("is-open"));
+            });
+        }
         if (closeBtn) {
             closeBtn.addEventListener("click", function () {
                 setOpen(false);

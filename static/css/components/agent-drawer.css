@@ -16,6 +16,70 @@
     pointer-events: auto;
 }
 
+/* Floating action button -- the single Assistant entry point at every
+   breakpoint (replaces the old separate desktop-topbar pill and
+   mobile-topbar icon). A circle at rest, expands into a labelled pill on
+   hover/focus so it reads as a deliberately prominent feature, not another
+   chrome icon. */
+.tp-agent-fab {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    z-index: 1040;
+    display: inline-flex;
+    align-items: center;
+    height: 56px;
+    width: 56px;
+    max-width: calc(100vw - 40px);
+    padding: 0;
+    border: none;
+    border-radius: 28px;
+    background: var(--tp-color-brand-700);
+    color: var(--tp-color-on-accent);
+    box-shadow: var(--tp-shadow-lg);
+    cursor: pointer;
+    overflow: hidden;
+    white-space: nowrap;
+    transition: width var(--tp-ui-motion-base) var(--tp-ui-ease-standard),
+        background var(--tp-ui-motion-base) var(--tp-ui-ease-standard);
+}
+
+.tp-agent-fab:hover,
+.tp-agent-fab:focus-visible {
+    width: 176px;
+    background: var(--tp-color-brand-800);
+}
+
+.tp-agent-fab-icon {
+    flex: 0 0 56px;
+    width: 56px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tp-agent-fab-label {
+    font-weight: 700;
+    font-size: 0.92rem;
+    letter-spacing: 0.01em;
+    opacity: 0;
+    padding-right: 20px;
+    transition: opacity var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.tp-agent-fab:hover .tp-agent-fab-label,
+.tp-agent-fab:focus-visible .tp-agent-fab-label {
+    opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .tp-agent-fab,
+    .tp-agent-fab-label {
+        transition: none;
+    }
+}
+
 .tp-agent-drawer {
     position: fixed;
     top: 0;
@@ -717,25 +781,4 @@
 .tp-agent-drawer-send svg {
     width: 16px;
     height: 16px;
-}
-
-.tp-agent-drawer-toggle-mobile {
-    appearance: none;
-    border: none;
-    background: transparent;
-    color: var(--tp-color-on-accent);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 34px;
-    height: 34px;
-    border-radius: 999px;
-    cursor: pointer;
-    margin-right: var(--tp-space-2);
-}
-
-@media (min-width: 992px) {
-    .tp-agent-drawer-toggle-mobile {
-        display: none;
-    }
 }
