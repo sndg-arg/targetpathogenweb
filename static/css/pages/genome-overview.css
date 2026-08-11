@@ -448,6 +448,15 @@
     }
 }
 
+/* The fixed desktop top bar (masterpage.html) reserves height via body's
+   own padding-top -- sticky elements need the same offset added on top of
+   their usual value or they scroll up underneath it. */
+@media (min-width: 992px) {
+    .genome-page .quick-nav {
+        top: calc(var(--tp-topbar-h) - 2px);
+    }
+}
+
 @media (max-width: 980px) {
     .genome-targets-wrap {
         grid-template-columns: minmax(0, 1fr);

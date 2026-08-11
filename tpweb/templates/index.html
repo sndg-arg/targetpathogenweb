@@ -3,41 +3,10 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/home.css' %}?v=20260811-hero-nav">
+    <link rel="stylesheet" href="{% static 'css/pages/home.css' %}?v=20260811-topbar">
 {% endblock %}
 
-{% block body_class %}tp-home-banner-nav{% endblock %}
-
 {% block body %}
-    <div class="home-hero-logo-badge">
-        <img src="{% static 'img/brand/tp-logo-full-white.png' %}" alt="{% trans 'Target Pathogen' %}" class="home-hero-logo">
-        <nav class="home-hero-nav" aria-label="{% trans 'Primary navigation' %}">
-            <a class="home-hero-nav-link{% if request.resolver_match.url_name == 'index' %} is-active{% endif %}" href="{% url 'tpwebapp:index' %}">
-                <span class="home-hero-nav-icon" aria-hidden="true">{% include "components/icons/home.html" %}</span>
-                <span>{% trans "Home" %}</span>
-            </a>
-            <a class="home-hero-nav-link{% if request.resolver_match.url_name == 'genomes_list' or request.resolver_match.url_name == 'assembly' or request.resolver_match.url_name == 'protein_list' or request.resolver_match.url_name == 'protein' or request.resolver_match.url_name == 'annotation_explorer' %} is-active{% endif %}" href="{% url 'tpwebapp:genomes_list' %}">
-                <span class="home-hero-nav-icon" aria-hidden="true">{% include "components/icons/list.html" %}</span>
-                <span>{% trans "Genomes" %}</span>
-            </a>
-            <a class="home-hero-nav-link{% if request.resolver_match.url_name == 'genome_upload' or request.resolver_match.url_name == 'customparam' %} is-active{% endif %}" href="{% url 'tpwebapp:genome_upload' %}">
-                <span class="home-hero-nav-icon" aria-hidden="true">{% include "components/icons/upload.html" %}</span>
-                <span>{% trans "Upload" %}</span>
-            </a>
-            <a class="home-hero-nav-link{% if '/form' in request.path or '/result/' in request.path %} is-active{% endif %}" href="{% url 'tpwebapp:form' %}">
-                <span class="home-hero-nav-icon" aria-hidden="true">{% include "components/icons/search.html" %}</span>
-                <span>{% trans "BLAST" %}</span>
-            </a>
-            <a class="home-hero-nav-link{% if request.resolver_match.url_name == 'data_sources' %} is-active{% endif %}" href="{% url 'tpwebapp:data_sources' %}">
-                <span class="home-hero-nav-icon" aria-hidden="true">{% include "components/icons/flask.html" %}</span>
-                <span>{% trans "Methodology" %}</span>
-            </a>
-            <a class="home-hero-nav-link{% if request.resolver_match.url_name == 'about_us' %} is-active{% endif %}" href="{% url 'tpwebapp:about_us' %}">
-                <span class="home-hero-nav-icon" aria-hidden="true">{% include "components/icons/info.html" %}</span>
-                <span>{% trans "About us" %}</span>
-            </a>
-        </nav>
-    </div>
     <div class="home-page">
         <section class="home-hero">
             <div class="home-hero-copy">

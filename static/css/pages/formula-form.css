@@ -341,6 +341,20 @@
     flex-direction: column;
 }
 
+/* The fixed desktop top bar (masterpage.html) reserves height via body's
+   own padding-top -- this sticky column needs the same offset added on
+   top of its own top/max-height math, or it sticks partway underneath
+   the bar instead of just below it. */
+@media (min-width: 992px) {
+    .formula-vars-col {
+        top: calc(var(--tp-topbar-h) + 16px);
+    }
+
+    .formula-card--vars {
+        max-height: calc(100vh - var(--tp-topbar-h) - 180px);
+    }
+}
+
 .formula-var-search-wrap {
     flex-shrink: 0;
 }

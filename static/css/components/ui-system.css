@@ -826,6 +826,15 @@ a.tp-chip--go:hover {
     z-index: var(--tp-table-sticky-z);
 }
 
+/* The fixed desktop top bar (masterpage.html) reserves height via body's
+   own padding-top -- sticky table headers need the same offset added on
+   top of their usual value or they scroll up underneath it. */
+@media (min-width: 992px) {
+    .tp-table--premium thead th {
+        top: var(--tp-topbar-h);
+    }
+}
+
 .tp-table--premium thead th,
 .tp-table--premium tbody td {
     padding: var(--tp-table-cell-py) var(--tp-table-cell-px);
@@ -967,6 +976,15 @@ a.tp-chip--go:hover {
     font-weight: var(--tp-table-thead-weight);
     color: var(--tp-table-thead-color);
     white-space: nowrap;
+}
+
+/* The fixed desktop top bar (masterpage.html) reserves height via body's
+   own padding-top -- sticky table headers need the same offset added on
+   top of their usual value or they scroll up underneath it. */
+@media (min-width: 992px) {
+    .table-shell thead th {
+        top: var(--tp-topbar-h);
+    }
 }
 
 .tp-dt-wrapper,

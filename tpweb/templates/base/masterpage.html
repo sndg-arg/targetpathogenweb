@@ -25,7 +25,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
-    <link rel="stylesheet" href="{% static 'css/components/ui-system.css' %}?v=20260808-table-scroll-host-fix">
+    <link rel="stylesheet" href="{% static 'css/components/ui-system.css' %}?v=20260811-topbar-offset">
     <link rel="stylesheet" href="{% static 'css/components/agent-drawer.css' %}?v=20260810-rename-delete1">
     <style>
         :root {
@@ -173,8 +173,7 @@
             --tp-shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.10);
             --tp-shadow: var(--tp-shadow-sm);
             --tp-color-scrim: rgba(0, 0, 0, 0.48);
-            --tp-sidebar-w: 260px;
-            --tp-sidebar-w-collapsed: 84px;
+            --tp-topbar-h: 72px;
             --tp-radius-lg: 26px;
             --tp-radius-md: 20px;
             --tp-space-1: 4px;
@@ -1010,7 +1009,7 @@
             color: var(--tp-color-on-accent);
         }
 
-        .tp-sidebar {
+        .tp-topbar-desktop {
             display: none;
         }
 
@@ -1151,6 +1150,16 @@
             z-index: 1;
             white-space: nowrap;
             border-bottom: 1px solid var(--tp-color-border-soft);
+        }
+
+        /* The fixed desktop top bar reserves height via body's own
+           padding-top -- sticky table headers need the same offset added
+           on top of their usual value or they scroll up underneath it. */
+        @media (min-width: 992px) {
+            .tp-table-shell thead th,
+            .tp-table-shell thead td {
+                top: var(--tp-topbar-h);
+            }
         }
 
         /* ── Global messages ── */
@@ -1303,162 +1312,86 @@
 
         @media (min-width: 992px) {
             body {
-                padding-top: 0;
-                padding-left: var(--tp-sidebar-w);
+                padding-top: var(--tp-topbar-h);
             }
 
             .tp-topbar-mobile {
                 display: none !important;
             }
 
-            .tp-sidebar {
+            .tp-topbar-desktop {
                 position: fixed;
-                inset: 0 auto 0 0;
-                width: var(--tp-sidebar-w);
+                inset: 0 0 auto 0;
+                height: var(--tp-topbar-h);
                 display: flex;
-                flex-direction: column;
-                overflow-y: auto;
-                background:
-                    radial-gradient(560px 220px at -18% -12%, rgba(45, 136, 168, 0.28) 0%, transparent 60%),
-                    radial-gradient(380px 180px at 118% 102%, rgba(47, 127, 112, 0.24) 0%, transparent 68%),
-                    linear-gradient(180deg, var(--tp-color-nav-700) 0%, var(--tp-color-nav-800) 55%, var(--tp-color-nav-900) 100%);
-                border-right: 1px solid rgba(255, 255, 255, 0.09);
-                box-shadow: 4px 0 16px rgba(9, 23, 33, 0.18);
+                align-items: stretch;
+                background: linear-gradient(96deg, var(--tp-color-nav-900) 0%, var(--tp-color-nav-800) 64%, var(--tp-color-nav-600) 100%);
+                border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+                box-shadow: 0 4px 16px rgba(9, 23, 33, 0.18);
                 color: var(--tp-color-selection);
                 z-index: 1030;
-                transition: width var(--tp-ui-motion-base) var(--tp-ui-ease-standard);
             }
 
-            .tp-sidebar-brand {
-                padding: 18px 16px 12px;
-                border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-            }
-
-            .tp-sidebar-brand-row {
+            .tp-topbar-desktop-inner {
+                width: 100%;
+                max-width: 1520px;
+                margin: 0 auto;
+                padding: 0 28px;
                 display: flex;
                 align-items: center;
-                justify-content: space-between;
-                gap: 8px;
+                gap: 24px;
             }
 
-            .tp-sidebar-brand a {
-                color: var(--tp-color-on-accent);
-                text-decoration: none;
-                font-family: "Space Grotesk", "Segoe UI", sans-serif;
-                font-size: 1.2rem;
-                font-weight: 700;
-                letter-spacing: 0.2px;
+            .tp-topbar-desktop-brand {
+                display: flex;
+                align-items: center;
+                flex: 0 0 auto;
+            }
+
+            .tp-topbar-desktop-logo {
                 display: block;
+                height: 38px;
+                width: auto;
+                max-width: 220px;
+                object-fit: contain;
+                object-position: left center;
             }
 
-            .tp-sidebar-brand a:hover,
-            .tp-sidebar-brand a:focus,
-            .tp-sidebar-brand a:active {
-                color: var(--tp-color-on-accent);
-                text-decoration: none;
+            .tp-topbar-desktop-nav {
+                display: flex;
+                align-items: center;
+                gap: 4px;
+                flex-wrap: wrap;
             }
 
-            .tp-brand-short {
-                display: none;
-            }
-
-            .tp-sidebar-kicker {
-                margin: 8px 0 0;
-                color: rgba(231, 244, 249, 0.72);
-                font-size: 0.74rem;
-                font-weight: 600;
-                line-height: 1.4;
-                letter-spacing: 0.03em;
-            }
-
-            .tp-sidebar-toggle {
-                border: 1px solid rgba(255, 255, 255, 0.26);
-                background: rgba(255, 255, 255, 0.08);
-                color: var(--tp-color-on-accent);
-                border-radius: 8px;
-                width: 28px;
-                height: 28px;
-                padding: 0;
+            .tp-topbar-desktop-link {
                 display: inline-flex;
                 align-items: center;
-                justify-content: center;
-                cursor: pointer;
-                font-weight: 600;
-            }
-
-            .tp-sidebar-toggle:hover {
-                background: rgba(255, 255, 255, 0.15);
-            }
-
-            .tp-side-nav {
-                display: grid;
-                gap: 6px;
-                padding: 12px;
-            }
-
-            .tp-side-section {
-                display: grid;
-                gap: 6px;
-            }
-
-            .tp-side-section + .tp-side-section {
-                margin-top: 10px;
-                padding-top: 10px;
-                border-top: 1px solid rgba(255, 255, 255, 0.08);
-            }
-
-            .tp-side-section-label {
-                margin: 0;
-                color: rgba(231, 244, 249, 0.58);
-                font-size: 0.72rem;
-                font-weight: 500;
-                letter-spacing: 0.08em;
-                text-transform: uppercase;
-                padding: 0 4px;
-            }
-
-            .tp-side-link {
-                display: flex;
-                align-items: center;
-                gap: 10px;
+                gap: 8px;
                 border-radius: 10px;
                 color: rgba(232, 245, 250, 0.94);
                 text-decoration: none;
                 font-weight: 600;
-                padding: 9px 10px;
-                transition: background var(--tp-ui-motion-base) var(--tp-ui-ease-standard), color var(--tp-ui-motion-base) var(--tp-ui-ease-standard), border-color var(--tp-ui-motion-base) var(--tp-ui-ease-standard);
-                position: relative;
-                border: 1px solid transparent;
-            }
-
-            /* A given alpha reads much fainter on the narrow collapsed
-               pill (~60px wide) than on the full-width expanded row --
-               same tint, far less surface area to carry it. Bumped so
-               collapsed and expanded read as the same visual language. */
-            .tp-side-link.tp-side-link--primary {
-                background: rgba(255, 255, 255, 0.09);
-            }
-
-            /* Real icon glyph instead of the old attr(data-short) 2-letter
-               code -- "MT"/"HT"/"AB" etc. read as meaningless shorthand,
-               especially once the sidebar collapses to icon-only. Shown in
-               both expanded (icon + label) and collapsed (icon only) states
-               so collapsing never changes *which* glyph represents a page. */
-            .tp-side-link-icon {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                flex: 0 0 18px;
-                width: 18px;
-                height: 18px;
-                color: var(--tp-color-on-accent);
+                font-size: 0.9rem;
+                padding: 9px 14px;
+                white-space: nowrap;
+                transition: background var(--tp-ui-motion-base) var(--tp-ui-ease-standard), color var(--tp-ui-motion-base) var(--tp-ui-ease-standard);
             }
 
             /* Fallback stroke/fill for icon partials that ship with no
                inline stroke of their own (e.g. upload.html, which relies on
                a wrapper like .tp-btn-icon elsewhere) -- without this they
                render with the SVG default (stroke: none), i.e. invisible. */
-            .tp-side-link-icon svg {
+            .tp-topbar-desktop-link-icon {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 16px;
+                height: 16px;
+                color: var(--tp-color-on-accent);
+            }
+
+            .tp-topbar-desktop-link-icon svg {
                 display: block;
                 width: 100%;
                 height: 100%;
@@ -1469,39 +1402,39 @@
                 stroke-linejoin: round;
             }
 
-            .tp-side-link:hover {
-                background: rgba(255, 255, 255, 0.14);
+            .tp-topbar-desktop-link:hover {
+                background: rgba(255, 255, 255, 0.12);
                 color: var(--tp-color-on-accent);
                 text-decoration: none;
-                border-color: rgba(255, 255, 255, 0.12);
             }
 
-            .tp-side-link.active {
+            .tp-topbar-desktop-link.active {
                 background: rgba(255, 255, 255, 0.16);
                 color: var(--tp-color-on-accent);
-                border: 1px solid rgba(255, 255, 255, 0.2);
-                box-shadow: inset 3px 0 0 rgba(255, 255, 255, 0.6);
+                box-shadow: inset 0 -2px 0 rgba(255, 255, 255, 0.65);
             }
 
-            .tp-side-footer {
-                margin-top: auto;
-                padding: 12px;
-                border-top: 1px solid rgba(255, 255, 255, 0.08);
-                display: grid;
-                gap: 8px;
+            .tp-topbar-desktop-utility {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                margin-left: auto;
+                flex: 0 0 auto;
             }
 
-            .tp-user-chip {
+            .tp-topbar-desktop-user {
                 background: rgba(255, 255, 255, 0.12);
                 border: 1px solid rgba(255, 255, 255, 0.14);
                 border-radius: 10px;
-                padding: 8px 10px;
+                padding: 6px 12px;
                 font-weight: 600;
                 color: rgba(231, 244, 249, 0.88);
-                font-size: 0.93rem;
-                overflow: hidden;
-                text-overflow: ellipsis;
+                font-size: 0.85rem;
                 white-space: nowrap;
+            }
+
+            .tp-topbar-desktop-toggles .tp-theme-toggle {
+                flex: 0 0 auto;
             }
 
             .tp-main {
@@ -1516,105 +1449,12 @@
                     min-height: 100dvh;
                 }
             }
-
-            body.tp-sidebar-collapsed {
-                padding-left: var(--tp-sidebar-w-collapsed);
-            }
-
-            body.tp-sidebar-collapsed .tp-sidebar {
-                width: var(--tp-sidebar-w-collapsed);
-                overflow-x: hidden;
-            }
-
-            /* Home-only prototype: nav lives in the page's own hero banner
-               instead of the sidebar, so the sidebar is hidden and its
-               reserved space (body's own padding-left, see above) is
-               released -- same pairing as the collapsed state above, just
-               fully hidden instead of narrowed. */
-            body.tp-home-banner-nav {
-                padding-left: 0;
-            }
-
-            body.tp-home-banner-nav .tp-sidebar {
-                display: none;
-            }
-
-            body.tp-sidebar-collapsed .tp-brand-full,
-            body.tp-sidebar-collapsed .tp-side-text,
-            body.tp-sidebar-collapsed .tp-user-chip,
-            body.tp-sidebar-collapsed .tp-side-footer form,
-            body.tp-sidebar-collapsed .tp-side-footer > a {
-                display: none !important;
-            }
-
-            body.tp-sidebar-collapsed .tp-brand-short {
-                display: inline-block !important;
-            }
-
-            body.tp-sidebar-collapsed .tp-sidebar-kicker,
-            body.tp-sidebar-collapsed .tp-side-section-label {
-                display: none;
-            }
-
-            body.tp-sidebar-collapsed .tp-sidebar-brand {
-                padding: 14px 10px 10px;
-            }
-
-            body.tp-sidebar-collapsed .tp-sidebar-brand-row {
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-            }
-
-            body.tp-sidebar-collapsed .tp-side-nav {
-                padding: 10px 8px;
-                gap: 8px;
-            }
-
-            body.tp-sidebar-collapsed .tp-side-link {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                box-sizing: border-box;
-                padding: 9px 6px;
-                max-width: 100%;
-            }
-
-            body.tp-sidebar-collapsed .tp-side-footer {
-                padding: 8px;
-            }
-        }
-
-        .tp-sidebar-floating-label {
-            position: fixed;
-            left: calc(var(--tp-sidebar-w-collapsed) + 10px);
-            top: 0;
-            transform: translateY(-50%);
-            z-index: 1090;
-            max-width: min(260px, calc(100vw - var(--tp-sidebar-w-collapsed) - 24px));
-            padding: 5px 8px;
-            border: 1px solid rgba(255, 255, 255, 0.14);
-            border-radius: 7px;
-            background: #1a3040;
-            color: #e2e8f0;
-            box-shadow: var(--tp-shadow-md);
-            font-size: 0.79rem;
-            font-weight: 600;
-            line-height: 1.25;
-            opacity: 0;
-            pointer-events: none;
-            white-space: nowrap;
-            transition: opacity var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
-        }
-
-        .tp-sidebar-floating-label.is-visible {
-            opacity: 1;
         }
 
         @media (prefers-reduced-motion: reduce) {
             .btn,
             a,
-            .tp-side-link {
+            .tp-topbar-desktop-link {
                 transition: none;
             }
 
@@ -1625,10 +1465,9 @@
         }
 
         /* ── Theme toggle ─────────────────────────────── */
-        .tp-side-footer-row {
+        .tp-topbar-desktop-toggles {
             display: flex;
             gap: 6px;
-            margin-top: 8px;
         }
 
         .tp-theme-toggle {
@@ -1684,15 +1523,6 @@
         .tp-theme-toggle-label {
             overflow: hidden;
             white-space: nowrap;
-        }
-
-        body.tp-sidebar-collapsed .tp-theme-toggle-label {
-            display: none;
-        }
-
-        body.tp-sidebar-collapsed .tp-theme-toggle {
-            padding: 7px;
-            justify-content: center;
         }
 
         /* ── Dark mode component overrides (must come after base rules) ── */
@@ -2188,7 +2018,6 @@
     {% block head %}{% endblock %}
 </head>
 <body class="{% block body_class %}{% endblock %}">
-<script>(function(){var v=localStorage.getItem("tp.sidebar.collapsed");var c=v===null?window.matchMedia("(max-width:1440px)").matches:v==="1";if(c&&window.matchMedia("(min-width:992px)").matches){document.body.classList.add("tp-sidebar-collapsed");}}());</script>
 <div id="tp-page-loader" class="tp-page-loader" role="status" aria-live="polite" aria-hidden="true">
     <div class="tp-page-loader-card">
         <div class="tp-page-loader-head">
@@ -2205,87 +2034,73 @@
         </div>
     </div>
 </div>
-<aside class="tp-sidebar" aria-label="{% trans "Primary navigation" %}">
-    <div class="tp-sidebar-brand">
-        <div class="tp-sidebar-brand-row">
-            <a href="{% url 'tpwebapp:index' %}" aria-label="{% trans 'Target Pathogen' %}">
-                <img class="tp-brand-full" src="{% static 'img/brand/tp-logo-full-white.png' %}" alt="{% trans 'Target Pathogen' %}" style="display:block;width:190px;max-width:calc(var(--tp-sidebar-w) - 86px);height:auto;max-height:72px;object-fit:contain;object-position:left center;">
-                <img class="tp-brand-short" src="{% static 'img/brand/tp-logo-mark-white.png' %}?v=2" alt="" aria-hidden="true" style="width:44px;height:44px;object-fit:contain;">
+<nav class="tp-topbar-desktop" aria-label="{% trans "Primary navigation" %}">
+    <div class="tp-topbar-desktop-inner">
+        <a class="tp-topbar-desktop-brand" href="{% url 'tpwebapp:index' %}" aria-label="{% trans 'Target Pathogen' %}">
+            <img class="tp-topbar-desktop-logo" src="{% static 'img/brand/tp-logo-full-white.png' %}" alt="{% trans 'Target Pathogen' %}">
+        </a>
+        <div class="tp-topbar-desktop-nav">
+            <a class="tp-topbar-desktop-link {% if request.resolver_match.url_name == 'index' %}active{% endif %}" aria-label="Home" href="{% url 'tpwebapp:index' %}">
+                <span class="tp-topbar-desktop-link-icon" aria-hidden="true">{% include "components/icons/home.html" %}</span>
+                <span>Home</span>
             </a>
-            <button id="tp-sidebar-toggle" class="tp-sidebar-toggle" type="button" aria-label="{% trans "Collapse navigation" %}" title="{% trans "Collapse navigation" %}" aria-expanded="true">
-                <span class="tp-chevron tp-chevron--left tp-sidebar-toggle-icon" aria-hidden="true"></span>
-            </button>
+            <a class="tp-topbar-desktop-link {% if request.resolver_match.url_name == 'genomes_list' or request.resolver_match.url_name == 'assembly' or request.resolver_match.url_name == 'protein_list' or request.resolver_match.url_name == 'protein' or request.resolver_match.url_name == 'annotation_explorer' %}active{% endif %}" aria-label="{% trans 'Genomes' %}" href="{% url 'tpwebapp:genomes_list' %}">
+                <span class="tp-topbar-desktop-link-icon" aria-hidden="true">{% include "components/icons/list.html" %}</span>
+                <span>{% trans "Genomes" %}</span>
+            </a>
+            <a class="tp-topbar-desktop-link {% if request.resolver_match.url_name == 'genome_upload' or request.resolver_match.url_name == 'customparam' %}active{% endif %}" aria-label="{% trans 'Upload' %}" href="{% url 'tpwebapp:genome_upload' %}">
+                <span class="tp-topbar-desktop-link-icon" aria-hidden="true">{% include "components/icons/upload.html" %}</span>
+                <span>{% trans "Upload" %}</span>
+            </a>
+            <a class="tp-topbar-desktop-link {% if '/form' in request.path or '/result/' in request.path %}active{% endif %}" aria-label="{% trans 'BLAST' %}" href="{% url 'tpwebapp:form' %}">
+                <span class="tp-topbar-desktop-link-icon" aria-hidden="true">{% include "components/icons/search.html" %}</span>
+                <span>{% trans "BLAST" %}</span>
+            </a>
+            <a class="tp-topbar-desktop-link {% if request.resolver_match.url_name == 'data_sources' %}active{% endif %}" aria-label="{% trans 'Methodology' %}" href="{% url 'tpwebapp:data_sources' %}">
+                <span class="tp-topbar-desktop-link-icon" aria-hidden="true">{% include "components/icons/flask.html" %}</span>
+                <span>{% trans "Methodology" %}</span>
+            </a>
+            <a class="tp-topbar-desktop-link {% if request.resolver_match.url_name == 'about_us' %}active{% endif %}" aria-label="{% trans 'About us' %}" href="{% url 'tpwebapp:about_us' %}">
+                <span class="tp-topbar-desktop-link-icon" aria-hidden="true">{% include "components/icons/info.html" %}</span>
+                <span>{% trans "About us" %}</span>
+            </a>
+            {% if user.is_staff %}
+            <a class="tp-topbar-desktop-link {% if '/admin' in request.path %}active{% endif %}" aria-label="{% trans 'Admin' %}" href="{% url 'admin:index' %}">
+                <span class="tp-topbar-desktop-link-icon" aria-hidden="true">{% include "components/icons/settings.html" %}</span>
+                <span>{% trans "Admin" %}</span>
+            </a>
+            {% endif %}
         </div>
-        <p class="tp-sidebar-kicker">{% trans "Genome overviews, scoring, structural evidence, and BLAST in one analysis resource." %}</p>
-    </div>
-    <nav class="tp-side-nav">
-        <div class="tp-side-section">
-            <p class="tp-side-section-label">{% trans "Analysis" %}</p>
-            <a class="tp-side-link tp-side-link--primary {% if request.resolver_match.url_name == 'index' %}active{% endif %}" data-short="HM" data-label="Home" aria-label="Home" href="{% url 'tpwebapp:index' %}">
-                <span class="tp-side-link-icon" aria-hidden="true">{% include "components/icons/home.html" %}</span>
-                <span class="tp-side-text">Home</span>
-            </a>
-            <a class="tp-side-link tp-side-link--primary {% if request.resolver_match.url_name == 'genomes_list' or request.resolver_match.url_name == 'assembly' or request.resolver_match.url_name == 'protein_list' or request.resolver_match.url_name == 'protein' or request.resolver_match.url_name == 'annotation_explorer' %}active{% endif %}" data-short="GE" data-label="{% trans 'Genomes' %}" aria-label="{% trans 'Genomes' %}" href="{% url 'tpwebapp:genomes_list' %}">
-                <span class="tp-side-link-icon" aria-hidden="true">{% include "components/icons/list.html" %}</span>
-                <span class="tp-side-text">{% trans "Genomes" %}</span>
-            </a>
-            <a class="tp-side-link tp-side-link--primary {% if request.resolver_match.url_name == 'genome_upload' or request.resolver_match.url_name == 'customparam' %}active{% endif %}" data-short="UP" data-label="{% trans 'Upload' %}" aria-label="{% trans 'Upload' %}" href="{% url 'tpwebapp:genome_upload' %}">
-                <span class="tp-side-link-icon" aria-hidden="true">{% include "components/icons/upload.html" %}</span>
-                <span class="tp-side-text">{% trans "Upload" %}</span>
-            </a>
-            <a class="tp-side-link tp-side-link--primary {% if '/form' in request.path or '/result/' in request.path %}active{% endif %}" data-short="BL" data-label="{% trans 'BLAST' %}" aria-label="{% trans 'BLAST' %}" href="{% url 'tpwebapp:form' %}">
-                <span class="tp-side-link-icon" aria-hidden="true">{% include "components/icons/search.html" %}</span>
-                <span class="tp-side-text">{% trans "BLAST" %}</span>
-            </a>
-            <a class="tp-side-link tp-side-link--primary {% if request.resolver_match.url_name == 'data_sources' %}active{% endif %}" data-short="MT" data-label="{% trans 'Methodology' %}" aria-label="{% trans 'Methodology' %}" href="{% url 'tpwebapp:data_sources' %}">
-                <span class="tp-side-link-icon" aria-hidden="true">{% include "components/icons/flask.html" %}</span>
-                <span class="tp-side-text">{% trans "Methodology" %}</span>
-            </a>
-            <a class="tp-side-link tp-side-link--primary {% if request.resolver_match.url_name == 'about_us' %}active{% endif %}" data-short="AB" data-label="{% trans 'About us' %}" aria-label="{% trans 'About us' %}" href="{% url 'tpwebapp:about_us' %}">
-                <span class="tp-side-link-icon" aria-hidden="true">{% include "components/icons/info.html" %}</span>
-                <span class="tp-side-text">{% trans "About us" %}</span>
-            </a>
-        </div>
-        {% if user.is_staff %}
-        <div class="tp-side-section">
-            <p class="tp-side-section-label">{% trans "Support" %}</p>
-            <a class="tp-side-link {% if '/admin' in request.path %}active{% endif %}" data-short="AD" data-label="{% trans 'Admin' %}" aria-label="{% trans 'Admin' %}" href="{% url 'admin:index' %}">
-                <span class="tp-side-link-icon" aria-hidden="true">{% include "components/icons/settings.html" %}</span>
-                <span class="tp-side-text">{% trans "Admin" %}</span>
-            </a>
-        </div>
-        {% endif %}
-    </nav>
-    <div class="tp-side-footer">
-        {% if user.is_authenticated %}
-            <div class="tp-user-chip">{{ user.get_username }}</div>
-            <form method="post" action="{% url 'account_logout' %}">
-                {% csrf_token %}
-                <button class="btn btn-sm btn-outline-light btn-block" type="submit">{% trans "Logout" %}</button>
-            </form>
-        {% else %}
-            <a class="btn btn-sm btn-outline-light btn-block" href="{% url 'account_login' %}">{% trans "Login" %}</a>
-        {% endif %}
-        <div class="tp-side-footer-row">
-            <button id="tp-agent-drawer-toggle" class="tp-theme-toggle" type="button"
-                    aria-label="{% trans 'Open assistant' %}" title="{% trans 'Open assistant' %}"
-                    aria-expanded="false" aria-controls="tp-agent-drawer">
-                <span class="tp-theme-toggle-icon" aria-hidden="true">
-                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true">
-                        <path d="M2 3.5h12v7H8.8L5.5 13v-2.5H2v-7Z"/>
-                        <path d="M5 6.5h6M5 8.5h4"/>
-                    </svg>
-                </span>
-                <span class="tp-theme-toggle-label">{% trans "Assistant" %}</span>
-            </button>
-            <button id="tp-theme-toggle" class="tp-theme-toggle" type="button" aria-label="{% trans 'Toggle theme' %}" title="{% trans 'Toggle theme' %}">
-                <span class="tp-theme-toggle-icon" aria-hidden="true"></span>
-                <span class="tp-theme-toggle-label"></span>
-            </button>
+        <div class="tp-topbar-desktop-utility">
+            {% if user.is_authenticated %}
+                <span class="tp-topbar-desktop-user">{{ user.get_username }}</span>
+                <form method="post" action="{% url 'account_logout' %}">
+                    {% csrf_token %}
+                    <button class="btn btn-sm btn-outline-light" type="submit">{% trans "Logout" %}</button>
+                </form>
+            {% else %}
+                <a class="btn btn-sm btn-outline-light" href="{% url 'account_login' %}">{% trans "Login" %}</a>
+            {% endif %}
+            <div class="tp-topbar-desktop-toggles">
+                <button id="tp-agent-drawer-toggle" class="tp-theme-toggle" type="button"
+                        aria-label="{% trans 'Open assistant' %}" title="{% trans 'Open assistant' %}"
+                        aria-expanded="false" aria-controls="tp-agent-drawer">
+                    <span class="tp-theme-toggle-icon" aria-hidden="true">
+                        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true">
+                            <path d="M2 3.5h12v7H8.8L5.5 13v-2.5H2v-7Z"/>
+                            <path d="M5 6.5h6M5 8.5h4"/>
+                        </svg>
+                    </span>
+                    <span class="tp-theme-toggle-label">{% trans "Assistant" %}</span>
+                </button>
+                <button id="tp-theme-toggle" class="tp-theme-toggle" type="button" aria-label="{% trans 'Toggle theme' %}" title="{% trans 'Toggle theme' %}">
+                    <span class="tp-theme-toggle-icon" aria-hidden="true"></span>
+                    <span class="tp-theme-toggle-label"></span>
+                </button>
+            </div>
         </div>
     </div>
-</aside>
-<div id="tp-sidebar-floating-label" class="tp-sidebar-floating-label" role="tooltip" aria-hidden="true"></div>
+</nav>
 
 <nav id="main_header" class="navbar navbar-expand-lg navbar-dark fixed-top tp-topbar-mobile">
     <div class="container-fluid">
@@ -2877,137 +2692,6 @@
             return table;
         };
     }
-
-    (function () {
-        const STORAGE_KEY = "tp.sidebar.collapsed";
-        let sidebarTooltip = null;
-        let activeTooltipTrigger = null;
-
-        function isDesktop() {
-            return window.matchMedia("(min-width: 992px)").matches;
-        }
-
-        function defaultCollapsedForViewport() {
-            return window.matchMedia("(max-width: 1440px)").matches;
-        }
-
-        function applySidebarState(collapsed) {
-            if (!isDesktop()) {
-                document.body.classList.remove("tp-sidebar-collapsed");
-                hideSidebarTooltip();
-                return;
-            }
-            document.body.classList.toggle("tp-sidebar-collapsed", collapsed);
-            if (!collapsed) {
-                hideSidebarTooltip();
-            }
-            const button = document.getElementById("tp-sidebar-toggle");
-            if (button) {
-                button.setAttribute("aria-expanded", collapsed ? "false" : "true");
-                const icon = button.querySelector(".tp-sidebar-toggle-icon");
-                if (icon) {
-                    icon.classList.toggle("tp-chevron--right", collapsed);
-                    icon.classList.toggle("tp-chevron--left", !collapsed);
-                }
-                button.title = collapsed ? "Expand navigation" : "Collapse navigation";
-                button.setAttribute("aria-label", collapsed ? "Expand navigation" : "Collapse navigation");
-            }
-        }
-
-        function hideSidebarTooltip() {
-            activeTooltipTrigger = null;
-            if (!sidebarTooltip) return;
-            sidebarTooltip.classList.remove("is-visible");
-            sidebarTooltip.setAttribute("aria-hidden", "true");
-        }
-
-        function showSidebarTooltip(trigger) {
-            if (!document.body.classList.contains("tp-sidebar-collapsed")) {
-                hideSidebarTooltip();
-                return;
-            }
-            sidebarTooltip = sidebarTooltip || document.getElementById("tp-sidebar-floating-label");
-            if (!sidebarTooltip) return;
-            const label = trigger.getAttribute("data-label") || trigger.getAttribute("aria-label") || "";
-            if (!label) {
-                hideSidebarTooltip();
-                return;
-            }
-            activeTooltipTrigger = trigger;
-            const rect = trigger.getBoundingClientRect();
-            sidebarTooltip.textContent = label;
-            sidebarTooltip.style.top = `${rect.top + rect.height / 2}px`;
-            sidebarTooltip.classList.add("is-visible");
-            sidebarTooltip.setAttribute("aria-hidden", "false");
-        }
-
-        function updateSidebarTooltipPosition() {
-            if (activeTooltipTrigger) {
-                showSidebarTooltip(activeTooltipTrigger);
-            }
-        }
-
-        function initSidebarTooltips() {
-            sidebarTooltip = document.getElementById("tp-sidebar-floating-label");
-            if (!sidebarTooltip) return;
-
-            document.querySelectorAll(".tp-side-link[data-label]").forEach(function (link) {
-                link.addEventListener("mouseenter", function () {
-                    showSidebarTooltip(link);
-                });
-                link.addEventListener("focus", function () {
-                    showSidebarTooltip(link);
-                });
-                link.addEventListener("mouseleave", hideSidebarTooltip);
-                link.addEventListener("blur", hideSidebarTooltip);
-            });
-
-            window.addEventListener("scroll", updateSidebarTooltipPosition, { passive: true });
-        }
-
-        function initSidebarToggle() {
-            const button = document.getElementById("tp-sidebar-toggle");
-            if (!button) return;
-
-            const stored = localStorage.getItem(STORAGE_KEY);
-            if (stored === null) {
-                applySidebarState(defaultCollapsedForViewport());
-            } else {
-                applySidebarState(stored === "1");
-            }
-
-            button.addEventListener("click", function () {
-                const collapsed = !document.body.classList.contains("tp-sidebar-collapsed");
-                applySidebarState(collapsed);
-                localStorage.setItem(STORAGE_KEY, collapsed ? "1" : "0");
-            });
-
-            window.addEventListener("resize", function () {
-                if (!isDesktop()) {
-                    document.body.classList.remove("tp-sidebar-collapsed");
-                    hideSidebarTooltip();
-                } else {
-                    const current = localStorage.getItem(STORAGE_KEY);
-                    if (current === null) {
-                        applySidebarState(defaultCollapsedForViewport());
-                    } else {
-                        applySidebarState(current === "1");
-                    }
-                }
-            });
-        }
-
-        function initSidebar() {
-            initSidebarToggle();
-            initSidebarTooltips();
-        }
-
-        if (document.readyState === "loading") {
-            document.addEventListener("DOMContentLoaded", initSidebar);
-        } else {
-            initSidebar();
-        }
-    })();
 
     /* ── Theme toggle ──────────────────────────────── */
     (function () {

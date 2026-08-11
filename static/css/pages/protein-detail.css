@@ -3244,6 +3244,16 @@ body.residue-modal-open {
     }
 }
 
+/* The fixed desktop top bar (masterpage.html) reserves height via body's
+   own padding-top -- sticky elements need the same offset added on top of
+   their usual value or they scroll up underneath it. Mobile is unaffected
+   (its own topbar offset is set in the 991px block above). */
+@media (min-width: 992px) {
+    .quick-nav {
+        top: calc(var(--tp-topbar-h) - 2px);
+    }
+}
+
 @media (max-width: 700px) {
     .target-summary-panel {
         padding: 12px;

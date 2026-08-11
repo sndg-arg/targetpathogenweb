@@ -191,6 +191,15 @@
     color: var(--tp-table-thead-color);
 }
 
+/* The fixed desktop top bar (masterpage.html) reserves height via body's
+   own padding-top -- sticky table headers need the same offset added on
+   top of their usual value or they scroll up underneath it. */
+@media (min-width: 992px) {
+    .genome-list-card .table thead th {
+        top: var(--tp-topbar-h);
+    }
+}
+
 .genome-list-card .table thead th,
 .genome-list-card .table tbody td {
     padding: var(--tp-table-cell-py) var(--tp-table-cell-px);

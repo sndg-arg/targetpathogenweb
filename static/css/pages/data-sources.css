@@ -90,6 +90,15 @@
 }
 .ds-quick-nav::-webkit-scrollbar { display: none; }
 
+/* The fixed desktop top bar (masterpage.html) reserves height via body's
+   own padding-top -- sticky elements need the same offset added on top of
+   their usual value or they scroll up underneath it. */
+@media (min-width: 992px) {
+    .ds-quick-nav {
+        top: calc(var(--tp-topbar-h) - 2px);
+    }
+}
+
 .ds-quick-nav-link {
     flex: 0 0 auto;
     display: inline-flex;
