@@ -25,7 +25,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
-    <link rel="stylesheet" href="{% static 'css/components/ui-system.css' %}?v=20260811-topbar-offset">
+    <link rel="stylesheet" href="{% static 'css/components/ui-system.css' %}?v=20260811-sticky-revert">
     <link rel="stylesheet" href="{% static 'css/components/agent-drawer.css' %}?v=20260810-rename-delete1">
     <style>
         :root {
@@ -1102,16 +1102,6 @@
             border-bottom: 1px solid var(--tp-color-border-soft);
         }
 
-        /* The fixed desktop top bar reserves height via body's own
-           padding-top -- sticky table headers need the same offset added
-           on top of their usual value or they scroll up underneath it. */
-        @media (min-width: 992px) {
-            .tp-table-shell thead th,
-            .tp-table-shell thead td {
-                top: var(--tp-topbar-h);
-            }
-        }
-
         /* ── Global messages ── */
         .tp-messages {
             display: grid;
@@ -1275,7 +1265,7 @@
                 height: var(--tp-topbar-h);
                 display: flex;
                 align-items: stretch;
-                background: linear-gradient(96deg, var(--tp-color-nav-900) 0%, var(--tp-color-nav-800) 64%, var(--tp-color-nav-600) 100%);
+                background: var(--tp-color-nav-900);
                 border-bottom: 1px solid rgba(255, 255, 255, 0.09);
                 box-shadow: 0 4px 16px rgba(9, 23, 33, 0.18);
                 color: var(--tp-color-selection);
@@ -1314,7 +1304,7 @@
 
             .tp-topbar-desktop-wordmark {
                 font-family: "Space Grotesk", "Segoe UI", sans-serif;
-                font-size: 1.12rem;
+                font-size: 1.5rem;
                 font-weight: 700;
                 letter-spacing: 0.015em;
                 color: var(--tp-color-on-accent);

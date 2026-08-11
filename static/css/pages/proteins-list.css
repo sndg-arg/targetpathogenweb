@@ -830,15 +830,6 @@ a.filter-pill .filter-pill-remove {
     color: var(--tp-table-thead-color);
 }
 
-/* The fixed desktop top bar (masterpage.html) reserves height via body's
-   own padding-top -- sticky table headers need the same offset added on
-   top of their usual value or they scroll up underneath it. */
-@media (min-width: 992px) {
-    .protein-table thead th {
-        top: var(--tp-topbar-h);
-    }
-}
-
 .protein-table thead th,
 .protein-table tbody td {
     padding: var(--tp-table-cell-py) var(--tp-table-cell-px);
