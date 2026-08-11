@@ -1526,6 +1526,19 @@
                 overflow-x: hidden;
             }
 
+            /* Home-only prototype: nav lives in the page's own hero banner
+               instead of the sidebar, so the sidebar is hidden and its
+               reserved space (body's own padding-left, see above) is
+               released -- same pairing as the collapsed state above, just
+               fully hidden instead of narrowed. */
+            body.tp-home-banner-nav {
+                padding-left: 0;
+            }
+
+            body.tp-home-banner-nav .tp-sidebar {
+                display: none;
+            }
+
             body.tp-sidebar-collapsed .tp-brand-full,
             body.tp-sidebar-collapsed .tp-side-text,
             body.tp-sidebar-collapsed .tp-user-chip,
@@ -2174,7 +2187,7 @@
 
     {% block head %}{% endblock %}
 </head>
-<body>
+<body class="{% block body_class %}{% endblock %}">
 <script>(function(){var v=localStorage.getItem("tp.sidebar.collapsed");var c=v===null?window.matchMedia("(max-width:1440px)").matches:v==="1";if(c&&window.matchMedia("(min-width:992px)").matches){document.body.classList.add("tp-sidebar-collapsed");}}());</script>
 <div id="tp-page-loader" class="tp-page-loader" role="status" aria-live="polite" aria-hidden="true">
     <div class="tp-page-loader-card">
