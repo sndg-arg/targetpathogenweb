@@ -2676,8 +2676,7 @@ a.filter-pill .filter-pill-remove {
 }
 
 .proteins-hero,
-.toolbar-card,
-.protein-workspace {
+.toolbar-card {
     animation: tp-ui-enter 340ms var(--tp-ui-ease-standard) both;
 }
 
@@ -2685,8 +2684,18 @@ a.filter-pill .filter-pill-remove {
     animation-delay: 0.04s;
 }
 
+/* Opacity-only, not the shared tp-ui-enter slide+fade -- this wraps the
+   protein table's sticky header, and a `transform` on an ancestor of a
+   `position: sticky` element makes browsers momentarily mis-render its
+   stuck position (the same class of bug documented on .tp-ui-enter itself,
+   there for a nested native <select> popup instead of a sticky header). */
 .protein-workspace {
-    animation-delay: 0.08s;
+    animation: protein-workspace-enter-fade 340ms var(--tp-ui-ease-standard) 0.08s both;
+}
+
+@keyframes protein-workspace-enter-fade {
+    from { opacity: 0; }
+    to   { opacity: 1; }
 }
 
 @media (prefers-reduced-motion: reduce) {
