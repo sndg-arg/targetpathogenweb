@@ -42,7 +42,11 @@
    page itself. Always the white logo (the sidebar's own mark) on its own
    full-width dark band, in both themes -- rather than swapping logo assets
    by theme, this keeps one consistent lockup and just carries its own dark
-   surface with it onto the page's light or dark background. */
+   surface with it onto the page's light or dark background.
+
+   Sibling of .home-hero-copy, not a child of it -- .home-hero-copy caps at
+   max-width: 820px for the text column below, but this band needs to span
+   the full .home-hero section width, so it sits outside that column. */
 .home-hero-logo-badge {
     display: flex;
     align-items: center;
