@@ -4549,7 +4549,11 @@ body.residue-modal-open {
 
 .metabolic-network-tooltip dl {
     display: grid;
-    grid-template-columns: 62px minmax(0, 1fr);
+    /* 62px was narrower than "CHOKEPOINTS" itself (bold, uppercase, no space
+       to wrap at) at this font-size -- it overflowed straight into the
+       value column with no gap instead of wrapping, reading as one jammed
+       word ("CHOKEPOINTS4"). 84px comfortably fits every current label. */
+    grid-template-columns: 84px minmax(0, 1fr);
     gap: 4px 8px;
     margin: 0;
 }
@@ -4559,6 +4563,9 @@ body.residue-modal-open {
     font-size: 0.68rem;
     font-weight: 800;
     text-transform: uppercase;
+    /* Defensive: if a future label is still too wide for the column, wrap
+       it instead of repeating this bug by overflowing into the value. */
+    overflow-wrap: break-word;
 }
 
 .metabolic-network-tooltip dd {
