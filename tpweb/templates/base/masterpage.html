@@ -2036,9 +2036,9 @@
                 <span class="tp-topbar-desktop-link-icon" aria-hidden="true">{% include "components/icons/upload.html" %}</span>
                 <span>{% trans "Upload" %}</span>
             </a>
-            <a class="tp-topbar-desktop-link {% if '/form' in request.path or '/result/' in request.path %}active{% endif %}" aria-label="{% trans 'BLAST' %}" href="{% url 'tpwebapp:form' %}">
+            <a class="tp-topbar-desktop-link {% if '/form' in request.path or '/result/' in request.path %}active{% endif %}" aria-label="{% trans 'BLAST genome' %}" title="{% trans 'Nucleotide BLAST against a genome you choose. For protein BLAST, open a genome page.' %}" href="{% url 'tpwebapp:form' %}">
                 <span class="tp-topbar-desktop-link-icon" aria-hidden="true">{% include "components/icons/search.html" %}</span>
-                <span>{% trans "BLAST" %}</span>
+                <span>{% trans "BLAST genome" %}</span>
             </a>
             <a class="tp-topbar-desktop-link {% if request.resolver_match.url_name == 'data_sources' %}active{% endif %}" aria-label="{% trans 'Methodology' %}" href="{% url 'tpwebapp:data_sources' %}">
                 <span class="tp-topbar-desktop-link-icon" aria-hidden="true">{% include "components/icons/flask.html" %}</span>
@@ -2094,7 +2094,7 @@
                     <a class="nav-link{% if url_name == 'genome_upload' %} is-active{% endif %}" {% if url_name == 'genome_upload' %}aria-current="page"{% endif %} href="{% url 'tpwebapp:genome_upload' %}">{% trans "Upload" %}</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link{% if url_name == 'form' or url_name == 'blast_res' %} is-active{% endif %}" {% if url_name == 'form' or url_name == 'blast_res' %}aria-current="page"{% endif %} href="{% url 'tpwebapp:form' %}">{% trans "BLAST" %}</a>
+                    <a class="nav-link{% if url_name == 'form' or url_name == 'blast_res' %} is-active{% endif %}" {% if url_name == 'form' or url_name == 'blast_res' %}aria-current="page"{% endif %} href="{% url 'tpwebapp:form' %}">{% trans "BLAST genome" %}</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link{% if url_name == 'data_sources' %} is-active{% endif %}" {% if url_name == 'data_sources' %}aria-current="page"{% endif %} href="{% url 'tpwebapp:data_sources' %}">{% trans "Methodology" %}</a>

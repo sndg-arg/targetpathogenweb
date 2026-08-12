@@ -27,8 +27,9 @@
                     {% trans "Upload genome" as upload_genome_label %}
                     {% include "components/buttons/action.html" with variant="neutral" href=upload_genome_href label=upload_genome_label icon_template="components/icons/upload.html" classes="home-cta-neutral" %}
                     {% url 'tpwebapp:form' as run_blast_href %}
-                    {% trans "Run BLAST" as run_blast_label %}
-                    {% include "components/buttons/action.html" with variant="outline" href=run_blast_href label=run_blast_label icon_template="components/icons/play.html" %}
+                    {% trans "BLAST a genome" as run_blast_label %}
+                    {% trans "Nucleotide BLAST against a genome you choose. For protein BLAST, open a genome page." as run_blast_title %}
+                    {% include "components/buttons/action.html" with variant="outline" href=run_blast_href label=run_blast_label title=run_blast_title icon_template="components/icons/play.html" %}
                 </div>
             </div>
         </section>
