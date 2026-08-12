@@ -7,6 +7,11 @@ from django.core.management.base import BaseCommand, CommandError
 
 from bioseq.models.Biodatabase import Biodatabase
 from bioseq.models.Bioentry import Bioentry
+from tpweb.management.commands._shared import (
+    clean,
+    is_alphafold_uniprot_source,
+    norm_source,
+)
 from tpweb.models.BioentryStructure import BioentryStructure
 from tpweb.models.ScoreParamValue import ScoreParamValue
 from tpweb.services.structure_files import compute_folder_path as folder_path
@@ -32,39 +37,6 @@ MANIFEST_COLUMNS = [
     "model_url",
     "loaded_structure_codes",
 ]
-
-
-def clean(value):
-    if value is None:
-        return ""
-    value = str(value).strip()
-    if value.lower() in {"", "nan", "none", "null"}:
-        return ""
-    return value
-
-
-def norm_source(value):
-    value = clean(value).upper()
-    for prefix in ("AF_", "CB_"):
-        if value.startswith(prefix):
-            return value[len(prefix) :]
-    return value
-
-
-def is_pdb_code(value):
-    value = clean(value).upper()
-    return len(value) == 4 and value.isalnum()
-
-
-def is_alphafold_uniprot_source(value):
-    value = clean(value).upper()
-    if not value or is_pdb_code(value) or value.startswith("CB_"):
-        return False
-    if value.startswith("AF_") or value.startswith("A0A"):
-        return True
-    if len(value) == 6 and value[0].isalpha() and value[1].isdigit() and value[-1].isdigit():
-        return True
-    return False
 
 
 def is_loaded(accession, loaded_codes):

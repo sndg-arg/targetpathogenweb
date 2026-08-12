@@ -4,6 +4,9 @@ from django.core.management.base import BaseCommand, CommandError
 
 from bioseq.models.Biodatabase import Biodatabase
 from bioseq.models.Bioentry import Bioentry
+from tpweb.management.commands._shared import clean as _clean
+from tpweb.management.commands._shared import is_expected_no_pockets as _is_expected_no_pockets
+from tpweb.management.commands._shared import is_pdb_code as _is_pdb_code
 from tpweb.models.BioentryStructure import BioentryStructure
 from tpweb.models.ScoreParamValue import ScoreParamValue
 from tpweb.models.pdb import PDBResidueSet
@@ -13,24 +16,6 @@ SELECTED_FIELDS = (
     ("FPocket", "best_fpocket_structure", "Druggability", "fpocket_pocket", "FPocketPocket"),
     ("P2Rank", "best_p2rank_structure", "p2rank_probability", "p2rank_pocket", "P2RankPocket"),
 )
-
-
-def _clean(value):
-    if value is None:
-        return ""
-    value = str(value).strip()
-    if value.lower() in {"", "nan", "none", "null"}:
-        return ""
-    return value
-
-
-def _is_pdb_code(value):
-    value = _clean(value).upper()
-    return len(value) == 4 and value.isalnum()
-
-
-def _is_expected_no_pockets(method, pocket):
-    return method == "P2Rank" and _clean(pocket).lower() == "no_pockets"
 
 
 class Command(BaseCommand):

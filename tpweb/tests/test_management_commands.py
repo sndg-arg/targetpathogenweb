@@ -45,11 +45,11 @@ from tpweb.management.commands.selected_pdb_pocket_report import (
     _is_expected_no_pockets,
     _is_pdb_code as pdb_report_is_pdb_code,
 )
+from tpweb.management.commands._shared import is_pdb_code as af_is_pdb_code
 from tpweb.management.commands.export_selected_alphafold_pocket_jobs import (
     clean as af_clean,
     folder_path as af_folder_path,
     is_alphafold_uniprot_source,
-    is_pdb_code as af_is_pdb_code,
     norm_source,
     structure_code,
 )

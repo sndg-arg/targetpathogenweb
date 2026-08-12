@@ -1,4 +1,3 @@
-import ast
 import csv
 import os
 import requests
@@ -12,6 +11,11 @@ from django.core.management.base import BaseCommand, CommandError
 from bioseq.io.SeqStore import SeqStore
 from bioseq.models.Biodatabase import Biodatabase
 from bioseq.models.Bioentry import Bioentry
+from tpweb.management.commands._shared import clean as _clean
+from tpweb.management.commands._shared import is_pdb_code as _is_pdb_code
+from tpweb.management.commands._shared import (
+    parse_structure_candidates as _parse_structure_candidates,
+)
 from tpweb.models.BioentryStructure import BioentryStructure, ExperimentalStructureXref
 from tpweb.models.ScoreParamValue import ScoreParamValue
 from tpweb.models.pdb import PDB
@@ -24,33 +28,6 @@ DEFAULT_DATA_DIR = str(settings.BASE_DIR / "data")
 SOURCE_FIELDS = ("best_fpocket_structure", "best_p2rank_structure")
 DEFAULT_STRUCTURE_COLUMN = "structure"
 RCSB_CIF_URL = "https://files.rcsb.org/download/{pdb_id}.cif"
-
-
-def _clean(value):
-    if value is None:
-        return ""
-    value = str(value).strip()
-    if value.lower() in {"", "nan", "none", "null"}:
-        return ""
-    return value
-
-
-def _is_pdb_code(value):
-    value = _clean(value).upper()
-    return len(value) == 4 and value.isalnum()
-
-
-def _parse_structure_candidates(value):
-    value = _clean(value)
-    if not value:
-        return []
-    try:
-        parsed = ast.literal_eval(value)
-    except (SyntaxError, ValueError):
-        parsed = value.replace("{", "").replace("}", "").split(",")
-    return [
-        _clean(candidate).strip("'\"").upper() for candidate in parsed if _is_pdb_code(candidate)
-    ]
 
 
 def _download_cif_as_pdb(pdb_id, dest_path):

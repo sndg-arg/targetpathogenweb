@@ -1,6 +1,4 @@
-import gzip
 import os
-import shutil
 import tarfile
 import tempfile
 from collections import defaultdict
@@ -10,11 +8,19 @@ from django.core.management.base import BaseCommand, CommandError
 
 from bioseq.models.Biodatabase import Biodatabase
 from bioseq.models.Bioentry import Bioentry
+from tpweb.management.commands._shared import (
+    clean,
+    is_alphafold_uniprot_source,
+    is_expected_no_pockets,
+    norm_source,
+    structure_code,
+)
 from tpweb.models.BioentryStructure import BioentryStructure
 from tpweb.models.ScoreParamValue import ScoreParamValue
 from tpweb.models.pdb import PDBResidueSet
 from tpweb.services.structure_files import compute_folder_path as folder_path
 from tpweb.services.structure_files import structure_file_path
+from tpweb.services.structure_files import write_plain_pdb
 
 
 DEFAULT_DATA_DIR = str(settings.BASE_DIR / "data")
@@ -35,57 +41,6 @@ MANIFEST_COLUMNS = [
     "p2rank_pocket",
     "input_pdb",
 ]
-
-
-def clean(value):
-    if value is None:
-        return ""
-    value = str(value).strip()
-    if value.lower() in {"", "nan", "none", "null"}:
-        return ""
-    return value
-
-
-def norm_source(value):
-    value = clean(value).upper()
-    for prefix in ("AF_", "CB_"):
-        if value.startswith(prefix):
-            return value[len(prefix) :]
-    return value
-
-
-def is_pdb_code(value):
-    value = clean(value).upper()
-    return len(value) == 4 and value.isalnum()
-
-
-def is_alphafold_uniprot_source(value):
-    value = clean(value).upper()
-    if not value or is_pdb_code(value) or value.startswith("CB_"):
-        return False
-    if value.startswith("AF_") or value.startswith("A0A"):
-        return True
-    if len(value) == 6 and value[0].isalpha() and value[1].isdigit() and value[-1].isdigit():
-        return True
-    return False
-
-
-def structure_code(accession):
-    return f"AF_{clean(accession).upper()}"
-
-
-def is_expected_no_pockets(method, pocket):
-    return method == "p2rank" and clean(pocket).lower() == "no_pockets"
-
-
-def write_plain_pdb(source_path, dest_path):
-    os.makedirs(os.path.dirname(dest_path), exist_ok=True)
-    if source_path.endswith(".gz"):
-        with gzip.open(source_path, "rb") as src, open(dest_path, "wb") as dst:
-            shutil.copyfileobj(src, dst)
-    else:
-        shutil.copyfile(source_path, dest_path)
-    os.chmod(dest_path, 0o644)
 
 
 def fallback_structure_path(folder, code):
