@@ -6,7 +6,10 @@
         {% if crumb_1_label %}
             <li class="tp-breadcrumb-item">
                 {% if crumb_1_url %}
-                    <a class="tp-breadcrumb-link" href="{{ crumb_1_url }}">{{ crumb_1_label }}</a>
+                    <a class="tp-breadcrumb-link" href="{{ crumb_1_url }}">
+                        <span class="tp-breadcrumb-home-icon" aria-hidden="true">{% include "components/icons/home.html" %}</span>
+                        {{ crumb_1_label }}
+                    </a>
                 {% else %}
                     <span class="tp-breadcrumb-current">{{ crumb_1_label }}</span>
                 {% endif %}

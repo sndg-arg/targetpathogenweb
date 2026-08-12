@@ -1540,14 +1540,35 @@ a.tp-chip--go:hover {
 .tp-breadcrumb-item + .tp-breadcrumb-item::before {
     content: "\203A";
     color: var(--tp-color-text-soft);
-    font-size: 0.8rem;
+    font-size: 0.86rem;
+    font-weight: 600;
+    opacity: 0.85;
     margin: 0 1px;
+}
+
+.tp-breadcrumb-home-icon {
+    display: inline-flex;
+    width: 13px;
+    height: 13px;
+    flex: 0 0 auto;
+}
+
+.tp-breadcrumb-home-icon svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
 }
 
 .tp-breadcrumb-link,
 .tp-breadcrumb-current {
     font-size: var(--tp-font-size-sm);
     line-height: 1.2;
+    letter-spacing: 0.01em;
     white-space: nowrap;
     max-width: 100%;
     overflow: hidden;
@@ -1556,6 +1577,9 @@ a.tp-chip--go:hover {
 }
 
 .tp-breadcrumb-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
     color: var(--tp-color-text-secondary);
     text-decoration: none;
     transition: color 140ms ease;
@@ -1576,27 +1600,35 @@ a.tp-chip--go:hover {
    supplies this wrapper around its own {% block breadcrumbs %} include, so
    pages without breadcrumbs render nothing. Inner max-width/padding
    mirrors .tp-main's own values per breakpoint so the text lines up with
-   the hero title below it. */
+   the hero title below it. Top hairline echoes the same "finished edge"
+   idiom already used on .tp-topbar-desktop, so this strip reads as part
+   of the same considered chrome rather than a plain divider slapped
+   underneath it. */
 .tp-breadcrumb-bar {
     background: var(--tp-color-surface-soft);
     border-bottom: 1px solid var(--tp-color-border-soft);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5) inset;
+}
+
+.tp-dark .tp-breadcrumb-bar {
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06) inset;
 }
 
 .tp-breadcrumb-bar-inner {
     max-width: 1360px;
     margin: 0 auto;
-    padding: 9px 18px;
+    padding: 11px 18px;
 }
 
 @media (min-width: 992px) {
     .tp-breadcrumb-bar-inner {
-        padding: 9px 16px;
+        padding: 11px 16px;
     }
 }
 
 @media (max-width: 991px) {
     .tp-breadcrumb-bar-inner {
-        padding: 8px 10px;
+        padding: 10px 10px;
     }
 }
 

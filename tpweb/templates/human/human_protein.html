@@ -18,7 +18,7 @@
     <div class="tp-breadcrumb-bar-inner">
         {% trans "Human Targets" as crumb_human %}
         {% url 'tpwebapp:index' as index_url %}
-        {% with crumb_protein=human_protein.uniprot_accession|add:" · "|add:human_protein.protein_name %}
+        {% with crumb_protein="Protein: "|add:human_protein.uniprot_accession|add:" · "|add:human_protein.protein_name %}
         {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_human crumb_2_url=human_protein_list_url crumb_3_label=crumb_protein %}
         {% endwith %}
     </div>

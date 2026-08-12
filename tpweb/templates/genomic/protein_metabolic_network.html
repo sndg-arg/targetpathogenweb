@@ -13,10 +13,15 @@
 <div class="tp-breadcrumb-bar">
     <div class="tp-breadcrumb-bar-inner">
         {% trans "Genomes" as crumb_genomes %}
+        {% trans "Proteins" as crumb_proteins %}
         {% url 'tpwebapp:index' as index_url %}
         {% url 'tpwebapp:genomes_list' as genomes_url %}
         {% trans "Metabolic network" as crumb_network %}
-        {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=assembly_name crumb_3_url=assembly_url crumb_4_label=protein.accession crumb_4_url=protein_url crumb_5_label=crumb_network %}
+        {% with crumb_genome="Genome: "|add:assembly_name %}
+        {% with crumb_protein="Protein: "|add:protein.accession %}
+        {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_genome crumb_3_url=assembly_url crumb_4_label=crumb_proteins crumb_4_url=proteins_url crumb_5_label=crumb_protein crumb_5_url=protein_url crumb_6_label=crumb_network %}
+        {% endwith %}
+        {% endwith %}
     </div>
 </div>
 {% endblock %}
