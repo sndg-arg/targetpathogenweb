@@ -1,5 +1,4 @@
 import gzip
-import math
 import os
 import shutil
 import tarfile
@@ -14,6 +13,7 @@ from bioseq.models.Bioentry import Bioentry
 from tpweb.models.BioentryStructure import BioentryStructure
 from tpweb.models.ScoreParamValue import ScoreParamValue
 from tpweb.models.pdb import PDBResidueSet
+from tpweb.services.structure_files import compute_folder_path as folder_path
 from tpweb.services.structure_files import structure_file_path
 
 
@@ -72,12 +72,6 @@ def is_alphafold_uniprot_source(value):
 
 def structure_code(accession):
     return f"AF_{clean(accession).upper()}"
-
-
-def folder_path(datadir, genome_name):
-    acclen = len(genome_name)
-    folder_name = genome_name[math.floor(acclen / 2 - 1) : math.floor(acclen / 2 + 2)]
-    return os.path.join(datadir, folder_name, genome_name)
 
 
 def is_expected_no_pockets(method, pocket):

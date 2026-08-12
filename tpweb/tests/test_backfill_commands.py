@@ -22,13 +22,13 @@ from tpweb.management.commands.load_selected_pdb_backfill import (
     _is_pdb_code as pdb_backfill_is_pdb_code,
     _parse_structure_candidates,
 )
+from tpweb.management.commands._shared import read_manifest
 from tpweb.management.commands.load_selected_alphafold_backfill import (
     as_bool,
     clean as af_backfill_clean,
     default_manifest,
     default_model_dir,
     folder_path as af_backfill_folder_path,
-    read_manifest,
     structure_code,
 )
 

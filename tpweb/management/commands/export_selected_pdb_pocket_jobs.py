@@ -1,7 +1,6 @@
 import ast
 import csv
 import gzip
-import math
 import os
 import shutil
 import tarfile
@@ -16,6 +15,7 @@ from bioseq.models.Bioentry import Bioentry
 from tpweb.models.BioentryStructure import BioentryStructure
 from tpweb.models.ScoreParamValue import ScoreParamValue
 from tpweb.models.pdb import PDBResidueSet
+from tpweb.services.structure_files import compute_folder_path as _folder_path
 from tpweb.services.structure_files import structure_file_path
 
 
@@ -65,12 +65,6 @@ def _parse_structure_candidates(value):
     return sorted(
         {_clean(candidate).strip("'\"").upper() for candidate in parsed if _is_pdb_code(candidate)}
     )
-
-
-def _folder_path(datadir, genome_name):
-    acclen = len(genome_name)
-    folder_name = genome_name[math.floor(acclen / 2 - 1) : math.floor(acclen / 2 + 2)]
-    return os.path.join(datadir, folder_name, genome_name)
 
 
 def _write_plain_pdb(source_path, dest_path):

@@ -1,6 +1,5 @@
 import ast
 import csv
-import math
 import os
 import requests
 from collections import defaultdict
@@ -17,6 +16,7 @@ from tpweb.models.BioentryStructure import BioentryStructure, ExperimentalStruct
 from tpweb.models.ScoreParamValue import ScoreParamValue
 from tpweb.models.pdb import PDB
 from tpweb.services.experimental_structures import _download_pdb, _update_structure_link
+from tpweb.services.structure_files import compute_folder_path as _folder_path
 from tpweb.management.commands.load_af_model import store_structure_file
 
 
@@ -51,12 +51,6 @@ def _parse_structure_candidates(value):
     return [
         _clean(candidate).strip("'\"").upper() for candidate in parsed if _is_pdb_code(candidate)
     ]
-
-
-def _folder_path(datadir, genome_name):
-    acclen = len(genome_name)
-    folder_name = genome_name[math.floor(acclen / 2 - 1) : math.floor(acclen / 2 + 2)]
-    return os.path.join(datadir, folder_name, genome_name)
 
 
 def _download_cif_as_pdb(pdb_id, dest_path):

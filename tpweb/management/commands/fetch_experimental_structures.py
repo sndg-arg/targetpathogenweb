@@ -1,8 +1,7 @@
-import math
-
 from django.core.management.base import BaseCommand
 
 from tpweb.services.experimental_structures import fetch_and_load_experimental_structures
+from tpweb.services.structure_files import compute_folder_path
 
 
 class Command(BaseCommand):
@@ -22,9 +21,7 @@ class Command(BaseCommand):
         datadir = options["datadir"]
 
         # Derive folder_path the same way the pipeline does
-        acclen = len(genome)
-        folder_name = genome[math.floor(acclen / 2 - 1) : math.floor(acclen / 2 + 2)]
-        folder_path = f"{datadir}/{folder_name}/{genome}"
+        folder_path = compute_folder_path(datadir, genome)
         working_dir = (
             datadir.rstrip("/").removesuffix("/data") if datadir.endswith("/data") else datadir
         )

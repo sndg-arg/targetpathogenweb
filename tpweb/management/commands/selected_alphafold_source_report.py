@@ -1,5 +1,4 @@
 import csv
-import math
 import os
 from collections import defaultdict
 
@@ -10,6 +9,7 @@ from bioseq.models.Biodatabase import Biodatabase
 from bioseq.models.Bioentry import Bioentry
 from tpweb.models.BioentryStructure import BioentryStructure
 from tpweb.models.ScoreParamValue import ScoreParamValue
+from tpweb.services.structure_files import compute_folder_path as folder_path
 
 
 DEFAULT_DATA_DIR = str(settings.BASE_DIR / "data")
@@ -65,12 +65,6 @@ def is_alphafold_uniprot_source(value):
     if len(value) == 6 and value[0].isalpha() and value[1].isdigit() and value[-1].isdigit():
         return True
     return False
-
-
-def folder_path(datadir, genome_name):
-    acclen = len(genome_name)
-    folder_name = genome_name[math.floor(acclen / 2 - 1) : math.floor(acclen / 2 + 2)]
-    return os.path.join(datadir, folder_name, genome_name)
 
 
 def is_loaded(accession, loaded_codes):

@@ -19,11 +19,6 @@ from tpweb.models.BioentryStructure import BioentryStructure
 from tpweb.models.pdb import PDB, Residue, Atom
 
 
-def mkdir(dirpath):
-    if not os.path.exists(dirpath):
-        os.makedirs(dirpath)
-
-
 def store_structure_file(pdb_file, destination):
     os.makedirs(os.path.dirname(destination), exist_ok=True)
     if pdb_file.endswith(".gz"):
