@@ -87,6 +87,8 @@ def _mark_upload_running(upload, process_pid, log_path):
 
 
 def _dataset_ready(internal_accession):
+    if not internal_accession:
+        return False
     return Biodatabase.objects.filter(name=internal_accession).exists()
 
 

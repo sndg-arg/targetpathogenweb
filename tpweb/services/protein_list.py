@@ -29,6 +29,7 @@ ACRONYM_TOKENS = {
     "colabfold": "ColabFold",
     "plddt": "pLDDT",
     "id": "ID",
+    "ec": "EC",
 }
 
 TOKEN_REPLACEMENTS = {
