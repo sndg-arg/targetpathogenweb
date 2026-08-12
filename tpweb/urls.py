@@ -1,6 +1,5 @@
 from django.urls import path
 
-# from .views.TestCelery import test_celery
 from .views.AssemblyView import AssemblyView
 from .views.DownloadView import DownloadView
 from .views.GenomesView import GenomesView
@@ -60,7 +59,6 @@ urlpatterns = [
     # path("~redirect/", view=user_redirect_view, name="redirect"),
     # path("~update/", view=user_update_view, name="update"),
     # path("<str:username>/", view=user_detail_view, name="detail"),
-    # path("test_celery/", view=test_celery, name="test_celery"),
     # path("",view=login_required(IndexView.as_view()),name="index"),
     path("", view=IndexView.as_view(), name="index"),
     path("robots.txt", view=RobotsView.as_view(), name="robots_txt"),

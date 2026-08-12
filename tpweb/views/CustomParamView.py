@@ -40,7 +40,6 @@ def upload_form(request, genome):
         raise Http404("Genome not found")
     workspace_user = resolve_workspace_user(request.user)
     if request.method == "POST":
-        # if request.POST.get('overwrite') != 'false':
         form = CustomParamForm(request.POST, request.FILES)
         if form.is_valid():
             custom_param = form.save(commit=False)  # Don't save yet

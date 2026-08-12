@@ -980,9 +980,6 @@ class ProteinListView(View):
         formula = choose_formula(formulas, requested_formula)
 
         bdb = Biodatabase.objects.get(name=assembly_name)
-        # ScoreParam.initialize()
-        # formula = ScoreFormula.objects.filter(name="GARDP_Target_Overall").get()
-        # formula = ScoreFormula.objects.filter(name="GARDP_Virtual_Screening").get()
 
         if formula is None:
             formula_term_list = []
@@ -1711,4 +1708,4 @@ class ProteinListView(View):
                 "formula_active": formula is not None,
                 "is_default_view": is_default_view,
             },
-        )  # , {'form': form})
+        )

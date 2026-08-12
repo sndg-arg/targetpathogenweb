@@ -96,9 +96,6 @@ class Command(BaseCommand):
                 traceback.print_exc()
                 raise CommandError(ex) from ex
 
-            # if not os.path.exists(seqstore.structure_dir(genome, be.accession)):
-            #    os.makedirs(seqstore.structure_dir(genome, be.accession))
-
             store_structure_file(
                 options["pdb_file"],
                 seqstore.structure(genome, be.accession, code),
@@ -199,7 +196,6 @@ class Command(BaseCommand):
             )
 
     def load_pdb_file(self, pdb_model, pdb_path):
-
         is_cif = pdb_path.lower().endswith((".cif", ".cif.gz"))
         parser = MMCIFParser(QUIET=True) if is_cif else PDBParser(PERMISSIVE=True, QUIET=True)
         if pdb_path.endswith(".gz"):
