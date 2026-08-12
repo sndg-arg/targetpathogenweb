@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20260809-sstruc-legend">
+    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20260812-residue-modal-rename">
 {% endblock %}
 
 {% block body %}
@@ -257,7 +257,7 @@
 
 {# Residue positions modal #}
 <div class="residue-modal-backdrop" id="residue-modal" aria-hidden="true">
-    <div class="residue-modal-panel" role="dialog" aria-modal="true" aria-labelledby="residue-modal-title">
+    <div class="structure-residue-modal-panel" role="dialog" aria-modal="true" aria-labelledby="residue-modal-title">
         <div class="residue-modal-head">
             <h3 id="residue-modal-title">{% trans "Residue positions" %}</h3>
             <button type="button" class="btn tp-btn tp-btn--neutral tp-btn--sm residue-modal-close"
@@ -469,7 +469,7 @@ function jsloaded() {
     /* ---- Residue modal ---- */
     (function () {
         var modal    = document.getElementById("residue-modal");
-        var panel    = modal ? modal.querySelector(".residue-modal-panel") : null;
+        var panel    = modal ? modal.querySelector(".structure-residue-modal-panel") : null;
         var content  = document.getElementById("residue-modal-content");
         var closeBtn = document.getElementById("close-residue-modal");
         var copyBtn  = document.getElementById("copy-residue-list");

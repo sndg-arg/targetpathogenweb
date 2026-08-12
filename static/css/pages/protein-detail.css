@@ -4509,79 +4509,8 @@ body.residue-modal-open {
     transform: none;
 }
 
-.metabolic-network-tooltip {
-    position: absolute;
-    z-index: 20;
-    max-width: 340px;
-    padding: 11px 12px;
-    border: 1px solid var(--tp-color-border-strong);
-    border-radius: 8px;
-    background: color-mix(in srgb, var(--tp-color-surface) 96%, var(--tp-color-brand-050));
-    color: var(--tp-color-text-primary);
-    box-shadow: var(--tp-shadow-lg);
-    font-size: var(--tp-font-size-xs);
-    line-height: 1.35;
-    pointer-events: none;
-}
-
-.metabolic-network-tooltip-title {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 8px;
-    color: var(--tp-color-text-primary);
-    font-size: var(--tp-font-size-sm);
-    font-weight: 800;
-}
-
-.metabolic-network-tooltip-badge {
-    display: inline-flex;
-    align-items: center;
-    padding: 2px 6px;
-    border: 1px solid color-mix(in srgb, var(--tp-color-amber-500) 48%, transparent);
-    border-radius: 999px;
-    background: var(--tp-color-amber-050);
-    color: var(--tp-color-amber-700);
-    font-size: 0.68rem;
-    font-weight: 800;
-    white-space: nowrap;
-}
-
-.metabolic-network-tooltip dl {
-    display: grid;
-    /* 62px was narrower than "CHOKEPOINTS" itself (bold, uppercase, no space
-       to wrap at) at this font-size -- it overflowed straight into the
-       value column with no gap instead of wrapping, reading as one jammed
-       word ("CHOKEPOINTS4"). 84px comfortably fits every current label. */
-    grid-template-columns: 84px minmax(0, 1fr);
-    gap: 4px 8px;
-    margin: 0;
-}
-
-.metabolic-network-tooltip dt {
-    color: var(--tp-color-text-muted);
-    font-size: 0.68rem;
-    font-weight: 800;
-    text-transform: uppercase;
-    /* Defensive: if a future label is still too wide for the column, wrap
-       it instead of repeating this bug by overflowing into the value. */
-    overflow-wrap: break-word;
-}
-
-.metabolic-network-tooltip dd {
-    margin: 0;
-    color: var(--tp-color-text-primary);
-    font-size: var(--tp-font-label);
-    word-break: break-word;
-}
-
-.metabolic-network-tooltip-hint {
-    margin-top: 9px;
-    padding-top: 8px;
-    border-top: 1px solid var(--tp-color-border-soft);
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-label);
-}
+/* .metabolic-network-tooltip* now lives in components/ui-system.css
+   (shared with the genome-wide metabolic network page). */
 
 .metabolic-network-note {
     padding: 8px 12px 10px;

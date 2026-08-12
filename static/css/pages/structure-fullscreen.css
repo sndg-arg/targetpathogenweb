@@ -990,7 +990,7 @@ body:has(.sv-root) .tp-footer { display: none !important; }
     justify-content: center;
 }
 .residue-modal-backdrop.is-open { display: flex; }
-.residue-modal-panel {
+.structure-residue-modal-panel {
     background: var(--tp-color-surface);
     border: 1px solid var(--tp-color-border-strong);
     border-radius: 14px;
