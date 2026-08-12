@@ -1394,10 +1394,40 @@
                 flex: 0 0 auto;
             }
 
+            /* Small identity capsule -- icon + username + a compact logout
+               icon-button, one cohesive chip instead of loose floating
+               text, echoing the same capsule language used elsewhere in
+               this bar (nav links, the theme toggle). */
+            .tp-topbar-desktop-account {
+                display: flex;
+                align-items: center;
+                gap: 7px;
+                padding: 5px 6px 5px 11px;
+                background: rgba(255, 255, 255, 0.07);
+                border: 1px solid rgba(255, 255, 255, 0.14);
+                border-radius: 999px;
+            }
+
+            .tp-topbar-desktop-account-icon {
+                display: flex;
+                width: 13px;
+                height: 13px;
+                flex: 0 0 auto;
+                color: rgba(232, 245, 250, 0.7);
+            }
+
+            .tp-topbar-desktop-account-icon svg {
+                display: block;
+                width: 100%;
+                height: 100%;
+                stroke: currentColor;
+                fill: none;
+            }
+
             .tp-topbar-desktop-user {
                 font-weight: 600;
-                color: rgba(231, 244, 249, 0.82);
-                font-size: 0.84rem;
+                color: rgba(231, 244, 249, 0.92);
+                font-size: 0.82rem;
                 white-space: nowrap;
             }
 
@@ -1405,7 +1435,50 @@
                 display: contents;
             }
 
+            .tp-topbar-desktop-logout-btn {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 22px;
+                height: 22px;
+                padding: 0;
+                border: none;
+                border-radius: 999px;
+                background: transparent;
+                color: rgba(232, 245, 250, 0.7);
+                cursor: pointer;
+                transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+                    color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+            }
+
+            .tp-topbar-desktop-logout-btn:hover,
+            .tp-topbar-desktop-logout-btn:focus-visible {
+                background: rgba(255, 255, 255, 0.16);
+                color: var(--tp-color-on-accent);
+                outline: none;
+            }
+
+            .tp-topbar-desktop-logout-icon {
+                display: flex;
+                width: 13px;
+                height: 13px;
+            }
+
+            .tp-topbar-desktop-logout-icon svg {
+                display: block;
+                width: 100%;
+                height: 100%;
+                stroke: currentColor;
+                fill: none;
+                stroke-width: 1.7;
+                stroke-linecap: round;
+                stroke-linejoin: round;
+            }
+
             .tp-topbar-desktop-login {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
                 background: none;
                 border: none;
                 color: rgba(232, 245, 250, 0.88);
@@ -1416,6 +1489,23 @@
                 cursor: pointer;
                 text-decoration: none;
                 transition: color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+            }
+
+            .tp-topbar-desktop-login-icon {
+                display: flex;
+                width: 14px;
+                height: 14px;
+            }
+
+            .tp-topbar-desktop-login-icon svg {
+                display: block;
+                width: 100%;
+                height: 100%;
+                stroke: currentColor;
+                fill: none;
+                stroke-width: 1.6;
+                stroke-linecap: round;
+                stroke-linejoin: round;
             }
 
             .tp-topbar-desktop-login:hover,
@@ -2052,13 +2142,21 @@
         </div>
         <div class="tp-topbar-desktop-utility">
             {% if user.is_authenticated %}
-                <span class="tp-topbar-desktop-user">{{ user.get_username }}</span>
-                <form method="post" action="{% url 'account_logout' %}" class="tp-topbar-desktop-login-form">
-                    {% csrf_token %}
-                    <button class="tp-topbar-desktop-login" type="submit">{% trans "Logout" %}</button>
-                </form>
+                <div class="tp-topbar-desktop-account">
+                    <span class="tp-topbar-desktop-account-icon" aria-hidden="true">{% include "components/icons/user.html" %}</span>
+                    <span class="tp-topbar-desktop-user">{{ user.get_username }}</span>
+                    <form method="post" action="{% url 'account_logout' %}" class="tp-topbar-desktop-login-form">
+                        {% csrf_token %}
+                        <button class="tp-topbar-desktop-logout-btn" type="submit" aria-label="{% trans 'Logout' %}" title="{% trans 'Logout' %}">
+                            <span class="tp-topbar-desktop-logout-icon" aria-hidden="true">{% include "components/icons/log_out.html" %}</span>
+                        </button>
+                    </form>
+                </div>
             {% else %}
-                <a class="tp-topbar-desktop-login" href="{% url 'account_login' %}">{% trans "Login" %}</a>
+                <a class="tp-topbar-desktop-login" href="{% url 'account_login' %}">
+                    <span class="tp-topbar-desktop-login-icon" aria-hidden="true">{% include "components/icons/log_in.html" %}</span>
+                    {% trans "Login" %}
+                </a>
             {% endif %}
             <span class="tp-topbar-desktop-divider" aria-hidden="true"></span>
             <button id="tp-theme-toggle" class="tp-theme-toggle tp-theme-toggle--icon-only" type="button" aria-label="{% trans 'Toggle theme' %}" title="{% trans 'Toggle theme' %}">
