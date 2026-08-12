@@ -70,6 +70,11 @@ from tpweb.services.pipeline_status import (
     annotate_pipeline_status_for_genome,
     get_pipeline_status,
 )
+from tpweb.services.formula_evaluator import (
+    build_all_options_zero,
+    build_expression_variables,
+    safe_eval_expression,
+)
 from tpweb.services.score_params import visible_score_params_queryset
 from tpweb.services.structure_sources import (
     PDB_EXPERIMENT_ALPHAFOLD,
@@ -960,136 +965,9 @@ class ProteinListView(View):
             redirect_url = f"{redirect_url}?{redirect_query}"
         return redirect(redirect_url)
 
-    def get(self, request, genome, *args, **kwargs):
-        assembly_name = resolve_genome_from_slug(request.user, genome)
-        if not assembly_name:
-            raise Http404("Genome not found")
-
-        raw_filters_param = request.GET.get("filters")
-        if raw_filters_param is not None:
-            return self._seed_filters_from_link(request, raw_filters_param)
-
-        page_size = parse_page_size(request.GET.get("pageSize", DEFAULT_PAGE_SIZE))
-        clear_search_url = self._build_clear_search_url(request, page_size)
-        formulas = resolve_formulas_for_user(request.user)
-        requested_formula = request.GET.get("scoreformula", NO_FORMULA_SENTINEL)
-        formula = choose_formula(formulas, requested_formula)
-
-        bdb = Biodatabase.objects.get(name=assembly_name)
-
-        if formula is None:
-            formula_term_list = []
-            col_descriptions = {}
-            formuladto = None
-            current_formula = ""
-        else:
-            formula_term_list = list(
-                formula.terms.select_related("score_param").prefetch_related("score_param__choices")
-            )
-            col_descriptions = build_col_descriptions(formula_term_list)
-            formuladto = formula_to_dto(formula, col_descriptions)
-            current_formula = formula.get_current_formula()
-
-        current_formula_pk = getattr(formula, "pk", None)
-        workspace_user_for_drawer = resolve_workspace_user(request.user)
-        all_term_descriptions = build_all_term_descriptions()
-        formulas_for_drawer = []
-        for f in formulas:
-            formula_expression = f.get_current_formula()
-            formulas_for_drawer.append(
-                {
-                    "pk": f.pk,
-                    "name": f.name,
-                    "is_default": bool(f.default),
-                    "is_current": f.pk == current_formula_pk,
-                    "expression": formula_expression,
-                    "term_help": annotate_formula_terms(formula_expression, all_term_descriptions),
-                    "is_user_formula": f.user_id is not None
-                    and f.user_id == getattr(workspace_user_for_drawer, "pk", None),
-                }
-            )
-
-        workspace_user = resolve_workspace_user(request.user)
-        custom_data_files = list(
-            CustomParam.objects.filter(owner=workspace_user, accession=assembly_name).order_by(
-                "tsv"
-            )
-        )
-        custom_data_for_drawer = [{"file_name": Path(cp.tsv.name).name} for cp in custom_data_files]
-        last_applied_preset_raw = request.GET.get("applied_preset", "")
-        try:
-            last_applied_preset_id = int(last_applied_preset_raw)
-        except (TypeError, ValueError):
-            last_applied_preset_id = None
-
-        filter_presets = []
-        for preset in FilterPreset.objects.filter(
-            owner=workspace_user,
-            genome_name=assembly_name,
-        ).order_by("name", "id"):
-            selected = normalize_selected_parameters(preset.selected_parameters)
-            criteria_labels = []
-            grouped_categorical = {}
-            for item in selected:
-                item_kind = str(item.get("type") or "categorical").strip().lower()
-                param_name_raw = item.get("score_param_name") or ""
-                if item_kind in ("", "categorical") and param_name_raw:
-                    human_val = humanize_identifier(item.get("name", ""))
-                    grouped_categorical.setdefault(humanize_identifier(param_name_raw), []).append(
-                        human_val
-                    )
-                elif item_kind == "numeric" and param_name_raw:
-                    human_name = humanize_identifier(param_name_raw)
-                    op = item.get("operation", "")
-                    val = item.get("value")
-                    val_max = item.get("value_max")
-                    if op == "between" and val is not None and val_max is not None:
-                        criteria_labels.append(f"{human_name}: {val:g}–{val_max:g}")
-                    elif val is not None:
-                        criteria_labels.append(f"{human_name} {op} {val:g}")
-                elif item_kind == "special":
-                    display_name = item.get("display_name") or item.get("name", "")
-                    special_key = str(item.get("special_key") or "").strip()
-                    if display_name:
-                        if special_key == "ec_filter":
-                            criteria_labels.append(f"EC class: {humanize_identifier(display_name)}")
-                        elif special_key == "go_filter":
-                            criteria_labels.append(f"GO: {display_name}")
-                        elif special_key == "structure_source":
-                            criteria_labels.append(
-                                f"Structure: {humanize_identifier(display_name)}"
-                            )
-                        else:
-                            criteria_labels.append(humanize_identifier(display_name))
-            for param_label, values in grouped_categorical.items():
-                criteria_labels.append(f"{param_label}: {', '.join(values)}")
-            if preset.structure_source:
-                criteria_labels.append(f"Structure: {humanize_identifier(preset.structure_source)}")
-            if preset.annotation_value:
-                ann_kind = normalize_annotation_kind(preset.annotation_kind or "ec")
-                ann_label = annotation_kind_label(ann_kind) if ann_kind else "Annotation"
-                criteria_labels.append(f"{ann_label}: {preset.annotation_value}")
-            filter_presets.append(
-                {
-                    "id": preset.pk,
-                    "name": preset.name,
-                    "criteria_count": (
-                        len(selected)
-                        + (1 if preset.structure_source else 0)
-                        + (1 if preset.annotation_value else 0)
-                    ),
-                    "criteria_labels": criteria_labels[:8],
-                    "is_last_applied": preset.pk == last_applied_preset_id,
-                }
-            )
-        active_preset_name = next((p["name"] for p in filter_presets if p["is_last_applied"]), "")
-
-        all_visible_score_params = list(
-            visible_score_params_queryset(request.user).prefetch_related("choices")
-        )
-        visible_score_param_by_name = {
-            score_param.name: score_param for score_param in all_visible_score_params
-        }
+    def _resolve_visible_columns(
+        self, request, formula, formula_term_list, visible_score_param_by_name, col_descriptions
+    ):
         default_column_names = [
             score_param.name for score_param in ordered_score_params(formula_term_list)
         ]
@@ -1144,163 +1022,22 @@ class ProteinListView(View):
         if formula is None:
             tcolumns = [c for c in tcolumns if c != "Score"]
 
-        tdatas = {}
-        page = request.GET.get("page", 1)
-        search_query = request.GET.get("search", "").strip()
-        raw_sort_col = request.GET.get("sort_col", "").strip()
-        raw_sort_dir = request.GET.get("sort_dir", "").strip().lower()
-        if raw_sort_dir not in ("asc", "desc"):
-            raw_sort_dir = ""
-        structure_source = request.GET.get("structure_source", "").strip().lower()
-        ec_filter_value = request.GET.get("ec_filter", "").strip()
-        annotation_kind = normalize_annotation_kind(request.GET.get("annotation_kind", "ec"))
-        annotation_value = request.GET.get("annotation_value", "").strip()
-        if ec_filter_value:
-            annotation_kind = "ec"
-            annotation_value = ec_filter_value
-        proteins = Bioentry.objects.filter(
-            biodatabase__name=assembly_name + Biodatabase.PROT_POSTFIX,
-        )
-        total_protein_count = proteins.count()
-        if structure_source == "none":
-            proteins = proteins.filter(structures__isnull=True)
-        elif structure_source == "experimental":
-            experimental_structures = BioentryStructure.objects.filter(
-                bioentry=OuterRef("pk"),
-            ).exclude(
-                pdb__experiment__in=PDB_MODEL_EXPERIMENTS,
-            )
-            proteins = proteins.annotate(
-                has_experimental_structure=Exists(experimental_structures),
-            ).filter(has_experimental_structure=True)
-        elif structure_source == "alphafold":
-            proteins = proteins.filter(structures__pdb__experiment=PDB_EXPERIMENT_ALPHAFOLD)
-        elif structure_source == "colabfold":
-            proteins = proteins.filter(structures__pdb__experiment=PDB_EXPERIMENT_COLABFOLD)
+        return default_column_names, selected_column_names, score_dict, tcolumns, col_descriptions
 
-        if annotation_value:
-            annotation_query = {
-                "dbxrefs__dbxref__dbname__in": annotation_dbnames(annotation_kind),
-            }
-            lookup_name = (
-                "dbxrefs__dbxref__accession__istartswith"
-                if annotation_supports_prefix(annotation_kind)
-                else "dbxrefs__dbxref__accession__iexact"
-            )
-            annotation_query[lookup_name] = annotation_value
-            proteins = proteins.filter(**annotation_query)
-
-        selected_parameters = normalize_selected_parameters(
-            get_workspace_session_value(request.session, request.user, "selected_parameters", [])
-        )
-        grouped_parameters = grouped_selected_parameters(selected_parameters, humanize=True)
-
-        def _display_filter_option_name(parameter):
-            if str(parameter.get("type") or "").lower() in {"numeric", "special"}:
-                return parameter.get("display_name")
-            raw_name = parameter.get("name") or ""
-            param_name = str(parameter.get("score_param_name") or "").lower()
-            if param_name.endswith("_structure"):
-                return raw_name
-            if param_name.endswith("_pocket"):
-                if raw_name == "No_pockets":
-                    return "No pockets"
-                if raw_name.lower().startswith("pocket pocket"):
-                    suffix = raw_name[len("pocket pocket") :].strip()
-                    return f"Pocket {suffix}" if suffix else "Pocket"
-                return raw_name
-            return humanize_identifier(raw_name) or raw_name
-
-        display_parameters = [
-            {
-                **parameter,
-                "display_score_param_name": (
-                    humanize_identifier(parameter.get("score_param_name"))
-                    or parameter.get("score_param_name")
-                ),
-                "name": parameter.get("name") or parameter.get("display_name") or "",
-                "display_name": _display_filter_option_name(parameter),
-            }
-            for parameter in selected_parameters
-        ]
-
-        if selected_parameters:
-            try:
-                proteins = apply_selected_parameter_filters(proteins, selected_parameters)
-            except Exception:
-                logger.exception(
-                    "Failed to build protein selected-parameter filters: %s", selected_parameters
-                )
-                raise
-
-        proteins = apply_protein_search(proteins, search_query)
-
-        formula_expression = getattr(formula, "expression", "") or ""
-        formula_param_names = {term.score_param.name for term in formula_term_list}
-        column_param_names = set(selected_column_names)
-        # Include sort column in prefetch when it's a score param column
-        sort_param_for_prefetch = raw_sort_col if raw_sort_col in selected_column_names else None
-        # When no formula and no explicit sort, default to Druggability desc if available --
-        # preferring P2Rank's value over FPocket's own per protein (roadmap: P2Rank is the
-        # primary druggability signal shown everywhere else in the app -- protein page,
-        # metabolism ranking, workspace counts), falling back to FPocket when a protein has
-        # no P2Rank value loaded. An explicit sort_col=Druggability click (the column header)
-        # still sorts by the raw FPocket score only -- this only changes the untouched,
-        # land-on-the-page default. The "Druggability" column's own displayed values, its
-        # ScoreFormula term, and CSV export are unaffected: this only substitutes the sort key.
-        _drugg_default = (
-            not raw_sort_col and formula is None and "Druggability" in selected_column_names
-        )
-        if formula_expression:
-            from tpweb.services.formula_evaluator import (
-                build_all_options_zero,
-                build_expression_variables,
-                safe_eval_expression,
-            )
-
-            zero_cache = build_all_options_zero(request.user)
-            needed_score_param_names = None  # prefetch all for expression scoring
-        else:
-            zero_cache = None
-            needed_score_param_names = formula_param_names | column_param_names
-            if sort_param_for_prefetch:
-                needed_score_param_names = needed_score_param_names | {sort_param_for_prefetch}
-            if _drugg_default:
-                needed_score_param_names = needed_score_param_names | {
-                    "Druggability",
-                    "p2rank_probability",
-                }
-
-        ranking_spv_qs = ScoreParamValue.objects.select_related("score_param")
-        if needed_score_param_names is not None:
-            ranking_spv_qs = ranking_spv_qs.filter(score_param__name__in=needed_score_param_names)
-
-        ranking_queryset = (
-            proteins.only(
-                "bioentry_id",
-                "accession",
-                "name",
-                "description",
-            )
-            .prefetch_related(Prefetch("score_params", queryset=ranking_spv_qs))
-            .distinct()
-        )
-
-        coefficient_by_param = coefficient_map(formula_term_list)
-
-        # Resolve effective sort: which column and direction
-        sort_by_param = (
-            raw_sort_col
-            if raw_sort_col in selected_column_names
-            else ("Druggability" if _drugg_default else None)
-        )
-        sort_by_score = (raw_sort_col == "Score" and formula is not None) or (
-            not raw_sort_col and formula is not None and not sort_by_param
-        )
-        sort_by_accession = not sort_by_param and not sort_by_score
-        effective_sort_col = sort_by_param or ("Score" if sort_by_score else "__accession__")
-        effective_sort_dir = raw_sort_dir or ("asc" if sort_by_accession else "desc")
-
+    @staticmethod
+    def _rank_and_sort_proteins(
+        ranking_queryset,
+        formula_expression,
+        zero_cache,
+        coefficient_by_param,
+        _drugg_default,
+        sort_by_param,
+        sort_by_score,
+        effective_sort_col,
+        effective_sort_dir,
+        selected_parameters,
+        needed_score_param_names,
+    ):
         ranked_proteins = []
         try:
             for protein in ranking_queryset:
@@ -1369,22 +1106,334 @@ class ProteinListView(View):
                     key=lambda p: (str(p["col_val"]).casefold(), p["accession"]),
                     reverse=is_desc,
                 )
-            ranked_proteins = non_null + null_group
-        elif sort_by_score:
+            return non_null + null_group
+        if sort_by_score:
             if effective_sort_dir == "asc":
-                ranked_proteins = sorted(
-                    ranked_proteins, key=lambda p: (p["score"], p["accession"])
-                )
-            else:
-                ranked_proteins = sorted(
-                    ranked_proteins, key=lambda p: (-p["score"], p["accession"])
-                )
-        else:
-            ranked_proteins = sorted(
-                ranked_proteins,
-                key=lambda p: p["accession"],
-                reverse=(effective_sort_dir == "desc"),
+                return sorted(ranked_proteins, key=lambda p: (p["score"], p["accession"]))
+            return sorted(ranked_proteins, key=lambda p: (-p["score"], p["accession"]))
+        return sorted(
+            ranked_proteins,
+            key=lambda p: p["accession"],
+            reverse=(effective_sort_dir == "desc"),
+        )
+
+    @staticmethod
+    def _apply_structure_and_annotation_filters(
+        assembly_name, structure_source, annotation_kind, annotation_value
+    ):
+        proteins = Bioentry.objects.filter(
+            biodatabase__name=assembly_name + Biodatabase.PROT_POSTFIX,
+        )
+        total_protein_count = proteins.count()
+        if structure_source == "none":
+            proteins = proteins.filter(structures__isnull=True)
+        elif structure_source == "experimental":
+            experimental_structures = BioentryStructure.objects.filter(
+                bioentry=OuterRef("pk"),
+            ).exclude(
+                pdb__experiment__in=PDB_MODEL_EXPERIMENTS,
             )
+            proteins = proteins.annotate(
+                has_experimental_structure=Exists(experimental_structures),
+            ).filter(has_experimental_structure=True)
+        elif structure_source == "alphafold":
+            proteins = proteins.filter(structures__pdb__experiment=PDB_EXPERIMENT_ALPHAFOLD)
+        elif structure_source == "colabfold":
+            proteins = proteins.filter(structures__pdb__experiment=PDB_EXPERIMENT_COLABFOLD)
+
+        if annotation_value:
+            annotation_query = {
+                "dbxrefs__dbxref__dbname__in": annotation_dbnames(annotation_kind),
+            }
+            lookup_name = (
+                "dbxrefs__dbxref__accession__istartswith"
+                if annotation_supports_prefix(annotation_kind)
+                else "dbxrefs__dbxref__accession__iexact"
+            )
+            annotation_query[lookup_name] = annotation_value
+            proteins = proteins.filter(**annotation_query)
+
+        return proteins, total_protein_count
+
+    @staticmethod
+    def _build_filter_presets(workspace_user, assembly_name, last_applied_preset_id):
+        filter_presets = []
+        for preset in FilterPreset.objects.filter(
+            owner=workspace_user,
+            genome_name=assembly_name,
+        ).order_by("name", "id"):
+            selected = normalize_selected_parameters(preset.selected_parameters)
+            criteria_labels = []
+            grouped_categorical = {}
+            for item in selected:
+                item_kind = str(item.get("type") or "categorical").strip().lower()
+                param_name_raw = item.get("score_param_name") or ""
+                if item_kind in ("", "categorical") and param_name_raw:
+                    human_val = humanize_identifier(item.get("name", ""))
+                    grouped_categorical.setdefault(humanize_identifier(param_name_raw), []).append(
+                        human_val
+                    )
+                elif item_kind == "numeric" and param_name_raw:
+                    human_name = humanize_identifier(param_name_raw)
+                    op = item.get("operation", "")
+                    val = item.get("value")
+                    val_max = item.get("value_max")
+                    if op == "between" and val is not None and val_max is not None:
+                        criteria_labels.append(f"{human_name}: {val:g}–{val_max:g}")
+                    elif val is not None:
+                        criteria_labels.append(f"{human_name} {op} {val:g}")
+                elif item_kind == "special":
+                    display_name = item.get("display_name") or item.get("name", "")
+                    special_key = str(item.get("special_key") or "").strip()
+                    if display_name:
+                        if special_key == "ec_filter":
+                            criteria_labels.append(f"EC class: {humanize_identifier(display_name)}")
+                        elif special_key == "go_filter":
+                            criteria_labels.append(f"GO: {display_name}")
+                        elif special_key == "structure_source":
+                            criteria_labels.append(
+                                f"Structure: {humanize_identifier(display_name)}"
+                            )
+                        else:
+                            criteria_labels.append(humanize_identifier(display_name))
+            for param_label, values in grouped_categorical.items():
+                criteria_labels.append(f"{param_label}: {', '.join(values)}")
+            if preset.structure_source:
+                criteria_labels.append(f"Structure: {humanize_identifier(preset.structure_source)}")
+            if preset.annotation_value:
+                ann_kind = normalize_annotation_kind(preset.annotation_kind or "ec")
+                ann_label = annotation_kind_label(ann_kind) if ann_kind else "Annotation"
+                criteria_labels.append(f"{ann_label}: {preset.annotation_value}")
+            filter_presets.append(
+                {
+                    "id": preset.pk,
+                    "name": preset.name,
+                    "criteria_count": (
+                        len(selected)
+                        + (1 if preset.structure_source else 0)
+                        + (1 if preset.annotation_value else 0)
+                    ),
+                    "criteria_labels": criteria_labels[:8],
+                    "is_last_applied": preset.pk == last_applied_preset_id,
+                }
+            )
+        return filter_presets
+
+    def get(self, request, genome, *args, **kwargs):
+        assembly_name = resolve_genome_from_slug(request.user, genome)
+        if not assembly_name:
+            raise Http404("Genome not found")
+
+        raw_filters_param = request.GET.get("filters")
+        if raw_filters_param is not None:
+            return self._seed_filters_from_link(request, raw_filters_param)
+
+        page_size = parse_page_size(request.GET.get("pageSize", DEFAULT_PAGE_SIZE))
+        clear_search_url = self._build_clear_search_url(request, page_size)
+        formulas = resolve_formulas_for_user(request.user)
+        requested_formula = request.GET.get("scoreformula", NO_FORMULA_SENTINEL)
+        formula = choose_formula(formulas, requested_formula)
+
+        bdb = Biodatabase.objects.get(name=assembly_name)
+
+        if formula is None:
+            formula_term_list = []
+            col_descriptions = {}
+            formuladto = None
+            current_formula = ""
+        else:
+            formula_term_list = list(
+                formula.terms.select_related("score_param").prefetch_related("score_param__choices")
+            )
+            col_descriptions = build_col_descriptions(formula_term_list)
+            formuladto = formula_to_dto(formula, col_descriptions)
+            current_formula = formula.get_current_formula()
+
+        current_formula_pk = getattr(formula, "pk", None)
+        workspace_user_for_drawer = resolve_workspace_user(request.user)
+        all_term_descriptions = build_all_term_descriptions()
+        formulas_for_drawer = []
+        for f in formulas:
+            formula_expression = f.get_current_formula()
+            formulas_for_drawer.append(
+                {
+                    "pk": f.pk,
+                    "name": f.name,
+                    "is_default": bool(f.default),
+                    "is_current": f.pk == current_formula_pk,
+                    "expression": formula_expression,
+                    "term_help": annotate_formula_terms(formula_expression, all_term_descriptions),
+                    "is_user_formula": f.user_id is not None
+                    and f.user_id == getattr(workspace_user_for_drawer, "pk", None),
+                }
+            )
+
+        workspace_user = resolve_workspace_user(request.user)
+        custom_data_files = list(
+            CustomParam.objects.filter(owner=workspace_user, accession=assembly_name).order_by(
+                "tsv"
+            )
+        )
+        custom_data_for_drawer = [{"file_name": Path(cp.tsv.name).name} for cp in custom_data_files]
+        last_applied_preset_raw = request.GET.get("applied_preset", "")
+        try:
+            last_applied_preset_id = int(last_applied_preset_raw)
+        except (TypeError, ValueError):
+            last_applied_preset_id = None
+
+        filter_presets = self._build_filter_presets(
+            workspace_user, assembly_name, last_applied_preset_id
+        )
+        active_preset_name = next((p["name"] for p in filter_presets if p["is_last_applied"]), "")
+
+        all_visible_score_params = list(
+            visible_score_params_queryset(request.user).prefetch_related("choices")
+        )
+        visible_score_param_by_name = {
+            score_param.name: score_param for score_param in all_visible_score_params
+        }
+        default_column_names, selected_column_names, score_dict, tcolumns, col_descriptions = (
+            self._resolve_visible_columns(
+                request, formula, formula_term_list, visible_score_param_by_name, col_descriptions
+            )
+        )
+
+        tdatas = {}
+        page = request.GET.get("page", 1)
+        search_query = request.GET.get("search", "").strip()
+        raw_sort_col = request.GET.get("sort_col", "").strip()
+        raw_sort_dir = request.GET.get("sort_dir", "").strip().lower()
+        if raw_sort_dir not in ("asc", "desc"):
+            raw_sort_dir = ""
+        structure_source = request.GET.get("structure_source", "").strip().lower()
+        ec_filter_value = request.GET.get("ec_filter", "").strip()
+        annotation_kind = normalize_annotation_kind(request.GET.get("annotation_kind", "ec"))
+        annotation_value = request.GET.get("annotation_value", "").strip()
+        if ec_filter_value:
+            annotation_kind = "ec"
+            annotation_value = ec_filter_value
+        proteins, total_protein_count = self._apply_structure_and_annotation_filters(
+            assembly_name, structure_source, annotation_kind, annotation_value
+        )
+
+        selected_parameters = normalize_selected_parameters(
+            get_workspace_session_value(request.session, request.user, "selected_parameters", [])
+        )
+        grouped_parameters = grouped_selected_parameters(selected_parameters, humanize=True)
+
+        def _display_filter_option_name(parameter):
+            if str(parameter.get("type") or "").lower() in {"numeric", "special"}:
+                return parameter.get("display_name")
+            raw_name = parameter.get("name") or ""
+            param_name = str(parameter.get("score_param_name") or "").lower()
+            if param_name.endswith("_structure"):
+                return raw_name
+            if param_name.endswith("_pocket"):
+                if raw_name == "No_pockets":
+                    return "No pockets"
+                if raw_name.lower().startswith("pocket pocket"):
+                    suffix = raw_name[len("pocket pocket") :].strip()
+                    return f"Pocket {suffix}" if suffix else "Pocket"
+                return raw_name
+            return humanize_identifier(raw_name) or raw_name
+
+        display_parameters = [
+            {
+                **parameter,
+                "display_score_param_name": (
+                    humanize_identifier(parameter.get("score_param_name"))
+                    or parameter.get("score_param_name")
+                ),
+                "name": parameter.get("name") or parameter.get("display_name") or "",
+                "display_name": _display_filter_option_name(parameter),
+            }
+            for parameter in selected_parameters
+        ]
+
+        if selected_parameters:
+            try:
+                proteins = apply_selected_parameter_filters(proteins, selected_parameters)
+            except Exception:
+                logger.exception(
+                    "Failed to build protein selected-parameter filters: %s", selected_parameters
+                )
+                raise
+
+        proteins = apply_protein_search(proteins, search_query)
+
+        formula_expression = getattr(formula, "expression", "") or ""
+        formula_param_names = {term.score_param.name for term in formula_term_list}
+        column_param_names = set(selected_column_names)
+        # Include sort column in prefetch when it's a score param column
+        sort_param_for_prefetch = raw_sort_col if raw_sort_col in selected_column_names else None
+        # When no formula and no explicit sort, default to Druggability desc if available --
+        # preferring P2Rank's value over FPocket's own per protein (roadmap: P2Rank is the
+        # primary druggability signal shown everywhere else in the app -- protein page,
+        # metabolism ranking, workspace counts), falling back to FPocket when a protein has
+        # no P2Rank value loaded. An explicit sort_col=Druggability click (the column header)
+        # still sorts by the raw FPocket score only -- this only changes the untouched,
+        # land-on-the-page default. The "Druggability" column's own displayed values, its
+        # ScoreFormula term, and CSV export are unaffected: this only substitutes the sort key.
+        _drugg_default = (
+            not raw_sort_col and formula is None and "Druggability" in selected_column_names
+        )
+        if formula_expression:
+            zero_cache = build_all_options_zero(request.user)
+            needed_score_param_names = None  # prefetch all for expression scoring
+        else:
+            zero_cache = None
+            needed_score_param_names = formula_param_names | column_param_names
+            if sort_param_for_prefetch:
+                needed_score_param_names = needed_score_param_names | {sort_param_for_prefetch}
+            if _drugg_default:
+                needed_score_param_names = needed_score_param_names | {
+                    "Druggability",
+                    "p2rank_probability",
+                }
+
+        ranking_spv_qs = ScoreParamValue.objects.select_related("score_param")
+        if needed_score_param_names is not None:
+            ranking_spv_qs = ranking_spv_qs.filter(score_param__name__in=needed_score_param_names)
+
+        ranking_queryset = (
+            proteins.only(
+                "bioentry_id",
+                "accession",
+                "name",
+                "description",
+            )
+            .prefetch_related(Prefetch("score_params", queryset=ranking_spv_qs))
+            .distinct()
+        )
+
+        coefficient_by_param = coefficient_map(formula_term_list)
+
+        # Resolve effective sort: which column and direction
+        sort_by_param = (
+            raw_sort_col
+            if raw_sort_col in selected_column_names
+            else ("Druggability" if _drugg_default else None)
+        )
+        sort_by_score = (raw_sort_col == "Score" and formula is not None) or (
+            not raw_sort_col and formula is not None and not sort_by_param
+        )
+        sort_by_accession = not sort_by_param and not sort_by_score
+        effective_sort_col = sort_by_param or ("Score" if sort_by_score else "__accession__")
+        effective_sort_dir = raw_sort_dir or ("asc" if sort_by_accession else "desc")
+
+        ranked_proteins = self._rank_and_sort_proteins(
+            ranking_queryset,
+            formula_expression,
+            zero_cache,
+            coefficient_by_param,
+            _drugg_default,
+            sort_by_param,
+            sort_by_score,
+            effective_sort_col,
+            effective_sort_dir,
+            selected_parameters,
+            needed_score_param_names,
+        )
 
         filtered_protein_count = len(ranked_proteins)
 

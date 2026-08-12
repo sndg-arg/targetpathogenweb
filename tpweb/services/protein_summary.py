@@ -138,7 +138,7 @@ def p2rank_label(value):
 
     Same shape as druggability_label but P2Rank's own thresholds (high >= 0.5,
     medium 0.2-0.49 -- see the "Probability: high >= 0.5..." hint in
-    pocket_cards.html and p2rank_probability_color in StructureView.py),
+    pocket_cards.html and p2rank_probability_color in structure_summary.py),
     since P2Rank's probability scale isn't calibrated the same as FPocket's
     druggability score."""
     if value is None:
@@ -368,8 +368,8 @@ _pocket_reference_cache = None
 def _pocket_reference_rows():
     """Cached module-level lookup for the FPocket druggability Property/ResidueSet rows
     used by _resolve_fpocket_structure_by_max_score -- same always-the-same-rows
-    rationale as StructureView._pdb_reference_rows, kept local to this module rather
-    than imported from a view (CLAUDE.md: views delegate to services, not the reverse)."""
+    rationale as structure_summary._pdb_reference_rows, kept local to this module
+    since it only needs 2 of that function's 6 rows."""
     global _pocket_reference_cache
     if _pocket_reference_cache is None:
         from tpweb.models.pdb import Property, ResidueSet

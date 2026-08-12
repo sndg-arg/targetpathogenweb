@@ -652,7 +652,7 @@ def _build_assembly_workspace_metrics(assembly_name):
         # same base queryset (chokepoint_role is a plain field, not a
         # relation, so filtering it inside Count() can't create the kind of
         # ambiguous multi-valued join FilteredRelation exists to prevent
-        # elsewhere in this codebase -- see StructureView._ranked_pocket_ids).
+        # elsewhere in this codebase -- see structure_summary._ranked_pocket_ids).
         link_totals = metabolic_links_qs.aggregate(
             protein_count=Count("bioentry_id", distinct=True),
             chokepoint_reaction_count=Count(
