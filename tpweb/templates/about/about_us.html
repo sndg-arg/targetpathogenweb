@@ -6,15 +6,22 @@
     <link rel="stylesheet" href="{% static 'css/pages/data-sources.css' %}?v=20260811-topbar-offset">
 {% endblock %}
 
+{% block breadcrumbs %}
+<div class="tp-breadcrumb-bar">
+    <div class="tp-breadcrumb-bar-inner">
+        {% url 'tpwebapp:index' as index_url %}
+        {% trans "About us" as crumb_about %}
+        {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_about %}
+    </div>
+</div>
+{% endblock %}
+
 {% block body %}
 <div class="ds-page">
 
     <section class="ds-hero">
         <div class="tp-view-head">
             <div class="tp-view-head-copy">
-                {% url 'tpwebapp:index' as index_url %}
-                {% trans "About us" as crumb_about %}
-                {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_about %}
                 <p class="ds-eyebrow">{% trans "Project and team" %}</p>
                 <h1 class="ds-hero-title">{% trans "About Target Pathogen" %}</h1>
                 <p class="ds-hero-description">{% trans "Target Pathogen is a bioinformatics platform developed to support transparent, evidence-based prioritization of protein targets in pathogenic organisms." %}</p>

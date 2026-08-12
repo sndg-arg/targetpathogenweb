@@ -6,21 +6,28 @@
     <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260811-topbar-offset">
 {% endblock %}
 
+{% block breadcrumbs %}
+<div class="tp-breadcrumb-bar">
+    <div class="tp-breadcrumb-bar-inner">
+        {% trans "Genomes" as crumb_genomes %}
+        {% trans "Proteins" as crumb_proteins %}
+        {% url 'tpwebapp:index' as index_url %}
+        {% url 'tpwebapp:genomes_list' as genomes_url %}
+        {% url 'tpwebapp:assembly' protein.genome as assembly_url %}
+        {% url 'tpwebapp:protein_list' protein.genome as proteins_url %}
+        {% with crumb_protein=protein.accession|add:" · "|add:protein.description %}
+        {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=protein.assembly_label crumb_3_url=assembly_url crumb_4_label=crumb_proteins crumb_4_url=proteins_url crumb_5_label=crumb_protein %}
+        {% endwith %}
+    </div>
+</div>
+{% endblock %}
+
 {% block body %}
 
     <div class="protein-page">
         <section class="protein-hero" id="section-overview">
             <div class="protein-hero-top tp-view-head">
                 <div class="protein-hero-content tp-view-head-copy">
-                    {% trans "Genomes" as crumb_genomes %}
-                    {% trans "Proteins" as crumb_proteins %}
-                    {% url 'tpwebapp:index' as index_url %}
-                    {% url 'tpwebapp:genomes_list' as genomes_url %}
-                    {% url 'tpwebapp:assembly' protein.genome as assembly_url %}
-                    {% url 'tpwebapp:protein_list' protein.genome as proteins_url %}
-                    {% with crumb_protein=protein.accession|add:" · "|add:protein.description %}
-                    {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=protein.assembly_label crumb_3_url=assembly_url crumb_4_label=crumb_proteins crumb_4_url=proteins_url crumb_5_label=crumb_protein %}
-                    {% endwith %}
                     <p class="protein-hero-eyebrow">
                         <a class="protein-hero-eyebrow-genome" href="{{ assembly_url }}" title="{% trans "Open this genome's overview" %}">{{ protein.assembly_label }}</a>
                         <span class="protein-hero-eyebrow-sep" aria-hidden="true">&middot;</span>

@@ -6,20 +6,26 @@
     <link rel="stylesheet" href="{% static 'css/pages/blast.css' %}?v=20260710-select-fix1">
 {% endblock %}
 
+{% block breadcrumbs %}
+<div class="tp-breadcrumb-bar">
+    <div class="tp-breadcrumb-bar-inner">
+        {% trans "Genomes" as crumb_genomes %}
+        {% trans "Proteins" as crumb_proteins %}
+        {% trans "Sequence search" as crumb_blast %}
+        {% url 'tpwebapp:index' as index_url %}
+        {% url 'tpwebapp:genomes_list' as genomes_url %}
+        {% with crumb_genome="Genome: "|add:genome_label %}
+        {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_genome crumb_3_url=proteins_url crumb_4_label=crumb_blast %}
+        {% endwith %}
+    </div>
+</div>
+{% endblock %}
+
 {% block body %}
     <div class="blast-page">
 
         {# ── Hero ── #}
         <section class="blast-hero">
-            {% trans "Genomes" as crumb_genomes %}
-            {% trans "Proteins" as crumb_proteins %}
-            {% trans "Sequence search" as crumb_blast %}
-            {% url 'tpwebapp:index' as index_url %}
-            {% url 'tpwebapp:genomes_list' as genomes_url %}
-            {% with crumb_genome="Genome: "|add:genome_label %}
-            {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_genome crumb_3_url=proteins_url crumb_4_label=crumb_blast %}
-            {% endwith %}
-
             <span class="blast-eyebrow">{% trans "Sequence search · blastp · genome-specific" %}</span>
             <h1>{% trans "Protein sequence search" %}</h1>
             <p class="blast-subtitle">

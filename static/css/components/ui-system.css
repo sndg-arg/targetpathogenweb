@@ -1515,7 +1515,7 @@ a.tp-chip--go:hover {
 }
 
 .tp-breadcrumb {
-    margin: 0 0 var(--tp-ui-gap-sm);
+    margin: 0;
     max-width: 100%;
 }
 
@@ -1528,9 +1528,6 @@ a.tp-chip--go:hover {
     flex-wrap: wrap;
     gap: 4px;
     max-width: 100%;
-    border: 0;
-    border-radius: 0;
-    background: transparent;
 }
 
 .tp-breadcrumb-item {
@@ -1541,64 +1538,72 @@ a.tp-chip--go:hover {
 }
 
 .tp-breadcrumb-item + .tp-breadcrumb-item::before {
-    content: "/";
+    content: "\203A";
     color: var(--tp-color-text-soft);
-    font-size: 0.74rem;
-    font-weight: 700;
-    opacity: 0.95;
+    font-size: 0.8rem;
     margin: 0 1px;
 }
 
 .tp-breadcrumb-link,
 .tp-breadcrumb-current {
-    display: inline-flex;
-    align-items: center;
-    min-height: 24px;
-    border-radius: 999px;
     font-size: var(--tp-font-size-sm);
     line-height: 1.2;
-    padding: 0 9px;
     white-space: nowrap;
     max-width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
+    font-weight: 600;
 }
 
 .tp-breadcrumb-link {
-    border: 1px solid transparent;
-    background: transparent;
     color: var(--tp-color-text-secondary);
-    font-weight: 600;
     text-decoration: none;
-    transition: color 140ms ease, background-color 140ms ease, border-color 140ms ease;
+    transition: color 140ms ease;
 }
 
 .tp-breadcrumb-link:hover,
 .tp-breadcrumb-link:focus-visible {
-    border-color: var(--view-accent-border, var(--tp-color-brand-300));
-    background: var(--view-accent-soft-2, var(--tp-color-brand-050));
-    color: var(--view-accent-ink, var(--tp-color-brand-900));
-    text-decoration: none;
+    color: var(--tp-color-link-hover);
+    text-decoration: underline;
     outline: none;
 }
 
 .tp-breadcrumb-current {
-    border: 1px solid var(--view-accent-border, var(--tp-color-brand-300));
-    background: var(--view-accent-soft-2, var(--tp-color-brand-050));
-    color: var(--view-accent-ink, var(--tp-color-brand-900));
-    font-weight: 600;
+    color: var(--tp-color-text-muted);
+}
+
+/* Docked strip under the fixed top bar (masterpage.html) -- each page
+   supplies this wrapper around its own {% block breadcrumbs %} include, so
+   pages without breadcrumbs render nothing. Inner max-width/padding
+   mirrors .tp-main's own values per breakpoint so the text lines up with
+   the hero title below it. */
+.tp-breadcrumb-bar {
+    background: var(--tp-color-surface-soft);
+    border-bottom: 1px solid var(--tp-color-border-soft);
+}
+
+.tp-breadcrumb-bar-inner {
+    max-width: 1360px;
+    margin: 0 auto;
+    padding: 9px 18px;
+}
+
+@media (min-width: 992px) {
+    .tp-breadcrumb-bar-inner {
+        padding: 9px 16px;
+    }
+}
+
+@media (max-width: 991px) {
+    .tp-breadcrumb-bar-inner {
+        padding: 8px 10px;
+    }
 }
 
 @media (max-width: 700px) {
-    .tp-breadcrumb-list {
-        border-radius: 0;
-    }
-
     .tp-breadcrumb-link,
     .tp-breadcrumb-current {
-        min-height: 22px;
         font-size: var(--tp-font-size-xs);
-        padding: 0 8px;
     }
 
     .tp-dt-wrapper .tp-dt-toolbar,

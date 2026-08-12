@@ -6,23 +6,30 @@
     <link rel="stylesheet" href="{% static 'css/pages/binder-detail.css' %}?v=20260811-topbar-offset">
 {% endblock %}
 
+{% block breadcrumbs %}
+<div class="tp-breadcrumb-bar">
+    <div class="tp-breadcrumb-bar-inner">
+        {% trans "Genomes" as crumb_genomes %}
+        {% trans "Proteins" as crumb_proteins %}
+        {% url 'tpwebapp:index' as index_url %}
+        {% url 'tpwebapp:genomes_list' as genomes_url %}
+        {% url 'tpwebapp:assembly' genome as assembly_url %}
+        {% with crumb_genome="Genome: "|add:assembly_label %}
+        {% with crumb_protein="Protein: "|add:protein.accession %}
+        {% with crumb_binder="Ligand: "|add:binder.name %}
+        {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_genome crumb_3_url=assembly_url crumb_4_label=crumb_proteins crumb_4_url=proteins_url crumb_5_label=crumb_protein crumb_5_url=protein_url crumb_6_label=crumb_binder %}
+        {% endwith %}
+        {% endwith %}
+        {% endwith %}
+    </div>
+</div>
+{% endblock %}
+
 {% block body %}
     <div class="binder-page">
         <section class="binder-hero" id="section-overview">
             <div class="binder-hero-top tp-view-head">
                 <div class="binder-hero-content tp-view-head-copy">
-                    {% trans "Genomes" as crumb_genomes %}
-                    {% trans "Proteins" as crumb_proteins %}
-                    {% url 'tpwebapp:index' as index_url %}
-                    {% url 'tpwebapp:genomes_list' as genomes_url %}
-                    {% url 'tpwebapp:assembly' genome as assembly_url %}
-                    {% with crumb_genome="Genome: "|add:assembly_label %}
-                    {% with crumb_protein="Protein: "|add:protein.accession %}
-                    {% with crumb_binder="Ligand: "|add:binder.name %}
-                    {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_genome crumb_3_url=assembly_url crumb_4_label=crumb_proteins crumb_4_url=proteins_url crumb_5_label=crumb_protein crumb_5_url=protein_url crumb_6_label=crumb_binder %}
-                    {% endwith %}
-                    {% endwith %}
-                    {% endwith %}
                     <p class="binder-hero-eyebrow">{% trans "Ligand profile" %}</p>
                     <h1>{{ binder.name }}</h1>
                     <p class="binder-description">

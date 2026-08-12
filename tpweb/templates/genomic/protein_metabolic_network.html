@@ -9,16 +9,23 @@
     <link rel="stylesheet" href="{% static 'css/pages/protein-metabolic-network.css' %}?v=20260728-feedbackfix1">
 {% endblock %}
 
+{% block breadcrumbs %}
+<div class="tp-breadcrumb-bar">
+    <div class="tp-breadcrumb-bar-inner">
+        {% trans "Genomes" as crumb_genomes %}
+        {% url 'tpwebapp:index' as index_url %}
+        {% url 'tpwebapp:genomes_list' as genomes_url %}
+        {% trans "Metabolic network" as crumb_network %}
+        {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=assembly_name crumb_3_url=assembly_url crumb_4_label=protein.accession crumb_4_url=protein_url crumb_5_label=crumb_network %}
+    </div>
+</div>
+{% endblock %}
+
 {% block body %}
 <div class="genome-page metabolism-page protein-metabolic-network-page">
     <section class="genome-hero metabolism-hero">
         <div class="genome-hero-top tp-view-head">
             <div class="genome-hero-content tp-view-head-copy">
-                {% trans "Genomes" as crumb_genomes %}
-                {% url 'tpwebapp:index' as index_url %}
-                {% url 'tpwebapp:genomes_list' as genomes_url %}
-                {% trans "Metabolic network" as crumb_network %}
-                {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=assembly_name crumb_3_url=assembly_url crumb_4_label=protein.accession crumb_4_url=protein_url crumb_5_label=crumb_network %}
                 <p class="genome-hero-eyebrow">{% trans "Metabolic network" %}</p>
                 <h1>{{ protein.accession }}</h1>
                 <p class="genome-description">{{ protein.description }}</p>
