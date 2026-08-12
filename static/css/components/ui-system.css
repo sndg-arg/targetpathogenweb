@@ -1537,13 +1537,20 @@ a.tp-chip--go:hover {
     min-width: 0;
 }
 
+/* Same border-box chevron already used for dropdowns/selects (.tp-chevron),
+   reused here instead of a "›" font glyph -- renders crisp and identical
+   across fonts/platforms instead of depending on how each font draws that
+   character. */
 .tp-breadcrumb-item + .tp-breadcrumb-item::before {
-    content: "\203A";
-    color: var(--tp-color-text-soft);
-    font-size: 0.86rem;
-    font-weight: 600;
-    opacity: 0.85;
-    margin: 0 1px;
+    content: "";
+    display: inline-block;
+    width: var(--tp-chevron-size);
+    height: var(--tp-chevron-size);
+    border-right: var(--tp-chevron-stroke) solid var(--tp-color-text-soft);
+    border-bottom: var(--tp-chevron-stroke) solid var(--tp-color-text-soft);
+    transform: rotate(-45deg);
+    opacity: var(--tp-chevron-opacity);
+    margin: 0 2px;
 }
 
 .tp-breadcrumb-home-icon {
@@ -1603,11 +1610,25 @@ a.tp-chip--go:hover {
    the hero title below it. Top hairline echoes the same "finished edge"
    idiom already used on .tp-topbar-desktop, so this strip reads as part
    of the same considered chrome rather than a plain divider slapped
-   underneath it. */
+   underneath it. Sticky, not static -- stays reachable while scrolling
+   instead of disappearing after the first screen, offset by the fixed
+   bar's own height (64px mobile topbar, var(--tp-topbar-h) desktop) so it
+   docks flush under whichever bar is active at that breakpoint. z-index
+   sits just below the bar itself (1030) and well below the assistant
+   drawer/tooltip/loader tiers, but above ordinary page content. */
 .tp-breadcrumb-bar {
+    position: sticky;
+    top: 64px;
+    z-index: 1025;
     background: var(--tp-color-surface-soft);
     border-bottom: 1px solid var(--tp-color-border-soft);
     box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5) inset;
+}
+
+@media (min-width: 992px) {
+    .tp-breadcrumb-bar {
+        top: var(--tp-topbar-h);
+    }
 }
 
 .tp-dark .tp-breadcrumb-bar {
