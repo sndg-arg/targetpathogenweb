@@ -1278,8 +1278,14 @@
                 transition: box-shadow var(--tp-ui-motion-base) var(--tp-ui-ease-standard);
             }
 
+            /* Tight, not the usual soft/wide drop shadow -- the sticky
+               breadcrumb bar (ui-system.css) now sits flush under this bar
+               at all scroll positions, so a shadow with real reach would
+               bleed a dark gradient across it (confirmed live: it did,
+               with the previous 10px/28px version). This still reads as
+               "floating" without smearing onto the strip below. */
             body.tp-scrolled .tp-topbar-desktop {
-                box-shadow: 0 1px 0 rgba(255, 255, 255, 0.08) inset, 0 10px 28px rgba(6, 16, 23, 0.32);
+                box-shadow: 0 1px 0 rgba(255, 255, 255, 0.08) inset, 0 2px 6px rgba(6, 16, 23, 0.22);
             }
 
             .tp-topbar-desktop-inner {
