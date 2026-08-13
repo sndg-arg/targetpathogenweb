@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20260812-residue-modal-rename">
+    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20260812-viewer-settings">
 {% endblock %}
 
 {% block body %}
@@ -180,6 +180,15 @@
                 <span class="sv-tb-label">{% trans "Info" %}</span>
             </button>
 
+            {# Settings — see what's currently on screen and customize colors #}
+            <div class="sv-tb-sep" aria-hidden="true"></div>
+            <button type="button" class="sv-tb-btn" id="sv-settings-btn"
+                    aria-haspopup="dialog" aria-controls="viewer-settings-modal"
+                    title="{% trans 'Layer summary and color settings' %}">
+                <span class="sv-tb-icon" aria-hidden="true">{% include "components/icons/settings.html" %}</span>
+                <span class="sv-tb-label">{% trans "Settings" %}</span>
+            </button>
+
         </nav>
     </div>
 
@@ -274,6 +283,33 @@
         </div>
     </div>
 </div>
+
+{# Viewer settings modal -- what's currently visible + color customization #}
+<div class="residue-modal-backdrop" id="viewer-settings-modal" aria-hidden="true">
+    <div class="viewer-settings-panel" role="dialog" aria-modal="true" aria-labelledby="viewer-settings-title">
+        <div class="residue-modal-head">
+            <h3 id="viewer-settings-title">{% trans "View settings" %}</h3>
+            <button type="button" class="btn tp-btn tp-btn--neutral tp-btn--sm residue-modal-close"
+                    id="close-viewer-settings-modal" aria-label="{% trans 'Close' %}">&times;</button>
+        </div>
+        <div class="viewer-settings-body">
+            <section class="viewer-settings-section">
+                <h4 class="viewer-settings-section-title">{% trans "Currently visible" %}</h4>
+                <ul class="viewer-settings-visible-list" id="viewer-settings-visible-list"></ul>
+            </section>
+            <section class="viewer-settings-section">
+                <div class="viewer-settings-section-head">
+                    <h4 class="viewer-settings-section-title">{% trans "Colors" %}</h4>
+                    <button type="button" class="btn tp-btn tp-btn--clear tp-btn--sm" id="viewer-settings-reset-btn">
+                        {% trans "Reset to defaults" %}
+                    </button>
+                </div>
+                <p class="viewer-settings-section-note">{% trans "Pick a preset swatch, or use the last one to choose any color. Changes apply immediately and are remembered on this device." %}</p>
+                <div class="viewer-settings-color-rows" id="viewer-settings-color-rows"></div>
+            </section>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block jsloaded %}
@@ -345,6 +381,50 @@ function jsloaded() {
     var activeStructureId = "{{ structure.id }}";
     var isSpinning = false;
     var structureLoadToken = 0;
+
+    /* ---- Viewer color overrides (settings modal) ---- */
+    var COLOR_STORAGE_KEY = "tp.structureViewerColors";
+    var COLOR_CATEGORIES = [
+        { token: "--tp-color-structure-cartoon", label: "{% trans 'Cartoon' %}", fallback: "#2288a3" },
+        { token: "--tp-color-structure-density", label: "{% trans 'Surface' %}", fallback: "#a3c9d6" },
+        { token: "--tp-color-structure-hetero", label: "{% trans 'Heteroatoms' %}", fallback: "#cf628c" },
+        { token: "--tp-color-structure-pocket-apolar", label: "{% trans 'FPocket apolar' %}", fallback: "#d9534f" },
+        { token: "--tp-color-structure-pocket-polar", label: "{% trans 'FPocket polar' %}", fallback: "#7a2e28" },
+        { token: "--tp-color-structure-p2-apolar", label: "{% trans 'P2Rank apolar' %}", fallback: "#f59e0b" },
+        { token: "--tp-color-structure-p2-polar", label: "{% trans 'P2Rank polar' %}", fallback: "#8b5cf6" },
+        { token: "--tp-color-structure-label", label: "{% trans 'Residue labels' %}", fallback: "#0e2330" }
+    ];
+    // On-brand, theme-aware preset swatches -- resolved via tpColor() at
+    // render time (not literal hex here) so they stay in sync with
+    // whichever theme/light-dark tokens are active, same as every other
+    // color in this viewer.
+    var PRESET_TOKENS = ["--tp-color-brand-700", "--tp-color-rose-700", "--tp-color-sage-700", "--tp-color-amber-700"];
+
+    function readSavedColors() {
+        try {
+            var raw = localStorage.getItem(COLOR_STORAGE_KEY);
+            return raw ? JSON.parse(raw) : {};
+        } catch (err) {
+            return {};
+        }
+    }
+    function writeSavedColors(map) {
+        try {
+            localStorage.setItem(COLOR_STORAGE_KEY, JSON.stringify(map));
+        } catch (err) {
+            // localStorage unavailable (private mode / quota) -- the
+            // override still applies for this session via inline style,
+            // it just won't be remembered next visit.
+        }
+    }
+    // Applied before the first structure load so it renders correctly
+    // colored on first paint, no flash-then-recolor.
+    (function applySavedColorOverrides() {
+        var saved = readSavedColors();
+        Object.keys(saved).forEach(function (token) {
+            document.documentElement.style.setProperty(token, saved[token]);
+        });
+    })();
 
     /* ---- Measure nav height ---- */
     (function () {
@@ -513,6 +593,155 @@ function jsloaded() {
                     }).catch(function () {});
             });
         }
+    })();
+
+    /* ---- Viewer settings modal (currently-visible summary + colors) ---- */
+    (function () {
+        var trigger = document.getElementById("sv-settings-btn");
+        var modal = document.getElementById("viewer-settings-modal");
+        var panel = modal ? modal.querySelector(".viewer-settings-panel") : null;
+        var closeBtn = document.getElementById("close-viewer-settings-modal");
+        var visibleList = document.getElementById("viewer-settings-visible-list");
+        var colorRowsHost = document.getElementById("viewer-settings-color-rows");
+        var resetBtn = document.getElementById("viewer-settings-reset-btn");
+        if (!trigger || !modal || !panel || !colorRowsHost) return;
+        var lastTrigger = null;
+
+        function refreshVisibleSummary() {
+            if (!visibleList) return;
+            var lines = [];
+            var modeBtn = document.querySelector(".js-structure-mode.is-active");
+            if (modeBtn) lines.push("{% trans 'View' %}: " + modeBtn.textContent.trim());
+            var colorBtn = document.querySelector(".js-structure-color.is-active");
+            if (colorBtn) lines.push("{% trans 'Color' %}: " + colorBtn.textContent.trim());
+            if (heteroBtn && heteroBtn.getAttribute("aria-pressed") === "true") {
+                lines.push("{% trans 'Heteroatoms shown' %}");
+            }
+            if (spinBtn && spinBtn.getAttribute("aria-pressed") === "true") {
+                lines.push("{% trans 'Auto-rotation on' %}");
+            }
+            document.querySelectorAll(".pocket-card.is-visible-in-viewer").forEach(function (card) {
+                var id = card.getAttribute("data-pocket-id") || "{% trans 'Pocket' %}";
+                var layers = [];
+                card.querySelectorAll('.js-repr-toggle[aria-pressed="true"]').forEach(function (btn) {
+                    layers.push(btn.getAttribute("data-layer-label") || btn.textContent.trim());
+                });
+                if (layers.length) lines.push(id + ": " + layers.join(", "));
+            });
+            document.querySelectorAll(".residueset-row.is-visible-in-viewer").forEach(function (row) {
+                var typeEl = row.querySelector(".residueset-type");
+                lines.push((typeEl ? typeEl.textContent.trim() : "{% trans 'Residue set' %}") + ": {% trans 'shown' %}");
+            });
+
+            visibleList.innerHTML = "";
+            if (!lines.length) {
+                var empty = document.createElement("li");
+                empty.className = "viewer-settings-visible-empty";
+                empty.textContent = "{% trans 'Just the protein backbone.' %}";
+                visibleList.appendChild(empty);
+                return;
+            }
+            lines.forEach(function (line) {
+                var li = document.createElement("li");
+                li.textContent = line;
+                visibleList.appendChild(li);
+            });
+        }
+
+        function closeModal() {
+            modal.classList.remove("is-open");
+            modal.setAttribute("aria-hidden", "true");
+            document.body.classList.remove("viewer-settings-open");
+            if (lastTrigger) lastTrigger.focus();
+            lastTrigger = null;
+        }
+        function openModal() {
+            refreshVisibleSummary();
+            modal.classList.add("is-open");
+            modal.setAttribute("aria-hidden", "false");
+            document.body.classList.add("viewer-settings-open");
+            lastTrigger = trigger;
+            if (closeBtn) closeBtn.focus();
+        }
+        trigger.addEventListener("click", openModal);
+        if (closeBtn) closeBtn.addEventListener("click", closeModal);
+        modal.addEventListener("click", function (ev) { if (!panel.contains(ev.target)) closeModal(); });
+        document.addEventListener("keydown", function (ev) { if (ev.key === "Escape" && modal.classList.contains("is-open")) closeModal(); });
+
+        // Keep the "currently visible" list live while the modal stays open.
+        document.addEventListener("click", function (ev) {
+            if (!modal.classList.contains("is-open")) return;
+            if (ev.target.closest(".js-repr-toggle, .js-structure-mode, .js-structure-color, #sv-hetero-btn, #sv-spin-btn")) {
+                refreshVisibleSummary();
+            }
+        });
+
+        function applyColor(token, color) {
+            document.documentElement.style.setProperty(token, color);
+            var saved = readSavedColors();
+            saved[token] = color;
+            writeSavedColors(saved);
+            if (typeof window.switchStructure === "function") window.switchStructure(activeStructureId);
+        }
+
+        function buildColorRows() {
+            colorRowsHost.innerHTML = "";
+            COLOR_CATEGORIES.forEach(function (cat) {
+                var row = document.createElement("div");
+                row.className = "viewer-settings-color-row";
+
+                var label = document.createElement("span");
+                label.className = "viewer-settings-color-label";
+                label.textContent = cat.label;
+                row.appendChild(label);
+
+                var swatchGroup = document.createElement("div");
+                swatchGroup.className = "viewer-settings-swatch-group";
+
+                var customInput = document.createElement("input");
+
+                PRESET_TOKENS.forEach(function (presetToken) {
+                    var presetColor = tpColor(presetToken, cat.fallback);
+                    var swatch = document.createElement("button");
+                    swatch.type = "button";
+                    swatch.className = "viewer-settings-swatch";
+                    swatch.style.background = presetColor;
+                    swatch.setAttribute("aria-label", cat.label + ": " + presetColor);
+                    swatch.title = presetColor;
+                    swatch.addEventListener("click", function () {
+                        applyColor(cat.token, presetColor);
+                        customInput.value = presetColor;
+                    });
+                    swatchGroup.appendChild(swatch);
+                });
+
+                customInput.type = "color";
+                customInput.className = "viewer-settings-custom-input";
+                customInput.value = tpColor(cat.token, cat.fallback);
+                customInput.setAttribute("aria-label", cat.label + " {% trans 'custom color' %}");
+                customInput.title = "{% trans 'Pick a custom color' %}";
+                customInput.addEventListener("change", function () {
+                    applyColor(cat.token, customInput.value);
+                });
+                swatchGroup.appendChild(customInput);
+
+                row.appendChild(swatchGroup);
+                colorRowsHost.appendChild(row);
+            });
+        }
+
+        if (resetBtn) {
+            resetBtn.addEventListener("click", function () {
+                COLOR_CATEGORIES.forEach(function (cat) {
+                    document.documentElement.style.removeProperty(cat.token);
+                });
+                writeSavedColors({});
+                if (typeof window.switchStructure === "function") window.switchStructure(activeStructureId);
+                buildColorRows();
+            });
+        }
+
+        buildColorRows();
     })();
 
     /* ---- Sidebar toggle (mobile: sidebar is an overlay, hidden by default) ---- */
@@ -892,7 +1121,7 @@ function jsloaded() {
            ions), excluding solvent. Empty selection on AlphaFold/ColabFold models -- harmless. ---- */
         representations.__hetero = component.addRepresentation("ball+stick", {
             sele: "hetero and not water",
-            color: tpColor("--tp-color-rose-500", "#cf628c"),
+            color: tpColor("--tp-color-structure-hetero", "#cf628c"),
             multipleBond: true
         });
         visible.__hetero = false;
