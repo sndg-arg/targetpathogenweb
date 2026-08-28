@@ -56,14 +56,18 @@ def _location_breakdown(window_qs, limit=TOP_LOCATIONS_LIMIT):
     )
     ip_list = [row["ip"] for row in rows]
 
+    # Plain Python dedup instead of .values(...).distinct(): RequestLog's
+    # default ordering (-created_at) isn't in the selected fields, so Django
+    # pulls it into the query to satisfy ORDER BY -- which then makes every
+    # row "distinct" again (each request has its own timestamp) and defeats
+    # the dedup entirely.
     users_by_ip = {}
-    for entry in (
+    for ip, username in (
         window_qs.filter(ip__in=ip_list)
         .exclude(user__isnull=True)
-        .values("ip", "user__username")
-        .distinct()
+        .values_list("ip", "user__username")
     ):
-        users_by_ip.setdefault(entry["ip"], []).append(entry["user__username"])
+        users_by_ip.setdefault(ip, set()).add(username)
 
     breakdown = []
     for row in rows:
@@ -74,7 +78,7 @@ def _location_breakdown(window_qs, limit=TOP_LOCATIONS_LIMIT):
                 "ip": ip,
                 "count": row["count"],
                 "last_seen": row["last_seen"].isoformat(),
-                "users": sorted(users_by_ip.get(ip, [])),
+                "users": sorted(users_by_ip.get(ip, set())),
                 "country": location["country"] if location else None,
                 "country_code": location["country_code"] if location else None,
                 "city": location["city"] if location else None,
