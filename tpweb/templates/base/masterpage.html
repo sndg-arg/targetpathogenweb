@@ -2141,6 +2141,10 @@
                 <span>{% trans "About us" %}</span>
             </a>
             {% if user.is_staff %}
+            <a class="tp-topbar-desktop-link {% if request.resolver_match.url_name == 'activity_dashboard' %}active{% endif %}" aria-label="{% trans 'Activity' %}" href="{% url 'tpwebapp:activity_dashboard' %}">
+                <span class="tp-topbar-desktop-link-icon" aria-hidden="true">{% include "components/icons/eye.html" %}</span>
+                <span>{% trans "Activity" %}</span>
+            </a>
             <a class="tp-topbar-desktop-link {% if '/admin' in request.path %}active{% endif %}" aria-label="{% trans 'Admin' %}" href="{% url 'admin:index' %}">
                 <span class="tp-topbar-desktop-link-icon" aria-hidden="true">{% include "components/icons/settings.html" %}</span>
                 <span>{% trans "Admin" %}</span>
