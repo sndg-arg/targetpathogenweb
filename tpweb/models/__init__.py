@@ -12,6 +12,7 @@ from .GenomeUpload import GenomeUpload
 from .PipelineRun import PipelineRun, PipelineStageEvent
 from .FilterPreset import FilterPreset
 from .AgentChatSession import AgentChatSession
+from .RequestLog import RequestLog
 from .Metabolism import (
     MetabolicPathway,
     MetabolicReaction,
@@ -42,6 +43,7 @@ __all__ = [
     "PipelineRun",
     "PipelineStageEvent",
     "ReactionParticipant",
+    "RequestLog",
     "TPUser",
 ]
 

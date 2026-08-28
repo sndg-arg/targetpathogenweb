@@ -308,7 +308,7 @@ class DeleteFormulaViewTests(LoggedInTestCase):
         self.assertEqual(response.status_code, 404)
 
 
-class LoginRequiredRedirectTests(SimpleTestCase):
+class LoginRequiredRedirectTests(TestCase):
     """These views are gated by LoginRequiredMixin -- an anonymous GET must
     redirect to login rather than reach any DB/fixture-dependent code."""
 
@@ -430,7 +430,7 @@ class DataFileUploadViewTests(TestCase):
             self.assertTrue(os.path.exists(payload["path"]))
 
 
-class CustomParamViewTests(SimpleTestCase):
+class CustomParamViewTests(TestCase):
     def test_get_requires_login(self):
         response = self.client.get(
             reverse("tpwebapp:customparam", kwargs={"genome": "NZ_AP023069.1"})
