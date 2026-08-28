@@ -29,6 +29,19 @@ from tpweb.services.workspace import PUBLIC_WORKSPACE_USERNAME
 from tpweb.views.AgentChatView import AgentChatView
 
 
+class LoggedInTestCase(TestCase):
+    """Base for smoke tests exercising routes the login-required middleware
+    now gates. Anonymous requests get redirected before reaching the view, so
+    every test here needs a real, logged-in user first."""
+
+    def setUp(self):
+        super().setUp()
+        self.smoke_user = get_user_model().objects.create_user(
+            username="smoke-test-user", password="test-pass"
+        )
+        self.client.force_login(self.smoke_user)
+
+
 class HealthViewTests(SimpleTestCase):
     def test_live_health_endpoint(self):
         response = self.client.get("/health/live")
@@ -90,7 +103,7 @@ class HealthViewTests(SimpleTestCase):
         self.assertEqual(payload["state_class"], "idle")
 
 
-class RouteSmokeTests(SimpleTestCase):
+class RouteSmokeTests(LoggedInTestCase):
     @patch("tpweb.views.IndexView.TPPost.objects.first")
     @patch("tpweb.views.IndexView.get_pipeline_status")
     @patch("tpweb.views.IndexView.summarize_genomes")
@@ -141,7 +154,7 @@ class RouteSmokeTests(SimpleTestCase):
         self.assertEqual(response.status_code, 200)
 
 
-class AssemblyViewTests(TestCase):
+class AssemblyViewTests(LoggedInTestCase):
     def test_assembly_route_renders_for_incomplete_workspace_without_bioentries(self):
         Biodatabase.objects.create(
             name=f"{PUBLIC_WORKSPACE_USERNAME}__NZ_AP023069.1",
@@ -153,7 +166,7 @@ class AssemblyViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
 
 
-class StaticContentViewTests(SimpleTestCase):
+class StaticContentViewTests(LoggedInTestCase):
     """Zero-fixture pages: no DB objects needed to render them."""
 
     def test_about_us_renders(self):
@@ -175,13 +188,13 @@ class StaticContentViewTests(SimpleTestCase):
         self.assertEqual(response.status_code, 200)
 
 
-class HumanProteinListViewTests(TestCase):
+class HumanProteinListViewTests(LoggedInTestCase):
     def test_renders_with_empty_dataset(self):
         response = self.client.get(reverse("tpwebapp:human_protein_list"))
         self.assertEqual(response.status_code, 200)
 
 
-class DownloadViewTests(SimpleTestCase):
+class DownloadViewTests(LoggedInTestCase):
     def test_download_without_query_params_is_bad_request(self):
         response = self.client.get(reverse("tpwebapp:download"))
         self.assertEqual(response.status_code, 400)
@@ -207,7 +220,7 @@ class FormViewAuthTests(TestCase):
         self.assertEqual(response.status_code, 200)
 
 
-class AnnotationExplorerViewTests(TestCase):
+class AnnotationExplorerViewTests(LoggedInTestCase):
     def test_renders_for_genome_with_no_annotations(self):
         Biodatabase.objects.create(
             name=f"{PUBLIC_WORKSPACE_USERNAME}__NZ_AP023069.1",
@@ -224,7 +237,7 @@ class AnnotationExplorerViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
 
 
-class BinderDetailViewTests(TestCase):
+class BinderDetailViewTests(LoggedInTestCase):
     def test_renders_for_pdb_binder_with_no_smiles(self):
         proteome = Biodatabase.objects.create(name="TEST_protein")
         protein = Bioentry.objects.create(
@@ -248,7 +261,7 @@ class BinderDetailViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
 
 
-class HtmxFragmentViewTests(TestCase):
+class HtmxFragmentViewTests(LoggedInTestCase):
     def test_load_options_without_param_renders_empty_fragment(self):
         response = self.client.get(reverse("tpwebapp:load_options"))
         self.assertEqual(response.status_code, 200)
@@ -269,7 +282,7 @@ class HtmxFragmentViewTests(TestCase):
         self.assertIn("formula-valid-badge--err", response.content.decode())
 
 
-class SitemapViewTests(SimpleTestCase):
+class SitemapViewTests(LoggedInTestCase):
     def test_sitemap_lists_static_content_pages(self):
         response = self.client.get(reverse("tpwebapp:sitemap_xml"))
 
@@ -281,7 +294,7 @@ class SitemapViewTests(SimpleTestCase):
         self.assertIn(reverse("tpwebapp:genomes_list"), body)
 
 
-class DeleteFormulaViewTests(TestCase):
+class DeleteFormulaViewTests(LoggedInTestCase):
     def test_get_is_not_allowed(self):
         response = self.client.get(
             reverse("tpwebapp:delete_formula", kwargs={"genome": "NZ_AP023069.1", "formula_pk": 1})
@@ -341,13 +354,13 @@ class ProteinBlastViewTests(TestCase):
         self.assertEqual(response.status_code, 404)
 
 
-class StructureRawViewTests(TestCase):
+class StructureRawViewTests(LoggedInTestCase):
     def test_unknown_structure_id_is_not_found(self):
         response = self.client.get(reverse("tpwebapp:structure_raw", kwargs={"struct_id": 999999}))
         self.assertEqual(response.status_code, 404)
 
 
-class StructureExportViewTests(TestCase):
+class StructureExportViewTests(LoggedInTestCase):
     def test_unknown_structure_id_is_not_found(self):
         response = self.client.get(
             reverse("tpwebapp:structure_export", kwargs={"struct_id": 999999})
@@ -355,7 +368,7 @@ class StructureExportViewTests(TestCase):
         self.assertEqual(response.status_code, 404)
 
 
-class HumanProteinViewTests(TestCase):
+class HumanProteinViewTests(LoggedInTestCase):
     def test_unknown_accession_is_not_found(self):
         response = self.client.get(
             reverse("tpwebapp:human_protein", kwargs={"accession": "DOES-NOT-EXIST"})
@@ -365,7 +378,13 @@ class HumanProteinViewTests(TestCase):
 
 class DataFileUploadViewTests(TestCase):
     def test_post_requires_staff(self):
+        user = get_user_model().objects.create_user(
+            username="upload-non-staff", password="test-pass"
+        )
+        self.client.force_login(user)
+
         response = self.client.post(reverse("tpwebapp:data_file_upload"))
+
         self.assertEqual(response.status_code, 403)
 
     def test_post_without_file_is_bad_request_for_staff_user(self):
@@ -432,7 +451,7 @@ class CustomParamViewRenderTests(TestCase):
         self.assertEqual(response.status_code, 200)
 
 
-class FormulaFormViewTests(TestCase):
+class FormulaFormViewTests(LoggedInTestCase):
     def test_get_for_unknown_genome_is_not_found(self):
         response = self.client.get(
             reverse("tpwebapp:formula_form", kwargs={"genome": "does-not-exist"})
@@ -447,7 +466,7 @@ class FormulaFormViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
 
 
-class AgentChatViewTests(TestCase):
+class AgentChatViewTests(LoggedInTestCase):
     def test_get_returns_empty_history_for_new_session(self):
         response = self.client.get(reverse("tpwebapp:agent_chat"))
 
@@ -455,7 +474,7 @@ class AgentChatViewTests(TestCase):
         self.assertEqual(response.json(), {"history": [], "conversation_id": None, "title": None})
 
 
-class AgentChatSessionsViewTests(TestCase):
+class AgentChatSessionsViewTests(LoggedInTestCase):
     def test_lists_no_sessions_for_a_brand_new_browser_session(self):
         response = self.client.get(reverse("tpwebapp:agent_chat_sessions"))
 
@@ -467,7 +486,10 @@ class AgentChatSessionsViewTests(TestCase):
 
         from tpweb.models.AgentChatSession import AgentChatSession
 
+        # Same shared login from a second browser -- session isolation must
+        # still hold even though both clients are the same authenticated user.
         first_client = Client()
+        first_client.force_login(self.smoke_user)
         first_client.get(reverse("tpwebapp:agent_chat"))  # mints a session_key
         first_session_key = first_client.session.session_key
         AgentChatSession.objects.create(
@@ -475,13 +497,14 @@ class AgentChatSessionsViewTests(TestCase):
         )
 
         second_client = Client()
+        second_client.force_login(self.smoke_user)
         response = second_client.get(reverse("tpwebapp:agent_chat_sessions"))
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), {"sessions": []})
 
 
-class AgentChatSessionDetailViewTests(TestCase):
+class AgentChatSessionDetailViewTests(LoggedInTestCase):
     def _create_conversation(self, client, title=""):
         from tpweb.models.AgentChatSession import AgentChatSession
 
@@ -522,6 +545,7 @@ class AgentChatSessionDetailViewTests(TestCase):
         from django.test import Client
 
         other_client = Client()
+        other_client.force_login(self.smoke_user)
         row = self._create_conversation(other_client, title="Not yours")
 
         response = self.client.patch(
@@ -571,6 +595,7 @@ class AgentChatSessionDetailViewTests(TestCase):
         from tpweb.models.AgentChatSession import AgentChatSession
 
         other_client = Client()
+        other_client.force_login(self.smoke_user)
         row = self._create_conversation(other_client, title="Not yours")
 
         response = self.client.delete(reverse("tpwebapp:agent_chat_session_detail", args=[row.pk]))
@@ -669,7 +694,7 @@ class AgentChatPageScopeTests(TestCase):
         self.assertFalse(AgentChatView._is_protein_list_path(""))
 
 
-class MetabolismPathwayViewTests(TestCase):
+class MetabolismPathwayViewTests(LoggedInTestCase):
     def test_get_for_unknown_genome_is_not_found(self):
         response = self.client.get(
             reverse("tpwebapp:genome_metabolism", kwargs={"genome": "does-not-exist"})
@@ -685,7 +710,7 @@ class MetabolismPathwayViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
 
 
-class MetabolismNetworkViewTests(TestCase):
+class MetabolismNetworkViewTests(LoggedInTestCase):
     def test_get_for_unknown_protein_is_not_found(self):
         response = self.client.get(
             reverse("tpwebapp:protein_metabolic_network", kwargs={"protein_id": 999999})
@@ -708,7 +733,7 @@ class MetabolismNetworkViewTests(TestCase):
         self.assertEqual(response.json(), {"nodes": [], "edges": []})
 
 
-class ProteinViewTests(TestCase):
+class ProteinViewTests(LoggedInTestCase):
     def test_renders_for_protein_with_no_structures_or_annotations(self):
         # ProteinView checks biodatabase.name against the real
         # bioseq.models.Biodatabase.PROT_POSTFIX ("_prots") -- not "_protein"
@@ -743,7 +768,7 @@ class GenomeUploadViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
 
 
-class ProteinListViewTests(TestCase):
+class ProteinListViewTests(LoggedInTestCase):
     def test_renders_for_genome_with_no_proteins(self):
         Biodatabase.objects.create(name="TEST", description="Genome workspace")
         Biodatabase.objects.create(name="TEST_prots")
