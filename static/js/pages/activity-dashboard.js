@@ -81,6 +81,13 @@
         });
     }
 
+    function relativeSince(isoDate) {
+        var d = new Date(isoDate);
+        var diffDays = Math.round((d - new Date()) / 86400000);
+        var relative = relativeTimeFormat ? relativeTimeFormat.format(diffDays, "day") : d.toLocaleDateString();
+        return "Last seen " + relative + " · " + d.toLocaleString();
+    }
+
     function renderAccounts() {
         var container = document.querySelector("[data-accounts-list]");
         if (!container) return;
@@ -90,13 +97,7 @@
             return;
         }
         container.innerHTML = accounts.map(function (account) {
-            var lastLogin = "Never logged in";
-            if (account.last_login) {
-                var d = new Date(account.last_login);
-                var diffDays = Math.round((d - new Date()) / 86400000);
-                lastLogin = "Last seen " + (relativeTimeFormat ? relativeTimeFormat.format(diffDays, "day") : d.toLocaleDateString());
-                lastLogin += " · " + d.toLocaleString();
-            }
+            var lastLogin = account.last_login ? relativeSince(account.last_login) : "Never logged in";
             var badge = account.is_superuser
                 ? '<span class="tp-chip tp-chip--sm">admin</span>'
                 : '<span class="tp-chip tp-chip--sm tp-chip--meta">staff</span>';
@@ -116,25 +117,52 @@
         return String.fromCodePoint(127397 + code.charCodeAt(0), 127397 + code.charCodeAt(1));
     }
 
-    function renderLocations() {
+    function locationPlace(row) {
+        return row.country
+            ? flagEmoji(row.country_code) + " " + (row.city ? row.city + ", " : "") + row.country
+            : "🌐 Unknown location";
+    }
+
+    function requestsLabel(count) {
+        return numberFormat.format(count) + (count === 1 ? " request" : " requests");
+    }
+
+    function renderAuthenticatedLocations() {
         var container = document.querySelector("[data-locations-list]");
         if (!container) return;
         var rows = data.locations || [];
         if (!rows.length) {
-            container.innerHTML = '<p class="activity-accounts-empty">No requests logged yet.</p>';
+            container.innerHTML = '<p class="activity-accounts-empty">No logged-in sessions yet.</p>';
             return;
         }
         container.innerHTML = rows.map(function (row) {
-            var place = row.country
-                ? flagEmoji(row.country_code) + " " + (row.city ? row.city + ", " : "") + row.country
-                : "🌐 Unknown location";
-            var who = row.users && row.users.length ? row.users.join(", ") : "anonymous";
+            var who = row.users && row.users.length ? row.users.join(", ") : "—";
             return (
                 '<div class="activity-location-row">' +
-                '<span class="activity-location-place">' + place + "</span>" +
+                '<span class="activity-location-place">' + locationPlace(row) + "</span>" +
                 '<span class="activity-location-ip">' + row.ip + "</span>" +
                 '<span class="activity-location-users">' + who + "</span>" +
-                '<span class="activity-location-count">' + numberFormat.format(row.count) + (row.count === 1 ? " request" : " requests") + "</span>" +
+                '<span class="activity-location-count">' + requestsLabel(row.count) + "</span>" +
+                "</div>"
+            );
+        }).join("");
+    }
+
+    function renderBlockedAttempts() {
+        var container = document.querySelector("[data-blocked-list]");
+        if (!container) return;
+        var rows = data.blocked_attempts || [];
+        if (!rows.length) {
+            container.innerHTML = '<p class="activity-accounts-empty">No blocked attempts in this window — nice.</p>';
+            return;
+        }
+        container.innerHTML = rows.map(function (row) {
+            return (
+                '<div class="activity-location-row activity-location-row--blocked">' +
+                '<span class="activity-location-place">' + locationPlace(row) + "</span>" +
+                '<span class="activity-location-ip">' + row.ip + "</span>" +
+                '<span class="activity-location-users">' + relativeSince(row.last_seen) + "</span>" +
+                '<span class="activity-location-count">' + requestsLabel(row.count) + "</span>" +
                 "</div>"
             );
         }).join("");
@@ -288,7 +316,8 @@
 
     renderKpis();
     renderAccounts();
-    renderLocations();
+    renderAuthenticatedLocations();
+    renderBlockedAttempts();
     renderCharts();
 
     var themeObserver = new MutationObserver(function () { renderCharts(); });

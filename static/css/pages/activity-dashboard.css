@@ -214,6 +214,20 @@
     border-top: none;
 }
 
+/* Data rows only (not the static header) -- a quiet warning tint marks
+   "never authenticated" without shouting like a full danger/error state. */
+.activity-locations .activity-location-row--blocked {
+    background: var(--tp-color-warning-bg);
+    border-radius: 8px;
+    padding-left: 8px;
+    padding-right: 8px;
+    margin: 0 -8px;
+}
+
+.activity-locations .activity-location-row--blocked + .activity-location-row--blocked {
+    border-top-color: var(--tp-color-warning-border);
+}
+
 .activity-location-place {
     font-weight: 600;
     color: var(--tp-color-text-primary);

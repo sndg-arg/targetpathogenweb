@@ -109,17 +109,19 @@ class LocationBreakdownTests(TestCase):
         self.assertEqual(row["users"], ["alice"])
 
     @patch("tpweb.services.activity_dashboard.geolocate_ip")
-    def test_locations_handle_an_unresolved_ip_gracefully(self, mock_geolocate):
+    def test_anonymous_requests_go_to_blocked_attempts_not_locations(self, mock_geolocate):
         mock_geolocate.return_value = None
         RequestLog.objects.create(
-            user=None, ip="203.0.113.9", method="GET", path="/", status_code=200
+            user=None, ip="203.0.113.9", method="GET", path="/", status_code=302
         )
 
         data = build_activity_dashboard_data()
-        row = data["locations"][0]
 
+        self.assertEqual(data["locations"], [])
+        row = data["blocked_attempts"][0]
+        self.assertEqual(row["ip"], "203.0.113.9")
         self.assertIsNone(row["country"])
-        self.assertEqual(row["users"], [])
+        self.assertNotIn("users", row)
 
 
 class ActivityDashboardViewTests(TestCase):

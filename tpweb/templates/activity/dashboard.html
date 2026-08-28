@@ -67,8 +67,8 @@
     <section class="activity-panel">
         <div class="section-head tp-ui-panel-head">
             <div>
-                <p class="tp-ui-field-label">{% trans "Where they connect from" %}</p>
-                <h2 class="activity-panel-title">{% trans "Locations" %}</h2>
+                <p class="tp-ui-field-label">{% trans "Where real, logged-in sessions connect from" %}</p>
+                <h2 class="activity-panel-title">{% trans "Logged-in sessions" %} <span class="tp-chip tp-chip--sm">{% trans "authenticated" %}</span></h2>
             </div>
         </div>
         <div class="activity-location-row activity-location-row--head" aria-hidden="true">
@@ -78,6 +78,24 @@
             <span>{% trans "Requests" %}</span>
         </div>
         <div class="activity-locations" data-locations-list>
+            <p class="activity-accounts-empty">{% trans "Loading..." %}</p>
+        </div>
+    </section>
+
+    <section class="activity-panel">
+        <div class="section-head tp-ui-panel-head">
+            <div>
+                <p class="tp-ui-field-label">{% trans "Hit the login wall, never authenticated" %}</p>
+                <h2 class="activity-panel-title">{% trans "Blocked attempts" %} <span class="tp-chip tp-chip--sm tp-chip--warning">{% trans "not logged in" %}</span></h2>
+            </div>
+        </div>
+        <div class="activity-location-row activity-location-row--head activity-location-row--blocked" aria-hidden="true">
+            <span>{% trans "Location" %}</span>
+            <span>{% trans "IP" %}</span>
+            <span>{% trans "Last seen" %}</span>
+            <span>{% trans "Requests" %}</span>
+        </div>
+        <div class="activity-locations" data-blocked-list>
             <p class="activity-accounts-empty">{% trans "Loading..." %}</p>
         </div>
     </section>

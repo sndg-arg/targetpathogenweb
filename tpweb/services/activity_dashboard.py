@@ -47,28 +47,14 @@ def _delta_pct(current, previous):
     return round(((current - previous) / previous) * 100)
 
 
-def _location_breakdown(window_qs, limit=TOP_LOCATIONS_LIMIT):
+def _ip_breakdown(qs, limit=TOP_LOCATIONS_LIMIT):
+    """Group an already-scoped queryset by IP: count, last seen, geolocation."""
     rows = list(
-        window_qs.exclude(ip__isnull=True)
+        qs.exclude(ip__isnull=True)
         .values("ip")
         .annotate(count=Count("id"), last_seen=Max("created_at"))
         .order_by("-count")[:limit]
     )
-    ip_list = [row["ip"] for row in rows]
-
-    # Plain Python dedup instead of .values(...).distinct(): RequestLog's
-    # default ordering (-created_at) isn't in the selected fields, so Django
-    # pulls it into the query to satisfy ORDER BY -- which then makes every
-    # row "distinct" again (each request has its own timestamp) and defeats
-    # the dedup entirely.
-    users_by_ip = {}
-    for ip, username in (
-        window_qs.filter(ip__in=ip_list)
-        .exclude(user__isnull=True)
-        .values_list("ip", "user__username")
-    ):
-        users_by_ip.setdefault(ip, set()).add(username)
-
     breakdown = []
     for row in rows:
         ip = row["ip"]
@@ -78,13 +64,39 @@ def _location_breakdown(window_qs, limit=TOP_LOCATIONS_LIMIT):
                 "ip": ip,
                 "count": row["count"],
                 "last_seen": row["last_seen"].isoformat(),
-                "users": sorted(users_by_ip.get(ip, set())),
                 "country": location["country"] if location else None,
                 "country_code": location["country_code"] if location else None,
                 "city": location["city"] if location else None,
             }
         )
     return breakdown
+
+
+def _authenticated_location_breakdown(window_qs, limit=TOP_LOCATIONS_LIMIT):
+    """Where real, logged-in sessions connect from -- one row per IP, top by
+    request volume, annotated with which account(s) used it."""
+    authenticated_qs = window_qs.exclude(user__isnull=True)
+    breakdown = _ip_breakdown(authenticated_qs, limit)
+    ip_list = [row["ip"] for row in breakdown]
+
+    # Plain Python dedup instead of .values(...).distinct(): RequestLog's
+    # default ordering (-created_at) isn't in the selected fields, so Django
+    # pulls it into the query to satisfy ORDER BY -- which then makes every
+    # row "distinct" again (each request has its own timestamp) and defeats
+    # the dedup entirely.
+    users_by_ip = {}
+    for ip, username in authenticated_qs.filter(ip__in=ip_list).values_list("ip", "user__username"):
+        users_by_ip.setdefault(ip, set()).add(username)
+
+    for row in breakdown:
+        row["users"] = sorted(users_by_ip.get(row["ip"], set()))
+    return breakdown
+
+
+def _blocked_attempts_breakdown(window_qs, limit=TOP_LOCATIONS_LIMIT):
+    """IPs that hit the login wall without ever authenticating -- scans,
+    bots, or a collaborator who hasn't been given a login yet."""
+    return _ip_breakdown(window_qs.filter(user__isnull=True), limit)
 
 
 def build_activity_dashboard_data(days=ACTIVITY_WINDOW_DAYS):
@@ -160,7 +172,8 @@ def build_activity_dashboard_data(days=ACTIVITY_WINDOW_DAYS):
         .order_by("username")
     ]
 
-    locations = _location_breakdown(window_qs)
+    locations = _authenticated_location_breakdown(window_qs)
+    blocked_attempts = _blocked_attempts_breakdown(window_qs)
 
     return {
         "kpis": kpis,
@@ -169,4 +182,5 @@ def build_activity_dashboard_data(days=ACTIVITY_WINDOW_DAYS):
         "top_pages": top_pages,
         "accounts": accounts,
         "locations": locations,
+        "blocked_attempts": blocked_attempts,
     }
