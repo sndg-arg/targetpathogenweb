@@ -99,6 +99,22 @@
     font-variant-numeric: proportional-nums;
 }
 
+.activity-kpi-delta {
+    margin: 0;
+    font-size: var(--tp-font-size-xs);
+    font-weight: 600;
+    color: var(--tp-color-text-muted);
+    min-height: 1.1em;
+}
+
+.activity-kpi-delta.is-up {
+    color: var(--tp-color-success-ink);
+}
+
+.activity-kpi-delta.is-down {
+    color: var(--tp-color-danger-ink);
+}
+
 .activity-kpi-card--errors {
     border-left: 3px solid var(--tp-color-warning-border);
 }
@@ -162,6 +178,79 @@
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-sm);
     margin: 14px 0 0;
+}
+
+/* ── Locations list ── */
+.activity-locations {
+    display: flex;
+    flex-direction: column;
+}
+
+.activity-location-row {
+    display: grid;
+    grid-template-columns: minmax(150px, 1.3fr) minmax(110px, 0.8fr) minmax(110px, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    border-top: 1px solid var(--tp-color-border-soft);
+}
+
+.activity-location-row:first-child {
+    border-top: none;
+}
+
+.activity-location-row--head {
+    margin-top: 14px;
+    padding: 0 0 8px;
+    border-top: none;
+    font-size: var(--tp-font-label);
+    font-weight: 500;
+    color: var(--tp-color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.activity-locations .activity-location-row:first-child {
+    border-top: none;
+}
+
+.activity-location-place {
+    font-weight: 600;
+    color: var(--tp-color-text-primary);
+}
+
+.activity-location-ip {
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: var(--tp-font-size-xs);
+    color: var(--tp-color-text-muted);
+}
+
+.activity-location-users {
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-size-sm);
+}
+
+.activity-location-count {
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-sm);
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 640px) {
+    .activity-location-row {
+        grid-template-columns: 1fr;
+        gap: 2px;
+        padding: 12px 0;
+    }
+
+    .activity-location-row--head {
+        display: none;
+    }
+
+    .activity-location-count {
+        text-align: left;
+    }
 }
 
 /* ── Charts ── */

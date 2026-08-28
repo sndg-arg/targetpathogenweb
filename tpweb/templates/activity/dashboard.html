@@ -33,18 +33,22 @@
         <div class="activity-kpi-card">
             <p class="activity-kpi-label">{% trans "Requests today" %}</p>
             <p class="activity-kpi-value" data-kpi="requests_today">&mdash;</p>
+            <p class="activity-kpi-delta" data-kpi-delta="requests_today_delta_pct" data-delta-period="{% trans 'vs yesterday' %}"></p>
         </div>
         <div class="activity-kpi-card">
             <p class="activity-kpi-label">{% trans "Unique users" %} <span class="activity-kpi-period">{% trans "30d" %}</span></p>
             <p class="activity-kpi-value" data-kpi="unique_users">&mdash;</p>
+            <p class="activity-kpi-delta" data-kpi-delta="unique_users_delta_pct" data-delta-period="{% trans 'vs prior 30d' %}"></p>
         </div>
         <div class="activity-kpi-card">
             <p class="activity-kpi-label">{% trans "Unique IPs" %} <span class="activity-kpi-period">{% trans "30d" %}</span></p>
             <p class="activity-kpi-value" data-kpi="unique_ips">&mdash;</p>
+            <p class="activity-kpi-delta" data-kpi-delta="unique_ips_delta_pct" data-delta-period="{% trans 'vs prior 30d' %}"></p>
         </div>
         <div class="activity-kpi-card activity-kpi-card--errors" data-kpi-card="errors">
             <p class="activity-kpi-label">{% trans "Errors" %} <span class="activity-kpi-period">{% trans "30d" %}</span></p>
             <p class="activity-kpi-value" data-kpi="errors">&mdash;</p>
+            <p class="activity-kpi-delta" data-kpi-delta="errors_delta_pct" data-delta-period="{% trans 'vs prior 30d' %}" data-invert-tone="1"></p>
         </div>
     </section>
 
@@ -56,6 +60,24 @@
             </div>
         </div>
         <div class="activity-accounts" data-accounts-list>
+            <p class="activity-accounts-empty">{% trans "Loading..." %}</p>
+        </div>
+    </section>
+
+    <section class="activity-panel">
+        <div class="section-head tp-ui-panel-head">
+            <div>
+                <p class="tp-ui-field-label">{% trans "Where they connect from" %}</p>
+                <h2 class="activity-panel-title">{% trans "Locations" %}</h2>
+            </div>
+        </div>
+        <div class="activity-location-row activity-location-row--head" aria-hidden="true">
+            <span>{% trans "Location" %}</span>
+            <span>{% trans "IP" %}</span>
+            <span>{% trans "Account" %}</span>
+            <span>{% trans "Requests" %}</span>
+        </div>
+        <div class="activity-locations" data-locations-list>
             <p class="activity-accounts-empty">{% trans "Loading..." %}</p>
         </div>
     </section>

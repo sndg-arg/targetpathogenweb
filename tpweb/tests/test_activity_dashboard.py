@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
@@ -76,6 +78,48 @@ class BuildActivityDashboardDataTests(TestCase):
         usernames = [a["username"] for a in data["accounts"]]
 
         self.assertNotIn("public", usernames)
+
+
+class LocationBreakdownTests(TestCase):
+    def setUp(self):
+        self.alice = get_user_model().objects.create_user(username="alice", password="x")
+
+    @patch("tpweb.services.activity_dashboard.geolocate_ip")
+    def test_locations_include_geolocation_and_which_users_used_each_ip(self, mock_geolocate):
+        mock_geolocate.return_value = {
+            "country": "Brazil",
+            "country_code": "BR",
+            "city": "Sao Paulo",
+            "region": "Sao Paulo",
+        }
+        RequestLog.objects.create(
+            user=self.alice, ip="200.1.2.3", method="GET", path="/genomes", status_code=200
+        )
+        RequestLog.objects.create(
+            user=self.alice, ip="200.1.2.3", method="GET", path="/", status_code=200
+        )
+
+        data = build_activity_dashboard_data()
+        row = data["locations"][0]
+
+        self.assertEqual(row["ip"], "200.1.2.3")
+        self.assertEqual(row["count"], 2)
+        self.assertEqual(row["country"], "Brazil")
+        self.assertEqual(row["country_code"], "BR")
+        self.assertEqual(row["users"], ["alice"])
+
+    @patch("tpweb.services.activity_dashboard.geolocate_ip")
+    def test_locations_handle_an_unresolved_ip_gracefully(self, mock_geolocate):
+        mock_geolocate.return_value = None
+        RequestLog.objects.create(
+            user=None, ip="203.0.113.9", method="GET", path="/", status_code=200
+        )
+
+        data = build_activity_dashboard_data()
+        row = data["locations"][0]
+
+        self.assertIsNone(row["country"])
+        self.assertEqual(row["users"], [])
 
 
 class ActivityDashboardViewTests(TestCase):

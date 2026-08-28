@@ -65,6 +65,20 @@
         });
         var errorsCard = document.querySelector('[data-kpi-card="errors"]');
         if (errorsCard && kpis.errors > 0) errorsCard.classList.add("has-errors");
+
+        Array.prototype.forEach.call(document.querySelectorAll("[data-kpi-delta]"), function (el) {
+            var pct = kpis[el.getAttribute("data-kpi-delta")];
+            if (pct === null || pct === undefined) {
+                el.textContent = "";
+                return;
+            }
+            var invert = el.hasAttribute("data-invert-tone");
+            var good = invert ? pct <= 0 : pct >= 0;
+            el.classList.toggle("is-up", good);
+            el.classList.toggle("is-down", !good);
+            var sign = pct > 0 ? "+" : "";
+            el.textContent = sign + pct + "% " + el.getAttribute("data-delta-period");
+        });
     }
 
     function renderAccounts() {
@@ -91,6 +105,36 @@
                 '<span class="activity-account-name">' + account.username + "</span>" +
                 badge +
                 '<span class="activity-account-lastlogin">' + lastLogin + "</span>" +
+                "</div>"
+            );
+        }).join("");
+    }
+
+    function flagEmoji(countryCode) {
+        if (!countryCode || countryCode.length !== 2) return "🌐"; // globe fallback
+        var code = countryCode.toUpperCase();
+        return String.fromCodePoint(127397 + code.charCodeAt(0), 127397 + code.charCodeAt(1));
+    }
+
+    function renderLocations() {
+        var container = document.querySelector("[data-locations-list]");
+        if (!container) return;
+        var rows = data.locations || [];
+        if (!rows.length) {
+            container.innerHTML = '<p class="activity-accounts-empty">No requests logged yet.</p>';
+            return;
+        }
+        container.innerHTML = rows.map(function (row) {
+            var place = row.country
+                ? flagEmoji(row.country_code) + " " + (row.city ? row.city + ", " : "") + row.country
+                : "🌐 Unknown location";
+            var who = row.users && row.users.length ? row.users.join(", ") : "anonymous";
+            return (
+                '<div class="activity-location-row">' +
+                '<span class="activity-location-place">' + place + "</span>" +
+                '<span class="activity-location-ip">' + row.ip + "</span>" +
+                '<span class="activity-location-users">' + who + "</span>" +
+                '<span class="activity-location-count">' + numberFormat.format(row.count) + (row.count === 1 ? " request" : " requests") + "</span>" +
                 "</div>"
             );
         }).join("");
@@ -244,6 +288,7 @@
 
     renderKpis();
     renderAccounts();
+    renderLocations();
     renderCharts();
 
     var themeObserver = new MutationObserver(function () { renderCharts(); });
