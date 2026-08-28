@@ -1,0 +1,224 @@
+/* ============================================================
+   Activity dashboard — staff-only usage/traffic overview
+   Sections sit fused on the page background (tpw-editorial-redesign);
+   only the KPI tiles and the mosaic-divided chart pair keep boxing.
+   ============================================================ */
+
+.activity-page {
+    font-family: "Source Sans 3", "Segoe UI", sans-serif;
+    color: var(--tp-ink);
+    margin: 0;
+    --activity-accent-deep: var(--tp-color-brand-900);
+}
+
+.activity-page > * ~ * {
+    margin-top: var(--tp-space-7);
+}
+
+.activity-page h1,
+.activity-page h2 {
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+}
+
+/* ── Hero ── */
+.activity-hero {
+    padding: 20px 18px;
+}
+
+.activity-eyebrow {
+    margin: 6px 0 10px;
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-label);
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.activity-hero-title {
+    margin: 0;
+    font-size: var(--tp-heading-lg);
+    line-height: 1.1;
+    color: var(--activity-accent-deep);
+}
+
+.activity-hero-description {
+    margin: 10px 0 0;
+    color: var(--tp-color-text-secondary);
+    font-size: 1rem;
+    line-height: 1.42;
+    max-width: 720px;
+}
+
+/* ── KPI row — small equal-weight tiles, keeps individual card framing ── */
+.activity-kpi-row {
+    padding: 0 18px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: var(--tp-space-3);
+}
+
+.activity-kpi-card {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 14px 16px;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 12px;
+    background: var(--tp-color-surface);
+    box-shadow: var(--tp-shadow-xs);
+    transition: box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.activity-kpi-card:hover {
+    box-shadow: var(--tp-shadow-sm);
+    border-color: var(--tp-color-border-strong);
+}
+
+.activity-kpi-label {
+    font-size: var(--tp-font-label);
+    font-weight: 500;
+    color: var(--tp-color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.activity-kpi-period {
+    text-transform: none;
+    letter-spacing: normal;
+    opacity: 0.75;
+}
+
+.activity-kpi-value {
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-size: 1.75rem;
+    font-weight: 700;
+    line-height: 1.1;
+    color: var(--activity-accent-deep);
+    font-variant-numeric: proportional-nums;
+}
+
+.activity-kpi-card--errors {
+    border-left: 3px solid var(--tp-color-warning-border);
+}
+
+.activity-kpi-card--errors.has-errors {
+    background: var(--tp-color-danger-bg);
+    border-left-color: var(--tp-color-danger-border);
+}
+
+.activity-kpi-card--errors.has-errors .activity-kpi-value {
+    color: var(--tp-color-danger-ink);
+}
+
+/* ── Panels — fused onto the page background, no individual box ── */
+.activity-panel {
+    padding: 0 18px;
+}
+
+.activity-panel-title {
+    margin: 2px 0 0;
+    font-size: 1.12rem;
+    font-weight: 600;
+    color: var(--activity-accent-deep);
+    letter-spacing: -0.02em;
+}
+
+/* ── Accounts list ── */
+.activity-accounts {
+    margin-top: 14px;
+    display: flex;
+    flex-direction: column;
+}
+
+.activity-account-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 0;
+    border-top: 1px solid var(--tp-color-border-soft);
+    flex-wrap: wrap;
+}
+
+.activity-account-row:first-child {
+    border-top: none;
+}
+
+.activity-account-name {
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-weight: 600;
+    color: var(--tp-color-text-primary);
+    min-width: 100px;
+}
+
+.activity-account-lastlogin {
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-sm);
+    margin-left: auto;
+}
+
+.activity-accounts-empty {
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-sm);
+    margin: 14px 0 0;
+}
+
+/* ── Charts ── */
+.activity-chart-wrap {
+    margin-top: 14px;
+    position: relative;
+    height: 220px;
+}
+
+.activity-chart-wrap--tall {
+    height: 280px;
+}
+
+.activity-chart-wrap--short {
+    height: 180px;
+}
+
+.activity-chart-empty {
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-sm);
+    text-align: center;
+    padding: 40px 0;
+}
+
+/* ── Two-column chart pair — seamless mosaic divider, no per-card box ── */
+.activity-two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--tp-color-border-soft);
+    border-radius: var(--tp-radius-md);
+    overflow: hidden;
+}
+
+.activity-two-col .activity-panel {
+    background: var(--tp-color-surface);
+    padding: 18px;
+    margin: 0;
+}
+
+@media (max-width: 720px) {
+    .activity-two-col {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ── Footnote ── */
+.activity-footnote {
+    padding: 0 18px;
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-sm);
+}
+
+.activity-footnote a {
+    color: var(--tp-color-link);
+}
+
+.activity-footnote a:hover {
+    color: var(--tp-color-link-hover);
+}

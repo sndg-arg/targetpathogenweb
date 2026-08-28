@@ -2204,6 +2204,9 @@
                 </li>
                 {% if user.is_staff %}
                 <li class="nav-item">
+                    <a class="nav-link{% if url_name == 'activity_dashboard' %} is-active{% endif %}" {% if url_name == 'activity_dashboard' %}aria-current="page"{% endif %} href="{% url 'tpwebapp:activity_dashboard' %}">{% trans "Activity" %}</a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link{% if url_name == 'admin' %} is-active{% endif %}" href="{% url 'admin:index' %}">{% trans "Admin" %}</a>
                 </li>
                 {% endif %}

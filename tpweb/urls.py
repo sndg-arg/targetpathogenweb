@@ -1,5 +1,6 @@
 from django.urls import path
 
+from .views.ActivityDashboardView import ActivityDashboardView
 from .views.AssemblyView import AssemblyView
 from .views.DownloadView import DownloadView
 from .views.GenomesView import GenomesView
@@ -156,6 +157,7 @@ urlpatterns = [
     path("health/live", view=HealthLiveView.as_view(), name="health_live"),
     path("health/ready", view=HealthReadyView.as_view(), name="health_ready"),
     path("health/pipeline", view=HealthPipelineView.as_view(), name="health_pipeline"),
+    path("activity", view=ActivityDashboardView.as_view(), name="activity_dashboard"),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 # if 1:
 #    urlpatterns = urlpatterns + debug_toolbar_urls()

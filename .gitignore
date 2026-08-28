@@ -35,6 +35,8 @@ static/js/*
 !static/js/pages/*.js
 !static/js/global/
 !static/js/global/*.js
+!static/js/vendor/
+!static/js/vendor/*.js
 !static/img/
 !static/img/brand/
 !static/img/brand/*.svg
