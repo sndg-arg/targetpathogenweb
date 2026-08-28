@@ -4,6 +4,7 @@ from django.urls import reverse
 
 from tpweb.models.RequestLog import RequestLog
 from tpweb.services.activity_dashboard import build_activity_dashboard_data
+from tpweb.services.workspace import get_public_workspace_user
 
 
 class BuildActivityDashboardDataTests(TestCase):
@@ -67,6 +68,14 @@ class BuildActivityDashboardDataTests(TestCase):
 
         self.assertIn("alice", usernames)
         self.assertIn("bob", usernames)
+
+    def test_accounts_excludes_the_internal_public_workspace_user(self):
+        get_public_workspace_user()
+
+        data = build_activity_dashboard_data()
+        usernames = [a["username"] for a in data["accounts"]]
+
+        self.assertNotIn("public", usernames)
 
 
 class ActivityDashboardViewTests(TestCase):

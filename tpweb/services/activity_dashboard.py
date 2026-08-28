@@ -8,6 +8,7 @@ from django.db.models.functions import TruncDate
 from django.utils import timezone
 
 from tpweb.models.RequestLog import RequestLog
+from tpweb.services.workspace import PUBLIC_WORKSPACE_USERNAME
 
 ACTIVITY_WINDOW_DAYS = 30
 TOP_PAGES_LIMIT = 10
@@ -82,7 +83,10 @@ def build_activity_dashboard_data(days=ACTIVITY_WINDOW_DAYS):
             "is_superuser": u.is_superuser,
             "last_login": u.last_login.isoformat() if u.last_login else None,
         }
-        for u in get_user_model().objects.filter(is_active=True).order_by("username")
+        for u in get_user_model()
+        .objects.filter(is_active=True)
+        .exclude(username=PUBLIC_WORKSPACE_USERNAME)
+        .order_by("username")
     ]
 
     return {
