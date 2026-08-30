@@ -5,9 +5,13 @@
     if (!dataEl || typeof Chart === "undefined") return;
 
     var data = JSON.parse(dataEl.textContent);
-    var numberFormat = new Intl.NumberFormat();
+    // Pinned to en-US rather than the browser's own locale -- this page's
+    // copy is all English, so a Spanish-locale browser would otherwise mix
+    // "ayer"/"hoy" (locale-driven) into English sentences (hardcoded here).
+    var UI_LOCALE = "en-US";
+    var numberFormat = new Intl.NumberFormat(UI_LOCALE);
     var relativeTimeFormat = (typeof Intl.RelativeTimeFormat === "function")
-        ? new Intl.RelativeTimeFormat(undefined, { numeric: "auto" })
+        ? new Intl.RelativeTimeFormat(UI_LOCALE, { numeric: "auto" })
         : null;
 
     var charts = [];
@@ -84,8 +88,8 @@
     function relativeSince(isoDate) {
         var d = new Date(isoDate);
         var diffDays = Math.round((d - new Date()) / 86400000);
-        var relative = relativeTimeFormat ? relativeTimeFormat.format(diffDays, "day") : d.toLocaleDateString();
-        return "Last seen " + relative + " · " + d.toLocaleString();
+        var relative = relativeTimeFormat ? relativeTimeFormat.format(diffDays, "day") : d.toLocaleDateString(UI_LOCALE);
+        return "Last seen " + relative + " · " + d.toLocaleString(UI_LOCALE);
     }
 
     function renderAccounts() {
@@ -173,7 +177,7 @@
         if (!canvas) return null;
         var points = data.timeseries || [];
         var labels = points.map(function (p) {
-            return new Date(p.date + "T00:00:00").toLocaleDateString(undefined, { month: "short", day: "numeric" });
+            return new Date(p.date + "T00:00:00").toLocaleDateString(UI_LOCALE, { month: "short", day: "numeric" });
         });
         return new Chart(canvas.getContext("2d"), {
             type: "line",

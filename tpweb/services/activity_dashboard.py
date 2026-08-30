@@ -101,7 +101,12 @@ def _blocked_attempts_breakdown(window_qs, limit=TOP_LOCATIONS_LIMIT):
 
 def build_activity_dashboard_data(days=ACTIVITY_WINDOW_DAYS):
     now = timezone.now()
-    today = now.date()
+    # localdate(), not now.date(): a plain .date() on the UTC-aware `now`
+    # gives the UTC calendar date, while the __date lookups below convert to
+    # the server's active time zone -- on a non-UTC server those two
+    # boundaries disagree (today can show 0 while "today" timestamps already
+    # exist), so both sides need to agree on the same time zone.
+    today = timezone.localdate()
     yesterday = today - timedelta(days=1)
     window_start = now - timedelta(days=days)
     previous_window_start = window_start - timedelta(days=days)
