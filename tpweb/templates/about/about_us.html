@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/data-sources.css' %}?v=20260831-partners-placeholder">
+    <link rel="stylesheet" href="{% static 'css/pages/data-sources.css' %}?v=20260831-real-team-links">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -110,7 +110,7 @@
                 </div>
                 <p class="ds-pipeline-card-role ds-pipeline-card-role--doctor">{% trans "PhD in Biological Sciences" %} <span class="ds-pipeline-card-faculty">(FCEyN, UBA)</span></p>
                 <p class="ds-pipeline-card-previous-degree"><span>{% trans "Undergraduate degree" %}</span>{% trans "Bachelor's in Biological Sciences" %} <span class="ds-pipeline-card-faculty">(FCEyN, UBA)</span></p>
-                {% include "about/_team_links_placeholder.html" %}
+                {% include "about/_team_links.html" with orcid="https://orcid.org/0000-0002-3622-4052" conicet="https://bicyt.conicet.gov.ar/fichas/p/dario-augusto-fernandez-do-porto" %}
             </div>
             <div class="ds-pipeline-card">
                 <div class="ds-pipeline-card-head">
@@ -118,7 +118,7 @@
                 </div>
                 <p class="ds-pipeline-card-role ds-pipeline-card-role--doctor">{% trans "PhD in Chemical Sciences" %} <span class="ds-pipeline-card-faculty">(FCEyN, UBA)</span></p>
                 <p class="ds-pipeline-card-previous-degree"><span>{% trans "Undergraduate degree" %}</span>{% trans "Bachelor's in Chemical Sciences" %} <span class="ds-pipeline-card-faculty">(UBA)</span></p>
-                {% include "about/_team_links_placeholder.html" %}
+                {% include "about/_team_links.html" with linkedin="https://ar.linkedin.com/in/turjanski" orcid="https://orcid.org/0000-0003-2190-137X" conicet="https://bicyt.conicet.gov.ar/fichas/p/adrian-turjanski" %}
             </div>
             <div class="ds-pipeline-card">
                 <div class="ds-pipeline-card-head">
@@ -126,7 +126,7 @@
                 </div>
                 <p class="ds-pipeline-card-role ds-pipeline-card-role--candidate">{% trans "PhD candidate in Biological Chemistry" %} <span class="ds-pipeline-card-faculty">(FCEyN, UBA)</span></p>
                 <p class="ds-pipeline-card-previous-degree"><span>{% trans "Undergraduate degree" %}</span>{% trans "Bachelor's in Biological Sciences" %} <span class="ds-pipeline-card-faculty">(FCEyN, UBA)</span></p>
-                {% include "about/_team_links_placeholder.html" %}
+                {% include "about/_team_links.html" with linkedin="https://www.linkedin.com/in/l-gabriel-garcia" conicet="https://bicyt.conicet.gov.ar/fichas/p/lucas-gabriel-garcia" %}
             </div>
             <div class="ds-pipeline-card">
                 <div class="ds-pipeline-card-head">
@@ -134,7 +134,7 @@
                 </div>
                 <p class="ds-pipeline-card-role ds-pipeline-card-role--candidate">{% trans "PhD candidate in Biological Chemistry" %} <span class="ds-pipeline-card-faculty">(FCEyN, UBA)</span></p>
                 <p class="ds-pipeline-card-previous-degree"><span>{% trans "Undergraduate degree" %}</span>{% trans "Bachelor's in Biological Sciences" %} <span class="ds-pipeline-card-faculty">(FCEyN, UBA)</span></p>
-                {% include "about/_team_links_placeholder.html" %}
+                {% include "about/_team_links.html" with orcid="https://orcid.org/0000-0002-5094-4953" conicet="https://bicyt.conicet.gov.ar/fichas/p/en/miranda-clara-palumbo" %}
             </div>
             <div class="ds-pipeline-card">
                 <div class="ds-pipeline-card-head">
@@ -142,21 +142,21 @@
                 </div>
                 <p class="ds-pipeline-card-role ds-pipeline-card-role--candidate">{% trans "PhD candidate in Biological Chemistry" %} <span class="ds-pipeline-card-faculty">(FCEyN, UBA)</span></p>
                 <p class="ds-pipeline-card-previous-degree"><span>{% trans "Undergraduate degree" %}</span>{% trans "Bachelor's in Chemical Sciences" %} <span class="ds-pipeline-card-faculty">(FCEyN, UBA)</span></p>
-                {% include "about/_team_links_placeholder.html" %}
+                {% include "about/_team_links.html" with linkedin="https://www.linkedin.com/in/sol-varela-gamarnik-845328268" orcid="https://orcid.org/0009-0006-7473-8173" %}
             </div>
             <div class="ds-pipeline-card">
                 <div class="ds-pipeline-card-head">
                     <strong>Ana Gabriela Gutson</strong>
                 </div>
                 <p class="ds-pipeline-card-role ds-pipeline-card-role--engineering">{% trans "Computer Engineer" %} <span class="ds-pipeline-card-faculty">(FIUBA, UBA)</span></p>
-                {% include "about/_team_links_placeholder.html" %}
+                {% include "about/_team_links.html" with linkedin="https://www.linkedin.com/in/ana-gutson/" %}
             </div>
             <div class="ds-pipeline-card">
                 <div class="ds-pipeline-card-head">
                     <strong>Joaquín Messano</strong>
                 </div>
                 <p class="ds-pipeline-card-role">{% trans "Undergraduate student in Biological Sciences" %} <span class="ds-pipeline-card-faculty">(FCEyN, UBA)</span></p>
-                {% include "about/_team_links_placeholder.html" %}
+                {% include "about/_team_links.html" with linkedin="https://www.linkedin.com/in/joaquin-messano-543886140" %}
             </div>
         </div>
     </section>

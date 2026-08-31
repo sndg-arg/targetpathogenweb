@@ -265,9 +265,9 @@
     color: var(--tp-color-text-muted);
 }
 
-/* Placeholder personal links -- dashed borders (here and on .ds-partner-tile
-   below) are a deliberate "not final yet" signal, not a style bug. Switch to
-   solid once real ORCID/LinkedIn/personal URLs replace the href="#"s. */
+/* Personal links (LinkedIn/ORCID/CONICET) -- solid now that they're real
+   URLs. .ds-partner-tile below is still a placeholder (no real logos yet),
+   so it keeps the dashed "not final" treatment on its own. */
 .ds-pipeline-card-links {
     display: flex;
     flex-wrap: wrap;
@@ -278,7 +278,7 @@
 
 .ds-pipeline-card-link {
     padding: 3px 10px;
-    border: 1px dashed var(--tp-color-border);
+    border: 1px solid var(--tp-color-border);
     border-radius: 999px;
     font-size: 0.72rem;
     font-weight: 600;
