@@ -831,6 +831,16 @@ function jsloaded() {
         backgroundColor: tpColor("--sv-viewer-canvas-bg", "#0d1519")
     });
 
+    /* NGL paints its WebGL canvas once at creation time and has no idea
+       the page's CSS variables changed afterward -- toggling the theme
+       button flips --sv-viewer-canvas-bg (light <-> dark) but the canvas
+       itself stays whatever color it was on load until told otherwise. */
+    document.addEventListener("tp:themechange", function () {
+        if (stage && typeof stage.setParameters === "function") {
+            stage.setParameters({ backgroundColor: tpColor("--sv-viewer-canvas-bg", "#0d1519") });
+        }
+    });
+
     /* Resize NGL canvas to match actual DOM size, then optionally re-center.
        The second, delayed handleResize() exists because the container can
        still be settling after the first one -- but without a matching
