@@ -116,15 +116,19 @@
                the exact value it used to borrow from --tp-color-rose-500,
                so this introduces no visual change on its own. */
             --tp-color-structure-hetero: #cf628c;
-            /* NGL's own built-in "sstruc" colorScheme (By structure mode) --
-               hardcoded inside the vendored ngl library itself, not something
-               we pass in, so these mirror its literal output exactly rather
-               than following the app's light/dark palette. Same value in
-               both themes on purpose -- the 3D-rendered colors never change
-               with app theme, so the legend swatches must not either. */
+            /* "By structure" mode -- fed into a custom NGL colormaker
+               (structure.html/protein.html registers "tpSstruc" against
+               these exact values) instead of NGL's own built-in "sstruc"
+               scheme, so the legend and the 3D-rendered colors are the same
+               tokens by construction, not by coincidence. Helix/sheet keep
+               NGL's original hues (still legible on both canvas colors);
+               coil is overridden below for dark mode -- pure white was
+               NGL's literal default, tuned for its own dark demo canvas,
+               and is nearly invisible against this app's light-mode canvas
+               (--sv-viewer-canvas-bg here is #f0f6fa, near-white itself). */
             --tp-color-sstruc-helix: #ff0080;
             --tp-color-sstruc-sheet: #ffc800;
-            --tp-color-sstruc-coil: #ffffff;
+            --tp-color-sstruc-coil: #8a97a0;
             /* Structure viewer — light mode (canvas matches page theme) */
             --sv-viewer-canvas-bg: #f0f6fa;
             --sv-overlay-bg: rgba(228, 241, 250, 0.90);
@@ -320,6 +324,11 @@
             --tp-color-structure-p2-apolar: #ffb020;
             --tp-color-structure-p2-polar: #a78bfa;
             --tp-color-structure-hetero: #b85a80;
+            /* Coil back to a near-white that reads clearly against the dark
+               canvas below (unlike light mode, pure-ish white has real
+               contrast here) -- helix/sheet stay the same vivid hues in
+               both themes. */
+            --tp-color-sstruc-coil: #e7ecef;
 
             /* structure viewer overlay — dark mode */
             --sv-viewer-canvas-bg: #0d1519;

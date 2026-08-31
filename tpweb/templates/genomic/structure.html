@@ -54,9 +54,9 @@
         {% endcomment %}
 
         {# Secondary-structure color legend -- only meaningful in "By structure"
-           color mode, hidden otherwise. Colors mirror NGL's own built-in sstruc
-           palette exactly (see --tp-color-sstruc-* in masterpage.html), since
-           that's a hardcoded library palette we don't control the values of. #}
+           color mode, hidden otherwise. Same --tp-color-sstruc-* tokens
+           (masterpage.html) the custom "tpSstruc" NGL colormaker below
+           actually renders with, so this legend is accurate by construction. #}
         <div class="sv-legend sv-sstruc-legend" id="sv-sstruc-legend" hidden>
             <span class="sv-legend-label">{% trans "Structure" %}</span>
             <span class="sv-sstruc-swatch"><span class="sv-sstruc-dot sv-sstruc-dot--helix" aria-hidden="true"></span>{% trans "Helix" %}</span>
@@ -385,6 +385,10 @@ function jsloaded() {
     var activeStructureId = "{{ structure.id }}";
     var isSpinning = false;
     var structureLoadToken = 0;
+    // Assigned (not re-declared) inside initStructureComponent -- promoted
+    // here so the tp:themechange listener below can tell whether "By
+    // structure" coloring is currently on screen and needs a repaint.
+    var currentColorMode = "flat";
 
     /* ---- Viewer color overrides (settings modal) ---- */
     var COLOR_STORAGE_KEY = "tp.structureViewerColors";
@@ -480,6 +484,43 @@ function jsloaded() {
             ];
         }
         return [0.16, 0.71, 0.82];
+    }
+
+    // NGL's built-in "sstruc" colorScheme is hardcoded inside the library
+    // and ignores this app's tokens entirely -- a custom colormaker, keyed
+    // by the same --tp-color-sstruc-* tokens the legend already reads, is
+    // the only way the two actually agree. Re-registered (not cached) on
+    // every call since NGL.ColormakerRegistry.addScheme takes a plain
+    // constructor function: cheap to call the handful of times this
+    // actually happens (load, structure switch, explicit color-mode click,
+    // theme toggle), and guarantees a light/dark theme change is picked up
+    // instead of baking colors into a closure once at page load.
+    function registerSstrucScheme() {
+        if (typeof NGL === "undefined" || !NGL.ColormakerRegistry
+            || typeof NGL.ColormakerRegistry.addScheme !== "function") {
+            return "sstruc";
+        }
+        function hexToInt(hex, fallback) {
+            var m = /^#([0-9a-f]{6})$/i.exec(hex || "");
+            return m ? parseInt(m[1], 16) : fallback;
+        }
+        var helixColor = hexToInt(tpColor("--tp-color-sstruc-helix"), 0xff0080);
+        var sheetColor = hexToInt(tpColor("--tp-color-sstruc-sheet"), 0xffc800);
+        var coilColor  = hexToInt(tpColor("--tp-color-sstruc-coil"), 0xffffff);
+        // Known, deliberate gap: NGL's own built-in scheme colors nucleic
+        // acid/carbohydrate residues distinctly from plain coil (its
+        // fallback branch does more than a flat color); every non-protein
+        // residue here renders as coil instead. Not a concern for the
+        // protein-only structures this viewer normally shows -- revisit if
+        // protein-nucleic acid complexes become common here.
+        return NGL.ColormakerRegistry.addScheme(function () {
+            this.atomColor = function (atom) {
+                var s = atom.sstruc;
+                if (s === "h" || s === "g" || s === "i") return helixColor;
+                if (s === "e" || s === "b") return sheetColor;
+                return coilColor;
+            };
+        }, "tpSstruc");
     }
 
     function setResetZoomEnabled(enabled) {
@@ -844,6 +885,13 @@ function jsloaded() {
         if (stage && typeof stage.setParameters === "function") {
             stage.setParameters({ backgroundColor: tpColor("--sv-viewer-canvas-bg", "#0d1519") });
         }
+        // "By structure" coloring only differs between themes for coil
+        // (helix/sheet are the same hue either way) -- repaint if it's the
+        // active mode so a mid-session theme toggle doesn't leave coil in
+        // the previous theme's color until the next structure switch.
+        if (currentColorMode === "sstruc" && typeof window.ngl_set_color_mode === "function") {
+            window.ngl_set_color_mode("sstruc");
+        }
     });
 
     /* Resize NGL canvas to match actual DOM size, then optionally re-center.
@@ -1106,14 +1154,16 @@ function jsloaded() {
         var pocketSurfaceKeys = [];
         var priorityPocketSurfaceKeys = [];
         var isMultichain = !!structureIsMultichain[activeStructureId];
-        var currentColorMode = structureColorDefaults[activeStructureId] || "flat";
+        currentColorMode = structureColorDefaults[activeStructureId] || "flat";
         if (currentColorMode === "chainname" && !isMultichain) {
             currentColorMode = "flat";
         }
         if (chainColorButton) chainColorButton.hidden = !isMultichain;
 
         function colorForMode(mode) {
-            return mode === "flat" ? (tpColor("--tp-color-structure-cartoon") || "#2288a3") : mode;
+            if (mode === "flat") return tpColor("--tp-color-structure-cartoon") || "#2288a3";
+            if (mode === "sstruc") return registerSstrucScheme();
+            return mode;
         }
 
         window.ngl_reset_zoom = function () {
