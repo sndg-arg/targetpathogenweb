@@ -1573,34 +1573,42 @@ a.tp-chip--go:hover {
 
 .tp-breadcrumb-link,
 .tp-breadcrumb-current {
-    font-size: var(--tp-font-size-sm);
     line-height: 1.2;
     letter-spacing: 0.01em;
     white-space: nowrap;
-    max-width: 100%;
+    max-width: 220px;
     overflow: hidden;
     text-overflow: ellipsis;
-    font-weight: 600;
 }
 
 .tp-breadcrumb-link {
     display: inline-flex;
     align-items: center;
     gap: 5px;
+    margin: -3px -7px;
+    padding: 3px 7px;
+    border-radius: 999px;
     color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-size-sm);
+    font-weight: 500;
     text-decoration: none;
-    transition: color 140ms ease;
+    transition: background 140ms ease, color 140ms ease;
 }
 
 .tp-breadcrumb-link:hover,
 .tp-breadcrumb-link:focus-visible {
+    background: var(--tp-color-surface-muted);
     color: var(--tp-color-link-hover);
-    text-decoration: underline;
     outline: none;
 }
 
+/* Bolder + darker rather than a boxed chip -- this is read-only "you are
+   here" text, not an action, so it earns emphasis through weight/ink alone
+   (a pill here would just be a button-shaped thing with nothing to click). */
 .tp-breadcrumb-current {
-    color: var(--tp-color-text-muted);
+    color: var(--tp-color-text-primary);
+    font-size: var(--tp-font-size-sm);
+    font-weight: 700;
 }
 
 /* Docked strip under the fixed top bar (masterpage.html) -- each page
