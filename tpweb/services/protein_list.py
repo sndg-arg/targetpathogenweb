@@ -242,6 +242,24 @@ def grouped_selected_parameters(selected_parameters, humanize=False):
     return {k: ", ".join(v) for k, v in grouped_data.items()}
 
 
+def _tag_grouped_option(option_dict, change):
+    """Attach the advanced filter builder's group_id/group_mode (see
+    apply_selected_parameter_filters) to a freshly built option dict, when
+    the change dict that produced it carries one. Also makes the option's
+    dedup id group-scoped, so an advanced-group condition can never collide
+    with (and silently get removed together with, via remove_selected_parameter)
+    an identical condition added from the plain filter panel."""
+    group_id = change.get("group_id")
+    if not group_id:
+        return option_dict
+    return {
+        **option_dict,
+        "group_id": group_id,
+        "group_mode": "any" if str(change.get("group_mode") or "").lower() == "any" else "all",
+        "id": f"{group_id}:{option_dict.get('id')}",
+    }
+
+
 def add_selected_parameter(selected_parameters, option_dict):
     if not option_dict:
         return selected_parameters
@@ -427,6 +445,7 @@ def apply_filter_change(selected_parameters, change):
         if option_id:
             try:
                 option_dict = ScoreParamOptions.objects.get(id=option_id).to_dict()
+                option_dict = _tag_grouped_option(option_dict, change)
                 selected_parameters = add_selected_parameter(selected_parameters, option_dict)
             except (ScoreParamOptions.DoesNotExist, ValueError, TypeError):
                 pass
@@ -447,6 +466,7 @@ def apply_filter_change(selected_parameters, change):
             operation=(change.get("numeric_operation") or "").strip(),
         )
         if payload:
+            payload = _tag_grouped_option(payload, change)
             selected_parameters = add_selected_parameter(selected_parameters, payload)
 
     elif action == "remove_filter":
@@ -485,7 +505,122 @@ def selected_parameters_to_filter_map(selected_parameters):
     return parameter_map
 
 
+def _condition_q(parameter, param_name_by_id):
+    """Build a single Q object for one selected_parameters condition, for use
+    OR-combining conditions within an explicit "any" advanced-filter group
+    (see apply_selected_parameter_filters). Only covers categorical and
+    numeric score-param conditions -- the only condition types the advanced
+    filter builder UI exposes -- and returns None for anything else
+    (special/EC/GO/ligand/pathway filters stay AND-only for now)."""
+    kind = _selected_parameter_kind(parameter)
+    if kind == "special":
+        return None
+    param_id = _coerce_score_param_id(parameter.get("score_param_id"))
+    if param_id is None:
+        return None
+
+    if kind == "numeric":
+        operation = _normalize_numeric_operation(parameter.get("operation"))
+        value = _coerce_numeric_filter_value(parameter.get("value"))
+        value_max = _coerce_numeric_filter_value(parameter.get("value_max"))
+        if operation == ">=":
+            if value is None:
+                return None
+            return Q(score_params__score_param_id=param_id, score_params__numeric_value__gte=value)
+        if operation == "<=":
+            if value is None:
+                return None
+            return Q(score_params__score_param_id=param_id, score_params__numeric_value__lte=value)
+        if operation == "between":
+            if value is None and value_max is None:
+                return None
+            if value is None:
+                return Q(
+                    score_params__score_param_id=param_id,
+                    score_params__numeric_value__lte=value_max,
+                )
+            if value_max is None:
+                return Q(
+                    score_params__score_param_id=param_id, score_params__numeric_value__gte=value
+                )
+            return Q(
+                score_params__score_param_id=param_id,
+                score_params__numeric_value__gte=value,
+                score_params__numeric_value__lte=value_max,
+            )
+        return None
+
+    value_name = parameter.get("name")
+    if value_name in ("", None):
+        return None
+    param_name = param_name_by_id.get(param_id, "")
+    if param_name in CORE_GENOME_PARAM_NAMES:
+        if value_name == "Core":
+            return Q(score_params__score_param_id=param_id, score_params__numeric_value__gte=0.5)
+        if value_name == "Accessory":
+            return Q(score_params__score_param_id=param_id, score_params__numeric_value__lt=0.5)
+        return None
+    return Q(score_params__score_param_id=param_id, score_params__value=value_name)
+
+
 def apply_selected_parameter_filters(queryset, selected_parameters):
+    """Apply every filter in selected_parameters to queryset.
+
+    Each item optionally carries `group_id` / `group_mode` ("all" default /
+    "any"), written by the advanced filter builder (see
+    tpweb/views/ProteinListView.py's ProteinAdvancedFiltersView). Items without a
+    real multi-condition "any" group go through the original AND-only path
+    unchanged -- so every filter added from the simple panel keeps its exact
+    prior query behavior. Only a group_mode="any" group with 2+ conditions
+    gets OR-combined, via its own single .filter() call so it still ANDs
+    correctly against every other group/condition (Django collapses multiple
+    conditions on the same many-valued relation into one join per filter()
+    call, so combining unrelated AND'd conditions into one call would wrongly
+    require them to match the same related row -- each group therefore gets
+    its own call, same as every ungrouped condition already does below)."""
+    or_groups = {}
+    and_items = []
+    for parameter in selected_parameters:
+        group_id = parameter.get("group_id")
+        group_mode = str(parameter.get("group_mode") or "all").strip().lower()
+        if group_id and group_mode == "any":
+            or_groups.setdefault(group_id, []).append(parameter)
+        else:
+            and_items.append(parameter)
+
+    # A singleton "any" group is just its one condition -- OR of one thing --
+    # so fold it back into the plain AND path instead of paying for a
+    # separate combined-Q filter() call.
+    for group_id, items in list(or_groups.items()):
+        if len(items) < 2:
+            and_items.extend(items)
+            del or_groups[group_id]
+
+    filtered_queryset = _apply_and_selected_parameter_filters(queryset, and_items)
+
+    if or_groups:
+        param_name_by_id = {}
+        for parameter in selected_parameters:
+            pid = _coerce_score_param_id(parameter.get("score_param_id"))
+            pname = str(parameter.get("score_param_name") or "").strip().lower()
+            if pid is not None and pname:
+                param_name_by_id[pid] = pname
+        for items in or_groups.values():
+            group_q = Q()
+            has_condition = False
+            for parameter in items:
+                condition = _condition_q(parameter, param_name_by_id)
+                if condition is None:
+                    continue
+                group_q |= condition
+                has_condition = True
+            if has_condition:
+                filtered_queryset = filtered_queryset.filter(group_q)
+
+    return filtered_queryset
+
+
+def _apply_and_selected_parameter_filters(queryset, selected_parameters):
     filtered_queryset = queryset
     parameter_map = selected_parameters_to_filter_map(selected_parameters)
     param_name_by_id = {}

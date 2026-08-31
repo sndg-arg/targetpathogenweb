@@ -695,6 +695,10 @@
                 </button>
             </div>
 
+            <a href="{{ advanced_filters_url }}" class="drawer-advanced-link">
+                {% trans "Need OR logic? Build advanced AND/OR filter groups →" %}
+            </a>
+
             <div class="drawer-filter-catalogue" id="drawer-filter-catalogue">
                 {% for group in filter_groups %}
                     <details class="filter-group js-smooth-details {% if group.is_function %}filter-group--function{% endif %}"

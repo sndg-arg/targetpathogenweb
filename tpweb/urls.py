@@ -6,7 +6,11 @@ from .views.DownloadView import DownloadView
 from .views.GenomesView import GenomesView
 from .views.IndexView import IndexView
 from .views.HealthView import HealthLiveView, HealthPipelineView, HealthReadyView
-from .views.ProteinListView import ProteinListView, ProteinSearchSuggestionsView
+from .views.ProteinListView import (
+    ProteinAdvancedFiltersView,
+    ProteinListView,
+    ProteinSearchSuggestionsView,
+)
 from .views.ProteinView import ProteinView
 from .views.MetabolismNetworkView import MetabolismNetworkView, ProteinMetabolicNetworkPageView
 from .views.MetabolismPathwayView import (
@@ -119,6 +123,11 @@ urlpatterns = [
     ),
     path(
         "genome/<str:genome>/proteins/blast", view=ProteinBlastView.as_view(), name="protein_blast"
+    ),
+    path(
+        "genome/<str:genome>/proteins/advanced-filters",
+        view=ProteinAdvancedFiltersView.as_view(),
+        name="protein_advanced_filters",
     ),
     path("download", view=DownloadView.as_view(), name="download"),
     path("genomes", view=GenomesView.as_view(), name="genomes_list"),

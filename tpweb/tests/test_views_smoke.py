@@ -776,3 +776,67 @@ class ProteinListViewTests(LoggedInTestCase):
         response = self.client.get(reverse("tpwebapp:protein_list", kwargs={"genome": "TEST"}))
 
         self.assertEqual(response.status_code, 200)
+
+
+class ProteinAdvancedFiltersViewTests(LoggedInTestCase):
+    def test_get_for_unknown_genome_is_not_found(self):
+        response = self.client.get(
+            reverse("tpwebapp:protein_advanced_filters", kwargs={"genome": "does-not-exist"})
+        )
+        self.assertEqual(response.status_code, 404)
+
+    def test_get_renders_for_existing_genome(self):
+        Biodatabase.objects.create(name="TEST", description="Genome workspace")
+        Biodatabase.objects.create(name="TEST_prots")
+
+        response = self.client.get(
+            reverse("tpwebapp:protein_advanced_filters", kwargs={"genome": "TEST"})
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_post_writes_an_any_group_into_session_and_redirects(self):
+        from tpweb.models.ScoreParam import ScoreParam
+        from tpweb.services.workspace import get_workspace_session_value
+
+        Biodatabase.objects.create(name="TEST", description="Genome workspace")
+        Biodatabase.objects.create(name="TEST_prots")
+        fpocket_param = ScoreParam.objects.create(category="Pocket", name="druggability", type="N")
+        p2rank_param = ScoreParam.objects.create(
+            category="Pocket", name="p2rank_probability", type="N"
+        )
+
+        response = self.client.post(
+            reverse("tpwebapp:protein_advanced_filters", kwargs={"genome": "TEST"}),
+            {
+                "groups_json": json.dumps(
+                    [
+                        {
+                            "mode": "any",
+                            "conditions": [
+                                {
+                                    "kind": "numeric",
+                                    "score_param_id": fpocket_param.pk,
+                                    "operation": ">=",
+                                    "value": "0.7",
+                                },
+                                {
+                                    "kind": "numeric",
+                                    "score_param_id": p2rank_param.pk,
+                                    "operation": ">=",
+                                    "value": "0.5",
+                                },
+                            ],
+                        }
+                    ]
+                )
+            },
+        )
+
+        self.assertRedirects(response, reverse("tpwebapp:protein_list", kwargs={"genome": "TEST"}))
+        selected_parameters = get_workspace_session_value(
+            self.client.session, self.smoke_user, "selected_parameters", []
+        )
+        grouped = [item for item in selected_parameters if item.get("group_id") == "adv:0"]
+        self.assertEqual(len(grouped), 2)
+        self.assertTrue(all(item.get("group_mode") == "any" for item in grouped))

@@ -468,6 +468,103 @@ class ProteinListFilterQueryTests(TestCase):
         self.assertNotEqual(with_ligand.pk, with_ligand.accession)
         self.assertNotEqual(without_ligand.pk, without_ligand.accession)
 
+    def test_any_group_ors_two_numeric_score_params(self):
+        """Motivating case for the advanced filter builder: druggable pockets
+        by FPocket OR by P2Rank, not just AND."""
+        proteome = Biodatabase.objects.create(name="TEST_protein")
+        fpocket_only = Bioentry.objects.create(
+            biodatabase=proteome, name="p1", accession="P1", identifier="P1"
+        )
+        p2rank_only = Bioentry.objects.create(
+            biodatabase=proteome, name="p2", accession="P2", identifier="P2"
+        )
+        neither = Bioentry.objects.create(
+            biodatabase=proteome, name="p3", accession="P3", identifier="P3"
+        )
+        fpocket_param = ScoreParam.objects.create(category="Pocket", name="druggability", type="N")
+        p2rank_param = ScoreParam.objects.create(
+            category="Pocket", name="p2rank_probability", type="N"
+        )
+        ScoreParamValue.objects.create(
+            score_param=fpocket_param, bioentry=fpocket_only, numeric_value=0.9
+        )
+        ScoreParamValue.objects.create(
+            score_param=p2rank_param, bioentry=p2rank_only, numeric_value=0.9
+        )
+        ScoreParamValue.objects.create(
+            score_param=fpocket_param, bioentry=neither, numeric_value=0.1
+        )
+        proteins = Bioentry.objects.filter(biodatabase=proteome)
+
+        matched = apply_selected_parameter_filters(
+            proteins,
+            [
+                {
+                    "type": "numeric",
+                    "score_param_id": fpocket_param.pk,
+                    "operation": ">=",
+                    "value": 0.7,
+                    "group_id": "adv:1",
+                    "group_mode": "any",
+                },
+                {
+                    "type": "numeric",
+                    "score_param_id": p2rank_param.pk,
+                    "operation": ">=",
+                    "value": 0.7,
+                    "group_id": "adv:1",
+                    "group_mode": "any",
+                },
+            ],
+        )
+
+        self.assertEqual(set(matched.values_list("accession", flat=True)), {"P1", "P2"})
+
+    def test_any_group_still_ands_against_other_conditions(self):
+        proteome = Biodatabase.objects.create(name="TEST_protein")
+        matches_both = Bioentry.objects.create(
+            biodatabase=proteome, name="p1", accession="P1", identifier="P1"
+        )
+        matches_or_only = Bioentry.objects.create(
+            biodatabase=proteome, name="p2", accession="P2", identifier="P2"
+        )
+        localization_param = ScoreParam.objects.create(
+            category="Localization", name="Localization", type="C"
+        )
+        fpocket_param = ScoreParam.objects.create(category="Pocket", name="druggability", type="N")
+        ScoreParamValue.objects.create(
+            score_param=localization_param, bioentry=matches_both, value="Cytoplasmic"
+        )
+        ScoreParamValue.objects.create(
+            score_param=fpocket_param, bioentry=matches_both, numeric_value=0.9
+        )
+        ScoreParamValue.objects.create(
+            score_param=fpocket_param, bioentry=matches_or_only, numeric_value=0.9
+        )
+        proteins = Bioentry.objects.filter(biodatabase=proteome)
+
+        matched = apply_selected_parameter_filters(
+            proteins,
+            [
+                {
+                    "type": "categorical",
+                    "score_param_id": localization_param.pk,
+                    "score_param_name": "localization",
+                    "name": "Cytoplasmic",
+                },
+                {
+                    "type": "numeric",
+                    "score_param_id": fpocket_param.pk,
+                    "operation": ">=",
+                    "value": 0.7,
+                    "group_id": "adv:1",
+                    "group_mode": "any",
+                },
+            ],
+        )
+
+        self.assertEqual(list(matched.values_list("accession", flat=True)), ["P1"])
+
 
 class ProteinFormulaServiceTests(SimpleTestCase):
     def test_choose_formula_by_requested_name(self):

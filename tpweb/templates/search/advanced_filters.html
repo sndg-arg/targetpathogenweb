@@ -1,0 +1,106 @@
+{% extends '../base/masterpage.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block head %}
+    <link rel="stylesheet" href="{% static 'css/pages/advanced-filters.css' %}?v=20260831-advanced-filters">
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="tp-breadcrumb-bar">
+    <div class="tp-breadcrumb-bar-inner">
+        {% trans "Genomes" as crumb_genomes %}
+        {% trans "Proteins" as crumb_proteins %}
+        {% trans "Advanced filters" as crumb_advanced %}
+        {% url 'tpwebapp:index' as index_url %}
+        {% url 'tpwebapp:genomes_list' as genomes_url %}
+        {% with crumb_workspace="Genome: "|add:biodb_accession %}
+        {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_workspace crumb_3_url=assembly_url crumb_4_label=crumb_proteins crumb_4_url=protein_list_url crumb_5_label=crumb_advanced %}
+        {% endwith %}
+    </div>
+</div>
+{% endblock %}
+
+{% block body %}
+<div class="af-page">
+    <section class="af-hero tp-view-head">
+        <div class="tp-view-head-copy">
+            <h1>{% trans "Advanced filters" %}</h1>
+            <p class="af-hero-subtitle">
+                {% trans "Build filter groups that combine conditions with ALL (AND) or ANY (OR) — e.g. proteins with a druggable pocket by FPocket OR by P2Rank." %}
+            </p>
+        </div>
+        <div class="tp-view-head-actions">
+            <a href="{{ protein_list_url }}" class="btn tp-btn tp-btn--neutral">{% trans "Back to proteins" %}</a>
+        </div>
+    </section>
+
+    <form method="POST" action="" id="af-form" class="af-form">
+        {% csrf_token %}
+        <input type="hidden" name="groups_json" id="af-groups-json" value="">
+
+        <div id="af-groups" class="af-groups"></div>
+
+        <div class="af-form-footer">
+            <button type="button" class="btn tp-btn tp-btn--neutral" id="af-add-group">
+                {% trans "+ Add filter group" %}
+            </button>
+            <div class="af-form-footer-actions">
+                <a href="{{ protein_list_url }}" class="btn tp-btn tp-btn--clear">{% trans "Cancel" %}</a>
+                <button type="submit" class="btn tp-btn tp-btn--primary">{% trans "Apply advanced filters" %}</button>
+            </div>
+        </div>
+    </form>
+
+    <p class="af-empty-hint" id="af-empty-hint" hidden>
+        {% trans "No filter groups yet — add one to get started." %}
+    </p>
+</div>
+
+<template id="af-group-template">
+    <div class="af-group" data-group data-mode="all">
+        <div class="af-group-head">
+            <div class="af-group-mode" role="group" aria-label="{% trans 'Match' %}">
+                <button type="button" class="af-mode-btn af-mode-btn--active" data-mode-btn="all">{% trans "Match ALL" %}</button>
+                <button type="button" class="af-mode-btn" data-mode-btn="any">{% trans "Match ANY" %}</button>
+            </div>
+            <button type="button" class="af-group-remove tp-focusable" data-remove-group aria-label="{% trans 'Remove group' %}">&times;</button>
+        </div>
+        <div class="af-conditions" data-conditions></div>
+        <button type="button" class="af-add-condition" data-add-condition>{% trans "+ Add condition" %}</button>
+    </div>
+</template>
+
+<template id="af-condition-template">
+    <div class="af-condition" data-condition>
+        <select class="af-param-select form-control" data-param-select>
+            <option value="">{% trans "Choose a criterion…" %}</option>
+        </select>
+        <div class="af-condition-value" data-value-area></div>
+        <button type="button" class="af-condition-remove tp-focusable" data-remove-condition aria-label="{% trans 'Remove condition' %}">&times;</button>
+    </div>
+</template>
+
+<template id="af-value-categorical-template">
+    <select class="af-option-select form-control" data-option-select>
+        <option value="">{% trans "Choose a value…" %}</option>
+    </select>
+</template>
+
+<template id="af-value-numeric-template">
+    <div class="af-numeric-value">
+        <select class="af-operation-select form-control" data-operation>
+            <option value=">=">{% trans "≥" %}</option>
+            <option value="<=">{% trans "≤" %}</option>
+            <option value="between">{% trans "between" %}</option>
+        </select>
+        <input type="number" step="any" class="af-numeric-input form-control" data-value placeholder="{% trans 'value' %}">
+        <input type="number" step="any" class="af-numeric-input af-numeric-input--max form-control" data-value-max placeholder="{% trans 'max' %}" hidden>
+    </div>
+</template>
+
+{{ param_options|json_script:"af-param-options" }}
+{{ existing_groups|json_script:"af-existing-groups" }}
+
+<script src="{% static 'js/pages/advanced-filters.js' %}?v=20260831-advanced-filters"></script>
+{% endblock %}

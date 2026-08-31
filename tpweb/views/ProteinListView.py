@@ -27,6 +27,7 @@ from tpweb.services.protein_list import (
     normalize_selected_parameters,
     parse_page_size,
 )
+from tpweb.services.score_param_types import is_categorical_score_param
 from tpweb.services.protein_formula import (
     NO_FORMULA_SENTINEL,
     annotate_formula_terms,
@@ -151,6 +152,205 @@ class ProteinSearchSuggestionsView(View):
                 r["gene"] = gene_map.get(r["accession"], "")
 
         return JsonResponse({"results": results})
+
+
+class ProteinAdvancedFiltersView(View):
+    """Standalone "Advanced filters" builder page: lets a user group filter
+    conditions into named ALL/ANY blocks (e.g. "druggable by FPocket OR by
+    P2Rank"), instead of the plain filter panel's implicit AND-everything.
+    Writes tagged entries into the same selected_parameters session list the
+    plain panel reads/writes (see apply_selected_parameter_filters's
+    group_id/group_mode handling in tpweb/services/protein_list.py), so both
+    views -- and the protein list's active-filter chips -- stay in sync.
+    Only exposes categorical/numeric score-param conditions (not the special
+    EC/GO/ligand/pathway filters), matching what apply_selected_parameter_
+    filters's OR-combination (_condition_q) actually supports today."""
+
+    template_name = "search/advanced_filters.html"
+    GROUP_ID_PREFIX = "adv:"
+
+    @classmethod
+    def _param_options(cls, user):
+        options = []
+        for score_param in visible_score_params_queryset(user).prefetch_related("choices"):
+            # Same exclusion the plain filter panel applies (_build_filter_groups) --
+            # these are per-pocket-instance categorical params (e.g. "FPocket #12"),
+            # not something worth OR/AND-combining in a general-purpose builder.
+            param_name_lower = score_param.name.lower()
+            if param_name_lower.endswith("_structure") or param_name_lower.endswith("_pocket"):
+                continue
+            label = humanize_identifier(score_param.name) or score_param.name
+            category = (score_param.category or "Other").strip() or "Other"
+            if is_categorical_score_param(score_param):
+                choices = [
+                    {"id": choice.pk, "label": humanize_identifier(choice.name) or choice.name}
+                    for choice in score_param.choices.all()
+                ]
+                if not choices:
+                    continue
+                options.append(
+                    {
+                        "id": score_param.pk,
+                        "label": label,
+                        "category": category,
+                        "type": "categorical",
+                        "options": choices,
+                    }
+                )
+            else:
+                options.append(
+                    {"id": score_param.pk, "label": label, "category": category, "type": "numeric"}
+                )
+        return options
+
+    @classmethod
+    def _existing_groups(cls, selected_parameters):
+        """Reconstruct the builder's group list from session state, for
+        re-opening the page with prior advanced groups still shown. Ignores
+        entries not tagged by this view (the plain panel's own filters)."""
+        groups_by_id = {}
+        order = []
+        for parameter in selected_parameters:
+            group_id = str(parameter.get("group_id") or "")
+            if not group_id.startswith(cls.GROUP_ID_PREFIX):
+                continue
+            if group_id not in groups_by_id:
+                groups_by_id[group_id] = {
+                    "mode": "any"
+                    if str(parameter.get("group_mode") or "").lower() == "any"
+                    else "all",
+                    "conditions": [],
+                }
+                order.append(group_id)
+            kind = str(parameter.get("type") or "categorical").lower()
+            if kind == "numeric":
+                groups_by_id[group_id]["conditions"].append(
+                    {
+                        "kind": "numeric",
+                        "score_param_id": parameter.get("score_param_id"),
+                        "operation": parameter.get("operation"),
+                        "value": parameter.get("value"),
+                        "value_max": parameter.get("value_max"),
+                    }
+                )
+            elif kind != "special":
+                # ids are tagged as "{group_id}:{option_pk}" -- see _tag_grouped_option.
+                raw_id = str(parameter.get("id") or "")
+                option_id = raw_id.rsplit(":", 1)[-1] if raw_id else None
+                groups_by_id[group_id]["conditions"].append(
+                    {
+                        "kind": "categorical",
+                        "score_param_id": parameter.get("score_param_id"),
+                        "option_id": option_id,
+                    }
+                )
+        return [groups_by_id[group_id] for group_id in order]
+
+    def get(self, request, genome, *args, **kwargs):
+        assembly_name = resolve_genome_from_slug(request.user, genome)
+        if not assembly_name:
+            raise Http404("Genome not found")
+
+        selected_parameters = normalize_selected_parameters(
+            get_workspace_session_value(request.session, request.user, "selected_parameters", [])
+        )
+
+        return render(
+            request,
+            self.template_name,
+            {
+                "genome": genome,
+                "biodb_accession": display_genome_name(assembly_name),
+                "assembly_url": reverse(
+                    "tpwebapp:assembly", kwargs={"genome": genome_url_slug(assembly_name)}
+                ),
+                "protein_list_url": reverse("tpwebapp:protein_list", kwargs={"genome": genome}),
+                # Raw Python objects, not pre-serialized strings -- the
+                # template's |json_script filter does its own json.dumps()
+                # (plus HTML-safe escaping), so passing already-dumped JSON
+                # here would double-encode it into a string literal.
+                "param_options": self._param_options(request.user),
+                "existing_groups": self._existing_groups(selected_parameters),
+            },
+        )
+
+    def post(self, request, genome, *args, **kwargs):
+        assembly_name = resolve_genome_from_slug(request.user, genome)
+        if not assembly_name:
+            raise Http404("Genome not found")
+
+        selected_parameters = normalize_selected_parameters(
+            get_workspace_session_value(request.session, request.user, "selected_parameters", [])
+        )
+        # This POST replaces every previously-submitted advanced group wholesale
+        # (editing a group changes its numeric filter's id, so a stale copy would
+        # otherwise linger) -- the plain panel's own filters are untouched.
+        selected_parameters = [
+            item
+            for item in selected_parameters
+            if not str(item.get("group_id") or "").startswith(self.GROUP_ID_PREFIX)
+        ]
+
+        try:
+            raw_groups = json.loads(request.POST.get("groups_json") or "[]")
+        except (TypeError, ValueError):
+            raw_groups = []
+
+        changes = []
+        applied_group_count = 0
+        if isinstance(raw_groups, list):
+            for group_index, raw_group in enumerate(raw_groups):
+                if not isinstance(raw_group, dict):
+                    continue
+                conditions = raw_group.get("conditions")
+                if not isinstance(conditions, list) or not conditions:
+                    continue
+                mode = "any" if str(raw_group.get("mode") or "").lower() == "any" else "all"
+                group_id = f"{self.GROUP_ID_PREFIX}{group_index}"
+                group_had_condition = False
+                for raw_condition in conditions:
+                    if not isinstance(raw_condition, dict):
+                        continue
+                    kind = str(raw_condition.get("kind") or "").strip().lower()
+                    if kind == "numeric":
+                        changes.append(
+                            {
+                                "action": "add_numeric_filter",
+                                "score_param_id": str(raw_condition.get("score_param_id") or ""),
+                                "numeric_operation": str(raw_condition.get("operation") or ""),
+                                "value": str(raw_condition.get("value") or ""),
+                                "value_max": str(raw_condition.get("value_max") or ""),
+                                "group_id": group_id,
+                                "group_mode": mode,
+                            }
+                        )
+                        group_had_condition = True
+                    elif kind == "categorical":
+                        changes.append(
+                            {
+                                "action": "add_filter",
+                                "filter_option_id": raw_condition.get("option_id"),
+                                "group_id": group_id,
+                                "group_mode": mode,
+                            }
+                        )
+                        group_had_condition = True
+                if group_had_condition:
+                    applied_group_count += 1
+
+        selected_parameters = apply_filter_changes(selected_parameters, changes)
+        set_workspace_session_value(
+            request.session, request.user, "selected_parameters", selected_parameters
+        )
+        if applied_group_count:
+            messages.success(
+                request,
+                f"{applied_group_count} grupo(s) de filtros avanzados aplicados.",
+            )
+        elif raw_groups:
+            messages.info(request, "No se aplicó ningún grupo de filtros (vacío o inválido).")
+
+        return redirect(reverse("tpwebapp:protein_list", kwargs={"genome": genome}))
 
 
 class ProteinListView(View):
@@ -1677,6 +1877,9 @@ class ProteinListView(View):
                 "biodb_description": bdb.description if bdb.description else "",
                 "assembly_url": reverse(
                     "tpwebapp:assembly", kwargs={"genome": genome_url_slug(assembly_name)}
+                ),
+                "advanced_filters_url": reverse(
+                    "tpwebapp:protein_advanced_filters", kwargs={"genome": genome}
                 ),
                 "proteins": proteins_dto,
                 "score_dict": score_dict,

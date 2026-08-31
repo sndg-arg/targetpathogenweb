@@ -3014,6 +3014,20 @@ a.filter-pill .filter-pill-remove {
     font-weight: 400;
 }
 
+.drawer-advanced-link {
+    display: block;
+    padding: 0 18px 10px;
+    color: var(--tp-color-link);
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.drawer-advanced-link:hover,
+.drawer-advanced-link:focus-visible {
+    text-decoration: underline;
+}
+
 /* Selector repeats the class -- see the matching comment on
    .columns-restore-link for why (same pre-existing bug, this is the
    original instance it was modeled after). */
