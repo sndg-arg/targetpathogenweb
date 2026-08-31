@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20260831-settings-polish2">
+    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20260831-more-presets">
 {% endblock %}
 
 {% block body %}
@@ -401,8 +401,17 @@ function jsloaded() {
     // On-brand, theme-aware preset swatches -- resolved via tpColor() at
     // render time (not literal hex here) so they stay in sync with
     // whichever theme/light-dark tokens are active, same as every other
-    // color in this viewer.
-    var PRESET_TOKENS = ["--tp-color-brand-700", "--tp-color-rose-700", "--tp-color-sage-700", "--tp-color-amber-700"];
+    // color in this viewer. Two steps (700/500) per hue -- the palette
+    // only defines four content hues (brand/rose/sage/amber), so more
+    // variety comes from pairing a darker/muted step with a
+    // lighter/more saturated one per hue, not from inventing new colors
+    // outside the token system.
+    var PRESET_TOKENS = [
+        "--tp-color-brand-700", "--tp-color-brand-500",
+        "--tp-color-rose-700", "--tp-color-rose-500",
+        "--tp-color-sage-700", "--tp-color-sage-500",
+        "--tp-color-amber-700", "--tp-color-amber-500"
+    ];
 
     function readSavedColors() {
         try {
