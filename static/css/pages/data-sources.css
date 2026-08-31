@@ -188,9 +188,9 @@
     border: 1px solid var(--tp-color-border-soft);
     border-radius: 10px;
     background: var(--tp-color-surface);
-    display: grid;
+    display: flex;
+    flex-direction: column;
     gap: 9px;
-    align-content: start;
     box-shadow: var(--tp-shadow-xs);
     transition: box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard), transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
 }
@@ -272,6 +272,12 @@
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
+    /* Pins to the bottom of the card regardless of how much text sits above
+       it -- without this, a shorter bio (Ana, no "previous degree" block)
+       left the pills floating right under the role line while taller cards
+       in the same grid row pushed theirs down near the bottom edge, so the
+       row read as unevenly aligned. */
+    margin-top: auto;
     padding-top: 8px;
     border-top: 1px solid var(--tp-color-border-soft);
 }
