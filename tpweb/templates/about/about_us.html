@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/data-sources.css' %}?v=20260831-links-bottom-align">
+    <link rel="stylesheet" href="{% static 'css/pages/data-sources.css' %}?v=20260831-real-logos">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -76,20 +76,19 @@
             <div>
                 <p class="tp-ui-field-label">{% trans "Institutional support" %}</p>
                 <h2 class="ds-panel-title">{% trans "Partners" %}</h2>
-                <p class="ds-panel-subtitle">{% trans "Placeholder — swap for the real logos when we have them." %}</p>
             </div>
         </div>
         <div class="ds-partner-grid">
             <div class="ds-partner-tile">
-                <span class="ds-partner-tile-mark" aria-hidden="true">UBA</span>
+                <img class="ds-partner-tile-mark" src="{% static 'img/brand/uba-logo.jpg' %}" alt="{% trans 'Universidad de Buenos Aires' %}">
                 <span class="ds-partner-tile-name">{% trans "Universidad de Buenos Aires" %}</span>
             </div>
             <div class="ds-partner-tile">
-                <span class="ds-partner-tile-mark" aria-hidden="true">IC</span>
+                <img class="ds-partner-tile-mark" src="{% static 'img/brand/ic-only-logo.jpg' %}" alt="{% trans 'Instituto de Cálculo' %}">
                 <span class="ds-partner-tile-name">{% trans "Instituto de Cálculo" %}</span>
             </div>
             <div class="ds-partner-tile">
-                <span class="ds-partner-tile-mark" aria-hidden="true">GF</span>
+                <img class="ds-partner-tile-mark" src="{% static 'img/brand/gates-logo.png' %}" alt="{% trans 'Gates Foundation' %}">
                 <span class="ds-partner-tile-name">{% trans "Gates Foundation" %}</span>
             </div>
         </div>
