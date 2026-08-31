@@ -1601,6 +1601,7 @@
 
                 const structureUrls = {};
                 const structureFormats = {};
+                const structureIds = {};
                 const chainSelectors = {};
                 const mainSelectors = {};
                 const chainColorModes = {};
@@ -1609,18 +1610,36 @@
                         var slot = row.getAttribute("data-pdb-slot");
                         var url = row.getAttribute("data-structure-url");
                         var format = row.getAttribute("data-structure-format") || "pdb";
+                        var structureId = row.getAttribute("data-structure-id");
                         var chain = row.getAttribute("data-chain-selector");
                         var mainSelector = row.getAttribute("data-main-selector");
                         var chainColor = row.getAttribute("data-chain-color");
                         if (slot && url) {
                             structureUrls[slot] = url;
                             structureFormats[slot] = format;
+                            structureIds[slot] = structureId;
                             chainSelectors[slot] = chain || "polymer";
                             mainSelectors[slot] = mainSelector || chain || "polymer";
                             chainColorModes[slot] = chainColor === "true";
                         }
                     });
                 }());
+
+                // The "Download VMD script" / "Full viewer" / "open the full
+                // viewer" links are rendered once at page load pointing at the
+                // default structure -- without this, switching to the alt
+                // structure in the picker updates the 3D view but leaves those
+                // three links silently pointing at the structure that's no
+                // longer showing.
+                function syncStructureActionLinks(urlKey) {
+                    var structureId = structureIds[urlKey];
+                    if (!structureId) return;
+                    document.querySelectorAll(
+                        ".structure-download-btn, .structure-fullscreen-link, .pocket-panel-summary-link"
+                    ).forEach(function (link) {
+                        link.href = link.href.replace(/\/(structure_export|structure)\/\d+/, "/$1/" + structureId);
+                    });
+                }
                 let activeStructureKey = "primary";
 
                 function clearRepresentationState() {
@@ -1690,6 +1709,7 @@
                     syncStructureAnnotationPanels(urlKey);
                     syncExperimentalStructureStatus(urlKey);
                     syncStructurePicker(urlKey);
+                    syncStructureActionLinks(urlKey);
                     setStructureLoadingVisible(true, '{% trans "Loading 3D structure..." %}');
                     stage.removeAllComponents();
                     // Check the URL ourselves before handing it to NGL: a 404/network
