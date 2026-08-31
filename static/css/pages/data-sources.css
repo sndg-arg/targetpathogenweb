@@ -72,7 +72,7 @@
 /* ── Sticky section nav ── */
 .ds-quick-nav {
     position: sticky;
-    top: -2px;
+    top: var(--tp-sticky-chrome-h, -2px);
     z-index: 25;
     align-self: stretch;
     width: 100%;
@@ -90,12 +90,14 @@
 }
 .ds-quick-nav::-webkit-scrollbar { display: none; }
 
-/* The fixed desktop top bar (masterpage.html) reserves height via body's
-   own padding-top -- sticky elements need the same offset added on top of
-   their usual value or they scroll up underneath it. */
+/* The fixed desktop top bar AND the sticky breadcrumb bar under it both
+   reserve real screen space -- --tp-sticky-chrome-h (theme-and-chrome.js)
+   measures both together, so .ds-quick-nav docks below the breadcrumb bar
+   instead of sticking at nearly the same position and rendering behind
+   it. Falls back to the old topbar-only offset if JS hasn't run yet. */
 @media (min-width: 992px) {
     .ds-quick-nav {
-        top: calc(var(--tp-topbar-h) - 2px);
+        top: var(--tp-sticky-chrome-h, calc(var(--tp-topbar-h) - 2px));
     }
 }
 

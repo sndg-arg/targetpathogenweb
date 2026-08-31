@@ -29,6 +29,30 @@
     }, 1200);
 })();
 
+/* ── Sticky sub-nav offset (topbar + breadcrumb bar height) ─────────
+ * A page-level sticky element that should dock right below the
+ * breadcrumb bar (.quick-nav, .ds-quick-nav) needs the combined height
+ * of the fixed topbar AND the sticky breadcrumb bar under it -- using
+ * just the topbar's own height left it sticking at nearly the same
+ * position as the breadcrumb bar, which then rendered on top of it
+ * (breadcrumb bar's z-index is far higher), hiding it almost entirely.
+ * Measuring both here, once, avoids every page re-guessing pixel
+ * offsets for chrome it doesn't own. */
+(function () {
+    function measure() {
+        var desktopNav = document.querySelector(".tp-topbar-desktop");
+        var mobileNav = document.querySelector("#main_header");
+        var nav = (desktopNav && desktopNav.offsetHeight > 0) ? desktopNav
+            : (mobileNav && mobileNav.offsetHeight > 0) ? mobileNav
+            : null;
+        var breadcrumb = document.querySelector(".tp-breadcrumb-bar");
+        var height = (nav ? nav.offsetHeight : 0) + (breadcrumb ? breadcrumb.offsetHeight : 0);
+        document.documentElement.style.setProperty("--tp-sticky-chrome-h", height + "px");
+    }
+    measure();
+    window.addEventListener("resize", measure);
+})();
+
 /* ── Theme toggle ──────────────────────────────── */
 (function () {
     var MODES = ["light", "dark"];
