@@ -1346,25 +1346,6 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     box-shadow: inset 4px 0 0 var(--protein-accent), var(--tp-shadow-sm);
 }
 
-.pocket-card--fpocket .pocket-card-id::before,
-.pocket-card--p2rank .pocket-card-id::before {
-    content: "";
-    display: inline-block;
-    width: 0.46rem;
-    height: 0.46rem;
-    border-radius: 999px;
-    margin-right: 5px;
-    vertical-align: 0.02em;
-}
-
-.pocket-card--fpocket .pocket-card-id::before {
-    background: var(--tp-color-brand-500);
-}
-
-.pocket-card--p2rank .pocket-card-id::before {
-    background: var(--tp-color-sage-500);
-}
-
 .pocket-card-head {
     display: flex;
     align-items: flex-start;
@@ -1412,11 +1393,11 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     font-size: var(--tp-font-size-sm);
     font-weight: 600;
     color: var(--protein-accent-ink);
-}
-
-.pocket-card-id {
-    font-size: var(--tp-font-label);
-    color: var(--tp-color-text-muted);
+    /* Carries the predictor's raw internal pocket number (e.g. "FPocket
+       #107") as a title tooltip instead of visible text -- it's not a
+       rank (we only ever show the top few pockets), so displaying it
+       inline read as a confusing "1 of 107" implication. */
+    cursor: help;
 }
 
 .pocket-card-reprs {
