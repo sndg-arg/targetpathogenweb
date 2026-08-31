@@ -1,8 +1,9 @@
 {% load i18n %}
-{% if linkedin or orcid or conicet %}
+{% if linkedin or orcid or conicet or scholar %}
 <div class="ds-pipeline-card-links">
     {% if linkedin %}<a class="ds-pipeline-card-link" href="{{ linkedin }}" target="_blank" rel="noopener noreferrer">LinkedIn</a>{% endif %}
     {% if orcid %}<a class="ds-pipeline-card-link" href="{{ orcid }}" target="_blank" rel="noopener noreferrer">ORCID</a>{% endif %}
     {% if conicet %}<a class="ds-pipeline-card-link" href="{{ conicet }}" target="_blank" rel="noopener noreferrer">{% trans "CONICET" %}</a>{% endif %}
+    {% if scholar %}<a class="ds-pipeline-card-link" href="{{ scholar }}" target="_blank" rel="noopener noreferrer">{% trans "Scholar" %}</a>{% endif %}
 </div>
 {% endif %}
