@@ -7,7 +7,6 @@ StructureExportView.py, so they belong in the service layer per
 tpw-django-patterns (views delegate to services, not the reverse).
 """
 
-import math
 import random
 from collections import defaultdict
 
@@ -15,6 +14,11 @@ from django.db.models import FilteredRelation, Q
 
 from tpweb.models.Binders import Binders
 from tpweb.models.pdb import PDBResidueSet, Property, Residue, ResidueSet, ResidueSetProperty
+from tpweb.services.pocket_consensus import (
+    POCKET_CONSENSUS_DISTANCE,
+    nearest_named_center,
+    pocket_residue_overlap,
+)
 from tpweb.services.pocket_geometry import filter_pdbresidueset_by_chain, volume_outlier_map
 from tpweb.services.structure_files import display_code
 
@@ -181,11 +185,6 @@ def _residue_set_core_points(residue_set):
     return _atom_points(atoms)
 
 
-# Two pocket-core centers within this range are treated as predicting the same
-# binding site, regardless of method (FPocket alpha-sphere cloud vs P2Rank residue cloud).
-_POCKET_CONSENSUS_DISTANCE = 8.0
-
-
 def _pocket_center(points):
     coords = []
     for point in points or []:
@@ -204,33 +203,6 @@ def _pocket_center(points):
     )
 
 
-def _center_distance(a, b):
-    if a is None or b is None:
-        return None
-    return math.sqrt(sum((a[i] - b[i]) ** 2 for i in range(3)))
-
-
-def _nearest_named_center(center, named_centers):
-    """named_centers: [(label, center), ...]. Returns (label, distance) for the closest, or None."""
-    best = None
-    for label, other in named_centers:
-        distance = _center_distance(center, other)
-        if distance is None:
-            continue
-        if best is None or distance < best[1]:
-            best = (label, distance)
-    return best
-
-
-def _residue_identity(residue):
-    """Stable residue identity for cross-method pocket comparisons."""
-    return (
-        str(getattr(residue, "chain", "") or "").strip(),
-        int(residue.resid),
-        str(getattr(residue, "icode", "") or "").strip(),
-    )
-
-
 def _residue_display_label(residue):
     """Amino-acid code + residue number for display (e.g. 'Asp123'), instead of
     the bare residue number -- falls back to just the number when resname is
@@ -238,20 +210,6 @@ def _residue_display_label(residue):
     resname = str(getattr(residue, "resname", "") or "").strip()
     resid = getattr(residue, "resid", "")
     return f"{resname.capitalize()}{resid}" if resname else str(resid)
-
-
-def _pocket_residue_overlap(left_residues, right_residues):
-    """Return overlap metrics without conflating equal numbers across chains."""
-    left = {_residue_identity(residue) for residue in left_residues}
-    right = {_residue_identity(residue) for residue in right_residues}
-    shared = left & right
-    union = left | right
-    smaller = min(len(left), len(right))
-    return {
-        "shared_count": len(shared),
-        "smaller_coverage": (len(shared) / smaller * 100.0) if smaller else 0.0,
-        "jaccard": (len(shared) / len(union) * 100.0) if union else 0.0,
-    }
 
 
 def _format_pocket_center(center):
@@ -612,13 +570,13 @@ def pdb_structure(
     ]
 
     for p in context["pockets"]:
-        consensus = _nearest_named_center(p.geometric_center, p2_centers)
+        consensus = nearest_named_center(p.geometric_center, p2_centers)
         p.consensus_label = ""
         p.consensus_distance = None
         p.consensus_shared_residues = 0
         p.consensus_smaller_coverage = 0.0
         p.consensus_jaccard = 0.0
-        if consensus and consensus[1] <= _POCKET_CONSENSUS_DISTANCE:
+        if consensus and consensus[1] <= POCKET_CONSENSUS_DISTANCE:
             matching_p2 = next(
                 (
                     candidate
@@ -630,7 +588,7 @@ def pdb_structure(
             p.consensus_label = consensus[0]
             p.consensus_distance = round(consensus[1], 1)
             if matching_p2 is not None:
-                overlap = _pocket_residue_overlap(
+                overlap = pocket_residue_overlap(
                     p.comparison_residues,
                     matching_p2.comparison_residues,
                 )
@@ -644,7 +602,7 @@ def pdb_structure(
             if p.consensus_label
             else ""
         )
-        nearest_site = _nearest_named_center(p.geometric_center, site_centers)
+        nearest_site = nearest_named_center(p.geometric_center, site_centers)
         site_note = (
             f"Nearest annotated site: {nearest_site[0]} (Δ {nearest_site[1]:.1f} Å)"
             if nearest_site
@@ -660,13 +618,13 @@ def pdb_structure(
         )
 
     for p2 in context["p2_pockets"]:
-        consensus = _nearest_named_center(p2.geometric_center, fpocket_centers)
+        consensus = nearest_named_center(p2.geometric_center, fpocket_centers)
         p2.consensus_label = ""
         p2.consensus_distance = None
         p2.consensus_shared_residues = 0
         p2.consensus_smaller_coverage = 0.0
         p2.consensus_jaccard = 0.0
-        if consensus and consensus[1] <= _POCKET_CONSENSUS_DISTANCE:
+        if consensus and consensus[1] <= POCKET_CONSENSUS_DISTANCE:
             matching_fpocket = next(
                 (
                     candidate
@@ -678,7 +636,7 @@ def pdb_structure(
             p2.consensus_label = consensus[0]
             p2.consensus_distance = round(consensus[1], 1)
             if matching_fpocket is not None:
-                overlap = _pocket_residue_overlap(
+                overlap = pocket_residue_overlap(
                     p2.comparison_residues,
                     matching_fpocket.comparison_residues,
                 )
@@ -692,7 +650,7 @@ def pdb_structure(
             if p2.consensus_label
             else ""
         )
-        nearest_site = _nearest_named_center(p2.geometric_center, site_centers)
+        nearest_site = nearest_named_center(p2.geometric_center, site_centers)
         site_note = (
             f"Nearest annotated site: {nearest_site[0]} (Δ {nearest_site[1]:.1f} Å)"
             if nearest_site
