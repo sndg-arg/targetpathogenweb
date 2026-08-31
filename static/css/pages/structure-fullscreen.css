@@ -1105,8 +1105,9 @@ body.viewer-settings-open { overflow: hidden; }
 }
 
 .viewer-settings-section-note {
-    margin: -4px 0 12px;
+    margin: 8px 0 14px;
     font-size: 0.82rem;
+    line-height: 1.45;
     color: var(--tp-color-text-muted);
 }
 
@@ -1209,12 +1210,28 @@ body.viewer-settings-open { overflow: hidden; }
     box-shadow: 0 0 0 2px var(--tp-color-surface), 0 0 0 4px var(--tp-color-brand-500);
 }
 
+/* Separates "pick one of these four" from "or customize the current
+   color" -- without it, the custom swatch reads as a fifth identical
+   preset instead of the thing that's actually always live. */
+.viewer-settings-swatch-divider {
+    width: 1px;
+    height: 20px;
+    flex: 0 0 auto;
+    background: var(--tp-color-border);
+    margin: 0 2px;
+}
+
 .viewer-settings-custom-input {
     width: 26px;
     height: 26px;
     padding: 0;
-    border: 1px solid var(--tp-color-border-strong);
+    /* Deliberately heavier than the preset swatches' 1px border, plus a
+       permanent brand-colored ring -- this swatch always shows the color
+       actually applied right now, so it stays visually marked as "current"
+       even when no preset matches it. */
+    border: 2px solid var(--tp-color-surface);
     border-radius: 999px;
+    box-shadow: 0 0 0 1.5px var(--tp-color-brand-500);
     cursor: pointer;
     background: none;
     /* Native color inputs paint their own swatch inside a rectangular

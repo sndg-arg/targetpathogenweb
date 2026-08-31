@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20260831-settings-polish">
+    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20260831-settings-polish2">
 {% endblock %}
 
 {% block body %}
@@ -745,6 +745,11 @@ function jsloaded() {
                     presetSwatches.push({ swatch: swatch, color: presetColor });
                     swatchGroup.appendChild(swatch);
                 });
+
+                var divider = document.createElement("span");
+                divider.className = "viewer-settings-swatch-divider";
+                divider.setAttribute("aria-hidden", "true");
+                swatchGroup.appendChild(divider);
 
                 customInput.type = "color";
                 customInput.className = "viewer-settings-custom-input";
