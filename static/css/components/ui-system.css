@@ -1537,20 +1537,19 @@ a.tp-chip--go:hover {
     min-width: 0;
 }
 
-/* Same border-box chevron already used for dropdowns/selects (.tp-chevron),
-   reused here instead of a "›" font glyph -- renders crisp and identical
-   across fonts/platforms instead of depending on how each font draws that
-   character. */
+/* A slash reads as current wayfinding (docs sites, modern SaaS nav) --
+   the ">"-style chevron separator this replaced is what actually made the
+   trail look dated, not the pills/typography around it. Text content, not
+   the shared .tp-chevron border-shape (that one's still exactly right for
+   dropdowns/selects, just wrong for this). */
 .tp-breadcrumb-item + .tp-breadcrumb-item::before {
-    content: "";
+    content: "/";
     display: inline-block;
-    width: var(--tp-chevron-size);
-    height: var(--tp-chevron-size);
-    border-right: var(--tp-chevron-stroke) solid var(--tp-color-text-soft);
-    border-bottom: var(--tp-chevron-stroke) solid var(--tp-color-text-soft);
-    transform: rotate(-45deg);
-    opacity: var(--tp-chevron-opacity);
-    margin: 0 2px;
+    color: var(--tp-color-text-soft);
+    font-size: 0.85em;
+    font-weight: 400;
+    opacity: 0.8;
+    margin: 0 1px;
 }
 
 .tp-breadcrumb-home-icon {
