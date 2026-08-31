@@ -142,6 +142,10 @@ class StructureView(View):
             ]
             dto["viewer_chain_selector"] = "polymer"
 
+        dto["heteroatoms_by_structure_id"] = {
+            str(s["id"]): s["structure_data"].get("heteroatoms", []) for s in dto["all_structures"]
+        }
+
         return render(request, self.template_name, dto)
 
     @staticmethod

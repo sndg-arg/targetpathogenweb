@@ -13,6 +13,7 @@ from collections import defaultdict
 
 from django.db.models import FilteredRelation, Q
 
+from tpweb.models.Binders import Binders
 from tpweb.models.pdb import PDBResidueSet, Property, Residue, ResidueSet, ResidueSetProperty
 from tpweb.services.pocket_geometry import filter_pdbresidueset_by_chain, volume_outlier_map
 from tpweb.services.structure_files import display_code
@@ -312,13 +313,42 @@ def pdb_structure(
     context["chains"] = [{"name": chain} for chain in chain_names if chain.strip()]
     context["layers"] = []
 
-    resnames = list(
-        Residue.objects.filter(pdb=pdbobj, type=Residue.HETATOM).values("resname").distinct()
+    # .values_list(..., flat=True) -- .values("resname") returns a queryset of
+    # dicts, not strings, so "HOH" in resnames (and the elif below, which
+    # checked the whole list against two strings instead of each element)
+    # were always False/always-true respectively: water was never detected,
+    # and any HETATM presence -- water-only structures included -- got
+    # tagged "hetero".
+    hetero_resnames = sorted(
+        set(
+            Residue.objects.filter(pdb=pdbobj, type=Residue.HETATOM)
+            .exclude(resname__in=["HOH", "WAT"])
+            .values_list("resname", flat=True)
+        )
     )
-    if "HOH" in resnames or "WAT" in resnames:
+    has_water = Residue.objects.filter(
+        pdb=pdbobj, type=Residue.HETATOM, resname__in=["HOH", "WAT"]
+    ).exists()
+    if has_water:
         context["layers"].append("water")
-    elif len([x for x in resnames if resnames not in ["HOH", "WAT"]]):
+    if hetero_resnames:
         context["layers"].append("hetero")
+
+    # Binders carries ligand identity (source + SMILES) keyed by the same PDB
+    # code + CCD/HET code -- when a hetero group here also has binder
+    # evidence, surface that instead of just the bare 3-letter code.
+    binders_by_ccd = {
+        binder.ccd_id: binder
+        for binder in Binders.objects.filter(pdb_id=pdbobj.code, ccd_id__in=hetero_resnames)
+    }
+    context["heteroatoms"] = [
+        {
+            "code": resname,
+            "has_binder_evidence": resname in binders_by_ccd,
+            "smiles": binders_by_ccd[resname].smiles if resname in binders_by_ccd else "",
+        }
+        for resname in hetero_resnames
+    ]
 
     dna_data = defaultdict(lambda: [])
     for chain_resname in (

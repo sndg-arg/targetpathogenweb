@@ -642,7 +642,12 @@ function jsloaded() {
             var colorBtn = document.querySelector(".js-structure-color.is-active");
             if (colorBtn) lines.push("{% trans 'Color' %}: " + colorBtn.textContent.trim());
             if (heteroBtn && heteroBtn.getAttribute("aria-pressed") === "true") {
-                lines.push("{% trans 'Heteroatoms shown' %}");
+                var shownHetero = currentHeteroatoms();
+                if (shownHetero.length) {
+                    lines.push("{% trans 'Heteroatoms shown' %}: " + shownHetero.map(function (h) { return h.code; }).join(", "));
+                } else {
+                    lines.push("{% trans 'Heteroatoms shown' %}");
+                }
             }
             if (spinBtn && spinBtn.getAttribute("aria-pressed") === "true") {
                 lines.push("{% trans 'Auto-rotation on' %}");
@@ -898,6 +903,24 @@ function jsloaded() {
         "{{ s.id }}": "{% url 'tpwebapp:structure_raw' s.id %}{% if source_protein_id %}?protein_id={{ source_protein_id }}{% endif %}",
         {% endfor %}
     };
+
+    {{ heteroatoms_by_structure_id|json_script:"sv-heteroatoms-by-structure" }}
+    var heteroatomsByStructureId = (function () {
+        var el = document.getElementById("sv-heteroatoms-by-structure");
+        if (!el) return {};
+        try {
+            return JSON.parse(el.textContent) || {};
+        } catch (err) {
+            return {};
+        }
+    })();
+    // Keyed by structure id, not a flat list -- switchStructure() swaps
+    // which structure is active without a page reload, so a single global
+    // heteroatoms list would keep showing the *first* structure's ligands
+    // after switching to a different one.
+    function currentHeteroatoms() {
+        return heteroatomsByStructureId[activeStructureId] || [];
+    }
 
     var structureChainSelectors = {
         {% for s in all_structures %}
@@ -1183,6 +1206,13 @@ function jsloaded() {
         });
         visible.__hetero = false;
         representations.__hetero.setVisibility(false);
+        if (heteroBtn) {
+            var loadedHetero = currentHeteroatoms();
+            heteroBtn.title = loadedHetero.length
+                ? "{% trans 'Ligands, cofactors, ions in this structure (excludes water)' %}: "
+                    + loadedHetero.map(function (h) { return h.code; }).join(", ")
+                : "{% trans 'No heteroatoms (ligands, cofactors, ions) in this structure.' %}";
+        }
 
         window.ngl_toggle_hetero = function () {
             if (!representations.__hetero) return;
