@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20260812-viewer-settings">
+    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20260829-noscroll-fix">
 {% endblock %}
 
 {% block body %}
@@ -426,12 +426,26 @@ function jsloaded() {
         });
     })();
 
-    /* ---- Measure nav height ---- */
+    /* ---- Measure nav height ----
+       #main_header is the mobile topbar -- present in the DOM but
+       display:none on desktop, so querySelector still finds it and
+       offsetHeight silently returns 0 there. Pick whichever bar is
+       actually rendered (nonzero height) instead of just "present", and
+       re-measure on resize so this stays correct across the responsive
+       breakpoint (desktop <-> mobile topbar swap), not just on first paint. */
     (function () {
-        var nav = document.querySelector("#main_header") || document.querySelector("nav");
-        if (nav) {
-            document.documentElement.style.setProperty("--sv-nav-h", nav.offsetHeight + "px");
+        function measureNavHeight() {
+            var desktopNav = document.querySelector(".tp-topbar-desktop");
+            var mobileNav = document.querySelector("#main_header");
+            var nav = (desktopNav && desktopNav.offsetHeight > 0) ? desktopNav
+                : (mobileNav && mobileNav.offsetHeight > 0) ? mobileNav
+                : (desktopNav || mobileNav);
+            if (nav) {
+                document.documentElement.style.setProperty("--sv-nav-h", nav.offsetHeight + "px");
+            }
         }
+        measureNavHeight();
+        window.addEventListener("resize", measureNavHeight);
     })();
 
     /* ---- Utilities ---- */

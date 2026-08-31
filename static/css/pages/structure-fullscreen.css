@@ -7,6 +7,11 @@
 body:has(.sv-root) .tp-main   { max-width: none !important; padding: 0 !important; }
 body:has(.sv-root) .tp-shell  { padding: 0 !important; }
 body:has(.sv-root) .tp-footer { display: none !important; }
+/* Belt-and-suspenders: .sv-root's own height calc (below) should already
+   fill exactly the viewport under the topbar, but if that measurement is
+   ever off by a few px, this stops the page itself from scrolling instead
+   of surfacing a scrollbar that clips the floating toolbar/settings modal. */
+body:has(.sv-root) { overflow: hidden; }
 
 /* ── 2. Root layout ── */
 .sv-root {
