@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20260829-noscroll-fix">
+    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20260831-settings-polish">
 {% endblock %}
 
 {% block body %}
@@ -270,7 +270,9 @@
         <div class="residue-modal-head">
             <h3 id="residue-modal-title">{% trans "Residue positions" %}</h3>
             <button type="button" class="btn tp-btn tp-btn--neutral tp-btn--sm residue-modal-close"
-                    id="close-residue-modal" aria-label="{% trans 'Close' %}">&times;</button>
+                    id="close-residue-modal" aria-label="{% trans 'Close' %}">
+                <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/x.html" %}</span>
+            </button>
         </div>
         <pre class="residue-modal-body" id="residue-modal-content"></pre>
         <div class="residue-modal-actions">
@@ -290,7 +292,9 @@
         <div class="residue-modal-head">
             <h3 id="viewer-settings-title">{% trans "View settings" %}</h3>
             <button type="button" class="btn tp-btn tp-btn--neutral tp-btn--sm residue-modal-close"
-                    id="close-viewer-settings-modal" aria-label="{% trans 'Close' %}">&times;</button>
+                    id="close-viewer-settings-modal" aria-label="{% trans 'Close' %}">
+                <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/x.html" %}</span>
+            </button>
         </div>
         <div class="viewer-settings-body">
             <section class="viewer-settings-section">
@@ -713,6 +717,17 @@ function jsloaded() {
                 swatchGroup.className = "viewer-settings-swatch-group";
 
                 var customInput = document.createElement("input");
+                var presetSwatches = [];
+
+                // Rings whichever preset (if any) matches the color actually
+                // applied right now -- otherwise every dot looks equally
+                // weighted and there's no way to tell which one is active.
+                function syncSelected() {
+                    var current = (customInput.value || "").toLowerCase();
+                    presetSwatches.forEach(function (entry) {
+                        entry.swatch.classList.toggle("is-selected", entry.color.toLowerCase() === current);
+                    });
+                }
 
                 PRESET_TOKENS.forEach(function (presetToken) {
                     var presetColor = tpColor(presetToken, cat.fallback);
@@ -725,7 +740,9 @@ function jsloaded() {
                     swatch.addEventListener("click", function () {
                         applyColor(cat.token, presetColor);
                         customInput.value = presetColor;
+                        syncSelected();
                     });
+                    presetSwatches.push({ swatch: swatch, color: presetColor });
                     swatchGroup.appendChild(swatch);
                 });
 
@@ -736,8 +753,10 @@ function jsloaded() {
                 customInput.title = "{% trans 'Pick a custom color' %}";
                 customInput.addEventListener("change", function () {
                     applyColor(cat.token, customInput.value);
+                    syncSelected();
                 });
                 swatchGroup.appendChild(customInput);
+                syncSelected();
 
                 row.appendChild(swatchGroup);
                 colorRowsHost.appendChild(row);

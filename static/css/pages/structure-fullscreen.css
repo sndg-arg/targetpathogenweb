@@ -1020,7 +1020,25 @@ body:has(.sv-root) { overflow: hidden; }
     color: var(--tp-color-text-primary);
     flex: 1;
 }
-.residue-modal-close { font-size: 1.1rem; line-height: 1; }
+/* Icon-only ghost circle instead of a bordered "x" pill -- lighter touch
+   for a dismiss action that isn't competing with the modal's real actions. */
+.residue-modal-close {
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    flex: 0 0 auto;
+    border-color: transparent !important;
+    background: transparent !important;
+    color: var(--tp-color-text-muted) !important;
+}
+
+.residue-modal-close .tp-btn-icon { width: 0.95em; height: 0.95em; }
+
+.residue-modal-close:hover,
+.residue-modal-close:focus-visible {
+    background: var(--tp-color-surface-muted) !important;
+    color: var(--tp-color-text-primary) !important;
+}
 .residue-modal-body {
     flex: 1;
     overflow-y: auto;
@@ -1102,11 +1120,24 @@ body.viewer-settings-open { overflow: hidden; }
 }
 
 .viewer-settings-visible-list li {
-    padding: 7px 10px;
-    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 9px;
     background: var(--tp-color-surface-soft);
     font-size: 0.85rem;
     color: var(--tp-color-text-secondary);
+}
+
+.viewer-settings-visible-list li::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    flex: 0 0 auto;
+    border-radius: 999px;
+    background: var(--tp-color-brand-500);
 }
 
 .viewer-settings-visible-empty {
@@ -1114,10 +1145,11 @@ body.viewer-settings-open { overflow: hidden; }
     color: var(--tp-color-text-muted);
 }
 
+.viewer-settings-visible-empty::before { display: none; }
+
 .viewer-settings-color-rows {
     display: flex;
     flex-direction: column;
-    gap: 10px;
 }
 
 .viewer-settings-color-row {
@@ -1126,6 +1158,18 @@ body.viewer-settings-open { overflow: hidden; }
     justify-content: space-between;
     gap: 12px;
     flex-wrap: wrap;
+    padding: 9px 6px;
+    margin: 0 -6px;
+    border-radius: 9px;
+    transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.viewer-settings-color-row:hover {
+    background: var(--tp-color-surface-soft);
+}
+
+.viewer-settings-color-row + .viewer-settings-color-row {
+    border-top: 1px solid var(--tp-color-border-soft);
 }
 
 .viewer-settings-color-label {
@@ -1137,7 +1181,7 @@ body.viewer-settings-open { overflow: hidden; }
 .viewer-settings-swatch-group {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
 }
 
 .viewer-settings-swatch {
@@ -1147,13 +1191,22 @@ body.viewer-settings-open { overflow: hidden; }
     border: 1px solid var(--tp-color-border-strong);
     border-radius: 999px;
     cursor: pointer;
-    transition: transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+    transition: transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
 }
 
 .viewer-settings-swatch:hover,
 .viewer-settings-swatch:focus-visible {
     transform: scale(1.12);
     outline: none;
+}
+
+/* Which preset (if any) is the category's current color -- without this
+   the four presets and the live custom swatch all look equally weighted
+   and there's no way to tell which one is actually applied. */
+.viewer-settings-swatch.is-selected {
+    border-color: transparent;
+    box-shadow: 0 0 0 2px var(--tp-color-surface), 0 0 0 4px var(--tp-color-brand-500);
 }
 
 .viewer-settings-custom-input {
