@@ -256,23 +256,26 @@
 
 /* ── Quick-nav ────────────────────────────────────────────────────── */
 
+/* Editorial tab strip, not a row of boxed pills -- matches the top bar's
+   own "thin underline instead of a filled pill" active-tab language
+   (masterpage.html's .tp-topbar-desktop-link.active), and protein-detail.css's
+   .quick-nav (same redesign, applied here for site-wide consistency). */
 .genome-page .quick-nav {
     position: sticky;
     top: -2px;
     z-index: 25;
     display: flex;
     flex-wrap: nowrap;
-    gap: 8px;
+    align-items: stretch;
+    gap: 26px;
     overflow-x: auto;
-    padding: 8px 10px;
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: 10px;
-    background: var(--tp-color-surface-soft);
-    /* This box's own border needs to align with the 18px text inset used
-       by the unboxed hero/cards around it, or it visually pokes out past
-       everything else -- margin does that; internal padding is a
-       separate, smaller detail for the first pill's own breathing room. */
-    margin: 0 18px;
+    padding: 0 18px;
+    border: none;
+    border-bottom: 1px solid var(--tp-color-border-soft);
+    border-radius: 0;
+    background: color-mix(in srgb, var(--tp-color-surface) 88%, transparent);
+    backdrop-filter: blur(6px);
+    margin: 0;
 }
 
 .genome-page .quick-nav::-webkit-scrollbar {
@@ -288,20 +291,25 @@
     flex: 0 0 auto;
     display: inline-flex;
     align-items: center;
-    gap: 5px;
     justify-content: center;
     text-align: center;
-    min-height: 34px;
-    padding: 0.28rem 0.9rem;
+    height: 44px;
+    padding: 0;
     line-height: 1.1;
-    font-weight: 500;
-    border-radius: 999px;
-    border: 1px solid var(--tp-color-border) !important;
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-weight: 600;
+    font-size: 0.85rem;
+    letter-spacing: 0.01em;
+    border-radius: 0 !important;
+    border: none !important;
     background: transparent !important;
-    color: var(--tp-color-text-secondary) !important;
+    color: var(--tp-color-text-muted) !important;
+    box-shadow: inset 0 -2px 0 transparent !important;
     white-space: nowrap;
     text-decoration: none !important;
-    transition: border-color 120ms ease, color 120ms ease, background 120ms ease;
+    transition:
+        color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
 }
 
 /* Marks the one quick-nav tab that navigates to a different page instead
@@ -311,23 +319,24 @@
 .genome-page .quick-nav .quick-nav-link:hover,
 .genome-page .quick-nav .quick-nav-link:focus-visible {
     color: var(--tp-color-text-primary) !important;
-    border-color: var(--tp-color-border-strong) !important;
-    background: var(--tp-color-surface) !important;
+    box-shadow: inset 0 -2px 0 var(--tp-color-border-strong) !important;
+    background: transparent !important;
 }
 
 .genome-page .quick-nav .quick-nav-link.is-active,
 .genome-page .quick-nav .quick-nav-link[aria-current="true"] {
     color: var(--tp-color-link-hover) !important;
-    border-color: var(--genome-accent-border) !important;
-    background: var(--tp-color-brand-100) !important;
+    box-shadow: inset 0 -2px 0 var(--tp-color-link-hover) !important;
+    background: transparent !important;
+    font-weight: 650;
     text-decoration: none !important;
 }
 
 .tp-dark .genome-page .quick-nav .quick-nav-link.is-active,
 .tp-dark .genome-page .quick-nav .quick-nav-link[aria-current="true"] {
-    background: var(--tp-color-brand-200) !important;
-    border-color: var(--tp-color-brand-300) !important;
-    color: var(--tp-color-brand-900) !important;
+    color: var(--tp-color-brand-200) !important;
+    box-shadow: inset 0 -2px 0 var(--tp-color-brand-200) !important;
+    background: transparent !important;
 }
 
 /* ── Grid + panels ────────────────────────────────────────────────── */
