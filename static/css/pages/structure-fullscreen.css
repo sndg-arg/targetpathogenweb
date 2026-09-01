@@ -267,7 +267,7 @@ body:has(.sv-root) { overflow: hidden; }
     align-items: center;
     gap: 5px;
     height: 30px;
-    padding: 0 10px;
+    padding: 0 8px;
     border: none;
     border-radius: 8px;
     background: var(--sv-btn-bg);
@@ -336,7 +336,7 @@ body:has(.sv-root) { overflow: hidden; }
     width: 1px;
     height: 18px;
     background: var(--sv-sep);
-    margin: 0 3px;
+    margin: 0 2px;
     flex-shrink: 0;
 }
 
@@ -352,7 +352,7 @@ body:has(.sv-root) { overflow: hidden; }
 
 .sv-mode-btn {
     height: 24px;
-    padding: 0 10px;
+    padding: 0 8px;
     border: none;
     border-radius: 6px;
     background: transparent;
@@ -1251,7 +1251,13 @@ body.viewer-settings-open { overflow: hidden; }
 /* ── 16. Structure picker (custom dropdown — no native select) ── */
 .sv-struct-picker {
     position: relative;
-    flex-shrink: 0;
+    /* Was flex-shrink: 0 -- the single widest element in the toolbar (an
+       accession code can run long), so letting it shrink first (ellipsis
+       truncates the label, full code is still in its own dropdown menu and
+       the sidebar header) buys real room before every fixed-size button
+       has to fall back to the toolbar's own horizontal scroll. */
+    flex: 0 1 auto;
+    min-width: 0;
 }
 
 .sv-struct-picker-btn {
@@ -1270,7 +1276,7 @@ body.viewer-settings-open { overflow: hidden; }
     letter-spacing: 0.01em;
     cursor: pointer;
     opacity: 0.88;
-    max-width: min(340px, 42vw);
+    max-width: min(200px, 30vw);
     white-space: nowrap;
     overflow: hidden;
     transition: background-color 0.13s, opacity 0.13s;
