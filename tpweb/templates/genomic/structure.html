@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20260831-hide-pocket-id">
+    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20260901-fix-nested-script">
 {% endblock %}
 
 {% block body %}
@@ -319,6 +319,18 @@
 {% block jsloaded %}
 <script src="{% static 'js/pages/pocket-inspector.js' %}?v=20260726-resetzoom1"></script>
 <script src="{% static 'js/pages/ngl-shape-registry.js' %}?v=20260720-shaperegistry1"></script>
+{# json_script emits its own complete <script>...</script> tag -- it MUST sit
+   here, outside the big inline <script> block below, not nested inside it.
+   The HTML parser has no concept of "nested" script tags: it just scans the
+   outer <script>'s raw-text content for the first literal "</script>" to
+   close it, so a json_script placed mid-way through that block prematurely
+   truncates it there, silently dropping every line of JS after that point
+   (including whatever call actually invokes jsloaded()) -- exactly the
+   "stuck on Loading 3D structure..." + "Unexpected token '<'" bug this fixes,
+   present on every structure page since heteroatoms_by_structure_id was
+   added (05ee5ec), because json_script always wraps its output regardless
+   of content. #}
+{{ heteroatoms_by_structure_id|json_script:"sv-heteroatoms-by-structure" }}
 <script>
 function jsloaded() {
     "use strict";
@@ -952,7 +964,6 @@ function jsloaded() {
         {% endfor %}
     };
 
-    {{ heteroatoms_by_structure_id|json_script:"sv-heteroatoms-by-structure" }}
     var heteroatomsByStructureId = (function () {
         var el = document.getElementById("sv-heteroatoms-by-structure");
         if (!el) return {};
