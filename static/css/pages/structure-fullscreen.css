@@ -244,6 +244,21 @@ body:has(.sv-root) { overflow: hidden; }
     box-shadow: var(--sv-shadow);
     white-space: nowrap;
     max-width: calc(100% - 32px);
+    /* .sv-tb-btn is flex-shrink: 0 (buttons never compress) and this row has
+       accumulated a lot of them (color presets, heteroatoms, structure
+       picker...) -- on a normal ~1280-1366px laptop width the row no longer
+       fits, and without this it silently overflowed .sv-root's
+       overflow:hidden with no way to reach the clipped buttons (Settings
+       included). Scroll instead of clip/overflow. */
+    overflow-x: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--sv-toolbar-border) transparent;
+}
+
+.sv-toolbar::-webkit-scrollbar { height: 4px; }
+.sv-toolbar::-webkit-scrollbar-thumb {
+    background: var(--sv-toolbar-border);
+    border-radius: 999px;
 }
 
 /* Generic toolbar button */
@@ -842,6 +857,7 @@ body:has(.sv-root) { overflow: hidden; }
 
 .pocket-card-actions .btn {
     flex: 1;
+    min-width: 0;
     justify-content: center;
 }
 
