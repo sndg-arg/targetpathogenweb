@@ -1252,7 +1252,15 @@ function jsloaded() {
             opacity: STRUCTURE_VIEWER_CONFIG.densityShellOpacity,
             side: "double",
             opaqueBack: true,
-            surfaceType: "ms"
+            surfaceType: "ms",
+            // NGL's surface representation defaults to useWorker:true --
+            // triangulating asynchronously in a Web Worker. When that worker
+            // silently fails to spin up (blob-worker restrictions, this old
+            // vendored NGL build, etc.) the surface geometry never gets
+            // built, but setVisibility(true) still "succeeds" with nothing
+            // to show and no console error. Force main-thread computation
+            // instead: slightly slower to build, but actually renders.
+            useWorker: false
         });
         visible.__main_density = false;
         representations.__main_density.setVisibility(false);
