@@ -79,6 +79,26 @@ class BuildActivityDashboardDataTests(TestCase):
 
         self.assertNotIn("public", usernames)
 
+    def test_accounts_reports_is_staff_separately_from_is_superuser(self):
+        # alice/bob (setUp) are plain users -- neither staff nor superuser.
+        # A regular collaborator must not be badged "staff" in the UI, which
+        # is what happens if this field is missing (JS treats "not
+        # superuser" as "staff").
+        get_user_model().objects.create_user(username="carol", password="x", is_staff=True)
+        get_user_model().objects.create_user(
+            username="dave", password="x", is_staff=True, is_superuser=True
+        )
+
+        data = build_activity_dashboard_data()
+        by_username = {a["username"]: a for a in data["accounts"]}
+
+        self.assertEqual(by_username["alice"]["is_staff"], False)
+        self.assertEqual(by_username["alice"]["is_superuser"], False)
+        self.assertEqual(by_username["carol"]["is_staff"], True)
+        self.assertEqual(by_username["carol"]["is_superuser"], False)
+        self.assertEqual(by_username["dave"]["is_staff"], True)
+        self.assertEqual(by_username["dave"]["is_superuser"], True)
+
 
 class LocationBreakdownTests(TestCase):
     def setUp(self):
@@ -122,6 +142,25 @@ class LocationBreakdownTests(TestCase):
         self.assertEqual(row["ip"], "203.0.113.9")
         self.assertIsNone(row["country"])
         self.assertNotIn("users", row)
+
+    @patch("tpweb.services.activity_dashboard.geolocate_ip")
+    def test_exempt_paths_dont_count_as_blocked_attempts(self, mock_geolocate):
+        # LoginRequiredMiddleware never redirects EXEMPT_PATH_PREFIXES (mainly
+        # /accounts/) -- an anonymous visit to the login page itself is
+        # completely normal traffic, not someone hitting the login wall.
+        mock_geolocate.return_value = None
+        RequestLog.objects.create(
+            user=None, ip="203.0.113.9", method="GET", path="/accounts/login/", status_code=200
+        )
+        RequestLog.objects.create(
+            user=None, ip="203.0.113.10", method="GET", path="/genomes", status_code=302
+        )
+
+        data = build_activity_dashboard_data()
+        blocked_ips = {row["ip"] for row in data["blocked_attempts"]}
+
+        self.assertNotIn("203.0.113.9", blocked_ips)
+        self.assertIn("203.0.113.10", blocked_ips)
 
 
 class ActivityDashboardViewTests(TestCase):

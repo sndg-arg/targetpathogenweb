@@ -153,8 +153,17 @@
     align-items: center;
     gap: 10px;
     padding: 10px 0;
+    margin: 0 -8px;
+    padding-left: 8px;
+    padding-right: 8px;
     border-top: 1px solid var(--tp-color-border-soft);
+    border-radius: 8px;
     flex-wrap: wrap;
+    transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.activity-account-row:hover {
+    background: var(--tp-color-surface-soft);
 }
 
 .activity-account-row:first-child {
@@ -191,8 +200,15 @@
     grid-template-columns: minmax(150px, 1.3fr) minmax(110px, 0.8fr) minmax(110px, 1fr) auto;
     align-items: center;
     gap: 12px;
-    padding: 10px 0;
+    padding: 10px 8px;
+    margin: 0 -8px;
     border-top: 1px solid var(--tp-color-border-soft);
+    border-radius: 8px;
+    transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.activity-location-row:not(.activity-location-row--head):not(.activity-location-row--blocked):hover {
+    background: var(--tp-color-surface-soft);
 }
 
 .activity-location-row:first-child {
@@ -297,6 +313,12 @@
     background: var(--tp-color-border-soft);
     border-radius: var(--tp-radius-md);
     overflow: hidden;
+    /* Every sibling section insets itself by 18px via padding (.activity-hero,
+       .activity-kpi-row, .activity-panel) -- this one has no padding of its
+       own (the grid gap/background IS its visual chrome), so margin does the
+       same inset instead, or its rounded box pokes out past every other
+       section's edge. */
+    margin: 0 18px;
 }
 
 .activity-two-col .activity-panel {

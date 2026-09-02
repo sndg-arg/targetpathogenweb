@@ -2,7 +2,7 @@
     "use strict";
 
     var dataEl = document.getElementById("activity-dashboard-data");
-    if (!dataEl || typeof Chart === "undefined") return;
+    if (!dataEl) return;
 
     var data = JSON.parse(dataEl.textContent);
     // Pinned to en-US rather than the browser's own locale -- this page's
@@ -104,7 +104,9 @@
             var lastLogin = account.last_login ? relativeSince(account.last_login) : "Never logged in";
             var badge = account.is_superuser
                 ? '<span class="tp-chip tp-chip--sm">admin</span>'
-                : '<span class="tp-chip tp-chip--sm tp-chip--meta">staff</span>';
+                : account.is_staff
+                ? '<span class="tp-chip tp-chip--sm tp-chip--meta">staff</span>'
+                : '<span class="tp-chip tp-chip--sm tp-chip--homolog">user</span>';
             return (
                 '<div class="activity-account-row">' +
                 '<span class="activity-account-name">' + account.username + "</span>" +
@@ -310,6 +312,10 @@
     }
 
     function renderCharts() {
+        // Only the three chart panels below need the Chart.js vendor
+        // script -- if it 404s or is blocked, KPIs/accounts/locations
+        // (already rendered above by the time this runs) must still work.
+        if (typeof Chart === "undefined") return;
         charts.forEach(function (c) { c.destroy(); });
         charts = [];
         var t = theme();

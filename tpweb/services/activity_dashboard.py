@@ -7,6 +7,7 @@ from django.db.models import Count, Max
 from django.db.models.functions import TruncDate
 from django.utils import timezone
 
+from tpweb.middleware.access_control import EXEMPT_PATH_PREFIXES
 from tpweb.models.RequestLog import RequestLog
 from tpweb.services.ip_geolocation import geolocate_ip
 from tpweb.services.workspace import PUBLIC_WORKSPACE_USERNAME
@@ -95,8 +96,16 @@ def _authenticated_location_breakdown(window_qs, limit=TOP_LOCATIONS_LIMIT):
 
 def _blocked_attempts_breakdown(window_qs, limit=TOP_LOCATIONS_LIMIT):
     """IPs that hit the login wall without ever authenticating -- scans,
-    bots, or a collaborator who hasn't been given a login yet."""
-    return _ip_breakdown(window_qs.filter(user__isnull=True), limit)
+    bots, or a collaborator who hasn't been given a login yet.
+
+    Excludes EXEMPT_PATH_PREFIXES (mainly /accounts/): LoginRequiredMiddleware
+    never redirects those, so an anonymous visit to the login page itself is
+    completely normal traffic -- without this exclusion it swamped the
+    "blocked" bucket with everyone who simply opened the login page."""
+    blocked_qs = window_qs.filter(user__isnull=True)
+    for prefix in EXEMPT_PATH_PREFIXES:
+        blocked_qs = blocked_qs.exclude(path__startswith=prefix)
+    return _ip_breakdown(blocked_qs, limit)
 
 
 def build_activity_dashboard_data(days=ACTIVITY_WINDOW_DAYS):
@@ -169,6 +178,7 @@ def build_activity_dashboard_data(days=ACTIVITY_WINDOW_DAYS):
         {
             "username": u.username,
             "is_superuser": u.is_superuser,
+            "is_staff": u.is_staff,
             "last_login": u.last_login.isoformat() if u.last_login else None,
         }
         for u in get_user_model()
