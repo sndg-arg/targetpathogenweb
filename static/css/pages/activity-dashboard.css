@@ -489,7 +489,13 @@
 }
 
 @media (max-width: 640px) {
-    .activity-location-row {
+    /* .activity-location-row and .activity-location-row--wide have equal
+       specificity -- listing --wide explicitly here (instead of relying on
+       this block being declared after its base rule) so a future reorder
+       can't silently leave the 5-column --wide variant un-collapsed on a
+       phone, where its minmax() widths add up to well over 360px. */
+    .activity-location-row,
+    .activity-location-row--wide {
         grid-template-columns: 1fr;
         gap: 2px;
         padding: 12px 0;

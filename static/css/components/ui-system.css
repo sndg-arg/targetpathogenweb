@@ -169,10 +169,19 @@
     flex: 1 1 auto;
 }
 
+/* This header row (title + a right-side action/chip/legend) is reused
+   across ~75 section headers site-wide. Without flex-wrap, any instance
+   whose right-side child doesn't shrink to near-zero pushes the row wider
+   than a phone viewport -- and since these sit in normal page flow (not a
+   scroll container), that becomes page-wide horizontal scroll, not a
+   contained one. Wrapping here fixes every page that uses this class at
+   once instead of each page reinventing its own media query. */
 .tp-ui-panel-head {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    flex-wrap: wrap;
+    row-gap: 6px;
     gap: var(--tp-ui-gap-sm);
 }
 
