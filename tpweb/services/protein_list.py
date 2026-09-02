@@ -230,7 +230,22 @@ def humanize_identifier(value):
 
 
 def grouped_selected_parameters(selected_parameters, humanize=False):
+    """Display-only summary for the "Applied filters" hero line and CSV
+    export header (a different, unrelated concept from the advanced filter
+    builder's group_id/group_mode used for query building).
+
+    Returns a list of (label, joined_values) pairs rather than a dict:
+    values picked within the *same* advanced-filter group (or from the
+    plain filter panel, which has no group_id) really do combine as OR, so
+    they're still safely joined into one "A, B" string. But two *different*
+    advanced groups can target the same score param (e.g. "Core
+    Corecruncher: Core" in one group, "Core Corecruncher: Accessory" in
+    another) and those combine as AND, not OR -- merging them into one dict
+    entry keyed by name would silently collide and misrepresent the filter
+    as an OR, so they're kept as separate entries in the returned list.
+    """
     grouped_data = {}
+    order = []
     for item in selected_parameters:
         score_param_name = item.get("score_param_name")
         if not score_param_name:
@@ -238,8 +253,12 @@ def grouped_selected_parameters(selected_parameters, humanize=False):
         option_name = _selected_parameter_display_value(item, humanize=humanize)
         if humanize:
             score_param_name = humanize_identifier(score_param_name) or score_param_name
-        grouped_data.setdefault(score_param_name, []).append(option_name)
-    return {k: ", ".join(v) for k, v in grouped_data.items()}
+        key = (score_param_name, item.get("group_id") or "")
+        if key not in grouped_data:
+            grouped_data[key] = []
+            order.append(key)
+        grouped_data[key].append(option_name)
+    return [(key[0], ", ".join(grouped_data[key])) for key in order]
 
 
 def _tag_grouped_option(option_dict, change):

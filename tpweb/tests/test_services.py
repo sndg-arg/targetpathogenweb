@@ -342,7 +342,7 @@ class ProteinListServiceTests(SimpleTestCase):
             {"score_param_name": "Druggability", "name": "Medium"},
             {"score_param_name": "Localization", "name": "Cytoplasm"},
         ]
-        grouped = grouped_selected_parameters(selected)
+        grouped = dict(grouped_selected_parameters(selected))
         self.assertEqual(grouped["Druggability"], "High, Medium")
         self.assertEqual(grouped["Localization"], "Cytoplasm")
 
@@ -356,9 +356,37 @@ class ProteinListServiceTests(SimpleTestCase):
             }
         ]
 
-        grouped = grouped_selected_parameters(selected, humanize=True)
+        grouped = dict(grouped_selected_parameters(selected, humanize=True))
 
         self.assertEqual(grouped["Druggability Score"], ">= 0.75")
+
+    def test_grouped_selected_parameters_keeps_different_groups_separate(self):
+        # Two different advanced-filter groups touching the same score param
+        # combine as AND, not OR -- they must stay separate entries instead
+        # of being merged into one misleading "Core, Accessory" string.
+        selected = [
+            {"score_param_name": "Core Corecruncher", "name": "Core", "group_id": "adv:0"},
+            {"score_param_name": "Core Corecruncher", "name": "Accessory", "group_id": "adv:1"},
+        ]
+        grouped = grouped_selected_parameters(selected)
+        self.assertEqual(
+            grouped,
+            [
+                ("Core Corecruncher", "Core"),
+                ("Core Corecruncher", "Accessory"),
+            ],
+        )
+
+    def test_grouped_selected_parameters_merges_same_group_values(self):
+        # Multiple values picked within the *same* group (or the plain
+        # filter panel, which has no group_id) genuinely combine as OR and
+        # should still be joined into one entry.
+        selected = [
+            {"score_param_name": "Core Corecruncher", "name": "Core", "group_id": "adv:0"},
+            {"score_param_name": "Core Corecruncher", "name": "Accessory", "group_id": "adv:0"},
+        ]
+        grouped = grouped_selected_parameters(selected)
+        self.assertEqual(grouped, [("Core Corecruncher", "Core, Accessory")])
 
     def test_add_and_remove_selected_parameter(self):
         selected = [{"id": 1, "name": "High"}]

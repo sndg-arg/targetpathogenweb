@@ -77,7 +77,7 @@
                     <span class="hero-analysis-value{% if not active_preset_name and not grouped_parameters and not structure_source and not annotation_filter %} hero-analysis-value--empty{% endif %}">
                         {% if active_preset_name %}<span class="hero-analysis-preset">{{ active_preset_name }}</span>{% if grouped_parameters or structure_source or annotation_filter %}<span class="hero-analysis-sep"> · </span>{% endif %}{% endif %}
                         {% if grouped_parameters or structure_source or annotation_filter %}
-                            {% for score_param, values in grouped_parameters.items %}
+                            {% for score_param, values in grouped_parameters %}
                                 <span class="hero-analysis-criterion"><strong>{{ score_param|humanize_identifier }}:</strong> {{ values|humanize_identifier }}</span>{% if not forloop.last or structure_source or annotation_filter %}<span class="hero-analysis-sep"> · </span>{% endif %}
                             {% endfor %}
                             {% if structure_source %}

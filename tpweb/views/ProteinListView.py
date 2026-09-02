@@ -1018,7 +1018,7 @@ class ProteinListView(View):
         total_count,
     ):
         filters_text = []
-        for score_param, values in grouped_parameters.items():
+        for score_param, values in grouped_parameters:
             filters_text.append(f"{score_param}: {values}")
 
         if structure_source:
