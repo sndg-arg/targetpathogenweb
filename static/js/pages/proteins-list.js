@@ -922,13 +922,20 @@ function jsloaded() {
     }
 
     if (filterPresetSaveForm) {
-        // Saving a preset only captures the already-applied filters,
-        // not anything still pending -- genuinely worth a warning,
-        // but only its own, not a redundant native one too.
-        filterPresetSaveForm.addEventListener("submit", function (e) {
-            if (!confirmDiscardPending(window.TPW_PROTEINS_I18N.confirmSavePreset)) {
-                e.preventDefault();
-            }
+        // The comment this replaced claimed saving a preset "only captures
+        // the already-applied filters, not anything still pending" -- false:
+        // syncPendingFilterForms() (called on every pending-state change,
+        // see its own definition) keeps this form's filter_actions_json /
+        // pending_structure_source / pending_annotation_kind|value hidden
+        // inputs in exact sync with filtersApplyForm's, and the backend's
+        // save_filter_preset action folds filter_actions_json in via
+        // _apply_filter_changes_payload -- so a save here genuinely
+        // includes every pending change, the same as clicking Apply first
+        // would. The warning was simply wrong, and never discards anything,
+        // so -- like filtersApplyForm -- it only needs to suppress the
+        // generic beforeunload warning during its own redirect.
+        filterPresetSaveForm.addEventListener("submit", function () {
+            suppressBeforeUnloadWarning = true;
         });
     }
 
