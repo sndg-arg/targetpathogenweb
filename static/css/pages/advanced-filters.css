@@ -38,6 +38,39 @@
     padding: var(--tp-space-4);
 }
 
+/* Groups always combine with AND against each other -- there's no way to
+   OR two whole groups, only the ALL/ANY toggle governs the conditions
+   *inside* one group. That distinction isn't visible anywhere in the UI
+   otherwise, so a small badge sits right on the seam between every group
+   after the first, spelling it out instead of leaving it implicit. */
+.af-group:not(:first-child) {
+    position: relative;
+    margin-top: 6px;
+}
+
+.af-group:not(:first-child)::before {
+    content: var(--af-and-label);
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--tp-color-surface-muted);
+    color: var(--tp-color-text-muted);
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 999px;
+    padding: 2px 10px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    z-index: 1;
+}
+
+.af-group-hint {
+    margin: 0;
+    font-size: 0.78rem;
+    color: var(--tp-color-text-muted);
+}
+
 .af-group-head {
     display: flex;
     align-items: center;

@@ -146,6 +146,9 @@
             btn.classList.toggle("af-mode-btn--active", isActive);
             btn.setAttribute("aria-pressed", isActive ? "true" : "false");
         });
+        var hintEl = groupEl.querySelector("[data-group-hint]");
+        var i18n = window.TPW_ADVANCED_FILTERS_I18N || {};
+        if (hintEl) hintEl.textContent = mode === "any" ? (i18n.hintAny || "") : (i18n.hintAll || "");
     }
 
     groupsContainer.addEventListener("click", function (event) {
