@@ -615,14 +615,16 @@
         </div>
         <p class="ds-body">{% trans "Every genome gets a baseline of ligand evidence for free: get_binders (stage 22) cross-references each protein's own UniProt entry against BioLiP and loads any co-crystallized PDB ligands, independently of everything below." %}</p>
         <p class="ds-body">{% trans "LigQ_2 is an internal Target Pathogen Web pipeline step, disabled by default (stage 24 — see the stage-by-stage breakdown above). When enabled, it exports all protein sequences once per genome, transfers them to a compute node, and searches PDB, ChEMBL, and ZINC — including matches on homologous proteins, not just the protein itself — for known or candidate binders. Non-relevant compounds (amino acids, water, crystallization agents, common ions) are filtered out at load time. The five evidence categories below are specific to LigQ_2's output." %}</p>
-        {# The only table in the app not wrapped in the standard scroll shell --
-           doesn't overflow with today's copy, but one longer inclusion-criterion
-           edit away from silently blowing out the page width with no way to
-           reach the rest of the row. tp-table-shell__scroll matches the exact
-           wrapper table-utilities.js's refreshTableScrollHints() already knows
-           how to find/fade-hint (see upload_data.html's tables for the same
-           pattern) -- no tp-table class added, so this intentionally opts out
-           of the CSV-export button that class would trigger. #}
+        {% comment %}
+        The only table in the app not wrapped in the standard scroll shell --
+        doesn't overflow with today's copy, but one longer inclusion-criterion
+        edit away from silently blowing out the page width with no way to
+        reach the rest of the row. tp-table-shell__scroll matches the exact
+        wrapper table-utilities.js's refreshTableScrollHints() already knows
+        how to find/fade-hint (see upload_data.html's tables for the same
+        pattern) -- no tp-table class added, so this intentionally opts out
+        of the CSV-export button that class would trigger.
+        {% endcomment %}
         <div class="tp-table-shell">
             <div class="tp-table-shell__scroll">
                 <table class="ds-table">
