@@ -82,6 +82,33 @@ class BuildActivityDashboardDataTests(TestCase):
 
         self.assertEqual(top, {"/genomes": 1})
 
+    def test_top_pages_excludes_non_page_endpoints(self):
+        # /agent-chat (assistant messages) and /structure_raw/<id> (the 3D
+        # viewer's raw file fetch) are hit as a side effect of using a real
+        # page, not a page someone navigated to -- on a real deployment they
+        # outranked every genuine page.
+        RequestLog.objects.create(
+            user=self.alice, ip="10.0.0.1", method="GET", path="/genomes", status_code=200
+        )
+        RequestLog.objects.create(
+            user=self.alice, ip="10.0.0.1", method="POST", path="/agent-chat", status_code=200
+        )
+        RequestLog.objects.create(
+            user=self.alice, ip="10.0.0.1", method="GET", path="/structure_raw/42", status_code=200
+        )
+        RequestLog.objects.create(
+            user=self.alice,
+            ip="10.0.0.1",
+            method="GET",
+            path="/genome/TEST/proteins/suggestions",
+            status_code=200,
+        )
+
+        data = build_activity_dashboard_data()
+        top = {row["path"]: row["count"] for row in data["top_pages"]}
+
+        self.assertEqual(top, {"/genomes": 1})
+
     def test_kpis_report_how_many_unique_ips_were_authenticated(self):
         RequestLog.objects.create(
             user=self.alice, ip="10.0.0.1", method="GET", path="/genomes", status_code=200

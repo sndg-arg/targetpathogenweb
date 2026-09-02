@@ -73,6 +73,22 @@ def _normalize_path(path):
     return "/" + "/".join(normalized)
 
 
+# Endpoints hit as a side effect of using a real page -- assistant chat
+# messages, the 3D viewer's raw structure fetch, VMD export, search-box
+# autocomplete -- rather than a page someone actually navigated to and
+# looked at. On a real deployment /agent-chat and /structure_raw/<id> were
+# the #1 and #2 "top pages", ahead of every genuine page, since a single
+# viewer session fires many of these calls.
+_NON_PAGE_PATH_PREFIXES = ("/agent-chat", "/structure_raw/", "/structure_export/")
+_NON_PAGE_PATH_SUFFIXES = ("/suggestions",)
+
+
+def _is_page_path(path):
+    if path.startswith(_NON_PAGE_PATH_PREFIXES):
+        return False
+    return not path.endswith(_NON_PAGE_PATH_SUFFIXES)
+
+
 def _status_bucket(status_code):
     if 200 <= status_code < 300:
         return "2xx"
@@ -342,12 +358,16 @@ def build_activity_dashboard_data(days=ACTIVITY_WINDOW_DAYS):
 
     # Authenticated requests only -- the whole site sits behind a login wall,
     # so an anonymous hit here never actually saw the page, it just bounced
-    # off the redirect. Counting those in "what they look at" let scanner
-    # traffic (e.g. a crawler probing every /protein/<id>) outweigh the two
-    # real accounts' actual usage.
+    # off the redirect. Counting those in "what they look at" would let
+    # scanner/bot traffic (e.g. a crawler probing every /protein/<id>)
+    # outweigh the two real accounts' actual usage -- bots never authenticate
+    # by construction, so this filter alone already keeps every one of them
+    # (see BOT_SIGNATURES / _blocked_queryset) out of this ranking entirely,
+    # on top of the _is_page_path filter below excluding non-page endpoints.
     path_counts = Counter(
         _normalize_path(p)
         for p in window_qs.exclude(user__isnull=True).values_list("path", flat=True)
+        if _is_page_path(p)
     )
     top_pages = [
         {"path": path, "count": count} for path, count in path_counts.most_common(TOP_PAGES_LIMIT)
