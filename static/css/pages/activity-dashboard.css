@@ -244,6 +244,12 @@
     border-top-color: var(--tp-color-warning-border);
 }
 
+/* Login attempts / scanning traffic rows: Location, IP, User agent, a
+   4th metric column (last seen or paths touched), Requests. */
+.activity-location-row--wide {
+    grid-template-columns: minmax(130px, 1.1fr) minmax(100px, 0.7fr) minmax(140px, 1.3fr) minmax(90px, 0.7fr) auto;
+}
+
 .activity-location-place {
     font-weight: 600;
     color: var(--tp-color-text-primary);
@@ -267,6 +273,21 @@
     font-variant-numeric: tabular-nums;
 }
 
+/* Truncate rather than wrap/overflow -- a raw User-Agent string can run to
+   240 chars, the full value is still reachable via the title tooltip. */
+.activity-user-agent {
+    display: block;
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-size-xs);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.activity-user-agent--empty {
+    color: var(--tp-color-text-muted);
+}
+
 @media (max-width: 640px) {
     .activity-location-row {
         grid-template-columns: 1fr;
@@ -280,6 +301,78 @@
 
     .activity-location-count {
         text-align: left;
+    }
+
+    .activity-user-agent {
+        white-space: normal;
+        overflow: visible;
+        text-overflow: clip;
+    }
+}
+
+/* ── Top erroring paths ── */
+.activity-error-paths {
+    margin-top: 14px;
+    display: flex;
+    flex-direction: column;
+}
+
+.activity-error-path-row {
+    display: grid;
+    grid-template-columns: minmax(140px, 1.4fr) 2fr auto;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 8px;
+    margin: 0 -8px;
+    border-top: 1px solid var(--tp-color-border-soft);
+    border-radius: 8px;
+}
+
+.activity-error-path-row:first-child {
+    border-top: none;
+}
+
+.activity-error-path-name {
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: var(--tp-font-size-xs);
+    color: var(--tp-color-text-primary);
+    word-break: break-all;
+}
+
+.activity-error-path-codes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.activity-error-chip {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 2px 8px;
+    font-size: var(--tp-font-size-xs);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    border: 1px solid transparent;
+}
+
+.activity-error-chip--4xx {
+    background: var(--tp-color-warning-bg);
+    border-color: var(--tp-color-warning-border);
+    color: var(--tp-color-warning-ink);
+}
+
+.activity-error-chip--5xx {
+    background: var(--tp-color-danger-bg);
+    border-color: var(--tp-color-danger-border);
+    color: var(--tp-color-danger-ink);
+}
+
+@media (max-width: 640px) {
+    .activity-error-path-row {
+        grid-template-columns: 1fr;
+        gap: 6px;
+        padding: 12px 0;
     }
 }
 

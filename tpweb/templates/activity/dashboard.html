@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/activity-dashboard.css' %}?v=20260902-review-fixes">
+    <link rel="stylesheet" href="{% static 'css/pages/activity-dashboard.css' %}?v=20260902-error-tracking">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -85,14 +85,34 @@
     <section class="activity-panel">
         <div class="section-head tp-ui-panel-head">
             <div>
-                <p class="tp-ui-field-label">{% trans "Hit the login wall, never authenticated" %}</p>
-                <h2 class="activity-panel-title">{% trans "Blocked attempts" %} <span class="tp-chip tp-chip--sm tp-chip--warning">{% trans "not logged in" %}</span></h2>
+                <p class="tp-ui-field-label">{% trans "Submitted a username and password, and failed" %}</p>
+                <h2 class="activity-panel-title">{% trans "Login attempts" %} <span class="tp-chip tp-chip--sm tp-chip--meta">{% trans "not a bot signal by itself" %}</span></h2>
             </div>
         </div>
-        <div class="activity-location-row activity-location-row--head activity-location-row--blocked" aria-hidden="true">
+        <div class="activity-location-row activity-location-row--wide activity-location-row--head" aria-hidden="true">
             <span>{% trans "Location" %}</span>
             <span>{% trans "IP" %}</span>
+            <span>{% trans "User agent" %}</span>
             <span>{% trans "Last seen" %}</span>
+            <span>{% trans "Attempts" %}</span>
+        </div>
+        <div class="activity-locations" data-login-attempts-list>
+            <p class="activity-accounts-empty">{% trans "Loading..." %}</p>
+        </div>
+    </section>
+
+    <section class="activity-panel">
+        <div class="section-head tp-ui-panel-head">
+            <div>
+                <p class="tp-ui-field-label">{% trans "Hit the login wall on a random path, never even tried to log in" %}</p>
+                <h2 class="activity-panel-title">{% trans "Scanning &amp; bot traffic" %} <span class="tp-chip tp-chip--sm tp-chip--warning">{% trans "likely automated" %}</span></h2>
+            </div>
+        </div>
+        <div class="activity-location-row activity-location-row--wide activity-location-row--head" aria-hidden="true">
+            <span>{% trans "Location" %}</span>
+            <span>{% trans "IP" %}</span>
+            <span>{% trans "User agent" %}</span>
+            <span>{% trans "Paths touched" %}</span>
             <span>{% trans "Requests" %}</span>
         </div>
         <div class="activity-locations" data-blocked-list>
@@ -138,11 +158,23 @@
         </section>
     </div>
 
+    <section class="activity-panel">
+        <div class="section-head tp-ui-panel-head">
+            <div>
+                <p class="tp-ui-field-label">{% trans "What's actually failing" %}</p>
+                <h2 class="activity-panel-title">{% trans "Top erroring paths" %}</h2>
+            </div>
+        </div>
+        <div class="activity-error-paths" data-error-paths-list>
+            <p class="activity-accounts-empty">{% trans "Loading..." %}</p>
+        </div>
+    </section>
+
     <p class="activity-footnote">{% trans "Need row-level detail (exact IP, exact path, exact timestamp)?" %} <a href="{% url 'admin:tpweb_requestlog_changelist' %}">{% trans "Browse the raw log in the admin" %}</a>.</p>
 
 </div>
 
 {{ activity_dashboard_data|json_script:"activity-dashboard-data" }}
-<script src="{% static 'js/vendor/chart.umd.js' %}?v=20260902-review-fixes"></script>
-<script src="{% static 'js/pages/activity-dashboard.js' %}?v=20260902-review-fixes"></script>
+<script src="{% static 'js/vendor/chart.umd.js' %}?v=20260902-error-tracking"></script>
+<script src="{% static 'js/pages/activity-dashboard.js' %}?v=20260902-error-tracking"></script>
 {% endblock %}

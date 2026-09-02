@@ -163,6 +163,119 @@ class LocationBreakdownTests(TestCase):
         self.assertIn("203.0.113.10", blocked_ips)
 
 
+class IpBreakdownDetailTests(TestCase):
+    @patch("tpweb.services.activity_dashboard.geolocate_ip")
+    def test_blocked_attempts_report_top_user_agent_and_distinct_path_count(self, mock_geolocate):
+        mock_geolocate.return_value = None
+        RequestLog.objects.create(
+            user=None,
+            ip="203.0.113.30",
+            method="GET",
+            path="/wp-login.php",
+            status_code=302,
+            user_agent="python-requests/2.31",
+        )
+        RequestLog.objects.create(
+            user=None,
+            ip="203.0.113.30",
+            method="GET",
+            path="/.env",
+            status_code=302,
+            user_agent="python-requests/2.31",
+        )
+        RequestLog.objects.create(
+            user=None,
+            ip="203.0.113.30",
+            method="GET",
+            path="/.env",
+            status_code=302,
+            user_agent="python-requests/2.31",
+        )
+
+        data = build_activity_dashboard_data()
+        row = data["blocked_attempts"][0]
+
+        self.assertEqual(row["ip"], "203.0.113.30")
+        self.assertEqual(row["count"], 3)
+        self.assertEqual(row["distinct_paths"], 2)
+        self.assertEqual(row["user_agent"], "python-requests/2.31")
+
+
+class LoginAttemptsTests(TestCase):
+    @patch("tpweb.services.activity_dashboard.geolocate_ip")
+    def test_failed_login_post_is_a_login_attempt_not_a_blocked_scan(self, mock_geolocate):
+        mock_geolocate.return_value = None
+        RequestLog.objects.create(
+            user=None,
+            ip="203.0.113.20",
+            method="POST",
+            path="/accounts/login/",
+            status_code=200,
+            user_agent="Mozilla/5.0",
+        )
+
+        data = build_activity_dashboard_data()
+
+        login_ips = {row["ip"] for row in data["login_attempts"]}
+        blocked_ips = {row["ip"] for row in data["blocked_attempts"]}
+        self.assertIn("203.0.113.20", login_ips)
+        self.assertNotIn("203.0.113.20", blocked_ips)
+
+    @patch("tpweb.services.activity_dashboard.geolocate_ip")
+    def test_get_to_login_page_is_not_a_login_attempt(self, mock_geolocate):
+        # Just opening the login form isn't "trying to log in" -- only a
+        # POST submits credentials.
+        mock_geolocate.return_value = None
+        RequestLog.objects.create(
+            user=None, ip="203.0.113.21", method="GET", path="/accounts/login/", status_code=200
+        )
+
+        data = build_activity_dashboard_data()
+
+        self.assertEqual(data["login_attempts"], [])
+
+    @patch("tpweb.services.activity_dashboard.geolocate_ip")
+    def test_successful_login_post_is_not_counted_as_a_failed_attempt(self, mock_geolocate):
+        # login() sets request.user on the same request before the
+        # middleware logs it, so a successful POST has user set already.
+        mock_geolocate.return_value = None
+        alice = get_user_model().objects.create_user(username="alice", password="x")
+        RequestLog.objects.create(
+            user=alice, ip="203.0.113.22", method="POST", path="/accounts/login/", status_code=302
+        )
+
+        data = build_activity_dashboard_data()
+
+        self.assertEqual(data["login_attempts"], [])
+
+
+class TopErrorPathsTests(TestCase):
+    def setUp(self):
+        self.alice = get_user_model().objects.create_user(username="alice", password="x")
+
+    def test_groups_by_normalized_path_and_breaks_down_status_codes(self):
+        RequestLog.objects.create(
+            user=self.alice, ip="10.0.0.1", method="GET", path="/protein/123", status_code=404
+        )
+        RequestLog.objects.create(
+            user=self.alice, ip="10.0.0.1", method="GET", path="/protein/456", status_code=404
+        )
+        RequestLog.objects.create(
+            user=self.alice, ip="10.0.0.1", method="GET", path="/protein/456", status_code=500
+        )
+        RequestLog.objects.create(
+            user=self.alice, ip="10.0.0.1", method="GET", path="/genomes", status_code=200
+        )
+
+        data = build_activity_dashboard_data()
+        by_path = {row["path"]: row for row in data["top_error_paths"]}
+
+        self.assertEqual(by_path["/protein/<id>"]["count"], 3)
+        codes = {c["code"]: c["count"] for c in by_path["/protein/<id>"]["codes"]}
+        self.assertEqual(codes, {404: 2, 500: 1})
+        self.assertNotIn("/genomes", by_path)
+
+
 class ActivityDashboardViewTests(TestCase):
     def test_staff_user_can_view_dashboard(self):
         staff_user = get_user_model().objects.create_user(

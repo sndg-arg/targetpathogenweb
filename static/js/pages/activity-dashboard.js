@@ -117,6 +117,24 @@
         }).join("");
     }
 
+    var HTML_ESCAPES = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
+
+    // user_agent and path are plain-text columns holding attacker-controlled
+    // header/URL content (no DB-level format constraint like the `ip` column
+    // has) -- escape before innerHTML or a crafted User-Agent becomes stored
+    // XSS against whichever staff member next opens this dashboard.
+    function escapeHtml(value) {
+        return String(value === null || value === undefined ? "" : value).replace(/[&<>"']/g, function (c) {
+            return HTML_ESCAPES[c];
+        });
+    }
+
+    function userAgentLabel(userAgent) {
+        var safe = escapeHtml(userAgent);
+        if (!safe) return '<span class="activity-user-agent activity-user-agent--empty">—</span>';
+        return '<span class="activity-user-agent" title="' + safe + '">' + safe + "</span>";
+    }
+
     function flagEmoji(countryCode) {
         if (!countryCode || countryCode.length !== 2) return "🌐"; // globe fallback
         var code = countryCode.toUpperCase();
@@ -129,8 +147,16 @@
             : "🌐 Unknown location";
     }
 
+    function countLabel(count, singular, plural) {
+        return numberFormat.format(count) + " " + (count === 1 ? singular : plural);
+    }
+
     function requestsLabel(count) {
-        return numberFormat.format(count) + (count === 1 ? " request" : " requests");
+        return countLabel(count, "request", "requests");
+    }
+
+    function pathsLabel(count) {
+        return countLabel(count, "path", "paths");
     }
 
     function renderAuthenticatedLocations() {
@@ -154,20 +180,69 @@
         }).join("");
     }
 
+    function renderLoginAttempts() {
+        var container = document.querySelector("[data-login-attempts-list]");
+        if (!container) return;
+        var rows = data.login_attempts || [];
+        if (!rows.length) {
+            container.innerHTML = '<p class="activity-accounts-empty">No failed login attempts in this window.</p>';
+            return;
+        }
+        container.innerHTML = rows.map(function (row) {
+            return (
+                '<div class="activity-location-row activity-location-row--wide">' +
+                '<span class="activity-location-place">' + locationPlace(row) + "</span>" +
+                '<span class="activity-location-ip">' + row.ip + "</span>" +
+                userAgentLabel(row.user_agent) +
+                '<span class="activity-location-users">' + relativeSince(row.last_seen) + "</span>" +
+                '<span class="activity-location-count">' + requestsLabel(row.count) + "</span>" +
+                "</div>"
+            );
+        }).join("");
+    }
+
     function renderBlockedAttempts() {
         var container = document.querySelector("[data-blocked-list]");
         if (!container) return;
         var rows = data.blocked_attempts || [];
         if (!rows.length) {
-            container.innerHTML = '<p class="activity-accounts-empty">No blocked attempts in this window — nice.</p>';
+            container.innerHTML = '<p class="activity-accounts-empty">No scanning traffic in this window — nice.</p>';
             return;
         }
         container.innerHTML = rows.map(function (row) {
             return (
-                '<div class="activity-location-row activity-location-row--blocked">' +
+                '<div class="activity-location-row activity-location-row--wide activity-location-row--blocked">' +
                 '<span class="activity-location-place">' + locationPlace(row) + "</span>" +
                 '<span class="activity-location-ip">' + row.ip + "</span>" +
-                '<span class="activity-location-users">' + relativeSince(row.last_seen) + "</span>" +
+                userAgentLabel(row.user_agent) +
+                '<span class="activity-location-users">' + pathsLabel(row.distinct_paths) + "</span>" +
+                '<span class="activity-location-count">' + requestsLabel(row.count) + "</span>" +
+                "</div>"
+            );
+        }).join("");
+    }
+
+    function renderTopErrorPaths() {
+        var container = document.querySelector("[data-error-paths-list]");
+        if (!container) return;
+        var rows = data.top_error_paths || [];
+        if (!rows.length) {
+            container.innerHTML = '<p class="activity-accounts-empty">No errors in this window — nice.</p>';
+            return;
+        }
+        container.innerHTML = rows.map(function (row) {
+            var chips = row.codes.map(function (c) {
+                var variant = c.code >= 500 ? "activity-error-chip--5xx" : "activity-error-chip--4xx";
+                return (
+                    '<span class="activity-error-chip ' + variant + '">' +
+                    c.code + " × " + numberFormat.format(c.count) +
+                    "</span>"
+                );
+            }).join("");
+            return (
+                '<div class="activity-error-path-row">' +
+                '<span class="activity-error-path-name">' + escapeHtml(row.path) + "</span>" +
+                '<span class="activity-error-path-codes">' + chips + "</span>" +
                 '<span class="activity-location-count">' + requestsLabel(row.count) + "</span>" +
                 "</div>"
             );
@@ -327,7 +402,9 @@
     renderKpis();
     renderAccounts();
     renderAuthenticatedLocations();
+    renderLoginAttempts();
     renderBlockedAttempts();
+    renderTopErrorPaths();
     renderCharts();
 
     var themeObserver = new MutationObserver(function () { renderCharts(); });

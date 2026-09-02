@@ -15,7 +15,15 @@ from tpweb.services.workspace import PUBLIC_WORKSPACE_USERNAME
 ACTIVITY_WINDOW_DAYS = 30
 TOP_PAGES_LIMIT = 10
 TOP_LOCATIONS_LIMIT = 10
+TOP_ERROR_PATHS_LIMIT = 10
 STATUS_BUCKETS = ("2xx", "3xx", "4xx", "5xx")
+
+# Allauth's login view -- an anonymous POST here is someone (or something)
+# actually submitting a username/password, not just wandering into a gated
+# page. A successful POST logs in with `user` already set on the request
+# (login() runs inside the view, before the middleware logs it), so
+# `user__isnull=True` on this prefix means the attempt failed.
+LOGIN_ATTEMPT_PATH_PREFIX = "/accounts/login"
 
 _ID_SEGMENT = re.compile(r"^\d+$")
 
@@ -49,22 +57,45 @@ def _delta_pct(current, previous):
 
 
 def _ip_breakdown(qs, limit=TOP_LOCATIONS_LIMIT):
-    """Group an already-scoped queryset by IP: count, last seen, geolocation."""
+    """Group an already-scoped queryset by IP: count, last seen, geolocation,
+    the single most common user agent, and how many distinct paths it hit.
+
+    The latter two are the cheap bot signal: a scanner's user agent tends to
+    be a bare HTTP client (curl/python-requests/Go-http-client) or a scanner
+    name, and it probes many different routes, while a person on a browser
+    sticks to a handful of pages with a real browser UA."""
     rows = list(
         qs.exclude(ip__isnull=True)
         .values("ip")
-        .annotate(count=Count("id"), last_seen=Max("created_at"))
+        .annotate(
+            count=Count("id"),
+            last_seen=Max("created_at"),
+            distinct_paths=Count("path", distinct=True),
+        )
         .order_by("-count")[:limit]
     )
+    ip_list = [row["ip"] for row in rows]
+
+    # Plain Python tally instead of a second annotate(Count("user_agent")):
+    # we want the single most-common UA per IP, not a count of each distinct
+    # one, so grouping by (ip, user_agent) and picking the max per ip in SQL
+    # is more work than just tallying it here.
+    agents_by_ip = {}
+    for ip, ua in qs.filter(ip__in=ip_list).values_list("ip", "user_agent"):
+        agents_by_ip.setdefault(ip, Counter())[ua or ""] += 1
+
     breakdown = []
     for row in rows:
         ip = row["ip"]
         location = geolocate_ip(ip)
+        top_agents = agents_by_ip.get(ip)
         breakdown.append(
             {
                 "ip": ip,
                 "count": row["count"],
                 "last_seen": row["last_seen"].isoformat(),
+                "distinct_paths": row["distinct_paths"],
+                "user_agent": top_agents.most_common(1)[0][0] if top_agents else "",
                 "country": location["country"] if location else None,
                 "country_code": location["country_code"] if location else None,
                 "city": location["city"] if location else None,
@@ -94,18 +125,53 @@ def _authenticated_location_breakdown(window_qs, limit=TOP_LOCATIONS_LIMIT):
     return breakdown
 
 
+def _login_attempts_breakdown(window_qs, limit=TOP_LOCATIONS_LIMIT):
+    """IPs that actually tried a username/password and failed -- a real
+    (if mistaken) person, or credential-stuffing. Kept separate from
+    _blocked_attempts_breakdown: that bucket is everyone who got redirected
+    to the login wall on a random path without ever attempting to log in,
+    which is almost entirely bots/scanners, not login attempts."""
+    login_qs = window_qs.filter(
+        user__isnull=True, method="POST", path__startswith=LOGIN_ATTEMPT_PATH_PREFIX
+    )
+    return _ip_breakdown(login_qs, limit)
+
+
 def _blocked_attempts_breakdown(window_qs, limit=TOP_LOCATIONS_LIMIT):
-    """IPs that hit the login wall without ever authenticating -- scans,
-    bots, or a collaborator who hasn't been given a login yet.
+    """IPs that hit the login wall without ever attempting to authenticate --
+    scans, bots, or a collaborator who hasn't been given a login yet.
 
     Excludes EXEMPT_PATH_PREFIXES (mainly /accounts/): LoginRequiredMiddleware
     never redirects those, so an anonymous visit to the login page itself is
     completely normal traffic -- without this exclusion it swamped the
-    "blocked" bucket with everyone who simply opened the login page."""
+    "blocked" bucket with everyone who simply opened the login page. This
+    also means actual login attempts (see _login_attempts_breakdown) never
+    land here, since /accounts/ is excluded wholesale."""
     blocked_qs = window_qs.filter(user__isnull=True)
     for prefix in EXEMPT_PATH_PREFIXES:
         blocked_qs = blocked_qs.exclude(path__startswith=prefix)
     return _ip_breakdown(blocked_qs, limit)
+
+
+def _top_error_paths(window_qs, limit=TOP_ERROR_PATHS_LIMIT):
+    """Which routes actually produced 4xx/5xx responses, with a breakdown of
+    which exact status codes -- the "what broke" complement to the aggregate
+    Errors KPI, so a spike doesn't require a trip to the admin to find out
+    what's failing."""
+    codes_by_path = {}
+    for path, code in window_qs.filter(status_code__gte=400).values_list("path", "status_code"):
+        normalized = _normalize_path(path)
+        codes_by_path.setdefault(normalized, Counter())[code] += 1
+
+    ranked = sorted(codes_by_path.items(), key=lambda item: sum(item[1].values()), reverse=True)
+    return [
+        {
+            "path": path,
+            "count": sum(codes.values()),
+            "codes": [{"code": code, "count": count} for code, count in codes.most_common()],
+        }
+        for path, codes in ranked[:limit]
+    ]
 
 
 def build_activity_dashboard_data(days=ACTIVITY_WINDOW_DAYS):
@@ -188,14 +254,18 @@ def build_activity_dashboard_data(days=ACTIVITY_WINDOW_DAYS):
     ]
 
     locations = _authenticated_location_breakdown(window_qs)
+    login_attempts = _login_attempts_breakdown(window_qs)
     blocked_attempts = _blocked_attempts_breakdown(window_qs)
+    top_error_paths = _top_error_paths(window_qs)
 
     return {
         "kpis": kpis,
         "timeseries": timeseries,
         "status_breakdown": status_breakdown,
         "top_pages": top_pages,
+        "top_error_paths": top_error_paths,
         "accounts": accounts,
         "locations": locations,
+        "login_attempts": login_attempts,
         "blocked_attempts": blocked_attempts,
     }
