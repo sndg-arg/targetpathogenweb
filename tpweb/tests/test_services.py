@@ -360,22 +360,17 @@ class ProteinListServiceTests(SimpleTestCase):
 
         self.assertEqual(grouped["Druggability Score"], ">= 0.75")
 
-    def test_grouped_selected_parameters_keeps_different_groups_separate(self):
+    def test_grouped_selected_parameters_spells_out_and_across_groups(self):
         # Two different advanced-filter groups touching the same score param
-        # combine as AND, not OR -- they must stay separate entries instead
-        # of being merged into one misleading "Core, Accessory" string.
+        # combine as AND, not OR -- joining them with ", " would be
+        # indistinguishable from a same-group OR, so they're spelled out
+        # with " AND " instead of silently merged into "Core, Accessory".
         selected = [
             {"score_param_name": "Core Corecruncher", "name": "Core", "group_id": "adv:0"},
             {"score_param_name": "Core Corecruncher", "name": "Accessory", "group_id": "adv:1"},
         ]
         grouped = grouped_selected_parameters(selected)
-        self.assertEqual(
-            grouped,
-            [
-                ("Core Corecruncher", "Core"),
-                ("Core Corecruncher", "Accessory"),
-            ],
-        )
+        self.assertEqual(grouped, [("Core Corecruncher", "Core AND Accessory")])
 
     def test_grouped_selected_parameters_merges_same_group_values(self):
         # Multiple values picked within the *same* group (or the plain

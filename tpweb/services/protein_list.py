@@ -230,21 +230,24 @@ def humanize_identifier(value):
 
 
 def grouped_selected_parameters(selected_parameters, humanize=False):
-    """Display-only summary for the "Applied filters" hero line and CSV
-    export header (a different, unrelated concept from the advanced filter
-    builder's group_id/group_mode used for query building).
+    """Display-only summary for the "Applied filters" hero line, CSV export
+    header, and LLM filter-summary tool (a different, unrelated concept from
+    the advanced filter builder's group_id/group_mode used for query
+    building).
 
-    Returns a list of (label, joined_values) pairs rather than a dict:
-    values picked within the *same* advanced-filter group (or from the
-    plain filter panel, which has no group_id) really do combine as OR, so
-    they're still safely joined into one "A, B" string. But two *different*
-    advanced groups can target the same score param (e.g. "Core
-    Corecruncher: Core" in one group, "Core Corecruncher: Accessory" in
-    another) and those combine as AND, not OR -- merging them into one dict
-    entry keyed by name would silently collide and misrepresent the filter
-    as an OR, so they're kept as separate entries in the returned list.
+    Returns a list of (label, joined_values) pairs, one per score param
+    name. Values picked within the *same* advanced-filter group (or from
+    the plain filter panel, which has no group_id) really do combine as OR,
+    so they're joined with ", " -- e.g. "Core, Accessory". But two
+    *different* advanced groups can target the same score param (e.g. "Core
+    Corecruncher: Core" in one group, "...: Accessory" in another) and those
+    combine as AND, not OR: silently joining them with ", " too would look
+    identical to a same-group OR and misrepresent the filter, so
+    cross-group values are spelled out with the word " AND " instead --
+    e.g. "Core AND Accessory".
     """
-    grouped_data = {}
+    values_by_group = {}
+    group_order = {}
     order = []
     for item in selected_parameters:
         score_param_name = item.get("score_param_name")
@@ -253,12 +256,23 @@ def grouped_selected_parameters(selected_parameters, humanize=False):
         option_name = _selected_parameter_display_value(item, humanize=humanize)
         if humanize:
             score_param_name = humanize_identifier(score_param_name) or score_param_name
-        key = (score_param_name, item.get("group_id") or "")
-        if key not in grouped_data:
-            grouped_data[key] = []
-            order.append(key)
-        grouped_data[key].append(option_name)
-    return [(key[0], ", ".join(grouped_data[key])) for key in order]
+        if score_param_name not in values_by_group:
+            values_by_group[score_param_name] = {}
+            group_order[score_param_name] = []
+            order.append(score_param_name)
+        group_key = item.get("group_id") or ""
+        if group_key not in values_by_group[score_param_name]:
+            values_by_group[score_param_name][group_key] = []
+            group_order[score_param_name].append(group_key)
+        values_by_group[score_param_name][group_key].append(option_name)
+
+    result = []
+    for name in order:
+        group_values = [
+            ", ".join(values_by_group[name][group_key]) for group_key in group_order[name]
+        ]
+        result.append((name, " AND ".join(group_values)))
+    return result
 
 
 def _tag_grouped_option(option_dict, change):
