@@ -116,8 +116,46 @@
     display: flex;
 }
 
-.af-option-select {
+.af-categorical-value {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
     width: 100%;
+}
+
+.af-categorical-checklist {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: var(--tp-ui-radius-control);
+    background: var(--tp-color-surface);
+    padding: 8px 10px;
+    min-height: var(--tp-ui-control-height);
+}
+
+.af-categorical-option {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.88rem;
+    color: var(--tp-color-text-secondary);
+    cursor: pointer;
+}
+
+.af-categorical-option input[type="checkbox"] {
+    accent-color: var(--tp-color-brand-700);
+}
+
+/* Only shown once 2+ values are checked -- makes explicit that multiple
+   values of one criterion combine as "any of these" (OR), never a literal
+   AND, since a protein can't hold two different values of the same
+   single-valued field at once. */
+.af-categorical-or-preview {
+    margin: 0;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--tp-color-brand-700);
 }
 
 .af-numeric-value {

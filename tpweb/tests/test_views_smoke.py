@@ -27,6 +27,7 @@ from tpweb.models.BioentryStructure import BioentryStructure
 from tpweb.models.pdb import PDB
 from tpweb.services.workspace import PUBLIC_WORKSPACE_USERNAME
 from tpweb.views.AgentChatView import AgentChatView
+from tpweb.views.ProteinListView import ProteinAdvancedFiltersView
 
 
 class LoggedInTestCase(TestCase):
@@ -840,3 +841,63 @@ class ProteinAdvancedFiltersViewTests(LoggedInTestCase):
         grouped = [item for item in selected_parameters if item.get("group_id") == "adv:0"]
         self.assertEqual(len(grouped), 2)
         self.assertTrue(all(item.get("group_mode") == "any" for item in grouped))
+
+    def test_post_with_two_values_of_the_same_categorical_param_in_one_condition(self):
+        # The builder UI shows multiple values for one criterion as a single
+        # row (e.g. "Core OR Accessory"), not two separate condition rows --
+        # this is the only sensible reading since a protein can't be both at
+        # once, and the pre-existing selected_parameters_to_filter_map merge
+        # logic in protein_list.py already treats same-param values as "any
+        # of these" regardless of the group's ALL/ANY label.
+        from tpweb.models.ScoreParam import ScoreParam, ScoreParamOptions
+        from tpweb.services.protein_list import normalize_selected_parameters
+        from tpweb.services.workspace import get_workspace_session_value
+
+        Biodatabase.objects.create(name="TEST", description="Genome workspace")
+        Biodatabase.objects.create(name="TEST_prots")
+        core_param = ScoreParam.objects.create(
+            category="Conservation", name="core_corecruncher", type="C"
+        )
+        core_option = ScoreParamOptions.objects.create(score_param=core_param, name="Core")
+        accessory_option = ScoreParamOptions.objects.create(
+            score_param=core_param, name="Accessory"
+        )
+
+        response = self.client.post(
+            reverse("tpwebapp:protein_advanced_filters", kwargs={"genome": "TEST"}),
+            {
+                "groups_json": json.dumps(
+                    [
+                        {
+                            "mode": "all",
+                            "conditions": [
+                                {
+                                    "kind": "categorical",
+                                    "score_param_id": core_param.pk,
+                                    "option_ids": [core_option.pk, accessory_option.pk],
+                                }
+                            ],
+                        }
+                    ]
+                )
+            },
+        )
+
+        self.assertRedirects(response, reverse("tpwebapp:protein_list", kwargs={"genome": "TEST"}))
+        selected_parameters = get_workspace_session_value(
+            self.client.session, self.smoke_user, "selected_parameters", []
+        )
+        grouped = [item for item in selected_parameters if item.get("group_id") == "adv:0"]
+        self.assertEqual(len(grouped), 2)
+        self.assertEqual({str(item.get("name")) for item in grouped}, {"Core", "Accessory"})
+
+        # Reopening the builder merges them back into one condition, not two rows.
+        existing_groups = ProteinAdvancedFiltersView._existing_groups(
+            normalize_selected_parameters(selected_parameters)
+        )
+        self.assertEqual(len(existing_groups), 1)
+        self.assertEqual(len(existing_groups[0]["conditions"]), 1)
+        self.assertEqual(
+            {str(oid) for oid in existing_groups[0]["conditions"][0]["option_ids"]},
+            {str(core_option.pk), str(accessory_option.pk)},
+        )

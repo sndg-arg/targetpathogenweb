@@ -237,13 +237,30 @@ class ProteinAdvancedFiltersView(View):
                 # ids are tagged as "{group_id}:{option_pk}" -- see _tag_grouped_option.
                 raw_id = str(parameter.get("id") or "")
                 option_id = raw_id.rsplit(":", 1)[-1] if raw_id else None
-                groups_by_id[group_id]["conditions"].append(
-                    {
-                        "kind": "categorical",
-                        "score_param_id": parameter.get("score_param_id"),
-                        "option_id": option_id,
-                    }
+                score_param_id = parameter.get("score_param_id")
+                # Multiple values for the same criterion (e.g. Core + Accessory)
+                # render as one condition with several checked values, not one
+                # row per value -- matches how the builder UI shows them (a
+                # single "OR"-joined row), and how they were submitted.
+                existing_condition = next(
+                    (
+                        condition
+                        for condition in groups_by_id[group_id]["conditions"]
+                        if condition["kind"] == "categorical"
+                        and condition["score_param_id"] == score_param_id
+                    ),
+                    None,
                 )
+                if existing_condition is not None:
+                    existing_condition["option_ids"].append(option_id)
+                else:
+                    groups_by_id[group_id]["conditions"].append(
+                        {
+                            "kind": "categorical",
+                            "score_param_id": score_param_id,
+                            "option_ids": [option_id],
+                        }
+                    )
         return [groups_by_id[group_id] for group_id in order]
 
     def get(self, request, genome, *args, **kwargs):
@@ -326,15 +343,31 @@ class ProteinAdvancedFiltersView(View):
                         )
                         group_had_condition = True
                     elif kind == "categorical":
-                        changes.append(
-                            {
-                                "action": "add_filter",
-                                "filter_option_id": raw_condition.get("option_id"),
-                                "group_id": group_id,
-                                "group_mode": mode,
-                            }
-                        )
-                        group_had_condition = True
+                        # One or more values for the same criterion (e.g. Core +
+                        # Accessory) -- each becomes its own add_filter change,
+                        # all sharing this group's id/mode. This reuses the
+                        # exact mechanism that already makes multiple values of
+                        # one categorical param combine as "any of these" (see
+                        # selected_parameters_to_filter_map in protein_list.py),
+                        # which is the only sensible reading when two different
+                        # values of the same single-valued field are both
+                        # selected -- true AND between them would never match.
+                        option_ids = raw_condition.get("option_ids")
+                        if not isinstance(option_ids, list):
+                            single = raw_condition.get("option_id")
+                            option_ids = [single] if single else []
+                        for option_id in option_ids:
+                            if not option_id:
+                                continue
+                            changes.append(
+                                {
+                                    "action": "add_filter",
+                                    "filter_option_id": option_id,
+                                    "group_id": group_id,
+                                    "group_mode": mode,
+                                }
+                            )
+                            group_had_condition = True
                 if group_had_condition:
                     applied_group_count += 1
 
