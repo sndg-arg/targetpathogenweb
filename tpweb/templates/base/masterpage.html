@@ -2328,13 +2328,15 @@
 <nav id="main_header" class="navbar navbar-expand-lg navbar-dark fixed-top tp-topbar-mobile">
     <div class="container-fluid">
         <a class="navbar-brand" href="{% url 'tpwebapp:index' %}" aria-label="{% trans 'Target Pathogen' %}"><img class="tp-mobile-brand-img" src="{% static 'img/brand/tp-logo-full-white.png' %}" alt="{% trans 'Target Pathogen' %}" style="display:block;width:min(190px,56vw);height:auto;max-height:42px;object-fit:contain;object-position:left center;"></a>
-        {# data-toggle="collapse" deliberately omitted: nav-toggle.js already owns this
-           button's click (matches it via data-target, not data-toggle). bundle.js still
-           `import 'bootstrap'`s the real jQuery Collapse plugin for other pages -- leaving
-           data-toggle here let it ALSO auto-bind to this same button, so one tap fired both
-           handlers: nav-toggle.js opened the menu synchronously, then Bootstrap's plugin saw
-           .show already applied and immediately ran its own "hide" transition. That's the
-           "menu opens then instantly closes" bug on mobile. #}
+        {% comment %}
+        data-toggle="collapse" deliberately omitted: nav-toggle.js already owns this
+        button's click (matches it via data-target, not data-toggle). bundle.js still
+        `import 'bootstrap'`s the real jQuery Collapse plugin for other pages -- leaving
+        data-toggle here let it ALSO auto-bind to this same button, so one tap fired both
+        handlers: nav-toggle.js opened the menu synchronously, then Bootstrap's plugin saw
+        .show already applied and immediately ran its own "hide" transition. That's the
+        "menu opens then instantly closes" bug on mobile.
+        {% endcomment %}
         <button class="navbar-toggler" type="button" data-target="#navbarCollapse"
                 aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
@@ -2363,11 +2365,13 @@
             {% endwith %}
                 {% if user.is_authenticated %}
                     <li id="user_dropdown" class="nav-item dropdown">
-                        {# data-toggle="dropdown" deliberately omitted -- same reason as the
-                           navbar-toggler button above: nav-toggle.js already owns this click,
-                           and leaving the attribute let Bootstrap's real jQuery Dropdown
-                           plugin (still bundled for other pages) double-wire and immediately
-                           close what nav-toggle.js had just opened. #}
+                        {% comment %}
+                        data-toggle="dropdown" deliberately omitted -- same reason as the
+                        navbar-toggler button above: nav-toggle.js already owns this click,
+                        and leaving the attribute let Bootstrap's real jQuery Dropdown
+                        plugin (still bundled for other pages) double-wire and immediately
+                        close what nav-toggle.js had just opened.
+                        {% endcomment %}
                         <a class="nav-link dropdown-toggle" href="#" role="button" aria-expanded="false">
                             {{ user.get_username }}
                         </a>
