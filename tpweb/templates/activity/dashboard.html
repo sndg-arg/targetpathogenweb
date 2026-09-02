@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/activity-dashboard.css' %}?v=20260902-bot-summary">
+    <link rel="stylesheet" href="{% static 'css/pages/activity-dashboard.css' %}?v=20260902-collapsible-detail">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -106,15 +106,24 @@
                 <h2 class="activity-panel-title">{% trans "Logged-in sessions" %} <span class="tp-chip tp-chip--sm">{% trans "authenticated" %}</span></h2>
             </div>
         </div>
-        <div class="activity-location-row activity-location-row--head" aria-hidden="true">
-            <span>{% trans "Location" %}</span>
-            <span>{% trans "IP" %}</span>
-            <span>{% trans "Account" %}</span>
-            <span>{% trans "Requests" %}</span>
-        </div>
-        <div class="activity-locations" data-locations-list>
-            <p class="activity-accounts-empty">{% trans "Loading..." %}</p>
-        </div>
+        <p class="activity-section-summary" data-locations-summary>{% trans "Loading..." %}</p>
+        <details class="activity-details js-smooth-details">
+            <summary class="activity-details-summary">
+                <span>{% trans "Show details" %}</span>
+                <span class="activity-details-chevron" aria-hidden="true"></span>
+            </summary>
+            <div class="activity-details-body">
+                <div class="activity-location-row activity-location-row--head" aria-hidden="true">
+                    <span>{% trans "Location" %}</span>
+                    <span>{% trans "IP" %}</span>
+                    <span>{% trans "Account" %}</span>
+                    <span>{% trans "Requests" %}</span>
+                </div>
+                <div class="activity-locations" data-locations-list>
+                    <p class="activity-accounts-empty">{% trans "Loading..." %}</p>
+                </div>
+            </div>
+        </details>
     </section>
 
     <section class="activity-panel">
@@ -124,16 +133,25 @@
                 <h2 class="activity-panel-title">{% trans "Login attempts" %} <span class="tp-chip tp-chip--sm tp-chip--meta">{% trans "not a bot signal by itself" %}</span></h2>
             </div>
         </div>
-        <div class="activity-location-row activity-location-row--wide activity-location-row--head" aria-hidden="true">
-            <span>{% trans "Location" %}</span>
-            <span>{% trans "IP" %}</span>
-            <span>{% trans "User agent" %}</span>
-            <span>{% trans "Last seen" %}</span>
-            <span>{% trans "Attempts" %}</span>
-        </div>
-        <div class="activity-locations" data-login-attempts-list>
-            <p class="activity-accounts-empty">{% trans "Loading..." %}</p>
-        </div>
+        <p class="activity-section-summary" data-login-attempts-summary>{% trans "Loading..." %}</p>
+        <details class="activity-details js-smooth-details">
+            <summary class="activity-details-summary">
+                <span>{% trans "Show details" %}</span>
+                <span class="activity-details-chevron" aria-hidden="true"></span>
+            </summary>
+            <div class="activity-details-body">
+                <div class="activity-location-row activity-location-row--wide activity-location-row--head" aria-hidden="true">
+                    <span>{% trans "Location" %}</span>
+                    <span>{% trans "IP" %}</span>
+                    <span>{% trans "User agent" %}</span>
+                    <span>{% trans "Last seen" %}</span>
+                    <span>{% trans "Attempts" %}</span>
+                </div>
+                <div class="activity-locations" data-login-attempts-list>
+                    <p class="activity-accounts-empty">{% trans "Loading..." %}</p>
+                </div>
+            </div>
+        </details>
     </section>
 
     <section class="activity-panel">
@@ -144,16 +162,24 @@
             </div>
         </div>
         <div class="activity-bot-summary" data-bot-summary></div>
-        <div class="activity-location-row activity-location-row--wide activity-location-row--head" aria-hidden="true">
-            <span>{% trans "Location" %}</span>
-            <span>{% trans "IP" %}</span>
-            <span>{% trans "User agent" %}</span>
-            <span>{% trans "Paths touched" %}</span>
-            <span>{% trans "Requests" %}</span>
-        </div>
-        <div class="activity-locations" data-blocked-list>
-            <p class="activity-accounts-empty">{% trans "Loading..." %}</p>
-        </div>
+        <details class="activity-details js-smooth-details">
+            <summary class="activity-details-summary">
+                <span>{% trans "Show details" %}</span>
+                <span class="activity-details-chevron" aria-hidden="true"></span>
+            </summary>
+            <div class="activity-details-body">
+                <div class="activity-location-row activity-location-row--wide activity-location-row--head" aria-hidden="true">
+                    <span>{% trans "Location" %}</span>
+                    <span>{% trans "IP" %}</span>
+                    <span>{% trans "User agent" %}</span>
+                    <span>{% trans "Paths touched" %}</span>
+                    <span>{% trans "Requests" %}</span>
+                </div>
+                <div class="activity-locations" data-blocked-list>
+                    <p class="activity-accounts-empty">{% trans "Loading..." %}</p>
+                </div>
+            </div>
+        </details>
     </section>
 
     <section class="activity-panel">
@@ -186,5 +212,5 @@
 
 {{ activity_dashboard_data|json_script:"activity-dashboard-data" }}
 <script src="{% static 'js/vendor/chart.umd.js' %}?v=20260902-context-pass"></script>
-<script src="{% static 'js/pages/activity-dashboard.js' %}?v=20260902-bot-summary"></script>
+<script src="{% static 'js/pages/activity-dashboard.js' %}?v=20260902-collapsible-detail"></script>
 {% endblock %}

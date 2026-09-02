@@ -233,6 +233,73 @@
     margin: 14px 0 0;
 }
 
+/* ── Section summary + collapsible detail ── */
+.activity-section-summary {
+    margin: 14px 0 0;
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-size-sm);
+}
+
+.activity-section-summary:empty {
+    display: none;
+}
+
+.activity-details {
+    margin-top: 10px;
+}
+
+.activity-details-summary {
+    list-style: none;
+    cursor: pointer;
+    user-select: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 0;
+    color: var(--tp-color-link);
+    font-size: var(--tp-font-size-sm);
+    font-weight: 600;
+    transition: color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.activity-details-summary::-webkit-details-marker {
+    display: none;
+}
+
+.activity-details-summary:hover,
+.activity-details-summary:focus-visible {
+    color: var(--tp-color-link-hover);
+}
+
+.activity-details-chevron {
+    width: 7px;
+    height: 7px;
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: rotate(-45deg);
+    transition: transform 180ms ease;
+}
+
+.activity-details[open] .activity-details-chevron,
+.activity-details.is-open-visual .activity-details-chevron {
+    transform: rotate(45deg);
+}
+
+.activity-details-body {
+    margin-top: 6px;
+    padding: 8px 14px;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: var(--tp-radius-md);
+    background: var(--tp-color-surface-soft);
+}
+
+/* The row-head's own margin-top exists to clear the section heading above
+   it when placed directly under one -- redundant now that it's nested one
+   level deeper, inside a box that already has its own top padding. */
+.activity-details-body .activity-location-row--head {
+    margin-top: 0;
+}
+
 /* ── Locations list ── */
 .activity-locations {
     display: flex;

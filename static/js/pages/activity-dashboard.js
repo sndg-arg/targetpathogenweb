@@ -224,10 +224,28 @@
         return countLabel(count, "path", "paths");
     }
 
+    // Collapsed-by-default detail panels only make sense to offer when
+    // there's actually something to expand -- with zero rows, show just the
+    // empty-state sentence and hide the (otherwise pointless) toggle.
+    function renderSectionSummary(selector, rows, text, emptyText) {
+        var el = document.querySelector(selector);
+        if (!el) return;
+        el.textContent = rows.length ? text : emptyText;
+        var details = el.nextElementSibling;
+        if (details && details.tagName === "DETAILS") details.hidden = !rows.length;
+    }
+
     function renderAuthenticatedLocations() {
+        var rows = data.locations || [];
+        renderSectionSummary(
+            "[data-locations-summary]",
+            rows,
+            countLabel(rows.length, "IP", "IPs") + " · " +
+                requestsLabel(rows.reduce(function (sum, r) { return sum + r.count; }, 0)) + " total",
+            "No logged-in sessions yet."
+        );
         var container = document.querySelector("[data-locations-list]");
         if (!container) return;
-        var rows = data.locations || [];
         if (!rows.length) {
             container.innerHTML = '<p class="activity-accounts-empty">No logged-in sessions yet.</p>';
             return;
@@ -246,9 +264,16 @@
     }
 
     function renderLoginAttempts() {
+        var rows = data.login_attempts || [];
+        renderSectionSummary(
+            "[data-login-attempts-summary]",
+            rows,
+            countLabel(rows.length, "IP", "IPs") + " · " +
+                requestsLabel(rows.reduce(function (sum, r) { return sum + r.count; }, 0)) + " total",
+            "No failed login attempts in this window."
+        );
         var container = document.querySelector("[data-login-attempts-list]");
         if (!container) return;
-        var rows = data.login_attempts || [];
         if (!rows.length) {
             container.innerHTML = '<p class="activity-accounts-empty">No failed login attempts in this window.</p>';
             return;
@@ -275,8 +300,10 @@
         var container = document.querySelector("[data-bot-summary]");
         if (!container) return;
         var rows = data.bot_traffic_summary || [];
+        var details = container.nextElementSibling;
+        if (details && details.tagName === "DETAILS") details.hidden = !rows.length;
         if (!rows.length) {
-            container.innerHTML = "";
+            container.innerHTML = '<p class="activity-accounts-empty">No scanning traffic in this window — nice.</p>';
             return;
         }
         container.innerHTML = rows.map(function (row) {
