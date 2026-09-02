@@ -15,6 +15,29 @@
         : null;
 
     var charts = [];
+    var prefersReducedMotion = typeof window.matchMedia === "function"
+        && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    // Count up from 0 instead of popping straight to the final value -- a
+    // small, cheap bit of motion that reads as "live dashboard" rather than
+    // a static report. Skipped entirely under prefers-reduced-motion.
+    function animateNumber(el, target) {
+        if (!el) return;
+        if (prefersReducedMotion || typeof requestAnimationFrame !== "function") {
+            el.textContent = numberFormat.format(target);
+            return;
+        }
+        var duration = 650;
+        var startTime = null;
+        function step(ts) {
+            if (startTime === null) startTime = ts;
+            var progress = Math.min((ts - startTime) / duration, 1);
+            var eased = 1 - Math.pow(1 - progress, 3);
+            el.textContent = numberFormat.format(Math.round(target * eased));
+            if (progress < 1) requestAnimationFrame(step);
+        }
+        requestAnimationFrame(step);
+    }
 
     function cssVar(name) {
         return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
@@ -38,13 +61,7 @@
             textMuted: cssVar("--tp-color-text-muted"),
             grid: cssVar("--tp-color-border-soft"),
             surface: cssVar("--tp-color-surface"),
-            border: cssVar("--tp-color-border"),
-            status: {
-                "2xx": cssVar("--tp-color-success-ink"),
-                "3xx": cssVar("--tp-color-info-ink"),
-                "4xx": cssVar("--tp-color-warning-ink"),
-                "5xx": cssVar("--tp-color-danger-ink")
-            }
+            border: cssVar("--tp-color-border")
         };
     }
 
@@ -65,7 +82,7 @@
         var kpis = data.kpis || {};
         Object.keys(kpis).forEach(function (key) {
             var el = document.querySelector('[data-kpi="' + key + '"]');
-            if (el) el.textContent = numberFormat.format(kpis[key] || 0);
+            if (el) animateNumber(el, kpis[key] || 0);
         });
         var errorsCard = document.querySelector('[data-kpi-card="errors"]');
         if (errorsCard && kpis.errors > 0) errorsCard.classList.add("has-errors");
@@ -129,10 +146,35 @@
         });
     }
 
-    function userAgentLabel(userAgent) {
+    // Well-known, self-declared automated clients -- named so the reader
+    // doesn't have to parse a raw UA string to tell "Anthropic's own web
+    // crawler" from "a search engine" from "a bare HTTP library". Deliberately
+    // conservative: an unmatched UA (even an odd-looking one) gets no badge
+    // rather than a guessed one, so a badge here is always a real signal.
+    var KNOWN_BOT_SIGNATURES = [
+        { label: "AI crawler", re: /claudebot|gptbot|ccbot|bytespider|perplexitybot|amazonbot|google-extended/i },
+        { label: "Search crawler", re: /googlebot|bingbot|duckduckbot|yandexbot|baiduspider|slurp/i },
+        { label: "HTTP client", re: /python-requests|python-urllib|python\/\d|aiohttp|go-http-client|libwww-perl|okhttp|node-fetch|axios\//i },
+        { label: "Generic bot", re: /\bbot\b|crawler|spider|scraper|headlesschrome/i }
+    ];
+
+    function classifyBot(userAgent) {
+        if (!userAgent) return null;
+        for (var i = 0; i < KNOWN_BOT_SIGNATURES.length; i++) {
+            if (KNOWN_BOT_SIGNATURES[i].re.test(userAgent)) return KNOWN_BOT_SIGNATURES[i].label;
+        }
+        return null;
+    }
+
+    function userAgentCell(userAgent, botLabel) {
         var safe = escapeHtml(userAgent);
-        if (!safe) return '<span class="activity-user-agent activity-user-agent--empty">—</span>';
-        return '<span class="activity-user-agent" title="' + safe + '">' + safe + "</span>";
+        var agentHtml = safe
+            ? '<span class="activity-user-agent" title="' + safe + '">' + safe + "</span>"
+            : '<span class="activity-user-agent activity-user-agent--empty">—</span>';
+        var badgeHtml = botLabel
+            ? '<span class="tp-chip tp-chip--sm activity-bot-chip">' + escapeHtml(botLabel) + "</span>"
+            : "";
+        return '<span class="activity-user-agent-cell">' + agentHtml + badgeHtml + "</span>";
     }
 
     function flagEmoji(countryCode) {
@@ -193,7 +235,7 @@
                 '<div class="activity-location-row activity-location-row--wide">' +
                 '<span class="activity-location-place">' + locationPlace(row) + "</span>" +
                 '<span class="activity-location-ip">' + row.ip + "</span>" +
-                userAgentLabel(row.user_agent) +
+                userAgentCell(row.user_agent, null) +
                 '<span class="activity-location-users">' + relativeSince(row.last_seen) + "</span>" +
                 '<span class="activity-location-count">' + requestsLabel(row.count) + "</span>" +
                 "</div>"
@@ -214,7 +256,7 @@
                 '<div class="activity-location-row activity-location-row--wide activity-location-row--blocked">' +
                 '<span class="activity-location-place">' + locationPlace(row) + "</span>" +
                 '<span class="activity-location-ip">' + row.ip + "</span>" +
-                userAgentLabel(row.user_agent) +
+                userAgentCell(row.user_agent, classifyBot(row.user_agent)) +
                 '<span class="activity-location-users">' + pathsLabel(row.distinct_paths) + "</span>" +
                 '<span class="activity-location-count">' + requestsLabel(row.count) + "</span>" +
                 "</div>"
@@ -344,57 +386,57 @@
         });
     }
 
-    function renderStatusBreakdown(t) {
-        var canvas = document.getElementById("activity-status-chart");
-        if (!canvas) return null;
+    var STATUS_BUCKET_META = {
+        "2xx": "Success",
+        "3xx": "Redirects",
+        "4xx": "Client errors",
+        "5xx": "Server errors"
+    };
+
+    function statusPercent(count, total) {
+        if (!total) return "0%";
+        var pct = (count / total) * 100;
+        // A handful of errors against thousands of requests rounds to "0%",
+        // which reads as "no errors" -- the opposite of what a nonzero count
+        // means. "<1%" keeps it both honest and legible at any proportion.
+        if (count > 0 && pct < 1) return "<1%";
+        return Math.round(pct) + "%";
+    }
+
+    function renderStatusTiles() {
+        var container = document.querySelector("[data-status-tiles]");
+        if (!container) return;
         var rows = data.status_breakdown || [];
         var total = rows.reduce(function (sum, r) { return sum + r.count; }, 0);
         if (!total) {
-            canvas.closest(".activity-chart-wrap").innerHTML = '<p class="activity-chart-empty">No requests logged yet.</p>';
-            return null;
+            container.innerHTML = '<p class="activity-chart-empty">No requests logged yet.</p>';
+            return;
         }
-        var datasets = rows.map(function (r) {
-            return {
-                label: r.bucket + " (" + numberFormat.format(r.count) + ")",
-                data: [r.count],
-                backgroundColor: t.status[r.bucket],
-                borderColor: t.surface,
-                borderWidth: 2,
-                borderRadius: 4,
-                barThickness: 22
-            };
-        });
-        return new Chart(canvas.getContext("2d"), {
-            type: "bar",
-            data: { labels: ["Requests"], datasets: datasets },
-            options: {
-                indexAxis: "y",
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: "bottom",
-                        labels: { color: t.textMuted, boxWidth: 10, boxHeight: 10, padding: 14 }
-                    },
-                    tooltip: baseTooltip(t)
-                },
-                scales: {
-                    x: { stacked: true, display: false },
-                    y: { stacked: true, display: false }
-                }
-            }
+        container.innerHTML = rows.map(function (r) {
+            return (
+                '<div class="activity-status-tile activity-status-tile--' + r.bucket + '">' +
+                '<p class="activity-status-tile-label">' + r.bucket +
+                ' <span class="activity-status-tile-sublabel">' + (STATUS_BUCKET_META[r.bucket] || "") + "</span></p>" +
+                '<p class="activity-status-tile-value" data-status-value="' + r.bucket + '">0</p>' +
+                '<p class="activity-status-tile-meta">' + statusPercent(r.count, total) + " of total</p>" +
+                "</div>"
+            );
+        }).join("");
+
+        rows.forEach(function (r) {
+            animateNumber(container.querySelector('[data-status-value="' + r.bucket + '"]'), r.count);
         });
     }
 
     function renderCharts() {
-        // Only the three chart panels below need the Chart.js vendor
-        // script -- if it 404s or is blocked, KPIs/accounts/locations
+        // Only the two chart panels below need the Chart.js vendor script
+        // -- if it 404s or is blocked, KPIs/accounts/locations/status tiles
         // (already rendered above by the time this runs) must still work.
         if (typeof Chart === "undefined") return;
         charts.forEach(function (c) { c.destroy(); });
         charts = [];
         var t = theme();
-        [renderTimeseries(t), renderTopPages(t), renderStatusBreakdown(t)].forEach(function (c) {
+        [renderTimeseries(t), renderTopPages(t)].forEach(function (c) {
             if (c) charts.push(c);
         });
     }
@@ -404,6 +446,7 @@
     renderAuthenticatedLocations();
     renderLoginAttempts();
     renderBlockedAttempts();
+    renderStatusTiles();
     renderTopErrorPaths();
     renderCharts();
 

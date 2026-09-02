@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/activity-dashboard.css' %}?v=20260902-error-tracking">
+    <link rel="stylesheet" href="{% static 'css/pages/activity-dashboard.css' %}?v=20260902-premium-clarity">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -152,8 +152,8 @@
                     <h2 class="activity-panel-title">{% trans "Status codes" %}</h2>
                 </div>
             </div>
-            <div class="activity-chart-wrap activity-chart-wrap--short">
-                <canvas id="activity-status-chart" role="img" aria-label="{% trans 'Breakdown of response status codes' %}"></canvas>
+            <div class="activity-status-tiles" data-status-tiles>
+                <p class="activity-accounts-empty">{% trans "Loading..." %}</p>
             </div>
         </section>
     </div>
@@ -175,6 +175,6 @@
 </div>
 
 {{ activity_dashboard_data|json_script:"activity-dashboard-data" }}
-<script src="{% static 'js/vendor/chart.umd.js' %}?v=20260902-error-tracking"></script>
-<script src="{% static 'js/pages/activity-dashboard.js' %}?v=20260902-error-tracking"></script>
+<script src="{% static 'js/vendor/chart.umd.js' %}?v=20260902-premium-clarity"></script>
+<script src="{% static 'js/pages/activity-dashboard.js' %}?v=20260902-premium-clarity"></script>
 {% endblock %}

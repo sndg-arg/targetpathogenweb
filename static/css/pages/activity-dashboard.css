@@ -15,6 +15,38 @@
     margin-top: var(--tp-space-7);
 }
 
+/* Soft cascade on load -- every top-level section is animated, so nth-child
+   (not nth-of-type) is fine here: there's no unanimated element interspersed
+   to throw the count off. */
+@media (prefers-reduced-motion: no-preference) {
+    .activity-page > * {
+        animation: activity-fade-up 0.45s var(--tp-ui-ease-standard) both;
+    }
+
+    .activity-page > *:nth-child(1) { animation-delay: 0ms; }
+    .activity-page > *:nth-child(2) { animation-delay: 40ms; }
+    .activity-page > *:nth-child(3) { animation-delay: 80ms; }
+    .activity-page > *:nth-child(4) { animation-delay: 120ms; }
+    .activity-page > *:nth-child(5) { animation-delay: 160ms; }
+    .activity-page > *:nth-child(6) { animation-delay: 200ms; }
+    .activity-page > *:nth-child(7) { animation-delay: 240ms; }
+    .activity-page > *:nth-child(8) { animation-delay: 280ms; }
+    .activity-page > *:nth-child(9) { animation-delay: 320ms; }
+    .activity-page > *:nth-child(n+10) { animation-delay: 360ms; }
+}
+
+@keyframes activity-fade-up {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
 .activity-page h1,
 .activity-page h2 {
     font-family: "Space Grotesk", "Segoe UI", sans-serif;
@@ -288,6 +320,20 @@
     color: var(--tp-color-text-muted);
 }
 
+.activity-user-agent-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    min-width: 0;
+}
+
+.activity-bot-chip {
+    background: var(--tp-color-info-bg);
+    border-color: var(--tp-color-info-border);
+    color: var(--tp-color-info-ink);
+}
+
 @media (max-width: 640px) {
     .activity-location-row {
         grid-template-columns: 1fr;
@@ -387,15 +433,86 @@
     height: 280px;
 }
 
-.activity-chart-wrap--short {
-    height: 180px;
-}
-
 .activity-chart-empty {
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-sm);
     text-align: center;
     padding: 40px 0;
+}
+
+/* ── Status code tiles — legible at any proportion, unlike a proportional
+   bar where a real error count can round away to an invisible sliver ── */
+.activity-status-tiles {
+    margin-top: 14px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    height: 280px;
+}
+
+.activity-status-tile {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    padding: 14px 16px;
+    border-radius: 12px;
+    border-left: 3px solid var(--tp-color-border-strong);
+    background: var(--tp-color-surface-soft);
+}
+
+.activity-status-tile--2xx {
+    border-left-color: var(--tp-color-success-border);
+}
+
+.activity-status-tile--3xx {
+    border-left-color: var(--tp-color-info-border);
+}
+
+.activity-status-tile--4xx {
+    border-left-color: var(--tp-color-warning-border);
+}
+
+.activity-status-tile--5xx {
+    border-left-color: var(--tp-color-danger-border);
+}
+
+.activity-status-tile-label {
+    margin: 0;
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-weight: 700;
+    font-size: var(--tp-font-size-sm);
+    color: var(--tp-color-text-primary);
+}
+
+.activity-status-tile-sublabel {
+    font-family: "Source Sans 3", "Segoe UI", sans-serif;
+    font-weight: 500;
+    font-size: var(--tp-font-size-xs);
+    color: var(--tp-color-text-muted);
+}
+
+.activity-status-tile-value {
+    margin: 0;
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1.1;
+    color: var(--activity-accent-deep);
+    font-variant-numeric: tabular-nums;
+}
+
+.activity-status-tile-meta {
+    margin: 0;
+    font-size: var(--tp-font-size-xs);
+    color: var(--tp-color-text-muted);
+}
+
+@media (max-width: 420px) {
+    .activity-status-tiles {
+        grid-template-columns: 1fr;
+        height: auto;
+    }
 }
 
 /* ── Two-column chart pair — seamless mosaic divider, no per-card box ── */
