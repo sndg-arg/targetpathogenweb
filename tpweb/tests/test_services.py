@@ -565,6 +565,110 @@ class ProteinListFilterQueryTests(TestCase):
 
         self.assertEqual(list(matched.values_list("accession", flat=True)), ["P1"])
 
+    def test_two_different_all_groups_on_the_same_param_and_dont_merge_as_or(self):
+        # Two SEPARATE advanced-builder groups (distinct group_id, both
+        # "all") that happen to touch the same single-valued categorical
+        # param must stay independent AND'd constraints -- not get swept
+        # into the same "any of these values" merge that same-param
+        # conditions WITHIN one group intentionally get (see
+        # test_any_group_ors_two_numeric_score_params's sibling categorical
+        # case). A protein can't be both Cytoplasmic and Periplasmic, so the
+        # correct result is zero matches, not an OR of the two.
+        proteome = Biodatabase.objects.create(name="TEST_protein")
+        cytoplasmic_only = Bioentry.objects.create(
+            biodatabase=proteome, name="p1", accession="P1", identifier="P1"
+        )
+        periplasmic_only = Bioentry.objects.create(
+            biodatabase=proteome, name="p2", accession="P2", identifier="P2"
+        )
+        localization_param = ScoreParam.objects.create(
+            category="Localization", name="Localization", type="C"
+        )
+        ScoreParamValue.objects.create(
+            score_param=localization_param, bioentry=cytoplasmic_only, value="Cytoplasmic"
+        )
+        ScoreParamValue.objects.create(
+            score_param=localization_param, bioentry=periplasmic_only, value="Periplasmic"
+        )
+        proteins = Bioentry.objects.filter(biodatabase=proteome)
+
+        matched = apply_selected_parameter_filters(
+            proteins,
+            [
+                {
+                    "type": "categorical",
+                    "score_param_id": localization_param.pk,
+                    "score_param_name": "localization",
+                    "name": "Cytoplasmic",
+                    "group_id": "adv:0",
+                    "group_mode": "all",
+                },
+                {
+                    "type": "categorical",
+                    "score_param_id": localization_param.pk,
+                    "score_param_name": "localization",
+                    "name": "Periplasmic",
+                    "group_id": "adv:1",
+                    "group_mode": "all",
+                },
+            ],
+        )
+
+        self.assertEqual(list(matched.values_list("accession", flat=True)), [])
+
+    def test_one_all_group_still_merges_same_param_values_as_or(self):
+        # Contrast with the test above: TWO conditions inside the SAME
+        # explicit group (matching the "Core or Accessory" UI row) must
+        # still merge as "any of these values", exactly as before this
+        # per-group bucketing existed.
+        proteome = Biodatabase.objects.create(name="TEST_protein")
+        cytoplasmic = Bioentry.objects.create(
+            biodatabase=proteome, name="p1", accession="P1", identifier="P1"
+        )
+        periplasmic = Bioentry.objects.create(
+            biodatabase=proteome, name="p2", accession="P2", identifier="P2"
+        )
+        extracellular = Bioentry.objects.create(
+            biodatabase=proteome, name="p3", accession="P3", identifier="P3"
+        )
+        localization_param = ScoreParam.objects.create(
+            category="Localization", name="Localization", type="C"
+        )
+        ScoreParamValue.objects.create(
+            score_param=localization_param, bioentry=cytoplasmic, value="Cytoplasmic"
+        )
+        ScoreParamValue.objects.create(
+            score_param=localization_param, bioentry=periplasmic, value="Periplasmic"
+        )
+        ScoreParamValue.objects.create(
+            score_param=localization_param, bioentry=extracellular, value="Extracellular"
+        )
+        proteins = Bioentry.objects.filter(biodatabase=proteome)
+
+        matched = apply_selected_parameter_filters(
+            proteins,
+            [
+                {
+                    "type": "categorical",
+                    "score_param_id": localization_param.pk,
+                    "score_param_name": "localization",
+                    "name": "Cytoplasmic",
+                    "group_id": "adv:0",
+                    "group_mode": "all",
+                },
+                {
+                    "type": "categorical",
+                    "score_param_id": localization_param.pk,
+                    "score_param_name": "localization",
+                    "name": "Periplasmic",
+                    "group_id": "adv:0",
+                    "group_mode": "all",
+                },
+            ],
+        )
+
+        self.assertEqual(set(matched.values_list("accession", flat=True)), {"P1", "P2"})
+
 
 class ProteinFormulaServiceTests(SimpleTestCase):
     def test_choose_formula_by_requested_name(self):

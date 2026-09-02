@@ -142,7 +142,9 @@
     function setGroupMode(groupEl, mode) {
         groupEl.dataset.mode = mode;
         groupEl.querySelectorAll("[data-mode-btn]").forEach(function (btn) {
-            btn.classList.toggle("af-mode-btn--active", btn.dataset.modeBtn === mode);
+            var isActive = btn.dataset.modeBtn === mode;
+            btn.classList.toggle("af-mode-btn--active", isActive);
+            btn.setAttribute("aria-pressed", isActive ? "true" : "false");
         });
     }
 

@@ -596,7 +596,29 @@ def apply_selected_parameter_filters(queryset, selected_parameters):
             and_items.extend(items)
             del or_groups[group_id]
 
-    filtered_queryset = _apply_and_selected_parameter_filters(queryset, and_items)
+    # _apply_and_selected_parameter_filters merges same-score_param_id
+    # conditions together (that's the desired "any of these values" reading
+    # within one group -- e.g. Core or Accessory checked together). But two
+    # DIFFERENT advanced-builder groups (distinct group_id) that happen to
+    # touch the same param must stay independent AND'd constraints, not get
+    # swept into that same merge -- so each real group_id gets its own
+    # _apply_and_selected_parameter_filters call (and thus its own .filter()
+    # chain), while every ungrouped/plain-panel item (no group_id at all)
+    # still shares one call, unchanged from before this partitioning existed.
+    and_buckets = {}
+    and_bucket_order = []
+    for parameter in and_items:
+        bucket_key = parameter.get("group_id") or None
+        if bucket_key not in and_buckets:
+            and_buckets[bucket_key] = []
+            and_bucket_order.append(bucket_key)
+        and_buckets[bucket_key].append(parameter)
+
+    filtered_queryset = queryset
+    for bucket_key in and_bucket_order:
+        filtered_queryset = _apply_and_selected_parameter_filters(
+            filtered_queryset, and_buckets[bucket_key]
+        )
 
     if or_groups:
         param_name_by_id = {}

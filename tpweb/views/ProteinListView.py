@@ -204,15 +204,31 @@ class ProteinAdvancedFiltersView(View):
         return options
 
     @classmethod
-    def _existing_groups(cls, selected_parameters):
+    def _existing_groups(cls, selected_parameters, visible_param_ids=None):
         """Reconstruct the builder's group list from session state, for
         re-opening the page with prior advanced groups still shown. Ignores
-        entries not tagged by this view (the plain panel's own filters)."""
+        entries not tagged by this view (the plain panel's own filters).
+
+        A condition whose score_param_id isn't in visible_param_ids (e.g. a
+        Custom column made invisible, or deleted, since the group was built)
+        is dropped rather than shown as a broken empty row -- pass the
+        current visible set to enable this and get back an accurate dropped
+        count; leave it None to skip the check (used by tests that only
+        care about the reconstruction shape). Returns (groups, dropped_count)."""
         groups_by_id = {}
         order = []
+        dropped = 0
         for parameter in selected_parameters:
             group_id = str(parameter.get("group_id") or "")
             if not group_id.startswith(cls.GROUP_ID_PREFIX):
+                continue
+            kind = str(parameter.get("type") or "categorical").lower()
+            if (
+                kind != "special"
+                and visible_param_ids is not None
+                and parameter.get("score_param_id") not in visible_param_ids
+            ):
+                dropped += 1
                 continue
             if group_id not in groups_by_id:
                 groups_by_id[group_id] = {
@@ -222,7 +238,6 @@ class ProteinAdvancedFiltersView(View):
                     "conditions": [],
                 }
                 order.append(group_id)
-            kind = str(parameter.get("type") or "categorical").lower()
             if kind == "numeric":
                 groups_by_id[group_id]["conditions"].append(
                     {
@@ -261,7 +276,13 @@ class ProteinAdvancedFiltersView(View):
                             "option_ids": [option_id],
                         }
                     )
-        return [groups_by_id[group_id] for group_id in order]
+        # A group can end up with zero conditions if every one of them got
+        # dropped above (all hidden) -- drop the group itself rather than
+        # showing an empty ALL/ANY toggle with nothing under it.
+        groups = [
+            groups_by_id[group_id] for group_id in order if groups_by_id[group_id]["conditions"]
+        ]
+        return groups, dropped
 
     def get(self, request, genome, *args, **kwargs):
         assembly_name = resolve_genome_from_slug(request.user, genome)
@@ -271,6 +292,17 @@ class ProteinAdvancedFiltersView(View):
         selected_parameters = normalize_selected_parameters(
             get_workspace_session_value(request.session, request.user, "selected_parameters", [])
         )
+        param_options = self._param_options(request.user)
+        visible_param_ids = {option["id"] for option in param_options}
+        existing_groups, dropped_count = self._existing_groups(
+            selected_parameters, visible_param_ids
+        )
+        if dropped_count:
+            messages.warning(
+                request,
+                f"{dropped_count} condición(es) de un grupo guardado ya no están disponibles "
+                "(columna oculta o eliminada) y no se muestran acá.",
+            )
 
         return render(
             request,
@@ -286,8 +318,8 @@ class ProteinAdvancedFiltersView(View):
                 # template's |json_script filter does its own json.dumps()
                 # (plus HTML-safe escaping), so passing already-dumped JSON
                 # here would double-encode it into a string literal.
-                "param_options": self._param_options(request.user),
-                "existing_groups": self._existing_groups(selected_parameters),
+                "param_options": param_options,
+                "existing_groups": existing_groups,
             },
         )
 

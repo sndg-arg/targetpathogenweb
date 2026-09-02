@@ -72,7 +72,7 @@
 
 .af-mode-btn--active {
     background: var(--tp-color-brand-700);
-    color: var(--tp-color-on-brand, #fff);
+    color: var(--tp-color-brand-050);
 }
 
 .af-group-remove {

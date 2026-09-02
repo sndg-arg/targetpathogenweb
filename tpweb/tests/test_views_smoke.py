@@ -796,6 +796,53 @@ class ProteinAdvancedFiltersViewTests(LoggedInTestCase):
 
         self.assertEqual(response.status_code, 200)
 
+    def test_get_drops_stale_condition_and_warns_when_column_no_longer_visible(self):
+        from tpweb.models.ScoreParam import ScoreParam, ScoreParamOptions
+        from tpweb.services.workspace import set_workspace_session_value
+
+        Biodatabase.objects.create(name="TEST", description="Genome workspace")
+        Biodatabase.objects.create(name="TEST_prots")
+        other_user = get_user_model().objects.create_user(
+            username="other-owner", password="test-pass"
+        )
+        # Custom column owned by a different user -- invisible to smoke_user,
+        # simulating a column hidden/deleted since this group was built.
+        hidden_param = ScoreParam.objects.create(
+            category="Custom", name="hidden_custom", type="C", user=other_user
+        )
+        hidden_option = ScoreParamOptions.objects.create(score_param=hidden_param, name="X")
+
+        session = self.client.session
+        set_workspace_session_value(
+            session,
+            self.smoke_user,
+            "selected_parameters",
+            [
+                {
+                    "id": f"adv:0:{hidden_option.pk}",
+                    "type": "categorical",
+                    "score_param_id": hidden_param.pk,
+                    "score_param_name": hidden_param.name,
+                    "name": "X",
+                    "group_id": "adv:0",
+                    "group_mode": "all",
+                }
+            ],
+        )
+        session.save()
+
+        response = self.client.get(
+            reverse("tpwebapp:protein_advanced_filters", kwargs={"genome": "TEST"})
+        )
+
+        self.assertEqual(response.status_code, 200)
+        messages = list(response.context["messages"])
+        self.assertTrue(
+            any("ya no están disponibles" in str(m) for m in messages),
+            f"expected a stale-condition warning, got: {messages}",
+        )
+        self.assertEqual(response.context["existing_groups"], [])
+
     def test_post_writes_an_any_group_into_session_and_redirects(self):
         from tpweb.models.ScoreParam import ScoreParam
         from tpweb.services.workspace import get_workspace_session_value
@@ -892,9 +939,10 @@ class ProteinAdvancedFiltersViewTests(LoggedInTestCase):
         self.assertEqual({str(item.get("name")) for item in grouped}, {"Core", "Accessory"})
 
         # Reopening the builder merges them back into one condition, not two rows.
-        existing_groups = ProteinAdvancedFiltersView._existing_groups(
+        existing_groups, dropped_count = ProteinAdvancedFiltersView._existing_groups(
             normalize_selected_parameters(selected_parameters)
         )
+        self.assertEqual(dropped_count, 0)
         self.assertEqual(len(existing_groups), 1)
         self.assertEqual(len(existing_groups[0]["conditions"]), 1)
         self.assertEqual(

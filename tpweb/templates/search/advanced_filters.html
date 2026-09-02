@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/advanced-filters.css' %}?v=20260902-or-chips">
+    <link rel="stylesheet" href="{% static 'css/pages/advanced-filters.css' %}?v=20260902-review-fixes">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -73,7 +73,7 @@
 
 <template id="af-condition-template">
     <div class="af-condition" data-condition>
-        <select class="af-param-select form-control" data-param-select>
+        <select class="af-param-select form-control" data-param-select aria-label="{% trans 'Criterion' %}">
             <option value="">{% trans "Choose a criterion…" %}</option>
         </select>
         <div class="af-condition-value" data-value-area></div>
@@ -95,18 +95,18 @@
 
 <template id="af-value-numeric-template">
     <div class="af-numeric-value">
-        <select class="af-operation-select form-control" data-operation>
+        <select class="af-operation-select form-control" data-operation aria-label="{% trans 'Operator' %}">
             <option value=">=">{% trans "≥" %}</option>
             <option value="<=">{% trans "≤" %}</option>
             <option value="between">{% trans "between" %}</option>
         </select>
-        <input type="number" step="any" class="af-numeric-input form-control" data-value placeholder="{% trans 'value' %}">
-        <input type="number" step="any" class="af-numeric-input af-numeric-input--max form-control" data-value-max placeholder="{% trans 'max' %}" hidden>
+        <input type="number" step="any" class="af-numeric-input form-control" data-value placeholder="{% trans 'value' %}" aria-label="{% trans 'Value' %}">
+        <input type="number" step="any" class="af-numeric-input af-numeric-input--max form-control" data-value-max placeholder="{% trans 'max' %}" aria-label="{% trans 'Maximum value' %}" hidden>
     </div>
 </template>
 
 {{ param_options|json_script:"af-param-options" }}
 {{ existing_groups|json_script:"af-existing-groups" }}
 
-<script src="{% static 'js/pages/advanced-filters.js' %}?v=20260902-or-chips"></script>
+<script src="{% static 'js/pages/advanced-filters.js' %}?v=20260902-review-fixes"></script>
 {% endblock %}
