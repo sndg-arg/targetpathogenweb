@@ -27,6 +27,41 @@ LOGIN_ATTEMPT_PATH_PREFIX = "/accounts/login"
 
 _ID_SEGMENT = re.compile(r"^\d+$")
 
+# Keep in sync with KNOWN_BOT_SIGNATURES in static/js/pages/activity-dashboard.js
+# (the JS copy badges individual rows; this one drives the aggregate summary
+# below, which needs every blocked request in the window, not just the
+# top-10-by-IP rows the page actually renders -- so the same classification
+# has to live server-side too rather than being computed once in JS).
+BOT_SIGNATURES = (
+    (
+        "AI crawler",
+        re.compile(
+            r"claudebot|gptbot|ccbot|bytespider|perplexitybot|amazonbot|google-extended", re.I
+        ),
+    ),
+    (
+        "Search crawler",
+        re.compile(r"googlebot|bingbot|duckduckbot|yandexbot|baiduspider|slurp", re.I),
+    ),
+    (
+        "HTTP client",
+        re.compile(
+            r"python-requests|python-urllib|python/\d|aiohttp|go-http-client|libwww-perl|okhttp|node-fetch|axios/",
+            re.I,
+        ),
+    ),
+    ("Generic bot", re.compile(r"\bbot\b|crawler|spider|scraper|headlesschrome|\bworker\b", re.I)),
+)
+
+
+def _classify_bot(user_agent):
+    if not user_agent:
+        return None
+    for label, pattern in BOT_SIGNATURES:
+        if pattern.search(user_agent):
+            return label
+    return None
+
 
 def _normalize_path(path):
     """Collapse numeric-id segments so /protein/123 and /protein/456 count
@@ -158,6 +193,39 @@ def _blocked_attempts_breakdown(window_qs, limit=TOP_LOCATIONS_LIMIT):
     return _ip_breakdown(_blocked_queryset(window_qs), limit)
 
 
+def _bot_traffic_summary(window_qs):
+    """Classify EVERY blocked request in the window (not just the
+    top-10-by-IP rows _blocked_attempts_breakdown renders) by bot type and
+    tally distinct IPs + total requests per type.
+
+    A handful of IPs belonging to the same crawler can otherwise fill most
+    of that top-10 table on their own, both overstating how many distinct
+    actors are visible and crowding out other, less prolific ones -- this
+    is the "how much of this is which kind of noise" rollup that table
+    alone can't answer."""
+    stats_by_label = {}
+    for ip, user_agent in _blocked_queryset(window_qs).values_list("ip", "user_agent"):
+        label = _classify_bot(user_agent) or "Unclassified"
+        entry = stats_by_label.setdefault(label, {"ips": set(), "requests": 0})
+        if ip:
+            entry["ips"].add(ip)
+        entry["requests"] += 1
+
+    summary = [
+        {"label": label, "ip_count": len(stats["ips"]), "requests": stats["requests"]}
+        for label, stats in stats_by_label.items()
+    ]
+    summary.sort(key=lambda row: row["requests"], reverse=True)
+    return summary
+
+
+# Well-known noise every browser/crawler requests unprompted (favicon,
+# robots.txt) -- a 404 on these isn't a real problem to investigate, and
+# without this filter it can crowd out genuinely broken routes in a
+# TOP_ERROR_PATHS_LIMIT-sized list.
+_NOISE_ERROR_PATH_SUFFIXES = ("/favicon.ico", "/robots.txt", "/apple-touch-icon.png")
+
+
 def _top_error_paths(window_qs, limit=TOP_ERROR_PATHS_LIMIT):
     """Which routes actually produced 4xx/5xx responses, with a breakdown of
     which exact status codes -- the "what broke" complement to the aggregate
@@ -165,6 +233,8 @@ def _top_error_paths(window_qs, limit=TOP_ERROR_PATHS_LIMIT):
     what's failing."""
     codes_by_path = {}
     for path, code in window_qs.filter(status_code__gte=400).values_list("path", "status_code"):
+        if path.endswith(_NOISE_ERROR_PATH_SUFFIXES):
+            continue
         normalized = _normalize_path(path)
         codes_by_path.setdefault(normalized, Counter())[code] += 1
 
@@ -298,6 +368,7 @@ def build_activity_dashboard_data(days=ACTIVITY_WINDOW_DAYS):
     locations = _authenticated_location_breakdown(window_qs)
     login_attempts = _login_attempts_breakdown(window_qs)
     blocked_attempts = _blocked_attempts_breakdown(window_qs)
+    bot_traffic_summary = _bot_traffic_summary(window_qs)
     top_error_paths = _top_error_paths(window_qs)
 
     # Lets the chart flag "logging only just started" instead of a real
@@ -318,4 +389,5 @@ def build_activity_dashboard_data(days=ACTIVITY_WINDOW_DAYS):
         "locations": locations,
         "login_attempts": login_attempts,
         "blocked_attempts": blocked_attempts,
+        "bot_traffic_summary": bot_traffic_summary,
     }

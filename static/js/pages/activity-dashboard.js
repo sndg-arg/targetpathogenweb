@@ -266,6 +266,30 @@
         }).join("");
     }
 
+    // Rollup across EVERY blocked request in the window (data.bot_traffic_summary
+    // is computed server-side over the full queryset), not just the top-10-by-IP
+    // rows renderBlockedAttempts() below shows -- a handful of IPs from the same
+    // crawler can otherwise fill most of that table on their own and hide how
+    // many distinct actors, and how much total traffic, each type represents.
+    function renderBotSummary() {
+        var container = document.querySelector("[data-bot-summary]");
+        if (!container) return;
+        var rows = data.bot_traffic_summary || [];
+        if (!rows.length) {
+            container.innerHTML = "";
+            return;
+        }
+        container.innerHTML = rows.map(function (row) {
+            var variant = row.label === "Unclassified" ? " activity-bot-summary-chip--muted" : "";
+            return (
+                '<span class="activity-bot-summary-chip' + variant + '">' +
+                '<strong>' + escapeHtml(row.label) + "</strong>" +
+                '<span>' + countLabel(row.ip_count, "IP", "IPs") + " · " + requestsLabel(row.requests) + "</span>" +
+                "</span>"
+            );
+        }).join("");
+    }
+
     function renderBlockedAttempts() {
         var container = document.querySelector("[data-blocked-list]");
         if (!container) return;
@@ -514,6 +538,7 @@
     renderAccounts();
     renderAuthenticatedLocations();
     renderLoginAttempts();
+    renderBotSummary();
     renderBlockedAttempts();
     renderStatusTiles();
     renderTopErrorPaths();

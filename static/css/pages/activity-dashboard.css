@@ -352,6 +352,52 @@
     color: var(--tp-color-info-ink);
 }
 
+/* ── Bot traffic rollup — aggregated over the FULL window, not just the
+   top-10-by-IP rows below (a handful of IPs from one crawler can otherwise
+   fill most of that table and hide how many distinct types exist) ── */
+.activity-bot-summary {
+    margin-top: 14px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.activity-bot-summary:empty {
+    display: none;
+}
+
+.activity-bot-summary-chip {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    background: var(--tp-color-info-bg);
+    border: 1px solid var(--tp-color-info-border);
+}
+
+.activity-bot-summary-chip strong {
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-size: var(--tp-font-size-sm);
+    font-weight: 700;
+    color: var(--tp-color-info-ink);
+}
+
+.activity-bot-summary-chip span {
+    font-size: var(--tp-font-size-xs);
+    color: var(--tp-color-text-muted);
+    font-variant-numeric: tabular-nums;
+}
+
+.activity-bot-summary-chip--muted {
+    background: var(--tp-color-surface-soft);
+    border-color: var(--tp-color-border-soft);
+}
+
+.activity-bot-summary-chip--muted strong {
+    color: var(--tp-color-text-secondary);
+}
+
 @media (max-width: 640px) {
     .activity-location-row {
         grid-template-columns: 1fr;

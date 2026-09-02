@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/activity-dashboard.css' %}?v=20260902-restructure">
+    <link rel="stylesheet" href="{% static 'css/pages/activity-dashboard.css' %}?v=20260902-bot-summary">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -143,6 +143,7 @@
                 <h2 class="activity-panel-title">{% trans "Scanning &amp; bot traffic" %} <span class="tp-chip tp-chip--sm tp-chip--warning">{% trans "likely automated" %}</span></h2>
             </div>
         </div>
+        <div class="activity-bot-summary" data-bot-summary></div>
         <div class="activity-location-row activity-location-row--wide activity-location-row--head" aria-hidden="true">
             <span>{% trans "Location" %}</span>
             <span>{% trans "IP" %}</span>
@@ -185,5 +186,5 @@
 
 {{ activity_dashboard_data|json_script:"activity-dashboard-data" }}
 <script src="{% static 'js/vendor/chart.umd.js' %}?v=20260902-context-pass"></script>
-<script src="{% static 'js/pages/activity-dashboard.js' %}?v=20260902-restructure"></script>
+<script src="{% static 'js/pages/activity-dashboard.js' %}?v=20260902-bot-summary"></script>
 {% endblock %}

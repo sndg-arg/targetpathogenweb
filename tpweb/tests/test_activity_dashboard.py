@@ -335,9 +335,91 @@ class LoginAttemptsTests(TestCase):
         self.assertEqual(data["login_attempts"], [])
 
 
+class BotTrafficSummaryTests(TestCase):
+    @patch("tpweb.services.activity_dashboard.geolocate_ip")
+    def test_aggregates_every_blocked_request_by_classified_bot_type(self, mock_geolocate):
+        mock_geolocate.return_value = None
+        # 3 distinct ClaudeBot IPs -- individually they'd fill 3 of the
+        # top-10 _blocked_attempts_breakdown slots, but the summary should
+        # still report them as one "AI crawler" bucket with ip_count=3.
+        for i in range(3):
+            RequestLog.objects.create(
+                user=None,
+                ip=f"203.0.113.{i}",
+                method="GET",
+                path="/genomes",
+                status_code=302,
+                user_agent="Mozilla/5.0 AppleWebKit/537.36 (compatible; ClaudeBot/1.0; +claudebot@anthropic.com)",
+            )
+        RequestLog.objects.create(
+            user=None,
+            ip="203.0.113.50",
+            method="GET",
+            path="/genomes",
+            status_code=302,
+            user_agent="curl/8.4.0",
+        )
+        RequestLog.objects.create(
+            user=None,
+            ip="203.0.113.51",
+            method="GET",
+            path="/genomes",
+            status_code=302,
+            user_agent="SomeWeirdUnrecognizedClient/1.0",
+        )
+
+        data = build_activity_dashboard_data()
+        by_label = {row["label"]: row for row in data["bot_traffic_summary"]}
+
+        self.assertEqual(
+            by_label["AI crawler"], {"label": "AI crawler", "ip_count": 3, "requests": 3}
+        )
+        # curl and the unrecognized client both fail every pattern -- neither
+        # is a guessed match, so both land in "Unclassified" together.
+        self.assertEqual(
+            by_label["Unclassified"], {"label": "Unclassified", "ip_count": 2, "requests": 2}
+        )
+
+    @patch("tpweb.services.activity_dashboard.geolocate_ip")
+    def test_worker_pattern_is_classified_as_generic_bot(self, mock_geolocate):
+        mock_geolocate.return_value = None
+        RequestLog.objects.create(
+            user=None,
+            ip="203.0.113.60",
+            method="GET",
+            path="/genomes",
+            status_code=302,
+            user_agent="crusader-worker/1.0",
+        )
+
+        data = build_activity_dashboard_data()
+        by_label = {row["label"]: row for row in data["bot_traffic_summary"]}
+
+        self.assertIn("Generic bot", by_label)
+        self.assertEqual(by_label["Generic bot"]["ip_count"], 1)
+
+
 class TopErrorPathsTests(TestCase):
     def setUp(self):
         self.alice = get_user_model().objects.create_user(username="alice", password="x")
+
+    def test_favicon_and_robots_txt_404s_are_excluded_as_noise(self):
+        RequestLog.objects.create(
+            user=self.alice, ip="10.0.0.1", method="GET", path="/favicon.ico", status_code=404
+        )
+        RequestLog.objects.create(
+            user=self.alice, ip="10.0.0.1", method="GET", path="/robots.txt", status_code=404
+        )
+        RequestLog.objects.create(
+            user=self.alice, ip="10.0.0.1", method="GET", path="/accounts/login", status_code=403
+        )
+
+        data = build_activity_dashboard_data()
+        paths = {row["path"] for row in data["top_error_paths"]}
+
+        self.assertNotIn("/favicon.ico", paths)
+        self.assertNotIn("/robots.txt", paths)
+        self.assertIn("/accounts/login", paths)
 
     def test_groups_by_normalized_path_and_breaks_down_status_codes(self):
         RequestLog.objects.create(
