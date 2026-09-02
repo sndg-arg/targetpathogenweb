@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/activity-dashboard.css' %}?v=20260902-country-summary">
+    <link rel="stylesheet" href="{% static 'css/pages/activity-dashboard.css' %}?v=20260902-region-summary">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -212,5 +212,5 @@
 
 {{ activity_dashboard_data|json_script:"activity-dashboard-data" }}
 <script src="{% static 'js/vendor/chart.umd.js' %}?v=20260902-context-pass"></script>
-<script src="{% static 'js/pages/activity-dashboard.js' %}?v=20260902-country-summary"></script>
+<script src="{% static 'js/pages/activity-dashboard.js' %}?v=20260902-region-summary"></script>
 {% endblock %}

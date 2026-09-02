@@ -134,6 +134,7 @@ def _ip_breakdown(qs, limit=TOP_LOCATIONS_LIMIT):
                 "country": location["country"] if location else None,
                 "country_code": location["country_code"] if location else None,
                 "city": location["city"] if location else None,
+                "region": location["region"] if location else None,
             }
         )
     return breakdown

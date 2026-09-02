@@ -212,6 +212,7 @@ class LocationBreakdownTests(TestCase):
         self.assertEqual(row["count"], 2)
         self.assertEqual(row["country"], "Brazil")
         self.assertEqual(row["country_code"], "BR")
+        self.assertEqual(row["region"], "Sao Paulo")
         self.assertEqual(row["users"], ["alice"])
 
     @patch("tpweb.services.activity_dashboard.geolocate_ip")

@@ -229,29 +229,33 @@
     }
 
     // Groups IP-level rows (data.locations / data.login_attempts, both
-    // shaped { ip, count, country, country_code, ... }) into one entry per
-    // country -- the always-visible summary is "which countries", not a
-    // per-IP list, which is what the collapsed detail panel is for.
-    function groupByCountry(rows) {
+    // shaped { ip, count, country, country_code, region, ... }) into one
+    // entry per region+country (e.g. "Buenos Aires, Argentina") -- the
+    // always-visible summary is "which places, roughly", not a per-IP list,
+    // which is what the collapsed detail panel is for. Falls back to just
+    // the country when ip-api didn't resolve a region (or the region name
+    // duplicates the country, which it does for some city-states).
+    function groupByLocation(rows) {
         var order = [];
-        var byCountry = {};
+        var byKey = {};
         rows.forEach(function (row) {
-            var key = row.country || "Unknown";
-            if (!byCountry[key]) {
-                byCountry[key] = {
-                    label: key,
+            var country = row.country || "Unknown";
+            var label = row.region && row.region !== country ? row.region + ", " + country : country;
+            if (!byKey[label]) {
+                byKey[label] = {
+                    label: label,
                     country_code: row.country_code,
                     ip_count: 0,
                     requests: 0,
-                    muted: key === "Unknown"
+                    muted: country === "Unknown"
                 };
-                order.push(key);
+                order.push(label);
             }
-            byCountry[key].ip_count += 1;
-            byCountry[key].requests += row.count;
+            byKey[label].ip_count += 1;
+            byKey[label].requests += row.count;
         });
         return order
-            .map(function (key) { return byCountry[key]; })
+            .map(function (key) { return byKey[key]; })
             .sort(function (a, b) { return b.requests - a.requests; });
     }
 
@@ -282,7 +286,7 @@
 
     function renderAuthenticatedLocations() {
         var rows = data.locations || [];
-        renderChipSummary("[data-locations-summary]", groupByCountry(rows), "No logged-in sessions yet.");
+        renderChipSummary("[data-locations-summary]", groupByLocation(rows), "No logged-in sessions yet.");
         var container = document.querySelector("[data-locations-list]");
         if (!container) return;
         if (!rows.length) {
@@ -306,7 +310,7 @@
         var rows = data.login_attempts || [];
         renderChipSummary(
             "[data-login-attempts-summary]",
-            groupByCountry(rows),
+            groupByLocation(rows),
             "No failed login attempts in this window."
         );
         var container = document.querySelector("[data-login-attempts-list]");
