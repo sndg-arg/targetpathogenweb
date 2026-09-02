@@ -1935,6 +1935,23 @@ a.filter-pill .filter-pill-remove {
     min-height: 24px;
 }
 
+/* Two chips can share a label yet come from different advanced-filter
+   groups, which combine as AND rather than the OR a user would otherwise
+   assume from adjacent same-label chips -- same badge language as the
+   advanced filter builder's own group-to-group AND badge (advanced-filters.css). */
+.filter-and-sep {
+    display: inline-flex;
+    align-items: center;
+    background: var(--tp-color-surface-muted);
+    color: var(--tp-color-text-muted);
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 999px;
+    padding: 2px 10px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+}
+
 .filter-pill {
     display: inline-flex;
     align-items: center;

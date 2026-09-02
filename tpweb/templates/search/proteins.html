@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20260811-sticky-revert">
+    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20260902-and-divider">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -324,6 +324,7 @@
                     </a>
                 {% endif %}
                 {% for parameter in display_parameters %}
+                    {% if parameter.and_divider_before %}<span class="filter-and-sep">{% trans "AND" %}</span>{% endif %}
                     <form method="POST" action="" class="filter-pill tp-chip tp-chip--filter">
                         {% csrf_token %}
                         <input type="hidden" name="action" value="remove_filter">
@@ -659,6 +660,7 @@
                         </a>
                     {% endif %}
                     {% for parameter in display_parameters %}
+                        {% if parameter.and_divider_before %}<span class="filter-and-sep">{% trans "AND" %}</span>{% endif %}
                         <form method="POST" action="" class="filter-pill tp-chip tp-chip--filter">
                             {% csrf_token %}
                             <input type="hidden" name="action" value="remove_filter">

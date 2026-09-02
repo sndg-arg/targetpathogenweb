@@ -1615,6 +1615,22 @@ class ProteinListView(View):
             for parameter in selected_parameters
         ]
 
+        # Two chips can share a score_param_name yet come from different
+        # advanced-filter groups, which combine as AND rather than the OR a
+        # user would otherwise assume from adjacent same-label chips (see
+        # grouped_selected_parameters for the same distinction on the hero
+        # line). Flag the first chip of every group after a name's first so
+        # the template can drop a visible "AND" divider in front of it.
+        seen_groups_by_name = {}
+        for parameter in display_parameters:
+            groups_for_name = seen_groups_by_name.setdefault(
+                parameter.get("score_param_name"), set()
+            )
+            group_key = parameter.get("group_id") or ""
+            is_first_in_group = group_key not in groups_for_name
+            groups_for_name.add(group_key)
+            parameter["and_divider_before"] = is_first_in_group and len(groups_for_name) > 1
+
         if selected_parameters:
             try:
                 proteins = apply_selected_parameter_filters(proteins, selected_parameters)
