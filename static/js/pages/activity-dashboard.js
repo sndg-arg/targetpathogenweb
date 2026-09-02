@@ -200,16 +200,20 @@
         return '<span class="activity-user-agent-cell">' + agentHtml + badgeHtml + "</span>";
     }
 
-    function flagEmoji(countryCode) {
-        if (!countryCode || countryCode.length !== 2) return "🌐"; // globe fallback
-        var code = countryCode.toUpperCase();
-        return String.fromCodePoint(127397 + code.charCodeAt(0), 127397 + code.charCodeAt(1));
+    // Flag emoji (regional indicator pairs) render as an actual flag on
+    // macOS/iOS/Android, but plain Windows (no dedicated flag font) falls
+    // back to showing the two raw letters -- inconsistent width, reads as
+    // broken text leaking into the UI rather than an icon. A small
+    // fixed-width badge renders identically everywhere and never
+    // misaligns row to row.
+    function countryBadge(countryCode) {
+        var code = /^[a-z]{2}$/i.test(countryCode || "") ? countryCode.toUpperCase() : "—";
+        return '<span class="activity-country-badge">' + code + "</span>";
     }
 
     function locationPlace(row) {
-        return row.country
-            ? flagEmoji(row.country_code) + " " + (row.city ? row.city + ", " : "") + row.country
-            : "🌐 Unknown location";
+        var text = row.country ? (row.city ? row.city + ", " : "") + row.country : "Unknown location";
+        return countryBadge(row.country_code) + '<span class="activity-location-place-text">' + escapeHtml(text) + "</span>";
     }
 
     function countLabel(count, singular, plural) {
@@ -224,26 +228,61 @@
         return countLabel(count, "path", "paths");
     }
 
-    // Collapsed-by-default detail panels only make sense to offer when
-    // there's actually something to expand -- with zero rows, show just the
-    // empty-state sentence and hide the (otherwise pointless) toggle.
-    function renderSectionSummary(selector, rows, text, emptyText) {
+    // Groups IP-level rows (data.locations / data.login_attempts, both
+    // shaped { ip, count, country, country_code, ... }) into one entry per
+    // country -- the always-visible summary is "which countries", not a
+    // per-IP list, which is what the collapsed detail panel is for.
+    function groupByCountry(rows) {
+        var order = [];
+        var byCountry = {};
+        rows.forEach(function (row) {
+            var key = row.country || "Unknown";
+            if (!byCountry[key]) {
+                byCountry[key] = {
+                    label: key,
+                    country_code: row.country_code,
+                    ip_count: 0,
+                    requests: 0,
+                    muted: key === "Unknown"
+                };
+                order.push(key);
+            }
+            byCountry[key].ip_count += 1;
+            byCountry[key].requests += row.count;
+        });
+        return order
+            .map(function (key) { return byCountry[key]; })
+            .sort(function (a, b) { return b.requests - a.requests; });
+    }
+
+    // Shared renderer for every chip-row summary on this page (bot type,
+    // country) -- also hides the collapsed detail panel's toggle entirely
+    // when there's nothing to show, replacing it with just the empty-state
+    // sentence (offering to "expand" an empty table is pointless).
+    function renderChipSummary(selector, chips, emptyText) {
         var el = document.querySelector(selector);
         if (!el) return;
-        el.textContent = rows.length ? text : emptyText;
         var details = el.nextElementSibling;
-        if (details && details.tagName === "DETAILS") details.hidden = !rows.length;
+        if (details && details.tagName === "DETAILS") details.hidden = !chips.length;
+        if (!chips.length) {
+            el.innerHTML = '<p class="activity-accounts-empty">' + emptyText + "</p>";
+            return;
+        }
+        el.innerHTML = chips.map(function (chip) {
+            var variant = chip.muted ? " activity-summary-chip--muted" : "";
+            var badge = chip.country_code ? countryBadge(chip.country_code) + " " : "";
+            return (
+                '<span class="activity-summary-chip' + variant + '">' +
+                '<strong>' + badge + escapeHtml(chip.label) + "</strong>" +
+                '<span>' + countLabel(chip.ip_count, "IP", "IPs") + " · " + requestsLabel(chip.requests) + "</span>" +
+                "</span>"
+            );
+        }).join("");
     }
 
     function renderAuthenticatedLocations() {
         var rows = data.locations || [];
-        renderSectionSummary(
-            "[data-locations-summary]",
-            rows,
-            countLabel(rows.length, "IP", "IPs") + " · " +
-                requestsLabel(rows.reduce(function (sum, r) { return sum + r.count; }, 0)) + " total",
-            "No logged-in sessions yet."
-        );
+        renderChipSummary("[data-locations-summary]", groupByCountry(rows), "No logged-in sessions yet.");
         var container = document.querySelector("[data-locations-list]");
         if (!container) return;
         if (!rows.length) {
@@ -265,11 +304,9 @@
 
     function renderLoginAttempts() {
         var rows = data.login_attempts || [];
-        renderSectionSummary(
+        renderChipSummary(
             "[data-login-attempts-summary]",
-            rows,
-            countLabel(rows.length, "IP", "IPs") + " · " +
-                requestsLabel(rows.reduce(function (sum, r) { return sum + r.count; }, 0)) + " total",
+            groupByCountry(rows),
             "No failed login attempts in this window."
         );
         var container = document.querySelector("[data-login-attempts-list]");
@@ -297,24 +334,16 @@
     // crawler can otherwise fill most of that table on their own and hide how
     // many distinct actors, and how much total traffic, each type represents.
     function renderBotSummary() {
-        var container = document.querySelector("[data-bot-summary]");
-        if (!container) return;
         var rows = data.bot_traffic_summary || [];
-        var details = container.nextElementSibling;
-        if (details && details.tagName === "DETAILS") details.hidden = !rows.length;
-        if (!rows.length) {
-            container.innerHTML = '<p class="activity-accounts-empty">No scanning traffic in this window — nice.</p>';
-            return;
-        }
-        container.innerHTML = rows.map(function (row) {
-            var variant = row.label === "Unclassified" ? " activity-bot-summary-chip--muted" : "";
-            return (
-                '<span class="activity-bot-summary-chip' + variant + '">' +
-                '<strong>' + escapeHtml(row.label) + "</strong>" +
-                '<span>' + countLabel(row.ip_count, "IP", "IPs") + " · " + requestsLabel(row.requests) + "</span>" +
-                "</span>"
-            );
-        }).join("");
+        var chips = rows.map(function (row) {
+            return {
+                label: row.label,
+                ip_count: row.ip_count,
+                requests: row.requests,
+                muted: row.label === "Unclassified"
+            };
+        });
+        renderChipSummary("[data-bot-summary]", chips, "No scanning traffic in this window — nice.");
     }
 
     function renderBlockedAttempts() {

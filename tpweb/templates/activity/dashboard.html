@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/activity-dashboard.css' %}?v=20260902-collapsible-detail">
+    <link rel="stylesheet" href="{% static 'css/pages/activity-dashboard.css' %}?v=20260902-country-summary">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -106,7 +106,7 @@
                 <h2 class="activity-panel-title">{% trans "Logged-in sessions" %} <span class="tp-chip tp-chip--sm">{% trans "authenticated" %}</span></h2>
             </div>
         </div>
-        <p class="activity-section-summary" data-locations-summary>{% trans "Loading..." %}</p>
+        <div class="activity-summary-chips" data-locations-summary></div>
         <details class="activity-details js-smooth-details">
             <summary class="activity-details-summary">
                 <span>{% trans "Show details" %}</span>
@@ -133,7 +133,7 @@
                 <h2 class="activity-panel-title">{% trans "Login attempts" %} <span class="tp-chip tp-chip--sm tp-chip--meta">{% trans "not a bot signal by itself" %}</span></h2>
             </div>
         </div>
-        <p class="activity-section-summary" data-login-attempts-summary>{% trans "Loading..." %}</p>
+        <div class="activity-summary-chips" data-login-attempts-summary></div>
         <details class="activity-details js-smooth-details">
             <summary class="activity-details-summary">
                 <span>{% trans "Show details" %}</span>
@@ -161,7 +161,7 @@
                 <h2 class="activity-panel-title">{% trans "Scanning &amp; bot traffic" %} <span class="tp-chip tp-chip--sm tp-chip--warning">{% trans "likely automated" %}</span></h2>
             </div>
         </div>
-        <div class="activity-bot-summary" data-bot-summary></div>
+        <div class="activity-summary-chips" data-bot-summary></div>
         <details class="activity-details js-smooth-details">
             <summary class="activity-details-summary">
                 <span>{% trans "Show details" %}</span>
@@ -212,5 +212,5 @@
 
 {{ activity_dashboard_data|json_script:"activity-dashboard-data" }}
 <script src="{% static 'js/vendor/chart.umd.js' %}?v=20260902-context-pass"></script>
-<script src="{% static 'js/pages/activity-dashboard.js' %}?v=20260902-collapsible-detail"></script>
+<script src="{% static 'js/pages/activity-dashboard.js' %}?v=20260902-country-summary"></script>
 {% endblock %}

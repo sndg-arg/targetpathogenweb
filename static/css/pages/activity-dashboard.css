@@ -234,16 +234,6 @@
 }
 
 /* ── Section summary + collapsible detail ── */
-.activity-section-summary {
-    margin: 14px 0 0;
-    color: var(--tp-color-text-secondary);
-    font-size: var(--tp-font-size-sm);
-}
-
-.activity-section-summary:empty {
-    display: none;
-}
-
 .activity-details {
     margin-top: 10px;
 }
@@ -366,8 +356,32 @@
 }
 
 .activity-location-place {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     font-weight: 600;
     color: var(--tp-color-text-primary);
+}
+
+/* Fixed-width text badge instead of a flag emoji -- Windows has no flag
+   glyphs for regional-indicator emoji pairs and falls back to the two raw
+   letters at an inconsistent width, which reads as broken text rather than
+   an icon and makes every row's location text start at a different x
+   position. This renders identically everywhere and keeps that alignment. */
+.activity-country-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 26px;
+    height: 16px;
+    padding: 0 4px;
+    flex-shrink: 0;
+    border-radius: 4px;
+    background: var(--tp-color-surface-muted);
+    color: var(--tp-color-text-muted);
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
 }
 
 .activity-location-ip {
@@ -419,21 +433,27 @@
     color: var(--tp-color-info-ink);
 }
 
-/* ── Bot traffic rollup — aggregated over the FULL window, not just the
-   top-10-by-IP rows below (a handful of IPs from one crawler can otherwise
-   fill most of that table and hide how many distinct types exist) ── */
-.activity-bot-summary {
+/* ── Chip-row summary — shared by bot type, and by country for logged-in
+   sessions/login attempts. Always the default-visible view; the detailed
+   per-IP table sits collapsed in the .activity-details disclosure below
+   it. Bot rollup is aggregated over the FULL window server-side, not just
+   the top-10-by-IP rows in that detail table (a handful of IPs from one
+   crawler can otherwise fill most of it and hide how many distinct types
+   exist) -- the country groupings are computed client-side from the same
+   top-10 rows the detail table shows, which is already the complete set
+   for how few distinct authenticated/login-attempt IPs this site sees. ── */
+.activity-summary-chips {
     margin-top: 14px;
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
 }
 
-.activity-bot-summary:empty {
+.activity-summary-chips:empty {
     display: none;
 }
 
-.activity-bot-summary-chip {
+.activity-summary-chip {
     display: flex;
     flex-direction: column;
     gap: 2px;
@@ -443,25 +463,28 @@
     border: 1px solid var(--tp-color-info-border);
 }
 
-.activity-bot-summary-chip strong {
+.activity-summary-chip strong {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     font-family: "Space Grotesk", "Segoe UI", sans-serif;
     font-size: var(--tp-font-size-sm);
     font-weight: 700;
     color: var(--tp-color-info-ink);
 }
 
-.activity-bot-summary-chip span {
+.activity-summary-chip span:not(.activity-country-badge) {
     font-size: var(--tp-font-size-xs);
     color: var(--tp-color-text-muted);
     font-variant-numeric: tabular-nums;
 }
 
-.activity-bot-summary-chip--muted {
+.activity-summary-chip--muted {
     background: var(--tp-color-surface-soft);
     border-color: var(--tp-color-border-soft);
 }
 
-.activity-bot-summary-chip--muted strong {
+.activity-summary-chip--muted strong {
     color: var(--tp-color-text-secondary);
 }
 
