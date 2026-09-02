@@ -147,6 +147,12 @@
     color: var(--tp-color-danger-ink);
 }
 
+.activity-kpi-meta {
+    margin: 0;
+    font-size: var(--tp-font-size-xs);
+    color: var(--tp-color-text-muted);
+}
+
 .activity-kpi-card--errors {
     border-left: 3px solid var(--tp-color-warning-border);
 }
@@ -444,6 +450,17 @@
     font-size: var(--tp-font-size-sm);
     text-align: center;
     padding: 40px 0;
+}
+
+.activity-chart-note {
+    margin: 8px 0 0;
+    font-size: var(--tp-font-size-xs);
+    font-style: italic;
+    color: var(--tp-color-text-muted);
+}
+
+.activity-chart-note:empty {
+    display: none;
 }
 
 /* ── Status code tiles — legible at any proportion, unlike a proportional

@@ -199,6 +199,17 @@ def build_activity_dashboard_data(days=ACTIVITY_WINDOW_DAYS):
     )
     unique_ips = window_qs.exclude(ip__isnull=True).values("ip").distinct().count()
     previous_unique_ips = previous_qs.exclude(ip__isnull=True).values("ip").distinct().count()
+    # unique_ips counts every scanner/crawler IP alongside real sessions --
+    # this is the "how many of those were an actual logged-in visitor"
+    # context line under that KPI, so the headline number doesn't read as
+    # audience size on its own.
+    unique_ips_authenticated = (
+        window_qs.exclude(user__isnull=True)
+        .exclude(ip__isnull=True)
+        .values("ip")
+        .distinct()
+        .count()
+    )
     errors = window_qs.filter(status_code__gte=400).count()
     previous_errors = previous_qs.filter(status_code__gte=400).count()
 
@@ -209,6 +220,7 @@ def build_activity_dashboard_data(days=ACTIVITY_WINDOW_DAYS):
         "unique_users_delta_pct": _delta_pct(unique_users, previous_unique_users),
         "unique_ips": unique_ips,
         "unique_ips_delta_pct": _delta_pct(unique_ips, previous_unique_ips),
+        "unique_ips_authenticated": unique_ips_authenticated,
         "errors": errors,
         "errors_delta_pct": _delta_pct(errors, previous_errors),
         "window_days": days,
@@ -235,7 +247,15 @@ def build_activity_dashboard_data(days=ACTIVITY_WINDOW_DAYS):
         {"bucket": bucket, "count": status_counts.get(bucket, 0)} for bucket in STATUS_BUCKETS
     ]
 
-    path_counts = Counter(_normalize_path(p) for p in window_qs.values_list("path", flat=True))
+    # Authenticated requests only -- the whole site sits behind a login wall,
+    # so an anonymous hit here never actually saw the page, it just bounced
+    # off the redirect. Counting those in "what they look at" let scanner
+    # traffic (e.g. a crawler probing every /protein/<id>) outweigh the two
+    # real accounts' actual usage.
+    path_counts = Counter(
+        _normalize_path(p)
+        for p in window_qs.exclude(user__isnull=True).values_list("path", flat=True)
+    )
     top_pages = [
         {"path": path, "count": count} for path, count in path_counts.most_common(TOP_PAGES_LIMIT)
     ]
@@ -258,9 +278,17 @@ def build_activity_dashboard_data(days=ACTIVITY_WINDOW_DAYS):
     blocked_attempts = _blocked_attempts_breakdown(window_qs)
     top_error_paths = _top_error_paths(window_qs)
 
+    # Lets the chart flag "logging only just started" instead of a real
+    # traffic ramp-up when the log's actual history is shorter than the
+    # requested window (e.g. right after RequestLog itself was deployed).
+    earliest_log_at = (
+        RequestLog.objects.order_by("created_at").values_list("created_at", flat=True).first()
+    )
+
     return {
         "kpis": kpis,
         "timeseries": timeseries,
+        "logging_started_at": earliest_log_at.isoformat() if earliest_log_at else None,
         "status_breakdown": status_breakdown,
         "top_pages": top_pages,
         "top_error_paths": top_error_paths,

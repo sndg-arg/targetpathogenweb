@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/activity-dashboard.css' %}?v=20260902-ua-overflow-fix">
+    <link rel="stylesheet" href="{% static 'css/pages/activity-dashboard.css' %}?v=20260902-context-pass">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -44,6 +44,7 @@
             <p class="activity-kpi-label">{% trans "Unique IPs" %} <span class="activity-kpi-period">{% trans "30d" %}</span></p>
             <p class="activity-kpi-value" data-kpi="unique_ips">&mdash;</p>
             <p class="activity-kpi-delta" data-kpi-delta="unique_ips_delta_pct" data-delta-period="{% trans 'vs prior 30d' %}"></p>
+            <p class="activity-kpi-meta" data-kpi-meta="unique_ips_authenticated"></p>
         </div>
         <div class="activity-kpi-card activity-kpi-card--errors" data-kpi-card="errors">
             <p class="activity-kpi-label">{% trans "Errors" %} <span class="activity-kpi-period">{% trans "30d" %}</span></p>
@@ -130,6 +131,7 @@
         <div class="activity-chart-wrap">
             <canvas id="activity-timeseries-chart" role="img" aria-label="{% trans 'Requests per day over the last 30 days' %}"></canvas>
         </div>
+        <p class="activity-chart-note" data-timeseries-note></p>
     </section>
 
     <div class="activity-two-col">
@@ -175,6 +177,6 @@
 </div>
 
 {{ activity_dashboard_data|json_script:"activity-dashboard-data" }}
-<script src="{% static 'js/vendor/chart.umd.js' %}?v=20260902-ua-overflow-fix"></script>
-<script src="{% static 'js/pages/activity-dashboard.js' %}?v=20260902-ua-overflow-fix"></script>
+<script src="{% static 'js/vendor/chart.umd.js' %}?v=20260902-context-pass"></script>
+<script src="{% static 'js/pages/activity-dashboard.js' %}?v=20260902-context-pass"></script>
 {% endblock %}

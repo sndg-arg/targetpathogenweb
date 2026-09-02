@@ -100,6 +100,11 @@
             var sign = pct > 0 ? "+" : "";
             el.textContent = sign + pct + "% " + el.getAttribute("data-delta-period");
         });
+
+        var authenticatedIps = document.querySelector('[data-kpi-meta="unique_ips_authenticated"]');
+        if (authenticatedIps && kpis.unique_ips_authenticated !== undefined) {
+            authenticatedIps.textContent = countLabel(kpis.unique_ips_authenticated, "IP", "IPs") + " from logged-in sessions";
+        }
     }
 
     function relativeSince(isoDate) {
@@ -302,6 +307,28 @@
         }).join("");
     }
 
+    // If RequestLog's own history is shorter than the chart's window (e.g.
+    // right after this logging was deployed), the early flat-then-ramp
+    // reads as a real traffic spike. Name the actual cause instead.
+    function renderTimeseriesNote() {
+        var el = document.querySelector("[data-timeseries-note]");
+        if (!el) return;
+        var points = data.timeseries || [];
+        if (!data.logging_started_at || !points.length) {
+            el.textContent = "";
+            return;
+        }
+        var startedAt = new Date(data.logging_started_at);
+        var windowStart = new Date(points[0].date + "T00:00:00");
+        if (startedAt <= windowStart) {
+            el.textContent = "";
+            return;
+        }
+        el.textContent = "Activity logging started " +
+            startedAt.toLocaleDateString(UI_LOCALE, { month: "short", day: "numeric", year: "numeric" }) +
+            " -- the ramp-up before that date is missing history, not a real traffic spike.";
+    }
+
     function renderTimeseries(t) {
         var canvas = document.getElementById("activity-timeseries-chart");
         if (!canvas) return null;
@@ -459,6 +486,7 @@
     renderBlockedAttempts();
     renderStatusTiles();
     renderTopErrorPaths();
+    renderTimeseriesNote();
     renderCharts();
 
     var themeObserver = new MutationObserver(function () { renderCharts(); });

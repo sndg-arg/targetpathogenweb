@@ -64,6 +64,52 @@ class BuildActivityDashboardDataTests(TestCase):
         self.assertEqual(top["/protein/<id>"], 2)
         self.assertEqual(top["/genomes"], 1)
 
+    def test_top_pages_excludes_anonymous_scanning_traffic(self):
+        # Everything sits behind LoginRequiredMiddleware -- an anonymous hit
+        # never actually saw the page, it just bounced off the redirect. A
+        # crawler hammering /protein/<id> shouldn't outweigh what the two
+        # real accounts actually looked at.
+        RequestLog.objects.create(
+            user=self.alice, ip="10.0.0.1", method="GET", path="/genomes", status_code=200
+        )
+        for i in range(5):
+            RequestLog.objects.create(
+                user=None, ip="203.0.113.1", method="GET", path=f"/protein/{i}", status_code=302
+            )
+
+        data = build_activity_dashboard_data()
+        top = {row["path"]: row["count"] for row in data["top_pages"]}
+
+        self.assertEqual(top, {"/genomes": 1})
+
+    def test_kpis_report_how_many_unique_ips_were_authenticated(self):
+        RequestLog.objects.create(
+            user=self.alice, ip="10.0.0.1", method="GET", path="/genomes", status_code=200
+        )
+        RequestLog.objects.create(
+            user=None, ip="203.0.113.1", method="GET", path="/genomes", status_code=302
+        )
+        RequestLog.objects.create(
+            user=None, ip="203.0.113.2", method="GET", path="/genomes", status_code=302
+        )
+
+        data = build_activity_dashboard_data()
+
+        self.assertEqual(data["kpis"]["unique_ips"], 3)
+        self.assertEqual(data["kpis"]["unique_ips_authenticated"], 1)
+
+    def test_logging_started_at_reflects_the_earliest_request_log_row(self):
+        older = RequestLog.objects.create(
+            user=self.alice, ip="10.0.0.1", method="GET", path="/genomes", status_code=200
+        )
+        RequestLog.objects.create(
+            user=self.alice, ip="10.0.0.1", method="GET", path="/", status_code=200
+        )
+
+        data = build_activity_dashboard_data()
+
+        self.assertEqual(data["logging_started_at"], older.created_at.isoformat())
+
     def test_accounts_lists_active_users_with_last_login(self):
         data = build_activity_dashboard_data()
         usernames = [a["username"] for a in data["accounts"]]
