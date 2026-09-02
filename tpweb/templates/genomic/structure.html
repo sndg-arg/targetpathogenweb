@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20260901-toolbar-compact">
+    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20260902-plddt-legend">
 {% endblock %}
 
 {% block body %}
@@ -53,15 +53,31 @@
         canvas.
         {% endcomment %}
 
-        {# Secondary-structure color legend -- only meaningful in "By structure"
-           color mode, hidden otherwise. Same --tp-color-sstruc-* tokens
-           (masterpage.html) the custom "tpSstruc" NGL colormaker below
-           actually renders with, so this legend is accurate by construction. #}
+        {% comment %}
+        Secondary-structure color legend -- only meaningful in "By structure"
+        color mode, hidden otherwise. Same --tp-color-sstruc-* tokens
+        (masterpage.html) the custom "tpSstruc" NGL colormaker below
+        actually renders with, so this legend is accurate by construction.
+        {% endcomment %}
         <div class="sv-legend sv-sstruc-legend" id="sv-sstruc-legend" hidden>
             <span class="sv-legend-label">{% trans "Structure" %}</span>
             <span class="sv-sstruc-swatch"><span class="sv-sstruc-dot sv-sstruc-dot--helix" aria-hidden="true"></span>{% trans "Helix" %}</span>
             <span class="sv-sstruc-swatch"><span class="sv-sstruc-dot sv-sstruc-dot--sheet" aria-hidden="true"></span>{% trans "Sheet" %}</span>
             <span class="sv-sstruc-swatch"><span class="sv-sstruc-dot sv-sstruc-dot--coil" aria-hidden="true"></span>{% trans "Coil" %}</span>
+        </div>
+
+        {% comment %}
+        pLDDT confidence legend -- only meaningful in "By pLDDT" color mode
+        (predicted structures only), hidden otherwise. Same --tp-color-plddt-*
+        tokens (masterpage.html) the "tpPlddt" NGL colormaker below actually
+        renders with -- AlphaFold DB's own official band colors/thresholds.
+        {% endcomment %}
+        <div class="sv-legend sv-plddt-legend" id="sv-plddt-legend" hidden>
+            <span class="sv-legend-label">{% trans "pLDDT" %}</span>
+            <span class="sv-sstruc-swatch"><span class="sv-plddt-dot sv-plddt-dot--very-high" aria-hidden="true"></span>{% trans "Very high (>90)" %}</span>
+            <span class="sv-sstruc-swatch"><span class="sv-plddt-dot sv-plddt-dot--high" aria-hidden="true"></span>{% trans "High (70–90)" %}</span>
+            <span class="sv-sstruc-swatch"><span class="sv-plddt-dot sv-plddt-dot--low" aria-hidden="true"></span>{% trans "Low (50–70)" %}</span>
+            <span class="sv-sstruc-swatch"><span class="sv-plddt-dot sv-plddt-dot--very-low" aria-hidden="true"></span>{% trans "Very low (<50)" %}</span>
         </div>
 
         {# Floating toolbar #}
@@ -92,6 +108,8 @@
                 <button type="button" class="sv-mode-btn js-structure-color" data-color-mode="flat" aria-pressed="false" title="{% trans 'Uniform color for the whole structure.' %}">{% trans "Uniform" %}</button>
                 <button type="button" class="sv-mode-btn js-structure-color" data-color-mode="chainname" aria-pressed="false" title="{% trans 'Color each chain differently.' %}">{% trans "By chain" %}</button>
                 <button type="button" class="sv-mode-btn js-structure-color" data-color-mode="sstruc" aria-pressed="false" title="{% trans 'Color by secondary structure (helix/sheet/coil).' %}">{% trans "By structure" %}</button>
+                {# Hidden by JS for experimental (crystal) structures -- pLDDT is meaningless without a prediction. #}
+                <button type="button" class="sv-mode-btn js-structure-color" data-color-mode="plddt" aria-pressed="false" title="{% trans 'Color by per-residue model confidence (pLDDT). Predicted structures only.' %}">{% trans "By pLDDT" %}</button>
             </div>
 
             <div class="sv-tb-sep" aria-hidden="true"></div>
@@ -319,17 +337,19 @@
 {% block jsloaded %}
 <script src="{% static 'js/pages/pocket-inspector.js' %}?v=20260726-resetzoom1"></script>
 <script src="{% static 'js/pages/ngl-shape-registry.js' %}?v=20260720-shaperegistry1"></script>
-{# json_script emits its own complete <script>...</script> tag -- it MUST sit
-   here, outside the big inline <script> block below, not nested inside it.
-   The HTML parser has no concept of "nested" script tags: it just scans the
-   outer <script>'s raw-text content for the first literal "</script>" to
-   close it, so a json_script placed mid-way through that block prematurely
-   truncates it there, silently dropping every line of JS after that point
-   (including whatever call actually invokes jsloaded()) -- exactly the
-   "stuck on Loading 3D structure..." + "Unexpected token '<'" bug this fixes,
-   present on every structure page since heteroatoms_by_structure_id was
-   added (05ee5ec), because json_script always wraps its output regardless
-   of content. #}
+{% comment %}
+json_script emits its own complete <script>...</script> tag -- it MUST sit
+here, outside the big inline <script> block below, not nested inside it.
+The HTML parser has no concept of "nested" script tags: it just scans the
+outer <script>'s raw-text content for the first literal "</script>" to
+close it, so a json_script placed mid-way through that block prematurely
+truncates it there, silently dropping every line of JS after that point
+(including whatever call actually invokes jsloaded()) -- exactly the
+"stuck on Loading 3D structure..." + "Unexpected token '<'" bug this fixes,
+present on every structure page since heteroatoms_by_structure_id was
+added (05ee5ec), because json_script always wraps its output regardless
+of content.
+{% endcomment %}
 {{ heteroatoms_by_structure_id|json_script:"sv-heteroatoms-by-structure" }}
 <script>
 function jsloaded() {
@@ -354,6 +374,7 @@ function jsloaded() {
     var loadingNote   = document.getElementById("structure-loading-note");
     var vmdLink       = document.getElementById("sv-vmd-link");
     var sstrucLegend  = document.getElementById("sv-sstruc-legend");
+    var plddtLegend   = document.getElementById("sv-plddt-legend");
 
     function setLoadingNoteVisible(visible, text, isError) {
         if (!loadingNote) return;
@@ -535,6 +556,46 @@ function jsloaded() {
         }, "tpSstruc");
     }
 
+    // AlphaFold/ColabFold write per-residue pLDDT into the PDB file's
+    // B-factor column (standard convention) -- NGL parses that straight
+    // into atom.bfactor at load time, same access pattern as atom.sstruc
+    // above, no server-side extraction needed. NGL's own built-in
+    // "bfactor" colorScheme auto-scales to whatever min/max it finds in
+    // the file instead of AlphaFold's fixed 0/50/70/90 bands and fixed
+    // colors, so (like sstruc) a custom scheme is the only way to get the
+    // real, recognizable AlphaFold palette instead of an arbitrary
+    // per-structure gradient. Only ever selected for predicted structures
+    // (gated by structureIsPredicted/plddtColorButton.hidden below) -- an
+    // experimental structure's B-factor is a real crystallographic thermal
+    // factor, not a 0-100 confidence score, and would render misleading
+    // colors under these same bands.
+    function registerPlddtScheme() {
+        if (typeof NGL === "undefined" || !NGL.ColormakerRegistry
+            || typeof NGL.ColormakerRegistry.addScheme !== "function") {
+            return "bfactor";
+        }
+        function hexToInt(hex, fallback) {
+            var m = /^#([0-9a-f]{6})$/i.exec(hex || "");
+            return m ? parseInt(m[1], 16) : fallback;
+        }
+        var veryHighColor = hexToInt(tpColor("--tp-color-plddt-very-high"), 0x0053d6);
+        var highColor     = hexToInt(tpColor("--tp-color-plddt-high"), 0x65cbf3);
+        var lowColor      = hexToInt(tpColor("--tp-color-plddt-low"), 0xffdb13);
+        var veryLowColor  = hexToInt(tpColor("--tp-color-plddt-very-low"), 0xff7d45);
+        // Boundary values belong to the lower/less-confident band, matching
+        // AlphaFold DB's own convention (e.g. exactly 90 is "High", not
+        // "Very high").
+        return NGL.ColormakerRegistry.addScheme(function () {
+            this.atomColor = function (atom) {
+                var plddt = atom.bfactor;
+                if (plddt > 90) return veryHighColor;
+                if (plddt > 70) return highColor;
+                if (plddt > 50) return lowColor;
+                return veryLowColor;
+            };
+        }, "tpPlddt");
+    }
+
     function setResetZoomEnabled(enabled) {
         if (resetZoomBtn) resetZoomBtn.disabled = !enabled;
     }
@@ -571,9 +632,10 @@ function jsloaded() {
             btn.classList.toggle("is-active", isActive);
             btn.setAttribute("aria-pressed", isActive ? "true" : "false");
         });
-        // The helix/sheet/coil legend only means anything while that palette
-        // is actually on screen.
+        // Each legend only means anything while its own palette is actually
+        // on screen.
         if (sstrucLegend) sstrucLegend.hidden = colorMode !== "sstruc";
+        if (plddtLegend) plddtLegend.hidden = colorMode !== "plddt";
     }
 
     function decorateScoreTags() {
@@ -1012,6 +1074,18 @@ function jsloaded() {
     };
     var chainColorButton = document.querySelector('.js-structure-color[data-color-mode="chainname"]');
 
+    /* "By pLDDT" only makes sense for predicted structures (AlphaFold/ColabFold
+       models) -- pLDDT is a per-residue model-confidence score with no
+       equivalent for an experimental (crystal) structure, whose B-factor
+       column holds a real thermal factor instead that would be misleading
+       to color by under the same bands. */
+    var structureIsPredicted = {
+        {% for s in all_structures %}
+        "{{ s.id }}": {% if s.experiment == "AF" or s.experiment == "CF" %}true{% else %}false{% endif %},
+        {% endfor %}
+    };
+    var plddtColorButton = document.querySelector('.js-structure-color[data-color-mode="plddt"]');
+
     /* ---- Topbar / sidebar update on structure switch ---- */
     function updateIdentity(structureId) {
         var opt = document.querySelector(".sv-struct-picker-item[data-id='" + structureId + "']");
@@ -1170,10 +1244,13 @@ function jsloaded() {
             currentColorMode = "flat";
         }
         if (chainColorButton) chainColorButton.hidden = !isMultichain;
+        var isPredicted = !!structureIsPredicted[activeStructureId];
+        if (plddtColorButton) plddtColorButton.hidden = !isPredicted;
 
         function colorForMode(mode) {
             if (mode === "flat") return tpColor("--tp-color-structure-cartoon") || "#2288a3";
             if (mode === "sstruc") return registerSstrucScheme();
+            if (mode === "plddt") return registerPlddtScheme();
             return mode;
         }
 

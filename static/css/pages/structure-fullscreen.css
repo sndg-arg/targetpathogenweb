@@ -225,6 +225,20 @@ body:has(.sv-root) { overflow: hidden; }
 .sv-sstruc-dot--sheet { background: var(--tp-color-sstruc-sheet); }
 .sv-sstruc-dot--coil  { background: var(--tp-color-sstruc-coil); }
 
+.sv-plddt-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 1px solid var(--sv-overlay-border);
+    /* AlphaFold DB's own official pLDDT band colors (--tp-color-plddt-* in
+       masterpage.html) -- not this app's brand palette. */
+}
+
+.sv-plddt-dot--very-high { background: var(--tp-color-plddt-very-high); }
+.sv-plddt-dot--high      { background: var(--tp-color-plddt-high); }
+.sv-plddt-dot--low       { background: var(--tp-color-plddt-low); }
+.sv-plddt-dot--very-low  { background: var(--tp-color-plddt-very-low); }
+
 /* ── 6. Floating bottom toolbar ── */
 .sv-toolbar {
     position: absolute;

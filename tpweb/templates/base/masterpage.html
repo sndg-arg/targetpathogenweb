@@ -129,6 +129,18 @@
             --tp-color-sstruc-helix: #ff0080;
             --tp-color-sstruc-sheet: #ffc800;
             --tp-color-sstruc-coil: #8a97a0;
+            /* "By pLDDT" mode -- predicted structures only (AlphaFold/ColabFold
+               models store per-residue confidence in the PDB's B-factor column).
+               These are AlphaFold DB's own official 4-band palette, not this
+               app's brand colors -- kept identical so anyone already familiar
+               with AlphaFold's coloring recognizes it immediately here. All
+               four are saturated enough to read on both light and dark canvas
+               backgrounds, so (unlike sstruc-coil above) no dark-mode override
+               is needed. */
+            --tp-color-plddt-very-high: #0053d6;
+            --tp-color-plddt-high: #65cbf3;
+            --tp-color-plddt-low: #ffdb13;
+            --tp-color-plddt-very-low: #ff7d45;
             /* Structure viewer — light mode (canvas matches page theme) */
             --sv-viewer-canvas-bg: #f0f6fa;
             --sv-overlay-bg: rgba(228, 241, 250, 0.90);
