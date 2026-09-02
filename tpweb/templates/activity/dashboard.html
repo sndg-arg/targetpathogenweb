@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/activity-dashboard.css' %}?v=20260902-premium-clarity">
+    <link rel="stylesheet" href="{% static 'css/pages/activity-dashboard.css' %}?v=20260902-ua-overflow-fix">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -175,6 +175,6 @@
 </div>
 
 {{ activity_dashboard_data|json_script:"activity-dashboard-data" }}
-<script src="{% static 'js/vendor/chart.umd.js' %}?v=20260902-premium-clarity"></script>
-<script src="{% static 'js/pages/activity-dashboard.js' %}?v=20260902-premium-clarity"></script>
+<script src="{% static 'js/vendor/chart.umd.js' %}?v=20260902-ua-overflow-fix"></script>
+<script src="{% static 'js/pages/activity-dashboard.js' %}?v=20260902-ua-overflow-fix"></script>
 {% endblock %}

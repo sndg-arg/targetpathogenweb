@@ -109,6 +109,17 @@
         return "Last seen " + relative + " · " + d.toLocaleString(UI_LOCALE);
     }
 
+    // Compact form for the narrower "last seen" column in the 5-col wide
+    // rows -- the full "Last seen 3 days ago · 8/30/2026, 11:30:23 PM" string
+    // wraps to two ragged lines there. Same info, just on hover instead of
+    // always-on.
+    function relativeSinceCompact(isoDate) {
+        var d = new Date(isoDate);
+        var diffDays = Math.round((d - new Date()) / 86400000);
+        var relative = relativeTimeFormat ? relativeTimeFormat.format(diffDays, "day") : d.toLocaleDateString(UI_LOCALE);
+        return '<span title="' + escapeHtml(d.toLocaleString(UI_LOCALE)) + '">' + escapeHtml(relative) + "</span>";
+    }
+
     function renderAccounts() {
         var container = document.querySelector("[data-accounts-list]");
         if (!container) return;
@@ -236,7 +247,7 @@
                 '<span class="activity-location-place">' + locationPlace(row) + "</span>" +
                 '<span class="activity-location-ip">' + row.ip + "</span>" +
                 userAgentCell(row.user_agent, null) +
-                '<span class="activity-location-users">' + relativeSince(row.last_seen) + "</span>" +
+                '<span class="activity-location-users">' + relativeSinceCompact(row.last_seen) + "</span>" +
                 '<span class="activity-location-count">' + requestsLabel(row.count) + "</span>" +
                 "</div>"
             );

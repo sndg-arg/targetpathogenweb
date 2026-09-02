@@ -282,6 +282,10 @@
     grid-template-columns: minmax(130px, 1.1fr) minmax(100px, 0.7fr) minmax(140px, 1.3fr) minmax(90px, 0.7fr) auto;
 }
 
+.activity-location-row--wide .activity-location-users {
+    white-space: nowrap;
+}
+
 .activity-location-place {
     font-weight: 600;
     color: var(--tp-color-text-primary);
@@ -309,6 +313,8 @@
    240 chars, the full value is still reachable via the title tooltip. */
 .activity-user-agent {
     display: block;
+    width: 100%;
+    min-width: 0;
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-xs);
     white-space: nowrap;
