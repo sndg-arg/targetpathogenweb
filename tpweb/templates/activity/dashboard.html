@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/activity-dashboard.css' %}?v=20260902-context-pass">
+    <link rel="stylesheet" href="{% static 'css/pages/activity-dashboard.css' %}?v=20260902-restructure">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -46,10 +46,44 @@
             <p class="activity-kpi-delta" data-kpi-delta="unique_ips_delta_pct" data-delta-period="{% trans 'vs prior 30d' %}"></p>
             <p class="activity-kpi-meta" data-kpi-meta="unique_ips_authenticated"></p>
         </div>
+        <div class="activity-kpi-card activity-kpi-card--blocked">
+            <p class="activity-kpi-label">{% trans "Blocked by login wall" %} <span class="activity-kpi-period">{% trans "30d" %}</span></p>
+            <p class="activity-kpi-value" data-kpi="blocked_requests_pct" data-kpi-suffix="%">&mdash;</p>
+            <p class="activity-kpi-meta" data-kpi-meta="blocked_requests"></p>
+        </div>
         <div class="activity-kpi-card activity-kpi-card--errors" data-kpi-card="errors">
             <p class="activity-kpi-label">{% trans "Errors" %} <span class="activity-kpi-period">{% trans "30d" %}</span></p>
             <p class="activity-kpi-value" data-kpi="errors">&mdash;</p>
             <p class="activity-kpi-delta" data-kpi-delta="errors_delta_pct" data-delta-period="{% trans 'vs prior 30d' %}" data-invert-tone="1"></p>
+        </div>
+    </section>
+
+    <section class="activity-panel">
+        <div class="section-head tp-ui-panel-head">
+            <div>
+                <p class="tp-ui-field-label">{% trans "Over time" %}</p>
+                <h2 class="activity-panel-title">{% trans "Requests, last 30 days" %}</h2>
+            </div>
+            <div class="activity-chart-legend" aria-hidden="true">
+                <span class="activity-chart-legend-item"><i class="activity-chart-legend-swatch activity-chart-legend-swatch--authenticated"></i>{% trans "Authenticated" %}</span>
+                <span class="activity-chart-legend-item"><i class="activity-chart-legend-swatch activity-chart-legend-swatch--anonymous"></i>{% trans "Anonymous / blocked" %}</span>
+            </div>
+        </div>
+        <div class="activity-chart-wrap">
+            <canvas id="activity-timeseries-chart" role="img" aria-label="{% trans 'Requests per day over the last 30 days, authenticated vs anonymous' %}"></canvas>
+        </div>
+        <p class="activity-chart-note" data-timeseries-note></p>
+    </section>
+
+    <section class="activity-panel">
+        <div class="section-head tp-ui-panel-head">
+            <div>
+                <p class="tp-ui-field-label">{% trans "What they look at" %}</p>
+                <h2 class="activity-panel-title">{% trans "Top pages" %} <span class="tp-chip tp-chip--sm">{% trans "authenticated" %}</span></h2>
+            </div>
+        </div>
+        <div class="activity-chart-wrap activity-chart-wrap--tall">
+            <canvas id="activity-top-pages-chart" role="img" aria-label="{% trans 'Most requested pages' %}"></canvas>
         </div>
     </section>
 
@@ -124,41 +158,14 @@
     <section class="activity-panel">
         <div class="section-head tp-ui-panel-head">
             <div>
-                <p class="tp-ui-field-label">{% trans "Over time" %}</p>
-                <h2 class="activity-panel-title">{% trans "Requests, last 30 days" %}</h2>
+                <p class="tp-ui-field-label">{% trans "Request health" %}</p>
+                <h2 class="activity-panel-title">{% trans "Status codes" %}</h2>
             </div>
         </div>
-        <div class="activity-chart-wrap">
-            <canvas id="activity-timeseries-chart" role="img" aria-label="{% trans 'Requests per day over the last 30 days' %}"></canvas>
+        <div class="activity-status-tiles" data-status-tiles>
+            <p class="activity-accounts-empty">{% trans "Loading..." %}</p>
         </div>
-        <p class="activity-chart-note" data-timeseries-note></p>
     </section>
-
-    <div class="activity-two-col">
-        <section class="activity-panel">
-            <div class="section-head tp-ui-panel-head">
-                <div>
-                    <p class="tp-ui-field-label">{% trans "What they look at" %}</p>
-                    <h2 class="activity-panel-title">{% trans "Top pages" %}</h2>
-                </div>
-            </div>
-            <div class="activity-chart-wrap activity-chart-wrap--tall">
-                <canvas id="activity-top-pages-chart" role="img" aria-label="{% trans 'Most requested pages' %}"></canvas>
-            </div>
-        </section>
-
-        <section class="activity-panel">
-            <div class="section-head tp-ui-panel-head">
-                <div>
-                    <p class="tp-ui-field-label">{% trans "Request health" %}</p>
-                    <h2 class="activity-panel-title">{% trans "Status codes" %}</h2>
-                </div>
-            </div>
-            <div class="activity-status-tiles" data-status-tiles>
-                <p class="activity-accounts-empty">{% trans "Loading..." %}</p>
-            </div>
-        </section>
-    </div>
 
     <section class="activity-panel">
         <div class="section-head tp-ui-panel-head">
@@ -178,5 +185,5 @@
 
 {{ activity_dashboard_data|json_script:"activity-dashboard-data" }}
 <script src="{% static 'js/vendor/chart.umd.js' %}?v=20260902-context-pass"></script>
-<script src="{% static 'js/pages/activity-dashboard.js' %}?v=20260902-context-pass"></script>
+<script src="{% static 'js/pages/activity-dashboard.js' %}?v=20260902-restructure"></script>
 {% endblock %}

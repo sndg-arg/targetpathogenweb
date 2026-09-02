@@ -137,20 +137,25 @@ def _login_attempts_breakdown(window_qs, limit=TOP_LOCATIONS_LIMIT):
     return _ip_breakdown(login_qs, limit)
 
 
-def _blocked_attempts_breakdown(window_qs, limit=TOP_LOCATIONS_LIMIT):
-    """IPs that hit the login wall without ever attempting to authenticate --
-    scans, bots, or a collaborator who hasn't been given a login yet.
-
-    Excludes EXEMPT_PATH_PREFIXES (mainly /accounts/): LoginRequiredMiddleware
-    never redirects those, so an anonymous visit to the login page itself is
-    completely normal traffic -- without this exclusion it swamped the
-    "blocked" bucket with everyone who simply opened the login page. This
-    also means actual login attempts (see _login_attempts_breakdown) never
-    land here, since /accounts/ is excluded wholesale."""
+def _blocked_queryset(window_qs):
+    """Anonymous requests to a non-exempt path -- exactly what
+    LoginRequiredMiddleware actually redirected. Shared by the blocked-
+    attempts breakdown and the KPI/timeseries split below so both agree on
+    the same definition of "blocked" (excludes EXEMPT_PATH_PREFIXES, mainly
+    /accounts/: an anonymous visit to the login page itself is completely
+    normal traffic, never redirected, not a blocked attempt)."""
     blocked_qs = window_qs.filter(user__isnull=True)
     for prefix in EXEMPT_PATH_PREFIXES:
         blocked_qs = blocked_qs.exclude(path__startswith=prefix)
-    return _ip_breakdown(blocked_qs, limit)
+    return blocked_qs
+
+
+def _blocked_attempts_breakdown(window_qs, limit=TOP_LOCATIONS_LIMIT):
+    """IPs that hit the login wall without ever attempting to authenticate --
+    scans, bots, or a collaborator who hasn't been given a login yet. This
+    also means actual login attempts (see _login_attempts_breakdown) never
+    land here, since /accounts/ is excluded wholesale by _blocked_queryset."""
+    return _ip_breakdown(_blocked_queryset(window_qs), limit)
 
 
 def _top_error_paths(window_qs, limit=TOP_ERROR_PATHS_LIMIT):
@@ -213,6 +218,13 @@ def build_activity_dashboard_data(days=ACTIVITY_WINDOW_DAYS):
     errors = window_qs.filter(status_code__gte=400).count()
     previous_errors = previous_qs.filter(status_code__gte=400).count()
 
+    # How much of the window's traffic never made it past the login wall --
+    # the "how much of this is noise" headline that used to require paging
+    # down to the status-code chart (3xx bucket) to even notice.
+    total_requests = window_qs.count()
+    blocked_requests = _blocked_queryset(window_qs).count()
+    blocked_requests_pct = round((blocked_requests / total_requests) * 100) if total_requests else 0
+
     kpis = {
         "requests_today": requests_today,
         "requests_today_delta_pct": _delta_pct(requests_today, requests_yesterday),
@@ -223,19 +235,29 @@ def build_activity_dashboard_data(days=ACTIVITY_WINDOW_DAYS):
         "unique_ips_authenticated": unique_ips_authenticated,
         "errors": errors,
         "errors_delta_pct": _delta_pct(errors, previous_errors),
+        "blocked_requests": blocked_requests,
+        "blocked_requests_pct": blocked_requests_pct,
         "window_days": days,
     }
 
-    counts_by_day = {
-        row["day"]: row["count"]
-        for row in window_qs.annotate(day=TruncDate("created_at"))
-        .values("day")
-        .annotate(count=Count("id"))
-    }
+    # Split by authenticated/anonymous rather than one combined line -- with
+    # login-wall scanning now a large share of traffic (see blocked_requests
+    # above), a single "Requests" line reads any bot ramp-up as real growth.
+    def _counts_by_day(qs):
+        return {
+            row["day"]: row["count"]
+            for row in qs.annotate(day=TruncDate("created_at"))
+            .values("day")
+            .annotate(count=Count("id"))
+        }
+
+    authenticated_counts_by_day = _counts_by_day(window_qs.exclude(user__isnull=True))
+    anonymous_counts_by_day = _counts_by_day(window_qs.filter(user__isnull=True))
     timeseries = [
         {
             "date": (today - timedelta(days=offset)).isoformat(),
-            "count": counts_by_day.get(today - timedelta(days=offset), 0),
+            "authenticated": authenticated_counts_by_day.get(today - timedelta(days=offset), 0),
+            "anonymous": anonymous_counts_by_day.get(today - timedelta(days=offset), 0),
         }
         for offset in range(days - 1, -1, -1)
     ]

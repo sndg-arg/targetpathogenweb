@@ -98,6 +98,46 @@ class BuildActivityDashboardDataTests(TestCase):
         self.assertEqual(data["kpis"]["unique_ips"], 3)
         self.assertEqual(data["kpis"]["unique_ips_authenticated"], 1)
 
+    def test_blocked_requests_kpi_excludes_exempt_paths(self):
+        # 2 genuinely blocked (redirected off a real page) + 1 anonymous hit
+        # on the exempt login page (never redirected) -- only the first two
+        # should count toward "blocked".
+        RequestLog.objects.create(
+            user=self.alice, ip="10.0.0.1", method="GET", path="/genomes", status_code=200
+        )
+        RequestLog.objects.create(
+            user=None, ip="203.0.113.1", method="GET", path="/genomes", status_code=302
+        )
+        RequestLog.objects.create(
+            user=None, ip="203.0.113.2", method="GET", path="/", status_code=302
+        )
+        RequestLog.objects.create(
+            user=None, ip="203.0.113.3", method="GET", path="/accounts/login/", status_code=200
+        )
+
+        data = build_activity_dashboard_data()
+
+        self.assertEqual(data["kpis"]["blocked_requests"], 2)
+        # 2 blocked out of 4 total logged requests = 50%.
+        self.assertEqual(data["kpis"]["blocked_requests_pct"], 50)
+
+    def test_timeseries_splits_authenticated_from_anonymous_traffic(self):
+        RequestLog.objects.create(
+            user=self.alice, ip="10.0.0.1", method="GET", path="/genomes", status_code=200
+        )
+        RequestLog.objects.create(
+            user=self.alice, ip="10.0.0.1", method="GET", path="/", status_code=200
+        )
+        RequestLog.objects.create(
+            user=None, ip="203.0.113.1", method="GET", path="/genomes", status_code=302
+        )
+
+        data = build_activity_dashboard_data()
+        today_point = data["timeseries"][-1]
+
+        self.assertEqual(today_point["authenticated"], 2)
+        self.assertEqual(today_point["anonymous"], 1)
+
     def test_logging_started_at_reflects_the_earliest_request_log_row(self):
         older = RequestLog.objects.create(
             user=self.alice, ip="10.0.0.1", method="GET", path="/genomes", status_code=200
@@ -333,6 +373,7 @@ class ActivityDashboardViewTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Activity")
+        self.assertContains(response, "Blocked by login wall")
 
     def test_non_staff_user_is_forbidden(self):
         regular_user = get_user_model().objects.create_user(username="dash-regular", password="x")

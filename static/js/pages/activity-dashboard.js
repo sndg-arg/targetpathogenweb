@@ -21,10 +21,11 @@
     // Count up from 0 instead of popping straight to the final value -- a
     // small, cheap bit of motion that reads as "live dashboard" rather than
     // a static report. Skipped entirely under prefers-reduced-motion.
-    function animateNumber(el, target) {
+    function animateNumber(el, target, suffix) {
         if (!el) return;
+        suffix = suffix || "";
         if (prefersReducedMotion || typeof requestAnimationFrame !== "function") {
-            el.textContent = numberFormat.format(target);
+            el.textContent = numberFormat.format(target) + suffix;
             return;
         }
         var duration = 650;
@@ -33,7 +34,7 @@
             if (startTime === null) startTime = ts;
             var progress = Math.min((ts - startTime) / duration, 1);
             var eased = 1 - Math.pow(1 - progress, 3);
-            el.textContent = numberFormat.format(Math.round(target * eased));
+            el.textContent = numberFormat.format(Math.round(target * eased)) + suffix;
             if (progress < 1) requestAnimationFrame(step);
         }
         requestAnimationFrame(step);
@@ -57,6 +58,7 @@
     function theme() {
         return {
             brand: cssVar("--tp-color-brand-600"),
+            warning: cssVar("--tp-color-warning-border"),
             text: cssVar("--tp-color-text-secondary"),
             textMuted: cssVar("--tp-color-text-muted"),
             grid: cssVar("--tp-color-border-soft"),
@@ -80,9 +82,9 @@
 
     function renderKpis() {
         var kpis = data.kpis || {};
-        Object.keys(kpis).forEach(function (key) {
-            var el = document.querySelector('[data-kpi="' + key + '"]');
-            if (el) animateNumber(el, kpis[key] || 0);
+        Array.prototype.forEach.call(document.querySelectorAll("[data-kpi]"), function (el) {
+            var key = el.getAttribute("data-kpi");
+            animateNumber(el, kpis[key] || 0, el.getAttribute("data-kpi-suffix") || "");
         });
         var errorsCard = document.querySelector('[data-kpi-card="errors"]');
         if (errorsCard && kpis.errors > 0) errorsCard.classList.add("has-errors");
@@ -104,6 +106,11 @@
         var authenticatedIps = document.querySelector('[data-kpi-meta="unique_ips_authenticated"]');
         if (authenticatedIps && kpis.unique_ips_authenticated !== undefined) {
             authenticatedIps.textContent = countLabel(kpis.unique_ips_authenticated, "IP", "IPs") + " from logged-in sessions";
+        }
+
+        var blockedMeta = document.querySelector('[data-kpi-meta="blocked_requests"]');
+        if (blockedMeta && kpis.blocked_requests !== undefined) {
+            blockedMeta.textContent = requestsLabel(kpis.blocked_requests) + " never made it past the login wall";
         }
     }
 
@@ -336,24 +343,46 @@
         var labels = points.map(function (p) {
             return new Date(p.date + "T00:00:00").toLocaleDateString(UI_LOCALE, { month: "short", day: "numeric" });
         });
+        // Stacked area, authenticated below anonymous/blocked -- shows the
+        // real vs noise split at a glance, with the stack's total height
+        // still reading as "requests that day" like the single-line version
+        // used to.
         return new Chart(canvas.getContext("2d"), {
             type: "line",
             data: {
                 labels: labels,
-                datasets: [{
-                    label: "Requests",
-                    data: points.map(function (p) { return p.count; }),
-                    borderColor: t.brand,
-                    backgroundColor: hexToRgba(t.brand, 0.1),
-                    borderWidth: 2,
-                    tension: 0.3,
-                    fill: true,
-                    pointRadius: 0,
-                    pointHoverRadius: 4,
-                    pointHoverBackgroundColor: t.brand,
-                    pointHoverBorderColor: t.surface,
-                    pointHoverBorderWidth: 2
-                }]
+                datasets: [
+                    {
+                        label: "Authenticated",
+                        data: points.map(function (p) { return p.authenticated; }),
+                        borderColor: t.brand,
+                        backgroundColor: hexToRgba(t.brand, 0.35),
+                        borderWidth: 2,
+                        tension: 0.3,
+                        fill: true,
+                        stack: "requests",
+                        pointRadius: 0,
+                        pointHoverRadius: 4,
+                        pointHoverBackgroundColor: t.brand,
+                        pointHoverBorderColor: t.surface,
+                        pointHoverBorderWidth: 2
+                    },
+                    {
+                        label: "Anonymous / blocked",
+                        data: points.map(function (p) { return p.anonymous; }),
+                        borderColor: t.warning,
+                        backgroundColor: hexToRgba(t.warning, 0.25),
+                        borderWidth: 2,
+                        tension: 0.3,
+                        fill: true,
+                        stack: "requests",
+                        pointRadius: 0,
+                        pointHoverRadius: 4,
+                        pointHoverBackgroundColor: t.warning,
+                        pointHoverBorderColor: t.surface,
+                        pointHoverBorderWidth: 2
+                    }
+                ]
             },
             options: {
                 responsive: true,
@@ -361,14 +390,16 @@
                 interaction: { mode: "index", intersect: false },
                 plugins: {
                     legend: { display: false },
-                    tooltip: Object.assign({}, baseTooltip(t), { displayColors: false })
+                    tooltip: baseTooltip(t)
                 },
                 scales: {
                     x: {
+                        stacked: true,
                         grid: { display: false },
                         ticks: { color: t.textMuted, maxRotation: 0, autoSkip: true, maxTicksLimit: 8 }
                     },
                     y: {
+                        stacked: true,
                         beginAtZero: true,
                         grid: { color: t.grid, drawTicks: false },
                         border: { display: false },
