@@ -116,46 +116,67 @@
     display: flex;
 }
 
-.af-categorical-value {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    width: 100%;
-}
-
+/* Toggle-pill checklist -- same visual language as the plain filter panel's
+   .filter-chip (proteins-list.css), so picking values here doesn't feel like
+   a different, less-finished widget. A literal "or" sits between every pair
+   of chips (af-option-chip-sep below), so "Core or Accessory" reads as one
+   phrase -- explicit that multiple values of one criterion always combine
+   as "any of these", never a literal AND (a protein can't hold two
+   different values of a single-valued field at once). */
 .af-categorical-checklist {
     display: flex;
     flex-wrap: wrap;
-    gap: 4px 12px;
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: var(--tp-ui-radius-control);
-    background: var(--tp-color-surface);
-    padding: 8px 10px;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
     min-height: var(--tp-ui-control-height);
 }
 
-.af-categorical-option {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 0.88rem;
+.af-option-chip {
+    appearance: none;
+    background: var(--tp-color-surface);
+    border: 1px solid var(--tp-color-border);
     color: var(--tp-color-text-secondary);
+    padding: 5px 13px;
+    border-radius: 999px;
+    font: inherit;
+    font-size: 0.83rem;
+    font-weight: 500;
     cursor: pointer;
+    box-shadow: none;
+    transition:
+        background 120ms ease,
+        border-color 120ms ease,
+        color 120ms ease;
 }
 
-.af-categorical-option input[type="checkbox"] {
-    accent-color: var(--tp-color-brand-700);
+.af-option-chip:hover {
+    background: var(--tp-color-brand-050);
+    border-color: var(--tp-color-brand-300);
+    color: var(--tp-color-brand-900);
 }
 
-/* Only shown once 2+ values are checked -- makes explicit that multiple
-   values of one criterion combine as "any of these" (OR), never a literal
-   AND, since a protein can't hold two different values of the same
-   single-valued field at once. */
-.af-categorical-or-preview {
-    margin: 0;
-    font-size: 0.78rem;
+.af-option-chip:focus-visible {
+    outline: 2px solid var(--tp-color-border-accent);
+    outline-offset: 2px;
+}
+
+.af-option-chip--active {
+    background: var(--tp-color-brand-700);
+    border-color: var(--tp-color-brand-700);
+    color: var(--tp-color-brand-050);
+}
+
+.af-option-chip--active:hover {
+    background: var(--tp-color-brand-800);
+    border-color: var(--tp-color-brand-800);
+}
+
+.af-option-chip-sep {
+    font-size: 0.76rem;
     font-weight: 600;
-    color: var(--tp-color-brand-700);
+    font-style: italic;
+    color: var(--tp-color-text-soft);
 }
 
 .af-numeric-value {

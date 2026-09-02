@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/advanced-filters.css' %}?v=20260902-or-checklist">
+    <link rel="stylesheet" href="{% static 'css/pages/advanced-filters.css' %}?v=20260902-or-chips">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -39,7 +39,7 @@
         {% csrf_token %}
         <input type="hidden" name="groups_json" id="af-groups-json" value="">
 
-        <div id="af-groups" class="af-groups" data-or-label="{% trans 'OR' %}"></div>
+        <div id="af-groups" class="af-groups"></div>
 
         <div class="af-form-footer">
             <button type="button" class="btn tp-btn tp-btn--neutral" id="af-add-group">
@@ -82,17 +82,15 @@
 </template>
 
 <template id="af-value-categorical-template">
-    <div class="af-categorical-value">
-        <div class="af-categorical-checklist" data-option-checklist></div>
-        <p class="af-categorical-or-preview" data-or-preview hidden></p>
-    </div>
+    <div class="af-categorical-checklist" data-option-checklist></div>
 </template>
 
 <template id="af-categorical-option-template">
-    <label class="af-categorical-option">
-        <input type="checkbox" data-option-checkbox>
-        <span data-option-label></span>
-    </label>
+    <button type="button" class="af-option-chip" data-option-chip aria-pressed="false"></button>
+</template>
+
+<template id="af-categorical-or-template">
+    <span class="af-option-chip-sep" aria-hidden="true">{% trans "or" %}</span>
 </template>
 
 <template id="af-value-numeric-template">
@@ -110,5 +108,5 @@
 {{ param_options|json_script:"af-param-options" }}
 {{ existing_groups|json_script:"af-existing-groups" }}
 
-<script src="{% static 'js/pages/advanced-filters.js' %}?v=20260902-or-checklist"></script>
+<script src="{% static 'js/pages/advanced-filters.js' %}?v=20260902-or-chips"></script>
 {% endblock %}

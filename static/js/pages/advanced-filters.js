@@ -24,6 +24,7 @@
     var conditionTemplate = document.getElementById("af-condition-template");
     var categoricalValueTemplate = document.getElementById("af-value-categorical-template");
     var categoricalOptionTemplate = document.getElementById("af-categorical-option-template");
+    var categoricalOrTemplate = document.getElementById("af-categorical-or-template");
     var numericValueTemplate = document.getElementById("af-value-numeric-template");
 
     function updateEmptyHint() {
@@ -48,27 +49,6 @@
         });
     }
 
-    function updateOrPreview(valueAreaEl) {
-        var checklist = valueAreaEl.querySelector("[data-option-checklist]");
-        var preview = valueAreaEl.querySelector("[data-or-preview]");
-        if (!checklist || !preview) {
-            return;
-        }
-        var checkedLabels = Array.prototype.slice
-            .call(checklist.querySelectorAll("[data-option-checkbox]:checked"))
-            .map(function (checkbox) {
-                var span = checkbox.parentElement.querySelector("[data-option-label]");
-                return span ? span.textContent : "";
-            });
-        if (checkedLabels.length > 1) {
-            var orWord = groupsContainer.dataset.orLabel || "OR";
-            preview.textContent = checkedLabels.join(" " + orWord + " ");
-            preview.hidden = false;
-        } else {
-            preview.hidden = true;
-        }
-    }
-
     function buildValueArea(valueAreaEl, paramId, conditionState) {
         valueAreaEl.innerHTML = "";
         var param = paramOptionsById[String(paramId)];
@@ -79,22 +59,29 @@
             var node = categoricalValueTemplate.content.cloneNode(true);
             var checklist = node.querySelector("[data-option-checklist]");
             var selectedIds = (conditionState && conditionState.option_ids) || [];
-            (param.options || []).forEach(function (opt) {
-                var optionNode = categoricalOptionTemplate.content.cloneNode(true);
-                var checkbox = optionNode.querySelector("[data-option-checkbox]");
-                var label = optionNode.querySelector("[data-option-label]");
-                checkbox.value = String(opt.id);
-                label.textContent = opt.label;
-                if (selectedIds.some(function (id) { return String(id) === String(opt.id); })) {
-                    checkbox.checked = true;
+            (param.options || []).forEach(function (opt, index) {
+                if (index > 0) {
+                    checklist.appendChild(categoricalOrTemplate.content.cloneNode(true));
                 }
-                checklist.appendChild(optionNode);
+                var chip = categoricalOptionTemplate.content.cloneNode(true).querySelector("[data-option-chip]");
+                chip.dataset.value = String(opt.id);
+                chip.textContent = opt.label;
+                if (selectedIds.some(function (id) { return String(id) === String(opt.id); })) {
+                    chip.setAttribute("aria-pressed", "true");
+                    chip.classList.add("af-option-chip--active");
+                }
+                checklist.appendChild(chip);
             });
-            checklist.addEventListener("change", function () {
-                updateOrPreview(valueAreaEl);
+            checklist.addEventListener("click", function (event) {
+                var chip = event.target.closest("[data-option-chip]");
+                if (!chip) {
+                    return;
+                }
+                var isActive = chip.getAttribute("aria-pressed") === "true";
+                chip.setAttribute("aria-pressed", isActive ? "false" : "true");
+                chip.classList.toggle("af-option-chip--active", !isActive);
             });
             valueAreaEl.appendChild(node);
-            updateOrPreview(valueAreaEl);
         } else {
             var numericNode = numericValueTemplate.content.cloneNode(true);
             var opSelect = numericNode.querySelector("[data-operation]");
@@ -217,17 +204,17 @@
                     return;
                 }
                 if (param.type === "categorical") {
-                    var checkedBoxes = Array.prototype.slice.call(
-                        conditionEl.querySelectorAll("[data-option-checkbox]:checked")
+                    var activeChips = Array.prototype.slice.call(
+                        conditionEl.querySelectorAll('[data-option-chip][aria-pressed="true"]')
                     );
-                    if (!checkedBoxes.length) {
+                    if (!activeChips.length) {
                         return;
                     }
                     conditions.push({
                         kind: "categorical",
                         score_param_id: paramId,
-                        option_ids: checkedBoxes.map(function (checkbox) {
-                            return checkbox.value;
+                        option_ids: activeChips.map(function (chip) {
+                            return chip.dataset.value;
                         }),
                     });
                 } else {
