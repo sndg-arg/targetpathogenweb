@@ -95,7 +95,8 @@ from tpweb.services.workspace import (
     get_workspace_session_value,
     set_workspace_session_value,
 )
-from tpweb.services.structure_summary import _annotated_site_label, _pocket_residue_overlap
+from tpweb.services.pocket_consensus import pocket_residue_overlap
+from tpweb.services.structure_summary import _annotated_site_label
 from tpweb.views.FormulaForm import FormulaForm
 from tpweb.views.IndexView import should_show_home_pipeline_panel
 from tpweb.services.llm.base import Message, ToolCall, ToolDefinition, ToolResult
@@ -769,7 +770,7 @@ class StructureAndAnnotationServiceTests(SimpleTestCase):
         def residue(chain, resid, icode=""):
             return SimpleNamespace(chain=chain, resid=resid, icode=icode)
 
-        overlap = _pocket_residue_overlap(
+        overlap = pocket_residue_overlap(
             [residue("A", 10), residue("A", 11), residue("A", 12)],
             [residue("B", 10), residue("A", 11), residue("A", 12, "A")],
         )

@@ -15,7 +15,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db.utils import InterfaceError
-from django.test import SimpleTestCase, TestCase
+from django.test import TestCase
 from django.urls import reverse
 
 import tpweb.services.pipeline_status as pipeline_status_service
@@ -43,7 +43,12 @@ class LoggedInTestCase(TestCase):
         self.client.force_login(self.smoke_user)
 
 
-class HealthViewTests(SimpleTestCase):
+class HealthViewTests(TestCase):
+    """A real TestCase, not SimpleTestCase -- ATOMIC_REQUESTS=True (settings.py)
+    wraps every view in a DB transaction, so even /health/live (which itself
+    touches no DB) needs a real connection to complete the request/response
+    cycle."""
+
     def test_live_health_endpoint(self):
         response = self.client.get("/health/live")
         self.assertEqual(response.status_code, 200)
