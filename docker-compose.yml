@@ -85,6 +85,13 @@ services:
       - DJANGO_DATABASE_URL=postgres://postgres:${TPW_DB_PASSWORD:-changeme}@db:5432/tp
       - DJANGO_DATABASE_PASSWORD=${TPW_DB_PASSWORD:-changeme}
       - DJANGO_ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS:-localhost,0.0.0.0,127.0.0.1}
+      - DJANGO_ACCOUNT_ALLOW_REGISTRATION=${DJANGO_ACCOUNT_ALLOW_REGISTRATION:-False}
+      - DJANGO_EMAIL_HOST=${DJANGO_EMAIL_HOST:-localhost}
+      - DJANGO_EMAIL_PORT=${DJANGO_EMAIL_PORT:-587}
+      - DJANGO_EMAIL_USE_TLS=${DJANGO_EMAIL_USE_TLS:-True}
+      - DJANGO_EMAIL_HOST_USER=${DJANGO_EMAIL_HOST_USER:-}
+      - DJANGO_EMAIL_HOST_PASSWORD=${DJANGO_EMAIL_HOST_PASSWORD:-}
+      - DJANGO_DEFAULT_FROM_EMAIL=${DJANGO_DEFAULT_FROM_EMAIL:-no-reply@targetpathogen.local}
       - PYTHONPATH=/app/sndgjobs:/app/sndgbiodb:/app/targetpathogen:/app/sndg-bio:/app/target:/app/targetpathogenweb
       - TPW_DATA_DIR=${TPW_DATA_DIR:-./data}
       - HTTP_PROXY=${HTTP_PROXY:-}
