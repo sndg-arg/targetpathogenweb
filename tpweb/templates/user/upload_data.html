@@ -213,12 +213,12 @@
             {% endif %}
         </section>
 
-        {% if user.is_staff %}
+        {% if user.is_superuser %}
         <section class="genome-upload-history" id="curated-external-import-panel">
             <div class="genome-upload-card-head tp-ui-panel-head">
                 <div>
                     <h2 class="tp-ui-panel-title">{% trans "Curated external import" %}</h2>
-                    <p class="genome-upload-card-note">{% trans "Staff-only assisted import for reviewed Gates results already staged on the server." %}</p>
+                    <p class="genome-upload-card-note">{% trans "Owner-only assisted import for reviewed Gates results already staged on the server." %}</p>
                 </div>
             </div>
             <div class="genome-upload-staff-body">

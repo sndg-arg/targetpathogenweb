@@ -283,6 +283,24 @@ SOCIALACCOUNT_ADAPTER = "tpweb.adapters.AccountAdapters.SocialAccountAdapter"
 # https://django-allauth.readthedocs.io/en/latest/forms.html
 # SOCIALACCOUNT_FORMS = {"signup": "sndg.users.forms.UserSocialSignupForm"}
 
+# Email -- used for new-signup / account-approved notifications
+# (tpweb/services/user_approval.py). Console backend in DEBUG so nothing
+# breaks locally without real SMTP creds; Django's test runner always forces
+# EMAIL_BACKEND to locmem regardless of this default.
+# ------------------------------------------------------------------------------
+EMAIL_BACKEND = env(
+    "DJANGO_EMAIL_BACKEND",
+    default="django.core.mail.backends.console.EmailBackend"
+    if DEBUG
+    else "django.core.mail.backends.smtp.EmailBackend",
+)
+EMAIL_HOST = env("DJANGO_EMAIL_HOST", default="localhost")
+EMAIL_PORT = env.int("DJANGO_EMAIL_PORT", default=587)
+EMAIL_HOST_USER = env("DJANGO_EMAIL_HOST_USER", default="")
+EMAIL_HOST_PASSWORD = env("DJANGO_EMAIL_HOST_PASSWORD", default="")
+EMAIL_USE_TLS = env.bool("DJANGO_EMAIL_USE_TLS", default=True)
+DEFAULT_FROM_EMAIL = env("DJANGO_DEFAULT_FROM_EMAIL", default="no-reply@targetpathogen.local")
+
 
 if DEBUG:
     sys.stderr.write("Debug mode!\n")

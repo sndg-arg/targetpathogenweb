@@ -1,0 +1,65 @@
+/* ── User management (owner-only: approve pending signups, view roster) ── */
+
+.user-mgmt-page {
+    font-family: "Source Sans 3", "Segoe UI", sans-serif;
+    color: var(--tp-color-text-primary);
+    margin: 0;
+}
+
+.user-mgmt-page > section ~ section {
+    border-top: 1px solid var(--tp-color-border-soft);
+}
+
+.user-mgmt-page h1,
+.user-mgmt-page h2 {
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+}
+
+.user-mgmt-hero,
+.user-mgmt-section {
+    padding: 20px 18px;
+}
+
+.user-mgmt-eyebrow {
+    margin: 0 0 10px;
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-label);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.user-mgmt-hero-title {
+    margin: 0;
+    font-size: var(--tp-font-size-2xl);
+    line-height: 1.1;
+}
+
+.user-mgmt-hero-description {
+    margin: 10px 0 0;
+    max-width: 640px;
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-size-md);
+    line-height: 1.5;
+}
+
+.user-mgmt-section-title {
+    margin: 2px 0 0;
+    font-size: var(--tp-font-size-lg);
+}
+
+.user-mgmt-table th,
+.user-mgmt-table td {
+    white-space: nowrap;
+}
+
+.user-mgmt-actions {
+    text-align: right;
+}
+
+.user-mgmt-actions form {
+    display: inline-block;
+    margin: 0;
+}

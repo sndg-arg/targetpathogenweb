@@ -9,7 +9,7 @@ class ActivityDashboardView(LoginRequiredMixin, UserPassesTestMixin, View):
     template_name = "activity/dashboard.html"
 
     def test_func(self):
-        return self.request.user.is_staff
+        return self.request.user.is_superuser
 
     def get(self, request, *args, **kwargs):
         return render(

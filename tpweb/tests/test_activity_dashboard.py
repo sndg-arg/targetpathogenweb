@@ -473,7 +473,21 @@ class TopErrorPathsTests(TestCase):
 
 
 class ActivityDashboardViewTests(TestCase):
-    def test_staff_user_can_view_dashboard(self):
+    def test_superuser_can_view_dashboard(self):
+        owner = get_user_model().objects.create_user(
+            username="dash-owner", password="x", is_staff=True, is_superuser=True
+        )
+        self.client.force_login(owner)
+
+        response = self.client.get(reverse("tpwebapp:activity_dashboard"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Activity")
+        self.assertContains(response, "Blocked by login wall")
+
+    def test_staff_non_superuser_is_forbidden(self):
+        # Approval grants is_staff, not is_superuser -- an approved
+        # collaborator must not see visitor IP/security telemetry.
         staff_user = get_user_model().objects.create_user(
             username="dash-staff", password="x", is_staff=True
         )
@@ -481,9 +495,7 @@ class ActivityDashboardViewTests(TestCase):
 
         response = self.client.get(reverse("tpwebapp:activity_dashboard"))
 
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Activity")
-        self.assertContains(response, "Blocked by login wall")
+        self.assertEqual(response.status_code, 403)
 
     def test_non_staff_user_is_forbidden(self):
         regular_user = get_user_model().objects.create_user(username="dash-regular", password="x")

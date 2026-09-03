@@ -2284,7 +2284,7 @@
         </div>
         <div class="tp-topbar-desktop-utility">
             {% if user.is_authenticated %}
-                {% if user.is_staff %}
+                {% if user.is_superuser %}
                 <div class="dropdown tp-topbar-desktop-account-wrap">
                     <button class="tp-topbar-desktop-account tp-topbar-desktop-account--menu" type="button" data-toggle="dropdown" aria-expanded="false">
                         <span class="tp-topbar-desktop-account-icon" aria-hidden="true">{% include "components/icons/user.html" %}</span>
@@ -2295,6 +2295,10 @@
                         <a class="dropdown-item tp-topbar-desktop-account-item {% if request.resolver_match.url_name == 'activity_dashboard' %}active{% endif %}" href="{% url 'tpwebapp:activity_dashboard' %}">
                             <span class="tp-topbar-desktop-account-item-icon" aria-hidden="true">{% include "components/icons/eye.html" %}</span>
                             {% trans "Activity" %}
+                        </a>
+                        <a class="dropdown-item tp-topbar-desktop-account-item {% if request.resolver_match.url_name == 'user_management' %}active{% endif %}" href="{% url 'tpwebapp:user_management' %}">
+                            <span class="tp-topbar-desktop-account-item-icon" aria-hidden="true">{% include "components/icons/user_plus.html" %}</span>
+                            {% trans "Manage users" %}
                         </a>
                         <a class="dropdown-item tp-topbar-desktop-account-item {% if '/admin' in request.path %}active{% endif %}" href="{% url 'admin:index' %}">
                             <span class="tp-topbar-desktop-account-item-icon" aria-hidden="true">{% include "components/icons/settings.html" %}</span>
@@ -2388,8 +2392,9 @@
                             {{ user.get_username }}
                         </a>
                         <div id="user_dropdown_menu" class="dropdown-menu">
-                            {% if user.is_staff %}
+                            {% if user.is_superuser %}
                                 <a class="dropdown-item" href="{% url 'tpwebapp:activity_dashboard' %}">{% trans "Activity" %}</a>
+                                <a class="dropdown-item" href="{% url 'tpwebapp:user_management' %}">{% trans "Manage users" %}</a>
                                 <a class="dropdown-item" href="{% url 'admin:index' %}">{% trans "Admin panel" %}</a>
                                 <div class="dropdown-divider"></div>
                             {% endif %}

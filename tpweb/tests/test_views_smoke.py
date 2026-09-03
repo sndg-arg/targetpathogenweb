@@ -383,9 +383,9 @@ class HumanProteinViewTests(LoggedInTestCase):
 
 
 class DataFileUploadViewTests(TestCase):
-    def test_post_requires_staff(self):
+    def test_post_requires_superuser(self):
         user = get_user_model().objects.create_user(
-            username="upload-non-staff", password="test-pass"
+            username="upload-non-owner", password="test-pass"
         )
         self.client.force_login(user)
 
@@ -393,9 +393,22 @@ class DataFileUploadViewTests(TestCase):
 
         self.assertEqual(response.status_code, 403)
 
-    def test_post_without_file_is_bad_request_for_staff_user(self):
+    def test_post_requires_superuser_not_just_staff(self):
+        # Approval grants is_staff, not is_superuser -- an approved
+        # collaborator must not be able to write raw files into the shared
+        # server directory this view feeds.
         user = get_user_model().objects.create_user(
-            username="upload-staff-nofile", password="test-pass", is_staff=True
+            username="upload-staff-only", password="test-pass", is_staff=True
+        )
+        self.client.force_login(user)
+
+        response = self.client.post(reverse("tpwebapp:data_file_upload"))
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_post_without_file_is_bad_request_for_owner(self):
+        user = get_user_model().objects.create_user(
+            username="upload-owner-nofile", password="test-pass", is_superuser=True
         )
         self.client.force_login(user)
 
@@ -405,7 +418,7 @@ class DataFileUploadViewTests(TestCase):
 
     def test_post_rejects_disallowed_extension(self):
         user = get_user_model().objects.create_user(
-            username="upload-staff-badext", password="test-pass", is_staff=True
+            username="upload-owner-badext", password="test-pass", is_superuser=True
         )
         self.client.force_login(user)
         upload = SimpleUploadedFile("model.exe", b"binary", content_type="application/octet-stream")
@@ -416,7 +429,7 @@ class DataFileUploadViewTests(TestCase):
 
     def test_post_saves_allowed_file_and_returns_its_path(self):
         user = get_user_model().objects.create_user(
-            username="upload-staff-ok", password="test-pass", is_staff=True
+            username="upload-owner-ok", password="test-pass", is_superuser=True
         )
         self.client.force_login(user)
 

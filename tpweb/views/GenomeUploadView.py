@@ -162,7 +162,7 @@ class GenomeUploadView(LoginRequiredMixin, View):
             )
 
         curated_import_jobs = []
-        if request.user.is_staff:
+        if request.user.is_superuser:
             curated_import_jobs = [
                 self._curated_job_dto(job)
                 for job in CuratedImportJob.objects.filter(owner=workspace_user)[:8]
@@ -195,8 +195,8 @@ class GenomeUploadView(LoginRequiredMixin, View):
         action = request.POST.get("action")
 
         if action == self.ACTION_RETRY_CURATED_IMPORT:
-            if not request.user.is_staff:
-                messages.error(request, "Staff access is required for curated external imports.")
+            if not request.user.is_superuser:
+                messages.error(request, "Owner access is required for curated external imports.")
                 return redirect(upload_url)
 
             job_id = request.POST.get("curated_import_job_id")
@@ -223,8 +223,8 @@ class GenomeUploadView(LoginRequiredMixin, View):
             self.ACTION_RUN_EXTERNAL_IMPORT,
             self.ACTION_RUN_CURATED_FILE_PIPELINE,
         }:
-            if not request.user.is_staff:
-                messages.error(request, "Staff access is required for curated external imports.")
+            if not request.user.is_superuser:
+                messages.error(request, "Owner access is required for curated external imports.")
                 return redirect(upload_url)
 
             external_form = ExternalImportForm(request.POST)

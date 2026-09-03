@@ -14,6 +14,7 @@
         {% if redirect_field_value %}
             <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}">
         {% endif %}
+        <p class="auth-approval-note">{% trans "An administrator needs to approve your account before you can sign in." %}</p>
         <div class="auth-submit">
             <button class="btn tp-btn tp-btn--primary tp-btn-with-icon" type="submit">
                 <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/user_plus.html" %}</span>

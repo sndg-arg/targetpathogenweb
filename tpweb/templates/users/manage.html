@@ -1,0 +1,123 @@
+{% extends '../base/masterpage.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block head %}
+    <link rel="stylesheet" href="{% static 'css/pages/user-management.css' %}?v=20260903-init1">
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="tp-breadcrumb-bar">
+    <div class="tp-breadcrumb-bar-inner">
+        {% url 'tpwebapp:index' as index_url %}
+        {% trans "Manage users" as crumb_users %}
+        {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_users %}
+    </div>
+</div>
+{% endblock %}
+
+{% block body %}
+<div class="user-mgmt-page">
+
+    <section class="user-mgmt-hero">
+        <div class="tp-view-head">
+            <div class="tp-view-head-copy">
+                <p class="user-mgmt-eyebrow">{% trans "Owner only" %}</p>
+                <h1 class="user-mgmt-hero-title">{% trans "Manage users" %}</h1>
+                <p class="user-mgmt-hero-description">{% trans "Approve new signups and see who currently has access to the platform." %}</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="user-mgmt-section">
+        <div class="section-head tp-ui-panel-head">
+            <div>
+                <p class="tp-ui-field-label">{% trans "Awaiting review" %}</p>
+                <h2 class="user-mgmt-section-title">{% trans "Pending approval" %}</h2>
+            </div>
+            <span class="tp-chip tp-chip--count tp-chip--sm">{{ pending_users|length }}</span>
+        </div>
+        {% if pending_users %}
+        <div class="tp-table-shell">
+            <div class="tp-table-shell__scroll">
+                <table class="tp-table tp-table--plain tp-table--premium user-mgmt-table">
+                    <thead>
+                        <tr>
+                            <th>{% trans "Username" %}</th>
+                            <th>{% trans "Email" %}</th>
+                            <th>{% trans "Signed up" %}</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for pending_user in pending_users %}
+                        <tr>
+                            <td>{{ pending_user.get_username }}</td>
+                            <td>{{ pending_user.email|default:"—" }}</td>
+                            <td>{{ pending_user.date_joined|date:"Y-m-d H:i" }}</td>
+                            <td class="user-mgmt-actions">
+                                <form method="post" action="{% url 'tpwebapp:user_management' %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="user_id" value="{{ pending_user.pk }}">
+                                    <button type="submit" class="btn tp-btn tp-btn--primary tp-btn--sm">{% trans "Approve" %}</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% else %}
+        <p class="tp-state-note tp-state-note--empty">{% trans "No pending signups." %}</p>
+        {% endif %}
+    </section>
+
+    <section class="user-mgmt-section">
+        <div class="section-head tp-ui-panel-head">
+            <div>
+                <p class="tp-ui-field-label">{% trans "Roster" %}</p>
+                <h2 class="user-mgmt-section-title">{% trans "Approved users" %}</h2>
+            </div>
+            <span class="tp-chip tp-chip--count tp-chip--sm">{{ approved_users|length }}</span>
+        </div>
+        {% if approved_users %}
+        <div class="tp-table-shell">
+            <div class="tp-table-shell__scroll">
+                <table class="tp-table tp-table--plain tp-table--premium user-mgmt-table">
+                    <thead>
+                        <tr>
+                            <th>{% trans "Username" %}</th>
+                            <th>{% trans "Email" %}</th>
+                            <th>{% trans "Signed up" %}</th>
+                            <th>{% trans "Last login" %}</th>
+                            <th>{% trans "Role" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for approved_user in approved_users %}
+                        <tr>
+                            <td>{{ approved_user.get_username }}</td>
+                            <td>{{ approved_user.email|default:"—" }}</td>
+                            <td>{{ approved_user.date_joined|date:"Y-m-d H:i" }}</td>
+                            <td>{{ approved_user.last_login|date:"Y-m-d H:i"|default:"—" }}</td>
+                            <td>
+                                {% if approved_user.is_superuser %}
+                                    <span class="tp-chip tp-chip--sm">{% trans "Owner" %}</span>
+                                {% else %}
+                                    <span class="tp-chip tp-chip--sm">{% trans "Staff" %}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% else %}
+        <p class="tp-state-note tp-state-note--empty">{% trans "No approved users yet." %}</p>
+        {% endif %}
+    </section>
+
+</div>
+{% endblock %}
