@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/user-management.css' %}?v=20260904-fixedactions">
+    <link rel="stylesheet" href="{% static 'css/pages/user-management.css' %}?v=20260904-spacing">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -42,7 +42,7 @@
             <div class="user-mgmt-list-row user-mgmt-list-row--head" role="row">
                 <span class="user-mgmt-list-cell" role="columnheader">{% trans "Signup" %}</span>
                 <span class="user-mgmt-list-cell user-mgmt-list-cell--meta" role="columnheader">{% trans "Signed up" %}</span>
-                <span class="user-mgmt-list-cell user-mgmt-list-cell--actions" role="columnheader"></span>
+                <span class="user-mgmt-list-cell user-mgmt-list-cell--actions" role="columnheader">{% trans "Actions" %}</span>
             </div>
             {% for pending_user in pending_users %}
             <div class="user-mgmt-list-row" role="row">
@@ -90,7 +90,7 @@
                 <span class="user-mgmt-list-cell user-mgmt-list-cell--meta" role="columnheader">{% trans "Signed up" %}</span>
                 <span class="user-mgmt-list-cell user-mgmt-list-cell--meta" role="columnheader">{% trans "Last login" %}</span>
                 <span class="user-mgmt-list-cell user-mgmt-list-cell--role" role="columnheader">{% trans "Role" %}</span>
-                <span class="user-mgmt-list-cell user-mgmt-list-cell--actions" role="columnheader"></span>
+                <span class="user-mgmt-list-cell user-mgmt-list-cell--actions" role="columnheader">{% trans "Actions" %}</span>
             </div>
             {% for approved_user in approved_users %}
             <div class="user-mgmt-list-row" role="row">

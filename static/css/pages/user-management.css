@@ -19,11 +19,11 @@
 
 .user-mgmt-hero,
 .user-mgmt-section {
-    padding: 20px 18px;
+    padding: 28px 18px;
 }
 
 .user-mgmt-eyebrow {
-    margin: 0 0 10px;
+    margin: 0 0 12px;
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-label);
     font-weight: 600;
@@ -38,15 +38,19 @@
 }
 
 .user-mgmt-hero-description {
-    margin: 10px 0 0;
+    margin: 14px 0 0;
     max-width: 640px;
     color: var(--tp-color-text-secondary);
     font-size: var(--tp-font-size-md);
     line-height: 1.5;
 }
 
+.user-mgmt-section .section-head {
+    margin-bottom: 20px;
+}
+
 .user-mgmt-section-title {
-    margin: 2px 0 0;
+    margin: 8px 0 0;
     font-size: var(--tp-font-size-lg);
 }
 
