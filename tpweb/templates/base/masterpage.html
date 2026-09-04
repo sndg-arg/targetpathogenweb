@@ -2287,7 +2287,7 @@
                 <div class="dropdown tp-topbar-desktop-account-wrap">
                     <button class="tp-topbar-desktop-account tp-topbar-desktop-account--menu" type="button" data-toggle="dropdown" aria-expanded="false">
                         <span class="tp-topbar-desktop-account-icon" aria-hidden="true">{% include "components/icons/user.html" %}</span>
-                        <span class="tp-topbar-desktop-user">{{ user.get_username }}</span>
+                        <span class="tp-topbar-desktop-user">{{ user.name|default:user.get_username }}</span>
                         <span class="tp-topbar-desktop-account-caret" aria-hidden="true">{% include "components/icons/chevron_down.html" %}</span>
                     </button>
                     <div class="dropdown-menu dropdown-menu-right tp-topbar-desktop-account-menu">
@@ -2382,7 +2382,7 @@
                         close what nav-toggle.js had just opened.
                         {% endcomment %}
                         <a class="nav-link dropdown-toggle" href="#" role="button" aria-expanded="false">
-                            {{ user.get_username }}
+                            {{ user.name|default:user.get_username }}
                         </a>
                         <div id="user_dropdown_menu" class="dropdown-menu">
                             <a class="dropdown-item" href="{% url 'tpwebapp:profile' %}">{% trans "My profile" %}</a>

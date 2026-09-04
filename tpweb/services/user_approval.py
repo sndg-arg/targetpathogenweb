@@ -79,8 +79,8 @@ def _notify_new_signup(user):
         send_mail(
             subject="Target Pathogen: new account pending approval",
             message=(
-                f"{user.get_username()} ({user.email}) just signed up and is "
-                "waiting for approval. Review pending accounts in the admin "
+                f"{user.name or user.get_username()} ({user.email}) just signed up "
+                "and is waiting for approval. Review pending accounts in the admin "
                 "panel or the Manage users screen."
             ),
             from_email=settings.DEFAULT_FROM_EMAIL,
@@ -98,8 +98,8 @@ def _notify_user_approved(user):
         send_mail(
             subject="Target Pathogen: your account has been approved",
             message=(
-                f"Hi {user.get_username()}, your Target Pathogen account has been "
-                "approved. You can now sign in."
+                f"Hi {user.name or user.get_username()}, your Target Pathogen account "
+                "has been approved. You can now sign in."
             ),
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[user.email],

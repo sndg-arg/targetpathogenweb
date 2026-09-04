@@ -1,34 +1,40 @@
-/* "My profile" page -- read-only card with an Edit button that opens a
- * modal. Save stays disabled until something actually changed AND the
- * minimum client-side checks pass (non-empty names, email-shaped email);
- * the server still re-validates everything (email uniqueness in
- * particular) on submit regardless.
+/* "My profile" page -- each field has its own Edit (pencil) button, all
+ * sharing one modal: opening it shows only that field's input (the other
+ * two stay in the DOM, hidden, still carrying their current value so the
+ * single underlying form submission stays valid). Save stays disabled
+ * until the visible field's value actually changed AND passes a minimum
+ * client-side check (non-empty name, email-shaped email); the server
+ * still re-validates everything (email uniqueness in particular) on
+ * submit regardless.
  */
 (function () {
     "use strict";
 
-    var trigger = document.getElementById("profile-edit-trigger");
     var modal = document.getElementById("profile-edit-modal");
     var panel = modal ? modal.querySelector(".profile-edit-panel") : null;
     var closeBtn = document.getElementById("profile-edit-close");
     var cancelBtn = document.getElementById("profile-edit-cancel");
     var form = document.getElementById("profile-edit-form");
     var saveBtn = document.getElementById("profile-edit-save");
-    if (!trigger || !modal || !panel || !form || !saveBtn) return;
+    var titleEl = document.getElementById("profile-edit-modal-title");
+    if (!modal || !panel || !form || !saveBtn) return;
 
-    var firstNameInput = form.querySelector("[name='first_name']");
-    var lastNameInput = form.querySelector("[name='last_name']");
-    var emailInput = form.querySelector("[name='email']");
+    var fieldGroups = Array.prototype.slice.call(form.querySelectorAll("[data-field-group]"));
+    var editTriggers = Array.prototype.slice.call(document.querySelectorAll(".js-profile-edit-field"));
 
-    var original = { first_name: "", last_name: "", email: "" };
+    var activeField = null;
+    var originalValue = "";
     var lastTrigger = null;
 
-    function snapshotOriginal() {
-        original = {
-            first_name: firstNameInput.value.trim(),
-            last_name: lastNameInput.value.trim(),
-            email: emailInput.value.trim()
-        };
+    function groupFor(fieldName) {
+        return fieldGroups.filter(function (group) {
+            return group.getAttribute("data-field-group") === fieldName;
+        })[0] || null;
+    }
+
+    function inputFor(fieldName) {
+        var group = groupFor(fieldName);
+        return group ? group.querySelector("input") : null;
     }
 
     // Deliberately simple -- just enough to catch an obviously incomplete
@@ -37,27 +43,43 @@
         return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
     }
 
-    function updateSaveState() {
-        var firstName = firstNameInput.value.trim();
-        var lastName = lastNameInput.value.trim();
-        var email = emailInput.value.trim();
-
-        var valid = firstName.length > 0 && lastName.length > 0 && looksLikeEmail(email);
-        var changed = firstName !== original.first_name
-            || lastName !== original.last_name
-            || email !== original.email;
-
-        saveBtn.disabled = !(valid && changed);
+    function isValidValue(fieldName, value) {
+        if (fieldName === "email") return looksLikeEmail(value);
+        return value.length > 0;
     }
 
-    function openModal(trigger_) {
-        snapshotOriginal();
+    // Set only for the auto-reopen-after-a-rejected-submit case: the value
+    // already showing IS the one the server just rejected, so "unchanged
+    // from what's shown" must not be read as "nothing to fix" the way it
+    // would for a normal edit.
+    var hasServerError = false;
+
+    function updateSaveState() {
+        var input = inputFor(activeField);
+        if (!input) return;
+        var value = input.value.trim();
+        var changed = hasServerError || value !== originalValue.trim();
+        var valid = isValidValue(activeField, value);
+        saveBtn.disabled = !(changed && valid);
+    }
+
+    function openFieldModal(fieldName, label, trigger, hadServerError) {
+        activeField = fieldName;
+        hasServerError = !!hadServerError;
+        fieldGroups.forEach(function (group) {
+            group.hidden = group.getAttribute("data-field-group") !== fieldName;
+        });
+        if (titleEl) titleEl.textContent = label || fieldName;
+
+        var input = inputFor(fieldName);
+        originalValue = input ? input.value : "";
         updateSaveState();
+
         modal.classList.add("is-open");
         modal.setAttribute("aria-hidden", "false");
         document.body.classList.add("profile-modal-open");
-        lastTrigger = trigger_ || trigger;
-        firstNameInput.focus();
+        lastTrigger = trigger || null;
+        if (input) input.focus();
     }
 
     function closeModal() {
@@ -66,9 +88,15 @@
         document.body.classList.remove("profile-modal-open");
         if (lastTrigger) lastTrigger.focus();
         lastTrigger = null;
+        activeField = null;
     }
 
-    trigger.addEventListener("click", function () { openModal(trigger); });
+    editTriggers.forEach(function (trigger) {
+        trigger.addEventListener("click", function () {
+            openFieldModal(trigger.getAttribute("data-field"), trigger.getAttribute("data-field-label"), trigger);
+        });
+    });
+
     if (closeBtn) closeBtn.addEventListener("click", closeModal);
     if (cancelBtn) cancelBtn.addEventListener("click", closeModal);
     modal.addEventListener("click", function (ev) {
@@ -78,15 +106,26 @@
         if (ev.key === "Escape" && modal.classList.contains("is-open")) closeModal();
     });
 
-    [firstNameInput, lastNameInput, emailInput].forEach(function (input) {
-        input.addEventListener("input", updateSaveState);
+    fieldGroups.forEach(function (group) {
+        var input = group.querySelector("input");
+        if (input) input.addEventListener("input", updateSaveState);
     });
 
     // A failed POST (e.g. "email already in use") re-renders this same
-    // page with form.errors set -- the modal needs to already be open so
-    // the error is actually visible, not hidden behind the closed modal.
-    if (window.TPW_PROFILE_HAS_ERRORS) {
-        openModal(trigger);
-        updateSaveState();
+    // page with the erroring field's errors set -- the modal needs to
+    // already be open, scoped to that field, so the error is actually
+    // visible instead of hidden behind the closed modal.
+    if (window.TPW_PROFILE_ERROR_FIELD) {
+        var errorTrigger = editTriggers.filter(function (trigger) {
+            return trigger.getAttribute("data-field") === window.TPW_PROFILE_ERROR_FIELD;
+        })[0];
+        if (errorTrigger) {
+            openFieldModal(
+                window.TPW_PROFILE_ERROR_FIELD,
+                errorTrigger.getAttribute("data-field-label"),
+                errorTrigger,
+                true
+            );
+        }
     }
 })();

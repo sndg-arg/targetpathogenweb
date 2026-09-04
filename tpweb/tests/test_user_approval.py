@@ -66,6 +66,32 @@ class UserApprovalServiceTests(TestCase):
         self.assertEqual(len(mail.outbox), 1)
         self.assertIn("pending@example.com", mail.outbox[0].to)
 
+    def test_notification_emails_greet_by_real_name_when_set(self):
+        User.objects.create_user(
+            username="owner2",
+            password="x",
+            is_superuser=True,
+            is_active=True,
+            email="o2@example.com",
+        )
+        new_user = User.objects.create_user(
+            username="autouser123",
+            password="x",
+            name="Ana Gutson",
+            email="ana@example.com",
+        )
+
+        with self.captureOnCommitCallbacks(execute=True):
+            mark_pending_approval(new_user)
+        self.assertIn("Ana Gutson", mail.outbox[0].body)
+        self.assertNotIn("autouser123", mail.outbox[0].body)
+        mail.outbox.clear()
+
+        with self.captureOnCommitCallbacks(execute=True):
+            approve_user(new_user)
+        self.assertIn("Ana Gutson", mail.outbox[0].body)
+        self.assertNotIn("autouser123", mail.outbox[0].body)
+
     def test_approve_user_is_idempotent_no_duplicate_email(self):
         user = User.objects.create_user(
             username="already", password="x", is_active=True, is_staff=True, email="a@example.com"

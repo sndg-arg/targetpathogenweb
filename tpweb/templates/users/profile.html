@@ -3,7 +3,8 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/auth.css' %}?v=20260904-profile-modal">
+    <link rel="stylesheet" href="{% static 'css/pages/auth.css' %}?v=20260904-slim">
+    <link rel="stylesheet" href="{% static 'css/pages/user-profile.css' %}?v=20260904-fused1">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -17,38 +18,61 @@
 {% endblock %}
 
 {% block body %}
-    <div class="auth-page">
-        <div class="auth-card profile-card">
-            <div class="profile-card-head">
-                <div class="profile-card-heading">
-                    <h1>{% trans "My profile" %}</h1>
-                    <p>{% trans "Your account details." %}</p>
-                </div>
-                <button type="button" class="btn tp-btn tp-btn--neutral tp-btn--sm tp-btn-with-icon"
-                        id="profile-edit-trigger" aria-haspopup="dialog" aria-controls="profile-edit-modal">
-                    <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/pencil.html" %}</span>
-                    <span>{% trans "Edit" %}</span>
-                </button>
-            </div>
+    <div class="profile-page">
 
+        <section class="profile-hero">
+            <div class="tp-view-head">
+                <div class="tp-view-head-copy">
+                    <h1>{% trans "My profile" %}</h1>
+                    <p class="profile-hero-description">{% trans "Your account details." %}</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="profile-section">
             <dl class="profile-fields">
                 <div class="profile-field">
                     <dt>{% trans "First name" %}</dt>
-                    <dd>{{ form.first_name.value|default:"—" }}</dd>
+                    <dd>
+                        <span class="profile-field-value">{{ form.first_name.value|default:"—" }}</span>
+                        <button type="button" class="profile-field-edit-btn js-profile-edit-field"
+                                data-field="first_name" data-field-label="{% trans 'First name' %}"
+                                aria-label="{% trans 'Edit first name' %}" aria-haspopup="dialog" aria-controls="profile-edit-modal">
+                            {% include "components/icons/pencil.html" %}
+                        </button>
+                    </dd>
                 </div>
                 <div class="profile-field">
                     <dt>{% trans "Last name" %}</dt>
-                    <dd>{{ form.last_name.value|default:"—" }}</dd>
+                    <dd>
+                        <span class="profile-field-value">{{ form.last_name.value|default:"—" }}</span>
+                        <button type="button" class="profile-field-edit-btn js-profile-edit-field"
+                                data-field="last_name" data-field-label="{% trans 'Last name' %}"
+                                aria-label="{% trans 'Edit last name' %}" aria-haspopup="dialog" aria-controls="profile-edit-modal">
+                            {% include "components/icons/pencil.html" %}
+                        </button>
+                    </dd>
                 </div>
                 <div class="profile-field">
                     <dt>{% trans "Email" %}</dt>
-                    <dd>{{ form.email.value|default:"—" }}</dd>
+                    <dd>
+                        <span class="profile-field-value">{{ form.email.value|default:"—" }}</span>
+                        <button type="button" class="profile-field-edit-btn js-profile-edit-field"
+                                data-field="email" data-field-label="{% trans 'Email' %}"
+                                aria-label="{% trans 'Edit email' %}" aria-haspopup="dialog" aria-controls="profile-edit-modal">
+                            {% include "components/icons/pencil.html" %}
+                        </button>
+                    </dd>
                 </div>
             </dl>
-        </div>
+        </section>
+
     </div>
 
-    {% if form.errors %}<script>window.TPW_PROFILE_HAS_ERRORS = true;</script>{% endif %}
+    {% if form.first_name.errors %}<script>window.TPW_PROFILE_ERROR_FIELD = "first_name";</script>
+    {% elif form.last_name.errors %}<script>window.TPW_PROFILE_ERROR_FIELD = "last_name";</script>
+    {% elif form.email.errors or form.non_field_errors %}<script>window.TPW_PROFILE_ERROR_FIELD = "email";</script>
+    {% endif %}
 
     <div class="profile-edit-modal-backdrop" id="profile-edit-modal" aria-hidden="true">
         <div class="profile-edit-panel" role="dialog" aria-modal="true" aria-labelledby="profile-edit-modal-title">
@@ -66,7 +90,7 @@
                         <div class="auth-errors">{{ form.non_field_errors }}</div>
                     {% endif %}
 
-                    <div class="auth-field">
+                    <div class="auth-field" data-field-group="first_name">
                         <label for="id_first_name">{% trans "First name" %}</label>
                         <input type="text" name="first_name" id="id_first_name"
                                value="{{ form.first_name.value|default:'' }}" required>
@@ -75,7 +99,7 @@
                         {% endif %}
                     </div>
 
-                    <div class="auth-field">
+                    <div class="auth-field" data-field-group="last_name">
                         <label for="id_last_name">{% trans "Last name" %}</label>
                         <input type="text" name="last_name" id="id_last_name"
                                value="{{ form.last_name.value|default:'' }}" required>
@@ -84,7 +108,7 @@
                         {% endif %}
                     </div>
 
-                    <div class="auth-field">
+                    <div class="auth-field" data-field-group="email">
                         <label for="id_email">{% trans "Email" %}</label>
                         <input type="email" name="email" id="id_email"
                                value="{{ form.email.value|default:'' }}" required>
@@ -101,5 +125,5 @@
         </div>
     </div>
 
-    <script src="{% static 'js/pages/user-profile.js' %}?v=20260904-init1"></script>
+    <script src="{% static 'js/pages/user-profile.js' %}?v=20260904-per-field"></script>
 {% endblock %}
