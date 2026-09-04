@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/user-management.css' %}?v=20260904-spacing">
+    <link rel="stylesheet" href="{% static 'css/pages/user-management.css' %}?v=20260904-fused-editmodal">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -112,8 +112,14 @@
                     {% endif %}
                 </div>
                 <div class="user-mgmt-list-cell user-mgmt-list-cell--actions" role="cell">
-                    <a class="btn tp-btn tp-btn--neutral tp-btn--sm" href="{% url 'admin:tpweb_tpuser_change' approved_user.pk %}">{% trans "Edit" %}</a>
                     {% if not approved_user.is_superuser %}
+                    <button type="button" class="btn tp-btn tp-btn--neutral tp-btn--sm user-mgmt-edit-trigger"
+                            data-user-id="{{ approved_user.pk }}"
+                            data-user-name="{{ approved_user.name|default:approved_user.get_username }}"
+                            data-granted='{{ approved_user.granted_permissions_json }}'
+                            aria-haspopup="dialog" aria-controls="user-permissions-modal">
+                        {% trans "Edit" %}
+                    </button>
                     <form method="post" action="{% url 'tpwebapp:user_management' %}" onsubmit="return confirm('{% trans "Revoke this user's access?" %}');">
                         {% csrf_token %}
                         <input type="hidden" name="user_id" value="{{ approved_user.pk }}">
@@ -131,4 +137,38 @@
     </section>
 
 </div>
+
+<div class="user-mgmt-edit-modal-backdrop" id="user-permissions-modal" aria-hidden="true">
+    <div class="user-mgmt-edit-panel" role="dialog" aria-modal="true" aria-labelledby="user-permissions-modal-title">
+        <div class="user-mgmt-edit-head">
+            <h3 id="user-permissions-modal-title">{% trans "Edit permissions" %}</h3>
+            <button type="button" class="btn tp-btn tp-btn--neutral tp-btn--sm user-mgmt-edit-close"
+                    id="user-permissions-modal-close" aria-label="{% trans 'Close' %}">
+                <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/x.html" %}</span>
+            </button>
+        </div>
+        <form method="post" action="{% url 'tpwebapp:user_management' %}" id="user-permissions-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="update_permissions">
+            <input type="hidden" name="user_id" id="user-permissions-modal-user-id" value="">
+            <div class="user-mgmt-edit-body">
+                <p class="user-mgmt-edit-subtitle">
+                    {% blocktrans %}What <strong id="user-permissions-modal-name"></strong> can do on the platform.{% endblocktrans %}
+                </p>
+                {% for codename, label in permission_choices %}
+                <label class="user-mgmt-perm-row">
+                    <input type="checkbox" name="permissions" value="{{ codename }}">
+                    <span>{{ label }}</span>
+                </label>
+                {% endfor %}
+            </div>
+            <div class="user-mgmt-edit-actions">
+                <button type="button" class="btn tp-btn tp-btn--clear tp-btn--sm" id="user-permissions-modal-cancel">{% trans "Cancel" %}</button>
+                <button type="submit" class="btn tp-btn tp-btn--primary tp-btn--sm">{% trans "Save" %}</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="{% static 'js/pages/user-management.js' %}?v=20260904-permissions-modal"></script>
 {% endblock %}

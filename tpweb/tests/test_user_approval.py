@@ -295,6 +295,45 @@ class UserManagementViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "mgmt-pending")
 
+    def test_approved_row_carries_granted_permissions_for_the_edit_modal(self):
+        from django.contrib.auth.models import Permission
+
+        owner = User.objects.create_user(
+            username="mgmt-owner9", password="x", is_staff=True, is_superuser=True
+        )
+        approved = User.objects.create_user(
+            username="mgmt-approved4", password="x", is_active=True, is_staff=True
+        )
+        approved.user_permissions.add(
+            Permission.objects.get(content_type__app_label="tpweb", codename="can_run_blast")
+        )
+        self.client.force_login(owner)
+
+        response = self.client.get(reverse("tpwebapp:user_management"))
+
+        self.assertEqual(response.status_code, 200)
+        # Django auto-escapes the JSON's double quotes to &quot; in the
+        # rendered attribute -- browsers decode that back to a literal
+        # quote when JS reads the attribute, so this is still valid JSON
+        # by the time user-management.js calls JSON.parse() on it.
+        self.assertContains(response, "data-granted='[&quot;can_run_blast&quot;]'")
+        # The full toggleable set is offered in the modal's checkbox list,
+        # not just whatever this one user happens to have.
+        self.assertContains(response, "can_manage_formulas")
+        self.assertContains(response, "can_use_agent_chat")
+
+    def test_superuser_row_has_no_edit_permissions_button(self):
+        owner = User.objects.create_user(
+            username="mgmt-owner10", password="x", is_staff=True, is_superuser=True
+        )
+        self.client.force_login(owner)
+
+        response = self.client.get(reverse("tpwebapp:user_management"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "mgmt-owner10")
+        self.assertNotContains(response, f'data-user-id="{owner.pk}"')
+
     def test_post_approve_activates_pending_user(self):
         owner = User.objects.create_user(
             username="mgmt-owner2", password="x", is_staff=True, is_superuser=True
@@ -384,6 +423,58 @@ class UserManagementViewTests(TestCase):
 
         other_owner.refresh_from_db()
         self.assertTrue(other_owner.is_active)
+
+    def test_post_update_permissions_grants_and_revokes_selected(self):
+        from django.contrib.auth.models import Permission
+
+        owner = User.objects.create_user(
+            username="mgmt-owner7", password="x", is_staff=True, is_superuser=True
+        )
+        approved = User.objects.create_user(
+            username="mgmt-approved3", password="x", is_active=True, is_staff=True
+        )
+        approved.user_permissions.add(
+            Permission.objects.get(content_type__app_label="tpweb", codename="can_run_blast")
+        )
+        self.client.force_login(owner)
+
+        response = self.client.post(
+            reverse("tpwebapp:user_management"),
+            {
+                "user_id": approved.pk,
+                "action": "update_permissions",
+                "permissions": ["can_view_activity", "can_manage_formulas"],
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        codenames = set(approved.user_permissions.values_list("codename", flat=True))
+        self.assertEqual(codenames, {"can_view_activity", "can_manage_formulas"})
+        self.assertNotIn("can_run_blast", codenames)
+
+    def test_post_update_permissions_refuses_for_superuser(self):
+        owner = User.objects.create_user(
+            username="mgmt-owner8", password="x", is_staff=True, is_superuser=True
+        )
+        other_owner = User.objects.create_user(
+            username="mgmt-other-owner2",
+            password="x",
+            is_active=True,
+            is_staff=True,
+            is_superuser=True,
+        )
+        self.client.force_login(owner)
+
+        self.client.post(
+            reverse("tpwebapp:user_management"),
+            {
+                "user_id": other_owner.pk,
+                "action": "update_permissions",
+                "permissions": ["can_view_activity"],
+            },
+        )
+
+        self.assertEqual(other_owner.user_permissions.count(), 0)
 
 
 class ProfileViewTests(TestCase):
