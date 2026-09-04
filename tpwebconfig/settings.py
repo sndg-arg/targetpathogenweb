@@ -298,7 +298,12 @@ EMAIL_HOST = env("DJANGO_EMAIL_HOST", default="localhost")
 EMAIL_PORT = env.int("DJANGO_EMAIL_PORT", default=587)
 EMAIL_HOST_USER = env("DJANGO_EMAIL_HOST_USER", default="")
 EMAIL_HOST_PASSWORD = env("DJANGO_EMAIL_HOST_PASSWORD", default="")
+# Mutually exclusive (Django raises if both are True): TLS/port 587 is the
+# common default, but some institutional networks block outbound 587/25
+# and only allow 465 (implicit SSL) -- set DJANGO_EMAIL_USE_TLS=False and
+# DJANGO_EMAIL_USE_SSL=True (with DJANGO_EMAIL_PORT=465) in that case.
 EMAIL_USE_TLS = env.bool("DJANGO_EMAIL_USE_TLS", default=True)
+EMAIL_USE_SSL = env.bool("DJANGO_EMAIL_USE_SSL", default=False)
 DEFAULT_FROM_EMAIL = env("DJANGO_DEFAULT_FROM_EMAIL", default="no-reply@targetpathogen.local")
 
 
