@@ -270,6 +270,10 @@ SERVER_EMAIL=webmaster@example.com
 ACCOUNT_ALLOW_REGISTRATION = env.bool("DJANGO_ACCOUNT_ALLOW_REGISTRATION", False)
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
 ACCOUNT_AUTHENTICATION_METHOD = "username_email"
+# Signup collects a name + email, not a username -- allauth auto-generates
+# one from the email instead of showing the field. Login (username_email
+# above) still accepts either, unaffected.
+ACCOUNT_USERNAME_REQUIRED = False
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
 ACCOUNT_EMAIL_REQUIRED = True
 # https://django-allauth.readthedocs.io/en/latest/configuration.html

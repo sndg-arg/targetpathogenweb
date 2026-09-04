@@ -1,5 +1,6 @@
 from allauth.account.forms import SignupForm
 from allauth.socialaccount.forms import SignupForm as SocialSignupForm
+from django import forms
 from django.contrib.auth import forms as admin_forms
 from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
@@ -29,7 +30,23 @@ class UserSignupForm(SignupForm):
     Form that will be rendered on a user sign up section/screen.
     Default fields will be added automatically.
     Check UserSocialSignupForm for accounts created from social.
+
+    No username field is shown -- ACCOUNT_USERNAME_REQUIRED=False (settings.py)
+    tells allauth's SignupForm to omit it and auto-generate one from the
+    email instead (DefaultAccountAdapter.populate_username(), unchanged).
+    "name" is the only addition, saved onto TPUser.name via custom_signup()
+    (allauth's own hook for extra signup fields).
     """
+
+    name = forms.CharField(label=_("Full name"), max_length=150)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.order_fields(["name", "email", "password1", "password2"])
+
+    def custom_signup(self, request, user):
+        user.name = self.cleaned_data["name"]
+        user.save(update_fields=["name"])
 
 
 class UserSocialSignupForm(SocialSignupForm):
