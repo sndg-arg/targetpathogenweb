@@ -113,6 +113,34 @@ class UserApprovalServiceTests(TestCase):
         self.assertIn("Grace Hopper", html_body)
         self.assertIn("TARGET PATHOGEN", html_body)
 
+    @override_settings(SITE_URL="https://targetpathogen.example.org")
+    def test_approve_user_email_includes_a_login_link_when_site_url_is_set(self):
+        user = User.objects.create_user(
+            username="linked-approved", password="x", is_active=False, email="linked@example.com"
+        )
+
+        with self.captureOnCommitCallbacks(execute=True):
+            approve_user(user)
+
+        login_url = "https://targetpathogen.example.org" + reverse("account_login")
+        self.assertIn(login_url, mail.outbox[0].body)
+        html_body = mail.outbox[0].alternatives[0][0]
+        self.assertIn(login_url, html_body)
+
+    @override_settings(SITE_URL="")
+    def test_approve_user_email_omits_login_link_when_site_url_is_unset(self):
+        user = User.objects.create_user(
+            username="unlinked-approved",
+            password="x",
+            is_active=False,
+            email="unlinked@example.com",
+        )
+
+        with self.captureOnCommitCallbacks(execute=True):
+            approve_user(user)
+
+        self.assertNotIn("http", mail.outbox[0].body)
+
     def test_approve_user_grants_can_upload_genome_permission(self):
         user = User.objects.create_user(
             username="pending2", password="x", is_active=False, email="pending2@example.com"

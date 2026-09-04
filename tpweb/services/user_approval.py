@@ -13,6 +13,7 @@ from django.contrib.auth.models import Permission
 from django.core.mail import send_mail
 from django.db import transaction
 from django.template.loader import render_to_string
+from django.urls import reverse
 
 logger = logging.getLogger(__name__)
 
@@ -132,15 +133,22 @@ def _notify_user_approved(user):
     if not user.email:
         return
     display_name = user.name or user.get_username()
+    # Blank unless DJANGO_SITE_URL is set (see settings.py) -- there's no
+    # reliable way to derive the site's real public URL from ALLOWED_HOSTS
+    # or django.contrib.sites here, so a missing setting just means no link
+    # instead of a guessed-wrong one.
+    login_url = f"{settings.SITE_URL}{reverse('account_login')}" if settings.SITE_URL else ""
     try:
         send_mail(
             subject="Target Pathogen: your account has been approved",
             message=(
                 f"Hi {display_name}, your Target Pathogen account "
                 "has been approved. You can now sign in."
+                + (f"\n\n{login_url}" if login_url else "")
             ),
             html_message=render_to_string(
-                "email/user_approved_email.html", {"display_name": display_name}
+                "email/user_approved_email.html",
+                {"display_name": display_name, "login_url": login_url},
             ),
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[user.email],
