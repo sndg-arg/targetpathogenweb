@@ -16,16 +16,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="">
+    <meta name="google-site-verification" content="XcWKGBnA8mG9qkayUDgUgHUxGDuM52DTvNMYM3dSNRE" />
     <title>{% trans "Target Pathogen" %}</title>
-    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'img/brand/favicon-32.png' %}?v=4">
-    <link rel="icon" type="image/png" sizes="512x512" href="{% static 'img/brand/favicon-512.png' %}?v=4">
+    <link rel="icon" type="image/svg+xml" href="{% static 'img/brand/favicon.svg' %}?v=5">
+    <link rel="alternate icon" type="image/png" sizes="32x32" href="{% static 'img/brand/favicon-32.png' %}?v=5">
     <link rel="apple-touch-icon" sizes="180x180" href="{% static 'img/brand/apple-touch-icon.png' %}?v=4">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
-    <link rel="stylesheet" href="{% static 'css/components/ui-system.css' %}?v=20260808-table-scroll-host-fix">
-    <link rel="stylesheet" href="{% static 'css/components/agent-drawer.css' %}?v=20260804-fusion1">
+    <link rel="stylesheet" href="{% static 'css/components/ui-system.css' %}?v=20260902-panel-head-wrap">
+    <link rel="stylesheet" href="{% static 'css/components/agent-drawer.css' %}?v=20260811-fab-ring-loader">
     <style>
         :root {
             --tp-color-text-primary: #132f3d;
@@ -109,15 +110,37 @@
             --tp-color-structure-bg: #f6fbf9;
             --tp-color-structure-label: #0e2330;
             --tp-color-structure-label-bg: rgba(255, 255, 255, 0.78);
-            /* NGL's own built-in "sstruc" colorScheme (By structure mode) --
-               hardcoded inside the vendored ngl library itself, not something
-               we pass in, so these mirror its literal output exactly rather
-               than following the app's light/dark palette. Same value in
-               both themes on purpose -- the 3D-rendered colors never change
-               with app theme, so the legend swatches must not either. */
+            /* Dedicated token so the structure viewer's "Heteroatoms" color
+               can be user-overridden without also touching the generic
+               rose/danger family used elsewhere in the app -- seeded with
+               the exact value it used to borrow from --tp-color-rose-500,
+               so this introduces no visual change on its own. */
+            --tp-color-structure-hetero: #cf628c;
+            /* "By structure" mode -- fed into a custom NGL colormaker
+               (structure.html/protein.html registers "tpSstruc" against
+               these exact values) instead of NGL's own built-in "sstruc"
+               scheme, so the legend and the 3D-rendered colors are the same
+               tokens by construction, not by coincidence. Helix/sheet keep
+               NGL's original hues (still legible on both canvas colors);
+               coil is overridden below for dark mode -- pure white was
+               NGL's literal default, tuned for its own dark demo canvas,
+               and is nearly invisible against this app's light-mode canvas
+               (--sv-viewer-canvas-bg here is #f0f6fa, near-white itself). */
             --tp-color-sstruc-helix: #ff0080;
             --tp-color-sstruc-sheet: #ffc800;
-            --tp-color-sstruc-coil: #ffffff;
+            --tp-color-sstruc-coil: #8a97a0;
+            /* "By pLDDT" mode -- predicted structures only (AlphaFold/ColabFold
+               models store per-residue confidence in the PDB's B-factor column).
+               These are AlphaFold DB's own official 4-band palette, not this
+               app's brand colors -- kept identical so anyone already familiar
+               with AlphaFold's coloring recognizes it immediately here. All
+               four are saturated enough to read on both light and dark canvas
+               backgrounds, so (unlike sstruc-coil above) no dark-mode override
+               is needed. */
+            --tp-color-plddt-very-high: #0053d6;
+            --tp-color-plddt-high: #65cbf3;
+            --tp-color-plddt-low: #ffdb13;
+            --tp-color-plddt-very-low: #ff7d45;
             /* Structure viewer — light mode (canvas matches page theme) */
             --sv-viewer-canvas-bg: #f0f6fa;
             --sv-overlay-bg: rgba(228, 241, 250, 0.90);
@@ -172,8 +195,7 @@
             --tp-shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.10);
             --tp-shadow: var(--tp-shadow-sm);
             --tp-color-scrim: rgba(0, 0, 0, 0.48);
-            --tp-sidebar-w: 260px;
-            --tp-sidebar-w-collapsed: 84px;
+            --tp-topbar-h: 76px;
             --tp-radius-lg: 26px;
             --tp-radius-md: 20px;
             --tp-space-1: 4px;
@@ -313,6 +335,12 @@
             --tp-color-structure-pocket-polar: #c96a5c;
             --tp-color-structure-p2-apolar: #ffb020;
             --tp-color-structure-p2-polar: #a78bfa;
+            --tp-color-structure-hetero: #b85a80;
+            /* Coil back to a near-white that reads clearly against the dark
+               canvas below (unlike light mode, pure-ish white has real
+               contrast here) -- helix/sheet stay the same vivid hues in
+               both themes. */
+            --tp-color-sstruc-coil: #e7ecef;
 
             /* structure viewer overlay — dark mode */
             --sv-viewer-canvas-bg: #0d1519;
@@ -1009,7 +1037,7 @@
             color: var(--tp-color-on-accent);
         }
 
-        .tp-sidebar {
+        .tp-topbar-desktop {
             display: none;
         }
 
@@ -1075,56 +1103,6 @@
             max-width: 1360px;
             margin: 0 auto;
             padding: 18px 18px 36px;
-        }
-
-        /* Site-wide masthead rule -- every page's content sits inside
-           .tp-main, so this is the one place to put it instead of a
-           per-page hero decoration. Used to live as .home-hero::before,
-           scoped to Home only, back when the hero had its own bordered
-           card to be "the top edge of"; now that Home's sections share one
-           continuous background instead of separate cards, anchoring it
-           here makes it a consistent site identity mark instead of an
-           orphaned line with nothing to attach to. */
-        .tp-main::before {
-            content: "";
-            position: absolute;
-            top: 0.5px;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, var(--tp-color-brand-800) 0%, var(--tp-color-sage-700) 58%, var(--tp-color-brand-600) 100%);
-            box-shadow: 0 2px 12px color-mix(in srgb, var(--tp-color-brand-700) 45%, transparent);
-        }
-
-        /* One-time shimmer sweep on page load -- same box as ::before
-           (position/size) so the highlight band is naturally clipped to
-           the same shape, no extra overflow trick needed. Plays once
-           (fill-mode forwards fades it to invisible), not a looping
-           animation. */
-        .tp-main::after {
-            content: "";
-            position: absolute;
-            top: 0.5px;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.85) 50%, transparent 100%);
-            background-size: 55% 100%;
-            background-repeat: no-repeat;
-            background-position: -55% 0;
-            animation: tp-masthead-shimmer 1.5s ease-out 350ms 1 forwards;
-            pointer-events: none;
-        }
-
-        @keyframes tp-masthead-shimmer {
-            from {
-                background-position: -55% 0;
-                opacity: 1;
-            }
-            to {
-                background-position: 155% 0;
-                opacity: 0;
-            }
         }
 
         .tp-table-shell {
@@ -1298,192 +1276,470 @@
                 background: rgba(255, 255, 255, 0.08);
                 color: var(--tp-color-on-accent);
             }
+
+            .tp-topbar-mobile .dropdown-menu .dropdown-divider {
+                border-top-color: rgba(255, 255, 255, 0.12);
+                margin: 4px 0;
+            }
         }
 
         @media (min-width: 992px) {
             body {
-                padding-top: 0;
-                padding-left: var(--tp-sidebar-w);
+                padding-top: var(--tp-topbar-h);
             }
 
             .tp-topbar-mobile {
                 display: none !important;
             }
 
-            .tp-sidebar {
+            /* Flat/docked at the top of the page, gains a deeper shadow
+               once the page scrolls beneath it (body.tp-scrolled, toggled
+               by a small scroll listener) -- a bar that visibly "floats"
+               over content only once there's content to float over, rather
+               than a shadow that's always on regardless of scroll. */
+            .tp-topbar-desktop {
                 position: fixed;
-                inset: 0 auto 0 0;
-                width: var(--tp-sidebar-w);
+                inset: 0 0 auto 0;
+                height: var(--tp-topbar-h);
                 display: flex;
-                flex-direction: column;
-                overflow-y: auto;
-                background:
-                    radial-gradient(560px 220px at -18% -12%, rgba(45, 136, 168, 0.28) 0%, transparent 60%),
-                    radial-gradient(380px 180px at 118% 102%, rgba(47, 127, 112, 0.24) 0%, transparent 68%),
-                    linear-gradient(180deg, var(--tp-color-nav-700) 0%, var(--tp-color-nav-800) 55%, var(--tp-color-nav-900) 100%);
-                border-right: 1px solid rgba(255, 255, 255, 0.09);
-                box-shadow: 4px 0 16px rgba(9, 23, 33, 0.18);
+                align-items: stretch;
+                background: var(--tp-color-nav-900);
+                border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+                box-shadow: 0 1px 0 rgba(255, 255, 255, 0.08) inset;
                 color: var(--tp-color-selection);
                 z-index: 1030;
-                transition: width var(--tp-ui-motion-base) var(--tp-ui-ease-standard);
+                transition: box-shadow var(--tp-ui-motion-base) var(--tp-ui-ease-standard);
             }
 
-            .tp-sidebar-brand {
-                padding: 18px 16px 12px;
-                border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            /* Tight, not the usual soft/wide drop shadow -- the sticky
+               breadcrumb bar (ui-system.css) now sits flush under this bar
+               at all scroll positions, so a shadow with real reach would
+               bleed a dark gradient across it (confirmed live: it did,
+               with the previous 10px/28px version). This still reads as
+               "floating" without smearing onto the strip below. */
+            body.tp-scrolled .tp-topbar-desktop {
+                box-shadow: 0 1px 0 rgba(255, 255, 255, 0.08) inset, 0 2px 6px rgba(6, 16, 23, 0.22);
             }
 
-            .tp-sidebar-brand-row {
+            .tp-topbar-desktop-inner {
+                width: 100%;
+                max-width: 1520px;
+                margin: 0 auto;
+                padding: 0 32px;
                 display: flex;
                 align-items: center;
-                justify-content: space-between;
-                gap: 8px;
+                gap: 32px;
             }
 
-            .tp-sidebar-brand a {
-                color: var(--tp-color-on-accent);
+            .tp-topbar-desktop-brand {
+                display: flex;
+                align-items: center;
+                gap: 11px;
+                flex: 0 0 auto;
                 text-decoration: none;
-                font-family: "Space Grotesk", "Segoe UI", sans-serif;
-                font-size: 1.2rem;
-                font-weight: 700;
-                letter-spacing: 0.2px;
+            }
+
+            .tp-topbar-desktop-brand:hover,
+            .tp-topbar-desktop-brand:focus {
+                text-decoration: none;
+            }
+
+            .tp-topbar-desktop-mark {
                 display: block;
+                height: 32px;
+                width: 32px;
+                object-fit: contain;
             }
 
-            .tp-sidebar-brand a:hover,
-            .tp-sidebar-brand a:focus,
-            .tp-sidebar-brand a:active {
-                color: var(--tp-color-on-accent);
-                text-decoration: none;
-            }
-
-            .tp-brand-short {
-                display: none;
-            }
-
-            .tp-sidebar-kicker {
-                margin: 8px 0 0;
-                color: rgba(231, 244, 249, 0.72);
-                font-size: 0.74rem;
-                font-weight: 600;
-                line-height: 1.4;
+            .tp-topbar-desktop-wordmark {
+                font-family: "Space Grotesk", "Segoe UI", sans-serif;
+                font-size: 1.5rem;
+                font-weight: 700;
                 letter-spacing: 0.03em;
+                color: var(--tp-color-on-accent);
+                white-space: nowrap;
             }
 
-            .tp-sidebar-toggle {
-                border: 1px solid rgba(255, 255, 255, 0.26);
-                background: rgba(255, 255, 255, 0.08);
-                color: var(--tp-color-on-accent);
-                border-radius: 8px;
-                width: 28px;
-                height: 28px;
-                padding: 0;
+            .tp-topbar-desktop-nav {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                flex-wrap: wrap;
+            }
+
+            .tp-topbar-desktop-link {
                 display: inline-flex;
                 align-items: center;
+                gap: 8px;
+                border-radius: 9px;
+                color: rgba(232, 245, 250, 0.88);
+                text-decoration: none;
+                font-weight: 600;
+                font-size: 0.87rem;
+                letter-spacing: 0.01em;
+                padding: 9px 15px;
+                white-space: nowrap;
+                transition: background var(--tp-ui-motion-base) var(--tp-ui-ease-standard), color var(--tp-ui-motion-base) var(--tp-ui-ease-standard);
+            }
+
+            /* Fallback stroke/fill for icon partials that ship with no
+               inline stroke of their own (e.g. upload.html, which relies on
+               a wrapper like .tp-btn-icon elsewhere) -- without this they
+               render with the SVG default (stroke: none), i.e. invisible. */
+            .tp-topbar-desktop-link-icon {
+                display: flex;
+                align-items: center;
                 justify-content: center;
-                cursor: pointer;
-                font-weight: 600;
+                width: 16px;
+                height: 16px;
+                color: var(--tp-color-on-accent);
             }
 
-            .tp-sidebar-toggle:hover {
-                background: rgba(255, 255, 255, 0.15);
-            }
-
-            .tp-side-nav {
-                display: grid;
-                gap: 6px;
-                padding: 12px;
-            }
-
-            .tp-side-section {
-                display: grid;
-                gap: 6px;
-            }
-
-            .tp-side-section + .tp-side-section {
-                margin-top: 10px;
-                padding-top: 10px;
-                border-top: 1px solid rgba(255, 255, 255, 0.08);
-            }
-
-            .tp-side-section-label {
-                margin: 0;
-                color: rgba(231, 244, 249, 0.58);
-                font-size: 0.72rem;
-                font-weight: 500;
-                letter-spacing: 0.08em;
-                text-transform: uppercase;
-                padding: 0 4px;
-            }
-
-            .tp-side-link {
+            .tp-topbar-desktop-link-icon svg {
                 display: block;
-                border-radius: 10px;
-                color: rgba(232, 245, 250, 0.94);
-                text-decoration: none;
-                font-weight: 600;
-                padding: 9px 10px;
-                transition: background var(--tp-ui-motion-base) var(--tp-ui-ease-standard), color var(--tp-ui-motion-base) var(--tp-ui-ease-standard), border-color var(--tp-ui-motion-base) var(--tp-ui-ease-standard);
-                position: relative;
-                border: 1px solid transparent;
+                width: 100%;
+                height: 100%;
+                stroke: currentColor;
+                fill: none;
+                stroke-width: 1.6;
+                stroke-linecap: round;
+                stroke-linejoin: round;
             }
 
-            /* A given alpha reads much fainter on the narrow collapsed
-               pill (~60px wide) than on the full-width expanded row --
-               same tint, far less surface area to carry it. Bumped so
-               collapsed and expanded read as the same visual language. */
-            .tp-side-link.tp-side-link--primary {
-                background: rgba(255, 255, 255, 0.09);
-            }
-
-            /* Plain centered text, no background/radius of its own -- the
-               parent .tp-side-link already carries the single hover/active
-               box (background + border below). A second rounded box here
-               nested inside that one read as "button inside a card". */
-            .tp-side-link::before {
-                content: attr(data-short);
-                display: none;
-                width: 24px;
-                line-height: 24px;
-                text-align: center;
-                font-size: 0.73rem;
-                font-weight: 600;
-                color: var(--tp-color-on-accent);
-            }
-
-            .tp-side-link:hover {
-                background: rgba(255, 255, 255, 0.14);
+            .tp-topbar-desktop-link:hover {
+                background: rgba(255, 255, 255, 0.08);
                 color: var(--tp-color-on-accent);
                 text-decoration: none;
-                border-color: rgba(255, 255, 255, 0.12);
             }
 
-            .tp-side-link.active {
+            /* A thin underline instead of a filled pill -- reads as a
+               selected editorial tab, not an app button. */
+            .tp-topbar-desktop-link.active {
+                color: var(--tp-color-on-accent);
+                box-shadow: inset 0 -2px 0 rgba(255, 255, 255, 0.85);
+            }
+
+            .tp-topbar-desktop-utility {
+                display: flex;
+                align-items: center;
+                gap: 14px;
+                margin-left: auto;
+                flex: 0 0 auto;
+            }
+
+            /* Small identity capsule -- icon + username + a compact logout
+               icon-button, one cohesive chip instead of loose floating
+               text, echoing the same capsule language used elsewhere in
+               this bar (nav links, the theme toggle). */
+            .tp-topbar-desktop-account {
+                display: flex;
+                align-items: center;
+                gap: 7px;
+                padding: 5px 6px 5px 11px;
+                background: rgba(255, 255, 255, 0.07);
+                border: 1px solid rgba(255, 255, 255, 0.14);
+                border-radius: 999px;
+            }
+
+            .tp-topbar-desktop-account-icon {
+                display: flex;
+                width: 13px;
+                height: 13px;
+                flex: 0 0 auto;
+                color: rgba(232, 245, 250, 0.7);
+            }
+
+            .tp-topbar-desktop-account-icon svg {
+                display: block;
+                width: 100%;
+                height: 100%;
+                stroke: currentColor;
+                fill: none;
+            }
+
+            .tp-topbar-desktop-user {
+                font-weight: 600;
+                color: rgba(231, 244, 249, 0.92);
+                font-size: 0.82rem;
+                white-space: nowrap;
+            }
+
+            .tp-topbar-desktop-login-form {
+                display: contents;
+            }
+
+            .tp-topbar-desktop-logout-btn {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 22px;
+                height: 22px;
+                padding: 0;
+                border: none;
+                border-radius: 999px;
+                background: transparent;
+                color: rgba(232, 245, 250, 0.7);
+                cursor: pointer;
+                transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+                    color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+            }
+
+            .tp-topbar-desktop-logout-btn:hover,
+            .tp-topbar-desktop-logout-btn:focus-visible {
                 background: rgba(255, 255, 255, 0.16);
                 color: var(--tp-color-on-accent);
-                border: 1px solid rgba(255, 255, 255, 0.2);
-                box-shadow: inset 3px 0 0 rgba(255, 255, 255, 0.6);
+                outline: none;
             }
 
-            .tp-side-footer {
-                margin-top: auto;
-                padding: 12px;
-                border-top: 1px solid rgba(255, 255, 255, 0.08);
-                display: grid;
-                gap: 8px;
+            .tp-topbar-desktop-logout-icon {
+                display: flex;
+                width: 13px;
+                height: 13px;
             }
 
-            .tp-user-chip {
-                background: rgba(255, 255, 255, 0.12);
-                border: 1px solid rgba(255, 255, 255, 0.14);
-                border-radius: 10px;
-                padding: 8px 10px;
+            .tp-topbar-desktop-logout-icon svg {
+                display: block;
+                width: 100%;
+                height: 100%;
+                stroke: currentColor;
+                fill: none;
+                stroke-width: 1.7;
+                stroke-linecap: round;
+                stroke-linejoin: round;
+            }
+
+            /* Staff account menu -- groups Activity/Admin/Logout behind the
+               account pill instead of adding more top-level nav pills (those
+               wrap onto a second row once a staff user has 7-8 items to fit
+               alongside the logo and utility cluster). */
+            .tp-topbar-desktop-account-wrap {
+                position: relative;
+            }
+
+            .tp-topbar-desktop-account--menu {
+                cursor: pointer;
+                font: inherit;
+                appearance: none;
+                transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+                    border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+            }
+
+            .tp-topbar-desktop-account--menu:hover,
+            .tp-topbar-desktop-account--menu:focus-visible,
+            .tp-topbar-desktop-account--menu[aria-expanded="true"] {
+                background: rgba(255, 255, 255, 0.13);
+                border-color: rgba(255, 255, 255, 0.24);
+                outline: none;
+            }
+
+            .tp-topbar-desktop-account-caret {
+                display: flex;
+                width: 11px;
+                height: 11px;
+                flex: 0 0 auto;
+                color: rgba(232, 245, 250, 0.6);
+                transition: transform var(--tp-ui-motion-base) var(--tp-ui-ease-standard);
+            }
+
+            .tp-topbar-desktop-account-caret svg {
+                display: block;
+                width: 100%;
+                height: 100%;
+                stroke: currentColor;
+                fill: none;
+                stroke-width: 1.7;
+                stroke-linecap: round;
+                stroke-linejoin: round;
+            }
+
+            .tp-topbar-desktop-account--menu[aria-expanded="true"] .tp-topbar-desktop-account-caret {
+                transform: rotate(180deg);
+            }
+
+            .tp-topbar-desktop-account-menu {
+                margin-top: 10px !important;
+                padding: 6px;
+                min-width: 196px;
+                background: rgba(13, 27, 34, 0.97);
+                backdrop-filter: blur(16px);
+                -webkit-backdrop-filter: blur(16px);
+                border: 1px solid rgba(255, 255, 255, 0.12);
+                border-radius: 12px;
+                box-shadow: 0 18px 40px rgba(0, 0, 0, 0.38), 0 2px 10px rgba(0, 0, 0, 0.22);
+            }
+
+            .tp-topbar-desktop-account-item {
+                display: flex;
+                align-items: center;
+                gap: 9px;
+                width: 100%;
+                padding: 9px 10px;
+                border: none;
+                border-radius: 8px;
+                background: transparent;
+                color: rgba(232, 245, 250, 0.88);
+                font-size: 0.85rem;
+                font-weight: 500;
+                text-align: left;
+                text-decoration: none;
+                transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+                    color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+            }
+
+            .tp-topbar-desktop-account-item:hover,
+            .tp-topbar-desktop-account-item:focus-visible {
+                background: rgba(255, 255, 255, 0.1);
+                color: var(--tp-color-on-accent);
+                outline: none;
+            }
+
+            .tp-topbar-desktop-account-item.active {
+                background: rgba(255, 255, 255, 0.08);
+                color: var(--tp-color-on-accent);
+            }
+
+            .tp-topbar-desktop-account-item-icon {
+                display: flex;
+                width: 15px;
+                height: 15px;
+                flex: 0 0 auto;
+                color: rgba(232, 245, 250, 0.62);
+            }
+
+            .tp-topbar-desktop-account-item-icon svg {
+                display: block;
+                width: 100%;
+                height: 100%;
+                stroke: currentColor;
+                fill: none;
+                stroke-width: 1.6;
+                stroke-linecap: round;
+                stroke-linejoin: round;
+            }
+
+            .tp-topbar-desktop-account-divider {
+                height: 1px;
+                margin: 6px 4px;
+                background: rgba(255, 255, 255, 0.1);
+            }
+
+            .tp-topbar-desktop-login {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                background: none;
+                border: none;
+                color: rgba(232, 245, 250, 0.88);
                 font-weight: 600;
-                color: rgba(231, 244, 249, 0.88);
-                font-size: 0.93rem;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
+                font-size: 0.85rem;
+                letter-spacing: 0.01em;
+                padding: 6px 2px;
+                cursor: pointer;
+                text-decoration: none;
+                transition: color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+            }
+
+            .tp-topbar-desktop-login-icon {
+                display: flex;
+                width: 14px;
+                height: 14px;
+            }
+
+            .tp-topbar-desktop-login-icon svg {
+                display: block;
+                width: 100%;
+                height: 100%;
+                stroke: currentColor;
+                fill: none;
+                stroke-width: 1.6;
+                stroke-linecap: round;
+                stroke-linejoin: round;
+            }
+
+            .tp-topbar-desktop-login:hover,
+            .tp-topbar-desktop-login:focus-visible {
+                color: var(--tp-color-on-accent);
+                text-decoration: underline;
+            }
+
+            /* Same translucent glass-capsule language as .tp-topbar-desktop-account
+               (the logged-in identity pill) -- Sign up occupies that same visual
+               slot for an anonymous visitor, so it borrows its exact treatment
+               rather than a saturated brand-color button that would be the only
+               solid-fill element in an otherwise all-translucent utility row. */
+            .tp-topbar-desktop-signup {
+                display: inline-flex;
+                align-items: center;
+                gap: 7px;
+                padding: 5px 14px 5px 11px;
+                background: rgba(255, 255, 255, 0.07);
+                border: 1px solid rgba(255, 255, 255, 0.14);
+                border-radius: 999px;
+                color: rgba(231, 244, 249, 0.92);
+                font-weight: 600;
+                font-size: 0.82rem;
+                letter-spacing: 0.01em;
+                text-decoration: none;
+                transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+                    border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+            }
+
+            .tp-topbar-desktop-signup-icon {
+                display: flex;
+                width: 13px;
+                height: 13px;
+                flex: 0 0 auto;
+                color: rgba(232, 245, 250, 0.7);
+            }
+
+            .tp-topbar-desktop-signup-icon svg {
+                display: block;
+                width: 100%;
+                height: 100%;
+                stroke: currentColor;
+                fill: none;
+                stroke-width: 1.7;
+                stroke-linecap: round;
+                stroke-linejoin: round;
+            }
+
+            .tp-topbar-desktop-signup:hover,
+            .tp-topbar-desktop-signup:focus-visible {
+                background: rgba(255, 255, 255, 0.13);
+                border-color: rgba(255, 255, 255, 0.24);
+                color: var(--tp-color-on-accent);
+                outline: none;
+            }
+
+            .tp-topbar-desktop-signup:hover .tp-topbar-desktop-signup-icon,
+            .tp-topbar-desktop-signup:focus-visible .tp-topbar-desktop-signup-icon {
+                color: var(--tp-color-on-accent);
+            }
+
+            .tp-topbar-desktop-divider {
+                width: 1px;
+                height: 20px;
+                background: rgba(255, 255, 255, 0.18);
+                flex: 0 0 auto;
+            }
+
+            /* Icon-only ghost button -- Assistant now lives in its own
+               floating action button (see .tp-agent-fab), so this is just
+               the plain theme switch. */
+            .tp-topbar-desktop-utility .tp-theme-toggle--icon-only {
+                flex: 0 0 auto;
+                border-color: transparent;
+                background: transparent;
+                padding: 8px;
+            }
+
+            .tp-topbar-desktop-utility .tp-theme-toggle--icon-only:hover {
+                background: rgba(255, 255, 255, 0.12);
+                border-color: transparent;
+            }
+
+            .tp-topbar-desktop-utility .tp-theme-toggle--icon-only .tp-theme-toggle-label {
+                display: none;
             }
 
             .tp-main {
@@ -1498,112 +1754,17 @@
                     min-height: 100dvh;
                 }
             }
-
-            body.tp-sidebar-collapsed {
-                padding-left: var(--tp-sidebar-w-collapsed);
-            }
-
-            body.tp-sidebar-collapsed .tp-sidebar {
-                width: var(--tp-sidebar-w-collapsed);
-                overflow-x: hidden;
-            }
-
-            body.tp-sidebar-collapsed .tp-brand-full,
-            body.tp-sidebar-collapsed .tp-side-text,
-            body.tp-sidebar-collapsed .tp-user-chip,
-            body.tp-sidebar-collapsed .tp-side-footer form,
-            body.tp-sidebar-collapsed .tp-side-footer > a {
-                display: none !important;
-            }
-
-            body.tp-sidebar-collapsed .tp-brand-short {
-                display: inline-block !important;
-            }
-
-            body.tp-sidebar-collapsed .tp-sidebar-kicker,
-            body.tp-sidebar-collapsed .tp-side-section-label {
-                display: none;
-            }
-
-            body.tp-sidebar-collapsed .tp-sidebar-brand {
-                padding: 14px 10px 10px;
-            }
-
-            body.tp-sidebar-collapsed .tp-sidebar-brand-row {
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-            }
-
-            body.tp-sidebar-collapsed .tp-side-nav {
-                padding: 10px 8px;
-                gap: 8px;
-            }
-
-            body.tp-sidebar-collapsed .tp-side-link {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                box-sizing: border-box;
-                padding: 9px 6px;
-                max-width: 100%;
-            }
-
-            body.tp-sidebar-collapsed .tp-side-link::before {
-                display: block;
-            }
-
-            body.tp-sidebar-collapsed .tp-side-footer {
-                padding: 8px;
-            }
-        }
-
-        .tp-sidebar-floating-label {
-            position: fixed;
-            left: calc(var(--tp-sidebar-w-collapsed) + 10px);
-            top: 0;
-            transform: translateY(-50%);
-            z-index: 1090;
-            max-width: min(260px, calc(100vw - var(--tp-sidebar-w-collapsed) - 24px));
-            padding: 5px 8px;
-            border: 1px solid rgba(255, 255, 255, 0.14);
-            border-radius: 7px;
-            background: #1a3040;
-            color: #e2e8f0;
-            box-shadow: var(--tp-shadow-md);
-            font-size: 0.79rem;
-            font-weight: 600;
-            line-height: 1.25;
-            opacity: 0;
-            pointer-events: none;
-            white-space: nowrap;
-            transition: opacity var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
-        }
-
-        .tp-sidebar-floating-label.is-visible {
-            opacity: 1;
         }
 
         @media (prefers-reduced-motion: reduce) {
             .btn,
             a,
-            .tp-side-link {
+            .tp-topbar-desktop-link {
                 transition: none;
-            }
-
-            .tp-main::after {
-                animation: none;
-                opacity: 0;
             }
         }
 
         /* ── Theme toggle ─────────────────────────────── */
-        .tp-side-footer-row {
-            display: flex;
-            gap: 6px;
-            margin-top: 8px;
-        }
-
         .tp-theme-toggle {
             display: flex;
             align-items: center;
@@ -1628,20 +1789,6 @@
             border-color: rgba(255, 255, 255, 0.2);
         }
 
-        /* Featured brand tint so the Assistant entry point reads as the
-           bigger, purpose-built feature it is, not an equal-weight utility
-           toggle sitting next to the theme switch. */
-        #tp-agent-drawer-toggle {
-            border-color: rgba(94, 182, 202, 0.35);
-            background: rgba(94, 182, 202, 0.12);
-            color: rgba(220, 241, 246, 0.95);
-        }
-
-        #tp-agent-drawer-toggle:hover {
-            border-color: rgba(94, 182, 202, 0.55);
-            background: rgba(94, 182, 202, 0.2);
-        }
-
         .tp-theme-toggle-icon {
             display: inline-flex;
             width: 15px;
@@ -1657,15 +1804,6 @@
         .tp-theme-toggle-label {
             overflow: hidden;
             white-space: nowrap;
-        }
-
-        body.tp-sidebar-collapsed .tp-theme-toggle-label {
-            display: none;
-        }
-
-        body.tp-sidebar-collapsed .tp-theme-toggle {
-            padding: 7px;
-            justify-content: center;
         }
 
         /* ── Dark mode component overrides (must come after base rules) ── */
@@ -1783,17 +1921,6 @@
         .tp-dark .tp-select-option.is-selected:hover,
         .tp-dark .tp-select-option.is-selected:focus-visible {
             box-shadow: var(--tp-shadow-sm) !important;
-        }
-
-        /* breadcrumb current — remove white glow */
-        .tp-dark .tp-breadcrumb-current {
-            background: linear-gradient(180deg, var(--tp-color-surface-muted) 0%, var(--view-accent-soft-2, var(--tp-color-brand-050)) 62%, var(--tp-accent-contrast-soft, var(--tp-color-rose-050)) 100%);
-            box-shadow: var(--tp-shadow-xs);
-        }
-
-        .tp-dark .tp-breadcrumb-link:hover,
-        .tp-dark .tp-breadcrumb-link:focus-visible {
-            background: linear-gradient(180deg, var(--tp-color-surface-muted) 0%, var(--view-accent-soft-2, var(--tp-color-brand-050)) 100%);
         }
 
         /* Bootstrap .table hardcodes color: #212529 — override in dark */
@@ -2160,8 +2287,7 @@
 
     {% block head %}{% endblock %}
 </head>
-<body>
-<script>(function(){var v=localStorage.getItem("tp.sidebar.collapsed");var c=v===null?window.matchMedia("(max-width:1440px)").matches:v==="1";if(c&&window.matchMedia("(min-width:992px)").matches){document.body.classList.add("tp-sidebar-collapsed");}}());</script>
+<body class="{% block body_class %}{% endblock %}">
 <div id="tp-page-loader" class="tp-page-loader" role="status" aria-live="polite" aria-hidden="true">
     <div class="tp-page-loader-card">
         <div class="tp-page-loader-head">
@@ -2178,96 +2304,107 @@
         </div>
     </div>
 </div>
-<aside class="tp-sidebar" aria-label="{% trans "Primary navigation" %}">
-    <div class="tp-sidebar-brand">
-        <div class="tp-sidebar-brand-row">
-            <a href="{% url 'tpwebapp:index' %}" aria-label="{% trans 'Target Pathogen' %}">
-                <img class="tp-brand-full" src="{% static 'img/brand/tp-logo-full-white.png' %}" alt="{% trans 'Target Pathogen' %}" style="display:block;width:190px;max-width:calc(var(--tp-sidebar-w) - 86px);height:auto;max-height:72px;object-fit:contain;object-position:left center;">
-                <img class="tp-brand-short" src="{% static 'img/brand/tp-logo-mark-white.png' %}?v=2" alt="" aria-hidden="true" style="width:44px;height:44px;object-fit:contain;">
+<nav class="tp-topbar-desktop" aria-label="{% trans "Primary navigation" %}">
+    <div class="tp-topbar-desktop-inner">
+        <a class="tp-topbar-desktop-brand" href="{% url 'tpwebapp:index' %}" aria-label="{% trans 'Target Pathogen' %}">
+            <img class="tp-topbar-desktop-mark" src="{% static 'img/brand/tp-logo-mark-white.png' %}?v=2" alt="" aria-hidden="true">
+            <span class="tp-topbar-desktop-wordmark">{% trans "Target Pathogen" %}</span>
+        </a>
+        <div class="tp-topbar-desktop-nav">
+            <a class="tp-topbar-desktop-link {% if request.resolver_match.url_name == 'index' %}active{% endif %}" aria-label="Home" href="{% url 'tpwebapp:index' %}">
+                <span class="tp-topbar-desktop-link-icon" aria-hidden="true">{% include "components/icons/home.html" %}</span>
+                <span>Home</span>
             </a>
-            <button id="tp-sidebar-toggle" class="tp-sidebar-toggle" type="button" aria-label="{% trans "Collapse navigation" %}" title="{% trans "Collapse navigation" %}" aria-expanded="true">
-                <span class="tp-chevron tp-chevron--left tp-sidebar-toggle-icon" aria-hidden="true"></span>
-            </button>
-        </div>
-        <p class="tp-sidebar-kicker">{% trans "Genome overviews, scoring, structural evidence, and BLAST in one analysis resource." %}</p>
-    </div>
-    <nav class="tp-side-nav">
-        <div class="tp-side-section">
-            <p class="tp-side-section-label">{% trans "Analysis" %}</p>
-            <a class="tp-side-link tp-side-link--primary {% if request.resolver_match.url_name == 'index' %}active{% endif %}" data-short="HM" data-label="Home" aria-label="Home" href="{% url 'tpwebapp:index' %}">
-                <span class="tp-side-text">Home</span>
+            <a class="tp-topbar-desktop-link {% if request.resolver_match.url_name == 'genomes_list' or request.resolver_match.url_name == 'assembly' or request.resolver_match.url_name == 'protein_list' or request.resolver_match.url_name == 'protein' or request.resolver_match.url_name == 'annotation_explorer' %}active{% endif %}" aria-label="{% trans 'Genomes' %}" href="{% url 'tpwebapp:genomes_list' %}">
+                <span class="tp-topbar-desktop-link-icon" aria-hidden="true">{% include "components/icons/list.html" %}</span>
+                <span>{% trans "Genomes" %}</span>
             </a>
-            <a class="tp-side-link tp-side-link--primary {% if request.resolver_match.url_name == 'genomes_list' or request.resolver_match.url_name == 'assembly' or request.resolver_match.url_name == 'protein_list' or request.resolver_match.url_name == 'protein' or request.resolver_match.url_name == 'annotation_explorer' %}active{% endif %}" data-short="GE" data-label="{% trans 'Genomes' %}" aria-label="{% trans 'Genomes' %}" href="{% url 'tpwebapp:genomes_list' %}">
-                <span class="tp-side-text">{% trans "Genomes" %}</span>
+            <a class="tp-topbar-desktop-link {% if request.resolver_match.url_name == 'genome_upload' or request.resolver_match.url_name == 'customparam' %}active{% endif %}" aria-label="{% trans 'Upload' %}" href="{% url 'tpwebapp:genome_upload' %}">
+                <span class="tp-topbar-desktop-link-icon" aria-hidden="true">{% include "components/icons/upload.html" %}</span>
+                <span>{% trans "Upload" %}</span>
             </a>
-            <a class="tp-side-link tp-side-link--primary {% if request.resolver_match.url_name == 'human_protein_list' or request.resolver_match.url_name == 'human_protein' %}active{% endif %}" data-short="HT" data-label="{% trans 'Human Targets' %}" aria-label="{% trans 'Human Targets' %}" href="{% url 'tpwebapp:human_protein_list' %}">
-                <span class="tp-side-text">{% trans "Human Targets" %}</span>
+            <a class="tp-topbar-desktop-link {% if '/form' in request.path or '/result/' in request.path %}active{% endif %}" aria-label="{% trans 'BLAST genome' %}" title="{% trans 'Nucleotide BLAST against a genome you choose. For protein BLAST, open a genome page.' %}" href="{% url 'tpwebapp:form' %}">
+                <span class="tp-topbar-desktop-link-icon" aria-hidden="true">{% include "components/icons/search.html" %}</span>
+                <span>{% trans "BLAST genome" %}</span>
             </a>
-            <a class="tp-side-link tp-side-link--primary {% if request.resolver_match.url_name == 'genome_upload' or request.resolver_match.url_name == 'customparam' %}active{% endif %}" data-short="UP" data-label="{% trans 'Upload' %}" aria-label="{% trans 'Upload' %}" href="{% url 'tpwebapp:genome_upload' %}">
-                <span class="tp-side-text">{% trans "Upload" %}</span>
+            <a class="tp-topbar-desktop-link {% if request.resolver_match.url_name == 'data_sources' %}active{% endif %}" aria-label="{% trans 'Methodology' %}" href="{% url 'tpwebapp:data_sources' %}">
+                <span class="tp-topbar-desktop-link-icon" aria-hidden="true">{% include "components/icons/flask.html" %}</span>
+                <span>{% trans "Methodology" %}</span>
             </a>
-            <a class="tp-side-link tp-side-link--primary {% if '/form' in request.path or '/result/' in request.path %}active{% endif %}" data-short="BL" data-label="{% trans 'BLAST' %}" aria-label="{% trans 'BLAST' %}" href="{% url 'tpwebapp:form' %}">
-                <span class="tp-side-text">{% trans "BLAST" %}</span>
-            </a>
-            <a class="tp-side-link tp-side-link--primary {% if request.resolver_match.url_name == 'data_sources' %}active{% endif %}" data-short="MT" data-label="{% trans 'Methodology' %}" aria-label="{% trans 'Methodology' %}" href="{% url 'tpwebapp:data_sources' %}">
-                <span class="tp-side-text">{% trans "Methodology" %}</span>
-            </a>
-            <a class="tp-side-link tp-side-link--primary {% if request.resolver_match.url_name == 'about_us' %}active{% endif %}" data-short="AB" data-label="{% trans 'About us' %}" aria-label="{% trans 'About us' %}" href="{% url 'tpwebapp:about_us' %}">
-                <span class="tp-side-text">{% trans "About us" %}</span>
+            <a class="tp-topbar-desktop-link {% if request.resolver_match.url_name == 'about_us' %}active{% endif %}" aria-label="{% trans 'About us' %}" href="{% url 'tpwebapp:about_us' %}">
+                <span class="tp-topbar-desktop-link-icon" aria-hidden="true">{% include "components/icons/info.html" %}</span>
+                <span>{% trans "About us" %}</span>
             </a>
         </div>
-        {% if user.is_staff %}
-        <div class="tp-side-section">
-            <p class="tp-side-section-label">{% trans "Support" %}</p>
-            <a class="tp-side-link {% if '/admin' in request.path %}active{% endif %}" data-short="AD" data-label="{% trans 'Admin' %}" aria-label="{% trans 'Admin' %}" href="{% url 'admin:index' %}">
-                <span class="tp-side-text">{% trans "Admin" %}</span>
-            </a>
-        </div>
-        {% endif %}
-    </nav>
-    <div class="tp-side-footer">
-        {% if user.is_authenticated %}
-            <div class="tp-user-chip">{{ user.get_username }}</div>
-            <form method="post" action="{% url 'account_logout' %}">
-                {% csrf_token %}
-                <button class="btn btn-sm btn-outline-light btn-block" type="submit">{% trans "Logout" %}</button>
-            </form>
-        {% else %}
-            <a class="btn btn-sm btn-outline-light btn-block" href="{% url 'account_login' %}">{% trans "Login" %}</a>
-        {% endif %}
-        <div class="tp-side-footer-row">
-            <button id="tp-agent-drawer-toggle" class="tp-theme-toggle" type="button"
-                    aria-label="{% trans 'Open assistant' %}" title="{% trans 'Open assistant' %}"
-                    aria-expanded="false" aria-controls="tp-agent-drawer">
-                <span class="tp-theme-toggle-icon" aria-hidden="true">
-                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true">
-                        <path d="M2 3.5h12v7H8.8L5.5 13v-2.5H2v-7Z"/>
-                        <path d="M5 6.5h6M5 8.5h4"/>
-                    </svg>
-                </span>
-                <span class="tp-theme-toggle-label">{% trans "Assistant" %}</span>
-            </button>
-            <button id="tp-theme-toggle" class="tp-theme-toggle" type="button" aria-label="{% trans 'Toggle theme' %}" title="{% trans 'Toggle theme' %}">
+        <div class="tp-topbar-desktop-utility">
+            {% if user.is_authenticated %}
+                <div class="dropdown tp-topbar-desktop-account-wrap">
+                    <button class="tp-topbar-desktop-account tp-topbar-desktop-account--menu" type="button" data-toggle="dropdown" aria-expanded="false">
+                        <span class="tp-topbar-desktop-account-icon" aria-hidden="true">{% include "components/icons/user.html" %}</span>
+                        <span class="tp-topbar-desktop-user">{{ user.name|default:user.get_username }}</span>
+                        <span class="tp-topbar-desktop-account-caret" aria-hidden="true">{% include "components/icons/chevron_down.html" %}</span>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-right tp-topbar-desktop-account-menu">
+                        <a class="dropdown-item tp-topbar-desktop-account-item {% if request.resolver_match.url_name == 'profile' %}active{% endif %}" href="{% url 'tpwebapp:profile' %}">
+                            <span class="tp-topbar-desktop-account-item-icon" aria-hidden="true">{% include "components/icons/user.html" %}</span>
+                            {% trans "My profile" %}
+                        </a>
+                        {% if user.is_superuser %}
+                        <a class="dropdown-item tp-topbar-desktop-account-item {% if request.resolver_match.url_name == 'activity_dashboard' %}active{% endif %}" href="{% url 'tpwebapp:activity_dashboard' %}">
+                            <span class="tp-topbar-desktop-account-item-icon" aria-hidden="true">{% include "components/icons/eye.html" %}</span>
+                            {% trans "Activity" %}
+                        </a>
+                        <a class="dropdown-item tp-topbar-desktop-account-item {% if request.resolver_match.url_name == 'user_management' %}active{% endif %}" href="{% url 'tpwebapp:user_management' %}">
+                            <span class="tp-topbar-desktop-account-item-icon" aria-hidden="true">{% include "components/icons/user_plus.html" %}</span>
+                            {% trans "Manage users" %}
+                        </a>
+                        <a class="dropdown-item tp-topbar-desktop-account-item {% if '/admin' in request.path %}active{% endif %}" href="{% url 'admin:index' %}">
+                            <span class="tp-topbar-desktop-account-item-icon" aria-hidden="true">{% include "components/icons/settings.html" %}</span>
+                            {% trans "Admin panel" %}
+                        </a>
+                        {% endif %}
+                        <div class="tp-topbar-desktop-account-divider"></div>
+                        <form method="post" action="{% url 'account_logout' %}">
+                            {% csrf_token %}
+                            <button class="dropdown-item tp-topbar-desktop-account-item" type="submit">
+                                <span class="tp-topbar-desktop-account-item-icon" aria-hidden="true">{% include "components/icons/log_out.html" %}</span>
+                                {% trans "Logout" %}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            {% else %}
+                <a class="tp-topbar-desktop-signup" href="{% url 'account_signup' %}">
+                    <span class="tp-topbar-desktop-signup-icon" aria-hidden="true">{% include "components/icons/user_plus.html" %}</span>
+                    {% trans "Sign up" %}
+                </a>
+                <a class="tp-topbar-desktop-login" href="{% url 'account_login' %}">
+                    <span class="tp-topbar-desktop-login-icon" aria-hidden="true">{% include "components/icons/log_in.html" %}</span>
+                    {% trans "Login" %}
+                </a>
+            {% endif %}
+            <span class="tp-topbar-desktop-divider" aria-hidden="true"></span>
+            <button id="tp-theme-toggle" class="tp-theme-toggle tp-theme-toggle--icon-only" type="button" aria-label="{% trans 'Toggle theme' %}" title="{% trans 'Toggle theme' %}">
                 <span class="tp-theme-toggle-icon" aria-hidden="true"></span>
                 <span class="tp-theme-toggle-label"></span>
             </button>
         </div>
     </div>
-</aside>
-<div id="tp-sidebar-floating-label" class="tp-sidebar-floating-label" role="tooltip" aria-hidden="true"></div>
+</nav>
 
 <nav id="main_header" class="navbar navbar-expand-lg navbar-dark fixed-top tp-topbar-mobile">
     <div class="container-fluid">
         <a class="navbar-brand" href="{% url 'tpwebapp:index' %}" aria-label="{% trans 'Target Pathogen' %}"><img class="tp-mobile-brand-img" src="{% static 'img/brand/tp-logo-full-white.png' %}" alt="{% trans 'Target Pathogen' %}" style="display:block;width:min(190px,56vw);height:auto;max-height:42px;object-fit:contain;object-position:left center;"></a>
-        <button id="tp-agent-drawer-toggle-mobile" class="tp-agent-drawer-toggle-mobile" type="button"
-                aria-label="{% trans 'Open assistant' %}" title="{% trans 'Open assistant' %}"
-                aria-expanded="false" aria-controls="tp-agent-drawer">
-            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" aria-hidden="true">
-                <path d="M2 3.5h12v7H8.8L5.5 13v-2.5H2v-7Z"/>
-                <path d="M5 6.5h6M5 8.5h4"/>
-            </svg>
-        </button>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse"
+        {% comment %}
+        data-toggle="collapse" deliberately omitted: nav-toggle.js already owns this
+        button's click (matches it via data-target, not data-toggle). bundle.js still
+        `import 'bootstrap'`s the real jQuery Collapse plugin for other pages -- leaving
+        data-toggle here let it ALSO auto-bind to this same button, so one tap fired both
+        handlers: nav-toggle.js opened the menu synchronously, then Bootstrap's plugin saw
+        .show already applied and immediately ran its own "hide" transition. That's the
+        "menu opens then instantly closes" bug on mobile.
+        {% endcomment %}
+        <button class="navbar-toggler" type="button" data-target="#navbarCollapse"
                 aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
@@ -2281,13 +2418,10 @@
                     <a class="nav-link{% if url_name == 'genomes_list' or url_name == 'assembly' or url_name == 'protein_list' or url_name == 'protein' or url_name == 'annotation_explorer' or url_name == 'formula_form' or url_name == 'customparam' %} is-active{% endif %}" {% if url_name == 'genomes_list' or url_name == 'assembly' or url_name == 'protein_list' or url_name == 'protein' or url_name == 'annotation_explorer' %}aria-current="page"{% endif %} href="{% url 'tpwebapp:genomes_list' %}">{% trans "Genomes" %}</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link{% if url_name == 'human_protein_list' or url_name == 'human_protein' %} is-active{% endif %}" {% if url_name == 'human_protein_list' or url_name == 'human_protein' %}aria-current="page"{% endif %} href="{% url 'tpwebapp:human_protein_list' %}">{% trans "Human Targets" %}</a>
-                </li>
-                <li class="nav-item">
                     <a class="nav-link{% if url_name == 'genome_upload' %} is-active{% endif %}" {% if url_name == 'genome_upload' %}aria-current="page"{% endif %} href="{% url 'tpwebapp:genome_upload' %}">{% trans "Upload" %}</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link{% if url_name == 'form' or url_name == 'blast_res' %} is-active{% endif %}" {% if url_name == 'form' or url_name == 'blast_res' %}aria-current="page"{% endif %} href="{% url 'tpwebapp:form' %}">{% trans "BLAST" %}</a>
+                    <a class="nav-link{% if url_name == 'form' or url_name == 'blast_res' %} is-active{% endif %}" {% if url_name == 'form' or url_name == 'blast_res' %}aria-current="page"{% endif %} href="{% url 'tpwebapp:form' %}">{% trans "BLAST genome" %}</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link{% if url_name == 'data_sources' %} is-active{% endif %}" {% if url_name == 'data_sources' %}aria-current="page"{% endif %} href="{% url 'tpwebapp:data_sources' %}">{% trans "Methodology" %}</a>
@@ -2295,18 +2429,27 @@
                 <li class="nav-item">
                     <a class="nav-link{% if url_name == 'about_us' %} is-active{% endif %}" {% if url_name == 'about_us' %}aria-current="page"{% endif %} href="{% url 'tpwebapp:about_us' %}">{% trans "About us" %}</a>
                 </li>
-                {% if user.is_staff %}
-                <li class="nav-item">
-                    <a class="nav-link{% if url_name == 'admin' %} is-active{% endif %}" href="{% url 'admin:index' %}">{% trans "Admin" %}</a>
-                </li>
-                {% endif %}
             {% endwith %}
                 {% if user.is_authenticated %}
                     <li id="user_dropdown" class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-expanded="false">
-                            {{ user.get_username }}
+                        {% comment %}
+                        data-toggle="dropdown" deliberately omitted -- same reason as the
+                        navbar-toggler button above: nav-toggle.js already owns this click,
+                        and leaving the attribute let Bootstrap's real jQuery Dropdown
+                        plugin (still bundled for other pages) double-wire and immediately
+                        close what nav-toggle.js had just opened.
+                        {% endcomment %}
+                        <a class="nav-link dropdown-toggle" href="#" role="button" aria-expanded="false">
+                            {{ user.name|default:user.get_username }}
                         </a>
                         <div id="user_dropdown_menu" class="dropdown-menu">
+                            <a class="dropdown-item" href="{% url 'tpwebapp:profile' %}">{% trans "My profile" %}</a>
+                            {% if user.is_superuser %}
+                                <a class="dropdown-item" href="{% url 'tpwebapp:activity_dashboard' %}">{% trans "Activity" %}</a>
+                                <a class="dropdown-item" href="{% url 'tpwebapp:user_management' %}">{% trans "Manage users" %}</a>
+                                <a class="dropdown-item" href="{% url 'admin:index' %}">{% trans "Admin panel" %}</a>
+                            {% endif %}
+                            <div class="dropdown-divider"></div>
                             <form method="post" action="{% url 'account_logout' %}">
                                 {% csrf_token %}
                                 <button class="dropdown-item" type="submit">{% trans "Logout" %}</button>
@@ -2315,6 +2458,9 @@
                     </li>
                 {% else %}
                     <li class="nav-item">
+                        <a class="nav-link" href="{% url 'account_signup' %}">{% trans "Sign up" %}</a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" href="{% url 'account_login' %}">{% trans "Login" %}</a>
                     </li>
                 {% endif %}
@@ -2322,6 +2468,8 @@
         </div>
     </div>
 </nav>
+
+{% block breadcrumbs %}{% endblock %}
 
 <main class="tp-main">
     {% if messages %}
@@ -2341,8 +2489,27 @@
     {% block footer %}{% endblock %}
 </footer>
 
+{% if perms.tpweb.can_use_agent_chat %}
+<div class="tp-agent-fab-ring" aria-hidden="true"></div>
+<button id="tp-agent-drawer-toggle" class="tp-agent-fab" type="button"
+        aria-label="{% trans 'Open assistant' %}" title="{% trans 'Open assistant' %}"
+        aria-expanded="false" aria-controls="tp-agent-drawer">
+    <span class="tp-agent-fab-icon" aria-hidden="true">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="20" height="20" aria-hidden="true">
+            <path d="M2 3.5h12v7H8.8L5.5 13v-2.5H2v-7Z"/>
+            <path d="M5 6.5h6M5 8.5h4"/>
+        </svg>
+    </span>
+    <span class="tp-agent-fab-label">{% trans "Assistant" %}</span>
+</button>
 <div id="tp-agent-drawer-backdrop" class="tp-agent-drawer-backdrop" hidden></div>
-<aside id="tp-agent-drawer" class="tp-agent-drawer" aria-hidden="true" aria-label="{% trans 'Assistant' %}">
+<aside id="tp-agent-drawer" class="tp-agent-drawer" aria-hidden="true" aria-label="{% trans 'Assistant' %}"
+       data-announce-renamed="{% trans 'Conversation renamed.' %}"
+       data-announce-deleted="{% trans 'Conversation deleted.' %}"
+       data-announce-reset-after-delete="{% trans 'That conversation was deleted. Started a new conversation.' %}"
+       data-announce-conversation-reset="{% trans 'That conversation was deleted elsewhere. Started a new conversation.' %}"
+       data-announce-new-conversation="{% trans 'Started a new conversation.' %}"
+       data-announce-error="{% trans 'Something went wrong. Try again.' %}">
     <header class="tp-agent-drawer-header">
         <span class="tp-agent-drawer-heading">
             <span class="tp-agent-drawer-avatar" aria-hidden="true">
@@ -2357,6 +2524,16 @@
             <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" width="14" height="14" aria-hidden="true"><path d="M3 3l10 10M13 3L3 13"/></svg>
         </button>
     </header>
+    <p id="tp-agent-drawer-status" class="sr-only" role="status" aria-live="polite"></p>
+    <div id="tp-agent-drawer-current-title-bar" class="tp-agent-drawer-current-title-bar" hidden>
+        <span id="tp-agent-drawer-current-title-text" class="tp-agent-drawer-current-title-text"></span>
+        <button type="button" id="tp-agent-drawer-current-title-rename" class="tp-agent-drawer-icon-btn tp-agent-drawer-icon-btn--sm" aria-label="{% trans 'Rename conversation' %}" title="{% trans 'Rename conversation' %}">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" width="12" height="12" aria-hidden="true">
+                <path d="M11 2.5 13.5 5 5.5 13 2 13.5 2.5 10Z"/>
+                <path d="M9.5 4 12 6.5"/>
+            </svg>
+        </button>
+    </div>
     <div class="tp-agent-drawer-toolbar">
         <button type="button" id="tp-agent-drawer-biologist-toggle" class="tp-agent-drawer-mode-toggle"
                 aria-pressed="false"
@@ -2367,6 +2544,28 @@
             </svg>
             {% trans "Explain terms" %}
         </button>
+        <div class="tp-agent-drawer-toolbar-actions">
+            <button type="button" id="tp-agent-drawer-new" class="tp-agent-drawer-icon-btn" aria-label="{% trans 'New conversation' %}" title="{% trans 'New conversation' %}">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" width="14" height="14" aria-hidden="true"><path d="M8 2.5v11M2.5 8h11"/></svg>
+            </button>
+            <button type="button" id="tp-agent-drawer-history-toggle" class="tp-agent-drawer-icon-btn" aria-label="{% trans 'Previous conversations' %}" title="{% trans 'Previous conversations' %}" aria-expanded="false" aria-controls="tp-agent-drawer-history-panel">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" aria-hidden="true">
+                    <circle cx="8" cy="8.5" r="5.5"/>
+                    <path d="M8 5.5v3l2.2 1.3"/>
+                </svg>
+            </button>
+            <div id="tp-agent-drawer-history-panel" class="tp-agent-drawer-history-panel" hidden
+                 data-untitled-label="{% trans 'New conversation' %}"
+                 data-message-count-label="{% trans 'messages' %}"
+                 data-rename-label="{% trans 'Rename' %}"
+                 data-delete-label="{% trans 'Delete' %}"
+                 data-delete-confirm-label="{% trans 'Delete this conversation?' %}"
+                 data-cancel-label="{% trans 'Cancel' %}">
+                <p class="tp-agent-drawer-history-panel-title">{% trans "Previous conversations" %}</p>
+                <div id="tp-agent-drawer-history-list" class="tp-agent-drawer-history-list"></div>
+                <p id="tp-agent-drawer-history-empty" class="tp-agent-drawer-history-empty" hidden>{% trans "No previous conversations yet." %}</p>
+            </div>
+        </div>
     </div>
     <div id="tp-agent-drawer-messages" class="tp-agent-drawer-messages" role="log" aria-live="polite">
         <p class="tp-agent-drawer-empty">
@@ -2378,20 +2577,20 @@
         </p>
     </div>
     <div class="tp-agent-drawer-suggestions" aria-label="{% trans 'Suggested assistant prompts' %}">
-        <button type="button" class="tp-agent-drawer-suggestion" data-agent-prompt="{% trans 'Explain this target using only loaded evidence.' %}">
+        <button type="button" class="tp-agent-drawer-suggestion" data-suggestion-scope="protein" data-agent-prompt="{% trans 'Explain this target using only loaded evidence.' %}">
             {% trans "Explain target" %}
         </button>
-        <button type="button" class="tp-agent-drawer-suggestion" data-agent-prompt="{% trans 'Audit the evidence for this target and tell me where each conclusion comes from.' %}">
+        <button type="button" class="tp-agent-drawer-suggestion" data-suggestion-scope="protein" data-agent-prompt="{% trans 'Audit the evidence for this target and tell me where each conclusion comes from.' %}">
             {% trans "Audit evidence" %}
         </button>
         <button type="button" class="tp-agent-drawer-suggestion" data-agent-prompt="{% trans 'Find promising targets with no human off-target signal and good pocket evidence.' %}">
             {% trans "Find selective targets" %}
         </button>
-        <button type="button" class="tp-agent-drawer-suggestion" data-agent-prompt="{% trans 'Clear all active protein-list filters.' %}">
+        <button type="button" class="tp-agent-drawer-suggestion" data-suggestion-scope="list" data-agent-prompt="{% trans 'Clear all active protein-list filters.' %}">
             {% trans "Clear filters" %}
         </button>
     </div>
-    <form id="tp-agent-drawer-form" class="tp-agent-drawer-form" data-chat-url="{% url 'tpwebapp:agent_chat' %}" data-tp-loader="off">
+    <form id="tp-agent-drawer-form" class="tp-agent-drawer-form" data-chat-url="{% url 'tpwebapp:agent_chat' %}" data-sessions-url="{% url 'tpwebapp:agent_chat_sessions' %}" data-tp-loader="off">
         <textarea id="tp-agent-drawer-input" class="tp-agent-drawer-input" rows="2" placeholder="{% trans 'Ask the assistant…' %}" aria-label="{% trans 'Message' %}"></textarea>
         <button type="submit" class="tp-btn tp-btn--primary tp-agent-drawer-send" aria-label="{% trans 'Send' %}" title="{% trans 'Send' %}">
             <span class="sr-only">{% trans "Send" %}</span>
@@ -2399,339 +2598,34 @@
         </button>
     </form>
 </aside>
+{% endif %}
 
 <script src="{% static 'bundle.js' %}?v=20260722-dagre1"></script>
-<script src="{% static 'js/global/agent-drawer.js' %}?v=20260727-genericscope1"></script>
-<script src="{% static 'js/global/nav-toggle.js' %}?v=20260804-navtoggle1"></script>
+{% if perms.tpweb.can_use_agent_chat %}
+<script src="{% static 'js/global/agent-drawer.js' %}?v=20260811-fab"></script>
+{% endif %}
+<script src="{% static 'js/global/nav-toggle.js' %}?v=20260902-navtoggle2"></script>
 <script src="{% static 'js/global/smooth-details.js' %}?v=20260804-smoothdetails1"></script>
 
 <script>
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
-
-    const csrftoken = getCookie('csrftoken');
-
-    function csrfSafeMethod(method) {
-        return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
-    }
-
-    if (window.jQuery && $.ajaxSetup) {
-        $.ajaxSetup({
-            beforeSend: function(xhr, settings) {
-                if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
-                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
-                }
-            }
-        });
-    }
-
-    (function () {
-        const LOADING_CLASS = "tp-page-is-loading";
-        const NAVIGATING_CLASS = "tp-page-is-navigating";
-        const ACTION_LOADING_CLASS = "tp-page-action-loading";
-        const EXCLUDED_LINK_SELECTOR = [
-            "[data-tp-loader='off']",
-            "[data-no-page-loader]",
-            "[download]",
-            "[target='_blank']",
-            "[data-toggle]",
-            "[data-bs-toggle]",
-            ".dropdown-toggle",
-            ".tp-agent-drawer-suggestion"
-        ].join(",");
-        const EXCLUDED_FORM_SELECTOR = [
-            "[data-tp-loader='off']",
-            "[data-no-page-loader]",
-            "#tp-agent-drawer-form"
-        ].join(",");
-        let showTimer = null;
-        let activeAction = null;
-        const LOADER_DEFAULT_COPY = "{% trans 'Opening the next view…' %}";
-        const LOADER_OPENING_PREFIX = "{% trans 'Opening' %}";
-        const LOADER_LABEL_MAX_LENGTH = 42;
-
-        // Genome overview and protein detail are the two heaviest pages to
-        // render (see the assembly_workspace/pdb_structure query cost) --
-        // a single static "Opening X…" label sits there doing nothing for a
-        // couple seconds. This doesn't measure real progress, it's a staged
-        // sequence of plausible-sounding steps that just keeps advancing on a
-        // timer, purely to make the wait read as "something is happening"
-        // instead of a frozen label. Matches exactly `/genome/<slug>` and
-        // `/protein/<id>` -- NOT their sub-pages (proteins list, metabolism,
-        // structure viewer, etc.), which already get the normal per-link label.
-        const GENOME_OVERVIEW_PATH_RE = /^\/genome\/[^/]+\/?$/;
-        const PROTEIN_DETAIL_PATH_RE = /^\/protein\/\d+\/?$/;
-        const GENOME_OVERVIEW_SEQUENCE = [
-            "{% trans 'Resolving genome workspace…' %}",
-            "{% trans 'Loading genome metrics…' %}",
-            "{% trans 'Preparing target rankings…' %}",
-            "{% trans 'Opening genome overview…' %}"
-        ];
-        const PROTEIN_DETAIL_SEQUENCE = [
-            "{% trans 'Loading protein record…' %}",
-            "{% trans 'Collecting functional evidence…' %}",
-            "{% trans 'Preparing structure summary…' %}",
-            "{% trans 'Opening protein view…' %}"
-        ];
-        const LOADER_SEQUENCE_STEP_MS = 550;
-        let sequenceTimer = null;
-
-        function loaderSequenceForUrl(url) {
-            let pathname = null;
-            try {
-                pathname = (typeof url === "string" ? new URL(url, window.location.href) : url).pathname;
-            } catch (error) {
-                return null;
-            }
-            if (!pathname) return null;
-            if (GENOME_OVERVIEW_PATH_RE.test(pathname)) return GENOME_OVERVIEW_SEQUENCE;
-            if (PROTEIN_DETAIL_PATH_RE.test(pathname)) return PROTEIN_DETAIL_SEQUENCE;
-            return null;
-        }
-
-        function loaderEl() {
-            return document.getElementById("tp-page-loader");
-        }
-
-        function loaderCopyEl() {
-            return document.getElementById("tp-page-loader-copy");
-        }
-
-        function setLoaderCopy(label) {
-            const copyEl = loaderCopyEl();
-            if (!copyEl) return;
-            if (!label) {
-                copyEl.textContent = LOADER_DEFAULT_COPY;
-                return;
-            }
-            const trimmed = label.length > LOADER_LABEL_MAX_LENGTH
-                ? label.slice(0, LOADER_LABEL_MAX_LENGTH - 1).trimEnd() + "…"
-                : label;
-            copyEl.textContent = LOADER_OPENING_PREFIX + " " + trimmed + "…";
-        }
-
-        function stopLoaderSequence() {
-            window.clearInterval(sequenceTimer);
-            sequenceTimer = null;
-        }
-
-        function startLoaderSequence(messages) {
-            stopLoaderSequence();
-            const copyEl = loaderCopyEl();
-            if (!copyEl || !messages || !messages.length) return;
-            let index = 0;
-            copyEl.textContent = messages[0];
-            sequenceTimer = window.setInterval(function () {
-                index += 1;
-                if (index >= messages.length) {
-                    // Stay on the last ("Opening…") message instead of
-                    // looping -- if the real navigation is still pending past
-                    // the full sequence, restarting from "Resolving…" would
-                    // read as if it had gone backwards/gotten stuck.
-                    stopLoaderSequence();
-                    return;
-                }
-                copyEl.textContent = messages[index];
-            }, LOADER_SEQUENCE_STEP_MS);
-        }
-
-        function deriveLoaderLabel(el) {
-            if (!el) return null;
-            const raw = (el.getAttribute("aria-label") || el.getAttribute("title") || el.textContent || "")
-                .replace(/\s+/g, " ")
-                .trim();
-            if (!raw) return null;
-            // A bare textContent fallback on a link/button with several
-            // nested elements (a data row, a card) reads as several labels
-            // jammed together with no separators -- past a plausible
-            // single-control label length, prefer the generic default copy
-            // over a garbled truncation.
-            if (raw.length > 90) return null;
-            return raw;
-        }
-
-        function setLoaderVisible(visible) {
-            const loader = loaderEl();
-            if (loader) {
-                loader.setAttribute("aria-hidden", visible ? "false" : "true");
-            }
-            if (document.body) {
-                if (visible) {
-                    document.body.setAttribute("aria-busy", "true");
-                } else {
-                    document.body.removeAttribute("aria-busy");
-                }
-            }
-        }
-
-        function clearAction() {
-            if (!activeAction) return;
-            activeAction.classList.remove(ACTION_LOADING_CLASS);
-            activeAction.removeAttribute("aria-busy");
-            activeAction = null;
-        }
-
-        function show(options) {
-            const opts = options || {};
-            if (opts.sequence) {
-                startLoaderSequence(opts.sequence);
-            } else {
-                stopLoaderSequence();
-                setLoaderCopy(opts.label || null);
-            }
-            window.clearTimeout(showTimer);
-            showTimer = window.setTimeout(function () {
-                document.documentElement.classList.add(NAVIGATING_CLASS);
-                setLoaderVisible(true);
-            }, Number.isFinite(opts.delay) ? opts.delay : 90);
-        }
-
-        function hide() {
-            window.clearTimeout(showTimer);
-            stopLoaderSequence();
-            document.documentElement.classList.remove(LOADING_CLASS, NAVIGATING_CLASS);
-            setLoaderVisible(false);
-            clearAction();
-            setLoaderCopy(null);
-        }
-
-        function markAction(el) {
-            clearAction();
-            if (!el || !el.classList) return;
-            activeAction = el;
-            activeAction.classList.add(ACTION_LOADING_CLASS);
-            activeAction.setAttribute("aria-busy", "true");
-        }
-
-        function isModifiedClick(event) {
-            return event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey;
-        }
-
-        function shouldSkipUrl(url) {
-            if (!url) return true;
-            if (url.protocol && !["http:", "https:"].includes(url.protocol)) return true;
-            if (url.origin !== window.location.origin) return true;
-            if (url.pathname === window.location.pathname && url.search === window.location.search && url.hash) return true;
-            if (url.pathname === window.location.pathname && url.search === window.location.search && !url.hash) return true;
-            return /\/download\/?|\/export\/?|csv|xlsx|fasta|\.fna|\.faa|\.gbk?|\.zip|\.pdb$/i.test(url.pathname);
-        }
-
-        function shouldSkipFormUrl(url) {
-            if (!url) return true;
-            if (url.protocol && !["http:", "https:"].includes(url.protocol)) return true;
-            if (url.origin !== window.location.origin) return true;
-            return /\/download\/?|\/export\/?|csv|xlsx|fasta|\.fna|\.faa|\.gbk?|\.zip|\.pdb$/i.test(url.pathname);
-        }
-
-        function linkUrl(link) {
-            try {
-                return new URL(link.getAttribute("href"), window.location.href);
-            } catch (error) {
-                return null;
-            }
-        }
-
-        function formUrl(form) {
-            try {
-                return new URL(form.getAttribute("action") || window.location.href, window.location.href);
-            } catch (error) {
-                return null;
-            }
-        }
-
-        function initNavigationLoading() {
-            window.setTimeout(hide, 180);
-
-            document.addEventListener("click", function (event) {
-                if (isModifiedClick(event)) return;
-                const link = event.target.closest ? event.target.closest("a[href]") : null;
-                if (!link || link.matches(EXCLUDED_LINK_SELECTOR)) return;
-                const url = linkUrl(link);
-                if (shouldSkipUrl(url)) return;
-                markAction(link);
-                const sequence = loaderSequenceForUrl(url);
-                show(sequence ? { sequence: sequence } : { label: deriveLoaderLabel(link) });
-            });
-
-            document.addEventListener("submit", function (event) {
-                window.setTimeout(function () {
-                    if (event.defaultPrevented) return;
-                    const form = event.target;
-                    if (!form || !form.matches || form.matches(EXCLUDED_FORM_SELECTOR)) return;
-                    const target = (form.getAttribute("target") || "").toLowerCase();
-                    if (target && target !== "_self") return;
-                    if (shouldSkipFormUrl(formUrl(form))) return;
-                    const submitter = event.submitter || form.querySelector("button[type='submit'], input[type='submit'], .tp-btn");
-                    markAction(submitter);
-                    show({ label: deriveLoaderLabel(submitter) });
-                }, 0);
-            });
-
-            window.addEventListener("pageshow", hide);
-            window.addEventListener("load", hide);
-            window.addEventListener("pagehide", function () {
-                setLoaderVisible(true);
-            });
-        }
-
-        window.TPPageLoader = {
-            show: show,
-            hide: hide,
-            markAction: markAction,
-            // For programmatic navigations (e.g. the protein search
-            // autocomplete's window.location.assign) that don't go through
-            // the click handler above and so never get the automatic
-            // sequence detection -- pass the destination URL and get the
-            // same staged messages a normal link click to that page would.
-            showForUrl: function (url, fallbackOptions) {
-                const sequence = loaderSequenceForUrl(url);
-                show(sequence ? { sequence: sequence } : (fallbackOptions || {}));
-            },
-            withLoading: function (promiseOrFactory, options) {
-                show(options);
-                let result;
-                try {
-                    result = typeof promiseOrFactory === "function" ? promiseOrFactory() : promiseOrFactory;
-                } catch (error) {
-                    hide();
-                    throw error;
-                }
-                return Promise.resolve(result).finally(hide);
-            }
-        };
-
-        if (document.readyState === "loading") {
-            document.addEventListener("DOMContentLoaded", initNavigationLoading, { once: true });
-        } else {
-            initNavigationLoading();
-        }
-    })();
-
-    if (window.jQuery && $.fn && $.fn.dataTable) {
-        const TP_DT_VARIANTS = Object.freeze({
-            full: Object.freeze({
-                pagingType: "full_numbers",
-                dom: "<'tp-dt-toolbar'<'tp-dt-length'l><'tp-dt-search'f>>rt<'tp-dt-footer'<'tp-dt-info'i><'tp-dt-pager'p>>"
-            }),
-            compact: Object.freeze({
-                pagingType: "simple_numbers",
-                dom: "<'tp-dt-toolbar'<'tp-dt-search'f>>rt<'tp-dt-footer'<'tp-dt-info'i><'tp-dt-pager'p>>"
-            })
-        });
-
-        const TP_DT_LANGUAGE = {
+    window.TPW_I18N = {
+        pageLoader: {
+            defaultCopy: "{% trans 'Opening the next view…' %}",
+            openingPrefix: "{% trans 'Opening' %}",
+            genomeOverviewSequence: [
+                "{% trans 'Resolving genome workspace…' %}",
+                "{% trans 'Loading genome metrics…' %}",
+                "{% trans 'Preparing target rankings…' %}",
+                "{% trans 'Opening genome overview…' %}"
+            ],
+            proteinDetailSequence: [
+                "{% trans 'Loading protein record…' %}",
+                "{% trans 'Collecting functional evidence…' %}",
+                "{% trans 'Preparing structure summary…' %}",
+                "{% trans 'Opening protein view…' %}"
+            ]
+        },
+        dataTable: {
             emptyTable: "{% trans 'No records available.' %}",
             info: "{% trans 'Page' %} _PAGE_ {% trans 'of' %} _PAGES_ · _TOTAL_ {% trans 'rows' %}",
             infoEmpty: "{% trans 'No records available.' %}",
@@ -2741,834 +2635,16 @@
             processing: "{% trans 'Processing...' %}",
             search: "",
             searchPlaceholder: "{% trans 'Search in this table...' %}",
-            zeroRecords: "{% trans 'No matching records found.' %}",
-            paginate: {
-                first: "«",
-                last: "»",
-                next: "›",
-                previous: "‹"
-            }
-        };
-
-        $.extend(true, $.fn.dataTable.defaults, {
-            pagingType: TP_DT_VARIANTS.full.pagingType,
-            dom: TP_DT_VARIANTS.full.dom,
-            language: TP_DT_LANGUAGE
-        });
-
-        window.tpInitDataTable = function (selector, options) {
-            if (!selector || !document.querySelector(selector)) return null;
-            if (!window.jQuery || !$.fn || !$.fn.dataTable) return null;
-
-            const config = $.extend(true, {}, options || {});
-            const variantName = config.tpVariant === "compact" ? "compact" : "full";
-            delete config.tpVariant;
-
-            function applyWrapperClasses(tableApi) {
-                const wrapper = $(tableApi.table().container());
-                wrapper.addClass("tp-dt-wrapper");
-                wrapper.addClass("tp-dt-variant-" + variantName);
-                if (config.searching === false) wrapper.addClass("tp-dt-no-search");
-                if (config.lengthChange === false) wrapper.addClass("tp-dt-no-length");
-                if (config.paging === false) wrapper.addClass("tp-dt-no-paging");
-            }
-
-            if (!Object.prototype.hasOwnProperty.call(config, "pagingType")) {
-                config.pagingType = TP_DT_VARIANTS[variantName].pagingType;
-            }
-            if (!Object.prototype.hasOwnProperty.call(config, "dom")) {
-                config.dom = TP_DT_VARIANTS[variantName].dom;
-            }
-            if (!Object.prototype.hasOwnProperty.call(config, "language")) {
-                config.language = {};
-            }
-            config.language = $.extend(true, {}, TP_DT_LANGUAGE, config.language);
-
-            if ($.fn.dataTable.isDataTable(selector)) {
-                const existingTable = $(selector).DataTable();
-                applyWrapperClasses(existingTable);
-                return existingTable;
-            }
-
-            const table = $(selector).DataTable(config);
-            applyWrapperClasses(table);
-
-            const wrapper = $(table.table().container());
-            wrapper.find(".dataTables_filter label").each(function () {
-                const $label = $(this);
-                const $input = $label.find("input[type=search]");
-                if ($input.length && !$label.find(".tp-dt-search-icon").length) {
-                    $input.wrap('<span class="tp-dt-search-wrap"></span>');
-                    $label.find(".tp-dt-search-wrap").prepend(
-                        '<svg class="tp-dt-search-icon" width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">' +
-                        '<circle cx="6" cy="6" r="4" stroke="currentColor" stroke-width="1.4"/>' +
-                        '<path d="M9.5 9.5l2.5 2.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>' +
-                        '</svg>'
-                    );
-                }
-            });
-
-            return table;
-        };
-    }
-
-    (function () {
-        const STORAGE_KEY = "tp.sidebar.collapsed";
-        let sidebarTooltip = null;
-        let activeTooltipTrigger = null;
-
-        function isDesktop() {
-            return window.matchMedia("(min-width: 992px)").matches;
-        }
-
-        function defaultCollapsedForViewport() {
-            return window.matchMedia("(max-width: 1440px)").matches;
-        }
-
-        function applySidebarState(collapsed) {
-            if (!isDesktop()) {
-                document.body.classList.remove("tp-sidebar-collapsed");
-                hideSidebarTooltip();
-                return;
-            }
-            document.body.classList.toggle("tp-sidebar-collapsed", collapsed);
-            if (!collapsed) {
-                hideSidebarTooltip();
-            }
-            const button = document.getElementById("tp-sidebar-toggle");
-            if (button) {
-                button.setAttribute("aria-expanded", collapsed ? "false" : "true");
-                const icon = button.querySelector(".tp-sidebar-toggle-icon");
-                if (icon) {
-                    icon.classList.toggle("tp-chevron--right", collapsed);
-                    icon.classList.toggle("tp-chevron--left", !collapsed);
-                }
-                button.title = collapsed ? "Expand navigation" : "Collapse navigation";
-                button.setAttribute("aria-label", collapsed ? "Expand navigation" : "Collapse navigation");
-            }
-        }
-
-        function hideSidebarTooltip() {
-            activeTooltipTrigger = null;
-            if (!sidebarTooltip) return;
-            sidebarTooltip.classList.remove("is-visible");
-            sidebarTooltip.setAttribute("aria-hidden", "true");
-        }
-
-        function showSidebarTooltip(trigger) {
-            if (!document.body.classList.contains("tp-sidebar-collapsed")) {
-                hideSidebarTooltip();
-                return;
-            }
-            sidebarTooltip = sidebarTooltip || document.getElementById("tp-sidebar-floating-label");
-            if (!sidebarTooltip) return;
-            const label = trigger.getAttribute("data-label") || trigger.getAttribute("aria-label") || "";
-            if (!label) {
-                hideSidebarTooltip();
-                return;
-            }
-            activeTooltipTrigger = trigger;
-            const rect = trigger.getBoundingClientRect();
-            sidebarTooltip.textContent = label;
-            sidebarTooltip.style.top = `${rect.top + rect.height / 2}px`;
-            sidebarTooltip.classList.add("is-visible");
-            sidebarTooltip.setAttribute("aria-hidden", "false");
-        }
-
-        function updateSidebarTooltipPosition() {
-            if (activeTooltipTrigger) {
-                showSidebarTooltip(activeTooltipTrigger);
-            }
-        }
-
-        function initSidebarTooltips() {
-            sidebarTooltip = document.getElementById("tp-sidebar-floating-label");
-            if (!sidebarTooltip) return;
-
-            document.querySelectorAll(".tp-side-link[data-label]").forEach(function (link) {
-                link.addEventListener("mouseenter", function () {
-                    showSidebarTooltip(link);
-                });
-                link.addEventListener("focus", function () {
-                    showSidebarTooltip(link);
-                });
-                link.addEventListener("mouseleave", hideSidebarTooltip);
-                link.addEventListener("blur", hideSidebarTooltip);
-            });
-
-            window.addEventListener("scroll", updateSidebarTooltipPosition, { passive: true });
-        }
-
-        function initSidebarToggle() {
-            const button = document.getElementById("tp-sidebar-toggle");
-            if (!button) return;
-
-            const stored = localStorage.getItem(STORAGE_KEY);
-            if (stored === null) {
-                applySidebarState(defaultCollapsedForViewport());
-            } else {
-                applySidebarState(stored === "1");
-            }
-
-            button.addEventListener("click", function () {
-                const collapsed = !document.body.classList.contains("tp-sidebar-collapsed");
-                applySidebarState(collapsed);
-                localStorage.setItem(STORAGE_KEY, collapsed ? "1" : "0");
-            });
-
-            window.addEventListener("resize", function () {
-                if (!isDesktop()) {
-                    document.body.classList.remove("tp-sidebar-collapsed");
-                    hideSidebarTooltip();
-                } else {
-                    const current = localStorage.getItem(STORAGE_KEY);
-                    if (current === null) {
-                        applySidebarState(defaultCollapsedForViewport());
-                    } else {
-                        applySidebarState(current === "1");
-                    }
-                }
-            });
-        }
-
-        function initSidebar() {
-            initSidebarToggle();
-            initSidebarTooltips();
-        }
-
-        if (document.readyState === "loading") {
-            document.addEventListener("DOMContentLoaded", initSidebar);
-        } else {
-            initSidebar();
-        }
-    })();
-
-    /* ── Theme toggle ──────────────────────────────── */
-    (function () {
-        var MODES = ["light", "dark"];
-        var ICONS = {
-            light: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="8" cy="8" r="2.75"/><path d="M8 1.5V3M8 13v1.5M1.5 8H3M13 8h1.5M3.4 3.4l1.06 1.06M11.54 11.54l1.06 1.06M12.6 3.4l-1.06 1.06M4.46 11.54l-1.06 1.06"/></svg>',
-            dark:  '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M13.5 10.5A6.5 6.5 0 0 1 5.5 2.5a6.5 6.5 0 1 0 8 8z"/></svg>'
-        };
-        var LABELS = { light: "Light", dark: "Dark" };
-
-        function getEffective(mode) {
-            if (mode === "dark") return true;
-            if (mode === "light") return false;
-            return window.matchMedia("(prefers-color-scheme: dark)").matches;
-        }
-
-        function apply(mode) {
-            var dark = getEffective(mode);
-            document.documentElement.classList.toggle("tp-dark", dark);
-            var btn = document.getElementById("tp-theme-toggle");
-            if (btn) {
-                btn.querySelector(".tp-theme-toggle-icon").innerHTML = ICONS[mode];
-                btn.querySelector(".tp-theme-toggle-label").textContent = LABELS[mode];
-            }
-            document.dispatchEvent(new CustomEvent("tp:themechange", {
-                detail: {
-                    mode: mode,
-                    dark: dark
-                }
-            }));
-        }
-
-        function current() {
-            var stored = localStorage.getItem("tp-theme");
-            return MODES.indexOf(stored) !== -1 ? stored : "light";
-        }
-
-        function cycle() {
-            var idx = (MODES.indexOf(current()) + 1) % MODES.length;
-            var next = MODES[idx];
-            if (next === "auto") {
-                localStorage.removeItem("tp-theme");
-            } else {
-                localStorage.setItem("tp-theme", next);
-            }
-            apply(next);
-        }
-
-        function init() {
-            apply(current());
-            var btn = document.getElementById("tp-theme-toggle");
-            if (btn) btn.addEventListener("click", cycle);
-            window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function () {
-                if (current() === "auto") apply("auto");
-            });
-        }
-
-        if (document.readyState === "loading") {
-            document.addEventListener("DOMContentLoaded", init);
-        } else {
-            init();
-        }
-    })();
-
-    (function () {
-        const SELECTOR = "select:not([multiple]):not([size]):not([data-tp-select-native]):not([data-tp-select-enhanced]):not([data-tp-select-raw])";
-
-        function getEnhancedWrappers() {
-            return Array.from(document.querySelectorAll(".tp-select[data-tp-select-enhanced='1']"));
-        }
-
-        function getEnabledOptionButtons(wrapper) {
-            return Array.from(wrapper.querySelectorAll(".tp-select-option")).filter(function (button) {
-                return button.getAttribute("aria-disabled") !== "true";
-            });
-        }
-
-        function closeSelect(wrapper) {
-            if (!wrapper || !wrapper.classList.contains("is-open")) return;
-            const trigger = wrapper.querySelector(".tp-select-trigger");
-            const menu = wrapper.querySelector(".tp-select-menu");
-            wrapper.classList.remove("is-open");
-            if (trigger) trigger.setAttribute("aria-expanded", "false");
-            if (menu) menu.hidden = true;
-        }
-
-        function closeAllSelects(exceptWrapper) {
-            getEnhancedWrappers().forEach(function (wrapper) {
-                if (wrapper === exceptWrapper) return;
-                closeSelect(wrapper);
-            });
-        }
-
-        function focusOptionWithOffset(wrapper, offset) {
-            const enabledButtons = getEnabledOptionButtons(wrapper);
-            if (!enabledButtons.length) return;
-            let activeIndex = enabledButtons.findIndex(function (button) {
-                return button === document.activeElement;
-            });
-            if (activeIndex === -1) {
-                activeIndex = enabledButtons.findIndex(function (button) {
-                    return button.classList.contains("is-selected");
-                });
-            }
-            if (activeIndex === -1) {
-                activeIndex = offset > 0 ? -1 : 0;
-            }
-            const nextIndex = (activeIndex + offset + enabledButtons.length) % enabledButtons.length;
-            enabledButtons[nextIndex].focus();
-        }
-
-        function focusBoundaryOption(wrapper, isLast) {
-            const enabledButtons = getEnabledOptionButtons(wrapper);
-            if (!enabledButtons.length) return;
-            const target = isLast ? enabledButtons[enabledButtons.length - 1] : enabledButtons[0];
-            target.focus();
-        }
-
-        function openSelect(wrapper) {
-            if (!wrapper || wrapper.classList.contains("is-disabled")) return;
-            const trigger = wrapper.querySelector(".tp-select-trigger");
-            const menu = wrapper.querySelector(".tp-select-menu");
-            if (!trigger || !menu) return;
-            closeAllSelects(wrapper);
-            wrapper.classList.add("is-open");
-            trigger.setAttribute("aria-expanded", "true");
-            menu.hidden = false;
-            window.requestAnimationFrame(function () {
-                const selected = menu.querySelector(".tp-select-option.is-selected[aria-disabled='false']");
-                if (selected) {
-                    selected.focus();
-                    return;
-                }
-                const firstEnabled = menu.querySelector(".tp-select-option[aria-disabled='false']");
-                if (firstEnabled) firstEnabled.focus();
-            });
-        }
-
-        function getOptionEntries(select) {
-            const entries = [];
-            Array.from(select.children).forEach(function (child) {
-                if (child.tagName === "OPTGROUP") {
-                    entries.push({
-                        type: "group",
-                        label: child.label || ""
-                    });
-                    Array.from(child.children).forEach(function (option) {
-                        const inheritedDisabled = option.parentElement && option.parentElement.tagName === "OPTGROUP" && option.parentElement.disabled;
-                        entries.push({
-                            type: "option",
-                            value: option.value,
-                            label: (option.textContent || "").trim(),
-                            disabled: option.disabled || inheritedDisabled,
-                            selected: option.selected
-                        });
-                    });
-                    return;
-                }
-                if (child.tagName === "OPTION") {
-                    const inheritedDisabled = child.parentElement && child.parentElement.tagName === "OPTGROUP" && child.parentElement.disabled;
-                    entries.push({
-                        type: "option",
-                        value: child.value,
-                        label: (child.textContent || "").trim(),
-                        disabled: child.disabled || inheritedDisabled,
-                        selected: child.selected
-                    });
-                }
-            });
-            return entries;
-        }
-
-        function renderSelect(wrapper) {
-            const select = wrapper.querySelector("select[data-tp-select-enhanced='1']");
-            const trigger = wrapper.querySelector(".tp-select-trigger");
-            const menu = wrapper.querySelector(".tp-select-menu");
-            const label = trigger ? trigger.querySelector(".tp-select-label") : null;
-            if (!select || !trigger || !menu || !label) return;
-
-            const entries = getOptionEntries(select);
-            const selectedOption = select.options && select.selectedIndex >= 0 ? select.options[select.selectedIndex] : null;
-            const selectedValue = selectedOption ? String(selectedOption.value || "") : "";
-            const hasRealSelection = selectedValue.trim().length > 0;
-            const selectedLabel = selectedOption ? (selectedOption.textContent || "").trim() : "";
-            label.textContent = selectedLabel || (entries.find(function (entry) {
-                return entry.type === "option";
-            }) || {}).label || "";
-
-            wrapper.classList.toggle("is-disabled", Boolean(select.disabled));
-            wrapper.classList.toggle("is-placeholder-value", !hasRealSelection);
-            trigger.disabled = Boolean(select.disabled);
-
-            menu.innerHTML = "";
-            let optionIndex = 0;
-            entries.forEach(function (entry) {
-                if (entry.type === "group") {
-                    const groupLabel = document.createElement("p");
-                    groupLabel.className = "tp-select-group-label";
-                    groupLabel.textContent = entry.label;
-                    menu.appendChild(groupLabel);
-                    return;
-                }
-                const optionButton = document.createElement("button");
-                optionButton.type = "button";
-                optionButton.className = "tp-select-option";
-                optionButton.textContent = entry.label;
-                optionButton.setAttribute("role", "option");
-                optionButton.setAttribute("aria-selected", entry.selected ? "true" : "false");
-                optionButton.setAttribute("aria-disabled", entry.disabled ? "true" : "false");
-                optionButton.setAttribute("data-value", entry.value);
-                optionButton.setAttribute("data-option-index", String(optionIndex));
-                if (entry.selected) {
-                    optionButton.classList.add("is-selected");
-                    if (String(entry.value || "").trim() === "") {
-                        optionButton.classList.add("is-placeholder-selected");
-                    }
-                }
-                if (entry.disabled) optionButton.tabIndex = -1;
-                menu.appendChild(optionButton);
-                optionIndex += 1;
-            });
-        }
-
-        function chooseOption(wrapper, value) {
-            const select = wrapper.querySelector("select[data-tp-select-enhanced='1']");
-            const trigger = wrapper.querySelector(".tp-select-trigger");
-            if (!select) return;
-            const currentValue = select.value;
-            select.value = value;
-            renderSelect(wrapper);
-            closeSelect(wrapper);
-            if (trigger) trigger.focus();
-            if (currentValue !== value) {
-                select.dispatchEvent(new Event("input", { bubbles: true }));
-                select.dispatchEvent(new Event("change", { bubbles: true }));
-            }
-        }
-
-        function enhanceSelect(select) {
-            if (!select || select.dataset.tpSelectEnhanced === "1") return;
-            select.dataset.tpSelectEnhanced = "1";
-            const wrapper = document.createElement("div");
-            wrapper.className = "tp-select";
-            wrapper.setAttribute("data-tp-select-enhanced", "1");
-            Array.from(select.classList).forEach(function (className) {
-                if (className === "form-control" || className === "form-select" || className === "tp-select-native") return;
-                wrapper.classList.add(className);
-            });
-
-            const trigger = document.createElement("button");
-            trigger.type = "button";
-            trigger.className = "tp-select-trigger";
-            trigger.setAttribute("aria-haspopup", "listbox");
-            trigger.setAttribute("aria-expanded", "false");
-
-            const label = document.createElement("span");
-            label.className = "tp-select-label";
-            trigger.appendChild(label);
-
-            const chevron = document.createElement("span");
-            chevron.className = "tp-chevron tp-chevron--down tp-select-chevron";
-            chevron.setAttribute("aria-hidden", "true");
-            trigger.appendChild(chevron);
-
-            const menu = document.createElement("div");
-            menu.className = "tp-select-menu";
-            menu.setAttribute("role", "listbox");
-            menu.hidden = true;
-
-            const parent = select.parentNode;
-            if (!parent) return;
-            parent.insertBefore(wrapper, select);
-            wrapper.appendChild(select);
-            wrapper.appendChild(trigger);
-            wrapper.appendChild(menu);
-            select.classList.add("tp-select-native");
-
-            select.addEventListener("focus", function () {
-                trigger.focus();
-            });
-            select.addEventListener("change", function () {
-                renderSelect(wrapper);
-            });
-            select.addEventListener("input", function () {
-                renderSelect(wrapper);
-            });
-
-            trigger.addEventListener("click", function () {
-                if (wrapper.classList.contains("is-open")) {
-                    closeSelect(wrapper);
-                    return;
-                }
-                openSelect(wrapper);
-            });
-
-            trigger.addEventListener("keydown", function (event) {
-                if (event.key === "ArrowDown") {
-                    event.preventDefault();
-                    openSelect(wrapper);
-                    focusBoundaryOption(wrapper, false);
-                    return;
-                }
-                if (event.key === "ArrowUp") {
-                    event.preventDefault();
-                    openSelect(wrapper);
-                    focusBoundaryOption(wrapper, true);
-                    return;
-                }
-                if (event.key === "Enter" || event.key === " ") {
-                    event.preventDefault();
-                    if (wrapper.classList.contains("is-open")) {
-                        closeSelect(wrapper);
-                    } else {
-                        openSelect(wrapper);
-                    }
-                }
-            });
-
-            menu.addEventListener("click", function (event) {
-                const optionButton = event.target.closest(".tp-select-option");
-                if (!optionButton) return;
-                if (optionButton.getAttribute("aria-disabled") === "true") return;
-                chooseOption(wrapper, optionButton.getAttribute("data-value") || "");
-            });
-
-            menu.addEventListener("keydown", function (event) {
-                if (event.key === "Escape") {
-                    event.preventDefault();
-                    closeSelect(wrapper);
-                    trigger.focus();
-                    return;
-                }
-                if (event.key === "ArrowDown") {
-                    event.preventDefault();
-                    focusOptionWithOffset(wrapper, 1);
-                    return;
-                }
-                if (event.key === "ArrowUp") {
-                    event.preventDefault();
-                    focusOptionWithOffset(wrapper, -1);
-                    return;
-                }
-                if (event.key === "Home") {
-                    event.preventDefault();
-                    focusBoundaryOption(wrapper, false);
-                    return;
-                }
-                if (event.key === "End") {
-                    event.preventDefault();
-                    focusBoundaryOption(wrapper, true);
-                    return;
-                }
-                if (event.key === "Enter" || event.key === " ") {
-                    const optionButton = event.target.closest(".tp-select-option");
-                    if (!optionButton || optionButton.getAttribute("aria-disabled") === "true") return;
-                    event.preventDefault();
-                    chooseOption(wrapper, optionButton.getAttribute("data-value") || "");
-                    return;
-                }
-                if (event.key === "Tab") {
-                    closeSelect(wrapper);
-                }
-            });
-
-            renderSelect(wrapper);
-
-            const observer = new MutationObserver(function () {
-                renderSelect(wrapper);
-            });
-            observer.observe(select, {
-                childList: true,
-                subtree: true,
-                attributes: true,
-                attributeFilter: ["disabled", "label", "selected", "value"]
-            });
-        }
-
-        function initEnhancedSelects(root) {
-            const scope = root && root.nodeType === 1 ? root : document;
-            if (scope.matches && scope.matches(SELECTOR)) {
-                enhanceSelect(scope);
-            }
-            scope.querySelectorAll(SELECTOR).forEach(function (select) {
-                enhanceSelect(select);
-            });
-        }
-
-        document.addEventListener("click", function (event) {
-            if (event.target.closest(".tp-select")) return;
-            closeAllSelects();
-        });
-
-        document.addEventListener("keydown", function (event) {
-            if (event.key !== "Escape") return;
-            closeAllSelects();
-        });
-
-        if (document.readyState === "loading") {
-            document.addEventListener("DOMContentLoaded", function () {
-                initEnhancedSelects(document);
-            });
-        } else {
-            initEnhancedSelects(document);
-        }
-
-        const rootObserver = new MutationObserver(function (mutations) {
-            mutations.forEach(function (mutation) {
-                mutation.addedNodes.forEach(function (node) {
-                    if (node.nodeType !== 1) return;
-                    initEnhancedSelects(node);
-                });
-            });
-        });
-
-        rootObserver.observe(document.documentElement, {
-            childList: true,
-            subtree: true
-        });
-
-        window.tpEnhanceSelects = initEnhancedSelects;
-    })();
-
-    (function () {
-        function isElementVisible(element) {
-            if (!element || element.hidden) return false;
-            const style = window.getComputedStyle(element);
-            return style.display !== "none" && style.visibility !== "hidden";
-        }
-
-        function tableFilename(table) {
-            const rawTitle = table.dataset.exportTitle || document.title || "table";
-            const normalized = rawTitle
-                .toLowerCase()
-                .replace(/[^a-z0-9._-]+/g, "-")
-                .replace(/^-+|-+$/g, "");
-            return (normalized || "table") + ".csv";
-        }
-
-        function visibleCells(row) {
-            return Array.from(row.children).filter(isElementVisible);
-        }
-
-        function normalizedCellText(cell) {
-            return (cell.textContent || "")
-                .replace(/\s+/g, " ")
-                .replace(/\u00a0/g, " ")
-                .trim();
-        }
-
-        function collectVisibleTableRows(table) {
-            const headerRow = table.tHead && table.tHead.rows.length
-                ? table.tHead.rows[table.tHead.rows.length - 1]
-                : null;
-            const headers = headerRow
-                ? visibleCells(headerRow).map(normalizedCellText)
-                : [];
-
-            const bodyRows = Array.from(table.tBodies || []).flatMap(function (tbody) {
-                return Array.from(tbody.rows || []);
-            }).filter(isElementVisible);
-
-            const rows = bodyRows
-                .map(function (row) {
-                    return visibleCells(row).map(normalizedCellText);
-                })
-                .filter(function (row) {
-                    return row.length > 0 && row.some(function (value) { return value.length > 0; });
-                });
-
-            return { headers: headers, rows: rows };
-        }
-
-        function downloadCsv(filename, headers, rows) {
-            const csvRows = [];
-            if (headers.length) {
-                csvRows.push(headers);
-            }
-            rows.forEach(function (row) {
-                csvRows.push(row);
-            });
-            const csv = csvRows.map(function (row) {
-                return row.map(function (value) {
-                    const text = value == null ? "" : String(value);
-                    const escaped = text.replace(/"/g, "\"\"");
-                    return /[",\n]/.test(escaped) ? `"${escaped}"` : escaped;
-                }).join(",");
-            }).join("\n");
-            const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            link.href = url;
-            link.download = filename;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            window.URL.revokeObjectURL(url);
-        }
-
-        function tableExportAction(event) {
-            event.preventDefault();
-            const button = event.currentTarget;
-            if (button.classList.contains("is-disabled")) return;
-            const table = document.querySelector(button.dataset.tableExportTarget);
-            if (!table) return;
-
-            const exportUrl = table.dataset.exportUrl;
-            if (exportUrl) {
-                window.location.href = exportUrl;
-                return;
-            }
-
-            const payload = collectVisibleTableRows(table);
-            downloadCsv(tableFilename(table), payload.headers, payload.rows);
-        }
-
-        function createExportButton(table, targetSelector) {
-            const button = document.createElement(table.dataset.exportUrl ? "a" : "button");
-            button.className = "tp-table-export-btn";
-            button.innerHTML = [
-                '<span class="tp-table-export-btn__icon" aria-hidden="true">',
-                '<svg viewBox="0 0 16 16" width="16" height="16" focusable="false" aria-hidden="true">',
-                '<path d="M8 2.5v7"></path>',
-                '<path d="m5.25 7.75 2.75 2.75 2.75-2.75"></path>',
-                '<path d="M3 12.25h10"></path>',
-                '</svg>',
-                '</span>',
-                '<span class="tp-table-export-btn__label">Export CSV</span>',
-            ].join("");
-            button.dataset.tableExportTarget = targetSelector;
-            if (button.tagName === "BUTTON") {
-                button.type = "button";
-            } else {
-                button.href = table.dataset.exportUrl || "#";
-            }
-            const payload = collectVisibleTableRows(table);
-            if (!table.dataset.exportUrl && payload.rows.length === 0) {
-                button.classList.add("is-disabled");
-                button.setAttribute("aria-disabled", "true");
-            }
-            button.addEventListener("click", tableExportAction);
-            return button;
-        }
-
-        function initTableExports(root) {
-            const scope = root || document;
-            const tables = Array.from(scope.querySelectorAll("table.tp-table")).filter(function (table) {
-                return table.dataset.tableExport !== "off" && !table.dataset.tableExportBound;
-            });
-
-            tables.forEach(function (table, index) {
-                const host = table.closest(".tp-table-shell") || table.parentElement;
-                if (!host) return;
-                const content = (table.parentElement === host)
-                    ? table
-                    : (table.closest(".tp-dt-wrapper, .dataTables_wrapper") || table);
-
-                if (!table.id) {
-                    table.id = "tp-table-export-" + index + "-" + Math.random().toString(36).slice(2, 8);
-                }
-
-                const bar = document.createElement("div");
-                bar.className = "tp-table-export-bar";
-                host.classList.add("tp-table-shell--with-export");
-                if (host.dataset.tableScrollWrap === "off") {
-                    if (!host.contains(content)) {
-                        host.appendChild(content);
-                    }
-                } else {
-                    let scroll = host.querySelector(":scope > .tp-table-shell__scroll");
-                    if (!scroll) {
-                        scroll = document.createElement("div");
-                        scroll.className = "tp-table-shell__scroll";
-                        host.appendChild(scroll);
-                    }
-                    if (!scroll.contains(content)) {
-                        scroll.appendChild(content);
-                    }
-                }
-                bar.appendChild(createExportButton(table, "#" + table.id));
-                host.insertBefore(bar, host.firstChild);
-                table.dataset.tableExportBound = "1";
-            });
-        }
-
-        window.tpInitTableExports = initTableExports;
-
-        function refreshTableScrollHints(root) {
-            const scope = root || document;
-            const hosts = [];
-            if (scope instanceof Element && scope.matches(".tp-table-shell")) {
-                hosts.push(scope);
-            }
-            hosts.push.apply(hosts, Array.from(scope.querySelectorAll ? scope.querySelectorAll(".tp-table-shell") : []));
-
-            hosts.forEach(function (host) {
-                const scroll = host.querySelector(":scope > .tp-table-shell__scroll") || host;
-                if (!scroll) return;
-
-                let hint = host.querySelector(":scope > .tp-table-scroll-hint");
-                if (!hint) {
-                    hint = document.createElement("div");
-                    hint.className = "tp-table-scroll-hint";
-                    hint.textContent = "{% trans 'Scroll horizontally' %}";
-                    host.appendChild(hint);
-                }
-
-                const hasHorizontalOverflow = (scroll.scrollWidth - scroll.clientWidth) > 16;
-                const atEnd = (scroll.scrollLeft + scroll.clientWidth) >= (scroll.scrollWidth - 4);
-                const atStart = scroll.scrollLeft <= 4;
-
-                host.classList.toggle("is-h-scrollable", hasHorizontalOverflow);
-                host.classList.toggle("is-h-scroll-end", !hasHorizontalOverflow || atEnd);
-                host.classList.toggle("is-h-scroll-start", atStart);
-                hint.hidden = !hasHorizontalOverflow;
-
-                if (!scroll.dataset.tpScrollHintBound) {
-                    scroll.addEventListener("scroll", function () {
-                        refreshTableScrollHints(host);
-                    }, { passive: true });
-                    scroll.dataset.tpScrollHintBound = "1";
-                }
-            });
-        }
-
-        window.tpRefreshTableScrollHints = refreshTableScrollHints;
-    })();
+            zeroRecords: "{% trans 'No matching records found.' %}"
+        },
+        scrollHint: "{% trans 'Scroll horizontally' %}"
+    };
 </script>
+<script src="{% static 'js/global/csrf-setup.js' %}?v=20260812-js-externalize"></script>
+<script src="{% static 'js/global/page-loader.js' %}?v=20260812-js-externalize"></script>
+<script src="{% static 'js/global/theme-and-chrome.js' %}?v=20260831-sticky-chrome-offset"></script>
+<script src="{% static 'js/global/custom-select.js' %}?v=20260812-js-externalize"></script>
+<script src="{% static 'js/global/table-utilities.js' %}?v=20260812-js-externalize"></script>
 
 {% block jsloaded %}
     <script>
@@ -3586,146 +2662,6 @@
         }
     </script>
 {% endblock %}
-<script>
-    (function () {
-        function initExports() {
-            if (window.tpInitTableExports) {
-                window.tpInitTableExports(document);
-            }
-            if (window.tpRefreshTableScrollHints) {
-                window.tpRefreshTableScrollHints(document);
-            }
-        }
-
-        if (document.readyState === "loading") {
-            document.addEventListener("DOMContentLoaded", initExports, { once: true });
-        } else {
-            initExports();
-        }
-
-        window.addEventListener("resize", function () {
-            if (window.tpRefreshTableScrollHints) {
-                window.tpRefreshTableScrollHints(document);
-            }
-        });
-    })();
-
-    /* ── Auto-dismiss messages ── */
-    (function () {
-        function dismissMsg(el) {
-            el.classList.add("is-hiding");
-            setTimeout(function () { el.remove(); }, 300);
-        }
-        document.querySelectorAll(".tp-message-close").forEach(function (btn) {
-            btn.addEventListener("click", function () { dismissMsg(btn.closest(".tp-message")); });
-        });
-        document.querySelectorAll(".tp-message").forEach(function (msg) {
-            setTimeout(function () { dismissMsg(msg); }, 5000);
-        });
-    })();
-
-    /* ── Replace native title tooltips with the Target Pathogen tooltip ── */
-    (function () {
-        const tooltip = document.createElement("div");
-        tooltip.className = "tp-global-tooltip";
-        tooltip.setAttribute("role", "tooltip");
-        document.body.appendChild(tooltip);
-
-        let activeEl = null;
-
-        document.querySelectorAll("[title]").forEach(function (el) {
-            const title = el.getAttribute("title");
-            if (title && !el.getAttribute("data-tp-native-title")) {
-                el.setAttribute("data-tp-native-title", title);
-                el.removeAttribute("title");
-            }
-        });
-
-        function getTitle(el) {
-            return el.getAttribute("data-tp-native-title") || "";
-        }
-
-        function positionTooltip(el) {
-            const text = getTitle(el).trim();
-            if (!text) return;
-
-            tooltip.textContent = text;
-            tooltip.classList.remove("is-below", "is-visible");
-            tooltip.style.width = "";
-            tooltip.style.left = "0px";
-            tooltip.style.top = "0px";
-
-            const pad = 12;
-            const gap = 8;
-            const anchor = el.getBoundingClientRect();
-            const size = tooltip.getBoundingClientRect();
-            const width = Math.min(size.width || 260, window.innerWidth - (pad * 2));
-
-            let left = anchor.left + (anchor.width / 2) - (width / 2);
-            left = Math.max(pad, Math.min(left, window.innerWidth - pad - width));
-
-            let top = anchor.top - size.height - gap;
-            let below = false;
-            if (top < pad) {
-                top = anchor.bottom + gap;
-                below = true;
-                tooltip.classList.add("is-below");
-            }
-
-            const arrowLeft = anchor.left + (anchor.width / 2) - left;
-            tooltip.style.left = left + "px";
-            tooltip.style.top = top + "px";
-            tooltip.style.setProperty("--tp-tooltip-arrow-left", Math.max(12, Math.min(width - 12, arrowLeft)) + "px");
-            tooltip.classList.add("is-visible");
-        }
-
-        function showTooltip(el) {
-            if (!getTitle(el).trim()) return;
-            activeEl = el;
-            positionTooltip(el);
-        }
-
-        function hideTooltip(el) {
-            if (activeEl === el) {
-                activeEl = null;
-                tooltip.classList.remove("is-visible");
-            }
-        }
-
-        document.addEventListener("pointerover", function (event) {
-            if (!(event.target instanceof Element)) return;
-            const el = event.target.closest("[data-tp-native-title]");
-            if (el && event.relatedTarget instanceof Node && el.contains(event.relatedTarget)) return;
-            if (el) showTooltip(el);
-        });
-
-        document.addEventListener("pointerout", function (event) {
-            if (!(event.target instanceof Element)) return;
-            const el = event.target.closest("[data-tp-native-title]");
-            if (el && event.relatedTarget instanceof Node && el.contains(event.relatedTarget)) return;
-            if (el) hideTooltip(el);
-        });
-
-        document.addEventListener("focusin", function (event) {
-            if (!(event.target instanceof Element)) return;
-            const el = event.target.closest("[data-tp-native-title]");
-            if (el) showTooltip(el);
-        });
-
-        document.addEventListener("focusout", function (event) {
-            if (!(event.target instanceof Element)) return;
-            const el = event.target.closest("[data-tp-native-title]");
-            if (el) hideTooltip(el);
-        });
-
-        window.addEventListener("resize", function () {
-            if (activeEl) positionTooltip(activeEl);
-        });
-
-        document.addEventListener("scroll", function () {
-            if (activeEl) positionTooltip(activeEl);
-        }, true);
-    })();
-</script>
+<script src="{% static 'js/global/page-chrome-init.js' %}?v=20260812-js-externalize"></script>
 </body>
 </html>

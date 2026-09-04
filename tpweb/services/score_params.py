@@ -134,6 +134,24 @@ SYSTEM_SCORE_PARAM_DEFINITIONS = {
             "N": "Best pocket's volume is within the normal range for this structure's pockets.",
         },
     },
+    "pocket_consensus_high_score": {
+        "category": "Pocket",
+        "description": (
+            "Whether this protein has at least one FPocket pocket scored druggable (>= 0.7) "
+            "sitting within 8 Å of a P2Rank pocket scored ligandable (>= 0.5) — i.e. two "
+            "independent predictors agreeing, with confidence, on the same binding site. "
+            "Checked across every pocket on every linked structure, not just the top few "
+            "shown on the protein page. A stronger signal than either predictor's score alone."
+        ),
+        "type": "C",
+        "default_operation": "=",
+        "default_value": "Y",
+        "options": ("Y", "N"),
+        "option_descriptions": {
+            "Y": "FPocket and P2Rank both scored a pocket high and agree it's the same site.",
+            "N": "No same-site, both-high-score match between FPocket and P2Rank pockets.",
+        },
+    },
     "gut_microbiome_offtarget_norm": {
         "category": "Off-target",
         "description": (

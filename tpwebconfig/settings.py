@@ -87,6 +87,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "tpweb.middleware.access_control.LoginRequiredMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.common.BrokenLinkEmailsMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
@@ -269,6 +270,10 @@ SERVER_EMAIL=webmaster@example.com
 ACCOUNT_ALLOW_REGISTRATION = env.bool("DJANGO_ACCOUNT_ALLOW_REGISTRATION", False)
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
 ACCOUNT_AUTHENTICATION_METHOD = "username_email"
+# Signup collects a name + email, not a username -- allauth auto-generates
+# one from the email instead of showing the field. Login (username_email
+# above) still accepts either, unaffected.
+ACCOUNT_USERNAME_REQUIRED = False
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
 ACCOUNT_EMAIL_REQUIRED = True
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
@@ -281,6 +286,38 @@ ACCOUNT_FORMS = {"signup": "tpweb.forms.UserSignupForm"}
 SOCIALACCOUNT_ADAPTER = "tpweb.adapters.AccountAdapters.SocialAccountAdapter"
 # https://django-allauth.readthedocs.io/en/latest/forms.html
 # SOCIALACCOUNT_FORMS = {"signup": "sndg.users.forms.UserSocialSignupForm"}
+
+# Email -- used for new-signup / account-approved notifications
+# (tpweb/services/user_approval.py). Console backend in DEBUG so nothing
+# breaks locally without real SMTP creds; Django's test runner always forces
+# EMAIL_BACKEND to locmem regardless of this default.
+# ------------------------------------------------------------------------------
+EMAIL_BACKEND = env(
+    "DJANGO_EMAIL_BACKEND",
+    default="django.core.mail.backends.console.EmailBackend"
+    if DEBUG
+    else "django.core.mail.backends.smtp.EmailBackend",
+)
+EMAIL_HOST = env("DJANGO_EMAIL_HOST", default="localhost")
+EMAIL_PORT = env.int("DJANGO_EMAIL_PORT", default=587)
+EMAIL_HOST_USER = env("DJANGO_EMAIL_HOST_USER", default="")
+EMAIL_HOST_PASSWORD = env("DJANGO_EMAIL_HOST_PASSWORD", default="")
+# Mutually exclusive (Django raises if both are True): TLS/port 587 is the
+# common default, but some institutional networks block outbound 587/25
+# and only allow 465 (implicit SSL) -- set DJANGO_EMAIL_USE_TLS=False and
+# DJANGO_EMAIL_USE_SSL=True (with DJANGO_EMAIL_PORT=465) in that case.
+EMAIL_USE_TLS = env.bool("DJANGO_EMAIL_USE_TLS", default=True)
+EMAIL_USE_SSL = env.bool("DJANGO_EMAIL_USE_SSL", default=False)
+DEFAULT_FROM_EMAIL = env("DJANGO_DEFAULT_FROM_EMAIL", default="no-reply@targetpathogen.local")
+
+# Scheme + host the site is actually reachable at, no trailing slash -- used
+# only to build a clickable login link in the approval-notification emails
+# (tpweb/services/user_approval.py). There's no reliable way to derive this
+# from ALLOWED_HOSTS (no scheme, and it's sometimes a list of several
+# hostnames) or django.contrib.sites (its Site row defaults to
+# "example.com" and nothing in this repo ever changes that), so it's its
+# own explicit setting, defaulting to this deployment's real cluster URL.
+SITE_URL = env("DJANGO_SITE_URL", default="https://target2.infra.cluster.qb.fcen.uba.ar")
 
 
 if DEBUG:

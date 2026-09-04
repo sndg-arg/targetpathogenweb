@@ -20,9 +20,7 @@
 .genome-upload-page h1 { font-weight: 700; }
 
 /* No longer its own boxed card -- sits directly on the page background
-   (see tpw-editorial-redesign). Its own top accent bar is gone too: that
-   was a page-local duplicate of the site-wide masthead rule in
-   .tp-main::before, which now covers this. */
+   (see tpw-editorial-redesign). */
 .genome-upload-hero {
     padding: 22px 18px 18px;
 }
@@ -478,17 +476,12 @@
 
 .genome-upload-hero,
 .genome-upload-card,
-.genome-upload-history,
 .genome-upload-message {
     animation: genome-upload-enter 0.36s ease;
 }
 
 .genome-upload-card {
     animation-delay: 0.04s;
-}
-
-.genome-upload-history {
-    animation-delay: 0.08s;
 }
 
 @keyframes genome-upload-enter {
@@ -499,6 +492,24 @@
     to {
         opacity: 1;
         transform: none;
+    }
+}
+
+/* Opacity-only, not the shared slide+fade -- this wraps a sticky table
+   header (tp-table--premium), and a `transform` on an ancestor of a
+   `position: sticky` element makes browsers momentarily mis-render its
+   stuck position (the same class of bug documented on .tp-ui-enter, there
+   for a nested native <select> popup instead of a sticky header). */
+.genome-upload-history {
+    animation: genome-upload-enter-fade 0.36s ease 0.08s backwards;
+}
+
+@keyframes genome-upload-enter-fade {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
     }
 }
 

@@ -9,7 +9,7 @@ from bioseq.io.BioIO import BioIO
 from bioseq.models.Biodatabase import Biodatabase
 from bioseq.models.Bioentry import Bioentry
 from tpweb.models.BioentryStructure import ExperimentalStructureXref
-from .StructureView import pdb_structure
+from tpweb.services.structure_summary import pdb_structure
 from tpweb.services.protein_annotations import (
     annotation_dbnames,
     annotation_name as _annotation_name,
@@ -476,7 +476,7 @@ class ProteinView(View):
         # summarize_structure_sources, create_binders_dict) reads
         # `s.pdb.residues` -- that used to only back the chain-name derivation
         # inside pdb_structure(), which now derives chains via a `.values_list`
-        # query instead of a full residue fetch (see StructureView.py). Dropping
+        # query instead of a full residue fetch (see structure_summary.py). Dropping
         # this prefetch removes an expensive full-residue-table pull per linked
         # structure, on every protein page load.
         structures = protein.structures.all()

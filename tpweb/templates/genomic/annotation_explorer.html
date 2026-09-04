@@ -7,26 +7,34 @@
     <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
 {% endblock %}
 
+{% block breadcrumbs %}
+<div class="tp-breadcrumb-bar">
+    <div class="tp-breadcrumb-bar-inner">
+        {% trans "Genomes" as crumb_genomes %}
+        {% trans "Proteins" as crumb_proteins %}
+        {% if explorer.kind == "ec" %}
+            {% trans "EC tree" as crumb_explorer %}
+        {% else %}
+            {% trans "GO terms" as crumb_explorer %}
+        {% endif %}
+        {% url 'tpwebapp:index' as index_url %}
+        {% url 'tpwebapp:genomes_list' as genomes_url %}
+        {% url 'tpwebapp:assembly' genome as assembly_url %}
+        {% url 'tpwebapp:protein_list' genome=genome as proteins_url %}
+        {% with crumb_workspace="Genome: "|add:assembly_label %}
+        {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_workspace crumb_3_url=assembly_url crumb_4_label=crumb_proteins crumb_4_url=proteins_url crumb_5_label=crumb_explorer %}
+        {% endwith %}
+    </div>
+</div>
+{% endblock %}
+
 {% block body %}
     {{ explorer.chart|json_script:"annotation-chart-data" }}
 
     <div class="explorer-page">
         <section class="explorer-hero">
-            {% trans "Genomes" as crumb_genomes %}
-            {% trans "Proteins" as crumb_proteins %}
-            {% if explorer.kind == "ec" %}
-                {% trans "EC tree" as crumb_explorer %}
-            {% else %}
-                {% trans "GO terms" as crumb_explorer %}
-            {% endif %}
-            {% url 'tpwebapp:index' as index_url %}
-            {% url 'tpwebapp:genomes_list' as genomes_url %}
-            {% url 'tpwebapp:assembly' genome as assembly_url %}
-            {% url 'tpwebapp:protein_list' genome=genome as proteins_url %}
-            {% with crumb_workspace="Genome: "|add:assembly_label %}
             <div class="tp-view-head">
                 <div class="tp-view-head-copy">
-                    {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_workspace crumb_3_url=assembly_url crumb_4_label=crumb_proteins crumb_4_url=proteins_url crumb_5_label=crumb_explorer %}
                 </div>
                 <div class="tp-view-head-actions">
                     <a href="{{ view_export_url }}" class="btn tp-btn tp-btn--neutral tp-btn-with-icon tp-view-export-link">
@@ -35,7 +43,6 @@
                     </a>
                 </div>
             </div>
-            {% endwith %}
 
             <span class="explorer-eyebrow">
                 {% if explorer.kind == "ec" %}{% trans "Functional annotation · EC hierarchy" %}{% else %}{% trans "Functional annotation · GO terms" %}{% endif %}

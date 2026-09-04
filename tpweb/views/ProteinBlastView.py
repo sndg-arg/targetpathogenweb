@@ -31,6 +31,7 @@ class ProteinBlastView(LoginRequiredMixin, View):
         return {
             "genome_name": resolved,
             "genome_label": display_genome_name(resolved),
+            "assembly_url": reverse("tpwebapp:assembly", kwargs={"genome": genome_slug}),
             "proteins_url": reverse("tpwebapp:protein_list", kwargs={"genome": genome_slug}),
         }
 

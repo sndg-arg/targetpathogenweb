@@ -3,7 +3,17 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/data-sources.css' %}?v=20260804-fusion1">
+    <link rel="stylesheet" href="{% static 'css/pages/data-sources.css' %}?v=20260831-real-logos">
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="tp-breadcrumb-bar">
+    <div class="tp-breadcrumb-bar-inner">
+        {% url 'tpwebapp:index' as index_url %}
+        {% trans "About us" as crumb_about %}
+        {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_about %}
+    </div>
+</div>
 {% endblock %}
 
 {% block body %}
@@ -12,9 +22,6 @@
     <section class="ds-hero">
         <div class="tp-view-head">
             <div class="tp-view-head-copy">
-                {% url 'tpwebapp:index' as index_url %}
-                {% trans "About us" as crumb_about %}
-                {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_about %}
                 <p class="ds-eyebrow">{% trans "Project and team" %}</p>
                 <h1 class="ds-hero-title">{% trans "About Target Pathogen" %}</h1>
                 <p class="ds-hero-description">{% trans "Target Pathogen is a bioinformatics platform developed to support transparent, evidence-based prioritization of protein targets in pathogenic organisms." %}</p>
@@ -25,6 +32,7 @@
     <nav class="ds-quick-nav" aria-label="{% trans 'Sections' %}">
         <a class="ds-quick-nav-link" href="#purpose">{% trans "Purpose" %}</a>
         <a class="ds-quick-nav-link" href="#institution">{% trans "Institution" %}</a>
+        <a class="ds-quick-nav-link" href="#partners">{% trans "Partners" %}</a>
         <a class="ds-quick-nav-link" href="#team">{% trans "Team" %}</a>
     </nav>
 
@@ -63,6 +71,29 @@
         </div>
     </section>
 
+    <section class="ds-panel" id="partners">
+        <div class="section-head tp-ui-panel-head">
+            <div>
+                <p class="tp-ui-field-label">{% trans "Institutional support" %}</p>
+                <h2 class="ds-panel-title">{% trans "Partners" %}</h2>
+            </div>
+        </div>
+        <div class="ds-partner-grid">
+            <div class="ds-partner-tile">
+                <img class="ds-partner-tile-mark" src="{% static 'img/brand/uba-logo.jpg' %}" alt="{% trans 'Universidad de Buenos Aires' %}">
+                <span class="ds-partner-tile-name">{% trans "Universidad de Buenos Aires" %}</span>
+            </div>
+            <div class="ds-partner-tile">
+                <img class="ds-partner-tile-mark" src="{% static 'img/brand/ic-only-logo.jpg' %}" alt="{% trans 'Instituto de Cálculo' %}">
+                <span class="ds-partner-tile-name">{% trans "Instituto de Cálculo" %}</span>
+            </div>
+            <div class="ds-partner-tile">
+                <img class="ds-partner-tile-mark" src="{% static 'img/brand/gates-logo.png' %}" alt="{% trans 'Gates Foundation' %}">
+                <span class="ds-partner-tile-name">{% trans "Gates Foundation" %}</span>
+            </div>
+        </div>
+    </section>
+
     <section class="ds-panel" id="team">
         <div class="section-head tp-ui-panel-head">
             <div>
@@ -78,6 +109,7 @@
                 </div>
                 <p class="ds-pipeline-card-role ds-pipeline-card-role--doctor">{% trans "PhD in Biological Sciences" %} <span class="ds-pipeline-card-faculty">(FCEyN, UBA)</span></p>
                 <p class="ds-pipeline-card-previous-degree"><span>{% trans "Undergraduate degree" %}</span>{% trans "Bachelor's in Biological Sciences" %} <span class="ds-pipeline-card-faculty">(FCEyN, UBA)</span></p>
+                {% include "about/_team_links.html" with orcid="https://orcid.org/0000-0002-3622-4052" conicet="https://bicyt.conicet.gov.ar/fichas/p/dario-augusto-fernandez-do-porto" scholar="https://scholar.google.com/citations?hl=es&user=FjcyzG8AAAAJ" %}
             </div>
             <div class="ds-pipeline-card">
                 <div class="ds-pipeline-card-head">
@@ -85,6 +117,7 @@
                 </div>
                 <p class="ds-pipeline-card-role ds-pipeline-card-role--doctor">{% trans "PhD in Chemical Sciences" %} <span class="ds-pipeline-card-faculty">(FCEyN, UBA)</span></p>
                 <p class="ds-pipeline-card-previous-degree"><span>{% trans "Undergraduate degree" %}</span>{% trans "Bachelor's in Chemical Sciences" %} <span class="ds-pipeline-card-faculty">(UBA)</span></p>
+                {% include "about/_team_links.html" with linkedin="https://ar.linkedin.com/in/turjanski" orcid="https://orcid.org/0000-0003-2190-137X" conicet="https://bicyt.conicet.gov.ar/fichas/p/adrian-turjanski" scholar="https://scholar.google.com/citations?user=IXRqLkIAAAAJ&hl=es&oi=ao" %}
             </div>
             <div class="ds-pipeline-card">
                 <div class="ds-pipeline-card-head">
@@ -92,6 +125,7 @@
                 </div>
                 <p class="ds-pipeline-card-role ds-pipeline-card-role--candidate">{% trans "PhD candidate in Biological Chemistry" %} <span class="ds-pipeline-card-faculty">(FCEyN, UBA)</span></p>
                 <p class="ds-pipeline-card-previous-degree"><span>{% trans "Undergraduate degree" %}</span>{% trans "Bachelor's in Biological Sciences" %} <span class="ds-pipeline-card-faculty">(FCEyN, UBA)</span></p>
+                {% include "about/_team_links.html" with linkedin="https://www.linkedin.com/in/l-gabriel-garcia" conicet="https://bicyt.conicet.gov.ar/fichas/p/lucas-gabriel-garcia" %}
             </div>
             <div class="ds-pipeline-card">
                 <div class="ds-pipeline-card-head">
@@ -99,6 +133,7 @@
                 </div>
                 <p class="ds-pipeline-card-role ds-pipeline-card-role--candidate">{% trans "PhD candidate in Biological Chemistry" %} <span class="ds-pipeline-card-faculty">(FCEyN, UBA)</span></p>
                 <p class="ds-pipeline-card-previous-degree"><span>{% trans "Undergraduate degree" %}</span>{% trans "Bachelor's in Biological Sciences" %} <span class="ds-pipeline-card-faculty">(FCEyN, UBA)</span></p>
+                {% include "about/_team_links.html" with orcid="https://orcid.org/0000-0002-5094-4953" conicet="https://bicyt.conicet.gov.ar/fichas/p/en/miranda-clara-palumbo" %}
             </div>
             <div class="ds-pipeline-card">
                 <div class="ds-pipeline-card-head">
@@ -106,18 +141,21 @@
                 </div>
                 <p class="ds-pipeline-card-role ds-pipeline-card-role--candidate">{% trans "PhD candidate in Biological Chemistry" %} <span class="ds-pipeline-card-faculty">(FCEyN, UBA)</span></p>
                 <p class="ds-pipeline-card-previous-degree"><span>{% trans "Undergraduate degree" %}</span>{% trans "Bachelor's in Chemical Sciences" %} <span class="ds-pipeline-card-faculty">(FCEyN, UBA)</span></p>
+                {% include "about/_team_links.html" with linkedin="https://www.linkedin.com/in/sol-varela-gamarnik-845328268" orcid="https://orcid.org/0009-0006-7473-8173" %}
             </div>
             <div class="ds-pipeline-card">
                 <div class="ds-pipeline-card-head">
                     <strong>Ana Gabriela Gutson</strong>
                 </div>
                 <p class="ds-pipeline-card-role ds-pipeline-card-role--engineering">{% trans "Computer Engineer" %} <span class="ds-pipeline-card-faculty">(FIUBA, UBA)</span></p>
+                {% include "about/_team_links.html" with linkedin="https://www.linkedin.com/in/ana-gutson/" %}
             </div>
             <div class="ds-pipeline-card">
                 <div class="ds-pipeline-card-head">
                     <strong>Joaquín Messano</strong>
                 </div>
                 <p class="ds-pipeline-card-role">{% trans "Undergraduate student in Biological Sciences" %} <span class="ds-pipeline-card-faculty">(FCEyN, UBA)</span></p>
+                {% include "about/_team_links.html" with linkedin="https://www.linkedin.com/in/joaquin-messano-543886140" %}
             </div>
         </div>
     </section>

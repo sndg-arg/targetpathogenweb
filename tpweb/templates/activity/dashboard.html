@@ -1,0 +1,235 @@
+{% extends '../base/masterpage.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block head %}
+    <link rel="stylesheet" href="{% static 'css/pages/activity-dashboard.css' %}?v=20260904-scanned-paths">
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="tp-breadcrumb-bar">
+    <div class="tp-breadcrumb-bar-inner">
+        {% url 'tpwebapp:index' as index_url %}
+        {% trans "Activity" as crumb_activity %}
+        {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_activity %}
+    </div>
+</div>
+{% endblock %}
+
+{% block body %}
+<div class="activity-page">
+
+    <section class="activity-hero">
+        <div class="tp-view-head">
+            <div class="tp-view-head-copy">
+                <p class="activity-eyebrow">{% trans "Staff only" %}</p>
+                <h1 class="activity-hero-title">{% trans "Activity" %}</h1>
+                <p class="activity-hero-description">{% blocktrans %}Who's accessing the platform, from where, and what they're looking at over the last {{ window_days }} days.{% endblocktrans %}</p>
+            </div>
+            <div class="tp-view-head-actions">
+                <div class="activity-period-selector" role="group" aria-label="{% trans 'Time period' %}">
+                    {% for choice in period_choices %}
+                    <a href="?days={{ choice.days }}" class="activity-period-btn{% if choice.days == window_days %} is-active{% endif %}">{{ choice.label }}</a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="activity-kpi-row" aria-label="{% trans 'Key numbers' %}">
+        <div class="activity-kpi-card">
+            <p class="activity-kpi-label">{% trans "Requests today" %}</p>
+            <p class="activity-kpi-value" data-kpi="requests_today">&mdash;</p>
+            <p class="activity-kpi-delta" data-kpi-delta="requests_today_delta_pct" data-delta-period="{% trans 'vs yesterday' %}"></p>
+        </div>
+        <div class="activity-kpi-card">
+            <p class="activity-kpi-label">{% trans "Unique users" %} <span class="activity-kpi-period">{{ window_days }}d</span></p>
+            <p class="activity-kpi-value" data-kpi="unique_users">&mdash;</p>
+            <p class="activity-kpi-delta" data-kpi-delta="unique_users_delta_pct" data-delta-period="{% blocktrans %}vs prior {{ window_days }}d{% endblocktrans %}"></p>
+        </div>
+        <div class="activity-kpi-card">
+            <p class="activity-kpi-label">{% trans "Unique IPs" %} <span class="activity-kpi-period">{{ window_days }}d</span></p>
+            <p class="activity-kpi-value" data-kpi="unique_ips">&mdash;</p>
+            <p class="activity-kpi-delta" data-kpi-delta="unique_ips_delta_pct" data-delta-period="{% blocktrans %}vs prior {{ window_days }}d{% endblocktrans %}"></p>
+            <p class="activity-kpi-meta" data-kpi-meta="unique_ips_authenticated"></p>
+        </div>
+        <div class="activity-kpi-card activity-kpi-card--blocked">
+            <p class="activity-kpi-label">{% trans "Blocked by login wall" %} <span class="activity-kpi-period">{{ window_days }}d</span></p>
+            <p class="activity-kpi-value" data-kpi="blocked_requests_pct" data-kpi-suffix="%">&mdash;</p>
+            <p class="activity-kpi-meta" data-kpi-meta="blocked_requests"></p>
+        </div>
+        <div class="activity-kpi-card activity-kpi-card--errors" data-kpi-card="errors">
+            <p class="activity-kpi-label">{% trans "Errors" %} <span class="activity-kpi-period">{{ window_days }}d</span></p>
+            <p class="activity-kpi-value" data-kpi="errors">&mdash;</p>
+            <p class="activity-kpi-delta" data-kpi-delta="errors_delta_pct" data-delta-period="{% blocktrans %}vs prior {{ window_days }}d{% endblocktrans %}" data-invert-tone="1"></p>
+        </div>
+    </section>
+
+    <section class="activity-panel">
+        <div class="section-head tp-ui-panel-head">
+            <div>
+                <p class="tp-ui-field-label">{% trans "Over time" %}</p>
+                <h2 class="activity-panel-title">{% blocktrans %}Requests, last {{ window_days }} days{% endblocktrans %}</h2>
+            </div>
+            <div class="activity-chart-legend" aria-hidden="true">
+                <span class="activity-chart-legend-item"><i class="activity-chart-legend-swatch activity-chart-legend-swatch--authenticated"></i>{% trans "Authenticated" %}</span>
+                <span class="activity-chart-legend-item"><i class="activity-chart-legend-swatch activity-chart-legend-swatch--anonymous"></i>{% trans "Anonymous / blocked" %}</span>
+            </div>
+        </div>
+        <div class="activity-chart-wrap">
+            <canvas id="activity-timeseries-chart" role="img" aria-label="{% blocktrans %}Requests per day over the last {{ window_days }} days, authenticated vs anonymous{% endblocktrans %}"></canvas>
+        </div>
+        <p class="activity-chart-note" data-timeseries-note></p>
+    </section>
+
+    <section class="activity-panel">
+        <div class="section-head tp-ui-panel-head">
+            <div>
+                <p class="tp-ui-field-label">{% trans "What they look at" %}</p>
+                <h2 class="activity-panel-title">{% trans "Top pages" %} <span class="tp-chip tp-chip--sm">{% trans "authenticated" %}</span></h2>
+            </div>
+        </div>
+        <div class="activity-chart-wrap activity-chart-wrap--tall">
+            <canvas id="activity-top-pages-chart" role="img" aria-label="{% trans 'Most requested pages' %}"></canvas>
+        </div>
+    </section>
+
+    <section class="activity-panel">
+        <div class="section-head tp-ui-panel-head">
+            <div>
+                <p class="tp-ui-field-label">{% trans "Who's logging in" %}</p>
+                <h2 class="activity-panel-title">{% trans "Accounts" %}</h2>
+            </div>
+        </div>
+        <div class="activity-accounts" data-accounts-list>
+            <p class="activity-accounts-empty">{% trans "Loading..." %}</p>
+        </div>
+    </section>
+
+    <section class="activity-panel">
+        <div class="section-head tp-ui-panel-head">
+            <div>
+                <p class="tp-ui-field-label">{% trans "Where real, logged-in sessions connect from" %}</p>
+                <h2 class="activity-panel-title">{% trans "Logged-in sessions" %} <span class="tp-chip tp-chip--sm">{% trans "authenticated" %}</span></h2>
+            </div>
+        </div>
+        <div class="activity-summary-chips" data-locations-summary></div>
+        <details class="activity-details js-smooth-details">
+            <summary class="activity-details-summary">
+                <span>{% trans "Show details" %}</span>
+                <span class="activity-details-chevron" aria-hidden="true"></span>
+            </summary>
+            <div class="activity-details-body">
+                <div class="activity-location-row activity-location-row--head" aria-hidden="true">
+                    <span>{% trans "Location" %}</span>
+                    <span>{% trans "IP" %}</span>
+                    <span>{% trans "Account" %}</span>
+                    <span>{% trans "Requests" %}</span>
+                </div>
+                <div class="activity-locations" data-locations-list>
+                    <p class="activity-accounts-empty">{% trans "Loading..." %}</p>
+                </div>
+            </div>
+        </details>
+    </section>
+
+    <section class="activity-panel">
+        <div class="section-head tp-ui-panel-head">
+            <div>
+                <p class="tp-ui-field-label">{% trans "Submitted a username and password, and failed" %}</p>
+                <h2 class="activity-panel-title">{% trans "Login attempts" %} <span class="tp-chip tp-chip--sm tp-chip--meta">{% trans "not a bot signal by itself" %}</span></h2>
+            </div>
+        </div>
+        <div class="activity-summary-chips" data-login-attempts-summary></div>
+        <details class="activity-details js-smooth-details">
+            <summary class="activity-details-summary">
+                <span>{% trans "Show details" %}</span>
+                <span class="activity-details-chevron" aria-hidden="true"></span>
+            </summary>
+            <div class="activity-details-body">
+                <div class="activity-location-row activity-location-row--wide activity-location-row--head" aria-hidden="true">
+                    <span>{% trans "Location" %}</span>
+                    <span>{% trans "IP" %}</span>
+                    <span>{% trans "User agent" %}</span>
+                    <span>{% trans "Last seen" %}</span>
+                    <span>{% trans "Attempts" %}</span>
+                </div>
+                <div class="activity-locations" data-login-attempts-list>
+                    <p class="activity-accounts-empty">{% trans "Loading..." %}</p>
+                </div>
+            </div>
+        </details>
+    </section>
+
+    <section class="activity-panel">
+        <div class="section-head tp-ui-panel-head">
+            <div>
+                <p class="tp-ui-field-label">{% trans "Hit the login wall on a random path, never even tried to log in" %}</p>
+                <h2 class="activity-panel-title">{% trans "Scanning &amp; bot traffic" %} <span class="tp-chip tp-chip--sm tp-chip--warning">{% trans "likely automated" %}</span></h2>
+            </div>
+        </div>
+        <div class="activity-summary-chips" data-bot-summary></div>
+        <details class="activity-details js-smooth-details">
+            <summary class="activity-details-summary">
+                <span>{% trans "Show details" %}</span>
+                <span class="activity-details-chevron" aria-hidden="true"></span>
+            </summary>
+            <div class="activity-details-body">
+                <div class="activity-location-row activity-location-row--wide activity-location-row--head" aria-hidden="true">
+                    <span>{% trans "Location" %}</span>
+                    <span>{% trans "IP" %}</span>
+                    <span>{% trans "User agent" %}</span>
+                    <span>{% trans "Paths touched" %}</span>
+                    <span>{% trans "Requests" %}</span>
+                </div>
+                <div class="activity-locations" data-blocked-list>
+                    <p class="activity-accounts-empty">{% trans "Loading..." %}</p>
+                </div>
+            </div>
+        </details>
+    </section>
+
+    <section class="activity-panel">
+        <div class="section-head tp-ui-panel-head">
+            <div>
+                <p class="tp-ui-field-label">{% trans "What they're actually requesting" %}</p>
+                <h2 class="activity-panel-title">{% trans "Most-probed paths" %}</h2>
+            </div>
+        </div>
+        <div class="activity-error-paths" data-scanned-paths-list>
+            <p class="activity-accounts-empty">{% trans "Loading..." %}</p>
+        </div>
+    </section>
+
+    <section class="activity-panel">
+        <div class="section-head tp-ui-panel-head">
+            <div>
+                <p class="tp-ui-field-label">{% trans "Request health" %}</p>
+                <h2 class="activity-panel-title">{% trans "Status codes" %}</h2>
+            </div>
+        </div>
+        <div class="activity-status-tiles" data-status-tiles>
+            <p class="activity-accounts-empty">{% trans "Loading..." %}</p>
+        </div>
+    </section>
+
+    <section class="activity-panel">
+        <div class="section-head tp-ui-panel-head">
+            <div>
+                <p class="tp-ui-field-label">{% trans "What's actually failing" %}</p>
+                <h2 class="activity-panel-title">{% trans "Top erroring paths" %}</h2>
+            </div>
+        </div>
+        <div class="activity-error-paths" data-error-paths-list>
+            <p class="activity-accounts-empty">{% trans "Loading..." %}</p>
+        </div>
+    </section>
+
+    <p class="activity-footnote">{% trans "Need row-level detail (exact IP, exact path, exact timestamp)?" %} <a href="{% url 'admin:tpweb_requestlog_changelist' %}">{% trans "Browse the raw log in the admin" %}</a>.</p>
+
+</div>
+
+{{ activity_dashboard_data|json_script:"activity-dashboard-data" }}
+<script src="{% static 'js/vendor/chart.umd.js' %}?v=20260902-context-pass"></script>
+<script src="{% static 'js/pages/activity-dashboard.js' %}?v=20260904-account-fullname"></script>
+{% endblock %}

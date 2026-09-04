@@ -162,7 +162,7 @@ class GenomeUploadView(LoginRequiredMixin, View):
             )
 
         curated_import_jobs = []
-        if request.user.is_staff:
+        if request.user.has_perm("tpweb.can_curated_import"):
             curated_import_jobs = [
                 self._curated_job_dto(job)
                 for job in CuratedImportJob.objects.filter(owner=workspace_user)[:8]
@@ -183,6 +183,7 @@ class GenomeUploadView(LoginRequiredMixin, View):
             "pipeline_status": pipeline_status,
             "has_active_jobs": owner_has_active_uploads(workspace_user),
             "running_genome_label": display_genome_name(running_genome),
+            "can_upload_genome": request.user.has_perm("tpweb.can_upload_genome"),
         }
 
     def get(self, request, *args, **kwargs):
@@ -195,8 +196,8 @@ class GenomeUploadView(LoginRequiredMixin, View):
         action = request.POST.get("action")
 
         if action == self.ACTION_RETRY_CURATED_IMPORT:
-            if not request.user.is_staff:
-                messages.error(request, "Staff access is required for curated external imports.")
+            if not request.user.has_perm("tpweb.can_curated_import"):
+                messages.error(request, "You don't have permission for curated external imports.")
                 return redirect(upload_url)
 
             job_id = request.POST.get("curated_import_job_id")
@@ -223,8 +224,8 @@ class GenomeUploadView(LoginRequiredMixin, View):
             self.ACTION_RUN_EXTERNAL_IMPORT,
             self.ACTION_RUN_CURATED_FILE_PIPELINE,
         }:
-            if not request.user.is_staff:
-                messages.error(request, "Staff access is required for curated external imports.")
+            if not request.user.has_perm("tpweb.can_curated_import"):
+                messages.error(request, "You don't have permission for curated external imports.")
                 return redirect(upload_url)
 
             external_form = ExternalImportForm(request.POST)
@@ -357,6 +358,10 @@ class GenomeUploadView(LoginRequiredMixin, View):
                 messages.success(request, "Genome upload history was cleared.")
             else:
                 messages.info(request, "There was no genome upload history to clear.")
+            return redirect(upload_url)
+
+        if not request.user.has_perm("tpweb.can_upload_genome"):
+            messages.error(request, "You don't have permission to upload genomes.")
             return redirect(upload_url)
 
         if action == self.ACTION_USE_TEST_GENOME:

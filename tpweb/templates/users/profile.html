@@ -1,0 +1,129 @@
+{% extends '../base/masterpage.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block head %}
+    <link rel="stylesheet" href="{% static 'css/pages/auth.css' %}?v=20260904-slim">
+    <link rel="stylesheet" href="{% static 'css/pages/user-profile.css' %}?v=20260904-fused1">
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="tp-breadcrumb-bar">
+    <div class="tp-breadcrumb-bar-inner">
+        {% url 'tpwebapp:index' as index_url %}
+        {% trans "My profile" as crumb_profile %}
+        {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_profile %}
+    </div>
+</div>
+{% endblock %}
+
+{% block body %}
+    <div class="profile-page">
+
+        <section class="profile-hero">
+            <div class="tp-view-head">
+                <div class="tp-view-head-copy">
+                    <h1>{% trans "My profile" %}</h1>
+                    <p class="profile-hero-description">{% trans "Your account details." %}</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="profile-section">
+            <dl class="profile-fields">
+                <div class="profile-field">
+                    <dt>{% trans "First name" %}</dt>
+                    <dd>
+                        <span class="profile-field-value">{{ form.first_name.value|default:"—" }}</span>
+                        <button type="button" class="profile-field-edit-btn js-profile-edit-field"
+                                data-field="first_name" data-field-label="{% trans 'First name' %}"
+                                aria-label="{% trans 'Edit first name' %}" aria-haspopup="dialog" aria-controls="profile-edit-modal">
+                            {% include "components/icons/pencil.html" %}
+                        </button>
+                    </dd>
+                </div>
+                <div class="profile-field">
+                    <dt>{% trans "Last name" %}</dt>
+                    <dd>
+                        <span class="profile-field-value">{{ form.last_name.value|default:"—" }}</span>
+                        <button type="button" class="profile-field-edit-btn js-profile-edit-field"
+                                data-field="last_name" data-field-label="{% trans 'Last name' %}"
+                                aria-label="{% trans 'Edit last name' %}" aria-haspopup="dialog" aria-controls="profile-edit-modal">
+                            {% include "components/icons/pencil.html" %}
+                        </button>
+                    </dd>
+                </div>
+                <div class="profile-field">
+                    <dt>{% trans "Email" %}</dt>
+                    <dd>
+                        <span class="profile-field-value">{{ form.email.value|default:"—" }}</span>
+                        <button type="button" class="profile-field-edit-btn js-profile-edit-field"
+                                data-field="email" data-field-label="{% trans 'Email' %}"
+                                aria-label="{% trans 'Edit email' %}" aria-haspopup="dialog" aria-controls="profile-edit-modal">
+                            {% include "components/icons/pencil.html" %}
+                        </button>
+                    </dd>
+                </div>
+            </dl>
+        </section>
+
+    </div>
+
+    {% if form.first_name.errors %}<script>window.TPW_PROFILE_ERROR_FIELD = "first_name";</script>
+    {% elif form.last_name.errors %}<script>window.TPW_PROFILE_ERROR_FIELD = "last_name";</script>
+    {% elif form.email.errors or form.non_field_errors %}<script>window.TPW_PROFILE_ERROR_FIELD = "email";</script>
+    {% endif %}
+
+    <div class="profile-edit-modal-backdrop" id="profile-edit-modal" aria-hidden="true">
+        <div class="profile-edit-panel" role="dialog" aria-modal="true" aria-labelledby="profile-edit-modal-title">
+            <div class="profile-edit-head">
+                <h3 id="profile-edit-modal-title">{% trans "Edit profile" %}</h3>
+                <button type="button" class="btn tp-btn tp-btn--neutral tp-btn--sm profile-edit-close"
+                        id="profile-edit-close" aria-label="{% trans 'Close' %}">
+                    <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/x.html" %}</span>
+                </button>
+            </div>
+            <form class="auth-form profile-edit-form" id="profile-edit-form" method="post" action="{% url 'tpwebapp:profile' %}">
+                {% csrf_token %}
+                <div class="profile-edit-body">
+                    {% if form.non_field_errors %}
+                        <div class="auth-errors">{{ form.non_field_errors }}</div>
+                    {% endif %}
+
+                    <div class="auth-field" data-field-group="first_name">
+                        <label for="id_first_name">{% trans "First name" %}</label>
+                        <input type="text" name="first_name" id="id_first_name"
+                               value="{{ form.first_name.value|default:'' }}" required>
+                        {% if form.first_name.errors %}
+                            <ul class="errorlist">{% for error in form.first_name.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                        {% endif %}
+                    </div>
+
+                    <div class="auth-field" data-field-group="last_name">
+                        <label for="id_last_name">{% trans "Last name" %}</label>
+                        <input type="text" name="last_name" id="id_last_name"
+                               value="{{ form.last_name.value|default:'' }}" required>
+                        {% if form.last_name.errors %}
+                            <ul class="errorlist">{% for error in form.last_name.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                        {% endif %}
+                    </div>
+
+                    <div class="auth-field" data-field-group="email">
+                        <label for="id_email">{% trans "Email" %}</label>
+                        <input type="email" name="email" id="id_email"
+                               value="{{ form.email.value|default:'' }}" required>
+                        {% if form.email.errors %}
+                            <ul class="errorlist">{% for error in form.email.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="profile-edit-actions">
+                    <button type="button" class="btn tp-btn tp-btn--clear tp-btn--sm" id="profile-edit-cancel">{% trans "Cancel" %}</button>
+                    <button type="submit" class="btn tp-btn tp-btn--primary tp-btn--sm" id="profile-edit-save" disabled>{% trans "Save changes" %}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="{% static 'js/pages/user-profile.js' %}?v=20260904-per-field"></script>
+{% endblock %}

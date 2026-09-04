@@ -8,7 +8,7 @@ from tpweb.models.pdb import PDB
 
 import gzip
 import zipfile
-from tpweb.views.StructureView import pdb_structure
+from tpweb.services.structure_summary import pdb_structure
 import io
 from django.utils.encoding import smart_str
 from tpweb.services.genome_workspace import user_can_access_genome_name

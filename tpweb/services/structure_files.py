@@ -1,6 +1,8 @@
+import gzip
 import math
 import os
 import re
+import shutil
 
 from django.conf import settings
 
@@ -43,7 +45,7 @@ def structure_file_path(genome_name, protein_accession, structure_code):
     # exact same version of that command.
     for code in (structure_code, base_code):
         for base_dir in _candidate_seqstore_dirs():
-            genome_dir = os.path.join(base_dir, _mid_shard(genome_name), genome_name)
+            genome_dir = os.path.join(base_dir, mid_shard(genome_name), genome_name)
             for filename in (f"{code}.pdb", f"{code}.pdb.gz", f"{code}.cif", f"{code}.cif.gz"):
                 candidate = os.path.join(genome_dir, "experimental", protein_accession, filename)
                 if os.path.exists(candidate):
@@ -52,12 +54,33 @@ def structure_file_path(genome_name, protein_accession, structure_code):
     raise FileNotFoundError(last_path or structure_code)
 
 
-def _mid_shard(name):
+def mid_shard(name):
     """Same 3-char middle-of-the-name sharding used throughout the pipeline
-    (backfill_experimental_structures.py, import_external_results.py, etc.)
-    to spread genome directories across the data volume."""
+    and management commands to spread genome directories across the data
+    volume. The single source of truth for this bucketing math -- previously
+    reimplemented ad hoc across ~14 management commands (some inline, never
+    even extracted to a function), which is exactly how the folder-path
+    arithmetic bug documented in ComputeFolderPathTests happened once
+    already."""
     n = len(name)
     return name[math.floor(n / 2 - 1) : math.floor(n / 2 + 2)]
+
+
+def compute_folder_path(datadir, genome_name):
+    """The on-disk working directory for one genome: <datadir>/<mid_shard>/<genome_name>."""
+    return os.path.join(datadir, mid_shard(genome_name), genome_name)
+
+
+def write_plain_pdb(source_path, dest_path):
+    """Copy a structure file to dest_path, decompressing on the fly if the
+    source is gzipped, then set it world-readable (0o644)."""
+    os.makedirs(os.path.dirname(dest_path), exist_ok=True)
+    if source_path.endswith(".gz"):
+        with gzip.open(source_path, "rb") as src, open(dest_path, "wb") as dst:
+            shutil.copyfileobj(src, dst)
+    else:
+        shutil.copyfile(source_path, dest_path)
+    os.chmod(dest_path, 0o644)
 
 
 def _candidate_seqstore_dirs():

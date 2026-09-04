@@ -1,14 +1,9 @@
-import re
 from urllib.parse import quote
 
 from django.http import Http404
 from django.shortcuts import render
 from django.urls import reverse
 from django.views import View
-
-from rdkit import Chem
-from rdkit.Chem import Crippen, Descriptors, Lipinski, rdMolDescriptors
-from rdkit.Chem.FilterCatalog import FilterCatalog, FilterCatalogParams
 
 from bioseq.models.Biodatabase import Biodatabase
 from tpweb.models.Binders import Binders
@@ -17,7 +12,11 @@ from tpweb.services.genome_workspace import (
     genome_url_slug,
     user_can_access_genome_name,
 )
-from tpweb.services.binder_summary import make_binder_svg, _potency_from_pchembl
+from tpweb.services.binder_summary import (
+    compute_binder_properties,
+    make_binder_svg,
+    _potency_from_pchembl,
+)
 
 
 SOURCE_LABEL = {
@@ -25,113 +24,6 @@ SOURCE_LABEL = {
     Binders.SOURCE_CHEMBL: "ChEMBL",
     Binders.SOURCE_PROPOSED: "ZINC",
 }
-
-
-_SUBSCRIPT = str.maketrans("0123456789", "₀₁₂₃₄₅₆₇₈₉")
-_SUPERSCRIPT = str.maketrans("0123456789+-", "⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻")
-
-
-def _format_molecular_formula(formula):
-    """Render RDKit's raw Hill-notation formula (e.g. "H2O7P2-2") with real
-    subscript element counts and a superscript charge, instead of plain
-    digits with an ASCII +/- charge suffix indistinguishable from the
-    formula itself."""
-    if not formula:
-        return formula
-    charge = re.search(r"([+-])(\d*)$", formula)
-    if not charge:
-        return formula.translate(_SUBSCRIPT)
-    base = formula[: charge.start()].translate(_SUBSCRIPT)
-    # Chemistry convention writes the charge digit(s) before the sign when
-    # superscripted (e.g. "2-" -> "²⁻"), the reverse of RDKit's raw order.
-    magnitude, sign = charge.group(2), charge.group(1)
-    return base + (magnitude + sign).translate(_SUPERSCRIPT)
-
-
-def _compute_properties(smiles):
-    """Compute physicochemical descriptors + drug-likeness from a SMILES string."""
-    if not smiles:
-        return None
-    try:
-        mol = Chem.MolFromSmiles(smiles)
-    except Exception:
-        return None
-    if mol is None:
-        return None
-
-    mw = Descriptors.MolWt(mol)
-    logp = Crippen.MolLogP(mol)
-    hbd = Lipinski.NumHDonors(mol)
-    hba = Lipinski.NumHAcceptors(mol)
-    tpsa = Descriptors.TPSA(mol)
-    rotb = Lipinski.NumRotatableBonds(mol)
-    aromatic_rings = rdMolDescriptors.CalcNumAromaticRings(mol)
-    heavy_atoms = mol.GetNumHeavyAtoms()
-    num_rings = rdMolDescriptors.CalcNumRings(mol)
-    formula = rdMolDescriptors.CalcMolFormula(mol)
-    fraction_csp3 = rdMolDescriptors.CalcFractionCSP3(mol)
-
-    lipinski_checks = [
-        {"name": "MW ≤ 500 Da", "value": f"{mw:.1f}", "ok": mw <= 500},
-        {"name": "LogP ≤ 5", "value": f"{logp:.2f}", "ok": logp <= 5},
-        {"name": "H-bond donors ≤ 5", "value": hbd, "ok": hbd <= 5},
-        {"name": "H-bond acceptors ≤ 10", "value": hba, "ok": hba <= 10},
-    ]
-    lipinski_violations = sum(0 if c["ok"] else 1 for c in lipinski_checks)
-
-    veber_checks = [
-        {"name": "Rotatable bonds ≤ 10", "value": rotb, "ok": rotb <= 10},
-        {"name": "TPSA ≤ 140 Å²", "value": f"{tpsa:.1f}", "ok": tpsa <= 140},
-    ]
-    veber_violations = sum(0 if c["ok"] else 1 for c in veber_checks)
-
-    permeability_checks = [
-        {"name": "TPSA ≤ 90 Å²", "value": f"{tpsa:.1f}", "ok": tpsa <= 90},
-        {"name": "−1 ≤ LogP ≤ 5", "value": f"{logp:.2f}", "ok": -1 <= logp <= 5},
-    ]
-    permeability_ok = all(c["ok"] for c in permeability_checks)
-
-    try:
-        pains_params = FilterCatalogParams()
-        pains_params.AddCatalog(FilterCatalogParams.FilterCatalogs.PAINS)
-        pains_catalog = FilterCatalog(pains_params)
-        match = pains_catalog.GetFirstMatch(mol)
-        pains_hit = match.GetDescription() if match else None
-    except Exception:
-        pains_hit = None
-
-    try:
-        inchi = Chem.MolToInchi(mol)
-        inchi_key = Chem.MolToInchiKey(mol)
-    except Exception:
-        inchi = ""
-        inchi_key = ""
-
-    return {
-        "mw": f"{mw:.2f}",
-        "logp": f"{logp:.2f}",
-        "hbd": hbd,
-        "hba": hba,
-        "tpsa": f"{tpsa:.2f}",
-        "rotb": rotb,
-        "aromatic_rings": aromatic_rings,
-        "heavy_atoms": heavy_atoms,
-        "num_rings": num_rings,
-        "formula": _format_molecular_formula(formula),
-        "fraction_csp3": f"{fraction_csp3:.2f}",
-        "inchi": inchi,
-        "inchi_key": inchi_key,
-        "lipinski_checks": lipinski_checks,
-        "lipinski_violations": lipinski_violations,
-        "lipinski_pass": lipinski_violations <= 1,
-        "veber_checks": veber_checks,
-        "veber_violations": veber_violations,
-        "veber_pass": veber_violations == 0,
-        "permeability_checks": permeability_checks,
-        "permeability_ok": permeability_ok,
-        "permeability_label": "High" if permeability_ok else "Check",
-        "pains_hit": pains_hit,
-    }
 
 
 _SOURCE_NORMALISE = {"pdb": "PDB", "chembl": "ChEMBL", "zinc": "ZINC"}
@@ -356,7 +248,7 @@ class BinderDetailView(View):
             )
         else:
             evidence_label = "ZINC: proposed compound"
-        properties = _compute_properties(binder.smiles)
+        properties = compute_binder_properties(binder.smiles)
         notes_items = _parse_notes(binder.notes)
         external_links = _build_external_links(binder, properties)
         siblings = _get_siblings(binder)

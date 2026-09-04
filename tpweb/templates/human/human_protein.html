@@ -9,8 +9,20 @@
     styling this page deliberately reuses verbatim (same markup, same tokens) --
     human-protein-detail.css only adds the genuinely new human-specific classes.
     {% endcomment %}
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260809-provenance-inset">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260831-quicknav-tabs">
     <link rel="stylesheet" href="{% static 'css/pages/human-protein-detail.css' %}?v=20260729-humantargets2">
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="tp-breadcrumb-bar">
+    <div class="tp-breadcrumb-bar-inner">
+        {% trans "Human Targets" as crumb_human %}
+        {% url 'tpwebapp:index' as index_url %}
+        {% with crumb_protein="Protein: "|add:human_protein.uniprot_accession|add:" · "|add:human_protein.protein_name %}
+        {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_human crumb_2_url=human_protein_list_url crumb_3_label=crumb_protein %}
+        {% endwith %}
+    </div>
+</div>
 {% endblock %}
 
 {% block body %}
@@ -18,11 +30,6 @@
         <section class="protein-hero" id="section-overview">
             <div class="protein-hero-top tp-view-head">
                 <div class="protein-hero-content tp-view-head-copy">
-                    {% trans "Human Targets" as crumb_human %}
-                    {% url 'tpwebapp:index' as index_url %}
-                    {% with crumb_protein=human_protein.uniprot_accession|add:" · "|add:human_protein.protein_name %}
-                    {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_human crumb_2_url=human_protein_list_url crumb_3_label=crumb_protein %}
-                    {% endwith %}
                     <p class="protein-hero-eyebrow">{% trans "Human curated protein" %}</p>
                     <h1>{{ human_protein.uniprot_accession }}</h1>
                     <p class="protein-description">{{ human_protein.protein_name|default:"—" }}</p>

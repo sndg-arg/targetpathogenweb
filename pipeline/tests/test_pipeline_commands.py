@@ -55,6 +55,27 @@ class HostBindPathTests(unittest.TestCase):
             )
         self.assertEqual(result, "/somewhere/else/foo")
 
+    def test_exact_container_base_match_returns_host_base_unchanged(self):
+        with patch.dict(os.environ, {"TPW_DATA_DIR": "/mnt/host/data"}, clear=True):
+            result = pc._host_bind_path(
+                "/app/targetpathogenweb/data",
+                env_name="TPW_DATA_DIR",
+                container_base="/app/targetpathogenweb/data",
+            )
+        self.assertEqual(result, "/mnt/host/data")
+
+    def test_relative_host_base_resolved_against_cwd_env_var(self):
+        with patch.dict(
+            os.environ, {"TPW_DATA_DIR": "relhost", "CWD": "/home/user/project"}, clear=True
+        ):
+            result = pc._host_bind_path(
+                "/app/targetpathogenweb/data/ABC/genome1",
+                env_name="TPW_DATA_DIR",
+                container_base="/app/targetpathogenweb/data",
+            )
+        expected_host_base = os.path.abspath(os.path.join("/home/user/project", "relhost"))
+        self.assertEqual(result, os.path.join(expected_host_base, "ABC", "genome1"))
+
 
 class GenomeDownloadCommandTests(unittest.TestCase):
     def test_download_gbk_cmd_without_target_accession(self):

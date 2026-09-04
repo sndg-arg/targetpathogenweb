@@ -13,12 +13,17 @@
     --view-accent-border: var(--tp-color-brand-300);
 }
 
-/* .filter-tray excluded on both sides -- it already carries its own
-   border + left-accent stripe as a contextual "active filters" callout,
-   so a hairline on top of that would be two boundary signals for the
-   same seam. Its own margin provides the spacing instead. */
+/* No hairline between top-level sections here -- like genomes-list.css
+   (same rationale, same fix): the toolbar is fundamentally a search bar
+   (plus a filter/scoring workbench), close enough to the hero above and
+   the results table below that a line read as stuck to the search input
+   rather than as a real section boundary. Margin only.
+   .filter-tray excluded on both sides -- it already carries its own
+   border + left-accent stripe + margin as a contextual "active filters"
+   callout, so a line on top of that would be two boundary signals for
+   the same seam. */
 .proteins-page > section:not(.filter-tray) ~ section:not(.filter-tray) {
-    border-top: 1px solid var(--tp-color-border-soft);
+    margin-top: 20px;
 }
 
 .proteins-page h1,
@@ -63,21 +68,30 @@
     line-height: 1.42;
 }
 
+/* Which genome you're standing on is the thing that actually changes between
+   visits to this page ("Proteins" as the h1 never does) -- label small and
+   muted like an eyebrow, genome id itself sized closer to a heading so it
+   reads as unmistakable at a glance instead of a footnote under the h1. */
 .hero-context {
     margin: 10px 0 0;
-    color: var(--tp-color-text-secondary);
-    font-size: 1rem;
-    line-height: 1.42;
     overflow-wrap: anywhere;
 }
 
 .hero-context strong {
-    color: var(--tp-color-text-secondary);
+    display: block;
+    margin-bottom: 2px;
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-label);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
 }
 
 .hero-context-id {
     font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
-    font-size: 1em;
+    font-size: var(--tp-heading-md);
+    font-weight: 700;
+    line-height: 1.2;
     color: var(--view-accent-ink);
 }
 
@@ -1921,6 +1935,23 @@ a.filter-pill .filter-pill-remove {
     min-height: 24px;
 }
 
+/* Two chips can share a label yet come from different advanced-filter
+   groups, which combine as AND rather than the OR a user would otherwise
+   assume from adjacent same-label chips -- same badge language as the
+   advanced filter builder's own group-to-group AND badge (advanced-filters.css). */
+.filter-and-sep {
+    display: inline-flex;
+    align-items: center;
+    background: var(--tp-color-surface-muted);
+    color: var(--tp-color-text-muted);
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 999px;
+    padding: 2px 10px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+}
+
 .filter-pill {
     display: inline-flex;
     align-items: center;
@@ -2653,8 +2684,7 @@ a.filter-pill .filter-pill-remove {
 }
 
 .proteins-hero,
-.toolbar-card,
-.protein-workspace {
+.toolbar-card {
     animation: tp-ui-enter 340ms var(--tp-ui-ease-standard) both;
 }
 
@@ -2662,8 +2692,18 @@ a.filter-pill .filter-pill-remove {
     animation-delay: 0.04s;
 }
 
+/* Opacity-only, not the shared tp-ui-enter slide+fade -- this wraps the
+   protein table's sticky header, and a `transform` on an ancestor of a
+   `position: sticky` element makes browsers momentarily mis-render its
+   stuck position (the same class of bug documented on .tp-ui-enter itself,
+   there for a nested native <select> popup instead of a sticky header). */
 .protein-workspace {
-    animation-delay: 0.08s;
+    animation: protein-workspace-enter-fade 340ms var(--tp-ui-ease-standard) 0.08s both;
+}
+
+@keyframes protein-workspace-enter-fade {
+    from { opacity: 0; }
+    to   { opacity: 1; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -2989,6 +3029,20 @@ a.filter-pill .filter-pill-remove {
 
 .drawer-catalogue-count {
     font-weight: 400;
+}
+
+.drawer-advanced-link {
+    display: block;
+    padding: 0 18px 10px;
+    color: var(--tp-color-link);
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.drawer-advanced-link:hover,
+.drawer-advanced-link:focus-visible {
+    text-decoration: underline;
 }
 
 /* Selector repeats the class -- see the matching comment on

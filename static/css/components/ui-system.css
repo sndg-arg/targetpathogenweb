@@ -169,10 +169,19 @@
     flex: 1 1 auto;
 }
 
+/* This header row (title + a right-side action/chip/legend) is reused
+   across ~75 section headers site-wide. Without flex-wrap, any instance
+   whose right-side child doesn't shrink to near-zero pushes the row wider
+   than a phone viewport -- and since these sit in normal page flow (not a
+   scroll container), that becomes page-wide horizontal scroll, not a
+   contained one. Wrapping here fixes every page that uses this class at
+   once instead of each page reinventing its own media query. */
 .tp-ui-panel-head {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    flex-wrap: wrap;
+    row-gap: 6px;
     gap: var(--tp-ui-gap-sm);
 }
 
@@ -1515,7 +1524,7 @@ a.tp-chip--go:hover {
 }
 
 .tp-breadcrumb {
-    margin: 0 0 var(--tp-ui-gap-sm);
+    margin: 0;
     max-width: 100%;
 }
 
@@ -1528,9 +1537,6 @@ a.tp-chip--go:hover {
     flex-wrap: wrap;
     gap: 4px;
     max-width: 100%;
-    border: 0;
-    border-radius: 0;
-    background: transparent;
 }
 
 .tp-breadcrumb-item {
@@ -1540,65 +1546,133 @@ a.tp-chip--go:hover {
     min-width: 0;
 }
 
+/* A slash reads as current wayfinding (docs sites, modern SaaS nav) --
+   the ">"-style chevron separator this replaced is what actually made the
+   trail look dated, not the pills/typography around it. Text content, not
+   the shared .tp-chevron border-shape (that one's still exactly right for
+   dropdowns/selects, just wrong for this). */
 .tp-breadcrumb-item + .tp-breadcrumb-item::before {
     content: "/";
+    display: inline-block;
     color: var(--tp-color-text-soft);
-    font-size: 0.74rem;
-    font-weight: 700;
-    opacity: 0.95;
+    font-size: 0.85em;
+    font-weight: 400;
+    opacity: 0.8;
     margin: 0 1px;
+}
+
+.tp-breadcrumb-home-icon {
+    display: inline-flex;
+    width: 13px;
+    height: 13px;
+    flex: 0 0 auto;
+}
+
+.tp-breadcrumb-home-icon svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
 }
 
 .tp-breadcrumb-link,
 .tp-breadcrumb-current {
-    display: inline-flex;
-    align-items: center;
-    min-height: 24px;
-    border-radius: 999px;
-    font-size: var(--tp-font-size-sm);
     line-height: 1.2;
-    padding: 0 9px;
+    letter-spacing: 0.01em;
     white-space: nowrap;
-    max-width: 100%;
+    max-width: 220px;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
 .tp-breadcrumb-link {
-    border: 1px solid transparent;
-    background: transparent;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin: -3px -7px;
+    padding: 3px 7px;
+    border-radius: 999px;
     color: var(--tp-color-text-secondary);
-    font-weight: 600;
+    font-size: var(--tp-font-size-sm);
+    font-weight: 500;
     text-decoration: none;
-    transition: color 140ms ease, background-color 140ms ease, border-color 140ms ease;
+    transition: background 140ms ease, color 140ms ease;
 }
 
 .tp-breadcrumb-link:hover,
 .tp-breadcrumb-link:focus-visible {
-    border-color: var(--view-accent-border, var(--tp-color-brand-300));
-    background: var(--view-accent-soft-2, var(--tp-color-brand-050));
-    color: var(--view-accent-ink, var(--tp-color-brand-900));
-    text-decoration: none;
+    background: var(--tp-color-surface-muted);
+    color: var(--tp-color-link-hover);
     outline: none;
 }
 
+/* Bolder + darker rather than a boxed chip -- this is read-only "you are
+   here" text, not an action, so it earns emphasis through weight/ink alone
+   (a pill here would just be a button-shaped thing with nothing to click). */
 .tp-breadcrumb-current {
-    border: 1px solid var(--view-accent-border, var(--tp-color-brand-300));
-    background: var(--view-accent-soft-2, var(--tp-color-brand-050));
-    color: var(--view-accent-ink, var(--tp-color-brand-900));
-    font-weight: 600;
+    color: var(--tp-color-text-primary);
+    font-size: var(--tp-font-size-sm);
+    font-weight: 700;
+}
+
+/* Docked strip under the fixed top bar (masterpage.html) -- each page
+   supplies this wrapper around its own {% block breadcrumbs %} include, so
+   pages without breadcrumbs render nothing. Inner max-width/padding
+   mirrors .tp-main's own values per breakpoint so the text lines up with
+   the hero title below it. Top hairline echoes the same "finished edge"
+   idiom already used on .tp-topbar-desktop, so this strip reads as part
+   of the same considered chrome rather than a plain divider slapped
+   underneath it. Sticky, not static -- stays reachable while scrolling
+   instead of disappearing after the first screen, offset by the fixed
+   bar's own height (64px mobile topbar, var(--tp-topbar-h) desktop) so it
+   docks flush under whichever bar is active at that breakpoint. z-index
+   sits just below the bar itself (1030) and well below the assistant
+   drawer/tooltip/loader tiers, but above ordinary page content. */
+.tp-breadcrumb-bar {
+    position: sticky;
+    top: 64px;
+    z-index: 1025;
+    background: var(--tp-color-surface-soft);
+    border-bottom: 1px solid var(--tp-color-border-soft);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5) inset;
+}
+
+@media (min-width: 992px) {
+    .tp-breadcrumb-bar {
+        top: var(--tp-topbar-h);
+    }
+}
+
+.tp-dark .tp-breadcrumb-bar {
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06) inset;
+}
+
+.tp-breadcrumb-bar-inner {
+    max-width: 1360px;
+    margin: 0 auto;
+    padding: 11px 18px;
+}
+
+@media (min-width: 992px) {
+    .tp-breadcrumb-bar-inner {
+        padding: 11px 16px;
+    }
+}
+
+@media (max-width: 991px) {
+    .tp-breadcrumb-bar-inner {
+        padding: 10px 10px;
+    }
 }
 
 @media (max-width: 700px) {
-    .tp-breadcrumb-list {
-        border-radius: 0;
-    }
-
     .tp-breadcrumb-link,
     .tp-breadcrumb-current {
-        min-height: 22px;
         font-size: var(--tp-font-size-xs);
-        padding: 0 8px;
     }
 
     .tp-dt-wrapper .tp-dt-toolbar,
@@ -1795,4 +1869,83 @@ a.tp-chip--go:hover {
 .section-help-icon:focus-visible {
     color: var(--tp-color-text-secondary);
     outline: none;
+}
+
+/* ── metabolic-network-tooltip ── */
+/* Shared by the protein detail page's metabolic-context ego-network and the
+   genome-wide metabolic network page -- was two copy-pasted definitions,
+   one of which still had a stale 62px label column that overflowed
+   "CHOKEPOINTS" into the value column (fixed here, see the comment below). */
+.metabolic-network-tooltip {
+    position: absolute;
+    z-index: 20;
+    max-width: 340px;
+    padding: 11px 12px;
+    border: 1px solid var(--tp-color-border-strong);
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--tp-color-surface) 96%, var(--tp-color-brand-050));
+    color: var(--tp-color-text-primary);
+    box-shadow: var(--tp-shadow-lg);
+    font-size: var(--tp-font-size-xs);
+    line-height: 1.35;
+    pointer-events: none;
+}
+
+.metabolic-network-tooltip-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    color: var(--tp-color-text-primary);
+    font-size: var(--tp-font-size-sm);
+    font-weight: 800;
+}
+
+.metabolic-network-tooltip-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 6px;
+    border: 1px solid color-mix(in srgb, var(--tp-color-amber-500) 48%, transparent);
+    border-radius: 999px;
+    background: var(--tp-color-amber-050);
+    color: var(--tp-color-amber-700);
+    font-size: 0.68rem;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.metabolic-network-tooltip dl {
+    display: grid;
+    /* 62px was narrower than "CHOKEPOINTS" itself (bold, uppercase, no space
+       to wrap at) at this font-size -- it overflowed straight into the
+       value column with no gap instead of wrapping, reading as one jammed
+       word ("CHOKEPOINTS4"). 84px comfortably fits every current label. */
+    grid-template-columns: 84px minmax(0, 1fr);
+    gap: 4px 8px;
+    margin: 0;
+}
+
+.metabolic-network-tooltip dt {
+    color: var(--tp-color-text-muted);
+    font-size: 0.68rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    /* Defensive: if a future label is still too wide for the column, wrap
+       it instead of repeating this bug by overflowing into the value. */
+    overflow-wrap: break-word;
+}
+
+.metabolic-network-tooltip dd {
+    margin: 0;
+    color: var(--tp-color-text-primary);
+    font-size: var(--tp-font-label);
+    word-break: break-word;
+}
+
+.metabolic-network-tooltip-hint {
+    margin-top: 9px;
+    padding-top: 8px;
+    border-top: 1px solid var(--tp-color-border-soft);
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-label);
 }

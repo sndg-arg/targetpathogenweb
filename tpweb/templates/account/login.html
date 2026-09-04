@@ -4,7 +4,7 @@
 {% load account %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/auth.css' %}?v=20260710-select-fix1">
+    <link rel="stylesheet" href="{% static 'css/pages/auth.css' %}?v=20260904-slim">
 {% endblock %}
 
 {% block body %}
@@ -13,6 +13,7 @@
             <div class="auth-header">
                 <h1>{% trans "Sign in" %}</h1>
                 <p>{% trans "Enter your credentials to access the platform." %}</p>
+                <p>{% blocktrans %}Don't have an account? <a href="{{ signup_url }}">Sign up</a>.{% endblocktrans %}</p>
             </div>
 
             {% if form.non_field_errors %}
@@ -25,11 +26,11 @@
                 {% csrf_token %}
 
                 <div class="auth-field">
-                    <label for="id_login">{% trans "Username or email" %}</label>
+                    <label for="id_login">{% trans "Email" %}</label>
                     <input type="text"
                            name="login"
                            id="id_login"
-                           placeholder="{% trans 'Username or email' %}"
+                           placeholder="{% trans 'Email' %}"
                            value="{{ form.login.value|default:'' }}"
                            autocomplete="username"
                            autofocus

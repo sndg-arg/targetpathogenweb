@@ -27,12 +27,12 @@
     display: flex;
     justify-content: space-between;
     gap: 18px;
+    /* Top-pinned like every other page's .tp-view-head-actions (assembly,
+       proteins, genomes, annotation_explorer all use the shared flex-start
+       from ui-system.css) -- confirmed live this reads better than centering
+       it against the header, which was this page's own one-off deviation. */
     align-items: flex-start;
     margin-top: 8px;
-}
-
-.protein-hero .tp-view-head-actions {
-    padding-top: 6px;
 }
 
 .protein-hero-content {
@@ -40,36 +40,37 @@
     width: 100%;
 }
 
-/* Which genome you're standing in -- deliberately louder than the eyebrow/accession
-   line below, since it's easy to lose track of when jumping between proteins. */
-.protein-hero-genome {
-    display: inline-flex;
-    align-items: baseline;
-    gap: 7px;
-    text-decoration: none;
-    font-family: "Space Grotesk", "Segoe UI", sans-serif;
-}
-.protein-hero-genome:hover .protein-hero-genome-value { text-decoration: underline; }
-.protein-hero-genome-label {
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-label);
-    font-weight: 500;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-}
-.protein-hero-genome-value {
-    color: var(--protein-accent-ink);
-    font-size: var(--tp-font-size-lg);
-    font-weight: 700;
-}
-
 .protein-hero-eyebrow {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 7px;
     margin: 10px 0 10px;
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-label);
     font-weight: 500;
     letter-spacing: 0.08em;
     text-transform: uppercase;
+}
+
+.protein-hero-eyebrow-genome {
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: var(--tp-font-size-md);
+    font-weight: 700;
+    letter-spacing: normal;
+    text-transform: none;
+    color: var(--tp-color-text-primary);
+    text-decoration: none;
+}
+
+.protein-hero-eyebrow-genome:hover,
+.protein-hero-eyebrow-genome:focus-visible {
+    color: var(--protein-accent-ink);
+    text-decoration: underline;
+}
+
+.protein-hero-eyebrow-sep {
+    color: var(--tp-color-border-strong);
 }
 
 .protein-hero h1 {
@@ -605,6 +606,10 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     transform: translateY(-50%);
 }
 
+/* Editorial tab strip, not a row of boxed buttons -- matches the top bar's
+   own "thin underline instead of a filled pill" active-tab language
+   (masterpage.html's .tp-topbar-desktop-link.active) instead of looking
+   like a distinct, dated app widget bolted onto the page. */
 .quick-nav {
     position: sticky;
     top: -2px;
@@ -614,17 +619,17 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     max-width: 100%;
     display: flex;
     flex-wrap: nowrap;
-    gap: 2px;
+    align-items: stretch;
+    gap: 26px;
     justify-content: flex-start;
     overflow-x: auto;
-    padding: 6px;
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: 12px;
-    background: var(--tp-color-surface-soft);
-    backdrop-filter: blur(3px);
-    /* This box's own border needs to align with the 18px text inset used
-       by the unboxed hero around it. */
-    margin: 0 18px;
+    padding: 0 18px;
+    border: none;
+    border-bottom: 1px solid var(--tp-color-border-soft);
+    border-radius: 0;
+    background: color-mix(in srgb, var(--tp-color-surface) 88%, transparent);
+    backdrop-filter: blur(6px);
+    margin: 0;
 }
 
 .quick-nav::-webkit-scrollbar {
@@ -642,40 +647,40 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     align-items: center;
     justify-content: center;
     text-align: center;
-    min-height: 36px;
-    padding: 0.38rem 0.82rem;
+    height: 44px;
+    padding: 0;
     line-height: 1.1;
-    font-weight: 500;
-    border-radius: 8px;
-    border: 1px solid transparent !important;
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-weight: 600;
+    font-size: 0.85rem;
+    letter-spacing: 0.01em;
+    border-radius: 0 !important;
+    border: none !important;
     background: transparent !important;
-    color: var(--tp-color-text-secondary) !important;
-    box-shadow: none;
+    color: var(--tp-color-text-muted) !important;
+    box-shadow: inset 0 -2px 0 transparent !important;
     white-space: nowrap;
     text-decoration: none !important;
+    transition:
+        color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
 }
 
 .quick-nav .quick-nav-link:hover,
 .quick-nav .quick-nav-link:focus-visible {
-    color: var(--tp-color-link-hover) !important;
-    border-color: var(--tp-color-border-soft) !important;
-    background: var(--tp-color-surface-muted) !important;
+    color: var(--tp-color-text-primary) !important;
+    box-shadow: inset 0 -2px 0 var(--tp-color-border-strong) !important;
+    background: transparent !important;
     text-decoration: none !important;
 }
 
 .quick-nav .quick-nav-link.is-active,
 .quick-nav .quick-nav-link[aria-current="true"] {
     color: var(--tp-color-link-hover) !important;
-    border-color: var(--tp-color-border-soft) !important;
-    background: var(--tp-color-surface) !important;
-    box-shadow: var(--tp-shadow-xs);
+    box-shadow: inset 0 -2px 0 var(--tp-color-link-hover) !important;
+    background: transparent !important;
     font-weight: 650;
     text-decoration: none !important;
-}
-
-.quick-nav.is-sticky {
-    border-top-left-radius: 0;
-    border-top-right-radius: 0;
 }
 
 /* human_protein.html nests its .protein-card sections directly here (no
@@ -814,13 +819,12 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
 }
 
 /* Clearance for the sticky .quick-nav when a nav link jumps here: nav height
-   (6px padding + 36px min-height link + 6px padding + 2px border = 50px)
-   minus its -2px sticky offset, plus ~24px breathing room. Was 128px, which
-   left a large empty gap above the section on jump -- keep this in sync with
-   .quick-nav's own box model if that ever changes. */
+   (44px link height + 1px bottom border = 45px) minus its -2px sticky
+   offset, plus ~24px breathing room. Keep this in sync with .quick-nav's
+   own box model if that ever changes. */
 .protein-card {
     padding: 16px 18px;
-    scroll-margin-top: 72px;
+    scroll-margin-top: 68px;
 }
 
 /* No longer boxed via .tp-page-hero -- sits directly on the page
@@ -828,7 +832,7 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
    now instead of inheriting that shared class's. */
 .protein-hero {
     padding: 20px 18px;
-    scroll-margin-top: 72px;
+    scroll-margin-top: 68px;
 }
 
 .protein-card h2 {
@@ -1345,25 +1349,6 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     box-shadow: inset 4px 0 0 var(--protein-accent), var(--tp-shadow-sm);
 }
 
-.pocket-card--fpocket .pocket-card-id::before,
-.pocket-card--p2rank .pocket-card-id::before {
-    content: "";
-    display: inline-block;
-    width: 0.46rem;
-    height: 0.46rem;
-    border-radius: 999px;
-    margin-right: 5px;
-    vertical-align: 0.02em;
-}
-
-.pocket-card--fpocket .pocket-card-id::before {
-    background: var(--tp-color-brand-500);
-}
-
-.pocket-card--p2rank .pocket-card-id::before {
-    background: var(--tp-color-sage-500);
-}
-
 .pocket-card-head {
     display: flex;
     align-items: flex-start;
@@ -1411,11 +1396,11 @@ a.hero-chip.tp-chip--link .tp-chip-ext-icon {
     font-size: var(--tp-font-size-sm);
     font-weight: 600;
     color: var(--protein-accent-ink);
-}
-
-.pocket-card-id {
-    font-size: var(--tp-font-label);
-    color: var(--tp-color-text-muted);
+    /* Carries the predictor's raw internal pocket number (e.g. "FPocket
+       #107") as a title tooltip instead of visible text -- it's not a
+       rank (we only ever show the top few pockets), so displaying it
+       inline read as a confusing "1 of 107" implication. */
+    cursor: help;
 }
 
 .pocket-card-reprs {
@@ -3225,8 +3210,7 @@ body.residue-modal-open {
     }
 
     .quick-nav {
-        top: 66px;
-        border-radius: 11px;
+        top: var(--tp-sticky-chrome-h, 66px);
         width: 100%;
     }
 
@@ -3240,6 +3224,18 @@ body.residue-modal-open {
 
     .structure-color-guide-grid {
         grid-template-columns: 1fr;
+    }
+}
+
+/* The fixed desktop top bar AND the sticky breadcrumb bar under it both
+   reserve real screen space -- --tp-sticky-chrome-h (theme-and-chrome.js)
+   measures both together, so .quick-nav docks below the breadcrumb bar
+   instead of sticking at nearly the same position and rendering behind
+   it (the breadcrumb bar's z-index is far higher). Falls back to the old
+   topbar-only offset if JS hasn't run yet. */
+@media (min-width: 992px) {
+    .quick-nav {
+        top: var(--tp-sticky-chrome-h, calc(var(--tp-topbar-h) - 2px));
     }
 }
 
@@ -4004,9 +4000,7 @@ body.residue-modal-open {
 /* ── Target pocket evidence ── */
 
 .target-evidence-block {
-    margin-top: 1.25rem;
-    padding-top: 1.25rem;
-    border-top: 1px solid var(--tp-color-border-soft);
+    margin-top: 1.75rem;
 }
 
 .target-evidence-head {
@@ -4195,9 +4189,9 @@ body.residue-modal-open {
 /* Quick-nav active state — dark mode needs a more visible token */
 .tp-dark .quick-nav .quick-nav-link.is-active,
 .tp-dark .quick-nav .quick-nav-link[aria-current="true"] {
-    background: var(--tp-color-brand-200) !important;
-    border-color: var(--tp-color-brand-300) !important;
-    color: var(--tp-color-brand-900) !important;
+    color: var(--tp-color-brand-200) !important;
+    box-shadow: inset 0 -2px 0 var(--tp-color-brand-200) !important;
+    background: transparent !important;
 }
 
 .binder-tbl__crystal {
@@ -4500,72 +4494,8 @@ body.residue-modal-open {
     transform: none;
 }
 
-.metabolic-network-tooltip {
-    position: absolute;
-    z-index: 20;
-    max-width: 340px;
-    padding: 11px 12px;
-    border: 1px solid var(--tp-color-border-strong);
-    border-radius: 8px;
-    background: color-mix(in srgb, var(--tp-color-surface) 96%, var(--tp-color-brand-050));
-    color: var(--tp-color-text-primary);
-    box-shadow: var(--tp-shadow-lg);
-    font-size: var(--tp-font-size-xs);
-    line-height: 1.35;
-    pointer-events: none;
-}
-
-.metabolic-network-tooltip-title {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 8px;
-    color: var(--tp-color-text-primary);
-    font-size: var(--tp-font-size-sm);
-    font-weight: 800;
-}
-
-.metabolic-network-tooltip-badge {
-    display: inline-flex;
-    align-items: center;
-    padding: 2px 6px;
-    border: 1px solid color-mix(in srgb, var(--tp-color-amber-500) 48%, transparent);
-    border-radius: 999px;
-    background: var(--tp-color-amber-050);
-    color: var(--tp-color-amber-700);
-    font-size: 0.68rem;
-    font-weight: 800;
-    white-space: nowrap;
-}
-
-.metabolic-network-tooltip dl {
-    display: grid;
-    grid-template-columns: 62px minmax(0, 1fr);
-    gap: 4px 8px;
-    margin: 0;
-}
-
-.metabolic-network-tooltip dt {
-    color: var(--tp-color-text-muted);
-    font-size: 0.68rem;
-    font-weight: 800;
-    text-transform: uppercase;
-}
-
-.metabolic-network-tooltip dd {
-    margin: 0;
-    color: var(--tp-color-text-primary);
-    font-size: var(--tp-font-label);
-    word-break: break-word;
-}
-
-.metabolic-network-tooltip-hint {
-    margin-top: 9px;
-    padding-top: 8px;
-    border-top: 1px solid var(--tp-color-border-soft);
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-label);
-}
+/* .metabolic-network-tooltip* now lives in components/ui-system.css
+   (shared with the genome-wide metabolic network page). */
 
 .metabolic-network-note {
     padding: 8px 12px 10px;

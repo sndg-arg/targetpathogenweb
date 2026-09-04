@@ -1,0 +1,174 @@
+{% extends '../base/masterpage.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block head %}
+    <link rel="stylesheet" href="{% static 'css/pages/user-management.css' %}?v=20260904-fused-editmodal">
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="tp-breadcrumb-bar">
+    <div class="tp-breadcrumb-bar-inner">
+        {% url 'tpwebapp:index' as index_url %}
+        {% trans "Manage users" as crumb_users %}
+        {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_users %}
+    </div>
+</div>
+{% endblock %}
+
+{% block body %}
+<div class="user-mgmt-page">
+
+    <section class="user-mgmt-hero">
+        <div class="tp-view-head">
+            <div class="tp-view-head-copy">
+                <p class="user-mgmt-eyebrow">{% trans "Owner only" %}</p>
+                <h1 class="user-mgmt-hero-title">{% trans "Manage users" %}</h1>
+                <p class="user-mgmt-hero-description">{% trans "Approve new signups and see who currently has access to the platform." %}</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="user-mgmt-section">
+        <div class="section-head tp-ui-panel-head">
+            <div>
+                <p class="tp-ui-field-label">{% trans "Awaiting review" %}</p>
+                <h2 class="user-mgmt-section-title">{% trans "Pending approval" %}</h2>
+            </div>
+            <span class="tp-chip tp-chip--count tp-chip--sm">{{ pending_users|length }}</span>
+        </div>
+        {% if pending_users %}
+        <div class="user-mgmt-list user-mgmt-list--pending" role="table" aria-label="{% trans 'Pending signups' %}">
+            <div class="user-mgmt-list-row user-mgmt-list-row--head" role="row">
+                <span class="user-mgmt-list-cell" role="columnheader">{% trans "Signup" %}</span>
+                <span class="user-mgmt-list-cell user-mgmt-list-cell--meta" role="columnheader">{% trans "Signed up" %}</span>
+                <span class="user-mgmt-list-cell user-mgmt-list-cell--actions" role="columnheader">{% trans "Actions" %}</span>
+            </div>
+            {% for pending_user in pending_users %}
+            <div class="user-mgmt-list-row" role="row">
+                <div class="user-mgmt-list-cell user-mgmt-list-cell--person" role="cell">
+                    <span class="user-mgmt-person-name">{{ pending_user.name|default:pending_user.get_username }}</span>
+                    <span class="user-mgmt-person-email">{{ pending_user.email|default:"—" }}</span>
+                </div>
+                <div class="user-mgmt-list-cell user-mgmt-list-cell--meta" role="cell" data-label="{% trans 'Signed up' %}">
+                    {{ pending_user.date_joined|date:"Y-m-d H:i" }}
+                </div>
+                <div class="user-mgmt-list-cell user-mgmt-list-cell--actions" role="cell">
+                    <form method="post" action="{% url 'tpwebapp:user_management' %}" onsubmit="return confirm('{% trans "Reject and permanently delete this signup?" %}');">
+                        {% csrf_token %}
+                        <input type="hidden" name="user_id" value="{{ pending_user.pk }}">
+                        <input type="hidden" name="action" value="reject">
+                        <button type="submit" class="btn tp-btn tp-btn--clear tp-btn--sm">{% trans "Reject" %}</button>
+                    </form>
+                    <form method="post" action="{% url 'tpwebapp:user_management' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="user_id" value="{{ pending_user.pk }}">
+                        <input type="hidden" name="action" value="approve">
+                        <button type="submit" class="btn tp-btn tp-btn--primary tp-btn--sm">{% trans "Approve" %}</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="tp-state-note tp-state-note--empty">{% trans "No pending signups." %}</p>
+        {% endif %}
+    </section>
+
+    <section class="user-mgmt-section">
+        <div class="section-head tp-ui-panel-head">
+            <div>
+                <p class="tp-ui-field-label">{% trans "Roster" %}</p>
+                <h2 class="user-mgmt-section-title">{% trans "Approved users" %}</h2>
+            </div>
+            <span class="tp-chip tp-chip--count tp-chip--sm">{{ approved_users|length }}</span>
+        </div>
+        {% if approved_users %}
+        <div class="user-mgmt-list user-mgmt-list--approved" role="table" aria-label="{% trans 'Approved users' %}">
+            <div class="user-mgmt-list-row user-mgmt-list-row--head" role="row">
+                <span class="user-mgmt-list-cell" role="columnheader">{% trans "Person" %}</span>
+                <span class="user-mgmt-list-cell user-mgmt-list-cell--meta" role="columnheader">{% trans "Signed up" %}</span>
+                <span class="user-mgmt-list-cell user-mgmt-list-cell--meta" role="columnheader">{% trans "Last login" %}</span>
+                <span class="user-mgmt-list-cell user-mgmt-list-cell--role" role="columnheader">{% trans "Role" %}</span>
+                <span class="user-mgmt-list-cell user-mgmt-list-cell--actions" role="columnheader">{% trans "Actions" %}</span>
+            </div>
+            {% for approved_user in approved_users %}
+            <div class="user-mgmt-list-row" role="row">
+                <div class="user-mgmt-list-cell user-mgmt-list-cell--person" role="cell">
+                    <span class="user-mgmt-person-name">{{ approved_user.name|default:approved_user.get_username }}</span>
+                    <span class="user-mgmt-person-email">{{ approved_user.email|default:"—" }}</span>
+                </div>
+                <div class="user-mgmt-list-cell user-mgmt-list-cell--meta" role="cell" data-label="{% trans 'Signed up' %}">
+                    {{ approved_user.date_joined|date:"Y-m-d H:i" }}
+                </div>
+                <div class="user-mgmt-list-cell user-mgmt-list-cell--meta" role="cell" data-label="{% trans 'Last login' %}">
+                    {{ approved_user.last_login|date:"Y-m-d H:i"|default:"—" }}
+                </div>
+                <div class="user-mgmt-list-cell user-mgmt-list-cell--role" role="cell" data-label="{% trans 'Role' %}">
+                    {% if approved_user.is_superuser %}
+                        <span class="tp-chip tp-chip--sm">{% trans "Owner" %}</span>
+                    {% else %}
+                        <span class="tp-chip tp-chip--sm">{% trans "Staff" %}</span>
+                    {% endif %}
+                </div>
+                <div class="user-mgmt-list-cell user-mgmt-list-cell--actions" role="cell">
+                    {% if not approved_user.is_superuser %}
+                    <button type="button" class="btn tp-btn tp-btn--neutral tp-btn--sm user-mgmt-edit-trigger"
+                            data-user-id="{{ approved_user.pk }}"
+                            data-user-name="{{ approved_user.name|default:approved_user.get_username }}"
+                            data-granted='{{ approved_user.granted_permissions_json }}'
+                            aria-haspopup="dialog" aria-controls="user-permissions-modal">
+                        {% trans "Edit" %}
+                    </button>
+                    <form method="post" action="{% url 'tpwebapp:user_management' %}" onsubmit="return confirm('{% trans "Revoke this user's access?" %}');">
+                        {% csrf_token %}
+                        <input type="hidden" name="user_id" value="{{ approved_user.pk }}">
+                        <input type="hidden" name="action" value="revoke">
+                        <button type="submit" class="btn tp-btn tp-btn--clear tp-btn--sm">{% trans "Revoke access" %}</button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="tp-state-note tp-state-note--empty">{% trans "No approved users yet." %}</p>
+        {% endif %}
+    </section>
+
+</div>
+
+<div class="user-mgmt-edit-modal-backdrop" id="user-permissions-modal" aria-hidden="true">
+    <div class="user-mgmt-edit-panel" role="dialog" aria-modal="true" aria-labelledby="user-permissions-modal-title">
+        <div class="user-mgmt-edit-head">
+            <h3 id="user-permissions-modal-title">{% trans "Edit permissions" %}</h3>
+            <button type="button" class="btn tp-btn tp-btn--neutral tp-btn--sm user-mgmt-edit-close"
+                    id="user-permissions-modal-close" aria-label="{% trans 'Close' %}">
+                <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/x.html" %}</span>
+            </button>
+        </div>
+        <form method="post" action="{% url 'tpwebapp:user_management' %}" id="user-permissions-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="update_permissions">
+            <input type="hidden" name="user_id" id="user-permissions-modal-user-id" value="">
+            <div class="user-mgmt-edit-body">
+                <p class="user-mgmt-edit-subtitle">
+                    {% blocktrans %}What <strong id="user-permissions-modal-name"></strong> can do on the platform.{% endblocktrans %}
+                </p>
+                {% for codename, label in permission_choices %}
+                <label class="user-mgmt-perm-row">
+                    <input type="checkbox" name="permissions" value="{{ codename }}">
+                    <span>{{ label }}</span>
+                </label>
+                {% endfor %}
+            </div>
+            <div class="user-mgmt-edit-actions">
+                <button type="button" class="btn tp-btn tp-btn--clear tp-btn--sm" id="user-permissions-modal-cancel">{% trans "Cancel" %}</button>
+                <button type="submit" class="btn tp-btn tp-btn--primary tp-btn--sm">{% trans "Save" %}</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="{% static 'js/pages/user-management.js' %}?v=20260904-permissions-modal"></script>
+{% endblock %}

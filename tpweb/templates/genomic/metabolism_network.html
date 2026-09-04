@@ -3,9 +3,23 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20260808-scrollmargin-fix">
+    <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20260901-quicknav-tabs">
     <link rel="stylesheet" href="{% static 'css/pages/metabolism-overview.css' %}?v=20260809-drop-leftover-shadow">
-    <link rel="stylesheet" href="{% static 'css/pages/metabolic-network-genome.css' %}?v=20260809-chokepoint-dt-width">
+    <link rel="stylesheet" href="{% static 'css/pages/metabolic-network-genome.css' %}?v=20260812-tooltip-consolidation">
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="tp-breadcrumb-bar">
+    <div class="tp-breadcrumb-bar-inner">
+        {% trans "Genomes" as crumb_genomes %}
+        {% trans "Metabolism" as crumb_metabolism %}
+        {% url 'tpwebapp:index' as index_url %}
+        {% url 'tpwebapp:genomes_list' as genomes_url %}
+        {% with crumb_genome="Genome: "|add:assembly.name %}
+        {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=crumb_genome crumb_3_url=assembly_url crumb_4_label=crumb_metabolism crumb_4_url=metabolism_url crumb_5_label="Network" %}
+        {% endwith %}
+    </div>
+</div>
 {% endblock %}
 
 {% block body %}
@@ -13,11 +27,6 @@
     <section class="genome-hero metabolism-hero">
         <div class="genome-hero-top tp-view-head">
             <div class="genome-hero-content tp-view-head-copy">
-                {% trans "Genomes" as crumb_genomes %}
-                {% trans "Metabolism" as crumb_metabolism %}
-                {% url 'tpwebapp:index' as index_url %}
-                {% url 'tpwebapp:genomes_list' as genomes_url %}
-                {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_genomes crumb_2_url=genomes_url crumb_3_label=assembly.name crumb_3_url=assembly_url crumb_4_label=crumb_metabolism crumb_4_url=metabolism_url crumb_5_label="Network" %}
                 <p class="genome-hero-eyebrow">{% trans "Genome-wide metabolic prioritization" %}</p>
                 <h1>{% trans "Metabolic network" %}</h1>
                 <p class="genome-description">{% trans "Every pathway in one graph. Click a pathway to expand it in place and see its reactions." %}</p>

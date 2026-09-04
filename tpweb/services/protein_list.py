@@ -29,6 +29,7 @@ ACRONYM_TOKENS = {
     "colabfold": "ColabFold",
     "plddt": "pLDDT",
     "id": "ID",
+    "ec": "EC",
 }
 
 TOKEN_REPLACEMENTS = {
@@ -229,7 +230,25 @@ def humanize_identifier(value):
 
 
 def grouped_selected_parameters(selected_parameters, humanize=False):
-    grouped_data = {}
+    """Display-only summary for the "Applied filters" hero line, CSV export
+    header, and LLM filter-summary tool (a different, unrelated concept from
+    the advanced filter builder's group_id/group_mode used for query
+    building).
+
+    Returns a list of (label, joined_values) pairs, one per score param
+    name. Values picked within the *same* advanced-filter group (or from
+    the plain filter panel, which has no group_id) really do combine as OR,
+    so they're joined with ", " -- e.g. "Core, Accessory". But two
+    *different* advanced groups can target the same score param (e.g. "Core
+    Corecruncher: Core" in one group, "...: Accessory" in another) and those
+    combine as AND, not OR: silently joining them with ", " too would look
+    identical to a same-group OR and misrepresent the filter, so
+    cross-group values are spelled out with the word " AND " instead --
+    e.g. "Core AND Accessory".
+    """
+    values_by_group = {}
+    group_order = {}
+    order = []
     for item in selected_parameters:
         score_param_name = item.get("score_param_name")
         if not score_param_name:
@@ -237,8 +256,41 @@ def grouped_selected_parameters(selected_parameters, humanize=False):
         option_name = _selected_parameter_display_value(item, humanize=humanize)
         if humanize:
             score_param_name = humanize_identifier(score_param_name) or score_param_name
-        grouped_data.setdefault(score_param_name, []).append(option_name)
-    return {k: ", ".join(v) for k, v in grouped_data.items()}
+        if score_param_name not in values_by_group:
+            values_by_group[score_param_name] = {}
+            group_order[score_param_name] = []
+            order.append(score_param_name)
+        group_key = item.get("group_id") or ""
+        if group_key not in values_by_group[score_param_name]:
+            values_by_group[score_param_name][group_key] = []
+            group_order[score_param_name].append(group_key)
+        values_by_group[score_param_name][group_key].append(option_name)
+
+    result = []
+    for name in order:
+        group_values = [
+            ", ".join(values_by_group[name][group_key]) for group_key in group_order[name]
+        ]
+        result.append((name, " AND ".join(group_values)))
+    return result
+
+
+def _tag_grouped_option(option_dict, change):
+    """Attach the advanced filter builder's group_id/group_mode (see
+    apply_selected_parameter_filters) to a freshly built option dict, when
+    the change dict that produced it carries one. Also makes the option's
+    dedup id group-scoped, so an advanced-group condition can never collide
+    with (and silently get removed together with, via remove_selected_parameter)
+    an identical condition added from the plain filter panel."""
+    group_id = change.get("group_id")
+    if not group_id:
+        return option_dict
+    return {
+        **option_dict,
+        "group_id": group_id,
+        "group_mode": "any" if str(change.get("group_mode") or "").lower() == "any" else "all",
+        "id": f"{group_id}:{option_dict.get('id')}",
+    }
 
 
 def add_selected_parameter(selected_parameters, option_dict):
@@ -426,6 +478,7 @@ def apply_filter_change(selected_parameters, change):
         if option_id:
             try:
                 option_dict = ScoreParamOptions.objects.get(id=option_id).to_dict()
+                option_dict = _tag_grouped_option(option_dict, change)
                 selected_parameters = add_selected_parameter(selected_parameters, option_dict)
             except (ScoreParamOptions.DoesNotExist, ValueError, TypeError):
                 pass
@@ -446,6 +499,7 @@ def apply_filter_change(selected_parameters, change):
             operation=(change.get("numeric_operation") or "").strip(),
         )
         if payload:
+            payload = _tag_grouped_option(payload, change)
             selected_parameters = add_selected_parameter(selected_parameters, payload)
 
     elif action == "remove_filter":
@@ -484,7 +538,144 @@ def selected_parameters_to_filter_map(selected_parameters):
     return parameter_map
 
 
+def _condition_q(parameter, param_name_by_id):
+    """Build a single Q object for one selected_parameters condition, for use
+    OR-combining conditions within an explicit "any" advanced-filter group
+    (see apply_selected_parameter_filters). Only covers categorical and
+    numeric score-param conditions -- the only condition types the advanced
+    filter builder UI exposes -- and returns None for anything else
+    (special/EC/GO/ligand/pathway filters stay AND-only for now)."""
+    kind = _selected_parameter_kind(parameter)
+    if kind == "special":
+        return None
+    param_id = _coerce_score_param_id(parameter.get("score_param_id"))
+    if param_id is None:
+        return None
+
+    if kind == "numeric":
+        operation = _normalize_numeric_operation(parameter.get("operation"))
+        value = _coerce_numeric_filter_value(parameter.get("value"))
+        value_max = _coerce_numeric_filter_value(parameter.get("value_max"))
+        if operation == ">=":
+            if value is None:
+                return None
+            return Q(score_params__score_param_id=param_id, score_params__numeric_value__gte=value)
+        if operation == "<=":
+            if value is None:
+                return None
+            return Q(score_params__score_param_id=param_id, score_params__numeric_value__lte=value)
+        if operation == "between":
+            if value is None and value_max is None:
+                return None
+            if value is None:
+                return Q(
+                    score_params__score_param_id=param_id,
+                    score_params__numeric_value__lte=value_max,
+                )
+            if value_max is None:
+                return Q(
+                    score_params__score_param_id=param_id, score_params__numeric_value__gte=value
+                )
+            return Q(
+                score_params__score_param_id=param_id,
+                score_params__numeric_value__gte=value,
+                score_params__numeric_value__lte=value_max,
+            )
+        return None
+
+    value_name = parameter.get("name")
+    if value_name in ("", None):
+        return None
+    param_name = param_name_by_id.get(param_id, "")
+    if param_name in CORE_GENOME_PARAM_NAMES:
+        if value_name == "Core":
+            return Q(score_params__score_param_id=param_id, score_params__numeric_value__gte=0.5)
+        if value_name == "Accessory":
+            return Q(score_params__score_param_id=param_id, score_params__numeric_value__lt=0.5)
+        return None
+    return Q(score_params__score_param_id=param_id, score_params__value=value_name)
+
+
 def apply_selected_parameter_filters(queryset, selected_parameters):
+    """Apply every filter in selected_parameters to queryset.
+
+    Each item optionally carries `group_id` / `group_mode` ("all" default /
+    "any"), written by the advanced filter builder (see
+    tpweb/views/ProteinListView.py's ProteinAdvancedFiltersView). Items without a
+    real multi-condition "any" group go through the original AND-only path
+    unchanged -- so every filter added from the simple panel keeps its exact
+    prior query behavior. Only a group_mode="any" group with 2+ conditions
+    gets OR-combined, via its own single .filter() call so it still ANDs
+    correctly against every other group/condition (Django collapses multiple
+    conditions on the same many-valued relation into one join per filter()
+    call, so combining unrelated AND'd conditions into one call would wrongly
+    require them to match the same related row -- each group therefore gets
+    its own call, same as every ungrouped condition already does below)."""
+    or_groups = {}
+    and_items = []
+    for parameter in selected_parameters:
+        group_id = parameter.get("group_id")
+        group_mode = str(parameter.get("group_mode") or "all").strip().lower()
+        if group_id and group_mode == "any":
+            or_groups.setdefault(group_id, []).append(parameter)
+        else:
+            and_items.append(parameter)
+
+    # A singleton "any" group is just its one condition -- OR of one thing --
+    # so fold it back into the plain AND path instead of paying for a
+    # separate combined-Q filter() call.
+    for group_id, items in list(or_groups.items()):
+        if len(items) < 2:
+            and_items.extend(items)
+            del or_groups[group_id]
+
+    # _apply_and_selected_parameter_filters merges same-score_param_id
+    # conditions together (that's the desired "any of these values" reading
+    # within one group -- e.g. Core or Accessory checked together). But two
+    # DIFFERENT advanced-builder groups (distinct group_id) that happen to
+    # touch the same param must stay independent AND'd constraints, not get
+    # swept into that same merge -- so each real group_id gets its own
+    # _apply_and_selected_parameter_filters call (and thus its own .filter()
+    # chain), while every ungrouped/plain-panel item (no group_id at all)
+    # still shares one call, unchanged from before this partitioning existed.
+    and_buckets = {}
+    and_bucket_order = []
+    for parameter in and_items:
+        bucket_key = parameter.get("group_id") or None
+        if bucket_key not in and_buckets:
+            and_buckets[bucket_key] = []
+            and_bucket_order.append(bucket_key)
+        and_buckets[bucket_key].append(parameter)
+
+    filtered_queryset = queryset
+    for bucket_key in and_bucket_order:
+        filtered_queryset = _apply_and_selected_parameter_filters(
+            filtered_queryset, and_buckets[bucket_key]
+        )
+
+    if or_groups:
+        param_name_by_id = {}
+        for parameter in selected_parameters:
+            pid = _coerce_score_param_id(parameter.get("score_param_id"))
+            pname = str(parameter.get("score_param_name") or "").strip().lower()
+            if pid is not None and pname:
+                param_name_by_id[pid] = pname
+        for items in or_groups.values():
+            group_q = Q()
+            has_condition = False
+            for parameter in items:
+                condition = _condition_q(parameter, param_name_by_id)
+                if condition is None:
+                    continue
+                group_q |= condition
+                has_condition = True
+            if has_condition:
+                filtered_queryset = filtered_queryset.filter(group_q)
+
+    return filtered_queryset
+
+
+def _apply_and_selected_parameter_filters(queryset, selected_parameters):
     filtered_queryset = queryset
     parameter_map = selected_parameters_to_filter_map(selected_parameters)
     param_name_by_id = {}

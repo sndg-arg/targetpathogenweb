@@ -1,0 +1,770 @@
+/* ============================================================
+   Activity dashboard — staff-only usage/traffic overview
+   Sections sit fused on the page background (tpw-editorial-redesign);
+   only the KPI tiles and the mosaic-divided chart pair keep boxing.
+   ============================================================ */
+
+.activity-page {
+    font-family: "Source Sans 3", "Segoe UI", sans-serif;
+    color: var(--tp-ink);
+    margin: 0;
+    --activity-accent-deep: var(--tp-color-brand-900);
+}
+
+.activity-page > * ~ * {
+    margin-top: var(--tp-space-7);
+}
+
+/* Soft cascade on load -- every top-level section is animated, so nth-child
+   (not nth-of-type) is fine here: there's no unanimated element interspersed
+   to throw the count off. */
+@media (prefers-reduced-motion: no-preference) {
+    .activity-page > * {
+        animation: activity-fade-up 0.45s var(--tp-ui-ease-standard) both;
+    }
+
+    .activity-page > *:nth-child(1) { animation-delay: 0ms; }
+    .activity-page > *:nth-child(2) { animation-delay: 40ms; }
+    .activity-page > *:nth-child(3) { animation-delay: 80ms; }
+    .activity-page > *:nth-child(4) { animation-delay: 120ms; }
+    .activity-page > *:nth-child(5) { animation-delay: 160ms; }
+    .activity-page > *:nth-child(6) { animation-delay: 200ms; }
+    .activity-page > *:nth-child(7) { animation-delay: 240ms; }
+    .activity-page > *:nth-child(8) { animation-delay: 280ms; }
+    .activity-page > *:nth-child(9) { animation-delay: 320ms; }
+    .activity-page > *:nth-child(n+10) { animation-delay: 360ms; }
+}
+
+@keyframes activity-fade-up {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+.activity-page h1,
+.activity-page h2 {
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+}
+
+/* ── Hero ── */
+.activity-hero {
+    padding: 20px 18px;
+}
+
+.activity-eyebrow {
+    margin: 6px 0 10px;
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-label);
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.activity-hero-title {
+    margin: 0;
+    font-size: var(--tp-heading-lg);
+    line-height: 1.1;
+    color: var(--activity-accent-deep);
+}
+
+.activity-hero-description {
+    margin: 10px 0 0;
+    color: var(--tp-color-text-secondary);
+    font-size: 1rem;
+    line-height: 1.42;
+    max-width: 720px;
+}
+
+.activity-period-selector {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 3px;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 999px;
+    background: var(--tp-color-surface-soft);
+}
+
+.activity-period-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 14px;
+    border-radius: 999px;
+    color: var(--tp-color-text-secondary);
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition:
+        background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.activity-period-btn:hover,
+.activity-period-btn:focus-visible {
+    color: var(--tp-color-text-primary);
+    background: var(--tp-color-surface);
+}
+
+.activity-period-btn.is-active,
+.activity-period-btn.is-active:hover,
+.activity-period-btn.is-active:focus-visible {
+    background: var(--activity-accent-deep);
+    color: var(--tp-color-on-accent);
+}
+
+/* ── KPI row — small equal-weight tiles, keeps individual card framing ── */
+.activity-kpi-row {
+    padding: 0 18px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: var(--tp-space-3);
+}
+
+.activity-kpi-card {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 14px 16px;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 12px;
+    background: var(--tp-color-surface);
+    box-shadow: var(--tp-shadow-xs);
+    transition: box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.activity-kpi-card:hover {
+    box-shadow: var(--tp-shadow-sm);
+    border-color: var(--tp-color-border-strong);
+}
+
+.activity-kpi-label {
+    font-size: var(--tp-font-label);
+    font-weight: 500;
+    color: var(--tp-color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.activity-kpi-period {
+    text-transform: none;
+    letter-spacing: normal;
+    opacity: 0.75;
+}
+
+.activity-kpi-value {
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-size: 1.75rem;
+    font-weight: 700;
+    line-height: 1.1;
+    color: var(--activity-accent-deep);
+    font-variant-numeric: proportional-nums;
+}
+
+.activity-kpi-delta {
+    margin: 0;
+    font-size: var(--tp-font-size-xs);
+    font-weight: 600;
+    color: var(--tp-color-text-muted);
+    min-height: 1.1em;
+}
+
+.activity-kpi-delta.is-up {
+    color: var(--tp-color-success-ink);
+}
+
+.activity-kpi-delta.is-down {
+    color: var(--tp-color-danger-ink);
+}
+
+.activity-kpi-meta {
+    margin: 0;
+    font-size: var(--tp-font-size-xs);
+    color: var(--tp-color-text-muted);
+}
+
+.activity-kpi-card--errors {
+    border-left: 3px solid var(--tp-color-warning-border);
+}
+
+.activity-kpi-card--errors.has-errors {
+    background: var(--tp-color-danger-bg);
+    border-left-color: var(--tp-color-danger-border);
+}
+
+.activity-kpi-card--errors.has-errors .activity-kpi-value {
+    color: var(--tp-color-danger-ink);
+}
+
+/* Neutral-to-info accent, not warning/danger -- a high percentage here means
+   the login wall is doing its job, not that something's broken. */
+.activity-kpi-card--blocked {
+    border-left: 3px solid var(--tp-color-info-border);
+}
+
+/* ── Panels — fused onto the page background, no individual box ── */
+.activity-panel {
+    padding: 0 18px;
+}
+
+.activity-panel-title {
+    margin: 2px 0 0;
+    font-size: 1.12rem;
+    font-weight: 600;
+    color: var(--activity-accent-deep);
+    letter-spacing: -0.02em;
+}
+
+/* ── Accounts list ── */
+.activity-accounts {
+    margin-top: 14px;
+    display: flex;
+    flex-direction: column;
+}
+
+.activity-account-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 0;
+    margin: 0 -8px;
+    padding-left: 8px;
+    padding-right: 8px;
+    border-top: 1px solid var(--tp-color-border-soft);
+    border-radius: 8px;
+    flex-wrap: wrap;
+    transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.activity-account-row:hover {
+    background: var(--tp-color-surface-soft);
+}
+
+.activity-account-row:first-child {
+    border-top: none;
+}
+
+.activity-account-name {
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-weight: 600;
+    color: var(--tp-color-text-primary);
+    min-width: 100px;
+}
+
+.activity-account-lastlogin {
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-sm);
+    margin-left: auto;
+}
+
+.activity-accounts-empty {
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-sm);
+    margin: 14px 0 0;
+}
+
+/* ── Section summary + collapsible detail ── */
+.activity-details {
+    margin-top: 10px;
+}
+
+.activity-details-summary {
+    list-style: none;
+    cursor: pointer;
+    user-select: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 0;
+    color: var(--tp-color-link);
+    font-size: var(--tp-font-size-sm);
+    font-weight: 600;
+    transition: color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.activity-details-summary::-webkit-details-marker {
+    display: none;
+}
+
+.activity-details-summary:hover,
+.activity-details-summary:focus-visible {
+    color: var(--tp-color-link-hover);
+}
+
+.activity-details-chevron {
+    width: 7px;
+    height: 7px;
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: rotate(-45deg);
+    transition: transform 180ms ease;
+}
+
+.activity-details[open] .activity-details-chevron,
+.activity-details.is-open-visual .activity-details-chevron {
+    transform: rotate(45deg);
+}
+
+.activity-details-body {
+    margin-top: 6px;
+    padding: 8px 14px;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: var(--tp-radius-md);
+    background: var(--tp-color-surface-soft);
+}
+
+/* The row-head's own margin-top exists to clear the section heading above
+   it when placed directly under one -- redundant now that it's nested one
+   level deeper, inside a box that already has its own top padding. */
+.activity-details-body .activity-location-row--head {
+    margin-top: 0;
+}
+
+/* ── Locations list ── */
+.activity-locations {
+    display: flex;
+    flex-direction: column;
+}
+
+.activity-location-row {
+    display: grid;
+    grid-template-columns: minmax(150px, 1.3fr) minmax(110px, 0.8fr) minmax(110px, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 8px;
+    margin: 0 -8px;
+    border-top: 1px solid var(--tp-color-border-soft);
+    border-radius: 8px;
+    transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.activity-location-row:not(.activity-location-row--head):not(.activity-location-row--blocked):hover {
+    background: var(--tp-color-surface-soft);
+}
+
+.activity-location-row:first-child {
+    border-top: none;
+}
+
+.activity-location-row--head {
+    margin-top: 14px;
+    padding: 0 0 8px;
+    border-top: none;
+    font-size: var(--tp-font-label);
+    font-weight: 500;
+    color: var(--tp-color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.activity-locations .activity-location-row:first-child {
+    border-top: none;
+}
+
+/* Data rows only (not the static header) -- a quiet warning tint marks
+   "never authenticated" without shouting like a full danger/error state. */
+.activity-locations .activity-location-row--blocked {
+    background: var(--tp-color-warning-bg);
+    border-radius: 8px;
+    padding-left: 8px;
+    padding-right: 8px;
+    margin: 0 -8px;
+}
+
+.activity-locations .activity-location-row--blocked + .activity-location-row--blocked {
+    border-top-color: var(--tp-color-warning-border);
+}
+
+/* Login attempts / scanning traffic rows: Location, IP, User agent, a
+   4th metric column (last seen or paths touched), Requests. */
+.activity-location-row--wide {
+    grid-template-columns: minmax(130px, 1.1fr) minmax(100px, 0.7fr) minmax(140px, 1.3fr) minmax(90px, 0.7fr) auto;
+}
+
+.activity-location-row--wide .activity-location-users {
+    white-space: nowrap;
+}
+
+.activity-location-place {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+    color: var(--tp-color-text-primary);
+}
+
+/* Fixed-width text badge instead of a flag emoji -- Windows has no flag
+   glyphs for regional-indicator emoji pairs and falls back to the two raw
+   letters at an inconsistent width, which reads as broken text rather than
+   an icon and makes every row's location text start at a different x
+   position. This renders identically everywhere and keeps that alignment. */
+.activity-country-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 26px;
+    height: 16px;
+    padding: 0 4px;
+    flex-shrink: 0;
+    border-radius: 4px;
+    background: var(--tp-color-surface-muted);
+    color: var(--tp-color-text-muted);
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+
+.activity-location-ip {
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: var(--tp-font-size-xs);
+    color: var(--tp-color-text-muted);
+}
+
+.activity-location-users {
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-size-sm);
+}
+
+.activity-location-count {
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-sm);
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Truncate rather than wrap/overflow -- a raw User-Agent string can run to
+   240 chars, the full value is still reachable via the title tooltip. */
+.activity-user-agent {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-size-xs);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.activity-user-agent--empty {
+    color: var(--tp-color-text-muted);
+}
+
+.activity-user-agent-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    min-width: 0;
+}
+
+.activity-bot-chip {
+    background: var(--tp-color-info-bg);
+    border-color: var(--tp-color-info-border);
+    color: var(--tp-color-info-ink);
+}
+
+/* ── Chip-row summary — shared by bot type, and by country for logged-in
+   sessions/login attempts. Always the default-visible view; the detailed
+   per-IP table sits collapsed in the .activity-details disclosure below
+   it. Bot rollup is aggregated over the FULL window server-side, not just
+   the top-10-by-IP rows in that detail table (a handful of IPs from one
+   crawler can otherwise fill most of it and hide how many distinct types
+   exist) -- the country groupings are computed client-side from the same
+   top-10 rows the detail table shows, which is already the complete set
+   for how few distinct authenticated/login-attempt IPs this site sees. ── */
+.activity-summary-chips {
+    margin-top: 14px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.activity-summary-chips:empty {
+    display: none;
+}
+
+.activity-summary-chip {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    background: var(--tp-color-info-bg);
+    border: 1px solid var(--tp-color-info-border);
+}
+
+.activity-summary-chip strong {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-size: var(--tp-font-size-sm);
+    font-weight: 700;
+    color: var(--tp-color-info-ink);
+}
+
+.activity-summary-chip span:not(.activity-country-badge) {
+    font-size: var(--tp-font-size-xs);
+    color: var(--tp-color-text-muted);
+    font-variant-numeric: tabular-nums;
+}
+
+.activity-summary-chip--muted {
+    background: var(--tp-color-surface-soft);
+    border-color: var(--tp-color-border-soft);
+}
+
+.activity-summary-chip--muted strong {
+    color: var(--tp-color-text-secondary);
+}
+
+@media (max-width: 640px) {
+    /* .activity-location-row and .activity-location-row--wide have equal
+       specificity -- listing --wide explicitly here (instead of relying on
+       this block being declared after its base rule) so a future reorder
+       can't silently leave the 5-column --wide variant un-collapsed on a
+       phone, where its minmax() widths add up to well over 360px. */
+    .activity-location-row,
+    .activity-location-row--wide {
+        grid-template-columns: 1fr;
+        gap: 2px;
+        padding: 12px 0;
+    }
+
+    .activity-location-row--head {
+        display: none;
+    }
+
+    .activity-location-count {
+        text-align: left;
+    }
+
+    .activity-user-agent {
+        white-space: normal;
+        overflow: visible;
+        text-overflow: clip;
+    }
+}
+
+/* ── Top erroring paths ── */
+.activity-error-paths {
+    margin-top: 14px;
+    display: flex;
+    flex-direction: column;
+}
+
+.activity-error-path-row {
+    display: grid;
+    grid-template-columns: minmax(140px, 1.4fr) 2fr auto;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 8px;
+    margin: 0 -8px;
+    border-top: 1px solid var(--tp-color-border-soft);
+    border-radius: 8px;
+}
+
+.activity-error-path-row:first-child {
+    border-top: none;
+}
+
+.activity-error-path-name {
+    font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: var(--tp-font-size-xs);
+    color: var(--tp-color-text-primary);
+    word-break: break-all;
+}
+
+.activity-error-path-codes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.activity-error-chip {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 2px 8px;
+    font-size: var(--tp-font-size-xs);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    border: 1px solid transparent;
+}
+
+.activity-error-chip--4xx {
+    background: var(--tp-color-warning-bg);
+    border-color: var(--tp-color-warning-border);
+    color: var(--tp-color-warning-ink);
+}
+
+.activity-error-chip--5xx {
+    background: var(--tp-color-danger-bg);
+    border-color: var(--tp-color-danger-border);
+    color: var(--tp-color-danger-ink);
+}
+
+.activity-error-chip--neutral {
+    background: var(--tp-color-surface-muted);
+    border-color: var(--tp-color-border-soft);
+    color: var(--tp-color-text-secondary);
+}
+
+@media (max-width: 640px) {
+    .activity-error-path-row {
+        grid-template-columns: 1fr;
+        gap: 6px;
+        padding: 12px 0;
+    }
+}
+
+/* ── Charts ── */
+.activity-chart-legend {
+    display: flex;
+    gap: 14px;
+    flex-shrink: 0;
+}
+
+.activity-chart-legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: var(--tp-font-size-xs);
+    color: var(--tp-color-text-muted);
+}
+
+.activity-chart-legend-swatch {
+    display: inline-block;
+    width: 9px;
+    height: 9px;
+    border-radius: 3px;
+}
+
+.activity-chart-legend-swatch--authenticated {
+    background: var(--tp-color-brand-600);
+}
+
+.activity-chart-legend-swatch--anonymous {
+    background: var(--tp-color-warning-border);
+}
+
+.activity-chart-wrap {
+    margin-top: 14px;
+    position: relative;
+    height: 220px;
+}
+
+.activity-chart-wrap--tall {
+    height: 280px;
+}
+
+.activity-chart-empty {
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-sm);
+    text-align: center;
+    padding: 40px 0;
+}
+
+.activity-chart-note {
+    margin: 8px 0 0;
+    font-size: var(--tp-font-size-xs);
+    font-style: italic;
+    color: var(--tp-color-text-muted);
+}
+
+.activity-chart-note:empty {
+    display: none;
+}
+
+/* ── Status code tiles — legible at any proportion, unlike a proportional
+   bar where a real error count can round away to an invisible sliver.
+   Full-width now (used to sit in a two-col pair with Top pages, which set
+   its height to match that neighbor's chart) -- a single auto-fit row
+   reads better here, matching the KPI row's own pattern. */
+.activity-status-tiles {
+    margin-top: 14px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 10px;
+}
+
+.activity-status-tile {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    padding: 14px 16px;
+    border-radius: 12px;
+    border-left: 3px solid var(--tp-color-border-strong);
+    background: var(--tp-color-surface-soft);
+}
+
+.activity-status-tile--2xx {
+    border-left-color: var(--tp-color-success-border);
+}
+
+.activity-status-tile--3xx {
+    border-left-color: var(--tp-color-info-border);
+}
+
+.activity-status-tile--4xx {
+    border-left-color: var(--tp-color-warning-border);
+}
+
+.activity-status-tile--5xx {
+    border-left-color: var(--tp-color-danger-border);
+}
+
+.activity-status-tile-label {
+    margin: 0;
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-weight: 700;
+    font-size: var(--tp-font-size-sm);
+    color: var(--tp-color-text-primary);
+}
+
+.activity-status-tile-sublabel {
+    font-family: "Source Sans 3", "Segoe UI", sans-serif;
+    font-weight: 500;
+    font-size: var(--tp-font-size-xs);
+    color: var(--tp-color-text-muted);
+}
+
+.activity-status-tile-value {
+    margin: 0;
+    font-family: "Space Grotesk", "Segoe UI", sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1.1;
+    color: var(--activity-accent-deep);
+    font-variant-numeric: tabular-nums;
+}
+
+.activity-status-tile-meta {
+    margin: 0;
+    font-size: var(--tp-font-size-xs);
+    color: var(--tp-color-text-muted);
+}
+
+/* ── Footnote ── */
+.activity-footnote {
+    padding: 0 18px;
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-sm);
+}
+
+.activity-footnote a {
+    color: var(--tp-color-link);
+}
+
+.activity-footnote a:hover {
+    color: var(--tp-color-link-hover);
+}

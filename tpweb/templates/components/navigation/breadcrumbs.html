@@ -6,9 +6,12 @@
         {% if crumb_1_label %}
             <li class="tp-breadcrumb-item">
                 {% if crumb_1_url %}
-                    <a class="tp-breadcrumb-link" href="{{ crumb_1_url }}">{{ crumb_1_label }}</a>
+                    <a class="tp-breadcrumb-link" href="{{ crumb_1_url }}" title="{{ crumb_1_label }}">
+                        <span class="tp-breadcrumb-home-icon" aria-hidden="true">{% include "components/icons/home.html" %}</span>
+                        {{ crumb_1_label }}
+                    </a>
                 {% else %}
-                    <span class="tp-breadcrumb-current">{{ crumb_1_label }}</span>
+                    <span class="tp-breadcrumb-current" title="{{ crumb_1_label }}">{{ crumb_1_label }}</span>
                 {% endif %}
             </li>
         {% endif %}
@@ -16,9 +19,9 @@
         {% if crumb_2_label %}
             <li class="tp-breadcrumb-item">
                 {% if crumb_2_url %}
-                    <a class="tp-breadcrumb-link" href="{{ crumb_2_url }}">{{ crumb_2_label }}</a>
+                    <a class="tp-breadcrumb-link" href="{{ crumb_2_url }}" title="{{ crumb_2_label }}">{{ crumb_2_label }}</a>
                 {% else %}
-                    <span class="tp-breadcrumb-current">{{ crumb_2_label }}</span>
+                    <span class="tp-breadcrumb-current" title="{{ crumb_2_label }}">{{ crumb_2_label }}</span>
                 {% endif %}
             </li>
         {% endif %}
@@ -26,9 +29,9 @@
         {% if crumb_3_label %}
             <li class="tp-breadcrumb-item">
                 {% if crumb_3_url %}
-                    <a class="tp-breadcrumb-link" href="{{ crumb_3_url }}">{{ crumb_3_label }}</a>
+                    <a class="tp-breadcrumb-link" href="{{ crumb_3_url }}" title="{{ crumb_3_label }}">{{ crumb_3_label }}</a>
                 {% else %}
-                    <span class="tp-breadcrumb-current">{{ crumb_3_label }}</span>
+                    <span class="tp-breadcrumb-current" title="{{ crumb_3_label }}">{{ crumb_3_label }}</span>
                 {% endif %}
             </li>
         {% endif %}
@@ -36,9 +39,9 @@
         {% if crumb_4_label %}
             <li class="tp-breadcrumb-item">
                 {% if crumb_4_url %}
-                    <a class="tp-breadcrumb-link" href="{{ crumb_4_url }}">{{ crumb_4_label }}</a>
+                    <a class="tp-breadcrumb-link" href="{{ crumb_4_url }}" title="{{ crumb_4_label }}">{{ crumb_4_label }}</a>
                 {% else %}
-                    <span class="tp-breadcrumb-current">{{ crumb_4_label }}</span>
+                    <span class="tp-breadcrumb-current" title="{{ crumb_4_label }}">{{ crumb_4_label }}</span>
                 {% endif %}
             </li>
         {% endif %}
@@ -46,9 +49,9 @@
         {% if crumb_5_label %}
             <li class="tp-breadcrumb-item">
                 {% if crumb_5_url %}
-                    <a class="tp-breadcrumb-link" href="{{ crumb_5_url }}">{{ crumb_5_label }}</a>
+                    <a class="tp-breadcrumb-link" href="{{ crumb_5_url }}" title="{{ crumb_5_label }}">{{ crumb_5_label }}</a>
                 {% else %}
-                    <span class="tp-breadcrumb-current">{{ crumb_5_label }}</span>
+                    <span class="tp-breadcrumb-current" title="{{ crumb_5_label }}">{{ crumb_5_label }}</span>
                 {% endif %}
             </li>
         {% endif %}
@@ -56,9 +59,9 @@
         {% if crumb_6_label %}
             <li class="tp-breadcrumb-item">
                 {% if crumb_6_url %}
-                    <a class="tp-breadcrumb-link" href="{{ crumb_6_url }}">{{ crumb_6_label }}</a>
+                    <a class="tp-breadcrumb-link" href="{{ crumb_6_url }}" title="{{ crumb_6_label }}">{{ crumb_6_label }}</a>
                 {% else %}
-                    <span class="tp-breadcrumb-current">{{ crumb_6_label }}</span>
+                    <span class="tp-breadcrumb-current" title="{{ crumb_6_label }}">{{ crumb_6_label }}</span>
                 {% endif %}
             </li>
         {% endif %}

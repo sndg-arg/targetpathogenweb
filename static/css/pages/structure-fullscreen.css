@@ -7,6 +7,11 @@
 body:has(.sv-root) .tp-main   { max-width: none !important; padding: 0 !important; }
 body:has(.sv-root) .tp-shell  { padding: 0 !important; }
 body:has(.sv-root) .tp-footer { display: none !important; }
+/* Belt-and-suspenders: .sv-root's own height calc (below) should already
+   fill exactly the viewport under the topbar, but if that measurement is
+   ever off by a few px, this stops the page itself from scrolling instead
+   of surfacing a scrollbar that clips the floating toolbar/settings modal. */
+body:has(.sv-root) { overflow: hidden; }
 
 /* ── 2. Root layout ── */
 .sv-root {
@@ -220,6 +225,20 @@ body:has(.sv-root) .tp-footer { display: none !important; }
 .sv-sstruc-dot--sheet { background: var(--tp-color-sstruc-sheet); }
 .sv-sstruc-dot--coil  { background: var(--tp-color-sstruc-coil); }
 
+.sv-plddt-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 1px solid var(--sv-overlay-border);
+    /* AlphaFold DB's own official pLDDT band colors (--tp-color-plddt-* in
+       masterpage.html) -- not this app's brand palette. */
+}
+
+.sv-plddt-dot--very-high { background: var(--tp-color-plddt-very-high); }
+.sv-plddt-dot--high      { background: var(--tp-color-plddt-high); }
+.sv-plddt-dot--low       { background: var(--tp-color-plddt-low); }
+.sv-plddt-dot--very-low  { background: var(--tp-color-plddt-very-low); }
+
 /* ── 6. Floating bottom toolbar ── */
 .sv-toolbar {
     position: absolute;
@@ -239,6 +258,21 @@ body:has(.sv-root) .tp-footer { display: none !important; }
     box-shadow: var(--sv-shadow);
     white-space: nowrap;
     max-width: calc(100% - 32px);
+    /* .sv-tb-btn is flex-shrink: 0 (buttons never compress) and this row has
+       accumulated a lot of them (color presets, heteroatoms, structure
+       picker...) -- on a normal ~1280-1366px laptop width the row no longer
+       fits, and without this it silently overflowed .sv-root's
+       overflow:hidden with no way to reach the clipped buttons (Settings
+       included). Scroll instead of clip/overflow. */
+    overflow-x: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--sv-toolbar-border) transparent;
+}
+
+.sv-toolbar::-webkit-scrollbar { height: 4px; }
+.sv-toolbar::-webkit-scrollbar-thumb {
+    background: var(--sv-toolbar-border);
+    border-radius: 999px;
 }
 
 /* Generic toolbar button */
@@ -247,7 +281,7 @@ body:has(.sv-root) .tp-footer { display: none !important; }
     align-items: center;
     gap: 5px;
     height: 30px;
-    padding: 0 10px;
+    padding: 0 8px;
     border: none;
     border-radius: 8px;
     background: var(--sv-btn-bg);
@@ -316,7 +350,7 @@ body:has(.sv-root) .tp-footer { display: none !important; }
     width: 1px;
     height: 18px;
     background: var(--sv-sep);
-    margin: 0 3px;
+    margin: 0 2px;
     flex-shrink: 0;
 }
 
@@ -332,7 +366,7 @@ body:has(.sv-root) .tp-footer { display: none !important; }
 
 .sv-mode-btn {
     height: 24px;
-    padding: 0 10px;
+    padding: 0 8px;
     border: none;
     border-radius: 6px;
     background: transparent;
@@ -681,25 +715,6 @@ body:has(.sv-root) .tp-footer { display: none !important; }
     box-shadow: inset 4px 0 0 var(--structure-accent), var(--tp-shadow-sm);
 }
 
-.pocket-card--fpocket .pocket-card-id::before,
-.pocket-card--p2rank .pocket-card-id::before {
-    content: "";
-    display: inline-block;
-    width: 0.46rem;
-    height: 0.46rem;
-    border-radius: 999px;
-    margin-right: 5px;
-    vertical-align: 0.02em;
-}
-
-.pocket-card--fpocket .pocket-card-id::before {
-    background: var(--tp-color-brand-500);
-}
-
-.pocket-card--p2rank .pocket-card-id::before {
-    background: var(--tp-color-sage-500);
-}
-
 .pocket-card-head {
     display: flex;
     align-items: flex-start;
@@ -769,6 +784,9 @@ body:has(.sv-root) .tp-footer { display: none !important; }
     font-weight: 600;
     color: var(--structure-accent-ink);
     flex: 1 1 auto;
+    /* Carries the predictor's raw internal pocket number as a title
+       tooltip instead of visible text -- see protein-detail.css for why. */
+    cursor: help;
 }
 
 .pocket-card-p2score {
@@ -853,6 +871,7 @@ body:has(.sv-root) .tp-footer { display: none !important; }
 
 .pocket-card-actions .btn {
     flex: 1;
+    min-width: 0;
     justify-content: center;
 }
 
@@ -990,7 +1009,7 @@ body:has(.sv-root) .tp-footer { display: none !important; }
     justify-content: center;
 }
 .residue-modal-backdrop.is-open { display: flex; }
-.residue-modal-panel {
+.structure-residue-modal-panel {
     background: var(--tp-color-surface);
     border: 1px solid var(--tp-color-border-strong);
     border-radius: 14px;
@@ -1015,7 +1034,25 @@ body:has(.sv-root) .tp-footer { display: none !important; }
     color: var(--tp-color-text-primary);
     flex: 1;
 }
-.residue-modal-close { font-size: 1.1rem; line-height: 1; }
+/* Icon-only ghost circle instead of a bordered "x" pill -- lighter touch
+   for a dismiss action that isn't competing with the modal's real actions. */
+.residue-modal-close {
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    flex: 0 0 auto;
+    border-color: transparent !important;
+    background: transparent !important;
+    color: var(--tp-color-text-muted) !important;
+}
+
+.residue-modal-close .tp-btn-icon { width: 0.95em; height: 0.95em; }
+
+.residue-modal-close:hover,
+.residue-modal-close:focus-visible {
+    background: var(--tp-color-surface-muted) !important;
+    color: var(--tp-color-text-primary) !important;
+}
 .residue-modal-body {
     flex: 1;
     overflow-y: auto;
@@ -1035,6 +1072,192 @@ body:has(.sv-root) .tp-footer { display: none !important; }
 }
 body.residue-modal-open { overflow: hidden; }
 
+/* ── 14b. Viewer settings modal ── */
+/* Backdrop/open/scroll-lock reuse .residue-modal-backdrop/.is-open above --
+   only the panel itself and its contents are new, since this modal needs
+   two sections (a live summary list + color rows) instead of one <pre>. */
+.viewer-settings-panel {
+    background: var(--tp-color-surface);
+    border: 1px solid var(--tp-color-border-strong);
+    border-radius: 14px;
+    box-shadow: var(--tp-shadow-lg);
+    width: min(560px, calc(100vw - 32px));
+    max-height: 84vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+body.viewer-settings-open { overflow: hidden; }
+
+.viewer-settings-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.viewer-settings-section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.viewer-settings-section-title {
+    margin: 0 0 8px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--tp-color-text-muted);
+}
+
+.viewer-settings-section-head .viewer-settings-section-title {
+    margin: 0;
+}
+
+.viewer-settings-section-note {
+    margin: 8px 0 14px;
+    font-size: 0.82rem;
+    line-height: 1.45;
+    color: var(--tp-color-text-muted);
+}
+
+.viewer-settings-visible-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.viewer-settings-visible-list li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 9px;
+    background: var(--tp-color-surface-soft);
+    font-size: 0.85rem;
+    color: var(--tp-color-text-secondary);
+}
+
+.viewer-settings-visible-list li::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    flex: 0 0 auto;
+    border-radius: 999px;
+    background: var(--tp-color-brand-500);
+}
+
+.viewer-settings-visible-empty {
+    font-style: italic;
+    color: var(--tp-color-text-muted);
+}
+
+.viewer-settings-visible-empty::before { display: none; }
+
+.viewer-settings-color-rows {
+    display: flex;
+    flex-direction: column;
+}
+
+.viewer-settings-color-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 9px 6px;
+    margin: 0 -6px;
+    border-radius: 9px;
+    transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.viewer-settings-color-row:hover {
+    background: var(--tp-color-surface-soft);
+}
+
+.viewer-settings-color-row + .viewer-settings-color-row {
+    border-top: 1px solid var(--tp-color-border-soft);
+}
+
+.viewer-settings-color-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--tp-color-text-primary);
+}
+
+.viewer-settings-swatch-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.viewer-settings-swatch {
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border: 1px solid var(--tp-color-border-strong);
+    border-radius: 999px;
+    cursor: pointer;
+    transition: transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.viewer-settings-swatch:hover,
+.viewer-settings-swatch:focus-visible {
+    transform: scale(1.12);
+    outline: none;
+}
+
+/* Which preset (if any) is the category's current color -- without this
+   the four presets and the live custom swatch all look equally weighted
+   and there's no way to tell which one is actually applied. */
+.viewer-settings-swatch.is-selected {
+    border-color: transparent;
+    box-shadow: 0 0 0 2px var(--tp-color-surface), 0 0 0 4px var(--tp-color-brand-500);
+}
+
+/* Separates "pick one of these four" from "or customize the current
+   color" -- without it, the custom swatch reads as a fifth identical
+   preset instead of the thing that's actually always live. */
+.viewer-settings-swatch-divider {
+    width: 1px;
+    height: 20px;
+    flex: 0 0 auto;
+    background: var(--tp-color-border);
+    margin: 0 2px;
+}
+
+.viewer-settings-custom-input {
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    /* Deliberately heavier than the preset swatches' 1px border, plus a
+       permanent brand-colored ring -- this swatch always shows the color
+       actually applied right now, so it stays visually marked as "current"
+       even when no preset matches it. */
+    border: 2px solid var(--tp-color-surface);
+    border-radius: 999px;
+    box-shadow: 0 0 0 1.5px var(--tp-color-brand-500);
+    cursor: pointer;
+    background: none;
+    /* Native color inputs paint their own swatch inside a rectangular
+       frame by default -- clip it to match the round preset swatches
+       beside it instead of looking like a mismatched square. */
+    overflow: hidden;
+}
+
+.viewer-settings-custom-input::-webkit-color-swatch-wrapper { padding: 0; }
+.viewer-settings-custom-input::-webkit-color-swatch { border: none; border-radius: 999px; }
+.viewer-settings-custom-input::-moz-color-swatch { border: none; border-radius: 999px; }
+
 /* ── 15. Dark mode sidebar overrides ── */
 .tp-dark .sv-sidebar { background: var(--tp-color-surface-soft); border-left-color: var(--tp-color-border-strong); }
 .tp-dark .pocket-card { background: var(--tp-color-surface); border-color: var(--tp-color-border); }
@@ -1042,7 +1265,13 @@ body.residue-modal-open { overflow: hidden; }
 /* ── 16. Structure picker (custom dropdown — no native select) ── */
 .sv-struct-picker {
     position: relative;
-    flex-shrink: 0;
+    /* Was flex-shrink: 0 -- the single widest element in the toolbar (an
+       accession code can run long), so letting it shrink first (ellipsis
+       truncates the label, full code is still in its own dropdown menu and
+       the sidebar header) buys real room before every fixed-size button
+       has to fall back to the toolbar's own horizontal scroll. */
+    flex: 0 1 auto;
+    min-width: 0;
 }
 
 .sv-struct-picker-btn {
@@ -1061,7 +1290,7 @@ body.residue-modal-open { overflow: hidden; }
     letter-spacing: 0.01em;
     cursor: pointer;
     opacity: 0.88;
-    max-width: min(340px, 42vw);
+    max-width: min(200px, 30vw);
     white-space: nowrap;
     overflow: hidden;
     transition: background-color 0.13s, opacity 0.13s;
@@ -1167,7 +1396,7 @@ body.residue-modal-open { overflow: hidden; }
     font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
 }
 
-/* ── 17. Pocket card label (Site N + internal ID) ── */
+/* ── 17. Pocket card label ── */
 .pocket-card-label {
     display: flex;
     flex-direction: column;
@@ -1176,13 +1405,6 @@ body.residue-modal-open { overflow: hidden; }
     min-width: 0;
 }
 
-.pocket-card-id {
-    font-size: 0.70rem;
-    font-weight: 500;
-    color: var(--tp-color-text-muted);
-    opacity: 0.72;
-    line-height: 1.2;
-}
 .tp-dark .pocket-repr-btn { background: var(--tp-color-surface-soft); border-color: var(--tp-color-border); color: var(--tp-color-text-secondary); }
 .tp-dark .pocket-repr-btn[aria-pressed="true"],
 .tp-dark .sv-pocket-inspector-toggle[aria-pressed="true"] {

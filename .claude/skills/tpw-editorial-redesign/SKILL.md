@@ -99,9 +99,6 @@ auto` (or drop the explicit width and rely on grid stretch/flex sizing) instead.
 
 ## Site-wide chrome already handled — don't redo per page
 
-- **Masthead accent bar**: lives on `.tp-main::before`/`::after` in `masterpage.html` (gradient
-  bar + one-time load-in shimmer, `prefers-reduced-motion`-aware). Applies to every page
-  automatically already — nothing to add per page.
 - **White page background**: `--tp-color-page-start`/`-end` = `#ffffff` in light mode, dark mode
   untouched, already global in `masterpage.html`.
 - **`.tp-main`/`.tp-shell`**: merged into a single `.tp-main` wrapper (the old `.tp-shell` div was
