@@ -5,10 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{% block title %}Target Pathogen{% endblock %}</title>
 </head>
-{# Inline hex throughout this file (not var(--tp-*) tokens) is a deliberate
-   exception to the site's CSS rule: email clients (Outlook, Gmail app) don't
-   reliably support external stylesheets or CSS custom properties, so every
-   value here is copied from masterpage.html's light-mode :root block. #}
+{% comment %}
+Inline hex throughout this file (not var(--tp-*) tokens) is a deliberate
+exception to the site's CSS rule: email clients (Outlook, Gmail app) don't
+reliably support external stylesheets or CSS custom properties, so every
+value here is copied from masterpage.html's light-mode :root block.
+{% endcomment %}
 <body style="margin:0; padding:0; background-color:#eef0f3;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#eef0f3;">
     <tr>
