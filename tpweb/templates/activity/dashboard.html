@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/activity-dashboard.css' %}?v=20260904-period-selector">
+    <link rel="stylesheet" href="{% static 'css/pages/activity-dashboard.css' %}?v=20260904-scanned-paths">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -192,6 +192,18 @@
     <section class="activity-panel">
         <div class="section-head tp-ui-panel-head">
             <div>
+                <p class="tp-ui-field-label">{% trans "What they're actually requesting" %}</p>
+                <h2 class="activity-panel-title">{% trans "Most-probed paths" %}</h2>
+            </div>
+        </div>
+        <div class="activity-error-paths" data-scanned-paths-list>
+            <p class="activity-accounts-empty">{% trans "Loading..." %}</p>
+        </div>
+    </section>
+
+    <section class="activity-panel">
+        <div class="section-head tp-ui-panel-head">
+            <div>
                 <p class="tp-ui-field-label">{% trans "Request health" %}</p>
                 <h2 class="activity-panel-title">{% trans "Status codes" %}</h2>
             </div>
@@ -219,5 +231,5 @@
 
 {{ activity_dashboard_data|json_script:"activity-dashboard-data" }}
 <script src="{% static 'js/vendor/chart.umd.js' %}?v=20260902-context-pass"></script>
-<script src="{% static 'js/pages/activity-dashboard.js' %}?v=20260902-region-summary"></script>
+<script src="{% static 'js/pages/activity-dashboard.js' %}?v=20260904-scanned-paths"></script>
 {% endblock %}

@@ -472,6 +472,61 @@ class TopErrorPathsTests(TestCase):
         self.assertNotIn("/genomes", by_path)
 
 
+class TopScannedPathsTests(TestCase):
+    @patch("tpweb.services.activity_dashboard.geolocate_ip")
+    def test_groups_blocked_traffic_by_normalized_path_with_ip_and_request_counts(
+        self, mock_geolocate
+    ):
+        mock_geolocate.return_value = None
+        # 2 distinct IPs both probing /wp-login.php -- a path several
+        # different actors hit is the more interesting scan target than one
+        # actor hitting many paths, so ip_count is tracked separately from
+        # the raw requests count.
+        RequestLog.objects.create(
+            user=None, ip="203.0.113.10", method="GET", path="/wp-login.php", status_code=302
+        )
+        RequestLog.objects.create(
+            user=None, ip="203.0.113.11", method="GET", path="/wp-login.php", status_code=302
+        )
+        RequestLog.objects.create(
+            user=None, ip="203.0.113.10", method="GET", path="/wp-login.php", status_code=302
+        )
+        RequestLog.objects.create(
+            user=None, ip="203.0.113.20", method="GET", path="/protein/123", status_code=302
+        )
+        RequestLog.objects.create(
+            user=None, ip="203.0.113.21", method="GET", path="/protein/456", status_code=302
+        )
+
+        data = build_activity_dashboard_data()
+        by_path = {row["path"]: row for row in data["top_scanned_paths"]}
+
+        self.assertEqual(
+            by_path["/wp-login.php"], {"path": "/wp-login.php", "requests": 3, "ip_count": 2}
+        )
+        # Numeric-id segments collapse the same as top_error_paths/top_pages.
+        self.assertEqual(
+            by_path["/protein/<id>"], {"path": "/protein/<id>", "requests": 2, "ip_count": 2}
+        )
+
+    @patch("tpweb.services.activity_dashboard.geolocate_ip")
+    def test_authenticated_and_exempt_traffic_is_excluded(self, mock_geolocate):
+        mock_geolocate.return_value = None
+        alice = get_user_model().objects.create_user(username="alice-scan", password="x")
+        RequestLog.objects.create(
+            user=alice, ip="10.0.0.1", method="GET", path="/some/page", status_code=200
+        )
+        RequestLog.objects.create(
+            user=None, ip="203.0.113.30", method="GET", path="/accounts/login", status_code=200
+        )
+
+        data = build_activity_dashboard_data()
+        paths = {row["path"] for row in data["top_scanned_paths"]}
+
+        self.assertNotIn("/some/page", paths)
+        self.assertNotIn("/accounts/login", paths)
+
+
 class ActivityDashboardViewTests(TestCase):
     def test_superuser_can_view_dashboard(self):
         owner = get_user_model().objects.create_user(

@@ -398,6 +398,30 @@
         }).join("");
     }
 
+    // Which exact paths the blocked/anonymous traffic actually requested --
+    // the "what are they trying to do" complement to renderBotSummary()'s
+    // by-type rollup, which says how much traffic came from each kind of
+    // bot but nothing about what any of them touched.
+    function renderTopScannedPaths() {
+        var container = document.querySelector("[data-scanned-paths-list]");
+        if (!container) return;
+        var rows = data.top_scanned_paths || [];
+        if (!rows.length) {
+            container.innerHTML = '<p class="activity-accounts-empty">No scanning traffic in this window — nice.</p>';
+            return;
+        }
+        container.innerHTML = rows.map(function (row) {
+            return (
+                '<div class="activity-error-path-row">' +
+                '<span class="activity-error-path-name">' + escapeHtml(row.path) + "</span>" +
+                '<span class="activity-error-path-codes"><span class="activity-error-chip activity-error-chip--neutral">' +
+                countLabel(row.ip_count, "IP", "IPs") + "</span></span>" +
+                '<span class="activity-location-count">' + requestsLabel(row.requests) + "</span>" +
+                "</div>"
+            );
+        }).join("");
+    }
+
     // If RequestLog's own history is shorter than the chart's window (e.g.
     // right after this logging was deployed), the early flat-then-ramp
     // reads as a real traffic spike. Name the actual cause instead.
@@ -600,6 +624,7 @@
     renderLoginAttempts();
     renderBotSummary();
     renderBlockedAttempts();
+    renderTopScannedPaths();
     renderStatusTiles();
     renderTopErrorPaths();
     renderTimeseriesNote();

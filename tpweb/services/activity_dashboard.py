@@ -16,6 +16,7 @@ DEFAULT_ACTIVITY_WINDOW_DAYS = 7
 TOP_PAGES_LIMIT = 10
 TOP_LOCATIONS_LIMIT = 10
 TOP_ERROR_PATHS_LIMIT = 10
+TOP_SCANNED_PATHS_LIMIT = 12
 STATUS_BUCKETS = ("2xx", "3xx", "4xx", "5xx")
 
 # Allauth's login view -- an anonymous POST here is someone (or something)
@@ -236,6 +237,30 @@ def _bot_traffic_summary(window_qs):
     return summary
 
 
+def _top_scanned_paths(window_qs, limit=TOP_SCANNED_PATHS_LIMIT):
+    """Which exact paths the blocked/anonymous traffic is actually
+    requesting -- the "what are they trying to do" complement to
+    _bot_traffic_summary's by-type rollup, which only says how much
+    traffic came from each kind of bot, not what any of them touched.
+
+    A path hit by many distinct IPs is the more interesting scan target
+    (something is systematically probing it) than one IP hammering many
+    different paths, so both counts are kept rather than just requests."""
+    stats_by_path = {}
+    for path, ip in _blocked_queryset(window_qs).values_list("path", "ip"):
+        normalized = _normalize_path(path)
+        entry = stats_by_path.setdefault(normalized, {"ips": set(), "requests": 0})
+        if ip:
+            entry["ips"].add(ip)
+        entry["requests"] += 1
+
+    ranked = sorted(stats_by_path.items(), key=lambda item: item[1]["requests"], reverse=True)
+    return [
+        {"path": path, "requests": stats["requests"], "ip_count": len(stats["ips"])}
+        for path, stats in ranked[:limit]
+    ]
+
+
 # Well-known noise every browser/crawler requests unprompted (favicon,
 # robots.txt) -- a 404 on these isn't a real problem to investigate, and
 # without this filter it can crowd out genuinely broken routes in a
@@ -390,6 +415,7 @@ def build_activity_dashboard_data(days=DEFAULT_ACTIVITY_WINDOW_DAYS):
     login_attempts = _login_attempts_breakdown(window_qs)
     blocked_attempts = _blocked_attempts_breakdown(window_qs)
     bot_traffic_summary = _bot_traffic_summary(window_qs)
+    top_scanned_paths = _top_scanned_paths(window_qs)
     top_error_paths = _top_error_paths(window_qs)
 
     # Lets the chart flag "logging only just started" instead of a real
@@ -411,4 +437,5 @@ def build_activity_dashboard_data(days=DEFAULT_ACTIVITY_WINDOW_DAYS):
         "login_attempts": login_attempts,
         "blocked_attempts": blocked_attempts,
         "bot_traffic_summary": bot_traffic_summary,
+        "top_scanned_paths": top_scanned_paths,
     }

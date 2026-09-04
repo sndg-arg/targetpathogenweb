@@ -612,6 +612,12 @@
     color: var(--tp-color-danger-ink);
 }
 
+.activity-error-chip--neutral {
+    background: var(--tp-color-surface-muted);
+    border-color: var(--tp-color-border-soft);
+    color: var(--tp-color-text-secondary);
+}
+
 @media (max-width: 640px) {
     .activity-error-path-row {
         grid-template-columns: 1fr;
