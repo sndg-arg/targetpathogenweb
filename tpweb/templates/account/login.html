@@ -26,11 +26,11 @@
                 {% csrf_token %}
 
                 <div class="auth-field">
-                    <label for="id_login">{% trans "Username or email" %}</label>
+                    <label for="id_login">{% trans "Email" %}</label>
                     <input type="text"
                            name="login"
                            id="id_login"
-                           placeholder="{% trans 'Username or email' %}"
+                           placeholder="{% trans 'Email' %}"
                            value="{{ form.login.value|default:'' }}"
                            autocomplete="username"
                            autofocus

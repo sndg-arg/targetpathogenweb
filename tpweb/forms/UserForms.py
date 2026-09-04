@@ -8,6 +8,13 @@ from django.utils.translation import gettext_lazy as _
 User = get_user_model()
 
 
+def _capitalize_name_part(value):
+    """Normalize a first/last name to Title Case regardless of how it was
+    typed (e.g. "ana" or "ANA" -> "Ana") -- str.title() also handles
+    hyphenated/multi-word parts reasonably ("maria-jose" -> "Maria-Jose")."""
+    return value.strip().title()
+
+
 class UserAdminChangeForm(admin_forms.UserChangeForm):
     class Meta(admin_forms.UserChangeForm.Meta):
         model = User
@@ -48,7 +55,9 @@ class UserSignupForm(SignupForm):
         self.order_fields(["first_name", "last_name", "email", "password1", "password2"])
 
     def custom_signup(self, request, user):
-        user.name = f"{self.cleaned_data['first_name']} {self.cleaned_data['last_name']}".strip()
+        first = _capitalize_name_part(self.cleaned_data["first_name"])
+        last = _capitalize_name_part(self.cleaned_data["last_name"])
+        user.name = f"{first} {last}".strip()
         user.save(update_fields=["name"])
 
 
@@ -89,8 +98,8 @@ class ProfileForm(forms.ModelForm):
 
     def save(self, commit=True):
         user = super().save(commit=False)
-        first = self.cleaned_data["first_name"].strip()
-        last = self.cleaned_data["last_name"].strip()
+        first = _capitalize_name_part(self.cleaned_data["first_name"])
+        last = _capitalize_name_part(self.cleaned_data["last_name"])
         user.name = f"{first} {last}".strip()
         if commit:
             user.save()

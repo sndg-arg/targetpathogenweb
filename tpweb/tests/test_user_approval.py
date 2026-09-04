@@ -152,6 +152,23 @@ class SignupAdapterTests(TestCase):
         self.assertFalse(user.is_active)
         self.assertEqual(user.name, "Fresh Signup")
 
+    @override_settings(ACCOUNT_ALLOW_REGISTRATION=True)
+    def test_signup_capitalizes_the_name_regardless_of_input_casing(self):
+        with self.captureOnCommitCallbacks(execute=True):
+            self.client.post(
+                reverse("account_signup"),
+                {
+                    "first_name": "ana",
+                    "last_name": "GUTSON",
+                    "email": "casing@example.com",
+                    "password1": "S0me-Strong-Pass!23",
+                    "password2": "S0me-Strong-Pass!23",
+                },
+            )
+
+        user = User.objects.get(email="casing@example.com")
+        self.assertEqual(user.name, "Ana Gutson")
+
 
 class SocialSignupAdapterTests(TestCase):
     def test_social_signup_without_form_still_requires_approval(self):
@@ -317,6 +334,18 @@ class ProfileViewTests(TestCase):
         user.refresh_from_db()
         self.assertEqual(user.name, "New Name")
         self.assertEqual(user.email, "new@example.com")
+
+    def test_profile_update_capitalizes_the_name_regardless_of_input_casing(self):
+        user = User.objects.create_user(username="casing-user", password="x")
+        self.client.force_login(user)
+
+        self.client.post(
+            reverse("tpwebapp:profile"),
+            {"first_name": "ana", "last_name": "GUTSON", "email": "casing2@example.com"},
+        )
+
+        user.refresh_from_db()
+        self.assertEqual(user.name, "Ana Gutson")
 
     def test_cannot_take_another_users_email(self):
         User.objects.create_user(username="taken", password="x", email="taken@example.com")
