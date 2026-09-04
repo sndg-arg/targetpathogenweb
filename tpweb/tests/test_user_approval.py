@@ -42,6 +42,9 @@ class UserApprovalServiceTests(TestCase):
         self.assertEqual(len(mail.outbox), 1)
         self.assertIn(owner.email, mail.outbox[0].to)
         self.assertIn("newbie", mail.outbox[0].body)
+        html_body, mimetype = mail.outbox[0].alternatives[0]
+        self.assertEqual(mimetype, "text/html")
+        self.assertIn("newbie@example.com", html_body)
 
     def test_mark_pending_approval_with_no_superusers_does_not_crash(self):
         new_user = User.objects.create_user(username="newbie2", password="x")
@@ -91,6 +94,24 @@ class UserApprovalServiceTests(TestCase):
             approve_user(new_user)
         self.assertIn("Ana Gutson", mail.outbox[0].body)
         self.assertNotIn("autouser123", mail.outbox[0].body)
+
+    def test_approve_user_email_carries_a_styled_html_alternative(self):
+        user = User.objects.create_user(
+            username="html-approved",
+            password="x",
+            is_active=False,
+            name="Grace Hopper",
+            email="grace@example.com",
+        )
+
+        with self.captureOnCommitCallbacks(execute=True):
+            approve_user(user)
+
+        self.assertEqual(len(mail.outbox[0].alternatives), 1)
+        html_body, mimetype = mail.outbox[0].alternatives[0]
+        self.assertEqual(mimetype, "text/html")
+        self.assertIn("Grace Hopper", html_body)
+        self.assertIn("TARGET PATHOGEN", html_body)
 
     def test_approve_user_grants_can_upload_genome_permission(self):
         user = User.objects.create_user(

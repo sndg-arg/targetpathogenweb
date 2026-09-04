@@ -1,0 +1,14 @@
+{% extends "email/base_email.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Your account has been approved" %}{% endblock %}
+
+{% block eyebrow %}{% trans "Account approved" %}{% endblock %}
+
+{% block heading %}{% blocktrans %}You're all set, {{ display_name }}{% endblocktrans %}{% endblock %}
+
+{% block body %}
+<p style="margin:0;">
+    {% trans "Your Target Pathogen account has been approved. You can now sign in." %}
+</p>
+{% endblock %}

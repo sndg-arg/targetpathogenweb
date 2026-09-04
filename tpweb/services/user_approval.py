@@ -12,6 +12,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from django.core.mail import send_mail
 from django.db import transaction
+from django.template.loader import render_to_string
 
 logger = logging.getLogger(__name__)
 
@@ -106,13 +107,18 @@ def _notify_new_signup(user):
     )
     if not recipients:
         return
+    display_name = user.name or user.get_username()
     try:
         send_mail(
             subject="Target Pathogen: new account pending approval",
             message=(
-                f"{user.name or user.get_username()} ({user.email}) just signed up "
+                f"{display_name} ({user.email}) just signed up "
                 "and is waiting for approval. Review pending accounts in the admin "
                 "panel or the Manage users screen."
+            ),
+            html_message=render_to_string(
+                "email/new_signup_email.html",
+                {"display_name": display_name, "user_email": user.email},
             ),
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=recipients,
@@ -125,12 +131,16 @@ def _notify_new_signup(user):
 def _notify_user_approved(user):
     if not user.email:
         return
+    display_name = user.name or user.get_username()
     try:
         send_mail(
             subject="Target Pathogen: your account has been approved",
             message=(
-                f"Hi {user.name or user.get_username()}, your Target Pathogen account "
+                f"Hi {display_name}, your Target Pathogen account "
                 "has been approved. You can now sign in."
+            ),
+            html_message=render_to_string(
+                "email/user_approved_email.html", {"display_name": display_name}
             ),
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[user.email],

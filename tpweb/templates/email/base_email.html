@@ -1,0 +1,41 @@
+{% load i18n %}<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}Target Pathogen{% endblock %}</title>
+</head>
+{# Inline hex throughout this file (not var(--tp-*) tokens) is a deliberate
+   exception to the site's CSS rule: email clients (Outlook, Gmail app) don't
+   reliably support external stylesheets or CSS custom properties, so every
+   value here is copied from masterpage.html's light-mode :root block. #}
+<body style="margin:0; padding:0; background-color:#eef0f3;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#eef0f3;">
+    <tr>
+        <td align="center" style="padding:32px 16px;">
+            <table role="presentation" width="480" cellpadding="0" cellspacing="0" style="max-width:480px; width:100%; background-color:#ffffff; border-radius:12px;">
+                <tr>
+                    <td style="background-color:#0c2836; padding:22px 28px; border-radius:12px 12px 0 0;">
+                        <span style="color:#ffffff; font-size:17px; font-weight:700; letter-spacing:0.05em; font-family:'Segoe UI', Arial, sans-serif;">{% trans "TARGET PATHOGEN" %}</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:32px 28px 8px;">
+                        <p style="margin:0 0 10px; color:#2288a3; font-size:12px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; font-family:'Segoe UI', Arial, sans-serif;">{% block eyebrow %}{% endblock %}</p>
+                        <h1 style="margin:0 0 16px; color:#132f3d; font-size:21px; line-height:1.3; font-family:'Segoe UI', Arial, sans-serif;">{% block heading %}{% endblock %}</h1>
+                        <div style="color:#2b4f60; font-size:15px; line-height:1.6; font-family:'Segoe UI', Arial, sans-serif;">
+                            {% block body %}{% endblock %}
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding:8px 28px 28px;">
+                        <p style="margin:0; border-top:1px solid #e8eaed; padding-top:16px; color:#7f97a5; font-size:12px; line-height:1.5; font-family:'Segoe UI', Arial, sans-serif;">{% trans "Target Pathogen — genome-level target prioritization platform." %}</p>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>
