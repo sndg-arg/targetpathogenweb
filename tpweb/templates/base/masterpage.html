@@ -2428,6 +2428,7 @@
     {% block footer %}{% endblock %}
 </footer>
 
+{% if perms.tpweb.can_use_agent_chat %}
 <div class="tp-agent-fab-ring" aria-hidden="true"></div>
 <button id="tp-agent-drawer-toggle" class="tp-agent-fab" type="button"
         aria-label="{% trans 'Open assistant' %}" title="{% trans 'Open assistant' %}"
@@ -2536,9 +2537,12 @@
         </button>
     </form>
 </aside>
+{% endif %}
 
 <script src="{% static 'bundle.js' %}?v=20260722-dagre1"></script>
+{% if perms.tpweb.can_use_agent_chat %}
 <script src="{% static 'js/global/agent-drawer.js' %}?v=20260811-fab"></script>
+{% endif %}
 <script src="{% static 'js/global/nav-toggle.js' %}?v=20260902-navtoggle2"></script>
 <script src="{% static 'js/global/smooth-details.js' %}?v=20260804-smoothdetails1"></script>
 

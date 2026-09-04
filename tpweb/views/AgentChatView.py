@@ -1,14 +1,17 @@
 """HTTP endpoint for the in-app AI assistant drawer.
 
+Gated by the tpweb.can_use_agent_chat permission (each LLM call costs real
+money) -- previously open to anonymous visitors too; that changed once
+per-user permissions existed to actually restrict it.
+
 Conversation history is persisted server-side as AgentChatSession rows,
-keyed by Django session key -- not per authenticated user, since Target is
-mostly used without login (shared 'public' workspace account). A browser
-session can hold several conversations over time (split by inactivity or an
-explicit "new conversation" action); see tpweb/services/agent_chat_sessions.py
-for the rules on which conversation a given turn belongs to and how long
-conversations are kept. This means two people sharing the public account
-from different browsers never see each other's messages, but reloading the
-drawer's own page restores the same (still-recent) conversation.
+keyed by Django session key rather than by authenticated user -- a legacy
+of when this was anonymous-accessible; kept as-is since it still works
+fine for logged-in use (a browser session maps to one person in practice).
+A browser session can hold several conversations over time (split by
+inactivity or an explicit "new conversation" action); see
+tpweb/services/agent_chat_sessions.py for the rules on which conversation
+a given turn belongs to and how long conversations are kept.
 
 Genome/protein scope is never taken from the request body directly -- it
 is re-derived server-side from page_path (the frontend's
@@ -28,6 +31,7 @@ import time
 from urllib.parse import parse_qs, urlparse
 
 from django.conf import settings
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.http import JsonResponse
 from django.urls import resolve
 from django.urls.exceptions import Resolver404
@@ -237,7 +241,10 @@ def _save_persisted_history(row, messages):
     row.save(update_fields=["history_json", "updated_at"])
 
 
-class AgentChatView(View):
+class AgentChatView(PermissionRequiredMixin, View):
+    permission_required = "tpweb.can_use_agent_chat"
+    raise_exception = True
+
     def get(self, request, *args, **kwargs):
         """Hydrates the drawer with a conversation's saved history on page
         load -- without this, 'persisted' history would never be visible
@@ -612,7 +619,10 @@ class AgentChatView(View):
         )
 
 
-class AgentChatSessionsView(View):
+class AgentChatSessionsView(PermissionRequiredMixin, View):
+    permission_required = "tpweb.can_use_agent_chat"
+    raise_exception = True
+
     def get(self, request, *args, **kwargs):
         """Lists this browser session's recent conversations for the
         assistant drawer's history picker -- never another session's, since
@@ -621,11 +631,14 @@ class AgentChatSessionsView(View):
         return JsonResponse({"sessions": list_conversations(session_key)})
 
 
-class AgentChatSessionDetailView(View):
+class AgentChatSessionDetailView(PermissionRequiredMixin, View):
     """Rename/delete a single conversation -- always scoped to the
     requesting browser's own session_key (via rename_conversation/
     delete_conversation), so a conversation_id from another session can
     never be renamed or deleted, only 404."""
+
+    permission_required = "tpweb.can_use_agent_chat"
+    raise_exception = True
 
     def patch(self, request, conversation_id, *args, **kwargs):
         session_key = _ensure_session_key(request)

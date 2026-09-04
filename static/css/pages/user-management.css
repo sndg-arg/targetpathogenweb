@@ -50,26 +50,52 @@
     font-size: var(--tp-font-size-lg);
 }
 
-.user-mgmt-table {
-    width: 100%;
+/* Grid-based row list instead of a <table> -- an auto-layout table gave the
+   narrow date/role/actions columns unpredictable leftover width (browser
+   auto-layout sizes columns off cell content, not the explicit widths
+   below), reading as a large empty gap before the actions. A grid with a
+   single 1fr column pins that overflow to the person column instead. */
+.user-mgmt-list {
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: var(--tp-radius-md);
+    overflow: hidden;
 }
 
-.user-mgmt-table th,
-.user-mgmt-table td {
-    white-space: nowrap;
+.user-mgmt-list-row {
+    display: grid;
+    align-items: center;
+    column-gap: 16px;
+    padding: 12px 16px;
 }
 
-/* The "Person" column absorbs all the leftover table width -- without
-   this, the last (actions) column stretches instead, leaving a wide gap
-   of empty space before the buttons on any table with just a few narrow
-   columns. */
-.user-mgmt-table th:first-child,
-.user-mgmt-table td:first-child {
-    width: 100%;
-    white-space: normal;
+.user-mgmt-list--pending .user-mgmt-list-row {
+    grid-template-columns: 1fr 150px auto;
 }
 
-.user-mgmt-person {
+.user-mgmt-list--approved .user-mgmt-list-row {
+    grid-template-columns: 1fr 140px 140px 84px auto;
+}
+
+.user-mgmt-list-row + .user-mgmt-list-row {
+    border-top: 1px solid var(--tp-color-border-soft);
+}
+
+.user-mgmt-list-row--head {
+    background: var(--tp-color-surface-soft);
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-label);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.user-mgmt-list-cell--meta,
+.user-mgmt-list-cell--role {
+    color: var(--tp-color-text-secondary);
+    font-size: 0.9rem;
+}
+
+.user-mgmt-list-cell--person {
     display: flex;
     flex-direction: column;
     gap: 2px;
@@ -85,14 +111,42 @@
     color: var(--tp-color-text-muted);
 }
 
-.user-mgmt-actions {
-    text-align: right;
+.user-mgmt-list-cell--actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
 }
 
-.user-mgmt-actions,
-.user-mgmt-actions form {
+.user-mgmt-list-cell--actions form {
     display: inline-flex;
-    align-items: center;
-    gap: 8px;
     margin: 0;
+}
+
+@media (max-width: 640px) {
+    .user-mgmt-list-row--head {
+        display: none;
+    }
+
+    .user-mgmt-list--pending .user-mgmt-list-row,
+    .user-mgmt-list--approved .user-mgmt-list-row {
+        grid-template-columns: 1fr;
+        row-gap: 6px;
+        padding: 14px 16px;
+    }
+
+    .user-mgmt-list-cell--meta[data-label]::before,
+    .user-mgmt-list-cell--role[data-label]::before {
+        content: attr(data-label) ": ";
+        color: var(--tp-color-text-muted);
+    }
+
+    .user-mgmt-list-cell--role {
+        display: flex;
+        gap: 4px;
+    }
+
+    .user-mgmt-list-cell--actions {
+        justify-content: flex-start;
+    }
 }

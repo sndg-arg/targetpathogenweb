@@ -9,12 +9,38 @@ import logging
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Permission
 from django.core.mail import send_mail
 from django.db import transaction
 
 logger = logging.getLogger(__name__)
 
 User = get_user_model()
+
+# Every approved user gets this one automatically -- it's the baseline
+# capability the whole approval flow exists for. The other named
+# permissions (view Activity, curated import, BLAST, formulas, custom
+# params, agent chat -- see TPUser.Meta.permissions) are NOT granted by
+# default; the owner adds them per user from the Django admin's "user
+# permissions" widget on that user's change form.
+DEFAULT_APPROVED_PERMISSION_CODENAME = "can_upload_genome"
+
+
+def _grant_default_permission(user):
+    try:
+        permission = Permission.objects.get(
+            content_type__app_label="tpweb", codename=DEFAULT_APPROVED_PERMISSION_CODENAME
+        )
+    except Permission.DoesNotExist:
+        # Migration 0074 hasn't run yet on this database -- shouldn't
+        # happen in normal operation, but don't let a missing permission
+        # row block approval itself.
+        logger.warning(
+            "Permission tpweb.%s not found -- was migration 0074 applied?",
+            DEFAULT_APPROVED_PERMISSION_CODENAME,
+        )
+        return
+    user.user_permissions.add(permission)
 
 
 def mark_pending_approval(user):
@@ -38,6 +64,7 @@ def approve_user(user):
     user.is_active = True
     user.is_staff = True
     user.save(update_fields=["is_active", "is_staff"])
+    _grant_default_permission(user)
     if not already_approved:
         transaction.on_commit(lambda: _notify_user_approved(user))
     return user
@@ -55,15 +82,19 @@ def reject_signup(user):
 
 
 def revoke_access(user):
-    """Undo a prior approval -- back to inactive, no staff access. Refuses
-    to touch a superuser (there's no UI path to re-grant superuser, so
-    this could otherwise lock the owner out with no way back in short of
-    a direct DB fix)."""
+    """Undo a prior approval -- back to inactive, no staff access, and
+    every individually-granted permission cleared (a later re-approval
+    starts clean with just the baseline again, rather than silently
+    keeping whatever extra permissions this user had before). Refuses to
+    touch a superuser (there's no UI path to re-grant superuser, so this
+    could otherwise lock the owner out with no way back in short of a
+    direct DB fix)."""
     if user.is_superuser:
         return user
     user.is_active = False
     user.is_staff = False
     user.save(update_fields=["is_active", "is_staff"])
+    user.user_permissions.clear()
     return user
 
 

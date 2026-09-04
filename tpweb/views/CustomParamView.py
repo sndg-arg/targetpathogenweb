@@ -1,4 +1,4 @@
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.shortcuts import render, redirect
 from django.http import Http404
 from django.urls import reverse
@@ -34,6 +34,7 @@ def index_new_param(custom_param):
 
 
 @login_required
+@permission_required("tpweb.can_manage_custom_params", raise_exception=True)
 def upload_form(request, genome):
     assembly_name = resolve_genome_from_slug(request.user, genome)
     if not assembly_name:

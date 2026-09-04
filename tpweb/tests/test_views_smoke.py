@@ -33,12 +33,22 @@ from tpweb.views.ProteinListView import ProteinAdvancedFiltersView
 class LoggedInTestCase(TestCase):
     """Base for smoke tests exercising routes the login-required middleware
     now gates. Anonymous requests get redirected before reaching the view, so
-    every test here needs a real, logged-in user first."""
+    every test here needs a real, logged-in user first.
+
+    smoke_user is granted every tpweb custom permission -- these tests are
+    about rendering/routing, not access control, so it stands in for a fully
+    approved user. Permission *enforcement* is covered by its own dedicated
+    tests elsewhere in this file (e.g. GenomeUploadViewTests, DeleteFormulaViewTests)."""
 
     def setUp(self):
         super().setUp()
+        from django.contrib.auth.models import Permission
+
         self.smoke_user = get_user_model().objects.create_user(
-            username="smoke-test-user", password="test-pass"
+            username="smoke-test-user", password="test-pass", is_staff=True
+        )
+        self.smoke_user.user_permissions.add(
+            *Permission.objects.filter(content_type__app_label="tpweb", codename__startswith="can_")
         )
         self.client.force_login(self.smoke_user)
 
@@ -225,6 +235,15 @@ class FormViewAuthTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
 
+    def test_blast_post_without_permission_shows_error_instead_of_running(self):
+        user = get_user_model().objects.create_user(username="blast-no-perm", password="test-pass")
+        self.client.force_login(user)
+
+        response = self.client.post(reverse("tpwebapp:form"), {"text_input": "ACGT"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "You don&#x27;t have permission to run BLAST searches.")
+
 
 class AnnotationExplorerViewTests(LoggedInTestCase):
     def test_renders_for_genome_with_no_annotations(self):
@@ -312,6 +331,18 @@ class DeleteFormulaViewTests(LoggedInTestCase):
             reverse("tpwebapp:delete_formula", kwargs={"genome": "does-not-exist", "formula_pk": 1})
         )
         self.assertEqual(response.status_code, 404)
+
+    def test_post_without_permission_is_forbidden(self):
+        user = get_user_model().objects.create_user(
+            username="delete-formula-no-perm", password="test-pass"
+        )
+        self.client.force_login(user)
+
+        response = self.client.post(
+            reverse("tpwebapp:delete_formula", kwargs={"genome": "does-not-exist", "formula_pk": 1})
+        )
+
+        self.assertEqual(response.status_code, 403)
 
 
 class LoginRequiredRedirectTests(TestCase):
@@ -416,6 +447,21 @@ class DataFileUploadViewTests(TestCase):
 
         self.assertEqual(response.status_code, 400)
 
+    def test_post_allowed_for_staff_with_explicit_permission(self):
+        from django.contrib.auth.models import Permission
+
+        user = get_user_model().objects.create_user(
+            username="upload-granted", password="test-pass", is_staff=True
+        )
+        user.user_permissions.add(
+            Permission.objects.get(content_type__app_label="tpweb", codename="can_curated_import")
+        )
+        self.client.force_login(user)
+
+        response = self.client.post(reverse("tpwebapp:data_file_upload"))
+
+        self.assertEqual(response.status_code, 400)
+
     def test_post_rejects_disallowed_extension(self):
         user = get_user_model().objects.create_user(
             username="upload-owner-badext", password="test-pass", is_superuser=True
@@ -459,15 +505,33 @@ class CustomParamViewTests(TestCase):
 
 class CustomParamViewRenderTests(TestCase):
     def test_get_renders_form_for_authenticated_user_with_existing_genome(self):
+        from django.contrib.auth.models import Permission
+
         Biodatabase.objects.create(name="TEST")
         user = get_user_model().objects.create_user(
             username="customparam-user", password="test-pass"
+        )
+        user.user_permissions.add(
+            Permission.objects.get(
+                content_type__app_label="tpweb", codename="can_manage_custom_params"
+            )
         )
         self.client.force_login(user)
 
         response = self.client.get(reverse("tpwebapp:customparam", kwargs={"genome": "TEST"}))
 
         self.assertEqual(response.status_code, 200)
+
+    def test_get_without_permission_is_forbidden(self):
+        Biodatabase.objects.create(name="TEST")
+        user = get_user_model().objects.create_user(
+            username="customparam-no-perm", password="test-pass"
+        )
+        self.client.force_login(user)
+
+        response = self.client.get(reverse("tpwebapp:customparam", kwargs={"genome": "TEST"}))
+
+        self.assertEqual(response.status_code, 403)
 
 
 class FormulaFormViewTests(LoggedInTestCase):
@@ -484,6 +548,17 @@ class FormulaFormViewTests(LoggedInTestCase):
 
         self.assertEqual(response.status_code, 200)
 
+    def test_get_without_permission_is_forbidden(self):
+        Biodatabase.objects.create(name="TEST")
+        user = get_user_model().objects.create_user(
+            username="formula-form-no-perm", password="test-pass"
+        )
+        self.client.force_login(user)
+
+        response = self.client.get(reverse("tpwebapp:formula_form", kwargs={"genome": "TEST"}))
+
+        self.assertEqual(response.status_code, 403)
+
 
 class AgentChatViewTests(LoggedInTestCase):
     def test_get_returns_empty_history_for_new_session(self):
@@ -492,6 +567,25 @@ class AgentChatViewTests(LoggedInTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), {"history": [], "conversation_id": None, "title": None})
 
+    def test_get_without_permission_is_forbidden(self):
+        user = get_user_model().objects.create_user(
+            username="agent-chat-no-perm", password="test-pass"
+        )
+        self.client.force_login(user)
+
+        response = self.client.get(reverse("tpwebapp:agent_chat"))
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_anonymous_user_is_denied_not_served(self):
+        # raise_exception=True on PermissionRequiredMixin means even an
+        # anonymous request gets a flat 403, not a login redirect.
+        self.client.logout()
+
+        response = self.client.get(reverse("tpwebapp:agent_chat"))
+
+        self.assertEqual(response.status_code, 403)
+
 
 class AgentChatSessionsViewTests(LoggedInTestCase):
     def test_lists_no_sessions_for_a_brand_new_browser_session(self):
@@ -499,6 +593,16 @@ class AgentChatSessionsViewTests(LoggedInTestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), {"sessions": []})
+
+    def test_get_without_permission_is_forbidden(self):
+        user = get_user_model().objects.create_user(
+            username="agent-sessions-no-perm", password="test-pass"
+        )
+        self.client.force_login(user)
+
+        response = self.client.get(reverse("tpwebapp:agent_chat_sessions"))
+
+        self.assertEqual(response.status_code, 403)
 
     def test_never_lists_another_browser_session_s_conversations(self):
         from django.test import Client
@@ -546,6 +650,21 @@ class AgentChatSessionDetailViewTests(LoggedInTestCase):
         self.assertEqual(response.json(), {"id": row.pk, "title": "New title"})
         row.refresh_from_db()
         self.assertEqual(row.title, "New title")
+
+    def test_patch_without_permission_is_forbidden(self):
+        row = self._create_conversation(self.client, title="Old title")
+        user = get_user_model().objects.create_user(
+            username="agent-detail-no-perm", password="test-pass"
+        )
+        self.client.force_login(user)
+
+        response = self.client.patch(
+            reverse("tpwebapp:agent_chat_session_detail", args=[row.pk]),
+            data=json.dumps({"title": "New title"}),
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 403)
 
     def test_patch_with_blank_title_is_bad_request(self):
         row = self._create_conversation(self.client, title="Keep me")
@@ -785,6 +904,54 @@ class GenomeUploadViewTests(TestCase):
         response = self.client.get(reverse("tpwebapp:genome_upload"))
 
         self.assertEqual(response.status_code, 200)
+
+    def test_use_test_genome_without_permission_is_blocked(self):
+        # Approval no longer implies can_upload_genome by itself once the
+        # permission was made independently revocable.
+        user = get_user_model().objects.create_user(
+            username="upload-no-perm", password="test-pass", is_staff=True
+        )
+        self.client.force_login(user)
+
+        response = self.client.post(
+            reverse("tpwebapp:genome_upload"), {"action": "use_test_genome"}, follow=True
+        )
+
+        self.assertEqual(response.status_code, 200)
+        messages = list(response.context["messages"])
+        self.assertTrue(any("permission" in str(m) for m in messages))
+
+    def test_curated_import_action_without_permission_is_blocked(self):
+        user = get_user_model().objects.create_user(
+            username="upload-no-curated-perm", password="test-pass", is_staff=True
+        )
+        self.client.force_login(user)
+
+        response = self.client.post(
+            reverse("tpwebapp:genome_upload"),
+            {"action": "validate_external_import"},
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        messages = list(response.context["messages"])
+        self.assertTrue(any("curated external imports" in str(m) for m in messages))
+
+    def test_clear_history_does_not_require_upload_permission(self):
+        # Clearing history is not "uploading" -- it must stay reachable
+        # even for a user without can_upload_genome.
+        user = get_user_model().objects.create_user(
+            username="upload-clear-only", password="test-pass", is_staff=True
+        )
+        self.client.force_login(user)
+
+        response = self.client.post(
+            reverse("tpwebapp:genome_upload"), {"action": "clear_history"}, follow=True
+        )
+
+        self.assertEqual(response.status_code, 200)
+        messages = list(response.context["messages"])
+        self.assertFalse(any("permission" in str(m) for m in messages))
 
 
 class ProteinListViewTests(LoggedInTestCase):

@@ -60,6 +60,29 @@ class TPUser(AbstractUser):
     first_name = None  # type: ignore
     last_name = None  # type: ignore
 
+    class Meta:
+        verbose_name = _("user")
+        verbose_name_plural = _("users")
+        # Named capabilities an approved (is_staff) collaborator can be
+        # individually granted, on top of the baseline "can upload a
+        # genome" everyone approved gets automatically -- toggled per user
+        # via the "user permissions" widget already on the Django admin's
+        # user change form (tpweb/admin/UserAdmin.py), no extra UI needed.
+        # A superuser passes every permission check automatically
+        # (Django's ModelBackend.has_perm()), so the owner is unaffected.
+        permissions = [
+            ("can_upload_genome", "Can upload a new genome"),
+            ("can_view_activity", "Can view the Activity dashboard"),
+            (
+                "can_curated_import",
+                "Can run curated external imports and upload large files",
+            ),
+            ("can_manage_formulas", "Can create, edit, and delete scoring formulas"),
+            ("can_run_blast", "Can run BLAST searches"),
+            ("can_manage_custom_params", "Can create and edit custom evidence parameters"),
+            ("can_use_agent_chat", "Can use the AI assistant"),
+        ]
+
     def get_absolute_url(self):
         """Get url for user's detail view.
 

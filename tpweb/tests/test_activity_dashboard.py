@@ -509,3 +509,18 @@ class ActivityDashboardViewTests(TestCase):
         response = self.client.get(reverse("tpwebapp:activity_dashboard"))
 
         self.assertEqual(response.status_code, 302)
+
+    def test_user_with_explicit_permission_can_view_dashboard(self):
+        from django.contrib.auth.models import Permission
+
+        granted_user = get_user_model().objects.create_user(
+            username="dash-granted", password="x", is_staff=True
+        )
+        granted_user.user_permissions.add(
+            Permission.objects.get(content_type__app_label="tpweb", codename="can_view_activity")
+        )
+        self.client.force_login(granted_user)
+
+        response = self.client.get(reverse("tpwebapp:activity_dashboard"))
+
+        self.assertEqual(response.status_code, 200)

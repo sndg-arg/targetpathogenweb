@@ -92,6 +92,20 @@ class UserApprovalServiceTests(TestCase):
         self.assertIn("Ana Gutson", mail.outbox[0].body)
         self.assertNotIn("autouser123", mail.outbox[0].body)
 
+    def test_approve_user_grants_can_upload_genome_permission(self):
+        user = User.objects.create_user(
+            username="pending2", password="x", is_active=False, email="pending2@example.com"
+        )
+
+        with self.captureOnCommitCallbacks(execute=True):
+            approve_user(user)
+
+        user.refresh_from_db()
+        self.assertTrue(user.has_perm("tpweb.can_upload_genome"))
+        # Approval is a baseline grant only -- it must not hand out any of
+        # the other, individually-toggled permissions.
+        self.assertFalse(user.has_perm("tpweb.can_view_activity"))
+
     def test_approve_user_is_idempotent_no_duplicate_email(self):
         user = User.objects.create_user(
             username="already", password="x", is_active=True, is_staff=True, email="a@example.com"
@@ -112,6 +126,21 @@ class UserApprovalServiceTests(TestCase):
         user.refresh_from_db()
         self.assertFalse(user.is_active)
         self.assertFalse(user.is_staff)
+
+    def test_revoke_access_clears_granted_permissions(self):
+        from django.contrib.auth.models import Permission
+
+        user = User.objects.create_user(
+            username="revoke-with-perms", password="x", is_active=True, is_staff=True
+        )
+        user.user_permissions.add(
+            *Permission.objects.filter(content_type__app_label="tpweb", codename__startswith="can_")
+        )
+
+        revoke_access(user)
+
+        user.refresh_from_db()
+        self.assertEqual(user.user_permissions.count(), 0)
 
     def test_revoke_access_refuses_a_superuser(self):
         owner = User.objects.create_user(

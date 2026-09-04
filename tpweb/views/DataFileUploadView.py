@@ -18,8 +18,8 @@ def _uploads_dir():
 
 class DataFileUploadView(View):
     def post(self, request, *args, **kwargs):
-        if not request.user.is_superuser:
-            return JsonResponse({"error": "Owner access required."}, status=403)
+        if not request.user.has_perm("tpweb.can_curated_import"):
+            return JsonResponse({"error": "Permission required."}, status=403)
 
         uploaded = request.FILES.get("data_file")
         if not uploaded:
