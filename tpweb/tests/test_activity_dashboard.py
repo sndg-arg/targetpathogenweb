@@ -524,3 +524,36 @@ class ActivityDashboardViewTests(TestCase):
         response = self.client.get(reverse("tpwebapp:activity_dashboard"))
 
         self.assertEqual(response.status_code, 200)
+
+    def test_defaults_to_a_7_day_window(self):
+        owner = get_user_model().objects.create_user(
+            username="dash-period-default", password="x", is_staff=True, is_superuser=True
+        )
+        self.client.force_login(owner)
+
+        response = self.client.get(reverse("tpwebapp:activity_dashboard"))
+
+        self.assertEqual(response.context["window_days"], 7)
+        self.assertEqual(response.context["activity_dashboard_data"]["kpis"]["window_days"], 7)
+        self.assertContains(response, "Requests, last 7 days")
+
+    def test_days_query_param_switches_the_window(self):
+        owner = get_user_model().objects.create_user(
+            username="dash-period-30", password="x", is_staff=True, is_superuser=True
+        )
+        self.client.force_login(owner)
+
+        response = self.client.get(reverse("tpwebapp:activity_dashboard"), {"days": "30"})
+
+        self.assertEqual(response.context["window_days"], 30)
+        self.assertContains(response, "Requests, last 30 days")
+
+    def test_invalid_days_query_param_falls_back_to_the_default(self):
+        owner = get_user_model().objects.create_user(
+            username="dash-period-invalid", password="x", is_staff=True, is_superuser=True
+        )
+        self.client.force_login(owner)
+
+        response = self.client.get(reverse("tpwebapp:activity_dashboard"), {"days": "9999"})
+
+        self.assertEqual(response.context["window_days"], 7)

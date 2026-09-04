@@ -83,6 +83,44 @@
     max-width: 720px;
 }
 
+.activity-period-selector {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 3px;
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 999px;
+    background: var(--tp-color-surface-soft);
+}
+
+.activity-period-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 14px;
+    border-radius: 999px;
+    color: var(--tp-color-text-secondary);
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition:
+        background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.activity-period-btn:hover,
+.activity-period-btn:focus-visible {
+    color: var(--tp-color-text-primary);
+    background: var(--tp-color-surface);
+}
+
+.activity-period-btn.is-active,
+.activity-period-btn.is-active:hover,
+.activity-period-btn.is-active:focus-visible {
+    background: var(--activity-accent-deep);
+    color: var(--tp-color-on-accent);
+}
+
 /* ── KPI row — small equal-weight tiles, keeps individual card framing ── */
 .activity-kpi-row {
     padding: 0 18px;

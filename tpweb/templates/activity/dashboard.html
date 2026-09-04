@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/activity-dashboard.css' %}?v=20260902-mobile-wide-row-fix">
+    <link rel="stylesheet" href="{% static 'css/pages/activity-dashboard.css' %}?v=20260904-period-selector">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -24,7 +24,14 @@
             <div class="tp-view-head-copy">
                 <p class="activity-eyebrow">{% trans "Staff only" %}</p>
                 <h1 class="activity-hero-title">{% trans "Activity" %}</h1>
-                <p class="activity-hero-description">{% trans "Who's accessing the platform, from where, and what they're looking at over the last 30 days." %}</p>
+                <p class="activity-hero-description">{% blocktrans %}Who's accessing the platform, from where, and what they're looking at over the last {{ window_days }} days.{% endblocktrans %}</p>
+            </div>
+            <div class="tp-view-head-actions">
+                <div class="activity-period-selector" role="group" aria-label="{% trans 'Time period' %}">
+                    {% for choice in period_choices %}
+                    <a href="?days={{ choice.days }}" class="activity-period-btn{% if choice.days == window_days %} is-active{% endif %}">{{ choice.label }}</a>
+                    {% endfor %}
+                </div>
             </div>
         </div>
     </section>
@@ -36,25 +43,25 @@
             <p class="activity-kpi-delta" data-kpi-delta="requests_today_delta_pct" data-delta-period="{% trans 'vs yesterday' %}"></p>
         </div>
         <div class="activity-kpi-card">
-            <p class="activity-kpi-label">{% trans "Unique users" %} <span class="activity-kpi-period">{% trans "30d" %}</span></p>
+            <p class="activity-kpi-label">{% trans "Unique users" %} <span class="activity-kpi-period">{{ window_days }}d</span></p>
             <p class="activity-kpi-value" data-kpi="unique_users">&mdash;</p>
-            <p class="activity-kpi-delta" data-kpi-delta="unique_users_delta_pct" data-delta-period="{% trans 'vs prior 30d' %}"></p>
+            <p class="activity-kpi-delta" data-kpi-delta="unique_users_delta_pct" data-delta-period="{% blocktrans %}vs prior {{ window_days }}d{% endblocktrans %}"></p>
         </div>
         <div class="activity-kpi-card">
-            <p class="activity-kpi-label">{% trans "Unique IPs" %} <span class="activity-kpi-period">{% trans "30d" %}</span></p>
+            <p class="activity-kpi-label">{% trans "Unique IPs" %} <span class="activity-kpi-period">{{ window_days }}d</span></p>
             <p class="activity-kpi-value" data-kpi="unique_ips">&mdash;</p>
-            <p class="activity-kpi-delta" data-kpi-delta="unique_ips_delta_pct" data-delta-period="{% trans 'vs prior 30d' %}"></p>
+            <p class="activity-kpi-delta" data-kpi-delta="unique_ips_delta_pct" data-delta-period="{% blocktrans %}vs prior {{ window_days }}d{% endblocktrans %}"></p>
             <p class="activity-kpi-meta" data-kpi-meta="unique_ips_authenticated"></p>
         </div>
         <div class="activity-kpi-card activity-kpi-card--blocked">
-            <p class="activity-kpi-label">{% trans "Blocked by login wall" %} <span class="activity-kpi-period">{% trans "30d" %}</span></p>
+            <p class="activity-kpi-label">{% trans "Blocked by login wall" %} <span class="activity-kpi-period">{{ window_days }}d</span></p>
             <p class="activity-kpi-value" data-kpi="blocked_requests_pct" data-kpi-suffix="%">&mdash;</p>
             <p class="activity-kpi-meta" data-kpi-meta="blocked_requests"></p>
         </div>
         <div class="activity-kpi-card activity-kpi-card--errors" data-kpi-card="errors">
-            <p class="activity-kpi-label">{% trans "Errors" %} <span class="activity-kpi-period">{% trans "30d" %}</span></p>
+            <p class="activity-kpi-label">{% trans "Errors" %} <span class="activity-kpi-period">{{ window_days }}d</span></p>
             <p class="activity-kpi-value" data-kpi="errors">&mdash;</p>
-            <p class="activity-kpi-delta" data-kpi-delta="errors_delta_pct" data-delta-period="{% trans 'vs prior 30d' %}" data-invert-tone="1"></p>
+            <p class="activity-kpi-delta" data-kpi-delta="errors_delta_pct" data-delta-period="{% blocktrans %}vs prior {{ window_days }}d{% endblocktrans %}" data-invert-tone="1"></p>
         </div>
     </section>
 
@@ -62,7 +69,7 @@
         <div class="section-head tp-ui-panel-head">
             <div>
                 <p class="tp-ui-field-label">{% trans "Over time" %}</p>
-                <h2 class="activity-panel-title">{% trans "Requests, last 30 days" %}</h2>
+                <h2 class="activity-panel-title">{% blocktrans %}Requests, last {{ window_days }} days{% endblocktrans %}</h2>
             </div>
             <div class="activity-chart-legend" aria-hidden="true">
                 <span class="activity-chart-legend-item"><i class="activity-chart-legend-swatch activity-chart-legend-swatch--authenticated"></i>{% trans "Authenticated" %}</span>
@@ -70,7 +77,7 @@
             </div>
         </div>
         <div class="activity-chart-wrap">
-            <canvas id="activity-timeseries-chart" role="img" aria-label="{% trans 'Requests per day over the last 30 days, authenticated vs anonymous' %}"></canvas>
+            <canvas id="activity-timeseries-chart" role="img" aria-label="{% blocktrans %}Requests per day over the last {{ window_days }} days, authenticated vs anonymous{% endblocktrans %}"></canvas>
         </div>
         <p class="activity-chart-note" data-timeseries-note></p>
     </section>

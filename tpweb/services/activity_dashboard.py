@@ -12,7 +12,7 @@ from tpweb.models.RequestLog import RequestLog
 from tpweb.services.ip_geolocation import geolocate_ip
 from tpweb.services.workspace import PUBLIC_WORKSPACE_USERNAME
 
-ACTIVITY_WINDOW_DAYS = 30
+DEFAULT_ACTIVITY_WINDOW_DAYS = 7
 TOP_PAGES_LIMIT = 10
 TOP_LOCATIONS_LIMIT = 10
 TOP_ERROR_PATHS_LIMIT = 10
@@ -266,7 +266,7 @@ def _top_error_paths(window_qs, limit=TOP_ERROR_PATHS_LIMIT):
     ]
 
 
-def build_activity_dashboard_data(days=ACTIVITY_WINDOW_DAYS):
+def build_activity_dashboard_data(days=DEFAULT_ACTIVITY_WINDOW_DAYS):
     now = timezone.now()
     # localdate(), not now.date(): a plain .date() on the UTC-aware `now`
     # gives the UTC calendar date, while the __date lookups below convert to
