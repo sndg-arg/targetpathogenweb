@@ -59,7 +59,7 @@
    *entire* wide page, which reads as the exact same large gap moved one
    level up (name/email on the far left, everything else pushed far right). */
 .user-mgmt-list {
-    max-width: 820px;
+    max-width: 900px;
     border: 1px solid var(--tp-color-border-soft);
     border-radius: var(--tp-radius-md);
     overflow: hidden;
@@ -69,15 +69,23 @@
     display: grid;
     align-items: center;
     column-gap: 16px;
-    padding: 12px 16px;
+    padding: 14px 18px;
+    background: var(--tp-color-surface);
 }
 
+/* The actions column is a fixed width, not auto -- each row is its own,
+   independent CSS grid (a <div> per row, not shared grid tracks), so an
+   auto-sized column sizes to THAT row's own button count. A row with 2
+   buttons (Revoke access) then leaves less room for its 1fr person column
+   than a row with 1 button (Edit only) or the header (no buttons at all),
+   so every row's later columns landed at a different x-position -- reads
+   exactly like a broken table. A fixed width removes that per-row variance. */
 .user-mgmt-list--pending .user-mgmt-list-row {
-    grid-template-columns: minmax(0, 1fr) 140px auto;
+    grid-template-columns: minmax(0, 1fr) 140px 190px;
 }
 
 .user-mgmt-list--approved .user-mgmt-list-row {
-    grid-template-columns: minmax(0, 1fr) 128px 128px 72px auto;
+    grid-template-columns: minmax(0, 1fr) 128px 128px 72px 210px;
 }
 
 .user-mgmt-list-row + .user-mgmt-list-row {
