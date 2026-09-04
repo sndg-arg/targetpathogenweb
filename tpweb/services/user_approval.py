@@ -43,6 +43,19 @@ def approve_user(user):
     return user
 
 
+def revoke_access(user):
+    """Undo a prior approval -- back to inactive, no staff access. Refuses
+    to touch a superuser (there's no UI path to re-grant superuser, so
+    this could otherwise lock the owner out with no way back in short of
+    a direct DB fix)."""
+    if user.is_superuser:
+        return user
+    user.is_active = False
+    user.is_staff = False
+    user.save(update_fields=["is_active", "is_staff"])
+    return user
+
+
 def _notify_new_signup(user):
     recipients = list(
         User.objects.filter(is_superuser=True, is_active=True)

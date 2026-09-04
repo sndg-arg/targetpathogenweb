@@ -1,0 +1,40 @@
+{% extends '../base/masterpage.html' %}
+{% load i18n %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block head %}
+    <link rel="stylesheet" href="{% static 'css/pages/auth.css' %}?v=20260904-approval-note">
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="tp-breadcrumb-bar">
+    <div class="tp-breadcrumb-bar-inner">
+        {% url 'tpwebapp:index' as index_url %}
+        {% trans "My profile" as crumb_profile %}
+        {% include "components/navigation/breadcrumbs.html" with crumb_1_label="Home" crumb_1_url=index_url crumb_2_label=crumb_profile %}
+    </div>
+</div>
+{% endblock %}
+
+{% block body %}
+    <div class="auth-page">
+        <div class="auth-card">
+            <div class="auth-header">
+                <h1>{% trans "My profile" %}</h1>
+                <p>{% trans "Update your name and email." %}</p>
+            </div>
+
+            <form class="auth-form" method="post" action="{% url 'tpwebapp:profile' %}">
+                {% csrf_token %}
+                {{ form|crispy }}
+                <div class="auth-submit">
+                    <button class="btn tp-btn tp-btn--primary tp-btn-with-icon" type="submit">
+                        <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/check.html" %}</span>
+                        <span>{% trans "Save changes" %}</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}

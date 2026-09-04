@@ -5,7 +5,7 @@ from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views import View
 
-from tpweb.services.user_approval import approve_user
+from tpweb.services.user_approval import approve_user, revoke_access
 from tpweb.services.workspace import PUBLIC_WORKSPACE_USERNAME
 
 User = get_user_model()
@@ -21,10 +21,17 @@ class UserManagementView(LoginRequiredMixin, UserPassesTestMixin, View):
         return render(request, self.template_name, self._context())
 
     def post(self, request, *args, **kwargs):
+        action = request.POST.get("action") or "approve"
         user_id = request.POST.get("user_id")
         user = User.objects.filter(pk=user_id).exclude(username=PUBLIC_WORKSPACE_USERNAME).first()
         if user is None:
             messages.warning(request, "That account no longer exists.")
+        elif action == "revoke":
+            if user.is_superuser:
+                messages.error(request, "Can't revoke a superuser's access here.")
+            else:
+                revoke_access(user)
+                messages.success(request, f"Revoked access for {user.get_username()}.")
         else:
             approve_user(user)
             messages.success(request, f"Approved {user.get_username()}.")

@@ -2284,7 +2284,6 @@
         </div>
         <div class="tp-topbar-desktop-utility">
             {% if user.is_authenticated %}
-                {% if user.is_superuser %}
                 <div class="dropdown tp-topbar-desktop-account-wrap">
                     <button class="tp-topbar-desktop-account tp-topbar-desktop-account--menu" type="button" data-toggle="dropdown" aria-expanded="false">
                         <span class="tp-topbar-desktop-account-icon" aria-hidden="true">{% include "components/icons/user.html" %}</span>
@@ -2292,6 +2291,11 @@
                         <span class="tp-topbar-desktop-account-caret" aria-hidden="true">{% include "components/icons/chevron_down.html" %}</span>
                     </button>
                     <div class="dropdown-menu dropdown-menu-right tp-topbar-desktop-account-menu">
+                        <a class="dropdown-item tp-topbar-desktop-account-item {% if request.resolver_match.url_name == 'profile' %}active{% endif %}" href="{% url 'tpwebapp:profile' %}">
+                            <span class="tp-topbar-desktop-account-item-icon" aria-hidden="true">{% include "components/icons/user.html" %}</span>
+                            {% trans "My profile" %}
+                        </a>
+                        {% if user.is_superuser %}
                         <a class="dropdown-item tp-topbar-desktop-account-item {% if request.resolver_match.url_name == 'activity_dashboard' %}active{% endif %}" href="{% url 'tpwebapp:activity_dashboard' %}">
                             <span class="tp-topbar-desktop-account-item-icon" aria-hidden="true">{% include "components/icons/eye.html" %}</span>
                             {% trans "Activity" %}
@@ -2304,6 +2308,7 @@
                             <span class="tp-topbar-desktop-account-item-icon" aria-hidden="true">{% include "components/icons/settings.html" %}</span>
                             {% trans "Admin panel" %}
                         </a>
+                        {% endif %}
                         <div class="tp-topbar-desktop-account-divider"></div>
                         <form method="post" action="{% url 'account_logout' %}">
                             {% csrf_token %}
@@ -2314,18 +2319,6 @@
                         </form>
                     </div>
                 </div>
-                {% else %}
-                <div class="tp-topbar-desktop-account">
-                    <span class="tp-topbar-desktop-account-icon" aria-hidden="true">{% include "components/icons/user.html" %}</span>
-                    <span class="tp-topbar-desktop-user">{{ user.get_username }}</span>
-                    <form method="post" action="{% url 'account_logout' %}" class="tp-topbar-desktop-login-form">
-                        {% csrf_token %}
-                        <button class="tp-topbar-desktop-logout-btn" type="submit" aria-label="{% trans 'Logout' %}" title="{% trans 'Logout' %}">
-                            <span class="tp-topbar-desktop-logout-icon" aria-hidden="true">{% include "components/icons/log_out.html" %}</span>
-                        </button>
-                    </form>
-                </div>
-                {% endif %}
             {% else %}
                 <a class="tp-topbar-desktop-login" href="{% url 'account_login' %}">
                     <span class="tp-topbar-desktop-login-icon" aria-hidden="true">{% include "components/icons/log_in.html" %}</span>
@@ -2392,12 +2385,13 @@
                             {{ user.get_username }}
                         </a>
                         <div id="user_dropdown_menu" class="dropdown-menu">
+                            <a class="dropdown-item" href="{% url 'tpwebapp:profile' %}">{% trans "My profile" %}</a>
                             {% if user.is_superuser %}
                                 <a class="dropdown-item" href="{% url 'tpwebapp:activity_dashboard' %}">{% trans "Activity" %}</a>
                                 <a class="dropdown-item" href="{% url 'tpwebapp:user_management' %}">{% trans "Manage users" %}</a>
                                 <a class="dropdown-item" href="{% url 'admin:index' %}">{% trans "Admin panel" %}</a>
-                                <div class="dropdown-divider"></div>
                             {% endif %}
+                            <div class="dropdown-divider"></div>
                             <form method="post" action="{% url 'account_logout' %}">
                                 {% csrf_token %}
                                 <button class="dropdown-item" type="submit">{% trans "Logout" %}</button>

@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/user-management.css' %}?v=20260903-init1">
+    <link rel="stylesheet" href="{% static 'css/pages/user-management.css' %}?v=20260904-actions-col">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -92,6 +92,7 @@
                             <th>{% trans "Signed up" %}</th>
                             <th>{% trans "Last login" %}</th>
                             <th>{% trans "Role" %}</th>
+                            <th></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -106,6 +107,17 @@
                                     <span class="tp-chip tp-chip--sm">{% trans "Owner" %}</span>
                                 {% else %}
                                     <span class="tp-chip tp-chip--sm">{% trans "Staff" %}</span>
+                                {% endif %}
+                            </td>
+                            <td class="user-mgmt-actions">
+                                <a class="btn tp-btn tp-btn--neutral tp-btn--sm" href="{% url 'admin:tpweb_tpuser_change' approved_user.pk %}">{% trans "Edit" %}</a>
+                                {% if not approved_user.is_superuser %}
+                                <form method="post" action="{% url 'tpwebapp:user_management' %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="user_id" value="{{ approved_user.pk }}">
+                                    <input type="hidden" name="action" value="revoke">
+                                    <button type="submit" class="btn tp-btn tp-btn--clear tp-btn--sm">{% trans "Revoke access" %}</button>
+                                </form>
                                 {% endif %}
                             </td>
                         </tr>

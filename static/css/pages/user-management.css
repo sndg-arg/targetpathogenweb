@@ -59,7 +59,10 @@
     text-align: right;
 }
 
+.user-mgmt-actions,
 .user-mgmt-actions form {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
     margin: 0;
 }

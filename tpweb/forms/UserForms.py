@@ -55,3 +55,19 @@ class UserSocialSignupForm(SocialSignupForm):
     Default fields will be added automatically.
     See UserSignupForm otherwise.
     """
+
+
+class ProfileForm(forms.ModelForm):
+    """Self-service "my profile" form -- any logged-in user editing their
+    own name/email (tpweb/views/ProfileView.py)."""
+
+    class Meta:
+        model = User
+        fields = ["name", "email"]
+        labels = {"name": _("Full name")}
+
+    def clean_email(self):
+        email = self.cleaned_data["email"]
+        if User.objects.filter(email__iexact=email).exclude(pk=self.instance.pk).exists():
+            raise forms.ValidationError(_("This email is already in use."))
+        return email

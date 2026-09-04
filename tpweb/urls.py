@@ -2,6 +2,7 @@ from django.urls import path
 
 from .views.ActivityDashboardView import ActivityDashboardView
 from .views.UserManagementView import UserManagementView
+from .views.ProfileView import ProfileView
 from .views.AssemblyView import AssemblyView
 from .views.DownloadView import DownloadView
 from .views.GenomesView import GenomesView
@@ -169,6 +170,7 @@ urlpatterns = [
     path("health/pipeline", view=HealthPipelineView.as_view(), name="health_pipeline"),
     path("activity", view=ActivityDashboardView.as_view(), name="activity_dashboard"),
     path("users", view=UserManagementView.as_view(), name="user_management"),
+    path("profile", view=ProfileView.as_view(), name="profile"),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 # if 1:
 #    urlpatterns = urlpatterns + debug_toolbar_urls()

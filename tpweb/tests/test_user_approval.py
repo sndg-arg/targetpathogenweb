@@ -11,7 +11,7 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from tpweb.adapters.AccountAdapters import SocialAccountAdapter
-from tpweb.services.user_approval import approve_user, mark_pending_approval
+from tpweb.services.user_approval import approve_user, mark_pending_approval, revoke_access
 
 User = get_user_model()
 
@@ -71,6 +71,28 @@ class UserApprovalServiceTests(TestCase):
 
         self.assertEqual(len(mail.outbox), 0)
 
+    def test_revoke_access_deactivates_and_unstaffs_a_regular_user(self):
+        user = User.objects.create_user(
+            username="onceapproved", password="x", is_active=True, is_staff=True
+        )
+
+        revoke_access(user)
+
+        user.refresh_from_db()
+        self.assertFalse(user.is_active)
+        self.assertFalse(user.is_staff)
+
+    def test_revoke_access_refuses_a_superuser(self):
+        owner = User.objects.create_user(
+            username="theowner", password="x", is_active=True, is_staff=True, is_superuser=True
+        )
+
+        revoke_access(owner)
+
+        owner.refresh_from_db()
+        self.assertTrue(owner.is_active)
+        self.assertTrue(owner.is_staff)
+
 
 class InactiveUserLoginTests(TestCase):
     def test_inactive_user_login_attempt_shows_awaiting_approval(self):
@@ -88,19 +110,22 @@ class InactiveUserLoginTests(TestCase):
 class SignupAdapterTests(TestCase):
     @override_settings(ACCOUNT_ALLOW_REGISTRATION=True)
     def test_signup_creates_inactive_user(self):
+        # No "username" field -- ACCOUNT_USERNAME_REQUIRED=False, allauth
+        # generates one from the email instead. "name" is required.
         with self.captureOnCommitCallbacks(execute=True):
             self.client.post(
                 reverse("account_signup"),
                 {
-                    "username": "freshsignup",
+                    "name": "Fresh Signup",
                     "email": "fresh@example.com",
                     "password1": "S0me-Strong-Pass!23",
                     "password2": "S0me-Strong-Pass!23",
                 },
             )
 
-        user = User.objects.get(username="freshsignup")
+        user = User.objects.get(email="fresh@example.com")
         self.assertFalse(user.is_active)
+        self.assertEqual(user.name, "Fresh Signup")
 
 
 class SocialSignupAdapterTests(TestCase):
@@ -170,6 +195,84 @@ class UserManagementViewTests(TestCase):
         pending.refresh_from_db()
         self.assertTrue(pending.is_active)
         self.assertTrue(pending.is_staff)
+
+    def test_post_revoke_deactivates_approved_user(self):
+        owner = User.objects.create_user(
+            username="mgmt-owner3", password="x", is_staff=True, is_superuser=True
+        )
+        approved = User.objects.create_user(
+            username="mgmt-approved", password="x", is_active=True, is_staff=True
+        )
+        self.client.force_login(owner)
+
+        response = self.client.post(
+            reverse("tpwebapp:user_management"),
+            {"user_id": approved.pk, "action": "revoke"},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        approved.refresh_from_db()
+        self.assertFalse(approved.is_active)
+        self.assertFalse(approved.is_staff)
+
+    def test_post_revoke_refuses_a_superuser(self):
+        owner = User.objects.create_user(
+            username="mgmt-owner4", password="x", is_staff=True, is_superuser=True
+        )
+        other_owner = User.objects.create_user(
+            username="mgmt-other-owner",
+            password="x",
+            is_active=True,
+            is_staff=True,
+            is_superuser=True,
+        )
+        self.client.force_login(owner)
+
+        self.client.post(
+            reverse("tpwebapp:user_management"),
+            {"user_id": other_owner.pk, "action": "revoke"},
+        )
+
+        other_owner.refresh_from_db()
+        self.assertTrue(other_owner.is_active)
+
+
+class ProfileViewTests(TestCase):
+    def test_anonymous_user_is_redirected_to_login(self):
+        response = self.client.get(reverse("tpwebapp:profile"))
+
+        self.assertEqual(response.status_code, 302)
+
+    def test_logged_in_user_can_view_and_update_profile(self):
+        user = User.objects.create_user(
+            username="profile-user", password="x", name="Old Name", email="old@example.com"
+        )
+        self.client.force_login(user)
+
+        response = self.client.get(reverse("tpwebapp:profile"))
+        self.assertEqual(response.status_code, 200)
+
+        response = self.client.post(
+            reverse("tpwebapp:profile"), {"name": "New Name", "email": "new@example.com"}
+        )
+
+        self.assertEqual(response.status_code, 302)
+        user.refresh_from_db()
+        self.assertEqual(user.name, "New Name")
+        self.assertEqual(user.email, "new@example.com")
+
+    def test_cannot_take_another_users_email(self):
+        User.objects.create_user(username="taken", password="x", email="taken@example.com")
+        user = User.objects.create_user(username="wants-it", password="x", email="mine@example.com")
+        self.client.force_login(user)
+
+        response = self.client.post(
+            reverse("tpwebapp:profile"), {"name": "Name", "email": "taken@example.com"}
+        )
+
+        self.assertEqual(response.status_code, 200)
+        user.refresh_from_db()
+        self.assertEqual(user.email, "mine@example.com")
 
 
 class UserAdminApproveActionTests(TestCase):
