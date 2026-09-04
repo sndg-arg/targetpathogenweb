@@ -43,6 +43,17 @@ def approve_user(user):
     return user
 
 
+def reject_signup(user):
+    """Delete a pending signup outright -- distinct from revoke_access(),
+    which deactivates an *already-approved* user without deleting their
+    history. Only ever applies to a still-pending (is_active=False)
+    account; refuses to touch anyone already approved."""
+    if user.is_active:
+        return False
+    user.delete()
+    return True
+
+
 def revoke_access(user):
     """Undo a prior approval -- back to inactive, no staff access. Refuses
     to touch a superuser (there's no UI path to re-grant superuser, so

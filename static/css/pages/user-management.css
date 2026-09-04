@@ -50,9 +50,39 @@
     font-size: var(--tp-font-size-lg);
 }
 
+.user-mgmt-table {
+    width: 100%;
+}
+
 .user-mgmt-table th,
 .user-mgmt-table td {
     white-space: nowrap;
+}
+
+/* The "Person" column absorbs all the leftover table width -- without
+   this, the last (actions) column stretches instead, leaving a wide gap
+   of empty space before the buttons on any table with just a few narrow
+   columns. */
+.user-mgmt-table th:first-child,
+.user-mgmt-table td:first-child {
+    width: 100%;
+    white-space: normal;
+}
+
+.user-mgmt-person {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.user-mgmt-person-name {
+    font-weight: 600;
+    color: var(--tp-color-text-primary);
+}
+
+.user-mgmt-person-email {
+    font-size: 0.85rem;
+    color: var(--tp-color-text-muted);
 }
 
 .user-mgmt-actions {

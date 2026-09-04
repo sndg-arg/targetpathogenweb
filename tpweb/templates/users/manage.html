@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/user-management.css' %}?v=20260904-actions-col">
+    <link rel="stylesheet" href="{% static 'css/pages/user-management.css' %}?v=20260904-person-cell">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -40,11 +40,10 @@
         {% if pending_users %}
         <div class="tp-table-shell">
             <div class="tp-table-shell__scroll">
-                <table class="tp-table tp-table--plain tp-table--premium user-mgmt-table">
+                <table class="tp-table tp-table--plain tp-table--premium user-mgmt-table" data-table-export="off">
                     <thead>
                         <tr>
-                            <th>{% trans "Username" %}</th>
-                            <th>{% trans "Email" %}</th>
+                            <th>{% trans "Signup" %}</th>
                             <th>{% trans "Signed up" %}</th>
                             <th></th>
                         </tr>
@@ -52,13 +51,24 @@
                     <tbody>
                         {% for pending_user in pending_users %}
                         <tr>
-                            <td>{{ pending_user.get_username }}</td>
-                            <td>{{ pending_user.email|default:"—" }}</td>
+                            <td>
+                                <div class="user-mgmt-person">
+                                    <span class="user-mgmt-person-name">{{ pending_user.name|default:pending_user.get_username }}</span>
+                                    <span class="user-mgmt-person-email">{{ pending_user.email|default:"—" }}</span>
+                                </div>
+                            </td>
                             <td>{{ pending_user.date_joined|date:"Y-m-d H:i" }}</td>
                             <td class="user-mgmt-actions">
+                                <form method="post" action="{% url 'tpwebapp:user_management' %}" onsubmit="return confirm('{% trans "Reject and permanently delete this signup?" %}');">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="user_id" value="{{ pending_user.pk }}">
+                                    <input type="hidden" name="action" value="reject">
+                                    <button type="submit" class="btn tp-btn tp-btn--clear tp-btn--sm">{% trans "Reject" %}</button>
+                                </form>
                                 <form method="post" action="{% url 'tpwebapp:user_management' %}">
                                     {% csrf_token %}
                                     <input type="hidden" name="user_id" value="{{ pending_user.pk }}">
+                                    <input type="hidden" name="action" value="approve">
                                     <button type="submit" class="btn tp-btn tp-btn--primary tp-btn--sm">{% trans "Approve" %}</button>
                                 </form>
                             </td>
@@ -84,11 +94,10 @@
         {% if approved_users %}
         <div class="tp-table-shell">
             <div class="tp-table-shell__scroll">
-                <table class="tp-table tp-table--plain tp-table--premium user-mgmt-table">
+                <table class="tp-table tp-table--plain tp-table--premium user-mgmt-table" data-table-export="off">
                     <thead>
                         <tr>
-                            <th>{% trans "Username" %}</th>
-                            <th>{% trans "Email" %}</th>
+                            <th>{% trans "Person" %}</th>
                             <th>{% trans "Signed up" %}</th>
                             <th>{% trans "Last login" %}</th>
                             <th>{% trans "Role" %}</th>
@@ -98,8 +107,12 @@
                     <tbody>
                         {% for approved_user in approved_users %}
                         <tr>
-                            <td>{{ approved_user.get_username }}</td>
-                            <td>{{ approved_user.email|default:"—" }}</td>
+                            <td>
+                                <div class="user-mgmt-person">
+                                    <span class="user-mgmt-person-name">{{ approved_user.name|default:approved_user.get_username }}</span>
+                                    <span class="user-mgmt-person-email">{{ approved_user.email|default:"—" }}</span>
+                                </div>
+                            </td>
                             <td>{{ approved_user.date_joined|date:"Y-m-d H:i" }}</td>
                             <td>{{ approved_user.last_login|date:"Y-m-d H:i"|default:"—" }}</td>
                             <td>
@@ -112,7 +125,7 @@
                             <td class="user-mgmt-actions">
                                 <a class="btn tp-btn tp-btn--neutral tp-btn--sm" href="{% url 'admin:tpweb_tpuser_change' approved_user.pk %}">{% trans "Edit" %}</a>
                                 {% if not approved_user.is_superuser %}
-                                <form method="post" action="{% url 'tpwebapp:user_management' %}">
+                                <form method="post" action="{% url 'tpwebapp:user_management' %}" onsubmit="return confirm('{% trans "Revoke this user's access?" %}');">
                                     {% csrf_token %}
                                     <input type="hidden" name="user_id" value="{{ approved_user.pk }}">
                                     <input type="hidden" name="action" value="revoke">

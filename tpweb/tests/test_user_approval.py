@@ -11,7 +11,12 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from tpweb.adapters.AccountAdapters import SocialAccountAdapter
-from tpweb.services.user_approval import approve_user, mark_pending_approval, revoke_access
+from tpweb.services.user_approval import (
+    approve_user,
+    mark_pending_approval,
+    reject_signup,
+    revoke_access,
+)
 
 User = get_user_model()
 
@@ -93,6 +98,24 @@ class UserApprovalServiceTests(TestCase):
         self.assertTrue(owner.is_active)
         self.assertTrue(owner.is_staff)
 
+    def test_reject_signup_deletes_a_pending_account(self):
+        pending = User.objects.create_user(username="unwanted", password="x", is_active=False)
+
+        result = reject_signup(pending)
+
+        self.assertTrue(result)
+        self.assertFalse(User.objects.filter(pk=pending.pk).exists())
+
+    def test_reject_signup_refuses_an_already_approved_account(self):
+        approved = User.objects.create_user(
+            username="already-in", password="x", is_active=True, is_staff=True
+        )
+
+        result = reject_signup(approved)
+
+        self.assertFalse(result)
+        self.assertTrue(User.objects.filter(pk=approved.pk).exists())
+
 
 class InactiveUserLoginTests(TestCase):
     def test_inactive_user_login_attempt_shows_awaiting_approval(self):
@@ -111,12 +134,14 @@ class SignupAdapterTests(TestCase):
     @override_settings(ACCOUNT_ALLOW_REGISTRATION=True)
     def test_signup_creates_inactive_user(self):
         # No "username" field -- ACCOUNT_USERNAME_REQUIRED=False, allauth
-        # generates one from the email instead. "name" is required.
+        # generates one from the email instead. first_name/last_name are
+        # required and get joined into TPUser.name.
         with self.captureOnCommitCallbacks(execute=True):
             self.client.post(
                 reverse("account_signup"),
                 {
-                    "name": "Fresh Signup",
+                    "first_name": "Fresh",
+                    "last_name": "Signup",
                     "email": "fresh@example.com",
                     "password1": "S0me-Strong-Pass!23",
                     "password2": "S0me-Strong-Pass!23",
@@ -196,6 +221,37 @@ class UserManagementViewTests(TestCase):
         self.assertTrue(pending.is_active)
         self.assertTrue(pending.is_staff)
 
+    def test_post_reject_deletes_pending_user(self):
+        owner = User.objects.create_user(
+            username="mgmt-owner5", password="x", is_staff=True, is_superuser=True
+        )
+        pending = User.objects.create_user(username="mgmt-pending5", password="x", is_active=False)
+        self.client.force_login(owner)
+
+        response = self.client.post(
+            reverse("tpwebapp:user_management"),
+            {"user_id": pending.pk, "action": "reject"},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(User.objects.filter(pk=pending.pk).exists())
+
+    def test_post_reject_refuses_an_approved_user(self):
+        owner = User.objects.create_user(
+            username="mgmt-owner6", password="x", is_staff=True, is_superuser=True
+        )
+        approved = User.objects.create_user(
+            username="mgmt-approved2", password="x", is_active=True, is_staff=True
+        )
+        self.client.force_login(owner)
+
+        self.client.post(
+            reverse("tpwebapp:user_management"),
+            {"user_id": approved.pk, "action": "reject"},
+        )
+
+        self.assertTrue(User.objects.filter(pk=approved.pk).exists())
+
     def test_post_revoke_deactivates_approved_user(self):
         owner = User.objects.create_user(
             username="mgmt-owner3", password="x", is_staff=True, is_superuser=True
@@ -253,7 +309,8 @@ class ProfileViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
 
         response = self.client.post(
-            reverse("tpwebapp:profile"), {"name": "New Name", "email": "new@example.com"}
+            reverse("tpwebapp:profile"),
+            {"first_name": "New", "last_name": "Name", "email": "new@example.com"},
         )
 
         self.assertEqual(response.status_code, 302)
@@ -267,7 +324,8 @@ class ProfileViewTests(TestCase):
         self.client.force_login(user)
 
         response = self.client.post(
-            reverse("tpwebapp:profile"), {"name": "Name", "email": "taken@example.com"}
+            reverse("tpwebapp:profile"),
+            {"first_name": "First", "last_name": "Last", "email": "taken@example.com"},
         )
 
         self.assertEqual(response.status_code, 200)
