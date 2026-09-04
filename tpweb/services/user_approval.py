@@ -19,30 +19,32 @@ logger = logging.getLogger(__name__)
 
 User = get_user_model()
 
-# Every approved user gets this one automatically -- it's the baseline
-# capability the whole approval flow exists for. The other named
-# permissions (view Activity, curated import, BLAST, formulas, custom
-# params, agent chat -- see TPUser.Meta.permissions) are NOT granted by
-# default; the owner adds them per user from the Django admin's "user
-# permissions" widget on that user's change form.
-DEFAULT_APPROVED_PERMISSION_CODENAME = "can_upload_genome"
+# Every approved user gets these automatically -- upload is the baseline
+# capability the whole approval flow exists for, and the AI assistant is
+# opened up to anyone once they're a real, logged-in, approved account
+# (it was only ever gated at all to keep it away from anonymous visitors).
+# The other named permissions (view Activity, curated import, BLAST,
+# formulas, custom params -- see TPUser.Meta.permissions) are NOT granted
+# by default; the owner adds them per user from the /users "Edit" modal
+# (tpweb/services/user_permissions.py) or the Django admin.
+DEFAULT_APPROVED_PERMISSION_CODENAMES = ["can_upload_genome", "can_use_agent_chat"]
 
 
-def _grant_default_permission(user):
-    try:
-        permission = Permission.objects.get(
-            content_type__app_label="tpweb", codename=DEFAULT_APPROVED_PERMISSION_CODENAME
+def _grant_default_permissions(user):
+    permissions = list(
+        Permission.objects.filter(
+            content_type__app_label="tpweb", codename__in=DEFAULT_APPROVED_PERMISSION_CODENAMES
         )
-    except Permission.DoesNotExist:
+    )
+    found_codenames = {p.codename for p in permissions}
+    missing = set(DEFAULT_APPROVED_PERMISSION_CODENAMES) - found_codenames
+    if missing:
         # Migration 0074 hasn't run yet on this database -- shouldn't
-        # happen in normal operation, but don't let a missing permission
-        # row block approval itself.
-        logger.warning(
-            "Permission tpweb.%s not found -- was migration 0074 applied?",
-            DEFAULT_APPROVED_PERMISSION_CODENAME,
-        )
-        return
-    user.user_permissions.add(permission)
+        # happen in normal operation, but don't let missing permission
+        # rows block approval itself.
+        logger.warning("Permission(s) tpweb.%s not found -- was migration 0074 applied?", missing)
+    if permissions:
+        user.user_permissions.add(*permissions)
 
 
 def mark_pending_approval(user):
@@ -66,7 +68,7 @@ def approve_user(user):
     user.is_active = True
     user.is_staff = True
     user.save(update_fields=["is_active", "is_staff"])
-    _grant_default_permission(user)
+    _grant_default_permissions(user)
     if not already_approved:
         transaction.on_commit(lambda: _notify_user_approved(user))
     return user

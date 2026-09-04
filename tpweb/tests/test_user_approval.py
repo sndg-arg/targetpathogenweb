@@ -141,7 +141,7 @@ class UserApprovalServiceTests(TestCase):
 
         self.assertNotIn("http", mail.outbox[0].body)
 
-    def test_approve_user_grants_can_upload_genome_permission(self):
+    def test_approve_user_grants_the_baseline_permissions(self):
         user = User.objects.create_user(
             username="pending2", password="x", is_active=False, email="pending2@example.com"
         )
@@ -151,9 +151,14 @@ class UserApprovalServiceTests(TestCase):
 
         user.refresh_from_db()
         self.assertTrue(user.has_perm("tpweb.can_upload_genome"))
-        # Approval is a baseline grant only -- it must not hand out any of
-        # the other, individually-toggled permissions.
+        self.assertTrue(user.has_perm("tpweb.can_use_agent_chat"))
+        # Everything else stays individually-toggled, not part of the
+        # automatic baseline grant.
         self.assertFalse(user.has_perm("tpweb.can_view_activity"))
+        self.assertFalse(user.has_perm("tpweb.can_curated_import"))
+        self.assertFalse(user.has_perm("tpweb.can_manage_formulas"))
+        self.assertFalse(user.has_perm("tpweb.can_run_blast"))
+        self.assertFalse(user.has_perm("tpweb.can_manage_custom_params"))
 
     def test_approve_user_is_idempotent_no_duplicate_email(self):
         user = User.objects.create_user(
