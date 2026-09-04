@@ -310,16 +310,14 @@ EMAIL_USE_TLS = env.bool("DJANGO_EMAIL_USE_TLS", default=True)
 EMAIL_USE_SSL = env.bool("DJANGO_EMAIL_USE_SSL", default=False)
 DEFAULT_FROM_EMAIL = env("DJANGO_DEFAULT_FROM_EMAIL", default="no-reply@targetpathogen.local")
 
-# Scheme + host the site is actually reachable at (e.g.
-# "https://targetpathogen.example.org"), no trailing slash -- used only to
-# build a clickable login link in the approval-notification emails
+# Scheme + host the site is actually reachable at, no trailing slash -- used
+# only to build a clickable login link in the approval-notification emails
 # (tpweb/services/user_approval.py). There's no reliable way to derive this
 # from ALLOWED_HOSTS (no scheme, and it's sometimes a list of several
 # hostnames) or django.contrib.sites (its Site row defaults to
 # "example.com" and nothing in this repo ever changes that), so it's its
-# own explicit setting; left blank, the email just omits the link instead
-# of guessing wrong.
-SITE_URL = env("DJANGO_SITE_URL", default="")
+# own explicit setting, defaulting to this deployment's real cluster URL.
+SITE_URL = env("DJANGO_SITE_URL", default="https://target2.infra.cluster.qb.fcen.uba.ar")
 
 
 if DEBUG:
