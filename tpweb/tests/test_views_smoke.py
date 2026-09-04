@@ -197,7 +197,19 @@ class StaticContentViewTests(LoggedInTestCase):
         response = self.client.get(reverse("tpwebapp:robots_txt"))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response["Content-Type"], "text/plain")
-        self.assertIn("User-agent: GPTBot", response.content.decode())
+        self.assertIn("User-agent: *", response.content.decode())
+        self.assertIn("Disallow: /", response.content.decode())
+
+    def test_robots_txt_is_reachable_without_login(self):
+        # The whole site sits behind LoginRequiredMiddleware -- robots.txt
+        # is the one exception, so a crawler can actually read "stay out"
+        # instead of getting redirected to the login page and never
+        # learning the site is fully private.
+        self.client.logout()
+
+        response = self.client.get(reverse("tpwebapp:robots_txt"))
+
+        self.assertEqual(response.status_code, 200)
 
     def test_molecule_renders(self):
         response = self.client.get(reverse("tpwebapp:molecules"))

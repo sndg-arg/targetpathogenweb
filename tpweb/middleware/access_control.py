@@ -7,6 +7,11 @@ EXEMPT_PATH_PREFIXES = (
     "/health/live",
     "/health/ready",
     "/health/pipeline",
+    # A crawler requesting this politely (as GPTBot etc. does before
+    # touching anything else) should get the real "stay out" directive, not
+    # a login redirect it can't follow -- gating it just meant bots kept
+    # probing the rest of the site instead of backing off after reading it.
+    "/robots.txt",
 )
 
 
