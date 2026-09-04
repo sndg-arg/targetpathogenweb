@@ -149,7 +149,7 @@
                 : '<span class="tp-chip tp-chip--sm tp-chip--homolog">user</span>';
             return (
                 '<div class="activity-account-row">' +
-                '<span class="activity-account-name">' + account.username + "</span>" +
+                '<span class="activity-account-name">' + escapeHtml(account.name) + "</span>" +
                 badge +
                 '<span class="activity-account-lastlogin">' + lastLogin + "</span>" +
                 "</div>"

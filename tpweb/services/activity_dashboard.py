@@ -401,6 +401,7 @@ def build_activity_dashboard_data(days=DEFAULT_ACTIVITY_WINDOW_DAYS):
     accounts = [
         {
             "username": u.username,
+            "name": u.name or u.username,
             "is_superuser": u.is_superuser,
             "is_staff": u.is_staff,
             "last_login": u.last_login.isoformat() if u.last_login else None,

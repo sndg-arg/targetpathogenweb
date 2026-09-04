@@ -212,6 +212,18 @@ class BuildActivityDashboardDataTests(TestCase):
         self.assertEqual(by_username["dave"]["is_staff"], True)
         self.assertEqual(by_username["dave"]["is_superuser"], True)
 
+    def test_accounts_reports_the_real_name_falling_back_to_username(self):
+        get_user_model().objects.create_user(
+            username="named-user", password="x", name="Sol Varela Gamarnik"
+        )
+
+        data = build_activity_dashboard_data()
+        by_username = {a["username"]: a for a in data["accounts"]}
+
+        self.assertEqual(by_username["named-user"]["name"], "Sol Varela Gamarnik")
+        # alice (setUp) never had a name set.
+        self.assertEqual(by_username["alice"]["name"], "alice")
+
 
 class LocationBreakdownTests(TestCase):
     def setUp(self):

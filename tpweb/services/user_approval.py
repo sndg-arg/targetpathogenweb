@@ -19,15 +19,23 @@ logger = logging.getLogger(__name__)
 
 User = get_user_model()
 
-# Every approved user gets these automatically -- upload is the baseline
-# capability the whole approval flow exists for, and the AI assistant is
-# opened up to anyone once they're a real, logged-in, approved account
-# (it was only ever gated at all to keep it away from anonymous visitors).
-# The other named permissions (view Activity, curated import, BLAST,
-# formulas, custom params -- see TPUser.Meta.permissions) are NOT granted
-# by default; the owner adds them per user from the /users "Edit" modal
-# (tpweb/services/user_permissions.py) or the Django admin.
-DEFAULT_APPROVED_PERMISSION_CODENAMES = ["can_upload_genome", "can_use_agent_chat"]
+# Every approved user gets these automatically -- everything except the two
+# sensitive ones (view Activity, which exposes visitor IP/security
+# telemetry, and curated import, which writes raw files into a shared
+# server directory) is now a baseline grant rather than something the owner
+# has to toggle on per person. Those two (see TPUser.Meta.permissions) stay
+# individually granted from the /users "Edit" modal (tpweb/services/
+# user_permissions.py) or the Django admin.
+#
+# Only affects approvals from here on -- changing this list doesn't touch
+# any already-approved user's existing permissions (see _grant_default_permissions).
+DEFAULT_APPROVED_PERMISSION_CODENAMES = [
+    "can_upload_genome",
+    "can_manage_formulas",
+    "can_run_blast",
+    "can_manage_custom_params",
+    "can_use_agent_chat",
+]
 
 
 def _grant_default_permissions(user):

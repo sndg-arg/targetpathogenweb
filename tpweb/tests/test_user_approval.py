@@ -151,14 +151,14 @@ class UserApprovalServiceTests(TestCase):
 
         user.refresh_from_db()
         self.assertTrue(user.has_perm("tpweb.can_upload_genome"))
+        self.assertTrue(user.has_perm("tpweb.can_manage_formulas"))
+        self.assertTrue(user.has_perm("tpweb.can_run_blast"))
+        self.assertTrue(user.has_perm("tpweb.can_manage_custom_params"))
         self.assertTrue(user.has_perm("tpweb.can_use_agent_chat"))
-        # Everything else stays individually-toggled, not part of the
+        # The two sensitive ones stay individually-toggled, not part of the
         # automatic baseline grant.
         self.assertFalse(user.has_perm("tpweb.can_view_activity"))
         self.assertFalse(user.has_perm("tpweb.can_curated_import"))
-        self.assertFalse(user.has_perm("tpweb.can_manage_formulas"))
-        self.assertFalse(user.has_perm("tpweb.can_run_blast"))
-        self.assertFalse(user.has_perm("tpweb.can_manage_custom_params"))
 
     def test_approve_user_is_idempotent_no_duplicate_email(self):
         user = User.objects.create_user(
