@@ -96,6 +96,16 @@
                             {% if form.gbk_file.errors %}<p class="genome-upload-field-error">{{ form.gbk_file.errors|striptags }}</p>{% endif %}
                         </div>
 
+                        {% if can_make_public %}
+                        <div class="genome-upload-field tp-ui-field">
+                            <label class="tp-ui-field-label genome-upload-checkbox-label">
+                                {{ form.make_public }}
+                                <span>{{ form.make_public.label }}</span>
+                            </label>
+                            {% if form.make_public.help_text %}<p class="genome-upload-field-help">{{ form.make_public.help_text }}</p>{% endif %}
+                        </div>
+                        {% endif %}
+
                         <div class="tp-ui-actions genome-upload-actions">
                             <button type="submit" class="btn tp-btn tp-btn--primary tp-btn-with-icon">
                                 <span class="tp-btn-icon" aria-hidden="true">

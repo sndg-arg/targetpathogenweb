@@ -965,6 +965,50 @@ class GenomeUploadViewTests(TestCase):
         messages = list(response.context["messages"])
         self.assertFalse(any("permission" in str(m) for m in messages))
 
+    def test_superuser_can_upload_directly_into_the_public_workspace(self):
+        from tpweb.models import GenomeUpload
+        from tpweb.services.workspace import PUBLIC_WORKSPACE_USERNAME
+
+        owner = get_user_model().objects.create_user(
+            username="upload-owner-public", password="test-pass", is_superuser=True
+        )
+        self.client.force_login(owner)
+        gbk = SimpleUploadedFile("Example.gbk.gz", b"fake", content_type="application/gzip")
+
+        response = self.client.post(
+            reverse("tpwebapp:genome_upload"),
+            {"accession": "GCA_TESTPUB01", "gram": "n", "gbk_file": gbk, "make_public": "on"},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        upload = GenomeUpload.objects.get(display_accession="GCA_TESTPUB01")
+        self.assertEqual(upload.internal_accession, f"{PUBLIC_WORKSPACE_USERNAME}__GCA_TESTPUB01")
+        self.assertEqual(upload.owner.username, PUBLIC_WORKSPACE_USERNAME)
+
+    def test_non_superuser_make_public_checkbox_is_ignored(self):
+        from django.contrib.auth.models import Permission
+
+        from tpweb.models import GenomeUpload
+
+        user = get_user_model().objects.create_user(
+            username="upload-non-super", password="test-pass"
+        )
+        user.user_permissions.add(
+            Permission.objects.get(content_type__app_label="tpweb", codename="can_upload_genome")
+        )
+        self.client.force_login(user)
+        gbk = SimpleUploadedFile("Example2.gbk.gz", b"fake", content_type="application/gzip")
+
+        response = self.client.post(
+            reverse("tpwebapp:genome_upload"),
+            {"accession": "GCA_TESTPUB02", "gram": "n", "gbk_file": gbk, "make_public": "on"},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        upload = GenomeUpload.objects.get(display_accession="GCA_TESTPUB02")
+        self.assertEqual(upload.owner_id, user.pk)
+        self.assertNotIn("public__", upload.internal_accession)
+
 
 class ProteinListViewTests(LoggedInTestCase):
     def test_renders_for_genome_with_no_proteins(self):

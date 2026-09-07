@@ -23,6 +23,7 @@ from tpweb.services.genome_upload_status import (
     reconcile_genome_uploads,
 )
 from tpweb.services.genome_workspace import (
+    WORKSPACE_GENOME_DELIMITER,
     build_workspace_genome_name,
     display_genome_name,
     genome_url_slug,
@@ -38,7 +39,11 @@ from tpweb.services.external_import import (
 from tpweb.services.pipeline_status import get_pipeline_status
 from tpweb.services.pipeline_status import sanitize_pipeline_status_for_user
 from tpweb.services.slurm_messages import classify_slurm_resource_message
-from tpweb.services.workspace import resolve_workspace_user
+from tpweb.services.workspace import (
+    PUBLIC_WORKSPACE_USERNAME,
+    get_public_workspace_user,
+    resolve_workspace_user,
+)
 
 
 class GenomeUploadView(LoginRequiredMixin, View):
@@ -184,6 +189,7 @@ class GenomeUploadView(LoginRequiredMixin, View):
             "has_active_jobs": owner_has_active_uploads(workspace_user),
             "running_genome_label": display_genome_name(running_genome),
             "can_upload_genome": request.user.has_perm("tpweb.can_upload_genome"),
+            "can_make_public": request.user.is_superuser,
         }
 
     def get(self, request, *args, **kwargs):
@@ -408,7 +414,20 @@ class GenomeUploadView(LoginRequiredMixin, View):
             return render(request, self.template_name, self._build_context(request, form=form))
 
         display_accession = form.cleaned_data["accession"]
-        internal_accession = build_workspace_genome_name(display_accession, request.user)
+
+        # Only a superuser's own checked box counts -- anyone else POSTing
+        # make_public=on gets silently ignored, not an error, since it's a
+        # convenience toggle, not something worth failing the whole upload
+        # over.
+        upload_as_public = bool(form.cleaned_data.get("make_public")) and request.user.is_superuser
+        if upload_as_public:
+            upload_owner = get_public_workspace_user()
+            internal_accession = (
+                f"{PUBLIC_WORKSPACE_USERNAME}{WORKSPACE_GENOME_DELIMITER}{display_accession}"
+            )
+        else:
+            upload_owner = workspace_user
+            internal_accession = build_workspace_genome_name(display_accession, request.user)
 
         if Biodatabase.objects.filter(name=internal_accession).exists():
             messages.info(
@@ -421,7 +440,7 @@ class GenomeUploadView(LoginRequiredMixin, View):
             if (
                 GenomeUpload.objects.select_for_update()
                 .filter(
-                    owner=workspace_user,
+                    owner=upload_owner,
                     internal_accession=internal_accession,
                     status__in=[GenomeUpload.STATUS_SUBMITTED, GenomeUpload.STATUS_RUNNING],
                 )
@@ -434,7 +453,7 @@ class GenomeUploadView(LoginRequiredMixin, View):
                 return redirect(upload_url)
 
             GenomeUpload.objects.create(
-                owner=workspace_user,
+                owner=upload_owner,
                 display_accession=display_accession,
                 internal_accession=internal_accession,
                 gram=form.cleaned_data["gram"],
