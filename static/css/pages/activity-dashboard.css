@@ -9,10 +9,15 @@
     color: var(--tp-ink);
     margin: 0;
     --activity-accent-deep: var(--tp-color-brand-900);
+    /* Numbered section index, dossier/report style -- pure CSS counter, so
+       it tracks whichever panels actually render without the template
+       having to hardcode ordinals. Hero and the KPI tiles aren't
+       .activity-panel, so they're deliberately excluded from the count. */
+    counter-reset: activity-section;
 }
 
 .activity-page > * ~ * {
-    margin-top: var(--tp-space-7);
+    margin-top: var(--tp-space-8);
 }
 
 /* Soft cascade on load -- every top-level section is animated, so nth-child
@@ -56,23 +61,47 @@
 
 /* ── Hero ── */
 .activity-hero {
-    padding: 20px 18px;
+    padding: 24px 18px 20px;
 }
 
+/* Editorial "kicker" rule above the eyebrow -- the letterhead detail that
+   reads as a prepared report rather than a live app screen. */
 .activity-eyebrow {
-    margin: 6px 0 10px;
+    position: relative;
+    margin: 14px 0 10px;
+    padding-top: 12px;
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-label);
     font-weight: 500;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
+}
+
+.activity-eyebrow::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 28px;
+    height: 2px;
+    background: var(--activity-accent-deep);
 }
 
 .activity-hero-title {
     margin: 0;
-    font-size: var(--tp-heading-lg);
-    line-height: 1.1;
+    font-size: var(--tp-heading-xl);
+    line-height: 1.04;
+    letter-spacing: -0.02em;
     color: var(--activity-accent-deep);
+}
+
+.activity-hero-meta {
+    margin: 8px 2px 0 0;
+    text-align: right;
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-size-xs);
+    font-style: italic;
+    font-variant-numeric: tabular-nums;
 }
 
 .activity-hero-description {
@@ -138,12 +167,21 @@
     border-radius: 12px;
     background: var(--tp-color-surface);
     box-shadow: var(--tp-shadow-xs);
-    transition: box-shadow 0.15s ease, border-color 0.15s ease;
+    transition:
+        box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
 }
 
 .activity-kpi-card:hover {
     box-shadow: var(--tp-shadow-sm);
     border-color: var(--tp-color-border-strong);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .activity-kpi-card:hover {
+        transform: translateY(-2px);
+    }
 }
 
 .activity-kpi-label {
@@ -223,6 +261,20 @@
     letter-spacing: -0.02em;
 }
 
+/* Dossier-style section ordinal ("01 —", "02 —", ...) -- counted per
+   .activity-panel via .activity-page's counter-reset above. */
+.activity-panel .activity-panel-title {
+    counter-increment: activity-section;
+}
+
+.activity-panel .activity-panel-title::before {
+    content: counter(activity-section, decimal-leading-zero) " — ";
+    color: var(--tp-color-text-muted);
+    font-weight: 500;
+    letter-spacing: normal;
+    font-variant-numeric: tabular-nums;
+}
+
 /* ── Accounts list ── */
 .activity-accounts {
     margin-top: 14px;
@@ -284,9 +336,11 @@
     align-items: center;
     gap: 6px;
     padding: 4px 0;
-    color: var(--tp-color-link);
-    font-size: var(--tp-font-size-sm);
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-label);
     font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
     transition: color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
 }
 
@@ -296,7 +350,7 @@
 
 .activity-details-summary:hover,
 .activity-details-summary:focus-visible {
-    color: var(--tp-color-link-hover);
+    color: var(--activity-accent-deep);
 }
 
 .activity-details-chevron {
@@ -566,6 +620,11 @@
     .activity-location-count,
     .activity-location-action {
         text-align: left;
+    }
+
+    .activity-hero-meta {
+        text-align: left;
+        margin-left: 0;
     }
 
     .activity-user-agent {

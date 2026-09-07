@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/activity-dashboard.css' %}?v=20260907-blocked-ips">
+    <link rel="stylesheet" href="{% static 'css/pages/activity-dashboard.css' %}?v=20260907-editorial-polish">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -28,10 +28,14 @@
                 <p class="activity-hero-description">{% blocktrans %}Who's accessing the platform, from where, and what they're looking at over the last {{ window_days }} days.{% endblocktrans %}</p>
             </div>
             <div class="tp-view-head-actions">
-                <div class="activity-period-selector" role="group" aria-label="{% trans 'Time period' %}">
-                    {% for choice in period_choices %}
-                    <a href="?days={{ choice.days }}" class="activity-period-btn{% if choice.days == window_days %} is-active{% endif %}">{{ choice.label }}</a>
-                    {% endfor %}
+                <div>
+                    <div class="activity-period-selector" role="group" aria-label="{% trans 'Time period' %}">
+                        {% for choice in period_choices %}
+                        <a href="?days={{ choice.days }}" class="activity-period-btn{% if choice.days == window_days %} is-active{% endif %}">{{ choice.label }}</a>
+                        {% endfor %}
+                    </div>
+                    {% now "N j, Y H:i" as activity_report_generated_at %}
+                    <p class="activity-hero-meta">{% blocktrans %}Report generated {{ activity_report_generated_at }}{% endblocktrans %}</p>
                 </div>
             </div>
         </div>
