@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/activity-dashboard.css' %}?v=20260907-panel-pairs">
+    <link rel="stylesheet" href="{% static 'css/pages/activity-dashboard.css' %}?v=20260907-more-charts">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -183,6 +183,9 @@
             </div>
         </div>
         <p class="activity-chart-note">{% trans "AI-crawler and generic-bot IPs are blocked automatically the moment they touch a real page — no action needed here." %}</p>
+        <div class="activity-chart-wrap activity-chart-wrap--compact">
+            <canvas id="activity-bot-chart" role="img" aria-label="{% trans 'Blocked requests by bot type' %}"></canvas>
+        </div>
         <div class="activity-summary-chips" data-bot-summary></div>
         <details class="activity-details js-smooth-details">
             <summary class="activity-details-summary">
@@ -270,6 +273,9 @@
                     <h2 class="activity-panel-title">{% trans "Status codes" %}</h2>
                 </div>
             </div>
+            <div class="activity-chart-wrap activity-chart-wrap--compact">
+                <canvas id="activity-status-chart" role="img" aria-label="{% trans 'Response status code breakdown' %}"></canvas>
+            </div>
             <div class="activity-status-tiles" data-status-tiles>
                 <p class="activity-accounts-empty">{% trans "Loading..." %}</p>
             </div>
@@ -302,5 +308,5 @@
 
 {{ activity_dashboard_data|json_script:"activity-dashboard-data" }}
 <script src="{% static 'js/vendor/chart.umd.js' %}?v=20260902-context-pass"></script>
-<script src="{% static 'js/pages/activity-dashboard.js' %}?v=20260907-restrained-accent"></script>
+<script src="{% static 'js/pages/activity-dashboard.js' %}?v=20260907-more-charts"></script>
 {% endblock %}

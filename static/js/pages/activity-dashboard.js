@@ -63,6 +63,14 @@
             // rather than a second saturated hue keeps the chart reading as
             // "one signal, one baseline" instead of two competing colors.
             neutral: cssVar("--tp-color-border-strong"),
+            // Same four hues the status tiles already use for their
+            // left-border accent -- reusing them for the doughnut chart
+            // keeps the color meaning consistent instead of introducing a
+            // second palette for the same four buckets.
+            success: cssVar("--tp-color-success-border"),
+            info: cssVar("--tp-color-info-border"),
+            warning: cssVar("--tp-color-warning-border"),
+            danger: cssVar("--tp-color-danger-border"),
             text: cssVar("--tp-color-text-secondary"),
             textMuted: cssVar("--tp-color-text-muted"),
             grid: cssVar("--tp-color-border-soft"),
@@ -609,15 +617,102 @@
         });
     }
 
+    // Same four buckets the status tiles below already render as text --
+    // this doughnut is a "shape of it at a glance" complement, not a
+    // replacement, so the tiles keep the exact counts/percentages.
+    function renderStatusChart(t) {
+        var canvas = document.getElementById("activity-status-chart");
+        if (!canvas) return null;
+        var rows = data.status_breakdown || [];
+        var total = rows.reduce(function (sum, r) { return sum + r.count; }, 0);
+        if (!total) {
+            canvas.closest(".activity-chart-wrap").innerHTML = '<p class="activity-chart-empty">No requests logged yet.</p>';
+            return null;
+        }
+        var bucketColor = { "2xx": t.success, "3xx": t.info, "4xx": t.warning, "5xx": t.danger };
+        return new Chart(canvas.getContext("2d"), {
+            type: "doughnut",
+            data: {
+                labels: rows.map(function (r) { return r.bucket; }),
+                datasets: [{
+                    data: rows.map(function (r) { return r.count; }),
+                    backgroundColor: rows.map(function (r) { return bucketColor[r.bucket] || t.neutral; }),
+                    borderColor: t.surface,
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: "68%",
+                plugins: {
+                    legend: {
+                        position: "right",
+                        labels: { color: t.text, boxWidth: 10, padding: 10, font: { size: 11 } }
+                    },
+                    tooltip: baseTooltip(t)
+                }
+            }
+        });
+    }
+
+    // Same rollup renderBotSummary() already shows as chips (label / IP
+    // count / requests) -- this bar is the "which type dominates" shape,
+    // the chips stay for the exact numbers per type.
+    function renderBotChart(t) {
+        var canvas = document.getElementById("activity-bot-chart");
+        if (!canvas) return null;
+        var rows = data.bot_traffic_summary || [];
+        if (!rows.length) {
+            canvas.closest(".activity-chart-wrap").innerHTML = '<p class="activity-chart-empty">No scanning traffic in this window — nice.</p>';
+            return null;
+        }
+        return new Chart(canvas.getContext("2d"), {
+            type: "bar",
+            data: {
+                labels: rows.map(function (r) { return r.label; }),
+                datasets: [{
+                    data: rows.map(function (r) { return r.requests; }),
+                    backgroundColor: t.brand,
+                    borderRadius: 4,
+                    barThickness: 14,
+                    maxBarThickness: 18
+                }]
+            },
+            options: {
+                indexAxis: "y",
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: baseTooltip(t)
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        grid: { color: t.grid, drawTicks: false },
+                        border: { display: false },
+                        ticks: { color: t.textMuted, precision: 0 }
+                    },
+                    y: {
+                        grid: { display: false },
+                        border: { display: false },
+                        ticks: { color: t.text }
+                    }
+                }
+            }
+        });
+    }
+
     function renderCharts() {
-        // Only the two chart panels below need the Chart.js vendor script
-        // -- if it 404s or is blocked, KPIs/accounts/locations/status tiles
+        // Only the chart panels below need the Chart.js vendor script -- if
+        // it 404s or is blocked, KPIs/accounts/locations/status tiles
         // (already rendered above by the time this runs) must still work.
         if (typeof Chart === "undefined") return;
         charts.forEach(function (c) { c.destroy(); });
         charts = [];
         var t = theme();
-        [renderTimeseries(t), renderTopPages(t)].forEach(function (c) {
+        [renderTimeseries(t), renderTopPages(t), renderStatusChart(t), renderBotChart(t)].forEach(function (c) {
             if (c) charts.push(c);
         });
     }

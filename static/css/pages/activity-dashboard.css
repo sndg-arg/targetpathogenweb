@@ -756,6 +756,10 @@
     height: 280px;
 }
 
+.activity-chart-wrap--compact {
+    height: 150px;
+}
+
 .activity-chart-empty {
     color: var(--tp-color-text-muted);
     font-size: var(--tp-font-size-sm);
