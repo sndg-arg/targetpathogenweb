@@ -157,11 +157,13 @@ Two separate layers, both in `tpweb/middleware/access_control.py`:
   monitor/test) and `Search crawler` (Googlebot/Bingbot; harmless against an already-private site).
   A bot that only ever requests `/robots.txt` is left alone — auto-block only triggers on a
   non-exempt path, same definition `_blocked_queryset` in `activity_dashboard.py` uses.
-- **Managed from**: the Activity dashboard's "Scanning & bot traffic" table (superuser-only "Block"
-  button per row, for anything the auto-classifier doesn't catch, POSTs to `ActivityDashboardView`)
-  and its "Blocked IPs" panel (lists current blocks, including auto-blocked ones, with an "Unblock"
-  button), or directly via the Django admin. `ActivityDashboardView.test_func` requires
-  `is_superuser` for POST (block/unblock) but only `tpweb.can_view_activity` for GET.
+- **Fully automatic, no manual UI**: `ActivityDashboardView` is read-only (GET only, gated by
+  `tpweb.can_view_activity`) — its "Blocked IPs" panel just lists current blocks (IP, blocked by,
+  reason, since). There's no block/unblock button anywhere on the dashboard by design; the only way
+  to manually block or unblock an IP is the Django admin (`BlockedIP`). `BlockedIPAdmin.delete_model`/
+  `delete_queryset` route deletion through `unblock_ip()` rather than a plain `obj.delete()`, so
+  deleting a row there also busts the middleware's cached blocked-IP set immediately instead of
+  leaving that IP wrongly 403'd for up to the cache's TTL.
 
 ## CSS rules (strict)
 - Hex colors ONLY in `tpweb/templates/base/masterpage.html` (:root block)

@@ -3,7 +3,7 @@ from django.core.cache import cache
 from django.test import TestCase
 
 from tpweb.models.BlockedIP import BlockedIP
-from tpweb.services.ip_blocking import block_ip, block_ips, is_ip_blocked, unblock_ip
+from tpweb.services.ip_blocking import block_ip, is_ip_blocked, unblock_ip
 
 
 class IpBlockingTests(TestCase):
@@ -46,17 +46,39 @@ class IpBlockingTests(TestCase):
         self.assertFalse(is_ip_blocked(""))
         self.assertFalse(is_ip_blocked(None))
 
-    def test_block_ips_blocks_every_ip_with_its_own_reason(self):
-        owner = get_user_model().objects.create_user(
-            username="ip-bulk-owner", password="x", is_superuser=True
-        )
 
-        count = block_ips(
-            {"203.0.113.10": "bulk: AI crawler", "203.0.113.11": "bulk: Generic bot"},
-            blocked_by=owner,
-        )
+class BlockedIPAdminDeleteTests(TestCase):
+    """The admin is the only place left to unblock an IP (the dashboard's
+    Unblock button is gone -- blocking is fully automatic). Deleting a
+    BlockedIP row through the plain ORM/admin path would bypass the
+    middleware's cached blocked-IP set, leaving it wrongly 403'd for up to
+    BLOCKED_IPS_CACHE_TTL_SECONDS -- BlockedIPAdmin routes delete through
+    unblock_ip() specifically to avoid that."""
 
-        self.assertEqual(count, 2)
-        self.assertTrue(is_ip_blocked("203.0.113.10"))
-        self.assertTrue(is_ip_blocked("203.0.113.11"))
-        self.assertEqual(BlockedIP.objects.get(ip="203.0.113.10").reason, "bulk: AI crawler")
+    def setUp(self):
+        cache.clear()
+        from django.contrib.admin.sites import AdminSite
+
+        from tpweb.admin.BlockedIPAdmin import BlockedIPAdmin
+
+        self.admin = BlockedIPAdmin(BlockedIP, AdminSite())
+
+    def test_delete_model_invalidates_the_cache(self):
+        block_ip("203.0.113.40")
+        self.assertTrue(is_ip_blocked("203.0.113.40"))
+        obj = BlockedIP.objects.get(ip="203.0.113.40")
+
+        self.admin.delete_model(None, obj)
+
+        self.assertFalse(BlockedIP.objects.filter(ip="203.0.113.40").exists())
+        self.assertFalse(is_ip_blocked("203.0.113.40"))
+
+    def test_delete_queryset_invalidates_the_cache_for_every_row(self):
+        block_ip("203.0.113.41")
+        block_ip("203.0.113.42")
+        qs = BlockedIP.objects.filter(ip__in=["203.0.113.41", "203.0.113.42"])
+
+        self.admin.delete_queryset(None, qs)
+
+        self.assertFalse(is_ip_blocked("203.0.113.41"))
+        self.assertFalse(is_ip_blocked("203.0.113.42"))

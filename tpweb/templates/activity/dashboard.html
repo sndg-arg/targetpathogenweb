@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/activity-dashboard.css' %}?v=20260907-fixed-grid-cols">
+    <link rel="stylesheet" href="{% static 'css/pages/activity-dashboard.css' %}?v=20260907-remove-manual-block">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -17,8 +17,7 @@
 {% endblock %}
 
 {% block body %}
-<div class="activity-page" data-can-block-ips="{{ request.user.is_superuser|yesno:'1,0' }}" data-activity-url="{% url 'tpwebapp:activity_dashboard' %}" data-window-days="{{ window_days }}">
-    <form id="activity-csrf-carrier" hidden>{% csrf_token %}</form>
+<div class="activity-page">
 
     <section class="activity-hero">
         <div class="tp-view-head">
@@ -189,13 +188,12 @@
                 <span class="activity-details-chevron" aria-hidden="true"></span>
             </summary>
             <div class="activity-details-body">
-                <div class="activity-location-row activity-location-row--wide activity-location-row--head{% if request.user.is_superuser %} activity-location-row--actionable{% endif %}" aria-hidden="true">
+                <div class="activity-location-row activity-location-row--wide activity-location-row--head" aria-hidden="true">
                     <span>{% trans "Location" %}</span>
                     <span>{% trans "IP" %}</span>
                     <span>{% trans "User agent" %}</span>
                     <span>{% trans "Paths touched" %}</span>
                     <span>{% trans "Requests" %}</span>
-                    {% if request.user.is_superuser %}<span>{% trans "Action" %}</span>{% endif %}
                 </div>
                 <div class="activity-locations" data-blocked-list>
                     <p class="activity-accounts-empty">{% trans "Loading..." %}</p>
@@ -210,6 +208,7 @@
                 <p class="tp-ui-field-label">{% trans "Denied outright, not just redirected" %}</p>
                 <h2 class="activity-panel-title">{% trans "Blocked IPs" %}{% if blocked_ips %} <span class="tp-chip tp-chip--sm tp-chip--warning">{{ blocked_ips|length }}</span>{% endif %}</h2>
             </div>
+            <a href="{% url 'admin:tpweb_blockedip_changelist' %}" class="btn tp-btn tp-btn--outline tp-btn--sm">{% trans "Manage in admin" %}</a>
         </div>
         {% if blocked_ips %}
         <details class="activity-details js-smooth-details">
@@ -224,7 +223,6 @@
                         <span>{% trans "Blocked by" %}</span>
                         <span>{% trans "Reason" %}</span>
                         <span>{% trans "Since" %}</span>
-                        <span></span>
                     </div>
                     {% for blocked in blocked_ips %}
                     <div class="activity-location-row activity-location-row--blocklist">
@@ -232,16 +230,6 @@
                         <span class="activity-location-users">{{ blocked.blocked_by.username|default:"system (auto)" }}</span>
                         <span class="activity-location-users">{{ blocked.reason|default:"—" }}</span>
                         <span class="activity-location-count">{{ blocked.created_at|date:"Y-m-d" }}</span>
-                        {% if request.user.is_superuser %}
-                        <span class="activity-location-action">
-                            <form method="post" action="{% url 'tpwebapp:activity_dashboard' %}?days={{ window_days }}" onsubmit="return confirm('{% trans "Unblock this IP?" %}');">
-                                {% csrf_token %}
-                                <input type="hidden" name="action" value="unblock">
-                                <input type="hidden" name="ip" value="{{ blocked.ip }}">
-                                <button type="submit" class="tp-btn tp-btn--clear tp-btn--sm">{% trans "Unblock" %}</button>
-                            </form>
-                        </span>
-                        {% endif %}
                     </div>
                     {% endfor %}
                 </div>
@@ -310,5 +298,5 @@
 
 {{ activity_dashboard_data|json_script:"activity-dashboard-data" }}
 <script src="{% static 'js/vendor/chart.umd.js' %}?v=20260902-context-pass"></script>
-<script src="{% static 'js/pages/activity-dashboard.js' %}?v=20260907-blocked-ips"></script>
+<script src="{% static 'js/pages/activity-dashboard.js' %}?v=20260907-remove-manual-block"></script>
 {% endblock %}

@@ -41,15 +41,6 @@ def block_ip(ip, blocked_by=None, reason=""):
     return blocked
 
 
-def block_ips(reasons_by_ip, blocked_by=None):
-    """Bulk variant of block_ip -- reasons_by_ip is {ip: reason}, one call
-    per IP (BlockedIP.ip is unique, so no bulk_create shortcut). Used by the
-    "block all known bots" action in ActivityDashboardView."""
-    for ip, reason in reasons_by_ip.items():
-        block_ip(ip, blocked_by=blocked_by, reason=reason)
-    return len(reasons_by_ip)
-
-
 def unblock_ip(ip):
     deleted, _ = BlockedIP.objects.filter(ip=ip).delete()
     cache.delete(BLOCKED_IPS_CACHE_KEY)

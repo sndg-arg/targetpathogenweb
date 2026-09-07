@@ -447,41 +447,15 @@
     white-space: nowrap;
 }
 
-/* Every .activity-location-row is its OWN independent grid (rows aren't one
-   shared table grid), so a trailing `auto` track sizes purely off that
-   row's own content -- fine when every row's last cell is similar (a
-   number), but an empty header cell vs. a data row's button swings wildly,
-   which then reflows every earlier fr-column to a different width per row
-   (this is what broke the Blocked IPs table's column alignment). Any
-   column that's sometimes empty and sometimes holds a button must be a
-   FIXED width instead, so it's identical across every row regardless of
-   content -- see --actionable and --blocklist below. */
-
-/* Superuser-only variant of --wide with a trailing "Block" action column --
-   only the Scanning & bot traffic table (blocked_attempts) opts in, since
-   that's the traffic worth denying outright rather than just watching. */
-.activity-location-row--wide.activity-location-row--actionable {
-    grid-template-columns: minmax(130px, 1.1fr) minmax(100px, 0.7fr) minmax(140px, 1.3fr) minmax(90px, 0.7fr) auto 96px;
-}
-
-/* Blocked IPs table -- distinct 5-column semantics (IP / Blocked by /
-   Reason / Since / Unblock), not the generic Location/IP/UA/metric/Requests
-   shape --wide is tuned for, so it gets its own template rather than
-   overloading --wide for a different table. */
+/* Blocked IPs table -- distinct 4-column semantics (IP / Blocked by /
+   Reason / Since), not the generic Location/IP/UA/metric/Requests shape
+   --wide is tuned for, so it gets its own template. No action column
+   (IP blocking is read-only here, see ActivityDashboardView -- unblocking
+   happens in the Django admin), so a plain `auto` last column is safe:
+   every row (header included) always has the same 4 cells, so there's no
+   empty-vs-content mismatch to throw off column widths. */
 .activity-location-row--blocklist {
-    grid-template-columns: minmax(120px, 1fr) minmax(90px, 0.7fr) minmax(140px, 1.4fr) minmax(90px, 0.6fr) 96px;
-}
-
-.activity-location-action {
-    text-align: right;
-}
-
-.activity-location-action form {
-    display: inline-flex;
-}
-
-.activity-block-btn {
-    white-space: nowrap;
+    grid-template-columns: minmax(130px, 1fr) minmax(100px, 0.8fr) minmax(160px, 1.6fr) auto;
 }
 
 .activity-location-place {
@@ -630,14 +604,14 @@
 }
 
 @media (max-width: 640px) {
-    /* .activity-location-row and .activity-location-row--wide have equal
-       specificity -- listing --wide explicitly here (instead of relying on
-       this block being declared after its base rule) so a future reorder
-       can't silently leave the 5-column --wide variant un-collapsed on a
-       phone, where its minmax() widths add up to well over 360px. */
+    /* .activity-location-row and its variants all have equal specificity --
+       listing each explicitly here (instead of relying on this block being
+       declared after its base rule) so a future reorder can't silently
+       leave one un-collapsed on a phone, where its minmax() widths add up
+       to well over 360px. */
     .activity-location-row,
     .activity-location-row--wide,
-    .activity-location-row--wide.activity-location-row--actionable {
+    .activity-location-row--blocklist {
         grid-template-columns: 1fr;
         gap: 2px;
         padding: 12px 0;
@@ -647,8 +621,7 @@
         display: none;
     }
 
-    .activity-location-count,
-    .activity-location-action {
+    .activity-location-count {
         text-align: left;
     }
 
