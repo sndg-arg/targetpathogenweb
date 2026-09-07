@@ -564,14 +564,27 @@
     display: none;
 }
 
+/* Same restrained card language as the KPI tiles above (neutral surface +
+   soft border + hairline shadow) rather than a solid info-tinted fill --
+   the tinted version read as an alert/notification box, at odds with the
+   page's otherwise quiet, dossier-like palette. */
 .activity-summary-chip {
     display: flex;
     flex-direction: column;
-    gap: 2px;
-    padding: 8px 12px;
+    gap: 3px;
+    padding: 10px 14px;
     border-radius: 10px;
-    background: var(--tp-color-info-bg);
-    border: 1px solid var(--tp-color-info-border);
+    background: var(--tp-color-surface);
+    border: 1px solid var(--tp-color-border-soft);
+    box-shadow: var(--tp-shadow-xs);
+    transition:
+        box-shadow var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.activity-summary-chip:hover {
+    box-shadow: var(--tp-shadow-sm);
+    border-color: var(--tp-color-border-strong);
 }
 
 .activity-summary-chip strong {
@@ -581,7 +594,7 @@
     font-family: "Space Grotesk", "Segoe UI", sans-serif;
     font-size: var(--tp-font-size-sm);
     font-weight: 700;
-    color: var(--tp-color-info-ink);
+    color: var(--activity-accent-deep);
 }
 
 .activity-summary-chip span:not(.activity-country-badge) {
@@ -592,7 +605,6 @@
 
 .activity-summary-chip--muted {
     background: var(--tp-color-surface-soft);
-    border-color: var(--tp-color-border-soft);
 }
 
 .activity-summary-chip--muted strong {
