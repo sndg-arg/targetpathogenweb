@@ -9,11 +9,6 @@
     color: var(--tp-ink);
     margin: 0;
     --activity-accent-deep: var(--tp-color-brand-900);
-    /* Numbered section index, dossier/report style -- pure CSS counter, so
-       it tracks whichever panels actually render without the template
-       having to hardcode ordinals. Hero and the KPI tiles aren't
-       .activity-panel, so they're deliberately excluded from the count. */
-    counter-reset: activity-section;
 }
 
 .activity-page > * ~ * {
@@ -261,20 +256,6 @@
     font-weight: 600;
     color: var(--tp-color-text-primary);
     letter-spacing: -0.02em;
-}
-
-/* Dossier-style section ordinal ("01 —", "02 —", ...) -- counted per
-   .activity-panel via .activity-page's counter-reset above. */
-.activity-panel .activity-panel-title {
-    counter-increment: activity-section;
-}
-
-.activity-panel .activity-panel-title::before {
-    content: counter(activity-section, decimal-leading-zero) " — ";
-    color: var(--tp-color-text-muted);
-    font-weight: 500;
-    letter-spacing: normal;
-    font-variant-numeric: tabular-nums;
 }
 
 /* ── Accounts list ── */
@@ -711,7 +692,31 @@
     }
 }
 
-/* ── Charts ── */
+/* ── Seamless mosaic pair (see protein-detail.css's .target-profile-grid
+   for the same trick): 1px gap + border-soft background on the container
+   reads as a hairline divider, each cell's own background matches the page
+   so nothing looks boxed. Used to sit two related, similarly-sized panels
+   side by side (the two charts up top, status codes + top erroring paths
+   at the bottom) instead of every section stacking in one unbroken
+   single-file column. ── */
+.activity-panel-pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--tp-color-border-soft);
+}
+
+.activity-panel-pair > .activity-panel {
+    padding: 18px;
+    background: var(--tp-color-surface);
+}
+
+@media (max-width: 900px) {
+    .activity-panel-pair {
+        grid-template-columns: 1fr;
+    }
+}
+
 .activity-chart-legend {
     display: flex;
     gap: 14px;
