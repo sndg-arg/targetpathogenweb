@@ -7,9 +7,12 @@ class BlockedIP(models.Model):
     tpweb.middleware.access_control.BlockedIPMiddleware on every request --
     unlike LoginRequiredMiddleware's redirect, this has no exempt paths.
 
-    Managed from the Activity dashboard's "Scanning & bot traffic" table
-    (block/unblock actions, see ActivityDashboardView) or directly in the
-    Django admin.
+    Rows are created automatically (BlockedIPMiddleware auto-blocks a
+    recognized bot on first sight, blocked_by=None, reason="auto: <label>")
+    or manually via the Django admin. The Activity dashboard's "Blocked IPs"
+    panel is read-only -- unblocking happens in the admin, which routes the
+    delete through tpweb.services.ip_blocking.unblock_ip() to keep the
+    middleware's cache in sync.
     """
 
     ip = models.GenericIPAddressField(unique=True)

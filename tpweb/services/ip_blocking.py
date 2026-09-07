@@ -1,8 +1,9 @@
 """Real IP-level blocking, enforced by
 tpweb.middleware.access_control.BlockedIPMiddleware on every request --
 distinct from LoginRequiredMiddleware, which just redirects anonymous
-traffic to the login page. Managed from the Activity dashboard's "Scanning
-& bot traffic" table or the Django admin.
+traffic to the login page. Blocking is fully automatic (BlockedIPMiddleware
+calls block_ip() itself for a recognized bot); unblocking happens in the
+Django admin (BlockedIPAdmin routes deletes through unblock_ip() here).
 """
 
 from django.core.cache import cache
