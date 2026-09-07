@@ -102,9 +102,17 @@
                 <h2 class="activity-panel-title">{% trans "Accounts" %}</h2>
             </div>
         </div>
-        <div class="activity-accounts" data-accounts-list>
-            <p class="activity-accounts-empty">{% trans "Loading..." %}</p>
-        </div>
+        <details class="activity-details js-smooth-details">
+            <summary class="activity-details-summary">
+                <span>{% trans "Show details" %}</span>
+                <span class="activity-details-chevron" aria-hidden="true"></span>
+            </summary>
+            <div class="activity-details-body">
+                <div class="activity-accounts" data-accounts-list>
+                    <p class="activity-accounts-empty">{% trans "Loading..." %}</p>
+                </div>
+            </div>
+        </details>
     </section>
 
     <section class="activity-panel">
@@ -168,14 +176,8 @@
                 <p class="tp-ui-field-label">{% trans "Hit the login wall on a random path, never even tried to log in" %}</p>
                 <h2 class="activity-panel-title">{% trans "Scanning &amp; bot traffic" %} <span class="tp-chip tp-chip--sm tp-chip--warning">{% trans "likely automated" %}</span></h2>
             </div>
-            {% if request.user.is_superuser %}
-            <form method="post" action="{% url 'tpwebapp:activity_dashboard' %}?days={{ window_days }}" onsubmit="return confirm('{% trans "Block every AI-crawler / generic-bot IP seen in this window? HTTP clients and search crawlers are left alone." %}');">
-                {% csrf_token %}
-                <input type="hidden" name="action" value="block_bots">
-                <button type="submit" class="tp-btn tp-btn--outline tp-btn--sm">{% trans "Block all known bots" %}</button>
-            </form>
-            {% endif %}
         </div>
+        <p class="activity-chart-note">{% trans "AI-crawler and generic-bot IPs are blocked automatically the moment they touch a real page — no action needed here." %}</p>
         <div class="activity-summary-chips" data-bot-summary></div>
         <details class="activity-details js-smooth-details">
             <summary class="activity-details-summary">
@@ -206,33 +208,41 @@
             </div>
         </div>
         {% if blocked_ips %}
-        <div class="activity-locations">
-            <div class="activity-location-row activity-location-row--wide activity-location-row--head" aria-hidden="true">
-                <span>{% trans "IP" %}</span>
-                <span>{% trans "Blocked by" %}</span>
-                <span>{% trans "Reason" %}</span>
-                <span>{% trans "Since" %}</span>
-                {% if request.user.is_superuser %}<span></span>{% endif %}
+        <details class="activity-details js-smooth-details">
+            <summary class="activity-details-summary">
+                <span>{% trans "Show details" %}</span>
+                <span class="activity-details-chevron" aria-hidden="true"></span>
+            </summary>
+            <div class="activity-details-body">
+                <div class="activity-locations">
+                    <div class="activity-location-row activity-location-row--wide activity-location-row--head" aria-hidden="true">
+                        <span>{% trans "IP" %}</span>
+                        <span>{% trans "Blocked by" %}</span>
+                        <span>{% trans "Reason" %}</span>
+                        <span>{% trans "Since" %}</span>
+                        {% if request.user.is_superuser %}<span></span>{% endif %}
+                    </div>
+                    {% for blocked in blocked_ips %}
+                    <div class="activity-location-row activity-location-row--wide">
+                        <span class="activity-location-ip">{{ blocked.ip }}</span>
+                        <span class="activity-location-users">{{ blocked.blocked_by.username|default:"system (auto)" }}</span>
+                        <span class="activity-location-users">{{ blocked.reason|default:"—" }}</span>
+                        <span class="activity-location-count">{{ blocked.created_at|date:"Y-m-d" }}</span>
+                        {% if request.user.is_superuser %}
+                        <span class="activity-location-action">
+                            <form method="post" action="{% url 'tpwebapp:activity_dashboard' %}?days={{ window_days }}" onsubmit="return confirm('{% trans "Unblock this IP?" %}');">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="unblock">
+                                <input type="hidden" name="ip" value="{{ blocked.ip }}">
+                                <button type="submit" class="tp-btn tp-btn--clear tp-btn--sm">{% trans "Unblock" %}</button>
+                            </form>
+                        </span>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
             </div>
-            {% for blocked in blocked_ips %}
-            <div class="activity-location-row activity-location-row--wide">
-                <span class="activity-location-ip">{{ blocked.ip }}</span>
-                <span class="activity-location-users">{{ blocked.blocked_by.username|default:"—" }}</span>
-                <span class="activity-location-users">{{ blocked.reason|default:"—" }}</span>
-                <span class="activity-location-count">{{ blocked.created_at|date:"Y-m-d" }}</span>
-                {% if request.user.is_superuser %}
-                <span class="activity-location-action">
-                    <form method="post" action="{% url 'tpwebapp:activity_dashboard' %}?days={{ window_days }}" onsubmit="return confirm('{% trans "Unblock this IP?" %}');">
-                        {% csrf_token %}
-                        <input type="hidden" name="action" value="unblock">
-                        <input type="hidden" name="ip" value="{{ blocked.ip }}">
-                        <button type="submit" class="tp-btn tp-btn--clear tp-btn--sm">{% trans "Unblock" %}</button>
-                    </form>
-                </span>
-                {% endif %}
-            </div>
-            {% endfor %}
-        </div>
+        </details>
         {% else %}
         <p class="activity-accounts-empty">{% trans "No IPs are hard-blocked right now — traffic above only bounces off the login wall." %}</p>
         {% endif %}
@@ -277,9 +287,17 @@
                 <h2 class="activity-panel-title">{% trans "Top erroring paths" %}</h2>
             </div>
         </div>
-        <div class="activity-error-paths" data-error-paths-list>
-            <p class="activity-accounts-empty">{% trans "Loading..." %}</p>
-        </div>
+        <details class="activity-details js-smooth-details">
+            <summary class="activity-details-summary">
+                <span>{% trans "Show details" %}</span>
+                <span class="activity-details-chevron" aria-hidden="true"></span>
+            </summary>
+            <div class="activity-details-body">
+                <div class="activity-error-paths" data-error-paths-list>
+                    <p class="activity-accounts-empty">{% trans "Loading..." %}</p>
+                </div>
+            </div>
+        </details>
     </section>
 
     <p class="activity-footnote">{% trans "Need row-level detail (exact IP, exact path, exact timestamp)?" %} <a href="{% url 'admin:tpweb_requestlog_changelist' %}">{% trans "Browse the raw log in the admin" %}</a>.</p>

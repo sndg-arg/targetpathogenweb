@@ -149,15 +149,19 @@ Two separate layers, both in `tpweb/middleware/access_control.py`:
   `settings.MIDDLEWARE` so a blocked IP never reaches the login-wall check. The blocked-IP set is
   cached (`tpweb/services/ip_blocking.py`, key `Target:blocked_ips`, 60s TTL, explicitly invalidated
   by `block_ip`/`unblock_ip`) rather than queried per request.
+- **Auto-blocking**: the same middleware also blocks on first sight, no staff action needed — an
+  anonymous request to a non-exempt path from a User-Agent classified `AI crawler` or `Generic bot`
+  (see `AUTO_BLOCK_BOT_LABELS` / `classify_bot` in `tpweb/services/bot_detection.py`, shared with
+  the dashboard's own bot classification) gets a `BlockedIP` row (`reason="auto: <label>"`,
+  `blocked_by=None`) and a 403 right then. Deliberately excludes `HTTP client` (could be an internal
+  monitor/test) and `Search crawler` (Googlebot/Bingbot; harmless against an already-private site).
+  A bot that only ever requests `/robots.txt` is left alone — auto-block only triggers on a
+  non-exempt path, same definition `_blocked_queryset` in `activity_dashboard.py` uses.
 - **Managed from**: the Activity dashboard's "Scanning & bot traffic" table (superuser-only "Block"
-  button per row, POSTs to `ActivityDashboardView`) and its "Blocked IPs" panel (lists current
-  blocks with an "Unblock" button), or directly via the Django admin. `ActivityDashboardView.test_func`
-  requires `is_superuser` for POST (block/unblock) but only `tpweb.can_view_activity` for GET.
-- **Bulk "Block all known bots"** button on the same table blocks every IP in the selected window
-  classified as `AI crawler` or `Generic bot` (see `BULK_BLOCKABLE_BOT_LABELS` in
-  `tpweb/services/activity_dashboard.py`) — deliberately excludes `HTTP client` (could be an
-  internal monitor) and `Search crawler` (Googlebot/Bingbot; harmless against an already-private
-  site). Scans every request in the window, not just the top-10-by-IP rows the table renders.
+  button per row, for anything the auto-classifier doesn't catch, POSTs to `ActivityDashboardView`)
+  and its "Blocked IPs" panel (lists current blocks, including auto-blocked ones, with an "Unblock"
+  button), or directly via the Django admin. `ActivityDashboardView.test_func` requires
+  `is_superuser` for POST (block/unblock) but only `tpweb.can_view_activity` for GET.
 
 ## CSS rules (strict)
 - Hex colors ONLY in `tpweb/templates/base/masterpage.html` (:root block)

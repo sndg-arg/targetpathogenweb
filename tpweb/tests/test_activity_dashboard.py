@@ -7,7 +7,7 @@ from django.urls import reverse
 
 from tpweb.models.BlockedIP import BlockedIP
 from tpweb.models.RequestLog import RequestLog
-from tpweb.services.activity_dashboard import blockable_bot_ips, build_activity_dashboard_data
+from tpweb.services.activity_dashboard import build_activity_dashboard_data
 from tpweb.services.workspace import get_public_workspace_user
 
 
@@ -441,76 +441,6 @@ class BotTrafficSummaryTests(TestCase):
         self.assertEqual(by_label["Generic bot"]["ip_count"], 1)
 
 
-class BlockableBotIpsTests(TestCase):
-    @patch("tpweb.services.activity_dashboard.geolocate_ip")
-    def test_includes_ai_crawler_and_generic_bot_only(self, mock_geolocate):
-        mock_geolocate.return_value = None
-        RequestLog.objects.create(
-            user=None,
-            ip="203.0.113.70",
-            method="GET",
-            path="/genomes",
-            status_code=302,
-            user_agent="Mozilla/5.0 (compatible; ClaudeBot/1.0; +claudebot@anthropic.com)",
-        )
-        RequestLog.objects.create(
-            user=None,
-            ip="203.0.113.71",
-            method="GET",
-            path="/genomes",
-            status_code=302,
-            user_agent="some-generic-crawler/1.0",
-        )
-        RequestLog.objects.create(
-            user=None,
-            ip="203.0.113.72",
-            method="GET",
-            path="/genomes",
-            status_code=302,
-            user_agent="python-requests/2.31",
-        )
-        RequestLog.objects.create(
-            user=None,
-            ip="203.0.113.73",
-            method="GET",
-            path="/genomes",
-            status_code=302,
-            user_agent="Mozilla/5.0 (compatible; Googlebot/2.1)",
-        )
-
-        ips_by_label = blockable_bot_ips()
-
-        self.assertEqual(
-            ips_by_label,
-            {"203.0.113.70": "AI crawler", "203.0.113.71": "Generic bot"},
-        )
-
-    @patch("tpweb.services.activity_dashboard.geolocate_ip")
-    def test_excludes_authenticated_and_exempt_traffic(self, mock_geolocate):
-        mock_geolocate.return_value = None
-        alice = get_user_model().objects.create_user(username="alice-blockable", password="x")
-        RequestLog.objects.create(
-            user=alice,
-            ip="10.0.0.1",
-            method="GET",
-            path="/genomes",
-            status_code=200,
-            user_agent="ClaudeBot/1.0",
-        )
-        RequestLog.objects.create(
-            user=None,
-            ip="203.0.113.74",
-            method="GET",
-            path="/accounts/login",
-            status_code=200,
-            user_agent="ClaudeBot/1.0",
-        )
-
-        ips_by_label = blockable_bot_ips()
-
-        self.assertEqual(ips_by_label, {})
-
-
 class TopErrorPathsTests(TestCase):
     def setUp(self):
         self.alice = get_user_model().objects.create_user(username="alice", password="x")
@@ -755,46 +685,3 @@ class ActivityDashboardBlockActionTests(TestCase):
 
         self.assertEqual(response.status_code, 403)
         self.assertFalse(BlockedIP.objects.filter(ip="203.0.113.62").exists())
-
-    @patch("tpweb.services.activity_dashboard.geolocate_ip")
-    def test_superuser_can_bulk_block_known_bots(self, mock_geolocate):
-        mock_geolocate.return_value = None
-        RequestLog.objects.create(
-            user=None,
-            ip="203.0.113.80",
-            method="GET",
-            path="/genomes",
-            status_code=302,
-            user_agent="ClaudeBot/1.0",
-        )
-        RequestLog.objects.create(
-            user=None,
-            ip="203.0.113.81",
-            method="GET",
-            path="/genomes",
-            status_code=302,
-            user_agent="python-requests/2.31",
-        )
-        self.client.force_login(self.owner)
-
-        self.client.post(reverse("tpwebapp:activity_dashboard"), {"action": "block_bots"})
-
-        self.assertTrue(BlockedIP.objects.filter(ip="203.0.113.80").exists())
-        self.assertFalse(BlockedIP.objects.filter(ip="203.0.113.81").exists())
-
-    def test_non_superuser_cannot_bulk_block_bots(self):
-        from django.contrib.auth.models import Permission
-
-        granted_user = get_user_model().objects.create_user(
-            username="dash-bulk-granted", password="x", is_staff=True
-        )
-        granted_user.user_permissions.add(
-            Permission.objects.get(content_type__app_label="tpweb", codename="can_view_activity")
-        )
-        self.client.force_login(granted_user)
-
-        response = self.client.post(
-            reverse("tpwebapp:activity_dashboard"), {"action": "block_bots"}
-        )
-
-        self.assertEqual(response.status_code, 403)

@@ -9,6 +9,7 @@ from django.utils import timezone
 
 from tpweb.middleware.access_control import EXEMPT_PATH_PREFIXES
 from tpweb.models.RequestLog import RequestLog
+from tpweb.services.bot_detection import classify_bot
 from tpweb.services.ip_geolocation import geolocate_ip
 from tpweb.services.workspace import PUBLIC_WORKSPACE_USERNAME
 
@@ -27,41 +28,6 @@ STATUS_BUCKETS = ("2xx", "3xx", "4xx", "5xx")
 LOGIN_ATTEMPT_PATH_PREFIX = "/accounts/login"
 
 _ID_SEGMENT = re.compile(r"^\d+$")
-
-# Keep in sync with KNOWN_BOT_SIGNATURES in static/js/pages/activity-dashboard.js
-# (the JS copy badges individual rows; this one drives the aggregate summary
-# below, which needs every blocked request in the window, not just the
-# top-10-by-IP rows the page actually renders -- so the same classification
-# has to live server-side too rather than being computed once in JS).
-BOT_SIGNATURES = (
-    (
-        "AI crawler",
-        re.compile(
-            r"claudebot|gptbot|ccbot|bytespider|perplexitybot|amazonbot|google-extended", re.I
-        ),
-    ),
-    (
-        "Search crawler",
-        re.compile(r"googlebot|bingbot|duckduckbot|yandexbot|baiduspider|slurp", re.I),
-    ),
-    (
-        "HTTP client",
-        re.compile(
-            r"python-requests|python-urllib|python/\d|aiohttp|go-http-client|libwww-perl|okhttp|node-fetch|axios/",
-            re.I,
-        ),
-    ),
-    ("Generic bot", re.compile(r"\bbot\b|crawler|spider|scraper|headlesschrome|\bworker\b", re.I)),
-)
-
-
-def _classify_bot(user_agent):
-    if not user_agent:
-        return None
-    for label, pattern in BOT_SIGNATURES:
-        if pattern.search(user_agent):
-            return label
-    return None
 
 
 def _normalize_path(path):
@@ -223,7 +189,7 @@ def _bot_traffic_summary(window_qs):
     alone can't answer."""
     stats_by_label = {}
     for ip, user_agent in _blocked_queryset(window_qs).values_list("ip", "user_agent"):
-        label = _classify_bot(user_agent) or "Unclassified"
+        label = classify_bot(user_agent) or "Unclassified"
         entry = stats_by_label.setdefault(label, {"ips": set(), "requests": 0})
         if ip:
             entry["ips"].add(ip)
@@ -235,33 +201,6 @@ def _bot_traffic_summary(window_qs):
     ]
     summary.sort(key=lambda row: row["requests"], reverse=True)
     return summary
-
-
-# Bot categories confident enough to bulk-block on sight -- deliberately
-# excludes "HTTP client" (sometimes a misconfigured internal monitor/test,
-# not necessarily hostile) and "Search crawler" (Googlebot/Bingbot; harmless
-# against a site that's already private + Disallow: /, no reason to burn a
-# block-list entry on it).
-BULK_BLOCKABLE_BOT_LABELS = ("AI crawler", "Generic bot")
-
-
-def blockable_bot_ips(days=DEFAULT_ACTIVITY_WINDOW_DAYS, labels=BULK_BLOCKABLE_BOT_LABELS):
-    """IPs in the window classified as one of `labels` -- the target set for
-    the "block all known bots" bulk action. Scans every blocked request in
-    the window (not just the top-10-by-IP rows the dashboard table shows),
-    same as _bot_traffic_summary, so a handful of IPs from one prolific
-    crawler can't hide how many distinct actors are actually in the window.
-    Returns {ip: label} so the caller can record which signature matched.
-    """
-    window_qs = RequestLog.objects.filter(created_at__gte=timezone.now() - timedelta(days=days))
-    ips_by_label = {}
-    for ip, user_agent in _blocked_queryset(window_qs).values_list("ip", "user_agent"):
-        if not ip:
-            continue
-        label = _classify_bot(user_agent)
-        if label in labels:
-            ips_by_label.setdefault(ip, label)
-    return ips_by_label
 
 
 def _top_scanned_paths(window_qs, limit=TOP_SCANNED_PATHS_LIMIT):
@@ -414,8 +353,9 @@ def build_activity_dashboard_data(days=DEFAULT_ACTIVITY_WINDOW_DAYS):
     # scanner/bot traffic (e.g. a crawler probing every /protein/<id>)
     # outweigh the two real accounts' actual usage -- bots never authenticate
     # by construction, so this filter alone already keeps every one of them
-    # (see BOT_SIGNATURES / _blocked_queryset) out of this ranking entirely,
-    # on top of the _is_page_path filter below excluding non-page endpoints.
+    # (see bot_detection.classify_bot / _blocked_queryset) out of this
+    # ranking entirely, on top of the _is_page_path filter below excluding
+    # non-page endpoints.
     path_counts = Counter(
         _normalize_path(p)
         for p in window_qs.exclude(user__isnull=True).values_list("path", flat=True)
