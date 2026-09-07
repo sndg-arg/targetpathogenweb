@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260831-quicknav-tabs">
+    <link rel="stylesheet" href="{% static 'css/pages/protein-detail.css' %}?v=20260907-gates-priority">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -376,6 +376,29 @@
                             <div class="target-evidence-meta-row">
                                 <span class="target-evidence-meta-key" title="{% trans "Stricter core-genome detection by CoreCruncher, adding phylogenetic evidence." %}">CoreCruncher</span>
                                 <span class="target-evidence-meta-val">{{ conservation_profile.corecruncher_label }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if gates_metabolic_priority %}
+                    <div class="target-evidence-card" title="{% trans "Gates-project pan-genome metabolic model: how strongly this gene's ortholog mapping and its reaction are supported across the modeled Klebsiella strains. The curated replacement for the automatic BioCyc/Pathway Tools metrics below." %}">
+                        <span class="target-evidence-label">{% trans "Metabolic priority" %} <span class="tp-chip tp-chip--sm tp-chip--meta">Gates</span></span>
+                        <span class="target-evidence-priority-badge target-evidence-priority-badge--{{ gates_metabolic_priority.tone }}">{{ gates_metabolic_priority.priority }}</span>
+                        {% if gates_metabolic_priority.quadrant %}
+                        <span class="target-evidence-subtext">{{ gates_metabolic_priority.quadrant }}</span>
+                        {% endif %}
+                        <div class="target-evidence-meta target-evidence-meta--top">
+                            <div class="target-evidence-meta-row">
+                                <span class="target-evidence-meta-key" title="{% trans "Per-gene support (0–1) for this gene's ortholog mapping into the pan-genome model." %}">S_gene</span>
+                                <span class="target-evidence-meta-val">{{ gates_metabolic_priority.s_gene|default:"—" }}</span>
+                            </div>
+                            <div class="target-evidence-meta-row">
+                                <span class="target-evidence-meta-key" title="{% trans "Per-reaction support (0–1) across the modeled pan-genome strains. Drives the quadrant/priority classification." %}">{% trans "Reaction support" %}</span>
+                                <span class="target-evidence-meta-val">{{ gates_metabolic_priority.reaction_support|default:"—" }}</span>
+                            </div>
+                            <div class="target-evidence-meta-row">
+                                <span class="target-evidence-meta-key" title="{% trans "Number of metabolic reactions this gene participates in." %}">{% trans "Reactions" %}</span>
+                                <span class="target-evidence-meta-val">{{ gates_metabolic_priority.n_reactions|default:"—" }}</span>
                             </div>
                         </div>
                     </div>

@@ -45,6 +45,7 @@ def build_target_evidence_record(assembly_name, accession):
     metabolic = metabolic_context or {}
     microbiome = context.get("microbiome_context") or {}
     conservation = context.get("conservation_profile") or {}
+    gates_priority = context.get("gates_metabolic_priority") or {}
     binders = context.get("binders") or {}
     binder_summary = binders.get("summary") or {}
 
@@ -112,6 +113,11 @@ def build_target_evidence_record(assembly_name, accession):
         "centrality_percentile": metabolic.get("centrality_percentile"),
         "metabolic_sentence": metabolic.get("summary_sentence")
         or "No metabolic context loaded for this protein.",
+        # Gates-project pan-genome metabolic priority (S_gene/reaction_support/
+        # quadrant) -- a separate, curated score from the automatic centrality/
+        # chokepoint metrics above, only loaded for KP13/ATCC43816 so far.
+        "gates_priority": gates_priority.get("priority") or "not loaded",
+        "gates_quadrant": gates_priority.get("quadrant") or "not loaded",
         "reactions": reaction_names,
         "pathways": pathway_names,
         "direct_ligands": binder_summary.get("direct_count", 0),
@@ -183,6 +189,11 @@ def format_target_audit(record):
                     else "not loaded",
                 ),
                 ("Interpretation", record["metabolic_sentence"]),
+                (
+                    "Gates-project metabolic priority",
+                    record["gates_priority"],
+                ),
+                ("Gates-project quadrant", record["gates_quadrant"]),
                 (
                     "Reactions",
                     ", ".join(record["reactions"]) if record["reactions"] else "not loaded",

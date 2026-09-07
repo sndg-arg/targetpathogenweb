@@ -4170,6 +4170,37 @@ body.residue-modal-open {
     font-weight: 600;
 }
 
+/* Gates-project metabolic priority tier -- same pill shape as the core/
+   accessory badges above, colored by tone (success = Priority target,
+   warning = Second priority targets, idle = Non-priority target). */
+.target-evidence-priority-badge {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: var(--tp-font-label);
+    font-weight: 600;
+}
+
+.target-evidence-priority-badge--success {
+    border: 1px solid var(--tp-color-success-border);
+    background: var(--tp-color-success-bg);
+    color: var(--tp-color-success-ink);
+}
+
+.target-evidence-priority-badge--warning {
+    border: 1px solid var(--tp-color-warning-border);
+    background: var(--tp-color-warning-bg);
+    color: var(--tp-color-warning-ink);
+}
+
+.target-evidence-priority-badge--idle {
+    border: 1px solid var(--tp-color-idle-border);
+    background: var(--tp-color-idle-bg);
+    color: var(--tp-color-idle-ink);
+}
+
 .target-evidence-source-status {
     display: inline-flex;
     align-items: center;

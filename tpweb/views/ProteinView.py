@@ -525,6 +525,7 @@ class ProteinView(View):
         conservation_profile = executive_context["conservation_profile"]
         microbiome_context = executive_context["microbiome_context"]
         metabolic_context = executive_context["metabolic_context"]
+        gates_metabolic_priority = executive_context["gates_metabolic_priority"]
         target_summary = executive_context["target_summary"]
         score_breakdown = executive_context["score_breakdown"]
 
@@ -687,6 +688,7 @@ class ProteinView(View):
             "conservation_profile": conservation_profile,
             "microbiome_context": microbiome_context,
             "metabolic_context": metabolic_context,
+            "gates_metabolic_priority": gates_metabolic_priority,
             "experimental_xrefs": experimental_xrefs,
             "ec_badges": ec_badges,
             "go_badges": go_badges,

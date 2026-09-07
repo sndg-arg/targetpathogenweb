@@ -64,6 +64,7 @@ from tpweb.services.protein_list import (
 from tpweb.services.protein_annotations import ANNOTATION_KIND_CONFIG, build_annotation_explorer
 from tpweb.services.protein_formula import choose_formula, resolve_formulas_for_user
 from tpweb.services.protein_serializer import build_protein_table_row
+from tpweb.services.protein_summary import build_gates_metabolic_priority
 from tpweb.services.pipeline_status import (
     _status_from_last_run_marker,
     annotate_pipeline_status_for_genome,
@@ -1920,3 +1921,37 @@ class AgentChatSessionsServiceTests(TestCase):
         result = delete_conversation("session-o", 999999)
 
         self.assertFalse(result)
+
+
+class GatesMetabolicPriorityTests(SimpleTestCase):
+    def test_returns_none_when_neither_priority_nor_quadrant_is_loaded(self):
+        self.assertIsNone(build_gates_metabolic_priority({}))
+
+    def test_builds_the_full_context_with_tone_and_formatted_values(self):
+        raw_scores = {
+            "priority": "Priority target",
+            "quadrant": "High reaction / High gene",
+            "S_gene": "0.7900",
+            "reaction_support": "0.764640662086098",
+            "n_reactions": "1",
+        }
+
+        result = build_gates_metabolic_priority(raw_scores)
+
+        self.assertEqual(result["priority"], "Priority target")
+        self.assertEqual(result["quadrant"], "High reaction / High gene")
+        self.assertEqual(result["tone"], "success")
+        self.assertEqual(result["s_gene"], "0.79")
+        self.assertEqual(result["n_reactions"], "1")
+
+    def test_unrecognized_priority_label_falls_back_to_idle_tone(self):
+        result = build_gates_metabolic_priority({"priority": "Some new label"})
+
+        self.assertEqual(result["tone"], "idle")
+
+    def test_second_priority_tier_maps_to_warning_tone(self):
+        result = build_gates_metabolic_priority(
+            {"quadrant": "High reaction / Low gene", "priority": "Second priority targets"}
+        )
+
+        self.assertEqual(result["tone"], "warning")

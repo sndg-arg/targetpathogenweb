@@ -535,6 +535,36 @@ def build_conservation_profile(raw_scores):
     }
 
 
+# Maps the Gates-project pan-genome model's priority label (tpweb/management/
+# commands/load_gates_metabolic_score.py) to one of the site's semantic tone
+# tokens, for the badge color on the protein page's evidence card.
+_GATES_PRIORITY_TONES = {
+    "Priority target": "success",
+    "Second priority targets": "warning",
+    "Non-priority target": "idle",
+}
+
+
+def build_gates_metabolic_priority(raw_scores):
+    """The Gates-project pan-genome metabolic priority score (S_gene,
+    reaction_support, n_reactions, quadrant, priority) -- a curated
+    replacement for the automatic BioCyc/Pathway Tools metrics in
+    build_metabolic_context, only loaded for KP13/ATCC43816 so far
+    (see load_gates_metabolic_score)."""
+    priority = _raw_score(raw_scores, "priority")
+    quadrant = _raw_score(raw_scores, "quadrant")
+    if not priority and not quadrant:
+        return None
+    return {
+        "priority": priority,
+        "quadrant": quadrant,
+        "tone": _GATES_PRIORITY_TONES.get(priority, "idle"),
+        "s_gene": _format_score_value(_raw_score(raw_scores, "S_gene")),
+        "reaction_support": _format_score_value(_raw_score(raw_scores, "reaction_support")),
+        "n_reactions": _raw_score(raw_scores, "n_reactions"),
+    }
+
+
 def build_microbiome_context(raw_scores):
     count = _format_score_value(_raw_score(raw_scores, "gut_microbiome_offtarget_counts"))
     total = _format_score_value(_raw_score(raw_scores, "gut_microbiome_genomes_analyzed"))
@@ -1204,6 +1234,7 @@ def build_protein_executive_context(
     microbiome_context = build_microbiome_context(raw_scores)
     target_profile = build_target_profile(raw_scores, microbiome_context=microbiome_context)
     metabolic_context = build_metabolic_context(protein, raw_scores)
+    gates_metabolic_priority = build_gates_metabolic_priority(raw_scores)
 
     if binders is None:
         binders = create_binders_dict(protein, search_query=search_query, structures=structures)
@@ -1230,6 +1261,7 @@ def build_protein_executive_context(
         "conservation_profile": conservation_profile,
         "microbiome_context": microbiome_context,
         "metabolic_context": metabolic_context,
+        "gates_metabolic_priority": gates_metabolic_priority,
         "structure_summary": structure_summary,
         "binders": binders,
         "target_summary": target_summary,
