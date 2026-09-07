@@ -139,6 +139,21 @@ detail page.
 ## PSORTb
 Runs via Docker-in-Docker (`/var/run/docker.sock` mounted). Has fallback to `tpweb_psort_fallback` management command when Docker is unavailable.
 
+## Access control: login wall vs. IP blocking
+Two separate layers, both in `tpweb/middleware/access_control.py`:
+- **`LoginRequiredMiddleware`**: gates every path behind login except `EXEMPT_PATH_PREFIXES`
+  (`/accounts/`, `/health/*`, `/robots.txt`). Anonymous requests get redirected to login, not
+  denied outright — this is what the Activity dashboard's "Blocked by login wall" numbers reflect.
+- **`BlockedIPMiddleware`**: a hard 403 for specific IPs in the `BlockedIP` model (`tpweb/models/BlockedIP.py`),
+  with no exemptions at all (not even `/robots.txt`). Sits *before* `LoginRequiredMiddleware` in
+  `settings.MIDDLEWARE` so a blocked IP never reaches the login-wall check. The blocked-IP set is
+  cached (`tpweb/services/ip_blocking.py`, key `Target:blocked_ips`, 60s TTL, explicitly invalidated
+  by `block_ip`/`unblock_ip`) rather than queried per request.
+- **Managed from**: the Activity dashboard's "Scanning & bot traffic" table (superuser-only "Block"
+  button per row, POSTs to `ActivityDashboardView`) and its "Blocked IPs" panel (lists current
+  blocks with an "Unblock" button), or directly via the Django admin. `ActivityDashboardView.test_func`
+  requires `is_superuser` for POST (block/unblock) but only `tpweb.can_view_activity` for GET.
+
 ## CSS rules (strict)
 - Hex colors ONLY in `tpweb/templates/base/masterpage.html` (:root block)
 - All other CSS: semantic tokens only (`--tp-color-*`, `--tp-ui-*`)

@@ -5,6 +5,18 @@
     if (!dataEl) return;
 
     var data = JSON.parse(dataEl.textContent);
+
+    // Block/unblock is a real-IP-level, whole-site action (see
+    // tpweb.middleware.access_control.BlockedIPMiddleware) -- reserved to
+    // superusers server-side (ActivityDashboardView.test_func), so the
+    // button is only rendered client-side when the page says it's allowed.
+    var pageEl = document.querySelector(".activity-page");
+    var canBlockIps = !!(pageEl && pageEl.dataset.canBlockIps === "1");
+    var activityActionUrl = pageEl ? pageEl.dataset.activityUrl : "";
+    var windowDaysParam = pageEl ? pageEl.dataset.windowDays : "";
+    var csrfTokenInput = document.querySelector("#activity-csrf-carrier [name=csrfmiddlewaretoken]");
+    var csrfToken = csrfTokenInput ? csrfTokenInput.value : "";
+
     // Pinned to en-US rather than the browser's own locale -- this page's
     // copy is all English, so a Spanish-locale browser would otherwise mix
     // "ayer"/"hoy" (locale-driven) into English sentences (hardcoded here).
@@ -228,6 +240,26 @@
         return countLabel(count, "path", "paths");
     }
 
+    // Inline <form method=post> per row, same full-page-reload pattern as
+    // the server-rendered block/unblock forms elsewhere on this page (see
+    // tpweb/templates/users/manage.html for the established convention) --
+    // no fetch/AJAX. Returns "" when the viewer can't block (test_func on
+    // ActivityDashboardView.post also enforces this server-side).
+    function blockActionCell(ip) {
+        if (!canBlockIps) return "";
+        var safeIp = escapeHtml(ip);
+        return (
+            '<span class="activity-location-action">' +
+            '<form method="post" action="' + activityActionUrl + '?days=' + encodeURIComponent(windowDaysParam) +
+            '" onsubmit=\'return confirm("Block ' + safeIp + ' from the entire site?");\'>' +
+            '<input type="hidden" name="csrfmiddlewaretoken" value="' + csrfToken + '">' +
+            '<input type="hidden" name="action" value="block">' +
+            '<input type="hidden" name="ip" value="' + safeIp + '">' +
+            '<button type="submit" class="tp-btn tp-btn--clear tp-btn--sm activity-block-btn">Block</button>' +
+            "</form></span>"
+        );
+    }
+
     // Groups IP-level rows (data.locations / data.login_attempts, both
     // shaped { ip, count, country, country_code, region, ... }) into one
     // entry per region+country (e.g. "Buenos Aires, Argentina") -- the
@@ -360,12 +392,14 @@
         }
         container.innerHTML = rows.map(function (row) {
             return (
-                '<div class="activity-location-row activity-location-row--wide activity-location-row--blocked">' +
+                '<div class="activity-location-row activity-location-row--wide activity-location-row--blocked' +
+                (canBlockIps ? " activity-location-row--actionable" : "") + '">' +
                 '<span class="activity-location-place">' + locationPlace(row) + "</span>" +
                 '<span class="activity-location-ip">' + row.ip + "</span>" +
                 userAgentCell(row.user_agent, classifyBot(row.user_agent)) +
                 '<span class="activity-location-users">' + pathsLabel(row.distinct_paths) + "</span>" +
                 '<span class="activity-location-count">' + requestsLabel(row.count) + "</span>" +
+                blockActionCell(row.ip) +
                 "</div>"
             );
         }).join("");

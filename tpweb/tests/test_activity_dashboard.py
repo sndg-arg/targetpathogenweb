@@ -1,9 +1,11 @@
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from django.test import TestCase
 from django.urls import reverse
 
+from tpweb.models.BlockedIP import BlockedIP
 from tpweb.models.RequestLog import RequestLog
 from tpweb.services.activity_dashboard import build_activity_dashboard_data
 from tpweb.services.workspace import get_public_workspace_user
@@ -624,3 +626,62 @@ class ActivityDashboardViewTests(TestCase):
         response = self.client.get(reverse("tpwebapp:activity_dashboard"), {"days": "9999"})
 
         self.assertEqual(response.context["window_days"], 7)
+
+
+class ActivityDashboardBlockActionTests(TestCase):
+    def setUp(self):
+        cache.clear()
+        self.owner = get_user_model().objects.create_user(
+            username="dash-block-owner", password="x", is_staff=True, is_superuser=True
+        )
+
+    def test_get_lists_currently_blocked_ips(self):
+        BlockedIP.objects.create(ip="203.0.113.63", reason="test")
+        self.client.force_login(self.owner)
+
+        response = self.client.get(reverse("tpwebapp:activity_dashboard"))
+
+        self.assertEqual([b.ip for b in response.context["blocked_ips"]], ["203.0.113.63"])
+
+    def test_superuser_can_block_an_ip(self):
+        self.client.force_login(self.owner)
+
+        response = self.client.post(
+            reverse("tpwebapp:activity_dashboard"), {"action": "block", "ip": "203.0.113.60"}
+        )
+
+        self.assertRedirects(
+            response,
+            reverse("tpwebapp:activity_dashboard") + "?days=7",
+            fetch_redirect_response=False,
+        )
+        blocked = BlockedIP.objects.get(ip="203.0.113.60")
+        self.assertEqual(blocked.blocked_by, self.owner)
+
+    def test_superuser_can_unblock_an_ip(self):
+        BlockedIP.objects.create(ip="203.0.113.61")
+        self.client.force_login(self.owner)
+
+        self.client.post(
+            reverse("tpwebapp:activity_dashboard"), {"action": "unblock", "ip": "203.0.113.61"}
+        )
+
+        self.assertFalse(BlockedIP.objects.filter(ip="203.0.113.61").exists())
+
+    def test_non_superuser_with_view_permission_cannot_block(self):
+        from django.contrib.auth.models import Permission
+
+        granted_user = get_user_model().objects.create_user(
+            username="dash-block-granted", password="x", is_staff=True
+        )
+        granted_user.user_permissions.add(
+            Permission.objects.get(content_type__app_label="tpweb", codename="can_view_activity")
+        )
+        self.client.force_login(granted_user)
+
+        response = self.client.post(
+            reverse("tpwebapp:activity_dashboard"), {"action": "block", "ip": "203.0.113.62"}
+        )
+
+        self.assertEqual(response.status_code, 403)
+        self.assertFalse(BlockedIP.objects.filter(ip="203.0.113.62").exists())

@@ -393,6 +393,25 @@
     white-space: nowrap;
 }
 
+/* Superuser-only variant of --wide with a trailing "Block" action column --
+   only the Scanning & bot traffic table (blocked_attempts) opts in, since
+   that's the traffic worth denying outright rather than just watching. */
+.activity-location-row--wide.activity-location-row--actionable {
+    grid-template-columns: minmax(130px, 1.1fr) minmax(100px, 0.7fr) minmax(140px, 1.3fr) minmax(90px, 0.7fr) auto auto;
+}
+
+.activity-location-action {
+    text-align: right;
+}
+
+.activity-location-action form {
+    display: inline-flex;
+}
+
+.activity-block-btn {
+    white-space: nowrap;
+}
+
 .activity-location-place {
     display: inline-flex;
     align-items: center;
@@ -533,7 +552,8 @@
        can't silently leave the 5-column --wide variant un-collapsed on a
        phone, where its minmax() widths add up to well over 360px. */
     .activity-location-row,
-    .activity-location-row--wide {
+    .activity-location-row--wide,
+    .activity-location-row--wide.activity-location-row--actionable {
         grid-template-columns: 1fr;
         gap: 2px;
         padding: 12px 0;
@@ -543,7 +563,8 @@
         display: none;
     }
 
-    .activity-location-count {
+    .activity-location-count,
+    .activity-location-action {
         text-align: left;
     }
 

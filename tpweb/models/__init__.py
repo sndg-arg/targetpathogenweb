@@ -7,6 +7,7 @@ from .CustomParamFile import CustomParam
 from .Binders import Binders
 from .BioentryStructure import BioentryStructure, ExperimentalStructureXref
 from .CuratedImportJob import CuratedImportJob
+from .BlockedIP import BlockedIP
 from .HumanProtein import HumanProtein
 from .GenomeUpload import GenomeUpload
 from .PipelineRun import PipelineRun, PipelineStageEvent
@@ -27,6 +28,7 @@ __all__ = [
     "AgentChatSession",
     "Binders",
     "BioentryStructure",
+    "BlockedIP",
     "CelularLocalization",
     "CustomParam",
     "CuratedImportJob",
