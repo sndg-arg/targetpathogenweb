@@ -59,7 +59,10 @@
     function theme() {
         return {
             brand: cssVar("--tp-color-brand-600"),
-            warning: cssVar("--tp-color-warning-border"),
+            // Anonymous/blocked traffic is the noise series -- a quiet gray
+            // rather than a second saturated hue keeps the chart reading as
+            // "one signal, one baseline" instead of two competing colors.
+            neutral: cssVar("--tp-color-border-strong"),
             text: cssVar("--tp-color-text-secondary"),
             textMuted: cssVar("--tp-color-text-muted"),
             grid: cssVar("--tp-color-border-soft"),
@@ -479,15 +482,15 @@
                     {
                         label: "Anonymous / blocked",
                         data: points.map(function (p) { return p.anonymous; }),
-                        borderColor: t.warning,
-                        backgroundColor: hexToRgba(t.warning, 0.25),
+                        borderColor: t.neutral,
+                        backgroundColor: hexToRgba(t.neutral, 0.2),
                         borderWidth: 2,
                         tension: 0.3,
                         fill: true,
                         stack: "requests",
                         pointRadius: 0,
                         pointHoverRadius: 4,
-                        pointHoverBackgroundColor: t.warning,
+                        pointHoverBackgroundColor: t.neutral,
                         pointHoverBorderColor: t.surface,
                         pointHoverBorderWidth: 2
                     }

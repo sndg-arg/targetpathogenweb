@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/activity-dashboard.css' %}?v=20260907-remove-manual-block">
+    <link rel="stylesheet" href="{% static 'css/pages/activity-dashboard.css' %}?v=20260907-restrained-accent">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -298,5 +298,5 @@
 
 {{ activity_dashboard_data|json_script:"activity-dashboard-data" }}
 <script src="{% static 'js/vendor/chart.umd.js' %}?v=20260902-context-pass"></script>
-<script src="{% static 'js/pages/activity-dashboard.js' %}?v=20260907-remove-manual-block"></script>
+<script src="{% static 'js/pages/activity-dashboard.js' %}?v=20260907-restrained-accent"></script>
 {% endblock %}

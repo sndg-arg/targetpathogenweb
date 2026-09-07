@@ -92,7 +92,7 @@
     font-size: var(--tp-heading-xl);
     line-height: 1.04;
     letter-spacing: -0.02em;
-    color: var(--activity-accent-deep);
+    color: var(--tp-color-text-primary);
 }
 
 .activity-hero-meta {
@@ -203,7 +203,7 @@
     font-size: 1.75rem;
     font-weight: 700;
     line-height: 1.1;
-    color: var(--activity-accent-deep);
+    color: var(--tp-color-text-primary);
     font-variant-numeric: proportional-nums;
 }
 
@@ -233,8 +233,10 @@
     border-left: 3px solid var(--tp-color-warning-border);
 }
 
+/* A full danger-tinted fill here read as a klaxon against the rest of the
+   row's quiet, neutral cards -- the same restrained left-border accent
+   every other KPI tile uses says "pay attention" without shouting. */
 .activity-kpi-card--errors.has-errors {
-    background: var(--tp-color-danger-bg);
     border-left-color: var(--tp-color-danger-border);
 }
 
@@ -257,7 +259,7 @@
     margin: 2px 0 0;
     font-size: 1.12rem;
     font-weight: 600;
-    color: var(--activity-accent-deep);
+    color: var(--tp-color-text-primary);
     letter-spacing: -0.02em;
 }
 
@@ -586,7 +588,7 @@
     font-family: "Space Grotesk", "Segoe UI", sans-serif;
     font-size: var(--tp-font-size-sm);
     font-weight: 700;
-    color: var(--activity-accent-deep);
+    color: var(--tp-color-text-primary);
 }
 
 .activity-summary-chip span:not(.activity-country-badge) {
@@ -736,7 +738,7 @@
 }
 
 .activity-chart-legend-swatch--anonymous {
-    background: var(--tp-color-warning-border);
+    background: var(--tp-color-border-strong);
 }
 
 .activity-chart-wrap {
@@ -827,7 +829,7 @@
     font-size: 1.5rem;
     font-weight: 700;
     line-height: 1.1;
-    color: var(--activity-accent-deep);
+    color: var(--tp-color-text-primary);
     font-variant-numeric: tabular-nums;
 }
 
