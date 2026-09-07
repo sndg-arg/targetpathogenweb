@@ -220,7 +220,7 @@ SYSTEM_SCORE_PARAM_DEFINITIONS = {
         },
     },
     "PTOOLS_betweenness_centrality": {
-        "category": "Metabolism",
+        "category": "Metabolism (automatic)",
         "description": (
             "Betweenness centrality of the metabolic reaction(s) this gene catalyzes, within the "
             "genome-scale metabolic reaction network (BioCyc/Pathway Tools MetaFlux). Higher values "
@@ -233,7 +233,7 @@ SYSTEM_SCORE_PARAM_DEFINITIONS = {
         "default_value": "0",
     },
     "metabolic_chokepoint": {
-        "category": "Metabolism",
+        "category": "Metabolism (automatic)",
         "description": (
             "Whether this gene catalyzes a metabolic chokepoint reaction — the sole reaction "
             "producing or consuming a given metabolite in the network. Chokepoint reactions are "
@@ -250,7 +250,7 @@ SYSTEM_SCORE_PARAM_DEFINITIONS = {
         },
     },
     "PTOOLS_edges": {
-        "category": "Metabolism",
+        "category": "Metabolism (automatic)",
         "description": (
             "Degree (edge count) of this gene's reaction(s) in the full genome-scale metabolic "
             "reaction network — how many other reactions it directly shares a metabolite with. "
@@ -260,6 +260,66 @@ SYSTEM_SCORE_PARAM_DEFINITIONS = {
         "type": "N",
         "default_operation": ">=",
         "default_value": "0",
+    },
+    "S_gene": {
+        "category": "Metabolism (Gates)",
+        "description": (
+            "Gates-project pan-genome metabolic model: per-gene support score (0–1) for how "
+            "confidently this gene's ortholog mapping into the pan-genome model is supported. "
+            "Curated by the Gates-project metabolic team, replacing the automatic BioCyc/Pathway "
+            "Tools metrics as the primary metabolic-importance score for this strain."
+        ),
+        "type": "N",
+        "default_operation": ">=",
+        "default_value": "0",
+    },
+    "reaction_support": {
+        "category": "Metabolism (Gates)",
+        "description": (
+            "Gates-project pan-genome metabolic model: per-reaction support score (0–1) — how "
+            "strongly this gene's reaction is supported across the modeled pan-genome strains. "
+            "Drives the quadrant/priority classification below."
+        ),
+        "type": "N",
+        "default_operation": ">=",
+        "default_value": "0",
+    },
+    "n_reactions": {
+        "category": "Metabolism (Gates)",
+        "description": (
+            "Gates-project pan-genome metabolic model: number of metabolic reactions this gene "
+            "participates in."
+        ),
+        "type": "N",
+        "default_operation": ">=",
+        "default_value": "0",
+    },
+    "quadrant": {
+        "category": "Metabolism (Gates)",
+        "description": (
+            "Gates-project pan-genome metabolic model: which S_gene/reaction_support quadrant "
+            "this gene falls into (high/low gene support × high/low reaction support)."
+        ),
+        "type": "C",
+        "default_operation": "=",
+        "default_value": "Low reaction / Low gene",
+        "options": (
+            "High reaction / High gene",
+            "High reaction / Low gene",
+            "Low reaction / High gene",
+            "Low reaction / Low gene",
+        ),
+    },
+    "priority": {
+        "category": "Metabolism (Gates)",
+        "description": (
+            "Gates-project pan-genome metabolic model: target priority tier derived from the "
+            "S_gene/reaction_support quadrant."
+        ),
+        "type": "C",
+        "default_operation": "=",
+        "default_value": "Non-priority target",
+        "options": ("Priority target", "Second priority targets", "Non-priority target"),
     },
 }
 
