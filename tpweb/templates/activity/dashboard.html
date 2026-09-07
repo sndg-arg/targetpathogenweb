@@ -168,6 +168,13 @@
                 <p class="tp-ui-field-label">{% trans "Hit the login wall on a random path, never even tried to log in" %}</p>
                 <h2 class="activity-panel-title">{% trans "Scanning &amp; bot traffic" %} <span class="tp-chip tp-chip--sm tp-chip--warning">{% trans "likely automated" %}</span></h2>
             </div>
+            {% if request.user.is_superuser %}
+            <form method="post" action="{% url 'tpwebapp:activity_dashboard' %}?days={{ window_days }}" onsubmit="return confirm('{% trans "Block every AI-crawler / generic-bot IP seen in this window? HTTP clients and search crawlers are left alone." %}');">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="block_bots">
+                <button type="submit" class="tp-btn tp-btn--outline tp-btn--sm">{% trans "Block all known bots" %}</button>
+            </form>
+            {% endif %}
         </div>
         <div class="activity-summary-chips" data-bot-summary></div>
         <details class="activity-details js-smooth-details">

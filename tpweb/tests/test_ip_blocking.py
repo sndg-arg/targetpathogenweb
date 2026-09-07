@@ -3,7 +3,7 @@ from django.core.cache import cache
 from django.test import TestCase
 
 from tpweb.models.BlockedIP import BlockedIP
-from tpweb.services.ip_blocking import block_ip, is_ip_blocked, unblock_ip
+from tpweb.services.ip_blocking import block_ip, block_ips, is_ip_blocked, unblock_ip
 
 
 class IpBlockingTests(TestCase):
@@ -45,3 +45,18 @@ class IpBlockingTests(TestCase):
     def test_is_ip_blocked_is_false_for_empty_or_missing_ip(self):
         self.assertFalse(is_ip_blocked(""))
         self.assertFalse(is_ip_blocked(None))
+
+    def test_block_ips_blocks_every_ip_with_its_own_reason(self):
+        owner = get_user_model().objects.create_user(
+            username="ip-bulk-owner", password="x", is_superuser=True
+        )
+
+        count = block_ips(
+            {"203.0.113.10": "bulk: AI crawler", "203.0.113.11": "bulk: Generic bot"},
+            blocked_by=owner,
+        )
+
+        self.assertEqual(count, 2)
+        self.assertTrue(is_ip_blocked("203.0.113.10"))
+        self.assertTrue(is_ip_blocked("203.0.113.11"))
+        self.assertEqual(BlockedIP.objects.get(ip="203.0.113.10").reason, "bulk: AI crawler")

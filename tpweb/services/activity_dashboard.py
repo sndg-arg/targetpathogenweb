@@ -237,6 +237,33 @@ def _bot_traffic_summary(window_qs):
     return summary
 
 
+# Bot categories confident enough to bulk-block on sight -- deliberately
+# excludes "HTTP client" (sometimes a misconfigured internal monitor/test,
+# not necessarily hostile) and "Search crawler" (Googlebot/Bingbot; harmless
+# against a site that's already private + Disallow: /, no reason to burn a
+# block-list entry on it).
+BULK_BLOCKABLE_BOT_LABELS = ("AI crawler", "Generic bot")
+
+
+def blockable_bot_ips(days=DEFAULT_ACTIVITY_WINDOW_DAYS, labels=BULK_BLOCKABLE_BOT_LABELS):
+    """IPs in the window classified as one of `labels` -- the target set for
+    the "block all known bots" bulk action. Scans every blocked request in
+    the window (not just the top-10-by-IP rows the dashboard table shows),
+    same as _bot_traffic_summary, so a handful of IPs from one prolific
+    crawler can't hide how many distinct actors are actually in the window.
+    Returns {ip: label} so the caller can record which signature matched.
+    """
+    window_qs = RequestLog.objects.filter(created_at__gte=timezone.now() - timedelta(days=days))
+    ips_by_label = {}
+    for ip, user_agent in _blocked_queryset(window_qs).values_list("ip", "user_agent"):
+        if not ip:
+            continue
+        label = _classify_bot(user_agent)
+        if label in labels:
+            ips_by_label.setdefault(ip, label)
+    return ips_by_label
+
+
 def _top_scanned_paths(window_qs, limit=TOP_SCANNED_PATHS_LIMIT):
     """Which exact paths the blocked/anonymous traffic is actually
     requesting -- the "what are they trying to do" complement to

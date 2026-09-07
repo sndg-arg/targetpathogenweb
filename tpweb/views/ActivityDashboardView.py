@@ -8,8 +8,9 @@ from tpweb.models.BlockedIP import BlockedIP
 from tpweb.services.activity_dashboard import (
     DEFAULT_ACTIVITY_WINDOW_DAYS,
     build_activity_dashboard_data,
+    blockable_bot_ips,
 )
-from tpweb.services.ip_blocking import block_ip, unblock_ip
+from tpweb.services.ip_blocking import block_ip, block_ips, unblock_ip
 
 # Fixed set rather than an arbitrary ?days=N -- every query in
 # build_activity_dashboard_data() runs over the full window with no
@@ -46,8 +47,25 @@ class ActivityDashboardView(LoginRequiredMixin, UserPassesTestMixin, View):
 
     def post(self, request, *args, **kwargs):
         action = request.POST.get("action")
-        ip = (request.POST.get("ip") or "").strip()
         window_days = self._resolve_window_days(request)
+
+        if action == "block_bots":
+            ips_by_label = blockable_bot_ips(days=window_days)
+            if not ips_by_label:
+                messages.info(
+                    request, f"No AI-crawler/generic-bot traffic in the last {window_days} days."
+                )
+            else:
+                count = block_ips(
+                    {ip: f"bulk: {label}" for ip, label in ips_by_label.items()},
+                    blocked_by=request.user,
+                )
+                messages.success(
+                    request, f"Blocked {count} known-bot IP(s) from the last {window_days} days."
+                )
+            return redirect(f"{reverse('tpwebapp:activity_dashboard')}?days={window_days}")
+
+        ip = (request.POST.get("ip") or "").strip()
         if not ip:
             messages.error(request, "Missing IP address.")
         elif action == "block":
