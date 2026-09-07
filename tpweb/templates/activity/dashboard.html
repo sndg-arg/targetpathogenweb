@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/activity-dashboard.css' %}?v=20260907-quiet-chips">
+    <link rel="stylesheet" href="{% static 'css/pages/activity-dashboard.css' %}?v=20260907-fixed-grid-cols">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -219,15 +219,15 @@
             </summary>
             <div class="activity-details-body">
                 <div class="activity-locations">
-                    <div class="activity-location-row activity-location-row--wide activity-location-row--head" aria-hidden="true">
+                    <div class="activity-location-row activity-location-row--blocklist activity-location-row--head" aria-hidden="true">
                         <span>{% trans "IP" %}</span>
                         <span>{% trans "Blocked by" %}</span>
                         <span>{% trans "Reason" %}</span>
                         <span>{% trans "Since" %}</span>
-                        {% if request.user.is_superuser %}<span></span>{% endif %}
+                        <span></span>
                     </div>
                     {% for blocked in blocked_ips %}
-                    <div class="activity-location-row activity-location-row--wide">
+                    <div class="activity-location-row activity-location-row--blocklist">
                         <span class="activity-location-ip">{{ blocked.ip }}</span>
                         <span class="activity-location-users">{{ blocked.blocked_by.username|default:"system (auto)" }}</span>
                         <span class="activity-location-users">{{ blocked.reason|default:"—" }}</span>

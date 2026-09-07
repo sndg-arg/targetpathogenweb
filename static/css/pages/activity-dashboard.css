@@ -447,11 +447,29 @@
     white-space: nowrap;
 }
 
+/* Every .activity-location-row is its OWN independent grid (rows aren't one
+   shared table grid), so a trailing `auto` track sizes purely off that
+   row's own content -- fine when every row's last cell is similar (a
+   number), but an empty header cell vs. a data row's button swings wildly,
+   which then reflows every earlier fr-column to a different width per row
+   (this is what broke the Blocked IPs table's column alignment). Any
+   column that's sometimes empty and sometimes holds a button must be a
+   FIXED width instead, so it's identical across every row regardless of
+   content -- see --actionable and --blocklist below. */
+
 /* Superuser-only variant of --wide with a trailing "Block" action column --
    only the Scanning & bot traffic table (blocked_attempts) opts in, since
    that's the traffic worth denying outright rather than just watching. */
 .activity-location-row--wide.activity-location-row--actionable {
-    grid-template-columns: minmax(130px, 1.1fr) minmax(100px, 0.7fr) minmax(140px, 1.3fr) minmax(90px, 0.7fr) auto auto;
+    grid-template-columns: minmax(130px, 1.1fr) minmax(100px, 0.7fr) minmax(140px, 1.3fr) minmax(90px, 0.7fr) auto 96px;
+}
+
+/* Blocked IPs table -- distinct 5-column semantics (IP / Blocked by /
+   Reason / Since / Unblock), not the generic Location/IP/UA/metric/Requests
+   shape --wide is tuned for, so it gets its own template rather than
+   overloading --wide for a different table. */
+.activity-location-row--blocklist {
+    grid-template-columns: minmax(120px, 1fr) minmax(90px, 0.7fr) minmax(140px, 1.4fr) minmax(90px, 0.6fr) 96px;
 }
 
 .activity-location-action {
