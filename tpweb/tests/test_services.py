@@ -68,6 +68,7 @@ from tpweb.services.protein_serializer import build_protein_table_row
 from tpweb.services.protein_summary import build_gates_metabolic_priority
 from tpweb.services.pipeline_status import (
     _status_from_last_run_marker,
+    _status_from_pipeline_run,
     annotate_pipeline_status_for_genome,
     sanitize_pipeline_status_for_user,
 )
@@ -1512,6 +1513,43 @@ class PipelineStatusTests(SimpleTestCase):
         self.assertEqual(status.state_label, "Last pipeline run finished")
         self.assertEqual(status.genome_accession, "USER-2__NZ_AP023069.1")
         self.assertEqual(status.genome_display_accession, "NZ_AP023069.1")
+
+    def test_status_from_pipeline_run_resolves_public_workspace_slug_from_accession(self):
+        # A public-scoped upload's genome_upload.owner_id is the shared
+        # "public" TPUser's own real pk -- reconstructing the slug from that
+        # id alone would produce "user-<pk>", not the literal "public"
+        # workspace slug, making the run look like it belongs to some other
+        # individual user's workspace instead of everyone's shared public
+        # one (sanitize_pipeline_status_for_user then hides the stage/genome
+        # info from every viewer, including the superuser who made it public).
+        fake_genome_upload = type("FakeGenomeUpload", (), {"owner_id": 42})()
+        fake_run = type(
+            "FakeRun",
+            (),
+            {
+                "id": 7,
+                "internal_accession": "public__GCA_030061715.1",
+                "genome_upload": fake_genome_upload,
+                "updated_at": None,
+                "finished_at": None,
+                "started_at": None,
+                "status": PipelineRun.STATUS_RUNNING,
+                "STATUS_FINISHED": PipelineRun.STATUS_FINISHED,
+                "STATUS_FAILED": PipelineRun.STATUS_FAILED,
+                "STATUS_CANCELLED": PipelineRun.STATUS_CANCELLED,
+                "STATUS_SUBMITTED": PipelineRun.STATUS_SUBMITTED,
+                "current_stage": 9,
+                "current_task_id": None,
+                "current_app": "index_genome_db",
+                "stage_events": type("FakeEvents", (), {"order_by": lambda self, *a: []})(),
+            },
+        )()
+
+        status = _status_from_pipeline_run(fake_run)
+
+        self.assertEqual(status.workspace_slug, "public")
+        self.assertEqual(status.workspace_owner_id, 42)
+        self.assertEqual(status.stage_current, 9)
 
     @patch("tpweb.services.pipeline_status.Biodatabase")
     def test_sanitize_pipeline_status_for_user_hides_deleted_workspace_status(
