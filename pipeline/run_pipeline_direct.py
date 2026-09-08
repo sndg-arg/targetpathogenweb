@@ -454,6 +454,22 @@ def _clear_folder(folder_path):
         shutil.rmtree(folder_path)
 
 
+def _resolve_working_dir(cfg):
+    """Project root the pipeline_commands.py manage.py commands run against.
+    Priority matches the legacy TargetConfig: explicit env var, then
+    settings.ini's [GENERAL] WorkingDir, then the repo root inferred from
+    this file's own location. Deliberately not os.getcwd() -- the queue
+    worker invokes this script with cwd set to pipeline/ itself (see
+    _build_pipeline_runtime in tpweb/services/genome_uploads.py), which
+    would otherwise resolve here to .../pipeline instead of the actual
+    project root, breaking every {working_dir}/manage.py command."""
+    return (
+        os.environ.get("TPW_PIPELINE_WORKING_DIR")
+        or cfg.get("GENERAL", "WorkingDir", fallback=None)
+        or os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    )
+
+
 # ---------------------------------------------------------------------------
 # CLI entry point — mirrors run_pipeline.py argument handling
 # ---------------------------------------------------------------------------
@@ -564,11 +580,7 @@ if __name__ == "__main__":
         cfg.read(settings_ini)
 
     # Resolve working_dir with the same priority as TargetConfig.
-    working_dir = (
-        os.environ.get("TPW_PIPELINE_WORKING_DIR")
-        or (cfg.get("GENERAL", "WorkingDir", fallback=None))
-        or os.getcwd()
-    )
+    working_dir = _resolve_working_dir(cfg)
 
     _initialize_pipeline_run(run_specs, gram, custom, args.test)
     internal_genomes = [target for _, target in run_specs]
