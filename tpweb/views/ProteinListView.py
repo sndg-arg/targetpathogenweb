@@ -1231,7 +1231,13 @@ class ProteinListView(View):
         return redirect(redirect_url)
 
     def _resolve_visible_columns(
-        self, request, formula, formula_term_list, visible_score_param_by_name, col_descriptions
+        self,
+        request,
+        formula,
+        formula_term_list,
+        visible_score_param_by_name,
+        col_descriptions,
+        genome_has_gates_priority=False,
     ):
         default_column_names = [
             score_param.name for score_param in ordered_score_params(formula_term_list)
@@ -1254,6 +1260,8 @@ class ProteinListView(View):
                 ]
                 if name in visible_score_param_by_name
             ]
+            if genome_has_gates_priority and "priority" in visible_score_param_by_name:
+                default_column_names.append("priority")
         stored_column_names = get_workspace_session_value(
             request.session,
             request.user,
@@ -1557,9 +1565,21 @@ class ProteinListView(View):
         visible_score_param_by_name = {
             score_param.name: score_param for score_param in all_visible_score_params
         }
+        # Gates metabolic priority is only loaded for a couple of curated
+        # genomes (see load_gates_metabolic_score) -- gate the default column
+        # on this genome actually having it, so genomes without it don't get
+        # a column full of "-" placeholders by default.
+        genome_has_gates_priority = ScoreParamValue.objects.filter(
+            score_param__name="priority", bioentry__biodatabase=bdb
+        ).exists()
         default_column_names, selected_column_names, score_dict, tcolumns, col_descriptions = (
             self._resolve_visible_columns(
-                request, formula, formula_term_list, visible_score_param_by_name, col_descriptions
+                request,
+                formula,
+                formula_term_list,
+                visible_score_param_by_name,
+                col_descriptions,
+                genome_has_gates_priority,
             )
         )
 

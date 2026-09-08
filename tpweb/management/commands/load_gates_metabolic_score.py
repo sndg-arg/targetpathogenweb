@@ -51,6 +51,15 @@ def dedupe_strain_rows(df, id_col, status_col):
     ).drop_duplicates(subset=[id_col], keep="first")
 
 
+def duplicate_locus_tags(df, id_col, status_col):
+    """Sorted list of real locus tags that more than one pan-genome row
+    mapped to for this strain -- the ones dedupe_strain_rows had to collapse.
+    Surfaced to stderr (and --duplicate-report) so a collapse is never just
+    a bare count; it's reviewable against the source CSV."""
+    mapped = df[df[status_col] != "no_mapeado"].dropna(subset=[id_col])
+    return sorted(mapped[id_col][mapped[id_col].duplicated(keep=False)].unique())
+
+
 class Command(BaseCommand):
     help = "Loads the Gates-project pan-genome metabolic priority score for KP13/ATCC43816."
 
@@ -64,6 +73,15 @@ class Command(BaseCommand):
         )
         parser.add_argument("--datadir", default="./data")
         parser.add_argument("--overwrite", action="store_true")
+        parser.add_argument(
+            "--duplicate-report",
+            default=None,
+            help=(
+                "Directory to write <strain>_duplicates.csv into when a strain has "
+                "collapsed rows -- one row per source CSV record involved in a "
+                "collapse, with a `kept` column marking dedupe_strain_rows's pick."
+            ),
+        )
 
     def handle(self, *args, **options):
         mapping_csv = options["mapping_csv"]
@@ -101,11 +119,28 @@ class Command(BaseCommand):
                 deduped = dedupe_strain_rows(df, id_col, status_col)
                 dropped = len(mapped) - len(deduped)
                 if dropped:
+                    dup_tags = duplicate_locus_tags(df, id_col, status_col)
                     self.stderr.write(
                         f"{label}: {dropped} duplicate pan-genome row(s) collapsed onto an "
                         "already-assigned locus tag (kept the highest reaction_support, "
-                        "tie-break highest S_gene)."
+                        f"tie-break highest S_gene): {', '.join(dup_tags)}"
                     )
+                    if options["duplicate_report"]:
+                        os.makedirs(options["duplicate_report"], exist_ok=True)
+                        report_cols = [
+                            c for c in ("id_pan_modelo", "gene_name_pan") if c in df.columns
+                        ] + [id_col, status_col, *GATES_METABOLIC_COLUMNS]
+                        dup_rows = mapped[mapped[id_col].isin(dup_tags)].sort_values(
+                            [id_col, "reaction_support", "S_gene"],
+                            ascending=[True, False, False],
+                        )
+                        report = dup_rows[report_cols].copy()
+                        report["kept"] = dup_rows.index.isin(deduped.index)
+                        report_path = os.path.join(
+                            options["duplicate_report"], f"{label.lower()}_duplicates.csv"
+                        )
+                        report.to_csv(report_path, index=False)
+                        self.stderr.write(f"{label}: wrote duplicate report to {report_path}")
 
                 strain_tsv = os.path.join(tmp_dir, f"{label.lower()}_metabolic_gates.tsv")
                 out = deduped[[id_col] + GATES_METABOLIC_COLUMNS].rename(columns={id_col: "gene"})

@@ -57,6 +57,7 @@ from tpweb.services.protein_list import (
     apply_protein_search,
     empty_pagination_payload,
     grouped_selected_parameters,
+    humanize_identifier,
     normalize_selected_parameters,
     parse_page_size,
     remove_selected_parameter,
@@ -337,6 +338,9 @@ class ProteinListServiceTests(SimpleTestCase):
     def test_normalize_selected_parameters(self):
         self.assertEqual(normalize_selected_parameters([]), [])
         self.assertEqual(normalize_selected_parameters("invalid"), [])
+
+    def test_humanize_identifier_labels_gates_priority_column(self):
+        self.assertEqual(humanize_identifier("priority"), "Metabolic priority")
 
     def test_grouped_selected_parameters(self):
         selected = [

@@ -50,6 +50,7 @@ EXACT_REPLACEMENTS = {
     "go_term": "GO term",
     "druggability": "Druggability (FPocket)",
     "p2rank_probability": "Druggability (P2Rank)",
+    "priority": "Metabolic priority",
 }
 
 

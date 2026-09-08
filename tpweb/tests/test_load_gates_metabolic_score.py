@@ -9,7 +9,10 @@ protein instead of raising.
 import pandas as pd
 from django.test import SimpleTestCase
 
-from tpweb.management.commands.load_gates_metabolic_score import dedupe_strain_rows
+from tpweb.management.commands.load_gates_metabolic_score import (
+    dedupe_strain_rows,
+    duplicate_locus_tags,
+)
 
 
 def _row(locus_tag, status, s_gene, reaction_support, n_reactions=1, quadrant="", priority=""):
@@ -84,3 +87,38 @@ class DedupeStrainRowsTests(SimpleTestCase):
         result = dedupe_strain_rows(df, "KP13_id_mapeado", "KP13_estado")
 
         self.assertEqual(sorted(result["KP13_id_mapeado"]), ["KP13_01", "KP13_02"])
+
+
+class DuplicateLocusTagsTests(SimpleTestCase):
+    def test_no_duplicates_returns_empty(self):
+        df = pd.DataFrame(
+            [
+                _row("KP13_01", "confirmado", 0.5, 0.7),
+                _row("KP13_02", "confirmado", 0.3, 0.4),
+            ]
+        )
+
+        self.assertEqual(duplicate_locus_tags(df, "KP13_id_mapeado", "KP13_estado"), [])
+
+    def test_lists_only_the_locus_tags_that_collapsed(self):
+        df = pd.DataFrame(
+            [
+                _row("KP13_01", "confirmado", 0.2825, 0.5),
+                _row("KP13_01", "confirmado", 0, 0.9),
+                _row("KP13_02", "confirmado", 0.3, 0.4),
+            ]
+        )
+
+        self.assertEqual(duplicate_locus_tags(df, "KP13_id_mapeado", "KP13_estado"), ["KP13_01"])
+
+    def test_ignores_no_mapeado_rows_when_finding_duplicates(self):
+        # Same locus tag appears twice, but one row is "no_mapeado" -- only
+        # the mapped row counts, so this isn't a real collapse.
+        df = pd.DataFrame(
+            [
+                _row("KP13_01", "confirmado", 0.5, 0.7),
+                _row("KP13_01", "no_mapeado", 0, 0),
+            ]
+        )
+
+        self.assertEqual(duplicate_locus_tags(df, "KP13_id_mapeado", "KP13_estado"), [])
