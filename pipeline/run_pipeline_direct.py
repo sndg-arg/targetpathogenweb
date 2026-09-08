@@ -56,6 +56,7 @@ from pipeline_commands import (
 )
 from interproscan_remote import run_remote_interproscan
 from colabfold_remote import run_remote_colabfold
+from fasttarget_remote import run_remote_fasttarget
 from ligq_remote import run_remote_ligq
 from slurm_remote_command import run_remote_shell_job
 from structures_remote import run_remote_structures
@@ -316,14 +317,14 @@ def run_genome(
         )
     if not _skip(4):
         if os.environ.get("TPW_FASTTARGET_USE_REMOTE", "").strip() == "1":
-            _run_configured_remote_stage(
+            _run_python_stage(
                 4,
                 "fasttarget_remote",
-                "TPW_FASTTARGET",
-                cfg_dict,
+                run_remote_fasttarget,
+                cfg_dict=cfg_dict,
+                folder_path=folder_path,
                 genome=genome,
                 working_dir=working_dir,
-                folder_path=folder_path,
             )
         else:
             fasttarget_skip_exec = os.environ.get(

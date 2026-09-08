@@ -20,7 +20,7 @@ static/css/         # Design system — tokens only, no hardcoded hex
 - **Activation**: `TPW_USE_DIRECT_PIPELINE=1` env var selects the new orchestrator
 - **Legacy**: `pipeline/apps.py`, `pipeline/config.py`, `pipeline/run_pipeline.py` — old Parsl code, kept as fallback, do not modify
 - **23 stages**, mostly linear — any failure raises immediately (no silent partial failures)
-- **Remote stages**: stage 10 (InterProScan via `interproscan_remote.py`) and optionally stage 16 (ColabFold via `colabfold_remote.py`) run on SLURM cluster nodes over SSH
+- **Remote stages**: stage 10 (InterProScan via `interproscan_remote.py`), optionally stage 4 (FastTarget via `fasttarget_remote.py`) and stage 16 (ColabFold via `colabfold_remote.py`) run on SLURM cluster nodes over SSH
 - **Parallelized stages**: stage 15 (AlphaFold downloads, 4 workers) and stage 17 (structure processing, 4 workers) use `ThreadPoolExecutor`. All other stages run sequentially.
 - **Stage events** tracked in `PipelineStageEvent` model (submitted → completed/failed)
 - **Status**: `tpweb/services/pipeline_status.py` — reads from `PipelineRun` as source of truth
@@ -32,6 +32,55 @@ static/css/         # Design system — tokens only, no hardcoded hex
 4. gbk2uniprot_map → fetch_uniprot_annotations → alphafold loop → colabfold (local CPU or remote GPU) → structures chain → load_uniprot_sites → druggability → load_score
 5. psort → load_score
 6. get_binders → load_binders
+
+## FastTarget (off-target/essentiality)
+- **Stage 4**, controlled by `TPW_FASTTARGET_USE_REMOTE`:
+  - `0` (default): runs `fasttarget.py` locally via `fast_command` — blocked by the
+    heavy-stage guard on Nodo0 (a shared orchestration node, not a compute node)
+    unless `--allow-local-heavy` is passed explicitly.
+  - `1`: runs on a remote SLURM CPU node via `pipeline/fasttarget_remote.py`. **One
+    SLURM job per genome** (both the BLAST/DIAMOND search and FastTarget's own
+    result parsing run in that one job).
+- **Why this one's different from InterProScan/ColabFold/LigQ_2**: those tools live
+  on the SLURM cluster already (conda envs, GPUs, huge reference DBs). FastTarget
+  doesn't — it's vendored in this repo (`fasttarget/`) and normally runs inside the
+  web/queue container itself, with self-downloading reference DBs under
+  `/app/fasttarget/databases`. The remote path instead reuses the fact that the two
+  functions Target actually calls (`human_offtarget`/`gut_microbiome_offtarget` via
+  `fasttarget/ftscripts/offtargets.py`, essentiality via `essentiality.py`) only wrap
+  plain `blastp`/`diamond blastp` — no Docker/Singularity involved (that's only used
+  by unrelated optional FastTarget features Target's `fast_command.py` never enables:
+  foldseek, roary, psortb, corecruncher).
+- **One-time cluster setup** (not automated, do once per cluster):
+  1. Copy the repo's `fasttarget/` directory to the cluster (e.g. `~/fasttarget`).
+  2. `conda env create -f fasttarget/requirements.yml` (creates a `fasttarget` env
+     with `blast=2.17.0` + `diamond=2.1.18` already pinned — nothing else to install).
+     If conda's shared pkg cache isn't writable, set `CONDA_PKGS_DIRS` to a directory
+     under your own home first.
+  3. Bootstrap the reference DBs via SLURM (never on the login/head node):
+     `sbatch` a job running `python fasttarget/databases.py --download all
+     --database-path ~/fasttarget_databases --cpus 4` inside the `fasttarget` env.
+- **Flow**: dump proteome FASTA from the DB (`dump_genome_proteins_fasta`, the same
+  command LigQ_2 uses) → SCP FASTA + the genome's GBK to the cluster → one SLURM job
+  runs `ftscripts.offtargets`/`essentiality`'s own search+parse functions directly
+  (human off-target BLAST, DEG BLAST, gut-microbiome-catalogue DIAMOND, then their
+  own TSV parsing — reused unmodified) → tar-pipe the small `offtarget`/`essentiality`
+  output dirs back → `fast_command` runs locally with `TPW_FASTTARGET_SKIP_EXEC=1` +
+  `TPW_FASTTARGET_ORGANISM_DIR` pointed at the copied-back output, so Target's own
+  DB-loading logic runs unchanged and `fasttarget.py` itself never runs a second time.
+- **Config** (env vars, all have defaults, same `SSH_HOSTNAME`/`SSH_USERNAME`/
+  `SSH_WORKDIR` as the other remote stages):
+  - `TPW_FASTTARGET_USE_REMOTE=1` — activate remote mode
+  - `TPW_FASTTARGET_CONDA_PREFIX` — default `/home/shared/miniconda3.8`
+  - `TPW_FASTTARGET_CONDA_ENV` — default `fasttarget` (a named env, not a prefix path)
+  - `TPW_FASTTARGET_REMOTE_DIR` — default `/home/agutson/fasttarget`
+  - `TPW_FASTTARGET_REMOTE_DATABASES_DIR` — default `/home/agutson/fasttarget_databases`
+  - `TPW_FASTTARGET_SLURM_PARTITION` — default `cpu`
+  - `TPW_FASTTARGET_SLURM_TIME` — default `02:00:00`
+  - `TPW_FASTTARGET_SLURM_MEM` — default `8G`
+  - `TPW_FASTTARGET_SLURM_CPUS` — default `4`
+  - `TPW_FASTTARGET_REMOTE_POLL_SEC` — default `30`
+  - `TPW_FASTTARGET_REMOTE_WAIT_SEC` — default `21600` (6h)
 
 ## InterProScan
 Runs remotely over SSH on the QB cluster. Config in `pipeline/settings.ini` (SSH vars).
