@@ -985,6 +985,13 @@ class GenomeUploadViewTests(TestCase):
         self.assertEqual(upload.internal_accession, f"{PUBLIC_WORKSPACE_USERNAME}__GCA_TESTPUB01")
         self.assertEqual(upload.owner.username, PUBLIC_WORKSPACE_USERNAME)
 
+        # The superuser must still see it in their own "Recent submissions"
+        # list -- it's correctly queued and will run regardless (the worker
+        # dequeues globally, not per-owner), but would otherwise be silently
+        # invisible here since its owner is the shared public user, not them.
+        response = self.client.get(reverse("tpwebapp:genome_upload"))
+        self.assertContains(response, "GCA_TESTPUB01")
+
     def test_non_superuser_make_public_checkbox_is_ignored(self):
         from django.contrib.auth.models import Permission
 

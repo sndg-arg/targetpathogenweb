@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.management import CommandError, call_command
 from django.db import transaction
+from django.db.models import Q
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views import View
@@ -118,9 +119,25 @@ class GenomeUploadView(LoginRequiredMixin, View):
         workspace_user = resolve_workspace_user(request.user)
         pipeline_status = sanitize_pipeline_status_for_user(get_pipeline_status(), request.user)
         reconcile_genome_uploads(pipeline_status, owner=workspace_user)
+        if request.user.is_superuser:
+            # Also sync status for any upload this superuser tagged to the
+            # public workspace -- reconcile_genome_uploads only touches rows
+            # owned by whoever it's called with, so a public-scoped upload
+            # would otherwise never move past "Queued" in this superuser's
+            # own view even once it's actually running or finished.
+            reconcile_genome_uploads(pipeline_status, owner=get_public_workspace_user())
         queue_positions = build_queue_position_map()
+        # A superuser can tag an upload to the public workspace instead of
+        # their own (the "Make this genome public" checkbox below) -- without
+        # this, that upload would be correctly queued and processed (the
+        # worker dequeues globally, not per-owner) but silently invisible in
+        # this superuser's own history list, since its owner is the shared
+        # public user, not them.
+        jobs_owner_filter = Q(owner=workspace_user)
+        if request.user.is_superuser:
+            jobs_owner_filter |= Q(owner=get_public_workspace_user())
         jobs = list(
-            GenomeUpload.objects.filter(owner=workspace_user).order_by("-created_at", "-id")[:8]
+            GenomeUpload.objects.filter(jobs_owner_filter).order_by("-created_at", "-id")[:8]
         )
 
         # When the pipeline is active, only the most recently submitted job for
