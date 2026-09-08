@@ -214,6 +214,46 @@
     border-radius: 14px;
 }
 
+/* The native file input otherwise renders as unstyled browser chrome --
+   the one control on this form that didn't match the rest of the design
+   system. Styled to look like the other fields, with the browser's own
+   picker button restyled via ::file-selector-button rather than replaced
+   by JS, so it stays a real, accessible <input type="file">. */
+.genome-upload-field .tp-file-input {
+    display: flex;
+    align-items: center;
+    min-height: 46px;
+    padding: 4px 6px;
+    border: 1px solid var(--tp-color-border);
+    border-radius: 14px;
+    background: var(--tp-color-surface);
+    color: var(--tp-color-text-secondary);
+    font-size: var(--tp-font-size-sm);
+}
+
+.genome-upload-field .tp-file-input::file-selector-button {
+    margin-right: 10px;
+    padding: 8px 14px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--upload-accent-soft-2);
+    color: var(--upload-accent-ink);
+    font-weight: 600;
+    font-size: var(--tp-font-size-sm);
+    cursor: pointer;
+    transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.genome-upload-field .tp-file-input::file-selector-button:hover {
+    background: var(--upload-accent-border);
+}
+
+.genome-upload-field .tp-file-input:focus-visible {
+    outline: none;
+    border-color: var(--upload-accent-border);
+    box-shadow: 0 0 0 0.2rem var(--tp-focus-ring);
+}
+
 .genome-upload-field-help,
 .genome-upload-field-error {
     margin: 0;
@@ -553,6 +593,43 @@
 }
 
 /* ── Staff section body ── */
+
+/* Collapsed by default (superuser view stacks several of these) --
+   default-closed, opened automatically when there's a result to show
+   (see external_import_result in the template). Pill-toggle idiom matches
+   .genome-raw-details/.genome-delete-summary in genome-overview.css. */
+.genome-upload-details summary {
+    cursor: pointer;
+    color: var(--upload-accent-ink);
+    font-weight: 500;
+    font-size: 0.92rem;
+    list-style: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 34px;
+    padding: 0 14px;
+    margin: 0 16px;
+    border: 1px solid var(--upload-accent-border);
+    border-radius: 999px;
+    background: var(--tp-color-surface);
+}
+
+.genome-upload-details summary::-webkit-details-marker {
+    display: none;
+}
+
+.genome-upload-details summary:hover,
+.genome-upload-details summary:focus-visible {
+    outline: none;
+    background: var(--tp-color-surface-soft);
+}
+
+.genome-upload-details[open] summary,
+.genome-upload-details.is-open-visual summary {
+    margin-bottom: 12px;
+    background: var(--upload-accent-soft-2);
+}
 
 .genome-upload-staff-body {
     padding: 16px;

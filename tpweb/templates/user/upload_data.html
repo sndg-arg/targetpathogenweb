@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/genome-upload.css' %}?v=20260811-sticky-anim-fix">
+    <link rel="stylesheet" href="{% static 'css/pages/genome-upload.css' %}?v=20260907-collapsible-advanced">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -237,6 +237,8 @@
                     <p class="genome-upload-card-note">{% trans "Owner-only assisted import for reviewed Gates results already staged on the server." %}</p>
                 </div>
             </div>
+            <details class="genome-upload-details js-smooth-details" {% if external_import_result %}open{% endif %}>
+                <summary>{% trans "Show curated import form" %}</summary>
             <div class="genome-upload-staff-body">
                 <form method="post" class="genome-upload-form" novalidate>
                     {% csrf_token %}
@@ -441,6 +443,7 @@
                     </div>
                 {% endif %}
             </div>
+            </details>
         </section>
 
         {% if curated_import_jobs %}
@@ -503,6 +506,8 @@
                     <p class="genome-upload-card-note">{% trans "Upload a results TSV or structure archive to the server so it can be used with management commands." %}</p>
                 </div>
             </div>
+            <details class="genome-upload-details js-smooth-details">
+                <summary>{% trans "Show file upload" %}</summary>
             <div class="genome-upload-staff-body">
                 <form id="data-file-upload-form" enctype="multipart/form-data" data-tp-loader="off">
                     {% csrf_token %}
@@ -523,6 +528,7 @@
                 </div>
                 <div id="data-file-upload-error" class="tp-state-note tp-state-note--error genome-upload-import-result--hidden"></div>
             </div>
+            </details>
         </section>
         {% endif %}
     </div>
