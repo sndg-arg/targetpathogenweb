@@ -1016,6 +1016,36 @@ class GenomeUploadViewTests(TestCase):
         self.assertEqual(upload.owner_id, user.pk)
         self.assertNotIn("public__", upload.internal_accession)
 
+    def test_clear_history_removes_superusers_public_workspace_uploads_too(self):
+        # clear_genome_upload_history(owner) only touches rows owned by the
+        # exact owner passed in -- a public-scoped upload is owned by the
+        # shared "public" user, not the superuser's own workspace_user, so
+        # "Clear history" would otherwise silently leave those rows behind
+        # (same class of visibility gap as the "Recent submissions" list).
+        from tpweb.models import GenomeUpload
+        from tpweb.services.workspace import get_public_workspace_user
+
+        owner = get_user_model().objects.create_user(
+            username="upload-clear-super", password="test-pass", is_superuser=True
+        )
+        self.client.force_login(owner)
+        public_user = get_public_workspace_user()
+        GenomeUpload.objects.create(
+            owner=public_user,
+            display_accession="GCA_CLEARPUB01",
+            internal_accession="public__GCA_CLEARPUB01",
+            gram="n",
+            status=GenomeUpload.STATUS_FAILED,
+            error_message="boom",
+        )
+
+        response = self.client.post(
+            reverse("tpwebapp:genome_upload"), {"action": "clear_history"}, follow=True
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(GenomeUpload.objects.filter(display_accession="GCA_CLEARPUB01").exists())
+
 
 class ProteinListViewTests(LoggedInTestCase):
     def test_renders_for_genome_with_no_proteins(self):

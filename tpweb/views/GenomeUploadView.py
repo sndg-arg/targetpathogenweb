@@ -369,14 +369,22 @@ class GenomeUploadView(LoginRequiredMixin, View):
                 ),
             )
         if action == self.ACTION_CLEAR_HISTORY:
-            if owner_has_active_uploads(workspace_user):
+            # A superuser's "Recent submissions" list also shows public-workspace
+            # uploads (see _build_context above) -- clear those too, or the button
+            # silently leaves them behind since they're owned by the shared
+            # "public" user, not this request's own workspace_user.
+            clear_owners = [workspace_user]
+            if request.user.is_superuser:
+                clear_owners.append(get_public_workspace_user())
+
+            if any(owner_has_active_uploads(owner) for owner in clear_owners):
                 messages.error(
                     request,
                     "Remove or finish queued/running uploads before clearing this history.",
                 )
                 return redirect(upload_url)
 
-            deleted_count = clear_genome_upload_history(workspace_user)
+            deleted_count = sum(clear_genome_upload_history(owner) for owner in clear_owners)
             if deleted_count:
                 messages.success(request, "Genome upload history was cleared.")
             else:
