@@ -596,23 +596,22 @@
 
 /* Collapsed by default (superuser view stacks several of these) --
    default-closed, opened automatically when there's a result to show
-   (see external_import_result in the template). Pill-toggle idiom matches
-   .genome-raw-details/.genome-delete-summary in genome-overview.css. */
+   (see external_import_result in the template). Plain text-link idiom
+   (.targets-methodology/.activity-details-summary), not a pill button --
+   this toggle sits directly above a form that already ends in its own
+   boxed .genome-upload-submit-row, so a bordered pill here read as an
+   extra rounded card wrapping another rounded card. */
 .genome-upload-details summary {
     cursor: pointer;
-    color: var(--upload-accent-ink);
-    font-weight: 500;
-    font-size: 0.92rem;
-    list-style: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    min-height: 34px;
-    padding: 0 14px;
+    display: inline-block;
     margin: 0 16px;
-    border: 1px solid var(--upload-accent-border);
-    border-radius: 999px;
-    background: var(--tp-color-surface);
+    color: var(--upload-accent-ink);
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-decoration: underline;
+    text-decoration-color: var(--upload-accent-border);
+    text-underline-offset: 3px;
+    list-style: none;
 }
 
 .genome-upload-details summary::-webkit-details-marker {
@@ -622,13 +621,13 @@
 .genome-upload-details summary:hover,
 .genome-upload-details summary:focus-visible {
     outline: none;
-    background: var(--tp-color-surface-soft);
+    color: var(--tp-color-link-hover);
+    text-decoration-color: currentColor;
 }
 
 .genome-upload-details[open] summary,
 .genome-upload-details.is-open-visual summary {
     margin-bottom: 12px;
-    background: var(--upload-accent-soft-2);
 }
 
 .genome-upload-staff-body {
