@@ -50,6 +50,7 @@ from tpweb.services.workspace import (
 class GenomeUploadView(LoginRequiredMixin, View):
     template_name = "user/upload_data.html"
     ACTION_CLEAR_HISTORY = "clear_history"
+    ACTION_CLEAR_FAILED_HISTORY = "clear_failed_history"
     ACTION_USE_TEST_GENOME = "use_test_genome"
     ACTION_VALIDATE_EXTERNAL_IMPORT = "validate_external_import"
     ACTION_RUN_EXTERNAL_IMPORT = "run_external_import"
@@ -183,6 +184,8 @@ class GenomeUploadView(LoginRequiredMixin, View):
                 }
             )
 
+        has_failed_jobs = any(job["state_class"] == "failed" for job in jobs_dto)
+
         curated_import_jobs = []
         if request.user.has_perm("tpweb.can_curated_import"):
             curated_import_jobs = [
@@ -203,7 +206,11 @@ class GenomeUploadView(LoginRequiredMixin, View):
                 workspace_user.username if request.user.is_authenticated else "public"
             ),
             "pipeline_status": pipeline_status,
-            "has_active_jobs": owner_has_active_uploads(workspace_user),
+            "has_active_jobs": owner_has_active_uploads(workspace_user)
+            or (
+                request.user.is_superuser and owner_has_active_uploads(get_public_workspace_user())
+            ),
+            "has_failed_jobs": has_failed_jobs,
             "running_genome_label": display_genome_name(running_genome),
             "can_upload_genome": request.user.has_perm("tpweb.can_upload_genome"),
             "can_make_public": request.user.is_superuser,
@@ -389,6 +396,24 @@ class GenomeUploadView(LoginRequiredMixin, View):
                 messages.success(request, "Genome upload history was cleared.")
             else:
                 messages.info(request, "There was no genome upload history to clear.")
+            return redirect(upload_url)
+
+        if action == self.ACTION_CLEAR_FAILED_HISTORY:
+            # Only touches STATUS_FAILED rows, so unlike ACTION_CLEAR_HISTORY
+            # there's no active-upload guard needed -- a queued/running job is
+            # never in this set, so it can never be cancelled by this action.
+            clear_owners = [workspace_user]
+            if request.user.is_superuser:
+                clear_owners.append(get_public_workspace_user())
+
+            deleted_count = sum(
+                clear_genome_upload_history(owner, statuses=[GenomeUpload.STATUS_FAILED])
+                for owner in clear_owners
+            )
+            if deleted_count:
+                messages.success(request, "Failed genome uploads were cleared.")
+            else:
+                messages.info(request, "There were no failed genome uploads to clear.")
             return redirect(upload_url)
 
         if not request.user.has_perm("tpweb.can_upload_genome"):

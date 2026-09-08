@@ -322,8 +322,11 @@ def delete_genome_workspace(internal_accession, owner=None):
     return deleted_uploads
 
 
-def clear_genome_upload_history(owner):
-    uploads = list(owner.genome_uploads.all())
+def clear_genome_upload_history(owner, statuses=None):
+    uploads = owner.genome_uploads.all()
+    if statuses is not None:
+        uploads = uploads.filter(status__in=statuses)
+    uploads = list(uploads)
     deleted_count = 0
 
     for upload in uploads:

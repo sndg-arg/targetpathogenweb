@@ -168,6 +168,14 @@
                             {% include "components/icons/refresh.html" %}
                         </span>
                     </button>
+                    {% if has_failed_jobs %}
+                        <form method="post" class="genome-upload-history-clear-form" onsubmit="return window.confirm('{% trans "Clear only the failed submissions?" %}');">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="clear_failed_history">
+                            {% trans "Clear failed" as clear_failed_label %}
+                            {% include "components/buttons/clear_action.html" with label=clear_failed_label button_type="submit" classes="btn tp-btn tp-btn--clear tp-btn-with-icon genome-upload-history-clear-btn" %}
+                        </form>
+                    {% endif %}
                     {% if jobs %}
                         <form method="post" class="genome-upload-history-clear-form" onsubmit="return window.confirm('{% trans "Clear all upload history for this account?" %}');">
                             {% csrf_token %}

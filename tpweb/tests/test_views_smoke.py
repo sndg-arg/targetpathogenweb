@@ -1046,6 +1046,41 @@ class GenomeUploadViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertFalse(GenomeUpload.objects.filter(display_accession="GCA_CLEARPUB01").exists())
 
+    def test_clear_failed_history_only_removes_failed_rows(self):
+        from tpweb.models import GenomeUpload
+        from tpweb.services.workspace import get_public_workspace_user
+
+        owner = get_user_model().objects.create_user(
+            username="upload-clear-failed", password="test-pass", is_superuser=True
+        )
+        self.client.force_login(owner)
+        public_user = get_public_workspace_user()
+        GenomeUpload.objects.create(
+            owner=public_user,
+            display_accession="GCA_FAILEDPUB01",
+            internal_accession="public__GCA_FAILEDPUB01",
+            gram="n",
+            status=GenomeUpload.STATUS_FAILED,
+            error_message="boom",
+        )
+        GenomeUpload.objects.create(
+            owner=owner,
+            display_accession="GCA_FINISHEDPRIV01",
+            internal_accession=f"user-{owner.pk}__GCA_FINISHEDPRIV01",
+            gram="n",
+            status=GenomeUpload.STATUS_FINISHED,
+        )
+
+        response = self.client.post(
+            reverse("tpwebapp:genome_upload"), {"action": "clear_failed_history"}, follow=True
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(GenomeUpload.objects.filter(display_accession="GCA_FAILEDPUB01").exists())
+        self.assertTrue(
+            GenomeUpload.objects.filter(display_accession="GCA_FINISHEDPRIV01").exists()
+        )
+
 
 class ProteinListViewTests(LoggedInTestCase):
     def test_renders_for_genome_with_no_proteins(self):
