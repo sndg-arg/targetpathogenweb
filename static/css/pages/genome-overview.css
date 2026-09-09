@@ -953,6 +953,25 @@
     font-size: var(--tp-font-size-sm);
 }
 
+/* Splits the breakdown list into "downloaded, ready to use" vs. "just a
+   UniProt citation" -- without this, e.g. PDB xref proteins/entries read as
+   more numbers in the same "loaded" group they sit next to, when they can
+   disagree with the downloaded counts above them. display:block overrides
+   the shared .evidence-breakdown li's space-between row layout, since this
+   li has no paired value on the right, just the caption itself. */
+.evidence-breakdown-group-label {
+    display: block;
+    margin-top: 4px;
+    padding-top: 8px;
+    border-top: 1px dashed var(--tp-color-border-soft);
+    font-size: var(--tp-font-label);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--tp-color-text-muted);
+    cursor: help;
+}
+
 .evidence-card-action {
     align-self: flex-start;
     margin-top: auto;
