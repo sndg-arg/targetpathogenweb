@@ -127,21 +127,26 @@
     grid-template-columns: minmax(0, 1.6fr) minmax(300px, 0.9fr);
     gap: 18px;
     align-items: start;
-    /* The two cards inside keep their own border -- margin aligns that
-       border with the 18px text inset the unboxed hero uses. */
+    /* Text inset matching the unboxed hero above it. */
     margin: 0 18px;
 }
 
-/* .genome-upload-card (the form+guide workbench pair) keeps its own
-   card box -- side-by-side tool layout, same call as customparam.html's
-   form+guide. .genome-upload-history sections (recent submissions,
-   curated import, etc.) fuse instead -- they're sequential page
-   sections, not a paired workbench. See tpw-editorial-redesign. */
+/* Sits directly on the page background, like every other section on this
+   page -- no card border/background of its own. A plain-text callout (no
+   chip/button) in its own rounded box read as "text trapped in a pill" once
+   flagged; same standard now applies here as everywhere else on the site,
+   including this previously-kept-boxed workbench pair. See
+   tpw-editorial-redesign. */
 .genome-upload-card {
-    border: 1px solid var(--upload-border);
-    border-radius: var(--tp-ui-radius-panel);
-    background: var(--tp-color-surface);
-    padding: 16px 18px;
+    padding: 16px 0;
+}
+
+/* Vertical hairline between the form and guide columns -- a paired
+   side-by-side workbench, not a sequential top-to-bottom section, so the
+   seam is a left border instead of the usual border-top. */
+.genome-upload-card--guide {
+    border-left: 1px solid var(--tp-color-border-soft);
+    padding-left: 18px;
 }
 
 .genome-upload-history {
@@ -322,7 +327,6 @@
 .genome-upload-card--guide {
     display: grid;
     gap: 8px;
-    background: var(--tp-color-surface);
 }
 
 .genome-upload-guide {
@@ -372,12 +376,12 @@
     line-height: 1.5;
 }
 
+/* Plain text, no chip/button in it -- left-accent-bar instead of a
+   rounded/tinted box, same treatment as .genome-upload-form-state. */
 .genome-upload-guide-note {
     margin-top: 6px;
-    padding: 12px 14px;
-    border-radius: 14px;
-    background: var(--tp-color-info-bg);
-    border: 1px solid var(--tp-color-info-border);
+    padding: 2px 0 2px 12px;
+    border-left: 3px solid var(--tp-color-info-border);
     color: var(--tp-color-text-secondary);
     font-size: 0.9rem;
     line-height: 1.5;
@@ -576,6 +580,17 @@
     .genome-upload-form-grid {
         grid-template-columns: minmax(0, 1fr);
     }
+
+    /* Form and guide stack instead of sitting side by side -- the seam
+       between them becomes a horizontal hairline (like the rest of the
+       page's sequential sections) instead of the desktop vertical divider. */
+    .genome-upload-card--guide {
+        border-left: 0;
+        padding-left: 0;
+        border-top: 1px solid var(--tp-color-border-soft);
+        padding-top: 16px;
+        margin-top: 16px;
+    }
 }
 
 @media (max-width: 768px) {
@@ -583,7 +598,10 @@
         padding: 18px 16px 16px;
     }
 
-    .genome-upload-card,
+    .genome-upload-layout {
+        margin: 0 16px;
+    }
+
     .genome-upload-history {
         padding: 14px;
     }
