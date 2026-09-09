@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/genome-upload.css' %}?v=20260909-fuse-workbench-card">
+    <link rel="stylesheet" href="{% static 'css/pages/genome-upload.css' %}?v=20260909-merge-pipeline-note">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -32,9 +32,6 @@
                     {% include "components/pipeline/chip.html" with pipeline_status=pipeline_status mode="global" chip_class="tp-chip tp-chip--state tp-chip--sm" %}
                 {% endif %}
             </div>
-            {% if pipeline_status.running %}
-                {% include "components/pipeline/note.html" with pipeline_status=pipeline_status mode="global" note_class="genome-upload-pipeline-note" %}
-            {% endif %}
             <div class="genome-upload-hero-actions">
                 {% if can_upload_genome %}
                 <form method="post" class="genome-upload-test-form">

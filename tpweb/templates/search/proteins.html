@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20260902-and-divider">
+    <link rel="stylesheet" href="{% static 'css/pages/proteins-list.css' %}?v=20260909-merge-pipeline-note">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -53,7 +53,6 @@
             {% if pipeline_status.available and pipeline_status.running_for_current_genome %}
                 <div class="hero-pipeline-group">
                     {% include "components/pipeline/chip.html" with pipeline_status=pipeline_status mode="genome" chip_class="tp-chip tp-chip--state tp-chip--sm" %}
-                    {% include "components/pipeline/note.html" with pipeline_status=pipeline_status mode="genome" note_class="hero-pipeline-note" %}
                 </div>
             {% endif %}
             <details class="hero-analysis-context js-smooth-details" {% if not is_default_view %}open{% endif %}>

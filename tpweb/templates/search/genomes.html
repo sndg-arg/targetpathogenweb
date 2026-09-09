@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/genomes-list.css' %}?v=20260811-sticky-revert">
+    <link rel="stylesheet" href="{% static 'css/pages/genomes-list.css' %}?v=20260909-merge-pipeline-note">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -53,7 +53,6 @@
             {% if pipeline_status.running and not pipeline_status.running_for_other_workspace %}
                 <div class="genomes-pipeline">
                     {% include "components/pipeline/chip.html" with pipeline_status=pipeline_status mode="global" chip_class="tp-chip tp-chip--state tp-chip--sm" %}
-                    {% include "components/pipeline/note.html" with pipeline_status=pipeline_status mode="global" note_class="genomes-pipeline-note" %}
                 </div>
             {% endif %}
             <div class="genomes-meta" role="list" aria-label="{% trans "Genome summary" %}">

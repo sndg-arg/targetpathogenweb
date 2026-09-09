@@ -4,7 +4,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20260909-evidence-groups">
+    <link rel="stylesheet" href="{% static 'css/pages/genome-overview.css' %}?v=20260909-merge-pipeline-chip">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -59,10 +59,7 @@
                     {% if pipeline_status.available %}
                         {% if pipeline_status.running_for_current_genome or pipeline_status.current_genome_status_note %}
                             <div class="genome-pipeline-group">
-                                <div>
-                                    {% include "components/pipeline/chip.html" with pipeline_status=pipeline_status mode="genome" chip_class="tp-chip tp-chip--state tp-chip--sm" %}
-                                </div>
-                                {% include "components/pipeline/note.html" with pipeline_status=pipeline_status mode="genome" note_class="hero-pipeline-note" %}
+                                {% include "components/pipeline/chip.html" with pipeline_status=pipeline_status mode="genome" chip_class="tp-chip tp-chip--state tp-chip--sm" %}
                             </div>
                             {% if pipeline_status.current_genome_status_note %}
                                 <p class="tp-state-note {% if pipeline_status.failed_for_current_genome %}tp-state-note--error{% else %}tp-state-note--empty{% endif %}">

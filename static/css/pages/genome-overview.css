@@ -137,14 +137,6 @@
     max-width: min(100%, 720px);
 }
 
-.hero-pipeline-note {
-    margin: 0;
-    color: var(--tp-color-text-muted);
-    font-size: var(--tp-font-size-sm);
-    font-weight: 500;
-    line-height: 1.35;
-}
-
 .genome-hero-actions {
     display: flex;
     flex-wrap: wrap;
