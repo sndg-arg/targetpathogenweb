@@ -140,6 +140,15 @@ templates with more than one occurrence (a single `.tp-ui-panel` isn't a "stacke
   general rule, not a one-off: audit any inline note/tip/banner that's pure text (not a chip, not a
   button, not a form field) for this pattern on every page, workbench-exception pages included —
   it's exactly what tipped `genome-upload.css`'s form+guide pair from "keep boxed" to "fuse."
+- **Corollary — don't wrap a chip/pill in another rounded container either.** Found on
+  `home.css`: `.home-operations-statusbar` was itself a bordered, fully-rounded pill
+  (`border-radius: 999px`) wrapping `.home-pipeline-chip`, which is already a `.tp-chip` pill —
+  a chip nested inside another chip, same family of bug as text-in-a-box above but with a chip as
+  the inner element instead of plain text. A row that groups a chip with one or more icon buttons
+  needs to be a plain flex container (`display:flex`/`inline-flex`, no border/background/radius of
+  its own) — the chip and the buttons already carry their own shapes; the grouping wrapper doesn't
+  need one too. Check any place a `.tp-chip` sits inside a `<div>`/`<span>` wrapper alongside
+  buttons or other chips for this exact pattern.
 - Check each page's own CSS file under `static/css/pages/` for its `.tp-ui-panel`/`.tp-card`-based
   section styling before editing the template — several pages (genomes-list, proteins-list,
   customparam) duplicate the shared class's box styling directly under a page-specific class name,
