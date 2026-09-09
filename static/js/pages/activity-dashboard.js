@@ -575,12 +575,345 @@
         });
     }
 
+    var STATUS_BUCKET_ORDER = ["2xx", "3xx", "4xx", "5xx"];
+
     var STATUS_BUCKET_META = {
         "2xx": "Success",
         "3xx": "Redirects",
         "4xx": "Client errors",
         "5xx": "Server errors"
     };
+
+    function dayLabels(points) {
+        return points.map(function (p) {
+            return new Date(p.date + "T00:00:00").toLocaleDateString(UI_LOCALE, { month: "short", day: "numeric" });
+        });
+    }
+
+    function hourLabel(hour) {
+        if (hour === 0) return "12a";
+        if (hour < 12) return hour + "a";
+        if (hour === 12) return "12p";
+        return (hour - 12) + "p";
+    }
+
+    // Distinct authenticated users vs. distinct IPs live on wildly different
+    // scales (a handful of accounts against hundreds of visiting/scanning
+    // IPs) -- a shared axis would flatten the users line to a barely-visible
+    // sliver, so this is the one chart on the page with two y-axes.
+    function renderVisitorsTimeseries(t) {
+        var canvas = document.getElementById("activity-visitors-chart");
+        if (!canvas) return null;
+        var points = data.visitors_timeseries || [];
+        return new Chart(canvas.getContext("2d"), {
+            type: "line",
+            data: {
+                labels: dayLabels(points),
+                datasets: [
+                    {
+                        label: "Unique users",
+                        data: points.map(function (p) { return p.users; }),
+                        borderColor: t.brand,
+                        backgroundColor: hexToRgba(t.brand, 0.18),
+                        borderWidth: 2,
+                        tension: 0.3,
+                        fill: true,
+                        yAxisID: "y",
+                        pointRadius: 0,
+                        pointHoverRadius: 4,
+                        pointHoverBackgroundColor: t.brand,
+                        pointHoverBorderColor: t.surface,
+                        pointHoverBorderWidth: 2
+                    },
+                    {
+                        label: "Unique IPs",
+                        data: points.map(function (p) { return p.ips; }),
+                        borderColor: t.neutral,
+                        backgroundColor: "transparent",
+                        borderWidth: 2,
+                        borderDash: [4, 3],
+                        tension: 0.3,
+                        fill: false,
+                        yAxisID: "y1",
+                        pointRadius: 0,
+                        pointHoverRadius: 4,
+                        pointHoverBackgroundColor: t.neutral,
+                        pointHoverBorderColor: t.surface,
+                        pointHoverBorderWidth: 2
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: "index", intersect: false },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: baseTooltip(t)
+                },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: t.textMuted, maxRotation: 0, autoSkip: true, maxTicksLimit: 8 }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        position: "left",
+                        grid: { color: t.grid, drawTicks: false },
+                        border: { display: false },
+                        ticks: { color: t.textMuted, precision: 0 }
+                    },
+                    y1: {
+                        beginAtZero: true,
+                        position: "right",
+                        grid: { display: false },
+                        border: { display: false },
+                        ticks: { color: t.textMuted, precision: 0 }
+                    }
+                }
+            }
+        });
+    }
+
+    // The day-by-day trend charts never show *when in the day* the platform
+    // gets used -- this is the intraday-pattern complement, summed across
+    // the whole window rather than split per day (24 x N days would be too
+    // sparse to read anything into).
+    function renderHourlyTraffic(t) {
+        var canvas = document.getElementById("activity-hourly-chart");
+        if (!canvas) return null;
+        var rows = data.hourly_traffic || [];
+        if (!rows.some(function (r) { return r.count > 0; })) {
+            canvas.closest(".activity-chart-wrap").innerHTML = '<p class="activity-chart-empty">No authenticated traffic yet.</p>';
+            return null;
+        }
+        return new Chart(canvas.getContext("2d"), {
+            type: "bar",
+            data: {
+                labels: rows.map(function (r) { return hourLabel(r.hour); }),
+                datasets: [{
+                    data: rows.map(function (r) { return r.count; }),
+                    backgroundColor: t.brand,
+                    borderRadius: 4,
+                    barThickness: 10,
+                    maxBarThickness: 14
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: baseTooltip(t)
+                },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: t.textMuted, maxRotation: 0, autoSkip: true, maxTicksLimit: 12 }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: t.grid, drawTicks: false },
+                        border: { display: false },
+                        ticks: { color: t.textMuted, precision: 0 }
+                    }
+                }
+            }
+        });
+    }
+
+    // Replaces the old snapshot doughnut with a day-by-day stacked area of
+    // the same four buckets -- the status tiles below still carry the exact
+    // counts/percentages, this is the "how has the mix moved" complement.
+    function renderStatusTimeseries(t) {
+        var canvas = document.getElementById("activity-status-chart");
+        if (!canvas) return null;
+        var points = data.status_timeseries || [];
+        var total = points.reduce(function (sum, p) {
+            return sum + STATUS_BUCKET_ORDER.reduce(function (s, b) { return s + (p[b] || 0); }, 0);
+        }, 0);
+        if (!total) {
+            canvas.closest(".activity-chart-wrap").innerHTML = '<p class="activity-chart-empty">No authenticated requests yet.</p>';
+            return null;
+        }
+        var bucketColor = { "2xx": t.success, "3xx": t.info, "4xx": t.warning, "5xx": t.danger };
+        return new Chart(canvas.getContext("2d"), {
+            type: "line",
+            data: {
+                labels: dayLabels(points),
+                datasets: STATUS_BUCKET_ORDER.map(function (bucket) {
+                    var color = bucketColor[bucket];
+                    return {
+                        label: bucket,
+                        data: points.map(function (p) { return p[bucket] || 0; }),
+                        borderColor: color,
+                        backgroundColor: hexToRgba(color, 0.5),
+                        borderWidth: 1,
+                        tension: 0.3,
+                        fill: true,
+                        stack: "status",
+                        pointRadius: 0,
+                        pointHoverRadius: 3
+                    };
+                })
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: "index", intersect: false },
+                plugins: {
+                    legend: {
+                        position: "bottom",
+                        labels: { color: t.text, boxWidth: 10, padding: 10, font: { size: 11 } }
+                    },
+                    tooltip: baseTooltip(t)
+                },
+                scales: {
+                    x: {
+                        stacked: true,
+                        grid: { display: false },
+                        ticks: { color: t.textMuted, maxRotation: 0, autoSkip: true, maxTicksLimit: 8 }
+                    },
+                    y: {
+                        stacked: true,
+                        beginAtZero: true,
+                        grid: { color: t.grid, drawTicks: false },
+                        border: { display: false },
+                        ticks: { color: t.textMuted, precision: 0 }
+                    }
+                }
+            }
+        });
+    }
+
+    // Zoomed-in on just the 4xx/5xx portion of status_timeseries -- on the
+    // full stacked chart above, a handful of errors against thousands of
+    // 2xx responses can round away to an invisible sliver at the bottom of
+    // the stack. Same underlying data, different scale.
+    function renderErrorsTimeseries(t) {
+        var canvas = document.getElementById("activity-errors-chart");
+        if (!canvas) return null;
+        var points = data.status_timeseries || [];
+        var total = points.reduce(function (sum, p) { return sum + (p["4xx"] || 0) + (p["5xx"] || 0); }, 0);
+        if (!total) {
+            canvas.closest(".activity-chart-wrap").innerHTML = '<p class="activity-chart-empty">No errors in this window — nice.</p>';
+            return null;
+        }
+        return new Chart(canvas.getContext("2d"), {
+            type: "bar",
+            data: {
+                labels: dayLabels(points),
+                datasets: [
+                    {
+                        label: "4xx",
+                        data: points.map(function (p) { return p["4xx"] || 0; }),
+                        backgroundColor: t.warning,
+                        borderRadius: 3,
+                        stack: "errors"
+                    },
+                    {
+                        label: "5xx",
+                        data: points.map(function (p) { return p["5xx"] || 0; }),
+                        backgroundColor: t.danger,
+                        borderRadius: 3,
+                        stack: "errors"
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: "index", intersect: false },
+                plugins: {
+                    legend: {
+                        position: "bottom",
+                        labels: { color: t.text, boxWidth: 10, padding: 10, font: { size: 11 } }
+                    },
+                    tooltip: baseTooltip(t)
+                },
+                scales: {
+                    x: {
+                        stacked: true,
+                        grid: { display: false },
+                        ticks: { color: t.textMuted, maxRotation: 0, autoSkip: true, maxTicksLimit: 8 }
+                    },
+                    y: {
+                        stacked: true,
+                        beginAtZero: true,
+                        grid: { color: t.grid, drawTicks: false },
+                        border: { display: false },
+                        ticks: { color: t.textMuted, precision: 0 }
+                    }
+                }
+            }
+        });
+    }
+
+    // Same classification renderBotChart()/renderBotSummary() already show
+    // as a whole-window rollup -- this is the "when did each kind show up"
+    // trend, capped server-side to the top few labels (+ "Other") so a long
+    // tail of one-off user agents doesn't turn into unreadable confetti.
+    function renderBotTimeseries(t) {
+        var canvas = document.getElementById("activity-bot-timeseries-chart");
+        if (!canvas) return null;
+        var points = data.bot_traffic_timeseries || [];
+        var labelsList = data.bot_traffic_timeseries_labels || [];
+        var total = points.reduce(function (sum, p) {
+            return sum + labelsList.reduce(function (s, l) { return s + (p[l] || 0); }, 0);
+        }, 0);
+        if (!total) {
+            canvas.closest(".activity-chart-wrap").innerHTML = '<p class="activity-chart-empty">No scanning traffic in this window — nice.</p>';
+            return null;
+        }
+        var palette = [t.brand, t.danger, t.warning, t.info, t.neutral];
+        return new Chart(canvas.getContext("2d"), {
+            type: "line",
+            data: {
+                labels: dayLabels(points),
+                datasets: labelsList.map(function (label, i) {
+                    var color = palette[i % palette.length];
+                    return {
+                        label: label,
+                        data: points.map(function (p) { return p[label] || 0; }),
+                        borderColor: color,
+                        backgroundColor: hexToRgba(color, 0.35),
+                        borderWidth: 1,
+                        tension: 0.3,
+                        fill: true,
+                        stack: "bots",
+                        pointRadius: 0,
+                        pointHoverRadius: 3
+                    };
+                })
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: "index", intersect: false },
+                plugins: {
+                    legend: {
+                        position: "bottom",
+                        labels: { color: t.text, boxWidth: 10, padding: 10, font: { size: 11 } }
+                    },
+                    tooltip: baseTooltip(t)
+                },
+                scales: {
+                    x: {
+                        stacked: true,
+                        grid: { display: false },
+                        ticks: { color: t.textMuted, maxRotation: 0, autoSkip: true, maxTicksLimit: 8 }
+                    },
+                    y: {
+                        stacked: true,
+                        beginAtZero: true,
+                        grid: { color: t.grid, drawTicks: false },
+                        border: { display: false },
+                        ticks: { color: t.textMuted, precision: 0 }
+                    }
+                }
+            }
+        });
+    }
 
     function statusPercent(count, total) {
         if (!total) return "0%";
@@ -614,45 +947,6 @@
 
         rows.forEach(function (r) {
             animateNumber(container.querySelector('[data-status-value="' + r.bucket + '"]'), r.count);
-        });
-    }
-
-    // Same four buckets the status tiles below already render as text --
-    // this doughnut is a "shape of it at a glance" complement, not a
-    // replacement, so the tiles keep the exact counts/percentages.
-    function renderStatusChart(t) {
-        var canvas = document.getElementById("activity-status-chart");
-        if (!canvas) return null;
-        var rows = data.status_breakdown || [];
-        var total = rows.reduce(function (sum, r) { return sum + r.count; }, 0);
-        if (!total) {
-            canvas.closest(".activity-chart-wrap").innerHTML = '<p class="activity-chart-empty">No requests logged yet.</p>';
-            return null;
-        }
-        var bucketColor = { "2xx": t.success, "3xx": t.info, "4xx": t.warning, "5xx": t.danger };
-        return new Chart(canvas.getContext("2d"), {
-            type: "doughnut",
-            data: {
-                labels: rows.map(function (r) { return r.bucket; }),
-                datasets: [{
-                    data: rows.map(function (r) { return r.count; }),
-                    backgroundColor: rows.map(function (r) { return bucketColor[r.bucket] || t.neutral; }),
-                    borderColor: t.surface,
-                    borderWidth: 2
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                cutout: "68%",
-                plugins: {
-                    legend: {
-                        position: "right",
-                        labels: { color: t.text, boxWidth: 10, padding: 10, font: { size: 11 } }
-                    },
-                    tooltip: baseTooltip(t)
-                }
-            }
         });
     }
 
@@ -712,7 +1006,16 @@
         charts.forEach(function (c) { c.destroy(); });
         charts = [];
         var t = theme();
-        [renderTimeseries(t), renderTopPages(t), renderStatusChart(t), renderBotChart(t)].forEach(function (c) {
+        [
+            renderTimeseries(t),
+            renderVisitorsTimeseries(t),
+            renderTopPages(t),
+            renderHourlyTraffic(t),
+            renderBotChart(t),
+            renderBotTimeseries(t),
+            renderStatusTimeseries(t),
+            renderErrorsTimeseries(t)
+        ].forEach(function (c) {
             if (c) charts.push(c);
         });
     }

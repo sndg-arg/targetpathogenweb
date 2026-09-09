@@ -746,6 +746,14 @@
     background: var(--tp-color-border-strong);
 }
 
+/* Dashed on the IPs line itself (see renderVisitorsTimeseries) -- this
+   swatch mirrors that with a dashed border instead of a second solid fill,
+   so the legend and the line read as the same series at a glance. */
+.activity-chart-legend-swatch--ips {
+    background: transparent;
+    border: 1.5px dashed var(--tp-color-border-strong);
+}
+
 .activity-chart-wrap {
     margin-top: 14px;
     position: relative;

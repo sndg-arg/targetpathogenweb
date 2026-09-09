@@ -49,6 +49,78 @@ class BuildActivityDashboardDataTests(TestCase):
         self.assertEqual(counts, {"2xx": 2, "3xx": 1, "4xx": 1, "5xx": 1})
         self.assertEqual(data["kpis"]["errors"], 2)
 
+    def test_status_breakdown_and_errors_exclude_anonymous_traffic(self):
+        # Anonymous 3xx/4xx is almost entirely login-wall bounces and bots
+        # probing dead paths, not the app's real behavior for a real
+        # session -- both the errors KPI and the status breakdown should
+        # only reflect authenticated requests.
+        RequestLog.objects.create(
+            user=self.alice, ip="10.0.0.1", method="GET", path="/x", status_code=200
+        )
+        RequestLog.objects.create(
+            user=None, ip="203.0.113.1", method="GET", path="/genomes", status_code=302
+        )
+        RequestLog.objects.create(
+            user=None, ip="203.0.113.1", method="GET", path="/wp-login.php", status_code=404
+        )
+
+        data = build_activity_dashboard_data()
+        counts = {row["bucket"]: row["count"] for row in data["status_breakdown"]}
+
+        self.assertEqual(counts, {"2xx": 1, "3xx": 0, "4xx": 0, "5xx": 0})
+        self.assertEqual(data["kpis"]["errors"], 0)
+
+    def test_status_timeseries_buckets_authenticated_traffic_by_day(self):
+        RequestLog.objects.create(
+            user=self.alice, ip="10.0.0.1", method="GET", path="/x", status_code=200
+        )
+        RequestLog.objects.create(
+            user=self.alice, ip="10.0.0.1", method="GET", path="/y", status_code=500
+        )
+        RequestLog.objects.create(
+            user=None, ip="203.0.113.1", method="GET", path="/genomes", status_code=302
+        )
+
+        data = build_activity_dashboard_data()
+        today_point = data["status_timeseries"][-1]
+
+        self.assertEqual(today_point["2xx"], 1)
+        self.assertEqual(today_point["5xx"], 1)
+        self.assertEqual(today_point["3xx"], 0)
+
+    def test_visitors_timeseries_reports_distinct_users_and_ips_per_day(self):
+        RequestLog.objects.create(
+            user=self.alice, ip="10.0.0.1", method="GET", path="/x", status_code=200
+        )
+        RequestLog.objects.create(
+            user=self.alice, ip="10.0.0.1", method="GET", path="/y", status_code=200
+        )
+        RequestLog.objects.create(
+            user=self.bob, ip="10.0.0.2", method="GET", path="/x", status_code=200
+        )
+        RequestLog.objects.create(
+            user=None, ip="203.0.113.1", method="GET", path="/genomes", status_code=302
+        )
+
+        data = build_activity_dashboard_data()
+        today_point = data["visitors_timeseries"][-1]
+
+        self.assertEqual(today_point["users"], 2)
+        self.assertEqual(today_point["ips"], 3)
+
+    def test_hourly_traffic_counts_authenticated_requests_by_hour(self):
+        RequestLog.objects.create(
+            user=self.alice, ip="10.0.0.1", method="GET", path="/x", status_code=200
+        )
+        RequestLog.objects.create(
+            user=None, ip="203.0.113.1", method="GET", path="/genomes", status_code=302
+        )
+
+        data = build_activity_dashboard_data()
+
+        self.assertEqual(len(data["hourly_traffic"]), 24)
+        self.assertEqual(sum(row["count"] for row in data["hourly_traffic"]), 1)
+
     def test_top_pages_normalizes_numeric_id_segments(self):
         RequestLog.objects.create(
             user=self.alice, ip="10.0.0.1", method="GET", path="/protein/123", status_code=200
@@ -440,6 +512,33 @@ class BotTrafficSummaryTests(TestCase):
         self.assertIn("Generic bot", by_label)
         self.assertEqual(by_label["Generic bot"]["ip_count"], 1)
 
+    @patch("tpweb.services.activity_dashboard.geolocate_ip")
+    def test_bot_traffic_timeseries_buckets_by_day_and_label(self, mock_geolocate):
+        mock_geolocate.return_value = None
+        RequestLog.objects.create(
+            user=None,
+            ip="203.0.113.1",
+            method="GET",
+            path="/genomes",
+            status_code=302,
+            user_agent="Mozilla/5.0 AppleWebKit/537.36 (compatible; ClaudeBot/1.0; +claudebot@anthropic.com)",
+        )
+        RequestLog.objects.create(
+            user=None,
+            ip="203.0.113.2",
+            method="GET",
+            path="/genomes",
+            status_code=302,
+            user_agent="curl/8.4.0",
+        )
+
+        data = build_activity_dashboard_data()
+        today_point = data["bot_traffic_timeseries"][-1]
+
+        self.assertIn("AI crawler", data["bot_traffic_timeseries_labels"])
+        self.assertEqual(today_point["AI crawler"], 1)
+        self.assertEqual(today_point["Unclassified"], 1)
+
 
 class TopErrorPathsTests(TestCase):
     def setUp(self):
@@ -484,6 +583,22 @@ class TopErrorPathsTests(TestCase):
         codes = {c["code"]: c["count"] for c in by_path["/protein/<id>"]["codes"]}
         self.assertEqual(codes, {404: 2, 500: 1})
         self.assertNotIn("/genomes", by_path)
+
+    def test_anonymous_errors_are_excluded(self):
+        # A crawler's 404 on a dead path is scanning noise, not a real
+        # error a real user hit -- it shouldn't crowd out genuine breakage.
+        RequestLog.objects.create(
+            user=None, ip="203.0.113.1", method="GET", path="/wp-login.php", status_code=404
+        )
+        RequestLog.objects.create(
+            user=self.alice, ip="10.0.0.1", method="GET", path="/protein/1", status_code=500
+        )
+
+        data = build_activity_dashboard_data()
+        paths = {row["path"] for row in data["top_error_paths"]}
+
+        self.assertNotIn("/wp-login.php", paths)
+        self.assertIn("/protein/<id>", paths)
 
 
 class TopScannedPathsTests(TestCase):

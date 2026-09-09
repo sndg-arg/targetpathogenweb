@@ -19,6 +19,7 @@ TOP_LOCATIONS_LIMIT = 10
 TOP_ERROR_PATHS_LIMIT = 10
 TOP_SCANNED_PATHS_LIMIT = 12
 STATUS_BUCKETS = ("2xx", "3xx", "4xx", "5xx")
+TOP_BOT_TIMESERIES_LABELS = 4
 
 # Allauth's login view -- an anonymous POST here is someone (or something)
 # actually submitting a username/password, not just wandering into a gated
@@ -234,13 +235,19 @@ def _top_scanned_paths(window_qs, limit=TOP_SCANNED_PATHS_LIMIT):
 _NOISE_ERROR_PATH_SUFFIXES = ("/favicon.ico", "/robots.txt", "/apple-touch-icon.png")
 
 
-def _top_error_paths(window_qs, limit=TOP_ERROR_PATHS_LIMIT):
+def _top_error_paths(authenticated_qs, limit=TOP_ERROR_PATHS_LIMIT):
     """Which routes actually produced 4xx/5xx responses, with a breakdown of
     which exact status codes -- the "what broke" complement to the aggregate
     Errors KPI, so a spike doesn't require a trip to the admin to find out
-    what's failing."""
+    what's failing.
+
+    Authenticated traffic only: an anonymous 404 is almost always a bot
+    probing a path that never existed, not a real user hitting a broken
+    route, and would otherwise crowd out genuine errors."""
     codes_by_path = {}
-    for path, code in window_qs.filter(status_code__gte=400).values_list("path", "status_code"):
+    for path, code in authenticated_qs.filter(status_code__gte=400).values_list(
+        "path", "status_code"
+    ):
         if path.endswith(_NOISE_ERROR_PATH_SUFFIXES):
             continue
         normalized = _normalize_path(path)
@@ -255,6 +262,98 @@ def _top_error_paths(window_qs, limit=TOP_ERROR_PATHS_LIMIT):
         }
         for path, codes in ranked[:limit]
     ]
+
+
+def _date_range(days, today):
+    return [today - timedelta(days=offset) for offset in range(days - 1, -1, -1)]
+
+
+def _status_timeseries(authenticated_qs, days, today):
+    """Per-day status-bucket counts, authenticated traffic only -- the 3xx
+    bucket especially is otherwise dominated by anonymous login-wall
+    bounces (see _blocked_queryset), which drowns out the real signal of
+    how the app itself is actually responding to real sessions."""
+    counts_by_day = {}
+    for created_at, status_code in authenticated_qs.values_list("created_at", "status_code"):
+        day = timezone.localtime(created_at).date()
+        counts_by_day.setdefault(day, Counter())[_status_bucket(status_code)] += 1
+
+    return [
+        {
+            "date": day.isoformat(),
+            **{bucket: counts_by_day.get(day, {}).get(bucket, 0) for bucket in STATUS_BUCKETS},
+        }
+        for day in _date_range(days, today)
+    ]
+
+
+def _visitors_timeseries(window_qs, days, today):
+    """Per-day distinct authenticated users and distinct IPs -- the trend
+    behind the unique_users/unique_ips KPIs, which only report one number
+    for the whole window."""
+    users_by_day = {
+        row["day"]: row["count"]
+        for row in window_qs.exclude(user__isnull=True)
+        .annotate(day=TruncDate("created_at"))
+        .values("day")
+        .annotate(count=Count("user_id", distinct=True))
+    }
+    ips_by_day = {
+        row["day"]: row["count"]
+        for row in window_qs.exclude(ip__isnull=True)
+        .annotate(day=TruncDate("created_at"))
+        .values("day")
+        .annotate(count=Count("ip", distinct=True))
+    }
+    return [
+        {
+            "date": day.isoformat(),
+            "users": users_by_day.get(day, 0),
+            "ips": ips_by_day.get(day, 0),
+        }
+        for day in _date_range(days, today)
+    ]
+
+
+def _bot_traffic_timeseries(window_qs, days, today, top_labels, has_other):
+    """Per-day request counts for blocked/bot traffic, broken down by the
+    same classification _bot_traffic_summary uses -- shows *when* a given
+    kind of scanning traffic showed up (a crawler wave, a scan burst),
+    which the whole-window rollup alone can't answer. Capped to the
+    window's top labels (+ "Other") so a long tail of one-off user agents
+    doesn't turn the chart into unreadable confetti."""
+    top_set = set(top_labels)
+    counts_by_day = {}
+    for created_at, user_agent in _blocked_queryset(window_qs).values_list(
+        "created_at", "user_agent"
+    ):
+        day = timezone.localtime(created_at).date()
+        label = classify_bot(user_agent) or "Unclassified"
+        bucket_label = label if label in top_set else "Other"
+        counts_by_day.setdefault(day, Counter())[bucket_label] += 1
+
+    series_labels = list(top_labels) + (["Other"] if has_other else [])
+    points = [
+        {
+            "date": day.isoformat(),
+            **{label: counts_by_day.get(day, {}).get(label, 0) for label in series_labels},
+        }
+        for day in _date_range(days, today)
+    ]
+    return points, series_labels
+
+
+def _hourly_traffic(authenticated_qs):
+    """Authenticated request volume by hour of day (server-local time),
+    summed across the whole window -- the "when in the day" complement to
+    the day-by-day trend charts, which never surface an intraday pattern.
+    Authenticated only, matching top_pages: bot traffic doesn't keep
+    human office hours and would flatten any real pattern."""
+    counts_by_hour = Counter(
+        timezone.localtime(created_at).hour
+        for created_at in authenticated_qs.values_list("created_at", flat=True)
+    )
+    return [{"hour": hour, "count": counts_by_hour.get(hour, 0)} for hour in range(24)]
 
 
 def build_activity_dashboard_data(days=DEFAULT_ACTIVITY_WINDOW_DAYS):
@@ -273,6 +372,11 @@ def build_activity_dashboard_data(days=DEFAULT_ACTIVITY_WINDOW_DAYS):
     previous_qs = RequestLog.objects.filter(
         created_at__gte=previous_window_start, created_at__lt=window_start
     )
+    # Authenticated only -- reused everywhere "errors"/"status codes" mean
+    # "how is the app behaving for real sessions", not "how many bots got a
+    # 404 probing a path that never existed" (see _top_error_paths).
+    authenticated_qs = window_qs.exclude(user__isnull=True)
+    previous_authenticated_qs = previous_qs.exclude(user__isnull=True)
 
     requests_today = RequestLog.objects.filter(created_at__date=today).count()
     requests_yesterday = RequestLog.objects.filter(created_at__date=yesterday).count()
@@ -293,8 +397,8 @@ def build_activity_dashboard_data(days=DEFAULT_ACTIVITY_WINDOW_DAYS):
         .distinct()
         .count()
     )
-    errors = window_qs.filter(status_code__gte=400).count()
-    previous_errors = previous_qs.filter(status_code__gte=400).count()
+    errors = authenticated_qs.filter(status_code__gte=400).count()
+    previous_errors = previous_authenticated_qs.filter(status_code__gte=400).count()
 
     # How much of the window's traffic never made it past the login wall --
     # the "how much of this is noise" headline that used to require paging
@@ -340,12 +444,18 @@ def build_activity_dashboard_data(days=DEFAULT_ACTIVITY_WINDOW_DAYS):
         for offset in range(days - 1, -1, -1)
     ]
 
+    # Authenticated only -- see authenticated_qs comment above. Without this,
+    # the 3xx bucket in particular is mostly anonymous login-wall bounces,
+    # not real redirects the app issued to a real session.
     status_counts = Counter(
-        _status_bucket(code) for code in window_qs.values_list("status_code", flat=True)
+        _status_bucket(code) for code in authenticated_qs.values_list("status_code", flat=True)
     )
     status_breakdown = [
         {"bucket": bucket, "count": status_counts.get(bucket, 0)} for bucket in STATUS_BUCKETS
     ]
+    status_timeseries = _status_timeseries(authenticated_qs, days, today)
+    visitors_timeseries = _visitors_timeseries(window_qs, days, today)
+    hourly_traffic = _hourly_traffic(authenticated_qs)
 
     # Authenticated requests only -- the whole site sits behind a login wall,
     # so an anonymous hit here never actually saw the page, it just bounced
@@ -384,7 +494,13 @@ def build_activity_dashboard_data(days=DEFAULT_ACTIVITY_WINDOW_DAYS):
     blocked_attempts = _blocked_attempts_breakdown(window_qs)
     bot_traffic_summary = _bot_traffic_summary(window_qs)
     top_scanned_paths = _top_scanned_paths(window_qs)
-    top_error_paths = _top_error_paths(window_qs)
+    top_error_paths = _top_error_paths(authenticated_qs)
+
+    top_bot_labels = [row["label"] for row in bot_traffic_summary[:TOP_BOT_TIMESERIES_LABELS]]
+    has_other_bot_label = len(bot_traffic_summary) > TOP_BOT_TIMESERIES_LABELS
+    bot_traffic_timeseries, bot_traffic_timeseries_labels = _bot_traffic_timeseries(
+        window_qs, days, today, top_bot_labels, has_other_bot_label
+    )
 
     # Lets the chart flag "logging only just started" instead of a real
     # traffic ramp-up when the log's actual history is shorter than the
@@ -398,6 +514,9 @@ def build_activity_dashboard_data(days=DEFAULT_ACTIVITY_WINDOW_DAYS):
         "timeseries": timeseries,
         "logging_started_at": earliest_log_at.isoformat() if earliest_log_at else None,
         "status_breakdown": status_breakdown,
+        "status_timeseries": status_timeseries,
+        "visitors_timeseries": visitors_timeseries,
+        "hourly_traffic": hourly_traffic,
         "top_pages": top_pages,
         "top_error_paths": top_error_paths,
         "accounts": accounts,
@@ -405,5 +524,7 @@ def build_activity_dashboard_data(days=DEFAULT_ACTIVITY_WINDOW_DAYS):
         "login_attempts": login_attempts,
         "blocked_attempts": blocked_attempts,
         "bot_traffic_summary": bot_traffic_summary,
+        "bot_traffic_timeseries": bot_traffic_timeseries,
+        "bot_traffic_timeseries_labels": bot_traffic_timeseries_labels,
         "top_scanned_paths": top_scanned_paths,
     }

@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/activity-dashboard.css' %}?v=20260907-more-charts">
+    <link rel="stylesheet" href="{% static 'css/pages/activity-dashboard.css' %}?v=20260909-evolution-charts">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -90,12 +90,42 @@
         <section class="activity-panel">
             <div class="section-head tp-ui-panel-head">
                 <div>
+                    <p class="tp-ui-field-label">{% trans "Audience" %}</p>
+                    <h2 class="activity-panel-title">{% trans "Unique visitors" %}</h2>
+                </div>
+                <div class="activity-chart-legend" aria-hidden="true">
+                    <span class="activity-chart-legend-item"><i class="activity-chart-legend-swatch activity-chart-legend-swatch--authenticated"></i>{% trans "Users" %}</span>
+                    <span class="activity-chart-legend-item"><i class="activity-chart-legend-swatch activity-chart-legend-swatch--ips"></i>{% trans "IPs" %}</span>
+                </div>
+            </div>
+            <div class="activity-chart-wrap">
+                <canvas id="activity-visitors-chart" role="img" aria-label="{% trans 'Unique users and unique IPs per day' %}"></canvas>
+            </div>
+        </section>
+    </div>
+
+    <div class="activity-panel-pair">
+        <section class="activity-panel">
+            <div class="section-head tp-ui-panel-head">
+                <div>
                     <p class="tp-ui-field-label">{% trans "What they look at" %}</p>
                     <h2 class="activity-panel-title">{% trans "Top pages" %} <span class="tp-chip tp-chip--sm">{% trans "authenticated" %}</span></h2>
                 </div>
             </div>
             <div class="activity-chart-wrap activity-chart-wrap--tall">
                 <canvas id="activity-top-pages-chart" role="img" aria-label="{% trans 'Most requested pages' %}"></canvas>
+            </div>
+        </section>
+
+        <section class="activity-panel">
+            <div class="section-head tp-ui-panel-head">
+                <div>
+                    <p class="tp-ui-field-label">{% trans "When they're active" %}</p>
+                    <h2 class="activity-panel-title">{% trans "Requests by hour of day" %} <span class="tp-chip tp-chip--sm">{% trans "authenticated" %}</span></h2>
+                </div>
+            </div>
+            <div class="activity-chart-wrap activity-chart-wrap--tall">
+                <canvas id="activity-hourly-chart" role="img" aria-label="{% trans 'Requests by hour of day, server local time' %}"></canvas>
             </div>
         </section>
     </div>
@@ -175,18 +205,35 @@
         </details>
     </section>
 
-    <section class="activity-panel">
-        <div class="section-head tp-ui-panel-head">
-            <div>
-                <p class="tp-ui-field-label">{% trans "Hit the login wall on a random path, never even tried to log in" %}</p>
-                <h2 class="activity-panel-title">{% trans "Scanning &amp; bot traffic" %} <span class="tp-chip tp-chip--sm tp-chip--warning">{% trans "likely automated" %}</span></h2>
+    <div class="activity-panel-pair">
+        <section class="activity-panel">
+            <div class="section-head tp-ui-panel-head">
+                <div>
+                    <p class="tp-ui-field-label">{% trans "Hit the login wall on a random path, never even tried to log in" %}</p>
+                    <h2 class="activity-panel-title">{% trans "Scanning &amp; bot traffic" %} <span class="tp-chip tp-chip--sm tp-chip--warning">{% trans "likely automated" %}</span></h2>
+                </div>
             </div>
-        </div>
-        <p class="activity-chart-note">{% trans "AI-crawler and generic-bot IPs are blocked automatically the moment they touch a real page — no action needed here." %}</p>
-        <div class="activity-chart-wrap activity-chart-wrap--compact">
-            <canvas id="activity-bot-chart" role="img" aria-label="{% trans 'Blocked requests by bot type' %}"></canvas>
-        </div>
-        <div class="activity-summary-chips" data-bot-summary></div>
+            <p class="activity-chart-note">{% trans "AI-crawler and generic-bot IPs are blocked automatically the moment they touch a real page — no action needed here." %}</p>
+            <div class="activity-chart-wrap activity-chart-wrap--compact">
+                <canvas id="activity-bot-chart" role="img" aria-label="{% trans 'Blocked requests by bot type' %}"></canvas>
+            </div>
+            <div class="activity-summary-chips" data-bot-summary></div>
+        </section>
+
+        <section class="activity-panel">
+            <div class="section-head tp-ui-panel-head">
+                <div>
+                    <p class="tp-ui-field-label">{% trans "Over time" %}</p>
+                    <h2 class="activity-panel-title">{% trans "Bot traffic over time" %}</h2>
+                </div>
+            </div>
+            <div class="activity-chart-wrap activity-chart-wrap--compact">
+                <canvas id="activity-bot-timeseries-chart" role="img" aria-label="{% trans 'Blocked requests per day by bot type' %}"></canvas>
+            </div>
+        </section>
+    </div>
+
+    <section class="activity-panel">
         <details class="activity-details js-smooth-details">
             <summary class="activity-details-summary">
                 <span>{% trans "Show details" %}</span>
@@ -245,36 +292,16 @@
         {% endif %}
     </section>
 
-    <section class="activity-panel">
-        <div class="section-head tp-ui-panel-head">
-            <div>
-                <p class="tp-ui-field-label">{% trans "What they're actually requesting" %}</p>
-                <h2 class="activity-panel-title">{% trans "Most-probed paths" %}</h2>
-            </div>
-        </div>
-        <details class="activity-details js-smooth-details">
-            <summary class="activity-details-summary">
-                <span>{% trans "Show details" %}</span>
-                <span class="activity-details-chevron" aria-hidden="true"></span>
-            </summary>
-            <div class="activity-details-body">
-                <div class="activity-error-paths" data-scanned-paths-list>
-                    <p class="activity-accounts-empty">{% trans "Loading..." %}</p>
-                </div>
-            </div>
-        </details>
-    </section>
-
     <div class="activity-panel-pair">
         <section class="activity-panel">
             <div class="section-head tp-ui-panel-head">
                 <div>
-                    <p class="tp-ui-field-label">{% trans "Request health" %}</p>
+                    <p class="tp-ui-field-label">{% trans "Request health, over time" %}</p>
                     <h2 class="activity-panel-title">{% trans "Status codes" %}</h2>
                 </div>
             </div>
             <div class="activity-chart-wrap activity-chart-wrap--compact">
-                <canvas id="activity-status-chart" role="img" aria-label="{% trans 'Response status code breakdown' %}"></canvas>
+                <canvas id="activity-status-chart" role="img" aria-label="{% trans 'Response status code breakdown per day' %}"></canvas>
             </div>
             <div class="activity-status-tiles" data-status-tiles>
                 <p class="activity-accounts-empty">{% trans "Loading..." %}</p>
@@ -284,8 +311,22 @@
         <section class="activity-panel">
             <div class="section-head tp-ui-panel-head">
                 <div>
+                    <p class="tp-ui-field-label">{% trans "Over time" %}</p>
+                    <h2 class="activity-panel-title">{% trans "Errors" %} <span class="tp-chip tp-chip--sm">{% trans "authenticated" %}</span></h2>
+                </div>
+            </div>
+            <div class="activity-chart-wrap activity-chart-wrap--compact">
+                <canvas id="activity-errors-chart" role="img" aria-label="{% trans '4xx and 5xx errors per day' %}"></canvas>
+            </div>
+        </section>
+    </div>
+
+    <div class="activity-panel-pair">
+        <section class="activity-panel">
+            <div class="section-head tp-ui-panel-head">
+                <div>
                     <p class="tp-ui-field-label">{% trans "What's actually failing" %}</p>
-                    <h2 class="activity-panel-title">{% trans "Top erroring paths" %}</h2>
+                    <h2 class="activity-panel-title">{% trans "Top erroring paths" %} <span class="tp-chip tp-chip--sm">{% trans "authenticated" %}</span></h2>
                 </div>
             </div>
             <details class="activity-details js-smooth-details">
@@ -300,6 +341,26 @@
                 </div>
             </details>
         </section>
+
+        <section class="activity-panel">
+            <div class="section-head tp-ui-panel-head">
+                <div>
+                    <p class="tp-ui-field-label">{% trans "What they're actually requesting" %}</p>
+                    <h2 class="activity-panel-title">{% trans "Most-probed paths" %}</h2>
+                </div>
+            </div>
+            <details class="activity-details js-smooth-details">
+                <summary class="activity-details-summary">
+                    <span>{% trans "Show details" %}</span>
+                    <span class="activity-details-chevron" aria-hidden="true"></span>
+                </summary>
+                <div class="activity-details-body">
+                    <div class="activity-error-paths" data-scanned-paths-list>
+                        <p class="activity-accounts-empty">{% trans "Loading..." %}</p>
+                    </div>
+                </div>
+            </details>
+        </section>
     </div>
 
     <p class="activity-footnote">{% trans "Need row-level detail (exact IP, exact path, exact timestamp)?" %} <a href="{% url 'admin:tpweb_requestlog_changelist' %}">{% trans "Browse the raw log in the admin" %}</a>.</p>
@@ -308,5 +369,5 @@
 
 {{ activity_dashboard_data|json_script:"activity-dashboard-data" }}
 <script src="{% static 'js/vendor/chart.umd.js' %}?v=20260902-context-pass"></script>
-<script src="{% static 'js/pages/activity-dashboard.js' %}?v=20260907-more-charts"></script>
+<script src="{% static 'js/pages/activity-dashboard.js' %}?v=20260909-evolution-charts"></script>
 {% endblock %}
