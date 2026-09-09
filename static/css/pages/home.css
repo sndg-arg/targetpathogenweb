@@ -112,19 +112,14 @@
     min-width: 0;
 }
 
+/* No border/background/radius of its own -- it used to be a pill wrapping
+   .home-pipeline-chip, itself already a pill, reading as a chip nested
+   inside another chip. The chip and the two icon buttons carry their own
+   shapes; this is just a plain flex row grouping them. */
 .home-operations-statusbar {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 4px;
-    border: 1px solid var(--tp-color-border-soft);
-    border-radius: 999px;
-    background: var(--tp-color-surface);
-}
-
-.home-operations.is-failed .home-operations-statusbar {
-    border-color: var(--tp-color-danger-border);
-    background: var(--tp-color-danger-bg);
 }
 
 .home-pipeline-chip {
