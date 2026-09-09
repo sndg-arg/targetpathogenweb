@@ -1566,6 +1566,12 @@ a.tp-chip--go:hover {
     width: 13px;
     height: 13px;
     flex: 0 0 auto;
+    /* Flex align-items:center centers the icon's own box against the
+       text's line-height box, but a font's line box usually carries more
+       reserved space above the cap-height than below the baseline, so a
+       same-height icon reads as floating slightly high next to it. Small
+       optical nudge down to sit on the same visual line as the text. */
+    margin-top: 1px;
 }
 
 .tp-breadcrumb-home-icon svg {
@@ -1655,6 +1661,12 @@ a.tp-chip--go:hover {
     max-width: 1360px;
     margin: 0 auto;
     padding: 11px 18px;
+    /* Real flex centering instead of relying on symmetric padding alone --
+       the breadcrumb row's own line-height could make its content sit a
+       little high/low within the padding box even with equal top/bottom
+       padding. */
+    display: flex;
+    align-items: center;
 }
 
 @media (min-width: 992px) {
