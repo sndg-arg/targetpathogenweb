@@ -667,14 +667,19 @@
                         position: "left",
                         grid: { color: t.grid, drawTicks: false },
                         border: { display: false },
-                        ticks: { color: t.brand, precision: 0 }
+                        // Fixed tick count on BOTH axes -- left two vs. IPs
+                        // are on wildly different scales, so without this
+                        // each axis's auto tick step lands on a different
+                        // (often not-round) increment, and the right axis
+                        // reads as noisier/more cluttered than the left.
+                        ticks: { color: t.brand, precision: 0, count: 4 }
                     },
                     y1: {
                         beginAtZero: true,
                         position: "right",
                         grid: { display: false },
                         border: { display: false },
-                        ticks: { color: t.textMuted, precision: 0 }
+                        ticks: { color: t.textMuted, precision: 0, count: 4 }
                     }
                 }
             }
