@@ -565,19 +565,19 @@ def _build_assembly_workspace_metrics(assembly_name):
     # ColabFold is meant to only cover what nothing else already covers.
     alphafold_bioentry_ids = (
         proteins.filter(structures__pdb__experiment=PDB_EXPERIMENT_ALPHAFOLD)
-        .values_list("id", flat=True)
+        .values_list("bioentry_id", flat=True)
         .distinct()
     )
     alphafold_structures = (
         proteins.filter(structures__pdb__experiment=PDB_EXPERIMENT_ALPHAFOLD)
-        .exclude(id__in=experimental_bioentry_ids)
+        .exclude(bioentry_id__in=experimental_bioentry_ids)
         .distinct()
         .count()
     )
     colabfold_structures = (
         proteins.filter(structures__pdb__experiment=PDB_EXPERIMENT_COLABFOLD)
-        .exclude(id__in=experimental_bioentry_ids)
-        .exclude(id__in=alphafold_bioentry_ids)
+        .exclude(bioentry_id__in=experimental_bioentry_ids)
+        .exclude(bioentry_id__in=alphafold_bioentry_ids)
         .distinct()
         .count()
     )
