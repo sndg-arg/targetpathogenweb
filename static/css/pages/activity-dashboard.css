@@ -811,12 +811,10 @@
     background: var(--tp-color-surface-soft);
 }
 
-.activity-status-tile--2xx {
+/* Merged 2xx+3xx tile (see statusTileRows) -- success-tinted since a
+   healthy redirect is a normal outcome, not a warning. */
+.activity-status-tile--ok {
     border-left-color: var(--tp-color-success-border);
-}
-
-.activity-status-tile--3xx {
-    border-left-color: var(--tp-color-info-border);
 }
 
 .activity-status-tile--4xx {

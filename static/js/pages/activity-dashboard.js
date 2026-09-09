@@ -936,6 +936,26 @@
         return Math.round(pct) + "%";
     }
 
+    // 2xx and 3xx are both "nothing went wrong" outcomes -- keeping them as
+    // separate tiles next to 4xx/5xx makes the two boring, expected buckets
+    // as visually prominent as the two that actually deserve attention.
+    // Merged into one "ok" tile; 4xx/5xx stay broken out individually.
+    function statusTileRows(rows) {
+        var okCount = 0;
+        var rest = [];
+        rows.forEach(function (r) {
+            if (r.bucket === "2xx" || r.bucket === "3xx") {
+                okCount += r.count;
+            } else {
+                rest.push(r);
+            }
+        });
+        return [{ bucket: "ok", label: "2xx + 3xx", sublabel: "Success & redirects", count: okCount }]
+            .concat(rest.map(function (r) {
+                return { bucket: r.bucket, label: r.bucket, sublabel: STATUS_BUCKET_META[r.bucket] || "", count: r.count };
+            }));
+    }
+
     function renderStatusTiles() {
         var container = document.querySelector("[data-status-tiles]");
         if (!container) return;
@@ -945,18 +965,19 @@
             container.innerHTML = '<p class="activity-chart-empty">No requests logged yet.</p>';
             return;
         }
-        container.innerHTML = rows.map(function (r) {
+        var tiles = statusTileRows(rows);
+        container.innerHTML = tiles.map(function (r) {
             return (
                 '<div class="activity-status-tile activity-status-tile--' + r.bucket + '">' +
-                '<p class="activity-status-tile-label">' + r.bucket +
-                ' <span class="activity-status-tile-sublabel">' + (STATUS_BUCKET_META[r.bucket] || "") + "</span></p>" +
+                '<p class="activity-status-tile-label">' + r.label +
+                ' <span class="activity-status-tile-sublabel">' + r.sublabel + "</span></p>" +
                 '<p class="activity-status-tile-value" data-status-value="' + r.bucket + '">0</p>' +
                 '<p class="activity-status-tile-meta">' + statusPercent(r.count, total) + " of total</p>" +
                 "</div>"
             );
         }).join("");
 
-        rows.forEach(function (r) {
+        tiles.forEach(function (r) {
             animateNumber(container.querySelector('[data-status-value="' + r.bucket + '"]'), r.count);
         });
     }
