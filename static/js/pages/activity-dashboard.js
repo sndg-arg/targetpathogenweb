@@ -601,6 +601,13 @@
     // scales (a handful of accounts against hundreds of visiting/scanning
     // IPs) -- a shared axis would flatten the users line to a barely-visible
     // sliver, so this is the one chart on the page with two y-axes.
+    //
+    // IPs gets the filled area: it's the bigger number and reads as
+    // background traffic-volume context. Users -- the number staff actually
+    // care about, and a small discrete count (0-3, not a continuous
+    // quantity) -- gets no fill and visible point dots instead, so it reads
+    // as the foreground signal rather than being visually dwarfed by its own
+    // area fill sitting on top of the (much larger) IPs area.
     function renderVisitorsTimeseries(t) {
         var canvas = document.getElementById("activity-visitors-chart");
         if (!canvas) return null;
@@ -611,33 +618,35 @@
                 labels: dayLabels(points),
                 datasets: [
                     {
-                        label: "Unique users",
-                        data: points.map(function (p) { return p.users; }),
-                        borderColor: t.brand,
-                        backgroundColor: hexToRgba(t.brand, 0.18),
-                        borderWidth: 2,
-                        tension: 0.3,
-                        fill: true,
-                        yAxisID: "y",
-                        pointRadius: 0,
-                        pointHoverRadius: 4,
-                        pointHoverBackgroundColor: t.brand,
-                        pointHoverBorderColor: t.surface,
-                        pointHoverBorderWidth: 2
-                    },
-                    {
                         label: "Unique IPs",
                         data: points.map(function (p) { return p.ips; }),
                         borderColor: t.neutral,
-                        backgroundColor: "transparent",
-                        borderWidth: 2,
-                        borderDash: [4, 3],
+                        backgroundColor: hexToRgba(t.neutral, 0.18),
+                        borderWidth: 1.5,
                         tension: 0.3,
-                        fill: false,
+                        fill: true,
                         yAxisID: "y1",
                         pointRadius: 0,
                         pointHoverRadius: 4,
                         pointHoverBackgroundColor: t.neutral,
+                        pointHoverBorderColor: t.surface,
+                        pointHoverBorderWidth: 2
+                    },
+                    {
+                        label: "Unique users",
+                        data: points.map(function (p) { return p.users; }),
+                        borderColor: t.brand,
+                        backgroundColor: "transparent",
+                        borderWidth: 2.5,
+                        tension: 0.3,
+                        fill: false,
+                        yAxisID: "y",
+                        pointRadius: 3,
+                        pointBackgroundColor: t.brand,
+                        pointBorderColor: t.surface,
+                        pointBorderWidth: 1.5,
+                        pointHoverRadius: 5,
+                        pointHoverBackgroundColor: t.brand,
                         pointHoverBorderColor: t.surface,
                         pointHoverBorderWidth: 2
                     }
@@ -661,7 +670,7 @@
                         position: "left",
                         grid: { color: t.grid, drawTicks: false },
                         border: { display: false },
-                        ticks: { color: t.textMuted, precision: 0 }
+                        ticks: { color: t.brand, precision: 0 }
                     },
                     y1: {
                         beginAtZero: true,

@@ -152,7 +152,11 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = env("DJANGO_LANGUAGE_CODE", default="en-us")
 
-TIME_ZONE = env("DJANGO_TIME_ZONE", default="UTC")
+# Defaults to the audience's actual timezone (this is a single-deployment app
+# for an FCEN UBA team) rather than UTC -- "Last seen"/"Requests by hour of
+# day" etc. should read as real local time without every deploy needing to
+# set DJANGO_TIME_ZONE itself. Still overridable via env if ever needed.
+TIME_ZONE = env("DJANGO_TIME_ZONE", default="America/Argentina/Buenos_Aires")
 
 USE_I18N = True
 

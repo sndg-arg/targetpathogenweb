@@ -746,12 +746,14 @@
     background: var(--tp-color-border-strong);
 }
 
-/* Dashed on the IPs line itself (see renderVisitorsTimeseries) -- this
-   swatch mirrors that with a dashed border instead of a second solid fill,
-   so the legend and the line read as the same series at a glance. */
+/* IPs is the muted background-area series in renderVisitorsTimeseries (the
+   bigger number, read as traffic-volume context) -- a soft muted fill here
+   matches that, rather than a bold swatch that would visually compete with
+   the brand-colored "Unique users" swatch above it, the one actually meant
+   to draw the eye. */
 .activity-chart-legend-swatch--ips {
-    background: transparent;
-    border: 1.5px dashed var(--tp-color-border-strong);
+    background: var(--tp-color-border-strong);
+    opacity: 0.45;
 }
 
 .activity-chart-wrap {
