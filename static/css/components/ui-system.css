@@ -1566,12 +1566,15 @@ a.tp-chip--go:hover {
     width: 13px;
     height: 13px;
     flex: 0 0 auto;
-    /* Flex align-items:center centers the icon's own box against the
-       text's line-height box, but a font's line box usually carries more
-       reserved space above the cap-height than below the baseline, so a
-       same-height icon reads as floating slightly high next to it. Small
-       optical nudge down to sit on the same visual line as the text. */
-    margin-top: 1px;
+    /* Flex align-items:center centers the icon's own fixed-height box
+       against the text's line-height box -- but the text's visual weight
+       (cap-height) sits above that line box's geometric center, since a
+       line box reserves more room below the baseline (descender + half
+       leading) than a same-height icon box does. Net effect: the icon
+       reads as sitting LOW next to the text. Confirmed low on-screen at
+       the previous +1px value, which pushed it lower still -- corrected
+       to pull it up instead. */
+    margin-top: -2px;
 }
 
 .tp-breadcrumb-home-icon svg {
