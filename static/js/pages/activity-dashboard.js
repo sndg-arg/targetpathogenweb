@@ -591,10 +591,7 @@
     }
 
     function hourLabel(hour) {
-        if (hour === 0) return "12a";
-        if (hour < 12) return hour + "a";
-        if (hour === 12) return "12p";
-        return (hour - 12) + "p";
+        return (hour < 10 ? "0" : "") + hour + ":00";
     }
 
     // Distinct authenticated users vs. distinct IPs live on wildly different
