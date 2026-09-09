@@ -4,7 +4,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from types import SimpleNamespace
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
@@ -14,7 +14,9 @@ from django.utils import timezone as django_timezone
 from bioseq.models.Bioentry import Bioentry
 from bioseq.models.Biodatabase import Biodatabase
 from tpweb.models.AgentChatSession import AgentChatSession
+from tpweb.models.BioentryStructure import BioentryStructure
 from tpweb.models.GenomeUpload import GenomeUpload
+from tpweb.models.pdb import PDB
 from tpweb.models.PipelineRun import PipelineRun
 from tpweb.models.ScoreFormula import ScoreFormula
 from tpweb.models.ScoreParam import ScoreParam, ScoreParamOptions
@@ -221,48 +223,63 @@ class GenomeServiceTests(SimpleTestCase):
         self.assertEqual(protein_coding_loaded, "62")
         self.assertEqual(untranslated_cds, "11")
 
-    @patch("tpweb.services.assembly_workspace.cache")
-    @patch("tpweb.services.assembly_workspace.BioentryStructure")
-    @patch("tpweb.services.assembly_workspace.Bioentry")
-    def test_build_assembly_workspace_metrics_treats_colabfold_as_model_not_experimental(
-        self,
-        bioentry_model,
-        bioentry_structure_model,
-        cache_mock,
-    ):
-        cache_mock.get.return_value = None
-        proteins = MagicMock()
-        bioentry_model.objects.filter.return_value = proteins
-        proteins.count.return_value = 62
 
-        distinct_count_values = iter([11, 10, 1, 31, 22, 44])
+class AssemblyWorkspaceStructureMetricsTests(TestCase):
+    """build_assembly_workspace_metrics's structure-source breakdown must be
+    mutually exclusive by priority (experimental > AlphaFold DB > ColabFold,
+    same order structure_sources.py uses per-protein) -- a protein with
+    structures from more than one source used to be counted in every
+    matching bucket, so e.g. colabfold_structures could equal
+    proteins_with_structure even though ColabFold is meant to only cover
+    what nothing else already does. Real DB fixtures, not mocks: the
+    previous mock-based test only proved the call shape the old
+    implementation happened to use, not that the counts stayed correct
+    (or summed to the total) once that shape changed."""
 
-        def build_distinct_qs():
-            distinct_qs = MagicMock()
-            distinct_qs.count.return_value = next(distinct_count_values)
-            filtered_qs = MagicMock()
-            filtered_qs.distinct.return_value = distinct_qs
-            return filtered_qs
+    def _make_structure(self, bioentry, *, code, experiment):
+        pdb = PDB.objects.create(code=code, experiment=experiment, text="")
+        BioentryStructure.objects.create(bioentry=bioentry, pdb=pdb)
 
-        proteins.filter.side_effect = [build_distinct_qs() for _ in range(6)]
+    def test_priority_order_keeps_each_protein_in_exactly_one_bucket(self):
+        assembly_name = "public__TESTGENOME"
+        proteome = Biodatabase.objects.create(name=assembly_name + Biodatabase.PROT_POSTFIX)
 
-        structure_filtered = MagicMock()
-        structure_excluded = MagicMock()
-        structure_values = MagicMock()
-        structure_distinct = MagicMock()
-        structure_distinct.count.return_value = 0
-        bioentry_structure_model.objects.filter.return_value = structure_filtered
-        structure_filtered.exclude.return_value = structure_excluded
-        structure_excluded.values.return_value = structure_values
-        structure_values.distinct.return_value = structure_distinct
+        experimental_and_more = Bioentry.objects.create(
+            biodatabase=proteome, name="p1", accession="P1", identifier="P1"
+        )
+        self._make_structure(experimental_and_more, code="1ABC", experiment="XRAY")
+        self._make_structure(experimental_and_more, code="AF_P1", experiment="AF")
+        self._make_structure(experimental_and_more, code="CF_P1", experiment="CF")
 
-        metrics = build_assembly_workspace_metrics("public__NZ_AP023069.1")
+        alphafold_and_colabfold = Bioentry.objects.create(
+            biodatabase=proteome, name="p2", accession="P2", identifier="P2"
+        )
+        self._make_structure(alphafold_and_colabfold, code="AF_P2", experiment="AF")
+        self._make_structure(alphafold_and_colabfold, code="CF_P2", experiment="CF")
 
-        self.assertEqual(metrics["proteins_with_structure"], 11)
-        self.assertEqual(metrics["experimental_structures"], 0)
-        self.assertEqual(metrics["alphafold_structures"], 10)
+        colabfold_only = Bioentry.objects.create(
+            biodatabase=proteome, name="p3", accession="P3", identifier="P3"
+        )
+        self._make_structure(colabfold_only, code="CF_P3", experiment="CF")
+
+        Bioentry.objects.create(
+            biodatabase=proteome, name="p4", accession="P4", identifier="P4"
+        )  # no_structure -- counts toward total_proteins only
+
+        metrics = build_assembly_workspace_metrics(assembly_name)
+
+        self.assertEqual(metrics["proteins_with_structure"], 3)
+        self.assertEqual(metrics["experimental_structures"], 1)
+        self.assertEqual(metrics["alphafold_structures"], 1)
         self.assertEqual(metrics["colabfold_structures"], 1)
-        structure_filtered.exclude.assert_called_once_with(pdb__experiment__in=("AF", "CF"))
+        # The whole point of the fix: these three now sum to the total
+        # instead of each independently counting "has at least one".
+        self.assertEqual(
+            metrics["experimental_structures"]
+            + metrics["alphafold_structures"]
+            + metrics["colabfold_structures"],
+            metrics["proteins_with_structure"],
+        )
 
     def test_genome_metadata_labels_are_human_readable(self):
         self.assertEqual(genome_metadata_label("EntryLength"), "Sequence length [bp]")

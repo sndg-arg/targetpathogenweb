@@ -544,23 +544,42 @@ def _build_assembly_workspace_metrics(assembly_name):
 
     total_proteins = proteins.count()
     proteins_with_structure = proteins.filter(structures__isnull=False).distinct().count()
-    experimental_structures = (
+    experimental_bioentry_ids = (
         BioentryStructure.objects.filter(bioentry__biodatabase__name=proteome_name)
         .exclude(pdb__experiment__in=PDB_MODEL_EXPERIMENTS)
-        .values("bioentry_id")
+        .values_list("bioentry_id", flat=True)
         .distinct()
-        .count()
     )
+    experimental_structures = experimental_bioentry_ids.count()
     experimental_structure_xrefs = ExperimentalStructureXref.objects.filter(
         bioentry__biodatabase__name=proteome_name,
     )
     pdb_xref_entries = experimental_structure_xrefs.count()
     pdb_xref_proteins = experimental_structure_xrefs.values("bioentry_id").distinct().count()
+    # Mutually exclusive by source priority (experimental > AlphaFold DB > ColabFold,
+    # same order structure_sources.py uses per-protein) -- a protein with both an
+    # experimental structure and a ColabFold model only counts once, under
+    # "experimental". Without this, each count answered "has at least one of this
+    # type" independently, so a protein could be counted in all three at once and
+    # e.g. colabfold_structures could equal proteins_with_structure even though
+    # ColabFold is meant to only cover what nothing else already covers.
+    alphafold_bioentry_ids = (
+        proteins.filter(structures__pdb__experiment=PDB_EXPERIMENT_ALPHAFOLD)
+        .values_list("id", flat=True)
+        .distinct()
+    )
     alphafold_structures = (
-        proteins.filter(structures__pdb__experiment=PDB_EXPERIMENT_ALPHAFOLD).distinct().count()
+        proteins.filter(structures__pdb__experiment=PDB_EXPERIMENT_ALPHAFOLD)
+        .exclude(id__in=experimental_bioentry_ids)
+        .distinct()
+        .count()
     )
     colabfold_structures = (
-        proteins.filter(structures__pdb__experiment=PDB_EXPERIMENT_COLABFOLD).distinct().count()
+        proteins.filter(structures__pdb__experiment=PDB_EXPERIMENT_COLABFOLD)
+        .exclude(id__in=experimental_bioentry_ids)
+        .exclude(id__in=alphafold_bioentry_ids)
+        .distinct()
+        .count()
     )
     ec_annotated = proteins.filter(dbxrefs__dbxref__dbname__in=EC_DBNAMES).distinct().count()
     go_annotated = proteins.filter(dbxrefs__dbxref__dbname=Ontology.GO).distinct().count()
