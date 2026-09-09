@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/genome-upload.css' %}?v=20260908-plain-toggle">
+    <link rel="stylesheet" href="{% static 'css/pages/genome-upload.css' %}?v=20260909-flatten-status-note">
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -59,7 +59,7 @@
             <article class="genome-upload-card genome-upload-card--form">
                 <h2>{% trans "Submit a genome dataset" %}</h2>
                 {% if not can_upload_genome %}
-                    <p class="tp-state-note tp-state-note--empty">{% trans "You don't have permission to upload genomes yet. Ask the site owner to grant it." %}</p>
+                    <p class="tp-state-note tp-state-note--empty genome-upload-form-state">{% trans "You don't have permission to upload genomes yet. Ask the site owner to grant it." %}</p>
                 {% elif pipeline_status.running %}
                     <p class="tp-state-note tp-state-note--loading genome-upload-form-state">
                         {% if pipeline_status.running_for_other_workspace %}
