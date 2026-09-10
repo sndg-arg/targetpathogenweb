@@ -178,6 +178,12 @@ def run_remote_interproscan(cfg_dict, folder_path, genome):
             look_for_keys=True,
             key_filename=config.ssh_key_filename,
         )
+        # This session can sit idle for hours while InterProScan runs remotely
+        # -- without a keepalive, a dead peer/NAT-dropped connection isn't
+        # detected until some OS-level TCP timeout (which can itself take
+        # hours), during which every scp.get()/exec_command() call below just
+        # hangs instead of raising promptly.
+        ssh.get_transport().set_keepalive(30)
 
         def _run_remote(command):
             stdin, stdout, stderr = ssh.exec_command(command)
@@ -287,14 +293,32 @@ def run_remote_interproscan(cfg_dict, folder_path, genome):
         last_state = "PENDING"
         completion_seen_at = None
         last_wait_notice = None
+        last_download_error = None
+        # A real wall-clock deadline, not a count of loop iterations -- a
+        # single hung scp.get()/exec_command() call (a stale connection with
+        # no keepalive response yet) can eat far more than remote_poll_seconds
+        # of actual time, which would otherwise let this loop run for the
+        # container's entire lifetime without ever reaching remote_wait_seconds.
+        deadline = time.monotonic() + config.remote_wait_seconds
 
-        while not finished and waited_seconds <= config.remote_wait_seconds:
+        while not finished and time.monotonic() < deadline:
             try:
                 scp.get(remote_output, folder_path)
                 finished = True
                 continue
-            except Exception:
-                pass
+            except Exception as exc:
+                error_text = f"{type(exc).__name__}: {exc}"
+                if error_text != last_download_error:
+                    print(f"InterProScan download attempt failed for {genome}: {error_text}")
+                    _record_remote_info(
+                        run_id_raw,
+                        message=(
+                            f"Waiting on remote InterProScan output for {genome} -- "
+                            f"last download attempt failed: {error_text}"
+                        ),
+                        payload={"error": error_text},
+                    )
+                    last_download_error = error_text
 
             _, state_out, state_err = _run_remote(
                 f"sacct -j {shlex.quote(job_id)} --format=JobID,State,ExitCode -P -n | head -n 1"
@@ -363,9 +387,11 @@ def run_remote_interproscan(cfg_dict, folder_path, genome):
             waited_seconds += config.remote_poll_seconds
 
         if not finished:
+            elapsed = int(config.remote_wait_seconds - (deadline - time.monotonic()))
             raise TimeoutError(
                 f"InterProScan output not retrieved for {genome} after "
-                f"{waited_seconds} seconds (last remote state: {last_state})"
+                f"{elapsed} seconds (last remote state: {last_state}, "
+                f"last download error: {last_download_error})"
             )
 
         _gzip_tsv_output(tsv_path, tsv_gz_path)
