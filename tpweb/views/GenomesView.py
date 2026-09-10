@@ -6,7 +6,12 @@ from tpweb.services.genomes import (
     build_genomes_queryset,
     summarize_genomes,
 )
-from tpweb.services.csv_exports import build_view_export_url, csv_response, xlsx_sections_response
+from tpweb.services.csv_exports import (
+    build_export_url,
+    build_view_export_url,
+    csv_response,
+    xlsx_sections_response,
+)
 from tpweb.services.pipeline_status import (
     annotate_pipeline_status_for_genomes,
     get_pipeline_status,
@@ -17,13 +22,6 @@ from tpweb.services.pipeline_status import (
 class GenomesView(View):
     template_name = "search/genomes.html"
     tcolumns = GENOME_TABLE_COLUMNS
-
-    @staticmethod
-    def _build_export_url(request):
-        params = request.GET.copy()
-        params["export"] = "csv"
-        encoded = params.urlencode()
-        return f"?{encoded}" if encoded else "?export=csv"
 
     def get(self, request, *args, **kwargs):
         search_query = request.GET.get("search", "").strip()
@@ -97,7 +95,7 @@ class GenomesView(View):
                 "total_ec_annotated": genome_metrics["total_ec_annotated"],
                 "pipeline_status": pipeline_status,
                 "workspace_deleted": request.GET.get("workspace_deleted", "").strip(),
-                "export_url": self._build_export_url(request),
+                "export_url": build_export_url(request),
                 "view_export_url": build_view_export_url(request),
             },
         )  # , {'form': form})

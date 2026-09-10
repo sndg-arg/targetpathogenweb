@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from datetime import datetime
 
 import paramiko
+from scp import SCPClient
 
 
 REMOTE_FAILURE_PREFIXES = (
@@ -142,12 +143,42 @@ def _build_config(cfg_dict, prefix):
     )
 
 
-def _remote_exec(ssh, command):
+def _exec_remote(ssh, command):
     stdin, stdout, stderr = ssh.exec_command(command)
     exit_code = stdout.channel.recv_exit_status()
     out = stdout.read().decode("utf-8", errors="replace").strip()
     err = stderr.read().decode("utf-8", errors="replace").strip()
     return exit_code, out, err
+
+
+def _open_remote_session(config):
+    ssh = paramiko.SSHClient()
+    ssh.load_system_host_keys()
+    ssh.set_missing_host_key_policy(paramiko.WarningPolicy())
+    ssh.connect(
+        config.ssh_host,
+        port=config.ssh_port,
+        username=config.ssh_user,
+        password=config.ssh_password,
+        timeout=config.ssh_connect_timeout,
+        banner_timeout=config.ssh_connect_timeout,
+        auth_timeout=config.ssh_connect_timeout,
+        allow_agent=True,
+        look_for_keys=True,
+        key_filename=config.ssh_key_filename,
+    )
+    scp_client = SCPClient(ssh.get_transport())
+    sftp = ssh.open_sftp()
+    return ssh, scp_client, sftp
+
+
+def _close_remote_session(ssh, scp_client, sftp):
+    for handle in (scp_client, sftp, ssh):
+        if handle is not None:
+            try:
+                handle.close()
+            except Exception:
+                pass
 
 
 def run_remote_shell_job(cfg_dict, *, env_prefix, job_name, command, stage_number=None):
@@ -178,7 +209,7 @@ def run_remote_shell_job(cfg_dict, *, env_prefix, job_name, command, stage_numbe
             key_filename=config.ssh_key_filename,
         )
 
-        exit_code, _out, err = _remote_exec(ssh, f"mkdir -p {shlex.quote(remote_job_dir)}")
+        exit_code, _out, err = _exec_remote(ssh, f"mkdir -p {shlex.quote(remote_job_dir)}")
         if exit_code != 0:
             raise RuntimeError(f"Unable to create remote job dir: {err}")
 
@@ -203,14 +234,14 @@ def run_remote_shell_job(cfg_dict, *, env_prefix, job_name, command, stage_numbe
             ]
         )
         script = "\n".join(sbatch_lines) + "\n"
-        exit_code, _out, err = _remote_exec(
+        exit_code, _out, err = _exec_remote(
             ssh,
             f"cat > {shlex.quote(script_path)} <<'EOF'\n{script}\nEOF\nchmod +x {shlex.quote(script_path)}",
         )
         if exit_code != 0:
             raise RuntimeError(f"Unable to write remote job script: {err}")
 
-        exit_code, out, err = _remote_exec(
+        exit_code, out, err = _exec_remote(
             ssh,
             f"cd {shlex.quote(remote_job_dir)} && sbatch --parsable {shlex.quote(script_path)}",
         )
@@ -223,7 +254,7 @@ def run_remote_shell_job(cfg_dict, *, env_prefix, job_name, command, stage_numbe
 
         deadline = time.time() + config.wait_seconds
         while time.time() < deadline:
-            exit_code, state, _err = _remote_exec(
+            exit_code, state, _err = _exec_remote(
                 ssh,
                 f"sacct -j {shlex.quote(job_id)} --format=State --noheader | head -1 | awk '{{print $1}}'",
             )
@@ -232,7 +263,7 @@ def run_remote_shell_job(cfg_dict, *, env_prefix, job_name, command, stage_numbe
                 print(f"{job_name}: SLURM job {job_id} completed")
                 return 0
             if any(state.startswith(prefix) for prefix in REMOTE_FAILURE_PREFIXES):
-                _code, tail_out, _ = _remote_exec(
+                _code, tail_out, _ = _exec_remote(
                     ssh,
                     f"tail -100 {shlex.quote(stdout_path)} {shlex.quote(stderr_path)} 2>/dev/null",
                 )

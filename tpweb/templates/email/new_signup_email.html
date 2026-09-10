@@ -1,0 +1,17 @@
+{% extends "email/base_email.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "New account pending approval" %}{% endblock %}
+
+{% block eyebrow %}{% trans "New signup" %}{% endblock %}
+
+{% block heading %}{% trans "Someone's waiting for approval" %}{% endblock %}
+
+{% block body %}
+<p style="margin:0 0 16px;">
+    {% blocktrans %}<strong>{{ display_name }}</strong> ({{ user_email }}) just signed up and is waiting for approval.{% endblocktrans %}
+</p>
+<p style="margin:0;">
+    {% trans "Review pending accounts from the admin panel or the Manage users screen." %}
+</p>
+{% endblock %}

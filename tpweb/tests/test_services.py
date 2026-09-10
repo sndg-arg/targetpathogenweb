@@ -1,23 +1,38 @@
 import gzip
 import json
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from types import SimpleNamespace
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
 from django.test import SimpleTestCase, TestCase
+from django.utils import timezone as django_timezone
 
 from bioseq.models.Bioentry import Bioentry
 from bioseq.models.Biodatabase import Biodatabase
+from tpweb.models.AgentChatSession import AgentChatSession
+from tpweb.models.BioentryStructure import BioentryStructure
 from tpweb.models.GenomeUpload import GenomeUpload
+from tpweb.models.pdb import PDB
 from tpweb.models.PipelineRun import PipelineRun
 from tpweb.models.ScoreFormula import ScoreFormula
 from tpweb.models.ScoreParam import ScoreParam, ScoreParamOptions
 from tpweb.models.ScoreParamValue import ScoreParamValue
 from tpweb.models.Binders import Binders
+from tpweb.services.agent_chat_sessions import (
+    SESSION_IDLE_GAP,
+    TITLE_MAX_LENGTH,
+    default_conversation,
+    delete_conversation,
+    find_conversation,
+    list_conversations,
+    rename_conversation,
+    resolve_active_conversation,
+    set_title_if_blank,
+)
 from tpweb.services.assembly_workspace import build_assembly_workspace_metrics
 from tpweb.services.assembly_overview import build_assembly_overview
 from tpweb.services.formula_evaluator import (
@@ -44,6 +59,7 @@ from tpweb.services.protein_list import (
     apply_protein_search,
     empty_pagination_payload,
     grouped_selected_parameters,
+    humanize_identifier,
     normalize_selected_parameters,
     parse_page_size,
     remove_selected_parameter,
@@ -51,8 +67,10 @@ from tpweb.services.protein_list import (
 from tpweb.services.protein_annotations import ANNOTATION_KIND_CONFIG, build_annotation_explorer
 from tpweb.services.protein_formula import choose_formula, resolve_formulas_for_user
 from tpweb.services.protein_serializer import build_protein_table_row
+from tpweb.services.protein_summary import build_gates_metabolic_priority
 from tpweb.services.pipeline_status import (
     _status_from_last_run_marker,
+    _status_from_pipeline_run,
     annotate_pipeline_status_for_genome,
     sanitize_pipeline_status_for_user,
 )
@@ -82,9 +100,10 @@ from tpweb.services.workspace import (
     get_workspace_session_value,
     set_workspace_session_value,
 )
+from tpweb.services.pocket_consensus import pocket_residue_overlap
+from tpweb.services.structure_summary import _annotated_site_label
 from tpweb.views.FormulaForm import FormulaForm
 from tpweb.views.IndexView import should_show_home_pipeline_panel
-from tpweb.views.StructureView import _annotated_site_label, _pocket_residue_overlap
 from tpweb.services.llm.base import Message, ToolCall, ToolDefinition, ToolResult
 from tpweb.services.llm.openai_provider import OpenAIProvider
 
@@ -204,48 +223,63 @@ class GenomeServiceTests(SimpleTestCase):
         self.assertEqual(protein_coding_loaded, "62")
         self.assertEqual(untranslated_cds, "11")
 
-    @patch("tpweb.services.assembly_workspace.cache")
-    @patch("tpweb.services.assembly_workspace.BioentryStructure")
-    @patch("tpweb.services.assembly_workspace.Bioentry")
-    def test_build_assembly_workspace_metrics_treats_colabfold_as_model_not_experimental(
-        self,
-        bioentry_model,
-        bioentry_structure_model,
-        cache_mock,
-    ):
-        cache_mock.get.return_value = None
-        proteins = MagicMock()
-        bioentry_model.objects.filter.return_value = proteins
-        proteins.count.return_value = 62
 
-        distinct_count_values = iter([11, 10, 1, 31, 22, 44])
+class AssemblyWorkspaceStructureMetricsTests(TestCase):
+    """build_assembly_workspace_metrics's structure-source breakdown must be
+    mutually exclusive by priority (experimental > AlphaFold DB > ColabFold,
+    same order structure_sources.py uses per-protein) -- a protein with
+    structures from more than one source used to be counted in every
+    matching bucket, so e.g. colabfold_structures could equal
+    proteins_with_structure even though ColabFold is meant to only cover
+    what nothing else already does. Real DB fixtures, not mocks: the
+    previous mock-based test only proved the call shape the old
+    implementation happened to use, not that the counts stayed correct
+    (or summed to the total) once that shape changed."""
 
-        def build_distinct_qs():
-            distinct_qs = MagicMock()
-            distinct_qs.count.return_value = next(distinct_count_values)
-            filtered_qs = MagicMock()
-            filtered_qs.distinct.return_value = distinct_qs
-            return filtered_qs
+    def _make_structure(self, bioentry, *, code, experiment):
+        pdb = PDB.objects.create(code=code, experiment=experiment, text="")
+        BioentryStructure.objects.create(bioentry=bioentry, pdb=pdb)
 
-        proteins.filter.side_effect = [build_distinct_qs() for _ in range(6)]
+    def test_priority_order_keeps_each_protein_in_exactly_one_bucket(self):
+        assembly_name = "public__TESTGENOME"
+        proteome = Biodatabase.objects.create(name=assembly_name + Biodatabase.PROT_POSTFIX)
 
-        structure_filtered = MagicMock()
-        structure_excluded = MagicMock()
-        structure_values = MagicMock()
-        structure_distinct = MagicMock()
-        structure_distinct.count.return_value = 0
-        bioentry_structure_model.objects.filter.return_value = structure_filtered
-        structure_filtered.exclude.return_value = structure_excluded
-        structure_excluded.values.return_value = structure_values
-        structure_values.distinct.return_value = structure_distinct
+        experimental_and_more = Bioentry.objects.create(
+            biodatabase=proteome, name="p1", accession="P1", identifier="P1"
+        )
+        self._make_structure(experimental_and_more, code="1ABC", experiment="XRAY")
+        self._make_structure(experimental_and_more, code="AF_P1", experiment="AF")
+        self._make_structure(experimental_and_more, code="CF_P1", experiment="CF")
 
-        metrics = build_assembly_workspace_metrics("public__NZ_AP023069.1")
+        alphafold_and_colabfold = Bioentry.objects.create(
+            biodatabase=proteome, name="p2", accession="P2", identifier="P2"
+        )
+        self._make_structure(alphafold_and_colabfold, code="AF_P2", experiment="AF")
+        self._make_structure(alphafold_and_colabfold, code="CF_P2", experiment="CF")
 
-        self.assertEqual(metrics["proteins_with_structure"], 11)
-        self.assertEqual(metrics["experimental_structures"], 0)
-        self.assertEqual(metrics["alphafold_structures"], 10)
+        colabfold_only = Bioentry.objects.create(
+            biodatabase=proteome, name="p3", accession="P3", identifier="P3"
+        )
+        self._make_structure(colabfold_only, code="CF_P3", experiment="CF")
+
+        Bioentry.objects.create(
+            biodatabase=proteome, name="p4", accession="P4", identifier="P4"
+        )  # no_structure -- counts toward total_proteins only
+
+        metrics = build_assembly_workspace_metrics(assembly_name)
+
+        self.assertEqual(metrics["proteins_with_structure"], 3)
+        self.assertEqual(metrics["experimental_structures"], 1)
+        self.assertEqual(metrics["alphafold_structures"], 1)
         self.assertEqual(metrics["colabfold_structures"], 1)
-        structure_filtered.exclude.assert_called_once_with(pdb__experiment__in=("AF", "CF"))
+        # The whole point of the fix: these three now sum to the total
+        # instead of each independently counting "has at least one".
+        self.assertEqual(
+            metrics["experimental_structures"]
+            + metrics["alphafold_structures"]
+            + metrics["colabfold_structures"],
+            metrics["proteins_with_structure"],
+        )
 
     def test_genome_metadata_labels_are_human_readable(self):
         self.assertEqual(genome_metadata_label("EntryLength"), "Sequence length [bp]")
@@ -323,13 +357,16 @@ class ProteinListServiceTests(SimpleTestCase):
         self.assertEqual(normalize_selected_parameters([]), [])
         self.assertEqual(normalize_selected_parameters("invalid"), [])
 
+    def test_humanize_identifier_labels_gates_priority_column(self):
+        self.assertEqual(humanize_identifier("priority"), "Metabolic priority")
+
     def test_grouped_selected_parameters(self):
         selected = [
             {"score_param_name": "Druggability", "name": "High"},
             {"score_param_name": "Druggability", "name": "Medium"},
             {"score_param_name": "Localization", "name": "Cytoplasm"},
         ]
-        grouped = grouped_selected_parameters(selected)
+        grouped = dict(grouped_selected_parameters(selected))
         self.assertEqual(grouped["Druggability"], "High, Medium")
         self.assertEqual(grouped["Localization"], "Cytoplasm")
 
@@ -343,9 +380,32 @@ class ProteinListServiceTests(SimpleTestCase):
             }
         ]
 
-        grouped = grouped_selected_parameters(selected, humanize=True)
+        grouped = dict(grouped_selected_parameters(selected, humanize=True))
 
         self.assertEqual(grouped["Druggability Score"], ">= 0.75")
+
+    def test_grouped_selected_parameters_spells_out_and_across_groups(self):
+        # Two different advanced-filter groups touching the same score param
+        # combine as AND, not OR -- joining them with ", " would be
+        # indistinguishable from a same-group OR, so they're spelled out
+        # with " AND " instead of silently merged into "Core, Accessory".
+        selected = [
+            {"score_param_name": "Core Corecruncher", "name": "Core", "group_id": "adv:0"},
+            {"score_param_name": "Core Corecruncher", "name": "Accessory", "group_id": "adv:1"},
+        ]
+        grouped = grouped_selected_parameters(selected)
+        self.assertEqual(grouped, [("Core Corecruncher", "Core AND Accessory")])
+
+    def test_grouped_selected_parameters_merges_same_group_values(self):
+        # Multiple values picked within the *same* group (or the plain
+        # filter panel, which has no group_id) genuinely combine as OR and
+        # should still be joined into one entry.
+        selected = [
+            {"score_param_name": "Core Corecruncher", "name": "Core", "group_id": "adv:0"},
+            {"score_param_name": "Core Corecruncher", "name": "Accessory", "group_id": "adv:0"},
+        ]
+        grouped = grouped_selected_parameters(selected)
+        self.assertEqual(grouped, [("Core Corecruncher", "Core, Accessory")])
 
     def test_add_and_remove_selected_parameter(self):
         selected = [{"id": 1, "name": "High"}]
@@ -455,6 +515,207 @@ class ProteinListFilterQueryTests(TestCase):
         self.assertNotEqual(with_ligand.pk, with_ligand.accession)
         self.assertNotEqual(without_ligand.pk, without_ligand.accession)
 
+    def test_any_group_ors_two_numeric_score_params(self):
+        """Motivating case for the advanced filter builder: druggable pockets
+        by FPocket OR by P2Rank, not just AND."""
+        proteome = Biodatabase.objects.create(name="TEST_protein")
+        fpocket_only = Bioentry.objects.create(
+            biodatabase=proteome, name="p1", accession="P1", identifier="P1"
+        )
+        p2rank_only = Bioentry.objects.create(
+            biodatabase=proteome, name="p2", accession="P2", identifier="P2"
+        )
+        neither = Bioentry.objects.create(
+            biodatabase=proteome, name="p3", accession="P3", identifier="P3"
+        )
+        fpocket_param = ScoreParam.objects.create(category="Pocket", name="druggability", type="N")
+        p2rank_param = ScoreParam.objects.create(
+            category="Pocket", name="p2rank_probability", type="N"
+        )
+        ScoreParamValue.objects.create(
+            score_param=fpocket_param, bioentry=fpocket_only, numeric_value=0.9
+        )
+        ScoreParamValue.objects.create(
+            score_param=p2rank_param, bioentry=p2rank_only, numeric_value=0.9
+        )
+        ScoreParamValue.objects.create(
+            score_param=fpocket_param, bioentry=neither, numeric_value=0.1
+        )
+        proteins = Bioentry.objects.filter(biodatabase=proteome)
+
+        matched = apply_selected_parameter_filters(
+            proteins,
+            [
+                {
+                    "type": "numeric",
+                    "score_param_id": fpocket_param.pk,
+                    "operation": ">=",
+                    "value": 0.7,
+                    "group_id": "adv:1",
+                    "group_mode": "any",
+                },
+                {
+                    "type": "numeric",
+                    "score_param_id": p2rank_param.pk,
+                    "operation": ">=",
+                    "value": 0.7,
+                    "group_id": "adv:1",
+                    "group_mode": "any",
+                },
+            ],
+        )
+
+        self.assertEqual(set(matched.values_list("accession", flat=True)), {"P1", "P2"})
+
+    def test_any_group_still_ands_against_other_conditions(self):
+        proteome = Biodatabase.objects.create(name="TEST_protein")
+        matches_both = Bioentry.objects.create(
+            biodatabase=proteome, name="p1", accession="P1", identifier="P1"
+        )
+        matches_or_only = Bioentry.objects.create(
+            biodatabase=proteome, name="p2", accession="P2", identifier="P2"
+        )
+        localization_param = ScoreParam.objects.create(
+            category="Localization", name="Localization", type="C"
+        )
+        fpocket_param = ScoreParam.objects.create(category="Pocket", name="druggability", type="N")
+        ScoreParamValue.objects.create(
+            score_param=localization_param, bioentry=matches_both, value="Cytoplasmic"
+        )
+        ScoreParamValue.objects.create(
+            score_param=fpocket_param, bioentry=matches_both, numeric_value=0.9
+        )
+        ScoreParamValue.objects.create(
+            score_param=fpocket_param, bioentry=matches_or_only, numeric_value=0.9
+        )
+        proteins = Bioentry.objects.filter(biodatabase=proteome)
+
+        matched = apply_selected_parameter_filters(
+            proteins,
+            [
+                {
+                    "type": "categorical",
+                    "score_param_id": localization_param.pk,
+                    "score_param_name": "localization",
+                    "name": "Cytoplasmic",
+                },
+                {
+                    "type": "numeric",
+                    "score_param_id": fpocket_param.pk,
+                    "operation": ">=",
+                    "value": 0.7,
+                    "group_id": "adv:1",
+                    "group_mode": "any",
+                },
+            ],
+        )
+
+        self.assertEqual(list(matched.values_list("accession", flat=True)), ["P1"])
+
+    def test_two_different_all_groups_on_the_same_param_and_dont_merge_as_or(self):
+        # Two SEPARATE advanced-builder groups (distinct group_id, both
+        # "all") that happen to touch the same single-valued categorical
+        # param must stay independent AND'd constraints -- not get swept
+        # into the same "any of these values" merge that same-param
+        # conditions WITHIN one group intentionally get (see
+        # test_any_group_ors_two_numeric_score_params's sibling categorical
+        # case). A protein can't be both Cytoplasmic and Periplasmic, so the
+        # correct result is zero matches, not an OR of the two.
+        proteome = Biodatabase.objects.create(name="TEST_protein")
+        cytoplasmic_only = Bioentry.objects.create(
+            biodatabase=proteome, name="p1", accession="P1", identifier="P1"
+        )
+        periplasmic_only = Bioentry.objects.create(
+            biodatabase=proteome, name="p2", accession="P2", identifier="P2"
+        )
+        localization_param = ScoreParam.objects.create(
+            category="Localization", name="Localization", type="C"
+        )
+        ScoreParamValue.objects.create(
+            score_param=localization_param, bioentry=cytoplasmic_only, value="Cytoplasmic"
+        )
+        ScoreParamValue.objects.create(
+            score_param=localization_param, bioentry=periplasmic_only, value="Periplasmic"
+        )
+        proteins = Bioentry.objects.filter(biodatabase=proteome)
+
+        matched = apply_selected_parameter_filters(
+            proteins,
+            [
+                {
+                    "type": "categorical",
+                    "score_param_id": localization_param.pk,
+                    "score_param_name": "localization",
+                    "name": "Cytoplasmic",
+                    "group_id": "adv:0",
+                    "group_mode": "all",
+                },
+                {
+                    "type": "categorical",
+                    "score_param_id": localization_param.pk,
+                    "score_param_name": "localization",
+                    "name": "Periplasmic",
+                    "group_id": "adv:1",
+                    "group_mode": "all",
+                },
+            ],
+        )
+
+        self.assertEqual(list(matched.values_list("accession", flat=True)), [])
+
+    def test_one_all_group_still_merges_same_param_values_as_or(self):
+        # Contrast with the test above: TWO conditions inside the SAME
+        # explicit group (matching the "Core or Accessory" UI row) must
+        # still merge as "any of these values", exactly as before this
+        # per-group bucketing existed.
+        proteome = Biodatabase.objects.create(name="TEST_protein")
+        cytoplasmic = Bioentry.objects.create(
+            biodatabase=proteome, name="p1", accession="P1", identifier="P1"
+        )
+        periplasmic = Bioentry.objects.create(
+            biodatabase=proteome, name="p2", accession="P2", identifier="P2"
+        )
+        extracellular = Bioentry.objects.create(
+            biodatabase=proteome, name="p3", accession="P3", identifier="P3"
+        )
+        localization_param = ScoreParam.objects.create(
+            category="Localization", name="Localization", type="C"
+        )
+        ScoreParamValue.objects.create(
+            score_param=localization_param, bioentry=cytoplasmic, value="Cytoplasmic"
+        )
+        ScoreParamValue.objects.create(
+            score_param=localization_param, bioentry=periplasmic, value="Periplasmic"
+        )
+        ScoreParamValue.objects.create(
+            score_param=localization_param, bioentry=extracellular, value="Extracellular"
+        )
+        proteins = Bioentry.objects.filter(biodatabase=proteome)
+
+        matched = apply_selected_parameter_filters(
+            proteins,
+            [
+                {
+                    "type": "categorical",
+                    "score_param_id": localization_param.pk,
+                    "score_param_name": "localization",
+                    "name": "Cytoplasmic",
+                    "group_id": "adv:0",
+                    "group_mode": "all",
+                },
+                {
+                    "type": "categorical",
+                    "score_param_id": localization_param.pk,
+                    "score_param_name": "localization",
+                    "name": "Periplasmic",
+                    "group_id": "adv:0",
+                    "group_mode": "all",
+                },
+            ],
+        )
+
+        self.assertEqual(set(matched.values_list("accession", flat=True)), {"P1", "P2"})
+
 
 class ProteinFormulaServiceTests(SimpleTestCase):
     def test_choose_formula_by_requested_name(self):
@@ -532,7 +793,7 @@ class StructureAndAnnotationServiceTests(SimpleTestCase):
         def residue(chain, resid, icode=""):
             return SimpleNamespace(chain=chain, resid=resid, icode=icode)
 
-        overlap = _pocket_residue_overlap(
+        overlap = pocket_residue_overlap(
             [residue("A", 10), residue("A", 11), residue("A", 12)],
             [residue("B", 10), residue("A", 11), residue("A", 12, "A")],
         )
@@ -1270,6 +1531,43 @@ class PipelineStatusTests(SimpleTestCase):
         self.assertEqual(status.genome_accession, "USER-2__NZ_AP023069.1")
         self.assertEqual(status.genome_display_accession, "NZ_AP023069.1")
 
+    def test_status_from_pipeline_run_resolves_public_workspace_slug_from_accession(self):
+        # A public-scoped upload's genome_upload.owner_id is the shared
+        # "public" TPUser's own real pk -- reconstructing the slug from that
+        # id alone would produce "user-<pk>", not the literal "public"
+        # workspace slug, making the run look like it belongs to some other
+        # individual user's workspace instead of everyone's shared public
+        # one (sanitize_pipeline_status_for_user then hides the stage/genome
+        # info from every viewer, including the superuser who made it public).
+        fake_genome_upload = type("FakeGenomeUpload", (), {"owner_id": 42})()
+        fake_run = type(
+            "FakeRun",
+            (),
+            {
+                "id": 7,
+                "internal_accession": "public__GCA_030061715.1",
+                "genome_upload": fake_genome_upload,
+                "updated_at": None,
+                "finished_at": None,
+                "started_at": None,
+                "status": PipelineRun.STATUS_RUNNING,
+                "STATUS_FINISHED": PipelineRun.STATUS_FINISHED,
+                "STATUS_FAILED": PipelineRun.STATUS_FAILED,
+                "STATUS_CANCELLED": PipelineRun.STATUS_CANCELLED,
+                "STATUS_SUBMITTED": PipelineRun.STATUS_SUBMITTED,
+                "current_stage": 9,
+                "current_task_id": None,
+                "current_app": "index_genome_db",
+                "stage_events": type("FakeEvents", (), {"order_by": lambda self, *a: []})(),
+            },
+        )()
+
+        status = _status_from_pipeline_run(fake_run)
+
+        self.assertEqual(status.workspace_slug, "public")
+        self.assertEqual(status.workspace_owner_id, 42)
+        self.assertEqual(status.stage_current, 9)
+
     @patch("tpweb.services.pipeline_status.Biodatabase")
     def test_sanitize_pipeline_status_for_user_hides_deleted_workspace_status(
         self, biodatabase_model
@@ -1530,3 +1828,189 @@ class OpenAIProviderTranslationTests(SimpleTestCase):
 
         self.assertEqual(result.usage.input_tokens, 0)
         self.assertEqual(result.usage.output_tokens, 0)
+
+
+class AgentChatSessionsServiceTests(TestCase):
+    """resolve_active_conversation's idle-gap/force-new/explicit-id branches,
+    and list_conversations' retention filtering and session isolation."""
+
+    def _backdated(self, session_key, minutes_old, title=""):
+        row = AgentChatSession.objects.create(session_key=session_key, title=title, history_json=[])
+        backdated = django_timezone.now() - timedelta(minutes=minutes_old)
+        AgentChatSession.objects.filter(pk=row.pk).update(updated_at=backdated)
+        row.refresh_from_db()
+        return row
+
+    def test_creates_a_new_conversation_for_a_session_with_none_yet(self):
+        row = resolve_active_conversation("brand-new-session")
+
+        self.assertIsNotNone(row.pk)
+        self.assertEqual(row.session_key, "brand-new-session")
+        self.assertEqual(row.history_json, [])
+
+    def test_reuses_a_recently_active_conversation(self):
+        recent = self._backdated("session-a", minutes_old=5)
+
+        row = resolve_active_conversation("session-a")
+
+        self.assertEqual(row.pk, recent.pk)
+
+    def test_does_not_reuse_an_idle_expired_conversation(self):
+        stale = self._backdated("session-b", minutes_old=SESSION_IDLE_GAP.total_seconds() / 60 + 5)
+
+        row = resolve_active_conversation("session-b")
+
+        self.assertNotEqual(row.pk, stale.pk)
+        self.assertEqual(AgentChatSession.objects.filter(session_key="session-b").count(), 2)
+
+    def test_explicit_conversation_id_is_always_reused_regardless_of_staleness(self):
+        stale = self._backdated("session-c", minutes_old=999)
+
+        row = resolve_active_conversation("session-c", conversation_id=stale.pk)
+
+        self.assertEqual(row.pk, stale.pk)
+
+    def test_force_new_always_creates_a_row_even_if_a_fresh_one_exists(self):
+        recent = self._backdated("session-d", minutes_old=1)
+
+        row = resolve_active_conversation("session-d", force_new=True)
+
+        self.assertNotEqual(row.pk, recent.pk)
+
+    def test_find_conversation_never_returns_another_session_s_row(self):
+        other = self._backdated("session-e", minutes_old=1)
+
+        self.assertIsNone(find_conversation("someone-else", other.pk))
+        self.assertEqual(find_conversation("session-e", other.pk).pk, other.pk)
+
+    def test_default_conversation_never_creates_a_row(self):
+        self.assertIsNone(default_conversation("session-f"))
+        self.assertEqual(AgentChatSession.objects.filter(session_key="session-f").count(), 0)
+
+    def test_set_title_if_blank_sets_once_and_never_overwrites(self):
+        row = AgentChatSession.objects.create(session_key="session-g", history_json=[])
+
+        set_title_if_blank(row, "  What genes are near this chokepoint?  ")
+        self.assertEqual(row.title, "What genes are near this chokepoint?")
+
+        set_title_if_blank(row, "A completely different message")
+        self.assertEqual(row.title, "What genes are near this chokepoint?")
+
+    def test_list_conversations_excludes_other_sessions_and_expired_rows(self):
+        mine = self._backdated("session-h", minutes_old=1, title="Mine")
+        # Idle-expired (past SESSION_IDLE_GAP) but still within the 7-day
+        # HISTORY_RETENTION window is a separate, older conversation still on
+        # the list, not a "recently active" one -- exercise that here too.
+        self._backdated(
+            "session-h",
+            minutes_old=SESSION_IDLE_GAP.total_seconds() / 60 + 5,
+            title="Idle but retained",
+        )
+        self._backdated("session-h", minutes_old=60 * 24 * 8, title="Past retention window")
+        self._backdated("someone-else", minutes_old=1, title="Not mine")
+
+        result = list_conversations("session-h")
+
+        # Most recent first; the >7-day-old row and the other session's row are absent.
+        self.assertEqual([entry["title"] for entry in result], ["Mine", "Idle but retained"])
+        self.assertEqual(result[0]["id"], mine.pk)
+        self.assertEqual(result[0]["message_count"], 0)
+
+    def test_rename_conversation_updates_and_normalizes_title(self):
+        row = AgentChatSession.objects.create(
+            session_key="session-i", title="Old title", history_json=[]
+        )
+
+        renamed = rename_conversation("session-i", row.pk, "  New   title  ")
+
+        self.assertEqual(renamed.pk, row.pk)
+        self.assertEqual(renamed.title, "New title")
+        row.refresh_from_db()
+        self.assertEqual(row.title, "New title")
+
+    def test_rename_conversation_truncates_long_titles(self):
+        row = AgentChatSession.objects.create(session_key="session-j", history_json=[])
+
+        renamed = rename_conversation("session-j", row.pk, "x" * 100)
+
+        # TITLE_MAX_LENGTH (60) characters kept, plus the ellipsis appended
+        # on top -- 61 total, not 60.
+        self.assertEqual(len(renamed.title), TITLE_MAX_LENGTH + 1)
+        self.assertTrue(renamed.title.startswith("x" * TITLE_MAX_LENGTH))
+        self.assertTrue(renamed.title.endswith("…"))
+
+    def test_rename_conversation_returns_none_for_another_session(self):
+        row = AgentChatSession.objects.create(
+            session_key="session-k", title="Mine", history_json=[]
+        )
+
+        self.assertIsNone(rename_conversation("someone-else", row.pk, "Hijacked"))
+        row.refresh_from_db()
+        self.assertEqual(row.title, "Mine")
+
+    def test_rename_conversation_returns_none_for_blank_title(self):
+        row = AgentChatSession.objects.create(
+            session_key="session-l", title="Keep me", history_json=[]
+        )
+
+        self.assertIsNone(rename_conversation("session-l", row.pk, "   "))
+        row.refresh_from_db()
+        self.assertEqual(row.title, "Keep me")
+
+    def test_delete_conversation_removes_the_row_and_returns_true(self):
+        row = AgentChatSession.objects.create(session_key="session-m", history_json=[])
+
+        result = delete_conversation("session-m", row.pk)
+
+        self.assertTrue(result)
+        self.assertFalse(AgentChatSession.objects.filter(pk=row.pk).exists())
+
+    def test_delete_conversation_returns_false_for_another_session(self):
+        row = AgentChatSession.objects.create(session_key="session-n", history_json=[])
+
+        result = delete_conversation("someone-else", row.pk)
+
+        # Must reflect the actual deleted count, not QuerySet.delete()'s
+        # always-truthy 2-tuple -- a naive bool(qs.delete()) would return
+        # True here even though nothing was deleted.
+        self.assertFalse(result)
+        self.assertTrue(AgentChatSession.objects.filter(pk=row.pk).exists())
+
+    def test_delete_conversation_returns_false_for_nonexistent_id(self):
+        result = delete_conversation("session-o", 999999)
+
+        self.assertFalse(result)
+
+
+class GatesMetabolicPriorityTests(SimpleTestCase):
+    def test_returns_none_when_neither_priority_nor_quadrant_is_loaded(self):
+        self.assertIsNone(build_gates_metabolic_priority({}))
+
+    def test_builds_the_full_context_with_tone_and_formatted_values(self):
+        raw_scores = {
+            "priority": "Priority target",
+            "quadrant": "High reaction / High gene",
+            "S_gene": "0.7900",
+            "reaction_support": "0.764640662086098",
+            "n_reactions": "1",
+        }
+
+        result = build_gates_metabolic_priority(raw_scores)
+
+        self.assertEqual(result["priority"], "Priority target")
+        self.assertEqual(result["quadrant"], "High reaction / High gene")
+        self.assertEqual(result["tone"], "success")
+        self.assertEqual(result["s_gene"], "0.79")
+        self.assertEqual(result["n_reactions"], "1")
+
+    def test_unrecognized_priority_label_falls_back_to_idle_tone(self):
+        result = build_gates_metabolic_priority({"priority": "Some new label"})
+
+        self.assertEqual(result["tone"], "idle")
+
+    def test_second_priority_tier_maps_to_warning_tone(self):
+        result = build_gates_metabolic_priority(
+            {"quadrant": "High reaction / Low gene", "priority": "Second priority targets"}
+        )
+
+        self.assertEqual(result["tone"], "warning")

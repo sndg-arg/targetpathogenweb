@@ -9,7 +9,7 @@ from bioseq.io.BioIO import BioIO
 from bioseq.models.Biodatabase import Biodatabase
 from bioseq.models.Bioentry import Bioentry
 from tpweb.models.BioentryStructure import ExperimentalStructureXref
-from .StructureView import pdb_structure
+from tpweb.services.structure_summary import pdb_structure
 from tpweb.services.protein_annotations import (
     annotation_dbnames,
     annotation_name as _annotation_name,
@@ -476,7 +476,7 @@ class ProteinView(View):
         # summarize_structure_sources, create_binders_dict) reads
         # `s.pdb.residues` -- that used to only back the chain-name derivation
         # inside pdb_structure(), which now derives chains via a `.values_list`
-        # query instead of a full residue fetch (see StructureView.py). Dropping
+        # query instead of a full residue fetch (see structure_summary.py). Dropping
         # this prefetch removes an expensive full-residue-table pull per linked
         # structure, on every protein page load.
         structures = protein.structures.all()
@@ -525,6 +525,7 @@ class ProteinView(View):
         conservation_profile = executive_context["conservation_profile"]
         microbiome_context = executive_context["microbiome_context"]
         metabolic_context = executive_context["metabolic_context"]
+        gates_metabolic_priority = executive_context["gates_metabolic_priority"]
         target_summary = executive_context["target_summary"]
         score_breakdown = executive_context["score_breakdown"]
 
@@ -687,6 +688,7 @@ class ProteinView(View):
             "conservation_profile": conservation_profile,
             "microbiome_context": microbiome_context,
             "metabolic_context": metabolic_context,
+            "gates_metabolic_priority": gates_metabolic_priority,
             "experimental_xrefs": experimental_xrefs,
             "ec_badges": ec_badges,
             "go_badges": go_badges,

@@ -1,3 +1,4 @@
+from django.contrib.auth.decorators import permission_required
 from django.http import Http404
 from django.shortcuts import redirect
 from django.urls import reverse
@@ -9,6 +10,7 @@ from tpweb.services.workspace import resolve_workspace_user
 
 
 @require_POST
+@permission_required("tpweb.can_manage_formulas", raise_exception=True)
 def delete_formula_view(request, genome, formula_pk):
     assembly_name = resolve_genome_from_slug(request.user, genome)
     if not assembly_name:

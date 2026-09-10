@@ -82,6 +82,17 @@ class FormView(LoginRequiredMixin, View):
         )
 
     def post(self, request, *args, **kwargs):
+        if not request.user.has_perm("tpweb.can_run_blast"):
+            return render(
+                request,
+                self.template_name,
+                self._build_context(
+                    request,
+                    self._resolve_selected_biodatabase(request),
+                    error_message="You don't have permission to run BLAST searches.",
+                ),
+            )
+
         selected_biodatabase = self._resolve_selected_biodatabase(request)
         text_input = (request.POST.get("text_input") or "").strip()
         max_chars = int(os.environ.get("TPW_BLAST_MAX_QUERY_CHARS", "20000"))

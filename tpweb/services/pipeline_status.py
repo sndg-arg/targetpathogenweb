@@ -328,11 +328,18 @@ def _status_from_pipeline_run(run):
     genome_upload = getattr(run, "genome_upload", None)
     if genome_upload is not None:
         workspace_owner_id = getattr(genome_upload, "owner_id", None)
-        if workspace_owner_id:
-            workspace_slug = f"user-{workspace_owner_id}"
-    if workspace_slug is None and genome_accession:
-        prefix = genome_accession.split("__", 1)[0].strip().lower()
-        workspace_slug = prefix or None
+    # The internal accession is always "<workspace-slug>__<accession>" (see
+    # build_workspace_genome_name) -- trust that over reconstructing the slug
+    # from genome_upload.owner_id, which always produces "user-<pk>" even for
+    # an upload tagged to the shared "public" workspace user (there's no
+    # single "public" pk to slug from). Left to the owner_id branch, a public
+    # upload's own progress reads as "someone else's workspace" to everyone,
+    # including the superuser who made it public -- sanitize_pipeline_status_for_user
+    # below then strips the stage/genome info and shows a generic "pipeline busy".
+    if genome_accession and "__" in genome_accession:
+        workspace_slug = genome_accession.split("__", 1)[0].strip().lower() or None
+    elif workspace_owner_id:
+        workspace_slug = f"user-{workspace_owner_id}"
     status_data["workspace_slug"] = workspace_slug
     status_data["workspace_owner_id"] = workspace_owner_id
     status_data["last_updated"] = _format_pipeline_timestamp(

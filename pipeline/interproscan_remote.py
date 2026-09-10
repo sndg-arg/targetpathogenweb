@@ -1,7 +1,6 @@
 import gzip
 import os
 import shlex
-import socket
 import time
 from dataclasses import dataclass
 from datetime import datetime
@@ -9,89 +8,15 @@ from datetime import datetime
 import paramiko
 from scp import SCPClient
 
-from tpweb.services.slurm_messages import classify_slurm_resource_message
-
-
-REMOTE_FAILURE_PREFIXES = (
-    "FAILED",
-    "CANCELLED",
-    "TIMEOUT",
-    "OUT_OF_MEMORY",
-    "NODE_FAIL",
+from slurm_remote_command import (
+    REMOTE_FAILURE_PREFIXES,
+    _assert_ssh_reachable,
+    _config_text,
+    _env_int,
+    _env_text,
+    _resolve_ssh_options,
 )
-
-
-def _env_int(name, default):
-    raw = os.getenv(name)
-    if raw is None:
-        return default
-    try:
-        return int(raw.strip())
-    except (TypeError, ValueError):
-        return default
-
-
-def _env_text(name, default=None):
-    raw = os.getenv(name)
-    if raw is None:
-        return default
-    text = str(raw).strip()
-    return text or default
-
-
-def _config_text(cfg_dict, section, option, default=None):
-    try:
-        value = cfg_dict.get(section, option, fallback=None)
-    except Exception:
-        value = None
-    text = str(value or "").strip()
-    return text or default
-
-
-def _assert_ssh_reachable(host, port, timeout_seconds):
-    probe = socket.socket()
-    probe.settimeout(timeout_seconds)
-    try:
-        probe.connect((host, int(port or 22)))
-    finally:
-        probe.close()
-
-
-def _resolve_ssh_options(host, user=None, port=22):
-    resolved = {
-        "host": host,
-        "user": user,
-        "port": port,
-        "key_filename": None,
-    }
-    config_path = os.path.expanduser("~/.ssh/config")
-    if not os.path.exists(config_path):
-        return resolved
-
-    try:
-        ssh_config = paramiko.SSHConfig()
-        with open(config_path, encoding="utf-8") as handle:
-            ssh_config.parse(handle)
-        entry = ssh_config.lookup(host)
-    except Exception:
-        return resolved
-
-    resolved["host"] = entry.get("hostname") or resolved["host"]
-    resolved["user"] = user or entry.get("user") or resolved["user"]
-
-    entry_port = entry.get("port")
-    if entry_port:
-        try:
-            resolved["port"] = int(entry_port)
-        except (TypeError, ValueError):
-            pass
-
-    identity_files = entry.get("identityfile") or []
-    if identity_files:
-        expanded = [os.path.expanduser(path) for path in identity_files]
-        resolved["key_filename"] = expanded if len(expanded) > 1 else expanded[0]
-
-    return resolved
+from tpweb.services.slurm_messages import classify_slurm_resource_message
 
 
 def _record_remote_job(run_id_raw, *, job_id, remote_job_dir):
@@ -253,6 +178,12 @@ def run_remote_interproscan(cfg_dict, folder_path, genome):
             look_for_keys=True,
             key_filename=config.ssh_key_filename,
         )
+        # This session can sit idle for hours while InterProScan runs remotely
+        # -- without a keepalive, a dead peer/NAT-dropped connection isn't
+        # detected until some OS-level TCP timeout (which can itself take
+        # hours), during which every scp.get()/exec_command() call below just
+        # hangs instead of raising promptly.
+        ssh.get_transport().set_keepalive(30)
 
         def _run_remote(command):
             stdin, stdout, stderr = ssh.exec_command(command)
@@ -362,14 +293,32 @@ def run_remote_interproscan(cfg_dict, folder_path, genome):
         last_state = "PENDING"
         completion_seen_at = None
         last_wait_notice = None
+        last_download_error = None
+        # A real wall-clock deadline, not a count of loop iterations -- a
+        # single hung scp.get()/exec_command() call (a stale connection with
+        # no keepalive response yet) can eat far more than remote_poll_seconds
+        # of actual time, which would otherwise let this loop run for the
+        # container's entire lifetime without ever reaching remote_wait_seconds.
+        deadline = time.monotonic() + config.remote_wait_seconds
 
-        while not finished and waited_seconds <= config.remote_wait_seconds:
+        while not finished and time.monotonic() < deadline:
             try:
                 scp.get(remote_output, folder_path)
                 finished = True
                 continue
-            except Exception:
-                pass
+            except Exception as exc:
+                error_text = f"{type(exc).__name__}: {exc}"
+                if error_text != last_download_error:
+                    print(f"InterProScan download attempt failed for {genome}: {error_text}")
+                    _record_remote_info(
+                        run_id_raw,
+                        message=(
+                            f"Waiting on remote InterProScan output for {genome} -- "
+                            f"last download attempt failed: {error_text}"
+                        ),
+                        payload={"error": error_text},
+                    )
+                    last_download_error = error_text
 
             _, state_out, state_err = _run_remote(
                 f"sacct -j {shlex.quote(job_id)} --format=JobID,State,ExitCode -P -n | head -n 1"
@@ -438,9 +387,11 @@ def run_remote_interproscan(cfg_dict, folder_path, genome):
             waited_seconds += config.remote_poll_seconds
 
         if not finished:
+            elapsed = int(config.remote_wait_seconds - (deadline - time.monotonic()))
             raise TimeoutError(
                 f"InterProScan output not retrieved for {genome} after "
-                f"{waited_seconds} seconds (last remote state: {last_state})"
+                f"{elapsed} seconds (last remote state: {last_state}, "
+                f"last download error: {last_download_error})"
             )
 
         _gzip_tsv_output(tsv_path, tsv_gz_path)

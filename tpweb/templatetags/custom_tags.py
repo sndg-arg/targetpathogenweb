@@ -1,9 +1,11 @@
 from django import template
-import re
 
+from tpweb.services.protein_list import humanize_identifier as _humanize_identifier
 from tpweb.services.protein_summary import druggability_label
 
 register = template.Library()
+
+register.filter("humanize_identifier", _humanize_identifier)
 
 
 @register.filter
@@ -15,66 +17,6 @@ def dictkey(diccionario, key):
 def replace_char(value, old_char_coma_new_char):
     old_char, new_char = old_char_coma_new_char.split(",")
     return value.replace(old_char, new_char)
-
-
-@register.filter
-def humanize_identifier(value):
-    text = str(value or "").strip()
-    if not text:
-        return ""
-
-    exact_replacements = {
-        "human_offtarget": "Human off-target",
-        "gut_microbiome_offtarget": "Gut microbiome off-target",
-        "human_identity": "Human identity (%)",
-        "human_evalue": "Human E-value",
-        "deg_identity": "DEG identity (%)",
-        "deg_evalue": "DEG E-value",
-        "hit_in_deg": "Hit in DEG",
-        "no_hit": "No hit",
-        "druggability": "Druggability (FPocket)",
-        "p2rank_probability": "Druggability (P2Rank)",
-    }
-    exact_replacement = exact_replacements.get(text.lower())
-    if exact_replacement:
-        return exact_replacement
-
-    acronym_tokens = {
-        "deg": "DEG",
-        "ppi": "PPI",
-        "dna": "DNA",
-        "rna": "RNA",
-        "p2rank": "P2RANK",
-        "fpocket": "FPocket",
-        "alphafold": "AlphaFold",
-        "colabfold": "ColabFold",
-        "plddt": "pLDDT",
-        "id": "ID",
-    }
-    token_replacements = {
-        "offtarget": "Off-target",
-    }
-    lower_connectors = {"and", "or", "of", "in", "on", "to", "for", "with", "without", "by"}
-
-    text = re.sub(r"[_-]+", " ", text)
-    text = re.sub(r"(?<=[a-z0-9])(?=[A-Z])", " ", text)
-    text = re.sub(r"\s+", " ", text).strip()
-    tokens = text.split(" ")
-    human_tokens = []
-    for idx, token in enumerate(tokens):
-        token_l = token.lower()
-        if token_l in acronym_tokens:
-            human_tokens.append(acronym_tokens[token_l])
-            continue
-        if token_l in token_replacements:
-            human_tokens.append(token_replacements[token_l])
-            continue
-        if idx > 0 and token_l in lower_connectors:
-            human_tokens.append(token_l)
-            continue
-        human_tokens.append(token.capitalize())
-
-    return " ".join(human_tokens)
 
 
 @register.filter
@@ -102,7 +44,7 @@ def score_metric_display(value, column_name):
                 suffix = text[len("Pocket pocket") :].strip()
                 return f"Pocket {suffix}" if suffix else "Pocket"
             return text
-        return humanize_identifier(text) or text
+        return _humanize_identifier(text) or text
 
     if column_key.endswith("_evalue"):
         return f"{numeric:.2e}"

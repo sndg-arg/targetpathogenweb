@@ -56,7 +56,7 @@ Default web deploy:
 
 ```bash
 cd /home/dockeradmin/targetpathogenweb
-git pull --ff-only origin file-ingestion
+git pull --ff-only origin misc-fixes
 make build ENV=cluster svc=web
 make up ENV=cluster svc=web
 ```
@@ -65,10 +65,14 @@ Queue-only code changes:
 
 ```bash
 cd /home/dockeradmin/targetpathogenweb
-git pull --ff-only origin file-ingestion
+git pull --ff-only origin misc-fixes
 make build ENV=cluster svc=queue
 make up ENV=cluster svc=queue
 ```
+
+Check `git branch --show-current` on the Nodo0 checkout before pulling if unsure which
+branch is actually live — `file-ingestion` and `main` are both far behind `misc-fixes`
+as of this pass.
 
 Use cached service-scoped builds. Avoid `--no-cache` unless debugging a concrete
 image-cache problem.

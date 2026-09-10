@@ -7,7 +7,14 @@
         color: tpColor("--tp-color-structure-pocket-apolar"),
         opacity: STRUCTURE_VIEWER_CONFIG.surfaceOpacity,
         side: "double",
-        opaqueBack: true
+        opaqueBack: true,
+        // See structure.html's __main_density surface repr: NGL's real
+        // runtime default for a "surface" repr is surfaceType:"ms" with
+        // useWorker:true (triangulated async in a Web Worker), and when
+        // that worker silently fails to spin up, the surface never gets
+        // built even though setVisibility(true) reports no error. Force
+        // main-thread computation so pocket surface overlays actually render.
+        useWorker: false
     });
     representations["{{p.name}}_apol"].sele = sele;
     pocketSurfaceKeys.push("{{p.name}}_apol");
@@ -22,7 +29,14 @@
         color: tpColor("--tp-color-structure-pocket-polar"),
         opacity: STRUCTURE_VIEWER_CONFIG.surfaceOpacity,
         side: "double",
-        opaqueBack: true
+        opaqueBack: true,
+        // See structure.html's __main_density surface repr: NGL's real
+        // runtime default for a "surface" repr is surfaceType:"ms" with
+        // useWorker:true (triangulated async in a Web Worker), and when
+        // that worker silently fails to spin up, the surface never gets
+        // built even though setVisibility(true) reports no error. Force
+        // main-thread computation so pocket surface overlays actually render.
+        useWorker: false
     });
     representations["{{p.name}}_pol"].sele = sele;
     pocketSurfaceKeys.push("{{p.name}}_pol");
@@ -96,7 +110,14 @@
         color: tpColor("--tp-color-structure-p2-apolar"),
         opacity: STRUCTURE_VIEWER_CONFIG.surfaceOpacity,
         side: "double",
-        opaqueBack: true
+        opaqueBack: true,
+        // See structure.html's __main_density surface repr: NGL's real
+        // runtime default for a "surface" repr is surfaceType:"ms" with
+        // useWorker:true (triangulated async in a Web Worker), and when
+        // that worker silently fails to spin up, the surface never gets
+        // built even though setVisibility(true) reports no error. Force
+        // main-thread computation so pocket surface overlays actually render.
+        useWorker: false
     });
     representations["p2_{{p2.name}}_apol"].sele = sele;
     pocketSurfaceKeys.push("p2_{{p2.name}}_apol");
@@ -111,7 +132,14 @@
         color: tpColor("--tp-color-structure-p2-polar"),
         opacity: STRUCTURE_VIEWER_CONFIG.surfaceOpacity,
         side: "double",
-        opaqueBack: true
+        opaqueBack: true,
+        // See structure.html's __main_density surface repr: NGL's real
+        // runtime default for a "surface" repr is surfaceType:"ms" with
+        // useWorker:true (triangulated async in a Web Worker), and when
+        // that worker silently fails to spin up, the surface never gets
+        // built even though setVisibility(true) reports no error. Force
+        // main-thread computation so pocket surface overlays actually render.
+        useWorker: false
     });
     representations["p2_{{p2.name}}_pol"].sele = sele;
     pocketSurfaceKeys.push("p2_{{p2.name}}_pol");

@@ -1,12 +1,18 @@
 from django.urls import path
 
-# from .views.TestCelery import test_celery
+from .views.ActivityDashboardView import ActivityDashboardView
+from .views.UserManagementView import UserManagementView
+from .views.ProfileView import ProfileView
 from .views.AssemblyView import AssemblyView
 from .views.DownloadView import DownloadView
 from .views.GenomesView import GenomesView
 from .views.IndexView import IndexView
 from .views.HealthView import HealthLiveView, HealthPipelineView, HealthReadyView
-from .views.ProteinListView import ProteinListView, ProteinSearchSuggestionsView
+from .views.ProteinListView import (
+    ProteinAdvancedFiltersView,
+    ProteinListView,
+    ProteinSearchSuggestionsView,
+)
 from .views.ProteinView import ProteinView
 from .views.MetabolismNetworkView import MetabolismNetworkView, ProteinMetabolicNetworkPageView
 from .views.MetabolismPathwayView import (
@@ -36,8 +42,9 @@ from .views.DataFileUploadView import DataFileUploadView
 from .views.AnnotationExplorerView import AnnotationExplorerView
 from .views.DataSourcesView import DataSourcesView
 from .views.AboutUsView import AboutUsView
-from .views.AgentChatView import AgentChatView
+from .views.AgentChatView import AgentChatSessionDetailView, AgentChatSessionsView, AgentChatView
 from .views.RobotsView import RobotsView
+from .views.SitemapView import SitemapView
 from .views.HumanProteinListView import HumanProteinListView
 from .views.HumanProteinView import HumanProteinView
 from django.conf.urls.static import static
@@ -59,10 +66,10 @@ urlpatterns = [
     # path("~redirect/", view=user_redirect_view, name="redirect"),
     # path("~update/", view=user_update_view, name="update"),
     # path("<str:username>/", view=user_detail_view, name="detail"),
-    # path("test_celery/", view=test_celery, name="test_celery"),
     # path("",view=login_required(IndexView.as_view()),name="index"),
     path("", view=IndexView.as_view(), name="index"),
     path("robots.txt", view=RobotsView.as_view(), name="robots_txt"),
+    path("sitemap.xml", view=SitemapView.as_view(), name="sitemap_xml"),
     path("about/data-sources", view=DataSourcesView.as_view(), name="data_sources"),
     path("about/us", view=AboutUsView.as_view(), name="about_us"),
     path("genome/<str:genome>", view=AssemblyView.as_view(), name="assembly"),
@@ -119,6 +126,11 @@ urlpatterns = [
     path(
         "genome/<str:genome>/proteins/blast", view=ProteinBlastView.as_view(), name="protein_blast"
     ),
+    path(
+        "genome/<str:genome>/proteins/advanced-filters",
+        view=ProteinAdvancedFiltersView.as_view(),
+        name="protein_advanced_filters",
+    ),
     path("download", view=DownloadView.as_view(), name="download"),
     path("genomes", view=GenomesView.as_view(), name="genomes_list"),
     path("genomes/upload", view=GenomeUploadView.as_view(), name="genome_upload"),
@@ -126,6 +138,12 @@ urlpatterns = [
     path("human/proteins", view=HumanProteinListView.as_view(), name="human_protein_list"),
     path("human/protein/<str:accession>", view=HumanProteinView.as_view(), name="human_protein"),
     path("agent-chat", view=AgentChatView.as_view(), name="agent_chat"),
+    path("agent-chat/sessions", view=AgentChatSessionsView.as_view(), name="agent_chat_sessions"),
+    path(
+        "agent-chat/sessions/<int:conversation_id>",
+        view=AgentChatSessionDetailView.as_view(),
+        name="agent_chat_session_detail",
+    ),
     path("molecule", view=MoleculeView.as_view(), name="molecules"),
     path("structure_raw/<int:struct_id>", view=StructureRawView.as_view(), name="structure_raw"),
     path(
@@ -150,6 +168,9 @@ urlpatterns = [
     path("health/live", view=HealthLiveView.as_view(), name="health_live"),
     path("health/ready", view=HealthReadyView.as_view(), name="health_ready"),
     path("health/pipeline", view=HealthPipelineView.as_view(), name="health_pipeline"),
+    path("activity", view=ActivityDashboardView.as_view(), name="activity_dashboard"),
+    path("users", view=UserManagementView.as_view(), name="user_management"),
+    path("profile", view=ProfileView.as_view(), name="profile"),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 # if 1:
 #    urlpatterns = urlpatterns + debug_toolbar_urls()

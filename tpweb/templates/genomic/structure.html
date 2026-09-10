@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block head %}
-    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20260809-sstruc-legend">
+    <link rel="stylesheet" href="{% static 'css/pages/structure-fullscreen.css' %}?v=20260902-plddt-legend">
 {% endblock %}
 
 {% block body %}
@@ -53,15 +53,31 @@
         canvas.
         {% endcomment %}
 
-        {# Secondary-structure color legend -- only meaningful in "By structure"
-           color mode, hidden otherwise. Colors mirror NGL's own built-in sstruc
-           palette exactly (see --tp-color-sstruc-* in masterpage.html), since
-           that's a hardcoded library palette we don't control the values of. #}
+        {% comment %}
+        Secondary-structure color legend -- only meaningful in "By structure"
+        color mode, hidden otherwise. Same --tp-color-sstruc-* tokens
+        (masterpage.html) the custom "tpSstruc" NGL colormaker below
+        actually renders with, so this legend is accurate by construction.
+        {% endcomment %}
         <div class="sv-legend sv-sstruc-legend" id="sv-sstruc-legend" hidden>
             <span class="sv-legend-label">{% trans "Structure" %}</span>
             <span class="sv-sstruc-swatch"><span class="sv-sstruc-dot sv-sstruc-dot--helix" aria-hidden="true"></span>{% trans "Helix" %}</span>
             <span class="sv-sstruc-swatch"><span class="sv-sstruc-dot sv-sstruc-dot--sheet" aria-hidden="true"></span>{% trans "Sheet" %}</span>
             <span class="sv-sstruc-swatch"><span class="sv-sstruc-dot sv-sstruc-dot--coil" aria-hidden="true"></span>{% trans "Coil" %}</span>
+        </div>
+
+        {% comment %}
+        pLDDT confidence legend -- only meaningful in "By pLDDT" color mode
+        (predicted structures only), hidden otherwise. Same --tp-color-plddt-*
+        tokens (masterpage.html) the "tpPlddt" NGL colormaker below actually
+        renders with -- AlphaFold DB's own official band colors/thresholds.
+        {% endcomment %}
+        <div class="sv-legend sv-plddt-legend" id="sv-plddt-legend" hidden>
+            <span class="sv-legend-label">{% trans "pLDDT" %}</span>
+            <span class="sv-sstruc-swatch"><span class="sv-plddt-dot sv-plddt-dot--very-high" aria-hidden="true"></span>{% trans "Very high (>90)" %}</span>
+            <span class="sv-sstruc-swatch"><span class="sv-plddt-dot sv-plddt-dot--high" aria-hidden="true"></span>{% trans "High (70–90)" %}</span>
+            <span class="sv-sstruc-swatch"><span class="sv-plddt-dot sv-plddt-dot--low" aria-hidden="true"></span>{% trans "Low (50–70)" %}</span>
+            <span class="sv-sstruc-swatch"><span class="sv-plddt-dot sv-plddt-dot--very-low" aria-hidden="true"></span>{% trans "Very low (<50)" %}</span>
         </div>
 
         {# Floating toolbar #}
@@ -92,6 +108,8 @@
                 <button type="button" class="sv-mode-btn js-structure-color" data-color-mode="flat" aria-pressed="false" title="{% trans 'Uniform color for the whole structure.' %}">{% trans "Uniform" %}</button>
                 <button type="button" class="sv-mode-btn js-structure-color" data-color-mode="chainname" aria-pressed="false" title="{% trans 'Color each chain differently.' %}">{% trans "By chain" %}</button>
                 <button type="button" class="sv-mode-btn js-structure-color" data-color-mode="sstruc" aria-pressed="false" title="{% trans 'Color by secondary structure (helix/sheet/coil).' %}">{% trans "By structure" %}</button>
+                {# Hidden by JS for experimental (crystal) structures -- pLDDT is meaningless without a prediction. #}
+                <button type="button" class="sv-mode-btn js-structure-color" data-color-mode="plddt" aria-pressed="false" title="{% trans 'Color by per-residue model confidence (pLDDT). Predicted structures only.' %}">{% trans "By pLDDT" %}</button>
             </div>
 
             <div class="sv-tb-sep" aria-hidden="true"></div>
@@ -180,6 +198,15 @@
                 <span class="sv-tb-label">{% trans "Info" %}</span>
             </button>
 
+            {# Settings — see what's currently on screen and customize colors #}
+            <div class="sv-tb-sep" aria-hidden="true"></div>
+            <button type="button" class="sv-tb-btn" id="sv-settings-btn"
+                    aria-haspopup="dialog" aria-controls="viewer-settings-modal"
+                    title="{% trans 'Layer summary and color settings' %}">
+                <span class="sv-tb-icon" aria-hidden="true">{% include "components/icons/settings.html" %}</span>
+                <span class="sv-tb-label">{% trans "Settings" %}</span>
+            </button>
+
         </nav>
     </div>
 
@@ -257,11 +284,13 @@
 
 {# Residue positions modal #}
 <div class="residue-modal-backdrop" id="residue-modal" aria-hidden="true">
-    <div class="residue-modal-panel" role="dialog" aria-modal="true" aria-labelledby="residue-modal-title">
+    <div class="structure-residue-modal-panel" role="dialog" aria-modal="true" aria-labelledby="residue-modal-title">
         <div class="residue-modal-head">
             <h3 id="residue-modal-title">{% trans "Residue positions" %}</h3>
             <button type="button" class="btn tp-btn tp-btn--neutral tp-btn--sm residue-modal-close"
-                    id="close-residue-modal" aria-label="{% trans 'Close' %}">&times;</button>
+                    id="close-residue-modal" aria-label="{% trans 'Close' %}">
+                <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/x.html" %}</span>
+            </button>
         </div>
         <pre class="residue-modal-body" id="residue-modal-content"></pre>
         <div class="residue-modal-actions">
@@ -274,11 +303,54 @@
         </div>
     </div>
 </div>
+
+{# Viewer settings modal -- what's currently visible + color customization #}
+<div class="residue-modal-backdrop" id="viewer-settings-modal" aria-hidden="true">
+    <div class="viewer-settings-panel" role="dialog" aria-modal="true" aria-labelledby="viewer-settings-title">
+        <div class="residue-modal-head">
+            <h3 id="viewer-settings-title">{% trans "View settings" %}</h3>
+            <button type="button" class="btn tp-btn tp-btn--neutral tp-btn--sm residue-modal-close"
+                    id="close-viewer-settings-modal" aria-label="{% trans 'Close' %}">
+                <span class="tp-btn-icon" aria-hidden="true">{% include "components/icons/x.html" %}</span>
+            </button>
+        </div>
+        <div class="viewer-settings-body">
+            <section class="viewer-settings-section">
+                <h4 class="viewer-settings-section-title">{% trans "Currently visible" %}</h4>
+                <ul class="viewer-settings-visible-list" id="viewer-settings-visible-list"></ul>
+            </section>
+            <section class="viewer-settings-section">
+                <div class="viewer-settings-section-head">
+                    <h4 class="viewer-settings-section-title">{% trans "Colors" %}</h4>
+                    <button type="button" class="btn tp-btn tp-btn--clear tp-btn--sm" id="viewer-settings-reset-btn">
+                        {% trans "Reset to defaults" %}
+                    </button>
+                </div>
+                <p class="viewer-settings-section-note">{% trans "Pick a preset swatch, or use the last one to choose any color. Changes apply immediately and are remembered on this device." %}</p>
+                <div class="viewer-settings-color-rows" id="viewer-settings-color-rows"></div>
+            </section>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block jsloaded %}
 <script src="{% static 'js/pages/pocket-inspector.js' %}?v=20260726-resetzoom1"></script>
 <script src="{% static 'js/pages/ngl-shape-registry.js' %}?v=20260720-shaperegistry1"></script>
+{% comment %}
+json_script emits its own complete <script>...</script> tag -- it MUST sit
+here, outside the big inline <script> block below, not nested inside it.
+The HTML parser has no concept of "nested" script tags: it just scans the
+outer <script>'s raw-text content for the first literal "</script>" to
+close it, so a json_script placed mid-way through that block prematurely
+truncates it there, silently dropping every line of JS after that point
+(including whatever call actually invokes jsloaded()) -- exactly the
+"stuck on Loading 3D structure..." + "Unexpected token '<'" bug this fixes,
+present on every structure page since heteroatoms_by_structure_id was
+added (05ee5ec), because json_script always wraps its output regardless
+of content.
+{% endcomment %}
+{{ heteroatoms_by_structure_id|json_script:"sv-heteroatoms-by-structure" }}
 <script>
 function jsloaded() {
     "use strict";
@@ -302,6 +374,7 @@ function jsloaded() {
     var loadingNote   = document.getElementById("structure-loading-note");
     var vmdLink       = document.getElementById("sv-vmd-link");
     var sstrucLegend  = document.getElementById("sv-sstruc-legend");
+    var plddtLegend   = document.getElementById("sv-plddt-legend");
 
     function setLoadingNoteVisible(visible, text, isError) {
         if (!loadingNote) return;
@@ -345,13 +418,84 @@ function jsloaded() {
     var activeStructureId = "{{ structure.id }}";
     var isSpinning = false;
     var structureLoadToken = 0;
+    // Assigned (not re-declared) inside initStructureComponent -- promoted
+    // here so the tp:themechange listener below can tell whether "By
+    // structure" coloring is currently on screen and needs a repaint.
+    var currentColorMode = "flat";
 
-    /* ---- Measure nav height ---- */
-    (function () {
-        var nav = document.querySelector("#main_header") || document.querySelector("nav");
-        if (nav) {
-            document.documentElement.style.setProperty("--sv-nav-h", nav.offsetHeight + "px");
+    /* ---- Viewer color overrides (settings modal) ---- */
+    var COLOR_STORAGE_KEY = "tp.structureViewerColors";
+    var COLOR_CATEGORIES = [
+        { token: "--tp-color-structure-cartoon", label: "{% trans 'Cartoon' %}", fallback: "#2288a3" },
+        { token: "--tp-color-structure-density", label: "{% trans 'Surface' %}", fallback: "#a3c9d6" },
+        { token: "--tp-color-structure-hetero", label: "{% trans 'Heteroatoms' %}", fallback: "#cf628c" },
+        { token: "--tp-color-structure-pocket-apolar", label: "{% trans 'FPocket apolar' %}", fallback: "#d9534f" },
+        { token: "--tp-color-structure-pocket-polar", label: "{% trans 'FPocket polar' %}", fallback: "#7a2e28" },
+        { token: "--tp-color-structure-p2-apolar", label: "{% trans 'P2Rank apolar' %}", fallback: "#f59e0b" },
+        { token: "--tp-color-structure-p2-polar", label: "{% trans 'P2Rank polar' %}", fallback: "#8b5cf6" },
+        { token: "--tp-color-structure-label", label: "{% trans 'Residue labels' %}", fallback: "#0e2330" }
+    ];
+    // On-brand, theme-aware preset swatches -- resolved via tpColor() at
+    // render time (not literal hex here) so they stay in sync with
+    // whichever theme/light-dark tokens are active, same as every other
+    // color in this viewer. Two steps (700/500) per hue -- the palette
+    // only defines four content hues (brand/rose/sage/amber), so more
+    // variety comes from pairing a darker/muted step with a
+    // lighter/more saturated one per hue, not from inventing new colors
+    // outside the token system.
+    var PRESET_TOKENS = [
+        "--tp-color-brand-700", "--tp-color-brand-500",
+        "--tp-color-rose-700", "--tp-color-rose-500",
+        "--tp-color-sage-700", "--tp-color-sage-500",
+        "--tp-color-amber-700", "--tp-color-amber-500"
+    ];
+
+    function readSavedColors() {
+        try {
+            var raw = localStorage.getItem(COLOR_STORAGE_KEY);
+            return raw ? JSON.parse(raw) : {};
+        } catch (err) {
+            return {};
         }
+    }
+    function writeSavedColors(map) {
+        try {
+            localStorage.setItem(COLOR_STORAGE_KEY, JSON.stringify(map));
+        } catch (err) {
+            // localStorage unavailable (private mode / quota) -- the
+            // override still applies for this session via inline style,
+            // it just won't be remembered next visit.
+        }
+    }
+    // Applied before the first structure load so it renders correctly
+    // colored on first paint, no flash-then-recolor.
+    (function applySavedColorOverrides() {
+        var saved = readSavedColors();
+        Object.keys(saved).forEach(function (token) {
+            document.documentElement.style.setProperty(token, saved[token]);
+        });
+    })();
+
+    /* ---- Measure nav height ----
+       #main_header is the mobile topbar -- present in the DOM but
+       display:none on desktop, so querySelector still finds it and
+       offsetHeight silently returns 0 there. Pick whichever bar is
+       actually rendered (nonzero height) instead of just "present", and
+       re-measure on resize so this stays correct across the responsive
+       breakpoint (desktop <-> mobile topbar swap), not just on first paint. */
+    (function () {
+        function measureNavHeight() {
+            var desktopNav = document.querySelector(".tp-topbar-desktop");
+            var mobileNav = document.querySelector("#main_header");
+            var nav = (desktopNav && desktopNav.offsetHeight > 0) ? desktopNav
+                : (mobileNav && mobileNav.offsetHeight > 0) ? mobileNav
+                : (desktopNav || mobileNav);
+            if (nav) {
+                document.documentElement.style.setProperty("--sv-nav-h", nav.offsetHeight + "px");
+            }
+        }
+        measureNavHeight();
+        window.addEventListener("resize", measureNavHeight);
     })();
 
     /* ---- Utilities ---- */
@@ -373,6 +517,83 @@ function jsloaded() {
             ];
         }
         return [0.16, 0.71, 0.82];
+    }
+
+    // NGL's built-in "sstruc" colorScheme is hardcoded inside the library
+    // and ignores this app's tokens entirely -- a custom colormaker, keyed
+    // by the same --tp-color-sstruc-* tokens the legend already reads, is
+    // the only way the two actually agree. Re-registered (not cached) on
+    // every call since NGL.ColormakerRegistry.addScheme takes a plain
+    // constructor function: cheap to call the handful of times this
+    // actually happens (load, structure switch, explicit color-mode click,
+    // theme toggle), and guarantees a light/dark theme change is picked up
+    // instead of baking colors into a closure once at page load.
+    function registerSstrucScheme() {
+        if (typeof NGL === "undefined" || !NGL.ColormakerRegistry
+            || typeof NGL.ColormakerRegistry.addScheme !== "function") {
+            return "sstruc";
+        }
+        function hexToInt(hex, fallback) {
+            var m = /^#([0-9a-f]{6})$/i.exec(hex || "");
+            return m ? parseInt(m[1], 16) : fallback;
+        }
+        var helixColor = hexToInt(tpColor("--tp-color-sstruc-helix"), 0xff0080);
+        var sheetColor = hexToInt(tpColor("--tp-color-sstruc-sheet"), 0xffc800);
+        var coilColor  = hexToInt(tpColor("--tp-color-sstruc-coil"), 0xffffff);
+        // Known, deliberate gap: NGL's own built-in scheme colors nucleic
+        // acid/carbohydrate residues distinctly from plain coil (its
+        // fallback branch does more than a flat color); every non-protein
+        // residue here renders as coil instead. Not a concern for the
+        // protein-only structures this viewer normally shows -- revisit if
+        // protein-nucleic acid complexes become common here.
+        return NGL.ColormakerRegistry.addScheme(function () {
+            this.atomColor = function (atom) {
+                var s = atom.sstruc;
+                if (s === "h" || s === "g" || s === "i") return helixColor;
+                if (s === "e" || s === "b") return sheetColor;
+                return coilColor;
+            };
+        }, "tpSstruc");
+    }
+
+    // AlphaFold/ColabFold write per-residue pLDDT into the PDB file's
+    // B-factor column (standard convention) -- NGL parses that straight
+    // into atom.bfactor at load time, same access pattern as atom.sstruc
+    // above, no server-side extraction needed. NGL's own built-in
+    // "bfactor" colorScheme auto-scales to whatever min/max it finds in
+    // the file instead of AlphaFold's fixed 0/50/70/90 bands and fixed
+    // colors, so (like sstruc) a custom scheme is the only way to get the
+    // real, recognizable AlphaFold palette instead of an arbitrary
+    // per-structure gradient. Only ever selected for predicted structures
+    // (gated by structureIsPredicted/plddtColorButton.hidden below) -- an
+    // experimental structure's B-factor is a real crystallographic thermal
+    // factor, not a 0-100 confidence score, and would render misleading
+    // colors under these same bands.
+    function registerPlddtScheme() {
+        if (typeof NGL === "undefined" || !NGL.ColormakerRegistry
+            || typeof NGL.ColormakerRegistry.addScheme !== "function") {
+            return "bfactor";
+        }
+        function hexToInt(hex, fallback) {
+            var m = /^#([0-9a-f]{6})$/i.exec(hex || "");
+            return m ? parseInt(m[1], 16) : fallback;
+        }
+        var veryHighColor = hexToInt(tpColor("--tp-color-plddt-very-high"), 0x0053d6);
+        var highColor     = hexToInt(tpColor("--tp-color-plddt-high"), 0x65cbf3);
+        var lowColor      = hexToInt(tpColor("--tp-color-plddt-low"), 0xffdb13);
+        var veryLowColor  = hexToInt(tpColor("--tp-color-plddt-very-low"), 0xff7d45);
+        // Boundary values belong to the lower/less-confident band, matching
+        // AlphaFold DB's own convention (e.g. exactly 90 is "High", not
+        // "Very high").
+        return NGL.ColormakerRegistry.addScheme(function () {
+            this.atomColor = function (atom) {
+                var plddt = atom.bfactor;
+                if (plddt > 90) return veryHighColor;
+                if (plddt > 70) return highColor;
+                if (plddt > 50) return lowColor;
+                return veryLowColor;
+            };
+        }, "tpPlddt");
     }
 
     function setResetZoomEnabled(enabled) {
@@ -411,9 +632,10 @@ function jsloaded() {
             btn.classList.toggle("is-active", isActive);
             btn.setAttribute("aria-pressed", isActive ? "true" : "false");
         });
-        // The helix/sheet/coil legend only means anything while that palette
-        // is actually on screen.
+        // Each legend only means anything while its own palette is actually
+        // on screen.
         if (sstrucLegend) sstrucLegend.hidden = colorMode !== "sstruc";
+        if (plddtLegend) plddtLegend.hidden = colorMode !== "plddt";
     }
 
     function decorateScoreTags() {
@@ -469,7 +691,7 @@ function jsloaded() {
     /* ---- Residue modal ---- */
     (function () {
         var modal    = document.getElementById("residue-modal");
-        var panel    = modal ? modal.querySelector(".residue-modal-panel") : null;
+        var panel    = modal ? modal.querySelector(".structure-residue-modal-panel") : null;
         var content  = document.getElementById("residue-modal-content");
         var closeBtn = document.getElementById("close-residue-modal");
         var copyBtn  = document.getElementById("copy-residue-list");
@@ -515,6 +737,180 @@ function jsloaded() {
         }
     })();
 
+    /* ---- Viewer settings modal (currently-visible summary + colors) ---- */
+    (function () {
+        var trigger = document.getElementById("sv-settings-btn");
+        var modal = document.getElementById("viewer-settings-modal");
+        var panel = modal ? modal.querySelector(".viewer-settings-panel") : null;
+        var closeBtn = document.getElementById("close-viewer-settings-modal");
+        var visibleList = document.getElementById("viewer-settings-visible-list");
+        var colorRowsHost = document.getElementById("viewer-settings-color-rows");
+        var resetBtn = document.getElementById("viewer-settings-reset-btn");
+        if (!trigger || !modal || !panel || !colorRowsHost) return;
+        var lastTrigger = null;
+
+        function refreshVisibleSummary() {
+            if (!visibleList) return;
+            var lines = [];
+            var modeBtn = document.querySelector(".js-structure-mode.is-active");
+            if (modeBtn) lines.push("{% trans 'View' %}: " + modeBtn.textContent.trim());
+            var colorBtn = document.querySelector(".js-structure-color.is-active");
+            if (colorBtn) lines.push("{% trans 'Color' %}: " + colorBtn.textContent.trim());
+            if (heteroBtn && heteroBtn.getAttribute("aria-pressed") === "true") {
+                var shownHetero = currentHeteroatoms();
+                if (shownHetero.length) {
+                    lines.push("{% trans 'Heteroatoms shown' %}: " + shownHetero.map(function (h) { return h.code; }).join(", "));
+                } else {
+                    lines.push("{% trans 'Heteroatoms shown' %}");
+                }
+            }
+            if (spinBtn && spinBtn.getAttribute("aria-pressed") === "true") {
+                lines.push("{% trans 'Auto-rotation on' %}");
+            }
+            document.querySelectorAll(".pocket-card.is-visible-in-viewer").forEach(function (card) {
+                var id = card.getAttribute("data-pocket-id") || "{% trans 'Pocket' %}";
+                var layers = [];
+                card.querySelectorAll('.js-repr-toggle[aria-pressed="true"]').forEach(function (btn) {
+                    layers.push(btn.getAttribute("data-layer-label") || btn.textContent.trim());
+                });
+                if (layers.length) lines.push(id + ": " + layers.join(", "));
+            });
+            document.querySelectorAll(".residueset-row.is-visible-in-viewer").forEach(function (row) {
+                var typeEl = row.querySelector(".residueset-type");
+                lines.push((typeEl ? typeEl.textContent.trim() : "{% trans 'Residue set' %}") + ": {% trans 'shown' %}");
+            });
+
+            visibleList.innerHTML = "";
+            if (!lines.length) {
+                var empty = document.createElement("li");
+                empty.className = "viewer-settings-visible-empty";
+                empty.textContent = "{% trans 'Just the protein backbone.' %}";
+                visibleList.appendChild(empty);
+                return;
+            }
+            lines.forEach(function (line) {
+                var li = document.createElement("li");
+                li.textContent = line;
+                visibleList.appendChild(li);
+            });
+        }
+
+        function closeModal() {
+            modal.classList.remove("is-open");
+            modal.setAttribute("aria-hidden", "true");
+            document.body.classList.remove("viewer-settings-open");
+            if (lastTrigger) lastTrigger.focus();
+            lastTrigger = null;
+        }
+        function openModal() {
+            refreshVisibleSummary();
+            modal.classList.add("is-open");
+            modal.setAttribute("aria-hidden", "false");
+            document.body.classList.add("viewer-settings-open");
+            lastTrigger = trigger;
+            if (closeBtn) closeBtn.focus();
+        }
+        trigger.addEventListener("click", openModal);
+        if (closeBtn) closeBtn.addEventListener("click", closeModal);
+        modal.addEventListener("click", function (ev) { if (!panel.contains(ev.target)) closeModal(); });
+        document.addEventListener("keydown", function (ev) { if (ev.key === "Escape" && modal.classList.contains("is-open")) closeModal(); });
+
+        // Keep the "currently visible" list live while the modal stays open.
+        document.addEventListener("click", function (ev) {
+            if (!modal.classList.contains("is-open")) return;
+            if (ev.target.closest(".js-repr-toggle, .js-structure-mode, .js-structure-color, #sv-hetero-btn, #sv-spin-btn")) {
+                refreshVisibleSummary();
+            }
+        });
+
+        function applyColor(token, color) {
+            document.documentElement.style.setProperty(token, color);
+            var saved = readSavedColors();
+            saved[token] = color;
+            writeSavedColors(saved);
+            if (typeof window.switchStructure === "function") window.switchStructure(activeStructureId);
+        }
+
+        function buildColorRows() {
+            colorRowsHost.innerHTML = "";
+            COLOR_CATEGORIES.forEach(function (cat) {
+                var row = document.createElement("div");
+                row.className = "viewer-settings-color-row";
+
+                var label = document.createElement("span");
+                label.className = "viewer-settings-color-label";
+                label.textContent = cat.label;
+                row.appendChild(label);
+
+                var swatchGroup = document.createElement("div");
+                swatchGroup.className = "viewer-settings-swatch-group";
+
+                var customInput = document.createElement("input");
+                var presetSwatches = [];
+
+                // Rings whichever preset (if any) matches the color actually
+                // applied right now -- otherwise every dot looks equally
+                // weighted and there's no way to tell which one is active.
+                function syncSelected() {
+                    var current = (customInput.value || "").toLowerCase();
+                    presetSwatches.forEach(function (entry) {
+                        entry.swatch.classList.toggle("is-selected", entry.color.toLowerCase() === current);
+                    });
+                }
+
+                PRESET_TOKENS.forEach(function (presetToken) {
+                    var presetColor = tpColor(presetToken, cat.fallback);
+                    var swatch = document.createElement("button");
+                    swatch.type = "button";
+                    swatch.className = "viewer-settings-swatch";
+                    swatch.style.background = presetColor;
+                    swatch.setAttribute("aria-label", cat.label + ": " + presetColor);
+                    swatch.title = presetColor;
+                    swatch.addEventListener("click", function () {
+                        applyColor(cat.token, presetColor);
+                        customInput.value = presetColor;
+                        syncSelected();
+                    });
+                    presetSwatches.push({ swatch: swatch, color: presetColor });
+                    swatchGroup.appendChild(swatch);
+                });
+
+                var divider = document.createElement("span");
+                divider.className = "viewer-settings-swatch-divider";
+                divider.setAttribute("aria-hidden", "true");
+                swatchGroup.appendChild(divider);
+
+                customInput.type = "color";
+                customInput.className = "viewer-settings-custom-input";
+                customInput.value = tpColor(cat.token, cat.fallback);
+                customInput.setAttribute("aria-label", cat.label + " {% trans 'custom color' %}");
+                customInput.title = "{% trans 'Pick a custom color' %}";
+                customInput.addEventListener("change", function () {
+                    applyColor(cat.token, customInput.value);
+                    syncSelected();
+                });
+                swatchGroup.appendChild(customInput);
+                syncSelected();
+
+                row.appendChild(swatchGroup);
+                colorRowsHost.appendChild(row);
+            });
+        }
+
+        if (resetBtn) {
+            resetBtn.addEventListener("click", function () {
+                COLOR_CATEGORIES.forEach(function (cat) {
+                    document.documentElement.style.removeProperty(cat.token);
+                });
+                writeSavedColors({});
+                if (typeof window.switchStructure === "function") window.switchStructure(activeStructureId);
+                buildColorRows();
+            });
+        }
+
+        buildColorRows();
+    })();
+
     /* ---- Sidebar toggle (mobile: sidebar is an overlay, hidden by default) ---- */
     (function () {
         var toggleBtn = document.getElementById("sv-sidebar-toggle-btn");
@@ -555,15 +951,49 @@ function jsloaded() {
         backgroundColor: tpColor("--sv-viewer-canvas-bg", "#0d1519")
     });
 
-    /* Resize NGL canvas to match actual DOM size, then optionally re-center */
+    /* NGL paints its WebGL canvas once at creation time and has no idea
+       the page's CSS variables changed afterward -- toggling the theme
+       button flips --sv-viewer-canvas-bg (light <-> dark) but the canvas
+       itself stays whatever color it was on load until told otherwise. */
+    document.addEventListener("tp:themechange", function () {
+        if (stage && typeof stage.setParameters === "function") {
+            stage.setParameters({ backgroundColor: tpColor("--sv-viewer-canvas-bg", "#0d1519") });
+        }
+        // "By structure" coloring only differs between themes for coil
+        // (helix/sheet are the same hue either way) -- repaint if it's the
+        // active mode so a mid-session theme toggle doesn't leave coil in
+        // the previous theme's color until the next structure switch.
+        if (currentColorMode === "sstruc" && typeof window.ngl_set_color_mode === "function") {
+            window.ngl_set_color_mode("sstruc");
+        }
+    });
+
+    /* Resize NGL canvas to match actual DOM size, then optionally re-center.
+       The second, delayed handleResize() exists because the container can
+       still be settling after the first one -- but without a matching
+       autoView() call there, that second resize only restretched the canvas
+       without re-centering the camera, so a premature first attempt never
+       got corrected. Re-center after both. */
     function syncNglSize(thenCenterComponent) {
         if (!stage || typeof stage.handleResize !== "function") return;
-        window.requestAnimationFrame(function () {
-            stage.handleResize();
+        function centerNow() {
             if (thenCenterComponent && typeof thenCenterComponent.autoView === "function") {
                 thenCenterComponent.autoView(0);
             }
-            window.setTimeout(function () { stage.handleResize(); }, 80);
+        }
+        window.requestAnimationFrame(function () {
+            stage.handleResize();
+            centerNow();
+            window.setTimeout(function () {
+                stage.handleResize();
+                centerNow();
+            }, 80);
+            // Slower-settling layouts can outlast the 80ms pass above -- one
+            // more, longer-delayed catch-up so those cases still end up centered.
+            window.setTimeout(function () {
+                stage.handleResize();
+                centerNow();
+            }, 500);
         });
     }
 
@@ -596,6 +1026,23 @@ function jsloaded() {
         {% endfor %}
     };
 
+    var heteroatomsByStructureId = (function () {
+        var el = document.getElementById("sv-heteroatoms-by-structure");
+        if (!el) return {};
+        try {
+            return JSON.parse(el.textContent) || {};
+        } catch (err) {
+            return {};
+        }
+    })();
+    // Keyed by structure id, not a flat list -- switchStructure() swaps
+    // which structure is active without a page reload, so a single global
+    // heteroatoms list would keep showing the *first* structure's ligands
+    // after switching to a different one.
+    function currentHeteroatoms() {
+        return heteroatomsByStructureId[activeStructureId] || [];
+    }
+
     var structureChainSelectors = {
         {% for s in all_structures %}
         "{{ s.id }}": "{{ s.chain_selector }}",
@@ -626,6 +1073,18 @@ function jsloaded() {
         {% endfor %}
     };
     var chainColorButton = document.querySelector('.js-structure-color[data-color-mode="chainname"]');
+
+    /* "By pLDDT" only makes sense for predicted structures (AlphaFold/ColabFold
+       models) -- pLDDT is a per-residue model-confidence score with no
+       equivalent for an experimental (crystal) structure, whose B-factor
+       column holds a real thermal factor instead that would be misleading
+       to color by under the same bands. */
+    var structureIsPredicted = {
+        {% for s in all_structures %}
+        "{{ s.id }}": {% if s.experiment == "AF" or s.experiment == "CF" %}true{% else %}false{% endif %},
+        {% endfor %}
+    };
+    var plddtColorButton = document.querySelector('.js-structure-color[data-color-mode="plddt"]');
 
     /* ---- Topbar / sidebar update on structure switch ---- */
     function updateIdentity(structureId) {
@@ -780,14 +1239,19 @@ function jsloaded() {
         var pocketSurfaceKeys = [];
         var priorityPocketSurfaceKeys = [];
         var isMultichain = !!structureIsMultichain[activeStructureId];
-        var currentColorMode = structureColorDefaults[activeStructureId] || "flat";
+        currentColorMode = structureColorDefaults[activeStructureId] || "flat";
         if (currentColorMode === "chainname" && !isMultichain) {
             currentColorMode = "flat";
         }
         if (chainColorButton) chainColorButton.hidden = !isMultichain;
+        var isPredicted = !!structureIsPredicted[activeStructureId];
+        if (plddtColorButton) plddtColorButton.hidden = !isPredicted;
 
         function colorForMode(mode) {
-            return mode === "flat" ? (tpColor("--tp-color-structure-cartoon") || "#2288a3") : mode;
+            if (mode === "flat") return tpColor("--tp-color-structure-cartoon") || "#2288a3";
+            if (mode === "sstruc") return registerSstrucScheme();
+            if (mode === "plddt") return registerPlddtScheme();
+            return mode;
         }
 
         window.ngl_reset_zoom = function () {
@@ -865,7 +1329,15 @@ function jsloaded() {
             opacity: STRUCTURE_VIEWER_CONFIG.densityShellOpacity,
             side: "double",
             opaqueBack: true,
-            surfaceType: "ms"
+            surfaceType: "ms",
+            // NGL's surface representation defaults to useWorker:true --
+            // triangulating asynchronously in a Web Worker. When that worker
+            // silently fails to spin up (blob-worker restrictions, this old
+            // vendored NGL build, etc.) the surface geometry never gets
+            // built, but setVisibility(true) still "succeeds" with nothing
+            // to show and no console error. Force main-thread computation
+            // instead: slightly slower to build, but actually renders.
+            useWorker: false
         });
         visible.__main_density = false;
         representations.__main_density.setVisibility(false);
@@ -875,11 +1347,18 @@ function jsloaded() {
            ions), excluding solvent. Empty selection on AlphaFold/ColabFold models -- harmless. ---- */
         representations.__hetero = component.addRepresentation("ball+stick", {
             sele: "hetero and not water",
-            color: tpColor("--tp-color-rose-500", "#cf628c"),
+            color: tpColor("--tp-color-structure-hetero", "#cf628c"),
             multipleBond: true
         });
         visible.__hetero = false;
         representations.__hetero.setVisibility(false);
+        if (heteroBtn) {
+            var loadedHetero = currentHeteroatoms();
+            heteroBtn.title = loadedHetero.length
+                ? "{% trans 'Ligands, cofactors, ions in this structure (excludes water)' %}: "
+                    + loadedHetero.map(function (h) { return h.code; }).join(", ")
+                : "{% trans 'No heteroatoms (ligands, cofactors, ions) in this structure.' %}";
+        }
 
         window.ngl_toggle_hetero = function () {
             if (!representations.__hetero) return;

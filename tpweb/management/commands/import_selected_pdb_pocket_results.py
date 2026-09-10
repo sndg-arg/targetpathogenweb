@@ -1,4 +1,3 @@
-import csv
 import gzip
 import json
 import os
@@ -13,7 +12,9 @@ from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
 
 from tpweb.management.commands import backfill_pockets_experimental as bpe
+from tpweb.management.commands._shared import read_manifest
 from tpweb.models.pdb import PDB, PDBResidueSet
+from tpweb.services.structure_files import compute_folder_path as genome_folder
 
 
 DEFAULT_DATA_DIR = str(settings.BASE_DIR / "data")
@@ -52,14 +53,6 @@ def as_bool(value):
     return clean(value).lower() in {"1", "true", "yes", "y"}
 
 
-def genome_folder(datadir, genome_name):
-    import math
-
-    n = len(genome_name)
-    folder = genome_name[math.floor(n / 2 - 1) : math.floor(n / 2 + 2)]
-    return os.path.join(datadir, folder, genome_name)
-
-
 def safe_extract(tar, path):
     target = os.path.abspath(path)
     for member in tar.getmembers():
@@ -67,13 +60,6 @@ def safe_extract(tar, path):
         if not (member_path == target or member_path.startswith(target + os.sep)):
             raise CommandError(f"Unsafe tar member path: {member.name}")
     tar.extractall(path)
-
-
-def read_manifest(path):
-    if not os.path.exists(path):
-        raise CommandError(f"Manifest not found: {path}")
-    with open(path, newline="", encoding="utf-8") as handle:
-        return list(csv.DictReader(handle, delimiter="\t"))
 
 
 def find_manifest(root):

@@ -104,14 +104,6 @@
     max-width: min(100%, 720px);
 }
 
-.genomes-pipeline-note {
-    margin: 0;
-    color: var(--tp-color-text-muted);
-    font-size: 0.84rem;
-    font-weight: 500;
-    line-height: 1.3;
-}
-
 .genomes-meta {
     display: flex;
     flex-wrap: wrap;
@@ -190,6 +182,7 @@
     font-weight: var(--tp-table-thead-weight);
     color: var(--tp-table-thead-color);
 }
+
 
 .genome-list-card .table thead th,
 .genome-list-card .table tbody td {
@@ -412,7 +405,6 @@
 
 .genomes-hero,
 .genomes-toolbar,
-.genomes-workspace,
 .genome-workspace-empty {
     animation: genomes-enter 0.36s ease;
 }
@@ -421,9 +413,17 @@
     animation-delay: 0.04s;
 }
 
-.genomes-workspace,
 .genome-workspace-empty {
     animation-delay: 0.08s;
+}
+
+/* Opacity-only, not the shared slide+fade -- this wraps the table's sticky
+   header, and a `transform` on an ancestor of a `position: sticky` element
+   makes browsers momentarily mis-render its stuck position (the same class
+   of bug documented on .tp-ui-enter, there for a nested native <select>
+   popup instead of a sticky header). */
+.genomes-workspace {
+    animation: genomes-enter-fade 0.36s ease 0.08s backwards;
 }
 
 @media (max-width: 1080px) {
@@ -476,5 +476,14 @@
     to {
         opacity: 1;
         transform: none;
+    }
+}
+
+@keyframes genomes-enter-fade {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
     }
 }

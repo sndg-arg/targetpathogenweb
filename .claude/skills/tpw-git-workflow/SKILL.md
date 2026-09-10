@@ -28,9 +28,21 @@ stage it explicitly by name like any other intentionally-changed file.
 
 ## Commit message
 
-Concise, explains *why* the change was made, not just what changed. **Do not add a
-`Co-Authored-By: Claude` trailer** — the user asked for commits in this repo to not carry that
-line. Pass the message via a heredoc, per standard git-commit discipline.
+**Do not add a `Co-Authored-By: Claude` trailer** — the user asked for commits in this repo to
+not carry that line.
+
+**Write titles like the other humans committing to this repo, not like an AI assistant
+narrating itself.** Look at `git log --oneline -20` before writing one if unsure of the register.
+This repo's real style: short, single-line, imperative, specific about *what* changed —
+`Fix template access to xref attributes (no underscore prefix allowed)`, `Add a Redis service to
+the cluster stack for shared caching`, `Show P2RANK Probability alongside Druggability in the
+default column set`. That's the whole commit most of the time — no body.
+
+Avoid the tells that mark a commit as AI-written: multi-paragraph bodies that explain and justify
+the reasoning at length, a "Why:" or "Verified:" scaffold, hedging ("this should be safe because
+Cd..."), or restating the diff in prose. If a body is genuinely warranted (a non-obvious root
+cause, a decision future-you would otherwise re-litigate), keep it to 1-3 short lines — not a
+essay. Default to title-only.
 
 ## Push behavior
 

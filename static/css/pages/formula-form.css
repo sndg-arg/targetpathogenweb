@@ -29,10 +29,8 @@
 /* ── Hero ── */
 
 /* No longer its own boxed card -- sits directly on the page background
-   (see tpw-editorial-redesign). Its own top accent bar is gone too: that
-   was a page-local duplicate of the site-wide masthead rule in
-   .tp-main::before, which now covers this. The workbench cards below
-   stay individually boxed -- a side-by-side editor/variable-picker tool
+   (see tpw-editorial-redesign). The workbench cards below stay
+   individually boxed -- a side-by-side editor/variable-picker tool
    layout, not sequential page sections (same call as customparam.html's
    form+guide pair). */
 .formula-hero {
@@ -341,6 +339,20 @@
     flex-direction: column;
 }
 
+/* The fixed desktop top bar (masterpage.html) reserves height via body's
+   own padding-top -- this sticky column needs the same offset added on
+   top of its own top/max-height math, or it sticks partway underneath
+   the bar instead of just below it. */
+@media (min-width: 992px) {
+    .formula-vars-col {
+        top: calc(var(--tp-topbar-h) + 16px);
+    }
+
+    .formula-card--vars {
+        max-height: calc(100vh - var(--tp-topbar-h) - 180px);
+    }
+}
+
 .formula-var-search-wrap {
     flex-shrink: 0;
 }
@@ -499,17 +511,29 @@
 /* ── Animations ── */
 
 .formula-hero,
-.formula-workbench,
 .formula-footer {
     animation: formula-enter 0.36s ease both;
 }
 
-.formula-workbench { animation-delay: 0.04s; }
-.formula-footer    { animation-delay: 0.08s; }
+.formula-footer { animation-delay: 0.08s; }
 
 @keyframes formula-enter {
     from { opacity: 0; transform: translateY(6px); }
     to   { opacity: 1; transform: none; }
+}
+
+/* Opacity-only, not the shared slide+fade -- .formula-vars-col (a sticky
+   child) sits inside this, and a `transform` on an ancestor of a
+   `position: sticky` element makes browsers momentarily mis-render its
+   stuck position (the same class of bug documented on .tp-ui-enter, there
+   for a nested native <select> popup instead of a sticky column). */
+.formula-workbench {
+    animation: formula-enter-fade 0.36s ease 0.04s both;
+}
+
+@keyframes formula-enter-fade {
+    from { opacity: 0; }
+    to   { opacity: 1; }
 }
 
 /* ── Responsive ── */

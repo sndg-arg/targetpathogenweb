@@ -16,6 +16,117 @@
     pointer-events: auto;
 }
 
+/* A slowly rotating highlight sweeping around the FAB -- mostly
+   transparent, one bright arc, so it reads as a subtle spinning glint
+   rather than a loud rainbow ring. Sized a few px larger than the button
+   and sitting one z-index behind it: the button's own opaque fill covers
+   the ring's center, leaving only the rim visible, no masking needed. */
+.tp-agent-fab-ring {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    z-index: 1039;
+    width: 60px;
+    height: 60px;
+    border-radius: 999px;
+    /* Comet-tail fade, not a solid band -- a bright point at the head
+       trailing off smoothly to nothing, the way a premium loading spinner
+       draws its stroke, rather than a bright-in-the-middle highlight. */
+    background: conic-gradient(from 0deg,
+        transparent 0%,
+        transparent 55%,
+        var(--tp-color-on-accent) 100%);
+    animation: tp-agent-fab-ring-spin 3.6s linear infinite;
+    pointer-events: none;
+}
+
+@keyframes tp-agent-fab-ring-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .tp-agent-fab-ring {
+        animation: none;
+    }
+}
+
+/* Floating action button -- the single Assistant entry point at every
+   breakpoint (replaces the old separate desktop-topbar pill and
+   mobile-topbar icon). A circle at rest, expands into a labelled pill on
+   hover/focus so it reads as a deliberately prominent feature, not another
+   chrome icon. */
+.tp-agent-fab {
+    position: fixed;
+    right: 22px;
+    bottom: 22px;
+    z-index: 1040;
+    display: inline-flex;
+    align-items: center;
+    height: 56px;
+    width: 56px;
+    max-width: calc(100vw - 44px);
+    padding: 0;
+    border: none;
+    border-radius: 28px;
+    /* brand-600 is the one step of the brand ramp that's identical in both
+       :root and .tp-dark (see masterpage.html) -- everything else on that
+       ramp inverts (light-mode-darkest becomes dark-mode-palest), which is
+       exactly wrong for a floating chip that needs to read clearly against
+       either a white or a near-black page background. */
+    background: var(--tp-color-brand-600);
+    color: var(--tp-color-on-accent);
+    box-shadow: var(--tp-shadow-lg);
+    cursor: pointer;
+    overflow: hidden;
+    white-space: nowrap;
+    transition: width var(--tp-ui-motion-base) var(--tp-ui-ease-standard),
+        filter var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.tp-agent-fab:hover,
+.tp-agent-fab:focus-visible,
+.tp-agent-fab.is-peeking {
+    width: 178px;
+}
+
+.tp-agent-fab:hover,
+.tp-agent-fab:focus-visible {
+    filter: brightness(0.9);
+}
+
+.tp-agent-fab-icon {
+    flex: 0 0 56px;
+    width: 56px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tp-agent-fab-label {
+    font-weight: 700;
+    font-size: 0.92rem;
+    letter-spacing: 0.01em;
+    opacity: 0;
+    padding-right: 20px;
+    transition: opacity var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.tp-agent-fab:hover .tp-agent-fab-label,
+.tp-agent-fab:focus-visible .tp-agent-fab-label,
+.tp-agent-fab.is-peeking .tp-agent-fab-label {
+    opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .tp-agent-fab,
+    .tp-agent-fab-label {
+        transition: none;
+    }
+}
+
 .tp-agent-drawer {
     position: fixed;
     top: 0;
@@ -45,11 +156,275 @@
     flex-shrink: 0;
 }
 
-.tp-agent-drawer-toolbar {
+.tp-agent-drawer-current-title-bar {
     display: flex;
-    justify-content: flex-end;
+    align-items: center;
+    gap: 6px;
+    padding: 7px var(--tp-space-5);
+    border-bottom: 1px solid var(--tp-color-border-soft);
+    flex-shrink: 0;
+}
+
+.tp-agent-drawer-current-title-text {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--tp-color-text-muted);
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+
+.tp-agent-drawer-toolbar {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     padding: var(--tp-space-2) var(--tp-space-5) 0;
     flex-shrink: 0;
+}
+
+.tp-agent-drawer-toolbar-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: auto;
+}
+
+.tp-agent-drawer-icon-btn {
+    appearance: none;
+    border: none;
+    background: transparent;
+    color: var(--tp-color-text-muted);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.tp-agent-drawer-icon-btn:hover,
+.tp-agent-drawer-icon-btn:focus-visible {
+    background: var(--tp-color-surface-soft);
+    color: var(--tp-color-text-primary);
+}
+
+.tp-agent-drawer-icon-btn:disabled,
+.tp-agent-drawer-history-item-open:disabled {
+    opacity: 0.45;
+    cursor: default;
+    pointer-events: none;
+}
+
+/* While a message is in flight, switching/renaming/deleting a conversation
+   could land the response against the wrong one -- block it visually and
+   functionally rather than relying only on each handler's own pending
+   check. */
+.tp-agent-drawer.is-busy .tp-agent-drawer-history-list {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.tp-agent-drawer-history-panel {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: var(--tp-space-5);
+    width: min(320px, calc(100% - 2 * var(--tp-space-4)));
+    max-width: 92vw;
+    max-height: 360px;
+    overflow-y: auto;
+    background: var(--tp-color-surface);
+    border: 1px solid var(--tp-color-border-soft);
+    border-radius: 14px;
+    box-shadow: var(--tp-shadow-md);
+    padding: var(--tp-space-2);
+    z-index: 5;
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+    transition: opacity var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        transform var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.tp-agent-drawer-history-panel.is-open {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .tp-agent-drawer-history-panel {
+        transition: none;
+    }
+}
+
+.tp-agent-drawer-history-panel-title {
+    margin: 4px 6px 6px;
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-label);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.tp-agent-drawer-history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.tp-agent-drawer-history-item {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    width: 100%;
+    border: 1px solid transparent;
+    background: transparent;
+    border-radius: 10px;
+    padding: 4px;
+    transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        border-color var(--tp-ui-motion-fast) var(--tp-ui-ease-standard),
+        opacity var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.tp-agent-drawer-history-item:hover {
+    background: var(--tp-color-surface-soft);
+}
+
+.tp-agent-drawer-history-item.is-active {
+    background: color-mix(in srgb, var(--tp-color-brand-500) 12%, var(--tp-color-surface));
+    border-color: var(--tp-color-brand-300);
+}
+
+.tp-agent-drawer-history-item--removing {
+    opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .tp-agent-drawer-history-item {
+        transition: none;
+    }
+}
+
+.tp-agent-drawer-history-item-open {
+    appearance: none;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    flex: 1 1 auto;
+    min-width: 0;
+    border: none;
+    background: transparent;
+    padding: 2px 4px;
+    text-align: left;
+    cursor: pointer;
+}
+
+.tp-agent-drawer-history-item-title {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--tp-color-text-primary);
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.tp-agent-drawer-rename-input,
+.tp-agent-drawer-current-title-bar .tp-agent-drawer-rename-input {
+    width: 100%;
+    border: 1px solid var(--tp-color-brand-300);
+    border-radius: 6px;
+    padding: 1px 5px;
+    font: inherit;
+    font-size: inherit;
+    font-weight: inherit;
+    color: var(--tp-color-text-primary);
+    background: var(--tp-color-surface);
+}
+
+.tp-agent-drawer-rename-input:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--tp-color-brand-100);
+}
+
+.tp-agent-drawer-history-item-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    color: var(--tp-color-text-muted);
+    font-size: var(--tp-font-label);
+}
+
+.tp-agent-drawer-history-item-count {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.tp-agent-drawer-icon-btn--sm {
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+}
+
+.tp-agent-drawer-history-empty {
+    margin: 10px 8px;
+    color: var(--tp-color-text-muted);
+    font-size: 0.85rem;
+    text-align: center;
+}
+
+.tp-agent-drawer-history-item--confirm {
+    align-items: center;
+    gap: var(--tp-space-2);
+    padding: 8px;
+}
+
+.tp-agent-drawer-history-confirm-text {
+    flex: 1 1 auto;
+    min-width: 0;
+    color: var(--tp-color-text-secondary);
+    font-size: 0.8rem;
+}
+
+.tp-agent-drawer-history-confirm-cancel,
+.tp-agent-drawer-history-confirm-delete {
+    appearance: none;
+    flex-shrink: 0;
+    border-radius: 999px;
+    padding: 0.25rem 0.6rem;
+    font: inherit;
+    font-size: 0.76rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background var(--tp-ui-motion-fast) var(--tp-ui-ease-standard);
+}
+
+.tp-agent-drawer-history-confirm-cancel {
+    border: 1px solid var(--tp-color-border-soft);
+    background: transparent;
+    color: var(--tp-color-text-secondary);
+}
+
+.tp-agent-drawer-history-confirm-cancel:hover,
+.tp-agent-drawer-history-confirm-cancel:focus-visible {
+    background: var(--tp-color-surface-soft);
+}
+
+.tp-agent-drawer-history-confirm-delete {
+    border: 1px solid transparent;
+    background: var(--tp-color-danger-bg);
+    color: var(--tp-color-danger-ink);
+}
+
+.tp-agent-drawer-history-confirm-delete:hover,
+.tp-agent-drawer-history-confirm-delete:focus-visible {
+    background: color-mix(in srgb, var(--tp-color-danger-ink) 16%, var(--tp-color-danger-bg));
 }
 
 .tp-agent-drawer-mode-toggle {
@@ -453,25 +828,4 @@
 .tp-agent-drawer-send svg {
     width: 16px;
     height: 16px;
-}
-
-.tp-agent-drawer-toggle-mobile {
-    appearance: none;
-    border: none;
-    background: transparent;
-    color: var(--tp-color-on-accent);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 34px;
-    height: 34px;
-    border-radius: 999px;
-    cursor: pointer;
-    margin-right: var(--tp-space-2);
-}
-
-@media (min-width: 992px) {
-    .tp-agent-drawer-toggle-mobile {
-        display: none;
-    }
 }

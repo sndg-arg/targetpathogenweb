@@ -13,15 +13,11 @@ from __future__ import annotations
 import os
 import shlex
 import shutil
-import socket
 import subprocess
 import tarfile
 import time
 from dataclasses import dataclass
 from datetime import datetime
-
-import paramiko
-from scp import SCPClient
 
 from pipeline_commands import (
     fpocket2json_cmd,
@@ -30,79 +26,17 @@ from pipeline_commands import (
     load_pocket_cmd,
     p2rank2json_cmd,
 )
-
-
-REMOTE_FAILURE_PREFIXES = (
-    "FAILED",
-    "CANCELLED",
-    "TIMEOUT",
-    "OUT_OF_MEMORY",
-    "NODE_FAIL",
+from slurm_remote_command import (
+    REMOTE_FAILURE_PREFIXES,
+    _assert_ssh_reachable,
+    _close_remote_session,
+    _config_text,
+    _env_int,
+    _env_text,
+    _exec_remote,
+    _open_remote_session,
+    _resolve_ssh_options,
 )
-
-
-def _env_int(name, default):
-    raw = os.getenv(name)
-    if raw is None:
-        return default
-    try:
-        return int(raw.strip())
-    except (TypeError, ValueError):
-        return default
-
-
-def _env_text(name, default=None):
-    raw = os.getenv(name)
-    if raw is None:
-        return default
-    text = str(raw).strip()
-    return text or default
-
-
-def _config_text(cfg_dict, section, option, default=None):
-    try:
-        value = cfg_dict.get(section, option, fallback=None)
-    except Exception:
-        value = None
-    text = str(value or "").strip()
-    return text or default
-
-
-def _resolve_ssh_options(host, user=None, port=22):
-    resolved = {"host": host, "user": user, "port": port, "key_filename": None}
-    config_path = os.path.expanduser("~/.ssh/config")
-    if not os.path.exists(config_path):
-        return resolved
-    try:
-        ssh_config = paramiko.SSHConfig()
-        with open(config_path, encoding="utf-8") as handle:
-            ssh_config.parse(handle)
-        entry = ssh_config.lookup(host)
-    except Exception:
-        return resolved
-
-    resolved["host"] = entry.get("hostname") or resolved["host"]
-    resolved["user"] = user or entry.get("user") or resolved["user"]
-    entry_port = entry.get("port")
-    if entry_port:
-        try:
-            resolved["port"] = int(entry_port)
-        except (TypeError, ValueError):
-            pass
-    identity_files = entry.get("identityfile") or []
-    if identity_files:
-        expanded = [os.path.expanduser(path) for path in identity_files]
-        resolved["key_filename"] = expanded if len(expanded) > 1 else expanded[0]
-    return resolved
-
-
-def _assert_ssh_reachable(host, port, timeout):
-    probe = socket.socket()
-    probe.settimeout(timeout)
-    try:
-        probe.connect((host, int(port or 22)))
-    finally:
-        probe.close()
 
 
 def _record_event(run_id_raw, *, status, message, payload=None):
@@ -196,44 +130,6 @@ def _build_structures_config(cfg_dict):
         fpocket_bin=_env_text("TPW_STRUCTURES_FPOCKET_BIN", default="fpocket"),
         p2rank_bin=_env_text("TPW_STRUCTURES_P2RANK_BIN", default="prank"),
     )
-
-
-def _open_remote_session(config):
-    ssh = paramiko.SSHClient()
-    ssh.load_system_host_keys()
-    ssh.set_missing_host_key_policy(paramiko.WarningPolicy())
-    ssh.connect(
-        config.ssh_host,
-        port=config.ssh_port,
-        username=config.ssh_user,
-        password=config.ssh_password,
-        timeout=config.ssh_connect_timeout,
-        banner_timeout=config.ssh_connect_timeout,
-        auth_timeout=config.ssh_connect_timeout,
-        allow_agent=True,
-        look_for_keys=True,
-        key_filename=config.ssh_key_filename,
-    )
-    scp_client = SCPClient(ssh.get_transport())
-    sftp = ssh.open_sftp()
-    return ssh, scp_client, sftp
-
-
-def _close_remote_session(ssh, scp_client, sftp):
-    for handle in (scp_client, sftp, ssh):
-        if handle is not None:
-            try:
-                handle.close()
-            except Exception:
-                pass
-
-
-def _exec_remote(ssh, cmd):
-    _stdin, stdout, stderr = ssh.exec_command(cmd)
-    exit_code = stdout.channel.recv_exit_status()
-    out = stdout.read().decode("utf-8", errors="replace").strip()
-    err = stderr.read().decode("utf-8", errors="replace").strip()
-    return exit_code, out, err
 
 
 def _data_dir(working_dir):

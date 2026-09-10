@@ -99,9 +99,6 @@ auto` (or drop the explicit width and rely on grid stretch/flex sizing) instead.
 
 ## Site-wide chrome already handled — don't redo per page
 
-- **Masthead accent bar**: lives on `.tp-main::before`/`::after` in `masterpage.html` (gradient
-  bar + one-time load-in shimmer, `prefers-reduced-motion`-aware). Applies to every page
-  automatically already — nothing to add per page.
 - **White page background**: `--tp-color-page-start`/`-end` = `#ffffff` in light mode, dark mode
   untouched, already global in `masterpage.html`.
 - **`.tp-main`/`.tp-shell`**: merged into a single `.tp-main` wrapper (the old `.tp-shell` div was
@@ -127,11 +124,31 @@ templates with more than one occurrence (a single `.tp-ui-panel` isn't a "stacke
   gone as of this pass — confirm that stays true (`grep -rln tp-page-hero tpweb/templates` should
   return nothing) before considering a new page "done."
 - Workbench/tool-style pages keep one card boxed on purpose: `formula-form.css`'s editor+variables
-  cards and footer, `customparam.css`'s form+guide, `genome-upload.css`'s submit-form+guide,
-  `annotation-explorer.css`'s single `.explorer-card`. `protein-detail.css`'s
-  `.target-summary-panel` (tone-colored executive summary) and `.protein-interpretation-guide`
-  (collapsible info box) are callout-style exceptions, not workbench ones, but the same "boxed
-  element needs `margin: 0 18px` for border alignment" fix applies to all of them.
+  cards and footer, `customparam.css`'s form+guide, `annotation-explorer.css`'s single
+  `.explorer-card`. `protein-detail.css`'s `.target-summary-panel` (tone-colored executive summary)
+  and `.protein-interpretation-guide` (collapsible info box) are callout-style exceptions, not
+  workbench ones, but the same "boxed element needs `margin: 0 18px` for border alignment" fix
+  applies to all of them. **`genome-upload.css`'s submit-form+guide was originally kept here too,
+  but was fused after explicit user pushback** — see the plain-text-in-a-rounded-box rule below,
+  which is what actually changed the call for that one.
+- **Plain text never sits in its own rounded/tinted box, chips and buttons are the only exception.**
+  This came up on `genome-upload.css`: a "pipeline running" notice and a "before you submit" tip
+  each had their own bordered, radius'd, tinted-background box (`.tp-state-note`-style) sitting
+  inside an already-boxed card — read as a rounded container nested inside another rounded
+  container. Fixed with a left-accent-bar (`border-left: 3px solid var(--tp-color-*-border)`, no
+  fill, no radius) instead — keeps the color-coded meaning without the second box. This is a
+  general rule, not a one-off: audit any inline note/tip/banner that's pure text (not a chip, not a
+  button, not a form field) for this pattern on every page, workbench-exception pages included —
+  it's exactly what tipped `genome-upload.css`'s form+guide pair from "keep boxed" to "fuse."
+- **Corollary — don't wrap a chip/pill in another rounded container either.** Found on
+  `home.css`: `.home-operations-statusbar` was itself a bordered, fully-rounded pill
+  (`border-radius: 999px`) wrapping `.home-pipeline-chip`, which is already a `.tp-chip` pill —
+  a chip nested inside another chip, same family of bug as text-in-a-box above but with a chip as
+  the inner element instead of plain text. A row that groups a chip with one or more icon buttons
+  needs to be a plain flex container (`display:flex`/`inline-flex`, no border/background/radius of
+  its own) — the chip and the buttons already carry their own shapes; the grouping wrapper doesn't
+  need one too. Check any place a `.tp-chip` sits inside a `<div>`/`<span>` wrapper alongside
+  buttons or other chips for this exact pattern.
 - Check each page's own CSS file under `static/css/pages/` for its `.tp-ui-panel`/`.tp-card`-based
   section styling before editing the template — several pages (genomes-list, proteins-list,
   customparam) duplicate the shared class's box styling directly under a page-specific class name,
